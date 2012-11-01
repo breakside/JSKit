@@ -6,11 +6,106 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXFileReference section */
+		3116E6B01641DC3500FBCF29 /* CoreTypes.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = CoreTypes.js; sourceTree = "<group>"; };
+		3116E6B11641DC3500FBCF29 /* Foundation.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Foundation.js; sourceTree = "<group>"; };
+		3116E6B21641DC3500FBCF29 /* Javascript.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Javascript.js; sourceTree = "<group>"; };
+		3116E6B41641DC3500FBCF29 /* JSApplication.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSApplication.js; sourceTree = "<group>"; };
+		3116E6B51641DC3500FBCF29 /* JSArrayController.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSArrayController.js; sourceTree = "<group>"; };
+		3116E6B61641DC3500FBCF29 /* JSButton.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSButton.js; sourceTree = "<group>"; };
+		3116E6B71641DC3500FBCF29 /* JSEvent.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSEvent.js; sourceTree = "<group>"; };
+		3116E6B81641DC3500FBCF29 /* JSHTMLLabelRenderDelegate.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSHTMLLabelRenderDelegate.js; sourceTree = "<group>"; };
+		3116E6B91641DC3500FBCF29 /* JSHTMLViewRenderDelegate.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSHTMLViewRenderDelegate.js; sourceTree = "<group>"; };
+		3116E6BA1641DC3500FBCF29 /* JSImage.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSImage.js; sourceTree = "<group>"; };
+		3116E6BB1641DC3500FBCF29 /* JSImageView.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSImageView.js; sourceTree = "<group>"; };
+		3116E6BC1641DC3500FBCF29 /* JSKit.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSKit.js; sourceTree = "<group>"; };
+		3116E6BD1641DC3500FBCF29 /* JSLabel.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSLabel.js; sourceTree = "<group>"; };
+		3116E6BE1641DC3500FBCF29 /* JSObject.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = JSObject.js; path = ../JSKit/JSObject.js; sourceTree = "<group>"; };
+		3116E6BF1641DC3500FBCF29 /* JSPropertyList.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSPropertyList.js; sourceTree = "<group>"; };
+		3116E6C01641DC3500FBCF29 /* JSSparseArrayController.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSSparseArrayController.js; sourceTree = "<group>"; };
+		3116E6C11641DC3500FBCF29 /* JSTableView.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSTableView.js; sourceTree = "<group>"; };
+		3116E6C21641DC3500FBCF29 /* JSTextRenderDelegate.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSTextRenderDelegate.js; sourceTree = "<group>"; };
+		3116E6C31641DC3500FBCF29 /* JSSpec.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSSpec.js; sourceTree = "<group>"; };
+		3116E6C41641DC3500FBCF29 /* JSValueTransformer.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSValueTransformer.js; sourceTree = "<group>"; };
+		3116E6C51641DC3500FBCF29 /* JSView.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSView.js; sourceTree = "<group>"; };
+		3116E6C61641DC3500FBCF29 /* JSViewRenderDelegate.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSViewRenderDelegate.js; sourceTree = "<group>"; };
+		3116E6C71641DC3500FBCF29 /* JSWindow.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSWindow.js; sourceTree = "<group>"; };
+		3116E6C81641DC3500FBCF29 /* JSWindowRenderDelegate.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSWindowRenderDelegate.js; sourceTree = "<group>"; };
+		3116E6CF1641DC6900FBCF29 /* make.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = make.py; sourceTree = "<group>"; };
+		3116E6D41641DFA700FBCF29 /* JSViewController.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = JSViewController.js; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
 /* Begin PBXGroup section */
 		3116E69D1641DBF300FBCF29 = {
 			isa = PBXGroup;
 			children = (
+				3116E6CE1641DC6900FBCF29 /* build */,
+				3116E6AF1641DC3500FBCF29 /* Foundation */,
+				3116E6B31641DC3500FBCF29 /* JSKit */,
 			);
+			sourceTree = "<group>";
+		};
+		3116E6AF1641DC3500FBCF29 /* Foundation */ = {
+			isa = PBXGroup;
+			children = (
+				3116E6B11641DC3500FBCF29 /* Foundation.js */,
+				3116E6B01641DC3500FBCF29 /* CoreTypes.js */,
+				3116E6B21641DC3500FBCF29 /* Javascript.js */,
+				3116E6BE1641DC3500FBCF29 /* JSObject.js */,
+			);
+			path = Foundation;
+			sourceTree = "<group>";
+		};
+		3116E6B31641DC3500FBCF29 /* JSKit */ = {
+			isa = PBXGroup;
+			children = (
+				3116E6BC1641DC3500FBCF29 /* JSKit.js */,
+				3116E6D11641DD6E00FBCF29 /* Base */,
+				3116E6D01641DD6500FBCF29 /* Views */,
+			);
+			path = JSKit;
+			sourceTree = "<group>";
+		};
+		3116E6CE1641DC6900FBCF29 /* build */ = {
+			isa = PBXGroup;
+			children = (
+				3116E6CF1641DC6900FBCF29 /* make.py */,
+			);
+			path = build;
+			sourceTree = "<group>";
+		};
+		3116E6D01641DD6500FBCF29 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				3116E6C51641DC3500FBCF29 /* JSView.js */,
+				3116E6B71641DC3500FBCF29 /* JSEvent.js */,
+				3116E6BD1641DC3500FBCF29 /* JSLabel.js */,
+				3116E6B61641DC3500FBCF29 /* JSButton.js */,
+				3116E6BB1641DC3500FBCF29 /* JSImageView.js */,
+				3116E6C11641DC3500FBCF29 /* JSTableView.js */,
+				3116E6B81641DC3500FBCF29 /* JSHTMLLabelRenderDelegate.js */,
+				3116E6B91641DC3500FBCF29 /* JSHTMLViewRenderDelegate.js */,
+				3116E6C21641DC3500FBCF29 /* JSTextRenderDelegate.js */,
+				3116E6C61641DC3500FBCF29 /* JSViewRenderDelegate.js */,
+				3116E6C81641DC3500FBCF29 /* JSWindowRenderDelegate.js */,
+			);
+			name = Views;
+			sourceTree = "<group>";
+		};
+		3116E6D11641DD6E00FBCF29 /* Base */ = {
+			isa = PBXGroup;
+			children = (
+				3116E6B41641DC3500FBCF29 /* JSApplication.js */,
+				3116E6BF1641DC3500FBCF29 /* JSPropertyList.js */,
+				3116E6C31641DC3500FBCF29 /* JSSpec.js */,
+				3116E6C41641DC3500FBCF29 /* JSValueTransformer.js */,
+				3116E6B51641DC3500FBCF29 /* JSArrayController.js */,
+				3116E6C01641DC3500FBCF29 /* JSSparseArrayController.js */,
+				3116E6BA1641DC3500FBCF29 /* JSImage.js */,
+				3116E6C71641DC3500FBCF29 /* JSWindow.js */,
+				3116E6D41641DFA700FBCF29 /* JSViewController.js */,
+			);
+			name = Base;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
