@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>JSApplicationIdentifier</key>
+	<string>com.yourcompany.sample</string>
+	<key>JSApplicationDelegate</key>
+	<string>ApplicationDelegate</string>
+	<key>JSApplicationTitle</key>
+	<string>Sample App</string>
+    <key>JSIncludes</key>
+    <array>
+        <string>ApplicationDelegate.js</string>
+    </array>
+</dict>
+</plist>

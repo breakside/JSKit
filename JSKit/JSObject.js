@@ -1,41 +1,56 @@
-// #import "Foundation/Javascript.js"
+// #import "Foundation/Foundation.js"
+// #import "JSKit/JSClass.js"
 
-JSObservingContextBinding = "JSObservingContextBinding";
-JSObservingContextChained = "JSObservingContextChained";
+var JSObject = Object.create(JSClass.prototype, {
+    ID: {
+        configurable: false,
+        enumerable: false,
+        writable: true,
+        value: 0
+    },
+    className: {
+        configurable: false,
+        enumerable: false,
+        writable: false,
+        value: 'JSObject'
+    }
+});
 
-JSKeyValueChangeSetting     = 1;
-JSKeyValueChangeInsertion   = 2;
-JSKeyValueChangeRemoval     = 3;
-JSKeyValueChangeReplacement = 4;
+JSObject.prototype = Object.create(Object.prototype, {
+    '$class': {
+        configurable: false,
+        enumerable: false,
+        writable: false,
+        value: JSObject
+    }
+});
 
-function JSObject(){
-}
+JSObject.definePropertiesFromExtensions({
 
-JSObject.ID = 0;
-
-JSObject.alloc = function(){
-    return new this();
-};
-
-JSObject.prototype = {
-    
-    _id         : null,
+    objectID    : null,
     _observers  : null,
     _bindings   : null,
-    
+    _observableKeys: null,
+
     automaticallyManagesBindings    : true,
-    
-    
+
+
     // -------------------------------------------------------------------------
     // MARK: - Initialization
-    
+
     init: function(){
-        this._id = ++JSObject.ID;
+        this.objectID = ++JSObject.ID;
         this._observers = [];
         this._bindings = {};
-        return this;
+        this._observableKeys = {};
     },
-    
+
+    initWithProperties: function(properties){
+        for (var i in properties){
+            this.setValueForKey(properties[i], i);
+        }
+    },
+
     initWithSpec: function(spec){
         JSObject.init.call(this);
         if ("JSBindings" in spec){
@@ -49,58 +64,73 @@ JSObject.prototype = {
                 this.setValueForKey(spec.JSOutlets[key], key);
             }
         }
-        return this;
     },
-    
+
+    implementsProtocol: function(protocol){
+        for (var method in protocol){
+            if (!(method in this)){
+                return false;
+            }
+        }
+        return true;
+    },
+
+    isKindOfClass: function(referenceClass){
+        return this.$class.isSubclassOfClass(referenceClass);
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Observing
-    
+
     observeValueForKeyPath: function(keyPath, ofObject, change, context){
     },
-    
+
     _observeValueForKeyPath: function(keyPath, ofObject, change, context){
-        if (this.automaticallyManagesBindings && context && context.type == JSObservingContextBinding){
+        if (this.automaticallyManagesBindings && context && context.type == JSObservingContext.Binding){
             var bindingInfo = context;
-            if (change.type == JSKeyValueChangeSetting){
-                var key = bidningInfo.binding;
+            var key;
+            var i, l;
+            var index;
+            if (change.type == JSKeyValueChange.Setting){
+                key = bidningInfo.binding;
                 if (bindingInfo.options.valueTransformer){
-                    var vt = JSClassForName(bindingInfo.options.valueTransformer).alloc().init();
-                    this.silentlySetValueForKey(key, vt.transformValue(change.newValue));
+                    var valueTransformer = JSClassForName(bindingInfo.options.valueTransformer).init();
+                    this.silentlySetValueForKey(key, valueTransformer.transformValue(change.newValue));
                 }else{
                     this.silentlySetValueForKey(key, change.newValue);
                 }
-            }else if (change.type == JSKeyValueChangeInsertion){
-                var key = bindingInfo.binding;
+            }else if (change.type == JSKeyValueChange.Insertion){
+                key = bindingInfo.binding;
                 change.indexes.sort();
-                for (var i = 0, l = change.indexes.length; i < l; ++i){
-                    var index = change.indexes[i];
+                for (i = 0, l = change.indexes.length; i < l; ++i){
+                    index = change.indexes[i];
                     this.silentlyInsertObjectInKeyAtIndex(change.sourceObject.objectInKeyAtIndex(change.sourceKey, index), key, index);
                 }
-            }else if (change.type == JSKeyValueChangeRemoval){
-                var key = bindingInfo.binding;
+            }else if (change.type == JSKeyValueChange.Removal){
+                key = bindingInfo.binding;
                 change.indexes.sort();
-                for (var i = change.indexes.length - 1; i >= 0; --i){
-                    var index = change.indexes[i];
+                for (i = change.indexes.length - 1; i >= 0; --i){
+                    index = change.indexes[i];
                     this.silentlyRemoveObjectFromKeyAtIndex(key, index);
                 }
-            }else if (change.type == JSKeyValueChangeReplacement){
-                var key = bindingInfo.binding;
+            }else if (change.type == JSKeyValueChange.Replacement){
+                key = bindingInfo.binding;
                 change.indexes.sort();
-                for (var i = 0, l = change.indexes.length; i < l; ++i){
-                    var index = change.indexes[i];
+                for (i = 0, l = change.indexes.length; i < l; ++i){
+                    index = change.indexes[i];
                     this.silentlyReplaceObjectInKeyAtIndexWithObject(key, index, change.sourceObject.objectInKeyAtIndex(change.sourceKey, index));
                 }
             }
-        }else if (context && context.type == JSObservingContextChained){
+        }else if (context && context.type == JSObservingContext.Chained){
             var observerInfo = context;
             observerInfo.observingObject._observeValueForKeyPath(observerInfo.observingKeyPath, this, change, observerInfo.context);
         }
         this.observeValueForKeyPath(keyPath, ofObject, change, context);
     },
-    
+
     addObserverForKeyPath: function(observer, keyPath, options, context){
         var observerInfo = {
-            type                : JSObservingContextChained,
+            type                : JSObservingContext.Chained,
             observingObject     : observer,
             observingKeyPath    : keyPath,
             options             : options,
@@ -108,10 +138,7 @@ JSObject.prototype = {
         };
         var keyParts = keyPath.split('.');
         var key = keyParts.shift();
-        this._swapSetMethodForKey(key);
-        this._swapInsertMethodForKey(key);
-        this._swapRemoveMethodForKey(key);
-        this._swapReplaceMethodForKey(key);
+        this._enableObservingForKey(key);
         if (!this._observers[key]){
             this._observers[key] = [];
         }
@@ -123,7 +150,7 @@ JSObject.prototype = {
             }
         }
     },
-    
+
     removeObserverForKeyPath: function(observer, keyPath, context){
         var keyParts = keyPath.split('.');
         var key = keyParts.shift();
@@ -142,17 +169,17 @@ JSObject.prototype = {
             }
         }
     },
-    
+
     // -------------------------------------------------------------------------
     // MARK: - Binding
-    
+
     bind: function(binding, toObject, keyPath, options){
         if (this.automaticallyManagesBindings){
             if (binding in this._bindings){
                 this.unbind(binding);
             }
             var bindingInfo = {
-                type            : JSObservingContextBinding,
+                type            : JSObservingContext.Binding,
                 binding         : binding,
                 observedObject  : toObject._id,
                 observedKeyPath : keyPath,
@@ -162,7 +189,7 @@ JSObject.prototype = {
             target.addObserverForKeyPath(this, keyPath, observingOptions, bindingInfo);
         }
     },
-    
+
     unbind: function(binding){
         if (binding in this._bindings){
             var bindingInfo = this._bindings[binding];
@@ -172,19 +199,19 @@ JSObject.prototype = {
 
     // -------------------------------------------------------------------------
     // MARK: - Accessing and Manipulating Properties
-    
+
     valueForKey: function(key){
         var getterName = 'get' + key.ucFirst();
         if (this[getterName]){
             return this[getterName]();
         }
-        var getterName = 'is' + key.ucFirst();
+        getterName = 'is' + key.ucFirst();
         if (this[getterName]){
             return this[getterName]();
         }
         return this[key];
     },
-    
+
     valueForKeyPath: function(keyPath){
         var keyParts = keyPath.split('.');
         var key = keyParts.shift();
@@ -194,41 +221,51 @@ JSObject.prototype = {
         }
         return value;
     },
-    
+
     setValueForKey: function(key, value){
-        var setterName = JSNameOfSetMethodForKey(key);
+        var setterName = this.$class.nameOfSetMethodForKey(key);
         if (this[setterName]){
             return this[setterName](value);
         }
-        this.willChangeValueForKey(key);
-        this[key] = value;
-        this.didChangeValueForKey(key);
+        var silentKey = this.$class.nameOfSilentPropertyForKey(key);
+        if (silentKey in this){
+            this[key] = value;
+        }else{
+            this.willChangeValueForKey(key);
+            this[key] = value;
+            this.didChangeValueForKey(key);
+        }
     },
-    
+
     silentlySetValueForKey: function(key, value){
-        var replacedSetterName = JSNameOfSilentSetMethodForKey(key);
+        var replacedSetterName = this.$class.nameOfSilentSetMethodForKey(key);
         if (this[replacedSetterName]){
             return this[replacedSetterName](value);
         }
-        var setterName = JSNameOfSetMethodForKey(key);
+        var setterName = this.$class.nameOfSetMethodForKey(key);
         if (this[setterName]){
             return this[setterName](value);
         }
-        this[key] = value;
+        var silentKey = this.$class.nameOfSilentPropertyForKey(key);
+        if (silentKey in this){
+            this[silentKey] = value;
+        }else{
+            this[key] = value;
+        }
     },
-    
+
     setValueForKeyPath: function(keyPath, value){
         var keyParts = keyPath.split('.');
         var key = keyParts.shift();
-        var value = this.valueForKey(key);
+        var intermediateValue = this.valueForKey(key);
         if (keyParts.length && (value !== null && value !== undefined)){
-            value.setValueForKeyPath(keyParts.join('.'), value);
+            intermediateValue.setValueForKeyPath(keyParts.join('.'), value);
         }
     },
-    
+
     // -------------------------------------------------------------------------
     // MARK: To-Many Properties
-    
+
     countOfKey: function(key){
         var countMethodName = 'countOf' + key.ucFirst();
         if (this[countMethodName]){
@@ -240,7 +277,7 @@ JSObject.prototype = {
         }
         return null;
     },
-    
+
     objectInKeyAtIndex: function(key, index){
         var objectMethodName = 'objectIn' + key.ucFirst() + 'AtIndex';
         if (this[objectMethodName]){
@@ -251,7 +288,7 @@ JSObject.prototype = {
             return value[index];
         }
     },
-    
+
     getKeyRange: function(key, range){
         var rangeMethodName = 'get' + key.ucFirst() + 'Range';
         if (this[rangeMethodName]){
@@ -262,52 +299,52 @@ JSObject.prototype = {
             return value.slice(range.location, range.location + range.length);
         }
     },
-    
+
     insertObjectInKeyAtIndex: function(obj, key, index){
-        var insertMethodName = JSNameOfInsertMethodForKey(key);
+        var insertMethodName = this.$class.nameOfInsertMethodForKey(key);
         if (this[insertMethodName]){
             return this[insertMethodName](obj, index);
         }
         var value = this.valueForKey(key);
         if (value !== null && value !== undefined){
-            this.willChangeValuesAtIndexesForKey(key, JSKeyValueChangeInsertion, [index]);
+            this.willChangeValuesAtIndexesForKey(key, JSKeyValueChange.Insertion, [index]);
             value.splice(index, 0, obj);
-            this.didChangeValuesAtIndexesForKey(key, JSKeyValueChangeInsertion, [index]);
+            this.didChangeValuesAtIndexesForKey(key, JSKeyValueChange.Insertion, [index]);
         }
     },
-    
+
     removeObjectFromKeyAtIndex: function(key, index){
-        var removeMehodName = JSNameOfRemoveMethodForKey(key);
+        var removeMehodName = this.$class.nameOfRemoveMethodForKey(key);
         if (this[removeMehodName]){
             return this[removeMehodName](index);
         }
         var value = this.valueForKey(key);
         if (value !== null && value !== undefined){
-            this.willChangeValuesAtIndexesForKey(key, JSKeyValueChangeRemoval, [index]);
+            this.willChangeValuesAtIndexesForKey(key, JSKeyValueChange.Removal, [index]);
             value.splice(index, 1);
-            this.didChangeValuesAtIndexesForKey(key, JSKeyValueChangeRemoval, [index]);
+            this.didChangeValuesAtIndexesForKey(key, JSKeyValueChange.Removal, [index]);
         }
     },
-    
+
     replaceObjectInKeyAtIndexWithObject: function(key, index, obj){
-        var replaceMehodName = JSNameOfReplaceMethodForKey(key);
+        var replaceMehodName = this.$class.nameOfReplaceMethodForKey(key);
         if (this[replaceMehodName]){
             return this[replaceMehodName](index, obj);
         }
         var value = this.valueForKey(key);
         if (value !== null && value !== undefined){
-            this.willChangeValuesAtIndexesForKey(key, JSKeyValueChangeReplacement, [index]);
+            this.willChangeValuesAtIndexesForKey(key, JSKeyValueChange.Replacement, [index]);
             value[index] = obj;
-            this.didChangeValuesAtIndexesForKey(key, JSKeyValueChangeReplacement, [index]);
+            this.didChangeValuesAtIndexesForKey(key, JSKeyValueChange.Replacement, [index]);
         }
     },
-        
+
     silentlyInsertObjectInKeyAtIndex: function(obj, key, index){
-        var insertMethodName = JSNameOfSilentInsertMethodForKey(key);
+        var insertMethodName = this.$class.nameOfSilentInsertMethodForKey(key);
         if (this[insertMethodName]){
             return this[insertMethodName](obj, index);
         }
-        var insertMethodName = JSNameOfInsertMethodForKey(key);
+        insertMethodName = this.$class.nameOfInsertMethodForKey(key);
         if (this[insertMethodName]){
             return this[insertMethodName](obj, index);
         }
@@ -316,13 +353,13 @@ JSObject.prototype = {
             value.splice(index, 0, obj);
         }
     },
-        
+
     silentlyRemoveObjectFromKeyAtIndex: function(key, index){
-        var removeMehodName = JSNameOfSilentRemoveMethodForKey(key);
+        var removeMehodName = this.$class.nameOfSilentRemoveMethodForKey(key);
         if (this[removeMehodName]){
             return this[removeMehodName](index);
         }
-        var removeMehodName = JSNameOfRemoveMethodForKey(key);
+        removeMehodName = this.$class.nameOfRemoveMethodForKey(key);
         if (this[removeMehodName]){
             return this[removeMehodName](index);
         }
@@ -331,13 +368,13 @@ JSObject.prototype = {
             value.splice(index, 1);
         }
     },
-        
+
     silentlyReplaceObjectInKeyAtIndexWithObject: function(key, index, obj){
-        var replaceMehodName = JSNameOfSilentReplaceMethodForKey(key);
+        var replaceMehodName = this.$class.nameOfSilentReplaceMethodForKey(key);
         if (this[replaceMehodName]){
             return this[replaceMehodName](index, obj);
         }
-        var replaceMehodName = JSNameOfReplaceMethodForKey(key);
+        replaceMehodName = this.$class.nameOfReplaceMethodForKey(key);
         if (this[replaceMehodName]){
             return this[replaceMehodName](index, obj);
         }
@@ -346,10 +383,10 @@ JSObject.prototype = {
             value[index] = obj;
         }
     },
-    
+
     // -------------------------------------------------------------------------
     // MARK: Notifications
-    
+
     willChangeValueForKey: function(key){
         var value = this.valueForKey(key);
         if (value && key in this._observers){
@@ -363,13 +400,13 @@ JSObject.prototype = {
             }
         }
     },
-        
+
     didChangeValueForKey: function(key){
         var value = this.valueForKey(key);
         if (key in this._observers){
             for (var i = 0, l = this._observers[key].length; i < l; ++i){
                 var observerInfo = this._observers[key][i];
-                observerInfo.observingObject._observeValueForKeyPath(observerInfo.observingKeyPath, this, {type: JSKeyValueChangeSetting, newValue: value}, observerInfo.context);
+                observerInfo.observingObject._observeValueForKeyPath(observerInfo.observingKeyPath, this, {type: JSKeyValueChange.Setting, newValue: value}, observerInfo.context);
                 var keyParts = observerInfo.observingKeyPath.split('.');
                 keyParts.shift();
                 if (keyParts.length && value){
@@ -382,26 +419,29 @@ JSObject.prototype = {
             if (!bindingInfo.options.readOnly){
                 transformedValue = value;
                 if (bindingInfo.options.valueTransformer){
-                    var vt = JSClassForName(bindingInfo.options.valueTransformer).alloc().init();
-                    transformedValue = vt.reverseTransformValue(value);
+                    var valueTransformer = JSClassForName(bindingInfo.options.valueTransformer).init();
+                    transformedValue = valueTransformer.reverseTransformValue(value);
                 }
                 bindingInfo.observedObject.setValueForKeyPath(bindingInfo.observedKeyPath, transformedValue);
             }
         }
     },
-        
+
     willChangeValuesAtIndexesForKey: function(key, change, indexes){
     },
-        
+
     didChangeValuesAtIndexesForKey: function(key, change, indexes){
+        var i, l;
         if (key in this._observers){
-            for (var i = 0, l = this._observers[key].length; i < l; ++i){
+            for (i = 0, l = this._observers[key].length; i < l; ++i){
                 var observerInfo = this._observers[key][i];
                 observerInfo.observingObject._observeValueForKeyPath(observerInfo.observingKeyPath, this, {type: change, indexes: indexes, sourceObject: this, sourceKey: key}, observerInfo.context);
             }
         }
         if (this.automaticallyManagesBindings && key in this._bindings){
             var bindingInfo = this._bindings[key];
+            var index;
+            var obj;
             if (!bindingInfo.options.readOnly){
                 var keyParts = bindingInfo.keyPath.split('.');
                 var finalKey = keyParts.pop();
@@ -411,21 +451,21 @@ JSObject.prototype = {
                 }
                 if (targetObject){
                     indexes.sort();
-                    if (change == JSKeyValueChangeInsertion){
-                        for (var i = 0, l = indexes.length; i < l; ++i){
-                            var index = indexes[i];
-                            var obj = this.objectInKeyAtIndex(key, index);
+                    if (change == JSKeyValueChange.Insertion){
+                        for (i = 0, l = indexes.length; i < l; ++i){
+                            index = indexes[i];
+                            obj = this.objectInKeyAtIndex(key, index);
                             targetObject.insertObjectInKeyPathAtIndex(obj, finalKey, index);
                         }
-                    }else if (change == JSKeyValueChangeRemoval){
-                        for (var i = indexes.length - 1; i >=0; --i){
-                            var index = indexes[i];
+                    }else if (change == JSKeyValueChange.Removal){
+                        for (i = indexes.length - 1; i >=0; --i){
+                            index = indexes[i];
                             targetObject.removeObjectFromKeyPathAtIndex(finalKey, index);
                         }
-                    }else if (change == JSKeyValueChangeReplacement){
-                        for (var i = 0, l = indexes.length; i < l; ++i){
-                            var index = indexes[i];
-                            var obj = this.objectInKeyAtIndex(key, index);
+                    }else if (change == JSKeyValueChange.Replacement){
+                        for (i = 0, l = indexes.length; i < l; ++i){
+                            index = indexes[i];
+                            obj = this.objectInKeyAtIndex(key, index);
                             targetObject.replaceObjectInKeyAtIndexWithObject(finalKey, index, obj);
                         }
                     }
@@ -433,64 +473,157 @@ JSObject.prototype = {
             }
         }
     },
-    
+
     // -------------------------------------------------------------------------
     // MARK: - KVO swaps
-    
-    _swapSetMethodForKey: function(key){
-        var setterName = JSNameOfSetMethodForKey(key);
-        var replacedSetterName = JSNameOfSilentSetMethodForKey(key);
-        if (this[setterName] && !this[replacedSetterName]){
-            var originalSetter = this[setterName];
-            this[replacedSetterName] = originalSetter;
-            this[setterName] = function(x){
-                this.willChangeValueForKey(key);
-                originalSetter.call(this, x);
-                this.didChangeValueForKey(key);
-            };
+
+    _enableObservingForKey: function(key){
+        if (!(key in this._observableKeys)){
+            this._enableSetObservingForKey(key);
+            this._enableInsertObservingForKey(key);
+            this._enableRemoveObservingForKey(key);
+            this._enableReplaceObservingForKey(key);
+            this._observableKeys[key] = true;
         }
     },
-    
-    _swapInsertMethodForKey: function(key){
-        var insertMethodName = JSNameOfInsertMethodForKey(key);
-        var silentMethodName = JSNameOfSilentInsertMethodForKey(key);
-        if (this[insertMethodName] && !this[silentMethodName]){
+
+    _enableSetObservingForKey: function(key){
+        var setterName = this.$class.nameOfSetMethodForKey(key);
+        if (this[setterName]){
+            this.defineObservableSetterForKey(key, setterName);
+        }else{
+            this.defineObservablePropertyForKey(key, this[key]);
+        }
+    },
+
+    _enableInsertObservingForKey: function(key){
+        var insertMethodName = this.$class.nameOfInsertMethodForKey(key);
+        if (this[insertMethodName]){
+            var silentMethodName = this.$class.nameOfSilentInsertMethodForKey(key);
             var originalMethod = this[insertMethodName];
-            this[silentMethodName] = originalMethod;
-            this[insertMethodName] = function(obj, index){
-                this.willChangeValuesAtIndexesForKey(key, JSKeyValueChangeInsertion, [index]);
-                originalMethod.call(this, obj, index);
-                this.didChangeValueForKey(key, JSKeyValueChangeInsertion, [index]);
-            };
+            Object.defineProperty(this, silentMethodName, {
+                configurable: false,
+                enumerable: false,
+                value: originalMethod
+            });
+            Object.defineProperty(this, insertMethodName, {
+                configurable: false,
+                enumerable: false,
+                value: function JSObject_observableInsert(obj, index){
+                    this.willChangeValuesAtIndexesForKey(key, JSKeyValueChange.Insertion, [index]);
+                    originalMethod.call(this, obj, index);
+                    this.didChangeValueForKey(key, JSKeyValueChange.Insertion, [index]);
+                }
+            });
         }
     },
-    
-    _swapRemoveMethodForKey: function(key){
-        var removeMethodName = JSNameOfRemoveMethodForKey(key);
-        var silentMethodName = JSNameOfSilentRemoveMethodForKey(key);
-        if (this[removeMethodName] && !this[silentMethodName]){
+
+    _enableRemoveObservingForKey: function(key){
+        var removeMethodName = this.$class.nameOfRemoveMethodForKey(key);
+        if (this[removeMethodName]){
+            var silentMethodName = this.$class.nameOfSilentRemoveMethodForKey(key);
             var originalMethod = this[removeMethodName];
-            this[silentMethodName] = originalMethod;
-            this[removeMethodName] = function(obj, index){
-                this.willChangeValuesAtIndexesForKey(key, JSKeyValueChangeRemoval, [index]);
-                originalMethod.call(this, obj, index);
-                this.didChangeValueForKey(key, JSKeyValueChangeRemoval, [index]);
-            };
+            Object.defineProperty(this, silentMethodName, {
+                configurable: false,
+                enumerable: false,
+                value: originalMethod
+            });
+            Object.defineProperty(this, removeMethodName, {
+                configurable: false,
+                enumerable: false,
+                value: function JSObject_observableRemove(obj, index){
+                    this.willChangeValuesAtIndexesForKey(key, JSKeyValueChange.Removal, [index]);
+                    originalMethod.call(this, obj, index);
+                    this.didChangeValueForKey(key, JSKeyValueChange.Removal, [index]);
+                }
+            });
         }
     },
-    
-    _swapReplaceMethodForKey: function(key){
-        var replaceMethodName = JSNameOfReplaceMethodForKey(key);
-        var silentMethodName = JSNameOfSilentReplaceMethodForKey(key);
-        if (this[replaceMethodName] && !this[silentMethodName]){
+
+    _enableReplaceObservingForKey: function(key){
+        var replaceMethodName = this.$class.nameOfReplaceMethodForKey(key);
+        if (this[replaceMethodName]){
+            var silentMethodName = this.$class.nameOfSilentReplaceMethodForKey(key);
             var originalMethod = this[replaceMethodName];
-            this[silentMethodName] = originalMethod;
-            this[replaceMethodName] = function(obj, index){
-                this.willChangeValuesAtIndexesForKey(key, JSKeyValueChangeReplacement, [index]);
-                originalMethod.call(this, obj, index);
-                this.didChangeValueForKey(key, JSKeyValueChangeReplacement, [index]);
-            };
+            Object.defineProperty(this, silentMethodName, {
+                configurable: false,
+                enumerable: false,
+                value: originalMethod
+            });
+            Object.defineProperty(this, replaceMethodName, {
+                configurable: false,
+                enumerable: false,
+                value: function JSObject_observableReplace(obj, index){
+                    this.willChangeValuesAtIndexesForKey(key, JSKeyValueChange.Replacement, [index]);
+                    originalMethod.call(this, obj, index);
+                    this.didChangeValueForKey(key, JSKeyValueChange.Replacement, [index]);
+                }
+            });
         }
     },
-    
+
+    defineObservableSetterForKey: function(key, setterName){
+        var replacedSetterName = this.$class.nameOfSilentSetMethodForKey(key);
+        var silentKey = this.$class.nameOfSilentPropertyForKey(key);
+        var originalSetter = this[setterName];
+        var observableSetter = function JSObject_observableSet(v){
+            this.willChangeValueForKey(key);
+            originalSetter.call(this, v);
+            this.didChangeValueForKey(key);
+        };
+        Object.defineProperty(this, replacedSetterName, {
+            configurable: false,
+            enumerable: false,
+            writable: false,
+            value: originalSetter
+        });
+        Object.defineProperty(this, setterName, {
+            configurable: false,
+            enumerable: false,
+            value: observableSetter
+        });
+        Object.defineProperty(this, key, {
+            configurable: false,
+            enumerable: false,
+            get: function JSObject_observableGet(){
+                return this[silentKey];
+            },
+            set: observableSetter
+        });
+    },
+
+    defineObservablePropertyForKey: function(key, value){
+        var silentKey = this.$class.nameOfSilentPropertyForKey(key);
+        Object.defineProperty(this, silentKey, {
+            configurable: false,
+            enumerable: false,
+            writable: true,
+            value: value
+        });
+        Object.defineProperty(this, key, {
+            configurable: false,
+            enumerable: false,
+            get: function JSObject_observableGet(){
+                return this[silentKey];
+            },
+            set: function JSObject_observableSet(v){
+                this.willChangeValueForKey(key);
+                this[silentKey] = v;
+                this.didChangeValueForKey(key);
+            }
+        });
+    }
+
+});
+
+var JSObservingContext = {
+    Binding: "JSObservingContextBinding",
+    Chained: "JSObservingContextChained"
+};
+
+var JSKeyValueChange = {
+    Setting: 1,
+    Insertion: 2,
+    Removal: 3,
+    Replacement: 4
 };

@@ -8,14 +8,13 @@ JSImageView.prototype = {
     image:      null,
     
     initWithImage: function(image){
-        this.$super.initWithFrame.call(this, CGRectMake(0,0,image.width,image.height));
+        JSImageView.$super.initWithFrame.call(this, CGRectMake(0,0,image.width,image.height));
         this.image = image;
-        return this;
     },
     
     setImage: function(image){
         this.image = image;
-        this._renderDelegate.imageViewDidChangeImage(this);
+        this._renderer.imageViewDidChangeImage(this);
     },
     
     getImage: function(){
@@ -26,21 +25,21 @@ JSImageView.prototype = {
 
 JSImageView.$extends(JSView);
 
-function JSImageViewRenderDelegate(){
+function JSImageViewRenderer(){
 }
 
-JSImageViewRenderDelegate.prototype = {
+JSImageViewRenderer.prototype = {
     
     imageViewDidChangeImage: ['view']
     
 };
 
-JSImageViewRenderDelegate.$extends(JSViewRenderDelegate);
+JSImageViewRenderer.$extends(JSViewRenderer);
 
-function JSHTMLImageViewRenderDelegate(){
+function JSHTMLImageViewRenderer(){
 }
 
-JSHTMLImageViewRenderDelegate.prototype = {
+JSHTMLImageViewRenderer.prototype = {
     
     imageViewDidChangeImage: function(view){
         var image = view.image;
@@ -53,4 +52,4 @@ JSHTMLImageViewRenderDelegate.prototype = {
     
 };
 
-JSHTMLImageViewRenderDelegate.$extends(JSHTMLViewRenderDelegate).$implements(JSImageViewRenderDelegate);
+JSHTMLImageViewRenderer.$extends(JSHTMLViewRenderer).$implements(JSImageViewRenderer);

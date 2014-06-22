@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>JSFilesOwner</key>
+	<string>#App Delegate</string>
+	<key>App Delegate</key>
+	<dict>
+		<key>JSObjectClass</key>
+		<string>ApplicationDelegate</string>
+		<key>JSInclude</key>
+		<string>ApplicationDelegate.js</string>
+		<key>JSOutlets</key>
+		<dict>
+			<key>window</key>
+			<string>#Main Window</string>
+		</dict>
+	</dict>
+	<key>Main Window</key>
+	<dict>
+		<key>JSObjectClass</key>
+		<string>JSWindow</string>
+		<key>subviews</key>
+		<array>
+			<string>#Main View</string>
+		</array>
+	</dict>
+	<key>Main View</key>
+	<dict>
+		<key>JSObjectClass</key>
+		<string></string>
+		<key>frame.margin</key>
+		<string>0</string>
+		<key>backgroundColor</key>
+		<string>204,0,0</string>
+	</dict>
+</dict>
+</plist>

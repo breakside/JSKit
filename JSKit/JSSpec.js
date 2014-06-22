@@ -1,33 +1,29 @@
-// #import "Foundation/Javascript.js"
+// #import "Foundation/Foundation.js"
 // #import "JSKit/JSObject.js"
 // #import "JSKit/JSPropertyList.js"
 
-function JSSpec(){
-}
+JSClass('JSSpec', JSObject, {
 
-JSSpec.prototype = {
-    
     _plist: null,
     _objectMap: null,
-    
+
     initWithResource: function(resource){
-        this.$super.init.call(this);
-        this._plist = JSPropertyList.alloc().initWithResource(resource);
+        JSSpec.$super.init.call(this);
+        this._plist = JSPropertyList.initWithResource(resource);
         this._objectMap = {};
-        return this;
     },
-    
+
     filesOwner: function(){
         var value = this._plist[JSSPecKeyFilesOwner];
         return this._resolve(value);
     },
-    
+
     _resolve: function(value){
         if (typeof(value) == 'string'){
             if (value.length > 0){
                 var c = value.charAt(0);
                 var _value = value.substr(1);
-                switch c:
+                switch (c) {
                     case '#':
                         if (!(_value in this._objectMap)){
                             this._objectMap[_value] = this._resolve(this._plist[_value]);
@@ -37,6 +33,7 @@ JSSpec.prototype = {
                         return JSGlobalObject[_value];
                     case '\\':
                         return _value;
+                }
             }
             return value;
         }
@@ -44,9 +41,9 @@ JSSpec.prototype = {
             for (var i in value){
                 value[i] = this._resolve[value[i]];
             }
-            if (JSSpecKeyObjectClass in value){
-                var className = value[JSSpecKeyObjectClass];
-                var obj = JSGlobalObject[className].alloc().initWithSpec(value);
+            if (JSSpecKeys.ObjectClass in value){
+                var className = value[JSSpecKeys.ObjectClass];
+                var obj = JSClassFromName(className).initWithSpec(value);
                 return obj;
             }else{
                 return value;
@@ -54,9 +51,10 @@ JSSpec.prototype = {
         }
         return value;
     }
+
+});
+
+var JSSpecKeys = {
+    FilesOwner: "JSFilesOwner",
+    ObjectClass: "JSObjectClass"
 };
-
-JSSpec.$extends(JSObject);
-
-JSSpecKeyFilesOwner = "JSFilesOwner"
-JSSpecKeyObjectClass = "JSObjectClass"

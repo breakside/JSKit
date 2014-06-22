@@ -1,36 +1,30 @@
-// #import "Foundation/JSArrayController.js"
+// #import "JSKit/JSArrayController.js"
 
-function JSSparseArrayController(){
-}
+JSClass('JSSparseArrayController', JSArrayController, {
 
-JSSparseArrayController.prototype = {
-    
     delegate    : null,
-    
+
     init: function(){
-        this.$super.init.call(this);
-        return this;
+        JSSparseArrayController.$super.init.call(this);
     },
-    
+
     countOfArrangedObjects: function(){
         return this.totalObjectCount;
     },
-    
+
     objectInArrangedObjectsAtIndex: function(index){
     },
-    
+
     arrangedObjectsInRange: function(range){
     },
-    
+
     insertObjectInArrangedObjectsAtIndex: function(object, index){
     },
-    
+
     removeObjectFromArrangedObjectsAtIndex: function(index){
     },
-    
-    replaceObjectInArragendObjectsAtIndex: function(index){
-    },
-    
-};
 
-JSSparseArrayController.$extends(JSArrayController);
+    replaceObjectInArragendObjectsAtIndex: function(index){
+    }
+
+});

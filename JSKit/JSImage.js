@@ -1,22 +1,17 @@
-// #import "Foundation/JSObject.js"
+// #import "JSKit/JSObject.js"
 
-function JSImage(){
-}
+JSClass('JSImage', JSObject, {
 
-JSImage.prototype = {
-    
     resource: null,
-    
+
     initWithResource: function(resource){
         this.resource = resource;
         var resourceInfo = JSApplication.sharedApplication.infoForResource(this.resource);
         this.width = resourceInfo.width;
         this.height = resourceInfo.height;
     },
-    
-    initWithStretchableResource: function(resource){
-    },
-    
-};
 
-JSImage.$extends(JSObject);
+    initWithStretchableResource: function(resource){
+    }
+
+});
