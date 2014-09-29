@@ -24,7 +24,7 @@ JSApplication.InfoPlistName  = "Info.plist";
 JSApplication._sharedApplication = null;
 
 Object.defineProperty(JSApplication, 'sharedApplication', {
-    get: function(){
+    get: function JSApplication_getSharedApplication(){
         return JSApplication._sharedApplication;
     }
 });

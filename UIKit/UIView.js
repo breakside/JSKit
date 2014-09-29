@@ -13,27 +13,8 @@ JSClass('UIView', JSObject, {
     superview               : null,     // UIView
     level                   : null,     // int
     subviews                : null,     // Array
-
-    frame                   : null,     // JSRect
-    center                  : null,     // JSPoint
-    constraintBox           : null,     // JSConstraintBox
-    transform               : JSAffineTransform.Identity,
-
-    hidden                  : false,
-    opacity                 : 1.0,
-    backgroundColor         : null,     // JSColor
-    backgroundGradient      : null,     // JSGradient
-    borderWidth             : null,     // float
-    borderColor             : null,     // JSColor
-    borderRadius            : null,     // float
-    shadowColor             : null,     // JSColor
-    shadowOffset            : null,     // JSPoint
-    shadowRadius            : null,     // float
-
-    renderer                : null,     // implements UIView.RendererProtocol
     propertiesNeedingDisplay: null,     // dictionary
-
-    _animationValues        : null,
+    layer                   : null,     // UILayer
 
     // -------------------------------------------------------------------------
     // MARK: - Initialization
@@ -42,15 +23,18 @@ JSClass('UIView', JSObject, {
         this.initWithFrame(JSRect(0,0,100,100));
     },
 
+    initWithConstraintBox: function(constraintBox){
+        this.initWithFrame(JSRect(0, 0, 100, 100));
+        this.constraintBox = constraintBox;
+    },
+
     initWithFrame: function(frame){
         UIView.$super.init.call(this);
         this._initWithFrame(frame);
     },
 
     _initWithFrame: function(frame){
-        this._animationValues = {};
-        this.renderer = this._getRenderer();
-        this.propertiesNeedingDisplay = {};
+        this.layer = this.$class.layerClass.init();
         this.subviews = [];
         this.frame = frame;
         this.backgroundColor = JSColor.whiteColor();
@@ -72,13 +56,6 @@ JSClass('UIView', JSObject, {
                 this.addSubview(spec.subviews[i]);
             }
         }
-    },
-
-    _getRenderer: function(){
-        if (this.rendererClass){
-            return this.rendererClass.init();
-        }
-        throw Error("No '%' renderer class defined for class: %s".sprintf(UIViewRenderingEnvironment, this.$class));
     },
 
     // -------------------------------------------------------------------------
@@ -106,7 +83,9 @@ JSClass('UIView', JSObject, {
         }
         subview.superview = this;
         subview.setWindow(this.window);
-        this.renderer.viewDidAddSubview(this, subview);
+        this._resizeSubview(subview, this._frame);
+        this.layer.insertSublayerAtIndex(subview.layer, index);
+        UIRenderer.defaultRenderer.viewInserted(subview);
         return subview;
     },
 
@@ -126,10 +105,11 @@ JSClass('UIView', JSObject, {
 
     removeSubview: function(subview){
         if (subview.superview === this){
+            UIRenderer.defaultRenderer.viewRemoved(subview);
+            this.layer.removeSublayer(subview.layer);
             for (var i = subview.level + 1, l = this.subviews.length; i < l; ++i){
                 this.subviews[i].level -= 1;
             }
-            this.renderer.viewDidRemoveSubview(this, subview);
             this.subviews.splice(subview.level,1);
             subview.superview = null;
             subview.setWindow(null);
@@ -148,20 +128,6 @@ JSClass('UIView', JSObject, {
             this.subview.removeFromSuperview();
         }
         this.subviews = [];
-    },
-
-    // -------------------------------------------------------------------------
-    // MARK: - Size and Layout
-
-    setHidden: function(hidden){
-        this._hidden = hidden;
-        this._setNeedsPropertyDisplay('hidden');
-    },
-
-    setCenter: function(center){
-        this._center = center;
-        var frame = this.frame;
-        this.frame = JSRect(center.x - frame.width / 2.0, center.y - frame.height / 2.0, frame.width, frame.height);
     },
 
     // -------------------------------------------------------------------------
@@ -201,107 +167,55 @@ JSClass('UIView', JSObject, {
     setNeedsLayout: function(){
         if (!(this.objectID in UIView._layoutQueue)){
             UIView._layoutQueue[this.objectID] = this;
+            UIView._requestDisplayFrame();
         }
     },
 
     layoutIfNeeded: function(){
         if (this.objectID in UIView._layoutQueue){
-            this.layoutSubviews();
+            this._layout();
             delete UIView._layoutQueue[this.objectID];
         }
     },
 
+    _layout: function(){
+        this.layoutSubviews();
+    },
+
     layoutSubviews: function(){
-    },
-
-    _setNeedsPropertyDisplay: function(property){
-        this.propertiesNeedingDisplay[property] = true;
-        this.setNeedsDisplay();
-    },
-
-    _setAnimationValueForKey: function(key, value){
-        if (key in this._animationValues){
-            this._animationValues[key].value = value;
-            this._setNeedsPropertyDisplay(key);
-        }
-    },
-
-    _clearAnimationValueForKey: function(key){
-        if (key in this._animationValues){
-            delete this._animationValues[key];
-            this._setNeedsPropertyDisplay(key);
-        }
-    },
-
-    rendererValueForKey: function(key){
-        if (key in this._animationValues){
-            return this._animationValues[key].value;
-        }
-        return this[key];
     }
 
 });
 
-UIView.RenderProtocol = JSProtocol.$extend({
+UIView.layerClass = UILayer;
 
-    viewCanStartReceivingEvents:    ['view'],
-    viewDidAddSubview:              ['view', 'subview'],
-    viewDidRemoveSubview:           ['view', 'subview'],
-    drawView:                       ['view']
-
-});
-
-UIView.registerRenderer = function(rendererClass){
-    if (rendererClass.matchesCurrentEnvironment()){
-        this.prototype.rendererClass = rendererClass;
-    }
-};
-
-UIView.defineAnimatableProperty = function(key){
-    var setterName = this.nameOfSetMethodForKey(key);
-    var silentKey = this.nameOfSilentPropertyForKey(key);
-    var setter = function UIView_setAnimatableProperty(value){
-        if (UIView._currentAnimationQueue !== null){
-            var queue = UIView._currentAnimationQueue;
-            if (!(this.objectID in queue)){
-                queue[this.objectID] = {
-                    view: this,
-                    properties: {}
-                };
-            }
-            var properties = queue[this.objectID].properties;
-            if (!(key in properties)){
-                properties[key] = {
-                    start: this[key],
-                    value: this[key]
-                };
-            }
-            this._animationValues[key] = properties[key];
-        }
-        this[silentKey] = value;
-        if (key in this._animationValues){
-            this._animationValues[key].end = value;
-        }
-        this._setNeedsPropertyDisplay(key);
-    };
-    Object.defineProperty(this.prototype, setterName, {
-        configurable: true,
+UIView.defineLayerPropertyForKey = function(key){
+    Object.defineProperty(this.prototype, key, {
+        configurable: false,
         enumerable: false,
-        value: setter
+        set: function UIView_setLayerProperty(value){
+            this.layer[key] = value;
+        },
+        get: function UIView_getLayerProperty(value){
+            return this.layer[value];
+        }
     });
-    this.definePropertyForSetter(key, this.prototype[key], setter);
 };
 
-UIView.defineAnimatableProperty('frame');
-UIView.defineAnimatableProperty('transform');
-UIView.defineAnimatableProperty('opacity');
-UIView.defineAnimatableProperty('backgroundColor');
-UIView.defineAnimatableProperty('borderWidth');
-UIView.defineAnimatableProperty('borderColor');
-UIView.defineAnimatableProperty('borderRadius');
-UIView.defineAnimatableProperty('shadowOffset');
-UIView.defineAnimatableProperty('shadowColor');
-UIView.defineAnimatableProperty('shadowRadius');
+UIView.defineLayerProperty('frame');
+UIView.defineLayerProperty('center');
+UIView.defineLayerProperty('constraintBox');
+UIView.defineLayerProperty('transform');
+UIView.defineLayerProperty('hidden');
+UIView.defineLayerProperty('opacity');
+UIView.defineLayerProperty('backgroundColor');
+UIView.defineLayerProperty('backgroundGradient');
+UIView.defineLayerProperty('borderWidth');
+UIView.defineLayerProperty('borderColor');
+UIView.defineLayerProperty('borderRadius');
+UIView.defineLayerProperty('shadowColor');
+UIView.defineLayerProperty('shadowOffset');
+UIView.defineLayerProperty('shadowRadius');
 
 UIView.animateWithDuration = function(duration, animations, callback){
     var options = {
@@ -414,62 +328,4 @@ UIView._interpolateValue = function(start, end, t, x){
 };
 
 UIView._displayFrame = function(t){
-    // Start by updating any animations
-    var animation;
-    var callbacks = [];
-    var i, l;
-    var id, key;
-    // We'll count backwards here because we might remove elements from the array while looping.
-    // Couting backwards ensures the removal won't mess up the iteration
-    for (i = UIView._animations.length - 1; i >= 0; --i){
-        animation = UIView._animations[i];
-        if (!animation.t0){
-            animation.t0 = t;
-        }
-        animation.timeProgress = Math.max(0, Math.min(1, (t - animation.t0) / animation.duration));
-        animation.progress = animation.timingFunction(animation.timeProgress);
-        var entry;
-        var property;
-        if (animation.timeProgress >= 1){
-            for (id in animation.queue){
-                entry = animation.queue[id];
-                for (key in entry.properties){
-                    property = entry.properties[key];
-                    entry.view._clearAnimationValueForKey(key);
-                }
-            }
-            var index = UIView._animations.indexOf(animation);
-            if (index >= 0){
-                UIView._animations.splice(index, 1);
-            }
-            if (animation.callback){
-                callbacks.push(animation.callback);
-            }
-        }else{
-            for (id in animation.queue){
-                entry = animation.queue[id];
-                for (key in entry.properties){
-                    property = entry.properties[key];
-                    entry.view._setAnimationValueForKey(key, UIView._interpolateValue(property.start, property.end, animation.timeProgress, animation.progress));
-                }
-            }
-        }
-    }
-
-    // Then flush the display queue
-    for (id in UIView._displayQueue){
-        UIView._displayQueue[id]._display();
-    }
-    UIView._displayQueue = {};
-
-    // Request a new frame if still animating
-    UIView._displayFrameRequestID = null;
-    if (UIView._animations.length > 0){
-        UIView._requestDisplayFrame();
-    }
-
-    // Call any animation callbacks
-    for (i = 0, l = callbacks.length; i < l; ++i){
-        callbacks[i]();
-    }
 };

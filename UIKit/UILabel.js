@@ -13,4 +13,4 @@ JSClass('UILabel', UIView, {
 
 });
 
-UIView.defineAnimatableProperty('textColor');
+UIView.defineAnimatedPropertyForKey('textColor');

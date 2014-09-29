@@ -2,22 +2,31 @@
 
 UIWindow.HTMLRenderer = UIView.HTMLRenderer.$extend({
 
+    window: null,
     domWindow: null,
 
-    init: function(){
-        UIWindow.HTMLRenderer.$super.initWithElementName.call(this, 'div');
+    initWithView: function(view){
+        UIWindow.HTMLRenderer.$super.initWithElementName.call(this, view, 'div');
+        this.window = this.view;
         document.body.appendChild(this.element);
         this.domWindow = window;
+        this.window.frame = JSRect(0, 0, this.domWindow.innerWidth, this.domWindow.innerHeight);
+    },
+
+    setupElement: function(){
+        UIWindow.HTMLRenderer.$super.setupElement.call(this);
+        this.element.style.position = 'absolute';
     },
 
     viewCanStartReceivingEvents: function(window){
-        UIWindow.$super.viewCanStartReceivingEvents.call(this, window);
+        UIWindow.HTMLRenderer.$super.viewCanStartReceivingEvents.call(this, window);
         this.domWindow.addEventListener('resize', this);
     },
 
     handleEvent: function(domEvent){
+        UIWindow.$super.handleEvent(domEvent);
         if (domEvent.type == 'resize'){
-            // TODO: 
+            this.window.frame = JSRect(0, 0, this.domWindow.innerWidth, this.domWindow.innerHeight);
         }
     }
 

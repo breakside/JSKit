@@ -2,8 +2,8 @@ UIScrollView.HTMLRenderer = JSObject.$extend({
 
     contentSizeElement: null,
 
-    init: function(){
-        UIScrollView.$super.initWithElementName.call(this, 'div');
+    initWithView: function(view){
+        UIScrollView.$super.initWithElementName.call(this, view, 'div');
         this.drawMethodMap['contentSize'] = '_drawContentSize';
         this.drawMethodMap['contentOffset'] = '_drawContentOffset';
     },

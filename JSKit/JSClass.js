@@ -30,7 +30,7 @@ JSClass.prototype = {
                 value: C
             }
         });
-        C.prototype.constructor = function(){
+        C.prototype.constructor = function JSClass_constructor(){
             throw Error('Use init method, not constructor for: %s'.sprintf(className));
         };
         C.definePropertiesFromExtensions(extensions);

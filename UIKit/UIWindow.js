@@ -4,18 +4,13 @@
 
 JSClass('UIWindow', UIView, {
 
-    view: null,
-    rootViewController: null,
+    contentView: null,
 
     init: function(){
-        UIWindow.$super.initWithFrame.call(this, JSRect(0,0,500,500));
+        UIWindow.$super.initWithConstraintBox.call(this, JSConstraintBox.Margin(0));
         this.window = this;
-    },
-
-    setRootViewController: function(viewController){
-        this.rootViewController = viewController;
-        this.view.removeAllSubviews();
-        this.view.addSubview(this.rootViewController.view);
+        this.contentView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));
+        this.addSubview(this.contentView);
     }
 
 });

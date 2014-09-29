@@ -23,9 +23,14 @@ function JSDeepCopy(obj){
     return obj;
 }
 
-function JSClassFromName(className){
-    if (className in JSGlobalObject){
-        return JSGlobalObject[className];
+function JSResolveDottedName(context, name){
+    parts = name.split('.');
+    while (parts.length && context !== null && context !== undefined){
+        context = context[parts.shift()];
     }
-    return null;
+    return context;
+}
+
+function JSClassFromName(className){
+    return JSResolveDottedName(JSGlobalObject, className);
 }

@@ -4,8 +4,8 @@ UILabel.HTMLRenderer = UIView.HTMLRenderer.$extend({
 
     textNode: null,
 
-    init: function(){
-      UILabel.HTMLRenderer.$super.initWithElementName.call(this, 'label');
+    initWithView: function(view){
+      UILabel.HTMLRenderer.$super.initWithElementName.call(this, view, 'label');
       this.drawMethodMap['text'] = '_drawText';
       this.drawMethodMap['textColor'] = '_drawTextColor';
     },

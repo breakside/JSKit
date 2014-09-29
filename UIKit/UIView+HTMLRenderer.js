@@ -1,5 +1,6 @@
 UIView.HTMLRenderer = JSObject.$extend({
 
+    view                    : null,
     element                 : null,
     firstSubviewNodeIndex   : 0,
     positions               : null,
@@ -8,15 +9,17 @@ UIView.HTMLRenderer = JSObject.$extend({
     // -------------------------------------------------------------------------
     // MARK: - Initialization
 
-    init: function(){
-        this.initWithElementName('div');
+    initWithView: function(view){
+        this.initWithElementName(view, 'div');
     },
 
-    initWithElementName: function(elementName){
+    initWithElementName: function(view, elementName){
         UIView.HTMLRenderer.$super.init.call(this);
+        this.view = view;
         this.drawMethodMap = {
-            'frame': '_resize',
-            'center': '_resize',
+            'center': 'layoutView',
+            'frame': 'layoutView',
+            'constraintBox': 'layoutView',
             'transform': '_drawTransform',
             'opacity': '_drawOpacity',
             'hidden': '_drawHidden',
@@ -34,9 +37,9 @@ UIView.HTMLRenderer = JSObject.$extend({
     },
 
     setupElement: function(){
-        this.element.style.position = 'absolute';
         this.element.style.boxSizing = 'border-box';
         this.element.style.mozBoxSizing = 'border-box';
+        this.element.setAttribute('UIViewClass', this.view.$class.className);
     },
 
     // -------------------------------------------------------------------------
@@ -76,6 +79,7 @@ UIView.HTMLRenderer = JSObject.$extend({
         var parentNode = this.element;
         var subviewNode = subview.renderer.element;
         var childNodeIndex = this.firstSubviewNodeIndex + subview.level;
+        subviewNode.style.position = 'absolute';
         if (childNodeIndex < parentNode.childNodes.length){
             var siblingNode = parentNode.childNodes.item(childNodeIndex);
             parnetNode.insertBefore(subviewNode, siblingNode);
@@ -89,9 +93,9 @@ UIView.HTMLRenderer = JSObject.$extend({
     },
 
     // -------------------------------------------------------------------------
-    // MARK: - Resizing
+    // MARK: - Layout
 
-    _resize: function(view){
+    layoutView: function(view){
         var box = view.rendererValueForKey('constraintBox');
         if (!box){
             box = JSConstraintBox.Rect(view.rendererValueForKey('frame'));
@@ -103,8 +107,27 @@ UIView.HTMLRenderer = JSObject.$extend({
                 this.element.style[property] = box[property] + 'px';
             }
         }
+        if (box.left === undefined && box.right === undefined){
+            var width = box.width;
+            if (width === undefined){
+                width = view.rendererValueForKey('frame').size.width;
+            }
+            this.element.style.left = '50%';
+            this.element.style.marginLeft = (-width) + 'px';
+        }else{
+            this.element.style.marginLeft = '';
+        }
+        if (box.top === undefined && box.bottom === undefined){
+            var height = box.height;
+            if (height === undefined){
+                height = view.rendererValueForKey('frame').size.height;
+            }
+            this.element.style.top = '50%';
+            this.element.style.marginTop = (-height) + 'px';
+        }else{
+            this.element.style.marginTop = '';
+        }
     },
-
 
     // -------------------------------------------------------------------------
     // MARK: - Drawing
