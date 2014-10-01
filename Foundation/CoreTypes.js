@@ -15,6 +15,7 @@ JSSize.prototype = {
     height: 0
 };
 
+JSSize.Zero = JSSize(0, 0);
 
 function JSPoint(x, y){
     if (this === JSGlobalObject){
@@ -30,6 +31,9 @@ JSPoint.prototype = {
     y: 0
 };
 
+JSPoint.Zero = JSPoint(0, 0);
+JSPoint.UnitCenter = JSPoint(0.5, 0.5);
+
 
 function JSRect(x, y, width, height){
     if (this === JSGlobalObject){
@@ -44,6 +48,8 @@ JSRect.prototype = {
     origin: null,
     size: null
 };
+
+JSRect.Zero = JSRect(0, 0, 0, 0);
 
 
 function JSRange(location, length){

@@ -13,7 +13,6 @@ JSClass('UIView', JSObject, {
     superview               : null,     // UIView
     level                   : null,     // int
     subviews                : null,     // Array
-    propertiesNeedingDisplay: null,     // dictionary
     layer                   : null,     // UILayer
 
     // -------------------------------------------------------------------------
@@ -62,10 +61,34 @@ JSClass('UIView', JSObject, {
     // MARK: - Adding and Removing Subviews
 
     addSubview: function(subview){
-        return this.insertSubviewAtIndex(subview, this.subviews.length);
+        return this._insertSubviewAtIndex(subview, this.subviews.length, this.layer.sublayers.length);
     },
 
     insertSubviewAtIndex: function(subview, index){
+        var layerIndex;
+        if (index < this.subviews.length){
+            layerIndex = this.subviews[index].layer.level;
+        }else{
+            layerIndex = this.layer.sublayers.length;
+        }
+        this._insertSubviewAtIndex(subview, index, layerIndex);
+    },
+
+    insertSubviewBeforeSibling: function(subview, sibling){
+        if (sibling.superview !== this){
+            throw Error('Cannot insert subview [%s] in view [%s] because sibling view [%s] is not a valid subview.');
+        }
+        return this._insertSubviewAtIndex(sibling.level, sibling.layer.level);
+    },
+
+    insertSubviewAfterSibling: function(subview, sibling){
+        if (sibling.superview !== this){
+            throw Error('Cannot insert subview [%s] in view [%s] because sibling view [%s] is not a valid subview.');
+        }
+        return this._insertSubviewAtIndex(sibling.level + 1, sibling.layer.level + 1);
+    },
+
+    _insertSubviewAtIndex: function(subview, index, layerIndex){
         var i, l;
         if (subview.superview === this){
             for (i = subview.level + 1, l = this.subviews.length; i < l; ++i){
@@ -75,6 +98,8 @@ JSClass('UIView', JSObject, {
             if (index > subview.level){
                 --index;
             }
+        }else if (subview.superview){
+            subview.removeFromSuperview();
         }
         this.subviews.splice(index, 0, subview);
         subview.level = index;
@@ -84,23 +109,9 @@ JSClass('UIView', JSObject, {
         subview.superview = this;
         subview.setWindow(this.window);
         this._resizeSubview(subview, this._frame);
-        this.layer.insertSublayerAtIndex(subview.layer, index);
+        this.layer.insertSublayerAtIndex(subview.layer, layerIndex);
         UIRenderer.defaultRenderer.viewInserted(subview);
         return subview;
-    },
-
-    insertSubviewBeforeSibling: function(subview, sibling){
-        if (sibling.superview !== this){
-            throw Error('Cannot insert subview [%s] in view [%s] because sibling view [%s] is not a valid subview.');
-        }
-        return this.insertSubviewAtIndex(sibling.level);
-    },
-
-    insertSubviewAfterSibling: function(subview, sibling){
-        if (sibling.superview !== this){
-            throw Error('Cannot insert subview [%s] in view [%s] because sibling view [%s] is not a valid subview.');
-        }
-        return this.insertSubviewAtIndex(sibling.level + 1);
     },
 
     removeSubview: function(subview){
@@ -145,44 +156,33 @@ JSClass('UIView', JSObject, {
     // -------------------------------------------------------------------------
     // MARK: - Display
 
-    setNeedsDisplay: function(){
-        if (!(this.objectID in UIView._displayQueue)){
-            UIView._displayQueue[this.objectID] = this;
-            UIView._requestDisplayFrame();
-        }
+    setNeedsRedraw: function(){
+        UIRenderer.defaultRenderer.setViewNeedsRedraw(this);
     },
 
-    displayIfNeeded: function(){
-        if (this.objectID in UIView._displayQueue){
-            this._display();
-            delete UIView._displayQueue[this.objectID];
-        }
-    },
-
-    _display: function(){
-        this.renderer.drawView(this);
-        this.propertiesNeedingDisplay = {};
+    redrawIfNeeded: function(){
+        UIRenderer.defaultRenderer.redrawViewIfNeeded(this);
     },
 
     setNeedsLayout: function(){
-        if (!(this.objectID in UIView._layoutQueue)){
-            UIView._layoutQueue[this.objectID] = this;
-            UIView._requestDisplayFrame();
-        }
+        UIRenderer.defaultRenderer.setViewNeedsLayout(this);
     },
 
     layoutIfNeeded: function(){
-        if (this.objectID in UIView._layoutQueue){
-            this._layout();
-            delete UIView._layoutQueue[this.objectID];
-        }
+        UIRenderer.defaultRenderer.layoutViewIfNeeded(this);
     },
 
-    _layout: function(){
+    layout: function(){
         this.layoutSubviews();
     },
 
     layoutSubviews: function(){
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Display
+
+    drawInContext: function(context){
     }
 
 });
@@ -197,13 +197,14 @@ UIView.defineLayerPropertyForKey = function(key){
             this.layer[key] = value;
         },
         get: function UIView_getLayerProperty(value){
-            return this.layer[value];
+            return this.layer.properties[value];
         }
     });
 };
 
 UIView.defineLayerProperty('frame');
-UIView.defineLayerProperty('center');
+UIView.defineLayerProperty('position');
+UIView.defineLayerProperty('anchorPoint');
 UIView.defineLayerProperty('constraintBox');
 UIView.defineLayerProperty('transform');
 UIView.defineLayerProperty('hidden');
@@ -221,111 +222,23 @@ UIView.animateWithDuration = function(duration, animations, callback){
     var options = {
         delay: 0,
         duration: duration,
-        timingFunction: UIView.linearTimingFunction
+        timingFunction: UIAnimation.linearTimingFunction
     };
     UIView.animateWithOptions(options, animations, callback);
 };
 
 UIView.animateWithOptions = function(options, animations, callback){
-    var animation = {
-        delay: options.delay || 0,
-        duration: options.duration || 0,
-        timingFunction: options.timingFunction || UIView.linearTimingFunction,
-        callback: callback,
-        queue: {}
-    };
-    // Consider time numbers under 20 to be in seconds, and implicitly convert to milliseconds
-    if (animation.duration < 20){
-        animation.duration *= 1000;
+    var transaction = UIAnimationTransaction.begin();
+    transaction.delay = options.delay || 0;
+    transaction.duration = options.duration || 0.25;
+    transaction.timingFunction = options.timingFunction || UIAnimation.linearTimingFunction;
+    transaction.completionFunction = callback;
+    if (transaction.duration < 20){
+        transaction.duration *= 1000;
     }
-    if (animation.delay < 20){
-        animation.delay *= 1000;
+    if (transaction.delay < 20){
+        transaction.delay *= 1000;
     }
-    UIView._currentAnimationQueue = animation.queue;
     animations();
-    UIView._currentAnimationQueue = null;
-    if (animation.delay){
-        JSGlobalObject.setTimeout(function UIView_animateAfterDelay(){
-            UIView._animations.push(animation);
-            UIView._requestDisplayFrame();
-        }, animation.delay);
-    }else{
-        UIView._animations.push(animation);
-        UIView._requestDisplayFrame();
-    }
-};
-
-UIView.linearTimingFunction = function(t){
-    return t;
-};
-
-UIView._displayQueue = {};
-UIView._displayFrameRequestID = null;
-UIView._layoutQueue = {};
-UIView._currentAnimationQueue = null;
-UIView._animations = [];
-
-UIView._requestDisplayFrame = function(){
-    if (UIView._displayFrameRequestID === null){
-        UIView._displayFrameRequestID = JSGlobalObject.requestAnimationFrame(UIView._displayFrame);
-    }
-};
-
-UIView._interpolateValue = function(start, end, t, x){
-    if (start === undefined || end === undefined || start === null || end === null){
-        return start;
-    }
-    if (typeof(start) === 'number'){
-        return start + (end - start) * x;
-    }
-    if (start instanceof JSPoint){
-        return JSPoint(
-            UIView._interpolateValue(start.x, end.x, t, x),
-            UIView._interpolateValue(start.y, end.y, t, x)
-        );
-    }
-    if (start instanceof JSSize){
-        return JSSize(
-            UIView._interpolateValue(start.width, end.width, t, x),
-            UIView._interpolateValue(start.height, end.height, t, x)
-        );
-    }
-    if (start instanceof JSRect){
-        return JSRect(
-            UIView._interpolateValue(start.origin.x, end.origin.x, t, x),
-            UIView._interpolateValue(start.origin.y, end.origin.y, t, x),
-            UIView._interpolateValue(start.size.width, end.size.width, t, x),
-            UIView._interpolateValue(start.size.height, end.size.height, t, x)
-        );
-    }
-    if (start instanceof JSAffineTransform){
-        return JSAffineTransform(
-            UIView._interpolateValue(start.a, end.a, t, x),
-            UIView._interpolateValue(start.b, end.b, t, x),  // FIXME: this probably isn't the right interpolation for rotation/skew
-            UIView._interpolateValue(start.c, end.c, t, x),  // FIXME: this probably isn't the right interpolation for rotation/skew
-            UIView._interpolateValue(start.d, end.d, t, x),
-            UIView._interpolateValue(start.tx, end.tx, t, x),
-            UIView._interpolateValue(start.ty, end.ty, t, x)
-        );
-    }
-    if (start instanceof Array){
-        if (start.length != end.length){
-            return start;
-        }
-        var result = [];
-        for (var i = 0, l = start.length; i < l; ++i){
-            result[i] = UIView._interpolateValue(start[i], end[i], t, x);
-        }
-        return result;
-    }
-    if (start.isKindOfClass && start.isKindOfClass(JSColor)){
-        if (start.colorSpace != end.colorSpace){
-            return start;
-        }
-        return JSColor.initWithSpaceAndComponents(start.colorSpace, UIView._interpolateValue(start.components, end.components, t, x));
-    }
-    return start;
-};
-
-UIView._displayFrame = function(t){
+    transaction.commit();
 };

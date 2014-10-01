@@ -64,7 +64,7 @@ class HTMLBuilder(object):
     def buildJavascript(self):
         self.javascriptFile = open(os.path.join(self.outputProductPath, 'app.js'), 'w')
         self.javascriptFile.write("var JSGlobalObject = window;\n")
-        self.javascriptFile.write("var UIViewRenderingEnvironment = 'HTML';\n")
+        self.javascriptFile.write("var UIRendererInit = function(){ return UIHTMLRenderer.initWithRootElement(document.body); };\n")
         if self.debug:
             self.javascriptFile.write("""(function(head){\n  var includejs = function(src){\n    var s = document.createElement('script');\n    s.type = 'text/javascript';\n    s.src = src;\n    s.async = false;\n    head.appendChild(s);\n  };\n""")
         self._includeJavascript("main.js")

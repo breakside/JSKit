@@ -1,19 +1,7 @@
 // #import "UIKit/UIView.js"
+// #import "UIKit/UIScrollLayer.js"
 
 JSClass('UIScrollView', UIView, {
-
-    contentSize: null,
-    contentOffset: null,
-
-    setContentSize: function(contentSize){
-        this._contentSize = contentSize;
-        this._setNeedsPropertyDisplay('contentSize');
-    },
-
-    setContentOffset: function(contentOffset){
-        this._contentOffset = contentOffset;
-        this._setNeedsPropertyDisplay('contentOffset');
-    },
 
     setContentOffsetAnimated: function(contentOffset){
         var scrollView = this;
@@ -23,3 +11,8 @@ JSClass('UIScrollView', UIView, {
     }
 
 });
+
+UILabel.defineLayerProperty('contentSize');
+UILabel.defineLayerProperty('contentOffset');
+
+UIScrollView.layerClass = UIScrollLayer;

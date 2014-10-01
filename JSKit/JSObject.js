@@ -201,11 +201,11 @@ JSObject.definePropertiesFromExtensions({
     // MARK: - Accessing and Manipulating Properties
 
     valueForKey: function(key){
-        var getterName = 'get' + key.ucFirst();
+        var getterName = this.$class.nameOfGetMethodForKey(key);
         if (this[getterName]){
             return this[getterName]();
         }
-        getterName = 'is' + key.ucFirst();
+        getterName = this.$class.nameOfBooleanGetMethodForKey(key);
         if (this[getterName]){
             return this[getterName]();
         }

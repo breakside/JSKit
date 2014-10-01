@@ -11,6 +11,12 @@ JSClass('JSImage', JSObject, {
         this.height = resourceInfo.height;
     },
 
+    initWithData: function(data){
+    },
+
+    initWithContentOfURL: function(url){
+    },
+
     initWithStretchableResource: function(resource){
     }
 

@@ -87,15 +87,21 @@ String.prototype.sprintf = function(){
             switch (c){
                 default:
                 case 's':
+                    // TODO: consider width & precision
                     s += args[position];
                     break;
                 case 'd':
+                    // TODO: consider width & precision
                     s += args[position];
                     break;
+                case 'f':
+                    // TODO: consider width & precision
+                    s += args[position];
+                    break;
+                // TODO: all the other cases
                 case '%':
                     s += c;
                     break;
-                // TODO: all the other cases
             }
             formatting = false;
         }else{

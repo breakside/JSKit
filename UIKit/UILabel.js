@@ -1,16 +1,11 @@
 // #import "UIKit/UIView.js"
-// #import "UIKit/UILabel+HTMLRenderer.js" /delay
+// #import "UIKit/UITextLayer.js"
 
 JSClass('UILabel', UIView, {
-
-    text: null,
-    textColor: null,
-
-    setText: function(text){
-        this._text = text;
-        this._setNeedsPropertyDisplay('text');
-    }
-
 });
 
-UIView.defineAnimatedPropertyForKey('textColor');
+UILabel.layerClass = UITextLayer;
+
+UILabel.defineLayerProperty('text');
+UILabel.defineLayerProperty('textColor');
+UILabel.defineLayerProperty('font');

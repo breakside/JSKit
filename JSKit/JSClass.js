@@ -68,9 +68,23 @@ JSClass.prototype = {
                     value: extensions[i]
                 });
             }else{
-                var setterName = this.nameOfSetMethodForKey(i);
-                if (setterName in extensions){
-                    this.definePropertyForSetter(i, extensions[i], extensions[setterName]);
+                if (extensions[i] instanceof JSDynamicProperty){
+                    var setterName = extensions[i].setterName || this.nameOfSetMethodForKey(i);
+                    var getterName = extensions[i].getterName || this.nameOfGetMethodForKey(i);
+                    if (extensions[i].key){
+                        Object.defineProperty(this.prototype, extensions[i].key, {
+                            configurable: false,
+                            enumerable: false,
+                            writable: true,
+                            value: extensions[i].value
+                        });
+                    }
+                    Object.defineProperty(this.prototype, i, {
+                        configurable: true,
+                        enumerable: false,
+                        get: extensions[getterName] || extensions[this.nameOfBooleanGetMethodForKey(i)],
+                        set: extensions[setterName]
+                    });
                 }else{
                     Object.defineProperty(this.prototype, i, {
                         configurable: true,
@@ -96,29 +110,19 @@ JSClass.prototype = {
         });
     },
 
-    definePropertyForSetter: function(key, value, setter){
-        var silentKey = this.nameOfSilentPropertyForKey(key);
-        Object.defineProperty(this.prototype, silentKey, {
-            configurable: false,
-            enumerable: false,
-            writable: true,
-            value: value
-        });
-        Object.defineProperty(this.prototype, key, {
-            configurable: true,
-            enumerable: false,
-            set: setter,
-            get: function JSClass_get(){
-                return this[silentKey];
-            }
-        });
-    },
-
     // -----------------------------------------------------------------------------
     // MARK: - Name Resolvers
 
     nameOfSetMethodForKey: function(key){
         return 'set' + key.ucFirst();
+    },
+
+    nameOfGetMethodForKey: function(key){
+        return 'get' + key.ucFirst();
+    },
+
+    nameOfBooleanGetMethodForKey: function(key){
+        return 'is' + key.ucFirst();
     },
 
     nameOfSilentSetMethodForKey: function(key){
@@ -153,3 +157,11 @@ JSClass.prototype = {
         return '_' + key;
     }
 };
+
+
+function JSDynamicProperty(getterName, setterName, key, value){
+    this.getterName = getterName;
+    this.setterName = setterName;
+    this.key = key;
+    this.value = value;
+}
