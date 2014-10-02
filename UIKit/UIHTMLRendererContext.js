@@ -79,6 +79,8 @@ UIHTMLRendererContext.defineCanvasContextReadOnlyProperty = function(key){
     });
 };
 
+// TODO: a lot of these need actual methods to convert arguments and return values
+// to/from UIKit types to canvas types
 UIHTMLRendererContext.defineCanvasContextReadOnlyProperty('save');
 UIHTMLRendererContext.defineCanvasContextReadOnlyProperty('restore');
 UIHTMLRendererContext.defineCanvasContextReadOnlyProperty('scale');

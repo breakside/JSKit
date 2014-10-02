@@ -121,9 +121,9 @@ JSClass("UIHTMLRenderer", UIRenderer, {
         }
     },
 
-    setLayerNeedsRenderForKey: function(layer, key){
-        if (key === 'superlayer.frame.size'){
-            // superlayer.frame.size is a special key used when the superlayer of a
+    setLayerNeedsRenderForKeyPath: function(layer, keyPath){
+        if (keyPath === 'superlayer.frame.size'){
+            // superlayer.frame.size is a special keyPath used when the superlayer of a
             // layer with a constraint box changes its frame size, affecting the sublayer's
             // layout based on the constraints specified on the sublayer and the new size.
             // Because of the way we assign CSS positional styles for a constraint box,
@@ -131,26 +131,26 @@ JSClass("UIHTMLRenderer", UIRenderer, {
             // There's no CSS that needs to change in this case, so we won't queue anything.
             return;
         }
-        if (key == 'shadowColor' || key == 'shadowOffset' || key == 'shadowRadius'){
+        if (keyPath == 'shadowColor' || keyPath == 'shadowOffset' || keyPath == 'shadowRadius'){
             // Because the boxShadow property in CSS is a single property, and the combination
             // of several UILayer properties, we'll treat any shadow-related property as the same
             // thing so only one update gets queued.
-            key = 'shadow';
+            keyPath = 'shadow';
         }
-        if (key == 'frame' || key == 'position' || key == 'constraintBox'){
+        if (keyPath == 'frame' || keyPath == 'position' || keyPath == 'constraintBox'){
             // Changes to any of these UILayer properties triggers the same CSS updates, so
             // we'll treat them as the same thing so only one update gets queued.
-            key = 'box';
+            keyPath = 'box';
         }
-        UIHTMLRenderer.$super.setLayerNeedsRenderForKey.call(this, layer, key);
+        UIHTMLRenderer.$super.setLayerNeedsRenderForKeyPath.call(this, layer, keyPath);
     },
 
     layerPropertyRenderer: {
 
         box: function (layer, context){
-            var box = layer.properties.constraintBox;
+            var box = layer.presentation.constraintBox;
             if (!box){
-                box = JSConstraintBox.Rect(layer.properties.frame);
+                box = JSConstraintBox.Rect(layer.presentation.frame);
             }
             for (var property in box){
                 if (box[property] === undefined){
@@ -162,7 +162,7 @@ JSClass("UIHTMLRenderer", UIRenderer, {
             if (box.left === undefined && box.right === undefined){
                 var width = box.width;
                 if (width === undefined){
-                    width = layer.properties.frame.size.width;
+                    width = layer.presentation.frame.size.width;
                 }
                 context.style.left = '50%';
                 context.style.marginLeft = (-width) + 'px';
@@ -172,7 +172,7 @@ JSClass("UIHTMLRenderer", UIRenderer, {
             if (box.top === undefined && box.bottom === undefined){
                 var height = box.height;
                 if (height === undefined){
-                    height = layer.properties.frame.size.height;
+                    height = layer.presentation.frame.size.height;
                 }
                 context.style.top = '50%';
                 context.style.marginTop = (-height) + 'px';
@@ -185,79 +185,79 @@ JSClass("UIHTMLRenderer", UIRenderer, {
         },
 
         'frame.origin.x': function(layer, context){
-            context.style.left = layer.properties.frame.origin.x + 'px';
+            context.style.left = layer.presentation.frame.origin.x + 'px';
         },
 
         'frame.origin.y': function(layer, context){
-            context.style.top = layer.properties.frame.origin.y + 'px';
+            context.style.top = layer.presentation.frame.origin.y + 'px';
         },
 
         'frame.size.width': function(layer, context){
-            context.style.width = layer.properties.frame.size.width + 'px';
+            context.style.width = layer.presentation.frame.size.width + 'px';
             if (context.canvas){
                 // TODO: size canvas
             }
         },
 
         'frame.size.height': function(layer, context){
-            context.style.height = layer.properties.frame.size.height + 'px';
+            context.style.height = layer.presentation.frame.size.height + 'px';
             if (context.canvas){
                 // TODO: size canvas
             }
         },
 
         'constraintBox.top': function(layer, context){
-            context.style.top = layer.properties.constraintBox.top + 'px';
+            context.style.top = layer.presentation.constraintBox.top + 'px';
         },
 
         'constraintBox.right': function(layer, context){
-            context.style.right = layer.properties.constraintBox.right + 'px';
+            context.style.right = layer.presentation.constraintBox.right + 'px';
         },
 
         'constraintBox.bottom': function(layer, context){
-            context.style.bottom = layer.properties.constraintBox.bottom + 'px';
+            context.style.bottom = layer.presentation.constraintBox.bottom + 'px';
         },
 
         'constraintBox.left': function(layer, context){
-            context.style.left = layer.properties.constraintBox.left + 'px';
+            context.style.left = layer.presentation.constraintBox.left + 'px';
         },
 
         'constraintBox.width': function(layer, context){
-            context.style.width = layer.properties.constraintBox.width + 'px';
+            context.style.width = layer.presentation.constraintBox.width + 'px';
             if (context.canvas){
                 // TODO: size canvas
             }
         },
 
         'constraintBox.height': function(layer, context){
-            context.style.height = layer.properties.constraintBox.height + 'px';
+            context.style.height = layer.presentation.constraintBox.height + 'px';
             if (context.canvas){
                 // TODO: size canvas
             }
         },
 
         hidden: function(layer, context){
-            context.style.display = layer.properties.hidden ? 'none' : '';
+            context.style.display = layer.presentation.hidden ? 'none' : '';
         },
 
         opacity: function(layer, context){
-            context.style.opacity = layer.properties.opacity != 1.0 ? layer.properties.opacity : '';
+            context.style.opacity = layer.presentation.opacity != 1.0 ? layer.presentation.opacity : '';
         },
 
         backgroundColor: function(layer, context){
-            context.style.backgroundColor = layer.properties.backgroundColor ? layer.properties.backgroundColor.cssString() : '';
+            context.style.backgroundColor = layer.presentation.backgroundColor ? layer.presentation.backgroundColor.cssString() : '';
         },
 
         borderColor: function(layer, context){
-            context.style.borderColor = layer.properties.borderColor ? layer.properties.borderColor.cssString() : '';
+            context.style.borderColor = layer.presentation.borderColor ? layer.presentation.borderColor.cssString() : '';
         },
 
         borderWidth: function(layer, context){
-            context.style.borderWidth = layer.properties.borderWidth ? layer.properties.borderWidth + 'px' : '';
+            context.style.borderWidth = layer.presentation.borderWidth ? layer.presentation.borderWidth + 'px' : '';
         },
 
         borderRadius: function(layer, context){
-            context.style.borderRadius = layer.properties.borderRadius ? layer.properties.borderRadius + 'px' : '';
+            context.style.borderRadius = layer.presentation.borderRadius ? layer.presentation.borderRadius + 'px' : '';
         },
 
         shadow: function(layer, context){
@@ -269,7 +269,7 @@ JSClass("UIHTMLRenderer", UIRenderer, {
         },
 
         transform: function(layer, context){
-            var transform = layer.properties.transform;
+            var transform = layer.presentation.transform;
             if (transform){
                 context.style.webkitTransform = context.style.MozTransform = 'matrix(%f, %f, %f, %f, %f, %f)'.sprintf(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
             }else{
@@ -282,17 +282,17 @@ JSClass("UIHTMLRenderer", UIRenderer, {
         },
 
         textColor: function(layer, context){
-            context.style.color = layer.properties.textColor ? layer.properties.textColor.cssString() : '';
+            context.style.color = layer.presentation.textColor ? layer.presentation.textColor.cssString() : '';
         },
 
         contentSize: function(layer, context){
-            context.scrollContentSizer.style.width = layer.properties.contentSize.width + 'px';
-            context.scrollContentSizer.style.height = layer.properties.contentSize.height + 'px';
+            context.scrollContentSizer.style.width = layer.presentation.contentSize.width + 'px';
+            context.scrollContentSizer.style.height = layer.presentation.contentSize.height + 'px';
         },
 
         contentOffset: function(layer, context){
-            context.element.scrollLeft = layer.properties.contentOffset.x;
-            context.element.scrollTop = layer.properties.contentOffset.y;
+            context.element.scrollLeft = layer.presentation.contentOffset.x;
+            context.element.scrollTop = layer.presentation.contentOffset.y;
         }
 
     },

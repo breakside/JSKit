@@ -17,55 +17,27 @@ JSClass("UILayer", JSObject, {
         this._sublayersDependentOnWidth = {};
         this._sublayersDependentOnHeight = {};
         this.animationsByKey = {};
-        this.properties = Object.create(UILayer.Properties);
-    },
-
-    initWithModelLayer: function(modelLayer){
-        this.modelLayer = modelLayer;
-        this.properties = Object.create(modelLayer.properties);
-        // TODO: sublayers, etc.
-        // TODO: protect against updating modelLayer when setting sub-properties of structs (e.g., frame.origin.x)
+        this.model = Object.create(UILayer.Properties);
+        this.presentation = this.model;
     },
 
     // -------------------------------------------------------------------------
     // MARK: - Size and Layout
 
     setPosition: function(position){
-        this.properties.position = position;
+        this.model.position = position;
         this._updateFrameToPosition();
         UIRenderer.defaultRenderer.setLayerNeedsRenderForKey(this, 'frame');
     },
 
-    'setPosition.x': function(x){
-        this.properties.position.x = x;
-        this._updateFrameToPosition();
-        UIRenderer.defaultRenderer.setLayerNeedsRenderForKey(this, 'frame.origin.x');
-    },
-
-    'setPosition.y': function(y){
-        this.properties.position.y = y;
-        this._updateFrameToPosition();
-        UIRenderer.defaultRenderer.setLayerNeedsRenderForKey(this, 'frame.origin.y');
-    },
-
     setAnchorPoint: function(anchorPoint){
-        this.properties.anchorPoint = anchorPoint;
-        this._updatePositionToFrameAndAnchorPoint();
-    },
-
-    'setAnchorPoint.x': function(x){
-        this.properties.anchorPoint.x = x;
-        this._updatePositionToFrameAndAnchorPoint();
-    },
-
-    'setAnchorPoint.y': function(y){
-        this.properties.anchorPoint.y = y;
+        this.model.anchorPoint = anchorPoint;
         this._updatePositionToFrameAndAnchorPoint();
     },
 
     setFrame: function(frame){
-        var oldSize = this.properties.frame.size;
-        this.properties.frame = frame;
+        var oldSize = this.model.frame.size;
+        this.model.frame = frame;
         this._updatePositionToFrameAndAnchorPoint();
         var id;
         if (!this.constraintBox){
@@ -75,39 +47,46 @@ JSClass("UILayer", JSObject, {
     },
 
     _updateFrameToPosition: function(){
-        var position = this.properties.position;
-        var frame = this.properties.frame;
-        var point = this.properties.anchorPoint;
-        this.properties.frame = JSRect(position.x - frame.width * point.x, position.y - frame.height * point.y, frame.width, frame.height);
+        var position = this.model.position;
+        var frame = this.model.frame;
+        var point = this.model.anchorPoint;
+        this.model.frame = JSRect(position.x - frame.width * point.x, position.y - frame.height * point.y, frame.width, frame.height);
     },
 
     _updatePositionToFrameAndAnchorPoint: function(){
-        var point = this.properties.anchorPoint;
-        var frame = this.properties.frame;
-        this.properties.position = JSPoint(frame.origin.x + frame.width * point.x, frame.origin.y + frame.height * point.y);
+        var point = this.model.anchorPoint;
+        var frame = this.model.frame;
+        this.model.position = JSPoint(frame.origin.x + frame.width * point.x, frame.origin.y + frame.height * point.y);
     },
 
     setConstraintBox: function(constraintBox){
-        this.properties.constraintBox = constraintBox;
-        UIRenderer.defaultRenderer.setLayerNeedsRenderForKey('constraintBox');
+        this.model.constraintBox = constraintBox;
+        UIRenderer.defaultRenderer.setLayerNeedsRenderForKey(this, 'constraintBox');
+        this._updateAfterConstraintBoxChange();
+    },
+
+    _updateAfterConstraintBoxChange: function(){
         if (this.superlayer){
-            var oldSize = this.properties.frame.size;
-            this._updateFrameAfterSuperSizeChange(this.superlayer.properties.frame.size);
-            this._updateSublayersAfterSizeChange(oldSize, this.properties.frame.size);
+            var oldSize = this.model.frame.size;
+            this._updateFrameAfterSuperSizeChange(this.superlayer.model.frame.size);
+            this._updateSublayersAfterSizeChange(oldSize, this.model.frame.size);
         }
     },
 
     _updateSublayersAfterSizeChange: function(oldSize, newSize){
-        // FIXME: a sublayer could be updated twice if it's in both lists
         var id;
+        var updates = {};
         if (oldSize.width != newSize.width){
             for (id in this._sublayersDependentOnWidth){
                 this._sublayersDependentOnWidth[id]._updateFrameAfterSuperSizeChange(newSize);
+                updated[id] = true;
             }
         }
         if (oldSize.height != newSize.height){
             for (id in this._sublayersDependentOnHeight){
-                this._sublayersDependentOnHeight[id]._updateFrameAfterSuperSizeChange(newSize);
+                if (!(id in updated)){
+                    this._sublayersDependentOnHeight[id]._updateFrameAfterSuperSizeChange(newSize);
+                }
             }
         }
     },
@@ -115,8 +94,8 @@ JSClass("UILayer", JSObject, {
     _updateFrameAfterSuperSizeChange: function(supersize){
         var dependsOnWidth = false;
         var dependsOnHeight = false;
-        if (this.properties.constraintBox){
-            var box = this.properties.constraintBox;
+        if (this.model.constraintBox){
+            var box = this.model.constraintBox;
             var frame = JSRect();
             if (box.height){
                 frame.height = box.height;
@@ -128,7 +107,7 @@ JSClass("UILayer", JSObject, {
                 // TODO: get intrinsic height
             }
             if (box.top){
-                frame.origin.y = this.properties.constraintBox.top;
+                frame.origin.y = this.model.constraintBox.top;
             }else if (box.bottom){
                 frame.origin.y = supersize.height - frame.size.height - box.bottom;
                 dependsOnHeight = true;
@@ -146,7 +125,7 @@ JSClass("UILayer", JSObject, {
                 // TODO: get intrinsic width
             }
             if (box.left){
-                frame.origin.x = this.properties.constraintBox.left;
+                frame.origin.x = this.model.constraintBox.left;
             }else if (box.right){
                 frame.origin.x = supersize.width - frame.size.width - box.right;
                 dependsOnWidth = true;
@@ -156,7 +135,7 @@ JSClass("UILayer", JSObject, {
             }
             this.frame = frame;
             this._updatePositionToFrameAndAnchorPoint();
-            UIRenderer.defaultRenderer.setLayerNeedsRenderForKey('superlayer.frame.size');
+            UIRenderer.defaultRenderer.setLayerNeedsRenderForKey(this, 'superlayer.frame.size');
         }else{
             dependsOnHeight = false;
             dependsOnWidth = false;
@@ -264,10 +243,31 @@ JSClass("UILayer", JSObject, {
 
     addAnimationForKey: function(animation, key){
         if (this.animationCount === 0){
-            this.presentationLayer = this.$class.initWithModelLayer(this);
+            // This is a trick ot make our presentation match our model, except in those
+            // cases that will be overwritten by animations.
+            this.presentation = Object.create(this.model);
         }
         if (!(key in this.animationsByKey)){
             ++this.animationCount;
+        }
+        var parts = key.split('.');
+        // If we have a sub-property, we need to make sure we're updating a copy on the presentation, so we don't
+        // inadvertently update the model too
+        if (parts > 1 && parts[0] in this.presentation && this.presentation[parts[0]] && !this.presentation.hasOwnProperty(parts[0])){
+            var value = this.presentation[parts[0]];
+            if (value instanceof JSPoint){
+                this.presentation[parts[0]] = JSPoint(value.x, value.y);
+            }else if (value instanceof JSSize){
+                this.presentation[parts[0]] = JSSize(value.width, value.height);
+            }else if (value instanceof JSRect){
+                this.presentation[parts[0]] = JSRect(value.origin.x, value.origin.y, value.size.width, value.size.height);
+            }else if (value instanceof JSConstraintBox){
+                this.presentation[parts[0]] = JSConstraintBox({top: value.top, right: value.right, bottom: value.bottom, left: value.left, width: value.width, height: value.height});
+            }else if (value instanceof JSAffineTransform){
+                this.presentation[parts[0]] = JSAffineTransform(value.a, value.b, value.c, value.d, value.tx, value.ty);
+            }else{
+                this.presentationLayer[parts[0]] = this.copyOfProperty(parts[0]);
+            }
         }
         this.animationsByKey[key] = animation;
         if (!UIAnimationTransaction.currentTransaction){
@@ -278,7 +278,23 @@ JSClass("UILayer", JSObject, {
     removeAnimationForKey: function(key){
         --this.animationCount;
         if (this.animationCount === 0){
-            this.presentationLayer = null;
+            // If we're all done with animations, reset our presentation to be identical to our model
+            this.presentation = this.model;
+        }else{
+            // If we still have animations remaining, selectively clear out this animation's
+            // presentation values so we fall back through to model values
+            var parts = key.split('.');
+            if (parts[0] in this.presentation){
+                if (parts.length == 1){
+                    delete this.presentation[parts[0]];
+                }else{
+                    // If we're dealing with a sub-property, there could be other active animations that
+                    // are altering other sub-properties of the same top-level property.  While we could
+                    // check for others, there doesn't seem to be much benefit, so just overwrite this
+                    // animation's presentation property with the model property.
+                    JSSetDottedName(this.presentation, key, JSResolveDottedName(this.model, key));
+                }
+            }
         }
         delete this.animationsByKey[key];
     },
@@ -311,6 +327,7 @@ JSClass("UILayer", JSObject, {
 
     layoutSublayers: function(){
     }
+
 });
 
 UILayer.Properties = {
@@ -338,7 +355,7 @@ UILayer.defineAnimatedPropertyForKey = function(key){
         var transaction = UIAnimationTransaction.currentTransaction;
         if (transaction && !(key in this.animationsByKey)){
             var animation = UIAnimation.initWithKeyPath(key);
-            animation.fromValue = this.properties[key];
+            animation.fromValue = this[key];
             animation.duration = transaction.duration;
             this.addAnimationForKey(animation, key);
             transaction.addAnimation(animation);
@@ -346,20 +363,14 @@ UILayer.defineAnimatedPropertyForKey = function(key){
         if (originalSetter){
             originalSetter();
         }else{
-            this.properties[key] = value;
+            // Assuming we have an originalSetter for any dotted key, so we can safely use just key here
+            this.model[key] = value;
             UIRenderer.defaultRenderer.setLayerNeedsRenderForKey(this, key);
         }
     };
-    var getter;
-    if (key.indexOf('.') >= 0){
-        getter = function UILayer_getAnimatableCompoundProperty(){
-            return JSResolveDottedName(key, this);
-        };
-    }else{
-        getter = function UILayer_getAnimatableProperty(){
-            return this.properties[key];
-        };
-    }
+    var getter = function UILayer_getAnimatableProperty(){
+        return this.model[key];
+    };
     Object.defineProperty(this.prototype, setterName, {
         configurable: true,
         enumerable: false,
@@ -374,23 +385,9 @@ UILayer.defineAnimatedPropertyForKey = function(key){
 };
 
 UILayer.defineAnimatedPropertyForKey('frame');
-UILayer.defineAnimatedPropertyForKey('frame.origin.x');
-UILayer.defineAnimatedPropertyForKey('frame.origin.y');
-UILayer.defineAnimatedPropertyForKey('frame.size.width');
-UILayer.defineAnimatedPropertyForKey('frame.size.height');
 UILayer.defineAnimatedPropertyForKey('position');
-UILayer.defineAnimatedPropertyForKey('position.x');
-UILayer.defineAnimatedPropertyForKey('position.y');
 UILayer.defineAnimatedPropertyForKey('anchorPoint');
-UILayer.defineAnimatedPropertyForKey('anchorPoint.x');
-UILayer.defineAnimatedPropertyForKey('anchorPoint.y');
 UILayer.defineAnimatedPropertyForKey('constraintBox');
-UILayer.defineAnimatedPropertyForKey('constraintBox.top');
-UILayer.defineAnimatedPropertyForKey('constraintBox.right');
-UILayer.defineAnimatedPropertyForKey('constraintBox.bottom');
-UILayer.defineAnimatedPropertyForKey('constraintBox.left');
-UILayer.defineAnimatedPropertyForKey('constraintBox.width');
-UILayer.defineAnimatedPropertyForKey('constraintBox.height');
 UILayer.defineAnimatedPropertyForKey('transform');
 UILayer.defineAnimatedPropertyForKey('hidden');
 UILayer.defineAnimatedPropertyForKey('opacity');

@@ -196,8 +196,8 @@ UIView.defineLayerPropertyForKey = function(key){
         set: function UIView_setLayerProperty(value){
             this.layer[key] = value;
         },
-        get: function UIView_getLayerProperty(value){
-            return this.layer.properties[value];
+        get: function UIView_getLayerProperty(){
+            return this.layer[key];
         }
     });
 };

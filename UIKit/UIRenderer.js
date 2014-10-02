@@ -59,11 +59,11 @@ JSClass("UIRenderer", JSObject, {
     layerRemoved: function(layer){
     },
 
-    setLayerNeedsRenderForKey: function(layer, key){
+    setLayerNeedsRenderForKeyPath: function(layer, keyPath){
         if (!(layer.objectID in this.renderQueue)){
             this.renderQueue[layer.objectID] = {layer: layer, properties: {}};
         }
-        this.renderQueue[layer.objectID].properties[key] = true;
+        this.renderQueue[layer.objectID].properties[keyPath] = true;
         this.requestDisplayFrame();
     },
 
@@ -90,8 +90,8 @@ JSClass("UIRenderer", JSObject, {
             if (!UIAnimationTransaction.currentTransaction){
                 var properties = this.renderQueue[layer.objectID].properties;
                 var context = this.contextForLayer(layer);
-                for (var key in properties){
-                    this.layerPropertyRenderer[key].call(this, layer, context);
+                for (var keyPath in properties){
+                    this.layerPropertyRenderer[keyPath].call(this, layer, context);
                 }
                 delete this.renderQueue[layer.objectID];
             }
@@ -157,18 +157,16 @@ JSClass("UIRenderer", JSObject, {
                 animation.progress = animation.timingFunction(animation.timeProgress);
                 if (animation.timeProgress >= 1){
                     layer.removeAnimationForKey(key);
-                    layer.presentationLayer[key] = layer.properties[key];
                     if (animation.completionFunction){
                         completedAnimations.push(animation);
                     }
                 }else{
-                    animation.updateLayer(layer.presentationLayer);
+                    animation.updateLayer(layer);
                 }
+                this.layerPropertyRenderer[animation.keyPath](layer, context);
             }
             if (layer.animationCount === 0){
                 delete this.animationQueue[id];
-                layer.presentationLayer.modelLayer = null;
-                layer.presentationLayer = null;
                 --this._animationCount;
             }
         }
@@ -183,8 +181,8 @@ JSClass("UIRenderer", JSObject, {
             layer = this.renderQueue[id].layer;
             context = this.contextForLayer(layer.modelLayer ? layer.modelLayer : layer);
             properties = this.renderQueue[id].properties;
-            for (var key in properties){
-                this.layerPropertyRenderer[key].call(this, layer, context);
+            for (var keyPath in properties){
+                this.layerPropertyRenderer[keyPath].call(this, layer, context);
             }
         }
         this.renderQueue = {};

@@ -84,7 +84,7 @@ UIAnimation.interpolate4Color = function(from, to, progress){
 JSClass('UIPropertyAnimation', UIAnimation, {
     keyPath: null,
     initWithKeyPath: function(keyPath){
-        self.keyPath = keyPath;
+        this.keyPath = keyPath;
     }
 });
 
@@ -94,6 +94,9 @@ JSClass('UIBasicAnimation', UIPropertyAnimation, {
     _fromValue: null,
     _toValue: null,
     _interpolation: null,
+    _layer: null,
+    _updateContext: null,
+    _updateProperty: null,
 
     updateLayer: function(layer){
         var from = this.fromValue;
@@ -103,7 +106,13 @@ JSClass('UIBasicAnimation', UIPropertyAnimation, {
             this._toValue = to;
             this._determinInterpolation();
         }
-        layer[this.keyPath] = this._interpolation(from, to, this.progress);
+        if (this._layer != layer){
+            this._layer = layer;
+            var parts = this.keyPath.split('.');
+            this._updateProperty = parts.pop();
+            this._updateContext = JSResolveDottedName(this._layer.presentation, parts.join('.'));
+        }
+        this._updateContext[this._updateProperty] = this._interpolation(from, to, this.progress);
     },
 
     _determinInterpolation: function(){

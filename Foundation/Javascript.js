@@ -31,6 +31,14 @@ function JSResolveDottedName(context, name){
     return context;
 }
 
+function JSSetDottedName(context, name, value){
+    parts = name.split('.');
+    while (parts.length > 1 && context !== null && context !== undefined){
+        context = context[parts.shift()];
+    }
+    context[parts[0]] = value;
+}
+
 function JSClassFromName(className){
     return JSResolveDottedName(JSGlobalObject, className);
 }
