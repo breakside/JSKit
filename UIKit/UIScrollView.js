@@ -3,6 +3,9 @@
 
 JSClass('UIScrollView', UIView, {
 
+    contentOffset: UIViewLayerProperty(),
+    contentSize: UIViewLayerProperty(),
+
     setContentOffsetAnimated: function(contentOffset){
         var scrollView = this;
         UIView.animateWithDuration(0.25, function(){
@@ -11,8 +14,5 @@ JSClass('UIScrollView', UIView, {
     }
 
 });
-
-UILabel.defineLayerProperty('contentSize');
-UILabel.defineLayerProperty('contentOffset');
 
 UIScrollView.layerClass = UIScrollLayer;

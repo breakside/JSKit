@@ -9,13 +9,11 @@ JSClass('JSColor', JSObject, {
     },
 
     initWithSpaceAndComponents: function(colorSpace, components){
-        JSColor.$super.init.call(this);
         this.colorSpace = colorSpace;
         this.components = components;
     },
 
     initWithRGBA: function(r, g, b, a){
-        JSColor.$super.init.call(this);
         this.colorSpace = JSColorSpaceIdentifier.RGBA;
         if (r === undefined) r = 0;
         if (g === undefined) g = 0;
@@ -25,7 +23,6 @@ JSClass('JSColor', JSObject, {
     },
 
     initWithWhite: function(w){
-        JSColor.$super.init.call(this);
         this.colorSpace = JSColorSpaceIdentifier.GRAY;
         if (w === undefined) w = 0;
         this.components = [w];

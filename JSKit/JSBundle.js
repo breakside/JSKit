@@ -6,7 +6,6 @@ JSClass('JSBundle', JSObject, {
     resources: null,
 
     initWithIdentifier: function(identifier){
-        JSBundle.$super.init.call(this);
         this.identifier = identifier;
         if (!(this.identifier in _JSBundles)){
             throw Error("Bundle not found: %s".sprintf(this.identifier));

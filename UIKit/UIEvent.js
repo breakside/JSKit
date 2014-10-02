@@ -1,4 +1,4 @@
-// #import "JSKit/JSObject.js"
+// #import "JSKit/JSKit.js"
 
 JSClass('UIEvent', JSObject, {
 

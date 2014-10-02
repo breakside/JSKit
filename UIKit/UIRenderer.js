@@ -1,4 +1,4 @@
-// #import "JSKit/JSObject.js"
+// #import "JSKit/JSKit.js"
 
 JSClass("UIRenderer", JSObject, {
 
@@ -87,15 +87,17 @@ JSClass("UIRenderer", JSObject, {
 
     renderLayerIfNeeded: function(layer){
         if (layer.objectID in this.renderQueue){
-            if (!UIAnimationTransaction.currentTransaction){
-                var properties = this.renderQueue[layer.objectID].properties;
-                var context = this.contextForLayer(layer);
-                for (var keyPath in properties){
-                    this.layerPropertyRenderer[keyPath].call(this, layer, context);
-                }
-                delete this.renderQueue[layer.objectID];
-            }
+            var context = this.contextForLayer(layer);
+            this._renderLayerInContext(layer, context);
         }
+    },
+
+    _renderLayerInContext: function(layer, context){
+        var properties = this.renderQueue[layer.objectID].properties;
+        for (var keyPath in properties){
+            this.layerPropertyRenderer[keyPath].call(this, layer, context);
+        }
+        delete this.renderQueue[layer.objectID];
     },
 
     redrawLayerIfNeeded: function(layer){
@@ -122,7 +124,7 @@ JSClass("UIRenderer", JSObject, {
     },
 
     displayFrame: function(t){
-        var completedAnimations = this._updateAnimations();
+        var completedAnimations = this._updateAnimations(t);
         this._flushLayoutQueue();
         this._flushRenderQueue();
         this._flushRedrawQueue();
@@ -145,25 +147,21 @@ JSClass("UIRenderer", JSObject, {
         var layer;
         var context;
         for (id in this.animationQueue){
-            layer = this.animationQueue[layer];
+            layer = this.animationQueue[id];
             context = this.contextForLayer(layer);
             for (key in layer.animationsByKey){
                 animation = layer.animationsByKey[key];
-                if (!animation.t0){
-                    // This is our first time seeing the animation.  We'll set a time marker.
-                    animation.t0 = t;
-                }
-                animation.timeProgress = Math.max(0, Math.min(1, (t - animation.t0) / animation.duration));
-                animation.progress = animation.timingFunction(animation.timeProgress);
-                if (animation.timeProgress >= 1){
+                animation.updateForTime(t);
+                if (animation.isComplete){
                     layer.removeAnimationForKey(key);
                     if (animation.completionFunction){
                         completedAnimations.push(animation);
                     }
-                }else{
-                    animation.updateLayer(layer);
                 }
-                this.layerPropertyRenderer[animation.keyPath](layer, context);
+                this.setLayerNeedsRenderForKeyPath(layer, animation.keyPath);
+            }
+            if (layer.objectID in this.renderQueue){
+                this._renderLayerInContext(layer, context);
             }
             if (layer.animationCount === 0){
                 delete this.animationQueue[id];
@@ -212,7 +210,7 @@ JSClass("UIRenderer", JSObject, {
 Object.defineProperty(UIRenderer, 'defaultRenderer', {
     configurable: true,
     enumerable: false,
-    get: function(){
+    get: function UIRenderer_lazyInitDefaultRenderer(){
         Object.defineProperty(UIRenderer, 'defaultRenderer', {
             configurable: false,
             enumerable: false,

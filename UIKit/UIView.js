@@ -1,19 +1,50 @@
-// #import "Foundation/Foundation.js"
-// #import "Foundation/CoreTypes.js"
-// #import "JSKit/JSObject.js"
-// #import "JSKit/JSProtocol.js"
-// #import "UIKit/UIView+HTMLRenderer.js" /delay
+// #import "JSKit/JSKit.js"
+// #import "UIKit/UILayer.js"
+
+function UIViewLayerProperty(){
+    var prop = Object.create(JSCustomProperty.prototype);
+    prop.define = UIViewLayerProperty_define;
+    return prop;
+}
+
+function UIViewLayerProperty_define(C, key, prop, extensions){
+    Object.defineProperty(C.prototype, key, {
+        configurable: false,
+        enumerable: false,
+        set: function UIView_setLayerProperty(value){
+            this.layer[key] = value;
+        },
+        get: function UIView_getLayerProperty(){
+            return this.layer[key];
+        }
+    });
+}
 
 JSClass('UIView', JSObject, {
 
     // -------------------------------------------------------------------------
     // MARK: - Properties
 
-    window                  : null,     // UIWindow
-    superview               : null,     // UIView
-    level                   : null,     // int
-    subviews                : null,     // Array
-    layer                   : null,     // UILayer
+    window:             null,     // UIWindow
+    superview:          null,     // UIView
+    level:              null,     // int
+    subviews:           null,     // Array
+    layer:              null,     // UILayer
+    frame:              UIViewLayerProperty(),
+    position:           UIViewLayerProperty(),
+    anchorPoint:        UIViewLayerProperty(),
+    constraintBox:      UIViewLayerProperty(),
+    transform:          UIViewLayerProperty(),
+    hidden:             UIViewLayerProperty(),
+    opacity:            UIViewLayerProperty(),
+    backgroundColor:    UIViewLayerProperty(),
+    backgroundGradient: UIViewLayerProperty(),
+    borderWidth:        UIViewLayerProperty(),
+    borderColor:        UIViewLayerProperty(),
+    borderRadius:       UIViewLayerProperty(),
+    shadowColor:        UIViewLayerProperty(),
+    shadowOffset:       UIViewLayerProperty(),
+    shadowRadius:       UIViewLayerProperty(),
 
     // -------------------------------------------------------------------------
     // MARK: - Initialization
@@ -28,7 +59,6 @@ JSClass('UIView', JSObject, {
     },
 
     initWithFrame: function(frame){
-        UIView.$super.init.call(this);
         this._initWithFrame(frame);
     },
 
@@ -108,7 +138,6 @@ JSClass('UIView', JSObject, {
         }
         subview.superview = this;
         subview.setWindow(this.window);
-        this._resizeSubview(subview, this._frame);
         this.layer.insertSublayerAtIndex(subview.layer, layerIndex);
         UIRenderer.defaultRenderer.viewInserted(subview);
         return subview;
@@ -189,35 +218,6 @@ JSClass('UIView', JSObject, {
 
 UIView.layerClass = UILayer;
 
-UIView.defineLayerPropertyForKey = function(key){
-    Object.defineProperty(this.prototype, key, {
-        configurable: false,
-        enumerable: false,
-        set: function UIView_setLayerProperty(value){
-            this.layer[key] = value;
-        },
-        get: function UIView_getLayerProperty(){
-            return this.layer[key];
-        }
-    });
-};
-
-UIView.defineLayerProperty('frame');
-UIView.defineLayerProperty('position');
-UIView.defineLayerProperty('anchorPoint');
-UIView.defineLayerProperty('constraintBox');
-UIView.defineLayerProperty('transform');
-UIView.defineLayerProperty('hidden');
-UIView.defineLayerProperty('opacity');
-UIView.defineLayerProperty('backgroundColor');
-UIView.defineLayerProperty('backgroundGradient');
-UIView.defineLayerProperty('borderWidth');
-UIView.defineLayerProperty('borderColor');
-UIView.defineLayerProperty('borderRadius');
-UIView.defineLayerProperty('shadowColor');
-UIView.defineLayerProperty('shadowOffset');
-UIView.defineLayerProperty('shadowRadius');
-
 UIView.animateWithDuration = function(duration, animations, callback){
     var options = {
         delay: 0,
@@ -240,5 +240,5 @@ UIView.animateWithOptions = function(options, animations, callback){
         transaction.delay *= 1000;
     }
     animations();
-    transaction.commit();
+    UIAnimationTransaction.commit();
 };

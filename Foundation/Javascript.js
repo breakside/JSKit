@@ -24,15 +24,15 @@ function JSDeepCopy(obj){
 }
 
 function JSResolveDottedName(context, name){
-    parts = name.split('.');
-    while (parts.length && context !== null && context !== undefined){
+    var parts = name.split('.');
+    while (name.length && parts.length && context !== null && context !== undefined){
         context = context[parts.shift()];
     }
     return context;
 }
 
 function JSSetDottedName(context, name, value){
-    parts = name.split('.');
+    var parts = name.split('.');
     while (parts.length > 1 && context !== null && context !== undefined){
         context = context[parts.shift()];
     }

@@ -2,10 +2,11 @@
 // #import "UIKit/UITextLayer.js"
 
 JSClass('UILabel', UIView, {
+
+    text: UIViewLayerProperty(),
+    textColor: UIViewLayerProperty(),
+    font: UIViewLayerProperty()
+
 });
 
 UILabel.layerClass = UITextLayer;
-
-UILabel.defineLayerProperty('text');
-UILabel.defineLayerProperty('textColor');
-UILabel.defineLayerProperty('font');

@@ -11,7 +11,7 @@ var JSObject = Object.create(JSClass.prototype, {
     className: {
         configurable: false,
         enumerable: false,
-        writable: false,
+        writable: true,
         value: 'JSObject'
     }
 });
@@ -24,6 +24,23 @@ JSObject.prototype = Object.create(Object.prototype, {
         value: JSObject
     }
 });
+
+JSObject.defineInitMethod = function(methodName){
+    Object.defineProperty(this, methodName, {
+        configurable: false,
+        enumerable: false,
+        value: function JSObject_createAndInit(){
+            var args = Array.prototype.slice.call(arguments, 0);
+            var obj = Object.create(this.prototype);
+            obj[methodName].apply(obj, args);
+            obj.objectID = ++JSObject.ID;
+            obj._observers = [];
+            obj._bindings = {};
+            obj._observableKeys = {};
+            return obj;
+        }
+    });
+};
 
 JSObject.definePropertiesFromExtensions({
 
@@ -39,10 +56,6 @@ JSObject.definePropertiesFromExtensions({
     // MARK: - Initialization
 
     init: function(){
-        this.objectID = ++JSObject.ID;
-        this._observers = [];
-        this._bindings = {};
-        this._observableKeys = {};
     },
 
     initWithProperties: function(properties){
@@ -52,7 +65,6 @@ JSObject.definePropertiesFromExtensions({
     },
 
     initWithSpec: function(spec){
-        JSObject.init.call(this);
         if ("JSBindings" in spec){
             for (var i = 0, l = spec.JSBindings.length; i < l; ++i){
                 var bindingSpec = spec.JSBindings[i];

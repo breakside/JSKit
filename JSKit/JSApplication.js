@@ -4,7 +4,6 @@
 JSClass('JSApplication', JSObject, {
 
     init: function(){
-        JSApplication.$super.init.call(this);
         if (JSApplication._sharedApplication){
             throw Error("JSApplication.init: one application already initialized, and only one may exist");
         }

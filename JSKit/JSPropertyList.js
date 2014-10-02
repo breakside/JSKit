@@ -3,7 +3,6 @@
 
 JSClass('JSPropertyList', JSObject, {
     initWithResource: function(resourceName){
-        JSPropertyList.$super.init.call(this);
         var obj = JSBundle.mainBundle.contentsOfResource(resourceName);
         this.initWithObject(obj);
     },

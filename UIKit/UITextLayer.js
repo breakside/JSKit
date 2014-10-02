@@ -2,11 +2,9 @@
 
 JSClass("UITextLayer", UILayer, {
     text: null,
-    textColor: null,
+    textColor: UILayerAnimatedProperty(),
     font: null
 });
 
 UITextLayer.Properties = Object.create(UILayer.Properties);
 UITextLayer.Properties.textColor = null;
-
-UITextLayer.defineAnimatedPropertyForKey('textColor');

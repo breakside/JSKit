@@ -7,6 +7,7 @@ JSClass("UIHTMLRenderer", UIRenderer, {
     domDocument: null,
     rootElement: null,
     rootLayer: null,
+    rootContext: null,
     environmentSize: null,
     domEventMethodMap: {
         'mousedown'     : 'mouseDown',
@@ -15,16 +16,20 @@ JSClass("UIHTMLRenderer", UIRenderer, {
         'mouseover'     : 'mouseEntered',
         'mouseout'      : 'mouseExited'
     },
+    contextsByLayerID: null,
 
     initWithRootElement: function(rootElement){
+        UIHTMLRenderer.$super.init.call(this);
         this.rootElement = rootElement;
         this.domDocument = this.rootElement.ownerDocument;
         this.domWindow = this.domDocument.defaultView;
         this.rootLayer = null;
+        this.contextsByLayerID = {};
+        this.setupRenderingEnvironment();
     },
 
     setupRenderingEnvironment: function(){
-        this.rootElement._UIRendererContext = UIHTMLRendererContext.initWithElement(this.rootElement);
+        this.rootContext = UIHTMLRendererContext.initWithElement(this.rootElement);
         this.rootElement.style = 'relative';
         if (this.rootElement === this.domDocument.body){
             var body = this.rootElement;
@@ -46,17 +51,19 @@ JSClass("UIHTMLRenderer", UIRenderer, {
     },
 
     determineEnvironmentSize: function(){
-        this.environmentSize = JSSize(this.rootElement.offsetWidth, this.rootElement.offsetWidth);
+        this.environmentSize = JSSize(this.rootElement.offsetWidth, this.rootElement.offsetHeight);
     },
 
     viewInserted: function(view){
-        var element = this.elementForLayer(view.layer);
-        if (element){
-            var context = element._UIRendererContext;
+        var context = this.contextsByLayerID[view.layer.objectID];
+        if (context){
+            if (context.element.dataset){
+                context.element.dataset.uiViewClass = view.$class.className;
+            }
+            context.view = view;
             for (var eventType in this.domEventMethodMap){
                 if (this.domEventMethodMap[eventType] in view){
-                    element.addEventListener(eventType, this, false);
-                    context.view = view;
+                    context.element.addEventListener(eventType, this, false);
                 }
             }
             for (var i = 0, l = view.subviews.length; i < l; ++i){
@@ -69,55 +76,36 @@ JSClass("UIHTMLRenderer", UIRenderer, {
     },
 
     layerInserted: function(layer){
-        var parentElement;
+        var parentContext;
         if (layer.superlayer){
-            parentElement = this.elementForLayer(layer.superlayer);
+            parentContext = this.contextsByLayerID[layer.superlayer.objectID];
         }else{
-            parentElement = this.rootElement;
+            parentContext = this.rootContext;
             this.rootLayer = layer;
+            layer._updateFrameAfterSuperSizeChange(this.environmentSize);
         }
-        if (parentElement){
-            var element = this.domDocument.createElement('div');
-            var context = element._UIRendererContext = UIHTMLRendererContext.initWithElement(element);
-            if (layer.isKindOfClass(UIScrollLayer)){
-                var sizer = element.appendChild(this.domDocument.createElement('div'));
-                element.style.position = 'relative';
-                sizer.style.position = 'absolute';
-                sizer.style.top = '0px';
-                sizer.style.left = '0px';
-                sizer.style.width = '0px';
-                sizer.style.height = '0px';
-                context.scrollContentSizer = sizer;
-            }else if (layer.isKindOfClass(UITextLayer)){
-                context.textNode = element.appendChild(this.domDocument.createTextNode(''));
-            }
-            context.firstSublayerNodeIndex = element.childNodes.length;
-            element.style.position = 'absolute'; // TODO: allow other layout strategies
-            element.style.boxSizing = 'border-box';
-            element.style.mozBoxSizing = 'border-box';
-            element.style.borderStyle = 'solid'; // TODO: allow other border styles
-            element.setAttribute('UIViewClass', view.$class.className);
-            element.id = 'UILayer-' + layer.objectID;
-            var insertIndex = parentElement._UIRendererContext.firstSublayerNodeIndex + layer.level;
-            if (insertIndex < parentElement.childNodes.length){
-                parentElement.insertBefore(element, parentElement.childNodes[insertIndex]);
+        if (parentContext){
+            var context = this.contextForLayer(layer);
+            var insertIndex = parentContext.firstSublayerNodeIndex + layer.level;
+            if (insertIndex < parentContext.element.childNodes.length){
+                parentContext.element.insertBefore(context.element, parentContext.element.childNodes[insertIndex]);
             }else{
-                parentElement.appendChild(element);
+                parentContext.element.appendChild(context.element);
             }
             for (var i = 0, l = layer.sublayers.length; i < l; ++i){
                 this.layerInserted(layer.sublayers[i]);
             }
-            this.updateLayer(layer);
         }
     },
 
     layerRemoved: function(layer){
-        var element = this.elementForLayer(layer);
-        if (element){
-            element.parentNode.removeChild(element);
-            var context = element._UIRendererContext;
+        var context = this.contextsByLayerID[layer.objectID];
+        if (context){
+            if (context.element.parentNode){
+                context.element.parentNode.removeChild(element);
+            }
             context.destroy();
-            element._UIRendererContext = null;
+            delete this.contextsByLayerID[layer.objectID];
         }
     },
 
@@ -253,7 +241,13 @@ JSClass("UIHTMLRenderer", UIRenderer, {
         },
 
         borderWidth: function(layer, context){
-            context.style.borderWidth = layer.presentation.borderWidth ? layer.presentation.borderWidth + 'px' : '';
+            if (layer.presentation.borderWidth){
+                context.style.borderWidth = layer.presentation.borderWidth + 'px';
+                context.style.borderStyle = 'solid';
+            }else{
+                context.style.borderWidth = '';
+                context.style.borderStyle = '';
+            }
         },
 
         borderRadius: function(layer, context){
@@ -297,12 +291,33 @@ JSClass("UIHTMLRenderer", UIRenderer, {
 
     },
 
-    elementForLayer: function(layer){
-        return this.domDocument.getElementById('UILayer-' + layer.objectID);
-    },
-
     contextForLayer: function(layer){
-        return this.domDocument.getElementById('UILayer-' + layer.objectID)._UIRendererContext;
+        if (layer.objectID in this.contextsByLayerID){
+            return this.contextsByLayerID[layer.objectID];
+        }
+        var element = this.domDocument.createElement('div');
+        var context = UIHTMLRendererContext.initWithElement(element);
+        if (layer.isKindOfClass(UIScrollLayer)){
+            var sizer = element.appendChild(this.domDocument.createElement('div'));
+            element.style.position = 'relative';
+            sizer.style.position = 'absolute';
+            sizer.style.top = '0px';
+            sizer.style.left = '0px';
+            sizer.style.width = '0px';
+            sizer.style.height = '0px';
+            context.scrollContentSizer = sizer;
+        }else if (layer.isKindOfClass(UITextLayer)){
+            context.textNode = element.appendChild(this.domDocument.createTextNode(''));
+        }
+        context.firstSublayerNodeIndex = element.childNodes.length;
+        element.style.position = 'absolute'; // TODO: allow other layout strategies
+        element.style.boxSizing = 'border-box';
+        element.style.mozBoxSizing = 'border-box';
+        if (element.dataset){
+            element.dataset.layerId = layer.objectID;
+        }
+        this.contextsByLayerID[layer.objectID] = context;
+        return context;
     },
 
     handleEvent: function(domEvent){
@@ -313,7 +328,7 @@ JSClass("UIHTMLRenderer", UIRenderer, {
             }
         }else{
             var element = domEvent.currentTarget;
-            var context = element._UIRendererContext;
+            var context = element._UIHTMLRendererContext;
             var methodName = this.domEventMethodMap[domEvent.type.lower()];
             var event = UIEvent.init();
             context.view[methodName](event);

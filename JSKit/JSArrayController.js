@@ -6,7 +6,6 @@ JSClass('JSArrayController', JSObject, {
     contentArray       : null,
 
     init: function(){
-        JSArrayController.$super.init.call(this);
         this._arrangedObjects = [];
         this._contentArray = [];
     },

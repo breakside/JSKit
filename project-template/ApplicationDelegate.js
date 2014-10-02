@@ -1,13 +1,14 @@
 // #import "JSKit/JSKit.js"
 // #import "UIKit/UIKit.js"
 
-var ApplicationDelegate = JSObject.$extend({
+JSClass("ApplicationDelegate", JSObject, {
 
     window: null,
     mainViewController: null,
 
     applicationDidFinishLaunching: function(){
         this.window = UIWindow.init();
+        this.window.makeKeyAndVisible();
 
         var viewCount = 1;
 
@@ -40,11 +41,22 @@ var ApplicationDelegate = JSObject.$extend({
             UIView.animateWithDuration(duration, function animateCircles(){
                 var view;
                 var x, y, size;
+                var animation;
                 for (var i = Math.max(0, viewCount - 10); i < viewCount; i++){
-                    view = applicationDelegate.window.subviews[i];
+                    view = applicationDelegate.window.contentView.subviews[i];
                     size = view.frame.size;
-                    x = Math.round(Math.random() * (applicationDelegate.window.frame.size.width - size.width));
-                    y = Math.round(Math.random() * (applicationDelegate.window.frame.size.height - size.height));
+                    x = Math.round(Math.random() * (applicationDelegate.window.contentView.frame.size.width - size.width));
+                    y = Math.round(Math.random() * (applicationDelegate.window.contentView.frame.size.height - size.height));
+                    animation = UIBasicAnimation.initWithKeyPath('frame.origin.x');
+                    animation.fromValue = view.layer.frame.origin.x;
+                    animation.toValue = x;
+                    animation.duration = duration;
+                    view.layer.addAnimationForKey(animation, 'frame.origin.y');
+                    animation = UIBasicAnimation.initWithKeyPath('frame.origin.y');
+                    animation.fromValue = view.layer.frame.origin.y;
+                    animation.toValue = y;
+                    animation.duration = duration;
+                    view.layer.addAnimationForKey(animation, 'frame.origin.y');
                     //y = view.frame.origin.y;
                     view.frame = JSRect(x, y, size.width, size.height);
                 }
@@ -52,4 +64,4 @@ var ApplicationDelegate = JSObject.$extend({
         });
     }
 
-}, 'ApplicationDelegate');
+});

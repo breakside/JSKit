@@ -9,7 +9,6 @@ JSClass('JSGradient', JSObject, {
     end: null,
 
     init: function(){
-        JSGradient.$super.init.call(this);
         this.start = JSPoint(0,0);
         this.end = JSPoint(0,1.0);
         this.stops = {};

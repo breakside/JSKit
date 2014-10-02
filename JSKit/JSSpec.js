@@ -8,7 +8,6 @@ JSClass('JSSpec', JSObject, {
     _objectMap: null,
 
     initWithResource: function(resource){
-        JSSpec.$super.init.call(this);
         this._plist = JSPropertyList.initWithResource(resource);
         this._objectMap = {};
     },

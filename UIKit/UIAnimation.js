@@ -1,12 +1,16 @@
 // #import "JSKit/JSKit.js"
 
 JSClass('UIAnimation', JSObject, {
-    timingFunction: null,
-    duration: null,
-    completionFunction: null
+    completionFunction: null,
+    isComplete: false,
+
+    updateForTime: function(t){
+    }
 });
 
-
+UIAnimation.linearTimingFunction = function(t){
+    return t;
+};
 
 UIAnimation.interpolateNull = function(from, to, progress){
     return from;
@@ -83,39 +87,63 @@ UIAnimation.interpolate4Color = function(from, to, progress){
 
 JSClass('UIPropertyAnimation', UIAnimation, {
     keyPath: null,
+    _updateContext: null,
+    _updateProperty: null,
+    layer: JSDynamicProperty('_layer', null),  // FIXME: need to redeclare because setLayer is overwritten
+
     initWithKeyPath: function(keyPath){
         this.keyPath = keyPath;
+    },
+
+    setLayer: function(layer){
+        this._layer = layer;
+        var parts = this.keyPath.split('.');
+        this._updateProperty = parts.pop();
+        this._updateContext = JSResolveDottedName(layer.presentation, parts.join('.'));
+    },
+
+    getLayer: function(){
+        return this._layer;
     }
 });
 
 JSClass('UIBasicAnimation', UIPropertyAnimation, {
+    timingFunction: UIAnimation.linearTimingFunction,
+    duration: null,
     fromValue: null,
     toValue: null,
     _fromValue: null,
     _toValue: null,
     _interpolation: null,
-    _layer: null,
-    _updateContext: null,
-    _updateProperty: null,
+    _t0: null,
+    _timeProgress: null,
+    _progress: null,
 
-    updateLayer: function(layer){
+    updateForTime: function(t){
+        if (this._t0 === null){
+            this._t0 = t;
+        }
+        this._timeProgress = Math.max(0, Math.min(1, (t - this._t0) / this.duration));
+        this._progress = this.timingFunction(this._timeProgress);
+        if (this._timeProgress >= 1){
+            this.isComplete = true;
+        }else{
+            this._updateLayer();
+        }
+    },
+
+    _updateLayer: function(){
         var from = this.fromValue;
-        var to = this.toValue || layer[this.keyPath];
+        var to = this.toValue || JSResolveDottedName(this.layer.model, this.keyPath);
         if (!this._interpolation || from != this._fromValue || to != this._toValue){
             this._fromValue = from;
             this._toValue = to;
-            this._determinInterpolation();
+            this._determineInterpolation();
         }
-        if (this._layer != layer){
-            this._layer = layer;
-            var parts = this.keyPath.split('.');
-            this._updateProperty = parts.pop();
-            this._updateContext = JSResolveDottedName(this._layer.presentation, parts.join('.'));
-        }
-        this._updateContext[this._updateProperty] = this._interpolation(from, to, this.progress);
+        this._updateContext[this._updateProperty] = this._interpolation(from, to, this._progress);
     },
 
-    _determinInterpolation: function(){
+    _determineInterpolation: function(){
         if (this._fromValue === undefined || this._toValue === undefined || this._fromValue === null || this._toValue === null){
             this._interpolation = UIAnimation.interpolateNull;
         }else if (typeof(this._fromValue) === 'number'){
@@ -148,9 +176,41 @@ JSClass('UIBasicAnimation', UIPropertyAnimation, {
 
 JSClass('UIAnimationGroup', UIAnimation, {
     animations: null,
+    layer: JSDynamicProperty('_layer', null),
+    isComplete: false,
 
     init: function(){
         this.animations = [];
+    },
+
+    getLayer: function(){
+        return this._layer;
+    },
+
+    addAnimation: function(animation){
+        this.animations.push(animation);
+    },
+
+    setLayer: function(layer){
+        this._layer = layer;
+        var animation;
+        for (var i = 0, l = this.animations.length; i < l; ++i){
+            animation = this.animations[i];
+            animation.layer = layer;
+        }
+    },
+
+    updateForTime: function(t){
+        var animation;
+        var allComplete = true;
+        for (var i = 0, l = this.animations.length; i < l; ++i){
+            animation = this.animations[i];
+            animation.updateForTime(t);
+            if (allComplete && !animation.isComplete){
+                allComplete = false;
+            }
+        }
+        this.isComplete = allComplete;
     }
 });
 
@@ -160,14 +220,17 @@ JSClass('UIAnimationTransaction', JSObject, {
     completionFunction: null,
     timingFunction: null,
     animationCount: 0,
+    animations: null,
 
     init: function(){
         this._animationCompleteBound = this.animationComplete.bind(this);
+        this.animations = [];
     },
 
     addAnimation: function(animation){
         animation.completionFunction = this._animationCompleteBound;
         ++this.animationCount;
+        this.animations.push(animation);
     },
 
     animationComplete: function(animation){
@@ -175,11 +238,20 @@ JSClass('UIAnimationTransaction', JSObject, {
         if (this.animationCount === 0 && this.completionFunction){
             this.completionFunction();
         }
+    },
+
+    flush: function(){
+        var animation;
+        for (var i = 0, l = this.animations.length; i < l; ++i){
+            animation = this.animations[i];
+            UIRenderer.defaultRenderer.setLayerNeedsAnimation(animation.layer);
+        }
     }
 });
 
 UIAnimationTransaction.currentTransaction = null;
 UIAnimationTransaction.stack = [];
+UIAnimationTransaction.committed = [];
 
 UIAnimationTransaction.begin = function(){
     var transaction = UIAnimationTransaction.init();
@@ -190,22 +262,14 @@ UIAnimationTransaction.begin = function(){
 
 UIAnimationTransaction.commit = function(){
     var transaction = UIAnimationTransaction.stack.pop();
+    UIAnimationTransaction.committed.push(transaction);
     if (UIAnimationTransaction.stack.length === 0){
         UIAnimationTransaction.currentTransaction = null;
+        for (var i = 0, l = UIAnimationTransaction.committed.length; i < l; ++i){
+            transaction = UIAnimationTransaction.committed[i];
+            transaction.flush();
+        }
     }else{
         UIAnimationTransaction.currentTransaction = UIAnimationTransaction.stack[UIAnimationTransaction.stack.length - 1];
     }
-    if (transaction.delay){
-        JSGlobalObject.setTimeout(function UIView_animateAfterDelay(){
-            UIView._animations.push(animation);
-            UIView._requestDisplayFrame();
-        }, animation.delay);
-    }else{
-        UIView._animations.push(animation);
-        UIView._requestDisplayFrame();
-    }
-};
-
-UIAnimation.linearTimingFunction = function(t){
-    return t;
 };

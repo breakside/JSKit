@@ -1,6 +1,4 @@
 // #import "UIKit/UIView.js"
-// #import "Foundation/CoreTypes.js"
-// #import "UIKit/UIWindow+HTMLRenderer.js" /delay
 
 JSClass('UIWindow', UIView, {
 
@@ -11,8 +9,10 @@ JSClass('UIWindow', UIView, {
         this.window = this;
         this.contentView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));
         this.addSubview(this.contentView);
+    },
+
+    makeKeyAndVisible: function(){
+        UIRenderer.defaultRenderer.layerInserted(this.layer);
     }
 
 });
-
-UIWindow.RenderProtocol = UIView.RenderProtocol.$extend({});

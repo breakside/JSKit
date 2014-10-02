@@ -1,8 +1,12 @@
 // #import "UIKit/UILayer.js"
 
 JSClass("UIScrollLayer", UILayer, {
+
+    contentOffset: UILayerAnimatedProperty(),
+    contentSize: UILayerAnimatedProperty(),
     scrollVertically: true,
     scrollHorizontally: true
+
 });
 
 UIScrollLayer.Properties = Object.create(UILayer.Properties);
