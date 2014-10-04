@@ -26,23 +26,6 @@ JSClass('JSColor', JSObject, {
         this.colorSpace = JSColorSpaceIdentifier.GRAY;
         if (w === undefined) w = 0;
         this.components = [w];
-    },
-
-    cssString: function(){
-        if (this.colorSpace === JSColorSpaceIdentifier.RGBA){
-            return 'rgba(' + this.components.join(',') + ')';
-        }else if (this.colorSpace === JSColorSpaceIdentifier.RGB){
-            return 'rgb(' + this.components.join(',') + ')';
-        }else if (this.colorSpace === JSColorSpaceIdentifier.HSLA){
-            return 'hsla(' + this.components.join(',') + ')';
-        }else if (this.colorSpace === JSColorSpaceIdentifier.HSL){
-            return 'hsl(' + this.components.join(',') + ')';
-        }else if (this.colorSpace === JSColorSpaceIdentifier.GRAY){
-            var w = this.components[0];
-            return 'rgb(' + [w, w, w].join(',') + ')';
-        }else{
-            throw Error("Unsupported color space.  Cannot generate css string for '%s'".sprintf(this.colorSpace));
-        }
     }
 
 });

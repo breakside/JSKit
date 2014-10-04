@@ -343,3 +343,40 @@ JSClass("UIHTMLRenderer", UIRenderer, {
     }
 
 });
+
+Object.defineProperty(JSColor.prototype, 'cssString', {
+    enumerable: false,
+    value: function JSColor_cssString(){
+        if (this.colorSpace === JSColorSpaceIdentifier.RGBA){
+            return 'rgba(' + this.components.join(',') + ')';
+        }else if (this.colorSpace === JSColorSpaceIdentifier.RGB){
+            return 'rgb(' + this.components.join(',') + ')';
+        }else if (this.colorSpace === JSColorSpaceIdentifier.HSLA){
+            return 'hsla(' + this.components.join(',') + ')';
+        }else if (this.colorSpace === JSColorSpaceIdentifier.HSL){
+            return 'hsl(' + this.components.join(',') + ')';
+        }else if (this.colorSpace === JSColorSpaceIdentifier.GRAY){
+            var w = this.components[0];
+            return 'rgb(' + [w, w, w].join(',') + ')';
+        }else{
+            throw Error("Unsupported color space.  Cannot generate css string for '%s'".sprintf(this.colorSpace));
+        }
+    }
+});
+
+Object.defineProperty(JSFont.prototype, 'cssString', {
+    enumerable: false,
+    value: function JSFont_cssString(){
+        return '%spx %s'.sprintf(this.pointSize, this.familyName);
+    }
+});
+
+Object.defineProperty(JSData.prototype, 'blobURL', {
+    enumerable: false,
+    value: function JSData_blobURL(){
+        if (!this._blob){
+            this._blob = Blob([this.bytes]);
+        }
+        return createObjectURL(this._blob);
+    }
+});
