@@ -1,3 +1,8 @@
+// #feature Object.create
+// #feature Object.defineProperty
+// #feature Object.getPrototypeOf
+// #feature Object.hasOwnProperty
+
 function JSClass(name, superclass, extensions){
     if (this === JSGlobalObject){
         this[name] = superclass.$extend(extensions, name);

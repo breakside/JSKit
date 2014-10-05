@@ -13,11 +13,11 @@ JSClass('JSBundle', JSObject, {
         this.resources = _JSBundles[this.identifier];
     },
 
-    contentsOfResource: function(resource){
+    resourceNamed: function(resource){
         if (this.hasResource(resource)){
             return this.resources[resource];
         }
-        throw Error("JSApplication.contentsOfResource: resource '%s' not found".sprintf(resource));
+        throw Error("JSApplication.resourceNamed: resource '%s' not found".sprintf(resource));
     },
 
     hasResource: function(resource){
@@ -26,13 +26,5 @@ JSClass('JSBundle', JSObject, {
 
 });
 
-JSBundle._mainBundle = null;
-
-Object.defineProperty(JSBundle, 'mainBundle', {
-  get: function(){
-    if (!JSBundle._mainBundle){
-      JSBundle._mainBundle = JSBundle.initWithIdentifier('__main__');
-    }
-    return JSBundle._mainBundle;
-  }
-});
+JSBundle.bundles = {};
+JSBundle.mainBundle = null;

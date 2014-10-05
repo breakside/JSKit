@@ -1,5 +1,11 @@
 // #import "UIKit/UIRenderer.js"
 // #import "UIKit/UIHTMLRendererContext.js"
+// #global URL, Blob, Window, Element, Document
+// #feature URL.createObjectURL
+// #feature Window.prototype.addEventListener
+// #feature Window.prototype.getComputedStyle
+// #feature Document.prototype.createElement
+// #feature Element.prototype.addEventListener
 
 JSClass("UIHTMLRenderer", UIRenderer, {
 
@@ -367,16 +373,36 @@ Object.defineProperty(JSColor.prototype, 'cssString', {
 Object.defineProperty(JSFont.prototype, 'cssString', {
     enumerable: false,
     value: function JSFont_cssString(){
+        // TODO: weight, style, line height?
         return '%spx %s'.sprintf(this.pointSize, this.familyName);
     }
 });
 
-Object.defineProperty(JSData.prototype, 'blobURL', {
+Object.defineProperty(JSData.prototype, 'htmlURLString', {
     enumerable: false,
-    value: function JSData_blobURL(){
+    value: function JSData_htmlURLString(){
         if (!this._blob){
             this._blob = Blob([this.bytes]);
+            this._blobURL = URL.createObjectURL(this._blob);
         }
-        return createObjectURL(this._blob);
+        return this._blobURL;
+    }
+});
+
+Object.defineProperty(JSImage.prototype, 'htmlURLString', {
+    enumerable: false,
+    value: function JSImage_htmlURLString(){
+        if (this.resource){
+            return this.resource.url;
+        }
+        if (this.file){
+            if (!this._fileURL){
+                this._fileURL = URL.createObjectURL(this.file);
+            }
+            return this._fileURL;
+        }
+        if (this.data){
+            return this.data.htmlURL();
+        }
     }
 });
