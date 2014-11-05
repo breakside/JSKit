@@ -150,6 +150,7 @@ class HTMLBuilder(object):
                     self.jsCompilation.include(path)
                 self.jsCompilation.include(bundleJSFile, 'bundle.js')
                 for outfile in self.jsCompilation.outfiles:
+                    outfile.fp.flush()
                     if outfile.name:
                         outputPath = os.path.join(self.outputProductPath, outfile.name)
                     elif len(self.appJS) == 0:
@@ -213,6 +214,7 @@ class HTMLBuilder(object):
                     compilation = JSCompilation(includePaths, minify=not self.debug)
                     compilation.include(inscript)
                     for outfile in compilation.outfiles:
+                        outfile.fp.flush()
                         script = document.createElement('script')
                         script.setAttribute('type', 'text/javascript')
                         if outfile.name is None:
