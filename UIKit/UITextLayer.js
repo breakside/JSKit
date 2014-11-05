@@ -1,4 +1,6 @@
 // #import "UIKit/UILayer.js"
+/* global JSClass, UILayer, UILayerAnimatedProperty, UITextLayer */
+'use strict';
 
 JSClass("UITextLayer", UILayer, {
     text: null,

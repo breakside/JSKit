@@ -1,14 +1,19 @@
 // #import "JSKit/JSKit.js"
+/* global JSClass, JSObject, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint */
+'use strict';
 
 function HTMLCanvasVariable(name){
-    var prop = Object.create(JSCustomProperty.prototype);
-    prop.name = name;
-    prop.define = HTMLCanvasVariable_define;
-    return prop;
+    if (this === undefined){
+        return new HTMLCanvasVariable(name);
+    }else{
+        this.name = name;
+    }
 }
 
-function HTMLCanvasVariable_define(C, key, prop, extensions){
-    var ckey = prop.name || key;
+HTMLCanvasVariable.prototype = Object.create(JSCustomProperty.prototype);
+
+HTMLCanvasVariable.prototype.define = function(C, key, extensions){
+    var ckey = this.name || key;
     Object.defineProperty(C.prototype, key, {
         configurable: false,
         enumerable: false,
@@ -19,17 +24,20 @@ function HTMLCanvasVariable_define(C, key, prop, extensions){
             return this.canvasContext[ckey];
         }
     });
-}
+};
 
 function HTMLCanvasMethod(name){
-    var prop = Object.create(JSCustomProperty.prototype);
-    prop.name = name;
-    prop.define = HTMLCanvasMethod_define;
-    return prop;
+    if (this === undefined){
+        return new HTMLCanvasMethod(name);
+    }else{
+        this.name = name;
+    }
 }
 
-function HTMLCanvasMethod_define(C, key, prop, extensions){
-    var ckey = prop.name || key;
+HTMLCanvasMethod.prototype = Object.create(JSCustomProperty.prototype);
+
+HTMLCanvasMethod.prototype.define = function(C, key, extensions){
+    var ckey = this.name || key;
     Object.defineProperty(C.prototype, key, {
         configurable: false,
         enumerable: false,
@@ -37,7 +45,7 @@ function HTMLCanvasMethod_define(C, key, prop, extensions){
             return this.canvasContext[ckey];
         }
     });
-}
+};
 
 JSClass("UIHTMLRendererContext", JSObject, {
 

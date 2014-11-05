@@ -1,6 +1,8 @@
 // #import "Foundation/Foundation.js"
 // #import "JSKit/JSObject.js"
 // #import "JSKit/JSPropertyList.js"
+/* global JSClass, JSObject, JSPropertyList, JSSpec, JSClassFromName, JSGlobalObject */
+'use strict';
 
 JSClass('JSSpec', JSObject, {
 
@@ -13,7 +15,7 @@ JSClass('JSSpec', JSObject, {
     },
 
     filesOwner: function(){
-        var value = this._plist[JSSPecKeyFilesOwner];
+        var value = this._plist[JSSpec.Keys.FilesOwner];
         return this._resolve(value);
     },
 
@@ -40,8 +42,8 @@ JSClass('JSSpec', JSObject, {
             for (var i in value){
                 value[i] = this._resolve[value[i]];
             }
-            if (JSSpecKeys.ObjectClass in value){
-                var className = value[JSSpecKeys.ObjectClass];
+            if (JSSpec.Keys.ObjectClass in value){
+                var className = value[JSSpec.Keys.ObjectClass];
                 var obj = JSClassFromName(className).initWithSpec(value);
                 return obj;
             }else{
@@ -53,7 +55,7 @@ JSClass('JSSpec', JSObject, {
 
 });
 
-var JSSpecKeys = {
+JSSpec.Keys = {
     FilesOwner: "JSFilesOwner",
     ObjectClass: "JSObjectClass"
 };

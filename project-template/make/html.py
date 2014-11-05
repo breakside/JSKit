@@ -3,13 +3,16 @@
 import os
 import os.path
 import hashlib
-import xml.dom
+import xml.dom.minidom
 import plistlib
 import shutil
 import json
 import mimetypes
+import StringIO
+import tempfile
+from HTMLParser import HTMLParser
 from .image import ImageInfoExtractor
-from .scanners import JSFile, JSGlobal, JSFeature
+from .javascript import JSCompilation, JSFeature
 
 
 class HTMLBuilder(object):
@@ -19,7 +22,8 @@ class HTMLBuilder(object):
     outputProductPath = ""
     outputResourcePath = ""
     indexFile = None
-    appJSFile = None
+    jsCompilation = None
+    appJS = None
     manifestFile = None
     sourceRootPath = ""
     debug = False
@@ -42,6 +46,7 @@ class HTMLBuilder(object):
     def build(self):
         self.watchFiles = []
         self.manifest = []
+        self.appJS = []
         self.setup()
         self.buildPlists()
         self.buildImages()
@@ -63,7 +68,7 @@ class HTMLBuilder(object):
         self.infoName = 'Info.plist'
         infoPath = os.path.join(self.sourceRootPath, self.infoName)
         if os.path.exists(infoPath):
-            self.info = PlistWrapper(infoPath)
+            self.info = plistlib.readPlist(infoPath)
         else:
             self.infoName = 'Info.json'
             infoPath = os.path.join(self.sourceRootPath, self.infoName)
@@ -73,7 +78,7 @@ class HTMLBuilder(object):
 
     def buildPlists(self):
         resources = [self.infoName]
-        mainUIFile = self.info['JSMainUIDefinitionFile']
+        mainUIFile = self.info.get('JSMainUIDefinitionFile', None)
         if mainUIFile:
             resources.append(mainUIFile)
         for resourcePath in resources:
@@ -115,7 +120,8 @@ class HTMLBuilder(object):
                     byte_size = f.tell()
                     f.close()
                     h = h.hexdigest()
-                    outputPath = os.path.join(self.outputResourcePath, h)
+                    dontcare, ext = os.path.splitext(name)
+                    outputPath = os.path.join(self.outputResourcePath, h + ext)
                     shutil.copyfile(fullPath, outputPath)
                     info = {
                         'hash': h,
@@ -130,33 +136,41 @@ class HTMLBuilder(object):
 
     def buildAppJavascript(self):
         includePaths = [os.path.join(self.sourceRootPath, path) for path in ('Frameworks', 'Classes', '.')]
-        self.appJSFile = JSFile(open(os.path.join(self.outputProductPath, 'app.js'), 'w'), includePaths)
-        self.appJSFile.write("var JSGlobalObject = window;\n")
-        self.appJSFile.write("var UIRendererInit = function(){ return UIHTMLRenderer.initWithRootElement(document.body); };\n")
-        for path in self.rootIncludes:
-            self.appJSFile.include(path, output=not self.debug)
-        if self.debug:
-            self.appJSFile.write("""(function(head){\n  var includejs = function(src){\n    var s = document.createElement('script');\n    s.type = 'text/javascript';\n    s.src = src;\n    s.async = false;\n    head.appendChild(s);\n  };\n""")
-            for includedSourcePath in self.appJSFile.importedScripts:
-                relativePath = _webpath(os.path.relpath(includedSourcePath, self.outputRootPath))
-                self.appJSFile.write("  includejs('%s');\n" % relativePath)
-            self.appJSFile.write("  JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))
-            self.appJSFile.write("  JSBundle.mainBundle = JSBundle.bundles['%s'];\n" % self.info['JSApplicationIdentifier'])
-            self.appJSFile.write("})(document.getElementsByTagName('head')[0]);\n")
-        else:
-            self.appJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))
-            self.appJSFile.write("JSBundle.mainBundle = JSBundle.bundles['%s'];\n" % self.info['JSApplicationIdentifier'])
-        self.manifest.append(self.appJSFile.name)
+        with tempfile.NamedTemporaryFile() as envJSFile:
+            with tempfile.NamedTemporaryFile() as bundleJSFile:
+                envJSFile.write("'use strict';\n")
+                envJSFile.write("var JSGlobalObject = window;\n")
+                envJSFile.write("var UIRendererInit = function(){ return UIHTMLRenderer.initWithRootElement(document.body); };\n")
+                bundleJSFile.write("'use strict';\n")
+                bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))
+                bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.info['JSApplicationIdentifier'])
+                self.jsCompilation = JSCompilation(includePaths, minify=not self.debug)
+                self.jsCompilation.include(envJSFile, 'env.js')
+                for path in self.rootIncludes:
+                    self.jsCompilation.include(path)
+                self.jsCompilation.include(bundleJSFile, 'bundle.js')
+                for outfile in self.jsCompilation.outfiles:
+                    if outfile.name:
+                        outputPath = os.path.join(self.outputProductPath, outfile.name)
+                    elif len(self.appJS) == 0:
+                        outputPath = os.path.join(self.outputProductPath, 'app.js')
+                    else:
+                        outputPath = os.path.join(self.outputProductPath, 'app%d.js' % len(self.appJS))
+                    if not os.path.exists(os.path.dirname(outputPath)):
+                        os.makedirs(os.path.dirname(outputPath))
+                    if self.debug:
+                        os.link(outfile.fp.name, outputPath)
+                    else:
+                        shutil.copy(outfile.fp.name, outputPath)
+                    self.manifest.append(outputPath)
+                    self.appJS.append(outputPath)
 
     def buildPreflight(self):
         self.featureCheck = JSFeatureCheck()
-        self.featureCheck.addGlobal(JSGlobal(['window', 'document']))
-        self.featureCheck.addFeature(JSFeature("'body' in Document.prototype"))
-        for g in self.appJSFile.globals_:
-            self.featureCheck.addGlobal(g)
-        for feature in self.appJSFile.features:
+        self.featureCheck.addFeature(JSFeature('window'))
+        self.featureCheck.addFeature(JSFeature("document.body"))
+        for feature in self.jsCompilation.features:
             self.featureCheck.addFeature(feature)
-        self.featureCheck.hash = hash(self.featureCheck)
         self.preflightFile = open(os.path.join(self.outputRootPath, 'preflight-%s.js' % self.featureCheck.hash), 'w')
         self.featureCheck.serialize(self.preflightFile, 'bootstrapper')
 
@@ -171,25 +185,55 @@ class HTMLBuilder(object):
             self.manifestFile.write("%s\n" % _webpath(os.path.relpath(name, self.outputRootPath)))
 
     def buildIndex(self):
-        self.indexFile = open(os.path.join(self.outputRootPath, 'index.html'), 'w')
-        dom = xml.dom.getDOMImplementation()
-        doctype = dom.createDocumentType("html", None, None)
-        document = dom.createDocument(None, "html", doctype)
-        head = document.documentElement.appendChild(document.createElement('head'))
-        body = document.documentElement.appendChild(document.createElement('body'))
-        title = head.appendChild(document.createElement('title'))
-        title.appendChild(document.createTextNode(self.info['JSApplicationTitle'] or ""))
-        meta = head.appendChild(document.createElement('meta'))
-        meta.setAttribute('http-equiv', 'Content-Type')
-        meta.setAttribute('content', 'text/html; charset=utf-8')
+        indexName = self.info.get('JSApplicationHTMLIndexFile', 'index.html')
+        document = HTML5Document(os.path.join(self.sourceRootPath, indexName)).domDocument
+        self.indexFile = open(os.path.join(self.outputRootPath, indexName), 'w')
+        stack = [document.documentElement]
+        appSrc = []
+        for includedSourcePath in self.appJS:
+            relativePath = _webpath(os.path.relpath(includedSourcePath, os.path.dirname(self.indexFile.name)))
+            appSrc.append(relativePath)
+        jscontext = {
+            'preflightID': self.featureCheck.hash,
+            'preflightSrc': _webpath(os.path.relpath(self.preflightFile.name, self.outputRootPath)),
+            'appSrc': appSrc
+        }
+        includePaths = (os.path.join(self.sourceRootPath, 'make', 'html_resources'),)
+        while len(stack) > 0:
+            node = stack.pop()
+            if node.tagName == 'title' and node.parentNode.tagName == 'head':
+                node.appendChild(document.createTextNode(self.info.get('JSApplicationTitle', '')))
+            elif node.tagName == 'script' and node.getAttribute('type') == 'text/javascript':
+                oldScriptText = u''
+                for child in node.childNodes:
+                    if child.nodeType == xml.dom.Node.TEXT_NODE:
+                        oldScriptText += child.nodeValue
+                with tempfile.NamedTemporaryFile() as inscript:
+                    inscript.write(JSCompilation.preprocess(oldScriptText.strip(), jscontext))
+                    compilation = JSCompilation(includePaths, minify=not self.debug)
+                    compilation.include(inscript)
+                    for outfile in compilation.outfiles:
+                        script = document.createElement('script')
+                        script.setAttribute('type', 'text/javascript')
+                        if outfile.name is None:
+                            outfile.fp.seek(0)
+                            textNode = document.createTextNode("\n" + outfile.fp.read() + "\n")
+                            script.appendChild(textNode)
+                        else:
+                            outputPath = os.path.join(self.outputProductPath, outfile.name)
+                            if self.debug:
+                                os.link(outfile.fp.name, outputPath)
+                            else:
+                                shutil.copy(outfile.fp.name, outputPath)
+                            relativePath = _webpath(os.path.relpath(outputPath, os.path.dirname(self.indexFile.name)))
+                            script.setAttribute('src', relativePath)
+                        node.parentNode.insertBefore(script, node)
+                node.parentNode.removeChild(node)
+            for child in node.childNodes:
+                if child.nodeType == xml.dom.Node.ELEMENT_NODE:
+                    stack.append(child)
         if self.manifestFile and not self.debug:
             document.documentElement.setAttribute('manifest', _webpath(os.path.relpath(self.manifestFile.name, os.path.dirname(self.indexFile.name))))
-        if self.appJSFile:
-            relativeJavascriptPath = _webpath(os.path.relpath(self.appJSFile.name, os.path.dirname(self.indexFile.name)))
-            script = head.appendChild(document.createElement('script'))
-            script.setAttribute('type', 'text/javascript')
-            script.setAttribute('src', relativeJavascriptPath)
-            body.setAttribute('onload', 'main()')
         HTML5DocumentSerializer(document).serializeToFile(self.indexFile)
 
     def finish(self):
@@ -199,23 +243,9 @@ class HTMLBuilder(object):
             if os.path.lexists(linkPath):
                 os.unlink(linkPath)
             os.symlink(os.path.relpath(self.outputRootPath, os.path.dirname(linkPath)), linkPath)
-        self.appJSFile.close()
-        self.appJSFile = None
         self.indexFile.close()
         self.indexFile = None
         self.info = None
-
-
-class PlistWrapper(object):
-
-    def __init__(self, path):
-        self.plist = plistlib.readPlist(path)
-
-    def __getitem__(self, i):
-        try:
-            return self.plist[i]
-        except KeyError:
-            return None
 
 
 def _webpath(ospath):
@@ -226,58 +256,106 @@ def _webpath(ospath):
 
 class JSFeatureCheck(object):
 
-    globals_ = None
     features = None
+    _hash = None
     TEMPLATE_VERSION = 1
 
-    template = """
-(function(checks){
-    %s.preflightStarted(failures);
-    var failures = [];
-    for (var i = 0, l = checks.length; i < l; ++i){
-        try {
-            if (!checks[i].fn()){
-                failures.push({check: checks[i].name});
-            }
-        }catch (error){
-            failures.push({check: checks[i].name, error: error});
-        }
-    }
-    if (failures.length > 0){
-        %s.preflightFailed(failures);
-    }
-})(%s);
-"""
+    template = """HTMLAppBootstrapper.mainBootstrapper.preflightChecks = %s;"""
 
     def __init__(self):
-        self.globals_ = []
         self.features = []
-
-    def addGlobal(self, g):
-        self.globals_.append(g)
 
     def addFeature(self, f):
         self.features.append(f)
+        self._hash = None
 
-    def __hash__(self):
-        parts = {}
-        for g in self.globals_:
-            for o in g.objects:
-                parts[o] = True
-        for f in self.features:
-            parts[f] = True
-        parts = sorted(parts.keys())
-        parts.append('TEMPLATE_VERSION=%s' % self.TEMPLATE_VERSION)
-        return hashlib.sha1(':'.join(parts)).hexdigest()
+    @property
+    def hash(self):
+        if self._hash is None:
+            parts = {}
+            for f in self.features:
+                parts[f.check] = True
+            parts = sorted(parts.keys())
+            parts.append('TEMPLATE_VERSION=%s' % self.TEMPLATE_VERSION)
+            return hashlib.sha1(':'.join(parts)).hexdigest()
+        return self._hash
 
     def serialize(self, fp, globalDelegateName):
         checks = []
-        for g in self.globals_:
-            for o in g.objects:
-                checks.append("{name: %s, fn: function(){ return !!(window.%s); }}" % (json.dumps('global %s' % o), o))
         for f in self.features:
             checks.append("{name: %s, fn: function(){ return !!(%s); }}" % (json.dumps('feature %s' % f.check), f.check))
-        fp.write(self.template % (globalDelegateName, globalDelegateName, "[\n  %s\n]" % ",\n  ".join(checks)))
+        fp.write(self.template % ("[\n  %s\n]" % ",\n  ".join(checks)),)
+
+
+class HTML5Document(object, HTMLParser):
+    path = None
+    domDocument = None
+    element = None
+
+    def __init__(self, path):
+        HTMLParser.__init__(self)
+        self.path = path
+        dom = xml.dom.minidom.getDOMImplementation()
+        doctype = dom.createDocumentType("html", None, None)
+        self.domDocument = dom.createDocument(None, "html", doctype)
+        fp = open(path, 'r')
+        for line in fp:
+            self.feed(line.decode('utf-8'))
+        self.close()
+
+    def handle_starttag(self, name, attrs):
+        # TODO: see how this handles namespaces (like for svg)
+        if name == 'html' and not self.element:
+            self.element = self.domDocument.documentElement
+        else:
+            element = self._handle_starttag(name, attrs)
+            if name not in HTML5DocumentSerializer.VOID_ELEMENTS:
+                self.element = element
+
+    def _handle_starttag(self, name, attrs):
+        element = self.domDocument.createElement(name)
+        for attr in attrs:
+            element.setAttribute(attr[0], attr[1])
+        self.element.appendChild(element)
+        return element
+
+    def handle_endtag(self, name):
+        self.element.normalize()
+        remove = []
+        for child in self.element.childNodes:
+            if child.nodeType == xml.dom.Node.TEXT_NODE and child.nodeValue.strip() == '':
+                remove.append(child)
+        for child in remove:
+            self.element.removeChild(child)
+        self.element = self.element.parentNode
+
+    def handle_startendtag(self, name, attrs):
+        self._handle_starttag(name, attrs)
+
+    def handle_data(self, data):
+        if self.element and self.element != self.domDocument.documentElement:
+            node = self.domDocument.createTextNode(data)
+            self.element.appendChild(node)
+
+    def handle_entityref(self, name):
+        # TODO
+        pass
+
+    def handle_charref(self, name):
+        # TODO
+        pass
+
+    def handle_comment(self, data):
+        pass
+
+    def handle_decl(self, decl):
+        pass
+
+    def handle_pi(self, data):
+        pass
+
+    def unknown_decl(self, data):
+        pass
 
 
 class HTML5DocumentSerializer(object):
@@ -324,10 +402,8 @@ class HTML5DocumentSerializer(object):
                             writer.write("%s</%s>" % (self.indent, node.tagName))
                         else:
                             writer.write("</%s>" % node.tagName)
-                    elif node.tagName in self.CLOSED_ELEMENTS:
-                        writer.write("></%s>" % node.tagName)
                     else:
-                        writer.write("/>")
+                        writer.write("></%s>" % node.tagName)
                     writer.write("\n")
                     self.onlyTextChildren.pop()
             elif node.nodeType == xml.dom.Node.ATTRIBUTE_NODE:
@@ -364,7 +440,6 @@ class HTML5DocumentSerializer(object):
         _node(self.document)
 
     def serializeToString(self):
-        import StringIO
         writer = StringIO.StringIO()
         self.serializeToFile(writer)
         writer.close()

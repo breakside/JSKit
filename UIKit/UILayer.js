@@ -1,12 +1,19 @@
 // #import "JSKit/JSKit.js"
+// #import "UIKit/UIAnimationTransaction.js"
+// #import "UIKit/UIBasicAnimation.js"
+// #import "UIKit/UIRenderer.js"
+/* global JSCustomProperty, JSClass, JSObject, UILayer, UIRenderer, JSRect, JSPoint, JSSize, JSConstraintBox, JSAffineTransform, UIAnimationTransaction, UIBasicAnimation, JSSetDottedName, JSResolveDottedName*/
+'use strict';
 
 function UILayerAnimatedProperty(){
-    var prop = Object.create(JSCustomProperty.prototype);
-    prop.define = UILayerAnimatedProperty_define;
-    return prop;
+    if (this === undefined){
+        return new UILayerAnimatedProperty();
+    }
 }
 
-function UILayerAnimatedProperty_define(C, key, prop, extensions){
+UILayerAnimatedProperty.prototype = Object.create(JSCustomProperty.prototype);
+
+UILayerAnimatedProperty.prototype.define = function(C, key, extensions){
     var setterName = C.nameOfSetMethodForKey(key);
     var setter = extensions[setterName];
     var getter = function UILayer_getAnimatableProperty(){
@@ -30,7 +37,7 @@ function UILayerAnimatedProperty_define(C, key, prop, extensions){
         set: setter,
         get: getter
     });
-}
+};
 
 JSClass("UILayer", JSObject, {
     frame:              UILayerAnimatedProperty(),

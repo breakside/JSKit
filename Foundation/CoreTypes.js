@@ -1,8 +1,9 @@
+'use strict';
 // -----------------------------------------------------------------------------
 // Mark: Sizes
 
 function JSSize(width, height){
-    if (this === JSGlobalObject){
+    if (this === undefined){
         return new JSSize(width, height);
     }else{
         this.width = width;
@@ -18,7 +19,7 @@ JSSize.prototype = {
 JSSize.Zero = JSSize(0, 0);
 
 function JSPoint(x, y){
-    if (this === JSGlobalObject){
+    if (this === undefined){
         return new JSPoint(x, y);
     }else{
         this.x = x;
@@ -36,7 +37,7 @@ JSPoint.UnitCenter = JSPoint(0.5, 0.5);
 
 
 function JSRect(x, y, width, height){
-    if (this === JSGlobalObject){
+    if (this === undefined){
         return new JSRect(x, y, width, height);
     }else{
         this.origin = JSPoint(x, y);
@@ -53,7 +54,7 @@ JSRect.Zero = JSRect(0, 0, 0, 0);
 
 
 function JSRange(location, length){
-    if (this === JSGlobalObject){
+    if (this === undefined){
         return new JSRange(location, length);
     }else{
         this.location = location;
@@ -68,7 +69,7 @@ JSRange.prototype = {
 
 
 function JSAffineTransform(a, b, c, d, tx, ty){
-    if (this === JSGlobalObject){
+    if (this === undefined){
         return new JSAffineTransform(a, b, c, d, tx, ty);
     }else{
         this.a = a;
@@ -93,7 +94,7 @@ JSAffineTransform.Identity = JSAffineTransform(1, 0, 0, 1, 0, 0);
 
 
 function JSConstraintBox(props){
-    if (this === JSGlobalObject){
+    if (this === undefined){
         return new JSConstraintBox(props);
     }else{
         if (props !== undefined){
@@ -130,7 +131,7 @@ JSConstraintBox.Margin = function(top, right, bottom, left){
 };
 
 JSConstraintBox.AnchorTop = function(height){
-    return JSConstraintBox({
+    return new JSConstraintBox({
         top: 0,
         left: 0,
         right: 0,
@@ -139,7 +140,7 @@ JSConstraintBox.AnchorTop = function(height){
 };
 
 JSConstraintBox.AnchorLeft = function(width){
-    return JSConstraintBox({
+    return new JSConstraintBox({
         top: 0,
         left: 0,
         bottom: 0,
@@ -148,7 +149,7 @@ JSConstraintBox.AnchorLeft = function(width){
 };
 
 JSConstraintBox.AnchorBottom = function(height){
-    return JSConstraintBox({
+    return new JSConstraintBox({
         bottom: 0,
         left: 0,
         right: 0,
@@ -157,7 +158,7 @@ JSConstraintBox.AnchorBottom = function(height){
 };
 
 JSConstraintBox.AnchorRight = function(width){
-    return JSConstraintBox({
+    return new JSConstraintBox({
         top: 0,
         right: 0,
         bottom: 0,
@@ -166,7 +167,7 @@ JSConstraintBox.AnchorRight = function(width){
 };
 
 JSConstraintBox.Rect = function(rect){
-    return JSConstraintBox({
+    return new JSConstraintBox({
         top: rect.origin.y,
         left: rect.origin.x,
         width: rect.size.width,

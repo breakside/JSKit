@@ -1,5 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "JSKit/JSClass.js"
+/* global JSClass, JSClassForName */
+'use strict';
 
 var JSObject = Object.create(JSClass.prototype, {
     ID: {
@@ -32,11 +34,11 @@ JSObject.defineInitMethod = function(methodName){
         value: function JSObject_createAndInit(){
             var args = Array.prototype.slice.call(arguments, 0);
             var obj = Object.create(this.prototype);
-            obj[methodName].apply(obj, args);
             obj.objectID = ++JSObject.ID;
             obj._observers = [];
             obj._bindings = {};
             obj._observableKeys = {};
+            obj[methodName].apply(obj, args);
             return obj;
         }
     });
@@ -104,7 +106,7 @@ JSObject.definePropertiesFromExtensions({
             var i, l;
             var index;
             if (change.type == JSKeyValueChange.Setting){
-                key = bidningInfo.binding;
+                key = bindingInfo.binding;
                 if (bindingInfo.options.valueTransformer){
                     var valueTransformer = JSClassForName(bindingInfo.options.valueTransformer).init();
                     this.silentlySetValueForKey(key, valueTransformer.transformValue(change.newValue));
@@ -174,7 +176,7 @@ JSObject.definePropertiesFromExtensions({
                     if (context === undefined || context === observerInfo.context){
                         this._observers[key].splice(i,1);
                         if (keyParts.length && value){
-                            value.removeObserverForKeyPath(this, keyParts.join('.'), bindingInfo);
+                            value.removeObserverForKeyPath(this, keyParts.join('.'), context);
                         }
                     }
                 }
@@ -197,8 +199,8 @@ JSObject.definePropertiesFromExtensions({
                 observedKeyPath : keyPath,
                 options         : options
             };
-            this._bindings[bidning] = bindingInfo;
-            target.addObserverForKeyPath(this, keyPath, observingOptions, bindingInfo);
+            this._bindings[binding] = bindingInfo;
+            toObject.addObserverForKeyPath(this, keyPath, options, bindingInfo);
         }
     },
 
@@ -284,7 +286,7 @@ JSObject.definePropertiesFromExtensions({
             return this[countMethodName]();
         }
         var value = this.valueForKey(key);
-        if ((value !== null && value !== undefined) && (length in value)){
+        if ((value !== null && value !== undefined) && ('length' in value)){
             return value.length;
         }
         return null;
@@ -429,7 +431,7 @@ JSObject.definePropertiesFromExtensions({
         if (this.automaticallyManagesBindings && key in this._bindings){
             var bindingInfo = this._bindings[key];
             if (!bindingInfo.options.readOnly){
-                transformedValue = value;
+                var transformedValue = value;
                 if (bindingInfo.options.valueTransformer){
                     var valueTransformer = JSClassForName(bindingInfo.options.valueTransformer).init();
                     transformedValue = valueTransformer.reverseTransformValue(value);
@@ -457,7 +459,7 @@ JSObject.definePropertiesFromExtensions({
             if (!bindingInfo.options.readOnly){
                 var keyParts = bindingInfo.keyPath.split('.');
                 var finalKey = keyParts.pop();
-                var targetObject = bidningInfo.observedObject;
+                var targetObject = bindingInfo.observedObject;
                 if (keyParts.length){
                     targetObject = targetObject.valueForKeyPath(keyParts.join('.'));
                 }

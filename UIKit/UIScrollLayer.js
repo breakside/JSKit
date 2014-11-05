@@ -1,4 +1,6 @@
 // #import "UIKit/UILayer.js"
+/* global JSClass, UILayer, UIScrollLayer, UILayerAnimatedProperty, JSPoint, JSSize */
+'use strict';
 
 JSClass("UIScrollLayer", UILayer, {
 

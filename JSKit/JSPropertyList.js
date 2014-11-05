@@ -1,5 +1,7 @@
 // #import "JSKit/JSObject.js"
 // #import "JSKit/JSBundle.js"
+/* global JSClass, JSObject, JSPropertyList, JSBundle */
+'use strict';
 
 JSClass('JSPropertyList', JSObject, {
     initWithResource: function(resourceName){
@@ -15,7 +17,7 @@ JSClass('JSPropertyList', JSObject, {
     }
 });
 
-var JSPropertyListKeys = {
+JSPropertyList.Keys = {
     MainUIDefinitionFile: "JSMainUIDefinitionFile",
     ApplicationDelegate: "JSApplicationDelegate"
 };

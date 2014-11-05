@@ -16,3 +16,4 @@
 // #import "JSKit/JSGradient.js"
 // #import "JSKit/JSFont.js"
 // #import "JSKit/JSData.js"
+'use strict';

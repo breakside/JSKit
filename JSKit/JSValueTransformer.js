@@ -1,4 +1,6 @@
 // #import "JSKit/JSObject.js"
+/* global JSClass, JSObject, JSValueTransformer */
+'use strict';
 
 // -----------------------------------------------------------------------------
 // MARK: - Base Class
@@ -23,7 +25,7 @@ JSClass('JSIsNullValueTransformer', JSValueTransformer, {
     },
 
     reverseTransformValue: function(value){
-        throw Error("JSIsNullValueTranformer cannot reverseTranform value");
+        throw new Error("JSIsNullValueTranformer cannot reverseTranform value");
     }
 
 });
@@ -35,7 +37,7 @@ JSClass('JSIsNotNullValueTransformer', JSValueTransformer, {
     },
 
     reverseTransformValue: function(value){
-        throw Error("JSIsNullValueTranformer cannot reverseTranform value");
+        throw new Error("JSIsNullValueTranformer cannot reverseTranform value");
     }
 
 });
@@ -51,7 +53,7 @@ JSClass('JSIsEmptyValueTransformer', JSValueTransformer, {
     },
 
     reverseTransformValue: function(value){
-        throw Error("JSIsEmptyValueTranformer cannot reverseTranform value");
+        throw new Error("JSIsEmptyValueTranformer cannot reverseTranform value");
     }
 
 });
@@ -63,7 +65,7 @@ JSClass('JSIsNotEmptyValueTransformer', JSValueTransformer, {
     },
 
     reverseTransformValue: function(value){
-        throw Error("JSIsEmptyValueTranformer cannot reverseTranform value");
+        throw new Error("JSIsEmptyValueTranformer cannot reverseTranform value");
     }
 
 });

@@ -2,11 +2,16 @@
 // #feature Object.defineProperty
 // #feature Object.getPrototypeOf
 // #feature Object.hasOwnProperty
+'use strict';
 
 function JSClass(name, superclass, extensions){
-    if (this === JSGlobalObject){
-        this[name] = superclass.$extend(extensions, name);
-        return this[name];
+    if (this === undefined){
+        if (superclass instanceof JSClass){
+            JSGlobalObject[name] = superclass.$extend(extensions, name);
+            return JSGlobalObject[name];
+        }else{
+            throw new Error("JSClass(): superclass must be an instance of JSClass");
+        }
     }
 }
 
@@ -24,7 +29,7 @@ JSClass.prototype = {
             }
         });
         if (!className){
-            throw Error('Classes must have names');
+            throw new Error('Classes must have names');
         }
         C.className = className;
         C.prototype = Object.create(superclass.prototype, {
@@ -35,9 +40,6 @@ JSClass.prototype = {
                 value: C
             }
         });
-        C.prototype.constructor = function(){
-            throw Error('Use init method, not constructor for: %s'.sprintf(className));
-        };
         C.definePropertiesFromExtensions(extensions);
         return C;
     },
@@ -74,7 +76,7 @@ JSClass.prototype = {
                 });
             }else{
                 if (extensions[i] instanceof JSCustomProperty){
-                    extensions[i].define(this, i, extensions[i], extensions);
+                    extensions[i].define(this, i, extensions);
                 }else{
                     Object.defineProperty(this.prototype, i, {
                         configurable: true,
@@ -116,7 +118,7 @@ JSClass.prototype = {
     },
 
     nameOfSilentSetMethodForKey: function(key){
-        return '_' + nameOfSetMethodForKey(key);
+        return '_' + this.nameOfSetMethodForKey(key);
     },
 
     nameOfInsertMethodForKey: function(key){
@@ -124,7 +126,7 @@ JSClass.prototype = {
     },
 
     nameOfSilentInsertMethodForKey: function(key){
-        return '_' + nameOfInsertMethodForKey(key);
+        return '_' + this.nameOfInsertMethodForKey(key);
     },
 
     nameOfRemoveMethodForKey: function(key){
@@ -132,7 +134,7 @@ JSClass.prototype = {
     },
 
     nameOfSilentRemoveMethodForKey: function(key){
-        return '_' + nameOfRemoveMethodForKey(key);
+        return '_' + this.nameOfRemoveMethodForKey(key);
     },
 
     nameOfReplaceMethodForKey: function(key){
@@ -140,7 +142,7 @@ JSClass.prototype = {
     },
 
     nameOfSilentReplaceMethodForKey: function(key){
-        return '_' + nameOfReplaceMethodForKey(key);
+        return '_' + this.nameOfReplaceMethodForKey(key);
     },
 
     nameOfSilentPropertyForKey: function(key){
@@ -152,33 +154,36 @@ function JSCustomProperty(){
 }
 
 function JSDynamicProperty(key, value, getterName, setterName){
-    var prop = Object.create(JSCustomProperty.prototype);
-    prop.key = key;
-    prop.value = value;
-    prop.getterName = getterName;
-    prop.setterName = setterName;
-    prop.define = JSDynamicProperty_define;
-    return prop;
+    if (this === undefined){
+        return new JSDynamicProperty(key, value, getterName, setterName);
+    }else{
+        this.key = key;
+        this.value = value;
+        this.getterName = getterName;
+        this.setterName = setterName;
+    }
 }
 
-function JSDynamicProperty_define(C, key, prop, extensions){
-    var setterName = prop.setterName || C.nameOfSetMethodForKey(key);
-    var getterName = prop.getterName || C.nameOfGetMethodForKey(key);
-    if (prop.key){
-        Object.defineProperty(C.prototype, prop.key, {
+JSDynamicProperty.prototype = Object.create(JSCustomProperty.prototype);
+
+JSDynamicProperty.prototype.define = function(C, key, extensions){
+    var setterName = this.setterName || C.nameOfSetMethodForKey(key);
+    var getterName = this.getterName || C.nameOfGetMethodForKey(key);
+    if (this.key){
+        Object.defineProperty(C.prototype, this.key, {
             configurable: true,
             enumerable: false,
             writable: true,
-            value: prop.value
+            value: this.value
         });
     }
     Object.defineProperty(C.prototype, key, {
         configurable: true,
         enumerable: false,
-        get: extensions[getterName] || extensions[C.nameOfBooleanGetMethodForKey(name)],
+        get: extensions[getterName] || extensions[C.nameOfBooleanGetMethodForKey(key)],
         set: extensions[setterName]
     });
-}
+};
 
 function JSLazyInitProperty(methodName){
     var prop = Object.create(JSCustomProperty.prototype);
@@ -192,7 +197,7 @@ function JSLazyInitProperty_define(C, key, prop, extensions){
         configurable: true,
         enumerable: false,
         get: function(){
-            var x = this[methodName]();
+            var x = this[prop.methodName]();
             Object.defineProperty(this, key, {
                 configurable: false,
                 enumerable: false,

@@ -1,11 +1,14 @@
 // #import "UIKit/UIRenderer.js"
 // #import "UIKit/UIHTMLRendererContext.js"
-// #global URL, Blob, Window, Element, Document
+// #import "UIKit/UIEvent.js"
+// #feature Blob
 // #feature URL.createObjectURL
 // #feature Window.prototype.addEventListener
-// #feature Window.prototype.getComputedStyle
+// #feature window.getComputedStyle
 // #feature Document.prototype.createElement
 // #feature Element.prototype.addEventListener
+/* global JSClass, UIRenderer, UIHTMLRenderer, UIHTMLRendererContext, JSSize, JSConstraintBox, UIScrollLayer, UITextLayer, UIEvent, JSColor, JSFont, JSData, Blob, URL, JSImage */
+'use strict';
 
 JSClass("UIHTMLRenderer", UIRenderer, {
 
@@ -36,7 +39,7 @@ JSClass("UIHTMLRenderer", UIRenderer, {
 
     setupRenderingEnvironment: function(){
         this.rootContext = UIHTMLRendererContext.initWithElement(this.rootElement);
-        this.rootElement.style = 'relative';
+        this.rootElement.style.position = 'relative';
         if (this.rootElement === this.domDocument.body){
             var body = this.rootElement;
             var html = this.domDocument.documentElement;
@@ -108,7 +111,7 @@ JSClass("UIHTMLRenderer", UIRenderer, {
         var context = this.contextsByLayerID[layer.objectID];
         if (context){
             if (context.element.parentNode){
-                context.element.parentNode.removeChild(element);
+                context.element.parentNode.removeChild(context.element);
             }
             context.destroy();
             delete this.contextsByLayerID[layer.objectID];
@@ -353,15 +356,15 @@ JSClass("UIHTMLRenderer", UIRenderer, {
 Object.defineProperty(JSColor.prototype, 'cssString', {
     enumerable: false,
     value: function JSColor_cssString(){
-        if (this.colorSpace === JSColorSpaceIdentifier.RGBA){
+        if (this.colorSpace === JSColor.SpaceIdentifier.RGBA){
             return 'rgba(' + this.components.join(',') + ')';
-        }else if (this.colorSpace === JSColorSpaceIdentifier.RGB){
+        }else if (this.colorSpace === JSColor.SpaceIdentifier.RGB){
             return 'rgb(' + this.components.join(',') + ')';
-        }else if (this.colorSpace === JSColorSpaceIdentifier.HSLA){
+        }else if (this.colorSpace === JSColor.SpaceIdentifier.HSLA){
             return 'hsla(' + this.components.join(',') + ')';
-        }else if (this.colorSpace === JSColorSpaceIdentifier.HSL){
+        }else if (this.colorSpace === JSColor.SpaceIdentifier.HSL){
             return 'hsl(' + this.components.join(',') + ')';
-        }else if (this.colorSpace === JSColorSpaceIdentifier.GRAY){
+        }else if (this.colorSpace === JSColor.SpaceIdentifier.GRAY){
             var w = this.components[0];
             return 'rgb(' + [w, w, w].join(',') + ')';
         }else{

@@ -1,5 +1,7 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UIScrollLayer.js"
+/* global JSClass, UIView, UIScrollView, UIScrollLayer, UIViewLayerProperty */
+'use strict';
 
 JSClass('UIScrollView', UIView, {
 

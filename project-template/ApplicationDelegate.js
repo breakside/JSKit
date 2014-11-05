@@ -1,5 +1,7 @@
 // #import "JSKit/JSKit.js"
 // #import "UIKit/UIKit.js"
+/* global JSClass, JSObject, UIWindow, JSColor, UIView, JSRect, UIBasicAnimation */
+'use strict';
 
 JSClass("ApplicationDelegate", JSObject, {
 

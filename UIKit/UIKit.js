@@ -1,4 +1,8 @@
 // #import "UIKit/UIAnimation.js"
+// #import "UIKit/UIPropertyAnimation.js"
+// #import "UIKit/UIBasicAnimation.js"
+// #import "UIKit/UIAnimationTransaction.js"
+// #import "UIKit/UIAnimationGroup.js"
 // #import "UIKit/UIEvent.js"
 // #import "UIKit/UILabel.js"
 // #import "UIKit/UILayer.js"
@@ -8,3 +12,4 @@
 // #import "UIKit/UITextLayer.js"
 // #import "UIKit/UIView.js"
 // #import "UIKit/UIWindow.js"
+'use strict';

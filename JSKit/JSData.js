@@ -1,4 +1,7 @@
-// #global Uint8Array
+// #feature Uint8Array
+// #import "JSKit/JSObject.js"
+/* global JSClass, JSObject */
+'use strict';
 
 JSClass("JSData", JSObject, {
 

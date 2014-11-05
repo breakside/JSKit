@@ -1,13 +1,19 @@
 // #import "JSKit/JSKit.js"
 // #import "UIKit/UILayer.js"
+// #import "UIKit/UIRenderer.js"
+// #import "UIKit/UIAnimation.js"
+/* global JSClass, JSObject, UIView, UILayer, JSCustomProperty, JSRect, JSColor, UIRenderer, UIAnimation, UIAnimationTransaction */
+'use strict';
 
 function UIViewLayerProperty(){
-    var prop = Object.create(JSCustomProperty.prototype);
-    prop.define = UIViewLayerProperty_define;
-    return prop;
+    if (this === undefined){
+        return new UIViewLayerProperty();
+    }
 }
 
-function UIViewLayerProperty_define(C, key, prop, extensions){
+UIViewLayerProperty.prototype = Object.create(JSCustomProperty.prototype);
+
+UIViewLayerProperty.prototype.define = function(C, key, extensions){
     Object.defineProperty(C.prototype, key, {
         configurable: false,
         enumerable: false,
@@ -18,7 +24,7 @@ function UIViewLayerProperty_define(C, key, prop, extensions){
             return this.layer[key];
         }
     });
-}
+};
 
 JSClass('UIView', JSObject, {
 
@@ -73,9 +79,9 @@ JSClass('UIView', JSObject, {
         UIView.$super.initWithSpec.call(this, spec);
         var frame;
         if ("frame.margin" in spec){
-            frame = JSRectMakeWithMargin.apply(JSRectMakeWithMargin, spec.margin.parseNumberArray());
+            frame = JSRectMakeWithMargin.apply(undefined, spec.margin.parseNumberArray());
         }else if ("frame" in spec){
-            frame = JSRect.apply(JSGlobalObject, spec.frame.parseNumberArray());
+            frame = JSRect.apply(undefined, spec.frame.parseNumberArray());
         }else{
             frame = JSRect(0,0,100,100);
         }

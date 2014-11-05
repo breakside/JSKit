@@ -1,4 +1,6 @@
 // #import "JSKit/JSKit.js"
+/* global JSClass, JSObject, UIAnimationTransaction, UIRenderer, UIRendererInit */
+'use strict';
 
 JSClass("UIRenderer", JSObject, {
 
@@ -42,7 +44,7 @@ JSClass("UIRenderer", JSObject, {
     },
 
     drawView: function(view){
-        context = this.contextForLayer(view.layer);
+        var context = this.contextForLayer(view.layer);
         view.drawInContext(context);
     },
 
@@ -103,7 +105,7 @@ JSClass("UIRenderer", JSObject, {
     redrawLayerIfNeeded: function(layer){
         if (layer.objectID in this.redrawQueue){
             if (!UIAnimationTransaction.currentTransaction){
-                context = this.contextForLayer(layer);
+                var context = this.contextForLayer(layer);
                 layer.drawInContext(context);
             }
             delete this.displayQueue[layer.objectID];
@@ -135,7 +137,7 @@ JSClass("UIRenderer", JSObject, {
         }
 
         // Call any animation callbacks
-        for (i = 0, l = completedAnimations.length; i < l; ++i){
+        for (var i = 0, l = completedAnimations.length; i < l; ++i){
             completedAnimations[i].completionFunction(completedAnimations[i]);
         }
     },

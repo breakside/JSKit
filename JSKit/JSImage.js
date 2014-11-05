@@ -1,4 +1,8 @@
 // #import "JSKit/JSObject.js"
+// #import "JSKit/JSData.js"
+// #import "JSKit/JSBundle.js"
+/* global JSClass, JSObject, JSBundle, JSImage, JSData */
+'use strict';
 
 JSClass('JSImage', JSObject, {
 
@@ -35,7 +39,7 @@ JSClass('JSImage', JSObject, {
     },
 
     _getDataFromFile: function(){
-        var reader = new FileReaderSync();
+        var reader = new FileReaderSync(); // FIXME: not available except in web worker
         var bytes = reader.readAsArrayBuffer(this.file);
         this.data = JSData.initWithBytes(bytes);
         return this.data;

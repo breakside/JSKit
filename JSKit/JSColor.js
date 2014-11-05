@@ -1,4 +1,6 @@
 // #import "JSKit/JSObject.js"
+/* global JSClass, JSObject, JSColor */
+'use strict';
 
 JSClass('JSColor', JSObject, {
     colorSpace: null,
@@ -14,7 +16,7 @@ JSClass('JSColor', JSObject, {
     },
 
     initWithRGBA: function(r, g, b, a){
-        this.colorSpace = JSColorSpaceIdentifier.RGBA;
+        this.colorSpace = JSColor.SpaceIdentifier.RGBA;
         if (r === undefined) r = 0;
         if (g === undefined) g = 0;
         if (b === undefined) b = 0;
@@ -23,14 +25,14 @@ JSClass('JSColor', JSObject, {
     },
 
     initWithWhite: function(w){
-        this.colorSpace = JSColorSpaceIdentifier.GRAY;
+        this.colorSpace = JSColor.SpaceIdentifier.GRAY;
         if (w === undefined) w = 0;
         this.components = [w];
     }
 
 });
 
-var JSColorSpaceIdentifier = {
+JSColor.SpaceIdentifier = {
     RGB: 'rgb',
     RGBA: 'rgba',
     HSLA: 'hsla',

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+  <title></title>
+  <style id="bootstrap-style" type="text/css">
+  #splash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgb(250,250,250);
+  }
+  #status {
+    position: absolute;
+    top: 50%;
+    margin-top: -16px;
+    right: 40px;
+    left: 40px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font: 100 24px/32px "Helvetica Neue", "Helvetica", sans-serif;
+    height: 32px;
+    text-align: center;
+    color: rgb(204,204,204);
+    tranition-property: color, margin-top;
+    transition-duration: .5s;
+    -webkit-font-smoothing: subpixel-antialiased;
+  }
+  #details {
+    position: absolute;
+    top: 50%;
+    margin-top: 0;
+    right: 40px;
+    left: 40px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font: 100 16px/24px "Helvetica Neue", "Helvetica", sans-serif;
+    text-align: center;
+    color: rgb(128,128,128);
+    transition: opacity linear .5s .5s;
+    opacity: 0;
+    -webkit-font-smoothing: subpixel-antialiased;
+  }
+  #splash.error #status {
+    color: rgb(204,102,102);
+    margin-top: -42px;
+  }
+  #splash.error #details {
+    opacity: 1;
+  }
+  </style>
+</head>
+<body>
+  <div id="splash">
+    <span id="status"></span>
+    <span id="details"></span>
+  </div>
+  <script type="text/javascript">
+  // #import "HTMLAppBootstrapper.js"
+  'use strict';
+  (function(){
+    // #var preflightID
+    // #var preflightSrc
+    // #var appSrc
+    var splash = document.getElementById('splash');
+    var statusLabel = document.getElementById('status');
+    var detailsLabel = document.getElementById('details');
+    var bootstrapStyle = document.getElementById('bootstrap-style');
+    var bootstrapper = HTMLAppBootstrapper(preflightID, preflightSrc, appSrc, document.body);
+    bootstrapper.onstatus = function(){
+      var S = HTMLAppBootstrapper.STATUS;
+      switch (bootstrapper.status){
+        case S.preflightLoading:
+        case S.preflightRunning:
+          statusLabel.innerHTML = 'Checking Compatibility...';
+          break;
+        case S.appLoading:
+          statusLabel.innerHTML = 'Loading...';
+          break;
+        case S.preflightFailedChecks:
+          splash.className = 'error';
+          statusLabel.innerHTML = "Before we can get started...";
+          detailsLabel.innerHTML = "It looks like the browser you are using needs an upgrade.  Or, you can try a different browser.<br>To learn more, please visit __________";
+          break;
+        case S.preflightLoadError:
+        case S.appLoadError:
+        case S.appRunError:
+          splash.className = 'error';
+          statusLabel.innerHTML = "Apologies, but we couldn't start the app";
+          detailsLabel.innerHTML = "Don't worry, it wasn't anything you did, and it isn't something we expect to happen under normal usage.<br>We've notified our engineers of the problem, and the best thing you can do is try again soon.";
+          break;
+        case S.appRunning:
+          splash.parentNode.removeChild(splash);
+          bootstrapStyle.parentNode.removeChild(bootstrapStyle);
+          break;
+      }
+    };
+    bootstrapper.run();
+  })();
+  </script>
+</body>
+</html>

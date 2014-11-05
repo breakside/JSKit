@@ -1,6 +1,8 @@
 // #import "Foundation/Foundation.js"
 // #import "JSKit/JSObject.js"
 // #import "JSKit/JSColor.js"
+/* global JSClass, JSObject, JSGradient, JSPoint */
+'use strict';
 
 JSClass('JSGradient', JSObject, {
 

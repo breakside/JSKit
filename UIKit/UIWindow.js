@@ -1,4 +1,7 @@
 // #import "UIKit/UIView.js"
+// #import "UIKit/UIRenderer.js"
+/* global JSClass, UIView, UIRenderer, JSConstraintBox, UIWindow */
+'use strict';
 
 JSClass('UIWindow', UIView, {
 

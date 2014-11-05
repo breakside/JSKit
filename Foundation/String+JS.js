@@ -1,3 +1,5 @@
+'use strict';
+
 String.prototype.ucFirst = function(){
     return this.charAt(0).toUpperCase() + this.substr(1);
 };
@@ -9,7 +11,7 @@ if(!String.prototype.trim) {
 }
 
 String.prototype.parseNumberArray = function(){
-    var input = self.split(',');
+    var input = this.split(',');
     var output = [];
     var s;
     for (var i = 0, l = input.length; i < l; ++i){
@@ -36,7 +38,7 @@ String.prototype.sprintf = function(){
             var alignment = '';
             var width = 0;
             var precision = null;
-            numberString = '';
+            var numberString = '';
             if (c >= '1' && c <= '9'){
                 while (c >= '0' && c <= '9'){
                     numberString += c;
