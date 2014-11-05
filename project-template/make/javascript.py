@@ -70,6 +70,7 @@ class JSCompilation(object):
                         self.outfile.write("'use strict';\n")
                     elif not self.outfile.is_strict:
                         self._newOutfile()
+                        self.outfile.is_strict = True
                         self.outfile.write("'use strict';\n")
                 else:
                     if not fileIsStrict and self.outfile.is_strict:
