@@ -136,35 +136,30 @@ class HTMLBuilder(object):
 
     def buildAppJavascript(self):
         includePaths = [os.path.join(self.sourceRootPath, path) for path in ('Frameworks', 'Classes', '.')]
-        with tempfile.NamedTemporaryFile() as envJSFile:
-            with tempfile.NamedTemporaryFile() as bundleJSFile:
-                envJSFile.write("'use strict';\n")
-                envJSFile.write("var JSGlobalObject = window;\n")
-                envJSFile.write("var UIRendererInit = function(){ return UIHTMLRenderer.initWithRootElement(document.body); };\n")
-                bundleJSFile.write("'use strict';\n")
-                bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))
-                bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.info['JSApplicationIdentifier'])
-                self.jsCompilation = JSCompilation(includePaths, minify=not self.debug)
-                self.jsCompilation.include(envJSFile, 'env.js')
-                for path in self.rootIncludes:
-                    self.jsCompilation.include(path)
-                self.jsCompilation.include(bundleJSFile, 'bundle.js')
-                for outfile in self.jsCompilation.outfiles:
-                    outfile.fp.flush()
-                    if outfile.name:
-                        outputPath = os.path.join(self.outputProductPath, outfile.name)
-                    elif len(self.appJS) == 0:
-                        outputPath = os.path.join(self.outputProductPath, 'app.js')
-                    else:
-                        outputPath = os.path.join(self.outputProductPath, 'app%d.js' % len(self.appJS))
-                    if not os.path.exists(os.path.dirname(outputPath)):
-                        os.makedirs(os.path.dirname(outputPath))
-                    if self.debug:
-                        os.link(outfile.fp.name, outputPath)
-                    else:
-                        shutil.copy(outfile.fp.name, outputPath)
-                    self.manifest.append(outputPath)
-                    self.appJS.append(outputPath)
+        with tempfile.NamedTemporaryFile() as bundleJSFile:
+            bundleJSFile.write("'use strict';\n")
+            bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))
+            bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.info['JSApplicationIdentifier'])
+            self.jsCompilation = JSCompilation(includePaths, minify=not self.debug)
+            for path in self.rootIncludes:
+                self.jsCompilation.include(path)
+            self.jsCompilation.include(bundleJSFile, 'bundle.js')
+            for outfile in self.jsCompilation.outfiles:
+                outfile.fp.flush()
+                if outfile.name:
+                    outputPath = os.path.join(self.outputProductPath, outfile.name)
+                elif len(self.appJS) == 0:
+                    outputPath = os.path.join(self.outputProductPath, 'app.js')
+                else:
+                    outputPath = os.path.join(self.outputProductPath, 'app%d.js' % len(self.appJS))
+                if not os.path.exists(os.path.dirname(outputPath)):
+                    os.makedirs(os.path.dirname(outputPath))
+                if self.debug and outfile.fp.name[0:len(self.sourceRootPath)] == self.sourceRootPath:
+                    os.symlink(outfile.fp.name, outputPath)
+                else:
+                    shutil.copy(outfile.fp.name, outputPath)
+                self.manifest.append(outputPath)
+                self.appJS.append(outputPath)
 
     def buildPreflight(self):
         self.featureCheck = JSFeatureCheck()

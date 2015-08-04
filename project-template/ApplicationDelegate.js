@@ -1,5 +1,5 @@
-// #import "JSKit/JSKit.js"
-// #import "UIKit/UIKit.js"
+// #import "JSKit/JSKit+HTML.js"
+// #import "UIKit/UIKit+HTML.js"
 /* global JSClass, JSObject, UIWindow, JSColor, UIView, JSRect, UIBasicAnimation */
 'use strict';
 
@@ -12,7 +12,7 @@ JSClass("ApplicationDelegate", JSObject, {
         this.window = UIWindow.init();
         this.window.makeKeyAndVisible();
 
-        var viewCount = 1;
+        var viewCount = 100;
 
         var white = JSColor.whiteColor();
         var colors = [
@@ -29,7 +29,8 @@ JSClass("ApplicationDelegate", JSObject, {
             size = Math.round(Math.random() * 100 + 20);
             x = Math.round(Math.random() * (this.window.frame.size.width - size));
             y = Math.round(Math.random() * (this.window.frame.size.height - size));
-            view = UIView.initWithFrame(JSRect(x, y, size, size));
+            view = UILabel.initWithFrame(JSRect(x, y, size, size));
+            view.text = i;
             view.borderRadius = size / 2.0;
             view.borderWidth = 1.0;
             view.borderColor = white;
@@ -44,7 +45,7 @@ JSClass("ApplicationDelegate", JSObject, {
                 var view;
                 var x, y, size;
                 var animation;
-                for (var i = Math.max(0, viewCount - 10); i < viewCount; i++){
+                for (var i = Math.max(0, viewCount - 50); i < viewCount; i++){
                     view = applicationDelegate.window.contentView.subviews[i];
                     size = view.frame.size;
                     x = Math.round(Math.random() * (applicationDelegate.window.contentView.frame.size.width - size.width));

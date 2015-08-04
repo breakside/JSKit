@@ -3,6 +3,7 @@
 'use strict';
 
 JSClass("JSFont", JSObject, {
+    fontName: null,
     familyName: null,
     pointSize: null
 });

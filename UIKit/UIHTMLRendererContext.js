@@ -1,5 +1,5 @@
-// #import "JSKit/JSKit.js"
-/* global JSClass, JSObject, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint */
+// #import "JSKit/JSKit+HTML.js"
+/* global JSClass, JSContext, JSObject, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint */
 'use strict';
 
 function HTMLCanvasVariable(name){
@@ -47,15 +47,7 @@ HTMLCanvasMethod.prototype.define = function(C, key, extensions){
     });
 };
 
-JSClass("UIHTMLRendererContext", JSObject, {
-
-    LINE_CAP_BUTT: 'butt',
-    LINE_CAP_ROUND: 'round',
-    LINE_CAP_SQUARE: 'square',
-
-    LINE_JOIN_ROUND: 'round',
-    LINE_JOIN_BEVEL: 'bevel',
-    LINE_JOIN_MITER: 'miter',
+JSClass("UIHTMLRendererContext", JSContext, {
 
     element: null,
     style: null,
@@ -64,51 +56,9 @@ JSClass("UIHTMLRendererContext", JSObject, {
     textNode: null,
     scrollContentSizer: null,
     firstSublayerNodeIndex: 0,
-    view: null,
 
-    font:           JSDynamicProperty('_font', null),
-    fillColor:      JSDynamicProperty('_fillColor', null),
-    shadowColor:    JSDynamicProperty('_shadowColor', null),
-    shadowOffset:   JSDynamicProperty(),
-    save:           HTMLCanvasMethod(),
-    restore:        HTMLCanvasMethod(),
-    scale:          HTMLCanvasMethod(),
-    rotate:         HTMLCanvasMethod(),
-    translate:      HTMLCanvasMethod(),
-    transform:      HTMLCanvasMethod(),
-    setTransform:   HTMLCanvasMethod(),
-
-    // Needs review for naming consistency
-    lineWidth:      HTMLCanvasVariable(),
-    lineCap:        HTMLCanvasVariable(),
-    lineJoin:       HTMLCanvasVariable(),
-    globalAlpha:    HTMLCanvasVariable(),
-    globalCompositionOperation: HTMLCanvasVariable(),
-    strokeStyle:    HTMLCanvasVariable(),
-    shadowBlur:     HTMLCanvasVariable(),
-    miterLimit:     HTMLCanvasVariable(),
-    lineDashOffset: HTMLCanvasVariable(),
-    textAlign:      HTMLCanvasVariable(),
-    textBaseline:   HTMLCanvasVariable(),
-    // Needs review for path related functionality
-    beginPath:      HTMLCanvasMethod(),
-    closePath:      HTMLCanvasMethod(),
-    moveTo:         HTMLCanvasMethod(),
-    lineTo:         HTMLCanvasMethod(),
-    quadraticCurveTo:  HTMLCanvasMethod(),
-    bezierCurveTo:  HTMLCanvasMethod(),
-    arcTo:          HTMLCanvasMethod(),
-    rect:           HTMLCanvasMethod(),
-    arc:            HTMLCanvasMethod(),
-    fill:           HTMLCanvasMethod(),
-    stroke:         HTMLCanvasMethod(),
-    clip:           HTMLCanvasMethod(),
-    isPointInPath:  HTMLCanvasMethod(),
-    fillText:       HTMLCanvasMethod(),
-    strokeText:     HTMLCanvasMethod(),
-    measureText:    HTMLCanvasMethod(),
-    drawImage:      HTMLCanvasMethod(),
-    getLineDash:    HTMLCanvasMethod(),
+    init: function(){
+    },
 
     initWithElement: function(element){
         this.element = element;
@@ -123,7 +73,6 @@ JSClass("UIHTMLRendererContext", JSObject, {
         this.canvas = null;
         this.textNode = null;
         this.scrollContentSizer = null;
-        this.view = null;
     },
 
     _createCanvasContext: function(){
@@ -140,52 +89,137 @@ JSClass("UIHTMLRendererContext", JSObject, {
         return this.canvas.getContext('2d');
     },
 
-    clearRect: function(rect){
-        this.canvasContext.clearRect(rect.x, rect.y, rect.width, rect.height);
-    },
+    // State
 
-    fillRect: function(rect){
-        this.canvasContext.fillRect(rect.x, rect.y, rect.width, rect.height);
-    },
+    alpha:          HTMLCanvasVariable('globalAlpha'),
+    fillColor:      JSDynamicProperty('_fillColor'),
+    strokeColor:    JSDynamicProperty('_strokeColor'),
+    lineWidth:      HTMLCanvasVariable(),
+    lineCap:        HTMLCanvasVariable(),
+    lineJoin:       HTMLCanvasVariable(),
+    lineDash:       JSDynamicProperty('_lineDash'),
+    miterLimit:     HTMLCanvasVariable(),
+    shadowColor:    JSDynamicProperty('_shadowColor'),
+    shadowOffset:   JSDynamicProperty('_shadowOffset'),
+    shadowBlur:     HTMLCanvasVariable(),
 
-    strokeRect: function(rect){
-        this.canvasContext.strokeRect(rect.x, rect.y, rect.width, rect.height);
-    },
+    save: HTMLCanvasMethod(),
+    restore: HTMLCanvasMethod(),
 
-    setFont: function(font){
-        this._font = font;
-        this.canvasContext.font = font.cssString();
-    },
-
-    getFont: function(){
-        return this._font;
+    getFillColor: function(){
+        return this._fillColor;
     },
 
     setFillColor: function(color){
         this._fillColor = color;
-        this.canvasContext.fillStyle = color.cssString();
+        this.canvasContext.fillStyle = color ? color.cssString() : '';
     },
 
-    getFillColor: function(color){
-        return this._fillColor;
+    getStrokeColor: function(){
+        return this._strokeColor;
+    },
+
+    setStrokeColor: function(color){
+        this._strokeColor = color;
+        this.canvasContext.strokeStyle = color ? color.cssString() : '';
+    },
+
+    getShadowColor: function(){
+        return this._shadowColor;
     },
 
     setShadowColor: function(color){
         this._shadowColor = color;
-        this.canvasContext.shadowColor = color.cssString();
+        this.canvasContext.shadowColor = color ? color.cssString() : '';
     },
 
-    getShadowColor: function(color){
-        return this._shadowColor;
+    getShadowOffset: function(){
+        return this._shadowOffset;
     },
 
     setShadowOffset: function(offset){
+        this._shadowOffset = offset;
         this.canvasContext.shadowOffsetX = offset.x;
         this.canvasContext.shadowOffsetY = offset.y;
     },
 
-    getShadowOffset: function(offset){
-        return JSPoint(this.canvasContext.shadowOffsetX, this.canvasContext.shadowOffsetY);
+    getLineDash: function(){
+        return this._lineDash;
+    },
+
+    setLineDash: function(dash){
+        this._lineDash = dash;
+        this.canvasContext.lineDashOffset = dash.phase;
+        this.canvasContext.setLineDash(dash.segments);
+    },
+
+    // Paths
+
+    beginPath: HTMLCanvasMethod(),
+    closePath: HTMLCanvasMethod(),
+
+    addArc: function(x, y, radius, startAngle, endAngle, clockwise){
+        this.canvasContext.arc(x, y, radius, startAngle, endAngle, !clockwise);
+    },
+
+    addArcToPoint: HTMLCanvasMethod('arcTo'),
+    addCurveToPoint: HTMLCanvasMethod('bezierCurveTo'),
+    addLineToPoint: HTMLCanvasMethod('lineTo'),
+    addQuadraticCurveToPoint: HTMLCanvasMethod('quadraticCurveTo'),
+
+    addRect: function(rect){
+        this.canvasContext.rect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+    },
+
+    moveToPoint: HTMLCanvasMethod('moveTo'),
+
+    // Painting
+
+    clearRect: function(rect){
+        this.canvasContext.clearRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+    },
+
+    fillRect: function(rect){
+        this.canvasContext.fillRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+    },
+
+    strokeRect: function(rect){
+        this.canvasContext.strokeRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+    },
+
+    drawPath: function(drawingMode){
+        throw Error("UIHTMLRendererContext.drawPath not implemented");
+    },
+
+    eoFillPath: function(){
+        throw Error("UIHTMLRendererContext.drawPath not implemented");
+    },
+
+    fillPath: HTMLCanvasMethod('fill'),
+    strokePath: HTMLCanvasMethod('stroke'),
+
+    // Transforms
+
+    scaleCTM: HTMLCanvasMethod('scale'),
+    rotateCTM: HTMLCanvasMethod('rotate'),
+    translateCTM: HTMLCanvasMethod('translate'),
+
+    concatCTM: function(transform){
+        this.canvasContext.transform(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
+    },
+
+    // Images
+
+    drawImage: function(rect, image){
+        throw Error("UIHTMLRendererContext.drawPath not implemented");
+    },
+
+    drawLinearGradient: function(gradient, p1, p2){
+        throw Error("UIHTMLRendererContext.drawPath not implemented");
+    },
+
+    drawRadialGradient: function(gradient, p1, r1, p2, r2){
+        throw Error("UIHTMLRendererContext.drawPath not implemented");
     }
 
 });

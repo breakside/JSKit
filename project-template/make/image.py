@@ -38,7 +38,7 @@ class PNGInfoExtractor(ImageInfoExtractor):
 
     def populate_dict(self, info):
         # The first 8 bytes are the PNG signature, \x89\x50\x4E\x47\x0D\x0A\x1A\x0A, which we'll skip
-        # because we assume that we've been handed a PNG and don't need to double-check
+        # because we assume that we've been handed a PNG by ImageInfoExtractor.for_path and don't need to double-check
         self.fp.seek(8)
         # Then there's a header struct, which we'll only read the first few fields of because
         # all we really care about here is the width and height.
@@ -153,7 +153,6 @@ class JPEGInfoExtractor(TIFFInfoExtractor):
         # Anyway, the parsing job is simple enough: skip through the JPEG blocks until we find the first frame or the exif data.
         self.fp.seek(2)
         markerinfo = self.fp.read(4)
-        # Scan through markers to find EXIF data
         while len(markerinfo) == 4:
             marker, datalength = struct.unpack('!2sH', markerinfo)
             if marker[0] != '\xFF':

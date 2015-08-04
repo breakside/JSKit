@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Test</title>
+</head>
+<body>
+<textarea id="t" rows="11" cols="14" style="font-family: monospace">0
+
+a b  c d
+
+1
+</textarea>
+<script type="text/javascript">
+var input = document.getElementById('t');
+var originalValue = input.value;
+var originalLength = originalValue.length;
+var insertIndex = 7;
+var str = '';
+var selection = {
+  start: 0,
+  length: 0
+};
+var insertText = function(text){
+  if (selection.start == str.length){
+    str += text;
+  }else{
+    str = str.substr(0, selection.start) + text + str.substr(selection.start + selection.length);
+  }
+};
+input.focus();
+input.setSelectionRange(insertIndex, insertIndex);
+input.addEventListener('keypress', function(e){
+  console.log('keypress', e.code, e.key, e.isComposing, e.repeat, e.location);
+  if (input.value.length == originalLength){
+    if (input.selectionStart != insertIndex){
+      if (input.selectionEnd != input.selectionStart){
+        console.log('select');
+      }else{
+        console.log('move');
+      }
+    }else if (input.selectionEnd != insertIndex){
+      console.log('select');
+    }
+  }
+});
+input.addEventListener('select', function(e){
+  console.log('select', input.selectionStart, input.selectionEnd);
+});
+input.addEventListener('beforeinput', function(e){
+  console.log('beforeinput', e.data, e.isComposing);
+});
+input.addEventListener('input', function(e){
+  console.log('input', e.data, e.isComposing, input.value);
+  if (input.value.length < originalLength){
+    // something was deleted
+    str = str.substr(0, str.length - 1);
+    input.value = originalValue;
+    input.setSelectionRange(insertIndex, insertIndex);
+  }else{
+    if (isComposing){
+    }else{
+      var data = input.value.substr(insertIndex, input.value.length - originalValue.length);
+      str += data;
+      input.value = originalValue;
+      input.setSelectionRange(insertIndex, insertIndex);
+    }
+  }
+  console.log('str', str);
+});
+var isComposing = false;
+input.addEventListener('compositionupdate', function(e){
+  console.log('compositionupdate', e.data);
+});
+input.addEventListener('compositionstart', function(e){
+  console.log('compositionstart', e.data);
+  isComposing = true;
+});
+input.addEventListener('compositionend', function(e){
+  console.log('compositionend', e.data);
+  isComposing = false;
+});
+100,000,000.00
+</script>
+</body>
+</html>

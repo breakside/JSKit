@@ -42,7 +42,7 @@ JSClass('UIView', JSObject, {
     constraintBox:      UIViewLayerProperty(),
     transform:          UIViewLayerProperty(),
     hidden:             UIViewLayerProperty(),
-    opacity:            UIViewLayerProperty(),
+    alpha:              UIViewLayerProperty(),
     backgroundColor:    UIViewLayerProperty(),
     backgroundGradient: UIViewLayerProperty(),
     borderWidth:        UIViewLayerProperty(),
@@ -70,6 +70,7 @@ JSClass('UIView', JSObject, {
 
     _initWithFrame: function(frame){
         this.layer = this.$class.layerClass.init();
+        this.layer.delegate = this;
         this.subviews = [];
         this.frame = frame;
         this.backgroundColor = JSColor.whiteColor();
@@ -151,7 +152,6 @@ JSClass('UIView', JSObject, {
 
     removeSubview: function(subview){
         if (subview.superview === this){
-            UIRenderer.defaultRenderer.viewRemoved(subview);
             this.layer.removeSublayer(subview.layer);
             for (var i = subview.level + 1, l = this.subviews.length; i < l; ++i){
                 this.subviews[i].level -= 1;
@@ -160,6 +160,7 @@ JSClass('UIView', JSObject, {
             subview.superview = null;
             subview.setWindow(null);
             subview.level = null;
+            UIRenderer.defaultRenderer.viewRemoved(subview);
         }
     },
 
@@ -192,19 +193,11 @@ JSClass('UIView', JSObject, {
     // MARK: - Display
 
     setNeedsRedraw: function(){
-        UIRenderer.defaultRenderer.setViewNeedsRedraw(this);
-    },
-
-    redrawIfNeeded: function(){
-        UIRenderer.defaultRenderer.redrawViewIfNeeded(this);
+        UIRenderer.defaultRenderer.setLayerNeedsRedraw(this.layer);
     },
 
     setNeedsLayout: function(){
         UIRenderer.defaultRenderer.setViewNeedsLayout(this);
-    },
-
-    layoutIfNeeded: function(){
-        UIRenderer.defaultRenderer.layoutViewIfNeeded(this);
     },
 
     layout: function(){
@@ -217,7 +210,7 @@ JSClass('UIView', JSObject, {
     // -------------------------------------------------------------------------
     // MARK: - Display
 
-    drawInContext: function(context){
+    drawLayerInContext: function(layer, context){
     }
 
 });

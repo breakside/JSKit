@@ -6,6 +6,7 @@
 JSClass('UIWindow', UIView, {
 
     contentView: null,
+    firstResponder: null,
 
     init: function(){
         UIWindow.$super.initWithConstraintBox.call(this, JSConstraintBox.Margin(0));
@@ -16,6 +17,7 @@ JSClass('UIWindow', UIView, {
 
     makeKeyAndVisible: function(){
         UIRenderer.defaultRenderer.layerInserted(this.layer);
+        UIRenderer.defaultRenderer.makeKeyWindow(this);
     }
 
 });

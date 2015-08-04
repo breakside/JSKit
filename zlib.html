@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script type="text/javascript" src="Foundation/Foundation+HTML.js"></script>
+  <script type="text/javascript" src="Foundation/String+JS.js"></script>
+  <script type="text/javascript" src="Foundation/Uint8Array+JS.js"></script>
+  <script type="text/javascript" src="Zlib/Huffman.js"></script>
+  <script type="text/javascript" src="Zlib/Deflate.js"></script>
+  <script type="text/javascript" src="Zlib/Adler32.js"></script>
+  <script type="text/javascript" src="Zlib/Zlib.js"></script>
+  <script type="text/javascript" src="LZW/LZW.js"></script>
+  <style type="text/css">
+  html, body {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background-color: blue;
+    font: monospace;
+  }
+  textarea {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    font-family: monospace;
+  }
+  </style>
+<body>
+  <script type="text/javascript">
+  var Controller = function(){
+    var body = document.body;
+    body.addEventListener('dragover', this);
+    body.addEventListener('drop', this);
+    this.outputArea = body.appendChild(document.createElement('textarea'));
+  };
+  Controller.prototype = {
+    handleEvent: function(e){
+      this[e.type](e);
+    },
+    dragover: function(e){
+      e.preventDefault();
+    },
+    drop: function(e){
+      e.preventDefault();
+      var file = e.dataTransfer.files[0];
+      var reader = new FileReader();
+      reader.addEventListener('load', this);
+      reader.readAsArrayBuffer(file);
+    },
+    load: function(e){
+      var bytes = new Uint8Array(e.target.result);
+      var stream = new LZWStream(bytes);
+      stream.compress();
+      this.outputArea.value = stream.output.hexStringRepresentation();
+      stream = new LZWStream(stream.output);
+      stream.uncompress();
+      this.outputArea.value = stream.output.stringUsingUTF8Decoding();
+    }
+  };
+  var controller = new Controller();
+  </script>
+</body>
+</html>

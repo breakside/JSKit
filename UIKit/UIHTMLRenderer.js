@@ -1,13 +1,12 @@
 // #import "UIKit/UIRenderer.js"
 // #import "UIKit/UIHTMLRendererContext.js"
 // #import "UIKit/UIEvent.js"
-// #feature Blob
-// #feature URL.createObjectURL
 // #feature Window.prototype.addEventListener
 // #feature window.getComputedStyle
+// #feature Window.prototype.requestAnimationFrame
 // #feature Document.prototype.createElement
 // #feature Element.prototype.addEventListener
-/* global JSClass, UIRenderer, UIHTMLRenderer, UIHTMLRendererContext, JSSize, JSConstraintBox, UIScrollLayer, UITextLayer, UIEvent, JSColor, JSFont, JSData, Blob, URL, JSImage */
+/* global JSClass, UIRenderer, UIHTMLRenderer, UIHTMLRendererContext, JSSize, JSConstraintBox, UIScrollLayer, UITextLayer, UIEvent */
 'use strict';
 
 JSClass("UIHTMLRenderer", UIRenderer, {
@@ -18,13 +17,8 @@ JSClass("UIHTMLRenderer", UIRenderer, {
     rootLayer: null,
     rootContext: null,
     environmentSize: null,
-    domEventMethodMap: {
-        'mousedown'     : 'mouseDown',
-        'mouseup'       : 'mouseUp',
-        'mousemove'     : 'mouseMoved',
-        'mouseover'     : 'mouseEntered',
-        'mouseout'      : 'mouseExited'
-    },
+    displayFrameID: null,
+    _displayFrameBound: null,
     contextsByLayerID: null,
 
     initWithRootElement: function(rootElement){
@@ -34,12 +28,12 @@ JSClass("UIHTMLRenderer", UIRenderer, {
         this.domWindow = this.domDocument.defaultView;
         this.rootLayer = null;
         this.contextsByLayerID = {};
+        this._displayFrameBound = this.displayFrame.bind(this);
         this.setupRenderingEnvironment();
     },
 
     setupRenderingEnvironment: function(){
         this.rootContext = UIHTMLRendererContext.initWithElement(this.rootElement);
-        this.rootElement.style.position = 'relative';
         if (this.rootElement === this.domDocument.body){
             var body = this.rootElement;
             var html = this.domDocument.documentElement;
@@ -49,35 +43,107 @@ JSClass("UIHTMLRenderer", UIRenderer, {
             html.style.margin = '0';
             body.style.height = '100%';
             html.style.height = '100%';
+            html.style.overflow = 'hidden';
+            body.style.overflow = 'hidden';
         }else{
             var style = this.domWindow.getComputedStyle(this.rootElement);
-            if (style.position != 'absolute' && style.position != 'relative'){
+            if (style.position != 'absolute' && style.position != 'relative' && style.position != 'fixed'){
                 this.rootElement.style.position = 'relative';
             }
         }
         this.determineEnvironmentSize();
+        this.setupEventListeners();
+    },
+
+    setupEventListeners: function(){
         this.domWindow.addEventListener('resize', this, false);
+        this.rootElement.addEventListener('mousedown', this, false);
+        this.rootElement.addEventListener('mouseup', this, false);
+        this.rootElement.addEventListener('click', this, false);
+        this.rootElement.addEventListener('dblclick', this, false);
+        this.rootElement.addEventListener('keydown', this, false);
+        this.rootElement.addEventListener('keyup', this, false);
+        this.rootElement.addEventListener('keypress', this, false);
+        this.rootElement.addEventListener('dragstart', this, false);
+        this.rootElement.addEventListener('dragend', this, false);
+        // TODO: efficient mousemove
+        // TODO: dragging
+        // TODO: special things like file input change
+        // TODO: DOM 3 Key Events (if supported)
+        // TODO: touch events?
+        // TODO: copy/paste
+        // TODO: does stopping key events interfere with browser keyboard shortcuts?
+        // TODO: mouse leaving document (e.g., can't track mouseup outside document)
+    },
+
+    handleEvent: function(e){
+        this[e.type](e);
+        // FIXME: I think stopping a mousedown in Firefox prevents dragstart from working
+        e.stopPropagation();
+        if (e.cancelable){
+            e.preventDefault();
+        }
+    },
+
+    resize: function(e){
+        if (e.currentTarget === this.domWindow){
+            this.determineEnvironmentSize();
+            if (this.rootLayer.constraintBox){
+                this.rootLayer._updateFrameAfterSuperSizeChange(this.environmentSize);
+            }
+        }
+    },
+
+    mousedown: function(e){
+    },
+
+    mouseup: function(e){
+    },
+
+    click: function(e){
+    },
+
+    dblclick: function(e){
+    },
+
+    keydown: function(e){
+    },
+
+    keyup: function(e){
+    },
+
+    keypress: function(e){
+    },
+
+    dragstart: function(e){
+    },
+
+    dragend: function(e){
     },
 
     determineEnvironmentSize: function(){
         this.environmentSize = JSSize(this.rootElement.offsetWidth, this.rootElement.offsetHeight);
     },
 
+    setDisplayNeeded: function(){
+        this.requestDisplayFrame();
+    },
+
+    displayFrame: function(t){
+        this.displayFrameID = null;
+        this.updateDisplay(t);
+    },
+
+    requestDisplayFrame: function(){
+        if (this.displayFrameID === null){
+            this.displayFrameID = this.domWindow.requestAnimationFrame(this._displayFrameBound);
+        }
+    },
+
     viewInserted: function(view){
-        var context = this.contextsByLayerID[view.layer.objectID];
-        if (context){
-            if (context.element.dataset){
-                context.element.dataset.uiViewClass = view.$class.className;
-            }
-            context.view = view;
-            for (var eventType in this.domEventMethodMap){
-                if (this.domEventMethodMap[eventType] in view){
-                    context.element.addEventListener(eventType, this, false);
-                }
-            }
-            for (var i = 0, l = view.subviews.length; i < l; ++i){
-                this.viewInserted(view.subviews[i]);
-            }
+        var context = this.contextForLayer(view.layer);
+        if (context.element.dataset){
+            context.element.dataset.viewClass = view.$class.className;
         }
     },
 
@@ -101,6 +167,8 @@ JSClass("UIHTMLRenderer", UIRenderer, {
             }else{
                 parentContext.element.appendChild(context.element);
             }
+            layer.renderInHTMLContext(context);
+            context.firstSublayerNodeIndex = context.element.childNodes.length;
             for (var i = 0, l = layer.sublayers.length; i < l; ++i){
                 this.layerInserted(layer.sublayers[i]);
             }
@@ -116,6 +184,19 @@ JSClass("UIHTMLRenderer", UIRenderer, {
             context.destroy();
             delete this.contextsByLayerID[layer.objectID];
         }
+    },
+
+    contextForLayer: function(layer){
+        if (layer.objectID in this.contextsByLayerID){
+            return this.contextsByLayerID[layer.objectID];
+        }
+        var element = this.domDocument.createElement('div');
+        var context = UIHTMLRendererContext.initWithElement(element);
+        if (element.dataset){
+            element.dataset.layerId = layer.objectID;
+        }
+        this.contextsByLayerID[layer.objectID] = context;
+        return context;
     },
 
     setLayerNeedsRenderForKeyPath: function(layer, keyPath){
@@ -142,270 +223,17 @@ JSClass("UIHTMLRenderer", UIRenderer, {
         UIHTMLRenderer.$super.setLayerNeedsRenderForKeyPath.call(this, layer, keyPath);
     },
 
-    layerPropertyRenderer: {
-
-        box: function (layer, context){
-            var box = layer.presentation.constraintBox;
-            if (!box){
-                box = JSConstraintBox.Rect(layer.presentation.frame);
-            }
-            for (var property in box){
-                if (box[property] === undefined){
-                    context.style[property] = '';
-                }else{
-                    context.style[property] = box[property] + 'px';
-                }
-            }
-            if (box.left === undefined && box.right === undefined){
-                var width = box.width;
-                if (width === undefined){
-                    width = layer.presentation.frame.size.width;
-                }
-                context.style.left = '50%';
-                context.style.marginLeft = (-width) + 'px';
-            }else{
-                context.style.marginLeft = '';
-            }
-            if (box.top === undefined && box.bottom === undefined){
-                var height = box.height;
-                if (height === undefined){
-                    height = layer.presentation.frame.size.height;
-                }
-                context.style.top = '50%';
-                context.style.marginTop = (-height) + 'px';
-            }else{
-                context.style.marginTop = '';
-            }
-            if (context.canvas){
-                // TODO: size canvas
-            }
-        },
-
-        'frame.origin.x': function(layer, context){
-            context.style.left = layer.presentation.frame.origin.x + 'px';
-        },
-
-        'frame.origin.y': function(layer, context){
-            context.style.top = layer.presentation.frame.origin.y + 'px';
-        },
-
-        'frame.size.width': function(layer, context){
-            context.style.width = layer.presentation.frame.size.width + 'px';
-            if (context.canvas){
-                // TODO: size canvas
-            }
-        },
-
-        'frame.size.height': function(layer, context){
-            context.style.height = layer.presentation.frame.size.height + 'px';
-            if (context.canvas){
-                // TODO: size canvas
-            }
-        },
-
-        'constraintBox.top': function(layer, context){
-            context.style.top = layer.presentation.constraintBox.top + 'px';
-        },
-
-        'constraintBox.right': function(layer, context){
-            context.style.right = layer.presentation.constraintBox.right + 'px';
-        },
-
-        'constraintBox.bottom': function(layer, context){
-            context.style.bottom = layer.presentation.constraintBox.bottom + 'px';
-        },
-
-        'constraintBox.left': function(layer, context){
-            context.style.left = layer.presentation.constraintBox.left + 'px';
-        },
-
-        'constraintBox.width': function(layer, context){
-            context.style.width = layer.presentation.constraintBox.width + 'px';
-            if (context.canvas){
-                // TODO: size canvas
-            }
-        },
-
-        'constraintBox.height': function(layer, context){
-            context.style.height = layer.presentation.constraintBox.height + 'px';
-            if (context.canvas){
-                // TODO: size canvas
-            }
-        },
-
-        hidden: function(layer, context){
-            context.style.display = layer.presentation.hidden ? 'none' : '';
-        },
-
-        opacity: function(layer, context){
-            context.style.opacity = layer.presentation.opacity != 1.0 ? layer.presentation.opacity : '';
-        },
-
-        backgroundColor: function(layer, context){
-            context.style.backgroundColor = layer.presentation.backgroundColor ? layer.presentation.backgroundColor.cssString() : '';
-        },
-
-        borderColor: function(layer, context){
-            context.style.borderColor = layer.presentation.borderColor ? layer.presentation.borderColor.cssString() : '';
-        },
-
-        borderWidth: function(layer, context){
-            if (layer.presentation.borderWidth){
-                context.style.borderWidth = layer.presentation.borderWidth + 'px';
-                context.style.borderStyle = 'solid';
-            }else{
-                context.style.borderWidth = '';
-                context.style.borderStyle = '';
-            }
-        },
-
-        borderRadius: function(layer, context){
-            context.style.borderRadius = layer.presentation.borderRadius ? layer.presentation.borderRadius + 'px' : '';
-        },
-
-        shadow: function(layer, context){
-            if (layer.shadowColor){
-                context.style.boxShadow = '%fpx %fpx %fpx %s'.sprintf(layer.shadowOffset.x, layer.shadowOffset.y, layer.shadowRadius, layer.shadowColor.cssString());
-            }else{
-                context.style.boxShadow = '';
-            }
-        },
-
-        transform: function(layer, context){
-            var transform = layer.presentation.transform;
-            if (transform){
-                context.style.webkitTransform = context.style.MozTransform = 'matrix(%f, %f, %f, %f, %f, %f)'.sprintf(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
-            }else{
-                context.style.webkitTransform = context.style.MozTransform = '';
-            }
-        },
-
-        text: function(layer, context){
-            context.textNode.value = layer.text;
-        },
-
-        textColor: function(layer, context){
-            context.style.color = layer.presentation.textColor ? layer.presentation.textColor.cssString() : '';
-        },
-
-        contentSize: function(layer, context){
-            context.scrollContentSizer.style.width = layer.presentation.contentSize.width + 'px';
-            context.scrollContentSizer.style.height = layer.presentation.contentSize.height + 'px';
-        },
-
-        contentOffset: function(layer, context){
-            context.element.scrollLeft = layer.presentation.contentOffset.x;
-            context.element.scrollTop = layer.presentation.contentOffset.y;
+    _flushLayerRenderQueue: function(){
+        var layer;
+        var properties;
+        var context;
+        for (var id in this.layerRenderQueue){
+            layer = this.layerRenderQueue[id].layer;
+            context = this.contextForLayer(layer);
+            properties = this.layerRenderQueue[id].properties;
+            layer.displayInHTMLContext(context, properties);
         }
-
-    },
-
-    contextForLayer: function(layer){
-        if (layer.objectID in this.contextsByLayerID){
-            return this.contextsByLayerID[layer.objectID];
-        }
-        var element = this.domDocument.createElement('div');
-        var context = UIHTMLRendererContext.initWithElement(element);
-        if (layer.isKindOfClass(UIScrollLayer)){
-            var sizer = element.appendChild(this.domDocument.createElement('div'));
-            element.style.position = 'relative';
-            sizer.style.position = 'absolute';
-            sizer.style.top = '0px';
-            sizer.style.left = '0px';
-            sizer.style.width = '0px';
-            sizer.style.height = '0px';
-            context.scrollContentSizer = sizer;
-        }else if (layer.isKindOfClass(UITextLayer)){
-            context.textNode = element.appendChild(this.domDocument.createTextNode(''));
-        }
-        context.firstSublayerNodeIndex = element.childNodes.length;
-        element.style.position = 'absolute'; // TODO: allow other layout strategies
-        element.style.boxSizing = 'border-box';
-        element.style.mozBoxSizing = 'border-box';
-        if (element.dataset){
-            element.dataset.layerId = layer.objectID;
-        }
-        this.contextsByLayerID[layer.objectID] = context;
-        return context;
-    },
-
-    handleEvent: function(domEvent){
-        if (domEvent.type == 'resize' && domEvent.currentTarget === this.domWindow){
-            this.determineEnvironmentSize();
-            if (this.rootLayer.constraintBox){
-                this.rootLayer._updateFrameAfterSuperSizeChange(this.environmentSize);
-            }
-        }else{
-            var element = domEvent.currentTarget;
-            var context = element._UIHTMLRendererContext;
-            var methodName = this.domEventMethodMap[domEvent.type.lower()];
-            var event = UIEvent.init();
-            context.view[methodName](event);
-            domEvent.stopPropagation();
-        }
-    },
-
-    requestDisplayFrame: function(){
-        if (!this.displayFrameID){
-            this.displayFrameID = this.domWindow.requestAnimationFrame(this._displayFrameBound);
-        }
+        this.layerRenderQueue = {};
     }
 
-});
-
-Object.defineProperty(JSColor.prototype, 'cssString', {
-    enumerable: false,
-    value: function JSColor_cssString(){
-        if (this.colorSpace === JSColor.SpaceIdentifier.RGBA){
-            return 'rgba(' + this.components.join(',') + ')';
-        }else if (this.colorSpace === JSColor.SpaceIdentifier.RGB){
-            return 'rgb(' + this.components.join(',') + ')';
-        }else if (this.colorSpace === JSColor.SpaceIdentifier.HSLA){
-            return 'hsla(' + this.components.join(',') + ')';
-        }else if (this.colorSpace === JSColor.SpaceIdentifier.HSL){
-            return 'hsl(' + this.components.join(',') + ')';
-        }else if (this.colorSpace === JSColor.SpaceIdentifier.GRAY){
-            var w = this.components[0];
-            return 'rgb(' + [w, w, w].join(',') + ')';
-        }else{
-            throw Error("Unsupported color space.  Cannot generate css string for '%s'".sprintf(this.colorSpace));
-        }
-    }
-});
-
-Object.defineProperty(JSFont.prototype, 'cssString', {
-    enumerable: false,
-    value: function JSFont_cssString(){
-        // TODO: weight, style, line height?
-        return '%spx %s'.sprintf(this.pointSize, this.familyName);
-    }
-});
-
-Object.defineProperty(JSData.prototype, 'htmlURLString', {
-    enumerable: false,
-    value: function JSData_htmlURLString(){
-        if (!this._blob){
-            this._blob = Blob([this.bytes]);
-            this._blobURL = URL.createObjectURL(this._blob);
-        }
-        return this._blobURL;
-    }
-});
-
-Object.defineProperty(JSImage.prototype, 'htmlURLString', {
-    enumerable: false,
-    value: function JSImage_htmlURLString(){
-        if (this.resource){
-            return this.resource.url;
-        }
-        if (this.file){
-            if (!this._fileURL){
-                this._fileURL = URL.createObjectURL(this.file);
-            }
-            return this._fileURL;
-        }
-        if (this.data){
-            return this.data.htmlURL();
-        }
-    }
 });

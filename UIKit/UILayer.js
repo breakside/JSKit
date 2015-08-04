@@ -40,13 +40,13 @@ UILayerAnimatedProperty.prototype.define = function(C, key, extensions){
 };
 
 JSClass("UILayer", JSObject, {
-    frame:              UILayerAnimatedProperty(),
+    frame:              UILayerAnimatedProperty(), 
     position:           UILayerAnimatedProperty(),
     anchorPoint:        UILayerAnimatedProperty(),
     constraintBox:      UILayerAnimatedProperty(),
     transform:          UILayerAnimatedProperty(),
     hidden:             UILayerAnimatedProperty(),
-    opacity:            UILayerAnimatedProperty(),
+    alpha:              UILayerAnimatedProperty(),
     backgroundColor:    UILayerAnimatedProperty(),
     backgroundGradient: UILayerAnimatedProperty(),
     borderWidth:        UILayerAnimatedProperty(),
@@ -303,7 +303,7 @@ JSClass("UILayer", JSObject, {
 
     addAnimationForKey: function(animation, key){
         if (this.animationCount === 0){
-            // This is a trick ot make our presentation match our model, except in those
+            // This is a trick to make our presentation match our model, except in those
             // cases that will be overwritten by animations.
             this.presentation = Object.create(this.model);
         }
@@ -380,19 +380,8 @@ JSClass("UILayer", JSObject, {
         UIRenderer.defaultRenderer.setLayerNeedsRedraw(this);
     },
 
-    redrawIfNeeded: function(){
-        UIRenderer.defaultRenderer.redrawLayerIfNeeded(this);
-    },
-
-    drawInContext: function(context){
-    },
-
     setNeedsLayout: function(){
         UIRenderer.defaultRenderer.setLayerNeedsLayout(this);
-    },
-
-    layoutIfNeeded: function(){
-        UIRenderer.defaultRenderer.layoutLayerIfNeeded(this);
     },
 
     layout: function(){
@@ -400,6 +389,60 @@ JSClass("UILayer", JSObject, {
     },
 
     layoutSublayers: function(){
+    },
+
+    displayInContext: function(context){
+        if (this.hidden) return;
+        var bounds = JSRect(0, 0, this.frame.size.width, this.frame.size.height);
+        context.save();
+        context.alpha = this.alpha;
+        if (this.transform !== JSAffineTransform.Identity){
+            context.concatCTM(this.transform);
+        }
+        if (this.shadowColor){
+            context.shadowColor = this.shadowColor;
+            context.shadowOffset = this.shadowOffset;
+            context.shadowBlur = this.shadowRadius;
+        }
+        if (this.borderRadius){
+            // TODO: borderRadius
+        }else{
+            if (this.backgroundColor){
+                context.fillColor = this.backgroundColor;
+                context.fillRect(this.bounds);
+            }
+            if (this.backgroundGradient){
+                context.drawLinearGradient(this.backgroundGradient, this.bounds.origin.y, this.bounds.origin.y + this.bounds.size.height);
+                // TODO: raidal gradients, horizontal linear?
+            }
+            context.shadowColor = null;
+            if (this.borderWidth){
+                context.lineWidth = this.borderWidth;
+                context.lineColor = this.borderColor;
+                context.strokeRect(this.bounds.rectWithInsets(this.borderWidth / 2.0));
+            }
+        }
+        context.restore();
+        this.drawInContext(context);
+    },
+
+    drawInContext: function(context){
+        if (this.delegate && this.delegate.drawLayerInContext){
+            this.delegate.drawLayerInContext(this, context);
+        }
+    },
+
+    renderInContext: function(context){
+        if (this.hidden) return;
+        this.displayInContext(context);
+        var sublayer;
+        for (var i = 0, l = this.sublayers.length; i < l; ++i){
+            sublayer = this.sublayers[i];
+            context.save();
+            context.translate(sublayer.frame.origin.x, sublayer.frame.origin.y);
+            sublayer.renderInContext(context);
+            context.restore();
+        }
     }
 
 });
@@ -411,7 +454,7 @@ UILayer.Properties = {
     constraintBox           : null,
     transform               : JSAffineTransform.Identity,
     hidden                  : false,
-    opacity                 : 1.0,
+    alpha                   : 1.0,
     backgroundColor         : null,
     backgroundGradient      : null,
     borderWidth             : null,

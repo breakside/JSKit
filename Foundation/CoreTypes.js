@@ -6,8 +6,13 @@ function JSSize(width, height){
     if (this === undefined){
         return new JSSize(width, height);
     }else{
-        this.width = width;
-        this.height = height;
+        if (width instanceof JSSize){
+            this.width = width.width;
+            this.height = width.height;
+        }else{
+            this.width = width;
+            this.height = height;
+        }
     }
 }
 
@@ -22,8 +27,13 @@ function JSPoint(x, y){
     if (this === undefined){
         return new JSPoint(x, y);
     }else{
-        this.x = x;
-        this.y = y;
+        if (x instanceof JSPoint){
+            this.x = x.x;
+            this.y = x.y;
+        }else{
+            this.x = x;
+            this.y = y;
+        }
     }
 }
 
@@ -40,14 +50,26 @@ function JSRect(x, y, width, height){
     if (this === undefined){
         return new JSRect(x, y, width, height);
     }else{
-        this.origin = JSPoint(x, y);
-        this.size = JSSize(width, height);
+        if (x instanceof JSRect){
+            this.origin = JSPoint(x.origin);
+            this.size = JSSize(x.size);
+        }else{
+            this.origin = JSPoint(x, y);
+            this.size = JSSize(width, height);
+        }
     }
 }
 
 JSRect.prototype = {
     origin: null,
-    size: null
+    size: null,
+
+    rectWithInsets: function(top, right, bottom, left){
+        if (right === undefined) right = top;
+        if (bottom === undefined) bottom = top;
+        if (left === undefined) left = right;
+        return new JSRect(this.origin.x + left, this.origin.y + top, this.size.width - left - right, this.size.height - top - bottom);
+    }
 };
 
 JSRect.Zero = JSRect(0, 0, 0, 0);
@@ -57,8 +79,13 @@ function JSRange(location, length){
     if (this === undefined){
         return new JSRange(location, length);
     }else{
-        this.location = location;
-        this.length = length;
+        if (location instanceof JSRange){
+            this.location = location.location;
+            this.length = location.length;
+        }else{
+            this.location = location;
+            this.length = length;
+        }
     }
 }
 
@@ -174,3 +201,20 @@ JSConstraintBox.Rect = function(rect){
         height: rect.size.height
     });
 };
+
+// // #test JSSize function
+// var size = JSSize(3, 4);
+// JSAssert(size instanceof JSSize);
+// JSAssert(size.width == 3);
+// JSAssert(size.height == 4);
+
+// // #test JSSize constructor
+// var size = new JSSize(3, 4);
+// JSAssert(size instanceof JSSize);
+// JSAssert(size.width == 3);
+// JSAssert(size.height == 4);
+
+// // #test JSSize allow negatives
+// var size = new JSSize(-3, -4);
+// JSAssert(size.width == -3);
+// JSAssert(size.height == -4);
