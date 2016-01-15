@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script type="text/javascript" src="Foundation/Javascript.js"></script>
+  <script type="text/javascript" src="Foundation/String+JS.js"></script>
+  <script type="text/javascript" src="Foundation/CoreTypes.js"></script>
+  <script type="text/javascript" src="Foundation/Foundation+HTML.js"></script>
+  <script type="text/javascript" src="JSKit/JSClass.js"></script>
+  <script type="text/javascript" src="JSKit/JSObject.js"></script>
+  <script type="text/javascript" src="JSKit/JSData.js"></script>
+  <script type="text/javascript" src="Unicode/UnicodeProperties.js"></script>
+  <script type="text/javascript" src="Unicode/UnicodeChar.js"></script>
+  <script type="text/javascript" src="JSKit/JSString.js"></script>
+  <script type="text/javascript" src="JSKit/JSAttributedString.js"></script>
+  <style type="text/css">
+  html, body {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background-color: blue;
+    font: monospace;
+  }
+  textarea {
+    width: 50%;
+    height: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    font-family: monospace;
+  }
+  </style>
+<body>
+  <script type="text/javascript">
+  var Controller = function(){
+    var body = document.body;
+    body.addEventListener('dragover', this);
+    body.addEventListener('drop', this);
+    this.inputArea = body.appendChild(document.createElement('textarea'));
+    this.outputArea = body.appendChild(document.createElement('textarea'));
+    this.inputArea.addEventListener('blur', this);
+  };
+  Controller.prototype = {
+    handleEvent: function(e){
+      this[e.type](e);
+    },
+    dragover: function(e){
+      e.preventDefault();
+    },
+    drop: function(e){
+      e.preventDefault();
+    },
+    blur: function(e){
+      var str = JSString.initWithNativeString(this.inputArea.value);
+      this.outputArea.value = "Length: %d".sprintf(str.length);
+    }
+  };
+  var controller = new Controller();
+  </script>
+</body>
+</html>
