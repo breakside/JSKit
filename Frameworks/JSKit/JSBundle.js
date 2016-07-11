@@ -19,7 +19,7 @@ JSClass('JSBundle', JSObject, {
         if (this.hasResource(resource)){
             return this.resources[resource];
         }
-        throw new Error("JSApplication.resourceNamed: resource '%s' not found".sprintf(resource));
+        throw new Error("JSBundle.resourceNamed: resource '%s' not found".sprintf(resource));
     },
 
     hasResource: function(resource){

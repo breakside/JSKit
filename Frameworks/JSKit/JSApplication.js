@@ -21,7 +21,7 @@ JSClass('JSApplication', JSObject, {
 
 });
 
-JSApplication.InfoPlistName  = "Info.plist";
+JSApplication.InfoPlistName  = "Info";
 
 JSApplication._sharedApplication = null;
 

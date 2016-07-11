@@ -91,7 +91,7 @@ class JSCompilation(object):
                         combinedFileOutputStarted = True
                 elif self.minify:
                     if sourceName not in self.outfilesByName:
-                        self.outfilesByName[sourceName] = new JSCompilationOutfile(fp=tempfile.NamedTemporaryFile(), name=sourceName)
+                        self.outfilesByName[sourceName] = JSCompilationOutfile(fp=tempfile.NamedTemporaryFile(), name=sourceName)
                         self.outfiles.append(self.outfilesByName[sourceName])
                     self.outfilesByName[sourceName].write(line)
         if self.combine:
@@ -218,7 +218,7 @@ class JSScanner(object):
                         return JSTest(arguments, sourceLine=self.sourceLine, rawline=line)
                     if stripped == '"use strict";' or stripped == "'use strict';":
                         return JSStrict(sourceLine=self.sourceLine, rawline=line)
-            if not self.minify or self.contxt == self.CONTEXT_PASSTHRU:
+            if not self.minify or self.context == self.CONTEXT_PASSTHRU:
                 return line
             while line != "":
                 if self.context == self.CONTEXT_JS:

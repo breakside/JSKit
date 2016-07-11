@@ -3,6 +3,7 @@ import os.path
 import plistlib
 import json
 import hashlib
+import shutil
 from .image import ImageInfoExtractor
 
 
@@ -41,8 +42,9 @@ class Builder(object):
         else:
             self.infoName = 'Info.json'
             infoPath = os.path.join(self.sourceRootPath, self.infoName)
-            self.info = json.load(infoPath)
+            self.info = json.load(open(infoPath))
         self.bundles[self.info['JSBundleIdentifier']] = self.mainBundle = {}
+        self.mainBundle["Info"] = self.info
 
     def buildResources(self):
         resourcesPath = os.path.join(self.sourceRootPath, "Resources")
@@ -89,7 +91,7 @@ class Builder(object):
         h = h.hexdigest()
         return h
 
-    def absolutePathsRelativeToSourceRoot(*paths):
+    def absolutePathsRelativeToSourceRoot(self, *paths):
         return [os.path.join(self.sourceRootPath, path) for path in paths]
 
     def finish(self):

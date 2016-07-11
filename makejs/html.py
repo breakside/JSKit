@@ -62,8 +62,8 @@ class HTMLBuilder(Builder):
         with tempfile.NamedTemporaryFile() as bundleJSFile:
             bundleJSFile.write("'use strict';\n")
             bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))
-            bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.info['JSApplicationIdentifier'])
-            self.jsCompilation = JSCompilation(includePaths, minify=not self.debug)
+            bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.info['JSBundleIdentifier'])
+            self.jsCompilation = JSCompilation(includePaths, minify=not self.debug, combine=not self.debug)
             for path in self.info.get('JSIncludes', []):
                 self.jsCompilation.include(path)
             # TODO: add includes from other things like mainspec
@@ -127,7 +127,7 @@ class HTMLBuilder(Builder):
                         oldScriptText += child.nodeValue
                 with tempfile.NamedTemporaryFile() as inscript:
                     inscript.write(JSCompilation.preprocess(oldScriptText.strip(), jscontext))
-                    compilation = JSCompilation(includePaths, minify=not self.debug)
+                    compilation = JSCompilation(includePaths, minify=not self.debug, combine=not self.debug)
                     compilation.include(inscript)
                     for outfile in compilation.outfiles:
                         outfile.fp.flush()
