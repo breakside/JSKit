@@ -11,138 +11,62 @@ import mimetypes
 import StringIO
 import tempfile
 from HTMLParser import HTMLParser
-from .image import ImageInfoExtractor
+from .builder import Builder
 from .javascript import JSCompilation, JSFeature
 
 
-class HTMLBuilder(object):
-    buildID = ""
-    buildLabel = ""
-    outputRootPath = ""
+class HTMLBuilder(Builder):
     outputProductPath = ""
     outputResourcePath = ""
     indexFile = None
     jsCompilation = None
     appJS = None
     manifestFile = None
-    sourceRootPath = ""
-    debug = False
     featureCheck = None
-    bundles = {}
-    mainBundle = None
     manifest = None
-    rootIncludes = None
 
     def __init__(self, buildID, buildLabel, outputRootPath, debug=False):
-        super(HTMLBuilder, self).__init__()
-        self.buildID = buildID
-        self.buildLabel = buildLabel
-        self.outputRootPath = outputRootPath
-        self.debug = debug
+        super(HTMLBuilder, self).__init__(buildID, buildLabel, outputRootPath, debug)
         self.outputProductPath = os.path.join(self.outputRootPath, self.buildID)
         self.outputResourcePath = os.path.join(self.outputRootPath, "Resources")
-        self.sourceRootPath = os.getcwd()
 
     def build(self):
-        self.watchFiles = []
-        self.manifest = []
-        self.appJS = []
         self.setup()
-        self.buildPlists()
-        self.buildImages()
+        self.buildResources()
         self.buildAppJavascript()
         self.buildPreflight()
-        self.buildBootstrap()
-        self.buildManifest()
+        self.buildAppCacheManifest()
         self.buildIndex()
         self.finish()
 
     def setup(self):
-        if os.path.exists(self.outputRootPath):
-            if self.debug:
-                shutil.rmtree(self.outputRootPath)
-            else:
-                raise Exception("Output path already exists: %s" % self.outputRootPath)
+        super(HTMLBuilder, self).setup()
         os.makedirs(self.outputProductPath)
         os.makedirs(self.outputResourcePath)
-        self.infoName = 'Info.plist'
-        infoPath = os.path.join(self.sourceRootPath, self.infoName)
-        if os.path.exists(infoPath):
-            self.info = plistlib.readPlist(infoPath)
-        else:
-            self.infoName = 'Info.json'
-            infoPath = os.path.join(self.sourceRootPath, self.infoName)
-            self.info = json.load(infoPath)
-        self.bundles[self.info['JSApplicationIdentifier']] = self.mainBundle = {}
-        self.rootIncludes = ['main.js', 'UIKit/UIHTMLRenderer.js', 'JSKit/JSBundle.js']
+        self.manifest = []
+        self.appJS = []
 
-    def buildPlists(self):
-        resources = [self.infoName]
-        mainUIFile = self.info.get('JSMainUIDefinitionFile', None)
-        if mainUIFile:
-            resources.append(mainUIFile)
-        for resourcePath in resources:
-            fullPath = os.path.join(self.sourceRootPath, resourcePath)
-            if not os.path.exists(fullPath):
-                fullPath = os.path.join(self.sourceRootPath, 'Resources', resourcePath)
-            if not os.path.exists(fullPath):
-                raise Exception("Cannot find resource: %s" % resourcePath)
-            self.watchFiles.append(fullPath)
-            if fullPath[-5:] == '.json':
-                resource = json.load(open(fullPath))
-            elif fullPath[-6:] == '.plist':
-                resource = plistlib.readPlist(fullPath)
-            else:
-                raise Exception("Unknown resource type: %s" % resourcePath)
-            for k in resource:
-                if isinstance(resource[k], dict) and 'JSInclude' in resource[k]:
-                    self.rootIncludes.append(resource[k]['JSInclude'])
-            includes = resource['JSIncludes']
-            if includes is not None:
-                for include in includes:
-                    self.rootIncludes.append(include)
-            self.mainBundle[resourcePath] = resource
-
-    def buildImages(self):
-        resourcesPath = os.path.join(self.sourceRootPath, "Resources")
-        for (dirname, folders, files) in os.walk(resourcesPath):
-            for name in files:
-                fullPath = os.path.join(dirname, name)
-                resourcePath = os.path.relpath(fullPath, resourcesPath)
-                mimeguess = mimetypes.guess_type(fullPath)
-                if mimeguess[0] and mimeguess[0].split('/')[0] == 'image':
-                    h = hashlib.sha1()
-                    f = open(fullPath)
-                    chunk = f.read(h.block_size)
-                    while chunk != '':
-                        h.update(chunk)
-                        chunk = f.read(h.block_size)
-                    byte_size = f.tell()
-                    f.close()
-                    h = h.hexdigest()
-                    dontcare, ext = os.path.splitext(name)
-                    outputPath = os.path.join(self.outputResourcePath, h + ext)
-                    shutil.copyfile(fullPath, outputPath)
-                    info = {
-                        'hash': h,
-                        'mimetype': mimeguess[0],
-                        'url': _webpath(os.path.relpath(outputPath, self.outputRootPath)),
-                        'byte_size': byte_size
-                    }
-                    extractor = ImageInfoExtractor.for_path(fullPath)
-                    extractor.populate_dict(info)
-                    self.mainBundle[resourcePath] = info
-                    self.manifest.append(outputPath)
+    def buildImageResource(self, resourcePath, fullPath):
+        super(HTMLBuilder, self).buildImageResource(resourcePath, fullPath)
+        info = self.mainBunlde[resourcePath]
+        info.update(dict(
+             url=_webpath(os.path.relpath(outputPath, self.outputRootPath))
+        ))
+        dontcare, ext = os.path.splitext(os.path.basename(resourcePath))
+        outputPath = os.path.join(self.outputResourcePath, info['hash'] + ext)
+        shutil.copyfile(fullPath, outputPath)
+        self.manifest.append(outputPath)
 
     def buildAppJavascript(self):
-        includePaths = [os.path.join(self.sourceRootPath, path) for path in ('Frameworks', 'Classes', '.')]
+        includePaths = self.absolutePathsRelativeToSourceRoot('Frameworks', 'Classes', '.')
         with tempfile.NamedTemporaryFile() as bundleJSFile:
             bundleJSFile.write("'use strict';\n")
             bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))
             bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.info['JSApplicationIdentifier'])
             self.jsCompilation = JSCompilation(includePaths, minify=not self.debug)
-            for path in self.rootIncludes:
+            for path in self.info.get('JSIncludes', []):
                 self.jsCompilation.include(path)
+            # TODO: add includes from other things like mainspec
             self.jsCompilation.include(bundleJSFile, 'bundle.js')
             for outfile in self.jsCompilation.outfiles:
                 outfile.fp.flush()
@@ -170,10 +94,7 @@ class HTMLBuilder(object):
         self.preflightFile = open(os.path.join(self.outputRootPath, 'preflight-%s.js' % self.featureCheck.hash), 'w')
         self.featureCheck.serialize(self.preflightFile, 'bootstrapper')
 
-    def buildBootstrap(self):
-        pass
-
-    def buildManifest(self):
+    def buildAppCacheManifest(self):
         self.manifestFile = open(os.path.join(self.outputRootPath, "manifest.appcache"), 'w')
         self.manifestFile.write("CACHE MANIFEST\n")
         self.manifestFile.write("# build %s\n" % self.buildID)
@@ -234,15 +155,9 @@ class HTMLBuilder(object):
         HTML5DocumentSerializer(document).serializeToFile(self.indexFile)
 
     def finish(self):
-        if not self.debug:
-            buildsPath = os.path.dirname(self.outputRootPath)
-            linkPath = os.path.join(buildsPath, 'latest')
-            if os.path.lexists(linkPath):
-                os.unlink(linkPath)
-            os.symlink(os.path.relpath(self.outputRootPath, os.path.dirname(linkPath)), linkPath)
+        super(HTMLBuilder, self).finish()
         self.indexFile.close()
         self.indexFile = None
-        self.info = None
 
 
 def _webpath(ospath):

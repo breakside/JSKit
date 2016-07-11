@@ -1,0 +1,11 @@
+{
+    "JSBundleIdentifier": "com.yourcompany.sample",
+	"JSApplicationDelegate": "ApplicationDelegate",
+	"JSApplicationTitle": "Sample App",
+    "JSIncludes": [
+        "main.js",
+        "UIKit/UIHTMLRenderer.js",
+        "JSKit/JSBundle.js",
+        "ApplicationDelegate.js"
+    ]
+}

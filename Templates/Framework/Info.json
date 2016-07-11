@@ -1,0 +1,4 @@
+{
+    "JSBundleIndentifier": "com.yourcompany.frameworkName",
+    "JSFrameworkRoot": "${PROJECT_NAME}.js"
+}

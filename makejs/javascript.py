@@ -4,36 +4,38 @@ import tempfile
 
 
 class JSCompilation(object):
-
-    includePaths = None
-    importedScriptsByPath = None
-    globals_ = None
-    features = None
-    minify = True
+    
     outfiles = None
+    features = None
     testfiles = None
 
-    def __init__(self, includePaths, context=None, minify=True):
-        if context is None:
-            self.context = {}
-        else:
-            self.context = context
-        self.minify = minify
+    includePaths = None
+    minify = True
+    combine = True
+    importExternals = True
+    importedScriptsByPath = None
+    outfilesByName = None
+
+    def __init__(self, includePaths, minify=True, combine=True, importExternals=True):
         self.includePaths = includePaths
+        self.minify = minify or combine
+        self.combine = combine
+        self.importExternals = importExternals
         self.importedScriptsByPath = {}
         self.features = []
         self.outfiles = []
         self.testfiles = []
-        self.outfile = None
+        self.currentOutfile = None
+        self.outfilesByName = {}
 
     def include(self, source, sourceName=None):
         if isinstance(source, basestring):
-            self._includePath(source)
+            self.includePath(source)
         else:
             source.seek(0)
-            self._includeFilePointer(source, sourceName=sourceName)
+            self.includeFilePointer(source, sourceName=sourceName)
 
-    def _includePath(self, sourcePath):
+    def includePath(self, sourcePath):
         includedSourcePath = None
         for includePath in self.includePaths:
             possiblePath = os.path.join(includePath, sourcePath)
@@ -43,24 +45,25 @@ class JSCompilation(object):
         if includedSourcePath:
             if includedSourcePath not in self.importedScriptsByPath:
                 self.importedScriptsByPath[includedSourcePath] = True
-                self._includeFilePointer(open(includedSourcePath, 'r'), sourceName=sourcePath)
+                self.includeFilePointer(open(includedSourcePath, 'r'), sourceName=sourcePath)
         else:
             raise IncludeNotFoundException("Include not found: %s; include paths: %s" % (sourcePath, ", ".join(self.includePaths)))
 
-    def _includeFilePointer(self, fp, sourceName=None):
+    def includeFilePointer(self, fp, sourceName=None):
         scanner = JSScanner(fp, sourceName, minify=self.minify)
-        fileOutputStarted = False
+        combinedFileOutputStarted = False
         fileIsStrict = False
         tests = []
-        if self.minify and not self.outfile:
-            self._newOutfile()
+        if self.combine and not self.currentOutfile:
+            self.startNewCombinedOutfile()
         for line in scanner:
             if isinstance(line, JSImport):
+                # TODO respect importExternals flag
                 try:
-                    if fileOutputStarted:
-                        self.outfile.write("\n")
-                    self._includePath(line.path)
-                    fileOutputStarted = False
+                    if combinedFileOutputStarted:
+                        self.currentOutfile.write("\n")
+                    self.includePath(line.path)
+                    combinedFileOutputStarted = False
                 except IncludeNotFoundException:
                     raise Exception("ERROR: %s, line %d: include not found '%s'.  (include path is '%s')" % (sourceName if sourceName is not None else '(no file)', line.sourceLine, line.path, ":".join(self.includePaths)))
             elif isinstance(line, JSFeature):
@@ -70,25 +73,32 @@ class JSCompilation(object):
                 tests.append(test)
             elif isinstance(line, JSTestCode):
                 test.lines.append(line)
-            elif self.minify:
-                if isinstance(line, JSStrict):
-                    fileIsStrict = True
-                    if not self.outfile.started:
-                        self.outfile.is_strict = True
-                        self.outfile.write("'use strict';\n")
-                    elif not self.outfile.is_strict:
-                        self._newOutfile()
-                        self.outfile.is_strict = True
-                        self.outfile.write("'use strict';\n")
-                else:
-                    if not fileIsStrict and self.outfile.is_strict:
-                        self._newOutfile()
-                    self.outfile.write(line)
-                    fileOutputStarted = True
-        if not self.minify:
+            else:
+                if self.combine:
+                    if isinstance(line, JSStrict):
+                        fileIsStrict = True
+                        if not self.currentOutfile.started:
+                            self.currentOutfile.is_strict = True
+                            self.currentOutfile.write("'use strict';\n")
+                        elif not self.currentOutfile.is_strict:
+                            self.startNewCombinedOutfile()
+                            self.currentOutfile.is_strict = True
+                            self.currentOutfile.write("'use strict';\n")
+                    else:
+                        if not fileIsStrict and self.currentOutfile.is_strict:
+                            self.startNewCombinedOutfile()
+                        self.currentOutfile.write(line)
+                        combinedFileOutputStarted = True
+                elif self.minify:
+                    if sourceName not in self.outfilesByName:
+                        self.outfilesByName[sourceName] = new JSCompilationOutfile(fp=tempfile.NamedTemporaryFile(), name=sourceName)
+                        self.outfiles.append(self.outfilesByName[sourceName])
+                    self.outfilesByName[sourceName].write(line)
+        if self.combine:
+            if combinedFileOutputStarted:
+                self.currentOutfile.write("\n")
+        else:
             self.outfiles.append(JSCompilationOutfile(fp=fp, name=sourceName, locked=True))
-        if fileOutputStarted:
-            self.outfile.write("\n")
         # if len(tests):
             # TODO: write tests to another file
             # keep track of that file so it can be included in the test suite
@@ -100,9 +110,9 @@ class JSCompilation(object):
             #     testName = testfileName + "_" + i
             #     i += 1
 
-    def _newOutfile(self):
-        self.outfile = JSCompilationOutfile(fp=tempfile.NamedTemporaryFile())
-        self.outfiles.append(self.outfile)
+    def startNewCombinedOutfile(self):
+        self.currentOutfile = JSCompilationOutfile(fp=tempfile.NamedTemporaryFile())
+        self.outfiles.append(self.currentOutfile)
 
     @staticmethod
     def preprocess(jsstr, context):
@@ -149,6 +159,7 @@ class JSScanner(object):
     CONTEXT_JS = 'js'
     CONTEXT_COMMENT = 'comment'
     CONTEXT_TEST = 'test'
+    CONTEXT_PASSTHRU = 'passthru'
 
     def __init__(self, fp, sourceName=None, minify=True):
         super(JSScanner, self).__init__()
@@ -188,23 +199,26 @@ class JSScanner(object):
                     return JSTestCode(lstripped[2:], sourceLine=self.sourceLine, rawline=line)
                 self.context = self.CONTEXT_JS
             if self.context == self.CONTEXT_JS:
-                if command == "import":
-                    i = arguments.find('"')
-                    if i >= 0:
-                        j = arguments.find('"', i + 1)
-                        if j >= 0:
-                            path = arguments[i + 1:j]
-                            return JSImport(path, sourceLine=self.sourceLine, rawline=line)
-                if command == "feature":
-                    return JSFeature(arguments, sourceLine=self.sourceLine, rawline=line)
-                if command == "var":
-                    return JSVar(arguments, sourceLine=self.sourceLine, indent=line[0:len(line) - len(lstripped)])
-                if command == "test":
-                    self.context = self.CONTEXT_TEST
-                    return JSTest(arguments, sourceLine=self.sourceLine, rawline=line)
-                if stripped == '"use strict";' or stripped == "'use strict';":
-                    return JSStrict(sourceLine=self.sourceLine, rawline=line)
-            if not self.minify:
+                if command == "precompiled":
+                    self.context = self.CONTEXT_PASSTHRU
+                else:
+                    if command == "import":
+                        i = arguments.find('"')
+                        if i >= 0:
+                            j = arguments.find('"', i + 1)
+                            if j >= 0:
+                                path = arguments[i + 1:j]
+                                return JSImport(path, sourceLine=self.sourceLine, rawline=line)
+                    if command == "feature":
+                        return JSFeature(arguments, sourceLine=self.sourceLine, rawline=line)
+                    if command == "var":
+                        return JSVar(arguments, sourceLine=self.sourceLine, indent=line[0:len(line) - len(lstripped)])
+                    if command == "test":
+                        self.context = self.CONTEXT_TEST
+                        return JSTest(arguments, sourceLine=self.sourceLine, rawline=line)
+                    if stripped == '"use strict";' or stripped == "'use strict';":
+                        return JSStrict(sourceLine=self.sourceLine, rawline=line)
+            if not self.minify or self.contxt == self.CONTEXT_PASSTHRU:
                 return line
             while line != "":
                 if self.context == self.CONTEXT_JS:

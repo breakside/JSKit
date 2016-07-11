@@ -45,6 +45,8 @@ class ProjectBuilder(object):
             project(u'Frameworks')
         )
 
+        # TODO: walk files and replace ${} in filenames and in content
+
 
 def main():
     parser = argparse.ArgumentParser()

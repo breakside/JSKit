@@ -1,6 +1,6 @@
 // #import "PDFKit/PDFPredictorFilter.js"
 // #import "LZW/LZW.js"
-// #import "JSKit/JSData.js"
+// #import "JSKit/JSKit.js"
 /* global JSClass, PDFPredictorFilter, JSData, PDFLZWFilter, LZWStream */
 'use strict';
 
