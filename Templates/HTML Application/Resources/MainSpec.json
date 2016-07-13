@@ -1,0 +1,21 @@
+{
+	"JSFilesOwner": "#App Delegate",
+	"App Delegate": {
+		"JSObjectClass": "ApplicationDelegate",
+		"JSInclude": "ApplicationDelegate.js",
+		"JSOutlets": {
+			"window": "#Main Window"
+		}
+	},
+	"Main Window": {
+		"JSObjectClass": "JSWindow",
+		"subviews": [
+			"#Main View"
+		]
+	},
+	"Main View": {
+		"JSObjectClass": "UIView",
+		"frame.margin": 0,
+		"backgroundColor": "204,0,0"
+	}
+}

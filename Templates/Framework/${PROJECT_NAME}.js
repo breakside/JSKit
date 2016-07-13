@@ -1,2 +1,2 @@
-// #import "JSKit/JSKit.js"
+// #import "Foundation/Foundation.js"
 'use strict';

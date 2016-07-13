@@ -1,4 +1,4 @@
-// #import "JSKit/JSKit+HTML.js"
+// #import "UIKit/UIKit+HTML.js"
 /* global JSApplicationMain */
 'use strict';
 

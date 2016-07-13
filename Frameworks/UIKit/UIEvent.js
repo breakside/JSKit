@@ -1,4 +1,4 @@
-// #import "JSKit/JSKit.js"
+// #import "Foundation/Foundation.js"
 /* global JSClass, JSObject */
 'use strict';
 

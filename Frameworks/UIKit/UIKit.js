@@ -1,3 +1,5 @@
+// #import "Foundation/Foundation.js"
+
 // #import "UIKit/UIAnimation.js"
 // #import "UIKit/UIPropertyAnimation.js"
 // #import "UIKit/UIBasicAnimation.js"

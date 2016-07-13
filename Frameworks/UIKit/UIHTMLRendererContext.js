@@ -1,4 +1,4 @@
-// #import "JSKit/JSKit+HTML.js"
+// #import "Foundation/Foundation+HTML.js"
 /* global JSClass, JSContext, JSObject, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint */
 'use strict';
 

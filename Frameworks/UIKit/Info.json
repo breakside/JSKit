@@ -1,0 +1,7 @@
+{
+    "JSBundleIdentifier": "com.owenshaw.jskit.UIKit",
+    "JSFrameworkVariants": [
+        "UIKit.js",
+        "UIKit+HTML.js"
+    ]
+}

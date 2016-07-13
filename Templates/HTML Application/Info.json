@@ -3,9 +3,8 @@
 	"JSApplicationDelegate": "ApplicationDelegate",
 	"JSApplicationTitle": "Sample App",
     "JSIncludes": [
+        "UIKit/UIKit+HTML.js",
         "main.js",
-        "UIKit/UIHTMLRenderer.js",
-        "JSKit/JSBundle.js",
         "ApplicationDelegate.js"
     ]
 }

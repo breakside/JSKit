@@ -1,4 +1,4 @@
-// #import "JSKit/JSKit.js"
+// #import "Foundation/Foundation.js"
 // #import "UIKit/UIRenderer.js"
 /* global JSClass, JSObject, UIAnimationTransaction, UIRenderer */
 'use strict';
