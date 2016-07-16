@@ -7,15 +7,17 @@
 			"window": "#Main Window"
 		}
 	},
+	"Dark Color": {
+		"JSObjectClass" : "JSColor",
+		"rgba": "204,0,0"
+	},
 	"Main Window": {
-		"JSObjectClass": "JSWindow",
-		"subviews": [
-			"#Main View"
-		]
+		"JSObjectClass": "UIWindow",
+		"contentView": "#Main View"
 	},
 	"Main View": {
 		"JSObjectClass": "UIView",
-		"frame.margin": 0,
-		"backgroundColor": "204,0,0"
+		"constraintBox.margin": 0,
+		"backgroundColor": "#Dark Color"
 	}
 }

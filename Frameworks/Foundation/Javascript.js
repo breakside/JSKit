@@ -1,9 +1,10 @@
+/* global JSGlobalObject */
 'use strict';
 // -----------------------------------------------------------------------------
 // MARK: - Utility
 
 function JSCopy(obj){
-    if (typeof(obj) == 'obj'){
+    if (typeof(obj) == 'object'){
         var _copy = {};
         for (var i in obj){
             _copy[i] = obj[i];
@@ -14,7 +15,7 @@ function JSCopy(obj){
 }
 
 function JSDeepCopy(obj){
-    if (typeof(obj) == 'obj'){
+    if (typeof(obj) == 'object'){
         var _copy = {};
         for (var i in obj){
             _copy[i] = JSDeepCopy(obj[i]);

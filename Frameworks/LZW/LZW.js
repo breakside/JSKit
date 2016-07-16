@@ -115,7 +115,7 @@ LZWStream.prototype = {
                 }
                 sequence = [code];
             }else if (code == 256){
-                console.log("reset table %d".sprintf(this.nextCode));
+                JSLog("reset table %d".sprintf(this.nextCode));
                 this.resetTable();
                 sequence = [];
             }else if (code > 257){
@@ -134,23 +134,23 @@ LZWStream.prototype = {
                         this.output[this.outputLength++] = next_sequence[i];
                     }
                 }else{
-                    console.log("invalid %d after %d bits ending at %d.%d %d".sprintf(code, this.bitLength, this.byteOffset, this.bitOffset, this.nextCode));
+                    JSLog("invalid %d after %d bits ending at %d.%d %d".sprintf(code, this.bitLength, this.byteOffset, this.bitOffset, this.nextCode));
                     break;
                     // throw new Error("LZWStream found invalid code: %d".sprintf(code));
                 }
             }
             if (this.nextCode == 512 - this.bitIncreaseOffset){
-                console.log("increasing to 10 bit");
+                JSLog("increasing to 10 bit");
                 this.bitLength = 10;
             }else if (this.nextCode == 1024 - this.bitIncreaseOffset){
-                console.log("increasing to 11 bit");
+                JSLog("increasing to 11 bit");
                 this.bitLength = 11;
             }else if (this.nextCode == 2048 - this.bitIncreaseOffset){
-                console.log("increasing to 12 bit");
+                JSLog("increasing to 12 bit");
                 this.bitLength = 12;
             }
         } while (code != 257);
-        console.log("ended at %d.%d".sprintf(this.byteOffset, this.bitOffset));
+        JSLog("ended at %d.%d".sprintf(this.byteOffset, this.bitOffset));
         this.output = new Uint8Array(this.output.buffer, this.output.byteOffset, this.outputLength);
     },
 

@@ -4,6 +4,9 @@
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <title></title>
   <style id="bootstrap-style" type="text/css">
+  * {
+    cursor: default;
+  }
   #splash {
     position: fixed;
     top: 0;
@@ -73,6 +76,7 @@
     var detailsLabel = document.getElementById('details');
     var bootstrapStyle = document.getElementById('bootstrap-style');
     var bootstrapper = HTMLAppBootstrapper(preflightID, preflightSrc, appSrc, document.body);
+    var downListener = null;
     bootstrapper.onstatus = function index_boostrapper_status(){
       var S = HTMLAppBootstrapper.STATUS;
       switch (bootstrapper.status){
@@ -98,10 +102,23 @@
         case S.appRunning:
           splash.parentNode.removeChild(splash);
           bootstrapStyle.parentNode.removeChild(bootstrapStyle);
+          if (downListener != null){
+            document.body.removeEventListener('mousedown', downListener, true);
+          }
           break;
       }
     };
     bootstrapper.run();
+    try{
+      downListener = {
+        handleEvent: function(e){
+          console.log('down');
+          e.preventDefault();
+        }
+      };
+      document.body.addEventListener('mousedown', downListener, true);
+    }catch (e){
+    }
   })();
   </script>
 </body>

@@ -1,4 +1,5 @@
-// #feature Uint8Array, Uint32Array
+// #feature Uint8Array
+// #feature Uint32Array
 // #import "Foundation/Uint8Array+JS.js"
 // #import "Foundation/String+JS.js"
 

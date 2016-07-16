@@ -1,17 +1,18 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject */
+/* global JSClass, JSObject, UIView */
+'use strict';
 
 JSClass("UIViewController", JSObject, {
     view: null,
     isViewLoaded: false,
 
     init: function(){
-    }
+    },
 
     loadView: function(){
         this.view = UIView.initWithFrame();
         this.isViewLoaded = true;
-        viewDidLoad();
+        this.viewDidLoad();
     },
 
     viewDidLoad: function(){

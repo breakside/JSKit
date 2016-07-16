@@ -62,7 +62,7 @@ JSObject.definePropertiesFromExtensions({
 
     initWithProperties: function(properties){
         for (var i in properties){
-            this.setValueForKey(properties[i], i);
+            this.setValueForKey(i, properties[i]);
         }
     },
 
@@ -75,7 +75,7 @@ JSObject.definePropertiesFromExtensions({
         }
         if ("JSOutlets" in spec){
             for (var key in spec.JSOutlets){
-                this.setValueForKey(spec.JSOutlets[key], key);
+                this.setValueForKey(key, spec.JSOutlets[key]);
             }
         }
     },

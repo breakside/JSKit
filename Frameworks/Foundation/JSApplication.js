@@ -39,11 +39,9 @@ function JSApplicationMain(infoPlistName){
         if (infoPlistName === undefined) infoPlistName = JSApplication.InfoPlistName;
         var info = JSPropertyList.initWithResource(infoPlistName);
         if (info[JSPropertyList.Keys.MainUIDefinitionFile]){
-            var mainUIFile = JSSpec.initWithNkib(info[JSPropertyList.Keys.MainUIDefinitionFile]);
-            application = mainUIFile.filesOwner();
-            if (!(application instanceof JSApplication)){
-                throw new Error("JSApplicationMain: invalid main UI defintion '%s', file's owner must be an instance of JSApplication".sprintf(info[JSPropertyList.Keys.MainUIDefintionFile]));
-            }
+            var mainUIFile = JSSpec.initWithResource(info[JSPropertyList.Keys.MainUIDefinitionFile]);
+            application = JSApplication.init();
+            application.delegate = mainUIFile.filesOwner();
         }else if (info[JSPropertyList.Keys.ApplicationDelegate]){
             application = JSApplication.init();
             var delegateClass = JSClassFromName(info[JSPropertyList.Keys.ApplicationDelegate]);

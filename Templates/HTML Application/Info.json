@@ -1,10 +1,9 @@
 {
     "JSBundleIdentifier": "com.yourcompany.sample",
-	"JSApplicationDelegate": "ApplicationDelegate",
-	"JSApplicationTitle": "Sample App",
+    "JSMainUIDefinitionFile": "MainWindow.json",
+    "JSApplicationTitle": "Sample App",
     "JSIncludes": [
         "UIKit/UIKit+HTML.js",
-        "main.js",
-        "ApplicationDelegate.js"
+        "main.js"
     ]
 }

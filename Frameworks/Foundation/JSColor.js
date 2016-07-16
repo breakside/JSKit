@@ -28,6 +28,14 @@ JSClass('JSColor', JSObject, {
         this.colorSpace = JSColor.SpaceIdentifier.GRAY;
         if (w === undefined) w = 0;
         this.components = [w];
+    },
+
+    initWithSpec: function(spec){
+        if (spec.rgba){
+            this.initWithRGBA.apply(this, spec.rgba.parseNumberArray());
+        }else if (spec.white){
+            this.initWithWhite(spec.white);
+        }
     }
 
 });

@@ -2,6 +2,7 @@
 // #feature Object.defineProperty
 // #feature Object.getPrototypeOf
 // #feature Object.hasOwnProperty
+/* global JSGlobalObject */
 'use strict';
 
 function JSClass(name, superclass, extensions){

@@ -24,15 +24,18 @@ class HTMLBuilder(Builder):
     manifestFile = None
     featureCheck = None
     manifest = None
+    includes = None
 
     def __init__(self, buildID, buildLabel, outputRootPath, debug=False):
         super(HTMLBuilder, self).__init__(buildID, buildLabel, outputRootPath, debug)
         self.outputProductPath = os.path.join(self.outputRootPath, self.buildID)
         self.outputResourcePath = os.path.join(self.outputRootPath, "Resources")
+        self.includes = []
 
     def build(self):
         self.setup()
         self.buildResources()
+        self.findIncludes()
         self.buildAppJavascript()
         self.buildPreflight()
         self.buildAppCacheManifest()
@@ -57,6 +60,24 @@ class HTMLBuilder(Builder):
         shutil.copyfile(fullPath, outputPath)
         self.manifest.append(outputPath)
 
+    def findIncludes(self):
+        for path in self.info.get('JSIncludes', []):
+            self.includes.append(path)
+        mainSpecName = self.info.get('JSMainUIDefinitionFile', None)
+        if mainSpecName is not None:
+            mainSpec = self.mainBundle[mainSpecName]
+            self.findSpecIncludes(mainSpec)
+
+    def findSpecIncludes(self, spec):
+        for k, v in spec.items():
+            if k == 'JSIncludes':
+                for path in v:
+                    self.includes.append(path)
+            elif k == 'JSInclude':
+                self.includes.append(v)
+            elif isinstance(v, dict):
+                self.findSpecIncludes(v)
+
     def buildAppJavascript(self):
         includePaths = self.absolutePathsRelativeToSourceRoot('Frameworks', 'Classes', '.')
         with tempfile.NamedTemporaryFile() as bundleJSFile:
@@ -64,9 +85,8 @@ class HTMLBuilder(Builder):
             bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))
             bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.info['JSBundleIdentifier'])
             self.jsCompilation = JSCompilation(includePaths, minify=not self.debug, combine=not self.debug)
-            for path in self.info.get('JSIncludes', []):
+            for path in self.includes:
                 self.jsCompilation.include(path)
-            # TODO: add includes from other things like mainspec
             self.jsCompilation.include(bundleJSFile, 'bundle.js')
             for outfile in self.jsCompilation.outfiles:
                 outfile.fp.flush()

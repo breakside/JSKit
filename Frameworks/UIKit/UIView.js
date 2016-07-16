@@ -2,7 +2,7 @@
 // #import "UIKit/UILayer.js"
 // #import "UIKit/UIRenderer.js"
 // #import "UIKit/UIAnimation.js"
-/* global JSClass, JSObject, UIView, UILayer, JSCustomProperty, JSRect, JSColor, UIRenderer, UIAnimation, UIAnimationTransaction */
+/* global JSClass, JSObject, UIView, UILayer, UIColor, JSCustomProperty, JSRect, JSConstraintBox, JSColor, UIRenderer, UIAnimation, UIAnimationTransaction */
 'use strict';
 
 function UIViewLayerProperty(){
@@ -53,40 +53,38 @@ JSClass('UIView', JSObject, {
     shadowRadius:       UIViewLayerProperty(),
 
     // -------------------------------------------------------------------------
-    // MARK: - Initialization
+    // MARK: - Creating a View
 
     init: function(){
         this.initWithFrame(JSRect(0,0,100,100));
     },
 
     initWithConstraintBox: function(constraintBox){
-        this.initWithFrame(JSRect(0, 0, 100, 100));
+        this._commonViewInit();
+        this.frame = JSRect(0, 0, 100, 100);
         this.constraintBox = constraintBox;
     },
 
     initWithFrame: function(frame){
-        this._initWithFrame(frame);
-    },
-
-    _initWithFrame: function(frame){
-        this.layer = this.$class.layerClass.init();
-        this.layer.delegate = this;
-        this.subviews = [];
+        this._commonViewInit();
         this.frame = frame;
-        this.backgroundColor = JSColor.whiteColor();
     },
 
     initWithSpec: function(spec){
         UIView.$super.initWithSpec.call(this, spec);
-        var frame;
-        if ("frame.margin" in spec){
-            frame = JSRectMakeWithMargin.apply(undefined, spec.margin.parseNumberArray());
+        this._commonViewInit();
+        this.frame = JSRect(0, 0, 100, 100);
+        this.constraintBox = null;
+        if ("constraintBox" in spec){
+            this.constraintBox = spec.constraintBox;
+        }else if ("constraintBox.margin" in spec){
+            this.constraintBox = JSConstraintBox.Margin.apply(undefined, spec['constraintBox.margin'].parseNumberArray());
         }else if ("frame" in spec){
-            frame = JSRect.apply(undefined, spec.frame.parseNumberArray());
-        }else{
-            frame = JSRect(0,0,100,100);
+            this.frame = JSRect.apply(undefined, spec.frame.parseNumberArray());
         }
-        this._initWithFrame(frame);
+        if ("backgroundColor" in spec){
+            this.backgroundColor = spec.backgroundColor;
+        }
         if ("subviews" in spec){
             for (var i = 0, l = spec.subviews.length; i < l; ++i){
                 this.addSubview(spec.subviews[i]);
@@ -123,31 +121,6 @@ JSClass('UIView', JSObject, {
             throw Error('Cannot insert subview [%s] in view [%s] because sibling view [%s] is not a valid subview.');
         }
         return this._insertSubviewAtIndex(sibling.level + 1, sibling.layer.level + 1);
-    },
-
-    _insertSubviewAtIndex: function(subview, index, layerIndex){
-        var i, l;
-        if (subview.superview === this){
-            for (i = subview.level + 1, l = this.subviews.length; i < l; ++i){
-                this.subviews[i].level -= 1;
-            }
-            this.subviews.splice(subview.level,1);
-            if (index > subview.level){
-                --index;
-            }
-        }else if (subview.superview){
-            subview.removeFromSuperview();
-        }
-        this.subviews.splice(index, 0, subview);
-        subview.level = index;
-        for (i = subview.level + 1, l = this.subviews.length; i < l; ++i){
-            this.subviews[i].level += 1;
-        }
-        subview.superview = this;
-        subview.setWindow(this.window);
-        this.layer.insertSublayerAtIndex(subview.layer, layerIndex);
-        UIRenderer.defaultRenderer.viewInserted(subview);
-        return subview;
     },
 
     removeSubview: function(subview){
@@ -211,7 +184,45 @@ JSClass('UIView', JSObject, {
     // MARK: - Display
 
     drawLayerInContext: function(layer, context){
-    }
+    },
+
+    // MARK: - Private Methods
+
+    // MARK: Init helpers
+
+    _commonViewInit: function(){
+        this.layer = this.$class.layerClass.init();
+        this.layer.delegate = this;
+        this.subviews = [];
+        this.backgroundColor = JSColor.whiteColor();
+    },
+
+    // MARK: Subview management helpers
+
+    _insertSubviewAtIndex: function(subview, index, layerIndex){
+        var i, l;
+        if (subview.superview === this){
+            for (i = subview.level + 1, l = this.subviews.length; i < l; ++i){
+                this.subviews[i].level -= 1;
+            }
+            this.subviews.splice(subview.level,1);
+            if (index > subview.level){
+                --index;
+            }
+        }else if (subview.superview){
+            subview.removeFromSuperview();
+        }
+        this.subviews.splice(index, 0, subview);
+        subview.level = index;
+        for (i = subview.level + 1, l = this.subviews.length; i < l; ++i){
+            this.subviews[i].level += 1;
+        }
+        subview.superview = this;
+        subview.setWindow(this.window);
+        this.layer.insertSublayerAtIndex(subview.layer, layerIndex);
+        UIRenderer.defaultRenderer.viewInserted(subview);
+        return subview;
+    },
 
 });
 

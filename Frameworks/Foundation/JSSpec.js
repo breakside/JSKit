@@ -38,9 +38,9 @@ JSClass('JSSpec', JSObject, {
             }
             return value;
         }
-        if (typeof(value) == 'obj'){
+        if (typeof(value) == 'object'){
             for (var i in value){
-                value[i] = this._resolve[value[i]];
+                value[i] = this._resolve(value[i]);
             }
             if (JSSpec.Keys.ObjectClass in value){
                 var className = value[JSSpec.Keys.ObjectClass];
