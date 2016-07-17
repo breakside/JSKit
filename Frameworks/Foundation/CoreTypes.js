@@ -205,16 +205,16 @@ JSConstraintBox.Rect = function(rect){
 // #test JSSize function
 // var size = JSSize(3, 4);
 // #assert size instanceof JSSize
-// #assert size.width == 3
-// #assert size.height == 4
+// #assertEquals size.width 3
+// #assertEquals size.height 4
 
 // #test JSSize constructor
 // var size = new JSSize(3, 4);
 // #assert size instanceof JSSize
-// #assert size.width == 3
-// #assert size.height == 4
+// #assertEquals size.width 3
+// #assertEquals size.height 4
 
 // #test JSSize allow negatives
 // var size = new JSSize(-3, -4);
-// #assert size.width == -3
-// #assert size.height == -4
+// #assertEquals size.width -3
+// #assertEquals size.height -4

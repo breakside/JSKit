@@ -30,11 +30,11 @@ JSClass('JSColor', JSObject, {
         this.components = [w];
     },
 
-    initWithSpec: function(spec){
-        if (spec.rgba){
-            this.initWithRGBA.apply(this, spec.rgba.parseNumberArray());
-        }else if (spec.white){
-            this.initWithWhite(spec.white);
+    initWithSpec: function(spec, values){
+        if (values.rgba){
+            this.initWithRGBA.apply(this, values.rgba.parseNumberArray());
+        }else if (values.white){
+            this.initWithWhite(values.white);
         }
     }
 

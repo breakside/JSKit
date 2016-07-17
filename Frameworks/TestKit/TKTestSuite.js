@@ -1,5 +1,7 @@
 // #import "Foundation/Foundation.js"
-// #global JSObject, JSClass
+// #import "TestKit/TKAssert.js"
+/* global JSObject, JSClass, TKAssertion , TKTestSuite*/
+'use strict';
 
 JSClass("TKTestSuite", JSObject, {
 
@@ -18,19 +20,12 @@ JSClass("TKTestSuite", JSObject, {
             }
         }
     },
-
-    run: function(){
-        var methodName;
-        var test;
-        for (var i = 0, l = this.testCases.length; i < l; ++i){
-            methodName = this.testCases[i];
-            test = this[methodName];
-            try{
-                test();
-                // TODO: success result
-            }catch (e){
-                // TODO: determine result (error or failure from assertion)
-            }
-        }
-    }
 });
+
+TKTestSuite.RegisteredTestSutes = [];
+
+TKTestSuite.$extend = function(extensions, name){
+    var subclass = JSClass.prototype.$extend.call(this, extensions, name);
+    this.RegisteredTestSutes.push(subclass);
+    return subclass;
+};

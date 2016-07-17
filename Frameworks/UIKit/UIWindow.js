@@ -1,6 +1,6 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UIRenderer.js"
-/* global JSClass, UIView, UIRenderer, JSConstraintBox, UIWindow */
+/* global JSClass, UIView, UIRenderer, JSConstraintBox, JSDynamicProperty, UIWindow */
 'use strict';
 
 JSClass('UIWindow', UIView, {
@@ -9,7 +9,7 @@ JSClass('UIWindow', UIView, {
     // MARK: - Properties
 
     contentView: null,
-    firstResponder: null,
+    firstResponder: JSDynamicProperty('_firstResponder', null),
 
     // -------------------------------------------------------------------------
     // MARK: - Creating a Window
@@ -19,12 +19,12 @@ JSClass('UIWindow', UIView, {
         this._commonWindowInit();
     },
 
-    initWithSpec: function(spec){
-        UIWindow.$super.initWithSpec.call(this, spec);
-        if (!('constraintBox' in spec) && !('constraintBox.margin' in spec) && !('frame' in spec)){
+    initWithSpec: function(spec, values){
+        UIWindow.$super.initWithSpec.call(this, spec, values);
+        if (!('constraintBox' in values) && !('constraintBox.margin' in values) && !('frame' in values)){
             this.constraintBox = JSConstraintBox.Margin(0);
         }
-        this.contentView = spec.contentView;
+        this.contentView = spec.resolvedValue(values.contentView);
         this._commonWindowInit();
     },
 
@@ -35,6 +35,25 @@ JSClass('UIWindow', UIView, {
         UIRenderer.defaultRenderer.layerInserted(this.layer);
         UIRenderer.defaultRenderer.viewInserted(this);
         UIRenderer.defaultRenderer.makeKeyWindow(this);
+    },
+
+    getFirstResponder: function(){
+        return this._firstResponder;
+    },
+
+    setFirstResponder: function(responder){
+        if (responder !== this._firstResponder){
+            if (this._firstResponder !== null){
+                if (!this._firstResponder.resignFirstResponder || this._firstResponder.resignFirstResponder()){
+                    this._firstResponder = responder;
+                }
+            }else{
+                this._firstResponder = responder;
+            }
+            if (this._firstResponder === responder){
+                this._firstResponder.becomeFirstResponder();
+            }
+        }
     },
 
     // -------------------------------------------------------------------------

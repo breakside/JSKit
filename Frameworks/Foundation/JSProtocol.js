@@ -1,3 +1,5 @@
+'use strict';
+
 var JSProtocol = {};
 
 Object.defineProperty(JSProtocol, '$extend', {

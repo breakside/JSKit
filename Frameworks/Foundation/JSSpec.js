@@ -16,10 +16,10 @@ JSClass('JSSpec', JSObject, {
 
     filesOwner: function(){
         var value = this._plist[JSSpec.Keys.FilesOwner];
-        return this._resolve(value);
+        return this.resolvedValue(value);
     },
 
-    _resolve: function(value){
+    resolvedValue: function(value){
         if (typeof(value) == 'string'){
             if (value.length > 0){
                 var c = value.charAt(0);
@@ -27,7 +27,7 @@ JSClass('JSSpec', JSObject, {
                 switch (c) {
                     case '#':
                         if (!(_value in this._objectMap)){
-                            this._objectMap[_value] = this._resolve(this._plist[_value]);
+                            this._objectMap[_value] = this.resolvedValue(this._plist[_value]);
                         }
                         return this._objectMap[_value];
                     case '$':
@@ -39,12 +39,9 @@ JSClass('JSSpec', JSObject, {
             return value;
         }
         if (typeof(value) == 'object'){
-            for (var i in value){
-                value[i] = this._resolve(value[i]);
-            }
             if (JSSpec.Keys.ObjectClass in value){
                 var className = value[JSSpec.Keys.ObjectClass];
-                var obj = JSClassFromName(className).initWithSpec(value);
+                var obj = JSClassFromName(className).initWithSpec(this, value);
                 return obj;
             }else{
                 return value;

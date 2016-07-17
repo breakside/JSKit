@@ -70,24 +70,24 @@ JSClass('UIView', JSObject, {
         this.frame = frame;
     },
 
-    initWithSpec: function(spec){
-        UIView.$super.initWithSpec.call(this, spec);
+    initWithSpec: function(spec, values){
+        UIView.$super.initWithSpec.call(this, values);
         this._commonViewInit();
         this.frame = JSRect(0, 0, 100, 100);
         this.constraintBox = null;
-        if ("constraintBox" in spec){
-            this.constraintBox = spec.constraintBox;
-        }else if ("constraintBox.margin" in spec){
-            this.constraintBox = JSConstraintBox.Margin.apply(undefined, spec['constraintBox.margin'].parseNumberArray());
-        }else if ("frame" in spec){
-            this.frame = JSRect.apply(undefined, spec.frame.parseNumberArray());
+        if ("constraintBox" in values){
+            this.constraintBox = values.constraintBox;
+        }else if ("constraintBox.margin" in values){
+            this.constraintBox = JSConstraintBox.Margin.apply(undefined, values['constraintBox.margin'].parseNumberArray());
+        }else if ("frame" in values){
+            this.frame = JSRect.apply(undefined, values.frame.parseNumberArray());
         }
-        if ("backgroundColor" in spec){
-            this.backgroundColor = spec.backgroundColor;
+        if ("backgroundColor" in values){
+            this.backgroundColor = values.backgroundColor;
         }
-        if ("subviews" in spec){
-            for (var i = 0, l = spec.subviews.length; i < l; ++i){
-                this.addSubview(spec.subviews[i]);
+        if ("subviews" in values){
+            for (var i = 0, l = values.subviews.length; i < l; ++i){
+                this.addSubview(values.subviews[i]);
             }
         }
     },

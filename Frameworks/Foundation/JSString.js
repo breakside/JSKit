@@ -9,12 +9,14 @@
 
 JSClass("JSString", JSObject, {
 
-    // #mark - Properties
+    // -------------------------------------------------------------------------
+    // MARK: - Properties
 
     length: 0,
     nativeString: null,
 
-    // #mark - Constructors
+    // -------------------------------------------------------------------------
+    // MARK: - Constructors
 
     init: function(){
         this.initWithNativeString('');
@@ -22,8 +24,7 @@ JSClass("JSString", JSObject, {
 
     initWithNativeString: function(nativeString){
         this.nativeString = nativeString;
-        this.findSurrogateIndexes();
-        this.length = this.nativeString.length - this.surrogateIndexes.length;
+        this.length = this.nativeString.length;
     },
 
     initWithFormat: function(format){
@@ -31,7 +32,8 @@ JSClass("JSString", JSObject, {
         this.initWithNativeString(format.sprintf(args));
     },
 
-    // #mark - Changing a String
+    // -------------------------------------------------------------------------
+    // MARK: - Changing a String
 
     appendString: function(string){
         this.replaceCharactersInRangeWithString(JSRange(this.length, 0), string);
@@ -44,38 +46,12 @@ JSClass("JSString", JSObject, {
             string = JSString.initWithNativeString(string);
         }
         if (string.length > 0){
-            if (range.location == this.length){
+            if (range.location >= this.length){
                 this.nativeString += string.nativeString;
-                for (i = 0, l = string.surrogateIndexes.length; i < l; ++i){
-                    indexPair = string.surrogateIndexes[i];
-                    this.surrogateIndexes.push({nativeIndex: indexPair.nativeIndex + this.nativeString.length, unicodeIndex: indexPair.unicodeIndex + this.length});
-                }
             }else{
-                var a = this.nativeIndexForUnicodeIndex(range.location);
-                var b = this.nativeIndexForUnicodeIndex(range.location + range.length);
-                var nativeRange = JSRange(a, b - a);
-                this.nativeString = this.nativeString.substr(0, nativeRange.location) + string.nativeString + this.nativeString.substr(nativeRange.location + nativeRange.length);
-                var nativeDiff = string.nativeString.length - nativeRange.length;
-                var diff = string.length - range.length;
-                for (i = this.surrogateIndexes.length - 1; i >= 0; --i){
-                    indexPair = this.surrogateIndexes[i];
-                    if (indexPair.unicodeIndex >= range.location + range.length){
-                        indexPair.unicodeIndex += diff;
-                        indexPair.nativeIndex += nativeDiff;
-                    }else if (indexPair.unicodeIndex >= range.location){
-                        this.surrogateIndexes.splice(i, 1);
-                    }else{
-                        break;
-                    }
-                }
-                var index = i + 1;
-                for (i = 0, l = string.surrogateIndexes.length; i < l; ++i){
-                    indexPair = string.surrogateIndexes[i];
-                    this.surrogateIndexes.splice(index, 0, {nativeIndex: indexPair.nativeIndex + nativeRange.location, unicodeIndex: indexPair.unicodeIndex + range.location});
-                    ++index;
-                }
+                this.nativeString = this.nativeString.substr(0, range.location) + string.nativeString + this.nativeString.substr(range.location + range.length);
             }
-            this.length = this.length + string.length - range.length;
+            this.length = this.nativeString.length;
         }else if (range.length){
             this.deleteCharactersInRange(range);
         }
@@ -83,65 +59,65 @@ JSClass("JSString", JSObject, {
 
     deleteCharactersInRange: function(range){
         if (range.length > 0){
-            var a = this.nativeIndexForUnicodeIndex(range.location);
-            var b = this.nativeIndexForUnicodeIndex(range.location + range.length);
-            var nativeRange = JSRange(a, b - a);
-            this.nativeString = this.nativeString.substr(0, nativeRange.location) + this.nativeString.substr(nativeRange.location + nativeRange.length);
-            var indexPair;
-            for (var i = this.surrogateIndexes.length - 1; i >= 0; --i){
-                indexPair = this.surrogateIndexes[i];
-                if (indexPair.unicodeIndex >= range.location + range.length){
-                    indexPair.unicodeIndex -= range.length;
-                    indexPair.nativeIndex -= nativeRange.length;
-                }else if (indexPair.unicodeIndex >= range.location){
-                    this.surrogateIndexes.splice(i, 1);
-                }else{
-                    break;
-                }
-            }
-            this.length -= range.length;
+            this.nativeString = this.nativeString.substr(0, range.location) + this.nativeString.substr(range.location + range.length);
+            this.length = this.nativeString.length;
         }
     },
 
-    // #mark - Accessing Characters & Words
+    // -------------------------------------------------------------------------
+    // MARK: - Accessing Characters & Words
 
     unicodeAtIndex: function(index){
         if (index < 0 || index >= this.length){
             throw new Error("JSString index %d out of range [0, %d]".sprintf(index, this.length - 1));
         }
-        index = this.nativeIndexForUnicodeIndex(index);
-        var code = this.nativeString.charCodeAt(index);
-        var low, high;
-        if (code >= 0xD800 && code < 0xDC00){
-            high = code;
-            low = this.nativeString.charCodeAt(index + 1);
-            code = ((high - 0xD800) << 10) | (low - 0xDC00) + 0x10000;
-        }
-        return UnicodeChar(code);
+        var iterator = JSString._UnicodeIterator(this, index);
+        return iterator.character();
     },
 
     rangeForUserPerceivedCharacterAtIndex: function (index){
-        var startIndex = index;
-        var endIndex = index + 1;
-        var L = this.length;
-        while (!this.isGraphemeClusterBoundary(startIndex)){
-            startIndex -= 1;
+        var iterator = JSString._UnicodeIterator(this, index);
+        var startIndex = iterator.index;
+        var endIndex = iterator.nextIndex;
+        var c1 = null;
+        var c2 = iterator.character();
+        while (startIndex > 0){
+            iterator.decrement();
+            c1 = iterator.character();
+            if (!this.isGraphemeClusterBoundary(c1, c2)){
+                startIndex = iterator.index;
+                c2 = c1;
+            }else{
+                break;
+            }
         }
-        while (!this.isGraphemeClusterBoundary(endIndex)){
-            endIndex += 1;
+        iterator = JSString._UnicodeIterator(this, index);
+        c1 = iterator.character();
+        while (endIndex < this.length){
+            iterator.increment();
+            c2 = iterator.character();
+            if (!this.isGraphemeClusterBoundary(c1, c2)){
+                endIndex = iterator.nextIndex;
+                c1 = c2;
+            }else{
+                break;
+            }
         }
         return JSRange(startIndex, endIndex - startIndex);
     },
 
     rangeForWordAtIndex: function(index){
-        var L = this.length;
-        var startIndex = index == L ? index - 1 : index;
-        var endIndex = startIndex + 1;
-        while (startIndex > 0 && !this.isWordBoundary(startIndex, L)){
-            --startIndex;
+        var iterator = JSString._UnicodeIterator(this, index);
+        var startIndex = iterator.index;
+        var endIndex = iterator.nextIndex;
+        while (!this.isWordBoundary(iterator.index)){
+            iterator.decrement();
+            startIndex = iterator.index;
         }
-        while (endIndex < L && !this.isWordBoundary(endIndex, L)){
-            ++endIndex;
+        iterator = JSString._UnicodeIterator(this, endIndex);
+        while (!this.isWordBoundary(iterator.index)){
+            iterator.increment();
+            endIndex = iterator.nextIndex;
         }
         return JSRange(startIndex, endIndex - startIndex);
     },
@@ -159,9 +135,7 @@ JSClass("JSString", JSObject, {
         var a, b;
         while (index < L){
             range = this.rangeForWordAtIndex(index);
-            a = this.nativeIndexForUnicodeIndex(range.location);
-            b = this.nativeIndexForUnicodeIndex(range.location + range.length);
-            word = this.nativeString.substr(a, b - a);
+            word = this.nativeString.substr(range.location, range.length);
             if (word.search(/[^\s]/) >= 0){
                 return index;
             }
@@ -177,9 +151,7 @@ JSClass("JSString", JSObject, {
         var a, b;
         while (index >= 0){
             range = this.rangeForWordAtIndex(index);
-            a = this.nativeIndexForUnicodeIndex(range.location);
-            b = this.nativeIndexForUnicodeIndex(range.location + range.length);
-            word = this.nativeString.substr(a, b - a);
+            word = this.nativeString.substr(range.location, range.length);
             if (word.search(/[^\s]/) >= 0){
                 return range.location;
             }
@@ -188,34 +160,47 @@ JSClass("JSString", JSObject, {
         return 0;
     },
 
-    // #mark - Substrings & Variants
+    // -------------------------------------------------------------------------
+    // MARK: - Substrings & Variants
 
-    stringForCharactersInRange: function(range){
-        var nativeRange = JSRange(this.nativeIndexForUnicodeIndex(range.location), 0);
-        nativeRange.length = this.nativeIndexForUnicodeIndex(range.location + range.length) - nativeRange.location;
-        var nativeSubstring = this.nativeString.substr(nativeRange.location, nativeRange.length);
-        return JSString.initWithNativeString(nativeSubstring);
+    substringInRange: function(range){
+        return JSString.initWithNativeString(this.nativeString.substr(range.location, range.length));
     },
 
-    // TODO: uppercase
-    // TODO: lowercase
+    uppercaseString: function(){
+        return JSString.initWithNativeString(this.nativeString.toUpperCase());
+    },
 
-    // #mark - Comparison
+    lowercaseStrinc: function(){
+        return JSString.initWithNativeString(this.nativeString.toLowerCase());
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Comparison
 
     isEqualToString: function(otherString){
         // TODO: consider using normalization when comparing
         return this.nativeString == otherString.nativeString;
     },
 
-    // #mark - Encoding
+    isEqual: function(other){
+        if (other !== null && other.isKindOfClass && other.isKindOfClass('JSString')){
+            return this.isEqualToString(other);
+        }
+        return this.nativeString == other;
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Encoding
 
     dataUsingUTF8Encoding: function(){
         // TODO: use TextEncoder if available
         var utf8 = new Uint8Array(this.length * 4);
         var c;
         var j = 0;
-        for (var i = 0, l = this.length; i < l; ++i){
-            c = this.unicodeAtIndex(i).code;
+        var iterator = JSString._UnicodeIterator(this, 0);
+        while (iterator.index < this.length){
+            c = iterator.character().code;
             if (c < 0x80){
                 utf8[j] = c;
                 j += 1;
@@ -235,6 +220,7 @@ JSClass("JSString", JSObject, {
                 utf8[j + 3] = 0x80 | (c & 0x3F);
                 j += 4;
             }
+            iterator.increment();
         }
         utf8 = new Uint8Array(utf8.buffer, utf8.byteOffset, j);
         return JSData.initWithBytes(utf8);
@@ -244,134 +230,26 @@ JSClass("JSString", JSObject, {
         return this.nativeString;
     },
 
-    // #mark - Private Properties
+    // -------------------------------------------------------------------------
+    // MARK: - Private helpers for finding word and character breaks
 
-    surrogateIndexes: null,
-
-    // #mark - Private helpers for mapping native string to unicode chars
-
-    // The mapping looks like this
-    // [{nativeIndex: 2, unicodeIndex: 2}, {nativeIndex: 6, unicodeIndex: 5}]
-    // For a string that looks like this
-    // native string:   a b \uD852 \uDF62 c d \uD852 \uDF62
-    // native indexes:  0 1 2      3      4 5 6      7      8
-    // unicode indexes: 0 1 2             3 4 5             6
-
-    nativeIndexForUnicodeIndex: function(index){
-        if (this.surrogateIndexes.length === 0){
-            return index;
-        }
-        if (index <= this.surrogateIndexes[0].unicodeIndex){
-            return index;
-        }
-        var min = 1;
-        var max = this.surrogateIndexes.length - 1;
-        var mid = 1;
-        var indexPair = this.surrogateIndexes[0];
-        while (min <= max){
-            mid = min + Math.floor((max - min) / 2);
-            indexPair = this.surrogateIndexes[mid];
-            if (indexPair.unicodeIndex == index){
-                return indexPair.nativeIndex;
-            }else if (index < indexPair.unicodeIndex){
-                max = mid - 1;
-            }else if (index > indexPair.unicodeIndex){
-                min = mid + 1;
-            }
-        }
-        if (index < indexPair.unicodeIndex){
-            indexPair = this.surrogateIndexes[mid - 1];
-        }
-        return indexPair.nativeIndex + 1 + (index - indexPair.unicodeIndex);
-    },
-
-    unicodeIndexForNativeIndex: function(index){
-        if (this.surrogateIndexes.length === 0){
-            return index;
-        }
-        if (index <= this.surrogateIndexes[0].nativeIndex){
-            return index;
-        }
-        var min = 1;
-        var max = this.surrogateIndexes.length - 1;
-        var mid = 1;
-        var indexPair = this.surrogateIndexes[0];
-        while (min <= max){
-            mid = min + Math.floor((max - min) / 2);
-            indexPair = this.surrogateIndexes[mid];
-            if (indexPair.nativeIndex == index){
-                return indexPair.unicodeIndex;
-            }else if (index < indexPair.nativeIndex){
-                max = mid - 1;
-            }else if (index > indexPair.nativeIndex){
-                min = mid + 1;
-            }
-        }
-        if (index < indexPair.nativeIndex){
-            indexPair = this.surrogateIndexes[mid - 1];
-        }
-        return indexPair.unicodeIndex - 1 - (index - indexPair.nativeIndex);
-    },
-
-    findSurrogateIndexes: function(){
-        var L = this.nativeString.length;
-        var index = this.nativeString.search(/[\uD800-\uDC00]/);
-        var code;
-        this.surrogateIndexes = [];
-        if (index >= 0){
-            var unicodeIndex = index;
-            this.surrogateIndexes.push({nativeIndex: index, unicodeIndex: unicodeIndex});
-            index += 2;
-            unicodeIndex += 1;
-            while (index < L){
-                code = this.nativeString.charCodeAt(index);
-                if (code >= 0xD800 && code < 0xDC00){
-                    this.surrogateIndexes.push({nativeIndex: index, unicodeIndex: unicodeIndex});
-                    index += 2;
-                }else{
-                    index += 1;
-                }
-                unicodeIndex += 1;
-            }
-        }
-    },
-
-    // #mark - Private helpers for finding word and character breaks
-
-    characterIndexForWordBreakingBeforeIndex: function(index){
-        var unicode = this.unicodeAtIndex(index);
-        while ((unicode.Extended || unicode.Format) && index > 0){
-            --index;
-            unicode = this.unicodeAtIndex(index);
-        }
-        return index;
-    },
-
-    characterIndexForWordBreakingAfterIndex: function(index, L){
-        var unicode = this.unicodeAtIndex(index);
-        while ((unicode.Extended || unicode.Format) && index < L - 1){
-            ++index;
-            unicode = this.unicodeAtIndex(index);
-        }
-        if (unicode.Extended || unicode.Format){
-            return null;
-        }
-        return index;
-    },
-
-    isWordBoundary: function(index, L){
+    isWordBoundary: function(index){
         // See http://www.unicode.org/reports/tr29/
 
+        var iterator = JSString._UnicodeIterator(index);
+
         // WB1: sot ÷
-        if (index === 0){
+        if (iterator.index === 0){
             return true;
         }
         // WB1: ÷ eot
-        if (index === L){
+        if (iterator.index === this.length){
             return true;
         }
-        var c1 = this.unicodeAtIndex(index - 1);
-        var c2 = this.unicodeAtIndex(index);
+
+        var c2 = iterator.character();
+        iterator.decrement();
+        var c1 = iterator.character();
         var c3 = null;
         var c0 = null;
         // WB3: CR × LF
@@ -388,30 +266,37 @@ JSClass("JSString", JSObject, {
         }
 
         // WB4: X (Extend | Format)* → X
-        var c2Index = this.characterIndexForWordBreakingBeforeIndex(index);
-        var c1Index = this.characterIndexForWordBreakingBeforeIndex(c2Index - 1);
-        c1 = this.unicodeAtIndex(c1Index);
-        c2 = this.unicodeAtIndex(c2Index);
+        // ...the same as Any × (Format | Extend)
+        if (c2.Format || c2.Extend){
+            return false;
+        }
+        while (iterator.index > 0 && (c1.Format || c1.Extend)){
+            iterator.decrement();
+            c1 = iterator.character();
+        }
+        if (iterator.index > 0){
+            iterator.decrement();
+            c0 = iterator.character();
+            while (iterator.index > 0 && (c0.Format || c0.Extend)){
+                iterator.decrement();
+                c0 = iterator.character();
+            }
+        }
 
         // WB5: AHLetter × AHLetter
         if (c1.wordBreakAHLetter && c2.wordBreakAHLetter){
             return false;
         }
         // WB6: AHLetter × (MidLetter | MidNumLetQ) AHLetter
-        if (c2Index < L - 1){
-            var c3Index = this.characterIndexForWordBreakingAfterIndex(c2Index + 1, L);
-            if (c3Index != null){
-                c3 = this.unicodeAtIndex(c3Index);
-            }
+        iterator = JSString._UnicodeIterator(index);
+        if (iterator.index < this.length){
+            iterator.increment();
+            c3 = iterator.character();
         }
         if (c3 !== null && c1.wordBreakAHLetter && (c2.wordBreakMidLetter || c2.wordBreakMidNumLetQ) && c3.wordBreakAHLetter){
             return false;
         }
         // WB7: AHLetter (MidLetter | MidNumLetQ) × AHLetter
-        if (c1Index > 1){
-            var c0Index = this.characterIndexForWordBreakingBeforeIndex(c1Index - 1);
-            c0 = this.unicodeAtIndex(c0Index);
-        }
         if (c0 !== null && c0.wordBreakAHLetter && (c1.wordBreakMidLetter || c1.wordBreakMidNumLetQ) && c2.wordBreakAHLetter){
             return false;
         }
@@ -467,17 +352,7 @@ JSClass("JSString", JSObject, {
         return true;
     },
 
-    isGraphemeClusterBoundary: function(index, L){
-        // GB1: sot ÷
-        if (index === 0){
-            return true;
-        }
-        // GB2: ÷ eot
-        if (index >= L){
-            return true;
-        }
-        var c1 = this.unicodeAtIndex(index - 1);
-        var c2 = this.unicodeAtIndex(index);
+    isGraphemeClusterBoundary: function(c1, c2){
         // GB3: CR × LF
         if (c1.graphemeClusterBreakCR && c2.graphemeClusterBreakLF){
             return false;
@@ -523,3 +398,80 @@ JSClass("JSString", JSObject, {
     }
 
 });
+
+JSString._UnicodeIterator = function(str, index){
+    if (this === undefined){
+        return new JSString._UnicodeIterator(str, index);
+    }
+    this.str = str;
+    this.updateCurrentCharacter();
+};
+
+JSString._UnicodeIterator.prototype = {
+    index: 0,
+    nextIndex: 0,
+    currentCharacter: null,
+
+    updateCurrentCharacter: function(){
+        if (this.index < 0){
+            this.index = -1;
+            this.nextIndex = 0;
+            this.currentCharacter = null;
+        }else if(this.index >= this.str.length){
+            this.index = this.str.length;
+            this.nextIndex = this.str.length;
+            this.currentCharacter = null;
+        }else{
+            var A = this.str.nativeString.charCodeAt(this.index);
+            var B = 0;
+            var code = 0;
+            this.nextIndex = this.index + 1;
+            if (A >= 0xD800 && A < 0xDC00){
+                if (this.index < this.str.length - 1){
+                    B = this.str.nativeString.charCodeAt(this.index + 1);
+                    if (B >= 0xDC00 && B < 0xE000){
+                        code = (((A & 0x3FFF) << 10) | (B & 0x3FF)) + 0x10000;
+                        this.currentCharacter = UnicodeChar(code);
+                        ++this.nextIndex;
+                    }else{
+                        this.currentCharacter = UnicodeChar(0xFFFD);
+                    }
+                }else{
+                    this.currentCharacter = UnicodeChar(0xFFFD);
+                }
+            }else if (A >= 0xDC00 && A < 0xDF00){
+                if (this.index > 0){
+                    B = A;
+                    A = this.str.nativeString.charCodeAt(this.index - 1);
+                    if (B >= 0xD800 && B < 0xDC00){
+                        --this.index;
+                        code = (((A & 0x3FFF) << 10) | (B & 0x3FF)) + 0x10000;
+                        this.currentCharacter = UnicodeChar(code);
+                    }else{
+                        this.currentCharacter = UnicodeChar(0xFFFD);
+                    }
+                }else{
+                    this.currentCharacter = UnicodeChar(0xFFFD);
+                }
+            }else{
+                this.currentCharacter = UnicodeChar(A);
+            }
+        }
+    },
+
+    increment: function(){
+        this.index = this.nextIndex;
+        this.updateCurrentCharacter();
+        return this;
+    },
+
+    decrement: function(){
+        this.index -= 1;
+        this.updateCurrentCharacter();
+        return this;
+    },
+
+    character: function(){
+        return this.currentCharacter;
+    }
+};

@@ -66,16 +66,16 @@ JSObject.definePropertiesFromExtensions({
         }
     },
 
-    initWithSpec: function(spec){
-        if ("JSBindings" in spec){
-            for (var i = 0, l = spec.JSBindings.length; i < l; ++i){
-                var bindingSpec = spec.JSBindings[i];
-                this.bind(bindingSpec.binding, bindingSpec.toObject, bindingSpec.keyPath, bindingSpec.options);
+    initWithSpec: function(spec, values){
+        if ("JSBindings" in values){
+            for (var i = 0, l = values.JSBindings.length; i < l; ++i){
+                var bindingValues = values.JSBindings[i];
+                this.bind(bindingValues.binding, spec.resolvedValue(bindingValues.toObject), bindingValues.keyPath, bindingValues.options);
             }
         }
-        if ("JSOutlets" in spec){
-            for (var key in spec.JSOutlets){
-                this.setValueForKey(key, spec.JSOutlets[key]);
+        if ("JSOutlets" in values){
+            for (var key in values.JSOutlets){
+                this.setValueForKey(key, spec.resolvedValue(values.JSOutlets[key]));
             }
         }
     },
@@ -91,6 +91,13 @@ JSObject.definePropertiesFromExtensions({
 
     isKindOfClass: function(referenceClass){
         return this.$class.isSubclassOfClass(referenceClass);
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Comparing
+
+    isEqual: function(other){
+        return this === other;
     },
 
     // -------------------------------------------------------------------------
