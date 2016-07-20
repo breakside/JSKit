@@ -4,6 +4,7 @@ import argparse
 import xml.dom.minidom
 import tempfile
 import json
+import pkg_resources
 from .builder import Builder
 from .html import HTML5DocumentSerializer
 from .javascript import JSCompilation
@@ -15,9 +16,11 @@ class TestsBuilder(Builder):
     appJS = None
     indexFile = None
 
-    def __init__(self, projectPath, outputParentPath, buildID, buildLabel, debug=False, args=[]):
-        super(TestsBuilder, self).__init__(projectPath, outputParentPath, buildID, buildLabel, debug=True)
+    def __init__(self, projectPath, includePaths, outputParentPath, buildID, buildLabel, debug=False, args=[]):
+        super(TestsBuilder, self).__init__(projectPath, includePaths, outputParentPath, buildID, buildLabel, debug=True)
         self.includes = []
+        self.includePaths.append(pkg_resources.resource_filename('jskit', 'jsmake/tests_resources'))
+        self.includePaths.extend(self.absolutePathsRelativeToSourceRoot('.'))
         self.parse_args(args)
 
     def parse_args(self, arglist):
@@ -46,12 +49,11 @@ class TestsBuilder(Builder):
                     self.includes.append(os.path.relpath(os.path.join(dirname, name), self.projectPath))
 
     def buildAppJavascript(self):
-        includePaths = self.absolutePathsRelativeToSourceRoot(os.path.realpath(os.path.join(os.path.dirname(self.builderPath), '..', 'Frameworks')), os.path.join(os.path.dirname(self.builderPath), 'tests_resources'), '.', )
         with tempfile.NamedTemporaryFile() as bundleJSFile:
             bundleJSFile.write("'use strict';\n")
             bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))
             bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.info['JSBundleIdentifier'])
-            self.jsCompilation = JSCompilation(includePaths, minify=False, combine=False)
+            self.jsCompilation = JSCompilation(self.includePaths, minify=False, combine=False)
             for path in self.includes:
                 self.jsCompilation.include(path)
             self.jsCompilation.include(bundleJSFile, 'bundle.js')
@@ -81,7 +83,7 @@ class TestsBuilder(Builder):
         style.setAttribute("rel", "stylesheet")
         style.setAttribute("type", "text/css")
         style.setAttribute("href", "tests.css")
-        shutil.copy(os.path.join(os.path.dirname(self.builderPath), 'tests_resources', 'tests.css'), os.path.join(self.outputProjectPath, 'tests.css'))
+        shutil.copy(pkg_resources.resource_filename('jskit', 'jsmake/tests_resources/tests.css'), os.path.join(self.outputProjectPath, 'tests.css'))
         title = head.appendChild(document.createElement("title"))
         title.appendChild(document.createTextNode("Tests"))
         body = html.appendChild(document.createElement("body"))

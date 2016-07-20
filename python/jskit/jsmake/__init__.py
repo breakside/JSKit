@@ -10,6 +10,7 @@ def main():
     parser.add_argument(u'--watch', action=u'store_true', help=u"Watch for file changes, and rebuild automatically when any change")
     parser.add_argument(u'--kind', default=u'html', help=u"What kind of project to build")
     parser.add_argument(u'--output-dir', default=u'.', help=u"Where to put the build output")
+    parser.add_argument(u'--include-dir', default=[], action='append')
     parser.add_argument(u'project', default=u'.')
     parser.add_argument(u'args', nargs=argparse.REMAINDER)
     args = parser.parse_args()
@@ -27,8 +28,5 @@ def main():
         builderClass = TestsBuilder
     else:
         raise Exception(u"Unsupported build type: %u" % args.kind)
-    builder = builderClass(projectPath=args.project, outputParentPath=args.output_dir, buildID=buildID, buildLabel=buildLabel, debug=args.debug, args=args.args)
+    builder = builderClass(projectPath=args.project, includePaths=args.include_dir, outputParentPath=args.output_dir, buildID=buildID, buildLabel=buildLabel, debug=args.debug, args=args.args)
     builder.build()
-
-if __name__ == "__main__":
-    main()

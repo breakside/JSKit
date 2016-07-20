@@ -11,6 +11,7 @@ import json
 import mimetypes
 import StringIO
 import tempfile
+import pkg_resources
 from HTMLParser import HTMLParser
 from .builder import Builder
 from .javascript import JSCompilation, JSFeature
@@ -27,9 +28,10 @@ class HTMLBuilder(Builder):
     manifest = None
     includes = None
 
-    def __init__(self, projectPath, outputParentPath, buildID, buildLabel, debug=False, args=None):
-        super(HTMLBuilder, self).__init__(projectPath, outputParentPath, buildID, buildLabel, debug)
+    def __init__(self, projectPath, includePaths, outputParentPath, buildID, buildLabel, debug=False, args=None):
+        super(HTMLBuilder, self).__init__(projectPath, includePaths, outputParentPath, buildID, buildLabel, debug)
         self.includes = []
+        self.includePaths.extend(self.absolutePathsRelativeToSourceRoot('Frameworks', 'Classes', '.'))
         self.parse_args(args)
 
     def parse_args(self, arglist):
@@ -85,12 +87,11 @@ class HTMLBuilder(Builder):
                 self.findSpecIncludes(v)
 
     def buildAppJavascript(self):
-        includePaths = self.absolutePathsRelativeToSourceRoot(os.path.realpath(os.path.join(os.path.dirname(self.builderPath), '..', 'Frameworks')), 'Frameworks', 'Classes', '.')
         with tempfile.NamedTemporaryFile() as bundleJSFile:
             bundleJSFile.write("'use strict';\n")
             bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))
             bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.info['JSBundleIdentifier'])
-            self.jsCompilation = JSCompilation(includePaths, minify=not self.debug, combine=not self.debug)
+            self.jsCompilation = JSCompilation(self.includePaths, minify=not self.debug, combine=not self.debug)
             for path in self.includes:
                 self.jsCompilation.include(path)
             self.jsCompilation.include(bundleJSFile, 'bundle.js')
@@ -141,7 +142,7 @@ class HTMLBuilder(Builder):
             'preflightSrc': _webpath(os.path.relpath(self.preflightFile.name, self.outputProjectPath)),
             'appSrc': appSrc
         }
-        includePaths = (os.path.join(os.path.dirname(self.builderPath), 'html_resources'),)
+        includePaths = (pkg_resources.resource_filename('jskit', 'jsmake/html_resources'),)
         while len(stack) > 0:
             node = stack.pop()
             if node.tagName == 'title' and node.parentNode.tagName == 'head':

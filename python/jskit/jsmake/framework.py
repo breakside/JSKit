@@ -9,7 +9,7 @@ class FrameworkBuilder(Builder):
     def setup(self):
         super(FrameworkBuilder, self).setup()
         self.frameworkName = os.path.basename(self.sourceRootPath)
-        self.includePaths = self.absolutePathsRelativeToSourceRoot('Frameworks', '.')
+        self.includePaths.extend(self.absolutePathsRelativeToSourceRoot('Frameworks', '.'))
 
     def build(self):
         self.setup()

@@ -10,6 +10,7 @@ from .image import ImageInfoExtractor
 class Builder(object):
     buildID = ""
     buildLabel = ""
+    includePaths = None
     projectPath = "."
     outputParentPath = "."
     outputProjectPath = ""
@@ -17,8 +18,8 @@ class Builder(object):
     bundles = None
     mainBundle = None
 
-    def __init__(self, projectPath, outputParentPath, buildID, buildLabel, debug=False):
-        self.builderPath = os.path.realpath(__file__)
+    def __init__(self, projectPath, includePaths, outputParentPath, buildID, buildLabel, debug=False):
+        self.includePaths = includePaths
         self.projectPath = os.path.realpath(projectPath)
         self.outputParentPath = os.path.realpath(outputParentPath)
         self.buildID = buildID

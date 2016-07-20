@@ -1,4 +1,6 @@
 builds/*
+env/*
 *.pyc
+*.egg-info
 *.sublime-workspace
 Tests/Frameworks

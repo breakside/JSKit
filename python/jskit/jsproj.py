@@ -3,6 +3,7 @@ import os.path
 import shutil
 import sys
 import argparse
+import pkg_resources
 
 
 class Path(object):
@@ -26,18 +27,16 @@ class ProjectBuilder(object):
         self.template = template
 
     def build(self):
-        jskit = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), u'..')))
+        template = Path(os.path.realpath(template))
         project = Path(os.path.join(os.getcwd(), self.name))
 
         if os.path.exists(project.root):
             raise Exception(u"Output path already exists: %u" % project.root)
 
         shutil.copytree(
-            jskit(u'Templates', self.template),
+            template.root,
             project.root
         )
-
-        os.mkdirs(project(u'Frameworks'))
 
         # TODO: walk files and replace ${} in filenames and in content
 
@@ -49,6 +48,3 @@ def main():
     args = parser.parse_args()
     builder = ProjectBuilder(args.name, args.template)
     builder.build()
-
-if __name__ == "__main__":
-    main()
