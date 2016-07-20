@@ -270,17 +270,17 @@ JSClass("JSString", JSObject, {
 
         // WB4: X (Extend | Format)* → X
         // ...the same as Any × (Format | Extend)
-        if (c2.Format || c2.Extend){
+        if (c2.wordBreakFormat || c2.wordBreakExtend){
             return false;
         }
-        while (iterator.index > 0 && (c1.Format || c1.Extend)){
+        while (iterator.index > 0 && (c1.wordBreakFormat || c1.wordBreakExtend)){
             iterator.decrement();
             c1 = iterator.character();
         }
         if (iterator.index > 0){
             iterator.decrement();
             c0 = iterator.character();
-            while (iterator.index > 0 && (c0.Format || c0.Extend)){
+            while (iterator.index > 0 && (c0.wordBreakFormat || c0.wordBreakExtend)){
                 iterator.decrement();
                 c0 = iterator.character();
             }

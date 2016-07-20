@@ -543,7 +543,7 @@ UnicodeChar.prototype = Object.create(Object.prototype, {
             //         and not U+200B ZERO WIDTH SPACE (ZWSP)
             //         and not U+200C ZERO WIDTH NON-JOINER (ZWNJ)
             //         and not U+200D ZERO WIDTH JOINER (ZWJ)
-            Object.defineProperty(this, 'wordBreakFormat', {value: this.generalCategoryIsFormat || !(this.code == 0x200B || this.code == 0x200C || this.code == 0x200D)});
+            Object.defineProperty(this, 'wordBreakFormat', {value: this.generalCategoryIsFormat && this.code != 0x200B && this.code != 0x200C && this.code != 0x200D});
             return this.wordBreakFormat;
         }
     },
