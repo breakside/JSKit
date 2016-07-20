@@ -36,14 +36,8 @@ class ProjectBuilder(object):
             jskit(u'Templates', self.template),
             project.root
         )
-        os.symlink(
-            jskit(u'makejs'),
-            project(u'makejs')
-        )
-        os.symlink(
-            jskit(u'Frameworks'),
-            project(u'Frameworks')
-        )
+
+        os.mkdirs(project(u'Frameworks'))
 
         # TODO: walk files and replace ${} in filenames and in content
 

@@ -1,8 +1,9 @@
 'use strict';
+/* global JSGlobalObject, JSSize, JSPoint, JSRect, JSRange, JSAffineTransform, JSConstraintBox */
 // -----------------------------------------------------------------------------
 // Mark: Sizes
 
-function JSSize(width, height){
+JSGlobalObject.JSSize = function JSSize(width, height){
     if (this === undefined){
         return new JSSize(width, height);
     }else{
@@ -14,7 +15,7 @@ function JSSize(width, height){
             this.height = height;
         }
     }
-}
+};
 
 JSSize.prototype = {
     width: 0,
@@ -23,7 +24,7 @@ JSSize.prototype = {
 
 JSSize.Zero = JSSize(0, 0);
 
-function JSPoint(x, y){
+JSGlobalObject.JSPoint = function JSPoint(x, y){
     if (this === undefined){
         return new JSPoint(x, y);
     }else{
@@ -35,7 +36,7 @@ function JSPoint(x, y){
             this.y = y;
         }
     }
-}
+};
 
 JSPoint.prototype = {
     x: 0,
@@ -46,19 +47,22 @@ JSPoint.Zero = JSPoint(0, 0);
 JSPoint.UnitCenter = JSPoint(0.5, 0.5);
 
 
-function JSRect(x, y, width, height){
+JSGlobalObject.JSRect = function JSRect(x, y, width, height){
     if (this === undefined){
         return new JSRect(x, y, width, height);
     }else{
         if (x instanceof JSRect){
             this.origin = JSPoint(x.origin);
             this.size = JSSize(x.size);
+        }else if ((x instanceof JSPoint) && (y instanceof JSSize)){
+            this.origin = JSPoint(x);
+            this.size = JSSize(y);
         }else{
             this.origin = JSPoint(x, y);
             this.size = JSSize(width, height);
         }
     }
-}
+};
 
 JSRect.prototype = {
     origin: null,
@@ -75,7 +79,7 @@ JSRect.prototype = {
 JSRect.Zero = JSRect(0, 0, 0, 0);
 
 
-function JSRange(location, length){
+JSGlobalObject.JSRange = function JSRange(location, length){
     if (this === undefined){
         return new JSRange(location, length);
     }else{
@@ -87,7 +91,7 @@ function JSRange(location, length){
             this.length = length;
         }
     }
-}
+};
 
 JSRange.prototype = {
     location: 0,
@@ -95,7 +99,7 @@ JSRange.prototype = {
 };
 
 
-function JSAffineTransform(a, b, c, d, tx, ty){
+JSGlobalObject.JSAffineTransform = function JSAffineTransform(a, b, c, d, tx, ty){
     if (this === undefined){
         return new JSAffineTransform(a, b, c, d, tx, ty);
     }else{
@@ -106,7 +110,7 @@ function JSAffineTransform(a, b, c, d, tx, ty){
         this.tx = tx;
         this.ty = ty;
     }
-}
+};
 
 JSAffineTransform.prototype = {
     a: 0,
@@ -120,7 +124,7 @@ JSAffineTransform.prototype = {
 JSAffineTransform.Identity = JSAffineTransform(1, 0, 0, 1, 0, 0);
 
 
-function JSConstraintBox(props){
+JSGlobalObject.JSConstraintBox = function JSConstraintBox(props){
     if (this === undefined){
         return new JSConstraintBox(props);
     }else{
@@ -130,7 +134,7 @@ function JSConstraintBox(props){
             }
         }
     }
-}
+};
 
 JSConstraintBox.prototype = {
     top: undefined,

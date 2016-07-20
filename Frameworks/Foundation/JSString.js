@@ -120,7 +120,7 @@ JSClass("JSString", JSObject, {
         iterator = JSString._UnicodeIterator(this, endIndex);
         while (!this.isWordBoundary(iterator.index)){
             iterator.increment();
-            endIndex = iterator.nextIndex;
+            endIndex = iterator.index;
         }
         return JSRange(startIndex, endIndex - startIndex);
     },
@@ -239,7 +239,7 @@ JSClass("JSString", JSObject, {
     isWordBoundary: function(index){
         // See http://www.unicode.org/reports/tr29/
 
-        var iterator = JSString._UnicodeIterator(index);
+        var iterator = JSString._UnicodeIterator(this, index);
 
         // WB1: sot ÷
         if (iterator.index === 0){
@@ -291,7 +291,7 @@ JSClass("JSString", JSObject, {
             return false;
         }
         // WB6: AHLetter × (MidLetter | MidNumLetQ) AHLetter
-        iterator = JSString._UnicodeIterator(index);
+        iterator = JSString._UnicodeIterator(this, index);
         if (iterator.index < this.length){
             iterator.increment();
             c3 = iterator.character();

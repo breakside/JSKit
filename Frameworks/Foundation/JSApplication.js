@@ -1,7 +1,7 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSPropertyList.js"
 // #import "Foundation/JSSpec.js"
-/* global JSClass, JSObject, JSApplication, JSPropertyList, JSSpec, JSClassFromName */
+/* global JSGlobalObject, JSClass, JSObject, JSApplication, JSPropertyList, JSSpec, JSClassFromName */
 'use strict';
 
 JSClass('JSApplication', JSObject, {
@@ -31,7 +31,7 @@ Object.defineProperty(JSApplication, 'sharedApplication', {
     }
 });
 
-function JSApplicationMain(infoPlistName){
+JSGlobalObject.JSApplicationMain = function JSApplicationMain(infoPlistName){
     var application = null;
     if (infoPlistName === null){
         application = JSApplication.init();
@@ -51,4 +51,4 @@ function JSApplicationMain(infoPlistName){
         }
     }
     application.launch();
-}
+};

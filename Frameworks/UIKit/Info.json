@@ -1,5 +1,5 @@
 {
-    "JSBundleIdentifier": "com.owenshaw.jskit.UIKit",
+    "JSBundleIdentifier": "com.owenshaw.JSKit.UIKit",
     "JSFrameworkVariants": [
         "UIKit.js",
         "UIKit+HTML.js"

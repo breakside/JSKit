@@ -1,5 +1,5 @@
 {
-    "JSBundleIdentifier": "com.owenshaw.jskit.Foundation",
+    "JSBundleIdentifier": "com.owenshaw.JSKit.Foundation",
     "JSFrameworkVariants": [
         "Foundation.js",
         "Foundation+HTML.js"

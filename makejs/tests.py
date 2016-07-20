@@ -1,5 +1,6 @@
 import os.path
 import shutil
+import argparse
 import xml.dom.minidom
 import tempfile
 import json
@@ -20,7 +21,8 @@ class TestsBuilder(Builder):
         self.parse_args(args)
 
     def parse_args(self, arglist):
-        pass
+        parser = argparse.ArgumentParser()
+        args = parser.parse_args(arglist)
 
     def build(self):
         self.setup()
@@ -44,7 +46,7 @@ class TestsBuilder(Builder):
                     self.includes.append(os.path.relpath(os.path.join(dirname, name), self.projectPath))
 
     def buildAppJavascript(self):
-        includePaths = self.absolutePathsRelativeToSourceRoot('Frameworks', os.path.join(os.path.dirname(self.builderPath), 'tests_resources'), '.', )
+        includePaths = self.absolutePathsRelativeToSourceRoot(os.path.realpath(os.path.join(os.path.dirname(self.builderPath), '..', 'Frameworks')), os.path.join(os.path.dirname(self.builderPath), 'tests_resources'), '.', )
         with tempfile.NamedTemporaryFile() as bundleJSFile:
             bundleJSFile.write("'use strict';\n")
             bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))

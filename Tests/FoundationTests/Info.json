@@ -1,5 +1,5 @@
 {
-    "JSBundleIdentifier": "com.owenshaw.jskit.JSKitTests",
+    "JSBundleIdentifier": "com.owenshaw.JSKit.FoundationTests",
     "JSIncludes": [
         "Foundation/Foundation+HTML.js"
     ]

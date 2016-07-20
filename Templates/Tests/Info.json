@@ -1,0 +1,6 @@
+{
+    "JSBundleIdentifier": "com.yourcompany.sample",
+    "JSIncludes": [
+        "Foundation/Foundation+HTML.js"
+    ]
+}

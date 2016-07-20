@@ -12,7 +12,7 @@ JSClass('JSStringTests', TKTestSuite, {
         TKAssertObjectEquals(string, "Hello, world!");
     },
 
-    testUnicodeIterator: function(){
+    testUnicodeForwardIterator: function(){
         var string = JSString.initWithNativeString("Tésting 😀");
         TKAssertEquals(string.length, 10);
         var iterator = JSString._UnicodeIterator(string, 0);
@@ -40,8 +40,11 @@ JSClass('JSStringTests', TKTestSuite, {
         iterator.increment();
         TKAssertEquals(iterator.index, 10);
         TKAssertEquals(iterator.nextIndex, 10);
+    },
 
-        iterator = JSString._UnicodeIterator(string, 10);
+    testUnicodeBackwardIterator: function(){
+        var string = JSString.initWithNativeString("Tésting 😀");
+        var iterator = JSString._UnicodeIterator(string, 10);
         TKAssertEquals(iterator.index, 10);
         TKAssertEquals(iterator.nextIndex, 10);
         iterator.decrement();
@@ -115,11 +118,35 @@ JSClass('JSStringTests', TKTestSuite, {
     },
 
     testWordBoundaries: function(){
-
+        var string = JSString.initWithNativeString("Hello, world. \"this\" is a test!");
+        var range = string.rangeForWordAtIndex(0);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 5);
+        range = string.rangeForWordAtIndex(1);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 5);
+        range = string.rangeForWordAtIndex(4);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 5);
+        range = string.rangeForWordAtIndex(5);
+        TKAssertEquals(range.location, 5);
+        TKAssertEquals(range.length, 1);
+        range = string.rangeForWordAtIndex(6);
+        TKAssertEquals(range.location, 6);
+        TKAssertEquals(range.length, 1);
+        range = string.rangeForWordAtIndex(7);
+        TKAssertEquals(range.location, 7);
+        TKAssertEquals(range.length, 5);
+        range = string.rangeForWordAtIndex(8);
+        TKAssertEquals(range.location, 7);
+        TKAssertEquals(range.length, 5);
+        range = string.rangeForWordAtIndex(11);
+        TKAssertEquals(range.location, 7);
+        TKAssertEquals(range.length, 5);
     },
 
     testUnicodeWordBoundaries: function(){
-
+        var string = JSString.initWithNativeString("Hello, wörld. \"this\" is a te\u0301st 😀!");
     },
 
     testUTF8: function(){

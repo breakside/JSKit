@@ -6,6 +6,7 @@ import hashlib
 import xml.dom.minidom
 import plistlib
 import shutil
+import argparse
 import json
 import mimetypes
 import StringIO
@@ -29,6 +30,11 @@ class HTMLBuilder(Builder):
     def __init__(self, projectPath, outputParentPath, buildID, buildLabel, debug=False, args=None):
         super(HTMLBuilder, self).__init__(projectPath, outputParentPath, buildID, buildLabel, debug)
         self.includes = []
+        self.parse_args(args)
+
+    def parse_args(self, arglist):
+        parser = argparse.ArgumentParser()
+        args = parser.parse_args(arglist)
 
     def build(self):
         self.setup()
@@ -79,7 +85,7 @@ class HTMLBuilder(Builder):
                 self.findSpecIncludes(v)
 
     def buildAppJavascript(self):
-        includePaths = self.absolutePathsRelativeToSourceRoot('Frameworks', 'Classes', '.')
+        includePaths = self.absolutePathsRelativeToSourceRoot(os.path.realpath(os.path.join(os.path.dirname(self.builderPath), '..', 'Frameworks')), 'Frameworks', 'Classes', '.')
         with tempfile.NamedTemporaryFile() as bundleJSFile:
             bundleJSFile.write("'use strict';\n")
             bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))
@@ -98,7 +104,7 @@ class HTMLBuilder(Builder):
                     outputPath = os.path.join(self.outputProductPath, 'app%d.js' % len(self.appJS))
                 if not os.path.exists(os.path.dirname(outputPath)):
                     os.makedirs(os.path.dirname(outputPath))
-                if self.debug and outfile.fp.name[0:len(self.projectPath)] == self.projectPath:
+                if self.debug and outfile.fp != bundleJSFile:
                     os.symlink(outfile.fp.name, outputPath)
                 else:
                     shutil.copy(outfile.fp.name, outputPath)

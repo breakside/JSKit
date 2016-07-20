@@ -71,7 +71,7 @@ JSClass('UIView', JSObject, {
     },
 
     initWithSpec: function(spec, values){
-        UIView.$super.initWithSpec.call(this, values);
+        UIView.$super.initWithSpec.call(this, spec, values);
         this._commonViewInit();
         this.frame = JSRect(0, 0, 100, 100);
         this.constraintBox = null;
@@ -83,11 +83,12 @@ JSClass('UIView', JSObject, {
             this.frame = JSRect.apply(undefined, values.frame.parseNumberArray());
         }
         if ("backgroundColor" in values){
-            this.backgroundColor = values.backgroundColor;
+            this.backgroundColor = spec.resolvedValue(values.backgroundColor);
         }
         if ("subviews" in values){
             for (var i = 0, l = values.subviews.length; i < l; ++i){
-                this.addSubview(values.subviews[i]);
+                var subview = spec.resolvedValue(values.subviews[i]);
+                this.addSubview(subview);
             }
         }
     },
