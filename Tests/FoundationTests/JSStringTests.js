@@ -185,6 +185,52 @@ JSClass('JSStringTests', TKTestSuite, {
         TKAssertEquals(range.length, 1);
     },
 
+    _testWordBoundarySpaces: function(){
+        // disabled until I can decide exactly what I want here
+        // Unicode word break standard doesn't treat runs of whitespace as a word; each space is its own word
+        // But for practical use, I think treating consecutive whitespace as a word makes sense
+        var str = JSString.initWithNativeString("  Hello     there,\t   what\n\na test!  ");
+        var range = str.rangeForWordAtIndex(0);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 2);
+        range = str.rangeForWordAtIndex(1);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 2);
+        range = str.rangeForWordAtIndex(2);
+        TKAssertEquals(range.location, 2);
+        TKAssertEquals(range.length, 5);
+        range = str.rangeForWordAtIndex(7);
+        TKAssertEquals(range.location, 7);
+        TKAssertEquals(range.length, 5);
+        range = str.rangeForWordAtIndex(11);
+        TKAssertEquals(range.location, 7);
+        TKAssertEquals(range.length, 5);
+        range = str.rangeForWordAtIndex(17);
+        TKAssertEquals(range.location, 17);
+        TKAssertEquals(range.length, 1);
+        range = str.rangeForWordAtIndex(18);
+        TKAssertEquals(range.location, 18);
+        TKAssertEquals(range.length, 4);
+        range = str.rangeForWordAtIndex(19);
+        TKAssertEquals(range.location, 18);
+        TKAssertEquals(range.length, 4);
+        range = str.rangeForWordAtIndex(20);
+        TKAssertEquals(range.location, 18);
+        TKAssertEquals(range.length, 4);
+        range = str.rangeForWordAtIndex(26);
+        TKAssertEquals(range.location, 26);
+        TKAssertEquals(range.length, 2);
+        range = str.rangeForWordAtIndex(27);
+        TKAssertEquals(range.location, 26);
+        TKAssertEquals(range.length, 2);
+        range = str.rangeForWordAtIndex(35);
+        TKAssertEquals(range.location, 35);
+        TKAssertEquals(range.length, 2);
+        range = str.rangeForWordAtIndex(36);
+        TKAssertEquals(range.location, 35);
+        TKAssertEquals(range.length, 2);
+    },
+
     testUTF8: function(){
 
     }

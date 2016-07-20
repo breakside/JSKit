@@ -479,3 +479,7 @@ JSString._UnicodeIterator.prototype = {
         return this.currentCharacter;
     }
 };
+
+function JS(nativeString){
+    return JSString.initWithNativeString(nativeString);
+}

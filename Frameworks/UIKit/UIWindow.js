@@ -8,6 +8,7 @@ JSClass('UIWindow', UIView, {
     // -------------------------------------------------------------------------
     // MARK: - Properties
 
+    rootViewController: null,
     contentView: null,
     firstResponder: JSDynamicProperty('_firstResponder', null),
 
@@ -24,7 +25,12 @@ JSClass('UIWindow', UIView, {
         if (!('constraintBox' in values) && !('constraintBox.margin' in values) && !('frame' in values)){
             this.constraintBox = JSConstraintBox.Margin(0);
         }
-        this.contentView = spec.resolvedValue(values.contentView);
+        if ('rootViewController' in values){
+            this.rootViewController = spec.resolvedValue(values.rootViewController);
+            this.contentView = this.rootViewController.view;
+        }else if ('contentView' in values){
+            this.contentView = spec.resolvedValue(values.contentView);
+        }
         this._commonWindowInit();
     },
 
@@ -35,6 +41,10 @@ JSClass('UIWindow', UIView, {
         UIRenderer.defaultRenderer.layerInserted(this.layer);
         UIRenderer.defaultRenderer.viewInserted(this);
         UIRenderer.defaultRenderer.makeKeyWindow(this);
+        if (this.rootViewController){
+            this.rootViewController.viewWillAppear();
+            this.rootViewController.viewDidAppear();
+        }
     },
 
     getFirstResponder: function(){

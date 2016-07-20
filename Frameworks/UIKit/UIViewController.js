@@ -1,5 +1,5 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject, UIView, JSDynamicProperty */
+/* global JSClass, JSObject, UIView, JSDynamicProperty, UIViewController */
 'use strict';
 
 JSClass("UIViewController", JSObject, {
@@ -15,6 +15,7 @@ JSClass("UIViewController", JSObject, {
     },
 
     initWithSpec: function(spec, values){
+        UIViewController.$super.initWithSpec.call(this, spec, values);
         this._spec = spec;
         this._viewKeyInSpec = values.view;
     },
@@ -67,7 +68,7 @@ JSClass("UIViewController", JSObject, {
     // MARK: View Loading
 
     _loadViewIfNeeded: function(){
-        if (this.isViewLoaded){
+        if (!this.isViewLoaded){
             this.loadView();
         }
     }

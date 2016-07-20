@@ -51,6 +51,10 @@ JSClass("UIHTMLRenderer", UIRenderer, {
                 this.rootElement.style.position = 'relative';
             }
         }
+        this.rootElement.style.fontFamily = 'sans-serif';
+        this.rootElement.style.fontSize = '14px';
+        this.rootElement.style.fontWeight = 300;
+        this.rootElement.style.lineHeight = '19px';
         this.determineEnvironmentSize();
         this.setupEventListeners();
     },
@@ -150,6 +154,11 @@ JSClass("UIHTMLRenderer", UIRenderer, {
     viewRemoved: function(view){
     },
 
+    layerCreated: function(layer){
+        var context = this.contextForLayer(layer);
+        layer.renderInHTMLContext(context);
+    },
+
     layerInserted: function(layer){
         var parentContext;
         if (layer.superlayer){
@@ -167,7 +176,6 @@ JSClass("UIHTMLRenderer", UIRenderer, {
             }else{
                 parentContext.element.appendChild(context.element);
             }
-            layer.renderInHTMLContext(context);
             context.firstSublayerNodeIndex = context.element.childNodes.length;
             for (var i = 0, l = layer.sublayers.length; i < l; ++i){
                 this.layerInserted(layer.sublayers[i]);

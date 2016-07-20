@@ -1,4 +1,4 @@
-/* global window, navigator, localStorage, document, setTimeout, main */
+/* global window, navigator, localStorage, document, setTimeout, main, console */
 'use strict';
 function HTMLAppBootstrapper(preflightID, preflightSrc, appSrc, body){
     if (this === undefined){
@@ -82,6 +82,9 @@ HTMLAppBootstrapper.prototype = {
             }catch (error){
                 this.caughtErrors.push(error);
                 failures.push({check: this.preflightChecks[i].name, error: error});
+                if (console && console.error){
+                    console.error(error);
+                }
             }
         }
         if (failures.length > 0){
@@ -111,6 +114,9 @@ HTMLAppBootstrapper.prototype = {
                 }catch (e){
                     bootstrapper.caughtErrors.push(e);
                     bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.appRunError);
+                    if (console && console.error){
+                        console.error(e);
+                    }
                 }
                 window.removeEventListener('error', this);
             }
@@ -149,6 +155,9 @@ HTMLAppBootstrapper.prototype = {
             this.body.appendChild(script);
         }catch (e){
             this.caughtErrors.push(e);
+            if (console && console.error){
+                console.error(e);
+            }
             errorCallback(e);
         }
     },
@@ -177,6 +186,9 @@ HTMLAppBootstrapper.prototype = {
                     e.preventDefault();
                     this.caughtErrors.push(e);
                     this.scriptConfigs[src].compileError = e;
+                    if (console && console.error){
+                        console.error(e);
+                    }
                     break;
                 }
             }

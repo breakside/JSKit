@@ -8,12 +8,12 @@ UIScrollLayer.definePropertiesFromExtensions({
         UIScrollLayer.$super.renderInHTMLContext.call(this, context);
         var element = context.element;
         var sizer = element.appendChild(element.ownerDocument.createElement('div'));
-        element.style.position = 'relative';
         sizer.style.position = 'absolute';
         sizer.style.top = '0px';
         sizer.style.left = '0px';
         sizer.style.width = '0px';
         sizer.style.height = '0px';
+        element.style.overflow = 'auto';
         context.scrollContentSizer = sizer;
     },
 

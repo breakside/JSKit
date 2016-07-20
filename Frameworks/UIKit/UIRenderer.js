@@ -36,6 +36,10 @@ JSClass("UIRenderer", JSObject, {
         throw new Error("UIRenderer.viewRemoved must be implemented by subclass");
     },
 
+    layerCreated: function(layer){
+        throw new Error("UIRenderer.layerCreated must be implemented by subclass");
+    },
+
     layerInserted: function(layer){
         throw new Error("UIRenderer.layerInserted must be implemented by subclass");
     },

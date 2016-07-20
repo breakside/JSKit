@@ -72,6 +72,7 @@ JSClass("UILayer", JSObject, {
         this.animationsByKey = {};
         this.model = Object.create(UILayer.Properties);
         this.presentation = this.model;
+        UIRenderer.defaultRenderer.layerCreated(this);
     },
 
     // -------------------------------------------------------------------------

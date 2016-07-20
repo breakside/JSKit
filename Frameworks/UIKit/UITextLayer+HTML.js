@@ -11,7 +11,7 @@ UITextLayer.definePropertiesFromExtensions({
     },
 
     displayHTMLProperty_text: function(context){
-        context.textNode.nodeValue = this.text;
+        context.textNode.nodeValue = this.text.nativeString;
     },
 
     displayHTMLProperty_textColor: function(context){
