@@ -5,27 +5,30 @@
 
 JSClass("TKTestSuite", JSObject, {
 
-    testCases: null,
+    cases: null,
 
     init: function(){
-        this.testCases = [];
+        this.cases = [];
         this._findTestCases();
     },
 
     _findTestCases: function(){
-        this.testCases = [];
-        for (var x in this){
-            if (x.length > 4 && x.substr(0,4) == 'test' && x[5] >= 'A' && x[5] <= 'Z'){
-                this.testCases.push(x);
+        this.cases = [];
+        var names = Object.getOwnPropertyNames(this.$class.prototype);
+        var x;
+        for (var i = 0, l = names.length; i < l; ++i){
+            x = names[i];
+            if (x.length > 4 && x.substr(0,4) == 'test' && x[4] >= 'A' && x[4] <= 'Z'){
+                this.cases.push(x);
             }
         }
     },
 });
 
-TKTestSuite.RegisteredTestSutes = [];
+TKTestSuite.RegisteredTestSuites = [];
 
 TKTestSuite.$extend = function(extensions, name){
     var subclass = JSClass.prototype.$extend.call(this, extensions, name);
-    this.RegisteredTestSutes.push(subclass);
+    this.RegisteredTestSuites.push(subclass);
     return subclass;
 };

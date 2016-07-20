@@ -2,5 +2,5 @@
 
 // #import "TestKit/TKAssert.js"
 // #import "TestKit/TKTestSuite.js"
-// #import "TestKit/TestResult.js"
-// #import "TestKit/TestRun.js"
+// #import "TestKit/TKTestResult.js"
+// #import "TestKit/TKTestRun.js"

@@ -35,17 +35,19 @@ UnicodeChar.GeneralCategoryPropertyMap = {
 
 UnicodeChar.prototype = Object.create(Object.prototype, {
 
-    _lazyInitGeneralCategoryProperty: function(category){
-        var propertyName = UnicodeChar.GeneralCategoryPropertyMap[category];
-        Object.defineProperty(propertyName, {value: UnicodeProperties.isGeneralCategory(this.code, category)});
-        if (this[propertyName]){
-            for (var _category in UnicodeChar.GeneralCategoryPropertyMap){
-                if (_category != category){
-                    Object.defineProperty(UnicodeChar.GeneralCategoryPropertyMap[_category], {value: false});
+    _lazyInitGeneralCategoryProperty: {
+        value: function(category){
+            var propertyName = UnicodeChar.GeneralCategoryPropertyMap[category];
+            Object.defineProperty(this, propertyName, {value: UnicodeProperties.isGeneralCategory(this.code, category)});
+            if (this[propertyName]){
+                for (var _category in UnicodeChar.GeneralCategoryPropertyMap){
+                    if (_category != category){
+                        Object.defineProperty(this, UnicodeChar.GeneralCategoryPropertyMap[_category], {value: false});
+                    }
                 }
             }
+            return this[propertyName];
         }
-        return this[propertyName];
     },
 
     generalCategoryIsOtherLetter: {

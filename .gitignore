@@ -1,2 +1,4 @@
+builds/*
 *.pyc
 *.sublime-workspace
+Tests/Frameworks

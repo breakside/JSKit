@@ -76,6 +76,9 @@ JSClass("JSString", JSObject, {
     },
 
     rangeForUserPerceivedCharacterAtIndex: function (index){
+        if (index >= this.length){
+            return JSRange(this.length, 0);
+        }
         var iterator = JSString._UnicodeIterator(this, index);
         var startIndex = iterator.index;
         var endIndex = iterator.nextIndex;
@@ -400,10 +403,11 @@ JSClass("JSString", JSObject, {
 });
 
 JSString._UnicodeIterator = function(str, index){
-    if (this === undefined){
+    if (this === JSString){
         return new JSString._UnicodeIterator(str, index);
     }
     this.str = str;
+    this.index = index;
     this.updateCurrentCharacter();
 };
 
@@ -439,11 +443,11 @@ JSString._UnicodeIterator.prototype = {
                 }else{
                     this.currentCharacter = UnicodeChar(0xFFFD);
                 }
-            }else if (A >= 0xDC00 && A < 0xDF00){
+            }else if (A >= 0xDC00 && A < 0xE000){
                 if (this.index > 0){
                     B = A;
                     A = this.str.nativeString.charCodeAt(this.index - 1);
-                    if (B >= 0xD800 && B < 0xDC00){
+                    if (A >= 0xD800 && A < 0xDC00){
                         --this.index;
                         code = (((A & 0x3FFF) << 10) | (B & 0x3FF)) + 0x10000;
                         this.currentCharacter = UnicodeChar(code);

@@ -26,10 +26,8 @@ class HTMLBuilder(Builder):
     manifest = None
     includes = None
 
-    def __init__(self, buildID, buildLabel, outputRootPath, debug=False):
-        super(HTMLBuilder, self).__init__(buildID, buildLabel, outputRootPath, debug)
-        self.outputProductPath = os.path.join(self.outputRootPath, self.buildID)
-        self.outputResourcePath = os.path.join(self.outputRootPath, "Resources")
+    def __init__(self, projectPath, outputParentPath, buildID, buildLabel, debug=False, args=None):
+        super(HTMLBuilder, self).__init__(projectPath, outputParentPath, buildID, buildLabel, debug)
         self.includes = []
 
     def build(self):
@@ -44,6 +42,8 @@ class HTMLBuilder(Builder):
 
     def setup(self):
         super(HTMLBuilder, self).setup()
+        self.outputProductPath = os.path.join(self.outputProjectPath, self.buildID)
+        self.outputResourcePath = os.path.join(self.outputProjectPath, "Resources")
         os.makedirs(self.outputProductPath)
         os.makedirs(self.outputResourcePath)
         self.manifest = []
@@ -52,13 +52,13 @@ class HTMLBuilder(Builder):
     def buildImageResource(self, resourcePath, fullPath):
         super(HTMLBuilder, self).buildImageResource(resourcePath, fullPath)
         info = self.mainBunlde[resourcePath]
-        info.update(dict(
-             url=_webpath(os.path.relpath(outputPath, self.outputRootPath))
-        ))
         dontcare, ext = os.path.splitext(os.path.basename(resourcePath))
-        outputPath = os.path.join(self.outputResourcePath, info['hash'] + ext)
-        shutil.copyfile(fullPath, outputPath)
-        self.manifest.append(outputPath)
+        outputImagePath = os.path.join(self.outputResourcePath, info['hash'] + ext)
+        info.update(dict(
+             url=_webpath(os.path.relpath(outputImagePath, self.outputProjectPath))
+        ))
+        shutil.copyfile(fullPath, outputImagePath)
+        self.manifest.append(outputImagePath)
 
     def findIncludes(self):
         for path in self.info.get('JSIncludes', []):
@@ -98,7 +98,7 @@ class HTMLBuilder(Builder):
                     outputPath = os.path.join(self.outputProductPath, 'app%d.js' % len(self.appJS))
                 if not os.path.exists(os.path.dirname(outputPath)):
                     os.makedirs(os.path.dirname(outputPath))
-                if self.debug and outfile.fp.name[0:len(self.sourceRootPath)] == self.sourceRootPath:
+                if self.debug and outfile.fp.name[0:len(self.projectPath)] == self.projectPath:
                     os.symlink(outfile.fp.name, outputPath)
                 else:
                     shutil.copy(outfile.fp.name, outputPath)
@@ -111,20 +111,20 @@ class HTMLBuilder(Builder):
         self.featureCheck.addFeature(JSFeature("document.body"))
         for feature in self.jsCompilation.features:
             self.featureCheck.addFeature(feature)
-        self.preflightFile = open(os.path.join(self.outputRootPath, 'preflight-%s.js' % self.featureCheck.hash), 'w')
+        self.preflightFile = open(os.path.join(self.outputProjectPath, 'preflight-%s.js' % self.featureCheck.hash), 'w')
         self.featureCheck.serialize(self.preflightFile, 'bootstrapper')
 
     def buildAppCacheManifest(self):
-        self.manifestFile = open(os.path.join(self.outputRootPath, "manifest.appcache"), 'w')
+        self.manifestFile = open(os.path.join(self.outputProjectPath, "manifest.appcache"), 'w')
         self.manifestFile.write("CACHE MANIFEST\n")
         self.manifestFile.write("# build %s\n" % self.buildID)
         for name in self.manifest:
-            self.manifestFile.write("%s\n" % _webpath(os.path.relpath(name, self.outputRootPath)))
+            self.manifestFile.write("%s\n" % _webpath(os.path.relpath(name, self.outputProjectPath)))
 
     def buildIndex(self):
         indexName = self.info.get('JSApplicationHTMLIndexFile', 'index.html')
-        document = HTML5Document(os.path.join(self.sourceRootPath, indexName)).domDocument
-        self.indexFile = open(os.path.join(self.outputRootPath, indexName), 'w')
+        document = HTML5Document(os.path.join(self.projectPath, indexName)).domDocument
+        self.indexFile = open(os.path.join(self.outputProjectPath, indexName), 'w')
         stack = [document.documentElement]
         appSrc = []
         for includedSourcePath in self.appJS:
@@ -132,10 +132,10 @@ class HTMLBuilder(Builder):
             appSrc.append(relativePath)
         jscontext = {
             'preflightID': self.featureCheck.hash,
-            'preflightSrc': _webpath(os.path.relpath(self.preflightFile.name, self.outputRootPath)),
+            'preflightSrc': _webpath(os.path.relpath(self.preflightFile.name, self.outputProjectPath)),
             'appSrc': appSrc
         }
-        includePaths = (os.path.join(os.path.dirname(__file__), 'html_resources'),)
+        includePaths = (os.path.join(os.path.dirname(self.builderPath), 'html_resources'),)
         while len(stack) > 0:
             node = stack.pop()
             if node.tagName == 'title' and node.parentNode.tagName == 'head':

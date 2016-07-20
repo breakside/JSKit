@@ -7,6 +7,7 @@ JSClass("TKTestResult", JSObject, {
     suiteName: null,
     testName: null,
     result: null,
+    message: '',
 
     initWithNamesAndResult: function(suiteName, testName, result){
         this.suiteName = suiteName;

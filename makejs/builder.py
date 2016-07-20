@@ -10,18 +10,20 @@ from .image import ImageInfoExtractor
 class Builder(object):
     buildID = ""
     buildLabel = ""
-    outputRootPath = ""
-    sourceRootPath = ""
+    projectPath = "."
+    outputParentPath = "."
+    outputProjectPath = ""
     debug = False
     bundles = None
     mainBundle = None
 
-    def __init__(self, buildID, buildLabel, outputRootPath, debug=False):
+    def __init__(self, projectPath, outputParentPath, buildID, buildLabel, debug=False):
+        self.builderPath = os.path.realpath(__file__)
+        self.projectPath = os.path.realpath(projectPath)
+        self.outputParentPath = os.path.realpath(outputParentPath)
         self.buildID = buildID
         self.buildLabel = buildLabel
-        self.outputRootPath = outputRootPath
         self.debug = debug
-        self.sourceRootPath = os.getcwd()
         self.bundles = dict()
 
     def build(self):
@@ -30,24 +32,30 @@ class Builder(object):
     def setup(self):
         self.mainBundle = None
         self.bundles = dict()
-        if os.path.exists(self.outputRootPath):
-            if self.debug:
-                shutil.rmtree(self.outputRootPath)
-            else:
-                raise Exception("Output path already exists: %s" % self.outputRootPath)
         self.infoName = 'Info.plist'
-        infoPath = os.path.join(self.sourceRootPath, self.infoName)
+        infoPath = os.path.join(self.projectPath, self.infoName)
         if os.path.exists(infoPath):
             self.info = plistlib.readPlist(infoPath)
         else:
             self.infoName = 'Info.json'
-            infoPath = os.path.join(self.sourceRootPath, self.infoName)
-            self.info = json.load(open(infoPath))
+            infoPath = os.path.join(self.projectPath, self.infoName)
+            if (os.path.exists(infoPath)):
+                self.info = json.load(open(infoPath))
+            else:
+                raise Exception("An Info.json or Info.plist file is required to build")
+        if 'JSBundleIdentifier' not in self.info:
+            raise Exception("%s must include an entry for JSBundleIdentifier")
         self.bundles[self.info['JSBundleIdentifier']] = self.mainBundle = {}
         self.mainBundle["Info"] = self.info
+        self.outputProjectPath = os.path.join(self.outputParentPath, 'builds', self.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
+        if os.path.exists(self.outputProjectPath):
+            if self.debug:
+                shutil.rmtree(self.outputProjectPath)
+            else:
+                raise Exception("Output path already exists: %s" % self.outputProjectPath)
 
     def buildResources(self):
-        resourcesPath = os.path.join(self.sourceRootPath, "Resources")
+        resourcesPath = os.path.join(self.projectPath, "Resources")
         if os.path.exists(resourcesPath):
             for (dirname, folders, files) in os.walk(resourcesPath):
                 for name in files:
@@ -92,14 +100,14 @@ class Builder(object):
         return h
 
     def absolutePathsRelativeToSourceRoot(self, *paths):
-        return [os.path.join(self.sourceRootPath, path) for path in paths]
+        return [os.path.join(self.projectPath, path) for path in paths]
 
     def finish(self):
         if not self.debug:
-            buildsPath = os.path.dirname(self.outputRootPath)
+            buildsPath = os.path.dirname(self.outputProjectPath)
             linkPath = os.path.join(buildsPath, 'latest')
             if os.path.lexists(linkPath):
                 os.unlink(linkPath)
-            os.symlink(os.path.relpath(self.outputRootPath, os.path.dirname(linkPath)), linkPath)
+            os.symlink(os.path.relpath(self.outputProjectPath, os.path.dirname(linkPath)), linkPath)
         self.info = None
 

@@ -15,7 +15,7 @@ JSClass('JSStringTests', TKTestSuite, {
     testUnicodeIterator: function(){
         var string = JSString.initWithNativeString("Tésting 😀");
         TKAssertEquals(string.length, 10);
-        var iterator = JSString._UniocdeIterator(string, 0);
+        var iterator = JSString._UnicodeIterator(string, 0);
         TKAssertEquals(iterator.index, 0);
         TKAssertEquals(iterator.nextIndex, 1);
         iterator.increment();
@@ -29,6 +29,9 @@ JSClass('JSStringTests', TKTestSuite, {
         iterator.increment();
         iterator.increment();
         iterator.increment();
+        TKAssertEquals(iterator.index, 7);
+        TKAssertEquals(iterator.nextIndex, 8);
+        iterator.increment();
         TKAssertEquals(iterator.index, 8);
         TKAssertEquals(iterator.nextIndex, 10);
         iterator.increment();
@@ -38,7 +41,7 @@ JSClass('JSStringTests', TKTestSuite, {
         TKAssertEquals(iterator.index, 10);
         TKAssertEquals(iterator.nextIndex, 10);
 
-        iterator = JSString._UniocdeIterator(string, 10);
+        iterator = JSString._UnicodeIterator(string, 10);
         TKAssertEquals(iterator.index, 10);
         TKAssertEquals(iterator.nextIndex, 10);
         iterator.decrement();
@@ -105,6 +108,9 @@ JSClass('JSStringTests', TKTestSuite, {
         TKAssertEquals(range.length, 2);
         range = string.rangeForUserPerceivedCharacterAtIndex(8);
         TKAssertEquals(range.location, 8);
+        TKAssertEquals(range.length, 1);
+        range = string.rangeForUserPerceivedCharacterAtIndex(9);
+        TKAssertEquals(range.location, 9);
         TKAssertEquals(range.length, 0);
     },
 
