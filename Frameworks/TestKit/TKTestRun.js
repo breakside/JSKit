@@ -19,6 +19,7 @@ JSClass('TKTestRun', JSObject, {
             suite = TKTestSuite.RegisteredTestSuites[i];
             this.runSuite(suite.init());
         }
+        this.endTests(this.results);
     },
 
     runSuite: function(suite){
@@ -72,6 +73,9 @@ JSClass('TKTestRun', JSObject, {
     },
 
     endCase: function(suite, testName, result){
+    },
+
+    endTests: function(results){
     }
 
 });

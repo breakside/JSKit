@@ -8,12 +8,28 @@ JSClass('HTMLTestRun', TKTestRun, {
     table: null,
     tbody: null,
     row: null,
+    style: null,
 
     initWithRootElement: function(rootElement){
         this.$class.$super.init.call(this);
         this.rootElement = rootElement;
         var doc = this.rootElement.ownerDocument;
         this.table = this.rootElement.appendChild(doc.createElement('table'));
+        this.thead = this.table.createTHead();
+        var row = this.thead.insertRow(0);
+        var cell = row.insertCell(0);
+        cell.className = 'result';
+        cell.appendChild(doc.createTextNode('▶️'));
+        cell = row.insertCell(1);
+        cell.className = 'name';
+        cell.colSpan = 2;
+        cell.appendChild(doc.createTextNode(''));
+        var style = doc.createElement('style');
+        style.type = "text/css";
+        document.head.appendChild(style);
+        var sheet = style.sheet;
+        sheet.insertRule("table > tbody.passed, table > tbody > tr.passed { }", 0);
+        this.style = sheet.cssRules[0].style;
     },
 
     startSuite: function(suite){
@@ -49,6 +65,7 @@ JSClass('HTMLTestRun', TKTestRun, {
         if (passed){
             iconLabel.nodeValue = '✅';
             result = 'passed';
+            this.tbody.classList.add('passed');
         }else if (failed){
             iconLabel.nodeValue = '😡';
             result = 'failed';
@@ -80,6 +97,7 @@ JSClass('HTMLTestRun', TKTestRun, {
         if (result.result == TKTestResult.NotRun){
         }else if (result.result == TKTestResult.Passed){
             iconLabel.nodeValue = "✅";
+            this.row.classList.add('passed');
         }else if (result.result == TKTestResult.Failed){
             iconLabel.nodeValue = "‼️";
         }else if (result.result == TKTestResult.Error){
@@ -87,6 +105,49 @@ JSClass('HTMLTestRun', TKTestRun, {
             console.error(result.error);
         }
         messageLabel.nodeValue = result.message;
+    },
+
+    endTests: function(results){
+        var passed = 0;
+        var failed = 0;
+        var suiteResults;
+        var suitePassed;
+        var suiteFailed;
+        for (var suiteName in results){
+            suiteResults = results[suiteName];
+            suiteFailed = suiteResults[TKTestResult.Failed] > 0 || suiteResults[TKTestResult.Error] > 0;
+            suitePassed = !suiteFailed && suiteResults[TKTestResult.Passed] > 0;
+            if (suitePassed){
+                passed += 1;
+            }else if (suiteFailed){
+                failed += 1;
+            }
+        }
+        var iconLabel = this.thead.rows[0].cells[0].childNodes[0];
+        var textLabel = this.thead.rows[0].cells[1].childNodes[0];
+        if (failed > 0){
+            iconLabel.nodeValue = "‼️";
+            textLabel.nodeValue = failed + ' test suites failed';
+            this.thead.addEventListener('click', this, false);
+            this.thead.addEventListener('mousedown', this, false);
+        }else{
+            iconLabel.nodeValue = "✅";
+            textLabel.nodeValue = 'All tests passed';
+        }
+    },
+
+    handleEvent: function(e){
+        if (e.currentTarget === this.thead){
+            if (e.type == 'mousedown'){
+                e.preventDefault();
+            }else if (e.type == 'click'){
+                if (this.style.display === ''){
+                    this.style.display = 'none';
+                }else{
+                    this.style.display = '';
+                }
+            }
+        }
     }
 });
 

@@ -27,7 +27,7 @@ class ProjectBuilder(object):
         self.template = template
 
     def build(self):
-        template = Path(os.path.realpath(template))
+        template = Path(os.path.realpath(self.template))
         project = Path(os.path.join(os.getcwd(), self.name))
 
         if os.path.exists(project.root):

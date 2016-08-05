@@ -1,11 +1,18 @@
 body {
     font-family: sans-serif;
     font-weight: 200;
+    cursor: default;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
+}
+
+table > thead > tr > td {
+    line-height: 64px;
+    font-size: 24px;
+    font-weight: bold;
 }
 
 table > tbody > tr > td{
@@ -14,14 +21,14 @@ table > tbody > tr > td{
     padding: 2px;
 }
 
-table > tbody > tr > td.result{
+table > tbody > tr > td.result, table > thead > tr > td.result{
     width: 24px;
-    text-align: left;
+    text-align: center;
     line-height: 20px;
     padding-top: 4px;
 }
 
-table > tbody > tr > td.name{
+table > tbody > tr > td.name, table > thead > tr > td.name{
     white-space: nowrap;
 }
 
