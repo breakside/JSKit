@@ -16,6 +16,14 @@ Object.defineProperty(Uint8Array.prototype, 'hexStringRepresentation', {
   }
 });
 
+Object.defineProperty(Uint8Array.prototype, 'zero', {
+  value: function Uint8Array_zero() {
+    for (var i = 0, l = this.length; i < l; ++i){
+      this[i] = 0;
+    }
+  }
+});
+
 Object.defineProperty(Uint8Array.prototype, 'stringUsingASCIIDecoding', {
   value: function Uint8Array_stringUsingASCIIDecoding(){
     var str = '';

@@ -1,8 +1,6 @@
 // #feature Uint8Array
-// #import "Foundation/MD5.js"
 // #import "Foundation/Uint8Array+JS.js"
 // #import "Foundation/String+JS.js"
-/* global MD5 */
 'use strict';
 
 var UUID = function(version){
@@ -93,16 +91,16 @@ UUID._last_unix_timestamp_tick = 0;
 //     return UUID.node;
 //   }
 // });
-UUID.nodeFromIdentifierStrings = function(identifiers){
-  var hash = new MD5(identifiers.join(':'));
-  var _node = 0;
-  for (var  i = 0; i < 6; ++i){
-    _node |= hash.bytes[Math.floor(Math.random() * hash.bytes.length)];
-    _node = _node << 8;
-  }
-  _node |= 0x10000000000;
-  return _node;
-};
+// UUID.nodeFromIdentifierStrings = function(identifiers){
+//   var hash = new MD5(identifiers.join(':'));
+//   var _node = 0;
+//   for (var  i = 0; i < 6; ++i){
+//     _node |= hash.bytes[Math.floor(Math.random() * hash.bytes.length)];
+//     _node = _node << 8;
+//   }
+//   _node |= 0x10000000000;
+//   return _node;
+// };
 UUID.prototype = Object.create({}, {
   string: {
     configurable: true,

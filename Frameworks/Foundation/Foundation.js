@@ -3,7 +3,6 @@
 // #import "Foundation/Number+JS.js"
 // #import "Foundation/Uint8Array+JS.js"
 // #import "Foundation/CoreTypes.js"
-// #import "Foundation/MD5.js"
 // #import "Foundation/UUID.js"
 
 // #import "Foundation/JSClass.js"

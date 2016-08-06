@@ -9,8 +9,11 @@ JSClass('HTMLTestRun', TKTestRun, {
     tbody: null,
     row: null,
     style: null,
+    name: null,
 
     initWithRootElement: function(rootElement){
+        var info = JSBundle.mainBundle.resourceNamed('Info');
+        this.name = info.JSBundleDisplayName || info.JSBundleIdentifier;
         this.$class.$super.init.call(this);
         this.rootElement = rootElement;
         var doc = this.rootElement.ownerDocument;
@@ -26,10 +29,11 @@ JSClass('HTMLTestRun', TKTestRun, {
         cell.appendChild(doc.createTextNode(''));
         var style = doc.createElement('style');
         style.type = "text/css";
-        document.head.appendChild(style);
+        doc.head.appendChild(style);
         var sheet = style.sheet;
         sheet.insertRule("table > tbody.passed, table > tbody > tr.passed { }", 0);
         this.style = sheet.cssRules[0].style;
+        doc.title = this.name;
     },
 
     startSuite: function(suite){
@@ -125,16 +129,14 @@ JSClass('HTMLTestRun', TKTestRun, {
         }
         var iconLabel = this.thead.rows[0].cells[0].childNodes[0];
         var textLabel = this.thead.rows[0].cells[1].childNodes[0];
-        var info = JSBundle.mainBundle.resourceNamed('Info');
-        var name = info.JSBundleDisplayName || info.JSBundleIdentifier;
         if (failed > 0){
             iconLabel.nodeValue = "‼️";
-            textLabel.nodeValue = name + ': ' + failed + ' test suites failed';
+            textLabel.nodeValue = this.name + ': ' + failed + ' test suites failed';
             this.thead.addEventListener('click', this, false);
             this.thead.addEventListener('mousedown', this, false);
         }else{
             iconLabel.nodeValue = "✅";
-            textLabel.nodeValue = name + ': All tests passed';
+            textLabel.nodeValue = this.name + ': All tests passed';
         }
     },
 

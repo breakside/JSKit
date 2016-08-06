@@ -57,6 +57,7 @@ JSClass("JSAttributedString", JSObject, {
                 for (runIndex = runRange.location + 1, l = this._runs.length; runIndex < l; ++runIndex){
                     this._runs[runIndex].location += locationAdjustment;
                 }
+                this._fixRunsInRunRange(JSRange(runRange.location, 1));
             }else{
                 // If we cut out all the runs, make sure to add an empty initial run back
                 if (this._runs.length === 0){
@@ -173,11 +174,7 @@ JSClass("JSAttributedString", JSObject, {
         var runA;
         for (var runIndex = lastRunIndex - 1; runIndex >= runRange.location; --runIndex){
             runA = this._runs[runIndex];
-            // FIXME: verify that this comparison will work the way we want
-            // For simple property values, it should, but for complex ones, like JSColor or JSFont, we may need to
-            // call an .isEqual() method or something.  Also, verify that object order doesn't matter.  And verify
-            // that key differences always result in an inequality.
-            if (runA.attributes == runB.attributes){
+            if (this._attributesAreEqual(runA.attributes, runB.attributes)){
                 this._runs.splice(runIndex, 1);
                 runB.location = runA.location;
                 runB.length += runA.length;
@@ -187,48 +184,42 @@ JSClass("JSAttributedString", JSObject, {
         }
     },
 
+    _attributesAreEqual: function(a, b){
+        // FIXME: verify that this comparison will work the way we want
+        // For simple property values, it should, but for complex ones, like JSColor or JSFont, we may need to
+        // call an .isEqual() method or something.  Also, verify that object order doesn't matter.  And verify
+        // that key differences always result in an inequality.
+        return a == b;
+    },
+
     _rangeOfRunsPreparedForChangeInStringRange: function(range){
-        var runIndex = this._runIndexForStringIndex(range.location);
-        var runRange = JSRange(runIndex, 1);
-        var run = this._runs[runIndex];
-        var rangeEnd = range.location + range.length;
-        var runEnd;
-        if (run.range.location < range.location){
-            // run starts before range...split the run into two
-            // The first part is shorted to end where the range starts
-            runEnd = run.range.location + run.range.length;
-            run.range.length = range.location - run.range.location;
-            // A new run is inserted to cover until the original end of the first run
-            run = {range: JSRange(range.location, runEnd - range.location), attributes: JSCopy(run.attributes)};
-            runRange.location++;
-            ++runIndex;
-            this._runs.splice(runIndex, 0, run);
-            if (runEnd < rangeEnd){
-                // If there's still more to the range, iterate to the next run and continue below...
-                ++runIndex;
-                run = this._runs[runIndex];
-                runRange.length++;
-            }
+        var firstRunIndex = this._splitRunAtIndex(range.location);
+        if (range.length > 0){
+            var lastRunIndex = this._splitRunAtIndex(range.location + range.length);
+            return JSRange(firstRunIndex, lastRunIndex - firstRunIndex);
+        }else{
+            return JSRange(firstRunIndex, 1);
         }
-        do {
-            runEnd = run.range.location + run.range.length;
-            if (runEnd < rangeEnd){
-                // Range is longer than this run...iterate to the next run
-                ++runIndex;
-                run = this._runs[runIndex];
-                runRange.length++;
-            }else if (runEnd > rangeEnd){
-                var remainingRangeLength = rangeEnd - run.range.location;
-                // Run is longer than range...split the run into two
-                // First, move the current run forward and shrink it by range.length, becoming the second half of the split
-                run.range.length -= remainingRangeLength;
-                run.range.location += remainingRangeLength;
-                // Then, insert a new run starting where the second half used to start, extending to the rangeEnd
-                run = {range: JSRange(run.range.location - remainingRangeLength, remainingRangeLength), attributes: JSCopy(run.attributes)};
+    },
+
+    _splitRunAtIndex: function(index){
+        var runIndex = this._runIndexForStringIndex(index);
+        var run = this._runs[runIndex];
+        // If we aren't at the start of the run
+        if (run.range.location < index){
+            // ... we'll want to return the next run index
+            ++runIndex;
+            // ... and create a new range if we aren't at the run's end
+            // (_runIndexForStringIndex will return the last run if given an index == _string.length,
+            // which is the only case where index will be at the run's ending boundary)
+            var end = run.range.location + run.range.length;
+            if (end > index){
+                run.range.length = index - run.range.location;
+                run = {range: JSRange(index, end - index), attributes: JSCopy(run.attributes)};
                 this._runs.splice(runIndex, 0, run);
             }
-        } while (run.range.location + run.range.length < rangeEnd);
-        return runRange;
+        }
+        return runIndex;
     },
 
     _runAtStringIndex: function(index){

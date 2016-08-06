@@ -24,6 +24,14 @@ String.prototype.parseNumberArray = function(){
     return output;
 };
 
+String.prototype.asciiBytes = function(){
+    var data = new Uint8Array(this.length);
+    for (var i = 0, l = this.length; i < l; ++i){
+        data[i] = this.charCodeAt(i);
+    }
+    return data;
+};
+
 String.prototype.sprintf = function(){
     var formatted = "";
     var formatting = false;
