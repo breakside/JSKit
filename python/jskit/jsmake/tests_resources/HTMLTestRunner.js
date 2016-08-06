@@ -1,5 +1,5 @@
 // #import "TestKit/TKTestRun.js"
-/* global document, JSClass, TKTestRun, TKTestResult, HTMLTestRun, console */
+/* global document, JSClass, JSBundle, TKTestRun, TKTestResult, HTMLTestRun, console */
 'use strict';
 
 JSClass('HTMLTestRun', TKTestRun, {
@@ -42,7 +42,7 @@ JSClass('HTMLTestRun', TKTestRun, {
         cell.appendChild(doc.createTextNode('▶️'));
         cell = row.insertCell(1);
         cell.className = 'name';
-        cell.appendChild(doc.createTextNode(suite.$class.className));
+        cell.appendChild(doc.createTextNode(suite.className));
         cell.colSpan = 2;
     },
 
@@ -73,7 +73,7 @@ JSClass('HTMLTestRun', TKTestRun, {
             iconLabel.nodeValue = '0️⃣';
             result = 'not run';
         }
-        textLabel.nodeValue = suite.$class.className + ' ' + result + '. Excecuted ' + (results[TKTestResult.Passed] + results[TKTestResult.Failed] + results[TKTestResult.Error]) + ' with ' + (results[TKTestResult.Failed] + results[TKTestResult.Error]) + ' failures (' + (results[TKTestResult.Error]) + ' errors)';
+        textLabel.nodeValue = suite.className + ' ' + result + '. Excecuted ' + (results[TKTestResult.Passed] + results[TKTestResult.Failed] + results[TKTestResult.Error]) + ' with ' + (results[TKTestResult.Failed] + results[TKTestResult.Error]) + ' failures (' + (results[TKTestResult.Error]) + ' errors)';
     },
 
     startCase: function(suite, testName){
@@ -125,14 +125,16 @@ JSClass('HTMLTestRun', TKTestRun, {
         }
         var iconLabel = this.thead.rows[0].cells[0].childNodes[0];
         var textLabel = this.thead.rows[0].cells[1].childNodes[0];
+        var info = JSBundle.mainBundle.resourceNamed('Info');
+        var name = info.JSBundleDisplayName || info.JSBundleIdentifier;
         if (failed > 0){
             iconLabel.nodeValue = "‼️";
-            textLabel.nodeValue = failed + ' test suites failed';
+            textLabel.nodeValue = name + ': ' + failed + ' test suites failed';
             this.thead.addEventListener('click', this, false);
             this.thead.addEventListener('mousedown', this, false);
         }else{
             iconLabel.nodeValue = "✅";
-            textLabel.nodeValue = 'All tests passed';
+            textLabel.nodeValue = name + ': All tests passed';
         }
     },
 

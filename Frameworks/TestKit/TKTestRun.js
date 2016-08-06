@@ -17,17 +17,17 @@ JSClass('TKTestRun', JSObject, {
         var suite;
         for (var i = 0, l = TKTestSuite.RegisteredTestSuites.length; i < l; ++i){
             suite = TKTestSuite.RegisteredTestSuites[i];
-            this.runSuite(suite.init());
+            this.runSuite(suite);
         }
         this.endTests(this.results);
     },
 
     runSuite: function(suite){
-        this.results[suite.$class.className] = {};
-        this.results[suite.$class.className][TKTestResult.NotRun] = suite.cases.length;
-        this.results[suite.$class.className][TKTestResult.Passed] = 0;
-        this.results[suite.$class.className][TKTestResult.Failed] = 0;
-        this.results[suite.$class.className][TKTestResult.Error] = 0;
+        this.results[suite.className] = {};
+        this.results[suite.className][TKTestResult.NotRun] = suite.cases.length;
+        this.results[suite.className][TKTestResult.Passed] = 0;
+        this.results[suite.className][TKTestResult.Failed] = 0;
+        this.results[suite.className][TKTestResult.Error] = 0;
         this.startSuite(suite);
         var testName;
         var result;
@@ -35,7 +35,7 @@ JSClass('TKTestRun', JSObject, {
             testName = suite.cases[i];
             this.runCase(suite, testName);
         }
-        this.endSuite(suite, this.results[suite.$class.className]);
+        this.endSuite(suite, this.results[suite.className]);
     },
 
     runCase: function(suite, testName){
@@ -43,22 +43,25 @@ JSClass('TKTestRun', JSObject, {
         this.startCase(suite, testName);
         var result;
         try{
-            suite[testName]();
-            result = TKTestResult.initWithNamesAndResult(suite.$class.className, testName, TKTestResult.Passed);
+            var suiteInstance = suite.init();
+            suiteInstance.setup();
+            suiteInstance[testName]();
+            suiteInstance.teardown();
+            result = TKTestResult.initWithNamesAndResult(suite.className, testName, TKTestResult.Passed);
         }catch (e){
             if (e instanceof TKAssertion){
-                result = TKTestResult.initWithNamesAndResult(suite.$class.className, testName, TKTestResult.Failed);
+                result = TKTestResult.initWithNamesAndResult(suite.className, testName, TKTestResult.Failed);
                 result.message = e.message;
             }else{
-                result = TKTestResult.initWithNamesAndResult(suite.$class.className, testName, TKTestResult.Error);
+                result = TKTestResult.initWithNamesAndResult(suite.className, testName, TKTestResult.Error);
                 var line = TKAssertion.LineForCurrentCaseInError(e);
                 result.error = e;
                 result.message = "Line " + line + ". " + e.toString();
             }
         }
         if (result.result != TKTestResult.NotRun){
-            this.results[suite.$class.className][TKTestResult.NotRun] -= 1;
-            this.results[suite.$class.className][result.result] += 1;
+            this.results[suite.className][TKTestResult.NotRun] -= 1;
+            this.results[suite.className][result.result] += 1;
         }
         this.endCase(suite, testName, result);
     },

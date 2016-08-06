@@ -22,7 +22,11 @@ JSSize.prototype = {
     height: 0
 };
 
-JSSize.Zero = JSSize(0, 0);
+Object.defineProperty(JSSize, 'Zero', {
+    get: function(){
+        return new JSSize(0, 0);
+    }
+});
 
 JSGlobalObject.JSPoint = function JSPoint(x, y){
     if (this === undefined){
@@ -43,8 +47,17 @@ JSPoint.prototype = {
     y: 0
 };
 
-JSPoint.Zero = JSPoint(0, 0);
-JSPoint.UnitCenter = JSPoint(0.5, 0.5);
+Object.defineProperty(JSPoint, 'Zero', {
+    get: function(){
+        return new JSPoint(0, 0);
+    }
+});
+
+Object.defineProperty(JSPoint, 'UnitCenter', {
+    get: function(){
+        return new JSPoint(0.5, 0.5);
+    }
+});
 
 
 JSGlobalObject.JSRect = function JSRect(x, y, width, height){
@@ -76,8 +89,11 @@ JSRect.prototype = {
     }
 };
 
-JSRect.Zero = JSRect(0, 0, 0, 0);
-
+Object.defineProperty(JSRect, 'Zero', {
+    get: function(){
+        return new JSRect(0, 0, 0, 0);
+    }
+});
 
 JSGlobalObject.JSRange = function JSRange(location, length){
     if (this === undefined){
@@ -102,6 +118,13 @@ JSRange.prototype = {
 JSGlobalObject.JSAffineTransform = function JSAffineTransform(a, b, c, d, tx, ty){
     if (this === undefined){
         return new JSAffineTransform(a, b, c, d, tx, ty);
+    }else if (a instanceof JSAffineTransform){
+        this.a = a.a;
+        this.b = a.b;
+        this.c = a.c;
+        this.d = a.d;
+        this.tx = a.tx;
+        this.ty = a.ty;
     }else{
         this.a = a;
         this.b = b;
@@ -121,8 +144,11 @@ JSAffineTransform.prototype = {
     ty: 0
 };
 
-JSAffineTransform.Identity = JSAffineTransform(1, 0, 0, 1, 0, 0);
-
+Object.defineProperty(JSAffineTransform, 'Identity', {
+    get: function(){
+        return new JSAffineTransform(1, 0, 0, 1, 0, 0);
+    }
+});
 
 JSGlobalObject.JSConstraintBox = function JSConstraintBox(props){
     if (this === undefined){

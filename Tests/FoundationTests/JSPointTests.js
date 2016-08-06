@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, TKAssert, TKAssertNotNull, TKAssertEquals, TKAssertObjectEquals, JSPoint */
+/* global JSClass, TKTestSuite, TKAssert, TKAssertNotNull, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSPoint */
 'use strict';
 
 JSClass('JSPointTests', TKTestSuite, {
@@ -34,6 +34,26 @@ JSClass('JSPointTests', TKTestSuite, {
         var point = JSPoint(-1, -2);
         TKAssertEquals(point.x, -1);
         TKAssertEquals(point.y, -2);
+    },
+
+    testZero : function(){
+        var point = JSPoint.Zero;
+        TKAssertExactEquals(point.x, 0);
+        TKAssertExactEquals(point.y, 0);
+        // make sure .Zero returns a copy each time, and isn't a reference that can be modified
+        point.x = 1;
+        var point2 = JSPoint.Zero;
+        TKAssertExactEquals(point2.x, 0);
+    },
+
+    testUnitCenter: function(){
+        var point = JSPoint.UnitCenter;
+        TKAssertEquals(point.x, 0.5);
+        TKAssertEquals(point.y, 0.5);
+        point.x = 1;
+        // make sure .UnitCenter returns a copy each time, and isn't a reference that can be modified
+        var point2 = JSPoint.UnitCenter;
+        TKAssertEquals(point2.x, 0.5);
     }
 
 });

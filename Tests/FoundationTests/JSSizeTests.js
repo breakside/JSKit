@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, TKAssert, TKAssertNotNull, TKAssertEquals, TKAssertObjectEquals, JSSize */
+/* global JSClass, TKTestSuite, TKAssert, TKAssertNotNull, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSSize */
 'use strict';
 
 JSClass('JSSizeTests', TKTestSuite, {
@@ -34,6 +34,16 @@ JSClass('JSSizeTests', TKTestSuite, {
         var size = JSSize(-1, -2);
         TKAssertEquals(size.width, -1);
         TKAssertEquals(size.height, -2);
+    },
+
+    testZero : function(){
+        var size = JSSize.Zero;
+        TKAssertExactEquals(size.width, 0);
+        TKAssertExactEquals(size.height, 0);
+        // make sure .Zero returns a copy each time, and isn't a reference that can be modified
+        size.width = 1;
+        var size2 = JSSize.Zero;
+        TKAssertExactEquals(size2.width, 0);
     }
 
 });

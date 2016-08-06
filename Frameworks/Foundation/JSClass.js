@@ -186,6 +186,38 @@ JSDynamicProperty.prototype.define = function(C, key, extensions){
     });
 };
 
+function JSCustomProperty(){
+}
+
+function JSReadOnlyProperty(key, value, getterName){
+    if (this === undefined){
+        return new JSReadOnlyProperty(key, value, getterName);
+    }else{
+        this.key = key;
+        this.value = value;
+        this.getterName = getterName;
+    }
+}
+
+JSReadOnlyProperty.prototype = Object.create(JSCustomProperty.prototype);
+
+JSReadOnlyProperty.prototype.define = function(C, key, extensions){
+    var getterName = this.getterName || C.nameOfGetMethodForKey(key);
+    if (this.key){
+        Object.defineProperty(C.prototype, this.key, {
+            configurable: true,
+            enumerable: false,
+            writable: true,
+            value: this.value
+        });
+    }
+    Object.defineProperty(C.prototype, key, {
+        configurable: true,
+        enumerable: false,
+        get: extensions[getterName] || extensions[C.nameOfBooleanGetMethodForKey(key)]
+    });
+};
+
 function JSLazyInitProperty(methodName){
     var prop = Object.create(JSCustomProperty.prototype);
     prop.methodName = methodName;

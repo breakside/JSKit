@@ -87,3 +87,15 @@ function TKAssertNull(expression, message){
         throw TKAssertion('TKAssertNull failed, expression is not null ' + message);
     }
 }
+
+function TKAssertThrows(f){
+    var threw = false;
+    try{
+        f();
+    }catch(e){
+        threw = true;
+    }
+    if (!threw){
+        throw TKAssertion('TKAssertThrows failed, no exception thrown for ' + f);
+    }
+}

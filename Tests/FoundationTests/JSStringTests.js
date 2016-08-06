@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, JSString, TKAssertNotNull, TKAssertEquals, TKAssertObjectEquals */
+/* global JSClass, TKTestSuite, JSString, JSRange, TKAssertNotNull, TKAssertEquals, TKAssertObjectEquals */
 'use strict';
 
 JSClass('JSStringTests', TKTestSuite, {
@@ -10,6 +10,44 @@ JSClass('JSStringTests', TKTestSuite, {
         TKAssertNotNull(string);
         TKAssertEquals(string.length, 13);
         TKAssertObjectEquals(string, "Hello, world!");
+    },
+
+    testInitFormat: function(){
+        var string = JSString.initWithFormat("This %s a test %d!", "is", 123);
+        TKAssertNotNull(string);
+        TKAssertObjectEquals(string, "This is a test 123!");
+    },
+
+    testAppend: function(){
+        var string = JSString.initWithNativeString("Hello");
+        string.appendString(", world!");
+        TKAssertObjectEquals(string, "Hello, world!");
+        string.appendString(JSString.initWithNativeString("  TEST!"));
+        TKAssertObjectEquals(string, "Hello, world!  TEST!");
+    },
+
+    testReplace: function(){
+        var string = JSString.initWithNativeString("Hello, world!");
+        var range = JSRange(7, 5);
+        string.replaceCharactersInRangeWithString(range, "test");
+        TKAssertObjectEquals(string, "Hello, test!");
+        range = JSRange(0, 5);
+        string.replaceCharactersInRangeWithString(range, JSString.initWithNativeString("Yo"));
+        TKAssertObjectEquals(string, "Yo, test!");
+    },
+
+    testDelete: function(){
+        var string = JSString.initWithNativeString("Hello, world!");
+        var range = JSRange(5, 8);
+        string.deleteCharactersInRange(range);
+        TKAssertObjectEquals(string, "Hello");
+    },
+
+    testSubstring: function(){
+        var string = JSString.initWithNativeString("Hello, world!");
+        var range = JSRange(7, 5);
+        var substring = string.substringInRange(range);
+        TKAssertObjectEquals(substring, "world");
     },
 
     testUnicodeForwardIterator: function(){

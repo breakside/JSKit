@@ -29,7 +29,7 @@ JSClass("JSString", JSObject, {
 
     initWithFormat: function(format){
         var args = Array.prototype.splice.call(arguments, 1);
-        this.initWithNativeString(format.sprintf(args));
+        this.initWithNativeString(format.sprintf.apply(format, args));
     },
 
     // -------------------------------------------------------------------------
@@ -174,7 +174,7 @@ JSClass("JSString", JSObject, {
         return JSString.initWithNativeString(this.nativeString.toUpperCase());
     },
 
-    lowercaseStrinc: function(){
+    lowercaseString: function(){
         return JSString.initWithNativeString(this.nativeString.toLowerCase());
     },
 

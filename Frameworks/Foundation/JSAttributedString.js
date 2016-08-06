@@ -1,55 +1,91 @@
 // #import "Foundation/JSString.js"
-/* global JSClass, JSString, JSAttributedString, JSRange, JSCopy */
+/* global JSClass, JSReadOnlyProperty, JSObject, JSString, JSAttributedString, JSRange, JSCopy */
 'use strict';
 
-JSClass("JSAttributedString", JSString, {
+JSClass("JSAttributedString", JSObject, {
 
     _runs: null,
+    string: JSReadOnlyProperty('_string', null),
 
     init: function(){
-        JSAttributedString.$super.init.call(this);
-        var run = {range: JSRange(0, 0), attributes: {}};
-        this._runs = [run];
+        this.initWithString("", {});
     },
 
-    replaceCharactersInRangeWithString: function(range, string){
+    initWithString: function(string, attributes){
         if (typeof(string) == "string"){
             string = JSString.initWithNativeString(string);
         }
-        JSAttributedString.$super.replaceCharactersInRangeWithString.call(this, range, string);
-        if (range.length > 0){
-            this._cutRunsInRange(range);
+        if (attributes === undefined){
+            attributes = {};
         }
-        if (string.length > 0){
-            var run;
-            for (var i = this._runs.length - 1; i >= 0; --i){
-                run = this._runs[i];
-                if (run.range.location > range.location){
-                    run.range.location += string.length;
-                }else{
-                    run.range.length += string.length;
-                    break;
-                }
-            }
-        }
+        var run = {range: JSRange(0, string.length), attributes: attributes};
+        this._string = string;
+        this._runs = [run];
+    },
+
+    getString: function(){
+        return this._string;
+    },
+
+    appendString: function(string){
+        this.replaceCharactersInRangeWithString(JSRange(this._string.length, 0), string);
     },
 
     deleteCharactersInRange: function(range){
-        JSAttributedString.$super.deleteCharactersInRange.call(this, range);
+        this.replaceCharactersInRangeWithString(range, "");
+    },
+
+    replaceCharactersInRangeWithString: function(range, string){
+        this._string.replaceCharactersInRangeWithString(range, string);
+        var run;
+        var runIndex;
+        var l;
         if (range.length > 0){
-            this._cutRunsInRange(range);
+            // For the delete case, we cut out any runs within the range
+            // But we remember the attributes of the first run in the range,
+            // because those attributes will be used for the inserted text.
+            // This attibute usage seems to match a typical editor behavior.
+            var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
+            var attributes = this._runs[runRange.location].attributes;
+            this._runs.splice(runRange.location, runRange.length);
+            if (string.length > 0){
+                // If text is being inserted, add a new range with the attributes previously saved
+                run = {range: JSRange(range.location, string.length), attributes: attributes};
+                this._runs.splice(runRange.location, 0, run);
+                // Adjust following run locations
+                var locationAdjustment = string.length - range.length;
+                for (runIndex = runRange.location + 1, l = this._runs.length; runIndex < l; ++runIndex){
+                    this._runs[runIndex].location += locationAdjustment;
+                }
+            }else{
+                // If we cut out all the runs, make sure to add an empty initial run back
+                if (this._runs.length === 0){
+                    this._runs = [{range: JSRange(0, 0), attributes: attributes}];
+                }
+            }
+        }else if (string.length > 0){
+            // For a simple insert case, where nothing is deleted, all we have to
+            // do is extend the range that immediately precedes the insertion point
+            // We use the preceding range because this matches the typical editor behavior
+            // when typing at the end of a run.
+            var index = range.location > 0 ? range.location - 1 : 0;
+            runIndex = this._runIndexForStringIndex(index);
+            run = this._runs[runIndex];
+            run.range.length += string.length;
+            ++runIndex;
+            for (l = this._runs.length; runIndex < l; ++runIndex){
+                this._runs[runIndex].range.location += string.length;
+            }
         }
     },
 
     setAttributesInRange: function(attributes, range){
         var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
-        var run = this._runs[runRange.location];
-        if (runRange.length > 1){
-            var lastRun = this._runs[runRange.location + runRange.length - 1];
-            run.range.length = lastRun.range.location + lastRun.length - run.range.location;
-            this._runs.splice(runRange.location + 1, runRange.length - 1);
+        var run;
+        for (var runIndex = runRange.location, l = runRange.location + runRange.length; runIndex < l; ++runIndex){
+            run = this._runs[runIndex];
+            run.attributes = JSCopy(attributes);
         }
-        run.attributes = JSCopy(attributes);
         this._fixRunsInRunRange(JSRange(runRange.location, 1));
     },
 
@@ -81,7 +117,7 @@ JSClass("JSAttributedString", JSString, {
         for (var runIndex = runRange.location, l = runRange.location + runRange.length; runIndex < l; ++runIndex){
             run = this._runs[runIndex];
             if (attributeName in run.attributes){
-                delete run.attributes[run.attributeName];
+                delete run.attributes[attributeName];
             }
         }
         this._fixRunsInRunRange(runRange);
@@ -105,13 +141,11 @@ JSClass("JSAttributedString", JSString, {
 
     removeAllAttributesInRange: function(range){
         var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
-        var run = this._runs[runRange.location];
-        if (runRange.length > 1){
-            var lastRun = this._runs[runRange.location + runRange.length - 1];
-            run.range.length = lastRun.range.location + lastRun.length - run.range.location;
-            this._runs.splice(runRange.location + 1, runRange.length - 1);
+        var run;
+        for (var runIndex = runRange.location, l = runRange.location + runRange.length; runIndex < l; ++runIndex){
+            run = this._runs[runIndex];
+            run.attributes = {};
         }
-        run.attributes = {};
         this._fixRunsInRunRange(JSRange(runRange.location, 1));
     },
 
@@ -123,34 +157,6 @@ JSClass("JSAttributedString", JSString, {
     attributeAtIndex: function(attributeName, index){
         var run = this._runAtStringIndex(index);
         return run.attributes[attributeName];
-    },
-
-    _cutRunsInRange: function(range){
-        var run;
-        var end = range.location + range.length;
-        for (var i = this._runs.length - 1; i >= 0; --i){
-            run = this._runs[i];
-            if (run.range.location >= end){
-                run.range.location -= range.length;
-            }else if (run.range.location + run.range.length > end){
-                if (run.range.location < range.location){
-                    run.length -= range.length;
-                }else{
-                    run.length -= end - run.range.location;
-                    run.range.location = range.location;
-                }
-            }else if (run.range.location >= range.location){
-                if (this._runs.length > 1){
-                    this._runs.splice(i, 1);
-                }else{
-                    this._runs[i].length = 0;
-                }
-            }else if (run.range.location + run.range.length > range.location){
-                run.length -= run.range.location + run.range.length - range.location;
-            }else{
-                break;
-            }
-        }
     },
 
     _fixRunsInRunRange: function(runRange){
@@ -182,13 +188,13 @@ JSClass("JSAttributedString", JSString, {
     },
 
     _rangeOfRunsPreparedForChangeInStringRange: function(range){
-        var runIndex = this._indexOfFirstRunInRange(range);
+        var runIndex = this._runIndexForStringIndex(range.location);
         var runRange = JSRange(runIndex, 1);
         var run = this._runs[runIndex];
         var rangeEnd = range.location + range.length;
         var runEnd;
         if (run.range.location < range.location){
-            // run starts before reange...split the run into two
+            // run starts before range...split the run into two
             // The first part is shorted to end where the range starts
             runEnd = run.range.location + run.range.length;
             run.range.length = range.location - run.range.location;
@@ -206,19 +212,19 @@ JSClass("JSAttributedString", JSString, {
         }
         do {
             runEnd = run.range.location + run.range.length;
-            run.attributes = {};
             if (runEnd < rangeEnd){
                 // Range is longer than this run...iterate to the next run
                 ++runIndex;
                 run = this._runs[runIndex];
                 runRange.length++;
             }else if (runEnd > rangeEnd){
+                var remainingRangeLength = rangeEnd - run.range.location;
                 // Run is longer than range...split the run into two
                 // First, move the current run forward and shrink it by range.length, becoming the second half of the split
-                run.range.length -= range.length;
-                run.range.location += range.length;
+                run.range.length -= remainingRangeLength;
+                run.range.location += remainingRangeLength;
                 // Then, insert a new run starting where the second half used to start, extending to the rangeEnd
-                run = {range: JSRange(run.range.location - range.length, rangeEnd - run.range.location), attributes: JSCopy(run.attributes)};
+                run = {range: JSRange(run.range.location - remainingRangeLength, remainingRangeLength), attributes: JSCopy(run.attributes)};
                 this._runs.splice(runIndex, 0, run);
             }
         } while (run.range.location + run.range.length < rangeEnd);
@@ -226,34 +232,29 @@ JSClass("JSAttributedString", JSString, {
     },
 
     _runAtStringIndex: function(index){
-        var runIndex = this._indexOfFirstRunInRange(JSRange(index, 0));
+        var runIndex = this._runIndexForStringIndex(index);
         return this._runs[runIndex];
     },
 
-    _indexOfFirstRunInRange: function(range){
+    _runIndexForStringIndex: function(index){
         var low = 0;
         var high = this._runs.length - 1;
         var mid;
         var run;
         var i;
         var l = this._runs.length;
-        var start = range.location;
-        var end = range.location + range.length;
-        while (low <= high){
+        while (low < high){
             mid = low + Math.floor((high - low) / 2);
             run = this._runs[mid];
-            if (run.range.location + run.range.length < start){
+            if (index < run.range.location){
+                high = mid - 1;
+            }else if (index >= run.range.location + run.range.length){
                 low = mid + 1;
-            }else if (run.range.location > end){
-                high = mid;
             }else{
-                i = mid - 1;
-                while (i >= 0 && this._runs[i].range.location + this._runs[i].range.length <= start){
-                    --i;
-                }
-                return i + 1;
+                return mid;
             }
         }
+        return high;
     }
 
 });
