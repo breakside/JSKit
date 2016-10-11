@@ -3,7 +3,7 @@
 // #import "UIKit/UIEvent.js"
 // #feature Window.prototype.addEventListener
 // #feature window.getComputedStyle
-// #feature Window.prototype.requestAnimationFrame
+// #feature window.requestAnimationFrame
 // #feature Document.prototype.createElement
 // #feature Element.prototype.addEventListener
 /* global JSClass, UIRenderer, UIHTMLRenderer, UIHTMLRendererContext, JSSize, JSConstraintBox, UIScrollLayer, UITextLayer, UIEvent */
@@ -51,10 +51,11 @@ JSClass("UIHTMLRenderer", UIRenderer, {
                 this.rootElement.style.position = 'relative';
             }
         }
-        this.rootElement.style.fontFamily = 'sans-serif';
+        this.rootElement.style.fontFamily = '"San Francisco", "Helvetica Neue", "Helvetica", sans-serif';
         this.rootElement.style.fontSize = '14px';
         this.rootElement.style.fontWeight = 300;
         this.rootElement.style.lineHeight = '19px';
+        this.rootElement.style.cursor = 'default';
         this.determineEnvironmentSize();
         this.setupEventListeners();
     },

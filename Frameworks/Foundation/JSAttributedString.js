@@ -7,6 +7,8 @@ JSClass("JSAttributedString", JSObject, {
     _runs: null,
     string: JSReadOnlyProperty('_string', null),
 
+    // MARK: - Creating an attributed string
+
     init: function(){
         this.initWithString("", {});
     },
@@ -23,9 +25,13 @@ JSClass("JSAttributedString", JSObject, {
         this._runs = [run];
     },
 
+    // MARK: - Getting the unattributed string value
+
     getString: function(){
         return this._string;
     },
+
+    // MARK: - String mutations
 
     appendString: function(string){
         this.replaceCharactersInRangeWithString(JSRange(this._string.length, 0), string);
@@ -79,6 +85,8 @@ JSClass("JSAttributedString", JSObject, {
             }
         }
     },
+
+    // MARK: - Attribute mutations
 
     setAttributesInRange: function(attributes, range){
         var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
@@ -150,6 +158,8 @@ JSClass("JSAttributedString", JSObject, {
         this._fixRunsInRunRange(JSRange(runRange.location, 1));
     },
 
+    // MARK: - Querying attribute values
+
     attributesAtIndex: function(index){
         var run = this._runAtStringIndex(index);
         return run.attributes;
@@ -159,6 +169,8 @@ JSClass("JSAttributedString", JSObject, {
         var run = this._runAtStringIndex(index);
         return run.attributes[attributeName];
     },
+
+    // MARK: - Private helpers
 
     _fixRunsInRunRange: function(runRange){
         var expandedRunRange = JSRange(runRange);

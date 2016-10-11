@@ -70,7 +70,7 @@ JSClass("UILayer", JSObject, {
         this._sublayersDependentOnWidth = {};
         this._sublayersDependentOnHeight = {};
         this.animationsByKey = {};
-        this.model = Object.create(UILayer.Properties);
+        this.model = Object.create(this.$class.Properties);
         this.presentation = this.model;
         UIRenderer.defaultRenderer.layerCreated(this);
     },

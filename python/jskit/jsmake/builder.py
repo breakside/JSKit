@@ -19,7 +19,7 @@ class Builder(object):
     mainBundle = None
 
     def __init__(self, projectPath, includePaths, outputParentPath, buildID, buildLabel, debug=False):
-        self.includePaths = includePaths
+        self.includePaths = [os.path.realpath(path) for path in includePaths]
         self.projectPath = os.path.realpath(projectPath)
         self.outputParentPath = os.path.realpath(outputParentPath)
         self.buildID = buildID

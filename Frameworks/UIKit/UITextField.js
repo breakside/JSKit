@@ -1,9 +1,10 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UITextLayer.js"
-/* global JSClass, UIView, UIViewLayerProperty, UITextLayer, UILabel */
+/* global JSClass, UIView, UITextField, UITextLayer, UIViewLayerProperty */
+
 'use strict';
 
-JSClass('UILabel', UIView, {
+JSClass("UITextField", UIView, {
 
     text: UIViewLayerProperty(),
     attributedText: UIViewLayerProperty(),
@@ -12,4 +13,4 @@ JSClass('UILabel', UIView, {
 
 });
 
-UILabel.layerClass = UITextLayer;
+UITextField.layerClass = UITextLayer;

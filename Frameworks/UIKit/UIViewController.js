@@ -52,11 +52,9 @@ JSClass("UIViewController", JSObject, {
     },
 
     viewDidAppear: function(){
-
     },
 
     viewWillDisappear: function(){
-
     },
 
     viewDidDisappear: function(){
