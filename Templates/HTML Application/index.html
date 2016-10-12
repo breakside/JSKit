@@ -64,8 +64,11 @@
   <script type="text/javascript">
   // #import "HTMLAppBootstrapper.js"
   'use strict';
-  var UIRendererInit = function(){
-    return UIHTMLRenderer.initWithRootElement(document.body);
+  var UIDisplayServerInit = function(){
+    return UIDisplayServerHTML.initWithRootElement(document.body);
+  };
+  var UIWindowServerInit = function(){
+    return UIWindowServerHTML.initWithRootElement(document.body);
   };
   (function(){
     // #var preflightID

@@ -21,11 +21,14 @@ JSClass("UITextField", UIView, {
     },
 
     becomeFirstResponder: function(){
-        // show cursor
+        // show cursor at insertion point
         return true;
     },
 
     mouseDown: function(event){
+        // 1. If no selection, set insertion point
+        // 2. If selection, and location is on selection, don't change anything
+        // 3. If selection, and location is outside selection, set insertion point
         // set selection based on location
         this.window.setFirstResponder(this);
     },

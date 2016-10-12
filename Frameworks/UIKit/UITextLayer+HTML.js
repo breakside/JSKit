@@ -6,12 +6,12 @@ UITextLayer.definePropertiesFromExtensions({
 
     _reusableRunRenderers: null,
 
-    renderInHTMLContext: function(context){
-        UITextLayer.$super.renderInHTMLContext.call(this, context);
+    initializeHTMLContext: function(context){
+        UITextLayer.$super.initializeHTMLContext.call(this, context);
         context.runRenderers = [];
     },
 
-    displayHTMLProperty_attributedText: function(context){
+    updateHTMLProperty_attributedText: function(context){
         // FIXME: formalize the API for fetching runs
         var runs = this.attributedText._runs;
         var nativeString = this.attributedText.string.nativeString;
@@ -43,12 +43,12 @@ UITextLayer.definePropertiesFromExtensions({
         }
     },
 
-    displayHTMLProperty_textColor: function(context){
-        context.element.style.color = this.presentation.textColor ? this.presentation.textColor.cssString() : '';
+    updateHTMLProperty_textColor: function(context){
+        context.style.color = this.presentation.textColor ? this.presentation.textColor.cssString() : '';
     },
 
-    displayHTMLProperty_font: function(context){
-        context.element.style.font = this.presentation.font ? this.presentation.font.cssString() : '';
+    updateHTMLProperty_font: function(context){
+        context.style.font = this.presentation.font ? this.presentation.font.cssString() : '';
     },
 
     rendererIdentifierForRun: function(run){
@@ -60,6 +60,7 @@ UITextLayer.definePropertiesFromExtensions({
     },
 
     enqueueReusableRunRenderers: function(renderers){
+        // FIXME: need unique queue per identifier
         if (this._reusableRunRenderers === null){
             this._reusableRunRenderers = [];
         }
@@ -69,6 +70,7 @@ UITextLayer.definePropertiesFromExtensions({
     },
 
     dequeueReusableRunRenderer: function(identifier, context){
+        // FIXME: need unique queue per identifier
         if (this._reusableRunRenderers === null){
             this._reusableRunRenderers = [];
         }

@@ -73,6 +73,7 @@ JSClass("UIViewController", UIResponder, {
             if (this._view === null){
                 this._loadViewDefault();
             }
+            this._view.viewController = this;
             this.isViewLoaded = true;
             this.viewDidLoad();
         }

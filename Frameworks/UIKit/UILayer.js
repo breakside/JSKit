@@ -1,8 +1,8 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIAnimationTransaction.js"
 // #import "UIKit/UIBasicAnimation.js"
-// #import "UIKit/UIRenderer.js"
-/* global JSCustomProperty, JSClass, JSObject, UILayer, UIRenderer, JSRect, JSPoint, JSSize, JSConstraintBox, JSAffineTransform, UIAnimationTransaction, UIBasicAnimation, JSSetDottedName, JSResolveDottedName*/
+// #import "UIKit/UIDisplayServer.js"
+/* global JSCustomProperty, JSClass, JSObject, UILayer, UIDisplayServer, JSRect, JSPoint, JSSize, JSConstraintBox, JSAffineTransform, UIAnimationTransaction, UIBasicAnimation, JSSetDottedName, JSResolveDottedName*/
 'use strict';
 
 function UILayerAnimatedProperty(){
@@ -23,7 +23,7 @@ UILayerAnimatedProperty.prototype.define = function(C, key, extensions){
         setter = function UILayer_setAnimatableProperty(value){
             this._addImplicitAnimationForKey(key);
             this.model[key] = value;
-            UIRenderer.defaultRenderer.setLayerNeedsRenderForKeyPath(this, key);
+            UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, key);
         };
         Object.defineProperty(C.prototype, setterName, {
             configurable: true,
@@ -72,7 +72,6 @@ JSClass("UILayer", JSObject, {
         this.animationsByKey = {};
         this.model = Object.create(this.$class.Properties);
         this.presentation = this.model;
-        UIRenderer.defaultRenderer.layerCreated(this);
     },
 
     // -------------------------------------------------------------------------
@@ -83,7 +82,7 @@ JSClass("UILayer", JSObject, {
         this._addImplicitAnimationForKey('frame');
         this.model.position = position;
         this._updateFrameToPosition();
-        UIRenderer.defaultRenderer.setLayerNeedsRenderForKeyPath(this, 'frame');
+        UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'frame');
     },
 
     setAnchorPoint: function(anchorPoint){
@@ -101,7 +100,7 @@ JSClass("UILayer", JSObject, {
         this._updatePositionToFrameAndAnchorPoint();
         var id;
         if (!this.constraintBox){
-            UIRenderer.defaultRenderer.setLayerNeedsRenderForKeyPath(this, 'frame');
+            UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'frame');
         }
         this._updateSublayersAfterSizeChange(oldSize, frame.size);
     },
@@ -109,7 +108,7 @@ JSClass("UILayer", JSObject, {
     setConstraintBox: function(constraintBox){
         this._addImplicitAnimationForKey('constraintBox');
         this.model.constraintBox = constraintBox;
-        UIRenderer.defaultRenderer.setLayerNeedsRenderForKeyPath(this, 'constraintBox');
+        UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'constraintBox');
         this._updateAfterConstraintBoxChange();
     },
 
@@ -196,7 +195,7 @@ JSClass("UILayer", JSObject, {
             }
             this.frame = frame;
             this._updatePositionToFrameAndAnchorPoint();
-            UIRenderer.defaultRenderer.setLayerNeedsRenderForKeyPath(this, 'superlayer.frame.size');
+            UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'superlayer.frame.size');
         }else{
             dependsOnHeight = false;
             dependsOnWidth = false;
@@ -250,7 +249,7 @@ JSClass("UILayer", JSObject, {
         if (sublayer.constraintBox){
             sublayer._updateFrameAfterSuperSizeChange(this.frame.size);
         }
-        UIRenderer.defaultRenderer.layerInserted(sublayer);
+        UIDisplayServer.defaultServer.layerInserted(sublayer);
         return sublayer;
     },
 
@@ -270,7 +269,7 @@ JSClass("UILayer", JSObject, {
 
     removeSublayer: function(sublayer){
         if (sublayer.superlayer === this){
-            UIRenderer.defaultRenderer.layerRemoved(sublayer);
+            UIDisplayServer.defaultServer.layerRemoved(sublayer);
             for (var i = sublayer.level + 1, l = this.sublayers.length; i < l; ++i){
                 this.sublayers[i].level -= 1;
             }
@@ -335,7 +334,7 @@ JSClass("UILayer", JSObject, {
         this.animationsByKey[key] = animation;
         animation.layer = this;
         if (!UIAnimationTransaction.currentTransaction){
-            UIRenderer.defaultRenderer.setLayerNeedsAnimation(this);
+            UIDisplayServer.defaultServer.setLayerNeedsAnimation(this);
         }
     },
 
@@ -377,12 +376,16 @@ JSClass("UILayer", JSObject, {
     // -------------------------------------------------------------------------
     // MARK: - Display
 
-    setNeedsRedraw: function(){
-        UIRenderer.defaultRenderer.setLayerNeedsRedraw(this);
+    setNeedsDisplay: function(){
+        UIDisplayServer.defaultServer.setLayerNeedsDisplay(this);
+    },
+
+    displayIfNeeded: function(){
+        UIDisplayServer.defaultServer.displayLayerIfNeeded(this);
     },
 
     setNeedsLayout: function(){
-        UIRenderer.defaultRenderer.setLayerNeedsLayout(this);
+        UIDisplayServer.defaultServer.setLayerNeedsLayout(this);
     },
 
     layout: function(){
@@ -392,7 +395,28 @@ JSClass("UILayer", JSObject, {
     layoutSublayers: function(){
     },
 
-    displayInContext: function(context){
+    drawInContext: function(context){
+        if (this.delegate && this.delegate.drawLayerInContext){
+            this.delegate.drawLayerInContext(this, context);
+        }
+    },
+
+    renderInContext: function(context){
+        if (this.hidden) return;
+        this.drawBasePropertiesInContext(context);
+        this.drawInContext(context);
+        var sublayer;
+        for (var i = 0, l = this.sublayers.length; i < l; ++i){
+            sublayer = this.sublayers[i];
+            context.save();
+            context.translate(sublayer.frame.origin.x, sublayer.frame.origin.y);
+            // TODO: apply sublayer transform
+            sublayer.renderInContext(context);
+            context.restore();
+        }
+    },
+
+    drawBasePropertiesInContext: function(context){
         if (this.hidden) return;
         var bounds = JSRect(0, 0, this.frame.size.width, this.frame.size.height);
         context.save();
@@ -424,27 +448,7 @@ JSClass("UILayer", JSObject, {
             }
         }
         context.restore();
-        this.drawInContext(context);
     },
-
-    drawInContext: function(context){
-        if (this.delegate && this.delegate.drawLayerInContext){
-            this.delegate.drawLayerInContext(this, context);
-        }
-    },
-
-    renderInContext: function(context){
-        if (this.hidden) return;
-        this.displayInContext(context);
-        var sublayer;
-        for (var i = 0, l = this.sublayers.length; i < l; ++i){
-            sublayer = this.sublayers[i];
-            context.save();
-            context.translate(sublayer.frame.origin.x, sublayer.frame.origin.y);
-            sublayer.renderInContext(context);
-            context.restore();
-        }
-    }
 
 });
 

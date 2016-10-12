@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIEvent.js"
-/* global JSClass, JSObject, UIWindowServer, UIEvent, JSPoint */
+/* global JSClass, JSObject, UIWindowServer, UIEvent, JSPoint, UIWindowServerInit */
 'use strict';
 
 JSClass("UIWindowServer", JSObject, {
@@ -35,17 +35,28 @@ JSClass("UIWindowServer", JSObject, {
             }
         }
         return null;
+    },
+
+    createMouseEvent: function(type, timestamp, location){
+        var window = UIWindowServer.defaultServer.windowAtScreenLocation(location);
+        if (window !== null){
+            var event = UIEvent.initMouseEventWithType(type, timestamp, window, window.convertPointFromScreen(location));
+            window.application.sendEvent(event);
+        }
     }
 
 });
 
+// Lazy init a property, so the first access is a function call, but subsequent accesses are simple values
 Object.defineProperty(UIWindowServer, 'defaultServer', {
     configurable: true,
-    get: function UIWindowServer_lazyInitDefault(){
-        var defaultServer = UIWindowServer.init();
+    enumerable: false,
+    get: function UIWindowServer_lazyInitDefaultRenderer(){
         Object.defineProperty(UIWindowServer, 'defaultServer', {
-            value: defaultServer
+            configurable: false,
+            enumerable: false,
+            value: UIWindowServerInit()
         });
-        return defaultServer;
+        return UIWindowServer.defaultServer;
     }
 });

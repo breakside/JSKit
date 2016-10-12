@@ -1,9 +1,9 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIResponder.js"
 // #import "UIKit/UILayer.js"
-// #import "UIKit/UIRenderer.js"
+// #import "UIKit/UIDisplayServer.js"
 // #import "UIKit/UIAnimation.js"
-/* global JSClass, JSObject, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSRect, JSPoint, JSConstraintBox, JSColor, UIRenderer, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty */
+/* global JSClass, JSObject, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSRect, JSPoint, JSConstraintBox, JSColor, UIDisplayServer, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty */
 'use strict';
 
 function UIViewLayerProperty(){
@@ -136,7 +136,6 @@ JSClass('UIView', UIResponder, {
             subview.superview = null;
             subview.setWindow(null);
             subview.level = null;
-            UIRenderer.defaultRenderer.viewRemoved(subview);
         }
     },
 
@@ -168,12 +167,12 @@ JSClass('UIView', UIResponder, {
     // -------------------------------------------------------------------------
     // MARK: - Display
 
-    setNeedsRedraw: function(){
-        UIRenderer.defaultRenderer.setLayerNeedsRedraw(this.layer);
+    setNeedsDisplay: function(){
+        this.layer.setNeedsDisplay();
     },
 
     setNeedsLayout: function(){
-        UIRenderer.defaultRenderer.setViewNeedsLayout(this);
+        UIDisplayServer.defaultServer.setViewNeedsLayout(this);
     },
 
     layout: function(){
@@ -278,7 +277,6 @@ JSClass('UIView', UIResponder, {
         subview.superview = this;
         subview.setWindow(this.window);
         this.layer.insertSublayerAtIndex(subview.layer, layerIndex);
-        UIRenderer.defaultRenderer.viewInserted(subview);
         return subview;
     },
 

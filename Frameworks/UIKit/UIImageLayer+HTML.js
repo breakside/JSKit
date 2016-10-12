@@ -4,8 +4,8 @@
 
 UIImageLayer.definePropertiesFromExtensions({
 
-    renderInHTMLContext: function(context){
-        UIImageLayer.$super.renderInHTMLContext.call(this, context);
+    setConstantHTMProperties: function(context){
+        UIImageLayer.$super.setConstantHTMProperties.call(this, context);
         var element = context.element;
         var img = element.appendChild(element.ownerDocument.createElement('img'));
         img.style.position = 'absolute';
@@ -16,7 +16,7 @@ UIImageLayer.definePropertiesFromExtensions({
         context.imageElement = img;
     },
 
-    displayHTMLProperty_image: function(context){
+    updateHTMLProperty_image: function(context){
         // TODO: should this use an img tag or use background-image?
         context.imageElement.src = this.image.htmlURLString();
     }

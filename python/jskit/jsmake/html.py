@@ -71,7 +71,7 @@ class HTMLBuilder(Builder):
     def findIncludes(self):
         for path in self.info.get('JSIncludes', []):
             self.includes.append(path)
-        mainSpecName = self.info.get('JSMainUIDefinitionFile', None)
+        mainSpecName = self.info.get('UIMainDefinitionFile', None)
         if mainSpecName is not None:
             mainSpec = self.mainBundle[mainSpecName]
             self.findSpecIncludes(mainSpec)
@@ -106,7 +106,7 @@ class HTMLBuilder(Builder):
                 if not os.path.exists(os.path.dirname(outputPath)):
                     os.makedirs(os.path.dirname(outputPath))
                 if self.debug and outfile.fp != bundleJSFile:
-                    os.symlink(outfile.fp.name, outputPath)
+                    os.link(outfile.fp.name, outputPath)
                 else:
                     shutil.copy(outfile.fp.name, outputPath)
                 self.manifest.append(outputPath)

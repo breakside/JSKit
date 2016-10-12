@@ -1,5 +1,5 @@
 // #import "UIKit/UILayer.js"
-/* global JSClass, JSDynamicProperty, UIRenderer, UILayer, UILayerAnimatedProperty, UITextLayer, JSAttributedString */
+/* global JSClass, JSDynamicProperty, UIDisplayServer, UILayer, UILayerAnimatedProperty, UITextLayer, JSAttributedString */
 'use strict';
 
 JSClass("UITextLayer", UILayer, {
@@ -23,7 +23,7 @@ JSClass("UITextLayer", UILayer, {
 
     setAttributedText: function(text){
         this._attributedText = text;
-        UIRenderer.defaultRenderer.setLayerNeedsRenderForKeyPath(this, 'attributedText');
+        UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'attributedText');
     },
 
     getAttributedText: function(){

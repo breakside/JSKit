@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
-// #import "UIKit/UIRenderer.js"
-/* global JSClass, JSObject, UIAnimationTransaction, UIRenderer */
+// #import "UIKit/UIDisplayServer.js"
+/* global JSClass, JSObject, UIAnimationTransaction, UIDisplayServer */
 'use strict';
 
 JSClass('UIAnimationTransaction', JSObject, {
@@ -33,7 +33,7 @@ JSClass('UIAnimationTransaction', JSObject, {
         var animation;
         for (var i = 0, l = this.animations.length; i < l; ++i){
             animation = this.animations[i];
-            UIRenderer.defaultRenderer.setLayerNeedsAnimation(animation.layer);
+            UIDisplayServer.defaultServer.setLayerNeedsAnimation(animation.layer);
         }
     }
 });

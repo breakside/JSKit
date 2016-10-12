@@ -34,7 +34,7 @@ JSClass('UIApplication', UIResponder, {
 
     windowInserted: function(window){
         this.windows.push(window);
-        UIWindowServer.windowInserted(window);
+        UIWindowServer.defaultServer.windowInserted(window);
     },
 
     windowRemoved: function(window){
@@ -44,7 +44,7 @@ JSClass('UIApplication', UIResponder, {
                 break;
             }
         }
-        UIWindowServer.windowRemoved(window);
+        UIWindowServer.defaultServer.windowRemoved(window);
     },
 
     sendEvent: function(event){

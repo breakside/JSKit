@@ -1,7 +1,7 @@
 // #import "UIKit/UIView.js"
-// #import "UIKit/UIRenderer.js"
+// #import "UIKit/UIDisplayServer.js"
 // #import "UIKit/UIApplication.js"
-/* global JSClass, UIView, UIRenderer, JSConstraintBox, JSDynamicProperty, UIWindow, JSPoint, UIApplication, UIEvent */
+/* global JSClass, UIView, UIDisplayServer, JSConstraintBox, JSDynamicProperty, UIWindow, JSPoint, UIApplication, UIEvent */
 'use strict';
 
 JSClass('UIWindow', UIView, {
@@ -18,7 +18,6 @@ JSClass('UIWindow', UIView, {
     // MARK: - Creating a Window
 
     init: function(){
-        this.application = UIApplication.sharedApplication;
         UIWindow.$super.initWithConstraintBox.call(this, JSConstraintBox.Margin(0));
         this._commonWindowInit();
     },
@@ -45,11 +44,10 @@ JSClass('UIWindow', UIView, {
     },
 
     makeKeyAndVisible: function(){
-        UIRenderer.defaultRenderer.layerInserted(this.layer);
-        UIRenderer.defaultRenderer.viewInserted(this);
+        UIDisplayServer.defaultServer.layerInserted(this.layer);
         this.application.windowInserted(this);
         if (this.canBecomeKeyWindow()){
-            this.application.makeKeyWindow(this);
+            this.application.keyWindow = this;
         }
         if (this.rootViewController){
             this.rootViewController.viewWillAppear();
@@ -142,6 +140,7 @@ JSClass('UIWindow', UIView, {
     // MARK: - Private methods
 
     _commonWindowInit: function(){
+        this.application = UIApplication.sharedApplication;
         this.window = this;
         if (this.contentView === null){
             this.contentView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));

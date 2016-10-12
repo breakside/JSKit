@@ -47,7 +47,7 @@ HTMLCanvasMethod.prototype.define = function(C, key, extensions){
     });
 };
 
-JSClass("UIHTMLRendererContext", JSContext, {
+JSClass("UIHTMLContext", JSContext, {
 
     element: null,
     style: null,
@@ -62,12 +62,12 @@ JSClass("UIHTMLRendererContext", JSContext, {
 
     initWithElement: function(element){
         this.element = element;
-        this.element._UIHTMLRendererContext = this;
+        this.element._UIHTMLContext = this;
         this.style = element.style;
     },
 
     destroy: function(){
-        this.element._UIHTMLRendererContext = null;
+        this.element._UIHTMLContext = null;
         this.element = null;
         this.style = null;
         this.canvas = null;
@@ -188,11 +188,11 @@ JSClass("UIHTMLRendererContext", JSContext, {
     },
 
     drawPath: function(drawingMode){
-        throw Error("UIHTMLRendererContext.drawPath not implemented");
+        throw Error("UIHTMLContext.drawPath not implemented");
     },
 
     eoFillPath: function(){
-        throw Error("UIHTMLRendererContext.drawPath not implemented");
+        throw Error("UIHTMLContext.drawPath not implemented");
     },
 
     fillPath: HTMLCanvasMethod('fill'),
@@ -211,15 +211,15 @@ JSClass("UIHTMLRendererContext", JSContext, {
     // Images
 
     drawImage: function(rect, image){
-        throw Error("UIHTMLRendererContext.drawPath not implemented");
+        throw Error("UIHTMLContext.drawPath not implemented");
     },
 
     drawLinearGradient: function(gradient, p1, p2){
-        throw Error("UIHTMLRendererContext.drawPath not implemented");
+        throw Error("UIHTMLContext.drawPath not implemented");
     },
 
     drawRadialGradient: function(gradient, p1, r1, p2, r2){
-        throw Error("UIHTMLRendererContext.drawPath not implemented");
+        throw Error("UIHTMLContext.drawPath not implemented");
     }
 
 });
