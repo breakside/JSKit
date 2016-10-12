@@ -1,7 +1,7 @@
 // #import "UIKit/UIKit+HTML.js"
-/* global JSApplicationMain */
+/* global UIApplicationMain */
 'use strict';
 
 function main(){
-    JSApplicationMain();
+    UIApplicationMain();
 }

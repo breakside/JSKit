@@ -1,5 +1,5 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject, UIAnimationTransaction, UIRenderer, UIRendererInit */
+/* global JSClass, JSObject, UIAnimationTransaction, UIRenderer, UIRendererInit, UIEvent, JSPoint */
 'use strict';
 
 JSClass("UIRenderer", JSObject, {
@@ -10,7 +10,6 @@ JSClass("UIRenderer", JSObject, {
     viewLayoutQueue: null,
     layerAnimationQueue: null,
     _animationCount: 0,
-    keyWindow: null,
 
     init: function(){
         this.layerRenderQueue = {};
@@ -18,10 +17,6 @@ JSClass("UIRenderer", JSObject, {
         this.layerLayoutQueue = {};
         this.viewLayoutQueue = {};
         this.layerAnimationQueue = {};
-    },
-
-    makeKeyWindow: function(window){
-        this.keyWindow = window;
     },
 
     setDisplayNeeded: function(){
@@ -188,7 +183,7 @@ JSClass("UIRenderer", JSObject, {
             this.viewLayoutQueue[id].layout();
         }
         this.viewLayoutQueue = {};
-    }
+    },
 
 });
 

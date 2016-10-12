@@ -1,8 +1,9 @@
 // #import "Foundation/Foundation.js"
+// #import "UIKit/UIResponder.js"
 // #import "UIKit/UILayer.js"
 // #import "UIKit/UIRenderer.js"
 // #import "UIKit/UIAnimation.js"
-/* global JSClass, JSObject, UIView, UILayer, UIColor, JSCustomProperty, JSRect, JSConstraintBox, JSColor, UIRenderer, UIAnimation, UIAnimationTransaction */
+/* global JSClass, JSObject, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSRect, JSPoint, JSConstraintBox, JSColor, UIRenderer, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty */
 'use strict';
 
 function UIViewLayerProperty(){
@@ -26,11 +27,12 @@ UIViewLayerProperty.prototype.define = function(C, key, extensions){
     });
 };
 
-JSClass('UIView', JSObject, {
+JSClass('UIView', UIResponder, {
 
     // -------------------------------------------------------------------------
     // MARK: - Properties
 
+    viewController:     null,     // UIViewController
     window:             null,     // UIWindow
     superview:          null,     // UIView
     level:              null,     // int
@@ -185,6 +187,61 @@ JSClass('UIView', JSObject, {
     // MARK: - Display
 
     drawLayerInContext: function(layer, context){
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - UIResponder
+
+    isFirstResponder: function(){
+        return this.window !== null && this.window.firstResponder === this;
+    },
+
+    getNextResponder: function(){
+        if (this.viewController !== null){
+            return this.viewController;
+        }
+        return this.superview;
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Coordinate conversion
+
+    convertPointToView: function(point, view){
+        return view.convertPointFromView(point, this);
+    },
+
+    convertPointFromView: function(point, view){
+        if (this.window !== null){
+            var windowPoint = this.window.convertPointFromView(point, view);
+            return this.window.convertPointToView(windowPoint, this);
+        }
+        return JSPoint.Zero;
+    },
+
+    convertRectToView: function(rect, view){
+        // FIXME: what about transform?
+        return view.convertRectFromView(rect, this);
+    },
+
+    convertRectFromView: function(rect, view){
+        // FIXME: what about transform?
+        return JSRect(this.convertPointFromView(rect.origin, view), rect.size);
+    },
+
+    isPointInsideView: function(point){
+        return point.x >= 0 && point.y >= 0 && point.x < this.frame.size.width && point.y < this.frame.size.height;
+    },
+
+    hitTest: function(locationInView){
+        var subview;
+        var locationInSubview;
+        for (var i = this.subviews.length - 1; i >= 0; --i){
+            locationInSubview = JSPoint(locationInView.x - subview.frame.origin.x, locationInView.y - subview.frame.origin.y);
+            if (subview.isPointInsideView(locationInSubview)){
+                return subview.hitTest(locationInSubview);
+            }
+        }
+        return this;
     },
 
     // MARK: - Private Methods

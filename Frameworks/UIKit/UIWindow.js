@@ -1,6 +1,7 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UIRenderer.js"
-/* global JSClass, UIView, UIRenderer, JSConstraintBox, JSDynamicProperty, UIWindow */
+// #import "UIKit/UIApplication.js"
+/* global JSClass, UIView, UIRenderer, JSConstraintBox, JSDynamicProperty, UIWindow, JSPoint, UIApplication, UIEvent */
 'use strict';
 
 JSClass('UIWindow', UIView, {
@@ -10,12 +11,14 @@ JSClass('UIWindow', UIView, {
 
     rootViewController: null,
     contentView: null,
+    application: null,
     firstResponder: JSDynamicProperty('_firstResponder', null),
 
     // -------------------------------------------------------------------------
     // MARK: - Creating a Window
 
     init: function(){
+        this.application = UIApplication.sharedApplication;
         UIWindow.$super.initWithConstraintBox.call(this, JSConstraintBox.Margin(0));
         this._commonWindowInit();
     },
@@ -37,10 +40,17 @@ JSClass('UIWindow', UIView, {
     // -------------------------------------------------------------------------
     // MARK: - Key Window
 
+    canBecomeKeyWindow: function(){
+        return true;
+    },
+
     makeKeyAndVisible: function(){
         UIRenderer.defaultRenderer.layerInserted(this.layer);
         UIRenderer.defaultRenderer.viewInserted(this);
-        UIRenderer.defaultRenderer.makeKeyWindow(this);
+        this.application.windowInserted(this);
+        if (this.canBecomeKeyWindow()){
+            this.application.makeKeyWindow(this);
+        }
         if (this.rootViewController){
             this.rootViewController.viewWillAppear();
             this.rootViewController.viewDidAppear();
@@ -62,6 +72,68 @@ JSClass('UIWindow', UIView, {
             }
             if (this._firstResponder === responder){
                 this._firstResponder.becomeFirstResponder();
+            }
+        }
+    },
+
+    nextResponder: function(){
+        return this.application;
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Coordinate conversions    
+
+    convertPointFromView: function(point, view){
+        if (view.window === this){
+            var windowPoint = JSPoint(point);
+            while (view !== this){
+                // FIXME: what about bounds/scrolling?
+                // FIXME; what about transform?
+                windowPoint.x += view.frame.origin.x;
+                windowPoint.y += view.frame.origin.y;
+                view = view.superview;
+            }
+            return windowPoint;
+        }
+        return JSPoint.Zero;
+    },
+
+    convertPointToView: function(point, view){
+        if (view.window === this){
+            var viewPoint = JSPoint(point);
+            while (view !== this){
+                // FIXME: what about bounds/scrolling?
+                // FIXME; what about transform?
+                viewPoint.x -= view.frame.origin.x;
+                viewPoint.y -= view.frame.origin.y;
+                view = view.superview;
+            }
+            return viewPoint;
+        }
+        return JSPoint.Zero;
+    },
+
+    convertPointFromScreen: function(point){
+        return JSPoint(point.x - this.frame.origin.x, point.y - this.frame.origin.y);
+    },
+
+    convertPointToScreen: function(point){
+        return JSPoint(point.x + this.frame.origin.x, point.y + this.frame.origin.y);
+    },
+
+    sendEvent: function(event){
+        if (event.majorType === UIEvent.MajorType.Mouse){
+            var hitView = this.hitTest(event.locationInWindow);
+            switch (event.type){
+                case UIEvent.Type.MouseDown:
+                    if (this.canBecomeKeyWindow() && this.application.keyWindow !== this){
+                        this.application.keyWindow = this;
+                    }
+                    hitView.mouseDown(event);
+                    break;
+                case UIEvent.Type.MouseUp:
+                    hitView.mouseUp(event);
+                    break;
             }
         }
     },

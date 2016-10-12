@@ -129,7 +129,7 @@ class HTMLBuilder(Builder):
             self.manifestFile.write("%s\n" % _webpath(os.path.relpath(name, self.outputProjectPath)))
 
     def buildIndex(self):
-        indexName = self.info.get('JSApplicationHTMLIndexFile', 'index.html')
+        indexName = self.info.get('UIApplicationHTMLIndexFile', 'index.html')
         document = HTML5Document(os.path.join(self.projectPath, indexName)).domDocument
         self.indexFile = open(os.path.join(self.outputProjectPath, indexName), 'w')
         stack = [document.documentElement]
@@ -146,7 +146,7 @@ class HTMLBuilder(Builder):
         while len(stack) > 0:
             node = stack.pop()
             if node.tagName == 'title' and node.parentNode.tagName == 'head':
-                node.appendChild(document.createTextNode(self.info.get('JSApplicationTitle', '')))
+                node.appendChild(document.createTextNode(self.info.get('UIApplicationTitle', '')))
             elif node.tagName == 'script' and node.getAttribute('type') == 'text/javascript':
                 oldScriptText = u''
                 for child in node.childNodes:

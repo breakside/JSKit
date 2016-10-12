@@ -16,8 +16,3 @@ JSClass('JSPropertyList', JSObject, {
         }
     }
 });
-
-JSPropertyList.Keys = {
-    MainUIDefinitionFile: "JSMainUIDefinitionFile",
-    ApplicationDelegate: "JSApplicationDelegate"
-};

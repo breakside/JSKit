@@ -1,8 +1,9 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject, UIView, JSDynamicProperty, UIViewController */
+// #import "UIKit/UIResponder.js"
+/* global JSClass, JSObject, UIResponder, UIView, JSDynamicProperty, UIViewController, JSReadOnlyProperty */
 'use strict';
 
-JSClass("UIViewController", JSObject, {
+JSClass("UIViewController", UIResponder, {
     view:           JSDynamicProperty('_view', null),
     isViewLoaded:   false,
     _spec:          null,
@@ -24,13 +25,7 @@ JSClass("UIViewController", JSObject, {
     // MARK: - Creating the View
 
     loadView: function(){
-        if (this._spec !== null){
-            this._view = this._spec.resolvedValue(this._viewKeyInSpec);
-        }else{
-            this._view = UIView.initWithFrame();
-        }
-        this.isViewLoaded = true;
-        this.viewDidLoad();
+        // subclasses can implement this for custom view loading
     },
 
     getView: function(){
@@ -61,6 +56,13 @@ JSClass("UIViewController", JSObject, {
     },
 
     // -------------------------------------------------------------------------
+    // MARK: - Responder
+
+    getNextResponder: function(){
+        return this.view.superview;
+    },
+
+    // -------------------------------------------------------------------------
     // MARK: - Private Helpers
 
     // MARK: View Loading
@@ -68,7 +70,20 @@ JSClass("UIViewController", JSObject, {
     _loadViewIfNeeded: function(){
         if (!this.isViewLoaded){
             this.loadView();
+            if (this._view === null){
+                this._loadViewDefault();
+            }
+            this.isViewLoaded = true;
+            this.viewDidLoad();
         }
-    }
+    }, 
+
+    _loadViewDefault: function(){
+        if (this._spec !== null){
+            this._view = this._spec.resolvedValue(this._viewKeyInSpec);
+        }else{
+            this._view = UIView.initWithFrame();
+        }
+    },
 
 });

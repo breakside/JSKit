@@ -17,7 +17,6 @@
 // #import "Foundation/JSArrayController.js"
 // #import "Foundation/JSSparseArrayController.js"
 // #import "Foundation/JSImage.js"
-// #import "Foundation/JSApplication.js"
 // #import "Foundation/JSColor.js"
 // #import "Foundation/JSGradient.js"
 // #import "Foundation/JSFont.js"

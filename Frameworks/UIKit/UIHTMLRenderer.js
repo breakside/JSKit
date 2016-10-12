@@ -1,12 +1,13 @@
 // #import "UIKit/UIRenderer.js"
 // #import "UIKit/UIHTMLRendererContext.js"
 // #import "UIKit/UIEvent.js"
+// #import "UIKit/UIWindowServer.js"
 // #feature Window.prototype.addEventListener
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
 // #feature Document.prototype.createElement
 // #feature Element.prototype.addEventListener
-/* global JSClass, UIRenderer, UIHTMLRenderer, UIHTMLRendererContext, JSSize, JSConstraintBox, UIScrollLayer, UITextLayer, UIEvent */
+/* global JSClass, UIRenderer, UIHTMLRenderer, UIHTMLRendererContext, UIWindowServer, JSSize, JSConstraintBox, UIScrollLayer, UITextLayer, UIEvent, JSPoint */
 'use strict';
 
 JSClass("UIHTMLRenderer", UIRenderer, {
@@ -14,7 +15,7 @@ JSClass("UIHTMLRenderer", UIRenderer, {
     domWindow: null,
     domDocument: null,
     rootElement: null,
-    rootLayer: null,
+    rootLayers: null,
     rootContext: null,
     environmentSize: null,
     displayFrameID: null,
@@ -26,7 +27,7 @@ JSClass("UIHTMLRenderer", UIRenderer, {
         this.rootElement = rootElement;
         this.domDocument = this.rootElement.ownerDocument;
         this.domWindow = this.domDocument.defaultView;
-        this.rootLayer = null;
+        this.rootLayers = [];
         this.contextsByLayerID = {};
         this._displayFrameBound = this.displayFrame.bind(this);
         this.setupRenderingEnvironment();
@@ -64,14 +65,13 @@ JSClass("UIHTMLRenderer", UIRenderer, {
         this.domWindow.addEventListener('resize', this, false);
         this.rootElement.addEventListener('mousedown', this, false);
         this.rootElement.addEventListener('mouseup', this, false);
-        this.rootElement.addEventListener('click', this, false);
-        this.rootElement.addEventListener('dblclick', this, false);
         this.rootElement.addEventListener('keydown', this, false);
         this.rootElement.addEventListener('keyup', this, false);
         this.rootElement.addEventListener('keypress', this, false);
         this.rootElement.addEventListener('dragstart', this, false);
         this.rootElement.addEventListener('dragend', this, false);
-        // TODO: efficient mousemove
+        // TODO: efficient mousemove (look into tracking areas)
+        // TODO: mouse enter/exit (look into tracking areas)
         // TODO: dragging
         // TODO: special things like file input change
         // TODO: DOM 3 Key Events (if supported)
@@ -93,22 +93,40 @@ JSClass("UIHTMLRenderer", UIRenderer, {
     resize: function(e){
         if (e.currentTarget === this.domWindow){
             this.determineEnvironmentSize();
-            if (this.rootLayer.constraintBox){
-                this.rootLayer._updateFrameAfterSuperSizeChange(this.environmentSize);
+            var layer;
+            for (var i = 0, l = this.rootLayers.length; i < l; ++i){
+                layer = this.rootLayers[i];
+                if (layer.constraintBox){
+                    layer._updateFrameAfterSuperSizeChange(this.environmentSize);
+                }
             }
         }
     },
 
+    _isMouseDown: false,
+
     mousedown: function(e){
+        if (e.button === 0){
+            this._isMouseDown = true;
+            this._createMouseEventFromDOMEvent(e, UIEvent.Type.MouseDown);
+        }
     },
 
     mouseup: function(e){
+        if (this._isMouseDown && e.button === 0){
+            this._isMouseDown = false;
+            this._createMouseEventFromDOMEvent(e, UIEvent.Type.MouseUp);
+        }
     },
 
-    click: function(e){
-    },
-
-    dblclick: function(e){
+    _createMouseEventFromDOMEvent: function(e, type){
+        var location = this._locationOfDOMEventInScreen(e);
+        var window = UIWindowServer.defaultServer.windowAtScreenLocation(location);
+        if (window !== null){
+            var timestamp = e.timeStamp / 1000.0;
+            var event = UIEvent.initMouseEventWithType(type, timestamp, window, window.convertPointFromScreen(location));
+            window.application.sendEvent(event);
+        }
     },
 
     keydown: function(e){
@@ -124,6 +142,11 @@ JSClass("UIHTMLRenderer", UIRenderer, {
     },
 
     dragend: function(e){
+    },
+
+    _locationOfDOMEventInScreen: function(e){
+        var screenBoundingRect = this.rootElement.getBoundingClientRect();
+        return JSPoint(e.clientX - screenBoundingRect.x, e.clientY - screenBoundingRect.y);
     },
 
     determineEnvironmentSize: function(){
@@ -166,7 +189,7 @@ JSClass("UIHTMLRenderer", UIRenderer, {
             parentContext = this.contextsByLayerID[layer.superlayer.objectID];
         }else{
             parentContext = this.rootContext;
-            this.rootLayer = layer;
+            this.rootLayers.push(layer);
             layer._updateFrameAfterSuperSizeChange(this.environmentSize);
         }
         if (parentContext){
@@ -192,6 +215,12 @@ JSClass("UIHTMLRenderer", UIRenderer, {
             }
             context.destroy();
             delete this.contextsByLayerID[layer.objectID];
+        }
+        if (layer.superlayer === null){
+            for (var i = this.rootLayers.length - 1; i >= 0; --i){
+                this.rootLayers.splice(i, 1);
+                break;
+            }
         }
     },
 
