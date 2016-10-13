@@ -29,7 +29,7 @@ JSClass("ApplicationDelegate", JSObject, {
         //     y = Math.round(Math.random() * (this.window.frame.size.height - size));
         //     view = UILabel.initWithFrame(JSRect(x, y, size, size));
         //     view.text = i;
-        //     view.borderRadius = size / 2.0;
+        //     view.cornerRadius = size / 2.0;
         //     view.borderWidth = 1.0;
         //     view.borderColor = white;
         //     view.backgroundColor = colors[i % colors.length];

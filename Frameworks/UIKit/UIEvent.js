@@ -29,7 +29,7 @@ JSClass('UIEvent', JSObject, {
     },
 
     locationInView: function(view){
-        return view.convertPointFromView(this._locationInWindow, view.window);
+        return this.window.convertPointToView(this._locationInWindow, view);
     },
 
     getTimestamp: function(){
@@ -58,6 +58,13 @@ UIEvent.MajorType = {
 };
 
 UIEvent.Type = {
-    MouseDown: 0,
-    MouseUp: 1
+    LeftMouseDown: 0,
+    LeftMouseUp: 1,
+    LeftMouseDragged: 2,
+    RightMouseDown: 3,
+    RightMouseUp: 4,
+    RightMouseDragged: 5,
+    MouseMoved: 6,
+    MouseEntered: 7,
+    MouseExited: 8,
 };

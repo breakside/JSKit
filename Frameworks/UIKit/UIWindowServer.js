@@ -37,11 +37,18 @@ JSClass("UIWindowServer", JSObject, {
         return null;
     },
 
+    mouseDownWindow: null,
+
     createMouseEvent: function(type, timestamp, location){
-        var window = UIWindowServer.defaultServer.windowAtScreenLocation(location);
-        if (window !== null){
-            var event = UIEvent.initMouseEventWithType(type, timestamp, window, window.convertPointFromScreen(location));
-            window.application.sendEvent(event);
+        if (this.mouseDownWindow === null && (type == UIEvent.Type.LeftMouseDown || type == UIEvent.Type.RightMouseDown)){
+            this.mouseDownWindow = UIWindowServer.defaultServer.windowAtScreenLocation(location);
+        }
+        if (this.mouseDownWindow !== null){
+            var event = UIEvent.initMouseEventWithType(type, timestamp, this.mouseDownWindow, this.mouseDownWindow.convertPointFromScreen(location));
+            this.mouseDownWindow.application.sendEvent(event);
+        }
+        if (type == UIEvent.Type.LeftMouseUp){
+            this.mouseDownWindow = null;
         }
     }
 

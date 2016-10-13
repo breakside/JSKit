@@ -119,18 +119,42 @@ JSClass('UIWindow', UIView, {
         return JSPoint(point.x + this.frame.origin.x, point.y + this.frame.origin.y);
     },
 
+    mouseDownHitView: null,
+    mouseDownType: null,
+
     sendEvent: function(event){
         if (event.majorType === UIEvent.MajorType.Mouse){
-            var hitView = this.hitTest(event.locationInWindow);
+            if (event.type == UIEvent.Type.LeftMouseDown || event.type == UIEvent.Type.RightMouseDown){
+                this.mouseDownHitView = this.hitTest(event.locationInWindow);
+                this.mouseDownType = event.type;
+            }
             switch (event.type){
-                case UIEvent.Type.MouseDown:
+                case UIEvent.Type.LeftMouseDown:
                     if (this.canBecomeKeyWindow() && this.application.keyWindow !== this){
                         this.application.keyWindow = this;
                     }
-                    hitView.mouseDown(event);
+                    this.mouseDownHitView.mouseDown(event);
                     break;
-                case UIEvent.Type.MouseUp:
-                    hitView.mouseUp(event);
+                case UIEvent.Type.LeftMouseUp:
+                    this.mouseDownHitView.mouseUp(event);
+                    if (this.mouseDownType == UIEvent.Type.LeftMouseDown){
+                        this.mouseDownHitView = null;
+                    }
+                    break;
+                case UIEvent.Type.LeftMouseDragged:
+                    this.mouseDownHitView.mouseDragged(event);
+                    break;
+                case UIEvent.Type.RightMouseDown:
+                    this.mouseDownHitView.rightMouseDown(event);
+                    break;
+                case UIEvent.Type.RightMouseUp:
+                    this.mouseDownHitView.rightMouseUp(event);
+                    if (this.mouseDownType == UIEvent.Type.RightMouseDown){
+                        this.mouseDownHitView = null;
+                    }
+                    break;
+                case UIEvent.Type.RightMouseDragged:
+                    this.mouseDownHitView.rightMouseDragged(event);
                     break;
             }
         }

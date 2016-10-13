@@ -8,6 +8,8 @@
 // #import "UIKit/UIEvent.js"
 // #import "UIKit/UILabel.js"
 // #import "UIKit/UITextField.js"
+// #import "UIKit/UIControl.js"
+// #import "UIKit/UIButton.js"
 // #import "UIKit/UILayer.js"
 // #import "UIKit/UIDisplayServer.js"
 // #import "UIKit/UIScrollLayer.js"

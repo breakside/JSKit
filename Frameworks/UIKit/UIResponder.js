@@ -42,4 +42,32 @@ JSClass("UIResponder", JSObject, {
         }
     },
 
+    mouseDragged: function(event){
+        var next = this.getNextResponder();
+        if (next !== null){
+            next.mouseDragged(event);
+        }
+    },
+
+    rightMouseDown: function(event){
+        var next = this.getNextResponder();
+        if (next !== null){
+            next.rightMouseDown(event);
+        }
+    },
+
+    rightMouseUp: function(event){
+        var next = this.getNextResponder();
+        if (next !== null){
+            next.rightMouseUp(event);
+        }
+    },
+
+    rightMouseDragged: function(event){
+        var next = this.getNextResponder();
+        if (next !== null){
+            next.rightMouseDragged(event);
+        }
+    },
+
 });

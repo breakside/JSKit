@@ -51,7 +51,11 @@ class Builder(object):
         self.outputProjectPath = os.path.join(self.outputParentPath, 'builds', self.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
         if os.path.exists(self.outputProjectPath):
             if self.debug:
-                shutil.rmtree(self.outputProjectPath)
+                for child in [os.path.join(self.outputProjectPath, x) for x in os.listdir(self.outputProjectPath)]:
+                    if os.path.isdir(child):
+                        shutil.rmtree(child)
+                    else:
+                        os.unlink(child)
             else:
                 raise Exception("Output path already exists: %s" % self.outputProjectPath)
 

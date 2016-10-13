@@ -48,6 +48,10 @@ JSColor.SpaceIdentifier = {
     GRAY: 'gray'
 };
 
+JSColor.clearColor = function(){
+    return JSColor.initWithRGBA(0, 0, 0, 0);
+};
+
 JSColor.whiteColor = function(){
     return JSColor.initWithWhite(255);
 };

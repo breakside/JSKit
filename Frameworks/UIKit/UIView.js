@@ -3,7 +3,7 @@
 // #import "UIKit/UILayer.js"
 // #import "UIKit/UIDisplayServer.js"
 // #import "UIKit/UIAnimation.js"
-/* global JSClass, JSObject, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSRect, JSPoint, JSConstraintBox, JSColor, UIDisplayServer, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty */
+/* global JSClass, JSObject, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSDynamicProperty, JSRect, JSPoint, JSConstraintBox, JSColor, UIDisplayServer, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty */
 'use strict';
 
 function UIViewLayerProperty(){
@@ -33,7 +33,7 @@ JSClass('UIView', UIResponder, {
     // MARK: - Properties
 
     viewController:     null,     // UIViewController
-    window:             null,     // UIWindow
+    window:             JSDynamicProperty('_window', null),     // UIWindow
     superview:          null,     // UIView
     level:              null,     // int
     subviews:           null,     // Array
@@ -48,7 +48,7 @@ JSClass('UIView', UIResponder, {
     backgroundColor:    UIViewLayerProperty(),
     backgroundGradient: UIViewLayerProperty(),
     borderWidth:        UIViewLayerProperty(),
-    borderColor:        UIViewLayerProperty(),
+    cornerRadius:       UIViewLayerProperty(),
     borderRadius:       UIViewLayerProperty(),
     shadowColor:        UIViewLayerProperty(),
     shadowOffset:       UIViewLayerProperty(),
@@ -164,6 +164,10 @@ JSClass('UIView', UIResponder, {
         }
     },
 
+    getWindow: function(){
+        return this._window;
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Display
 
@@ -235,6 +239,7 @@ JSClass('UIView', UIResponder, {
         var subview;
         var locationInSubview;
         for (var i = this.subviews.length - 1; i >= 0; --i){
+            subview = this.subviews[i];
             locationInSubview = JSPoint(locationInView.x - subview.frame.origin.x, locationInView.y - subview.frame.origin.y);
             if (subview.isPointInsideView(locationInSubview)){
                 return subview.hitTest(locationInSubview);

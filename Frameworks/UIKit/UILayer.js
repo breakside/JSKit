@@ -51,7 +51,7 @@ JSClass("UILayer", JSObject, {
     backgroundGradient: UILayerAnimatedProperty(),
     borderWidth:        UILayerAnimatedProperty(),
     borderColor:        UILayerAnimatedProperty(),
-    borderRadius:       UILayerAnimatedProperty(),
+    cornerRadius:       UILayerAnimatedProperty(),
     shadowColor:        UILayerAnimatedProperty(),
     shadowOffset:       UILayerAnimatedProperty(),
     shadowRadius:       UILayerAnimatedProperty(),
@@ -116,13 +116,13 @@ JSClass("UILayer", JSObject, {
         var position = this.model.position;
         var frame = this.model.frame;
         var point = this.model.anchorPoint;
-        this.model.frame = JSRect(position.x - frame.width * point.x, position.y - frame.height * point.y, frame.width, frame.height);
+        this.model.frame = JSRect(position.x - frame.size.width * point.x, position.y - frame.size.height * point.y, frame.size.width, frame.size.height);
     },
 
     _updatePositionToFrameAndAnchorPoint: function(){
         var point = this.model.anchorPoint;
         var frame = this.model.frame;
-        this.model.position = JSPoint(frame.origin.x + frame.width * point.x, frame.origin.y + frame.height * point.y);
+        this.model.position = JSPoint(frame.origin.x + frame.size.width * point.x, frame.origin.y + frame.size.height * point.y);
     },
 
     _updateAfterConstraintBoxChange: function(){
@@ -158,7 +158,7 @@ JSClass("UILayer", JSObject, {
             var box = this.model.constraintBox;
             var frame = JSRect();
             if (box.height !== undefined){
-                frame.height = box.height;
+                frame.size.height = box.height;
             }else if (box.top !== undefined && box.bottom !== undefined){
                 frame.size.height = supersize.height - box.top - box.bottom;
                 dependsOnHeight = true;
@@ -429,8 +429,8 @@ JSClass("UILayer", JSObject, {
             context.shadowOffset = this.shadowOffset;
             context.shadowBlur = this.shadowRadius;
         }
-        if (this.borderRadius){
-            // TODO: borderRadius
+        if (this.cornerRadius){
+            // TODO: cornerRadius
         }else{
             if (this.backgroundColor){
                 context.fillColor = this.backgroundColor;
@@ -464,7 +464,7 @@ UILayer.Properties = {
     backgroundGradient      : null,
     borderWidth             : null,
     borderColor             : null,
-    borderRadius            : null,
+    cornerRadius            : null,
     shadowColor             : null,
     shadowOffset            : JSSize.Zero,
     shadowRadius            : 0.0

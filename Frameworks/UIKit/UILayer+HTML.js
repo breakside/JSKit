@@ -138,8 +138,8 @@ UILayer.definePropertiesFromExtensions({
         }
     },
 
-    updateHTMLProperty_borderRadius: function(context){
-        context.style.borderRadius = this.presentation.borderRadius ? this.presentation.borderRadius + 'px' : '';
+    updateHTMLProperty_cornerRadius: function(context){
+        context.style.borderRadius = this.presentation.cornerRadius ? this.presentation.cornerRadius + 'px' : '';
     },
 
     updateHTMLProperty_shadow: function(context){
