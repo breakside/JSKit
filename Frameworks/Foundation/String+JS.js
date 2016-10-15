@@ -156,6 +156,9 @@ String.prototype.sprintf = function(){
                         // TODO: obey any flags
                         formatted += arg.toString ? arg.toString() : arg;
                         break;
+                    case 'f':
+                        formatted += arg.toString ? arg.toString() : arg;
+                        break;
                     default:
                         throw new Error("Invalid format string, unknown conversion specifier: " + c + "; " + this);
                 }

@@ -25,7 +25,7 @@ JSClass("UIWindowServerHTML", UIWindowServer, {
         this.rootElement.addEventListener('keypress', this, false);
         this.rootElement.addEventListener('dragstart', this, false);
         this.rootElement.addEventListener('dragend', this, false);
-        // TODO: treat mouse exit browser window as mouse up if there's an active mouse down
+        this.rootElement.addEventListener('mouseleave', this, false);
         // TODO: efficient mousemove (look into tracking areas)
         // TODO: mouse enter/exit (look into tracking areas)
         // TODO: dragging
@@ -33,8 +33,7 @@ JSClass("UIWindowServerHTML", UIWindowServer, {
         // TODO: DOM 3 Key Events (if supported)
         // TODO: touch events?
         // TODO: copy/paste
-        // TODO: does stopping key events interfere with browser keyboard shortcuts?
-        // TODO: mouse leaving document (e.g., can't track mouseup outside document)
+        // TODO: does stopping key events interfere with browser keyboard shortcuts? (some, yes)
     },
 
     startListeningForMouseDrag: function(){
@@ -97,6 +96,27 @@ JSClass("UIWindowServerHTML", UIWindowServer, {
         }
     },
 
+    mouseleave: function(e){
+        switch (this.mouseDownButton){
+            case UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_LEFT:
+                this._createMouseEventFromDOMEvent(e, UIEvent.Type.LeftMouseUp);
+                this.mouseDownButton = UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_NONE;
+                this.stopListeningForMouseDrag();
+                break;
+            case UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_RIGHT:
+                this._createMouseEventFromDOMEvent(e, UIEvent.Type.RightMouseUp);
+                this.mouseDownButton = UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_NONE;
+                this.stopListeningForMouseDrag();
+                break;
+        }
+    },
+
+    dragstart: function(e){
+    },
+
+    dragend: function(e){
+    },
+
     keydown: function(e){
     },
 
@@ -104,12 +124,6 @@ JSClass("UIWindowServerHTML", UIWindowServer, {
     },
 
     keypress: function(e){
-    },
-
-    dragstart: function(e){
-    },
-
-    dragend: function(e){
     },
 
     _createMouseEventFromDOMEvent: function(e, type){

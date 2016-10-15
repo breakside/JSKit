@@ -115,9 +115,9 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
     // MARK: - Layer Upates
 
     setLayerNeedsDisplayForProperty: function(layer, keyPath){
-        if (keyPath === 'superlayer.frame.size'){
-            // superlayer.frame.size is a special keyPath used when the superlayer of a
-            // layer with a constraint box changes its frame size, affecting the sublayer's
+        if (keyPath === 'superlayer.bounds.size'){
+            // superlayer.bounds.size is a special keyPath used when the superlayer of a
+            // layer with a constraint box changes its bounds size, affecting the sublayer's
             // layout based on the constraints specified on the sublayer and the new size.
             // Because of the way we assign CSS positional styles for a constraint box,
             // specifically that CSS already does the exact same calculation we do,

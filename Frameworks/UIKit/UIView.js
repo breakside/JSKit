@@ -39,6 +39,7 @@ JSClass('UIView', UIResponder, {
     subviews:           null,     // Array
     layer:              null,     // UILayer
     frame:              UIViewLayerProperty(),
+    bounds:             UIViewLayerProperty(),
     position:           UIViewLayerProperty(),
     anchorPoint:        UIViewLayerProperty(),
     constraintBox:      UIViewLayerProperty(),
@@ -210,29 +211,37 @@ JSClass('UIView', UIResponder, {
     // MARK: - Coordinate conversion
 
     convertPointToView: function(point, view){
-        return view.convertPointFromView(point, this);
+        if (view.window === this.window){
+            return this.layer.convertPointToLayer(point, view.layer);
+        }
+        if (this.window !== null && view.window !== null){
+            var ourWindowPoint = this.layer.convertPointToLayer(point, this.window.layer);
+            var screenPoint = this.window.convertPointToScreen(ourWindowPoint);
+            var otherWindowPoint = view.window.convertPointFromScreen(screenPoint);
+            return view.window.layer.convertPointToLayer(otherWindowPoint, view.layer);
+        }
+        return null;
     },
 
     convertPointFromView: function(point, view){
-        if (this.window !== null){
-            var windowPoint = this.window.convertPointFromView(point, view);
-            return this.window.convertPointToView(windowPoint, this);
-        }
-        return JSPoint.Zero;
+        return view.convertPointToView(point, this);
     },
 
     convertRectToView: function(rect, view){
-        // FIXME: what about transform?
-        return view.convertRectFromView(rect, this);
+        if (view.window === this.window){
+            return this.layer.convertRectToLayer(rect, view.layer);
+        }
     },
 
     convertRectFromView: function(rect, view){
-        // FIXME: what about transform?
-        return JSRect(this.convertPointFromView(rect.origin, view), rect.size);
+        return view.convertRectToView(rect, this);
     },
 
-    isPointInsideView: function(point){
-        return point.x >= 0 && point.y >= 0 && point.x < this.frame.size.width && point.y < this.frame.size.height;
+    // -------------------------------------------------------------------------
+    // MARK: - Hit Testing
+
+    containsPoint: function(point){
+        return this.layer.containsPoint(point);
     },
 
     hitTest: function(locationInView){
@@ -240,8 +249,8 @@ JSClass('UIView', UIResponder, {
         var locationInSubview;
         for (var i = this.subviews.length - 1; i >= 0; --i){
             subview = this.subviews[i];
-            locationInSubview = JSPoint(locationInView.x - subview.frame.origin.x, locationInView.y - subview.frame.origin.y);
-            if (subview.isPointInsideView(locationInSubview)){
+            locationInSubview = this.layer.convertPointToLayer(locationInView, subview.layer);
+            if (subview.containsPoint(locationInSubview)){
                 return subview.hitTest(locationInSubview);
             }
         }

@@ -1,3 +1,5 @@
+// #feature Math.cos
+// #feature Math.sin
 'use strict';
 /* global JSGlobalObject, JSSize, JSPoint, JSRect, JSRange, JSAffineTransform, JSConstraintBox */
 // -----------------------------------------------------------------------------
@@ -141,14 +143,89 @@ JSAffineTransform.prototype = {
     c: 0,
     d: 0,
     tx: 0,
-    ty: 0
+    ty: 0,
+
+    convertPointFromTransform: function(point){
+        // x' = ax + cy + tx
+        // y' = bx + dy + ty
+        return JSPoint(
+            this.a * point.x + this.c * point.y + this.tx,
+            this.b * point.x + this.d * point.y + this.ty
+        );
+    },
+
+    convertPointToTransform: function(point){
+        return JSPoint(
+            (point.x - this.c * point.y - this.tx) / this.a,
+            (point.y - this.b * point.x - this.ty) / this.c
+        );
+    },
+
+    scaledBy: function(sx, sy){
+        return JSAffineTransform.Scaled(sx, sy).concatenatedWith(this);
+    },
+
+    translatedBy: function(tx, ty){
+        return JSAffineTransform.Translated(tx, ty).concatenatedWith(this);
+    },
+
+    rotatedBy: function(rads){
+        return JSAffineTransform.Rotated(rads).concatenatedWith(this);
+    },
+
+    rotateByDegress: function(degrees){
+        return this.rotate(degrees * Math.PI / 180.0);
+    },
+
+    concatenatedWith: function(transform){
+        return new JSAffineTransform(
+            this.a * transform.a + this.b * transform.c,
+            this.a * transform.b + this.b * transform.d,
+            this.c * transform.a + this.d * transform.c,
+            this.c * transform.b + this.d * transform.d,
+            this.tx * transform.a + this.ty * transform.c + transform.tx,
+            this.tx * transform.b + this.ty * transform.d + transform.ty
+        );
+    }
 };
+
+Object.defineProperty(JSAffineTransform.prototype, 'isIdentity', {
+    configurable: false,
+    get: function JSAffineTransform_isIdentity(){
+        return this.a === 1 && this.b === 0 && this.c === 0 && this.d === 1 && this.tx === 0 && this.ty === 0;
+    }
+});
+
+Object.defineProperty(JSAffineTransform.prototype, 'isRotated', {
+    configurable: false,
+    get: function JSAffineTransform_isIdentity(){
+        return this.b !== 0 || this.c !== 0;
+    }
+});
 
 Object.defineProperty(JSAffineTransform, 'Identity', {
     get: function(){
         return new JSAffineTransform(1, 0, 0, 1, 0, 0);
     }
 });
+
+JSAffineTransform.Scaled = function(sx, sy){
+    return new JSAffineTransform(sx, 0, 0, sy, 0, 0);
+};
+
+JSAffineTransform.Translated = function(tx, ty){
+    return new JSAffineTransform(1, 0, 0, 1, tx, ty);
+};
+
+JSAffineTransform.Rotated = function(rads){
+        var cos = Math.cos(rads);
+        var sin = Math.sin(rads);
+        return new JSAffineTransform(cos, sin, -sin, cos, 0, 0);
+};
+
+JSAffineTransform.RotatedDegress = function(degs){
+    return JSAffineTransform.Rotated(degs * Math.PI / 180.0);
+};
 
 JSGlobalObject.JSConstraintBox = function JSConstraintBox(props){
     if (this === undefined){

@@ -54,6 +54,31 @@ JSClass('JSAffineTransformTests', TKTestSuite, {
         transform.a = 2;
         var transform2 = JSAffineTransform.Identity;
         TKAssertEquals(transform2.a, 1);
+    },
+
+    testIsIdentity: function(){
+        var transform = JSAffineTransform.Identity;
+        TKAssert(transform.isIdentity);
+
+        transform.a = 2;
+        TKAssert(!transform.isIdentity);
+
+        transform.a = 1.0001;
+        TKAssert(!transform.isIdentity);
+
+        transform.a = 1.0;
+        TKAssert(transform.isIdentity);
+
+        transform = JSAffineTransform(1, 1, 0, 1, 0, 0);
+        TKAssert(!transform.isIdentity);
+        transform = JSAffineTransform(1, 0, 1, 1, 0, 0);
+        TKAssert(!transform.isIdentity);
+        transform = JSAffineTransform(1, 0, 0, 2, 0, 0);
+        TKAssert(!transform.isIdentity);
+        transform = JSAffineTransform(1, 0, 0, 1, 1, 0);
+        TKAssert(!transform.isIdentity);
+        transform = JSAffineTransform(1, 0, 0, 1, 0, 1);
+        TKAssert(!transform.isIdentity);
     }
 
 });

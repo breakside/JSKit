@@ -29,8 +29,10 @@ JSClass("UIWindowServer", JSObject, {
         var locationInWindow;
         for (var i = this.windowStack.length - 1; i >= 0; --i){
             _window = this.windowStack[i];
+            // FIXME: should this consider the anchor point rather than the frame origin?
             locationInWindow = JSPoint(location.x - _window.frame.origin.x, location.y - _window.frame.origin.y);
-            if (_window.isPointInsideView(locationInWindow)){
+            locationInWindow = _window.transform.convertPointToTransform(locationInWindow);
+            if (_window.containsPoint(locationInWindow)){
                 return _window;
             }
         }
@@ -38,17 +40,20 @@ JSClass("UIWindowServer", JSObject, {
     },
 
     mouseDownWindow: null,
+    mouseDownType: null,
 
     createMouseEvent: function(type, timestamp, location){
-        if (this.mouseDownWindow === null && (type == UIEvent.Type.LeftMouseDown || type == UIEvent.Type.RightMouseDown)){
+        if (this.mouseDownWindow === null && (type === UIEvent.Type.LeftMouseDown || type === UIEvent.Type.RightMouseDown)){
             this.mouseDownWindow = UIWindowServer.defaultServer.windowAtScreenLocation(location);
+            this.mouseDownType = type;
         }
         if (this.mouseDownWindow !== null){
             var event = UIEvent.initMouseEventWithType(type, timestamp, this.mouseDownWindow, this.mouseDownWindow.convertPointFromScreen(location));
             this.mouseDownWindow.application.sendEvent(event);
         }
-        if (type == UIEvent.Type.LeftMouseUp){
+        if ((type === UIEvent.Type.LeftMouseUp && this.mouseDownType === UIEvent.Type.LeftMouseDown) || (type === UIEvent.Type.RightMouseUp && this.mouseDownType === UIEvent.Type.RightMouseDown)){
             this.mouseDownWindow = null;
+            this.mouseDownType = null;
         }
     }
 

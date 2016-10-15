@@ -23,6 +23,22 @@ UILayer.definePropertiesFromExtensions({
         }
     },
 
+    updateHTMLProperty_transform: function(context){
+        var transform = this.presentation.transform;
+        var anchorPoint = this.presentation.anchorPoint;
+        if (!transform.isIdentity){
+            context.style.webkitTransform = context.style.MozTransform = 'matrix(%f, %f, %f, %f, %f, %f)'.sprintf(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
+            context.style.webkitTransformOrigin = context.style.MozTransformOrigin = '%f%% %f%% 0'.sprintf(anchorPoint.x * 100, anchorPoint.y * 100);
+        }else{
+            context.style.webkitTransform = context.style.MozTransform = '';
+            context.style.webkitTransformOrigin = context.style.MozTransformOrigin = '';
+        }
+    },
+
+    updateHTMLProperty_anchorPoint: function(context){
+        this.updateHTMLProperty_transform(context);
+    },
+
     updateHTMLProperty_box: function (context){
         var box = this.presentation.constraintBox;
         if (!box){
@@ -143,19 +159,10 @@ UILayer.definePropertiesFromExtensions({
     },
 
     updateHTMLProperty_shadow: function(context){
-        if (this.shadowColor){
+        if (this.presentation.shadowColor){
             context.style.boxShadow = '%fpx %fpx %fpx %s'.sprintf(this.shadowOffset.x, this.shadowOffset.y, this.shadowRadius, this.shadowColor.cssString());
         }else{
             context.style.boxShadow = '';
-        }
-    },
-
-    updateHTMLProperty_transform: function(context){
-        var transform = this.presentation.transform;
-        if (transform){
-            context.style.webkitTransform = context.style.MozTransform = 'matrix(%f, %f, %f, %f, %f, %f)'.sprintf(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
-        }else{
-            context.style.webkitTransform = context.style.MozTransform = '';
         }
     }
 });

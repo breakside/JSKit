@@ -62,7 +62,7 @@ JSClass('UIWindow', UIView, {
     setFirstResponder: function(responder){
         if (responder !== this._firstResponder){
             if (this._firstResponder !== null){
-                if (!this._firstResponder.resignFirstResponder || this._firstResponder.resignFirstResponder()){
+                if (this._firstResponder.resignFirstResponder()){
                     this._firstResponder = responder;
                 }
             }else{
@@ -78,39 +78,6 @@ JSClass('UIWindow', UIView, {
         return this.application;
     },
 
-    // -------------------------------------------------------------------------
-    // MARK: - Coordinate conversions    
-
-    convertPointFromView: function(point, view){
-        if (view.window === this){
-            var windowPoint = JSPoint(point);
-            while (view !== this){
-                // FIXME: what about bounds/scrolling?
-                // FIXME; what about transform?
-                windowPoint.x += view.frame.origin.x;
-                windowPoint.y += view.frame.origin.y;
-                view = view.superview;
-            }
-            return windowPoint;
-        }
-        return JSPoint.Zero;
-    },
-
-    convertPointToView: function(point, view){
-        if (view.window === this){
-            var viewPoint = JSPoint(point);
-            while (view !== this){
-                // FIXME: what about bounds/scrolling?
-                // FIXME; what about transform?
-                viewPoint.x -= view.frame.origin.x;
-                viewPoint.y -= view.frame.origin.y;
-                view = view.superview;
-            }
-            return viewPoint;
-        }
-        return JSPoint.Zero;
-    },
-
     convertPointFromScreen: function(point){
         return JSPoint(point.x - this.frame.origin.x, point.y - this.frame.origin.y);
     },
@@ -119,45 +86,52 @@ JSClass('UIWindow', UIView, {
         return JSPoint(point.x + this.frame.origin.x, point.y + this.frame.origin.y);
     },
 
+    sendEvent: function(event){
+        switch (event.category){
+            case UIEvent.Category.Mouse:
+                this._sendMouseEvent(event);
+                break;
+        }
+    },
+
     mouseDownHitView: null,
     mouseDownType: null,
 
-    sendEvent: function(event){
-        if (event.majorType === UIEvent.MajorType.Mouse){
-            if (event.type == UIEvent.Type.LeftMouseDown || event.type == UIEvent.Type.RightMouseDown){
-                this.mouseDownHitView = this.hitTest(event.locationInWindow);
-                this.mouseDownType = event.type;
-            }
-            switch (event.type){
-                case UIEvent.Type.LeftMouseDown:
-                    if (this.canBecomeKeyWindow() && this.application.keyWindow !== this){
-                        this.application.keyWindow = this;
-                    }
-                    this.mouseDownHitView.mouseDown(event);
-                    break;
-                case UIEvent.Type.LeftMouseUp:
-                    this.mouseDownHitView.mouseUp(event);
-                    if (this.mouseDownType == UIEvent.Type.LeftMouseDown){
-                        this.mouseDownHitView = null;
-                    }
-                    break;
-                case UIEvent.Type.LeftMouseDragged:
-                    this.mouseDownHitView.mouseDragged(event);
-                    break;
-                case UIEvent.Type.RightMouseDown:
-                    this.mouseDownHitView.rightMouseDown(event);
-                    break;
-                case UIEvent.Type.RightMouseUp:
-                    this.mouseDownHitView.rightMouseUp(event);
-                    if (this.mouseDownType == UIEvent.Type.RightMouseDown){
-                        this.mouseDownHitView = null;
-                    }
-                    break;
-                case UIEvent.Type.RightMouseDragged:
-                    this.mouseDownHitView.rightMouseDragged(event);
-                    break;
-            }
+    _sendMouseEvent: function(event){
+        if (event.type == UIEvent.Type.LeftMouseDown || event.type == UIEvent.Type.RightMouseDown){
+            this.mouseDownHitView = this.hitTest(event.locationInWindow);
+            this.mouseDownType = event.type;
         }
+        switch (event.type){
+            case UIEvent.Type.LeftMouseDown:
+                if (this.canBecomeKeyWindow() && this.application.keyWindow !== this){
+                    this.application.keyWindow = this;
+                }
+                this.mouseDownHitView.mouseDown(event);
+                break;
+            case UIEvent.Type.LeftMouseUp:
+                this.mouseDownHitView.mouseUp(event);
+                if (this.mouseDownType == UIEvent.Type.LeftMouseDown){
+                    this.mouseDownHitView = null;
+                }
+                break;
+            case UIEvent.Type.LeftMouseDragged:
+                this.mouseDownHitView.mouseDragged(event);
+                break;
+            case UIEvent.Type.RightMouseDown:
+                this.mouseDownHitView.rightMouseDown(event);
+                break;
+            case UIEvent.Type.RightMouseUp:
+                this.mouseDownHitView.rightMouseUp(event);
+                if (this.mouseDownType == UIEvent.Type.RightMouseDown){
+                    this.mouseDownHitView = null;
+                }
+                break;
+            case UIEvent.Type.RightMouseDragged:
+                this.mouseDownHitView.rightMouseDragged(event);
+                break;
+        }
+
     },
 
     // -------------------------------------------------------------------------

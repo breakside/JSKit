@@ -1,6 +1,6 @@
 // #import "UIKit/UIControl.js"
 // #import "UIKit/UILabel.js"
-/* global JSClass, UIControl, JSReadOnlyProperty, UILabel, JSConstraintBox, JSColor */
+/* global JSClass, UIControl, JSReadOnlyProperty, UILabel, JSConstraintBox, JSColor, UIButton */
 'use strict';
 
 JSClass("UIButton", UIControl, {
@@ -52,7 +52,7 @@ JSClass("UIButton", UIControl, {
 
     mouseDragged: function(event){
         var location = event.locationInView(this);
-        var selected = this.isPointInsideView(location);
+        var selected = this.containsPoint(location);
         this.setSelected(selected);
     },
 
@@ -69,3 +69,8 @@ JSClass("UIButton", UIControl, {
     }
 
 });
+
+UIButton.Style = {
+    Default: 0,
+    Custom: 1,
+};
