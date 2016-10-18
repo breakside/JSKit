@@ -21,7 +21,11 @@ JSGlobalObject.JSSize = function JSSize(width, height){
 
 JSSize.prototype = {
     width: 0,
-    height: 0
+    height: 0,
+
+    isEqual: function(other){
+        return this.width == other.width && this.height == other.height;
+    }
 };
 
 Object.defineProperty(JSSize, 'Zero', {
@@ -46,7 +50,11 @@ JSGlobalObject.JSPoint = function JSPoint(x, y){
 
 JSPoint.prototype = {
     x: 0,
-    y: 0
+    y: 0,
+
+    isEqual: function(other){
+        return this.x == other.x && this.y == other.y;
+    }
 };
 
 Object.defineProperty(JSPoint, 'Zero', {
@@ -88,6 +96,10 @@ JSRect.prototype = {
         if (bottom === undefined) bottom = top;
         if (left === undefined) left = right;
         return new JSRect(this.origin.x + left, this.origin.y + top, this.size.width - left - right, this.size.height - top - bottom);
+    },
+
+    isEqual: function(other){
+        return this.origin.isEqual(other.origin) && this.size.isEqual(other.size);
     }
 };
 
@@ -146,8 +158,8 @@ JSAffineTransform.prototype = {
     ty: 0,
 
     convertPointFromTransform: function(point){
-        // x' = ax + cy + tx
-        // y' = bx + dy + ty
+        // X' = a * X + c * Y + tx
+        // Y' = b * X + d * Y + ty
         return JSPoint(
             this.a * point.x + this.c * point.y + this.tx,
             this.b * point.x + this.d * point.y + this.ty
@@ -155,10 +167,8 @@ JSAffineTransform.prototype = {
     },
 
     convertPointToTransform: function(point){
-        return JSPoint(
-            (point.x - this.c * point.y - this.tx) / this.a,
-            (point.y - this.b * point.x - this.ty) / this.c
-        );
+        var inverse = this.inverse();
+        return inverse.convertPointFromTransform(point);
     },
 
     scaledBy: function(sx, sy){
@@ -173,8 +183,8 @@ JSAffineTransform.prototype = {
         return JSAffineTransform.Rotated(rads).concatenatedWith(this);
     },
 
-    rotateByDegress: function(degrees){
-        return this.rotate(degrees * Math.PI / 180.0);
+    rotatedByDegrees: function(degrees){
+        return this.rotatedBy(degrees * Math.PI / 180.0);
     },
 
     concatenatedWith: function(transform){
@@ -185,6 +195,18 @@ JSAffineTransform.prototype = {
             this.c * transform.b + this.d * transform.d,
             this.tx * transform.a + this.ty * transform.c + transform.tx,
             this.tx * transform.b + this.ty * transform.d + transform.ty
+        );
+    },
+
+    inverse: function(){
+        var determinant = this.a * this.d - this.b * this.c;
+        return  new JSAffineTransform(
+            this.d / determinant,
+            -this.b / determinant,
+            -this.c / determinant,
+            this.a / determinant,
+            (this.c * this.ty - this.d * this.tx) / determinant,
+            (this.b * this.tx - this.a * this.ty) / determinant
         );
     }
 };
@@ -210,6 +232,7 @@ Object.defineProperty(JSAffineTransform, 'Identity', {
 });
 
 JSAffineTransform.Scaled = function(sx, sy){
+    if (sy === undefined) sy = sx;
     return new JSAffineTransform(sx, 0, 0, sy, 0, 0);
 };
 
@@ -223,7 +246,7 @@ JSAffineTransform.Rotated = function(rads){
         return new JSAffineTransform(cos, sin, -sin, cos, 0, 0);
 };
 
-JSAffineTransform.RotatedDegress = function(degs){
+JSAffineTransform.RotatedDegrees = function(degs){
     return JSAffineTransform.Rotated(degs * Math.PI / 180.0);
 };
 

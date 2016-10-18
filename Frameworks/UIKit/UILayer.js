@@ -84,13 +84,13 @@ JSClass("UILayer", JSObject, {
         // When the position changes, the frame origin will also change by the same delta.
         // Since position and frame are in the same coordinate system, and are affected by the
         // same transformations, we can simply move the frame's origin rather than recalculate it entirely.
-        this._addImplicitAnimationForKey('frame');
-        var dx = this.model.position.x - position.x;
-        var dy = this.model.position.y - position.y;
+        this._addImplicitAnimationForKey('position');
+        var dx = position.x - this.model.position.x;
+        var dy = position.y - this.model.position.y;
         var origin = JSPoint(this.model.frame.origin.x + dx, this.model.frame.origin.y + dy);
-        this.model.position = position;
+        this.model.position = JSPoint(position);
         this.model.frame = JSRect(origin, this.model.frame.size);
-        UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'frame');
+        UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'position');
     },
 
     setAnchorPoint: function(anchorPoint){
@@ -102,48 +102,50 @@ JSClass("UILayer", JSObject, {
     },
 
     setFrame: function(frame){
-        // When the frame changes, the bounds and position needs to be recalculated
-        // TODO: update bounds (if size changes) and postion (always)
-        this._addImplicitAnimationForKey('frame');
-        this._setFrameWithoutAnimation(frame);
-        if (!this.constraintBox){
-            UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'frame');
-        }
-    },
-
-    _setFrameWithoutAnimation: function(frame){
-        // When the frame changes, the bounds and position needs to be recalculated
-        // TODO: update bounds (if size changes) and postion (always)
-        var oldSize = this.model.frame.size;
-        this.model.frame = frame;
-        if (oldSize.width != frame.size.width || oldSize.height != frame.size.height){
+        var oldFrame = this.model.frame;
+        this.model.frame = JSRect(frame);
+        if (!frame.size.isEqual(oldFrame.size)){
+            // When the frame size changes, the bounds and position needs to be recalculated
             var oldBounds = this.model.bounds;
-            this._recalculateBounds(oldSize);
+            this._addImplicitAnimationForKey('bounds');
+            this._addImplicitAnimationForKey('position');
+            this._recalculateBounds(oldFrame.size);
+            this._recalculatePosition();
             this._layoutSublayersAfterBoundsChange(oldBounds);
+            UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'bounds');
+            UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'position');
+        }else{
+            // When just the origin changes, we only need to update the position, and can
+            // do a simple delta offset instead of a full recalculation
+            this._addImplicitAnimationForKey('position');
+            var dx = frame.origin.x - oldFrame.origin.x;
+            var dy = frame.origin.y - oldFrame.origin.y;
+            this.model.position.x += dx;
+            this.model.position.y += dy;
+            UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'position');
         }
-        this._recalculatePosition();
     },
 
     setConstraintBox: function(constraintBox){
         // When the constraint box changes, the frame (and therefore position and bounds) will
         // likely change.  _layoutAfterConstraintBoxChange will make any updates as necessary
-        this._addImplicitAnimationForKey('constraintBox');
-        this.model.constraintBox = constraintBox;
-        UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'constraintBox');
+        this.model.constraintBox = JSConstraintBox(constraintBox);
         this._layoutAfterConstraintBoxChange();
     },
 
     setBounds: function(bounds){
         // When the bounds origin changes, it's like a scrolling view, and we need to update the sublayers
         // When the bounds change size, the position and frame both need to be recalculated accordingly
-        // TODO: animations?  Need to see how html positioning works after adding bounds
         var oldBounds = this.model.bounds;
-        this.model.bounds = bounds;
-        if (oldBounds.size.width != bounds.width || oldBounds.size.height != bounds.height){
+        this.model.bounds = JSRect(bounds);
+        if (!bounds.size.isEqual(oldBounds.size)){
+            this._addImplicitAnimationForKey('bounds');
+            this._addImplicitAnimationForKey('position');
             this._recalculatePosition();
             // Frame calculation depends on the recaculated position, so it must be done second
             this._recalculateFrame();
-            UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'frame');
+            UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'bounds');
+            UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'position');
         }
         this._layoutSublayersAfterBoundsChange(oldBounds);
     },
@@ -152,7 +154,7 @@ JSClass("UILayer", JSObject, {
         // When the transform changes, the frame needs to be recalculated.  The position, however, does
         // not change.  The transform essentially defines a new relationship between the position and frame
         this._addImplicitAnimationForKey('transform');
-        this.model.transform = transform;
+        this.model.transform = JSAffineTransform(transform);
         this._recalculateFrame();
         UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'transform');
     },
@@ -164,7 +166,6 @@ JSClass("UILayer", JSObject, {
     _recalculatePosition: function(){
         var bounds = this.model.bounds;
         var anchorPoint = this.model.anchorPoint;
-        var frame = this.model.frame;
         var pointInBounds = JSPoint(bounds.origin.x + bounds.size.width * anchorPoint.x, bounds.origin.y + bounds.size.height * anchorPoint.y);
         this.model.position = this._convertPointToSuperlayer(pointInBounds);
     },
@@ -181,7 +182,6 @@ JSClass("UILayer", JSObject, {
 
     _layoutAfterConstraintBoxChange: function(){
         if (this.superlayer){
-            var oldSize = this.model.bounds.size;
             this._layoutAfterSuperSizeChange();
         }
     },
@@ -205,8 +205,8 @@ JSClass("UILayer", JSObject, {
         }
     },
 
-    _layoutAfterSuperSizeChange: function(){
-        var supersize = this.superlayer.model.bounds.size;
+    _layoutAfterSuperSizeChange: function(size){
+        var supersize = this.superlayer === null ? size : this.superlayer.model.bounds.size;
         var dependsOnWidth = false;
         var dependsOnHeight = false;
         if (this.model.constraintBox){
@@ -248,8 +248,7 @@ JSClass("UILayer", JSObject, {
                 frame.origin.x = (supersize.width - frame.size.width) / 2.0;
                 dependsOnWidth = true;
             }
-            this._setFrameWithoutAnimation(frame);
-            UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'superlayer.bounds.size');
+            this.setFrame(frame);
         }else{
             dependsOnHeight = false;
             dependsOnWidth = false;
@@ -391,14 +390,14 @@ JSClass("UILayer", JSObject, {
     _convertRectToSuperlayer: function(rect){
         if (this.model.transform.isIdentity){
             var origin = JSPoint(this.model.position);
-            origin.x -= this.bounds.size.width * this.anchorPoint.x;
-            origin.y -= this.bounds.size.height * this.anchorPoint.y;
-            return JSRect(origin, this.bounds.size);
+            origin.x -= this.model.bounds.size.width * this.model.anchorPoint.x;
+            origin.y -= this.model.bounds.size.height * this.model.anchorPoint.y;
+            return JSRect(origin, this.model.bounds.size);
         }else{
             var p0 = this._convertPointToSuperlayer(rect.origin);
             var p1 = this._convertPointToSuperlayer(JSPoint(rect.origin.x + rect.size.width, rect.origin.y));
             var p2 = this._convertPointToSuperlayer(JSPoint(rect.origin.x, rect.origin.y + rect.size.height));
-            var p3 = this._convertPointToSuperlayer(JSPoint(rect.origin.x + rect.size.width ,rect.origin + rect.size.height));
+            var p3 = this._convertPointToSuperlayer(JSPoint(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height));
             var minX = Math.min(p0.x, p1.x, p2.x, p3.x);
             var maxX = Math.max(p0.x, p1.x, p2.x, p3.x);
             var minY = Math.min(p0.y, p1.y, p2.y, p3.y);
@@ -408,7 +407,7 @@ JSClass("UILayer", JSObject, {
     },
 
     _convertPointToSuperlayer: function(point){
-        var superlayerPoint = JSPoint(point.x - this.model.bounds.orgin.x, point.y - this.model.bounds.origin.y);
+        var superlayerPoint = JSPoint(point.x - this.model.bounds.origin.x, point.y - this.model.bounds.origin.y);
         if (this.model.transform.isIdentity){
             superlayerPoint.x += this.model.frame.origin.x;
             superlayerPoint.y += this.model.frame.origin.y;
@@ -479,7 +478,7 @@ JSClass("UILayer", JSObject, {
     // MARK: - Hit Testing
 
     containsPoint: function(point){
-        return point.x >= this.bounds.origin.x && point.y >= this.bounds.origin.x && point.x < this.bounds.origin.x + this.bounds.size.width && point.y < this.bounds.origin.y + this.bounds.size.height;
+        return point.x >= this.model.bounds.origin.x && point.y >= this.model.bounds.origin.y && point.x < this.model.bounds.origin.x + this.model.bounds.size.width && point.y < this.model.bounds.origin.y + this.model.bounds.size.height;
     },
 
     hitTest: function(locationInView){

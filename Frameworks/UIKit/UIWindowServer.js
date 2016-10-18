@@ -29,9 +29,7 @@ JSClass("UIWindowServer", JSObject, {
         var locationInWindow;
         for (var i = this.windowStack.length - 1; i >= 0; --i){
             _window = this.windowStack[i];
-            // FIXME: should this consider the anchor point rather than the frame origin?
-            locationInWindow = JSPoint(location.x - _window.frame.origin.x, location.y - _window.frame.origin.y);
-            locationInWindow = _window.transform.convertPointToTransform(locationInWindow);
+            locationInWindow = _window.convertPointFromScreen(location);
             if (_window.containsPoint(locationInWindow)){
                 return _window;
             }

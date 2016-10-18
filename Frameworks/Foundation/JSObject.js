@@ -636,7 +636,7 @@ JSObject.definePropertiesFromExtensions({
     },
 
     toString: function(){
-        return "[%s #%d]".sprintf(this.$class.name, this.objectID);
+        return "[%s #%d]".sprintf(this.$class.className, this.objectID);
     }
 
 });

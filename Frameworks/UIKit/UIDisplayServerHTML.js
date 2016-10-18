@@ -79,7 +79,7 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
             for (var i = 0, l = this.rootLayers.length; i < l; ++i){
                 layer = this.rootLayers[i];
                 if (layer.constraintBox){
-                    layer._updateFrameAfterSuperSizeChange(this.environmentSize);
+                    layer._layoutAfterSuperSizeChange(this.environmentSize);
                 }
             }
         }
@@ -130,10 +130,14 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
             // thing so only one update gets queued.
             keyPath = 'shadow';
         }
-        if (keyPath == 'frame' || keyPath == 'position' || keyPath == 'constraintBox'){
+        if (keyPath == 'bounds' || keyPath == 'position'){
             // Changes to any of these UILayer properties triggers the same CSS updates, so
             // we'll treat them as the same thing so only one update gets queued.
             keyPath = 'box';
+        }
+        if (keyPath == 'anchorPoint'){
+            keyPath = 'transform';
+            UIDisplayServerHTML.$super.setLayerNeedsDisplayForProperty.call(this, layer, 'box');
         }
         UIDisplayServerHTML.$super.setLayerNeedsDisplayForProperty.call(this, layer, keyPath);
     },
@@ -148,7 +152,7 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
         }else{
             parentContext = this.rootContext;
             this.rootLayers.push(layer);
-            layer._updateFrameAfterSuperSizeChange(this.environmentSize);
+            layer._layoutAfterSuperSizeChange(this.environmentSize);
         }
         if (parentContext){
             var context = this._contextForLayer(layer);

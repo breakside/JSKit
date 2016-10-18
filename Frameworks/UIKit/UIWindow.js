@@ -79,11 +79,11 @@ JSClass('UIWindow', UIView, {
     },
 
     convertPointFromScreen: function(point){
-        return JSPoint(point.x - this.frame.origin.x, point.y - this.frame.origin.y);
+        return this.layer._convertPointFromSuperlayer(point);
     },
 
     convertPointToScreen: function(point){
-        return JSPoint(point.x + this.frame.origin.x, point.y + this.frame.origin.y);
+        return this.layer._convertPointToSuperlayer(point);
     },
 
     sendEvent: function(event){

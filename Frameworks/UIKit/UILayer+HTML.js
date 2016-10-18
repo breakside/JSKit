@@ -1,14 +1,13 @@
 // #import "UIKit/UILayer.js"
-/* global UILayer, JSConstraintBox */
+/* global UILayer, JSConstraintBox, JSPoint */
 'use strict';
 
 UILayer.definePropertiesFromExtensions({
 
     initializeHTMLContext: function(context){
-        var element = context.element;
-        element.style.position = 'absolute'; // TODO: allow other layout strategies
-        element.style.boxSizing = 'border-box';
-        element.style.mozBoxSizing = 'border-box';
+        context.style.position = 'absolute'; // TODO: allow other layout strategies
+        context.style.boxSizing = 'border-box';
+        context.style.mozBoxSizing = 'border-box';
     },
 
     updatePropertiesInHTMLContext: function(context, properties){
@@ -23,21 +22,30 @@ UILayer.definePropertiesFromExtensions({
         }
     },
 
+    updateHTMLProperty_box: function(context){
+        var origin = JSPoint(this.presentation.position);
+        var size = this.presentation.bounds.size;
+        origin.x -= size.width * this.presentation.anchorPoint.x;
+        origin.y -= size.height * this.presentation.anchorPoint.y;
+        context.style.top = origin.y + 'px';
+        context.style.left = origin.x + 'px';
+        context.style.width = size.width + 'px';
+        context.style.height = size.height + 'px';
+    },
+
     updateHTMLProperty_transform: function(context){
         var transform = this.presentation.transform;
         var anchorPoint = this.presentation.anchorPoint;
         if (!transform.isIdentity){
-            context.style.webkitTransform = context.style.MozTransform = 'matrix(%f, %f, %f, %f, %f, %f)'.sprintf(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
-            context.style.webkitTransformOrigin = context.style.MozTransformOrigin = '%f%% %f%% 0'.sprintf(anchorPoint.x * 100, anchorPoint.y * 100);
+            var cssTransform = 'matrix(%f, %f, %f, %f, %f, %f)'.sprintf(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
+            context.style.transform = cssTransform;
+            context.style.transformOrigin = '%f%% %f%% 0'.sprintf(anchorPoint.x * 100, anchorPoint.y * 100);
         }else{
-            context.style.webkitTransform = context.style.MozTransform = '';
-            context.style.webkitTransformOrigin = context.style.MozTransformOrigin = '';
+            context.style.transform = '';
+            context.style.transformOrigin = '';
         }
     },
-
-    updateHTMLProperty_anchorPoint: function(context){
-        this.updateHTMLProperty_transform(context);
-    },
+    /*
 
     updateHTMLProperty_box: function (context){
         var box = this.presentation.constraintBox;
@@ -127,6 +135,7 @@ UILayer.definePropertiesFromExtensions({
             // TODO: size canvas
         }
     },
+    */
 
     updateHTMLProperty_hidden: function(context){
         context.style.display = this.presentation.hidden ? 'none' : '';

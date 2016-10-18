@@ -157,6 +157,9 @@ String.prototype.sprintf = function(){
                         formatted += arg.toString ? arg.toString() : arg;
                         break;
                     case 'f':
+                        if (Math.abs(arg) < 0.000001){
+                            arg = 0;
+                        }
                         formatted += arg.toString ? arg.toString() : arg;
                         break;
                     default:
