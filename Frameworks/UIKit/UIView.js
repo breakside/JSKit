@@ -185,6 +185,7 @@ JSClass('UIView', UIResponder, {
     },
 
     layoutSubviews: function(){
+        this.layer.layoutSublayers();
     },
 
     // -------------------------------------------------------------------------

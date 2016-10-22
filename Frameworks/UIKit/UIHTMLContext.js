@@ -1,5 +1,5 @@
 // #import "Foundation/Foundation+HTML.js"
-/* global JSClass, JSContext, JSObject, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint */
+/* global JSClass, JSContext, JSObject, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash */
 'use strict';
 
 function HTMLCanvasProperty(name){
@@ -53,8 +53,6 @@ JSClass("UIHTMLContext", JSContext, {
     style: null,
     canvas: null,
     canvasContext: JSLazyInitProperty('_createCanvasContext'),
-    textNode: null,
-    scrollContentSizer: null,
     firstSublayerNodeIndex: 0,
 
     init: function(){
@@ -62,17 +60,13 @@ JSClass("UIHTMLContext", JSContext, {
 
     initWithElement: function(element){
         this.element = element;
-        this.element._UIHTMLContext = this;
         this.style = element.style;
     },
 
     destroy: function(){
-        this.element._UIHTMLContext = null;
         this.element = null;
         this.style = null;
         this.canvas = null;
-        this.textNode = null;
-        this.scrollContentSizer = null;
     },
 
     _createCanvasContext: function(){
@@ -138,7 +132,7 @@ JSClass("UIHTMLContext", JSContext, {
     },
 
     setShadowOffset: function(offset){
-        this._shadowOffset = offset;
+        this._shadowOffset = JSPoint(offset);
         this.canvasContext.shadowOffsetX = offset.x;
         this.canvasContext.shadowOffsetY = offset.y;
     },
@@ -148,7 +142,7 @@ JSClass("UIHTMLContext", JSContext, {
     },
 
     setLineDash: function(dash){
-        this._lineDash = dash;
+        this._lineDash = JSContextLineDash(dash);
         this.canvasContext.lineDashOffset = dash.phase;
         this.canvasContext.setLineDash(dash.segments);
     },

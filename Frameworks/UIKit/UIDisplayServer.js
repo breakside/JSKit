@@ -9,11 +9,12 @@ JSClass("UIDisplayServer", JSObject, {
     viewLayoutQueue: null,
     layerAnimationQueue: null,
     _animationCount: 0,
+    _isUpdating: false,
 
     init: function(){
         this.layerDisplayQueue = {};
-        this.layerLayoutQueue = {};
-        this.viewLayoutQueue = {};
+        this.layerLayoutQueue = UIDisplayServerQueue();
+        this.viewLayoutQueue = UIDisplayServerQueue();
         this.layerAnimationQueue = {};
     },
 
@@ -36,6 +37,7 @@ JSClass("UIDisplayServer", JSObject, {
     },
 
     updateDisplay: function(t){
+        this._isUpdating = true;
         var completedAnimations = this._updateAnimations(t);
         this._flushViewLayoutQueue();
         this._flushLayerLayoutQueue();
@@ -49,6 +51,7 @@ JSClass("UIDisplayServer", JSObject, {
         for (var i = 0, l = completedAnimations.length; i < l; ++i){
             completedAnimations[i].completionFunction(completedAnimations[i]);
         }
+        this._isUpdating = false;
     },
 
     // -------------------------------------------------------------------------
@@ -133,31 +136,149 @@ JSClass("UIDisplayServer", JSObject, {
     // -------------------------------------------------------------------------
     // MARK: - Layout
 
-    setViewNeedsLayout: function(view){
-        this.viewLayoutQueue[view.objectID] = view;
-        this.setDisplayNeeded();
+    layerNeedsLayout: function(layer){
+        return this.layerLayoutQueue.contains(layer);
+    },
+
+    layoutLayerIfNeeded: function(layer){
+        if (this.layerNeedsLayout(layer)){
+            this.layerLayoutQueue.remove(layer);
+            layer.layout();
+        }
     },
 
     setLayerNeedsLayout: function(layer){
-        this.layerLayoutQueue[layer.objectID] = layer;
-        this.setDisplayNeeded();
+        if (!this.layerNeedsLayout(layer)){
+            this.layerLayoutQueue.enqueue(layer);
+            if (!this._isUpdating){
+                this.setDisplayNeeded();
+            }
+        }
+    },
+
+    viewNeedsLayout: function(view){
+        return this.viewLayoutQueue.contains(view);
+    },
+
+    layoutViewIfNeeded: function(view){
+        if (this.viewNeedsLayout(view)){
+            this.viewLayoutQueue.remove(view);
+            view.layout();
+        }
+    },
+
+    setViewNeedsLayout: function(view){
+        if (!this.viewNeedsLayout(view)){
+            this.viewLayoutQueue.enqueue(view);
+            if (!this._isUpdating){
+                this.setDisplayNeeded();
+            }
+        }
     },
 
     _flushLayerLayoutQueue: function(){
-        for (var id in this.layerLayoutQueue){
-            this.layerLayoutQueue[id].layout();
+        var layer;
+        while ((layer = this.layerLayoutQueue.dequeue()) !== null){
+            layer.layout();
         }
-        this.layerLayoutQueue = {};
     },
 
     _flushViewLayoutQueue: function(){
-        for (var id in this.viewLayoutQueue){
-            this.viewLayoutQueue[id].layout();
+        var view;
+        while ((view = this.viewLayoutQueue.dequeue()) !== null){
+            view.layout();
         }
-        this.viewLayoutQueue = {};
     },
 
 });
+
+function UIDisplayServerQueueItem(value){
+    if (this === undefined){
+        return new UIDisplayServerQueueItem(value);
+    }
+    this.value = value;
+}
+
+UIDisplayServerQueueItem.prototype = {
+    prev: null,
+    next: null,
+    value: null,
+
+    unlink: function(){
+        if (this.prev !== null){
+            this.prev.next = this.next;
+        }
+        if (this.next !== null){
+            this.next.prev = this.prev;
+        }
+        this.prev = null;
+        this.next = null;
+    },
+
+    link: function(next){
+        if (this.next !== null){
+            this.next.prev = next;
+        }
+        this.next = next;
+        next.prev = this;
+    }
+};
+
+function UIDisplayServerQueue(){
+    if (this === undefined){
+        return new UIDisplayServerQueue();
+    }
+    this.map = {};
+}
+
+UIDisplayServerQueue.prototype = {
+
+    first: null,
+    last: null,
+    map: null,
+
+    enqueue: function(value){
+        var link = new UIDisplayServerQueueItem(value);
+        if (this.first === null){
+            this.first = link;
+            this.last = link;
+        }else{
+            this.last.link(link);
+            this.last = link;
+        }
+        this.map[value.objectID] = link;
+    },
+
+    dequeue: function(){
+        if (this.first === null){
+            return null;
+        }
+        var link = this.first;
+        this._removeLink(link);
+        return link.value;
+    },
+
+    contains: function(value){
+        return (value.objectID in this.map);
+    },
+
+    remove: function(value){
+        var link = this.map[value.objectID];
+        this._removeLink(link);
+    },
+
+    _removeLink: function(link){
+        if (link === this.first){
+            this.first = link.next;
+        }
+        if (link === this.last){
+            this.last = link.prev;
+        }
+        link.unlink();
+        delete this.map[link.value.objectID];
+    }
+
+};
 
 // Lazy init a property, so the first access is a function call, but subsequent accesses are simple values
 Object.defineProperty(UIDisplayServer, 'defaultServer', {

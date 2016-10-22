@@ -65,13 +65,9 @@ JSClass("UILayer", JSObject, {
     level:              null,
     animationsByKey:    null,
     animationCount:     0,
-    _sublayersDependentOnWidth: null,
-    _sublayersDependentOnHeight: null,
 
     init: function(){
         this.sublayers = [];
-        this._sublayersDependentOnWidth = {};
-        this._sublayersDependentOnHeight = {};
         this.animationsByKey = {};
         this.model = Object.create(this.$class.Properties);
         this.presentation = this.model;
@@ -111,7 +107,7 @@ JSClass("UILayer", JSObject, {
             this._addImplicitAnimationForKey('position');
             this._recalculateBounds(oldFrame.size);
             this._recalculatePosition();
-            this._layoutSublayersAfterBoundsChange(oldBounds);
+            this.setNeedsLayout();
             UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'bounds');
             UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'position');
         }else{
@@ -128,9 +124,11 @@ JSClass("UILayer", JSObject, {
 
     setConstraintBox: function(constraintBox){
         // When the constraint box changes, the frame (and therefore position and bounds) will
-        // likely change.  _layoutAfterConstraintBoxChange will make any updates as necessary
+        // likely change.  superview.layoutSubviews will adjust as necessary
         this.model.constraintBox = JSConstraintBox(constraintBox);
-        this._layoutAfterConstraintBoxChange();
+        if (this.superlayer !== null){
+            this.superlayer.setNeedsLayout();
+        }
     },
 
     setBounds: function(bounds){
@@ -147,7 +145,7 @@ JSClass("UILayer", JSObject, {
             UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'bounds');
             UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'position');
         }
-        this._layoutSublayersAfterBoundsChange(oldBounds);
+        this.setNeedsLayout();
     },
 
     setTransform: function(transform){
@@ -180,101 +178,6 @@ JSClass("UILayer", JSObject, {
         }
     },
 
-    _layoutAfterConstraintBoxChange: function(){
-        if (this.superlayer){
-            this._layoutAfterSuperSizeChange();
-        }
-    },
-
-    _layoutSublayersAfterBoundsChange: function(oldBounds){
-        // TODO: coordinate with display server about moving layers around
-        var id;
-        var updated = {};
-        if (oldBounds.size.width != this.model.bounds.width){
-            for (id in this._sublayersDependentOnWidth){
-                this._sublayersDependentOnWidth[id]._layoutAfterSuperSizeChange();
-                updated[id] = true;
-            }
-        }
-        if (oldBounds.size.height != this.model.bounds.height){
-            for (id in this._sublayersDependentOnHeight){
-                if (!(id in updated)){
-                    this._sublayersDependentOnHeight[id]._layoutAfterSuperSizeChange();
-                }
-            }
-        }
-    },
-
-    _layoutAfterSuperSizeChange: function(size){
-        var supersize = this.superlayer === null ? size : this.superlayer.model.bounds.size;
-        var dependsOnWidth = false;
-        var dependsOnHeight = false;
-        if (this.model.constraintBox){
-            var box = this.model.constraintBox;
-            var frame = JSRect();
-            if (box.height !== undefined){
-                frame.size.height = box.height;
-            }else if (box.top !== undefined && box.bottom !== undefined){
-                frame.size.height = supersize.height - box.top - box.bottom;
-                dependsOnHeight = true;
-            }else{
-                frame.size.height = 0;
-                // TODO: get intrinsic height
-            }
-            if (box.top !== undefined){
-                frame.origin.y = this.model.constraintBox.top;
-            }else if (box.bottom !== undefined){
-                frame.origin.y = supersize.height - frame.size.height - box.bottom;
-                dependsOnHeight = true;
-            }else{
-                frame.origin.y = (supersize.height - frame.size.height) / 2.0;
-                dependsOnHeight = true;
-            }
-            if (box.width !== undefined){
-                frame.size.width = box.width;
-            }else if (box.left !== undefined && box.right !== undefined){
-                frame.size.width = supersize.width - box.left - box.right;
-                dependsOnWidth = true;
-            }else{
-                frame.size.width = 0;
-                // TODO: get intrinsic width
-            }
-            if (box.left !== undefined){
-                frame.origin.x = this.model.constraintBox.left;
-            }else if (box.right !== undefined){
-                frame.origin.x = supersize.width - frame.size.width - box.right;
-                dependsOnWidth = true;
-            }else{
-                frame.origin.x = (supersize.width - frame.size.width) / 2.0;
-                dependsOnWidth = true;
-            }
-            this.setFrame(frame);
-        }else{
-            dependsOnHeight = false;
-            dependsOnWidth = false;
-        }
-        if (this.superlayer){
-            if (dependsOnWidth){
-                if (!(this.objectID in this.superlayer._sublayersDependentOnWidth)){
-                    this.superlayer._sublayersDependentOnWidth[this.objectID] = this;
-                }
-            }else{
-                if (this.objectID in this.superlayer._sublayersDependentOnWidth){
-                    delete this.superlayer._sublayersDependentOnWidth[this.objectID];
-                }
-            }
-            if (dependsOnHeight){
-                if (!(this.objectID in this.superlayer._sublayersDependentOnHeight)){
-                    this.superlayer._sublayersDependentOnHeight[this.objectID] = this;
-                }
-            }else{
-                if (this.objectID in this.superlayer._sublayersDependentOnHeight){
-                    delete this.superlayer._sublayersDependentOnHeight[this.objectID];
-                }
-            }
-        }
-    },
-
     // -------------------------------------------------------------------------
     // MARK: - Adding and Removing Sublayers
 
@@ -299,8 +202,8 @@ JSClass("UILayer", JSObject, {
             this.sublayers[i].level += 1;
         }
         sublayer.superlayer = this;
-        if (sublayer.constraintBox){
-            sublayer._layoutAfterSuperSizeChange();
+        if (sublayer.model.constraintBox){
+            sublayer.frame = this._frameForConstraintBox(sublayer.model.constraintBox);
         }
         UIDisplayServer.defaultServer.layerInserted(sublayer);
         return sublayer;
@@ -570,6 +473,41 @@ JSClass("UILayer", JSObject, {
     },
 
     // -------------------------------------------------------------------------
+    // MARK: - Layout
+
+    setNeedsLayout: function(){
+        if (this.sublayers.length > 0){
+            UIDisplayServer.defaultServer.setLayerNeedsLayout(this);
+        }
+    },
+
+    needsLayout: function(){
+        return UIDisplayServer.defaultServer.layerNeedsLayout(this);
+    },
+
+    layoutIfNeeded: function(){
+        UIDisplayServer.layoutLayerIfNeeded(this);
+    },
+
+    layout: function(){
+        this.layoutSublayers();
+    },
+
+    layoutSublayers: function(){
+        var sublayer;
+        for (var i = 0, l = this.sublayers.length; i < l; ++i){
+            sublayer = this.sublayers[i];
+            if (sublayer.model.constraintBox !== null){
+                sublayer.frame = this._frameForConstraintBox(sublayer.model.constraintBox);
+            }
+        }
+    },
+
+    _frameForConstraintBox: function(constraintBox){
+        return UILayer.FrameForConstraintBoxInBounds(constraintBox, this.model.bounds);
+    },
+
+    // -------------------------------------------------------------------------
     // MARK: - Display
 
     setNeedsDisplay: function(){
@@ -578,17 +516,6 @@ JSClass("UILayer", JSObject, {
 
     displayIfNeeded: function(){
         UIDisplayServer.defaultServer.displayLayerIfNeeded(this);
-    },
-
-    setNeedsLayout: function(){
-        UIDisplayServer.defaultServer.setLayerNeedsLayout(this);
-    },
-
-    layout: function(){
-        this.layoutSublayers();
-    },
-
-    layoutSublayers: function(){
     },
 
     drawInContext: function(context){
@@ -647,6 +574,41 @@ JSClass("UILayer", JSObject, {
     },
 
 });
+
+UILayer.FrameForConstraintBoxInBounds = function(constraintBox, bounds){
+    var frame = new JSRect();
+    if (constraintBox.height !== undefined){
+        frame.size.height = constraintBox.height;
+    }else if (constraintBox.top !== undefined && constraintBox.bottom !== undefined){
+        frame.size.height = bounds.size.height - constraintBox.top - constraintBox.bottom;
+    }else{
+        frame.size.height = 0;
+        // TODO: get intrinsic height
+    }
+    if (constraintBox.top !== undefined){
+        frame.origin.y = constraintBox.top;
+    }else if (constraintBox.bottom !== undefined){
+        frame.origin.y = bounds.size.height - frame.size.height - constraintBox.bottom;
+    }else{
+        frame.origin.y = (bounds.size.height - frame.size.height) / 2.0;
+    }
+    if (constraintBox.width !== undefined){
+        frame.size.width = constraintBox.width;
+    }else if (constraintBox.left !== undefined && constraintBox.right !== undefined){
+        frame.size.width = bounds.size.width - constraintBox.left - constraintBox.right;
+    }else{
+        frame.size.width = 0;
+        // TODO: get intrinsic width
+    }
+    if (constraintBox.left !== undefined){
+        frame.origin.x = constraintBox.left;
+    }else if (constraintBox.right !== undefined){
+        frame.origin.x = bounds.size.width - frame.size.width - constraintBox.right;
+    }else{
+        frame.origin.x = (bounds.size.width - frame.size.width) / 2.0;
+    }
+    return frame;
+};
 
 UILayer.Properties = {
     frame                   : JSRect.Zero,

@@ -4,7 +4,7 @@
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
 // #feature Document.prototype.createElement
-/* global JSClass, UIDisplayServer, UIDisplayServerHTML, UIHTMLContext, JSSize */
+/* global JSClass, UIDisplayServer, UIDisplayServerHTML, UIHTMLContext, JSSize, JSRect, JSPoint, UILayer */
 'use strict';
 
 JSClass("UIDisplayServerHTML", UIDisplayServer, {
@@ -14,7 +14,7 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
     rootElement: null,
     rootLayers: null,
     rootContext: null,
-    environmentSize: null,
+    rootBounds: null,
     displayFrameID: null,
     _displayFrameBound: null,
     contextsByLayerID: null,
@@ -57,7 +57,7 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
         this.rootElement.style.fontWeight = 300;
         this.rootElement.style.lineHeight = '19px';
         this.rootElement.style.cursor = 'default';
-        this._determineEnvironmentSize();
+        this._determineRootBounds();
         this.setupEventListeners();
     },
 
@@ -74,12 +74,12 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
 
     resize: function(e){
         if (e.currentTarget === this.domWindow){
-            this._determineEnvironmentSize();
+            this._determineRootBounds();
             var layer;
             for (var i = 0, l = this.rootLayers.length; i < l; ++i){
                 layer = this.rootLayers[i];
                 if (layer.constraintBox){
-                    layer._layoutAfterSuperSizeChange(this.environmentSize);
+                    layer.frame = UILayer.FrameForConstraintBoxInBounds(layer.constraintBox, this.rootBounds);
                 }
             }
         }
@@ -152,7 +152,7 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
         }else{
             parentContext = this.rootContext;
             this.rootLayers.push(layer);
-            layer._layoutAfterSuperSizeChange(this.environmentSize);
+            layer.frame = UILayer.FrameForConstraintBoxInBounds(layer.constraintBox, this.rootBounds);
         }
         if (parentContext){
             var context = this._contextForLayer(layer);
@@ -190,8 +190,8 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
     // -------------------------------------------------------------------------
     // MARK: - Private Helpers
 
-    _determineEnvironmentSize: function(){
-        this.environmentSize = JSSize(this.rootElement.offsetWidth, this.rootElement.offsetHeight);
+    _determineRootBounds: function(){
+        this.rootBounds = JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight);
     },
 
     _contextForLayer: function(layer){

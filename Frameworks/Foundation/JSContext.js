@@ -184,8 +184,13 @@ function JSContextLineDash(phase, segments){
     if (this === undefined){
         return new JSContextLineDash(phase, segments);
     }else{
-        this.phase = phase;
-        this.segments = segments;
+        if (phase instanceof JSContextLineDash){
+            this.phase = phase.phase;
+            this.segments = phase.segments;
+        }else{
+            this.phase = phase;
+            this.segments = segments;
+        }
     }
 }
 
