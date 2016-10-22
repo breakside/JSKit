@@ -1,4 +1,5 @@
-// #import "Foundation/Foundation+HTML.js"
+// #import "Foundation/JSContext.js"
+// #import "Foundation/CoreTypes.js"
 /* global JSClass, JSContext, JSObject, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash */
 'use strict';
 
@@ -47,7 +48,7 @@ HTMLCanvasMethod.prototype.define = function(C, key, extensions){
     });
 };
 
-JSClass("UIHTMLContext", JSContext, {
+JSClass("JSHTMLContext", JSContext, {
 
     element: null,
     style: null,
@@ -182,11 +183,11 @@ JSClass("UIHTMLContext", JSContext, {
     },
 
     drawPath: function(drawingMode){
-        throw Error("UIHTMLContext.drawPath not implemented");
+        throw Error("JSHTMLContext.drawPath not implemented");
     },
 
     eoFillPath: function(){
-        throw Error("UIHTMLContext.drawPath not implemented");
+        throw Error("JSHTMLContext.drawPath not implemented");
     },
 
     fillPath: HTMLCanvasMethod('fill'),
@@ -205,15 +206,19 @@ JSClass("UIHTMLContext", JSContext, {
     // Images
 
     drawImage: function(rect, image){
-        throw Error("UIHTMLContext.drawPath not implemented");
+        throw Error("JSHTMLContext.drawPath not implemented");
     },
 
     drawLinearGradient: function(gradient, p1, p2){
-        throw Error("UIHTMLContext.drawPath not implemented");
+        throw Error("JSHTMLContext.drawPath not implemented");
     },
 
     drawRadialGradient: function(gradient, p1, r1, p2, r2){
-        throw Error("UIHTMLContext.drawPath not implemented");
+        throw Error("JSHTMLContext.drawPath not implemented");
+    },
+
+    drawAttributedString: function(string, rect){
+        var container = this.element.ownerDocument.createElement('div');
     }
 
 });

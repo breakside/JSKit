@@ -60,7 +60,7 @@ JSClass.prototype = {
         for (var i in extensions){
             if (typeof(extensions[i]) == 'function'){
                 Object.defineProperty(this.prototype, i, {
-                    configurable: false,
+                    configurable: true,
                     enumerable: false,
                     writable: false,
                     value: extensions[i]
@@ -92,7 +92,7 @@ JSClass.prototype = {
 
     defineInitMethod: function(methodName){
         Object.defineProperty(this, methodName, {
-            configurable: false,
+            configurable: true,
             enumerable: false,
             value: function JSClass_createAndInit(){
                 var args = Array.prototype.slice.call(arguments, 0);

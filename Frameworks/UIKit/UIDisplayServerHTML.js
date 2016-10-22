@@ -1,10 +1,9 @@
 // #import "UIKit/UIDisplayServer.js"
-// #import "UIKit/UIHTMLContext.js"
 // #feature Window.prototype.addEventListener
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
 // #feature Document.prototype.createElement
-/* global JSClass, UIDisplayServer, UIDisplayServerHTML, UIHTMLContext, JSSize, JSRect, JSPoint, UILayer */
+/* global JSClass, UIDisplayServer, UIDisplayServerHTML, JSHTMLContext, JSSize, JSRect, JSPoint, UILayer */
 'use strict';
 
 JSClass("UIDisplayServerHTML", UIDisplayServer, {
@@ -34,7 +33,7 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
     },
 
     setupRenderingEnvironment: function(){
-        this.rootContext = UIHTMLContext.initWithElement(this.rootElement);
+        this.rootContext = JSHTMLContext.initWithElement(this.rootElement);
         if (this.rootElement === this.domDocument.body){
             var body = this.rootElement;
             var html = this.domDocument.documentElement;
@@ -198,7 +197,7 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
         var context = this.contextsByLayerID[layer.objectID];
         if (context === undefined){
             var element = this.domDocument.createElement('div');
-            context = UIHTMLContext.initWithElement(element);
+            context = JSHTMLContext.initWithElement(element);
             if (element.dataset){
                 element.dataset.layerId = layer.objectID;
                 if (layer.delegate !== null){

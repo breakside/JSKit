@@ -136,6 +136,7 @@ JSClass("UILayer", JSObject, {
         // When the bounds change size, the position and frame both need to be recalculated accordingly
         var oldBounds = this.model.bounds;
         this.model.bounds = JSRect(bounds);
+        this.didChangeBounds();
         if (!bounds.size.isEqual(oldBounds.size)){
             this._addImplicitAnimationForKey('bounds');
             this._addImplicitAnimationForKey('position');
@@ -171,11 +172,15 @@ JSClass("UILayer", JSObject, {
     _recalculateBounds: function(oldFrameSize){
         if (this.model.transform.isIdentity){
             this.model.bounds = new JSRect(this.model.bounds.origin, this.model.frame.size);
+            this.didChangeBounds();
         }else{
             var sx = this.model.frame.size.width / oldFrameSize.width;
             var sy = this.model.frame.size.height / oldFrameSize.height;
             // FIXME: hmmmm....
         }
+    },
+
+    didChangeBounds: function(){
     },
 
     // -------------------------------------------------------------------------

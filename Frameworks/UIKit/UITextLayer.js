@@ -1,5 +1,5 @@
 // #import "UIKit/UILayer.js"
-/* global JSClass, JSDynamicProperty, UIDisplayServer, UILayer, UILayerAnimatedProperty, UITextLayer, JSAttributedString */
+/* global JSClass, JSDynamicProperty, UIDisplayServer, JSTextFrame, JSRect, JSPoint, UILayer, UILayerAnimatedProperty, UITextLayer, JSAttributedString */
 'use strict';
 
 JSClass("UITextLayer", UILayer, {
@@ -7,10 +7,17 @@ JSClass("UITextLayer", UILayer, {
     attributedText: JSDynamicProperty('_attributedText', null),
     textColor: UILayerAnimatedProperty(),
     font: null,
+    _textFrame: null,
 
     init: function(){
         UITextLayer.$super.init.call(this);
         this._attributedText = JSAttributedString.init();
+        this._textFrame = JSTextFrame.init();
+    },
+
+    didChangeBounds: function(){
+        this._textFrame.bounds = JSRect(JSPoint(0, 0), this.model.bounds.size);
+        this.setNeedsDisplay();
     },
 
     setText: function(text){
@@ -23,11 +30,16 @@ JSClass("UITextLayer", UILayer, {
 
     setAttributedText: function(text){
         this._attributedText = text;
-        UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'attributedText');
+        this._textFrame.attributedText = text;
+        this.setNeedsDisplay();
     },
 
     getAttributedText: function(){
         return this._attributedText;
+    },
+
+    drawInContext: function(context){
+        this._textFrame.drawInContext(context);
     }
 
 });

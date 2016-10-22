@@ -22,4 +22,5 @@
 // #import "Foundation/JSFont.js"
 // #import "Foundation/JSData.js"
 // #import "Foundation/JSContext.js"
+// #import "Foundation/JSTextFrame.js"
 'use strict';

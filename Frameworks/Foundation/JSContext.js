@@ -150,7 +150,7 @@ JSClass("JSContext", JSObject, {
     },
 
     drawRadialGradient: function(gradient, p1, r1, p2, r2){
-    }
+    },
 
 });
 

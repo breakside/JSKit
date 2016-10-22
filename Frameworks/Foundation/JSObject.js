@@ -29,7 +29,7 @@ JSObject.prototype = Object.create(Object.prototype, {
 
 JSObject.defineInitMethod = function(methodName){
     Object.defineProperty(this, methodName, {
-        configurable: false,
+        configurable: true,
         enumerable: false,
         value: function JSObject_createAndInit(){
             var args = Array.prototype.slice.call(arguments, 0);
