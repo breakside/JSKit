@@ -50,10 +50,10 @@ JSClass("JSTextFrame", JSObject, {
     },
 
     drawInContext: function(context){
-        this._drawInUnspecifiedContext();
+        this._drawInGenericContext();
     },
 
-    _drawInUnspecifiedContext: function(context){
+    _drawInGenericContext: function(context){
     }
 
 });

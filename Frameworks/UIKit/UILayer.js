@@ -25,7 +25,7 @@ UILayerAnimatedProperty.prototype.define = function(C, key, extensions){
         setter = function UILayer_setAnimatableProperty(value){
             this._addImplicitAnimationForKey(key);
             this.model[key] = value;
-            UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, key);
+            this.didChangeProperty(key);
         };
         Object.defineProperty(C.prototype, setterName, {
             configurable: true,
@@ -71,6 +71,7 @@ JSClass("UILayer", JSObject, {
         this.animationsByKey = {};
         this.model = Object.create(this.$class.Properties);
         this.presentation = this.model;
+        this._dirty = {};
     },
 
     // -------------------------------------------------------------------------
@@ -86,7 +87,7 @@ JSClass("UILayer", JSObject, {
         var origin = JSPoint(this.model.frame.origin.x + dx, this.model.frame.origin.y + dy);
         this.model.position = JSPoint(position);
         this.model.frame = JSRect(origin, this.model.frame.size);
-        UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'position');
+        this.didChangeProperty('position');
     },
 
     setAnchorPoint: function(anchorPoint){
@@ -94,7 +95,7 @@ JSClass("UILayer", JSObject, {
         this._addImplicitAnimationForKey('anchorPoint');
         this.model.anchorPoint = anchorPoint;
         this._recalculateFrame();
-        UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'anchorPoint');
+        this.didChangeProperty('anchorPoint');
     },
 
     setFrame: function(frame){
@@ -108,8 +109,7 @@ JSClass("UILayer", JSObject, {
             this._recalculateBounds(oldFrame.size);
             this._recalculatePosition();
             this.setNeedsLayout();
-            UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'bounds');
-            UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'position');
+            this.didChangeProperty('bounds.size');
         }else{
             // When just the origin changes, we only need to update the position, and can
             // do a simple delta offset instead of a full recalculation
@@ -118,8 +118,8 @@ JSClass("UILayer", JSObject, {
             var dy = frame.origin.y - oldFrame.origin.y;
             this.model.position.x += dx;
             this.model.position.y += dy;
-            UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'position');
         }
+        this.didChangeProperty('position');
     },
 
     setConstraintBox: function(constraintBox){
@@ -136,17 +136,24 @@ JSClass("UILayer", JSObject, {
         // When the bounds change size, the position and frame both need to be recalculated accordingly
         var oldBounds = this.model.bounds;
         this.model.bounds = JSRect(bounds);
-        this.didChangeBounds();
         if (!bounds.size.isEqual(oldBounds.size)){
             this._addImplicitAnimationForKey('bounds');
             this._addImplicitAnimationForKey('position');
             this._recalculatePosition();
             // Frame calculation depends on the recaculated position, so it must be done second
             this._recalculateFrame();
-            UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'bounds');
-            UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'position');
+            this.didChangeProperty('position');
+            this.didChangeProperty('bounds.size');
         }
-        this.setNeedsLayout();
+        if (!bounds.origin.isEqual(oldBounds.origin)){
+            this.boundsOriginDidChange();
+        }
+    },
+
+    boundsOriginDidChange: function(){
+        for (var i = 0, l = this.sublayers.length; i < l; ++i){
+            UIDisplayServer.defaultServer.setLayerNeedsReposition(this.sublayers[i]);
+        }
     },
 
     setTransform: function(transform){
@@ -155,7 +162,7 @@ JSClass("UILayer", JSObject, {
         this._addImplicitAnimationForKey('transform');
         this.model.transform = JSAffineTransform(transform);
         this._recalculateFrame();
-        UIDisplayServer.defaultServer.setLayerNeedsDisplayForProperty(this, 'transform');
+        this.didChangeProperty('transform');
     },
 
     _recalculateFrame: function(){
@@ -172,7 +179,6 @@ JSClass("UILayer", JSObject, {
     _recalculateBounds: function(oldFrameSize){
         if (this.model.transform.isIdentity){
             this.model.bounds = new JSRect(this.model.bounds.origin, this.model.frame.size);
-            this.didChangeBounds();
         }else{
             var sx = this.model.frame.size.width / oldFrameSize.width;
             var sy = this.model.frame.size.height / oldFrameSize.height;
@@ -180,7 +186,8 @@ JSClass("UILayer", JSObject, {
         }
     },
 
-    didChangeBounds: function(){
+    didChangeProperty: function(keyPath){
+        UIDisplayServer.defaultServer.layerDidChangeProperty(this, keyPath);
     },
 
     // -------------------------------------------------------------------------
@@ -495,7 +502,11 @@ JSClass("UILayer", JSObject, {
     },
 
     layout: function(){
-        this.layoutSublayers();
+        if (this.delegate !== null && this.delegate.layoutSublayersOfLayer !== undefined){
+            this.delegate.layoutSublayersOfLayer(this);
+        }else{
+            this.layoutSublayers();
+        }
     },
 
     layoutSublayers: function(){
@@ -523,6 +534,11 @@ JSClass("UILayer", JSObject, {
         UIDisplayServer.defaultServer.displayLayerIfNeeded(this);
     },
 
+    display: function(){
+        var context = UIDisplayServer.defaultServer.contextForLayer(this);
+        this._displayInGenericContext(context, false);
+    },
+
     drawInContext: function(context){
         if (this.delegate && this.delegate.drawLayerInContext){
             this.delegate.drawLayerInContext(this, context);
@@ -530,21 +546,28 @@ JSClass("UILayer", JSObject, {
     },
 
     renderInContext: function(context){
+        this._displayInGenericContext(context, true);
+    },
+
+    _displayInGenericContext: function(context, includeSublayers){
         if (this.hidden) return;
         this.drawBasePropertiesInContext(context);
         this.drawInContext(context);
-        var sublayer;
-        for (var i = 0, l = this.sublayers.length; i < l; ++i){
-            sublayer = this.sublayers[i];
-            context.save();
-            context.translate(sublayer.frame.origin.x, sublayer.frame.origin.y);
-            context.concatCTM(sublayer.transform);
-            sublayer.renderInContext(context);
-            context.restore();
+        if (includeSublayers){
+            var sublayer;
+            var transform;
+            for (var i = 0, l = this.sublayers.length; i < l; ++i){
+                sublayer = this.sublayers[i];
+                context.save();
+                transform = sublayer._transformFromSuperlayer();
+                context.concatCTM(transform);
+                sublayer.renderInContext(context);
+                context.restore();
+            }
         }
     },
 
-    drawBasePropertiesInContext: function(context){
+    _drawBasePropertiesInContext: function(context){
         if (this.hidden) return;
         var bounds = JSRect(0, 0, this.bounds.size.width, this.bounds.size.height);
         context.save();

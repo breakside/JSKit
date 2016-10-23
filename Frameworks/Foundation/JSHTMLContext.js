@@ -51,10 +51,13 @@ HTMLCanvasMethod.prototype.define = function(C, key, extensions){
 JSClass("JSHTMLContext", JSContext, {
 
     element: null,
+    borderElement: null,
     style: null,
     canvas: null,
     canvasContext: JSLazyInitProperty('_createCanvasContext'),
     firstSublayerNodeIndex: 0,
+    propertiesNeedingUpdate: null,
+    needsRedraw: false,
 
     init: function(){
     },
@@ -62,6 +65,7 @@ JSClass("JSHTMLContext", JSContext, {
     initWithElement: function(element){
         this.element = element;
         this.style = element.style;
+        this.propertiesNeedingUpdate = {};
     },
 
     destroy: function(){
@@ -219,6 +223,6 @@ JSClass("JSHTMLContext", JSContext, {
 
     drawAttributedString: function(string, rect){
         var container = this.element.ownerDocument.createElement('div');
-    }
+    },
 
 });

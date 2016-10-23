@@ -38,7 +38,7 @@ JSTextFrame.definePropertiesFromExtensions({
         if (context.isKindOfClass(JSHTMLContext)){
             this._drawInHTMLContext(context);
         }else{
-            this._drawInUnspecifiedContext(context);
+            this._drawInGenericContext(context);
         }
     },
 

@@ -1,18 +1,46 @@
 // #import "UIKit/UILayer.js"
-/* global UILayer, JSConstraintBox, JSPoint */
+// #import "UIKit/UIDisplayServer.js"
+/* global UILayer, JSConstraintBox, JSPoint, UIDisplayServer */
 'use strict';
 
 UILayer.definePropertiesFromExtensions({
 
+    display: function(){
+        var context = UIDisplayServer.defaultServer.contextForLayer(this);
+        this.createBorderElementIfNeeded(context);
+        this.updatePropertiesInHTMLContext(context);
+        context.propertiesNeedingUpdate = {};
+        if (context.needsRedraw){
+            this.drawInContext(context);
+            context.needsRedraw = false;
+        }
+    },
+
     initializeHTMLContext: function(context){
-        context.style.position = 'absolute'; // TODO: allow other layout strategies
+        context.style.position = 'absolute';
         context.style.boxSizing = 'border-box';
         context.style.mozBoxSizing = 'border-box';
     },
 
-    updatePropertiesInHTMLContext: function(context, properties){
+    destroyHTMLContext: function(context){
+    },
+
+    createBorderElementIfNeeded: function(context){
+        var needsBorderElement = context.borderElement === null && this.presentation.borderWidth > 0;
+        if (needsBorderElement){
+            context.borderElement = context.element.ownerDocument.createElement('div');
+            context.element.appendChild(context.borderElement);
+            context.borderElement.style.position = 'absolute';
+            context.borderElement.style.top = '0';
+            context.borderElement.style.left = '0';
+            context.borderElement.style.bottom = '0';
+            context.borderElement.style.right = '0';
+        }
+    },
+
+    updatePropertiesInHTMLContext: function(context){
         var methodName;
-        for (var keyPath in properties){
+        for (var keyPath in context.propertiesNeedingUpdate){
             methodName = 'updateHTMLProperty_' + keyPath;
             if (this[methodName]){
                 this[methodName].call(this, context);
@@ -22,15 +50,9 @@ UILayer.definePropertiesFromExtensions({
         }
     },
 
-    updateHTMLProperty_box: function(context){
-        var origin = JSPoint(this.presentation.position);
-        var size = this.presentation.bounds.size;
-        origin.x -= size.width * this.presentation.anchorPoint.x;
-        origin.y -= size.height * this.presentation.anchorPoint.y;
-        context.style.top = origin.y + 'px';
-        context.style.left = origin.x + 'px';
-        context.style.width = size.width + 'px';
-        context.style.height = size.height + 'px';
+    updateHTMLProperty_bounds: function(context){
+        context.style.width = this.presentation.bounds.size.width + 'px';
+        context.style.height = this.presentation.bounds.size.height + 'px';
     },
 
     updateHTMLProperty_transform: function(context){
@@ -45,97 +67,6 @@ UILayer.definePropertiesFromExtensions({
             context.style.transformOrigin = '';
         }
     },
-    /*
-
-    updateHTMLProperty_box: function (context){
-        var box = this.presentation.constraintBox;
-        if (!box){
-            box = JSConstraintBox.Rect(this.presentation.frame);
-        }
-        for (var property in box){
-            if (box[property] === undefined){
-                context.style[property] = '';
-            }else{
-                context.style[property] = box[property] + 'px';
-            }
-        }
-        if (box.left === undefined && box.right === undefined){
-            var width = box.width;
-            if (width === undefined){
-                width = this.presentation.frame.size.width;
-            }
-            context.style.left = '50%';
-            context.style.marginLeft = (-width) + 'px';
-        }else{
-            context.style.marginLeft = '';
-        }
-        if (box.top === undefined && box.bottom === undefined){
-            var height = box.height;
-            if (height === undefined){
-                height = this.presentation.frame.size.height;
-            }
-            context.style.top = '50%';
-            context.style.marginTop = (-height) + 'px';
-        }else{
-            context.style.marginTop = '';
-        }
-        if (context.canvas){
-            // TODO: size canvas
-        }
-    },
-
-    'updateHTMLProperty_frame.origin.x': function(context){
-        context.style.left = this.presentation.frame.origin.x + 'px';
-    },
-
-    'updateHTMLProperty_frame.origin.y': function(context){
-        context.style.top = this.presentation.frame.origin.y + 'px';
-    },
-
-    'updateHTMLProperty_frame.size.width': function(context){
-        context.style.width = this.presentation.frame.size.width + 'px';
-        if (context.canvas){
-            // TODO: size canvas
-        }
-    },
-
-    'updateHTMLProperty_frame.size.height': function(context){
-        context.style.height = this.presentation.frame.size.height + 'px';
-        if (context.canvas){
-            // TODO: size canvas
-        }
-    },
-
-    'updateHTMLProperty_constraintBox.top': function(context){
-        context.style.top = this.presentation.constraintBox.top + 'px';
-    },
-
-    'updateHTMLProperty_constraintBox.right': function(context){
-        context.style.right = this.presentation.constraintBox.right + 'px';
-    },
-
-    'updateHTMLProperty_constraintBox.bottom': function(context){
-        context.style.bottom = this.presentation.constraintBox.bottom + 'px';
-    },
-
-    'updateHTMLProperty_constraintBox.left': function(context){
-        context.style.left = this.presentation.constraintBox.left + 'px';
-    },
-
-    'updateHTMLProperty_constraintBox.width': function(context){
-        context.style.width = this.presentation.constraintBox.width + 'px';
-        if (context.canvas){
-            // TODO: size canvas
-        }
-    },
-
-    'updateHTMLProperty_constraintBox.height': function(context){
-        context.style.height = this.presentation.constraintBox.height + 'px';
-        if (context.canvas){
-            // TODO: size canvas
-        }
-    },
-    */
 
     updateHTMLProperty_hidden: function(context){
         context.style.display = this.presentation.hidden ? 'none' : '';
@@ -149,22 +80,29 @@ UILayer.definePropertiesFromExtensions({
         context.style.backgroundColor = this.presentation.backgroundColor ? this.presentation.backgroundColor.cssString() : '';
     },
 
-    updateHTMLProperty_borderColor: function(context){
-        context.style.borderColor = this.presentation.borderColor ? this.presentation.borderColor.cssString() : '';
-    },
-
     updateHTMLProperty_borderWidth: function(context){
         if (this.presentation.borderWidth){
-            context.style.borderWidth = this.presentation.borderWidth + 'px';
-            context.style.borderStyle = 'solid';
+            context.borderElement.style.borderWidth = this.presentation.borderWidth + 'px';
+            context.borderElement.style.borderStyle = 'solid';
         }else{
-            context.style.borderWidth = '';
-            context.style.borderStyle = '';
+            if (context.borderElement !== null){
+                context.borderElement.parentNode.removeChild(context.borderElement);
+                context.borderElement = null;
+            }
+        }
+    },
+
+    updateHTMLProperty_borderColor: function(context){
+        if (context.borderElement !== null){
+            context.borderElement.style.borderColor = this.presentation.borderColor ? this.presentation.borderColor.cssString() : '';
         }
     },
 
     updateHTMLProperty_cornerRadius: function(context){
         context.style.borderRadius = this.presentation.cornerRadius ? this.presentation.cornerRadius + 'px' : '';
+        if (context.borderElement !== null){
+            context.borderElement.style.borderRadius = this.presentation.cornerRadius ? this.presentation.cornerRadius + 'px' : '';
+        }
     },
 
     updateHTMLProperty_shadow: function(context){

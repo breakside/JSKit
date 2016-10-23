@@ -170,26 +170,26 @@ JSClass('UIView', UIResponder, {
     },
 
     // -------------------------------------------------------------------------
-    // MARK: - Display
-
-    setNeedsDisplay: function(){
-        this.layer.setNeedsDisplay();
-    },
+    // MARK: - Layout
 
     setNeedsLayout: function(){
-        UIDisplayServer.defaultServer.setViewNeedsLayout(this);
-    },
-
-    layout: function(){
-        this.layoutSubviews();
+        this.layer.setNeedsLayout();
     },
 
     layoutSubviews: function(){
         this.layer.layoutSublayers();
     },
 
+    layoutSublayersOfLayer: function(layer){
+        this.layoutSubviews();
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Display
+
+    setNeedsDisplay: function(){
+        this.layer.setNeedsDisplay();
+    },
 
     drawLayerInContext: function(layer, context){
     },

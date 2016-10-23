@@ -15,9 +15,12 @@ JSClass("UITextLayer", UILayer, {
         this._textFrame = JSTextFrame.init();
     },
 
-    didChangeBounds: function(){
-        this._textFrame.bounds = JSRect(JSPoint(0, 0), this.model.bounds.size);
-        this.setNeedsDisplay();
+    didChangeProperty: function(keyPath){
+        this.$class.$super.didChangeProperty.call(this, keyPath);
+        if (keyPath == 'bounds.size'){
+            this._textFrame.bounds = JSRect(JSPoint(0, 0), this.model.bounds.size);
+            this.setNeedsDisplay();
+        }
     },
 
     setText: function(text){

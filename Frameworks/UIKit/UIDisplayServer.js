@@ -6,15 +6,15 @@ JSClass("UIDisplayServer", JSObject, {
 
     layerDisplayQueue: null,
     layerLayoutQueue: null,
-    viewLayoutQueue: null,
+    layerRepositionQueue: null,
     layerAnimationQueue: null,
     _animationCount: 0,
     _isUpdating: false,
 
     init: function(){
-        this.layerDisplayQueue = {};
+        this.layerDisplayQueue = UIDisplayServerQueue();
         this.layerLayoutQueue = UIDisplayServerQueue();
-        this.viewLayoutQueue = UIDisplayServerQueue();
+        this.layerRepositionQueue = UIDisplayServerQueue();
         this.layerAnimationQueue = {};
     },
 
@@ -29,22 +29,35 @@ JSClass("UIDisplayServer", JSObject, {
         throw new Error("UIDisplayServer.layerRemoved must be implemented by subclass");
     },
 
+    layerDidChangeProperty: function(layer, keyPath){
+        var parts = keyPath.split('.');
+        switch (parts[0]){
+            case 'position':
+            case 'anchorPoint':
+                this.setLayerNeedsReposition(layer);
+                break;
+            default:
+                this.setLayerNeedsDisplay(layer);
+                break;
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Display Cycle
 
-    setDisplayNeeded: function(){
-        throw new Error("UIDisplayServer.setDisplayNeeded must be implemented by subclass");
+    setUpdateNeeded: function(){
+        throw new Error("UIDisplayServer.setUpdateNeeded must be implemented by subclass");
     },
 
     updateDisplay: function(t){
         this._isUpdating = true;
         var completedAnimations = this._updateAnimations(t);
-        this._flushViewLayoutQueue();
         this._flushLayerLayoutQueue();
+        this._flushLayerRepositionQueue();
         this._flushLayerDisplayQueue();
 
         if (this._animationCount > 0){
-            this.setDisplayNeeded();
+            this.setUpdateNeeded();
         }
 
         // Call any animation callbacks
@@ -55,82 +68,60 @@ JSClass("UIDisplayServer", JSObject, {
     },
 
     // -------------------------------------------------------------------------
-    // MARK: - Layer Display Updates
+    // MARK: - Display
 
-    setLayerNeedsDisplay: function(layer){
-        if (!(layer.objectID in this.layerDisplayQueue)){
-            this.layerDisplayQueue[layer.objectID] = {layer: layer, properties: {}, redraw: true};
-        }else{
-            this.layerDisplayQueue[layer.objectID].redraw = true;
-        }
-        this.setDisplayNeeded();
-    },
-
-    setLayerNeedsDisplayForProperty: function(layer, keyPath){
-        if (!(layer.objectID in this.layerDisplayQueue)){
-            this.layerDisplayQueue[layer.objectID] = {layer: layer, properties: {}};
-        }
-        this.layerDisplayQueue[layer.objectID].properties[keyPath] = true;
-        this.setDisplayNeeded();
+    contextForLayer: function(){
+        throw new Error("UIDisplayServer.contextForLayer must be implemented by subclass");
     },
 
     layerNeedsDisplay: function(layer){
-        return (layer.objectID in this.layerDisplayQueue);
+        return this.layerDisplayQueue.contains(layer);
     },
 
     displayLayerIfNeeded: function(layer){
-        if (this.layerNeedsDisplay()){
-            this._displayLayerQueueEntry(this.layerDisplayQueue[layer.objectID]);
-            delete this.layerDisplayQueue[layer.objectID];
+        if (this.layerNeedsDisplay(layer)){
+            this.layerDisplayQueue.remove(layer);
+            layer.display();
+        }
+    },
+
+    setLayerNeedsDisplay: function(layer){
+        if (!this.layerNeedsDisplay(layer)){
+            this.layerDisplayQueue.enqueue(layer);
+            if (!this._isUpdating){
+                this.setUpdateNeeded();
+            }
         }
     },
 
     _flushLayerDisplayQueue: function(){
-        for (var id in this.layerDisplayQueue){
-            this._displayLayerQueueEntry(this.layerDisplayQueue[id]);
+        var layer;
+        while ((layer = this.layerDisplayQueue.dequeue()) !== null){
+            layer.display();
         }
-        this.layerDisplayQueue = {};
-    },
-
-    _displayLayerQueueEntry: function(entry){
-        throw new Error("UIDisplayServer._displayLayerQueueEntry must be implemented by subclass");
     },
 
     // -------------------------------------------------------------------------
-    // MARK: - Animation
+    // MARK: - Position
 
-    setLayerNeedsAnimation: function(layer){
-        if (!(layer.objectID in this.layerAnimationQueue)){
-            ++this._animationCount;
+    setLayerNeedsReposition: function(layer){
+        if (!this.layerRepositionQueue.contains(layer)){
+            this.layerRepositionQueue.enqueue(layer);
+            if (!this._isUpdating){
+                this.setUpdateNeeded();
+            }
         }
-        this.layerAnimationQueue[layer.objectID] = layer;
-        this.setDisplayNeeded();
     },
 
-    _updateAnimations: function(t){
-        var animation;
-        var completedAnimations = [];
-        var id, key;
+    _flushLayerRepositionQueue: function(){
         var layer;
-        for (id in this.layerAnimationQueue){
-            layer = this.layerAnimationQueue[id];
-            for (key in layer.animationsByKey){
-                animation = layer.animationsByKey[key];
-                animation.updateForTime(t);
-                if (animation.isComplete){
-                    layer.removeAnimationForKey(key);
-                    if (animation.completionFunction){
-                        completedAnimations.push(animation);
-                    }
-                }
-                this.setLayerNeedsDisplayForProperty(layer, animation.keyPath);
-            }
-            if (layer.animationCount === 0){
-                delete this.layerAnimationQueue[id];
-                --this._animationCount;
-            }
+        while ((layer = this.layerRepositionQueue.dequeue()) !== null){
+            this.positionLayer(layer);
         }
-        return completedAnimations;
+    },
+
+    positionLayer: function(layer){
+        throw new Error("UIDisplayServer.positionLayer must be implemented by subclass");
     },
 
     // -------------------------------------------------------------------------
@@ -151,27 +142,7 @@ JSClass("UIDisplayServer", JSObject, {
         if (!this.layerNeedsLayout(layer)){
             this.layerLayoutQueue.enqueue(layer);
             if (!this._isUpdating){
-                this.setDisplayNeeded();
-            }
-        }
-    },
-
-    viewNeedsLayout: function(view){
-        return this.viewLayoutQueue.contains(view);
-    },
-
-    layoutViewIfNeeded: function(view){
-        if (this.viewNeedsLayout(view)){
-            this.viewLayoutQueue.remove(view);
-            view.layout();
-        }
-    },
-
-    setViewNeedsLayout: function(view){
-        if (!this.viewNeedsLayout(view)){
-            this.viewLayoutQueue.enqueue(view);
-            if (!this._isUpdating){
-                this.setDisplayNeeded();
+                this.setUpdateNeeded();
             }
         }
     },
@@ -183,11 +154,41 @@ JSClass("UIDisplayServer", JSObject, {
         }
     },
 
-    _flushViewLayoutQueue: function(){
-        var view;
-        while ((view = this.viewLayoutQueue.dequeue()) !== null){
-            view.layout();
+    // -------------------------------------------------------------------------
+    // MARK: - Animation
+
+    setLayerNeedsAnimation: function(layer){
+        if (!(layer.objectID in this.layerAnimationQueue)){
+            ++this._animationCount;
         }
+        this.layerAnimationQueue[layer.objectID] = layer;
+        this.setUpdateNeeded();
+    },
+
+    _updateAnimations: function(t){
+        var animation;
+        var completedAnimations = [];
+        var id, key;
+        var layer;
+        for (id in this.layerAnimationQueue){
+            layer = this.layerAnimationQueue[id];
+            for (key in layer.animationsByKey){
+                animation = layer.animationsByKey[key];
+                animation.updateForTime(t);
+                if (animation.isComplete){
+                    layer.removeAnimationForKey(key);
+                    if (animation.completionFuncstion){
+                        completedAnimations.push(animation);
+                    }
+                }
+                this.layerDidChangeProperty(layer, key);
+            }
+            if (layer.animationCount === 0){
+                delete this.layerAnimationQueue[id];
+                --this._animationCount;
+            }
+        }
+        return completedAnimations;
     },
 
 });

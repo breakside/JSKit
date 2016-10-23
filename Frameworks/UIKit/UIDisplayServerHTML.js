@@ -87,7 +87,7 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
     // -------------------------------------------------------------------------
     // MARK: - Display Cycle
 
-    setDisplayNeeded: function(){
+    setUpdateNeeded: function(){
         this.requestDisplayFrame();
     },
 
@@ -102,43 +102,60 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
         this.updateDisplay(t);
     },
 
-    _displayLayerQueueEntry: function(entry){
-        var context = this._contextForLayer(entry.layer);
-        entry.layer.updatePropertiesInHTMLContext(context, entry.properties);
-        if (entry.redraw){
-            entry.layer.drawInContext(context);
+    // -------------------------------------------------------------------------
+    // MARK: - Overrides
+
+    layerDidChangeProperty: function(layer, keyPath){
+        var parts = keyPath.split('.');
+        switch (parts[0]){
+            case 'position':
+            case 'anchorPoint':
+                this.setLayerNeedsReposition(layer);
+                break;
+            default:
+                var context = this.contextForLayer(layer);
+                context.propertiesNeedingUpdate[parts[0]] = true;
+                this.$class.$super.setLayerNeedsDisplay.call(this, layer);
+                break;
         }
     },
 
-    // -------------------------------------------------------------------------
-    // MARK: - Layer Upates
+    setLayerNeedsDisplay: function(layer){
+        var context = this.contextForLayer(layer);
+        context.needsRedraw = true;
+        this.$class.$super.setLayerNeedsDisplay.call(this, layer);
+    },
 
-    setLayerNeedsDisplayForProperty: function(layer, keyPath){
-        if (keyPath === 'superlayer.bounds.size'){
-            // superlayer.bounds.size is a special keyPath used when the superlayer of a
-            // layer with a constraint box changes its bounds size, affecting the sublayer's
-            // layout based on the constraints specified on the sublayer and the new size.
-            // Because of the way we assign CSS positional styles for a constraint box,
-            // specifically that CSS already does the exact same calculation we do,
-            // There's no CSS that needs to change in this case, so we won't queue anything.
-            return;
+    positionLayer: function(layer){
+        // Layers need to be positioned in the coordinates of their superlayer
+        // Position and anchor point get us most of the way there, but there's still
+        // the superlayer's bounds to consider.
+        var context = this.contextForLayer(layer);
+        var origin = JSPoint(layer.presentation.position);
+        var parentScrolls = context.element.parentNode !== null && (context.element.parentNode.style.overflow == 'auto' || context.element.parentNode.style.overflow == 'scroll');
+        var superorigin = (layer.superlayer !== null && !parentScrolls) ? layer.superlayer.presentation.bounds.origin : JSPoint.Zero;
+        var size = layer.presentation.bounds.size;
+        origin.x -= size.width * layer.presentation.anchorPoint.x - superorigin.x;
+        origin.y -= size.height * layer.presentation.anchorPoint.y - superorigin.y;
+        context.style.top = origin.y + 'px';
+        context.style.left = origin.x + 'px';
+    },
+
+    contextForLayer: function(layer){
+        var context = this.contextsByLayerID[layer.objectID];
+        if (context === undefined){
+            var element = this.domDocument.createElement('div');
+            context = JSHTMLContext.initWithElement(element);
+            if (element.dataset){
+                element.dataset.layerId = layer.objectID;
+                if (layer.delegate !== null){
+                    element.dataset.viewClass = layer.delegate.$class.className;
+                }
+            }
+            this.contextsByLayerID[layer.objectID] = context;
+            layer.initializeHTMLContext(context);
         }
-        if (keyPath == 'shadowColor' || keyPath == 'shadowOffset' || keyPath == 'shadowRadius'){
-            // Because the boxShadow property in CSS is a single property, and the combination
-            // of several UILayer properties, we'll treat any shadow-related property as the same
-            // thing so only one update gets queued.
-            keyPath = 'shadow';
-        }
-        if (keyPath == 'bounds' || keyPath == 'position'){
-            // Changes to any of these UILayer properties triggers the same CSS updates, so
-            // we'll treat them as the same thing so only one update gets queued.
-            keyPath = 'box';
-        }
-        if (keyPath == 'anchorPoint'){
-            keyPath = 'transform';
-            UIDisplayServerHTML.$super.setLayerNeedsDisplayForProperty.call(this, layer, 'box');
-        }
-        UIDisplayServerHTML.$super.setLayerNeedsDisplayForProperty.call(this, layer, keyPath);
+        return context;
     },
 
     // -------------------------------------------------------------------------
@@ -154,7 +171,7 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
             layer.frame = UILayer.FrameForConstraintBoxInBounds(layer.constraintBox, this.rootBounds);
         }
         if (parentContext){
-            var context = this._contextForLayer(layer);
+            var context = this.contextForLayer(layer);
             var insertIndex = parentContext.firstSublayerNodeIndex + layer.level;
             if (insertIndex < parentContext.element.childNodes.length){
                 parentContext.element.insertBefore(context.element, parentContext.element.childNodes[insertIndex]);
@@ -175,6 +192,7 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
                 context.element.parentNode.removeChild(context.element);
             }
             // FIXME: when a view is just moving to a new superview, we shouldn't destroy the context
+            layer.destroyHTMLContext(context);
             context.destroy();
             delete this.contextsByLayerID[layer.objectID];
         }
@@ -191,23 +209,6 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
 
     _determineRootBounds: function(){
         this.rootBounds = JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight);
-    },
-
-    _contextForLayer: function(layer){
-        var context = this.contextsByLayerID[layer.objectID];
-        if (context === undefined){
-            var element = this.domDocument.createElement('div');
-            context = JSHTMLContext.initWithElement(element);
-            if (element.dataset){
-                element.dataset.layerId = layer.objectID;
-                if (layer.delegate !== null){
-                    element.dataset.viewClass = layer.delegate.$class.className;
-                }
-            }
-            this.contextsByLayerID[layer.objectID] = context;
-            layer.initializeHTMLContext(context);
-        }
-        return context;
     }
 
 });
