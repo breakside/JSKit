@@ -1,8 +1,10 @@
 // #import "UIKit/UIScrollLayer.js"
-/* global JSClass, UIScrollLayer, JSPoint */
+/* global JSClass, UIScrollLayer, JSPoint, JSRect */
 'use strict';
 
 UIScrollLayer.definePropertiesFromExtensions({
+
+    _ignoreNextSrollEvent: false,
 
     boundsOriginDidChange: function(){
         // base class requests new positions for sublayers, but html scrolling already takes
@@ -20,29 +22,39 @@ UIScrollLayer.definePropertiesFromExtensions({
         sizer.style.height = '0px';
         element.style.overflow = 'auto';
         context.scrollContentSizer = sizer;
-        // element.addEventListener('scroll', this);
+        element.addEventListener('scroll', this);
     },
 
     destroyHTMLContext: function(context){
         var element = context.element;
-        // element.removeEventListener('scroll', this);
+        element.removeEventListener('scroll', this);
     },
 
-    // FIXME: eliminate echos when setting element scroll and observing scroll
     updateHTMLProperty_contentSize: function(context){
+        // Always update the offset first so the width/height updates don't trigger their own scroll event
+        // in the case where the content offset must be reduced to fit within the new size constraints.
+        // UIScrollLayer will have already done this calculation, and an offset update will be pending.
+        this.updateHTMLProperty_contentOffset(context);
         context.scrollContentSizer.style.width = this.presentation.contentSize.width + 'px';
         context.scrollContentSizer.style.height = this.presentation.contentSize.height + 'px';
     },
 
     updateHTMLProperty_contentOffset: function(context){
-        context.element.scrollLeft = this.presentation.contentOffset.x;
-        context.element.scrollTop = this.presentation.contentOffset.y;
+        if (this.presentation.contentOffset.x != context.element.scrollLeft || this.presentation.contentOffset.y != context.element.scrollTop){
+            this._ignoreNextSrollEvent = true;
+            context.element.scrollLeft = this.presentation.contentOffset.x;
+            context.element.scrollTop = this.presentation.contentOffset.y;
+        }
     },
 
     handleEvent: function(e){
         if (e.type == 'scroll'){
-            var element = e.currentTarget;
-            this.contentOffset = JSPoint(e.scrollLeft, e.scrollTop);
+            if (!this._ignoreNextSrollEvent){
+                var element = e.currentTarget;
+                this.model.contentOffset = JSPoint(element.scrollLeft, element.scrollTop);
+                this.model.bounds = JSRect(this.model.contentOffset, this.model.bounds.size);
+            }
+            this._ignoreNextSrollEvent = false;
         }
     }
 

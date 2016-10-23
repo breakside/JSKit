@@ -19,7 +19,13 @@ JSClass("UIScrollLayer", UILayer, {
     setContentSize: function(size){
         this._addImplicitAnimationForKey('contentSize');
         this.model.contentSize = JSSize(size);
-        // TODO: adjust contentOffset if it's too big for the new size
+        var maxOffset = JSPoint(
+            Math.max(0, this.model.contentSize.width - this.model.bounds.size.width),
+            Math.max(0, this.model.contentSize.height - this.model.bounds.size.height)
+        );
+        if (maxOffset.x > this.model.contentOffset.x || maxOffset.y > this.model.contentOffset.y){
+            this.contentOffset = JSPoint(Math.min(maxOffset.x, this.model.contentOffset.x), Math.min(maxOffset.y, this.model.contentOffset.y));
+        }
         this.didChangeProperty('contentSize');
     }
 

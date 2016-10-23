@@ -54,6 +54,9 @@ JSClass("JSTextFrame", JSObject, {
     },
 
     _drawInGenericContext: function(context){
+    },
+
+    characterIndexAtPoint: function(point){
     }
 
 });

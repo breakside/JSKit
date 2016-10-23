@@ -34,6 +34,9 @@ JSTextFrame.definePropertiesFromExtensions({
         }
     },
 
+    characterIndexAtPoint: function(point){
+    },
+
     drawInContext: function(context){
         if (context.isKindOfClass(JSHTMLContext)){
             this._drawInHTMLContext(context);
