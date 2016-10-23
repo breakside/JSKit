@@ -8,7 +8,8 @@ JSClass('UILabel', UIView, {
     text: UIViewLayerProperty(),
     attributedText: UIViewLayerProperty(),
     textColor: UIViewLayerProperty(),
-    font: UIViewLayerProperty()
+    font: UIViewLayerProperty(),
+    textAlignment: UIViewLayerProperty()
 
 });
 

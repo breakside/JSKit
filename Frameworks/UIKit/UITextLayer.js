@@ -2,10 +2,19 @@
 /* global JSClass, JSDynamicProperty, UIDisplayServer, JSTextFrame, JSRect, JSPoint, UILayer, UILayerAnimatedProperty, UITextLayer, JSAttributedString */
 'use strict';
 
+// FIXME: find a a good home for this
+var UITextAlignment = {
+    Left: 0,
+    Center: 1,
+    Right: 2,
+    Justify: 3
+};
+
 JSClass("UITextLayer", UILayer, {
     text: JSDynamicProperty(),
     attributedText: JSDynamicProperty('_attributedText', null),
     textColor: UILayerAnimatedProperty(),
+    textAlignment: JSDynamicProperty('_textAlignment', UITextAlignment.Left),
     font: null,
     _textFrame: null,
 
@@ -39,6 +48,15 @@ JSClass("UITextLayer", UILayer, {
 
     getAttributedText: function(){
         return this._attributedText;
+    },
+
+    setTextAlignment: function(alignment){
+        this._textAlignment = alignment;
+        this.didChangeProperty('textAlignment');
+    },
+
+    getTextAlignment: function(){
+        return this._textAlignment;
     },
 
     drawInContext: function(context){
