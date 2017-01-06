@@ -31,7 +31,7 @@ JSClass("UITextLayer", UILayer, {
     },
 
     didChangeProperty: function(keyPath){
-        this.$class.$super.didChangeProperty.call(this, keyPath);
+        UITextLayer.$super.didChangeProperty.call(this, keyPath);
         if (keyPath == 'bounds.size'){
             this._textFrame.bounds = JSRect(JSPoint(0, 0), this.model.bounds.size);
             this.setNeedsDisplay();

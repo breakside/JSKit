@@ -118,12 +118,12 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
             case 'shadowRadius':
                 context = this.contextForLayer(layer);
                 context.propertiesNeedingUpdate.shadow = true;
-                this.$class.$super.setLayerNeedsDisplay.call(this, layer);
+                UIDisplayServerHTML.$super.setLayerNeedsDisplay.call(this, layer);
                 break;
             default:
                 context = this.contextForLayer(layer);
                 context.propertiesNeedingUpdate[parts[0]] = true;
-                this.$class.$super.setLayerNeedsDisplay.call(this, layer);
+                UIDisplayServerHTML.$super.setLayerNeedsDisplay.call(this, layer);
                 break;
         }
     },
@@ -131,7 +131,7 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
     setLayerNeedsDisplay: function(layer){
         var context = this.contextForLayer(layer);
         context.needsRedraw = true;
-        this.$class.$super.setLayerNeedsDisplay.call(this, layer);
+        UIDisplayServerHTML.$super.setLayerNeedsDisplay.call(this, layer);
     },
 
     positionLayer: function(layer){

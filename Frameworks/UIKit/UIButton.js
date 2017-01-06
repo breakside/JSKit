@@ -13,22 +13,22 @@ JSClass("UIButton", UIControl, {
     _titleColorsByState: null,
 
     init: function(){
-        this.$class.$super.init.call(this);
+        UIButton.$super.init.call(this);
         this.commonUIButtonInit();
     },
 
     initWithFrame: function(frame){
-        this.$class.$super.initWithFrame.call(this, frame);
+        UIButton.$super.initWithFrame.call(this, frame);
         this.commonUIButtonInit();
     },
 
     initWithSpec: function(spec){
-        this.$class.$super.initWithSpec.call(this, spec);
+        UIButton.$super.initWithSpec.call(this, spec);
         this.commonUIButtonInit();
     },
 
     initWithConstraintBox: function(box){
-        this.$class.$super.initWithConstraintBox.call(this, box);
+        UIButton.$super.initWithConstraintBox.call(this, box);
         this.commonUIButtonInit();
     },
 
@@ -90,12 +90,15 @@ JSClass("UIButton", UIControl, {
         if (this.enabled){
             this._setState(UIButton.State.Active);
         }else{
-            this.$class.$super.mouseDown.call(this, event);
+            UIButton.$super.mouseDown.call(this, event);
         }
     },
 
     mouseUp: function(event){
         if (this.enabled){
+            if (this.state == UIButton.State.Active){
+                this.sendActionsForEvent(UIControl.Event.PrimaryAction);
+            }
             this._setState(UIButton.State.Normal);
         }
     },

@@ -14,7 +14,7 @@ JSClass('HTMLTestRun', TKTestRun, {
     initWithRootElement: function(rootElement){
         var info = JSBundle.mainBundle.resourceNamed('Info');
         this.name = info.JSBundleDisplayName || info.JSBundleIdentifier;
-        this.$class.$super.init.call(this);
+        HTMLTestRun.$super.init.call(this);
         this.rootElement = rootElement;
         var doc = this.rootElement.ownerDocument;
         this.table = this.rootElement.appendChild(doc.createElement('table'));

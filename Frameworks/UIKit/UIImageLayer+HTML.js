@@ -5,7 +5,7 @@
 UIImageLayer.definePropertiesFromExtensions({
 
     initializeHTMLContext: function(context){
-        this.$class.$super.initializeHTMLContext.call(this, context);
+        UIImageLayer.$super.initializeHTMLContext.call(this, context);
         context.style.borderColor = 'transparent';
         context.style.borderStyle = 'solid';
     },

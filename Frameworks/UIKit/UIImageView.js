@@ -8,7 +8,7 @@ JSClass("UIImageView", UIView, {
 
     initWithImage: function(image){
         var frameThatFits = JSRect(0, 0, image.width, image.height);
-        this.$class.$super.initWithFrame.call(this, frameThatFits);
+        UIImageView.$super.initWithFrame.call(this, frameThatFits);
         this.image = image;
     }
 
