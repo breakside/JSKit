@@ -107,13 +107,21 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
 
     layerDidChangeProperty: function(layer, keyPath){
         var parts = keyPath.split('.');
+        var context;
         switch (parts[0]){
             case 'position':
             case 'anchorPoint':
                 this.setLayerNeedsReposition(layer);
                 break;
+            case 'shadowColor':
+            case 'shadowOffset':
+            case 'shadowRadius':
+                context = this.contextForLayer(layer);
+                context.propertiesNeedingUpdate.shadow = true;
+                this.$class.$super.setLayerNeedsDisplay.call(this, layer);
+                break;
             default:
-                var context = this.contextForLayer(layer);
+                context = this.contextForLayer(layer);
                 context.propertiesNeedingUpdate[parts[0]] = true;
                 this.$class.$super.setLayerNeedsDisplay.call(this, layer);
                 break;

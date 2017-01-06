@@ -6,3 +6,4 @@
 // #import "UIKit/UILayer+HTML.js"
 // #import "UIKit/UITextLayer+HTML.js"
 // #import "UIKit/UIScrollLayer+HTML.js"
+// #import "UIKit/UIImageLayer+HTML.js"

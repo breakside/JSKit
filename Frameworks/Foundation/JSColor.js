@@ -20,7 +20,7 @@ JSClass('JSColor', JSObject, {
         if (r === undefined) r = 0;
         if (g === undefined) g = 0;
         if (b === undefined) b = 0;
-        if (a === undefined) a = 255;
+        if (a === undefined) a = 1.0;
         this.components = [r,g,b,a];
     },
 
@@ -32,7 +32,17 @@ JSClass('JSColor', JSObject, {
 
     initWithSpec: function(spec, values){
         if (values.rgba){
-            this.initWithRGBA.apply(this, values.rgba.parseNumberArray());
+            var components = values.rgba.parseNumberArray();
+            if (components.length > 0){
+                components[0] = components[0] / 255;
+            }
+            if (components.length > 1){
+                components[1] = components[1] / 255;
+            }
+            if (components.length > 2){
+                components[2] = components[2] / 255;
+            }
+            this.initWithRGBA.apply(this, components);
         }else if (values.white){
             this.initWithWhite(values.white);
         }
@@ -53,7 +63,7 @@ JSColor.clearColor = function(){
 };
 
 JSColor.whiteColor = function(){
-    return JSColor.initWithWhite(255);
+    return JSColor.initWithWhite(1.0);
 };
 
 JSColor.blackColor = function(){
@@ -61,13 +71,13 @@ JSColor.blackColor = function(){
 };
 
 JSColor.redColor = function(){
-    return JSColor.initWithRGBA(255, 0, 0);
+    return JSColor.initWithRGBA(1.0, 0, 0);
 };
 
 JSColor.greenColor = function(){
-    return JSColor.initWithRGBA(0, 255, 0);
+    return JSColor.initWithRGBA(0, 1.0, 0);
 };
 
 JSColor.blueColor = function(){
-    return JSColor.initWithRGBA(0, 0, 255);
+    return JSColor.initWithRGBA(0, 0, 1.0);
 };

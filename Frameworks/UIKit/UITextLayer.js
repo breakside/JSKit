@@ -10,12 +10,18 @@ var UITextAlignment = {
     Justify: 3
 };
 
+var UILineBreakMode = {
+    NoBreak: 0,
+    WordWrap: 1
+};
+
 JSClass("UITextLayer", UILayer, {
     text: JSDynamicProperty(),
     attributedText: JSDynamicProperty('_attributedText', null),
     textColor: UILayerAnimatedProperty(),
     textAlignment: JSDynamicProperty('_textAlignment', UITextAlignment.Left),
-    font: null,
+    font: JSDynamicProperty('_font', null),
+    lineBreakMode: JSDynamicProperty('_lineBreakMode', UILineBreakMode.NoBreak),
     _textFrame: null,
 
     init: function(){
@@ -57,6 +63,24 @@ JSClass("UITextLayer", UILayer, {
 
     getTextAlignment: function(){
         return this._textAlignment;
+    },
+
+    setFont: function(font){
+        this._font = font;
+        this.didChangeProperty('font');
+    },
+
+    getFont: function(){
+        return this._font;
+    },
+
+    setLineBreakMode: function(mode){
+        this._lineBreakMode = mode;
+        this.didChangeProperty('lineBreakMode');
+    },
+
+    getLineBrakeMode: function(){
+        return this._lineBreakMode;
     },
 
     drawInContext: function(context){

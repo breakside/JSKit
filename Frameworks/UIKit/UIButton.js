@@ -1,6 +1,6 @@
 // #import "UIKit/UIControl.js"
 // #import "UIKit/UILabel.js"
-/* global JSClass, UIControl, JSReadOnlyProperty, UILabel, JSConstraintBox, JSColor, UIButton, UITextAlignment */
+/* global JSClass, UIControl, JSReadOnlyProperty, UILabel, JSConstraintBox, JSColor, UIButton, UITextAlignment, JSPoint */
 'use strict';
 
 JSClass("UIButton", UIControl, {
@@ -29,14 +29,17 @@ JSClass("UIButton", UIControl, {
     },
 
     commonUIButtonInit: function(){
-        this._titleLabel = UILabel.initWithConstraintBox(JSConstraintBox.Margin(0));
+        this._titleLabel = UILabel.initWithConstraintBox(JSConstraintBox.Margin(1, 0));
         this._titleLabel.textAlignment = UITextAlignment.Center;
         this._titleLabel.backgroundColor = JSColor.clearColor();
         this.addSubview(this._titleLabel);
-        this.layer.borderColor = JSColor.initWithRGBA(204,204,204);
+        this.layer.borderColor = JSColor.initWithRGBA(204/255,204/255,204/255);
         this.layer.borderWidth = 1;
         this.layer.cornerRadius = 3;
-        this.layer.backgroundColor = JSColor.initWithRGBA(240,240,240);
+        this.layer.backgroundColor = JSColor.initWithRGBA(250/255,250/255,250/255);
+        this.layer.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
+        this.layer.shadowOffset = JSPoint(0, 1);
+        this.layer.shadowRadius = 1;
     },
 
     getTitleLabel: function(){
@@ -63,9 +66,9 @@ JSClass("UIButton", UIControl, {
         }
         this._isSelected = isSelected;
         if (this._isSelected){
-            this.layer.backgroundColor = JSColor.initWithRGBA(224,224,224);
+            this.layer.backgroundColor = JSColor.initWithRGBA(224/255,224/255,224/255);
         }else{
-            this.layer.backgroundColor = JSColor.initWithRGBA(240,240,240);
+            this.layer.backgroundColor = JSColor.initWithRGBA(250/255,250/255,250/255);
         }
     }
 

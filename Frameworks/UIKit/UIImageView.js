@@ -1,13 +1,17 @@
 // #include "UIKit/UIView.js"
-/* global JSClass, UIView, UIImageView */
+// #include "UIKIt/UIImageLayer.js"
+/* global JSClass, UIView, UIImageView, UIImageLayer, JSRect, UIViewLayerProperty */
+'use strict';
 
 JSClass("UIImageView", UIView, {
-    image: null,
+    image: UIViewLayerProperty(),
 
     initWithImage: function(image){
-        UIImageView.$super.initWithFrame(0, 0, image.width, image.height);
+        var frameThatFits = JSRect(0, 0, image.width, image.height);
+        this.$class.$super.initWithFrame.call(this, frameThatFits);
         this.image = image;
     }
+
 });
 
 UIImageView.layerClass = UIImageLayer;

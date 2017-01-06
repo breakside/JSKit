@@ -4,21 +4,31 @@
 
 UIImageLayer.definePropertiesFromExtensions({
 
-    setConstantHTMProperties: function(context){
-        UIImageLayer.$super.setConstantHTMProperties.call(this, context);
-        var element = context.element;
-        var img = element.appendChild(element.ownerDocument.createElement('img'));
-        img.style.position = 'absolute';
-        img.style.top = '0';
-        img.style.left = '0';
-        img.style.right = '0';
-        img.style.bottom = '0';
-        context.imageElement = img;
+    initializeHTMLContext: function(context){
+        this.$class.$super.initializeHTMLContext.call(this, context);
+        context.style.borderColor = 'transparent';
+        context.style.borderStyle = 'solid';
     },
 
     updateHTMLProperty_image: function(context){
-        // TODO: should this use an img tag or use background-image?
-        context.imageElement.src = this.image.htmlURLString();
+        if (this.image !== null){
+            var cssURL = "url('" + this.image.htmlURLString() + "')";
+            var box = this.image.stretchBox;
+            if (box === null){
+                context.style.backgroundImage = cssURL;
+                context.style.backgroundSize = '100% 100%';
+                context.style.borderWidth = '';
+                context.style.borderImage = '';
+            }else{
+                context.style.backgroundImage = '';
+                context.style.borderWidth = '%dpx %dpx %dpx %dpx'.sprintf(box.top / this.image.scale, box.right / this.image.scale, box.bottom / this.image.scale, box.left / this.image.scale);
+                context.style.borderImage = cssURL + " %d %d %d %d fill stretch".sprintf(box.top, box.right, box.bottom, box.left);
+            }
+        }else{
+            context.style.backgroundImage = '';
+            context.style.border = '';
+            context.style.borderImage = '';
+        }
     }
 
 });

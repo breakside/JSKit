@@ -18,8 +18,10 @@ from .javascript import JSCompilation, JSFeature
 
 
 class HTMLBuilder(Builder):
-    outputProductPath = ""
+    outputCacheBustingPath = ""
+    outputWebRootPath = ""
     outputResourcePath = ""
+    outputConfPath = ""
     indexFile = None
     jsCompilation = None
     appJS = None
@@ -27,6 +29,10 @@ class HTMLBuilder(Builder):
     featureCheck = None
     manifest = None
     includes = None
+    nginxConf = None
+    debugPort = 8080
+    workerProcesses = 1
+    workerConnections = 1024
 
     def __init__(self, projectPath, includePaths, outputParentPath, buildID, buildLabel, debug=False, args=None):
         super(HTMLBuilder, self).__init__(projectPath, includePaths, outputParentPath, buildID, buildLabel, debug)
@@ -36,7 +42,13 @@ class HTMLBuilder(Builder):
 
     def parse_args(self, arglist):
         parser = argparse.ArgumentParser()
+        parser.add_argument(u'--http-port', default=u'8080')
+        parser.add_argument(u'--worker-processes', default=u'1')
+        parser.add_argument(u'--worker-connections', default=u'1024')
         args = parser.parse_args(arglist)
+        self.debugPort = int(args.http_port)
+        self.workerProcesses = int(args.worker_processes)
+        self.workerConnections = int(args.worker_connections)
 
     def build(self):
         self.setup()
@@ -46,24 +58,29 @@ class HTMLBuilder(Builder):
         self.buildPreflight()
         self.buildAppCacheManifest()
         self.buildIndex()
+        self.buildNginxConf()
         self.finish()
 
     def setup(self):
         super(HTMLBuilder, self).setup()
-        self.outputProductPath = os.path.join(self.outputProjectPath, self.buildID)
-        self.outputResourcePath = os.path.join(self.outputProjectPath, "Resources")
-        os.makedirs(self.outputProductPath)
+        self.outputConfPath = os.path.join(self.outputProjectPath, "conf")
+        self.outputWebRootPath = os.path.join(self.outputProjectPath, "www")
+        self.outputCacheBustingPath = os.path.join(self.outputWebRootPath, self.buildID)
+        self.outputResourcePath = os.path.join(self.outputWebRootPath, "Resources")
+        os.makedirs(self.outputConfPath)
+        os.makedirs(os.path.join(self.outputProjectPath, "logs"))
+        os.makedirs(self.outputCacheBustingPath)
         os.makedirs(self.outputResourcePath)
         self.manifest = []
         self.appJS = []
 
-    def buildImageResource(self, resourcePath, fullPath):
-        super(HTMLBuilder, self).buildImageResource(resourcePath, fullPath)
-        info = self.mainBunlde[resourcePath]
+    def buildImageResource(self, resourcePath, fullPath, mime):
+        super(HTMLBuilder, self).buildImageResource(resourcePath, fullPath, mime)
+        info = self.mainBundle[resourcePath]
         dontcare, ext = os.path.splitext(os.path.basename(resourcePath))
         outputImagePath = os.path.join(self.outputResourcePath, info['hash'] + ext)
         info.update(dict(
-             url=_webpath(os.path.relpath(outputImagePath, self.outputProjectPath))
+             url=_webpath(os.path.relpath(outputImagePath, self.outputWebRootPath))
         ))
         shutil.copyfile(fullPath, outputImagePath)
         self.manifest.append(outputImagePath)
@@ -87,6 +104,7 @@ class HTMLBuilder(Builder):
                 self.findSpecIncludes(v)
 
     def buildAppJavascript(self):
+        print "Creating application js..."
         with tempfile.NamedTemporaryFile() as bundleJSFile:
             bundleJSFile.write("'use strict';\n")
             bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))
@@ -98,11 +116,11 @@ class HTMLBuilder(Builder):
             for outfile in self.jsCompilation.outfiles:
                 outfile.fp.flush()
                 if outfile.name:
-                    outputPath = os.path.join(self.outputProductPath, outfile.name)
+                    outputPath = os.path.join(self.outputCacheBustingPath, outfile.name)
                 elif len(self.appJS) == 0:
-                    outputPath = os.path.join(self.outputProductPath, 'app.js')
+                    outputPath = os.path.join(self.outputCacheBustingPath, 'app.js')
                 else:
-                    outputPath = os.path.join(self.outputProductPath, 'app%d.js' % len(self.appJS))
+                    outputPath = os.path.join(self.outputCacheBustingPath, 'app%d.js' % len(self.appJS))
                 if not os.path.exists(os.path.dirname(outputPath)):
                     os.makedirs(os.path.dirname(outputPath))
                 if self.debug and outfile.fp != bundleJSFile:
@@ -113,25 +131,28 @@ class HTMLBuilder(Builder):
                 self.appJS.append(outputPath)
 
     def buildPreflight(self):
+        print "Creating preflight js..."
         self.featureCheck = JSFeatureCheck()
         self.featureCheck.addFeature(JSFeature('window'))
         self.featureCheck.addFeature(JSFeature("document.body"))
         for feature in self.jsCompilation.features:
             self.featureCheck.addFeature(feature)
-        self.preflightFile = open(os.path.join(self.outputProjectPath, 'preflight-%s.js' % self.featureCheck.hash), 'w')
+        self.preflightFile = open(os.path.join(self.outputWebRootPath, 'preflight-%s.js' % self.featureCheck.hash), 'w')
         self.featureCheck.serialize(self.preflightFile, 'bootstrapper')
 
     def buildAppCacheManifest(self):
-        self.manifestFile = open(os.path.join(self.outputProjectPath, "manifest.appcache"), 'w')
+        print "Creating manifest.appcache..."
+        self.manifestFile = open(os.path.join(self.outputWebRootPath, "manifest.appcache"), 'w')
         self.manifestFile.write("CACHE MANIFEST\n")
         self.manifestFile.write("# build %s\n" % self.buildID)
         for name in self.manifest:
-            self.manifestFile.write("%s\n" % _webpath(os.path.relpath(name, self.outputProjectPath)))
+            self.manifestFile.write("%s\n" % _webpath(os.path.relpath(name, self.outputWebRootPath)))
 
     def buildIndex(self):
+        print "Creating index.html..."
         indexName = self.info.get('UIApplicationHTMLIndexFile', 'index.html')
         document = HTML5Document(os.path.join(self.projectPath, indexName)).domDocument
-        self.indexFile = open(os.path.join(self.outputProjectPath, indexName), 'w')
+        self.indexFile = open(os.path.join(self.outputWebRootPath, indexName), 'w')
         stack = [document.documentElement]
         appSrc = []
         for includedSourcePath in self.appJS:
@@ -139,7 +160,7 @@ class HTMLBuilder(Builder):
             appSrc.append(relativePath)
         jscontext = {
             'preflightID': self.featureCheck.hash,
-            'preflightSrc': _webpath(os.path.relpath(self.preflightFile.name, self.outputProjectPath)),
+            'preflightSrc': _webpath(os.path.relpath(self.preflightFile.name, self.outputWebRootPath)),
             'appSrc': appSrc
         }
         includePaths = (pkg_resources.resource_filename('jskit', 'jsmake/html_resources'),)
@@ -165,7 +186,7 @@ class HTMLBuilder(Builder):
                             textNode = document.createTextNode("\n" + outfile.fp.read() + "\n")
                             script.appendChild(textNode)
                         else:
-                            outputPath = os.path.join(self.outputProductPath, outfile.name)
+                            outputPath = os.path.join(self.outputCacheBustingPath, outfile.name)
                             if self.debug:
                                 os.link(outfile.fp.name, outputPath)
                             else:
@@ -181,10 +202,37 @@ class HTMLBuilder(Builder):
             document.documentElement.setAttribute('manifest', _webpath(os.path.relpath(self.manifestFile.name, os.path.dirname(self.indexFile.name))))
         HTML5DocumentSerializer(document).serializeToFile(self.indexFile)
 
+    def buildNginxConf(self):
+        print "Creating nginx.conf..."
+        templateFile = os.path.join(self.projectPath, "nginx-debug.conf");
+        fp = open(templateFile, 'r')
+        template = fp.read()
+        fp.close()
+        args = dict(
+            HTTP_PORT=self.debugPort,
+            WORKER_PROCESSES=self.workerProcesses,
+            WORKER_CONNECTIONS=self.workerConnections
+        )
+        template = template.replace("{{", "__TEMPLATE_OPEN__")
+        template = template.replace("}}", "__TEMPLATE_CLOSE__")
+        template = template.replace("{", "{{")
+        template = template.replace("}", "}}")
+        template = template.replace("__TEMPLATE_OPEN__", "{")
+        template = template.replace("__TEMPLATE_CLOSE__", "}")
+        conf = template.format(**args)
+        self.confFile = os.path.join(self.outputConfPath, "nginx.conf")
+        fp = open(self.confFile, 'w')
+        fp.write(conf)
+        fp.close()
+
+
     def finish(self):
         super(HTMLBuilder, self).finish()
         self.indexFile.close()
         self.indexFile = None
+        print "\nDone!"
+        if self.debug:
+            print "\nnginx -p %s" % (os.path.relpath(self.outputProjectPath))
 
 
 def _webpath(ospath):

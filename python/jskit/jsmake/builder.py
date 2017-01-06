@@ -4,6 +4,7 @@ import plistlib
 import json
 import hashlib
 import shutil
+import mimetypes
 from .image import ImageInfoExtractor
 
 
@@ -51,6 +52,7 @@ class Builder(object):
         self.outputProjectPath = os.path.join(self.outputParentPath, 'builds', self.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
         if os.path.exists(self.outputProjectPath):
             if self.debug:
+                print("Removing previous debug build...")
                 for child in [os.path.join(self.outputProjectPath, x) for x in os.listdir(self.outputProjectPath)]:
                     if os.path.isdir(child):
                         shutil.rmtree(child)
@@ -75,16 +77,16 @@ class Builder(object):
                     else:
                         mimeguess = mimetypes.guess_type(fullPath)
                         if mimeguess[0] and mimeguess[0].split('/')[0] == 'image':
-                            self.buildImageResource(resourcePath, fullPath)
+                            self.buildImageResource(resourcePath, fullPath, mimeguess[0])
 
     def buildJSONLikeResource(self, resourcePath, resource):
         self.mainBundle[resourcePath] = resource
 
-    def buildImageResource(self, resourcePath, fullPath):
-        hash_ = self.hashOfPath(fullPath)
+    def buildImageResource(self, resourcePath, fullPath, mime):
+        hash_, byte_size = self.hashOfPath(fullPath)
         info = dict(
             hash=hash_,
-            mimetype=mimeguess[0],
+            mimetype=mime,
             byte_size=byte_size
         )
         extractor = ImageInfoExtractor.for_path(fullPath)
@@ -102,7 +104,7 @@ class Builder(object):
         byte_size = f.tell()
         f.close()
         h = h.hexdigest()
-        return h
+        return h, byte_size
 
     def absolutePathsRelativeToSourceRoot(self, *paths):
         return [os.path.join(self.projectPath, path) for path in paths]

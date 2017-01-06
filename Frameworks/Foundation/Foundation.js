@@ -23,4 +23,5 @@
 // #import "Foundation/JSData.js"
 // #import "Foundation/JSContext.js"
 // #import "Foundation/JSTextFrame.js"
+// #import "Foundation/JSURL.js"
 'use strict';

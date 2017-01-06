@@ -32,6 +32,15 @@ JSClass("JSString", JSObject, {
         this.initWithNativeString(format.sprintf.apply(format, args));
     },
 
+    initWithData: function(data, encoding){
+        if (encoding === JSString.Encoding.utf8){
+            var nativeString = data.bytes.stringUsingUTF8Decoding();
+            this.initWithNativeString(nativeString);
+        }else{
+            this.init();
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Changing a String
 
@@ -483,3 +492,7 @@ JSString._UnicodeIterator.prototype = {
 function JS(nativeString){
     return JSString.initWithNativeString(nativeString);
 }
+
+JSString.Encoding = {
+    utf8: "utf8"
+};

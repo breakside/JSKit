@@ -21,4 +21,6 @@
 // #import "UIKit/UIWindow.js"
 // #import "UIKit/UIViewController.js"
 // #import "UIKit/UIApplication.js"
+// #import "UIKit/UIImageLayer.js"
+// #import "UIKit/UIImageView.js"
 'use strict';
