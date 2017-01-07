@@ -1,7 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIResponder.js"
 // #import "UIKit/UIWindowServer.js"
-/* global JSGlobalObject, JSClass, JSObject, UIResponder, UIApplication, UIWindowServer, JSPropertyList, JSSpec, JSClassFromName, JSDynamicProperty, JSReadOnlyProperty, UIEvent  */
+/* global JSGlobalObject, JSClass, JSObject, UIResponder, UIApplication, UIWindowServer, JSBundle, JSSpec, JSClassFromName, JSDynamicProperty, JSReadOnlyProperty, UIEvent  */
 'use strict';
 
 JSClass('UIApplication', UIResponder, {
@@ -58,7 +58,7 @@ JSClass('UIApplication', UIResponder, {
 UIApplication.InfoPlistName  = "Info";
 
 UIApplication.InfoKeys = {
-    MainDefinitionFile: "UIMainDefinitionFile",
+    MainDefinitionResource: "UIMainDefinitionResource",
     ApplicationDelegate: "UIApplicationDelegate",
 };
 
@@ -73,20 +73,17 @@ Object.defineProperty(UIApplication, 'sharedApplication', {
     }
 });
 
-JSGlobalObject.UIApplicationMain = function UIApplicationMain(infoPlistName){
+JSGlobalObject.UIApplicationMain = function UIApplicationMain(){
     var application = UIApplication.sharedApplication;
-    if (infoPlistName !== null){
-        if (infoPlistName === undefined) infoPlistName = UIApplication.InfoPlistName;
-        var info = JSPropertyList.initWithResource(infoPlistName);
-        if (info[UIApplication.InfoKeys.MainDefinitionFile]){
-            var mainUIFile = JSSpec.initWithResource(info[UIApplication.InfoKeys.MainDefinitionFile]);
-            application.delegate = mainUIFile.filesOwner();
-        }else if (info[UIApplication.InfoKeys.ApplicationDelegate]){
-            var delegateClass = JSClassFromName(info[UIApplication.InfoKeys.ApplicationDelegate]);
-            application.delegate = delegateClass.init();
-        }else{
-            throw new Error("UIApplicationMain: %s missing required key '%s' or '%s'".sprintf(infoPlistName, UIApplication.InfoKeys.MainDefinitionFile, UIApplication.InfoKeys.ApplicationDelegate));
-        }
+    var info = JSBundle.mainBundle.info();
+    if (info[UIApplication.InfoKeys.MainDefinitionResource]){
+        var mainUIFile = JSSpec.initWithResource(info[UIApplication.InfoKeys.MainDefinitionResource]);
+        application.delegate = mainUIFile.filesOwner();
+    }else if (info[UIApplication.InfoKeys.ApplicationDelegate]){
+        var delegateClass = JSClassFromName(info[UIApplication.InfoKeys.ApplicationDelegate]);
+        application.delegate = delegateClass.init();
+    }else{
+        throw new Error("UIApplicationMain: Info is missing required key '%s' or '%s'".sprintf(UIApplication.InfoKeys.MainDefinitionResource, UIApplication.InfoKeys.ApplicationDelegate));
     }
     application.run();
 };

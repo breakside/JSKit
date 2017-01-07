@@ -1,12 +1,12 @@
 // #import "Foundation/JSImage.js"
 // #feature URL.createObjectURL
-/* global JSImage, URL */
+/* global JSImage, URL, window */
 'use strict';
 
 JSImage.definePropertiesFromExtensions({
     htmlURLString: function(){
         if (this.resource){
-            return this.resource.url;
+            return this.resource.image.url;
         }
         if (this.file){
             if (!this._fileURL){
@@ -17,5 +17,9 @@ JSImage.definePropertiesFromExtensions({
         if (this.data){
             return this.data.htmlURLString();
         }
+    },
+
+    preferredScale: function(){
+        return window.devicePixelRatio || 1;
     }
 });

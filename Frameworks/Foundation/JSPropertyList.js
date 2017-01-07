@@ -5,9 +5,10 @@
 
 JSClass('JSPropertyList', JSObject, {
     initWithResource: function(resourceName){
-        var obj = JSBundle.mainBundle.resourceNamed(resourceName);
-        this.initWithObject(obj);
+        var obj = JSBundle.mainBundle.resourceNamed(resourceName, "object");
+        this.initWithObject(obj.value);
     },
+
     initWithObject: function(obj){
         if (obj){
             for (var i in obj){

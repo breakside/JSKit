@@ -12,18 +12,31 @@ JSClass('JSBundle', JSObject, {
         if (!(this.identifier in JSBundle.bundles)){
             throw new Error("Bundle not found: %s".sprintf(this.identifier));
         }
-        this.resources = JSBundle.bundles[this.identifier];
+        this.resources = JSBundle.bundles[this.identifier].Resources;
     },
 
-    resourceNamed: function(resource){
-        if (this.hasResource(resource)){
-            return this.resources[resource];
+    info: function(){
+        return JSBundle.bundles[this.identifier].Info;
+    },
+
+    resourceNamed: function(name, kind){
+        var resources = this.resourcesNamed(name);
+        for (var i = 0; i < resources.length; ++i){
+            if (resources[i].kind == kind){
+                return resources[i];
+            }
         }
-        throw new Error("JSBundle.resourceNamed: resource '%s' not found".sprintf(resource));
     },
 
-    hasResource: function(resource){
-        return resource in this.resources;
+    resourcesNamed: function(name){
+        if (this.hasResource(name)){
+            return this.resources[name];
+        }
+        throw new Error("JSBundle.resourcesNamed: resource '%s' not found".sprintf(name));
+    },
+
+    hasResource: function(name){
+        return name in this.resources;
     }
 
 });

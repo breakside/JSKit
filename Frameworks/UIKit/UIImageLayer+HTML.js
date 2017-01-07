@@ -21,8 +21,8 @@ UIImageLayer.definePropertiesFromExtensions({
                 context.style.borderImage = '';
             }else{
                 context.style.backgroundImage = '';
-                context.style.borderWidth = '%dpx %dpx %dpx %dpx'.sprintf(box.top / this.image.scale, box.right / this.image.scale, box.bottom / this.image.scale, box.left / this.image.scale);
-                context.style.borderImage = cssURL + " %d %d %d %d fill stretch".sprintf(box.top, box.right, box.bottom, box.left);
+                context.style.borderWidth = '%dpx %dpx %dpx %dpx'.sprintf(box.top, box.right, box.bottom, box.left);
+                context.style.borderImage = cssURL + " %d %d %d %d fill stretch".sprintf(box.top * this.image.scale, box.right * this.image.scale, box.bottom * this.image.scale, box.left * this.image.scale);
             }
         }else{
             context.style.backgroundImage = '';

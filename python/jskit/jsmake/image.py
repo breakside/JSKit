@@ -224,6 +224,7 @@ class SVGInfoExtractor(ImageInfoExtractor, xml.sax.handler.ContentHandler):
     def populate_dict(self, info):
         self.fp.seek(0)
         self.currentInfo = info
+        info["vector"] = True
         # Using sax, an event-based xml parse, because we only need to read the opening tag of the file.
         # A tree parser, like dom, would have to read the entire file.
         self.parser = xml.sax.make_parser()

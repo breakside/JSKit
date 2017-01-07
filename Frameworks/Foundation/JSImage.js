@@ -19,11 +19,38 @@ JSClass('JSImage', JSObject, {
     init: function(){
     },
 
+    preferredScale: function(){
+        return 1;
+    },
+
     initWithResourceName: function(name){
+        var idealScale = this.preferredScale();
         this.resourceName = name;
-        this.resource = JSBundle.mainBundle.resourceNamed(this.resourceName);
-        this.width = this.resource.width;
-        this.height = this.resource.height;
+        var resources = JSBundle.mainBundle.resourcesNamed(this.resourceName);
+        var resource;
+        for (var i = 0; i < resources.length; ++i){
+            resource = resources[i];
+            if (resource.kind == "image"){
+                if (this.resource === null){
+                    this.resource = resource;
+                }else{
+                    if (resource.image.vector){
+                        this.resource = resource;
+                        return;
+                    }
+                    if (resource.image.scale == idealScale){
+                        this.resource = resource;
+                    }else if (this.resource.image.scale < idealScale && resource.image.scale > this.resource.image.scale){
+                        this.resource = resource;
+                    }else if (this.resource.image.scale > idealScale && resource.image.scale > idealScale && resource.image.scale < this.resource.image.scale){
+                        this.resource = resource;
+                    }
+                }
+            }
+        }
+        this.scale = this.resource.image.scale || 1;
+        this.width = this.resource.image.width / this.scale;
+        this.height = this.resource.image.height / this.scale;
         Object.defineProperty(this, 'data', {
             configurable: true,
             get: JSImage.prototype._getDataFromResource
@@ -34,6 +61,7 @@ JSClass('JSImage', JSObject, {
         var image = JSImage.init();
         image.width = this.width;
         image.height = this.height;
+        image.scale = this.scale;
         if (this.resource !== null){
             image.resourceName = this.resourceName;
             image.resource = this.resource;
@@ -52,8 +80,9 @@ JSClass('JSImage', JSObject, {
         return image;
     },
 
-    initWithData: function(data){
+    initWithData: function(data, scale){
         this.data = data;
+        this.scale = scale;
         if (this.data.bytes.length >= 16){
             // PNG magic bytes
             if (this.data.bytes[0] == 0x89 &&
@@ -67,8 +96,8 @@ JSClass('JSImage', JSObject, {
             {
                 // Verifying "IHDR" signature
                 if (this.data.bytes[10] == 0x49 && this.data.bytes[11] == 0x48 && this.data.bytes[12] == 0x44 && this.data.bytes[13] == 0x52){
-                    this.width = (this.data.bytes[14] << 8) | this.data.bytes[15];
-                    this.height = (this.data.bytes[16] << 8) | this.data.bytes[17];
+                    this.width = ((this.data.bytes[14] << 8) | this.data.bytes[15]) / this.scale;
+                    this.height = ((this.data.bytes[16] << 8) | this.data.bytes[17]) / this.scale;
                 }else{
                     // Invalid PNG
                 }

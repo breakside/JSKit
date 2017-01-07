@@ -93,23 +93,24 @@ class HTMLBuilder(Builder):
         self.manifest = []
         self.appJS = []
 
-    def buildImageResource(self, resourcePath, fullPath, mime):
-        super(HTMLBuilder, self).buildImageResource(resourcePath, fullPath, mime)
-        info = self.mainBundle[resourcePath]
-        dontcare, ext = os.path.splitext(os.path.basename(resourcePath))
+    def buildImageResource(self, nameComponents, fullPath, mime, scale):
+        resource = super(HTMLBuilder, self).buildImageResource(nameComponents, fullPath, mime, scale)
+        info = resource["image"]
+        dontcare, ext = os.path.splitext(os.path.basename(fullPath))
         outputImagePath = os.path.join(self.outputResourcePath, info['hash'] + ext)
         info.update(dict(
              url=_webpath(os.path.relpath(outputImagePath, self.outputWebRootPath))
         ))
         shutil.copyfile(fullPath, outputImagePath)
         self.manifest.append(outputImagePath)
+        return resource
 
     def findIncludes(self):
         for path in self.info.get('JSIncludes', []):
             self.includes.append(path)
-        mainSpecName = self.info.get('UIMainDefinitionFile', None)
+        mainSpecName = self.info.get('UIMainDefinitionResource', None)
         if mainSpecName is not None:
-            mainSpec = self.mainBundle[mainSpecName]
+            mainSpec = self.mainBundle["Resources"][mainSpecName][0]["value"]
             self.findSpecIncludes(mainSpec)
 
     def findSpecIncludes(self, spec):

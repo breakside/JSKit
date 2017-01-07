@@ -1,6 +1,6 @@
 {
     "JSBundleIdentifier": "com.yourcompany.sample",
-    "UIMainDefinitionFile": "MainWindow.json",
+    "UIMainDefinitionResource": "MainWindow",
     "UIApplicationTitle": "Sample App",
     "JSIncludes": [
         "UIKit/UIKit+HTML.js",

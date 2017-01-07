@@ -1,4 +1,5 @@
 import os
+import re
 import os.path
 import plistlib
 import json
@@ -49,6 +50,7 @@ class Builder(object):
             raise Exception("%s must include an entry for JSBundleIdentifier")
         self.bundles[self.info['JSBundleIdentifier']] = self.mainBundle = {}
         self.mainBundle["Info"] = self.info
+        self.mainBundle["Resources"] = {}
         self.outputProjectPath = os.path.join(self.outputParentPath, 'builds', self.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
         if not self.debug and os.path.exists(self.outputProjectPath):
             raise Exception("Output path already exists: %s" % self.outputProjectPath)
@@ -56,34 +58,91 @@ class Builder(object):
     def buildResources(self):
         resourcesPath = os.path.join(self.projectPath, "Resources")
         if os.path.exists(resourcesPath):
-            for (dirname, folders, files) in os.walk(resourcesPath):
-                for name in files:
-                    fullPath = os.path.join(dirname, name)
-                    resourcePath = os.path.relpath(fullPath, resourcesPath)
-                    if name[-5:] == '.json':
-                        resource = json.load(open(fullPath))
-                        self.buildJSONLikeResource(resourcePath, resource)
-                    elif name[-6:] == '.plist':
-                        resource = plistlib.readPlist(fullPath)
-                        self.buildJSONLikeResource(resourcePath, resource)
-                    else:
-                        mimeguess = mimetypes.guess_type(fullPath)
-                        if mimeguess[0] and mimeguess[0].split('/')[0] == 'image':
-                            self.buildImageResource(resourcePath, fullPath, mimeguess[0])
+            self.scanResourceFolder(resourcesPath, [])
 
-    def buildJSONLikeResource(self, resourcePath, resource):
-        self.mainBundle[resourcePath] = resource
+    def scanResourceFolder(self, resourcesPath, parentNameComponents):
+        dirname = os.path.join(resourcesPath, *parentNameComponents)
+        for filename in os.listdir(dirname):
+            name, ext = os.path.splitext(filename)
+            fullPath = os.path.join(dirname, filename)
+            nameComponents = parentNameComponents + [name]
+            if os.path.isdir(fullPath):
+                if ext == '.imageset':
+                    self.buildImageAssetResource(nameComponents, fullPath)
+                else:
+                    self.scanResourceFolder(resourcesPath, nameComponents)
+            elif ext == '.json':
+                obj = json.load(open(fullPath))
+                self.buildJSONLikeResource(nameComponents, obj)
+            elif ext == '.plist':
+                obj = plistlib.readPlist(fullPath)
+                self.buildJSONLikeResource(nameComponents, obj)
+            else:
+                mimeguess = mimetypes.guess_type(fullPath)
+                if mimeguess[0] and mimeguess[0].split('/')[0] == 'image':
+                    name, scale = self.imagePropertiesFromName(name)
+                    nameComponents = parentNameComponents + [name]
+                    self.buildImageResource(nameComponents, fullPath, mimeguess[0], scale)
 
-    def buildImageResource(self, resourcePath, fullPath, mime):
+    def addResourceToMainBundle(self, nameComponents, resource):
+        bundleKey = '/'.join(nameComponents)
+        if bundleKey not in self.mainBundle["Resources"]:
+            self.mainBundle["Resources"][bundleKey] = []
+        self.mainBundle["Resources"][bundleKey].append(resource)
+
+    def imagePropertiesFromName(self, name):
+        scale = 1
+        matches = re.search("^(.+?)(@(\d)+x)?$", name)
+        if matches is not None:
+            if matches.group(2) is not None:
+                scale = int(matches.group(3))
+                name = matches.group(1)
+        return (name, scale)
+
+    def buildJSONLikeResource(self, nameComponents, obj):
+        resource = dict(
+            kind="object",
+            value=obj
+        )
+        self.addResourceToMainBundle(nameComponents, resource)
+
+    def buildImageAssetResource(self, nameComponents, fullPath):
+        contentsPath = os.path.join(fullPath, "Contents.json")
+        contents = json.load(open(contentsPath))
+        images = contents.get('images', [])
+        for image in images:
+            vector = False
+            filename = image.get('filename', '')
+            scaleString = image.get('scale', '')
+            if scaleString:
+                scale = 1
+                matches = re.search('^(\d+)[Xx]$', scaleString)
+                if matches:
+                    scale = int(matches.group(1))
+            else:
+                vector = True
+            if filename:
+                imageFullPath = os.path.join(fullPath, filename)
+                mimeguess = mimetypes.guess_type(imageFullPath)
+                resource = self.buildImageResource(nameComponents, imageFullPath, mimeguess[0], scale)
+                resource["image"]["vector"] = vector
+
+    def buildImageResource(self, nameComponents, fullPath, mime, scale):
         hash_, byte_size = self.hashOfPath(fullPath)
         info = dict(
             hash=hash_,
             mimetype=mime,
-            byte_size=byte_size
+            byte_size=byte_size,
+            scale=scale
         )
         extractor = ImageInfoExtractor.for_path(fullPath)
         extractor.populate_dict(info)
-        self.mainBundle[resourcePath] = info
+        resource = dict(
+            kind="image",
+            image=info
+        )
+        self.addResourceToMainBundle(nameComponents, resource)
+        return resource
 
     @staticmethod
     def hashOfPath(fullPath):
