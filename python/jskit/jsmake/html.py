@@ -2,6 +2,8 @@
 
 import os
 import os.path
+import stat
+import sys
 import hashlib
 import xml.dom.minidom
 import plistlib
@@ -11,6 +13,7 @@ import json
 import mimetypes
 import StringIO
 import tempfile
+import subprocess
 import pkg_resources
 from HTMLParser import HTMLParser
 from .builder import Builder
@@ -33,6 +36,9 @@ class HTMLBuilder(Builder):
     debugPort = 8080
     workerProcesses = 1
     workerConnections = 1024
+    dockerIdentifier = ""
+    dockerOwner = ""
+    dockerName = ""
 
     def __init__(self, projectPath, includePaths, outputParentPath, buildID, buildLabel, debug=False, args=None):
         super(HTMLBuilder, self).__init__(projectPath, includePaths, outputParentPath, buildID, buildLabel, debug)
@@ -45,10 +51,12 @@ class HTMLBuilder(Builder):
         parser.add_argument(u'--http-port', default=u'8080')
         parser.add_argument(u'--worker-processes', default=u'1')
         parser.add_argument(u'--worker-connections', default=u'1024')
+        parser.add_argument(u'--docker-owner', default=u'')
         args = parser.parse_args(arglist)
         self.debugPort = int(args.http_port)
         self.workerProcesses = int(args.worker_processes)
         self.workerConnections = int(args.worker_connections)
+        self.dockerOwner = args.docker_owner
 
     def build(self):
         self.setup()
@@ -59,6 +67,7 @@ class HTMLBuilder(Builder):
         self.buildAppCacheManifest()
         self.buildIndex()
         self.buildNginxConf()
+        self.buildDocker()
         self.finish()
 
     def setup(self):
@@ -67,8 +76,18 @@ class HTMLBuilder(Builder):
         self.outputWebRootPath = os.path.join(self.outputProjectPath, "www")
         self.outputCacheBustingPath = os.path.join(self.outputWebRootPath, self.buildID)
         self.outputResourcePath = os.path.join(self.outputWebRootPath, "Resources")
-        os.makedirs(self.outputConfPath)
-        os.makedirs(os.path.join(self.outputProjectPath, "logs"))
+        if self.debug:
+            for child in (self.outputWebRootPath,):
+                if os.path.exists(child):
+                    if os.path.isdir(child):
+                        shutil.rmtree(child)
+                    else:
+                        os.unlink(child)
+        if not os.path.exists(self.outputConfPath):
+            os.makedirs(self.outputConfPath)
+        logsPath = os.path.join(self.outputProjectPath, "logs")
+        if not os.path.exists(logsPath):
+            os.makedirs(logsPath)
         os.makedirs(self.outputCacheBustingPath)
         os.makedirs(self.outputResourcePath)
         self.manifest = []
@@ -105,6 +124,7 @@ class HTMLBuilder(Builder):
 
     def buildAppJavascript(self):
         print "Creating application js..."
+        sys.stdout.flush()
         with tempfile.NamedTemporaryFile() as bundleJSFile:
             bundleJSFile.write("'use strict';\n")
             bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))
@@ -127,11 +147,13 @@ class HTMLBuilder(Builder):
                     os.link(outfile.fp.name, outputPath)
                 else:
                     shutil.copy(outfile.fp.name, outputPath)
+                os.chmod(outputPath, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
                 self.manifest.append(outputPath)
                 self.appJS.append(outputPath)
 
     def buildPreflight(self):
         print "Creating preflight js..."
+        sys.stdout.flush()
         self.featureCheck = JSFeatureCheck()
         self.featureCheck.addFeature(JSFeature('window'))
         self.featureCheck.addFeature(JSFeature("document.body"))
@@ -142,6 +164,7 @@ class HTMLBuilder(Builder):
 
     def buildAppCacheManifest(self):
         print "Creating manifest.appcache..."
+        sys.stdout.flush()
         self.manifestFile = open(os.path.join(self.outputWebRootPath, "manifest.appcache"), 'w')
         self.manifestFile.write("CACHE MANIFEST\n")
         self.manifestFile.write("# build %s\n" % self.buildID)
@@ -150,6 +173,7 @@ class HTMLBuilder(Builder):
 
     def buildIndex(self):
         print "Creating index.html..."
+        sys.stdout.flush()
         indexName = self.info.get('UIApplicationHTMLIndexFile', 'index.html')
         document = HTML5Document(os.path.join(self.projectPath, indexName)).domDocument
         self.indexFile = open(os.path.join(self.outputWebRootPath, indexName), 'w')
@@ -201,9 +225,12 @@ class HTMLBuilder(Builder):
         if self.manifestFile and not self.debug:
             document.documentElement.setAttribute('manifest', _webpath(os.path.relpath(self.manifestFile.name, os.path.dirname(self.indexFile.name))))
         HTML5DocumentSerializer(document).serializeToFile(self.indexFile)
+        self.indexFile.close()
+        self.indexFile = None
 
     def buildNginxConf(self):
         print "Creating nginx.conf..."
+        sys.stdout.flush()
         templateFile = os.path.join(self.projectPath, "nginx-debug.conf");
         fp = open(templateFile, 'r')
         template = fp.read()
@@ -225,14 +252,28 @@ class HTMLBuilder(Builder):
         fp.write(conf)
         fp.close()
 
+    def buildDocker(self):
+        ownerPrefix = ('%s/' % self.dockerOwner) if self.dockerOwner else ''
+        self.dockerIdentifier = "%s%s:%s" % (ownerPrefix, self.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
+        self.dockerIdentifier = self.dockerIdentifier.lower()
+        self.dockerName = self.info['JSBundleIdentifier'].lower()
+        print "Building docker %s..." % self.dockerIdentifier
+        sys.stdout.flush()
+        dockerFile = os.path.join(self.projectPath, "Dockerfile")
+        dockerOutputFile = os.path.join(self.outputProjectPath, "Dockerfile")
+        shutil.copyfile(dockerFile, dockerOutputFile)
+        args = ["docker", "build", "-t", self.dockerIdentifier, os.path.relpath(self.outputProjectPath)]
+        if subprocess.call(args) != 0:
+            print "! Error building docker with: %s" % ' '.join(args)
+            sys.stdout.flush()
+
 
     def finish(self):
         super(HTMLBuilder, self).finish()
-        self.indexFile.close()
-        self.indexFile = None
         print "\nDone!"
         if self.debug:
-            print "\nnginx -p %s" % (os.path.relpath(self.outputProjectPath))
+            print "\ndocker run --rm --name %s -p%d:%d %s" % (self.dockerName, self.debugPort, self.debugPort, self.dockerIdentifier)
+            sys.stdout.flush()
 
 
 def _webpath(ospath):

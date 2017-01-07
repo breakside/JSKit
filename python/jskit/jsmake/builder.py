@@ -50,16 +50,8 @@ class Builder(object):
         self.bundles[self.info['JSBundleIdentifier']] = self.mainBundle = {}
         self.mainBundle["Info"] = self.info
         self.outputProjectPath = os.path.join(self.outputParentPath, 'builds', self.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
-        if os.path.exists(self.outputProjectPath):
-            if self.debug:
-                print("Removing previous debug build...")
-                for child in [os.path.join(self.outputProjectPath, x) for x in os.listdir(self.outputProjectPath)]:
-                    if os.path.isdir(child):
-                        shutil.rmtree(child)
-                    else:
-                        os.unlink(child)
-            else:
-                raise Exception("Output path already exists: %s" % self.outputProjectPath)
+        if not self.debug and os.path.exists(self.outputProjectPath):
+            raise Exception("Output path already exists: %s" % self.outputProjectPath)
 
     def buildResources(self):
         resourcesPath = os.path.join(self.projectPath, "Resources")

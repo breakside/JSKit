@@ -12,8 +12,7 @@ def main():
     parser.add_argument(u'--output-dir', default=u'.', help=u"Where to put the build output")
     parser.add_argument(u'--include-dir', default=[], action='append')
     parser.add_argument(u'project', default=u'.')
-    parser.add_argument(u'args', nargs=argparse.REMAINDER)
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
     buildDate = datetime.datetime.now()
     buildID = unicode(hashlib.md5(buildDate.strftime(u"%Y-%m-%d-%H-%M-%S")).hexdigest())
     buildLabel = unicode(buildDate.strftime(u"%Y-%m-%d-%H-%M-%S"))
@@ -28,5 +27,5 @@ def main():
         builderClass = TestsBuilder
     else:
         raise Exception(u"Unsupported build type: %u" % args.kind)
-    builder = builderClass(projectPath=args.project, includePaths=args.include_dir, outputParentPath=args.output_dir, buildID=buildID, buildLabel=buildLabel, debug=args.debug, args=args.args)
+    builder = builderClass(projectPath=args.project, includePaths=args.include_dir, outputParentPath=args.output_dir, buildID=buildID, buildLabel=buildLabel, debug=args.debug, args=unknown)
     builder.build()
