@@ -4,7 +4,7 @@
 // #import "UIKit/UIDisplayServer.js"
 // #feature Math.min
 // #feature Math.max
-/* global JSCustomProperty, JSClass, JSObject, UILayer, UIDisplayServer, JSRect, JSPoint, JSSize, JSConstraintBox, JSAffineTransform, UIAnimationTransaction, UIBasicAnimation, JSSetDottedName, JSResolveDottedName*/
+/* global JSCustomProperty, JSDynamicProperty, JSClass, JSObject, UILayer, UIDisplayServer, JSRect, JSPoint, JSSize, JSConstraintBox, JSAffineTransform, UIAnimationTransaction, UIBasicAnimation, JSSetDottedName, JSResolveDottedName, JSContext */
 'use strict';
 
 function UILayerAnimatedProperty(){
@@ -65,6 +65,7 @@ JSClass("UILayer", JSObject, {
     level:              null,
     animationsByKey:    null,
     animationCount:     0,
+    _displayServer:     null,
 
     init: function(){
         this.sublayers = [];
@@ -110,6 +111,9 @@ JSClass("UILayer", JSObject, {
             this._recalculatePosition();
             this.setNeedsLayout();
             this.didChangeProperty('bounds.size');
+            if (this.delegate && this.delegate.layerDidChangeSize){
+                this.delegate.layerDidChangeSize(this);
+            }
         }else{
             // When just the origin changes, we only need to update the position, and can
             // do a simple delta offset instead of a full recalculation
@@ -144,6 +148,9 @@ JSClass("UILayer", JSObject, {
             this._recalculateFrame();
             this.didChangeProperty('position');
             this.didChangeProperty('bounds.size');
+            if (this.delegate && this.delegate.layerDidChangeSize){
+                this.delegate.layerDidChangeSize(this);
+            }
         }
         if (!bounds.origin.isEqual(oldBounds.origin)){
             this.boundsOriginDidChange();
@@ -151,8 +158,10 @@ JSClass("UILayer", JSObject, {
     },
 
     boundsOriginDidChange: function(){
-        for (var i = 0, l = this.sublayers.length; i < l; ++i){
-            UIDisplayServer.defaultServer.setLayerNeedsReposition(this.sublayers[i]);
+        if (this._displayServer !== null){
+            for (var i = 0, l = this.sublayers.length; i < l; ++i){
+                this._displayServer.setLayerNeedsReposition(this.sublayers[i]);
+            }
         }
     },
 
@@ -187,7 +196,9 @@ JSClass("UILayer", JSObject, {
     },
 
     didChangeProperty: function(keyPath){
-        UIDisplayServer.defaultServer.layerDidChangeProperty(this, keyPath);
+        if (this._displayServer !== null){
+            this._displayServer.layerDidChangeProperty(this, keyPath);
+        }
     },
 
     // -------------------------------------------------------------------------
@@ -217,7 +228,9 @@ JSClass("UILayer", JSObject, {
         if (sublayer.model.constraintBox){
             sublayer.frame = this._frameForConstraintBox(sublayer.model.constraintBox);
         }
-        UIDisplayServer.defaultServer.layerInserted(sublayer);
+        if (this._displayServer !== null){
+            this._displayServer.layerInserted(sublayer);
+        }
         return sublayer;
     },
 
@@ -237,7 +250,9 @@ JSClass("UILayer", JSObject, {
 
     removeSublayer: function(sublayer){
         if (sublayer.superlayer === this){
-            UIDisplayServer.defaultServer.layerRemoved(sublayer);
+            if (this._displayServer !== null){
+                this._displayServer.layerRemoved(sublayer);
+            }
             for (var i = sublayer.level + 1, l = this.sublayers.length; i < l; ++i){
                 this.sublayers[i].level -= 1;
             }
@@ -444,8 +459,8 @@ JSClass("UILayer", JSObject, {
         }
         this.animationsByKey[key] = animation;
         animation.layer = this;
-        if (!UIAnimationTransaction.currentTransaction){
-            UIDisplayServer.defaultServer.setLayerNeedsAnimation(this);
+        if (!UIAnimationTransaction.currentTransaction && this._displayServer !== null){
+            this._displayServer.setLayerNeedsAnimation(this);
         }
     },
 
@@ -487,18 +502,28 @@ JSClass("UILayer", JSObject, {
     // -------------------------------------------------------------------------
     // MARK: - Layout
 
+    _needsLayout: false,
+
     setNeedsLayout: function(){
         if (this.sublayers.length > 0){
-            UIDisplayServer.defaultServer.setLayerNeedsLayout(this);
+            if (this._displayServer !== null){
+                this._displayServer.setLayerNeedsLayout(this);
+            }else{
+                this._needsLayout = true;
+            }
         }
     },
 
     needsLayout: function(){
-        return UIDisplayServer.defaultServer.layerNeedsLayout(this);
+        return this._displayServer !== null ? this._displayServer.layerNeedsLayout(this) : this._needsLayout;
     },
 
     layoutIfNeeded: function(){
-        UIDisplayServer.layoutLayerIfNeeded(this);
+        if (this._displayServer !== null){
+            this._displayServer.layoutLayerIfNeeded(this);
+        }else if (this._needsLayout){
+            this.layout();
+        }
     },
 
     layout: function(){
@@ -527,32 +552,43 @@ JSClass("UILayer", JSObject, {
     // MARK: - Display
 
     setNeedsDisplay: function(){
-        UIDisplayServer.defaultServer.setLayerNeedsDisplay(this);
+        if (this._displayServer !== null){
+            this._displayServer.setLayerNeedsDisplay(this);
+        }
     },
 
     displayIfNeeded: function(){
-        UIDisplayServer.defaultServer.displayLayerIfNeeded(this);
+        if (this._displayServer !== null){
+            this._displayServer.displayLayerIfNeeded(this);
+        }
     },
 
     display: function(){
-        var context = UIDisplayServer.defaultServer.contextForLayer(this);
-        this._displayInGenericContext(context, false);
+        if (this._displayServer !== null){
+            var context = this._displayServer.contextForLayer(this);
+            this._renderInContext(context, false);
+        }
     },
 
     drawInContext: function(context){
+    },
+
+    _drawInContext: function(context){
         if (this.delegate && this.delegate.drawLayerInContext){
             this.delegate.drawLayerInContext(this, context);
+        }else{
+            this.drawInContext(context);
         }
     },
 
     renderInContext: function(context){
-        this._displayInGenericContext(context, true);
+        this._renderInContext(context, true);
     },
 
-    _displayInGenericContext: function(context, includeSublayers){
-        if (this.hidden) return;
-        this.drawBasePropertiesInContext(context);
-        this.drawInContext(context);
+    _renderInContext: function(context, includeSublayers){
+        context.drawLayerProperties(this);
+        if (this.presentation.hidden) return;
+        this._drawInContext(context);
         if (includeSublayers){
             var sublayer;
             var transform;
@@ -565,41 +601,7 @@ JSClass("UILayer", JSObject, {
                 context.restore();
             }
         }
-    },
-
-    _drawBasePropertiesInContext: function(context){
-        if (this.hidden) return;
-        var bounds = JSRect(0, 0, this.bounds.size.width, this.bounds.size.height);
-        context.save();
-        context.alpha = this.alpha;
-        if (this.transform !== JSAffineTransform.Identity){
-            context.concatCTM(this.transform);
-        }
-        if (this.shadowColor){
-            context.shadowColor = this.shadowColor;
-            context.shadowOffset = this.shadowOffset;
-            context.shadowBlur = this.shadowRadius;
-        }
-        if (this.cornerRadius){
-            // TODO: cornerRadius
-        }else{
-            if (this.backgroundColor){
-                context.fillColor = this.backgroundColor;
-                context.fillRect(this.bounds);
-            }
-            if (this.backgroundGradient){
-                context.drawLinearGradient(this.backgroundGradient, this.bounds.origin.y, this.bounds.origin.y + this.bounds.size.height);
-                // TODO: raidal gradients, horizontal linear?
-            }
-            context.shadowColor = null;
-            if (this.borderWidth){
-                context.lineWidth = this.borderWidth;
-                context.lineColor = this.borderColor;
-                context.strokeRect(this.bounds.rectWithInsets(this.borderWidth / 2.0));
-            }
-        }
-        context.restore();
-    },
+    }
 
 });
 
@@ -656,3 +658,40 @@ UILayer.Properties = {
     shadowOffset            : JSSize.Zero,
     shadowRadius            : 0.0
 };
+
+JSContext.definePropertiesFromExtensions({
+    drawLayerProperties: function(layer){
+        var properties = layer.presentation;
+        if (properties.hidden) return;
+        var bounds = JSRect(0, 0, properties.bounds.size.width, properties.bounds.size.height);
+        this.save();
+        this.alpha = properties.alpha;
+        if (properties.transform !== JSAffineTransform.Identity){
+            this.concatCTM(properties.transform);
+        }
+        if (properties.shadowColor){
+            this.shadowColor = properties.shadowColor;
+            this.shadowOffset = properties.shadowOffset;
+            this.shadowBlur = properties.shadowRadius;
+        }
+        if (properties.cornerRadius){
+            // TODO: cornerRadius
+        }else{
+            if (properties.backgroundColor){
+                this.fillColor = properties.backgroundColor;
+                this.fillRect(properties.bounds);
+            }
+            if (properties.backgroundGradient){
+                this.drawLinearGradient(properties.backgroundGradient, properties.bounds.origin.y, properties.bounds.origin.y + properties.bounds.size.height);
+                // TODO: raidal gradients, horizontal linear?
+            }
+            this.shadowColor = null;
+            if (properties.borderWidth){
+                this.lineWidth = properties.borderWidth;
+                this.lineColor = properties.borderColor;
+                this.strokeRect(properties.bounds.rectWithInsets(properties.borderWidth / 2.0));
+            }
+        }
+        this.restore();
+    }
+});

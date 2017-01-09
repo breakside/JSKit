@@ -5,6 +5,9 @@
 
 JSImage.definePropertiesFromExtensions({
     htmlURLString: function(){
+        if (this.url){
+            return this.url;
+        }
         if (this.resource){
             return this.resource.image.url;
         }
@@ -14,9 +17,7 @@ JSImage.definePropertiesFromExtensions({
             }
             return this._fileURL;
         }
-        if (this.data){
-            return this.data.htmlURLString();
-        }
+        return null;
     },
 
     preferredScale: function(){

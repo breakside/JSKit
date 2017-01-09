@@ -7,6 +7,7 @@
 
 JSClass('JSImage', JSObject, {
 
+    url: null,
     resourceName: null,
     resource: null,
     data: null,
@@ -19,8 +20,11 @@ JSClass('JSImage', JSObject, {
     init: function(){
     },
 
-    preferredScale: function(){
-        return 1;
+    initWithURL: function(url, width, height, scale){
+        this.url = url;
+        this.width = width;
+        this.height = height;
+        this.scale = 1;
     },
 
     initWithResourceName: function(name){
@@ -57,29 +61,6 @@ JSClass('JSImage', JSObject, {
         });
     },
 
-    stretchableImageWithCapSizes: function(leftCapWidth, topCapHeight, rightCapWidth, bottomCapHeight){
-        var image = JSImage.init();
-        image.width = this.width;
-        image.height = this.height;
-        image.scale = this.scale;
-        if (this.resource !== null){
-            image.resourceName = this.resourceName;
-            image.resource = this.resource;
-        }else if (this.file !== null){
-            image.file = this.file;
-        }else if (this.data !== null){
-            image.data = this.data;
-        }
-        if (rightCapWidth === undefined){
-            rightCapWidth = leftCapWidth;
-        }
-        if (bottomCapHeight === undefined){
-            bottomCapHeight = topCapHeight;
-        }
-        image.stretchBox = JSConstraintBox.Margin(topCapHeight, rightCapWidth, bottomCapHeight, leftCapWidth);
-        return image;
-    },
-
     initWithData: function(data, scale){
         this.data = data;
         this.scale = scale;
@@ -110,6 +91,33 @@ JSClass('JSImage', JSObject, {
         }else{
             // Very small, not enough room for a PNG header
         }
+    },
+
+    stretchableImageWithCapSizes: function(leftCapWidth, topCapHeight, rightCapWidth, bottomCapHeight){
+        var image = JSImage.init();
+        image.width = this.width;
+        image.height = this.height;
+        image.scale = this.scale;
+        if (this.resource !== null){
+            image.resourceName = this.resourceName;
+            image.resource = this.resource;
+        }else if (this.file !== null){
+            image.file = this.file;
+        }else if (this.data !== null){
+            image.data = this.data;
+        }
+        if (rightCapWidth === undefined){
+            rightCapWidth = leftCapWidth;
+        }
+        if (bottomCapHeight === undefined){
+            bottomCapHeight = topCapHeight;
+        }
+        image.stretchBox = JSConstraintBox.Margin(topCapHeight, rightCapWidth, bottomCapHeight, leftCapWidth);
+        return image;
+    },
+
+    preferredScale: function(){
+        return 1;
     },
 
     _getDataFromResource: function(){

@@ -8,6 +8,7 @@ JSClass('UIApplication', UIResponder, {
 
     keyWindow: JSDynamicProperty('_keyWindow', null),
     windows: null,
+    windowServer: null,
 
     init: function(){
         if (UIApplication._sharedApplication){
@@ -16,6 +17,7 @@ JSClass('UIApplication', UIResponder, {
         UIApplication._sharedApplication = this;
         this._firstResponder = this;
         this.windows = [];
+        this.windowServer = UIWindowServer.defaultServer;
     },
 
     run: function(){
@@ -34,7 +36,7 @@ JSClass('UIApplication', UIResponder, {
 
     windowInserted: function(window){
         this.windows.push(window);
-        UIWindowServer.defaultServer.windowInserted(window);
+        this.windowServer.windowInserted(window);
     },
 
     windowRemoved: function(window){
@@ -44,7 +46,7 @@ JSClass('UIApplication', UIResponder, {
                 break;
             }
         }
-        UIWindowServer.defaultServer.windowRemoved(window);
+        this.windowServer.windowRemoved(window);
     },
 
     sendEvent: function(event){

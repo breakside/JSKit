@@ -1,9 +1,8 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIResponder.js"
 // #import "UIKit/UILayer.js"
-// #import "UIKit/UIDisplayServer.js"
 // #import "UIKit/UIAnimation.js"
-/* global JSClass, JSObject, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSDynamicProperty, JSRect, JSPoint, JSConstraintBox, JSColor, UIDisplayServer, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty */
+/* global JSClass, JSObject, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSDynamicProperty, JSRect, JSPoint, JSConstraintBox, JSColor, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty */
 'use strict';
 
 function UIViewLayerProperty(){
@@ -189,9 +188,6 @@ JSClass('UIView', UIResponder, {
 
     setNeedsDisplay: function(){
         this.layer.setNeedsDisplay();
-    },
-
-    drawLayerInContext: function(layer, context){
     },
 
     // -------------------------------------------------------------------------

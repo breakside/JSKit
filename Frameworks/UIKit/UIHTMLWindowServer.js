@@ -1,20 +1,52 @@
 // #import "UIKit/UIWindowServer.js"
 // #import "UIKit/UIEvent.js"
 // #import "UIKit/UIWindowServer.js"
+// #import "UIKit/UIHTMLDisplayServer.js"
 // #feature Element.prototype.addEventListener
-/* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIWindowServerHTML */
+/* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer */
 'use strict';
 
-JSClass("UIWindowServerHTML", UIWindowServer, {
+JSClass("UIHTMLWindowServer", UIWindowServer, {
 
     rootElement: null,
+    domDocument: null,
+    domWindow: null,
     mouseDownButton: -1,
 
     initWithRootElement: function(rootElement){
-        UIWindowServerHTML.$super.init.call(this);
+        UIHTMLWindowServer.$super.init.call(this);
         this.rootElement = rootElement;
+        this.domDocument = this.rootElement.ownerDocument;
+        this.domWindow = this.domDocument.defaultView;
+        this.setupRenderingEnvironment();
         this.setupEventListeners();
-        this.mouseDownButton = UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_NONE;
+        this.mouseDownButton = UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE;
+        this.displayServer = UIHTMLDisplayServer.initWithRootElement(rootElement);
+    },
+
+    setupRenderingEnvironment: function(){
+        if (this.rootElement === this.domDocument.body){
+            var body = this.rootElement;
+            var html = this.domDocument.documentElement;
+            body.style.padding = '0';
+            html.style.padding = '0';
+            body.style.margin = '0';
+            html.style.margin = '0';
+            body.style.height = '100%';
+            html.style.height = '100%';
+            html.style.overflow = 'hidden';
+            body.style.overflow = 'hidden';
+        }else{
+            var style = this.domWindow.getComputedStyle(this.rootElement);
+            if (style.position != 'absolute' && style.position != 'relative' && style.position != 'fixed'){
+                this.rootElement.style.position = 'relative';
+            }
+        }
+        this.rootElement.style.fontFamily = '"San Francisco", "Helvetica Neue", "Helvetica", sans-serif';
+        this.rootElement.style.fontSize = '14px';
+        this.rootElement.style.fontWeight = 300;
+        this.rootElement.style.lineHeight = '19px';
+        this.rootElement.style.cursor = 'default';
     },
 
     setupEventListeners: function(){
@@ -26,6 +58,7 @@ JSClass("UIWindowServerHTML", UIWindowServer, {
         this.rootElement.addEventListener('dragstart', this, false);
         this.rootElement.addEventListener('dragend', this, false);
         this.rootElement.addEventListener('mouseleave', this, false);
+        this.domWindow.addEventListener('resize', this, false);
         // TODO: efficient mousemove (look into tracking areas)
         // TODO: mouse enter/exit (look into tracking areas)
         // TODO: dragging
@@ -55,31 +88,31 @@ JSClass("UIWindowServerHTML", UIWindowServer, {
 
     mousedown: function(e){
         switch (e.button){
-            case UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_LEFT:
+            case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.LeftMouseDown);
                 break;
-            case UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_RIGHT:
+            case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT:
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.RightMouseDown);
                 break;
         }
-        if (this.mouseDownButton == UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_NONE){
+        if (this.mouseDownButton == UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE){
             this.mouseDownButton = e.button;
             this.startListeningForMouseDrag();
         }
     },
 
     mouseup: function(e){
-        if (this.mouseDownButton != UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_NONE){
+        if (this.mouseDownButton != UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE){
             switch (e.button){
-                case UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_LEFT:
+                case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
                     this._createMouseEventFromDOMEvent(e, UIEvent.Type.LeftMouseUp);
                     break;
-                case UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_RIGHT:
+                case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT:
                     this._createMouseEventFromDOMEvent(e, UIEvent.Type.RightMouseUp);
                     break;
             }
             if (e.button == this.mouseDownButton){
-                this.mouseDownButton = UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_NONE;
+                this.mouseDownButton = UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE;
                 this.stopListeningForMouseDrag();
             }
         }
@@ -87,10 +120,10 @@ JSClass("UIWindowServerHTML", UIWindowServer, {
 
     mousemove: function(e){
         switch (this.mouseDownButton){
-            case UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_LEFT:
+            case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.LeftMouseDragged);
                 break;
-            case UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_RIGHT:
+            case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT:
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.RightMouseDragged);
                 break;
         }
@@ -98,14 +131,14 @@ JSClass("UIWindowServerHTML", UIWindowServer, {
 
     mouseleave: function(e){
         switch (this.mouseDownButton){
-            case UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_LEFT:
+            case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.LeftMouseUp);
-                this.mouseDownButton = UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_NONE;
+                this.mouseDownButton = UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE;
                 this.stopListeningForMouseDrag();
                 break;
-            case UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_RIGHT:
+            case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT:
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.RightMouseUp);
-                this.mouseDownButton = UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_NONE;
+                this.mouseDownButton = UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE;
                 this.stopListeningForMouseDrag();
                 break;
         }
@@ -124,6 +157,12 @@ JSClass("UIWindowServerHTML", UIWindowServer, {
     },
 
     keypress: function(e){
+    },
+
+    resize: function(e){
+        if (e.currentTarget === this.domWindow){
+            this.displayServer.updateRootBounds();
+        }
     },
 
     _createMouseEventFromDOMEvent: function(e, type){
@@ -145,6 +184,6 @@ JSClass("UIWindowServerHTML", UIWindowServer, {
 // 2: Secondary button pressed, usually the right button
 // 3: Fourth button, typically the Browser Back button
 // 4: Fifth button, typically the Browser Forward button
-UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_NONE = -1;
-UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_LEFT = 0;
-UIWindowServerHTML.DOM_MOUSE_EVENT_BUTTON_RIGHT = 2;
+UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE = -1;
+UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT = 0;
+UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT = 2;

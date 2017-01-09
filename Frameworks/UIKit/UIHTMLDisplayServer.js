@@ -1,12 +1,13 @@
 // #import "UIKit/UIDisplayServer.js"
+// #import "UIKit/UIHTMLDisplayServerContext.js"
 // #feature Window.prototype.addEventListener
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
 // #feature Document.prototype.createElement
-/* global JSClass, UIDisplayServer, UIDisplayServerHTML, JSHTMLContext, JSSize, JSRect, JSPoint, UILayer */
+/* global JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer */
 'use strict';
 
-JSClass("UIDisplayServerHTML", UIDisplayServer, {
+JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     domWindow: null,
     domDocument: null,
@@ -22,64 +23,28 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
     // MARK: - HTML Display Setup
 
     initWithRootElement: function(rootElement){
-        UIDisplayServerHTML.$super.init.call(this);
+        UIHTMLDisplayServer.$super.init.call(this);
         this.rootElement = rootElement;
+        this.rootContext = UIHTMLDisplayServerContext.initWithElement(this.rootElement);
         this.domDocument = this.rootElement.ownerDocument;
         this.domWindow = this.domDocument.defaultView;
         this.rootLayers = [];
         this.contextsByLayerID = {};
         this._displayFrameBound = this.displayFrame.bind(this);
-        this.setupRenderingEnvironment();
+        this.determineRootBounds();
     },
 
-    setupRenderingEnvironment: function(){
-        this.rootContext = JSHTMLContext.initWithElement(this.rootElement);
-        if (this.rootElement === this.domDocument.body){
-            var body = this.rootElement;
-            var html = this.domDocument.documentElement;
-            body.style.padding = '0';
-            html.style.padding = '0';
-            body.style.margin = '0';
-            html.style.margin = '0';
-            body.style.height = '100%';
-            html.style.height = '100%';
-            html.style.overflow = 'hidden';
-            body.style.overflow = 'hidden';
-        }else{
-            var style = this.domWindow.getComputedStyle(this.rootElement);
-            if (style.position != 'absolute' && style.position != 'relative' && style.position != 'fixed'){
-                this.rootElement.style.position = 'relative';
-            }
-        }
-        this.rootElement.style.fontFamily = '"San Francisco", "Helvetica Neue", "Helvetica", sans-serif';
-        this.rootElement.style.fontSize = '14px';
-        this.rootElement.style.fontWeight = 300;
-        this.rootElement.style.lineHeight = '19px';
-        this.rootElement.style.cursor = 'default';
-        this._determineRootBounds();
-        this.setupEventListeners();
+    determineRootBounds: function(){
+        this.rootBounds = JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight);
     },
 
-    // -------------------------------------------------------------------------
-    // MARK: - Display-related Events
-
-    setupEventListeners: function(){
-        this.domWindow.addEventListener('resize', this, false);
-    },
-
-    handleEvent: function(e){
-        this[e.type](e);
-    },
-
-    resize: function(e){
-        if (e.currentTarget === this.domWindow){
-            this._determineRootBounds();
-            var layer;
-            for (var i = 0, l = this.rootLayers.length; i < l; ++i){
-                layer = this.rootLayers[i];
-                if (layer.constraintBox){
-                    layer.frame = UILayer.FrameForConstraintBoxInBounds(layer.constraintBox, this.rootBounds);
-                }
+    updateRootBounds: function(){
+        this.determineRootBounds();
+        var layer;
+        for (var i = 0, l = this.rootLayers.length; i < l; ++i){
+            layer = this.rootLayers[i];
+            if (layer.constraintBox){
+                layer.frame = UILayer.FrameForConstraintBoxInBounds(layer.constraintBox, this.rootBounds);
             }
         }
     },
@@ -118,20 +83,31 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
             case 'shadowRadius':
                 context = this.contextForLayer(layer);
                 context.propertiesNeedingUpdate.shadow = true;
-                UIDisplayServerHTML.$super.setLayerNeedsDisplay.call(this, layer);
+                UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
                 break;
             default:
                 context = this.contextForLayer(layer);
                 context.propertiesNeedingUpdate[parts[0]] = true;
-                UIDisplayServerHTML.$super.setLayerNeedsDisplay.call(this, layer);
+                UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
                 break;
         }
     },
 
     setLayerNeedsDisplay: function(layer){
         var context = this.contextForLayer(layer);
-        context.needsRedraw = true;
-        UIDisplayServerHTML.$super.setLayerNeedsDisplay.call(this, layer);
+        context.needsFullDisplay = true;
+        UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
+    },
+
+    displayLayer: function(layer){
+        var context = this.contextForLayer(layer);
+        if (context.needsFullDisplay){
+            context.resetForDisplay();
+            layer._renderInContext(context, false);
+            context.cleanupAfterDisplay();
+        }else{
+            context.drawLayerProperties(layer.presentation);
+        }
     },
 
     positionLayer: function(layer){
@@ -153,7 +129,8 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
         var context = this.contextsByLayerID[layer.objectID];
         if (context === undefined){
             var element = this.domDocument.createElement('div');
-            context = JSHTMLContext.initWithElement(element);
+            context = UIHTMLDisplayServerContext.initWithElement(element);
+            layer.initializeHTMLContext(context);
             if (element.dataset){
                 element.dataset.layerId = layer.objectID;
                 if (layer.delegate !== null){
@@ -161,7 +138,6 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
                 }
             }
             this.contextsByLayerID[layer.objectID] = context;
-            layer.initializeHTMLContext(context);
         }
         return context;
     },
@@ -170,6 +146,7 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
     // MARK: - Notifications
 
     layerInserted: function(layer){
+        layer._displayServer = this;
         var parentContext;
         if (layer.superlayer){
             parentContext = this.contextsByLayerID[layer.superlayer.objectID];
@@ -187,9 +164,18 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
                 parentContext.element.appendChild(context.element);
             }
             context.firstSublayerNodeIndex = context.element.childNodes.length;
+            if (layer._needsLayout){
+                this.setLayerNeedsLayout(layer);
+                layer._needsLayout = false;
+            }
+            this.setLayerNeedsReposition(layer);
+            this.setLayerNeedsDisplay(layer);
             for (var i = 0, l = layer.sublayers.length; i < l; ++i){
                 this.layerInserted(layer.sublayers[i]);
             }
+        }else{
+            console.log("layerInserted called without valid parent context");
+            debugger;
         }
     },
 
@@ -210,13 +196,10 @@ JSClass("UIDisplayServerHTML", UIDisplayServer, {
                 break;
             }
         }
+        layer._displayServer = null;
     },
 
     // -------------------------------------------------------------------------
     // MARK: - Private Helpers
-
-    _determineRootBounds: function(){
-        this.rootBounds = JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight);
-    }
 
 });

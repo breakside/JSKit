@@ -5,17 +5,6 @@
 
 UILayer.definePropertiesFromExtensions({
 
-    display: function(){
-        var context = UIDisplayServer.defaultServer.contextForLayer(this);
-        this.createBorderElementIfNeeded(context);
-        this.updatePropertiesInHTMLContext(context);
-        context.propertiesNeedingUpdate = {};
-        if (context.needsRedraw){
-            this.drawInContext(context);
-            context.needsRedraw = false;
-        }
-    },
-
     initializeHTMLContext: function(context){
         context.style.position = 'absolute';
         context.style.boxSizing = 'border-box';
@@ -38,16 +27,16 @@ UILayer.definePropertiesFromExtensions({
         }
     },
 
-    updatePropertiesInHTMLContext: function(context){
-        var methodName;
-        for (var keyPath in context.propertiesNeedingUpdate){
-            methodName = 'updateHTMLProperty_' + keyPath;
-            if (this[methodName]){
-                this[methodName].call(this, context);
-            }else{
-                throw new Error("UILayer+HTML could not find html display method for keyPath '%s'".sprintf(keyPath));
-            }
-        }
+    updateAllHTMLProperties: function(context){
+        this.updateHTMLProperty_bounds(context);
+        this.updateHTMLProperty_transform(context);
+        this.updateHTMLProperty_hidden(context);
+        this.updateHTMLProperty_alpha(context);
+        this.updateHTMLProperty_backgroundColor(context);
+        this.updateHTMLProperty_borderWidth(context);
+        this.updateHTMLProperty_borderColor(context);
+        this.updateHTMLProperty_cornerRadius(context);
+        this.updateHTMLProperty_shadow(context);
     },
 
     updateHTMLProperty_bounds: function(context){

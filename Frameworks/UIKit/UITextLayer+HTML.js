@@ -4,6 +4,13 @@
 
 UITextLayer.definePropertiesFromExtensions({
 
+    updateAllHTMLProperties: function(context){
+        UITextLayer.$super.updateAllHTMLProperties.call(this, context);
+        this.updateHTMLProperty_textColor(context);
+        this.updateHTMLProperty_font(context);
+        this.updateHTMLProperty_textAlignment(context);
+    },
+
     updateHTMLProperty_textColor: function(context){
         context.style.color = this.presentation.textColor ? this.presentation.textColor.cssString() : '';
     },

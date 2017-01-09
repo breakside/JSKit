@@ -44,9 +44,6 @@ JSClass('UIWindow', UIView, {
     },
 
     makeKeyAndVisible: function(){
-        UIDisplayServer.defaultServer.layerInserted(this.layer);
-        // Force layout and display right now so all sizes are correct when viewDidAppear is called
-        UIDisplayServer.defaultServer.updateDisplay();
         this.application.windowInserted(this);
         if (this.canBecomeKeyWindow()){
             this.application.keyWindow = this;

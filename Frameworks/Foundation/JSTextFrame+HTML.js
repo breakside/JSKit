@@ -38,7 +38,7 @@ JSTextFrame.definePropertiesFromExtensions({
     },
 
     drawInContext: function(context){
-        if (context.isKindOfClass(JSHTMLContext)){
+        if (context.isKindOfClass(UIHTMLDisplayServerContext)){
             this._drawInHTMLContext(context);
         }else{
             this._drawInGenericContext(context);

@@ -97,8 +97,12 @@ JSClass("UIDisplayServer", JSObject, {
     _flushLayerDisplayQueue: function(){
         var layer;
         while ((layer = this.layerDisplayQueue.dequeue()) !== null){
-            layer.display();
+            this.displayLayer(layer);
         }
+    },
+
+    displayLayer: function(layer){
+        layer.display();
     },
 
     // -------------------------------------------------------------------------
@@ -280,17 +284,3 @@ UIDisplayServerQueue.prototype = {
     }
 
 };
-
-// Lazy init a property, so the first access is a function call, but subsequent accesses are simple values
-Object.defineProperty(UIDisplayServer, 'defaultServer', {
-    configurable: true,
-    enumerable: false,
-    get: function UIDisplayServer_lazyInitDefaultRenderer(){
-        Object.defineProperty(UIDisplayServer, 'defaultServer', {
-            configurable: false,
-            enumerable: false,
-            value: UIDisplayServerInit()
-        });
-        return UIDisplayServer.defaultServer;
-    }
-});

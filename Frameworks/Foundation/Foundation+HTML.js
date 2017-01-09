@@ -9,6 +9,3 @@
 // #import "Foundation/JSFont+HTML.js"
 // #import "Foundation/JSImage+HTML.js"
 // #import "Foundation/JSTextFrame+HTML.js"
-
-// Overrides
-// #import "Foundation/JSHTMLContext.js"
