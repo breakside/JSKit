@@ -1,0 +1,23 @@
+{
+    "folders":
+    [
+        {
+            "path": ".",
+            "folder_exclude_patterns": ["builds"]
+        }
+    ],
+    "build_systems":
+    [
+        {
+            "name": "jsmake",
+            "cmd": ["jsmake", "${PROJECT_NAME}", "--include-dir", "../../JSKit/Frameworks", "--docker-owner", "owenpshaw"],
+            "working_dir": "${project_path}",
+            "variants": [
+                {
+                    "name": "debug",
+                    "cmd": ["jsmake", "${PROJECT_NAME}", "--include-dir", "../../JSKit/Frameworks", "--docker-owner", "owenpshaw", "--debug"]
+                }
+            ]
+        }
+    ]
+}

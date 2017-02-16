@@ -21,25 +21,56 @@ class ProjectBuilder(object):
 
     name = None
     template = None
+    placeholders = None
 
     def __init__(self, name, template):
         self.name = name
         self.template = template
+        self.placeholders = dict(
+            PROJECT_NAME=self.name
+        )
 
     def build(self):
         template = Path(os.path.realpath(self.template))
         project = Path(os.path.join(os.getcwd(), self.name))
 
         if os.path.exists(project.root):
-            raise Exception(u"Output path already exists: %u" % project.root)
+            raise Exception(u"Output path already exists: %s" % project.root)
 
         shutil.copytree(
             template.root,
             project.root
         )
 
-        # TODO: walk files and replace ${} in filenames and in content
+        self.fill_placeholders(project.root)
 
+    def fill_placeholders(self, path):
+        for child in os.listdir(path):
+            if child not in ('..', '.'):
+                childpath = os.path.join(path, child)
+                if os.path.isdir(childpath):
+                    self.fill_placeholders(childpath)
+                else:
+                    fp = open(childpath, 'r')
+                    contents = fp.read()
+                    fp.close()
+                    contents_changed = False
+                    for name, value in self.placeholders.items():
+                        placeholder = '${' + name + '}'
+                        if placeholder in contents:
+                            contents_changed = True
+                            contents = contents.replace(placeholder, value)
+                    if contents_changed:
+                        fp = open(childpath, 'w')
+                        fp.write(contents)
+                        fp.close()
+                for name, value in self.placeholders.items():
+                    placeholder = '${' + name + '}'
+                    if placeholder in child:
+                        child = child.replace(placeholder, value)
+                        newpath = os.path.join(path, child)
+                        os.rename(childpath, newpath)
+                        childpath = newpath
 
 def main():
     parser = argparse.ArgumentParser()

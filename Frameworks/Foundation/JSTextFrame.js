@@ -1,6 +1,7 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/CoreTypes.js"
-/* global JSClass, JSObject, JSRect, JSDynamicProperty, JSAttributedString */
+// #import "Foundation/JSContext.js"
+/* global JSClass, JSObject, JSRect, JSDynamicProperty, JSAttributedString, JSContext */
 'use strict';
 
 JSClass("JSTextFrame", JSObject, {
@@ -50,13 +51,16 @@ JSClass("JSTextFrame", JSObject, {
     },
 
     drawInContext: function(context){
-        this._drawInGenericContext();
-    },
-
-    _drawInGenericContext: function(context){
+        context.drawTextFrame(this);
     },
 
     characterIndexAtPoint: function(point){
     }
 
+});
+
+JSContext.definePropertiesFromExtensions({
+    drawTextFrame: function(textFrame){
+
+    }
 });
