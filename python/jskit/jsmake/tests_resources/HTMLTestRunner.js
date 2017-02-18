@@ -12,7 +12,7 @@ JSClass('HTMLTestRun', TKTestRun, {
     name: null,
 
     initWithRootElement: function(rootElement){
-        var info = JSBundle.mainBundle.resourceNamed('Info');
+        var info = JSBundle.mainBundle.info();
         this.name = info.JSBundleDisplayName || info.JSBundleIdentifier;
         HTMLTestRun.$super.init.call(this);
         this.rootElement = rootElement;

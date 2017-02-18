@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, TKAssert, TKAssertNotNull, TKAssertEquals, TKAssertObjectEquals, JSRange */
+/* global JSClass, TKTestSuite, TKAssert, TKAssertNull, TKAssertNotNull, TKAssertEquals, TKAssertObjectEquals, JSRange */
 'use strict';
 
 JSClass('JSRangeTests', TKTestSuite, {
@@ -28,6 +28,11 @@ JSClass('JSRangeTests', TKTestSuite, {
         TKAssert(range instanceof JSRange);
         TKAssertEquals(range.location, 1);
         TKAssertEquals(range.length, 2);
+    },
+
+    testNullFunction: function(){
+        var range = JSRange(null);
+        TKAssertNull(range);
     },
 
     testNegatives: function(){

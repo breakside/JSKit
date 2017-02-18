@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, TKAssert, TKAssertNotNull, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSConstraintBox, JSRect */
+/* global JSClass, TKTestSuite, TKAssert, TKAssertNull, TKAssertNotNull, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSConstraintBox, JSRect */
 'use strict';
 
 JSClass('JSConstraintBoxTests', TKTestSuite, {
@@ -61,6 +61,11 @@ JSClass('JSConstraintBoxTests', TKTestSuite, {
         TKAssertEquals(constraints.left, 4);
         TKAssertEquals(constraints.width, 5);
         TKAssertEquals(constraints.height, 6);
+    },
+
+    testNullFunction: function(){
+        var constraints = JSConstraintBox(null);
+        TKAssertNull(constraints);
     },
 
     testSize: function(){

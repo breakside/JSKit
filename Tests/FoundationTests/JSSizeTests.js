@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, TKAssert, TKAssertNotNull, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSSize */
+/* global JSClass, TKTestSuite, TKAssert, TKAssertNull, TKAssertNotNull, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSSize */
 'use strict';
 
 JSClass('JSSizeTests', TKTestSuite, {
@@ -28,6 +28,11 @@ JSClass('JSSizeTests', TKTestSuite, {
         TKAssert(size instanceof JSSize);
         TKAssertEquals(size.width, 1);
         TKAssertEquals(size.height, 2);
+    },
+
+    testNullFunction: function(){
+        var size = JSSize(null);
+        TKAssertNull(size);
     },
 
     testNegatives: function(){

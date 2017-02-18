@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, TKAssert, TKAssertNotNull, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSPoint */
+/* global JSClass, TKTestSuite, TKAssert, TKAssertNull, TKAssertNotNull, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSPoint */
 'use strict';
 
 JSClass('JSPointTests', TKTestSuite, {
@@ -28,6 +28,11 @@ JSClass('JSPointTests', TKTestSuite, {
         TKAssert(point instanceof JSPoint);
         TKAssertEquals(point.x, 1);
         TKAssertEquals(point.y, 2);
+    },
+
+    testNullFunction: function(){
+        var point = JSPoint(null);
+        TKAssertNull(point);
     },
 
     testNegatives: function(){

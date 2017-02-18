@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, TKAssert, TKAssertNotNull, TKAssertEquals, TKAssertObjectEquals, JSAffineTransform */
+/* global JSClass, TKTestSuite, TKAssert, TKAssertNull, TKAssertNotNull, TKAssertEquals, TKAssertObjectEquals, JSAffineTransform */
 'use strict';
 
 JSClass('JSAffineTransformTests', TKTestSuite, {
@@ -40,6 +40,11 @@ JSClass('JSAffineTransformTests', TKTestSuite, {
         TKAssertEquals(transform.d, 4);
         TKAssertEquals(transform.tx, 5);
         TKAssertEquals(transform.ty, 6);
+    },
+
+    testNullFunction: function(){
+        var transform = JSAffineTransform(null);
+        TKAssertNull(transform);
     },
 
     testIdentity : function(){

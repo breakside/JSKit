@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, TKAssert, TKAssertNotNull, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSRect, JSPoint, JSSize */
+/* global JSClass, TKTestSuite, TKAssert, TKAssertNull, TKAssertNotNull, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSRect, JSPoint, JSSize */
 'use strict';
 
 JSClass('JSRectTests', TKTestSuite, {
@@ -49,6 +49,11 @@ JSClass('JSRectTests', TKTestSuite, {
         TKAssertEquals(rect.origin.y, 2);
         TKAssertEquals(rect.size.width, 3);
         TKAssertEquals(rect.size.height, 4);
+    },
+
+    testNullFunction: function(){
+        var rect = JSRect(null);
+        TKAssertNull(rect);
     },
 
     testZero : function(){

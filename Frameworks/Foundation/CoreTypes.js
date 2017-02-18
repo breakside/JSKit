@@ -7,6 +7,9 @@
 
 JSGlobalObject.JSSize = function JSSize(width, height){
     if (this === undefined){
+        if (width === null){
+            return null;
+        }
         return new JSSize(width, height);
     }else{
         if (width instanceof JSSize){
@@ -36,6 +39,9 @@ Object.defineProperty(JSSize, 'Zero', {
 
 JSGlobalObject.JSPoint = function JSPoint(x, y){
     if (this === undefined){
+        if (x === null){
+            return null;
+        }
         return new JSPoint(x, y);
     }else{
         if (x instanceof JSPoint){
@@ -72,6 +78,9 @@ Object.defineProperty(JSPoint, 'UnitCenter', {
 
 JSGlobalObject.JSRect = function JSRect(x, y, width, height){
     if (this === undefined){
+        if (x === null){
+            return null;
+        }
         return new JSRect(x, y, width, height);
     }else{
         if (x instanceof JSRect){
@@ -111,6 +120,9 @@ Object.defineProperty(JSRect, 'Zero', {
 
 JSGlobalObject.JSRange = function JSRange(location, length){
     if (this === undefined){
+        if (location === null){
+            return null;
+        }
         return new JSRange(location, length);
     }else{
         if (location instanceof JSRange){
@@ -131,6 +143,9 @@ JSRange.prototype = {
 
 JSGlobalObject.JSAffineTransform = function JSAffineTransform(a, b, c, d, tx, ty){
     if (this === undefined){
+        if (a === null){
+            return null;
+        }
         return new JSAffineTransform(a, b, c, d, tx, ty);
     }else if (a instanceof JSAffineTransform){
         this.a = a.a;
@@ -252,6 +267,9 @@ JSAffineTransform.RotatedDegrees = function(degs){
 
 JSGlobalObject.JSConstraintBox = function JSConstraintBox(props){
     if (this === undefined){
+        if (props === null){
+            return null;
+        }
         return new JSConstraintBox(props);
     }else{
         if (props !== undefined){
