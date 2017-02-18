@@ -88,7 +88,7 @@ class Builder(object):
                         nameComponents = parentNameComponents + [name]
                         self.buildImageResource(nameComponents, fullPath, mimeguess[0], scale)
                     elif primary_type == 'application':
-                        if secondary_type in ('x-font-ttf',):
+                        if secondary_type in ('x-font-ttf', 'x-font-otf', 'x-font-woff'):
                             self.buildFontResource(nameComponents, fullPath, mimeguess[0])
 
     def addResourceToMainBundle(self, nameComponents, resource):

@@ -13,7 +13,12 @@
 	},
 	"Main Window": {
 		"JSObjectClass": "UIWindow",
-		"contentView": "#Main View"
+		"rootViewController": "#Main View Controller"
+	},
+	"Main View Controller": {
+		"JSObjectClass": "MainViewController",
+		"view": "#Main View",
+		"JSInclude": "MainViewController.js"
 	},
 	"Main View": {
 		"JSObjectClass": "UIView",

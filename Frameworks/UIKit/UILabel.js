@@ -21,6 +21,9 @@ JSClass('UILabel', UIView, {
             var descriptor = spec.resolvedValue(values.fontDescriptor);
             this.font = JSFont.fontWithDescriptor(descriptor, pointSize);
         }
+        if ("text" in values){
+            this.text = values.text;
+        }
     }
 
 });

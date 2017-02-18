@@ -18,6 +18,7 @@ import pkg_resources
 from HTMLParser import HTMLParser
 from .builder import Builder
 from .javascript import JSCompilation, JSFeature
+from .woff import sfnt_to_woff
 
 
 class HTMLBuilder(Builder):
@@ -115,8 +116,18 @@ class HTMLBuilder(Builder):
         info = resource["font"]
         dontcare, ext = os.path.splitext(os.path.basename(fullPath))
         outputFontPath = os.path.join(self.outputResourcePath, resource['hash'] + ext)
+        url = _webpath(os.path.relpath(outputFontPath, self.outputWebRootPath))
+        variants = [(url, None)]
+        if mime != 'application/x-font-woff':
+            outputTmpWoffPath = os.path.join(self.outputResourcePath, resource['hash'] + '.woff')
+            sfnt_to_woff(fullPath, outputTmpWoffPath)
+            woff_hash, woff_size = Builder.hashOfPath(outputTmpWoffPath)
+            outputWoffPath = os.path.join(self.outputResourcePath, woff_hash + '.woff')
+            os.rename(outputTmpWoffPath, outputWoffPath)
+            variants.insert(0, (_webpath(os.path.relpath(outputWoffPath, self.outputWebRootPath)), 'woff'))
         info.update(dict(
-             url=_webpath(os.path.relpath(outputFontPath, self.outputWebRootPath))
+            url=url,
+            variants=variants
         ))
         shutil.copyfile(fullPath, outputFontPath)
         self.manifest.append(outputFontPath)
@@ -150,10 +161,15 @@ class HTMLBuilder(Builder):
             fp.write('  font-family: "%s";\n' % font['family'])
             fp.write('  font-style: %s;\n' % font['style'])
             fp.write('  font-weight: %s;\n' % font['weight'])
-            fp.write('  src: url("../%s");\n' % font['url'])
+            fp.write('  src: %s;\n' % ', '.join([self.font_src(variant) for variant in font['variants']]))
             fp.write('}\n\n')
         fp.close()
         self.appCSS.append(outputPath)
+
+    def font_src(self, variant):
+        if variant[1]:
+            'url("../%s") format("%s")' % (variant[0], variant[1])
+        return 'url("../%s")' % variant[0]
 
     def buildAppJavascript(self):
         print "Creating application js..."
@@ -227,6 +243,7 @@ class HTMLBuilder(Builder):
                 for css in self.appCSS:
                     style = document.createElement('link')
                     style.setAttribute('rel', 'stylesheet')
+                    style.setAttribute('type', 'text/css')
                     style.setAttribute('href', _webpath(os.path.relpath(css, self.outputWebRootPath)))
                     node.appendChild(style)
             elif node.tagName == 'title' and node.parentNode.tagName == 'head':
