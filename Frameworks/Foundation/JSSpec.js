@@ -1,7 +1,7 @@
-// #import "Foundation/Foundation.js"
+// #import "Foundation/Javascript.js"
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSPropertyList.js"
-/* global JSClass, JSObject, JSPropertyList, JSSpec, JSClassFromName, JSGlobalObject */
+/* global JSClass, JSObject, JSPropertyList, JSSpec, JSClassFromName, JSGlobalObject, JSResolveDottedName */
 'use strict';
 
 JSClass('JSSpec', JSObject, {
@@ -31,7 +31,7 @@ JSClass('JSSpec', JSObject, {
                         }
                         return this._objectMap[_value];
                     case '$':
-                        return JSGlobalObject[_value];
+                        return JSResolveDottedName(JSGlobalObject, _value);
                     case '\\':
                         return _value;
                 }

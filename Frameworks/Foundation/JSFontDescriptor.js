@@ -14,10 +14,10 @@ JSClass("JSFontDescriptor", JSObject, {
     initWithSpec: function(spec, values){
         this._family = values.family;
         if (values.weight){
-            this._weight = values.weight;
+            this._weight = spec.resolvedValue(values.weight);
         }
         if (values.style){
-            this._style = values.style;
+            this._style = spec.resolvedValue(values.style);
         }
     },
 

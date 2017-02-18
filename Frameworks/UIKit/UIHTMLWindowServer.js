@@ -42,10 +42,6 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                 this.rootElement.style.position = 'relative';
             }
         }
-        this.rootElement.style.fontFamily = '"San Francisco", "Helvetica Neue", "Helvetica", sans-serif';
-        this.rootElement.style.fontSize = '14px';
-        this.rootElement.style.fontWeight = 300;
-        this.rootElement.style.lineHeight = '19px';
         this.rootElement.style.cursor = 'default';
     },
 
