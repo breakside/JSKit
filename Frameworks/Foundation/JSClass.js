@@ -178,10 +178,16 @@ JSDynamicProperty.prototype.define = function(C, key, extensions){
             value: this.value
         });
     }
+    var getter = extensions[getterName] || extensions[C.nameOfBooleanGetMethodForKey(key)];
+    if (!getter){
+        getter = function JSDynamicProperty_get(){
+            return this[key];
+        };
+    }
     Object.defineProperty(C.prototype, key, {
         configurable: true,
         enumerable: false,
-        get: extensions[getterName] || extensions[C.nameOfBooleanGetMethodForKey(key)],
+        get: getter,
         set: extensions[setterName]
     });
 };
@@ -211,10 +217,17 @@ JSReadOnlyProperty.prototype.define = function(C, key, extensions){
             value: this.value
         });
     }
+    var privateKey = this.key;
+    var getter = extensions[getterName] || extensions[C.nameOfBooleanGetMethodForKey(key)];
+    if (!getter){
+        getter = function JSReadOnlyProperty_get(){
+            return this[privateKey];
+        };
+    }
     Object.defineProperty(C.prototype, key, {
         configurable: true,
         enumerable: false,
-        get: extensions[getterName] || extensions[C.nameOfBooleanGetMethodForKey(key)]
+        get: getter
     });
 };
 

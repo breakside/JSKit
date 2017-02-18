@@ -6,6 +6,7 @@ JSClass('JSBundle', JSObject, {
 
     identifier: null,
     resources: null,
+    fonts: null,
 
     initWithIdentifier: function(identifier){
         this.identifier = identifier;
@@ -13,6 +14,7 @@ JSClass('JSBundle', JSObject, {
             throw new Error("Bundle not found: %s".sprintf(this.identifier));
         }
         this.resources = JSBundle.bundles[this.identifier].Resources;
+        this.fonts = JSBundle.bundles[this.identifier].Fonts;
     },
 
     info: function(){

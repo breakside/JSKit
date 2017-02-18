@@ -31,6 +31,7 @@ JSClass("UITextField", UIView, {
         // 3. If selection, and location is outside selection, set insertion point
         // set selection based on location
         this.window.setFirstResponder(this);
+        // TODO: something with a UITextInputServer
     },
 
 });

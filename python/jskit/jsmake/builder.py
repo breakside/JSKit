@@ -7,6 +7,7 @@ import hashlib
 import shutil
 import mimetypes
 from .image import ImageInfoExtractor
+from .font import FontInfoExtractor
 
 
 class Builder(object):
@@ -51,6 +52,7 @@ class Builder(object):
         self.bundles[self.info['JSBundleIdentifier']] = self.mainBundle = {}
         self.mainBundle["Info"] = self.info
         self.mainBundle["Resources"] = {}
+        self.mainBundle["Fonts"] = []
         self.outputProjectPath = os.path.join(self.outputParentPath, 'builds', self.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
         if not self.debug and os.path.exists(self.outputProjectPath):
             raise Exception("Output path already exists: %s" % self.outputProjectPath)
@@ -79,16 +81,23 @@ class Builder(object):
                 self.buildJSONLikeResource(nameComponents, obj)
             else:
                 mimeguess = mimetypes.guess_type(fullPath)
-                if mimeguess[0] and mimeguess[0].split('/')[0] == 'image':
-                    name, scale = self.imagePropertiesFromName(name)
-                    nameComponents = parentNameComponents + [name]
-                    self.buildImageResource(nameComponents, fullPath, mimeguess[0], scale)
+                if mimeguess[0]:
+                    primary_type, secondary_type = mimeguess[0].split('/')
+                    if primary_type == 'image':
+                        name, scale = self.imagePropertiesFromName(name)
+                        nameComponents = parentNameComponents + [name]
+                        self.buildImageResource(nameComponents, fullPath, mimeguess[0], scale)
+                    elif primary_type == 'application':
+                        if secondary_type in ('x-font-ttf',):
+                            self.buildFontResource(nameComponents, fullPath, mimeguess[0])
 
     def addResourceToMainBundle(self, nameComponents, resource):
         bundleKey = '/'.join(nameComponents)
         if bundleKey not in self.mainBundle["Resources"]:
             self.mainBundle["Resources"][bundleKey] = []
         self.mainBundle["Resources"][bundleKey].append(resource)
+        if resource["kind"] == "font":
+            self.mainBundle["Fonts"].append(bundleKey)
 
     def imagePropertiesFromName(self, name):
         scale = 1
@@ -130,16 +139,31 @@ class Builder(object):
     def buildImageResource(self, nameComponents, fullPath, mime, scale):
         hash_, byte_size = self.hashOfPath(fullPath)
         info = dict(
-            hash=hash_,
-            mimetype=mime,
-            byte_size=byte_size,
             scale=scale
         )
         extractor = ImageInfoExtractor.for_path(fullPath)
         extractor.populate_dict(info)
         resource = dict(
             kind="image",
+            hash=hash_,
+            mimetype=mime,
+            byte_size=byte_size,
             image=info
+        )
+        self.addResourceToMainBundle(nameComponents, resource)
+        return resource
+
+    def buildFontResource(self, nameComponents, fullPath, mime):
+        hash_, byte_size = self.hashOfPath(fullPath)
+        info = dict()
+        extractor = FontInfoExtractor.for_path(fullPath)
+        extractor.populate_dict(info)
+        resource = dict(
+            kind="font",
+            hash=hash_,
+            mimetype=mime,
+            byte_size=byte_size,
+            font=info
         )
         self.addResourceToMainBundle(nameComponents, resource)
         return resource

@@ -28,10 +28,12 @@ class HTMLBuilder(Builder):
     indexFile = None
     jsCompilation = None
     appJS = None
+    appCSS = None
     manifestFile = None
     featureCheck = None
     manifest = None
     includes = None
+    fonts = None
     nginxConf = None
     debugPort = 8080
     workerProcesses = 1
@@ -62,6 +64,7 @@ class HTMLBuilder(Builder):
         self.setup()
         self.buildResources()
         self.findIncludes()
+        self.buildAppCSS()
         self.buildAppJavascript()
         self.buildPreflight()
         self.buildAppCacheManifest()
@@ -92,18 +95,32 @@ class HTMLBuilder(Builder):
         os.makedirs(self.outputResourcePath)
         self.manifest = []
         self.appJS = []
+        self.appCSS = []
+        self.fonts = []
 
     def buildImageResource(self, nameComponents, fullPath, mime, scale):
         resource = super(HTMLBuilder, self).buildImageResource(nameComponents, fullPath, mime, scale)
         info = resource["image"]
         dontcare, ext = os.path.splitext(os.path.basename(fullPath))
-        outputImagePath = os.path.join(self.outputResourcePath, info['hash'] + ext)
+        outputImagePath = os.path.join(self.outputResourcePath, resource['hash'] + ext)
         info.update(dict(
              url=_webpath(os.path.relpath(outputImagePath, self.outputWebRootPath))
         ))
         shutil.copyfile(fullPath, outputImagePath)
         self.manifest.append(outputImagePath)
         return resource
+
+    def buildFontResource(self, nameComponents, fullPath, mime):
+        resource = super(HTMLBuilder, self).buildFontResource(nameComponents, fullPath, mime)
+        info = resource["font"]
+        dontcare, ext = os.path.splitext(os.path.basename(fullPath))
+        outputFontPath = os.path.join(self.outputResourcePath, resource['hash'] + ext)
+        info.update(dict(
+             url=_webpath(os.path.relpath(outputFontPath, self.outputWebRootPath))
+        ))
+        shutil.copyfile(fullPath, outputFontPath)
+        self.manifest.append(outputFontPath)
+        self.fonts.append(info)
 
     def findIncludes(self):
         for path in self.info.get('JSIncludes', []):
@@ -122,6 +139,21 @@ class HTMLBuilder(Builder):
                 self.includes.append(v)
             elif isinstance(v, dict):
                 self.findSpecIncludes(v)
+
+    def buildAppCSS(self):
+        print "Creating application css..."
+        sys.stdout.flush()
+        outputPath = os.path.join(self.outputCacheBustingPath, 'app.css')
+        fp = open(outputPath, 'w')
+        for font in self.fonts:
+            fp.write('@font-face {\n')
+            fp.write('  font-family: "%s";\n' % font['family'])
+            fp.write('  font-style: %s;\n' % font['style'])
+            fp.write('  font-weight: %s;\n' % font['weight'])
+            fp.write('  src: url("../%s");\n' % font['url'])
+            fp.write('}\n\n')
+        fp.close()
+        self.appCSS.append(outputPath)
 
     def buildAppJavascript(self):
         print "Creating application js..."
@@ -191,7 +223,13 @@ class HTMLBuilder(Builder):
         includePaths = (pkg_resources.resource_filename('jskit', 'jsmake/html_resources'),)
         while len(stack) > 0:
             node = stack.pop()
-            if node.tagName == 'title' and node.parentNode.tagName == 'head':
+            if node.tagName == 'head':
+                for css in self.appCSS:
+                    style = document.createElement('link')
+                    style.setAttribute('rel', 'stylesheet')
+                    style.setAttribute('href', _webpath(os.path.relpath(css, self.outputWebRootPath)))
+                    node.appendChild(style)
+            elif node.tagName == 'title' and node.parentNode.tagName == 'head':
                 node.appendChild(document.createTextNode(self.info.get('UIApplicationTitle', '')))
             elif node.tagName == 'script' and node.getAttribute('type') == 'text/javascript':
                 oldScriptText = u''

@@ -16,7 +16,7 @@ UITextLayer.definePropertiesFromExtensions({
     },
 
     updateHTMLProperty_font: function(context){
-        context.style.font = this.presentation.font ? this.presentation.font.cssString() : '';
+        context.style.font = this._font ? this._font.cssString() : '';
     },
 
     updateHTMLProperty_textAlignment: function(context){

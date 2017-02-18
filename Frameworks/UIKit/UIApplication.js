@@ -1,7 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIResponder.js"
 // #import "UIKit/UIWindowServer.js"
-/* global JSGlobalObject, JSClass, JSObject, UIResponder, UIApplication, UIWindowServer, JSBundle, JSSpec, JSClassFromName, JSDynamicProperty, JSReadOnlyProperty, UIEvent  */
+/* global JSGlobalObject, JSClass, JSObject, UIResponder, UIApplication, UIWindowServer, JSBundle, JSFont, JSSpec, JSClassFromName, JSDynamicProperty, JSReadOnlyProperty, UIEvent  */
 'use strict';
 
 JSClass('UIApplication', UIResponder, {
@@ -77,6 +77,7 @@ Object.defineProperty(UIApplication, 'sharedApplication', {
 
 JSGlobalObject.UIApplicationMain = function UIApplicationMain(){
     var application = UIApplication.sharedApplication;
+    JSFont.registerBundleFonts(JSBundle.mainBundle);
     var info = JSBundle.mainBundle.info();
     if (info[UIApplication.InfoKeys.MainDefinitionResource]){
         var mainUIFile = JSSpec.initWithResource(info[UIApplication.InfoKeys.MainDefinitionResource]);

@@ -4,7 +4,12 @@
 
 JSFont.definePropertiesFromExtensions({
     cssString: function(){
-        // TODO: weight, style, line height?
-        return '%spx %s'.sprintf(this.pointSize, this.familyName);
+        return '%d %s %fpx/%fpx %s'.sprintf(
+            this._descriptor._weight,
+            this._descriptor._style,
+            this._pointSize,
+            this._lineHeight,
+            this._descriptor._family
+        );
     }
 });
