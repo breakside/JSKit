@@ -54,6 +54,10 @@ JSClass('UIWindow', UIView, {
         }
     },
 
+    mouseDown: function(){
+        this.setFirstResponder(null);
+    },
+
     getFirstResponder: function(){
         return this._firstResponder;
     },
@@ -67,7 +71,7 @@ JSClass('UIWindow', UIView, {
             }else{
                 this._firstResponder = responder;
             }
-            if (this._firstResponder === responder){
+            if (responder !== null && this._firstResponder === responder){
                 this._firstResponder.becomeFirstResponder();
             }
         }
@@ -89,6 +93,9 @@ JSClass('UIWindow', UIView, {
         switch (event.category){
             case UIEvent.Category.Mouse:
                 this._sendMouseEvent(event);
+                break;
+            case UIEvent.Category.Key:
+                this._sendKeyEvent(event);
                 break;
         }
     },
@@ -131,6 +138,20 @@ JSClass('UIWindow', UIView, {
                 break;
         }
 
+    },
+
+    _sendKeyEvent: function(event){
+        var view = this._firstResponder || this;
+        if (view){
+            switch (event.type){
+                case UIEvent.Type.KeyDown:
+                    view.keyDown(event);
+                    break;
+                case UIEvent.Type.KeyUp:
+                    view.keyUp(event);
+                    break;
+            }
+        }
     },
 
     // -------------------------------------------------------------------------

@@ -69,12 +69,16 @@ JSClass.prototype = {
                     this.defineInitMethod(i);
                 }
             }else if (i.charAt(0) == '_'){
-                Object.defineProperty(this.prototype, i, {
-                    configurable: false,
-                    enumerable: false,
-                    writable: true,
-                    value: extensions[i]
-                });
+                if (extensions[i] instanceof JSCustomProperty){
+                    extensions[i].define(this, i, extensions);
+                }else{
+                    Object.defineProperty(this.prototype, i, {
+                        configurable: false,
+                        enumerable: false,
+                        writable: true,
+                        value: extensions[i]
+                    });
+                }
             }else{
                 if (extensions[i] instanceof JSCustomProperty){
                     extensions[i].define(this, i, extensions);
@@ -232,18 +236,22 @@ JSReadOnlyProperty.prototype.define = function(C, key, extensions){
 };
 
 function JSLazyInitProperty(methodName){
-    var prop = Object.create(JSCustomProperty.prototype);
-    prop.methodName = methodName;
-    prop.define = JSLazyInitProperty_define;
-    return prop;
+    if (this === undefined){
+        return new JSLazyInitProperty(methodName);
+    }else{
+        this.methodName = methodName;
+    }
 }
 
-function JSLazyInitProperty_define(C, key, prop, extensions){
+JSLazyInitProperty.prototype = Object.create(JSCustomProperty.prototype);
+
+JSLazyInitProperty.prototype.define = function(C, key, extensions){
+    var methodName = this.methodName;
     Object.defineProperty(C.prototype, key, {
         configurable: true,
         enumerable: false,
         get: function(){
-            var x = this[prop.methodName]();
+            var x = this[methodName]();
             Object.defineProperty(this, key, {
                 configurable: false,
                 enumerable: false,
@@ -252,4 +260,4 @@ function JSLazyInitProperty_define(C, key, prop, extensions){
             return x;
         }
     });
-}
+};

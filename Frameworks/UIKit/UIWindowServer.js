@@ -7,6 +7,8 @@ JSClass("UIWindowServer", JSObject, {
 
     windowStack: null,
     displayServer: null,
+    textInputManager: null,
+    keyWindow: null,
 
     init: function(){
         this.windowStack = [];
@@ -58,6 +60,11 @@ JSClass("UIWindowServer", JSObject, {
             this.mouseDownWindow = null;
             this.mouseDownType = null;
         }
+    },
+
+    createKeyEvent: function(type, timestamp, keyCode){
+        var event = UIEvent.initKeyEventWithType(type, timestamp, this.keyWindow, keyCode);
+        this.keyWindow.application.sendEvent(event);
     }
 
 });

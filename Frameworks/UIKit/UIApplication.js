@@ -6,7 +6,7 @@
 
 JSClass('UIApplication', UIResponder, {
 
-    keyWindow: JSDynamicProperty('_keyWindow', null),
+    keyWindow: JSDynamicProperty(),
     windows: null,
     windowServer: null,
 
@@ -27,11 +27,11 @@ JSClass('UIApplication', UIResponder, {
     },
 
     getKeyWindow: function(){
-        return this._keyWindow;
+        return this.windowServer.keyWindow;
     },
 
     setKeyWindow: function(window){
-        this._keyWindow = window;
+        this.windowServer.keyWindow = window;
     },
 
     windowInserted: function(window){

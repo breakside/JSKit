@@ -63,7 +63,7 @@ JSTextFrame.definePropertiesFromExtensions({
         var renderer;
         var childIndex = 0;
         var childCount = this._element.childNodes.length;
-        for (var i = this._runRenderers.length - 1; i >= 0; ++i){
+        for (var i = this._runRenderers.length - 1; i >= 0; --i){
             this.enqueueReusableRunRenderer(this._runRenderers[i]);
         }
         this._runRenderers = [];
@@ -108,7 +108,7 @@ JSTextFrame.definePropertiesFromExtensions({
     dequeueReusableRunRenderer: function(identifier){
         var queue = this._reusableRunRenderers[identifier];
         if (queue !== undefined && queue.length > 0){
-            return this.queue.pop();
+            return queue.pop();
 
         }
         var cls = JSClassFromName(identifier);

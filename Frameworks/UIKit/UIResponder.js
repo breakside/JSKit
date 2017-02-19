@@ -70,4 +70,18 @@ JSClass("UIResponder", JSObject, {
         }
     },
 
+    keyDown: function(event){
+        var next = this.getNextResponder();
+        if (next !== null){
+            next.keyDown(event);
+        }
+    },
+
+    keyUp: function(event){
+        var next = this.getNextResponder();
+        if (next !== null){
+            next.keyUp(event);
+        }
+    }
+
 });

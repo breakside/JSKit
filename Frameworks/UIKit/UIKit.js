@@ -23,4 +23,5 @@
 // #import "UIKit/UIApplication.js"
 // #import "UIKit/UIImageLayer.js"
 // #import "UIKit/UIImageView.js"
+// #import "UIKit/UITextInputManager.js"
 'use strict';

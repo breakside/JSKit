@@ -9,6 +9,7 @@ JSClass('UIEvent', JSObject, {
     window: JSReadOnlyProperty('_window', null),
     category: JSReadOnlyProperty('_category', -1),
     type: JSReadOnlyProperty('_type', -1),
+    keyCode: JSReadOnlyProperty('_keyCode', -1),
 
     initMouseEventWithType: function(type, timestamp, window, location){
         this._timestamp = timestamp;
@@ -18,34 +19,16 @@ JSClass('UIEvent', JSObject, {
         this._type = type;
     },
 
-    initKeyEventWithTimestamp: function(type, timestamp){
+    initKeyEventWithType: function(type, timestamp, window, keyCode){
         this._timestamp = timestamp;
+        this._window = window;
+        this._keyCode = keyCode;
         this._category = UIEvent.Category.Key;
         this._type = type;
     },
 
-    getLocationInWindow: function(){
-        return this._locationInWindow;
-    },
-
     locationInView: function(view){
         return this.window.convertPointToView(this._locationInWindow, view);
-    },
-
-    getTimestamp: function(){
-        return this._timestamp;
-    },
-
-    getWindow: function(){
-        return this._window;
-    },
-
-    getCategory: function(){
-        return this._category;
-    },
-
-    getType: function(){
-        return this._type;
     }
 
 });
@@ -67,4 +50,6 @@ UIEvent.Type = {
     MouseMoved: 6,
     MouseEntered: 7,
     MouseExited: 8,
+    KeyDown: 9,
+    KeyUp: 10
 };

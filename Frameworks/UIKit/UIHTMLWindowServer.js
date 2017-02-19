@@ -2,8 +2,9 @@
 // #import "UIKit/UIEvent.js"
 // #import "UIKit/UIWindowServer.js"
 // #import "UIKit/UIHTMLDisplayServer.js"
+// #import "UIKit/UIHTMLTextInputManager.js"
 // #feature Element.prototype.addEventListener
-/* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer */
+/* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, JSLog */
 'use strict';
 
 JSClass("UIHTMLWindowServer", UIWindowServer, {
@@ -22,6 +23,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.setupEventListeners();
         this.mouseDownButton = UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE;
         this.displayServer = UIHTMLDisplayServer.initWithRootElement(rootElement);
+        this.textInputManager = UIHTMLTextInputManager.initWithRootElement(rootElement);
     },
 
     setupRenderingEnvironment: function(){
@@ -147,12 +149,17 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     keydown: function(e){
+        JSLog("Window Server keydown: %d", e.keyCode);
+        if (this.keyWindow){
+            this._createKeyEventFromDOMEvent(e, UIEvent.Type.KeyDown);
+        }
     },
 
     keyup: function(e){
-    },
-
-    keypress: function(e){
+        JSLog("Window Server keyup: %d", e.keyCode);
+        if (this.keyWindow){
+            this._createKeyEventFromDOMEvent(e, UIEvent.Type.KeyUp);
+        }
     },
 
     resize: function(e){
@@ -171,6 +178,14 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         var screenBoundingRect = this.rootElement.getBoundingClientRect();
         return JSPoint(e.clientX - screenBoundingRect.left, e.clientY - screenBoundingRect.top);
     },
+
+    _createKeyEventFromDOMEvent: function(e, type){
+        var timestamp = e.timeStamp / 1000.0;
+        // TODO: maybe use e.key if available
+        // see https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent#Key_names_and_Char_values
+        var keyCode = e.keyCode;
+        this.createKeyEvent(type, timestamp, keyCode);
+    }
 
 });
 

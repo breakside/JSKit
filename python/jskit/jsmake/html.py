@@ -39,6 +39,7 @@ class HTMLBuilder(Builder):
     debugPort = 8080
     workerProcesses = 1
     workerConnections = 1024
+    useDocker = False
     dockerIdentifier = ""
     dockerOwner = ""
     dockerName = ""
@@ -71,7 +72,8 @@ class HTMLBuilder(Builder):
         self.buildAppCacheManifest()
         self.buildIndex()
         self.buildNginxConf()
-        self.buildDocker()
+        if self.useDocker:
+            self.buildDocker()
         self.finish()
 
     def setup(self):
@@ -168,7 +170,7 @@ class HTMLBuilder(Builder):
 
     def font_src(self, variant):
         if variant[1]:
-            'url("../%s") format("%s")' % (variant[0], variant[1])
+            return 'url("../%s") format("%s")' % (variant[0], variant[1])
         return 'url("../%s")' % variant[0]
 
     def buildAppJavascript(self):
@@ -328,7 +330,10 @@ class HTMLBuilder(Builder):
         super(HTMLBuilder, self).finish()
         print "\nDone!"
         if self.debug:
-            print "\ndocker run --rm --name %s -p%d:%d %s" % (self.dockerName, self.debugPort, self.debugPort, self.dockerIdentifier)
+            if self.useDocker:
+                print "\ndocker run --rm --name %s -p%d:%d %s\n" % (self.dockerName, self.debugPort, self.debugPort, self.dockerIdentifier)
+            else:
+                print "\nnginx -p %s\n" % os.path.relpath(self.outputProjectPath)
             sys.stdout.flush()
 
 

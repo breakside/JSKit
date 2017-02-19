@@ -66,6 +66,7 @@ JSClass("UILayer", JSObject, {
     animationsByKey:    null,
     animationCount:     0,
     _displayServer:     null,
+    delegate:           null,
 
     init: function(){
         this.sublayers = [];
@@ -259,12 +260,6 @@ JSClass("UILayer", JSObject, {
             this.sublayers.splice(sublayer.level,1);
             sublayer.superlayer = null;
             sublayer.level = null;
-            if (sublayer.objectID in this._sublayersDependentOnWidth){
-                delete this._sublayersDependentOnWidth[sublayer.objectID];
-            }
-            if (sublayer.objectID in this._sublayersDependentOnHeight){
-                delete this._sublayersDependentOnHeight[sublayer.objectID];
-            }
         }
     },
 
