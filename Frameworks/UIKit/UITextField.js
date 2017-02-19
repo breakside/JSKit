@@ -63,7 +63,7 @@ JSClass("UITextField", UIView, {
     _createRespondingIndicatorLayer: function(){
         var layer = UILayer.init();
         layer.backgroundColor = JSColor.blackColor();
-        layer.constraintBox = JSConstraintBox({left: 0, bottom: 0, right: 0, height: 0.5});
+        layer.constraintBox = JSConstraintBox({left: 0, bottom: 0, right: 0, height: 1});
         return layer;
     }
 

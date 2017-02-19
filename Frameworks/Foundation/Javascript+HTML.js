@@ -4,9 +4,11 @@
 
 var JSGlobalObject = window;
 
-function JSLog(msg){
-    var format_args = Array.prototype.slice.call(arguments, 1);
-    if (console){
-        console.log(msg.sprintf.apply(msg, format_args));
-    }
-}
+JSGlobalObject.JSLog = console.log;
+
+// function JSLog(msg){
+//     var format_args = Array.prototype.slice.call(arguments, 1);
+//     if (console){
+//         console.log(msg.sprintf.apply(msg, format_args));
+//     }
+// }

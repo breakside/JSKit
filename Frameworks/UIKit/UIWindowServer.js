@@ -5,6 +5,7 @@
 
 JSClass("UIWindowServer", JSObject, {
 
+    application: null,
     windowStack: null,
     displayServer: null,
     textInputManager: null,
@@ -29,6 +30,10 @@ JSClass("UIWindowServer", JSObject, {
                 break;
             }
         }
+    },
+
+    windowDidChangeResponder: function(window){
+        this.textInputManager.windowDidChangeResponder(window);
     },
 
     windowAtScreenLocation: function(location){

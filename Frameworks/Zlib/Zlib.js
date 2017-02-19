@@ -60,7 +60,7 @@ ZlibStream.prototype = {
         }
         this.readHeader();
         var compressed_length = this.input.length - this.offset - 4;
-        // JSLog("Zlib compressed data at offset %d with length %d", this.offset, compressed_length);
+        // JSLog("Zlib compressed data at offset %d with length %d".sprintf(this.offset, compressed_length));
         this.compressed = new Uint8Array(this.input.buffer, this.input.byteOffset + this.offset, compressed_length);
         this.offset += compressed_length;
         if (this.method == Zlib.Method.Deflate){

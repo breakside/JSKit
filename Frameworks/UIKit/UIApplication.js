@@ -15,9 +15,9 @@ JSClass('UIApplication', UIResponder, {
             throw new Error("UIApplication.init: one application already initialized, and only one may exist");
         }
         UIApplication._sharedApplication = this;
-        this._firstResponder = this;
         this.windows = [];
         this.windowServer = UIWindowServer.defaultServer;
+        this.windowServer.application = this;
     },
 
     run: function(){
@@ -52,6 +52,25 @@ JSClass('UIApplication', UIResponder, {
     sendEvent: function(event){
         if (event.window){
             event.window.sendEvent(event);
+        }
+    },
+
+    sendAction: function(action, target, sender){
+        if (sender === undefined){
+            sender = this;
+        }
+        if (target === undefined){
+            target = null;
+            var window = this.keyWindow;
+            if (window !== null){
+                var responder = window.firstResponder;
+                if (responder !== null){
+                    target = responder.targetForAction(action, sender);
+                }
+            }
+        }
+        if (target !== null){
+            target[action](sender);
         }
     }
 

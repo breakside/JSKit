@@ -137,8 +137,19 @@ JSGlobalObject.JSRange = function JSRange(location, length){
 
 JSRange.prototype = {
     location: 0,
-    length: 0
+    length: 0,
+
+    isEqual: function(other){
+        return this.location === other.location && this.length === other.length;
+    }
 };
+
+Object.defineProperty(JSRange.prototype, 'end', {
+    configurable: false,
+    get: function(){
+        return this.location + this.length;
+    }
+});
 
 
 JSGlobalObject.JSAffineTransform = function JSAffineTransform(a, b, c, d, tx, ty){

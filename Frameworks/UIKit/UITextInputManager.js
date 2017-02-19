@@ -4,4 +4,7 @@
 
 JSClass('UITextInputManager', JSObject, {
 
+    windowDidChangeResponder: function(window){
+    }
+
 });

@@ -171,7 +171,7 @@ DeflateStream.prototype = {
             header = this.readBits(3);
             is_final_block = header & 0x01;
             type = (header & 0x06) >> 1;
-            // JSLog("Deflate block #%d, type %d", this.block_index, type);
+            // JSLog("Deflate block #%d, type %d".sprintf(this.block_index, type));
             if (type === 0){
                 this.decodeUncompressedBlock();
             }else if (type === 1){
@@ -254,7 +254,7 @@ DeflateStream.prototype = {
                 throw new Deflate.Error("Deflate: provided output buffer too small");
             }
             var new_output = new Uint8Array((this.outputLength + bytes.length) * 2);
-            JSLog("Deflate increasing output buffer size from %d to %d", this.output.length, new_output.length);
+            JSLog("Deflate increasing output buffer size from %d to %d".sprintf(this.output.length, new_output.length));
             for (i = 0, l = this.outputLength; i < l; ++i){
                 new_output[i] = this.output[i];
             }
@@ -271,7 +271,7 @@ DeflateStream.prototype = {
             this.bitOffset = 0;
         }
         var len = (this.input[this.offset + 1] << 8) | this.input[this.offset];
-        // JSLog("Deflate block #%d has length %d", this.block_index, len);
+        // JSLog("Deflate block #%d has length %d".sprintf(this.block_index, len));
         this.offset += 4;  // +2 for length and another +2 for nlength, which we don't use
         this.writeBytes(new Uint8Array(this.input.buffer, this.input.byteOffset + this.offset, len));
         this.offset += len;
@@ -307,12 +307,12 @@ DeflateStream.prototype = {
         do {
             this.huffmanTree = this.huffmanLiterals;
             code = this.readHuffmanCode();
-            // JSLog("found code %d", code);
+            // JSLog("found code %d".sprintf(code));
             if (code < 256){
-                // JSLog("Writing at %d %s (%#02x)", this.outputLength, String.fromCharCode(code), code);
+                // JSLog("Writing at %d %s (%#02x)".sprintf(this.outputLength, String.fromCharCode(code), code));
                 this.writeBytes([code]);
             }else if (code > 256 && code <= 287){
-                // JSLog("Found code %d", code);
+                // JSLog("Found code %d".sprintf(code));
                 extra = 0;
                 if (code < 285){
                     if (code >= 281){
@@ -330,7 +330,7 @@ DeflateStream.prototype = {
                 length = Deflate.LengthCodeMap[code] + extra;
                 this.huffmanTree = this.huffmanDistances;
                 code = this.readHuffmanCode();
-                // JSLog("Found distance code: %d", code);
+                // JSLog("Found distance code: %d".sprintf(code));
                 extra = 0;
                 if (code >= 28){
                     extra = this.readBits(8) | (this.readBits(5) << 8);
@@ -360,7 +360,7 @@ DeflateStream.prototype = {
                     extra = this.readBits(1);
                 }
                 distance = Deflate.DistanceCodeMap[code] + extra;
-                // JSLog("At %d, copying %d bytes starting from %d (%d bytes back)", this.outputLength, length, this.outputLength - distance, distance);
+                // JSLog("At %d, copying %d bytes starting from %d (%d bytes back)".sprintf(this.outputLength, length, this.outputLength - distance, distance));
                 while (length > 0){
                     this.writeBytes(new Uint8Array(this.output.buffer, this.outputLength - distance, Math.min(length, distance)));
                     length -= distance;

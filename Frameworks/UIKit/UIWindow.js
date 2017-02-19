@@ -64,15 +64,23 @@ JSClass('UIWindow', UIView, {
 
     setFirstResponder: function(responder){
         if (responder !== this._firstResponder){
+            var previousResponder = this._firstResponder;
+            var didResignResponder = true;
+            var didBecomeResponder = false;
             if (this._firstResponder !== null){
-                if (this._firstResponder.resignFirstResponder()){
+                didResignResponder = this._firstResponder.resignFirstResponder();
+                if (didResignResponder){
+                    this._firstResponder = null;
+                }
+            }
+            if (didResignResponder && responder !== null){
+                didBecomeResponder = responder.becomeFirstResponder();
+                if (didBecomeResponder){
                     this._firstResponder = responder;
                 }
-            }else{
-                this._firstResponder = responder;
             }
-            if (responder !== null && this._firstResponder === responder){
-                this._firstResponder.becomeFirstResponder();
+            if (this._firstResponder !== previousResponder){
+                this.application.windowServer.windowDidChangeResponder(this);
             }
         }
     },

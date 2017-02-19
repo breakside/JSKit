@@ -23,12 +23,12 @@ function HuffmanTree(code_lengths){
         count = bit_length_counts[i - 1] || 0;
         code = (code + count) << 1;
         next_code[i] = code;
-        // JSLog("next_code[%d] = %d (%s)", i, code, code.toString(2));
+        // JSLog("next_code[%d] = %d (%s)".sprintf(i, code, code.toString(2)));
     }
     for (i = 0, l = code_lengths.length; i < l; ++i){
         bit_length = code_lengths[i] || 0;
         if (bit_length !== 0){
-            // JSLog("Including %d (%s), bit length %d", next_code[bit_length], next_code[bit_length].toString(2), bit_length);
+            // JSLog("Including %d (%s), bit length %d".sprintf(next_code[bit_length], next_code[bit_length].toString(2), bit_length));
             root.includeValue(next_code[bit_length], bit_length, i);
             ++next_code[bit_length];
         }

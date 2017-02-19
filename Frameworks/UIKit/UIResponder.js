@@ -82,6 +82,21 @@ JSClass("UIResponder", JSObject, {
         if (next !== null){
             next.keyUp(event);
         }
+    },
+
+    canPerformAction: function(action, sender){
+        return this[action] !== undefined;
+    },
+
+    targetForAction: function(action, sender){
+        if (this.canPerformAction(action, sender)){
+            return this;
+        }
+        var next = this.getNextResponder();
+        if (next !== null){
+            return next.targetForAction(action, sender);
+        }
+        return null;
     }
 
 });

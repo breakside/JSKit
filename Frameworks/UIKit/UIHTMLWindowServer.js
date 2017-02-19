@@ -24,6 +24,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.mouseDownButton = UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE;
         this.displayServer = UIHTMLDisplayServer.initWithRootElement(rootElement);
         this.textInputManager = UIHTMLTextInputManager.initWithRootElement(rootElement);
+        this.textInputManager.windowServer = this;
     },
 
     setupRenderingEnvironment: function(){
@@ -52,18 +53,21 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.addEventListener('mouseup', this, false);
         this.rootElement.addEventListener('keydown', this, false);
         this.rootElement.addEventListener('keyup', this, false);
-        this.rootElement.addEventListener('keypress', this, false);
         this.rootElement.addEventListener('dragstart', this, false);
         this.rootElement.addEventListener('dragend', this, false);
         this.rootElement.addEventListener('mouseleave', this, false);
+        this.rootElement.addEventListener('cut', this, false);
+        this.rootElement.addEventListener('copy', this, false);
+        this.rootElement.addEventListener('paste', this, false);
+        this.rootElement.addEventListener('beforecut', this, false);
+        this.rootElement.addEventListener('beforecopy', this, false);
+        this.rootElement.addEventListener('beforepaste', this, false);
         this.domWindow.addEventListener('resize', this, false);
         // TODO: efficient mousemove (look into tracking areas)
         // TODO: mouse enter/exit (look into tracking areas)
         // TODO: dragging
         // TODO: special things like file input change
-        // TODO: DOM 3 Key Events (if supported)
         // TODO: touch events?
-        // TODO: copy/paste
         // TODO: does stopping key events interfere with browser keyboard shortcuts? (some, yes)
     },
 
@@ -149,17 +153,43 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     keydown: function(e){
-        JSLog("Window Server keydown: %d", e.keyCode);
         if (this.keyWindow){
             this._createKeyEventFromDOMEvent(e, UIEvent.Type.KeyDown);
         }
     },
 
     keyup: function(e){
-        JSLog("Window Server keyup: %d", e.keyCode);
         if (this.keyWindow){
             this._createKeyEventFromDOMEvent(e, UIEvent.Type.KeyUp);
         }
+    },
+
+    cut: function(e){
+        this.application.sendAction('cut');
+        // TODO: prepare DOM pasteboard from JSKit pasteboard?
+    },
+
+    copy: function(e){
+        this.application.sendAction('copy');
+        // TODO: prepare DOM pasteboard from JSKit pasteboard?
+    },
+
+    paste: function(e){
+        // TODO: prepare JSKit pasteboard from DOM pasteboard?
+        this.application.sendAction('paste');
+    },
+
+    beforecut: function(e){
+        // Just having a listener seems to always keep Edit > Cut enabled in Safari
+    },
+
+    beforecopy: function(e){
+        // Just having a listener seems to always keep Edit > Copy enabled in Safari
+    },
+
+    beforepaste: function(e){
+        // Not sure if this is really needed like beforecopy seems to be
+        // Safari is only enabling paste when focused in a textarea
     },
 
     resize: function(e){
