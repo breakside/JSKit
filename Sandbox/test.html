@@ -13,12 +13,13 @@
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
     '.', ',', '-', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '
   ];
-  var str = 'man\u0303ana ffi';
-  str = "\uD852\uDF62";
-  console.log(str.charCodeAt(0), str.charCodeAt(1));
-  // for (var i = 0; i < strlen; ++i){
-  //   str += letters[Math.floor(Math.random() * (letters.length - 1))];
-  // }
+  // var str = 'man\u0303ana ffi';
+  // str = "\uD852\uDF62";
+  // console.log(str.charCodeAt(0), str.charCodeAt(1));
+  var str = "";
+  for (var i = 0; i < strlen; ++i){
+    str += letters[Math.floor(Math.random() * (letters.length - 1))];
+  }
   var span = document.getElementById('s');
   var t0 = new Date();
   span.appendChild(document.createTextNode(str));

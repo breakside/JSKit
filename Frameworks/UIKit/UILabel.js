@@ -9,17 +9,14 @@ JSClass('UILabel', UIView, {
     attributedText: UIViewLayerProperty(),
     textColor: UIViewLayerProperty(),
     font: UIViewLayerProperty(),
+    lineBreakMode: UIViewLayerProperty(),
     textAlignment: UIViewLayerProperty(),
 
     initWithSpec: function(spec, values){
         UILabel.$super.initWithSpec.call(this, spec, values);
-        if ("fontDescriptor" in values){
-            var pointSize = 14.0;
-            if ("fontSize" in values){
-                pointSize = values.fontSize;
-            }
-            var descriptor = spec.resolvedValue(values.fontDescriptor);
-            this.font = JSFont.fontWithDescriptor(descriptor, pointSize);
+        if ("font" in values){
+            var descriptor = spec.resolvedValue(values.font.descriptor);
+            this.font = JSFont.fontWithDescriptor(descriptor, values.font.pointSize);
         }
         if ("text" in values){
             this.text = values.text;

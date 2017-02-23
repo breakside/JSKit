@@ -4,10 +4,22 @@
 // MARK: - Utility
 
 JSGlobalObject.JSCopy = function JSCopy(obj){
+    if (obj === null || obj === undefined){
+        return obj;
+    }
     if (typeof(obj) == 'object'){
-        var _copy = {};
-        for (var i in obj){
-            _copy[i] = obj[i];
+        var i, l;
+        var _copy;
+        if (obj instanceof Array){
+            _copy = [];
+            for (i = 0, l = obj.length; i < l; ++i){
+                _copy.push(obj[i]);
+            }
+        }else{
+            _copy = {};
+            for (i in obj){
+                _copy[i] = obj[i];
+            }
         }
         return _copy;
     }
@@ -15,10 +27,22 @@ JSGlobalObject.JSCopy = function JSCopy(obj){
 };
 
 JSGlobalObject.JSDeepCopy = function JSDeepCopy(obj){
+    if (obj === null || obj === undefined){
+        return obj;
+    }
     if (typeof(obj) == 'object'){
-        var _copy = {};
-        for (var i in obj){
-            _copy[i] = JSDeepCopy(obj[i]);
+        var i, l;
+        var _copy;
+        if (obj instanceof Array){
+            _copy = [];
+            for (i = 0, l = obj.length; i < l; ++i){
+                _copy.push(JSDeepCopy(obj[i]));
+            }
+        }else{
+            _copy = {};
+            for (i in obj){
+                _copy[i] = JSDeepCopy(obj[i]);
+            }
         }
         return _copy;
     }

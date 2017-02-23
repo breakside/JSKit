@@ -44,7 +44,10 @@ class Builder(object):
             self.infoName = 'Info.json'
             infoPath = os.path.join(self.projectPath, self.infoName)
             if (os.path.exists(infoPath)):
-                self.info = json.load(open(infoPath))
+                try:
+                    self.info = json.load(open(infoPath))
+                except Exception as e:
+                    raise Exception("Error parsing Info.json: %s" % e.message)
             else:
                 raise Exception("An Info.json or Info.plist file is required to build")
         if 'JSBundleIdentifier' not in self.info:
@@ -74,7 +77,10 @@ class Builder(object):
                 else:
                     self.scanResourceFolder(resourcesPath, nameComponents)
             elif ext == '.json':
-                obj = json.load(open(fullPath))
+                try:
+                    obj = json.load(open(fullPath))
+                except Exception as e:
+                    raise Exception("Error parsing %s: %s" % (fullPath, e.message))
                 self.buildJSONLikeResource(nameComponents, obj)
             elif ext == '.plist':
                 obj = plistlib.readPlist(fullPath)
@@ -117,7 +123,10 @@ class Builder(object):
 
     def buildImageAssetResource(self, nameComponents, fullPath):
         contentsPath = os.path.join(fullPath, "Contents.json")
-        contents = json.load(open(contentsPath))
+        try:
+            contents = json.load(open(contentsPath))
+        except Exception as e:
+            raise Exception("Error parsing %s: %s" % (contentsPath, e.message))
         images = contents.get('images', [])
         for image in images:
             vector = False

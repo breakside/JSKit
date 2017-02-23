@@ -1,5 +1,5 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject, UIAnimationTransaction, UIDisplayServer, UIDisplayServerInit, UIEvent, JSPoint */
+/* global JSClass, JSObject, UIAnimationTransaction, UIDisplayServer, UIDisplayServerInit, UIEvent, JSPoint, JSTextContainer */
 'use strict';
 
 JSClass("UIDisplayServer", JSObject, {
@@ -194,6 +194,13 @@ JSClass("UIDisplayServer", JSObject, {
         }
         return completedAnimations;
     },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Text
+
+    createTextContainerWithSize: function(size){
+        return JSTextContainer.initWithSize(size);
+    }
 
 });
 

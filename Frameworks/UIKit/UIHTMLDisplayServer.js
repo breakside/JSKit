@@ -1,10 +1,11 @@
 // #import "UIKit/UIDisplayServer.js"
 // #import "UIKit/UIHTMLDisplayServerContext.js"
+// #import "UIKit/UIHTMLTextContainer.js"
 // #feature Window.prototype.addEventListener
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
 // #feature Document.prototype.createElement
-/* global JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer */
+/* global JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer, JSLog, UIHTMLTextContainer */
 'use strict';
 
 JSClass("UIHTMLDisplayServer", UIDisplayServer, {
@@ -174,8 +175,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
                 this.layerInserted(layer.sublayers[i]);
             }
         }else{
-            console.log("layerInserted called without valid parent context");
-            debugger;
+            JSLog("layerInserted called without valid parent context");
         }
     },
 
@@ -200,6 +200,10 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     },
 
     // -------------------------------------------------------------------------
-    // MARK: - Private Helpers
+    // MARK: - Text
+
+    createTextContainerWithSize: function(size){
+        return UIHTMLTextContainer.initWithDocument(this.domDocument, size);
+    }
 
 });

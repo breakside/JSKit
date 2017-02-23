@@ -183,16 +183,23 @@ JSDynamicProperty.prototype.define = function(C, key, extensions){
         });
     }
     var getter = extensions[getterName] || extensions[C.nameOfBooleanGetMethodForKey(key)];
+    var privateKey = this.key;
     if (!getter){
         getter = function JSDynamicProperty_get(){
-            return this[key];
+            return this[privateKey];
+        };
+    }
+    var setter = extensions[setterName];
+    if (!setter){
+        setter = function JSDynamicProperty_set(value){
+            this[privateKey] = value;
         };
     }
     Object.defineProperty(C.prototype, key, {
         configurable: true,
         enumerable: false,
         get: getter,
-        set: extensions[setterName]
+        set: setter
     });
 };
 

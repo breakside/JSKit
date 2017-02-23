@@ -75,6 +75,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
     _selectedRange: JSRange(0, 0),
     _config: null,
     _rangeUpdateScheduled: false,
+    _responder: null,
 
     initWithRootElement: function(rootElement){
         this.rootElement = rootElement;
@@ -125,6 +126,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
         }else{
             this.hiddenInputElement.blur();
         }
+        this._responder = responder;
     },
 
     handleEvent: function(e){

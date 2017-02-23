@@ -360,3 +360,16 @@ JSConstraintBox.Rect = function(rect){
         height: rect.size.height
     });
 };
+
+JSGlobalObject.JSLineBreakMode = {
+    WordWrap: 0,
+    Clip: 1,
+    TruncateTail: 2
+};
+
+JSGlobalObject.JSTextAlignment = {
+    Left: "left",
+    Center: "center",
+    Right: "right",
+    Justify: "justify"
+};

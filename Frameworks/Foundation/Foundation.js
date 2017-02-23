@@ -6,6 +6,7 @@
 // #import "Foundation/UUID.js"
 
 // #import "Foundation/JSClass.js"
+// #import "Foundation/JSProtocol.js"
 // #import "Foundation/JSObject.js"
 
 // #import "Foundation/JSString.js"
@@ -22,6 +23,9 @@
 // #import "Foundation/JSFont.js"
 // #import "Foundation/JSData.js"
 // #import "Foundation/JSContext.js"
-// #import "Foundation/JSTextFrame.js"
 // #import "Foundation/JSURL.js"
+
+// #import "Foundation/JSTextContainer.js"
+// #import "Foundation/JSTextLayoutManager.js"
+// #import "Foundation/JSTextStorage.js"
 'use strict';

@@ -2,6 +2,53 @@
 /* global JSClass, JSReadOnlyProperty, JSObject, JSString, JSAttributedString, JSRange, JSCopy */
 'use strict';
 
+function JSAttributedStringRun(range, attributes){
+    if (this === undefined){
+        return new JSAttributedStringRun(range, attributes);
+    }else{
+        if (range instanceof JSAttributedStringRun){
+            this.range = JSRange(range.range);
+            this.attributes = JSCopy(range.attributes);
+        }else{
+            this.range = JSRange(range);
+            this.attributes = JSCopy(attributes);
+        }
+    }
+}
+
+JSAttributedStringRun.prototype = {
+
+    hasIdenticalAttributes: function(other){
+        var attribute;
+        var a, b;
+        for (attribute in this.attributes){
+            if (attribute in other.attributes){
+                a = this.attributes[attribute];
+                b = other.attributes[attribute];
+                if (a.isEqual){
+                    if (!a.isEqual(b)){
+                        return false;
+                    }
+                }else if (b.isEqual){
+                    if (!b.isEqual(a)){
+                        return false;
+                    }
+                }else if (a != b){
+                    return false;
+                }
+            }else{
+                return false;
+            }
+        }
+        for (attribute in other.attributes){
+            if (!(attribute in this.attributes)){
+                return false;
+            }
+        }
+    }
+
+};
+
 JSClass("JSAttributedString", JSObject, {
 
     _runs: null,
@@ -20,9 +67,19 @@ JSClass("JSAttributedString", JSObject, {
         if (attributes === undefined){
             attributes = {};
         }
-        var run = {range: JSRange(0, string.length), attributes: attributes};
+        var run = JSAttributedStringRun(JSRange(0, string.length), attributes);
         this._string = string;
         this._runs = [run];
+    },
+
+    initWithAttributedString: function(attributedString){
+        this._string = attributedString.string;
+        this._runs = [];
+        var run;
+        for (var i = 0, l = attributedString._runs.length; i < l; ++i){
+            run = attributedString._runs[i];
+            this._runs.push(JSAttributedStringRun(run));
+        }
     },
 
     // MARK: - Getting the unattributed string value
@@ -56,18 +113,18 @@ JSClass("JSAttributedString", JSObject, {
             this._runs.splice(runRange.location, runRange.length);
             if (string.length > 0){
                 // If text is being inserted, add a new range with the attributes previously saved
-                run = {range: JSRange(range.location, string.length), attributes: attributes};
+                run = JSAttributedStringRun(JSRange(range.location, string.length), attributes);
                 this._runs.splice(runRange.location, 0, run);
                 // Adjust following run locations
                 var locationAdjustment = string.length - range.length;
                 for (runIndex = runRange.location + 1, l = this._runs.length; runIndex < l; ++runIndex){
-                    this._runs[runIndex].location += locationAdjustment;
+                    this._runs[runIndex].range.location += locationAdjustment;
                 }
                 this._fixRunsInRunRange(JSRange(runRange.location, 1));
             }else{
                 // If we cut out all the runs, make sure to add an empty initial run back
                 if (this._runs.length === 0){
-                    this._runs = [{range: JSRange(0, 0), attributes: attributes}];
+                    this._runs = [JSAttributedStringRun(JSRange(0, 0), attributes)];
                 }
             }
         }else if (string.length > 0){
@@ -170,6 +227,11 @@ JSClass("JSAttributedString", JSObject, {
         return run.attributes[attributeName];
     },
 
+    rangeOfRunAtIndex: function(index){
+        var run = this._runAtStringIndex(index);
+        return run.range;
+    },
+
     // MARK: - Private helpers
 
     _fixRunsInRunRange: function(runRange){
@@ -186,22 +248,14 @@ JSClass("JSAttributedString", JSObject, {
         var runA;
         for (var runIndex = lastRunIndex - 1; runIndex >= runRange.location; --runIndex){
             runA = this._runs[runIndex];
-            if (this._attributesAreEqual(runA.attributes, runB.attributes)){
+            if (runA.hasIdenticalAttributes(runB)){
                 this._runs.splice(runIndex, 1);
-                runB.location = runA.location;
-                runB.length += runA.length;
+                runB.range.location = runA.range.location;
+                runB.range.length += runA.range.length;
             }else{
                 runB = runA;
             }
         }
-    },
-
-    _attributesAreEqual: function(a, b){
-        // FIXME: verify that this comparison will work the way we want
-        // For simple property values, it should, but for complex ones, like JSColor or JSFont, we may need to
-        // call an .isEqual() method or something.  Also, verify that object order doesn't matter.  And verify
-        // that key differences always result in an inequality.
-        return a == b;
     },
 
     _rangeOfRunsPreparedForChangeInStringRange: function(range){
@@ -227,7 +281,7 @@ JSClass("JSAttributedString", JSObject, {
             var end = run.range.location + run.range.length;
             if (end > index){
                 run.range.length = index - run.range.location;
-                run = {range: JSRange(index, end - index), attributes: JSCopy(run.attributes)};
+                run = JSAttributedStringRun(JSRange(index, end - index), run.attributes);
                 this._runs.splice(runIndex, 0, run);
             }
         }
@@ -261,3 +315,18 @@ JSClass("JSAttributedString", JSObject, {
     }
 
 });
+
+JSAttributedString.Attribute = {
+    Font: "font",
+    TextColor: "textColor",
+    BackgroundColor: "backgroundColor",
+    Bold: "bold",
+    Italic: "italic",
+    Underline: "underline",
+    Strike: "strike",
+    Attachment: "attachment"
+};
+
+JSAttributedString.SpecialCharacter = {
+    Attachment: 0xFFFC
+};

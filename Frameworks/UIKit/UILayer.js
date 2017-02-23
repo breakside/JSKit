@@ -112,9 +112,7 @@ JSClass("UILayer", JSObject, {
             this._recalculatePosition();
             this.setNeedsLayout();
             this.didChangeProperty('bounds.size');
-            if (this.delegate && this.delegate.layerDidChangeSize){
-                this.delegate.layerDidChangeSize(this);
-            }
+            this.didChangeSize();
         }else{
             // When just the origin changes, we only need to update the position, and can
             // do a simple delta offset instead of a full recalculation
@@ -149,9 +147,7 @@ JSClass("UILayer", JSObject, {
             this._recalculateFrame();
             this.didChangeProperty('position');
             this.didChangeProperty('bounds.size');
-            if (this.delegate && this.delegate.layerDidChangeSize){
-                this.delegate.layerDidChangeSize(this);
-            }
+            this.didChangeSize();
         }
         if (!bounds.origin.isEqual(oldBounds.origin)){
             this.boundsOriginDidChange();
@@ -199,6 +195,12 @@ JSClass("UILayer", JSObject, {
     didChangeProperty: function(keyPath){
         if (this._displayServer !== null){
             this._displayServer.layerDidChangeProperty(this, keyPath);
+        }
+    },
+
+    didChangeSize: function(){
+        if (this.delegate && this.delegate.layerDidChangeSize){
+            this.delegate.layerDidChangeSize(this);
         }
     },
 
@@ -596,6 +598,14 @@ JSClass("UILayer", JSObject, {
                 context.restore();
             }
         }
+    },
+
+    _isDisplayContext: function(context){
+        if (this._displayServer !== null){
+            var displayContext = this._displayServer.contextForLayer(this);
+            return context === displayContext;
+        }
+        return false;
     }
 
 });

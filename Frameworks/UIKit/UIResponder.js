@@ -13,11 +13,9 @@ JSClass("UIResponder", JSObject, {
     },
 
     becomeFirstResponder: function(){
-        return false;
     },
 
     resignFirstResponder: function(){
-        return true;
     },
 
     isFirstResponder: function(){
