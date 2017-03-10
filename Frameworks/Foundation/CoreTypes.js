@@ -139,6 +139,10 @@ JSRange.prototype = {
     location: 0,
     length: 0,
 
+    contains: function(i){
+        return i >= this.location && i < (this.location + this.length);
+    },
+
     isEqual: function(other){
         return this.location === other.location && this.length === other.length;
     }

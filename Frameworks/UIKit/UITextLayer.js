@@ -18,8 +18,6 @@ JSClass("UITextLayer", UILayer, {
     _textContainer: null,
     _textLayoutManager: null,
 
-    _localEditor: null,
-
     // MARK: - Creating a UITextLayer
 
     init: function(){
@@ -94,12 +92,29 @@ JSClass("UITextLayer", UILayer, {
     },
 
     setAttributedText: function(text){
-        this._textStorage = JSTextStorage.initWithAttributedString(text);
+        if (!text.isKindOfClass(JSTextStorage)){
+            text = JSTextStorage.initWithAttributedString(text);
+        }
+        this._textStorage = text;
         this._displayTextLayoutManager.replaceTextStorage(this._textStorage);
         this.setNeedsDisplay();
     },
 
+    characterIndexAtPoint: function(point){
+        // TODO: convert point as needed if the text container is not positioned at 0,0
+        var index = this._displayTextContainer.characterIndexAtPoint(point);
+        return index;
+    },
+
+    rectForCharacterAtIndex: function(index){
+        var rect = this._displayTextContainer.rectForCharacterAtIndex(index);
+        // TODO: convert rect as needed if the text container is not positioned at 0,0
+        return rect;
+    },
+
     drawInContext: function(context){
+        // TODO: coordinate this origin point with other methods like
+        // characterAtIndexPoint and rectForCharacterAtIndex
         var textOrigin = JSPoint(0, 0);
         if (this._isDisplayContext(context)){
             this._displayTextContainer.drawInContextAtPoint(context, textOrigin);

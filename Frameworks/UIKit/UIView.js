@@ -37,6 +37,7 @@ JSClass('UIView', UIResponder, {
     level:              null,     // int
     subviews:           null,     // Array
     layer:              null,     // UILayer
+    nextKeyView:        null,     // UIView
     frame:              UIViewLayerProperty(),
     bounds:             UIViewLayerProperty(),
     position:           UIViewLayerProperty(),

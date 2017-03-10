@@ -163,13 +163,20 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
             }
         }
         e.stopPropagation();
-        // We have to capture tab specially or else the browser will
-        // unfocus the textarea
+        // We have to capture tab specially in order to prevent default,
+        // or else the browser will unfocus the hidden textarea.
+        // Tab is also a special UITextInput action, so different inputs
+        // can handle it special.
         if (e.keyCode == 0x09){  // TAB
             e.preventDefault();
-            // TODO: dispatch tab action
             if (e.shiftKey){
+                if (this._responder && this._responder.insertBacktab){
+                    this._responder.insertBacktab();
+                }
             }else{
+                if (this._responder && this._responder.insertTab){
+                    this._responder.insertTab();
+                }
             }
         }
         // We have to capture undo/redo specially because the browser's
@@ -183,12 +190,18 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
             // Cmd+Z is Undo on Mac
             if (e.ctrlKey || e.metaKey){
                 e.preventDefault();
+                if (e.shiftKey){
+                    // TODO: dispatch redo
+                }else{
+                    // TODO: dispatch undo
+                }
             }
         }
         if (e.keyCode == 0x59){ // y
             // Ctrl+Y is Redo on Windows
             if (e.ctrlKey){
                 e.preventDefault();
+                // TODO: dispatch redo
             }
         }
         this.windowServer.keydown(e);
@@ -260,44 +273,64 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
             // If there's no length to the selection, then we've simply moved the cursor
             switch (this._selectedRange.location){
                 case 0:
-                    JSLog("start of document");
                     // start of document
+                    if (this._responder && this._responder.moveToBeginningOfDocument){
+                        this._responder.moveToBeginningOfDocument();
+                    }
                     break;
                 case this._config.resetSelection.location - this._config.prevLine:
-                    JSLog("previous line");
                     // previous line
+                    if (this._responder && this._responder.moveUp){
+                        this._responder.moveUp();
+                    }
                     break;
                 case this._config.resetSelection.location - this._config.starOfLine:
-                    JSLog("start of line");
                     // start of line
+                    if (this._responder && this._responder.moveToBeginningOfLine){
+                        this._responder.moveToBeginningOfLine();
+                    }
                     break;
                 case this._config.resetSelection.location - this._config.prevWord:
-                    JSLog("back 1 word");
                     // back 1 word
+                    if (this._responder && this._responder.moveWordBackward){
+                        this._responder.moveWordBackward();
+                    }
                     break;
                 case this._config.resetSelection.location - this._config.prevChar:
-                    JSLog("back 1 char");
                     // back 1 char
+                    if (this._responder && this._responder.moveBackward){
+                        this._responder.moveBackward();
+                    }
                     break;
                 case this._config.resetSelection.location + this._config.nextChar:
-                    JSLog("forward 1 char");
                     // forward 1 char
+                    if (this._responder && this._responder.moveForward){
+                        this._responder.moveForward();
+                    }
                     break;
                 case this._config.resetSelection.location + this._config.nextWord:
-                    JSLog("forward 1 word");
                     // forward 1 word
+                    if (this._responder && this._responder.moveWordForward){
+                        this._responder.moveWordForward();
+                    }
                     break;
                 case this._config.resetSelection.location + this._config.endOfLine:
-                    JSLog("end of line");
                     // end of line
+                    if (this._responder && this._responder.moveToEndOfLine){
+                        this._responder.moveToEndOfLine();
+                    }
                     break;
                 case this._config.resetSelection.location + this._config.nextLine:
-                    JSLog("next line");
                     // next line
+                    if (this._responder && this._responder.moveDown){
+                        this._responder.moveDown();
+                    }
                     break;
                 case this._config.resetValue.length:
-                    JSLog("end of document");
                     // end of document
+                    if (this._responder && this._responder.moveToEndOfDocument){
+                        this._responder.moveToEndOfDocument();
+                    }
                     break;
                 default:
                     JSLog("Unexpected selection point: %d".sprintf(this._selectedRange.location));
@@ -307,29 +340,41 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
             // If the selection has a range, we're selecting something rather than moving
             if (this._selectedRange.location === 0 && this._selectedRange.length == this._config.resetValue.length){
                 // select all
-                JSLog("select all");
+                if (this._responder && this._responder.selectAll){
+                    this._responder.selectAll();
+                }
             }else if (this._selectedRange.location == this._config.resetSelection.location){
                 // forward selection
                 switch (this._selectedRange.length){
                     case this._config.nextChar:
                         // select next char
-                        JSLog("select next char");
+                        if (this._responder && this._responder.moveForwardAndModifySelection){
+                            this._responder.moveForwardAndModifySelection();
+                        }
                         break;
                     case this._config.nextWord:
                         // select to end of word
-                        JSLog("select to end of word");
+                        if (this._responder && this._responder.moveWordForwardAndModifySelection){
+                            this._responder.moveWordForwardAndModifySelection();
+                        }
                         break;
                     case this._config.endOfLine:
                         // select to end of line
-                        JSLog("select to end of line");
+                        if (this._responder && this._responder.moveToEndOfLineAndModifySelection){
+                            this._responder.moveToEndOfLineAndModifySelection();
+                        }
                         break;
                     case this._config.nextLine:
                         // select to next line
-                        JSLog("select to next line");
+                        if (this._responder && this._responder.moveDownAndModifySelection){
+                            this._responder.moveDownAndModifySelection();
+                        }
                         break;
                     case this._config.resetValue.length - this._config.resetSelection.location:
                         // select to end of document
-                        JSLog("select to end of document");
+                        if (this._responder && this._responder.moveToEndOfDocumentAndModifySelection){
+                            this._responder.moveToEndOfDocumentAndModifySelection();
+                        }
                         break;
                     default:
                         JSLog("Unexpected selection: %d,%d".sprintf(this._selectedRange.location, this._selectedRange.length));
@@ -340,34 +385,44 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                 switch (this._selectedRange.length){
                     case this._config.prevChar:
                         // select prev char
-                        JSLog("select prev char");
+                        if (this._responder && this._responder.moveBackwardAndModifySelection){
+                            this._responder.moveBackwardAndModifySelection();
+                        }
                         break;
                     case this._config.prevWord:
                         // select to start of word
-                        JSLog("select to start of word");
+                        if (this._responder && this._responder.moveWordBackwardAndModifySelection){
+                            this._responder.moveWordBackwardAndModifySelection();
+                        }
                         break;
                     case this._config.starOfLine:
                         // select to start of line
-                        JSLog("select to start of line");
+                        if (this._responder && this._responder.moveToBeginningOfLineAndModifySelection){
+                            this._responder.moveToBeginningOfLineAndModifySelection();
+                        }
                         break;
                     case this._config.prevLine:
                         // select to previous line
-                        JSLog("select to previous line");
+                        if (this._responder && this._responder.moveUpAndModifySelection){
+                            this._responder.moveUpAndModifySelection();
+                        }
                         break;
                     case this._config.resetSelection.location:
                         // select to start of document
-                        JSLog("select to start of document");
+                        if (this._responder && this._responder.moveToBeginningOfDocumentAndModifySelection){
+                            this._responder.moveToBeginningOfDocumentAndModifySelection();
+                        }
                         break;
                     default:
                         JSLog("Unexpected selection: %d,%d".sprintf(this._selectedRange.location, this._selectedRange.length));
                         break;
                 }
-            }else if (this._selectedRange.location == this._config.resetSelection.location - this._config.prevWord && this._selectedRange.length == this._config.prevWord + this._config.nextWord){
-                // select current word (is this even possible with the keyboard?)
-                JSLog("select current word");
-            }else if (this._selectedRange.location == this._config.resetSelection.location - this._config.starOfLine && this._selectedRange.length == this._config.starOfLine + this._config.endOfLine){
-                // select current line (is this even possible with the keyboard?)
-                JSLog("select current line");
+            // }else if (this._selectedRange.location == this._config.resetSelection.location - this._config.prevWord && this._selectedRange.length == this._config.prevWord + this._config.nextWord){
+            //     // select current word (is this even possible with the keyboard?)
+            //     JSLog("select current word");
+            // }else if (this._selectedRange.location == this._config.resetSelection.location - this._config.starOfLine && this._selectedRange.length == this._config.starOfLine + this._config.endOfLine){
+            //     // select current line (is this even possible with the keyboard?)
+            //     JSLog("select current line");
             }else{
                 JSLog("Unexpected selection: %d,%d".sprintf(this._selectedRange.location, this._selectedRange.length));
             }
@@ -390,8 +445,15 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                     JSLog("compose: %s".sprintf(text));
                     // TODO: dispatch compose update action
                 }else{
-                    JSLog("input: %s".sprintf(text));
-                    // TODO: dispatch text action
+                    if (text == "\n" || text == "\r" || text == "\r\n"){
+                        if (this._responder && this._responder.insertNewline){
+                            this._responder.insertNewline();
+                        }
+                    }else{
+                        if (this._responder && this._responder.insertText){
+                            this._responder.insertText(text);
+                        }
+                    }
                 }
             }else{
                 JSLog("Unexpected input:\n%s".sprintf(value));
@@ -404,29 +466,41 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                 var half1 = original.substr(0, l);
                 var half2 = original.substr(l);
                 if (value == half1.substr(0, half1.length - this._config.prevChar) + half2){
-                    JSLog("delete back char");
+                    if (this._responder && this._responder.deleteBackward){
+                        this._responder.deleteBackward();
+                    }
                 }else if (value == half1.substr(0, half1.length - this._config.prevWord) + half2){
-                    JSLog("delete to start of word");
+                    if (this._responder && this._responder.deleteWordBackward){
+                        this._responder.deleteWordBackward();
+                    }
                 }else if (value == half1.substr(0, half1.length - this._config.starOfLine) + half2){
-                    JSLog("delete to start of line");
-                }else if (value == half1.substr(0, half1.length - this._config.prevLine) + half2){
-                    JSLog("delete prev line");
+                    if (this._responder && this._responder.deleteToBeginningOfLine){
+                        this._responder.deleteToBeginningOfLine();
+                    }
                 }else if (value == half2){
-                    JSLog("delete to start of document");
+                    if (this._responder && this._responder.deleteToBeginningOfDocument){
+                        this._responder.deleteToBeginningOfDocument();
+                    }
                 }else if (value == half1 + half2.substr(this._config.nextChar)){
-                    JSLog("delete forward char");
+                    if (this._responder && this._responder.deleteForward){
+                        this._responder.deleteForward();
+                    }
                 }else if (value == half1 + half2.substr(this._config.nextWord)){
-                    JSLog("delete to end of word");
+                    if (this._responder && this._responder.deleteWordForward){
+                        this._responder.deleteWordForward();
+                    }
                 }else if (value == half1 + half2.substr(this._config.endOfLine)){
-                    JSLog("delete to end of line");
-                }else if (value == half1 + half2.substr(this._config.nextLine)){
-                    JSLog("delete next line");
+                    if (this._responder && this._responder.deleteToEndOfLine){
+                        this._responder.deleteToEndOfLine();
+                    }
                 }else if (value == half1){
-                    JSLog("delete to end of document");
+                    if (this._responder && this._responder.deleteToEndOfDocument){
+                        this._responder.deleteToEndOfDocument();
+                    }
                 }else if (value === ""){
-                    JSLog("delete all");
-                }else if (value == half1.substr(0, half1.length - this._config.starOfLine) + half2.substr(this._config.endOfLine)){
-                    JSLog("delete line");
+                    if (this._responder && this._responder.deleteAll){
+                        this._responder.deleteAll();
+                    }
                 }else{
                     JSLog("Unexpected delete:\n%s".sprintf(value));
                 }

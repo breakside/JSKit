@@ -33,6 +33,8 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         this.contextsByLayerID = {};
         this._displayFrameBound = this.displayFrame.bind(this);
         this.determineRootBounds();
+        // TODO: fill in system fonts
+        // (use the trick of creating some divs and spans offscreen and deriving font properties from their relative sizes)
     },
 
     determineRootBounds: function(){

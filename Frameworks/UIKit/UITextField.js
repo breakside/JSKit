@@ -1,9 +1,13 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UITextLayer.js"
 // #import "UIKit/UITextEditor.js"
-/* global JSClass, UIView, UITextField, UITextLayer, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode */
+/* global JSClass, JSProtocol, UIView, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer */
 
 'use strict';
+
+JSProtocol("UITextFieldDelegate", JSProtocol, {
+    textFieldDidRecieveEnter: ['textField']
+});
 
 JSClass("UITextField", UIView, {
 
@@ -12,6 +16,7 @@ JSClass("UITextField", UIView, {
     attributedText: UIViewLayerProperty(),
     textColor: UIViewLayerProperty(),
     font: UIViewLayerProperty(),
+    delegate: null,
     _respondingIndicatorLayer: JSLazyInitProperty('_createRespondingIndicatorLayer'),
     _localEditor: null,
 
@@ -30,6 +35,7 @@ JSClass("UITextField", UIView, {
         UITextField.$super._commonViewInit.call(this);
         this.layer.textAlignment = JSTextAlignment.Left;
         this.layer.lineBreakMode = JSLineBreakMode.Clip;
+        this._localEditor = UITextEditor.initWithTextLayer(this.layer);
     },
 
     canBecomeFirstResponder: function(){
@@ -43,14 +49,18 @@ JSClass("UITextField", UIView, {
     becomeFirstResponder: function(){
         // show cursor at insertion point
         this.layer.addSublayer(this._respondingIndicatorLayer);
+        this._localEditor.didBecomeFirstResponder();
     },
 
     resignFirstResponder: function(){
         this._respondingIndicatorLayer.removeFromSuperlayer();
+        this._localEditor.didResignFirstResponder();
     },
 
     mouseDown: function(event){
-        if (!this._enabled) return;
+        if (!this._enabled){
+            return UITextField.$super.mouseDown.call(this, event);
+        }
         if (!this.isFirstResponder()){
             this.window.setFirstResponder(this);
         }
@@ -59,11 +69,17 @@ JSClass("UITextField", UIView, {
     },
 
     mouseDragged: function(event){
+        if (!this._enabled){
+            return UITextField.$super.mouseDragged.call(this, event);
+        }
         var location = event.locationInView(this);
-        this._localEditor.handMouseDraggedAtLocation(location);
+        this._localEditor.handleMouseDraggedAtLocation(location);
     },
 
     mouseUp: function(event){
+        if (!this._enabled){
+            return UITextField.$super.mouseUp.call(this, event);
+        }
         var location = event.locationInView(this);
         this._localEditor.handleMouseUpAtLocation(location);
     },
@@ -75,83 +91,147 @@ JSClass("UITextField", UIView, {
         return layer;
     },
 
+    _sanitizedText: function(text){
+        return text.replace('\r\n', ' ').replace('\r', ' ').replace('\n', ' ');
+    },
+
     // MARK: - UITextInput protocol
 
     insertText: function(text){
-        // TODO: sanitize text by replacing newlines with spaces
+        text = this._sanitizedText(text);
         this._localEditor.insertText(text);
-        this.setNeedsDisplay();
     },
 
     insertNewline: function(){
+        if (this.delegate && this.delegate.textFieldDidRecieveEnter){
+            this.delegate.textFieldDidRecieveEnter(this);
+        }
     },
 
     insertTab: function(){
+        this.window.setFirstReponderToKeyViewAfterView(this);
     },
 
     insertBacktab: function(){
+        this.window.setFirstReponderToKeyViewBeforeView(this);
     },
 
     deleteBackward: function(){
         this._localEditor.deleteBackward();
-        this.setNeedsDisplay();
     },
 
-    deleteToWordStart: function(){
+    deleteWordBackward: function(){
+        this._localEditor.deleteWordBackward();
     },
 
-    deleteToLineStart: function(){
+    deleteToBeginningOfLine: function(){
+        this._localEditor.deleteToBeginningOfLine();
     },
 
-    deleteToPreviousLine: function(){
-    },
-
-    deleteToDocumentStart: function(){
+    deleteToBeginningOfDocument: function(){
+        this._localEditor.deleteToBeginningOfDocument();
     },
 
     deleteForward: function(){
+        this._localEditor.deleteForward();
     },
 
-    deleteToWordEnd: function(){
+    deleteWordForward: function(){
+        this._localEditor.deleteForward();
     },
 
-    deleteToLineEnd: function(){
+    deleteToEndOfLine: function(){
+        this._localEditor.deleteToEndOfLine();
     },
 
-    deleteToNextLine: function(){
+    deleteToEndOfDocument: function(){
+        this._localEditor.deleteToEndOfDocument();
     },
 
-    deleteToDocumentEnd: function(){
+    
+    moveBackward: function(){
+        this._localEditor.moveBackward();
     },
 
-    selectBackward: function(){
+    moveWordBackward: function(){
+        this._localEditor.moveWordBackward();
     },
 
-    selectToWordStart: function(){
+    moveToBeginningOfLine: function(){
+        this._localEditor.moveToBeginningOfLine();
     },
 
-    selectToLineStart: function(){
+    moveUp: function(){
+        this.moveToBeginningOfDocument();
     },
 
-    selectToPreviousLine: function(){
+    moveToBeginningOfDocument: function(){
+        this._localEditor.moveToBeginningOfDocument();
     },
 
-    selectToDocumentStart: function(){
+    moveForward: function(){
+        this._localEditor.moveForward();
     },
 
-    selectForward: function(){
+    moveWordForward: function(){
+        this._localEditor.moveWordForward();
     },
 
-    selectToWordEnd: function(){
+    moveToEndOfLine: function(){
+        this._localEditor.moveToEndOfLine();
     },
 
-    selectToLineEnd: function(){
+    moveDown: function(){
+        this.moveToEndOfDocument();
     },
 
-    selectToNextLine: function(){
+    moveToEndOfDocument: function(){
+        this._localEditor.moveToEndOfDocument();
     },
 
-    selectToDocumentEnd: function(){
+    
+    moveBackwardAndExtendSelection: function(){
+        this._localEditor.moveBackwardAndExtendSelection();
+    },
+
+    moveWordBackwardAndExtendSelection: function(){
+        this._localEditor.moveWordBackwardAndExtendSelection();
+    },
+
+    moveToBeginningOfLineAndExtendSelection: function(){
+        this._localEditor.moveToBeginningOfLineAndExtendSelection();
+    },
+
+    moveUpAndExtendSelection: function(){
+        this.moveToBeginningOfDocumentAndExtendSelection();
+    },
+
+    moveToBeginningOfDocumentAndExtendSelection: function(){
+        this._localEditor.moveToBeginningOfDocumentAndExtendSelection();
+    },
+
+    moveForwardAndExtendSelection: function(){
+        this._localEditor.moveForwardAndExtendSelection();
+    },
+
+    moveWordForwardAndExtendSelection: function(){
+        this._localEditor.moveWordForwardAndExtendSelection();
+    },
+
+    moveToEndOfLineAndExtendSelection: function(){
+        this._localEditor.moveToEndOfLineAndExtendSelection();
+    },
+
+    moveDownAndExtendSelection: function(){
+        this.moveToEndOfDocumentAndExtendSelection();
+    },
+
+    moveToEndOfDocumentAndExtendSelection: function(){
+        this._localEditor.moveToEndOfDocumentAndExtendSelection();
+    },
+
+    selectAll: function(){
+        this._localEditor.selectAll();
     }
 
 });

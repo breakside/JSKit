@@ -4,9 +4,38 @@
   <title>Test</title>
 </head>
 <body>
+  <div style="position: relative; width: 200px; font-family: sans-serif; line-height: 0px; background-color: rgba(0,0,255,0.2);  margin-bottom: 20px; white-space: pre-wrap;"><!--
+    --><span style="font-size: 14px; line-height: 16px; background-color: rgba(255,0,0,0.2);">This is a test of how well things size and wrap</span><!--
+    --><span style="font-size: 20px; line-height: 23px; font-weight: 700; background-color: rgba(0,255,0,0.2);">, and test some more</span><!--
+    --><span style="display: inline-block; vertical-align: bottom; width: 50px; height: 50px; background-color: rgba(0,0,0,0.8); position: relative; top: -0px; margin-top: 0px"></span><!--
+  --></div>
   <textarea id="t" rows="10" cols="50"></textarea>
   <div id="d" style="font-family: monospace; white-space: pre-wrap; line-height: 16px; font-size: 15px;"><span id="s"></span></div>
   <script type="text/javascript">
+  var boxes = [];
+  function boxElement(element){
+    var rects = element.getClientRects();
+    var box;
+    for (var i = 0, l = rects.length; i < l; ++i){
+      if (i < boxes.length){
+        box = boxes[i];
+      }else{
+        box = document.createElement('div');
+        box.style.position = 'absolute';
+        box.style.boxSizing = 'border-box';
+        box.style.border = '1px solid red';
+        document.body.appendChild(box);
+      }
+      box.style.top = (rects[i].top + window.pageYOffset) + 'px';
+      box.style.left = (rects[i].left + window.pageXOffset) + 'px';
+      box.style.width = rects[i].width + 'px';
+      box.style.height = rects[i].height + 'px';
+    }
+    for (var j = boxes.length - 1; j >= i; --j){
+      boxes[j].parentNode.removeChild(boxes[j]);
+      boxes.splice(j, 1);
+    }
+  }
   var strlen = 10000;
   var letters = [
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -16,10 +45,11 @@
   // var str = 'man\u0303ana ffi';
   // str = "\uD852\uDF62";
   // console.log(str.charCodeAt(0), str.charCodeAt(1));
-  var str = "";
-  for (var i = 0; i < strlen; ++i){
-    str += letters[Math.floor(Math.random() * (letters.length - 1))];
-  }
+  var str = "This is a\ntest of multiple lines";
+  // var str = "";
+  // for (var i = 0; i < strlen; ++i){
+  //   str += letters[Math.floor(Math.random() * (letters.length - 1))];
+  // }
   var span = document.getElementById('s');
   var t0 = new Date();
   span.appendChild(document.createTextNode(str));

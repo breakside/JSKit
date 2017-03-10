@@ -28,4 +28,7 @@
 // #import "Foundation/JSTextContainer.js"
 // #import "Foundation/JSTextLayoutManager.js"
 // #import "Foundation/JSTextStorage.js"
+
+// #import "Foundation/JSTimer.js"
+
 'use strict';

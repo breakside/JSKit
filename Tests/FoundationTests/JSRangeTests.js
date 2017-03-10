@@ -39,6 +39,28 @@ JSClass('JSRangeTests', TKTestSuite, {
         var range = JSRange(-1, -2);
         TKAssertEquals(range.location, -1);
         TKAssertEquals(range.length, -2);
+    },
+
+    testContains: function(){
+        var range = JSRange(0, 0);
+        TKAssert(range.contains(0));
+        TKAssert(!range.contains(1));
+        TKAssert(!range.contains(-1));
+        TKAssert(!range.contains(10));
+        TKAssert(!range.contains(-10));
+
+        range = JSRange(0, 10);
+        TKAssert(range.contains(0));
+        TKAssert(range.contains(1));
+        TKAssert(!range.contains(-1));
+        TKAssert(range.contains(9));
+        TKAssert(!range.contains(10));
+
+        range = JSRange(10, 5);
+        TKAssert(!range.contains(0));
+        TKAssert(range.contains(10));
+        TKAssert(range.contains(14));
+        TKAssert(!range.contains(15));
     }
 
 });

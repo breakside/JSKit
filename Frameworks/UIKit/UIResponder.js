@@ -18,10 +18,6 @@ JSClass("UIResponder", JSObject, {
     resignFirstResponder: function(){
     },
 
-    isFirstResponder: function(){
-        return false;
-    },
-
     getNextResponder: function(){
         return null;
     },

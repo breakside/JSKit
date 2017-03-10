@@ -1,7 +1,7 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UIDisplayServer.js"
 // #import "UIKit/UIApplication.js"
-/* global JSClass, UIView, UIDisplayServer, JSConstraintBox, JSDynamicProperty, UIWindow, JSPoint, UIApplication, UIEvent */
+/* global JSClass, UIView, UIDisplayServer, JSConstraintBox, JSDynamicProperty, JSReadOnlyProperty, UIWindow, JSPoint, UIApplication, UIEvent */
 'use strict';
 
 JSClass('UIWindow', UIView, {
@@ -9,10 +9,11 @@ JSClass('UIWindow', UIView, {
     // -------------------------------------------------------------------------
     // MARK: - Properties
 
-    rootViewController: null,
-    contentView: null,
-    application: null,
+    contentViewController: JSDynamicProperty('_contentViewController', null),
+    contentView: JSDynamicProperty('_contentView', null),
+    application: JSReadOnlyProperty('_application', null),
     firstResponder: JSDynamicProperty('_firstResponder', null),
+    headKeyView: JSDynamicProperty('_firstKeyResponder', null),
 
     // -------------------------------------------------------------------------
     // MARK: - Creating a Window
@@ -27,13 +28,36 @@ JSClass('UIWindow', UIView, {
         if (!('constraintBox' in values) && !('constraintBox.margin' in values) && !('frame' in values)){
             this.constraintBox = JSConstraintBox.Margin(0);
         }
-        if ('rootViewController' in values){
-            this.rootViewController = spec.resolvedValue(values.rootViewController);
-            this.contentView = this.rootViewController.view;
+        if ('contentViewController' in values){
+            this.contentViewController = spec.resolvedValue(values.contentViewController);
         }else if ('contentView' in values){
             this.contentView = spec.resolvedValue(values.contentView);
         }
         this._commonWindowInit();
+    },
+
+    // MARK: - Content View
+
+    setContentView: function(contentView){
+        if (this._contentView !== null){
+            this._contentView.removeFromSuperview();
+        }
+        this._contentView = contentView;
+        this._contentViewController = null;
+        if (this._contentView !== null){
+            this.addSubview(this._contentView);
+        }
+    },
+
+    setContentViewController: function(contentViewController){
+        if (this._contentViewController !== null && this._contentViewControllerHasAppeared){
+            this._contentViewController.viewWillDisappear();
+        }
+        this.contentView = contentViewController.view;
+        if (this._contentViewController !== null && this._contentViewControllerHasAppeared){
+            this._contentViewController.viewDidDisappear();
+        }
+        this._contentViewController = contentViewController;
     },
 
     // -------------------------------------------------------------------------
@@ -44,13 +68,13 @@ JSClass('UIWindow', UIView, {
     },
 
     makeKeyAndVisible: function(){
-        this.application.windowInserted(this);
+        this._application.windowInserted(this);
         if (this.canBecomeKeyWindow()){
-            this.application.keyWindow = this;
+            this._application.keyWindow = this;
         }
-        if (this.rootViewController){
-            this.rootViewController.viewWillAppear();
-            this.rootViewController.viewDidAppear();
+        if (this._contentViewController){
+            this._contentViewController.viewWillAppear();
+            this._contentViewController.viewDidAppear();
         }
     },
 
@@ -82,13 +106,34 @@ JSClass('UIWindow', UIView, {
                 }
             }
             if (this._firstResponder !== previousResponder){
-                this.application.windowServer.windowDidChangeResponder(this);
+                this._application.windowServer.windowDidChangeResponder(this);
             }
         }
     },
 
-    nextResponder: function(){
-        return this.application;
+    setFirstReponderToKeyViewAfterView: function(view){
+        if (view === null){
+            return;
+        }
+        var haveLooped = false;
+        var next;
+        do {
+            next = view.nextKeyView;
+            if (next === null && !haveLooped){
+                next = this.headKeyView;
+                haveLooped = true;
+            }
+        } while (next !== null && !next.hidden && !next.canBecomeFirstResponder());
+        if (next !== null){
+            this.firstResponder = next;
+        }
+    },
+
+    setFirstResponderToKeyViewBeforeView: function(view){
+    },
+
+    getNextResponder: function(){
+        return this._application;
     },
 
     convertPointFromScreen: function(point){
@@ -120,8 +165,8 @@ JSClass('UIWindow', UIView, {
         }
         switch (event.type){
             case UIEvent.Type.LeftMouseDown:
-                if (this.canBecomeKeyWindow() && this.application.keyWindow !== this){
-                    this.application.keyWindow = this;
+                if (this.canBecomeKeyWindow() && this._application.keyWindow !== this){
+                    this._application.keyWindow = this;
                 }
                 this.mouseDownHitView.mouseDown(event);
                 break;
@@ -168,12 +213,11 @@ JSClass('UIWindow', UIView, {
     // MARK: - Private methods
 
     _commonWindowInit: function(){
-        this.application = UIApplication.sharedApplication;
+        this._application = UIApplication.sharedApplication;
         this.window = this;
-        if (this.contentView === null){
+        if (this._contentView === null){
             this.contentView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));
         }
-        this.addSubview(this.contentView);
     }
 
 });

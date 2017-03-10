@@ -2,28 +2,43 @@
 /* global JSProtocol */
 
 JSProtocol('UITextInput', JSProtocol, {
+
     insertText: ['text'],
     insertNewline: [],
     insertTab: [],
     insertBacktab: [],
+
     deleteBackward: [],
-    deleteToWordStart: [],
-    deleteToLineStart: [],
-    deleteToPreviousLine: [],
-    deleteToDocumentStart: [],
+    deleteWordBackward: [],
+    deleteToBeginningOfLine: [],
+    deleteToBeginningOfDocument: [],
     deleteForward: [],
-    deleteToWordEnd: [],
-    deleteToLineEnd: [],
-    deleteToNextLine: [],
-    deleteToDocumentEnd: [],
-    selectBackward: [],
-    selectToWordStart: [],
-    selectToLineStart: [],
-    selectToPreviousLine: [],
-    selectToDocumentStart: [],
-    selectForward: [],
-    selectToWordEnd: [],
-    selectToLineEnd: [],
-    selectToNextLine: [],
-    selectToDocumentEnd: []
+    deleteWordForward: [],
+    deleteToEndOfLine: [],
+    deleteToEndOfDocument: [],
+    deleteAll: [],
+    
+    moveBackward: [],
+    moveWordBackward: [],
+    moveToBeginningOfLine: [],
+    moveUp: [],
+    moveToBeginningOfDocument: [],
+    moveForward: [],
+    moveWordForward: [],
+    moveToEndOfLine: [],
+    moveDown: [],
+    moveToEndOfDocument: [],
+    
+    moveBackwardAndExtendSelection: [],
+    moveWordBackwardAndExtendSelection: [],
+    moveToBeginningOfLineAndExtendSelection: [],
+    moveUpAndExtendSelection: [],
+    moveToBeginningOfDocumentAndExtendSelection: [],
+    moveForwardAndExtendSelection: [],
+    moveWordForwardAndExtendSelection: [],
+    moveToEndOfLineAndExtendSelection: [],
+    moveDownAndExtendSelection: [],
+    moveToEndOfDocumentAndExtendSelection: [],
+    selectAll: []
+    
 });
