@@ -5,6 +5,7 @@
 'use strict';
 
 JSData.definePropertiesFromExtensions({
+
     htmlURLString: function(){
         if (!this._blob){
             this._blob = Blob([this.bytes]);

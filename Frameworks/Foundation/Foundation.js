@@ -31,4 +31,11 @@
 
 // #import "Foundation/JSTimer.js"
 
+// #import "Foundation/JSURLRequest.js"
+// #import "Foundation/JSURLResponse.js"
+// #import "Foundation/JSURLSession.js"
+// #import "Foundation/JSURLSessionTask.js"
+// #import "Foundation/JSURLSessionDataTask.js"
+// #import "Foundation/JSURLSessionUploadTask.js"
+
 'use strict';

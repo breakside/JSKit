@@ -17,6 +17,9 @@ JSImage.definePropertiesFromExtensions({
             }
             return this._fileURL;
         }
+        if (this.data){
+            return this.data.htmlURLString();
+        }
         return null;
     },
 

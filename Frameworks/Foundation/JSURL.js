@@ -1,6 +1,6 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSString.js"
-/* global JSClass, JSObject, JSDynamicProperty, JSString */
+/* global JSClass, JSObject, JSDynamicProperty, JSString, JSReadOnlyProperty */
 
 'use strict';
 
@@ -13,10 +13,13 @@ JSClass("JSURL", JSObject, {
     path: null,
     query: null,
     fragment: null,
+    encodedString: JSReadOnlyProperty(),
+    _encodedString: null,
 
     initWithString: function(str){
         if (typeof(str) == "string"){
             str = JSString.initWithNativeString(str);
+            this._encodedString = str;
         }
         this._parseString(str);
     },
@@ -27,11 +30,14 @@ JSClass("JSURL", JSObject, {
     },
 
     _parseString: function(str){
-        // TODO:
     },
 
-    percentEncodedString: function(){
-        // TODO:
+    getEncodedString: function(){
+        return this._encodedString;
+    },
+
+    isEqualToURL: function(url){
+        return url._encodedString == this._encodedString;
     }
 
 });
