@@ -157,6 +157,8 @@ class JSScanner(object):
     minify = True
 
     CONTEXT_JS = 'js'
+    CONTEXT_STRING_DQ = 'dq'
+    CONTEXT_STRING_SQ = 'sq'
     CONTEXT_COMMENT = 'comment'
     CONTEXT_TEST = 'test'
     CONTEXT_PASSTHRU = 'passthru'
@@ -224,6 +226,10 @@ class JSScanner(object):
                 if self.context == self.CONTEXT_JS:
                     i = line.find('//')
                     j = line.find('/*')
+                    while i >= 0 and in_string_literal(line, i):
+                        i = line.find('//', i + 1)
+                    while j >= 0 and in_string_literal(line, j):
+                        j = line.find('/*', j + 1)
                     if i >= 0 and j >= 0:
                         if i < j:
                             code += line[0:i].strip()
@@ -251,6 +257,29 @@ class JSScanner(object):
                         line = ""
         return code
 
+
+def in_string_literal(line, pos):
+    in_literal = False
+    delimiter = ''
+    skip = False
+    for i in range(pos):
+        if skip:
+            skip = False
+            continue
+        c = line[i]
+        if in_literal:
+            if c == '\\':
+                skip = True
+            elif c == delimiter:
+                in_literal = False
+        else:
+            if c == '"':
+                in_literal = True
+                delimiter = c
+            elif c == "'":
+                in_literal = True
+                delimiter = c
+    return in_literal
 
 class JSImport(object):
     delay = False
