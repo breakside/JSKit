@@ -38,8 +38,11 @@ JSObject.defineInitMethod = function(methodName){
             obj._observers = [];
             obj._bindings = {};
             obj._observableKeys = {};
-            obj[methodName].apply(obj, args);
-            return obj;
+            var result = obj[methodName].apply(obj, args);
+            if (result === undefined){
+                return obj;
+            }
+            return result;
         }
     });
 };

@@ -80,7 +80,7 @@ JSClass("JSTextLayoutManager", JSObject, {
 
     layout: function(){
         var index = 0;
-        var str = this._textStorage.string.nativeString;
+        var str = this._textStorage.string;
         var strLength = str.length;
         var range;
         var attributes;

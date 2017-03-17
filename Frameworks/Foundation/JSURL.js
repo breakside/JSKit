@@ -1,43 +1,515 @@
 // #import "Foundation/JSObject.js"
-// #import "Foundation/JSString.js"
-/* global JSClass, JSObject, JSDynamicProperty, JSString, JSReadOnlyProperty */
+// #import "Foundation/JSData.js"
+// #import "Foundation/String+JS.js"
+// #import "Foundation/JSFormFieldMap.js"
+/* global JSClass, JSObject, JSDynamicProperty, JSReadOnlyProperty, JSData, jslog_create, JSFormFieldMap */
+
+// https://tools.ietf.org/html/rfc3986
 
 'use strict';
 
+(function(){
+
+var logger = jslog_create("foundation.url");
+
+/// Represents a URL and each of its components
+///
+/// The `JSURL` class can be used to both parse a URL into its component parts, or construct a URL
+/// by setting/modifying various components.
 JSClass("JSURL", JSObject, {
 
-    scheme: null,
-    userInfo: null,
-    host: null,
-    port: null,
-    path: null,
-    query: null,
-    fragment: null,
+    scheme: JSDynamicProperty('_scheme', null),
+    encodedUserInfo: JSDynamicProperty('_encodedUserInfo', null),
+    host: JSDynamicProperty('_host', null),
+    port: JSDynamicProperty('_port', null),
+    path: JSDynamicProperty(),
+    pathComponents: JSDynamicProperty('_pathComponents', null),
+    encodedQuery: JSDynamicProperty('_encodedQuery', null),
+    encodedFragment: JSDynamicProperty('_encodedFragment', null),
+    query: JSDynamicProperty('_query', null),
+
+    isAbsolute: JSReadOnlyProperty(),
     encodedString: JSReadOnlyProperty(),
-    _encodedString: null,
+
+    _pathHasTrailingSlash: false,
 
     initWithString: function(str){
-        if (typeof(str) == "string"){
-            str = JSString.initWithNativeString(str);
-            this._encodedString = str;
+        var data = str.utf8();
+        return this.initWithData(data);
+    },
+
+    initWithData: function(data){
+        this._query = JSFormFieldMap();
+        var parser = JSURLParser(this);
+        try{
+            parser.parse(data.bytes);
+        }catch (e){
+            if (e.name == JSURLParserError){
+                logger.warn(e);
+                return null;
+            }
+            throw e;
         }
-        this._parseString(str);
     },
 
-    initWithUTF8Data: function(data){
-        var str = JSString.initWithData(data, JSString.Encoding.utf8);
-        this.initWithString(str);
+    setPath: function(path){
+        if (path === null || path === undefined){
+            path = "";
+        }
+        var components = path.split('/');
+        var i = 0;
+        if (components.length > 1 && components[0] === ""){
+            this._pathComponents = ["/"];
+            i = 1;
+        }else{
+            this._pathComponents = [];
+        }
+        for (var l = components.length; i < l; ++i){
+            if (components[i] !== "" && components[i] !== "."){
+                if (components[i] === ".."){
+                    if (this._pathComponents.length > 0 && this._pathComponents[this._pathComponents.length - 1] !== "/"){
+                        this._pathComponents.pop();
+                    }
+                }else{
+                    this._pathComponents.push(components[i]);
+                }
+            }
+        }
+        this._pathHasTrailingSlash = components.length > 2 && components[components.length - 1] === "";
     },
 
-    _parseString: function(str){
+    getPath: function(){
+        var path = "";
+        var component;
+        for (var i = 0, l = this._pathComponents.length; i < l; ++i){
+            component = this._pathComponents[i];
+            if (i > 0 && this._pathComponents[i - 1] != "/"){
+                path += "/";
+            }
+            path += component;
+        }
+        if (this._pathHasTrailingSlash){
+            path += "/";
+        }
+        return path;
+    },
+
+    setPathComponents: function(components){
+        var i, l;
+        this._pathComponents = [];
+        var expandedComponents = [];
+        var subs;
+        for (i = 0, l = components.length; i < l; ++i){
+            subs = components[i].split('/');
+            for (var j = 0, k = subs.length; j < k; ++j){
+                expandedComponents.push(subs[j]);
+            }
+        }
+        if (this.isAbsolute && expandedComponents.length > 0 && expandedComponents[0] != "/"){
+            this._pathComponents.push("/");
+        }
+        var component;
+        for (i = 0, l = expandedComponents.length; i < l; ++i){
+            component = components[i];
+            if (component !== "" && component !== "."){
+                if (component === ".."){
+                    if (this._pathComponents.length > 0 && this._pathComponents[this._pathComponents.length - 1] !== "/"){
+                        this._pathComponents.pop();
+                    }
+                }else{
+                    this._pathComponents.push(component);
+                }
+            }
+        }
+        this._pathHasTrailingSlash = false;
+    },
+
+    getIsAbsolute: function(){
+        return this._scheme !== null || this._host !== null;
+    },
+
+    setEncodedQuery: function(encodedQuery){
+        this._encodedQuery = encodedQuery;
+        this._query = JSFormFieldMap();
+        if (this._encodedQuery !== null){
+            this._query.decode(this._encodedQuery, true);
+        }
+    },
+
+    getQuery: function(){
+        return JSFormFieldMap(this._query);
+    },
+
+    setQuery: function(query){
+        if (query === null){
+            this._query = JSFormFieldMap();
+        }else{
+            this._query = JSFormFieldMap(query);
+        }
+        this._encodedQuery = this._query.encode(QueryReserved, true);
     },
 
     getEncodedString: function(){
-        return this._encodedString;
+        var encodedString = "";
+        if (this._scheme !== null){
+            encodedString += this._scheme;
+            encodedString += ":";
+        }
+        if (this._host !== null){
+            encodedString += "//";
+            if (this._encodedUserInfo !== null){
+                encodedString += String.initWithData(this._encodedUserInfo, String.Encoding.utf8);
+                encodedString += '@';
+            }
+            // TODO: encode (punycode)
+            encodedString += this._host;
+            if (this._port !== null){
+                encodedString += ":%d".sprintf(this._port);
+            }
+        }
+        encodedString += String.initWithData(this.path.utf8().dataByEncodingPercentEscapes(PathReserved), String.Encoding.utf8);
+        if (this._encodedQuery !== null){
+            encodedString += '?';
+            encodedString += String.initWithData(this._encodedQuery, String.Encoding.utf8);
+        }
+        if (this._encodedFragment !== null){
+            encodedString += '#';
+            encodedString += String.initWithData(this._encodedFragment, String.Encoding.utf8);
+        }
+        return encodedString;
+    },
+
+    toString: function(){
+        return this.getEncodedString();
     },
 
     isEqualToURL: function(url){
-        return url._encodedString == this._encodedString;
+        if (this._scheme !== url._scheme){
+            return false;
+        }
+        if (this._encodedUserInfo !== null && url._encodedUserInfo !== null){
+            var decodedInfoA = this._encodedUserInfo.dataByDecodingPercentEscapes().stringByDecodingUTF8();
+            var decodedInfoB = url._encodedUserInfo.dataByDecodingPercentEscapes().stringByDecodingUTF8();
+            if (decodedInfoA !== decodedInfoB){
+                return false;
+            }
+        }else if (this._encodedUserInfo !== null || url._encodedUserInfo !== null){
+            return false;
+        }
+        if (this._host !== url._host){
+            return false;
+        }
+        if (this._port !== url._port){
+            return false;
+        }
+        if (this._pathComponents.length != url._pathComponents.length){
+            return false;
+        }
+        for (var i = 0, l = this._pathComponents.length; i < l; ++i){
+            if (this._pathComponents[i] !== url._pathComponents[i]){
+                return false;
+            }
+        }
+        if (this._encodedQuery !== null && url._encodedQuery !== null){
+            var decodedQueryA = this._encodedQuery.dataByDecodingPercentEscapes().stringByDecodingUTF8();
+            var decodedQueryB = url._encodedQuery.dataByDecodingPercentEscapes().stringByDecodingUTF8();
+            if (decodedQueryA !== decodedQueryB){
+                return false;
+            }
+        }else if (this._encodedQuery !== null || url._encodedQuery !== null){
+            return false;
+        }
+        if (this._encodedFragment !== null && url._encodedFragment !== null){
+            var decodedFragmentA = this._encodedFragment.arrayByDecodingPercentEscapes().stringByDecodingUTF8();
+            var decodedFragmentB = url._encodedFragment.arrayByDecodingPercentEscapes().stringByDecodingUTF8();
+            if (decodedFragmentA !== decodedFragmentB){
+                return false;
+            }
+        }else if (this._encodedFragment !== null || url._encodedFragment !== null){
+            return false;
+        }
+        return true;
     }
 
 });
+
+var JSURLParser = function(url){
+    if (this === undefined){
+        return new JSURLParser(url);
+    }else{
+        this.url = url;
+    }
+};
+
+JSURLParser.prototype = {
+
+    url: null,
+    bytes: null,
+    offset: 0,
+
+    parse: function(bytes){
+        // URL data should basically be printable ASCII.  This check isn't perfectly in accordance
+        // with any specification, but it's an easy sanity check to run that allows further parsing
+        // to make assumptions about the data it sees, and shouldn't mess up any legitimate use case.
+        for (var i = 0, l = bytes.length; i < l; ++i){
+            if (bytes[i] < 0x20 || bytes[i] >= 0x80){
+                var error = new Error("Invalid character (%#02x) found in URL at byte position: %d".sprintf(bytes[i], i));
+                error.name = JSURLParserError;
+                throw error;
+            }
+        }
+        this.bytes = bytes;
+        this.parseStart();
+    },
+
+    parseStart: function(){
+        this.url.scheme = null;
+        this.url.encodedUserInfo = null;
+        this.url.host = null;
+        this.url.port = null;
+        this.url.pathComponents = [];
+        this.url.encodedQuery = null;
+        this.url.encodedFragment = null;
+
+        // Empty is allowed
+        if (this.bytes.length === 0){
+            return;
+        }
+        // A single byte must be a path
+        if (this.bytes.length === 1){
+            this.url.path = String.fromCharCode(this.bytes[0]);
+            return;
+        }
+        // If we start with //, then we must be a scheme-relative authority
+        if (this.bytes[0] == 0x2F && this.bytes[1] == 0x2F){
+            this.parseAuthority();
+            return;
+        }
+        // If we start with a ?, then we've just got a query string
+        if (this.bytes[0] == 0x3F){
+            this.parseQuery();
+            return;
+        }
+        // If we start with a #, then we've just got a fragment
+        if (this.bytes[0] == 0x23){
+            this.parseFragment();
+            return;
+        }
+        // Otherwise, we have either an absolute URI with a scheme, or a relative URI with a path
+        this.parseSchemeOrPath();
+    },
+
+    isAlpha: function(b){
+        return (b >= 0x41 && b <= 0x5A) || (b >= 0x61 && b <= 0x7A);
+    },
+
+    isNumeric: function(b){
+        return b >= 0x30 && b < 0x40;
+    },
+
+    parseSchemeOrPath: function(){
+        var foundScheme = false;
+        var length = this.bytes.length;
+        var offset = this.offset;
+        var b;
+        while (offset < length){
+            b = this.bytes[offset];
+            if (b == 0x3A){
+                // Found a :, so we've got a scheme
+                break;
+            }
+            if (b == 0x2F){
+                // Found a / before a :, so we must have a path
+                break;
+            }
+            ++offset;
+        }
+        if (b == 0x3A){
+            var schemeData = JSData.initWithBytes(this.bytes.subarray(this.offset, offset));
+            this.url._scheme = String.initWithData(schemeData, String.Encoding.utf8);
+            this.offset = offset + 1;
+            this.parseAuthority();
+        }else{
+            this.parsePath();
+        }
+    },
+
+    parseAuthority: function(){
+        var length = this.bytes.length;
+        var offset = this.offset;
+        if (offset < length - 1 && this.bytes[offset] == 0x2F && this.bytes[offset + 1] == 0x2F){
+            this.offset += 2;
+            this.parseHost();
+        }else{
+            this.parsePath();
+        }
+    },
+
+    parseHost: function(){
+        var length = this.bytes.length;
+        var offset = this.offset;
+        var b;
+        while (offset < length){
+            b = this.bytes[offset];
+            if (b == 0x40){
+                // Found a @ before a / ? or #, must mean we've got user info before the host
+                this.url._encodedUserInfo = JSData.initWithBytes(this.bytes.subarray(this.offset, offset));
+                this.offset = offset + 1;
+                break;
+            }else if (b == 0x2F || b == 0x3F || b == 0x23){
+                // /, ?, or #...must be the end of the host, and didn't find user info
+                break;
+            }
+            ++offset;
+        }
+        offset = this.offset;
+        while (offset < length){
+            b = this.bytes[offset];
+            if (b == 0x3A || b == 0x2F || b == 0x3F || b == 0x23){
+                // :, /, ?, or #...must be the end of the host
+                break;
+            }
+            ++offset;
+        }
+        if (offset > this.offset){
+            var hostData = JSData.initWithBytes(this.bytes.subarray(this.offset, offset));
+            this.url._host = String.initWithData(hostData, String.Encoding.utf8);
+            // TODO: decode (punycode)
+        }
+        this.offset = offset;
+        if (b == 0x3A){
+            this.offset++;
+            this.parsePort();
+        }else{
+            this.parsePath();
+        }
+    },
+
+    parsePort: function(){
+        var length = this.bytes.length;
+        var offset = this.offset;
+        var b;
+        while (offset < length){
+            b = this.bytes[offset];
+            if (b == 0x2F || b == 0x3F || b == 0x23){
+                // /, ?, or #...must be the end of the port
+                break;
+            }
+            ++offset;
+        }
+        if (offset > this.offset){
+            var port = 0;
+            var i = this.offset;
+            while (i < offset){
+                b = this.bytes[i];
+                if (b >= 0x30 && b < 0x40){
+                    port *= 10;
+                    port += b - 0x30;
+                }else{
+                    port = 0;
+                    break;
+                }
+                ++i;
+            }
+            if (port !== 0){
+                this.url._port = port;
+            }
+        }
+        this.offset = offset;
+        this.parsePath();
+    },
+
+    parsePath: function(){
+        var offset = this.offset;
+        var length = this.bytes.length;
+        var b;
+        while (offset < length){
+            b = this.bytes[offset];
+            if (b == 0x23 || b == 0x3F){
+                break;
+            }
+            ++offset;
+        }
+        var pathData = this.bytes.subarray(this.offset, offset);
+        this.url.path = pathData.arrayByDecodingPercentEscapes().stringByDecodingUTF8();
+        this.offset = offset;
+        if (b == 0x3f){
+            this.parseQuery();
+        }else if (b == 0x23){
+            this.parseFragment();
+        }
+    },
+
+    parseQuery: function(){
+        var offset = this.offset;
+        var length = this.bytes.length;
+        if (offset < length){
+            var b = this.bytes[offset];
+            if (b == 0x3F){
+                ++offset;
+                this.offset = offset;
+                while (offset < length){
+                    b = this.bytes[offset];
+                    if (b == 0x23){
+                        break;
+                    }
+                    ++offset;
+                }
+                this.url.encodedQuery = JSData.initWithBytes(this.bytes.subarray(this.offset, offset));
+            }
+            this.offset = offset;
+            if (b == 0x23){
+                this.parseFragment();
+            }
+        }
+    },
+
+    parseFragment: function(){
+        var offset = this.offset;
+        var length = this.bytes.length;
+        if (offset < length){
+            var b = this.bytes[offset];
+            if (b == 0x23){
+                this.offset += 1;
+                offset = this.bytes.length;
+                this.url._encodedFragment = JSData.initWithBytes(this.bytes.subarray(this.offset, offset));
+            }
+        }
+    }
+
+};
+
+var PathReserved = {
+    0x22: true,
+    0x23: true,
+    0x3c: true,
+    0x3e: true,
+    0x3f: true,
+    0x5b: true,
+    0x5c: true,
+    0x5d: true,
+    0x5e: true,
+    0x60: true,
+    0x7b: true,
+    0x7c: true,
+    0x7d: true
+};
+
+var QueryReserved = {
+    0x22: true,
+    0x23: true,
+    0x3c: true,
+    0x3e: true,
+    0x5b: true,
+    0x5c: true,
+    0x5d: true,
+    0x5e: true,
+    0x60: true,
+    0x7b: true,
+    0x7c: true,
+    0x7d: true
+};
+
+var JSURLParserError = "JSURLParserError";
+
+})();

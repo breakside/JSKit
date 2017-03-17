@@ -5,8 +5,12 @@
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
 // #feature Document.prototype.createElement
-/* global JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer, JSLog, UIHTMLTextContainer */
+/* global JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer, jslog_create, UIHTMLTextContainer */
 'use strict';
+
+(function(){
+
+var logger = jslog_create("uikit.display-server");
 
 JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
@@ -177,7 +181,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
                 this.layerInserted(layer.sublayers[i]);
             }
         }else{
-            JSLog("layerInserted called without valid parent context");
+            logger.warn("layerInserted called without valid parent context");
         }
     },
 
@@ -209,3 +213,5 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     }
 
 });
+
+})();

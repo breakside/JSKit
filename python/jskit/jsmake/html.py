@@ -239,6 +239,7 @@ class HTMLBuilder(Builder):
             'appSrc': appSrc
         }
         includePaths = (pkg_resources.resource_filename('jskit', 'jsmake/html_resources'),)
+        hasInsertedLogger = False
         while len(stack) > 0:
             node = stack.pop()
             if node.tagName == 'head':
@@ -248,9 +249,27 @@ class HTMLBuilder(Builder):
                     style.setAttribute('type', 'text/css')
                     style.setAttribute('href', _webpath(os.path.relpath(css, self.outputWebRootPath)))
                     node.appendChild(style)
+
+                if self.debug:
+                    self.includes.append('jslog-debug.js')
+                else:
+                    self.includes.append('jslog-release.js')
             elif node.tagName == 'title' and node.parentNode.tagName == 'head':
                 node.appendChild(document.createTextNode(self.info.get('UIApplicationTitle', '')))
             elif node.tagName == 'script' and node.getAttribute('type') == 'text/javascript':
+                if not hasInsertedLogger:
+                    loggerResource = None
+                    if self.debug:
+                        loggerResource = 'jslog-debug.js'
+                    else:
+                        loggerResource = 'jslog-release.js'
+                    script = document.createElement('script')
+                    script.setAttribute('type', 'text/javascript')
+                    fp = open(pkg_resources.resource_filename('jskit', 'jsmake/html_resources/' + loggerResource), 'r')
+                    script.appendChild(document.createTextNode(fp.read()))
+                    fp.close()
+                    node.parentNode.insertBefore(script, node)
+                    hasInsertedLogger = True
                 oldScriptText = u''
                 for child in node.childNodes:
                     if child.nodeType == xml.dom.Node.TEXT_NODE:

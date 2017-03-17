@@ -73,16 +73,16 @@
       data = filter.encode(data);
       this.inputArea.value = data.bytes.hexStringRepresentation();
       data = filter.decode(data);
-      this.decodedArea.value = data.bytes.stringUsingASCIIDecoding();
+      this.decodedArea.value = data.bytes.stringByDecodingUTF8();
     },
     blur: function(e){
       var filter = PDFASCII85Filter.init();
       var bytes = this.inputArea.value.bytesUsingUTF8Encoding();
       var data = JSData.initWithBytes(bytes);
       // var encoded = filter.encode(data);
-      // this.encodedArea.value = encoded.bytes.stringUsingUTF8Decoding();
+      // this.encodedArea.value = encoded.bytes.stringByDecodingUTF8();
       // var decoded = filter.decode(encoded);
-      // this.decodedArea.value = decoded.bytes.stringUsingUTF8Decoding();
+      // this.decodedArea.value = decoded.bytes.stringByDecodingUTF8();
     }
   };
   var controller = new Controller();

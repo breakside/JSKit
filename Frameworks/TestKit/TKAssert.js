@@ -13,6 +13,14 @@ TKAssertion.LineForCurrentCaseInError = function(error){
     var prefix = TKAssertion.CurrentTestCase + '@';
     for (var i = 0, l = stack.length; i < l; ++i){
         var caller = stack[i];
+        if (caller.substr(0, 14) == '    at Object.'){
+            // chrome
+            caller = caller.substr(14);
+            prefix = TKAssertion.CurrentTestCase + ' (';
+        }else if (caller.charAt(0) == '.'){
+            // firefox
+            caller = caller.substr(1);
+        }
         if (caller.substr(0, prefix.length) == prefix){
             caller = caller.substr(prefix.length);
             var parts = caller.split(':');
@@ -85,6 +93,13 @@ function TKAssertNull(expression, message){
     if (expression !== null){
         message = message || '';
         throw TKAssertion('TKAssertNull failed, expression is not null ' + message);
+    }
+}
+
+function TKAssertUndefined(expression, message){
+    if (expression !== undefined){
+        message = message || '';
+        throw TKAssertion('TKAssertNull failed, expression is not undefined ' + message);
     }
 }
 

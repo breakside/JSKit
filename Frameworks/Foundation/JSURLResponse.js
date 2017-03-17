@@ -16,7 +16,7 @@ JSClass("JSURLResponse", JSObject, {
     },
 
     getStatusClass: function(){
-        return this.statusCode === JSURLResponse.StatusCode.Unknown ? JSURLResponse.StatusClass.Unknown : this.statusCode / 100;
+        return this.statusCode === JSURLResponse.StatusCode.Unknown ? JSURLResponse.StatusClass.Unknown : Math.floor(this.statusCode / 100);
     }
 
 });

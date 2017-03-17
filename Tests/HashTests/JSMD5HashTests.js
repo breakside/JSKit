@@ -6,7 +6,7 @@
 JSClass('JSMD5HashTests', TKTestSuite, {
 
     _testHash: function(str, expecting){
-        var hex = JSMD5Hash(str.asciiBytes()).hexStringRepresentation();
+        var hex = JSMD5Hash(str.utf8().bytes).hexStringRepresentation();
         TKAssertEquals(hex, expecting);
     },
 
@@ -45,22 +45,22 @@ JSClass('JSMD5HashTests', TKTestSuite, {
     testAdd: function(){
         var hasher = new JSMD5Hash();
         hasher.start();
-        hasher.add("1234567890".asciiBytes());
-        hasher.add("1234567890".asciiBytes());
-        hasher.add("1234567890".asciiBytes());
-        hasher.add("1234567890".asciiBytes());
-        hasher.add("1234567890".asciiBytes());
-        hasher.add("1234567890".asciiBytes());
-        hasher.add("1234567890".asciiBytes());
-        hasher.add("1234567890".asciiBytes());
+        hasher.add("1234567890".utf8().bytes);
+        hasher.add("1234567890".utf8().bytes);
+        hasher.add("1234567890".utf8().bytes);
+        hasher.add("1234567890".utf8().bytes);
+        hasher.add("1234567890".utf8().bytes);
+        hasher.add("1234567890".utf8().bytes);
+        hasher.add("1234567890".utf8().bytes);
+        hasher.add("1234567890".utf8().bytes);
         hasher.finish();
         var hex = hasher.digest().hexStringRepresentation();
         TKAssertEquals(hex, "57edf4a22be3c955ac49da2e2107b67a");
 
         var hasher2 = new JSMD5Hash();
         hasher2.start();
-        hasher2.add("12345678901234567890123456789012345678901234567890123456789012345678901234567890".asciiBytes());
-        hasher2.add("12345678901234567890123456789012345678901234567890123456789012345678901234567890".asciiBytes());
+        hasher2.add("12345678901234567890123456789012345678901234567890123456789012345678901234567890".utf8().bytes);
+        hasher2.add("12345678901234567890123456789012345678901234567890123456789012345678901234567890".utf8().bytes);
         hasher2.finish();
         var hex2 = hasher2.digest().hexStringRepresentation();
         TKAssertEquals(hex2, "268c7919189d85e276d74b8c60b2f84f");

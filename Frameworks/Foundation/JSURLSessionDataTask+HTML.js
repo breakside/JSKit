@@ -4,8 +4,12 @@
 // #import "Foundation/JSURLResponse.js"
 // #feature XMLHttpRequest
 // #feature setTimeout
-/* global JSClass, JSURLSessionDataTask, JSLazyInitProperty, XMLHttpRequest, JSLog, JSURLResponse, JSURLRequest, JSURL, setTimeout */
+/* global JSClass, JSURLSessionDataTask, JSLazyInitProperty, XMLHttpRequest, jslog_create, JSURLResponse, JSURLRequest, JSURL, setTimeout */
 'use strict';
+
+(function(){
+
+var logger = jslog_create("foundation.url-session");
 
 JSURLSessionDataTask.definePropertiesFromExtensions({
 
@@ -23,7 +27,7 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
                 this._xmlRequest.open('GET', url, true);
             }catch (e){
                 this._error = e;
-                JSLog("error opening request: %s".sprintf(e.message));
+                logger.error("error opening request: %s".sprintf(e.message));
             }
         }
         if (this._xmlRequest.readyState !== XMLHttpRequest.UNSENT){
@@ -128,43 +132,43 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
     },
 
     _event_loadstart: function(e){
-        JSLog("%s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
+        logger.info("%s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
     },
 
     _event_progress: function(e){
-        JSLog("%s, state=%d; %d/%d".sprintf(e.type, this._xmlRequest.readyState, e.loaded, e.lengthComputable ? e.total : 0));
+        logger.info("%s, state=%d; %d/%d".sprintf(e.type, this._xmlRequest.readyState, e.loaded, e.lengthComputable ? e.total : 0));
         this.session._taskDidReceiveBodyData(this, e.loaded, e.lengthComputable ? e.total : undefined);
     },
 
     _event_abort: function(e){
-        JSLog("%s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
+        logger.info("%s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
         // TODO: formalize errors
         this._error = "abort";
     },
 
     _event_error: function(e){
-        JSLog("%s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
+        logger.info("%s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
         // TODO: formalize errors
         this._error = "error";
     },
 
     _event_load: function(e){
-        JSLog("%s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
+        logger.info("%s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
     },
 
     _event_timeout: function(e){
-        JSLog("%s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
+        logger.info("%s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
         // TODO: formalize errors
         this._error = "timeout";
     },
 
     _event_loadend: function(e){
-        JSLog("%s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
+        logger.info("%s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
         this._complete();
     },
 
     _event_readystatechange: function(e){
-        JSLog("%s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
+        logger.info("%s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
         switch (this._xmlRequest.readyState){
             case XMLHttpRequest.UNSENT:
                 break;
@@ -181,42 +185,42 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
     },
 
     _upload_event_loadstart: function(e){
-        JSLog("upload %s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
+        logger.info("upload %s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
     },
 
     _upload_event_progress: function(e){
-        JSLog("upload %s, state=%d; %d/%d".sprintf(e.type, this._xmlRequest.readyState), e.loaded, e.lengthComputable ? e.total : 0);
+        logger.info("upload %s, state=%d; %d/%d".sprintf(e.type, this._xmlRequest.readyState), e.loaded, e.lengthComputable ? e.total : 0);
         this.session._taskDidSendBodyData(this, e.loaded, e.lengthComputable ? e.total : undefined);
     },
 
     _upload_event_abort: function(e){
-        JSLog("upload %s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
+        logger.info("upload %s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
         // TODO: formalize errors
         this._error = "upload abort";
     },
 
     _upload_event_error: function(e){
-        JSLog("upload %s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
+        logger.info("upload %s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
         // TODO: formalize errors
         this._error = "upload error";
     },
 
     _upload_event_load: function(e){
-        JSLog("upload %s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
+        logger.info("upload %s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
     },
 
     _upload_event_timeout: function(e){
-        JSLog("upload %s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
+        logger.info("upload %s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
         // TODO: formalize errors
         this._error = "upload timeout";
     },
 
     _upload_event_loadend: function(e){
-        JSLog("upload %s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
+        logger.info("upload %s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
     },
 
     _upload_event_readystatechange: function(e){
-        JSLog("upload %s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
+        logger.info("upload %s, state=%d".sprintf(e.type, this._xmlRequest.readyState));
         switch (this._xmlRequest.readyState){
             case XMLHttpRequest.UNSENT:
                 break;
@@ -231,3 +235,5 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
         }
     }
 });
+
+})();

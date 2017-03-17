@@ -2,7 +2,7 @@
 // #import "TestKit/TKAssert.js"
 // #import "TestKit/TKTestResult.js"
 // #import "TestKit/TKTestSuite.js"
-/* global JSClass, JSObject, JSLog, TKAssertion, TKTestResult, TKTestSuite */
+/* global JSClass, JSObject, TKAssertion, TKTestResult, TKTestSuite */
 'use strict';
 
 JSClass('TKTestRun', JSObject, {

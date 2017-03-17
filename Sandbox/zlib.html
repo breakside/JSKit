@@ -55,7 +55,7 @@
       this.outputArea.value = stream.output.hexStringRepresentation();
       stream = new LZWStream(stream.output);
       stream.uncompress();
-      this.outputArea.value = stream.output.stringUsingUTF8Decoding();
+      this.outputArea.value = stream.output.stringByDecodingUTF8();
     }
   };
   var controller = new Controller();

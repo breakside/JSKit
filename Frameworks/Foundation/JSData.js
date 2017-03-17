@@ -1,6 +1,7 @@
 // #feature Uint8Array
 // #import "Foundation/JSObject.js"
-/* global JSClass, JSObject */
+// #import "Foundation/Uint8Array+JS.js"
+/* global JSClass, JSObject, JSData */
 'use strict';
 
 JSClass("JSData", JSObject, {
@@ -30,6 +31,19 @@ JSClass("JSData", JSObject, {
         }
         this.bytes = bytes;
         this.length = this.bytes.length;
-    }
+    },
+
+    subdataInRange: function(range){
+        var bytes = new Uint8Array(this.bytes.buffer, this.bytes.byteOffset + range.location, range.length);
+        return JSData.initWithBytes(bytes);
+    },
+
+    dataByDecodingPercentEscapes: function(decodePlusAsSpace){
+        return JSData.initWithBytes(this.bytes.arrayByDecodingPercentEscapes(decodePlusAsSpace));
+    },
+
+    dataByEncodingPercentEscapes: function(reserved, encodeSpaceAsPlus){
+        return JSData.initWithBytes(this.bytes.arrayByEncodingPercentEscapes(reserved, encodeSpaceAsPlus));
+    },
 
 });

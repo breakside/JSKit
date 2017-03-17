@@ -101,8 +101,11 @@ JSClass.prototype = {
             value: function JSClass_createAndInit(){
                 var args = Array.prototype.slice.call(arguments, 0);
                 var obj = Object.create(this.prototype);
-                obj[methodName].apply(obj, args);
-                return obj;
+                var result = obj[methodName].apply(obj, args);
+                if (result === undefined){
+                    return obj;   
+                }
+                return result;
             }
         });
     },

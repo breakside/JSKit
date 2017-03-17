@@ -1,10 +1,14 @@
 // https://tools.ietf.org/html/rfc1951
 // #feature Uint8Array
 // #include "Zlib/Huffman.js"
-/* global JSLog, HuffmanTree */
+/* global jslog_create, HuffmanTree, JSGlobalObject, Deflate, DeflateStream */
 'use strict';
 
-var Deflate = {
+(function(){
+
+var logger = jslog_create("zlib");
+
+JSGlobalObject.Deflate = {
 
     inflate: function(input, info, level){
         var stream = new DeflateStream(input, info, level);
@@ -16,14 +20,6 @@ var Deflate = {
         var stream = new DeflateStream(input, info, level);
         stream.deflate();
         return stream.output;
-    },
-
-    Error: function(msg){
-        if (this === undefined){
-            return new Deflate.Error(msg);
-        }
-        this.name = "Deflate.Error";
-        this.message = msg;
     },
 
     LengthCodeMap: {
@@ -135,16 +131,24 @@ Object.defineProperty(Deflate, 'HuffmanFixedDistances', {
     }
 });
 
-Deflate.Error.prototype = Object.create(Error.prototype);
+function DeflateError(msg){
+    if (this === undefined){
+        return new DeflateError(msg);
+    }
+    this.name = "DeflateError";
+    this.message = msg;
+}
 
-function DeflateStream(input, info, level){
+DeflateError.prototype = Object.create(Error.prototype);
+
+JSGlobalObject.DeflateStream = function(input, info, level){
     if (this === undefined){
         return new DeflateStream(input, info, level);
     }
     this.input = input;
     this.info = info;
     this.level = level;
-}
+};
 
 DeflateStream.prototype = {
     input: null,
@@ -171,7 +175,7 @@ DeflateStream.prototype = {
             header = this.readBits(3);
             is_final_block = header & 0x01;
             type = (header & 0x06) >> 1;
-            // JSLog("Deflate block #%d, type %d".sprintf(this.block_index, type));
+            // logger.info("Deflate block #%d, type %d".sprintf(this.block_index, type));
             if (type === 0){
                 this.decodeUncompressedBlock();
             }else if (type === 1){
@@ -179,7 +183,7 @@ DeflateStream.prototype = {
             }else if (type === 2){
                 this.decodeDynamicHuffmanBlock();
             }else{
-                throw new Deflate.Error("Deflate block #%d type unknown: %d".sprintf(this.block_index, type));
+                throw new DeflateError("Deflate block #%d type unknown: %d".sprintf(this.block_index, type));
             }
             ++this.block_index;
         } while (!is_final_block);
@@ -210,13 +214,13 @@ DeflateStream.prototype = {
                 this.offset += block_length;
             }
         }else{
-            throw new Deflate.Error("Deflate compression level %d is not implemented".sprintf(this.level));
+            throw new DeflateError("Deflate compression level %d is not implemented".sprintf(this.level));
         }
     },
 
     readBits: function(n){
         if (this.offset >= this.input.length){
-            throw new Deflate.Error("Reading past the end");
+            throw new DeflateError("Reading past the end");
         }
         var x;
         if (this.bitOffset === 0 && n === 8){
@@ -237,7 +241,7 @@ DeflateStream.prototype = {
             }else{
                 this.offset += 1;
                 if (this.offset >= this.input.length){
-                    throw new Deflate.Error("Reading past the end");
+                    throw new DeflateError("Reading past the end");
                 }
                 n = (this.bitOffset + n) % 8;
                 x = ((this.input[this.offset] & (0xFF >> (8 - n))) << (8 - this.bitOffset)) | remaining;
@@ -251,10 +255,10 @@ DeflateStream.prototype = {
         var i, l;
         if (this.outputLength + bytes.length > this.output.length){
             if (this._isOutputProvided){
-                throw new Deflate.Error("Deflate: provided output buffer too small");
+                throw new DeflateError("Deflate: provided output buffer too small");
             }
             var new_output = new Uint8Array((this.outputLength + bytes.length) * 2);
-            JSLog("Deflate increasing output buffer size from %d to %d".sprintf(this.output.length, new_output.length));
+            logger.info("Deflate increasing output buffer size from %d to %d".sprintf(this.output.length, new_output.length));
             for (i = 0, l = this.outputLength; i < l; ++i){
                 new_output[i] = this.output[i];
             }
@@ -271,7 +275,7 @@ DeflateStream.prototype = {
             this.bitOffset = 0;
         }
         var len = (this.input[this.offset + 1] << 8) | this.input[this.offset];
-        // JSLog("Deflate block #%d has length %d".sprintf(this.block_index, len));
+        // logger.info("Deflate block #%d has length %d".sprintf(this.block_index, len));
         this.offset += 4;  // +2 for length and another +2 for nlength, which we don't use
         this.writeBytes(new Uint8Array(this.input.buffer, this.input.byteOffset + this.offset, len));
         this.offset += len;
@@ -307,12 +311,12 @@ DeflateStream.prototype = {
         do {
             this.huffmanTree = this.huffmanLiterals;
             code = this.readHuffmanCode();
-            // JSLog("found code %d".sprintf(code));
+            // logger.info("found code %d".sprintf(code));
             if (code < 256){
-                // JSLog("Writing at %d %s (%#02x)".sprintf(this.outputLength, String.fromCharCode(code), code));
+                // logger.info("Writing at %d %s (%#02x)".sprintf(this.outputLength, String.fromCharCode(code), code));
                 this.writeBytes([code]);
             }else if (code > 256 && code <= 287){
-                // JSLog("Found code %d".sprintf(code));
+                // logger.info("Found code %d".sprintf(code));
                 extra = 0;
                 if (code < 285){
                     if (code >= 281){
@@ -330,7 +334,7 @@ DeflateStream.prototype = {
                 length = Deflate.LengthCodeMap[code] + extra;
                 this.huffmanTree = this.huffmanDistances;
                 code = this.readHuffmanCode();
-                // JSLog("Found distance code: %d".sprintf(code));
+                // logger.info("Found distance code: %d".sprintf(code));
                 extra = 0;
                 if (code >= 28){
                     extra = this.readBits(8) | (this.readBits(5) << 8);
@@ -360,13 +364,13 @@ DeflateStream.prototype = {
                     extra = this.readBits(1);
                 }
                 distance = Deflate.DistanceCodeMap[code] + extra;
-                // JSLog("At %d, copying %d bytes starting from %d (%d bytes back)".sprintf(this.outputLength, length, this.outputLength - distance, distance));
+                // logger.info("At %d, copying %d bytes starting from %d (%d bytes back)".sprintf(this.outputLength, length, this.outputLength - distance, distance));
                 while (length > 0){
                     this.writeBytes(new Uint8Array(this.output.buffer, this.outputLength - distance, Math.min(length, distance)));
                     length -= distance;
                 }
             }else if (code != 256){
-                throw new Deflate.Error("Invalid code: %d".sprintf(code));
+                throw new DeflateError("Invalid code: %d".sprintf(code));
             }
         }while (code != 256);
     },
@@ -410,12 +414,14 @@ DeflateStream.prototype = {
                 }
                 i -= 1;  // Or else the outer for loop incrementer will skip an index
             }else{
-                throw new Deflate.Error("Invalid code length code: %d", code);
+                throw new DeflateError("Invalid code length code: %d", code);
             }
         }
         if (code_lengths.length != count){
-            throw new Deflate.Error("Code length code count mismatch: found %d, expecting %d".sprintf(code_lengths.length, count));
+            throw new DeflateError("Code length code count mismatch: found %d, expecting %d".sprintf(code_lengths.length, count));
         }
         return code_lengths;
     }
 };
+
+})();

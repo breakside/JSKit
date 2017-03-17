@@ -1,59 +1,50 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, JSString, JSRange, TKAssertNotNull, TKAssertEquals, TKAssertObjectEquals */
+/* global JSClass, TKTestSuite, JSRange, TKAssertNotNull, TKAssertEquals, TKAssertEquals */
 'use strict';
 
-JSClass('JSStringTests', TKTestSuite, {
-
-    testInit: function(){
-        var string = JSString.initWithNativeString("Hello, world!");
-        TKAssertNotNull(string);
-        TKAssertEquals(string.length, 13);
-        TKAssertObjectEquals(string, "Hello, world!");
-    },
+JSClass('StringTests', TKTestSuite, {
 
     testInitFormat: function(){
-        var string = JSString.initWithFormat("This %s a test %d!", "is", 123);
+        var string = String.initWithFormat("This %s a test %d!", "is", 123);
         TKAssertNotNull(string);
-        TKAssertObjectEquals(string, "This is a test 123!");
+        TKAssertEquals(string, "This is a test 123!");
     },
 
     testAppend: function(){
-        var string = JSString.initWithNativeString("Hello");
-        string.appendString(", world!");
-        TKAssertObjectEquals(string, "Hello, world!");
-        string.appendString(JSString.initWithNativeString("  TEST!"));
-        TKAssertObjectEquals(string, "Hello, world!  TEST!");
+        var string = "Hello";
+        string = string.stringByAppendingString(", world!");
+        TKAssertEquals(string, "Hello, world!");
     },
 
     testReplace: function(){
-        var string = JSString.initWithNativeString("Hello, world!");
+        var string = "Hello, world!";
         var range = JSRange(7, 5);
-        string.replaceCharactersInRangeWithString(range, "test");
-        TKAssertObjectEquals(string, "Hello, test!");
+        string = string.stringByReplacingCharactersInRangeWithString(range, "test");
+        TKAssertEquals(string, "Hello, test!");
         range = JSRange(0, 5);
-        string.replaceCharactersInRangeWithString(range, JSString.initWithNativeString("Yo"));
-        TKAssertObjectEquals(string, "Yo, test!");
+        string = string.stringByReplacingCharactersInRangeWithString(range, "Yo");
+        TKAssertEquals(string, "Yo, test!");
     },
 
     testDelete: function(){
-        var string = JSString.initWithNativeString("Hello, world!");
+        var string = "Hello, world!";
         var range = JSRange(5, 8);
-        string.deleteCharactersInRange(range);
-        TKAssertObjectEquals(string, "Hello");
+        string = string.stringByDeletingCharactersInRange(range);
+        TKAssertEquals(string, "Hello");
     },
 
     testSubstring: function(){
-        var string = JSString.initWithNativeString("Hello, world!");
+        var string = "Hello, world!";
         var range = JSRange(7, 5);
         var substring = string.substringInRange(range);
-        TKAssertObjectEquals(substring, "world");
+        TKAssertEquals(substring, "world");
     },
 
     testUnicodeForwardIterator: function(){
-        var string = JSString.initWithNativeString("Tésting 😀");
+        var string = "Tésting 😀";
         TKAssertEquals(string.length, 10);
-        var iterator = JSString._UnicodeIterator(string, 0);
+        var iterator = string.unicodeIterator();
         TKAssertEquals(iterator.index, 0);
         TKAssertEquals(iterator.nextIndex, 1);
         iterator.increment();
@@ -72,6 +63,7 @@ JSClass('JSStringTests', TKTestSuite, {
         iterator.increment();
         TKAssertEquals(iterator.index, 8);
         TKAssertEquals(iterator.nextIndex, 10);
+        TKAssertEquals(iterator.character().code, 0x1f600);
         iterator.increment();
         TKAssertEquals(iterator.index, 10);
         TKAssertEquals(iterator.nextIndex, 10);
@@ -81,8 +73,8 @@ JSClass('JSStringTests', TKTestSuite, {
     },
 
     testUnicodeBackwardIterator: function(){
-        var string = JSString.initWithNativeString("Tésting 😀");
-        var iterator = JSString._UnicodeIterator(string, 10);
+        var string = "Tésting 😀";
+        var iterator = string.unicodeIterator(10);
         TKAssertEquals(iterator.index, 10);
         TKAssertEquals(iterator.nextIndex, 10);
         iterator.decrement();
@@ -109,7 +101,7 @@ JSClass('JSStringTests', TKTestSuite, {
     },
 
     testCharacterBoundaries: function(){
-        var string = JSString.initWithNativeString("Hello, world!");
+        var string = "Hello, world!";
         var range = string.rangeForUserPerceivedCharacterAtIndex(0);
         TKAssertEquals(range.location, 0);
         TKAssertEquals(range.length, 1);
@@ -128,7 +120,7 @@ JSClass('JSStringTests', TKTestSuite, {
     },
 
     testUnicodeCharacterBoundaries: function(){
-        var string = JSString.initWithNativeString("Te\u0301st 😀!");
+        var string = "Te\u0301st 😀!";
         var range = string.rangeForUserPerceivedCharacterAtIndex(0);
         TKAssertEquals(range.location, 0);
         TKAssertEquals(range.length, 1);
@@ -156,7 +148,7 @@ JSClass('JSStringTests', TKTestSuite, {
     },
 
     testWordBoundaries: function(){
-        var string = JSString.initWithNativeString("Hello, world. \"this\" is a test!");
+        var string = "Hello, world. \"this\" is a test!";
         var range = string.rangeForWordAtIndex(0);
         TKAssertEquals(range.location, 0);
         TKAssertEquals(range.length, 5);
@@ -184,7 +176,7 @@ JSClass('JSStringTests', TKTestSuite, {
     },
 
     testUnicodeWordBoundaries: function(){
-        var string = JSString.initWithNativeString("Hello, wörld. \"this\" is a te\u0301st 😀!");
+        var string = "Hello, wörld. \"this\" is a te\u0301st 😀!";
         var range = string.rangeForWordAtIndex(0);
         TKAssertEquals(range.location, 0);
         TKAssertEquals(range.length, 5);
@@ -227,7 +219,7 @@ JSClass('JSStringTests', TKTestSuite, {
         // disabled until I can decide exactly what I want here
         // Unicode word break standard doesn't treat runs of whitespace as a word; each space is its own word
         // But for practical use, I think treating consecutive whitespace as a word makes sense
-        var str = JSString.initWithNativeString("  Hello     there,\t   what\n\na test!  ");
+        var str = "  Hello     there,\t   what\n\na test!  ";
         var range = str.rangeForWordAtIndex(0);
         TKAssertEquals(range.location, 0);
         TKAssertEquals(range.length, 2);
@@ -270,7 +262,23 @@ JSClass('JSStringTests', TKTestSuite, {
     },
 
     testUTF8: function(){
+        var str = "Hèllo";
+        var utf8 = str.utf8();
+        TKAssertEquals(utf8.length, 6);
+        TKAssertEquals(utf8.bytes[0], 0x48);
+        TKAssertEquals(utf8.bytes[1], 0xc3);
+        TKAssertEquals(utf8.bytes[2], 0xa8);
+        TKAssertEquals(utf8.bytes[3], 0x6c);
+        TKAssertEquals(utf8.bytes[4], 0x6c);
+        TKAssertEquals(utf8.bytes[5], 0x6f);
 
+        str = "😀";
+        utf8 = str.utf8();
+        TKAssertEquals(utf8.length, 4);
+        TKAssertEquals(utf8.bytes[0], 0xf0);
+        TKAssertEquals(utf8.bytes[1], 0x9f);
+        TKAssertEquals(utf8.bytes[2], 0x98);
+        TKAssertEquals(utf8.bytes[3], 0x80);
     }
 
 });

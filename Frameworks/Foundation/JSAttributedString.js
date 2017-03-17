@@ -1,5 +1,5 @@
-// #import "Foundation/JSString.js"
-/* global JSClass, JSReadOnlyProperty, JSObject, JSString, JSAttributedString, JSRange, JSCopy */
+// #import "Foundation/JSObject.js"
+/* global JSClass, JSReadOnlyProperty, JSObject, JSAttributedString, JSRange, JSCopy */
 'use strict';
 
 function JSAttributedStringRun(range, attributes){
@@ -61,9 +61,6 @@ JSClass("JSAttributedString", JSObject, {
     },
 
     initWithString: function(string, attributes){
-        if (typeof(string) == "string"){
-            string = JSString.initWithNativeString(string);
-        }
         if (attributes === undefined){
             attributes = {};
         }
@@ -99,7 +96,7 @@ JSClass("JSAttributedString", JSObject, {
     },
 
     replaceCharactersInRangeWithString: function(range, string){
-        this._string.replaceCharactersInRangeWithString(range, string);
+        this._string = this._string.stringByReplacingCharactersInRangeWithString(range, string);
         var run;
         var runIndex;
         var l;

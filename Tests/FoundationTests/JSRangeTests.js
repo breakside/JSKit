@@ -43,7 +43,7 @@ JSClass('JSRangeTests', TKTestSuite, {
 
     testContains: function(){
         var range = JSRange(0, 0);
-        TKAssert(range.contains(0));
+        TKAssert(!range.contains(0));
         TKAssert(!range.contains(1));
         TKAssert(!range.contains(-1));
         TKAssert(!range.contains(10));

@@ -1,10 +1,14 @@
 // #feature Uint8Array
-/* global JSLog */
+/* global jslog_create, LZW, LZWStream, JSGlobalObject */
 'use strict';
+
+(function(){
+
+var logger = jslog_create("lzw");
 
 // TODO: testing with external sources.  So far only verified that .uncompress() can properly handle
 // what .compress() does, but they may each be doing the wrong thing when it comes to upping the code bit count
-var LZW = {
+JSGlobalObject.LZW = {
 
     compress: function(input){
         var stream = new LZWStream(input);
@@ -20,14 +24,14 @@ var LZW = {
 
 };
 
-function LZWStream(input){
+JSGlobalObject.LZWStream = function(input){
     if (this === undefined){
         return new LZWStream(input);
     }
     this.bitIncreaseOffset = 0;
     this.input = input;
     this.resetTable();
-}
+};
 
 LZWStream.prototype = {
 
@@ -115,7 +119,7 @@ LZWStream.prototype = {
                 }
                 sequence = [code];
             }else if (code == 256){
-                JSLog("reset table %d".sprintf(this.nextCode));
+                logger.info("reset table %d".sprintf(this.nextCode));
                 this.resetTable();
                 sequence = [];
             }else if (code > 257){
@@ -134,23 +138,23 @@ LZWStream.prototype = {
                         this.output[this.outputLength++] = next_sequence[i];
                     }
                 }else{
-                    JSLog("invalid %d after %d bits ending at %d.%d %d".sprintf(code, this.bitLength, this.byteOffset, this.bitOffset, this.nextCode));
+                    logger.error("invalid %d after %d bits ending at %d.%d %d".sprintf(code, this.bitLength, this.byteOffset, this.bitOffset, this.nextCode));
                     break;
                     // throw new Error("LZWStream found invalid code: %d".sprintf(code));
                 }
             }
             if (this.nextCode == 512 - this.bitIncreaseOffset){
-                JSLog("increasing to 10 bit");
+                logger.info("increasing to 10 bit");
                 this.bitLength = 10;
             }else if (this.nextCode == 1024 - this.bitIncreaseOffset){
-                JSLog("increasing to 11 bit");
+                logger.info("increasing to 11 bit");
                 this.bitLength = 11;
             }else if (this.nextCode == 2048 - this.bitIncreaseOffset){
-                JSLog("increasing to 12 bit");
+                logger.info("increasing to 12 bit");
                 this.bitLength = 12;
             }
         } while (code != 257);
-        JSLog("ended at %d.%d".sprintf(this.byteOffset, this.bitOffset));
+        logger.info("ended at %d.%d".sprintf(this.byteOffset, this.bitOffset));
         this.output = new Uint8Array(this.output.buffer, this.output.byteOffset, this.outputLength);
     },
 
@@ -211,3 +215,5 @@ var LZWSequenceNode = function(value){
         }
     }
 };
+
+})();

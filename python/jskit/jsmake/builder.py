@@ -33,23 +33,28 @@ class Builder(object):
     def build(self):
         pass
 
-    def setup(self):
-        self.mainBundle = None
-        self.bundles = dict()
-        self.infoName = 'Info.plist'
-        infoPath = os.path.join(self.projectPath, self.infoName)
+    @staticmethod
+    def readInfo(projectPath):
+        infoName = 'Info.plist'
+        infoPath = os.path.join(projectPath, infoName)
         if os.path.exists(infoPath):
-            self.info = plistlib.readPlist(infoPath)
+            return plistlib.readPlist(infoPath)
         else:
-            self.infoName = 'Info.json'
-            infoPath = os.path.join(self.projectPath, self.infoName)
+            infoName = 'Info.json'
+            infoPath = os.path.join(projectPath, infoName)
             if (os.path.exists(infoPath)):
                 try:
-                    self.info = json.load(open(infoPath))
+                    return json.load(open(infoPath))
                 except Exception as e:
                     raise Exception("Error parsing Info.json: %s" % e.message)
             else:
                 raise Exception("An Info.json or Info.plist file is required to build")
+
+
+    def setup(self):
+        self.mainBundle = None
+        self.bundles = dict()
+        self.info = Builder.readInfo(self.projectPath)
         if 'JSBundleIdentifier' not in self.info:
             raise Exception("%s must include an entry for JSBundleIdentifier")
         self.bundles[self.info['JSBundleIdentifier']] = self.mainBundle = {}

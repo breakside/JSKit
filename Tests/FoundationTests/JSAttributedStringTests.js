@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, JSString, JSAttributedString, JSRange, TKAssertNotNull, TKAssertEquals, TKAssertObjectEquals, TKAssertExactEquals, TKAssertThrows */
+/* global JSClass, TKTestSuite, JSAttributedString, JSRange, TKAssertNotNull, TKAssertEquals, TKAssertObjectEquals, TKAssertExactEquals, TKAssertThrows */
 'use strict';
 
 JSClass('JSAttributedStringTests', TKTestSuite, {
@@ -13,11 +13,11 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
     testString: function(){
         var string = JSAttributedString.initWithString("Hello, world!");
         TKAssertNotNull(string);
-        TKAssertObjectEquals(string.string, "Hello, world!");
+        TKAssertEquals(string.string, "Hello, world!");
         TKAssertThrows(function(){
             string.string = "Hi!";
         });
-        TKAssertObjectEquals(string.string, "Hello, world!");
+        TKAssertEquals(string.string, "Hello, world!");
     },
 
     testAttributesAtIndex: function(){
@@ -311,16 +311,16 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         var string = JSAttributedString.init();
         var attributes;
         string.appendString("Hello");
-        TKAssertObjectEquals(string.string, "Hello");
+        TKAssertEquals(string.string, "Hello");
         string.appendString(", world!");
-        TKAssertObjectEquals(string.string, "Hello, world!");
+        TKAssertEquals(string.string, "Hello, world!");
 
         string = JSAttributedString.init();
         string.addAttributeInRange('bold', true, JSRange(0, 0));
         attributes = string.attributesAtIndex(0);
         TKAssertExactEquals(attributes.bold, true);
         string.appendString("Hello");
-        TKAssertObjectEquals(string.string, "Hello");
+        TKAssertEquals(string.string, "Hello");
         attributes = string.attributesAtIndex(0);
         TKAssertExactEquals(attributes.bold, true);
         attributes = string.attributesAtIndex(1);
@@ -330,7 +330,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         attributes = string.attributesAtIndex(5);
         TKAssertExactEquals(attributes.bold, true);
         string.appendString(", world!");
-        TKAssertObjectEquals(string.string, "Hello, world!");
+        TKAssertEquals(string.string, "Hello, world!");
         attributes = string.attributesAtIndex(0);
         TKAssertExactEquals(attributes.bold, true);
         attributes = string.attributesAtIndex(1);
@@ -395,7 +395,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         range = JSRange(5, 8);
         string.deleteCharactersInRange(range);
         TKAssertExactEquals(string.string.length, 5);
-        TKAssertObjectEquals(string.string, "Hello");
+        TKAssertEquals(string.string, "Hello");
         attributes = string.attributesAtIndex(0);
         TKAssertExactEquals(attributes.bold, true);
         attributes = string.attributesAtIndex(1);
@@ -413,7 +413,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         string.setAttributesInRange(attributes, range);
         range = JSRange(7, 5);
         string.replaceCharactersInRangeWithString(range, "everyone");
-        TKAssertObjectEquals(string.string, "Hello, everyone!");
+        TKAssertEquals(string.string, "Hello, everyone!");
         attributes = string.attributesAtIndex(7);
         TKAssertExactEquals(attributes.bold, true);
         attributes = string.attributesAtIndex(8);
@@ -427,7 +427,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         string.addAttributeInRange('italics', true, JSRange(7, 6));
         range = JSRange(5, 7);
         string.replaceCharactersInRangeWithString(range, " there, everyone");
-        TKAssertObjectEquals(string.string, "Hello there, everyone!");
+        TKAssertEquals(string.string, "Hello there, everyone!");
         attributes = string.attributesAtIndex(5);
         TKAssertExactEquals(attributes.bold, true);
         TKAssertExactEquals(attributes.italics, undefined);
@@ -454,7 +454,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         string.addAttributeInRange('italics', true, JSRange(7, 6));
         range = JSRange(7, 5);
         string.replaceCharactersInRangeWithString(range, "everyone");
-        TKAssertObjectEquals(string.string, "Hello, everyone!");
+        TKAssertEquals(string.string, "Hello, everyone!");
         attributes = string.attributesAtIndex(5);
         TKAssertExactEquals(attributes.bold, true);
         TKAssertExactEquals(attributes.italics, undefined);

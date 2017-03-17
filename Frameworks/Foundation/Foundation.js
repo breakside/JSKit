@@ -9,7 +9,6 @@
 // #import "Foundation/JSProtocol.js"
 // #import "Foundation/JSObject.js"
 
-// #import "Foundation/JSString.js"
 // #import "Foundation/JSAttributedString.js"
 // #import "Foundation/JSBundle.js"
 // #import "Foundation/JSPropertyList.js"
@@ -24,6 +23,8 @@
 // #import "Foundation/JSData.js"
 // #import "Foundation/JSContext.js"
 // #import "Foundation/JSURL.js"
+// #import "Foundation/JSFormFieldMap.js"
+// #import "Foundation/JSMIMEHeaderMap.js"
 
 // #import "Foundation/JSTextContainer.js"
 // #import "Foundation/JSTextLayoutManager.js"

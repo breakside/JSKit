@@ -37,6 +37,8 @@ class TestsBuilder(Builder):
     def setup(self):
         super(TestsBuilder, self).setup()
         self.outputProductPath = os.path.join(self.outputProjectPath, self.buildID)
+        if self.debug:
+            shutil.rmtree(self.outputProjectPath)
         os.makedirs(self.outputProductPath)
         self.appJS = []
 
@@ -87,6 +89,9 @@ class TestsBuilder(Builder):
         title = head.appendChild(document.createElement("title"))
         title.appendChild(document.createTextNode("Tests"))
         body = html.appendChild(document.createElement("body"))
+        script = body.appendChild(document.createElement("script"))
+        script.setAttribute("type", "text/javascript")
+        script.appendChild(document.createTextNode("""'use strict';function jslog_create(){ return console; }"""))
         for includedSourcePath in self.appJS:
             relativePath = _webpath(os.path.relpath(includedSourcePath, os.path.dirname(self.indexFile.name)))
             script = body.appendChild(document.createElement("script"))

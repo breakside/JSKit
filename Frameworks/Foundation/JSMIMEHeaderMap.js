@@ -1,12 +1,20 @@
-// #import "Foundation/JSString.js"
-/* global JSString */
+// #import "Foundation/String+JS.js"
+/* global */
 'use strict';
 
-var JSMIMEHeaderMap = function(){
+var JSMIMEHeaderMap = function(other){
     if (this === undefined){
-        return new JSMIMEHeaderMap();
+        if (other === null){
+            return other;
+        }
+        return new JSMIMEHeaderMap(other);
     }else{
         this.headers = [];
+        if (other instanceof JSMIMEHeaderMap){
+            for (var i = 0, l = other.headers.length; i < l; ++i){
+                this.headers.push(JSMIMEHeader(other.headers[i]));
+            }
+        }
     }
 };
 
@@ -30,13 +38,10 @@ JSMIMEHeaderMap.prototype = {
 
     unset: function(name){
         var header;
-        if (typeof(name) == "string"){
-            name = JSString.initWithNativeString(name);
-        }
         var lowerName = name.lowercaseString();
         for (var i = this.headers.length - 1; i >= 0; --i){
             header = this.headers[i];
-            if (header.name.isEqualToString(lowerName)){
+            if (header.name == lowerName){
                 this.headers.splice(i, 1);
             }
         }
@@ -54,13 +59,10 @@ JSMIMEHeaderMap.prototype = {
     getAll: function(name){
         var values = [];
         var header;
-        if (typeof(name) == "string"){
-            name = JSString.initWithNativeString(name);
-        }
         var lowerName = name.lowercaseString();
         for (var i = 0, l = this.headers.length; i < l; ++i){
             header = this.headers[i];
-            if (header.name.isEqualToString(lowerName)){
+            if (header.name == lowerName){
                 values.push(header.value);
             }
         }
@@ -70,15 +72,17 @@ JSMIMEHeaderMap.prototype = {
 
 var JSMIMEHeader = function(name, value){
     if (this === undefined){
+        if (name === null){
+            return null;
+        }
         return new JSMIMEHeader(name, value);
     }else{
-        if (typeof(name) == "string"){
-            name = JSString.initWithNativeString(name);
+        if (name instanceof JSMIMEHeader){
+            this.name = name.name;
+            this.value = name.value;
+        }else{
+            this.name = name;
+            this.value = value;
         }
-        if (typeof(value) == "string"){
-            value  = JSString.initWithNativeString(value);
-        }
-        this.name = name;
-        this.value = value;
     }
 };

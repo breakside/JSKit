@@ -1,6 +1,10 @@
 // #import "UIKit/UITextInputManager.js"
-/* global JSClass, UITextInputManager, JSLog, JSRange, UIHTMLTextInputManager */
+/* global JSClass, UITextInputManager, jslog_create, JSRange, UIHTMLTextInputManager */
 'use strict';
+
+(function(){
+
+var logger = jslog_create("uikit.text-input");
 
 JSClass('UIHTMLTextInputManager', UITextInputManager, {
 
@@ -135,18 +139,18 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
 
     focus: function(e){
         if (e.currentTarget === this.domWindow){
-            // JSLog("window focus");
+            // logger.info("window focus");
         }else if (e.currentTarget === this.hiddenInputElement){
-            // JSLog("input focus");
+            // logger.info("input focus");
         }
         e.stopPropagation();
     },
 
     blur: function(e){
         if (e.currentTarget === this.domWindow){
-            // JSLog("window blur");
+            // logger.info("window blur");
         }else if (e.currentTarget === this.hiddenInputElement){
-            // JSLog("input blur");
+            // logger.info("input blur");
         }
         e.stopPropagation();
     },
@@ -158,7 +162,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
     keydown: function(e){
         if (this._selectedRange.length > 0){
             if (!this._isComposing){
-                JSLog("keydown received while input has selection");
+                logger.warn("keydown received while input has selection");
                 this._reset();
             }
         }
@@ -245,7 +249,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
 
     _reset: function(){
         if (this._isComposing){
-            JSLog("calling _reset with _isComposing = true");
+            logger.warn("calling _reset with _isComposing = true");
             this._isComposing = false;
         }
         this.hiddenInputElement.value = this._config.resetValue;
@@ -333,7 +337,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                     }
                     break;
                 default:
-                    JSLog("Unexpected selection point: %d".sprintf(this._selectedRange.location));
+                    logger.warn("Unexpected selection point: %d".sprintf(this._selectedRange.location));
                     break;
             }
         }else{
@@ -377,7 +381,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                         }
                         break;
                     default:
-                        JSLog("Unexpected selection: %d,%d".sprintf(this._selectedRange.location, this._selectedRange.length));
+                        logger.warn("Unexpected selection: %d,%d".sprintf(this._selectedRange.location, this._selectedRange.length));
                         break;
                 }
             }else if (this._selectedRange.end == this._config.resetSelection.location){
@@ -414,17 +418,17 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                         }
                         break;
                     default:
-                        JSLog("Unexpected selection: %d,%d".sprintf(this._selectedRange.location, this._selectedRange.length));
+                        logger.warn("Unexpected selection: %d,%d".sprintf(this._selectedRange.location, this._selectedRange.length));
                         break;
                 }
             // }else if (this._selectedRange.location == this._config.resetSelection.location - this._config.prevWord && this._selectedRange.length == this._config.prevWord + this._config.nextWord){
             //     // select current word (is this even possible with the keyboard?)
-            //     JSLog("select current word");
+            //     logger.info("select current word");
             // }else if (this._selectedRange.location == this._config.resetSelection.location - this._config.starOfLine && this._selectedRange.length == this._config.starOfLine + this._config.endOfLine){
             //     // select current line (is this even possible with the keyboard?)
-            //     JSLog("select current line");
+            //     logger.info("select current line");
             }else{
-                JSLog("Unexpected selection: %d,%d".sprintf(this._selectedRange.location, this._selectedRange.length));
+                logger.warn("Unexpected selection: %d,%d".sprintf(this._selectedRange.location, this._selectedRange.length));
             }
         }
     },
@@ -442,7 +446,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
             if (start + end == original){
                 var text = value.substr(this._config.resetSelection.location, addedLength);
                 if (this._isComposing){
-                    JSLog("compose: %s".sprintf(text));
+                    logger.info("compose: %s".sprintf(text));
                     // TODO: dispatch compose update action
                 }else{
                     if (text == "\n" || text == "\r" || text == "\r\n"){
@@ -456,7 +460,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                     }
                 }
             }else{
-                JSLog("Unexpected input:\n%s".sprintf(value));
+                logger.warn("Unexpected input:\n%s".sprintf(value));
             }
         }else if (addedLength < 0){
             // something has been removed
@@ -502,10 +506,10 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                         this._responder.deleteAll();
                     }
                 }else{
-                    JSLog("Unexpected delete:\n%s".sprintf(value));
+                    logger.warn("Unexpected delete:\n%s".sprintf(value));
                 }
             }else{
-                JSLog("Unexpected delete during composition:\n%s".sprintf(value));
+                logger.warn("Unexpected delete during composition:\n%s".sprintf(value));
             }
         }
     }
@@ -524,3 +528,5 @@ UIHTMLTextInputManager._HiddenConfig = {
     prevLine: 15,
     nextLine: 15
 };
+
+})();
