@@ -54,14 +54,17 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     style: null,
     canvas: null,
     canvasContext: JSDynamicProperty('_canvasContext', null),
-    firstSublayerNodeIndex: 0,
     propertiesNeedingUpdate: null,
     needsFullDisplay: false,
+    layerManagedNodeCount: 0,
+    firstSublayerNodeIndex: 0,
     _childInsertionIndex: 0,
     _canvasElements: null,
     _canvasElementIndex: 0,
     _imageElements: null,
     _imageElementIndex: 0,
+    _externalElements: null,
+    _previousExternalElements: null,
     _hasRenderedOnce: false,
 
     initWithElementUnmodified: function(element){
@@ -70,6 +73,8 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
         this.propertiesNeedingUpdate = {};
         this._imageElements = [];
         this._canvasElements = [];
+        this._externalElements = [];
+        this._previousExternalElements = [];
     },
 
     initWithElement: function(element){
@@ -84,10 +89,13 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     resetForDisplay: function(){
         this._canvasElementIndex = 0;
         this._imageElementIndex = 0;
-        this._childInsertionIndex = 0;
-        for (var i = 0, l = this._canvasElements.length; i < l; ++i){
+        this._childInsertionIndex = this.layerManagedNodeCount;
+        var i, l;
+        for (i = 0, l = this._canvasElements.length; i < l; ++i){
             this._canvasElements[i].getContext('2d').clearRect(0, 0, this._canvasElements[i].width, this._canvasElements[i].height);
         }
+        this._previousExternalElements = this._externalElements;
+        this._externalElements = [];
     },
 
     cleanupAfterDisplay: function(){
@@ -95,24 +103,38 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
         for (i = this._canvasElements.length - 1; i >= this._canvasElementIndex; --i){
             this._canvasElements[i].parentNode.removeChild(this._canvasElements[i]);
             this._canvasElements.splice(i, 1);
-            --this.firstSublayerNodeIndex;
         }
         for (i = this._imageElements.length - 1; i >= this._imageElementIndex; --i){
             this._imageElements[i].parentNode.removeChild(this._imageElements[i]);
             this._imageElements.splice(i, 1);
-            --this.firstSublayerNodeIndex;
         }
+        for (i = this._previousExternalElements.length - 1; i >= 0; --i){
+            if (this._externalElements.indexOf(this._previousExternalElements[i]) < 0){
+                this._previousExternalElements[i].parentNode.removeChild(this._previousExternalElements[i]);
+                this._previousExternalElements.splice(i, 1);
+            }
+        }
+        this._previousExternalElements = [];
+        this.firstSublayerNodeIndex = this._childInsertionIndex;
+    },
+
+    addExternalElement: function(element){
+        this._externalElements.push(element);
+        this._insertChildElement(element);
     },
 
     _insertChildElement: function(element){
         // FIXME: added element should inherit current state transform
         if (this.element.childNodes.length < this._childInsertionIndex){
-            this.element.insertBefore(element, this.element.childNodes[this._childInsertionIndex]);
+            if (element !== this.element.childNodes[this._childInsertionIndex]){
+                this.element.insertBefore(element, this.element.childNodes[this._childInsertionIndex]);
+            }
         }else{
-            this.element.appendChild(element);
+            if (element.parentNode !== this.element || element.nextSibling !== null){
+                this.element.appendChild(element);
+            }
         }
         ++this._childInsertionIndex;
-        ++this.firstSublayerNodeIndex;
         this._canvasContext = null;
     },
 
@@ -249,11 +271,11 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     },
 
     drawPath: function(drawingMode){
-        throw Error("UIHTMLDisplayServerContext.drawPath not implemented");
+        throw new Error("UIHTMLDisplayServerContext.drawPath not implemented");
     },
 
     eoFillPath: function(){
-        throw Error("UIHTMLDisplayServerContext.drawPath not implemented");
+        throw new Error("UIHTMLDisplayServerContext.eoFillPath not implemented");
     },
 
     fillPath: HTMLCanvasMethod('fill'),
@@ -315,15 +337,11 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     },
 
     drawLinearGradient: function(gradient, p1, p2){
-        throw Error("UIHTMLDisplayServerContext.drawPath not implemented");
+        throw new Error("UIHTMLDisplayServerContext.drawLinearGradient not implemented");
     },
 
     drawRadialGradient: function(gradient, p1, r1, p2, r2){
-        throw Error("UIHTMLDisplayServerContext.drawPath not implemented");
-    },
-
-    drawAttributedString: function(string, rect){
-        var container = this.element.ownerDocument.createElement('div');
+        throw new Error("UIHTMLDisplayServerContext.drawRadialGradient not implemented");
     },
 
     // HTML shortcuts

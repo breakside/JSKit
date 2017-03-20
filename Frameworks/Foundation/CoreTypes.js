@@ -1,7 +1,7 @@
 // #feature Math.cos
 // #feature Math.sin
 'use strict';
-/* global JSGlobalObject, JSSize, JSPoint, JSRect, JSRange, JSAffineTransform, JSConstraintBox */
+/* global JSGlobalObject, JSSize, JSPoint, JSRect, JSRange, JSAffineTransform, JSConstraintBox, JSInsets */
 // -----------------------------------------------------------------------------
 // Mark: Sizes
 
@@ -105,6 +105,10 @@ JSRect.prototype = {
         if (bottom === undefined) bottom = top;
         if (left === undefined) left = right;
         return new JSRect(this.origin.x + left, this.origin.y + top, this.size.width - left - right, this.size.height - top - bottom);
+    },
+
+    containsPoint: function(point){
+        return point.x >= this.origin.x && point.y >= this.origin.y && point.x < (this.origin.x + this.size.width) && point.y < (this.origin.y + this.size.height);
     },
 
     isEqual: function(other){
@@ -364,6 +368,29 @@ JSConstraintBox.Rect = function(rect){
         height: rect.size.height
     });
 };
+
+JSGlobalObject.JSInsets = function(top, left, bottom, right){
+    if (this === undefined){
+        if (top === null){
+            return null;
+        }
+        return new JSInsets(top, left, bottom, right);
+    }
+    this.top = top;
+    this.left = left === undefined ? top : left;
+    this.bottom = bottom === undefined ? top : bottom;
+    this.right = right === undefined ? left : right;
+};
+
+JSInsets.prototype = {
+};
+
+Object.defineProperty(JSInsets, 'Zero', {
+    enumerable: false,
+    get: function JSInsets_Zero(){
+        return new JSInsets(0);
+    }
+});
 
 JSGlobalObject.JSLineBreakMode = {
     WordWrap: 0,

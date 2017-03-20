@@ -10,6 +10,8 @@ JSClass("JSTextLayoutManager", JSObject, {
     defaultFont: JSDynamicProperty('_defaultFont', null),
     defaultTextColor: JSDynamicProperty('_defaultTextColor', null),
 
+    delegate: null,
+
     _textContainers: null,
     _typesetter: null,
     _needsLayout: false,
@@ -18,6 +20,8 @@ JSClass("JSTextLayoutManager", JSObject, {
         this._textContainers = [];
         this._defaultTextColor = JSColor.blackColor();
     },
+
+    // MARK: - Managing Containers
 
     addTextContainer: function(container){
         this.insertTextConatinerAtIndex(container, this._textContainers.length);
@@ -34,6 +38,8 @@ JSClass("JSTextLayoutManager", JSObject, {
         this._textContainers.splice(index, 1);
     },
 
+    // MARK: - Managing Storage
+
     replaceTextStorage: function(storage){
         var originalStorage = this._textStorage;
         if (originalStorage !== null){
@@ -49,6 +55,20 @@ JSClass("JSTextLayoutManager", JSObject, {
         }
         this.setNeedsLayout();
     },
+
+    // MARK: - Styling
+
+    setDefaultFont: function(font){
+        this._defaultFont = font;
+        this.setNeedsLayout();
+    },
+
+    setDefaultTextColor: function(color){
+        this._defaultTextColor = color;
+        this.setNeedsLayout();
+    },
+
+    // MARK: - Private Helpers for finalizing runs
 
     rangeOfRunAtIndex: function(index){
         return this._textStorage.rangeOfRunAtIndex(index);
@@ -68,8 +88,13 @@ JSClass("JSTextLayoutManager", JSObject, {
         return attributes;
     },
 
+    // MARK: - Layout
+
     setNeedsLayout: function(){
         this._needsLayout = true;
+        if (this.delegate && this.delegate.layoutManagerDidInvalidateLayout){
+            this.delegate.layoutManagerDidInvalidateLayout(this);
+        }
     },
 
     layoutIfNeeded: function(){
@@ -99,6 +124,9 @@ JSClass("JSTextLayoutManager", JSObject, {
             index += consumed;
             if (consumed < fragmentLength){
                 container.finishLayout();
+                if (this.delegate && this.delegate.layoutManagerDidCompleteLayoutForContainer){
+                    this.delegate.layoutManagerDidCompleteLayoutForContainer(this, container, false);
+                }
                 containerIndex += 1;
                 container = containerIndex < this._textContainers.length ? this._textContainers[containerIndex] : null;
                 if (container){
@@ -108,11 +136,17 @@ JSClass("JSTextLayoutManager", JSObject, {
         }
         if (container){
             container.finishLayout();
+            if (this.delegate && this.delegate.layoutManagerDidCompleteLayoutForContainer){
+                this.delegate.layoutManagerDidCompleteLayoutForContainer(this, container, true);
+            }
         }
         this._needsLayout = false;
-    }
+    },
 
-    // TODO: notifications from text storage
+    textStorageDidReplaceCharactersInRange: function(range, insertedLength){
+        // TODO: is there a way to be smarter here and only adjust the pieces that have changed?
+        this.setNeedsLayout();
+    }
 
     // TODO: temporary attributes
 

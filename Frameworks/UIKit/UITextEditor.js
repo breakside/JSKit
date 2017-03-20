@@ -19,6 +19,10 @@ JSClass("UITextEditor", JSObject, {
         ];
     },
 
+    layout: function(){
+        this._positionCursors();
+    },
+
     handleMouseDownAtLocation: function(location){
         // When mousing down, we behave differently depending on if the location is
         // in an existing selection or outside of every selection.
@@ -67,9 +71,17 @@ JSClass("UITextEditor", JSObject, {
     },
 
     didBecomeFirstResponder: function(){
+        for (var i = 0, l = this.selections.length; i < l; ++i){
+            this.textLayer.addSublayer(this.selections[i].cursorLayer);
+        }
+        this._positionCursors();
     },
 
     didResignFirstResponder: function(){
+        this._cancelCursorTimers();
+        for (var i = 0, l = this.selections.length; i < l; ++i){
+            this.selections[i].cursorLayer.removeFromSuperlayer();
+        }
     },
 
     // -------------------------------------------------------------------------
@@ -86,42 +98,71 @@ JSClass("UITextEditor", JSObject, {
         }
     },
 
-    _positionCursor: function(){
-        var characterRect = this.textLayer.rectForCharacterAtIndex(this._cursorIndex);
-        this._cursorLayer.position = characterRect.origin;
+    _positionCursors: function(){
+        var characterRect;
+        var selection;
+        var cursorRect;
+        for (var i = 0, l = this.selections.length; i < l; ++i){
+            selection = this.selections[i];
+            characterRect = this.textLayer.rectForCharacterAtIndex(selection.range.location + selection.insertionIndex);
+            cursorRect = JSRect(
+                characterRect.origin.x,
+                characterRect.origin.y,
+                1.0,
+                characterRect.size.height
+            );
+            selection.cursorLayer.frame = cursorRect;
+        }
         this._cancelCursorTimers();
         this._cursorOn();
     },
 
     _cursorOff: function(){
+        this._cancelCursorTimers();
         this._cursorOffTimeout = null;
         this._cursorOnTimeout = JSTimer.scheduledTimerWithInterval(this._cursorBlinkRate, this._cursorOn, this);
-        this._cursorLayer.alpha = 0.0;
+        var selection;
+        for (var i = 0, l = this.selections.length; i < l; ++i){
+            selection = this.selections[i];
+            selection.cursorLayer.alpha = 0.0;
+        }
     },
 
     _cursorOn: function(){
+        this._cancelCursorTimers();
         this._cursorOnTimeout = null;
         this._cursorOffTimeout = JSTimer.scheduledTimerWithInterval(this._cursorBlinkRate, this._cursorOff, this);
-        this._cursorLayer.alpha = 1.0;
+        var selection;
+        for (var i = 0, l = this.selections.length; i < l; ++i){
+            selection = this.selections[i];
+            selection.cursorLayer.alpha = 1.0;
+        }
     },
 
     // -------------------------------------------------------------------------
     // MARK: - Common editing operations
 
+    _removeSelectionFromLayer: function(selection){
+        selection.cursorLayer.removeFromSuperlayer();
+    },
+
     _setSingleSelectionAtIndex: function(index){
-        // TODO: clear current selections
-        // TODO: add single selection: UITextEditorSelection(JSRange(index, 0), 0);
+        for (var i = 0, l = this.selections.length; i < l; ++i){
+            this._removeSelectionFromLayer(this.selections[i]);
+        }
+        this.selections = [
+            UITextEditorSelection(JSRange(index, 0), 0)
+        ];
+        this.textLayer.addSublayer(this.selections[0].cursorLayer);
+        this.layout();
     },
 
     _deleteRanges: function(ranges){
-        // FIXME: reuse selections if available (instead of destroying & re-creating layers)
         // TODO: collapse overlapping ranges
         var range;
         var adjustedRange;
         var locationAdjustment = 0;
         var textStorage = this.textLayer.attributedText;
-        // TODO: clear selections
-        var selections = [];
         for (var i = 0, l = ranges.length; i < l; ++i){
             range = ranges[i];
             adjustedRange = JSRange(range.location + locationAdjustment, range.length);
@@ -129,11 +170,17 @@ JSClass("UITextEditor", JSObject, {
                 textStorage.deleteCharactersInRange(adjustedRange);
             }
             locationAdjustment -= range.length;
-            selections.push(UITextEditorSelection(JSRange(adjustedRange.location, 0), 0));
+            if (i == this.selections.length){
+                this.selections.push(UITextEditorSelection(JSRange(0, 0)));
+            }
+            this.selections[i].range = JSRange(adjustedRange.location, 0);
+            this.selections[i].insertionIndex = 0;
+        }
+        for (var j = this.selections.length - i; j >= i; --j){
+            this._removeSelectionFromLayer(this.selections[j]);
+            this.this.selections.splice(j, 1);
         }
         // TODO: collapse overlapping selections
-        // TODO: update this.selections to match selections
-        // Watch out!  Can't query layer for new cursor positions until new layout is done
     },
 
     // -------------------------------------------------------------------------
@@ -152,7 +199,6 @@ JSClass("UITextEditor", JSObject, {
             selection.range = JSRange(adjustedRange.location + textLength, 0);
             locationAdjustment += textLength - adjustedRange.length;
         }
-        // Watch out!  Can't query layer for new cursor positions until new layout is done
     },
 
     insertNewline: function(){
@@ -176,7 +222,7 @@ JSClass("UITextEditor", JSObject, {
             selection = this.selections[i];
             if (selection.range.length === 0){
                 if (selection.range.location > 0){
-                    perceivedCharacterRange = textStorage.rangeForPerceivedCharacterAtIndex(selection.range.location - 1);
+                    perceivedCharacterRange = textStorage.string.rangeForUserPerceivedCharacterAtIndex(selection.range.location - 1);
                     ranges.push(perceivedCharacterRange);
                 }else{
                     ranges.push(JSRange(selection.range));
@@ -230,14 +276,14 @@ JSClass("UITextEditor", JSObject, {
     },
     
     moveBackward: function(){
-        var textStorage = this.layer.attributedText;
+        var textStorage = this.textLayer.attributedText;
         var selection;
         var perceivedCharacterRange;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
             if (selection.range.length === 0){
                 if (selection.range.location > 0){
-                    perceivedCharacterRange = textStorage.rangeForPerceivedCharacterAtIndex(selection.range.location - 1);
+                    perceivedCharacterRange = textStorage.string.rangeForUserPerceivedCharacterAtIndex(selection.range.location - 1);
                     selection.range = JSRange(perceivedCharacterRange.location, 0);
                 }
             }else{
@@ -245,7 +291,8 @@ JSClass("UITextEditor", JSObject, {
             }
         }
         // TODO: collapse overlapping selections
-        // TODO: update cursors & selections
+        this.layout();
+        this._cursorOn();
     },
 
     moveWordBackward: function(){
@@ -258,9 +305,28 @@ JSClass("UITextEditor", JSObject, {
     },
 
     moveToBeginningOfDocument: function(){
+        this._setSingleSelectionAtIndex(0);
+        this._cursorOn();
     },
 
     moveForward: function(){
+        var textStorage = this.textLayer.attributedText;
+        var selection;
+        var perceivedCharacterRange;
+        for (var i = 0, l = this.selections.length; i < l; ++i){
+            selection = this.selections[i];
+            if (selection.range.length === 0){
+                if (selection.range.location < textStorage.string.length){
+                    perceivedCharacterRange = textStorage.string.rangeForUserPerceivedCharacterAtIndex(selection.range.location);
+                    selection.range = JSRange(perceivedCharacterRange.location + perceivedCharacterRange.length, 0);
+                }
+            }else{
+                selection.range = JSRange(selection.range.location + selection.range.length, 0);
+            }
+        }
+        // TODO: collapse overlapping selections
+        this.layout();
+        this._cursorOn();
     },
 
     moveWordForward: function(){
@@ -277,13 +343,13 @@ JSClass("UITextEditor", JSObject, {
 
     
     moveBackwardAndExtendSelection: function(){
-        var textStorage = this.layer.attributedText;
+        var textStorage = this.textLayer.attributedText;
         var selection;
         var perceivedCharacterRange;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
             if (selection.range.location > 0){
-                perceivedCharacterRange = textStorage.rangeForPerceivedCharacterAtIndex(selection.range.location - 1);
+                perceivedCharacterRange = textStorage.string.rangeForUserPerceivedCharacterAtIndex(selection.range.location - 1);
                 selection.range = JSRange(perceivedCharacterRange.location, perceivedCharacterRange.length + selection.range.length);
             }
         }
@@ -304,12 +370,12 @@ JSClass("UITextEditor", JSObject, {
     },
 
     moveForwardAndExtendSelection: function(){
-        var textStorage = this.layer.attributedText;
+        var textStorage = this.textLayer.attributedText;
         var selection;
         var perceivedCharacterRange;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
-            perceivedCharacterRange = textStorage.rangeForPerceivedCharacterAtIndex(selection.range.location);
+            perceivedCharacterRange = textStorage.string.rangeForUserPerceivedCharacterAtIndex(selection.range.location);
             selection.range = JSRange(selection.range.location, perceivedCharacterRange.length + selection.range.length);
         }
         // TODO: collapse overlapping selections
@@ -351,7 +417,7 @@ var UITextEditorSelection = function(range, insertionIndex){
             this.insertionIndex = insertionIndex;
         }
         this.cursorLayer = UILayer.init();
-        this.cursorLayer.backroundColor = JSColor.blackColor();
+        this.cursorLayer.backgroundColor = JSColor.initWithRGBA(0, 128/255.0, 255/255.0, 1.0);
     }
 };
 

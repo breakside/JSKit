@@ -73,7 +73,6 @@ JSClass("UILayer", JSObject, {
         this.animationsByKey = {};
         this.model = Object.create(this.$class.Properties);
         this.presentation = this.model;
-        this._dirty = {};
     },
 
     // -------------------------------------------------------------------------

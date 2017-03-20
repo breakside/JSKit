@@ -14,19 +14,6 @@ UILayer.definePropertiesFromExtensions({
     destroyHTMLContext: function(context){
     },
 
-    createBorderElementIfNeeded: function(context){
-        var needsBorderElement = context.borderElement === null && this.presentation.borderWidth > 0;
-        if (needsBorderElement){
-            context.borderElement = context.element.ownerDocument.createElement('div');
-            context.element.appendChild(context.borderElement);
-            context.borderElement.style.position = 'absolute';
-            context.borderElement.style.top = '0';
-            context.borderElement.style.left = '0';
-            context.borderElement.style.bottom = '0';
-            context.borderElement.style.right = '0';
-        }
-    },
-
     updateAllHTMLProperties: function(context){
         this.updateHTMLProperty_bounds(context);
         this.updateHTMLProperty_transform(context);

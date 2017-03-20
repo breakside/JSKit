@@ -1,4 +1,5 @@
 {
+    "JSBundleType": "framework",
     "JSBundleIdentifier": "com.owenshaw.JSKit.Foundation",
     "JSFrameworkVariants": [
         "Foundation.js",

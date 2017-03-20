@@ -1,10 +1,18 @@
 import os.path
-from .builder import builder
+from .builder import Builder
 
 class FrameworkBuilder(Builder):
 
     frameworkName = None
     includePaths = None
+
+    def __init__(self, projectPath, includePaths, outputParentPath, buildID, buildLabel, debug=False, args=None):
+        super(FrameworkBuilder, self).__init__(projectPath, includePaths, outputParentPath, buildID, buildLabel, debug)
+        self.includes = []
+        self.parse_args(args)
+
+    def parse_args(self, arglist):
+        pass
 
     def setup(self):
         super(FrameworkBuilder, self).setup()

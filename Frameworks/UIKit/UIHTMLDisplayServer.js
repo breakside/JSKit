@@ -113,7 +113,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             layer._renderInContext(context, false);
             context.cleanupAfterDisplay();
         }else{
-            context.drawLayerProperties(layer.presentation);
+            context.drawLayerProperties(layer);
         }
     },
 
@@ -138,6 +138,8 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             var element = this.domDocument.createElement('div');
             context = UIHTMLDisplayServerContext.initWithElement(element);
             layer.initializeHTMLContext(context);
+            context.layerManagedNodeCount = context.element.childNodes.length;
+            context.firstSublayerNodeIndex = context.layerManagedNodeCount;
             if (element.dataset){
                 element.dataset.layerId = layer.objectID;
                 if (layer.delegate !== null){
@@ -170,7 +172,6 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             }else{
                 parentContext.element.appendChild(context.element);
             }
-            context.firstSublayerNodeIndex = context.element.childNodes.length;
             if (layer._needsLayout){
                 this.setLayerNeedsLayout(layer);
                 layer._needsLayout = false;

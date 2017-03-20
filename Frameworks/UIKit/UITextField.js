@@ -23,8 +23,9 @@ JSClass("UITextField", UIView, {
     initWithSpec: function(spec, values){
         UITextField.$super.initWithSpec.call(this, spec, values);
         if ("font" in values){
-            var descriptor = spec.resolvedValue(values.font.descriptor);
-            this.font = JSFont.fontWithDescriptor(descriptor, values.font.pointSize);
+            var font = spec.resolvedValue(values.font);
+            var descriptor = spec.resolvedValue(font.descriptor);
+            this.font = JSFont.fontWithDescriptor(descriptor, font.pointSize);
         }
         if ("text" in values){
             this.text = values.text;
@@ -36,6 +37,11 @@ JSClass("UITextField", UIView, {
         this.layer.textAlignment = JSTextAlignment.Left;
         this.layer.lineBreakMode = JSLineBreakMode.Clip;
         this._localEditor = UITextEditor.initWithTextLayer(this.layer);
+    },
+
+    layoutSublayersOfLayer: function(layer){
+        layer.layoutSublayers();
+        this._localEditor.layout();
     },
 
     canBecomeFirstResponder: function(){

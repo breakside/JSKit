@@ -1,4 +1,5 @@
 {
+    "JSBundleType": "framework",
     "JSBundleIdentifier": "com.owenshaw.JSKit.UIKit",
     "JSFrameworkVariants": [
         "UIKit.js",

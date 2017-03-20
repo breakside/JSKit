@@ -8,19 +8,19 @@ var logger = jslog_create("uikit.text-input");
 
 JSClass('UIHTMLTextInputManager', UITextInputManager, {
 
-    // The role of a UITextInputManager is to provide a responder with information
-    // regarding text input based on system events.  Generally in HTML this isn't an issue
-    // at all because you just use an <input>, <textarea>, or <div contenteditable="true">
+    // The role of a `UITextInputManager` is to provide a `UIResponder` with information
+    // regarding text input based on system events.  Typically in HTML apps this isn't even
+    // a consideration because you just use an <input>, <textarea>, or <div contenteditable="true">
     // and the browser basically handles everything for you.
     //
-    // These options, however, are woefully insufficient for meeting our goals.  One example
+    // These options, however, are woefully insufficient for meeting our goals.  One example goal
     // is a desire to have limited rich text, like only allowing bold, italic and underline.
     // The only way to do it with the existing options is to use contenteditable, but then we
     // get fully rich text that's very hard to limit because the browsers can provide input/format
     // mechanisms that we don't control (like Edit > Insert List).  It also means we have to do a lot
     // of html parsing to figure out what happened after an edit, and work backward to our JSAttributedString.
-    // Another example is the desire to have concurrent editing with multiple cursors and selections, which
-    // is much easier to manage if we don't deal at all with HTML's concept of a single selection.
+    // Another goal is the desire to have concurrent editing with multiple cursors and selections, which
+    // is much easier to manage if we don't deal at all with HTML's concept of a single selection in the document.
     //
     // So, we'll avoid using those options and simply use non editable HTML elements to represent our
     // text.  Then we'll show our own cursors and selections and it'll look just like an editable element
@@ -28,8 +28,8 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
     // so the same code that renders in HTML can be used in non-HTML environments easily, provided that
     // environment has its own version of UITextInputManager.
     //
-    // But then how can we handle editing events?  That's what the UITextInputManager is for, and this
-    // specialized subclass will be the single point for handling input-related HTML events, parsing them,
+    // But then how can we handle editing events?  That's what the abstract UITextInputManager is for, and this
+    // specialized subclass will be the single point for handling input-related events in an HTML environment, parsing them,
     // and dispatching calls to whatever view is the first responder.
     //
     // A simple approach would be to look at keydown events and figure out what character the user typed.
@@ -39,10 +39,10 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
     // So we'll use a trick: a single hidden textarea that is focused and receives input in the traditional
     // HTML sense.  It will contain a special string value that we'll inspect on each input event,
     // figure out what changed, and finally reset to the known special state.  For inserting text, we could
-    // just start with an empty textarea and be find.  But the special string value is most useful in
+    // just start with an empty textarea and be fine.  But the special string value is most useful in
     // other situations when figuring out what has been deleted or how the cursor has moved.  Since we aren't
     // interpreting the keystrokes ourself, and instead are watching what happens in a real textarea, we'll
-    // automatically respect any keyboard shortcuts on given system.
+    // automatically respect keyboard shortcuts on any system.
     //
     // The special string is:
     // abcd efgh ijkl
@@ -54,11 +54,9 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
     // move/delete.  Having three words on the line allows us to tell the difference between a word boundary
     // move/delete and a line boundary move/delete.  Having three lines allows us to catch up/down moves.
 
-    // TODO: have the hidden input follow the real cursor, so things like emoji and dictation
+    // TODO: have the hidden input follow the real cursor location, so things like emoji and dictation
     //       windows popup in the right place
-    // TODO: see newer key/input events could help out and be more accurate
-    // TODO: handle tab (and maybe enter) keypresses
-    // TODO: figure out comminucation protocol between this and the responder
+    // TODO: see if newer key/input events could help out and be more accurate
     // TODO: figure out what needs to change to work well with right to left input
     // TODO: see if there's a way to get the press-and-hold feature working on macOS
     //       press and hold i, for example, and a popup shows alternatives.  selecting

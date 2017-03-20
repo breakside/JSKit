@@ -78,24 +78,70 @@ JSClass("UIHTMLTextContainer", JSTextContainer, {
         if (this._spans.length === 0){
             return 0;
         }
+        var span = this._spanContainingPoint(point);
+        if (span !== null){
+            var min = 0;
+            var max = parseInt(span.dataset.length);
+            var mid;
+            var rect;
+            var i = 0;
+            while (min < max){
+                mid = Math.floor(min + (max - min) / 2);
+                rect = this._rectForCharacterAtInSpanAtIndex(span, mid);
+                if (point.y < rect.origin.y){
+                    max = mid;
+                }else if (point.y >= rect.origin.y + rect.size.height){
+                    min = mid + 1;
+                }else if (point.x < rect.origin.x){
+                    max = mid;
+                }else if (point.x >= rect.origin.x + rect.size.width){
+                    min = mid + 1;
+                }else{
+                    if (point.x >= rect.origin.x + rect.size.width / 2){
+                        min = max = mid + 1;
+                    }else{
+                        min = max = mid;
+                    }
+                }
+            }
+            return parseInt(span.dataset.index) + min;
+        }
+        return 0;
     },
 
     rectForCharacterAtIndex: function(index){
         index = this._validCharacterIndex(index);
-        var span = this._spanForCharacterAtIndex(index);
+        var span = this._spanContainingCharacterAtIndex(index);
         if (span){
-            // Create a DOM range for the character in the span because the DOM range can
-            // report its size and coordinates
-            var indexInSpan = index - span.dataset.index;
-            this._range.setStart(span.firstChild, indexInSpan);
-            this._range.setEnd(span.firstChild, indexInSpan + 1);
-            var rangeClientRect = this._range.getClientRects()[0];
-            // The rect reported by the DOM range is relative to the client window, so we
-            // need to convert it to a JSRect relative to the text container origin
-            var rect = this._rectInElementForDOMClientRect(rangeClientRect);
-            return rect;
+            return this._rectForCharacterAtInSpanAtIndex(span, index - parseInt(span.dataset.index));
         }
         return JSRect.Zero;
+    },
+
+    _rectForCharacterAtInSpanAtIndex: function(span, index){
+        // Create a DOM range for the character in the span because the DOM range can
+        // report its size and coordinates
+        var rect;
+        var adjustRectToBeAfterCharacter = false;
+        if (index == parseInt(span.dataset.length)){
+            index = index - 1;
+            adjustRectToBeAfterCharacter = true;
+        }
+        this._range.setStart(span.firstChild, index);
+        this._range.setEnd(span.firstChild, index + 1);
+        var rangeClientRect = this._range.getClientRects()[0];
+        // The rect reported by the DOM range is relative to the client window, so we
+        // need to convert it to a JSRect relative to the text container origin
+        rect = this._rectInElementForDOMClientRect(rangeClientRect);
+        if (adjustRectToBeAfterCharacter){
+            // If we're being asked for the rect of the character after the final character,
+            // (for example, to position the cursor at the end of a string), return a 0-width
+            // rect on the very right side of the final character
+            rect.origin.x += rect.size.width;
+            rect.size.width = 0;
+        }
+        return rect;
+
     },
 
     _validCharacterIndex: function(index){
@@ -109,7 +155,7 @@ JSClass("UIHTMLTextContainer", JSTextContainer, {
         return index;
     },
 
-    _spanForCharacterAtIndex: function(index){
+    _spanContainingCharacterAtIndex: function(index){
         // Bail if we have no spans
         if (this._spans.length === 0){
             return null;
@@ -120,18 +166,74 @@ JSClass("UIHTMLTextContainer", JSTextContainer, {
         var max = this._spans.length;
         var mid;
         var span;
+        var i, l;
         while (min < max){
             mid = Math.floor(min + (max - min) / 2);
             span = this._spans[mid];
-            if (index < span.dataset.index){
+            i = parseInt(span.dataset.index);
+            l = parseInt(span.dataset.length);
+            if (index < i){
                 max = mid;
-            }else if (index >= (span.dataset.index + span.dataset.length)){
+            }else if (index >= (i + l)){
                 min = mid + 1;
             }else{
                 min = max = mid;
             }
         }
-        return span;
+        if (min == this._spans.length){
+            return this._spans[min - 1];
+        }
+        return this._spans[min];
+    },
+
+    _spanContainingPoint: function(point){
+        // Bail if we have no spans
+        if (this._spans.length === 0){
+            return null;
+        }
+        // Locate the span that contains the index
+        // Using a binary search for efficiency, in case there are a large number of spans
+        var min = 0;
+        var max = this._spans.length;
+        var mid;
+        var span;
+        var rects;
+        var rect;
+        while (min < max){
+            mid = Math.floor(min + (max - min) / 2);
+            span = this._spans[mid];
+            rects = span.getClientRects();
+            rect = this._rectInElementForDOMClientRect(rects[0]);
+            if (point.y < rect.origin.y){
+                // The point is higher than our first line, so search previous spans
+                max = mid;
+            }else{
+                rect = this._rectInElementForDOMClientRect(rects[rects.length - 1]);
+                if (point.y > rect.origin.y + rect.size.height){
+                    // The pont is below our last line, so seach following span
+                    min = mid + 1;
+                }else{
+                    // The point is within our lines, but may not be within our span because
+                    // our first line may not start at the start on the left edge and our last
+                    // line may not end on the right edge
+                    rect = this._rectInElementForDOMClientRect(rects[0]);
+                    if (point.x < rect.origin.x){
+                        max = mid;
+                    }else{
+                        rect = this._rectInElementForDOMClientRect(rects[rects.length - 1]);
+                        if (point.x > rect.origin.x + rect.size.width){
+                            min = mid + 1;
+                        }else{
+                            min = max = mid;
+                        }
+                    }
+                }
+            }
+        }
+        if (min == this._spans.length){
+            return this._spans[this._spans.length - 1];
+        }
+        return this._spans[min];
     },
 
     _maxCharacterIndex: function(){
@@ -156,9 +258,7 @@ JSClass("UIHTMLTextContainer", JSTextContainer, {
         this.textLayoutManager.layoutIfNeeded();
         this.element.style.left = '%dpx'.sprintf(point.x);
         this.element.style.top = '%dpx'.sprintf(point.y);
-        if (context.element !== this.element.parentNode){
-            context.element.appendChild(this.element);
-        }
+        context.addExternalElement(this.element);
     },
 
     _styleSpan: function(span, attributes){
