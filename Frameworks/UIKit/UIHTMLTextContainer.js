@@ -8,6 +8,7 @@ JSClass("UIHTMLTextContainer", JSTextContainer, {
     _range: null,
     _spans: null,
     _resuableSpans: null,
+    _strutSpan: null,
 
     initWithDocument: function(document, size){
         UIHTMLTextContainer.$super.initWithSize.call(this, size);
@@ -15,9 +16,13 @@ JSClass("UIHTMLTextContainer", JSTextContainer, {
         this._range = document.createRange();
         this._spans = [];
         this._resuableSpans = [];
+        this._strutSpan = this._dequeueReusableSpan();
+        this._strutSpan.style.verticalAlign = 'baseline';
+        this._strutSpan.appendChild(document.createTextNode('\u200B'));
+        this.element.appendChild(this._strutSpan);
     },
 
-    beginLayout: function(){
+    beginLayout: function(attributes){
         UIHTMLTextContainer.$super.beginLayout.call(this);
         for (var i = 0, l = this._spans.length; i < l; ++i){
             this._enqueueResuableSpan(this._spans[i]);
@@ -39,6 +44,8 @@ JSClass("UIHTMLTextContainer", JSTextContainer, {
         this.element.style.lineHeight = '0';
         this.element.style.width = '%dpx'.sprintf(this.size.width);
         this.element.style.height = '%dpx'.sprintf(this.size.height);
+
+        this._styleSpan(this._strutSpan, attributes);
     },
 
     finishLayout: function(){
@@ -48,6 +55,15 @@ JSClass("UIHTMLTextContainer", JSTextContainer, {
             span.parentNode.removeChild(span);
         }
         this._resuableSpans = [];
+        if (this._spans.length === 0){
+            this._strutSpan.dataset.index = 0;
+            this._strutSpan.dataset.length = 0;
+        }else{
+            span = this._spans[this._spans.length - 1];
+            this._strutSpan.dataset.index = span.dataset.index;
+            this._strutSpan.dataset.length = 0;
+            this._strutSpan.style.font = span.style.font;
+        }
     },
 
     layout: function(runCharacters, startIndex, attributes){
@@ -66,7 +82,7 @@ JSClass("UIHTMLTextContainer", JSTextContainer, {
             span.style.verticalAlign = 'baseline';
             span.firstChild.nodeValue = runCharacters;
             if (!span.parentNode){
-                this.element.appendChild(span);
+                this.element.insertBefore(span, this._strutSpan);
             }
             this._spans.push(span);
         }
@@ -115,33 +131,35 @@ JSClass("UIHTMLTextContainer", JSTextContainer, {
         if (span){
             return this._rectForCharacterAtInSpanAtIndex(span, index - parseInt(span.dataset.index));
         }
-        return JSRect.Zero;
+        var structClientRect = this._strutSpan.getClientRects()[0];
+        var rect = this._rectInElementForDOMClientRect(structClientRect);
+        rect.size.width = 0;
+        return rect;
     },
 
     _rectForCharacterAtInSpanAtIndex: function(span, index){
         // Create a DOM range for the character in the span because the DOM range can
         // report its size and coordinates
         var rect;
-        var adjustRectToBeAfterCharacter = false;
-        if (index == parseInt(span.dataset.length)){
-            index = index - 1;
-            adjustRectToBeAfterCharacter = true;
-        }
         this._range.setStart(span.firstChild, index);
         this._range.setEnd(span.firstChild, index + 1);
-        var rangeClientRect = this._range.getClientRects()[0];
+        var clientRect = this._pickCorrectClientRectFromRects(this._range.getClientRects());
         // The rect reported by the DOM range is relative to the client window, so we
         // need to convert it to a JSRect relative to the text container origin
-        rect = this._rectInElementForDOMClientRect(rangeClientRect);
-        if (adjustRectToBeAfterCharacter){
-            // If we're being asked for the rect of the character after the final character,
-            // (for example, to position the cursor at the end of a string), return a 0-width
-            // rect on the very right side of the final character
-            rect.origin.x += rect.size.width;
-            rect.size.width = 0;
-        }
+        rect = this._rectInElementForDOMClientRect(clientRect);
         return rect;
 
+    },
+
+    _pickCorrectClientRectFromRects: function(rects){
+        // A single range may have multiple client rects.  A range ending just before a newline
+        // will have a second rect that is zero width.  A range starting just after a newline
+        // will have a first rect that is zero width.  A range over a newline will have three
+        // rects, all with zero width, and we want the middle one.
+        if (rects.length > 1 && rects[0].width === 0){
+            return rects[1];
+        }
+        return rects[0];
     },
 
     _validCharacterIndex: function(index){
@@ -181,7 +199,7 @@ JSClass("UIHTMLTextContainer", JSTextContainer, {
             }
         }
         if (min == this._spans.length){
-            return this._spans[min - 1];
+            return null;
         }
         return this._spans[min];
     },
@@ -231,7 +249,7 @@ JSClass("UIHTMLTextContainer", JSTextContainer, {
             }
         }
         if (min == this._spans.length){
-            return this._spans[this._spans.length - 1];
+            min -= 1;
         }
         return this._spans[min];
     },
@@ -241,7 +259,7 @@ JSClass("UIHTMLTextContainer", JSTextContainer, {
             return 0;
         }
         var lastSpan = this._spans[this._spans.length - 1];
-        return lastSpan.index + lastSpan.length;
+        return parseInt(lastSpan.dataset.index) + parseInt(lastSpan.dataset.length);
     },
 
     _rectInElementForDOMClientRect: function(domClientRect){

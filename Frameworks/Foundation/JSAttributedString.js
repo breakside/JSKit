@@ -145,7 +145,7 @@ JSClass("JSAttributedString", JSObject, {
     setAttributesInRange: function(attributes, range){
         var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
         var run;
-        for (var runIndex = runRange.location, l = runRange.location + runRange.length; runIndex < l; ++runIndex){
+        for (var runIndex = runRange.location, l = runRange.end; runIndex < l; ++runIndex){
             run = this._runs[runIndex];
             run.attributes = JSCopy(attributes);
         }
@@ -155,7 +155,7 @@ JSClass("JSAttributedString", JSObject, {
     addAttributeInRange: function(attributeName, value, range){
         var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
         var run;
-        for (var runIndex = runRange.location, l = runRange.location + runRange.length; runIndex < l; ++runIndex){
+        for (var runIndex = runRange.location, l = runRange.end; runIndex < l; ++runIndex){
             run = this._runs[runIndex];
             run.attributes[attributeName] = value;
         }
@@ -165,7 +165,7 @@ JSClass("JSAttributedString", JSObject, {
     addAttributesInRange: function(attributes, range){
         var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
         var run, name;
-        for (var runIndex = runRange.location, l = runRange.location + runRange.length; runIndex < l; ++runIndex){
+        for (var runIndex = runRange.location, l = runRange.end; runIndex < l; ++runIndex){
             run = this._runs[runIndex];
             for (name in attributes){
                 run.attributes[name] = attributes[name];
@@ -177,7 +177,7 @@ JSClass("JSAttributedString", JSObject, {
     removeAttributeInRange: function(attributeName, range){
         var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
         var run;
-        for (var runIndex = runRange.location, l = runRange.location + runRange.length; runIndex < l; ++runIndex){
+        for (var runIndex = runRange.location, l = runRange.end; runIndex < l; ++runIndex){
             run = this._runs[runIndex];
             if (attributeName in run.attributes){
                 delete run.attributes[attributeName];
@@ -190,7 +190,7 @@ JSClass("JSAttributedString", JSObject, {
         var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
         var run, name;
         var i, namesLength = attributeNames.length;
-        for (var runIndex = runRange.location, l = runRange.location + runRange.length; runIndex < l; ++runIndex){
+        for (var runIndex = runRange.location, l = runRange.end; runIndex < l; ++runIndex){
             run = this._runs[runIndex];
             for (i = 0; i < namesLength; ++i){
                 name = attributeNames[i];
@@ -205,7 +205,7 @@ JSClass("JSAttributedString", JSObject, {
     removeAllAttributesInRange: function(range){
         var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
         var run;
-        for (var runIndex = runRange.location, l = runRange.location + runRange.length; runIndex < l; ++runIndex){
+        for (var runIndex = runRange.location, l = runRange.end; runIndex < l; ++runIndex){
             run = this._runs[runIndex];
             run.attributes = {};
         }
@@ -237,10 +237,10 @@ JSClass("JSAttributedString", JSObject, {
             expandedRunRange.location -= 1;
             expandedRunRange.length += 1;
         }
-        if (expandedRunRange.location + expandedRunRange.length < this._runs.length - 1){
+        if (expandedRunRange.end < this._runs.length - 1){
             expandedRunRange.length += 1;
         }
-        var lastRunIndex = runRange.location + runRange.length - 1;
+        var lastRunIndex = runRange.end - 1;
         var runB = this._runs[lastRunIndex];
         var runA;
         for (var runIndex = lastRunIndex - 1; runIndex >= runRange.location; --runIndex){
@@ -258,7 +258,7 @@ JSClass("JSAttributedString", JSObject, {
     _rangeOfRunsPreparedForChangeInStringRange: function(range){
         var firstRunIndex = this._splitRunAtIndex(range.location);
         if (range.length > 0){
-            var lastRunIndex = this._splitRunAtIndex(range.location + range.length);
+            var lastRunIndex = this._splitRunAtIndex(range.end);
             return JSRange(firstRunIndex, lastRunIndex - firstRunIndex);
         }else{
             return JSRange(firstRunIndex, 1);
@@ -275,10 +275,10 @@ JSClass("JSAttributedString", JSObject, {
             // ... and create a new range if we aren't at the run's end
             // (_runIndexForStringIndex will return the last run if given an index == _string.length,
             // which is the only case where index will be at the run's ending boundary)
-            var end = run.range.location + run.range.length;
-            if (end > index){
+            var originalEnd = run.range.end;
+            if (originalEnd > index){
                 run.range.length = index - run.range.location;
-                run = JSAttributedStringRun(JSRange(index, end - index), run.attributes);
+                run = JSAttributedStringRun(JSRange(index, originalEnd - index), run.attributes);
                 this._runs.splice(runIndex, 0, run);
             }
         }
@@ -292,21 +292,24 @@ JSClass("JSAttributedString", JSObject, {
 
     _runIndexForStringIndex: function(index){
         var low = 0;
-        var high = this._runs.length - 1;
+        var high = this._runs.length;
         var mid;
         var run;
-        var i;
+        var i = 0;
         var l = this._runs.length;
         while (low < high){
             mid = low + Math.floor((high - low) / 2);
             run = this._runs[mid];
             if (index < run.range.location){
-                high = mid - 1;
-            }else if (index >= run.range.location + run.range.length){
+                high = mid;
+            }else if (index >= run.range.end){
                 low = mid + 1;
             }else{
-                return mid;
+                low = high = mid;
             }
+        }
+        if (high == this._runs.length){
+            return high - 1;
         }
         return high;
     }

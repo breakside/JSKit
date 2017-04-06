@@ -20,6 +20,8 @@ JSClass("UITextField", UIView, {
     _respondingIndicatorLayer: JSLazyInitProperty('_createRespondingIndicatorLayer'),
     _localEditor: null,
 
+    // TODO: placeholder
+
     initWithSpec: function(spec, values){
         UITextField.$super.initWithSpec.call(this, spec, values);
         if ("font" in values){
@@ -109,9 +111,10 @@ JSClass("UITextField", UIView, {
     },
 
     insertNewline: function(){
-        if (this.delegate && this.delegate.textFieldDidRecieveEnter){
-            this.delegate.textFieldDidRecieveEnter(this);
-        }
+        this._localEditor.insertNewline();
+        // if (this.delegate && this.delegate.textFieldDidRecieveEnter){
+        //     this.delegate.textFieldDidRecieveEnter(this);
+        // }
     },
 
     insertTab: function(){

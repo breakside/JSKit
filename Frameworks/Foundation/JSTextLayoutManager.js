@@ -108,11 +108,11 @@ JSClass("JSTextLayoutManager", JSObject, {
         var str = this._textStorage.string;
         var strLength = str.length;
         var range;
-        var attributes;
+        var attributes = this.attributesAtIndex(0);
         var containerIndex = 0;
         var container = this._textContainers.length > 0 ? this._textContainers[containerIndex] : null;
         if (container){
-            container.beginLayout();
+            container.beginLayout(attributes);
         }
         var consumed;
         var fragmentLength = 0;

@@ -51,7 +51,7 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
         var header;
         for (var i = 0, l = headers.length; i < l; ++i){
             header = headers[i];
-            xmlRequest.setRequestHeader(header.name.nativeString, header.value.nativeString);
+            xmlRequest.setRequestHeader(header.name, header.value);
         }
         this._addEventListeners(xmlRequest);
         return xmlRequest;

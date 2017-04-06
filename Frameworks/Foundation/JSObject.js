@@ -320,7 +320,7 @@ JSObject.definePropertiesFromExtensions({
         }
         var value = this.valueForKey(key);
         if (value !== null && value !== undefined){
-            return value.slice(range.location, range.location + range.length);
+            return value.slice(range.location, range.end);
         }
     },
 

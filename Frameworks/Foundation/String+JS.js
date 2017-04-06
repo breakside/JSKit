@@ -153,17 +153,17 @@ Object.defineProperties(String.prototype, {
         enumerable: false,
         value: function String_indexOfNextWordFromIndex(index){
             var range = this.rangeForWordAtIndex(index);
-            index = range.location + range.length;
+            index = range.end;
             var L = this.length;
             var word;
             var a, b;
             while (index < L){
                 range = this.rangeForWordAtIndex(index);
-                word = this.nativeString.substr(range.location, range.length);
+                word = this.substringInRange(range);
                 if (word.search(/[^\s]/) >= 0){
                     return index;
                 }
-                index = range.location + range.length;
+                index = range.end;
             }
             return L;
         }
@@ -178,7 +178,7 @@ Object.defineProperties(String.prototype, {
             var a, b;
             while (index >= 0){
                 range = this.rangeForWordAtIndex(index);
-                word = this.nativeString.substr(range.location, range.length);
+                word = this.substringInRange(range);
                 if (word.search(/[^\s]/) >= 0){
                     return range.location;
                 }
@@ -207,7 +207,7 @@ Object.defineProperties(String.prototype, {
                 if (range.location >= this.length){
                     return this + string;
                 }
-                return this.substr(0, range.location) + string + this.substr(range.location + range.length);
+                return this.substr(0, range.location) + string + this.substr(range.end);
             }
             return this.stringByDeletingCharactersInRange(range);
         }
@@ -217,7 +217,7 @@ Object.defineProperties(String.prototype, {
         enumerable: false,
         value: function String_stringByDeletingCharactersInRange(range){
             if (range.length > 0){
-                return this.substr(0, range.location) + this.substr(range.location + range.length);
+                return this.substr(0, range.location) + this.substr(range.end);
             }
             return this;
         }
