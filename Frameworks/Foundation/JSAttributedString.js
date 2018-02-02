@@ -2,52 +2,7 @@
 /* global JSClass, JSReadOnlyProperty, JSObject, JSAttributedString, JSRange, JSCopy */
 'use strict';
 
-function JSAttributedStringRun(range, attributes){
-    if (this === undefined){
-        return new JSAttributedStringRun(range, attributes);
-    }else{
-        if (range instanceof JSAttributedStringRun){
-            this.range = JSRange(range.range);
-            this.attributes = JSCopy(range.attributes);
-        }else{
-            this.range = JSRange(range);
-            this.attributes = JSCopy(attributes);
-        }
-    }
-}
-
-JSAttributedStringRun.prototype = {
-
-    hasIdenticalAttributes: function(other){
-        var attribute;
-        var a, b;
-        for (attribute in this.attributes){
-            if (attribute in other.attributes){
-                a = this.attributes[attribute];
-                b = other.attributes[attribute];
-                if (a.isEqual){
-                    if (!a.isEqual(b)){
-                        return false;
-                    }
-                }else if (b.isEqual){
-                    if (!b.isEqual(a)){
-                        return false;
-                    }
-                }else if (a != b){
-                    return false;
-                }
-            }else{
-                return false;
-            }
-        }
-        for (attribute in other.attributes){
-            if (!(attribute in this.attributes)){
-                return false;
-            }
-        }
-    }
-
-};
+(function(){
 
 JSClass("JSAttributedString", JSObject, {
 
@@ -153,13 +108,9 @@ JSClass("JSAttributedString", JSObject, {
     },
 
     addAttributeInRange: function(attributeName, value, range){
-        var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
-        var run;
-        for (var runIndex = runRange.location, l = runRange.end; runIndex < l; ++runIndex){
-            run = this._runs[runIndex];
-            run.attributes[attributeName] = value;
-        }
-        this._fixRunsInRunRange(runRange);
+        var attributes = {};
+        attributes[attributeName] = value;
+        this.addAttributesInRange(attributes, range);
     },
 
     addAttributesInRange: function(attributes, range){
@@ -175,15 +126,7 @@ JSClass("JSAttributedString", JSObject, {
     },
 
     removeAttributeInRange: function(attributeName, range){
-        var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
-        var run;
-        for (var runIndex = runRange.location, l = runRange.end; runIndex < l; ++runIndex){
-            run = this._runs[runIndex];
-            if (attributeName in run.attributes){
-                delete run.attributes[attributeName];
-            }
-        }
-        this._fixRunsInRunRange(runRange);
+        this.removeAttributesInRange([attributeName], range);
     },
 
     removeAttributesInRange: function(attributeNames, range){
@@ -203,13 +146,7 @@ JSClass("JSAttributedString", JSObject, {
     },
 
     removeAllAttributesInRange: function(range){
-        var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
-        var run;
-        for (var runIndex = runRange.location, l = runRange.end; runIndex < l; ++runIndex){
-            run = this._runs[runIndex];
-            run.attributes = {};
-        }
-        this._fixRunsInRunRange(JSRange(runRange.location, 1));
+        this.setAttributesInRange({}, range);
     },
 
     // MARK: - Querying attribute values
@@ -330,3 +267,52 @@ JSAttributedString.Attribute = {
 JSAttributedString.SpecialCharacter = {
     Attachment: 0xFFFC
 };
+
+function JSAttributedStringRun(range, attributes){
+    if (this === undefined){
+        return new JSAttributedStringRun(range, attributes);
+    }else{
+        if (range instanceof JSAttributedStringRun){
+            this.range = JSRange(range.range);
+            this.attributes = JSCopy(range.attributes);
+        }else{
+            this.range = JSRange(range);
+            this.attributes = JSCopy(attributes);
+        }
+    }
+}
+
+JSAttributedStringRun.prototype = {
+
+    hasIdenticalAttributes: function(other){
+        var attribute;
+        var a, b;
+        for (attribute in this.attributes){
+            if (attribute in other.attributes){
+                a = this.attributes[attribute];
+                b = other.attributes[attribute];
+                if (a.isEqual){
+                    if (!a.isEqual(b)){
+                        return false;
+                    }
+                }else if (b.isEqual){
+                    if (!b.isEqual(a)){
+                        return false;
+                    }
+                }else if (a != b){
+                    return false;
+                }
+            }else{
+                return false;
+            }
+        }
+        for (attribute in other.attributes){
+            if (!(attribute in this.attributes)){
+                return false;
+            }
+        }
+    }
+
+};
+
+})();
