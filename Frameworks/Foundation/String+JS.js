@@ -74,6 +74,16 @@ Object.defineProperties(String.prototype, {
         }
     },
 
+    userPerceivedCharacterIterator: {
+        enumerable: false,
+        value: function String_userPerceivedCharacterIterator(startIndex){
+            if (startIndex === undefined){
+                startIndex = 0;
+            }
+            return new UserPerceivedCharacterIterator(this, startIndex);
+        }
+    },
+
     unicodeAtIndex: {
         enumerable: false,
         value: function String_unicodeAtIndex(index){
@@ -662,14 +672,14 @@ Object.defineProperties(String.prototype, {
 
 });
 
-function UnicodeIterator(str, index){
+var UnicodeIterator = function(str, index){
     if (this === undefined){
         return new UnicodeIterator(str, index);
     }
     this.str = str;
     this.index = index;
     this.updateCurrentCharacter();
-}
+};
 
 UnicodeIterator.prototype = {
     index: 0,
@@ -739,6 +749,42 @@ UnicodeIterator.prototype = {
         return this.currentCharacter;
     }
 };
+
+var UserPerceivedCharacterIterator = function(str, index){
+    if (this === undefined){
+        return new UserPerceivedCharacterIterator(str, index);
+    }
+    this.unicodeIterator = new UnicodeIterator(str, index);
+    this.index = index;
+    this.c2 = this.unicodeIterator.currentCharacter;
+};
+
+UserPerceivedCharacterIterator.prototype = {
+    index: null,
+    nextIndex: null,
+    c1: null,
+    c2: null,
+
+    updateCurrentCharacter: function(){
+    },
+
+    increment: function(){
+        this.index = this.nextIndex;
+        this.updateCurrentCharacter();
+        return this;
+    },
+
+    decrement: function(){
+        this.index -= 1;
+        this.updateCurrentCharacter();
+        return this;
+    },
+
+    utf16: function(){
+        return this.str.substr(this.index, this.nextIndex - this.index);
+    }
+};
+
 
 })();
 
