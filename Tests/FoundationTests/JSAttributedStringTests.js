@@ -10,6 +10,32 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         TKAssertNotNull(string);
     },
 
+    testCopyInit: function(){
+        var string = JSAttributedString.initWithString("Hello, world!");
+        TKAssertNotNull(string);
+        string.addAttributeInRange("test", 123, JSRange(2, 4));
+
+        var string2 = JSAttributedString.initWithAttributedString(string);
+        TKAssertNotNull(string2);
+        var attributes = string2.attributesAtIndex(3);
+        TKAssertExactEquals(attributes.test, 123);
+        attributes = string2.attributesAtIndex(0);
+        TKAssertExactEquals(attributes.test, undefined);
+    },
+
+    testCopyInitWithDefaults: function(){
+        var string = JSAttributedString.initWithString("Hello, world!");
+        TKAssertNotNull(string);
+        string.addAttributeInRange("test", 123, JSRange(2, 4));
+
+        var string2 = JSAttributedString.initWithAttributedString(string, {test: 456});
+        TKAssertNotNull(string2);
+        var attributes = string2.attributesAtIndex(0);
+        TKAssertExactEquals(attributes.test, 456);
+        attributes = string2.attributesAtIndex(3);
+        TKAssertExactEquals(attributes.test, 123);
+    },
+
     testString: function(){
         var string = JSAttributedString.initWithString("Hello, world!");
         TKAssertNotNull(string);

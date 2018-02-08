@@ -46,6 +46,12 @@ JSClass("JSFont", JSObject, {
 
 });
 
+JSFont._creationHooks = [];
+
+JSFont.addCreationHook = function(method){
+    JSFont._creationHooks.push(method);
+};
+
 JSFont._fontWithResourceInfo = function(info, pointSize){
     var id = info.unique_identifier;
     var font = JSFont._cache[id];
@@ -59,6 +65,10 @@ JSFont._fontWithResourceInfo = function(info, pointSize){
         font._descenderInEms = info.descender;
         font._pointSize = pointSize;
         font._calculateMetrics();
+        for (var i = 0, l = JSFont._creationHooks.length; i < l; ++i){
+            JSFont._creationHooks[i].call(font);
+        }
+        JSFont._cache[id] = font;
     }
     return font;
 };

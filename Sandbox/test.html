@@ -4,6 +4,10 @@
   <title>Test</title>
 </head>
 <body>
+  <div id="metrics" style="font: 400 normal 20px/80px sans-serif; background-color: red; margin-bottom: 30px"><!--
+    --><span style="background-color: blue">A</span><!--
+    --><span style="display: inline-block; height: 1px; width: 1px; background-color: yellow; vertical-align: baseline;"></span><!--
+  --></div>
   <div style="position: relative; width: 200px; font-family: sans-serif; line-height: 0px; background-color: rgba(0,0,255,0.2);  margin-bottom: 20px; white-space: pre-wrap;"><!--
     --><span style="font-size: 14px; line-height: 16px; background-color: rgba(255,0,0,0.2);">This is a test of how well things size and wrap</span><!--
     --><span style="font-size: 20px; line-height: 23px; font-weight: 700; background-color: rgba(0,255,0,0.2);">, and test some more</span><!--
@@ -136,6 +140,12 @@
     var rect = range.getClientRects()[0];
     drawRect(rect);
   };
+  var metrics = function(e){
+    var div = e.currentTarget;
+    var spans = div.getElementsByTagName('span');
+    input.value = "Span 1 height: " + spans[0].offsetHeight + "\n" + "Span 2 height: " + spans[1].offsetHeight + "\n" + "Span 1 offset: " + spans[0].offsetTop + "\n" + "Span 2 offset: " + spans[1].offsetTop + "\n";
+  }
+  document.getElementById('metrics').addEventListener('mousedown', metrics);
   </script>
 </body>
 </html>

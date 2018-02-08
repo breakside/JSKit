@@ -149,6 +149,29 @@ JSRange.prototype = {
 
     isEqual: function(other){
         return this.location === other.location && this.length === other.length;
+    },
+
+    advance: function(x){
+        if (x > this.length){
+            x = this.length;
+        }
+        this.location += x;
+        this.length -= x;
+    },
+
+    intersection: function(other){
+        var location = this.location;
+        if (other.location > location){
+            location = other.location;
+        }
+        var end = this.end;
+        if (other.end < end){
+            end = other.end;
+        }
+        if (location > end){
+            return new JSRange(location, 0);
+        }
+        return new JSRange(location, end - location);
     }
 };
 
@@ -156,6 +179,12 @@ Object.defineProperty(JSRange.prototype, 'end', {
     configurable: false,
     get: function(){
         return this.location + this.length;
+    }
+});
+
+Object.defineProperty(JSRange, 'Zero', {
+    get: function(){
+        return new JSRange(0, 0);
     }
 });
 
@@ -376,10 +405,17 @@ JSGlobalObject.JSInsets = function(top, left, bottom, right){
         }
         return new JSInsets(top, left, bottom, right);
     }
-    this.top = top;
-    this.left = left === undefined ? top : left;
-    this.bottom = bottom === undefined ? top : bottom;
-    this.right = right === undefined ? left : right;
+    if (top instanceof JSInsets){
+        this.top = top.top;
+        this.left = top.left;
+        this.bottom = top.bottom;
+        this.right = top.right;
+    }else{
+        this.top = top;
+        this.left = left === undefined ? this.top : left;
+        this.bottom = bottom === undefined ? this.top : bottom;
+        this.right = right === undefined ? this.left : right;
+    }
 };
 
 JSInsets.prototype = {
@@ -393,9 +429,9 @@ Object.defineProperty(JSInsets, 'Zero', {
 });
 
 JSGlobalObject.JSLineBreakMode = {
-    WordWrap: 0,
-    Clip: 1,
-    TruncateTail: 2
+    TruncateTail: 0,
+    WordWrap: 1,
+    CharacterWrap: 2
 };
 
 JSGlobalObject.JSTextAlignment = {

@@ -1,94 +1,58 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSTextContainer, UIHTMLTextContainer, JSAttributedString, JSFont, JSLineBreakMode, JSRect */
+// #import "UIKit/UIHTMLTextRun.js"
+/* global JSClass, JSTextLine, UIHTMLTextLine, UIHTMLTextRun, JSAttributedString, JSFont, JSLineBreakMode, JSRect */
 'use strict';
 
-JSClass("UIHTMLTextContainer", JSTextContainer, {
+(function(){
+
+JSClass("UIHTMLTextLine", JSTextLine, {
 
     element: null,
-    _range: null,
-    _spans: null,
-    _resuableSpans: null,
-    _strutSpan: null,
+    _strutRun: null,
 
-    initWithDocument: function(document, size){
-        UIHTMLTextContainer.$super.initWithSize.call(this, size);
-        this.element = document.createElement('div');
-        this._range = document.createRange();
-        this._spans = [];
-        this._resuableSpans = [];
-        this._strutSpan = this._dequeueReusableSpan();
-        this._strutSpan.style.verticalAlign = 'baseline';
-        this._strutSpan.appendChild(document.createTextNode('\u200B'));
-        this.element.appendChild(this._strutSpan);
-    },
-
-    beginLayout: function(attributes){
-        UIHTMLTextContainer.$super.beginLayout.call(this);
-        for (var i = 0, l = this._spans.length; i < l; ++i){
-            this._enqueueResuableSpan(this._spans[i]);
-        }
-        this._spans = [];
-
-        this.element.style.textAlign = this.textAlignment;
-        switch (this.lineBreakMode){
-            case JSLineBreakMode.TruncateTail:
-            case JSLineBreakMode.WordWrap:
-                this.element.style.whiteSpace = 'pre-wrap';
-                break;
-            default:
-            case JSLineBreakMode.Clip:
-                this.element.style.whiteSpace = 'pre';
-                break;
-        }
-
+    initWithDocument: function(domDocument, attributes){
+        UIHTMLTextLine.$super.init.call(this);
+        this.element = domDocument.createElement('div');
+        this.element.style.whiteSpace = 'pre';
+        this.element.dataset.uiText = "line";
+        this.element.style.position = "relative";
         this.element.style.lineHeight = '0';
-        this.element.style.width = '%dpx'.sprintf(this.size.width);
-        this.element.style.height = '%dpx'.sprintf(this.size.height);
 
-        this._styleSpan(this._strutSpan, attributes);
+        // this.shade = this.element.appendChild(domDocument.createElement('div'));
+        // this.shade.style.position = 'absolute';
+        // this.shade.style.top = '0';
+        // this.shade.style.left = '0';
+        // this.shade.style.bottom = '0';
+        // this.shade.style.right = '0';
+        // this.shade.style.backgroundColor = 'rgba(0,255,0,0.3)';
     },
 
-    finishLayout: function(){
-        var span;
-        for (var i = 0, l = this._resuableSpans.length; i < l; ++i){
-            span = this._resuableSpans[i];
-            span.parentNode.removeChild(span);
-        }
-        this._resuableSpans = [];
-        if (this._spans.length === 0){
-            this._strutSpan.dataset.index = 0;
-            this._strutSpan.dataset.length = 0;
-        }else{
-            span = this._spans[this._spans.length - 1];
-            this._strutSpan.dataset.index = span.dataset.index;
-            this._strutSpan.dataset.length = 0;
-            this._strutSpan.style.font = span.style.font;
+    addStrut: function(run){
+        UIHTMLTextLine.$super.addStrut.call(this, run);
+        this._adoptRun(run);
+        run.element.dataset.uiText = "strut";
+    },
+
+    addRun: function(run){
+        UIHTMLTextLine.$super.addRun.call(this, run);
+        this._adoptRun(run);
+    },
+
+    _adoptRun: function(run){
+        if (run.element.parentNode !== this.element){
+            run.element.style.visibility = '';
+            run.element.style.position = 'relative';
+            this.element.appendChild(run.element);
         }
     },
 
-    layout: function(runCharacters, startIndex, attributes){
-        if (runCharacters.length == 1 && runCharacters[0] == JSAttributedString.SpecialCharacter.Attachment){
-            var size; // TODO: get size from layout manager
-            span.style.display = 'inline-block';
-            span.style.verticalAlign = 'bottom';
-            span.style.width = '%dpx'.sprintf(size.width);
-            span.style.height = '%dpx'.sprintf(size.height);
-        }else{
-            var span = this._dequeueReusableSpan();
-            span.dataset.index = startIndex;
-            span.dataset.length = runCharacters.length;
-            this._styleSpan(span, attributes);
-            span.style.display = 'inline';
-            span.style.verticalAlign = 'baseline';
-            span.firstChild.nodeValue = runCharacters;
-            if (!span.parentNode){
-                this.element.insertBefore(span, this._strutSpan);
-            }
-            this._spans.push(span);
-        }
-        // TODO: check size and truncation
-        return runCharacters.length;
+    setAttributes: function(attributes){
+        // TODO: style strut with attributes
     },
+
+    /*
+    _spans: null,
+    _lines: null,
 
     characterIndexAtPoint: function(point){
         if (this._spans.length === 0){
@@ -141,9 +105,9 @@ JSClass("UIHTMLTextContainer", JSTextContainer, {
         // Create a DOM range for the character in the span because the DOM range can
         // report its size and coordinates
         var rect;
-        this._range.setStart(span.firstChild, index);
-        this._range.setEnd(span.firstChild, index + 1);
-        var clientRect = this._pickCorrectClientRectFromRects(this._range.getClientRects());
+        this._domRange.setStart(span.firstChild, index);
+        this._domRange.setEnd(span.firstChild, index + 1);
+        var clientRect = this._pickCorrectClientRectFromRects(this._domRange.getClientRects());
         // The rect reported by the DOM range is relative to the client window, so we
         // need to convert it to a JSRect relative to the text container origin
         rect = this._rectInElementForDOMClientRect(clientRect);
@@ -272,40 +236,64 @@ JSClass("UIHTMLTextContainer", JSTextContainer, {
         );
     },
 
-    drawInContextAtPoint: function(context, point){
-        this.textLayoutManager.layoutIfNeeded();
-        this.element.style.left = '%dpx'.sprintf(point.x);
-        this.element.style.top = '%dpx'.sprintf(point.y);
-        context.addExternalElement(this.element);
+    beginLayout: function(attributes){
+        UIHTMLTextLine.$super.beginLayout.call(this);
+        for (var i = 0, l = this._spans.length; i < l; ++i){
+            this._enqueueResuableSpan(this._spans[i]);
+        }
+        this._spans = [];
+
+        this.element.style.textAlign = this.textAlignment;
+        this.element.style.whiteSpace = 'pre';
+
+        this.element.style.lineHeight = '0';
+        this.element.style.width = '%dpx'.sprintf(this.size.width);
+
+        this._styleSpan(this._strutSpan, attributes);
     },
 
-    _styleSpan: function(span, attributes){
-        // Font
-        var font = attributes[JSAttributedString.Attribute.Font];
-        if (attributes[JSAttributedString.Attribute.Bold]){
-            font = font.fontWithWeight(JSFont.Weight.Bold);
+    finishLayout: function(){
+        var span;
+        for (var i = 0, l = this._resuableSpans.length; i < l; ++i){
+            span = this._resuableSpans[i];
+            span.parentNode.removeChild(span);
         }
-        if (attributes[JSAttributedString.Attribute.Italic]){
-            font = font.fontWithStyle(JSFont.Style.Italic);
+        this._resuableSpans = [];
+        if (this._spans.length === 0){
+            this._strutSpan.dataset.index = 0;
+            this._strutSpan.dataset.length = 0;
+        }else{
+            span = this._spans[this._spans.length - 1];
+            this._strutSpan.dataset.index = span.dataset.index;
+            this._strutSpan.dataset.length = 0;
+            this._strutSpan.style.font = span.style.font;
         }
-        span.style.font = font.cssString();
-
-        // Decorations (underline, strike)
-        var decorations = [];
-        if (attributes[JSAttributedString.Attribute.Underline]){
-            decorations.push('underline');
-        }
-        if (attributes[JSAttributedString.Attribute.Strike]){
-            decorations.push('line-through');
-        }
-        span.style.textDecoration = decorations.join(' ');
-
-        // Colors
-        var textColor = attributes[JSAttributedString.Attribute.TextColor];
-        var backgroundColor = attributes[JSAttributedString.Attribute.BackgroundColor];
-        span.style.color = textColor.cssString();
-        span.style.backgroundColor = backgroundColor ? backgroundColor.cssString() : '';
     },
+
+    layout: function(runCharacters, startIndex, attributes){
+        if (runCharacters.length == 1 && runCharacters[0] == JSAttributedString.SpecialCharacter.Attachment){
+            var size; // TODO: get size from layout manager
+            span.style.display = 'inline-block';
+            span.style.verticalAlign = 'bottom';
+            span.style.width = '%dpx'.sprintf(size.width);
+            span.style.height = '%dpx'.sprintf(size.height);
+        }else{
+            var span = this._dequeueReusableSpan();
+            span.dataset.index = startIndex;
+            span.dataset.length = runCharacters.length;
+            this._styleSpan(span, attributes);
+            span.style.display = 'inline';
+            span.style.verticalAlign = 'baseline';
+            span.firstChild.nodeValue = runCharacters;
+            if (!span.parentNode){
+                this.element.insertBefore(span, this._strutSpan);
+            }
+            this._spans.push(span);
+        }
+        // TODO: check size and truncation
+        return runCharacters.length;
+    },
+    _resuableSpans: null,
 
     _enqueueResuableSpan: function(span){
         this._resuableSpans.push(span);
@@ -320,5 +308,8 @@ JSClass("UIHTMLTextContainer", JSTextContainer, {
         span.appendChild(doc.createTextNode(''));
         return span;
     }
+    */
 
 });
+
+})();

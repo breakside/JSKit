@@ -45,6 +45,25 @@ JSClass("JSTextStorage", JSAttributedString, {
         }
     },
 
-    // TODO: attribute modification overrides to notify layout managers
+    setAttributesInRange: function(attributes, range){
+        JSTextStorage.$super.setAttributesInRange.call(this, attributes, range);
+        for (var i = 0, l = this._layoutManagers.length; i < l; ++i){
+            this._layoutManagers[i].textStorageDidChangeAttributesInRange(range);
+        }
+    },
+
+    addAttributesInRange: function(attributes, range){
+        JSTextStorage.$super.addAttributesInRange.call(this, attributes, range);
+        for (var i = 0, l = this._layoutManagers.length; i < l; ++i){
+            this._layoutManagers[i].textStorageDidChangeAttributesInRange(range);
+        }
+    },
+
+    removeAttributesInRange: function(attributeNames, range){
+        JSTextStorage.$super.removeAttributesInRange.call(this, attributeNames, range);
+        for (var i = 0, l = this._layoutManagers.length; i < l; ++i){
+            this._layoutManagers[i].textStorageDidChangeAttributesInRange(range);
+        }
+    }
 
 });

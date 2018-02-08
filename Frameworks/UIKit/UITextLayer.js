@@ -12,12 +12,11 @@ JSClass("UITextLayer", UILayer, {
     lineBreakMode: JSDynamicProperty(),
     textAlignment: JSDynamicProperty(),
     textInsets: JSDynamicProperty('_textInsets', JSInsets.Zero),
+    maximumNumberOfLines: JSDynamicProperty(),
 
     _textStorage: null,
     _displayTextLayoutManager: null,
     _displayTextContainer: null,
-    _textContainer: null,
-    _textLayoutManager: null,
 
     // MARK: - Creating a UITextLayer
 
@@ -29,10 +28,12 @@ JSClass("UITextLayer", UILayer, {
     _commonTextLayerInit: function(){
         this._displayTextLayoutManager = JSTextLayoutManager.init();
         this._displayTextLayoutManager.delegate = this;
-        this._displayTextContainer = UIWindowServer.defaultServer.displayServer.createTextContainerWithSize(this._textContainerSize());
+        this._displayTextContainer = JSTextContainer.initWithSize(this._textContainerSize());
+        this._displayTextContainer.framesetter = UIWindowServer.defaultServer.displayServer.createTextFramesetter();
         this._textStorage = JSTextStorage.init();
         this._textStorage.addLayoutManager(this._displayTextLayoutManager);
         this._displayTextLayoutManager.addTextContainer(this._displayTextContainer);
+        this.setNeedsLayout();
     },
 
     didChangeSize: function(){
@@ -80,6 +81,14 @@ JSClass("UITextLayer", UILayer, {
         this._displayTextContainer.size = this._textContainerSize();
     },
 
+    getMaximumNumberOfLines: function(){
+        return this._displayTextContainer.maximumNumberOfLines;
+    },
+
+    setMaximumNumberOfLines: function(maxLines){
+        this._displayTextContainer.maximumNumberOfLines = maxLines;
+    },
+
     // MARK: - Fetching & Updating Text
 
     getText: function(){
@@ -121,7 +130,7 @@ JSClass("UITextLayer", UILayer, {
 
     _textContainerSize: function(){
         return JSSize(
-            this.bounds.size.with - this._textInsets.left - this._textInsets.right,
+            this.bounds.size.width - this._textInsets.left - this._textInsets.right,
             this.bounds.size.height - this._textInsets.top - this._textInsets.bottom
         );
     },
@@ -129,13 +138,19 @@ JSClass("UITextLayer", UILayer, {
     drawInContext: function(context){
         var textOrigin = JSPoint(this._textInsets.left, this._textInsets.top);
         if (this._isDisplayContext(context)){
-            this._displayTextContainer.drawInContextAtPoint(context, textOrigin);
+            this._displayTextLayoutManager.layoutIfNeeded();
+            if (this._displayTextContainer.textFrame !== null){
+                this._displayTextContainer.textFrame.drawInContextAtPoint(context, textOrigin);
+            }
         }else{
-            var layoutMangaer = JSTextLayoutManager.init();
+            var layoutManager = JSTextLayoutManager.init();
             var textContainer = JSTextContainer.initWithSize(this._displayTextContainer.size);
-            layoutMangaer.addTextContainer(textContainer);
-            this._textStorage.addLayoutManager(layoutMangaer);
-            textContainer.drawInContextAtPoint(context, textOrigin);
+            textContainer.maximumNumberOfLines = this._displayTextContainer.maximumNumberOfLines;
+            textContainer.lineBreakMode = this._displayTextContainer.lineBreakMode;
+            textContainer.textAlignment = this._displayTextContainer.textAlignment;
+            layoutManager.addTextContainer(textContainer);
+            this._textStorage.addLayoutManager(layoutManager);
+            textContainer.textFrame.drawInContextAtPoint(context, textOrigin);
             this._textStorage.removeLayoutManagerAtIndex(1);
         }
     },

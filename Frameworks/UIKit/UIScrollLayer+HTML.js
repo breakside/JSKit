@@ -20,6 +20,7 @@ UIScrollLayer.definePropertiesFromExtensions({
         sizer.style.left = '0px';
         sizer.style.width = '0px';
         sizer.style.height = '0px';
+        sizer.dataset.scrollHelper = "sizer";
         element.style.overflow = 'auto';
         context.scrollContentSizer = sizer;
         element.addEventListener('scroll', this);

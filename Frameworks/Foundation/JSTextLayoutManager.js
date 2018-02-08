@@ -1,7 +1,7 @@
 // #include "Foundation/JSObject.js"
 // #include "Foundation/CoreTypes.js"
 // #include "Foundation/JSTextStorage.js"
-/* global JSClass, JSObject, JSDynamicProperty, JSTextStorage, JSAttributedString, JSCopy, JSColor */
+/* global JSClass, JSObject, JSDynamicProperty, JSTextStorage, JSTextFramesetter, JSAttributedString, JSCopy, JSColor, JSRange */
 'use strict';
 
 JSClass("JSTextLayoutManager", JSObject, {
@@ -13,8 +13,8 @@ JSClass("JSTextLayoutManager", JSObject, {
     delegate: null,
 
     _textContainers: null,
-    _typesetter: null,
     _needsLayout: false,
+    _temporaryAttributes: null,
 
     init: function(){
         this._textContainers = [];
@@ -24,10 +24,10 @@ JSClass("JSTextLayoutManager", JSObject, {
     // MARK: - Managing Containers
 
     addTextContainer: function(container){
-        this.insertTextConatinerAtIndex(container, this._textContainers.length);
+        this.insertTextContainerAtIndex(container, this._textContainers.length);
     },
 
-    insertTextConatinerAtIndex: function(container, index){
+    insertTextContainerAtIndex: function(container, index){
         this._textContainers.splice(index, 0, container);
         container.textLayoutManager = this;
     },
@@ -70,22 +70,13 @@ JSClass("JSTextLayoutManager", JSObject, {
 
     // MARK: - Private Helpers for finalizing runs
 
-    rangeOfRunAtIndex: function(index){
-        return this._textStorage.rangeOfRunAtIndex(index);
-    },
-
-    attributesAtIndex: function(index){
-        var attributes = this._textStorage.attributesAtIndex(index);
-        if (!(JSAttributedString.Attribute.Font in attributes) || !(JSAttributedString.Attribute.TextColor in attributes)){
-            attributes = JSCopy(attributes);
-            if (!(JSAttributedString.Attribute.Font in attributes)){
-                attributes[JSAttributedString.Attribute.Font] = this._defaultFont;
-            }
-            if (!(JSAttributedString.Attribute.TextColor in attributes)){
-                attributes[JSAttributedString.Attribute.TextColor] = this._defaultTextColor;
-            }
-        }
-        return attributes;
+    effectiveAttributedString: function(){
+        var defaultAttributes = {};
+        defaultAttributes[JSAttributedString.Attribute.Font] = this._defaultFont;
+        defaultAttributes[JSAttributedString.Attribute.TextColor] = this._defaultTextColor;
+        var str = JSAttributedString.initWithAttributedString(this._textStorage, defaultAttributes);
+        // TODO: add temporary attributes
+        return str;
     },
 
     // MARK: - Layout
@@ -104,46 +95,27 @@ JSClass("JSTextLayoutManager", JSObject, {
     },
 
     layout: function(){
-        var index = 0;
-        var str = this._textStorage.string;
-        var strLength = str.length;
-        var range;
-        var attributes = this.attributesAtIndex(0);
+        var attributedString = this.effectiveAttributedString();
+        var str = attributedString.string;
+        var range = JSRange(0, str.length);
         var containerIndex = 0;
-        var container = this._textContainers.length > 0 ? this._textContainers[containerIndex] : null;
-        if (container){
-            container.beginLayout(attributes);
-        }
-        var consumed;
-        var fragmentLength = 0;
-        while (container && index < strLength){
-            range = this.rangeOfRunAtIndex(index);
-            fragmentLength = range.length - (index - range.location);
-            attributes = this.attributesAtIndex(index);
-            consumed = container.layout(str.substr(index, fragmentLength), index, attributes);
-            index += consumed;
-            if (consumed < fragmentLength){
-                container.finishLayout();
-                if (this.delegate && this.delegate.layoutManagerDidCompleteLayoutForContainer){
-                    this.delegate.layoutManagerDidCompleteLayoutForContainer(this, container, false);
-                }
-                containerIndex += 1;
-                container = containerIndex < this._textContainers.length ? this._textContainers[containerIndex] : null;
-                if (container){
-                    container.beginLayout();
-                }
-            }
-        }
-        if (container){
-            container.finishLayout();
+        while (containerIndex < this._textContainers.length){
+            var container = this._textContainers[containerIndex++];
+            container.createTextFrame(attributedString, range);
+            range.advance(container.textFrame.range.length);
             if (this.delegate && this.delegate.layoutManagerDidCompleteLayoutForContainer){
-                this.delegate.layoutManagerDidCompleteLayoutForContainer(this, container, true);
+                this.delegate.layoutManagerDidCompleteLayoutForContainer(this, container, range.length > 0);
             }
         }
         this._needsLayout = false;
     },
 
     textStorageDidReplaceCharactersInRange: function(range, insertedLength){
+        // TODO: is there a way to be smarter here and only adjust the pieces that have changed?
+        this.setNeedsLayout();
+    },
+
+    textStorageDidChangeAttributesInRange: function(range){
         // TODO: is there a way to be smarter here and only adjust the pieces that have changed?
         this.setNeedsLayout();
     }

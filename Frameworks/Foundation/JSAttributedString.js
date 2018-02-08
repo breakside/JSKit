@@ -24,13 +24,13 @@ JSClass("JSAttributedString", JSObject, {
         this._runs = [run];
     },
 
-    initWithAttributedString: function(attributedString){
+    initWithAttributedString: function(attributedString, defaultAttributes){
         this._string = attributedString.string;
         this._runs = [];
         var run;
         for (var i = 0, l = attributedString._runs.length; i < l; ++i){
             run = attributedString._runs[i];
-            this._runs.push(JSAttributedStringRun(run));
+            this._runs.push(JSAttributedStringRun(run, defaultAttributes));
         }
     },
 
@@ -166,6 +166,10 @@ JSClass("JSAttributedString", JSObject, {
         return run.range;
     },
 
+    runIterator: function(index){
+        return new JSAttributedStringRunIterator(this, index);
+    },
+
     // MARK: - Private helpers
 
     _fixRunsInRunRange: function(runRange){
@@ -275,6 +279,13 @@ function JSAttributedStringRun(range, attributes){
         if (range instanceof JSAttributedStringRun){
             this.range = JSRange(range.range);
             this.attributes = JSCopy(range.attributes);
+            if (attributes !== undefined){
+                for (var attr in attributes){
+                    if (!(attr in this.attributes)){
+                        this.attributes[attr] = attributes[attr];
+                    }
+                }
+            }
         }else{
             this.range = JSRange(range);
             this.attributes = JSCopy(attributes);
@@ -314,5 +325,63 @@ JSAttributedStringRun.prototype = {
     }
 
 };
+
+var JSAttributedStringRunIterator = function(attributedString, startIndex){
+    if (this === undefined){
+        return new JSAttributedStringRunIterator(attributedString, startIndex);
+    }
+    this._attributedString = attributedString;
+    this._runIndex = this._attributedString._runIndexForStringIndex(startIndex);
+};
+
+Object.defineProperties(JSAttributedStringRunIterator.prototype, {
+    range: {
+        enumerable: true,
+        configurable: false,
+        get: function JSAttributedStringRunIterator_run(){
+            if (this._runIndex < 0){
+                return JSRange(-1, 0);
+            }
+            if (this._runIndex >= this._attributedString._runs.length){
+                return JSRange(this._attributedString.string.length, 0);
+            }
+            return this._attributedString._runs[this._runIndex].range;
+        }
+    },
+
+    attributes: {
+        enumerable: true,
+        configurable: false,
+        get: function JSAttributedStringRunIterator_run(){
+            if (this._runIndex < 0){
+                return {};
+            }
+            if (this._runIndex >= this._attributedString._runs.length){
+                return {};
+            }
+            return this._attributedString._runs[this._runIndex].attributes;
+        }
+    },
+
+    increment: {
+        enumerable: false,
+        configurable: false,
+        value: function JSAttributedStringRunIterator_increment(){
+            if (this._runIndex < this._attributedString._runs.length){
+                ++this._runIndex;
+            }
+        }
+    },
+
+    decrement: {
+        enumerable: false,
+        configurable: false,
+        value: function JSAttributedStringRunIterator_increment(){
+            if (this._runIndex >= 0){
+                --this._runIndex;
+            }
+        }
+    }
+});
 
 })();

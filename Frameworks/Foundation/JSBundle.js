@@ -28,6 +28,7 @@ JSClass('JSBundle', JSObject, {
                 return resources[i];
             }
         }
+        return null;
     },
 
     resourcesNamed: function(name){

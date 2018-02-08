@@ -30,6 +30,11 @@
 // #import "Foundation/JSTextLayoutManager.js"
 // #import "Foundation/JSTextLayoutManagerDelegate.js"
 // #import "Foundation/JSTextStorage.js"
+// #import "Foundation/JSTextFramesetter.js"
+// #import "Foundation/JSTextTypesetter.js"
+// #import "Foundation/JSTextFrame.js"
+// #import "Foundation/JSTextLine.js"
+// #import "Foundation/JSTextRun.js"
 
 // #import "Foundation/JSTimer.js"
 

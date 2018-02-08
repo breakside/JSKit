@@ -1,9 +1,10 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject, UIAnimationTransaction, UIDisplayServer, UIDisplayServerInit, UIEvent, JSPoint, JSTextContainer */
+/* global JSClass, JSObject, JSReadOnlyProperty, UIAnimationTransaction, UIDisplayServer, UIDisplayServerInit, UIEvent, JSPoint, JSTextFramesetter */
 'use strict';
 
 JSClass("UIDisplayServer", JSObject, {
 
+    typesetter: JSReadOnlyProperty("_typesetter"),
     layerDisplayQueue: null,
     layerLayoutQueue: null,
     layerRepositionQueue: null,
@@ -198,8 +199,8 @@ JSClass("UIDisplayServer", JSObject, {
     // -------------------------------------------------------------------------
     // MARK: - Text
 
-    createTextContainerWithSize: function(size){
-        return JSTextContainer.initWithSize(size);
+    createTextFramesetter: function(){
+        return JSTextFramesetter.init();
     }
 
 });

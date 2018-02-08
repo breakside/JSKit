@@ -501,12 +501,10 @@ JSClass("UILayer", JSObject, {
     _needsLayout: false,
 
     setNeedsLayout: function(){
-        if (this.sublayers.length > 0){
-            if (this._displayServer !== null){
-                this._displayServer.setLayerNeedsLayout(this);
-            }else{
-                this._needsLayout = true;
-            }
+        if (this._displayServer !== null){
+            this._displayServer.setLayerNeedsLayout(this);
+        }else{
+            this._needsLayout = true;
         }
     },
 

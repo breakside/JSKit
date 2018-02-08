@@ -11,3 +11,8 @@
 // #import "UIKit/UIHTMLDisplayServerContext.js"
 // #import "UIKit/UIHTMLWindowServer.js"
 // #import "UIKit/UIHTMLTextInputManager.js"
+// #import "UIKit/UIHTMLTextFramesetter.js"
+// #import "UIKit/UIHTMLTextTypesetter.js"
+// #import "UIKit/UIHTMLTextFrame.js"
+// #import "UIKit/UIHTMLTextLine.js"
+// #import "UIKit/UIHTMLTextRun.js"

@@ -91,7 +91,7 @@ Object.defineProperties(String.prototype, {
                 throw new Error("String index %d out of range [0, %d]".sprintf(index, this.length - 1));
             }
             var iterator = UnicodeIterator(this, index);
-            return iterator.character();
+            return iterator.character;
         }
     },
 
@@ -101,34 +101,8 @@ Object.defineProperties(String.prototype, {
             if (index >= this.length){
                 return JSRange(this.length, 0);
             }
-            var iterator = UnicodeIterator(this, index);
-            var startIndex = iterator.index;
-            var endIndex = iterator.nextIndex;
-            var c1 = null;
-            var c2 = iterator.character();
-            while (startIndex > 0){
-                iterator.decrement();
-                c1 = iterator.character();
-                if (!this.isGraphemeClusterBoundary(c1, c2)){
-                    startIndex = iterator.index;
-                    c2 = c1;
-                }else{
-                    break;
-                }
-            }
-            iterator = UnicodeIterator(this, index);
-            c1 = iterator.character();
-            while (endIndex < this.length){
-                iterator.increment();
-                c2 = iterator.character();
-                if (!this.isGraphemeClusterBoundary(c1, c2)){
-                    endIndex = iterator.nextIndex;
-                    c1 = c2;
-                }else{
-                    break;
-                }
-            }
-            return JSRange(startIndex, endIndex - startIndex);
+            var iterator = this.userPerceivedCharacterIterator(index);
+            return iterator.range;
         }
     },
 
@@ -138,12 +112,12 @@ Object.defineProperties(String.prototype, {
             var iterator = UnicodeIterator(this, index);
             var startIndex = iterator.index;
             var endIndex = iterator.nextIndex;
-            while (!this.isWordBoundary(iterator.index)){
+            while (!iterator.isWordBoundary){
                 iterator.decrement();
                 startIndex = iterator.index;
             }
             iterator = UnicodeIterator(this, endIndex);
-            while (!this.isWordBoundary(iterator.index)){
+            while (!iterator.isWordBoundary){
                 iterator.increment();
                 endIndex = iterator.index;
             }
@@ -269,7 +243,7 @@ Object.defineProperties(String.prototype, {
             var j = 0;
             var iterator = UnicodeIterator(this, 0);
             while (iterator.index < this.length){
-                c = iterator.character().code;
+                c = iterator.character.code;
                 if (c < 0x80){
                     utf8[j] = c;
                     j += 1;
@@ -508,7 +482,7 @@ Object.defineProperties(String.prototype, {
             var iterator = UnicodeIterator(this, index);
 
             // WB1: sot ÷
-            if (iterator.index === 0){
+            if (iterator.index <= 0){
                 return true;
             }
             // WB1: ÷ eot
@@ -516,9 +490,9 @@ Object.defineProperties(String.prototype, {
                 return true;
             }
 
-            var c2 = iterator.character();
+            var c2 = iterator.character;
             iterator.decrement();
-            var c1 = iterator.character();
+            var c1 = iterator.character;
             var c3 = null;
             var c0 = null;
             // WB3: CR × LF
@@ -541,14 +515,14 @@ Object.defineProperties(String.prototype, {
             }
             while (iterator.index > 0 && (c1.wordBreakFormat || c1.wordBreakExtend)){
                 iterator.decrement();
-                c1 = iterator.character();
+                c1 = iterator.character;
             }
             if (iterator.index > 0){
                 iterator.decrement();
-                c0 = iterator.character();
+                c0 = iterator.character;
                 while (iterator.index > 0 && (c0.wordBreakFormat || c0.wordBreakExtend)){
                     iterator.decrement();
-                    c0 = iterator.character();
+                    c0 = iterator.character;
                 }
             }
 
@@ -560,7 +534,7 @@ Object.defineProperties(String.prototype, {
             iterator = UnicodeIterator(this, index);
             if (iterator.index < this.length){
                 iterator.increment();
-                c3 = iterator.character();
+                c3 = iterator.character;
             }
             if (c3 !== null && c1.wordBreakAHLetter && (c2.wordBreakMidLetter || c2.wordBreakMidNumLetQ) && c3.wordBreakAHLetter){
                 return false;
@@ -620,11 +594,18 @@ Object.defineProperties(String.prototype, {
             // WB14: Any ÷ Any
             return true;
         }
-    },
+    }
+
+});
+
+Object.defineProperties(String, {
 
     isGraphemeClusterBoundary: {
         enumerable: false,
         value: function String_isGraphemeClusterBoundary(c1, c2){
+            if (c1 === null || c2 === null){
+                return true;
+            }
             // GB3: CR × LF
             if (c1.graphemeClusterBreakCR && c2.graphemeClusterBreakLF){
                 return false;
@@ -669,121 +650,286 @@ Object.defineProperties(String.prototype, {
             return true;
         }
     }
-
 });
 
 var UnicodeIterator = function(str, index){
     if (this === undefined){
         return new UnicodeIterator(str, index);
     }
-    this.str = str;
-    this.index = index;
-    this.updateCurrentCharacter();
+    if (str instanceof UnicodeIterator){
+        this._string = str._string;
+        this._index = str._index;
+        this._nextIndex = str._nextIndex;
+        this._character = str._character;
+    }else{
+        this._string = str;
+        this._index = index;
+        this._update();
+    }
 };
 
-UnicodeIterator.prototype = {
-    index: 0,
-    nextIndex: 0,
-    currentCharacter: null,
+Object.defineProperties(UnicodeIterator.prototype, {
 
-    updateCurrentCharacter: function(){
-        if (this.index < 0){
-            this.index = -1;
-            this.nextIndex = 0;
-            this.currentCharacter = null;
-        }else if(this.index >= this.str.length){
-            this.index = this.str.length;
-            this.nextIndex = this.str.length;
-            this.currentCharacter = null;
-        }else{
-            var A = this.str.charCodeAt(this.index);
-            var B = 0;
-            var code = 0;
-            this.nextIndex = this.index + 1;
-            if (A >= 0xD800 && A < 0xDC00){
-                if (this.index < this.str.length - 1){
-                    B = this.str.charCodeAt(this.index + 1);
-                    if (B >= 0xDC00 && B < 0xE000){
-                        code = (((A & 0x3FF) << 10) | (B & 0x3FF)) + 0x10000;
-                        this.currentCharacter = UnicodeChar(code);
-                        ++this.nextIndex;
-                    }else{
-                        this.currentCharacter = UnicodeChar(0xFFFD);
-                    }
-                }else{
-                    this.currentCharacter = UnicodeChar(0xFFFD);
-                }
-            }else if (A >= 0xDC00 && A < 0xE000){
-                if (this.index > 0){
-                    B = A;
-                    A = this.str.charCodeAt(this.index - 1);
-                    if (A >= 0xD800 && A < 0xDC00){
-                        --this.index;
-                        code = (((A & 0x3FF) << 10) | (B & 0x3FF)) + 0x10000;
-                        this.currentCharacter = UnicodeChar(code);
-                    }else{
-                        this.currentCharacter = UnicodeChar(0xFFFD);
-                    }
-                }else{
-                    this.currentCharacter = UnicodeChar(0xFFFD);
-                }
+    _string: {
+        enumerable: false,
+        configurable: false,
+        writable: true,
+        value: null,
+    },
+
+    _index: {
+        enumerable: false,
+        configurable: false,
+        writable: true,
+        value: 0
+    },
+
+    _nextIndex: {
+        enumerable: false,
+        configurable: false,
+        writable: true,
+        value: 0
+    },
+
+    _character: {
+        enumerable: false,
+        configurable: false,
+        writable: true,
+        value: null
+    },
+
+    _update: {
+        enumerable: false,
+        configurable: false,
+        value: function UnicodeIterator_update(){
+            if (this._index < 0){
+                this._index = -1;
+                this._nextIndex = 0;
+                this._character = null;
+            }else if(this._index >= this._string.length){
+                this._index = this._string.length;
+                this._nextIndex = this._string.length;
+                this._character = null;
             }else{
-                this.currentCharacter = UnicodeChar(A);
+                var A = this._string.charCodeAt(this._index);
+                var B = 0;
+                var code = 0;
+                this._nextIndex = this._index + 1;
+                if (A >= 0xD800 && A < 0xDC00){
+                    if (this._index < this._string.length - 1){
+                        B = this._string.charCodeAt(this._index + 1);
+                        if (B >= 0xDC00 && B < 0xE000){
+                            code = (((A & 0x3FF) << 10) | (B & 0x3FF)) + 0x10000;
+                            this._character = UnicodeChar(code);
+                            ++this._nextIndex;
+                        }else{
+                            this._character = UnicodeChar(0xFFFD);
+                        }
+                    }else{
+                        this._character = UnicodeChar(0xFFFD);
+                    }
+                }else if (A >= 0xDC00 && A < 0xE000){
+                    if (this._index > 0){
+                        B = A;
+                        A = this._string.charCodeAt(this._index - 1);
+                        if (A >= 0xD800 && A < 0xDC00){
+                            --this._index;
+                            code = (((A & 0x3FF) << 10) | (B & 0x3FF)) + 0x10000;
+                            this._character = UnicodeChar(code);
+                        }else{
+                            this._character = UnicodeChar(0xFFFD);
+                        }
+                    }else{
+                        this._character = UnicodeChar(0xFFFD);
+                    }
+                }else{
+                    this._character = UnicodeChar(A);
+                }
             }
+
         }
     },
 
-    increment: function(){
-        this.index = this.nextIndex;
-        this.updateCurrentCharacter();
-        return this;
+    index: {
+        enumerable: true,
+        configurable: false,
+        get: function UnicodeIterator_getIndex(){
+            return this._index;
+        }
     },
 
-    decrement: function(){
-        this.index -= 1;
-        this.updateCurrentCharacter();
-        return this;
+    nextIndex: {
+        enumerable: true,
+        configurable: false,
+        get: function UnicodeIterator_getNextIndex(){
+            return this._nextIndex;
+        }
     },
 
-    character: function(){
-        return this.currentCharacter;
+    character: {
+        enumerable: true,
+        configurable: false,
+        get: function UnicodeIterator_getCharacter(){
+            return this._character;
+        }
+    },
+
+    increment: {
+        enumerable: true,
+        configurable: false,
+        value: function UnicodeIterator_increment(){
+            this._index = this._nextIndex;
+            this._update();
+            return this;
+        }
+    },
+
+    decrement: {
+        enumerable: true,
+        configurable: false,
+        value: function UnicodeIterator_decrement(){
+            this._index -= 1;
+            this._update();
+            return this;
+        }
+    },
+
+    isWordBoundary: {
+        enumerable: true,
+        configurable: false,
+        get: function UnicodeIterator_isWordBoundary(){
+            return this._string.isWordBoundary(this.index);
+        }
     }
-};
+
+});
 
 var UserPerceivedCharacterIterator = function(str, index){
     if (this === undefined){
         return new UserPerceivedCharacterIterator(str, index);
     }
-    this.unicodeIterator = new UnicodeIterator(str, index);
-    this.index = index;
-    this.c2 = this.unicodeIterator.currentCharacter;
+    this._unicodeIterator = new UnicodeIterator(str, index);
+    this._nextUnicodeIterator = new UnicodeIterator(this._unicodeIterator);
+    var c1 = null;
+    var c2 = this._unicodeIterator.character;
+    do {
+        c1 = c2;
+        this._nextUnicodeIterator.increment();
+        c2 = this._nextUnicodeIterator.character;
+    } while (!String.isGraphemeClusterBoundary(c1, c2));
+    c1 = this._unicodeIterator.character;
+    c2 = null;
+    do {
+        c2 = c1;
+        this._unicodeIterator.decrement();
+        c1 = this._unicodeIterator.character;
+    } while (!String.isGraphemeClusterBoundary(c1, c2));
+    this._unicodeIterator.increment();
 };
 
-UserPerceivedCharacterIterator.prototype = {
-    index: null,
-    nextIndex: null,
-    c1: null,
-    c2: null,
+Object.defineProperties(UserPerceivedCharacterIterator.prototype, {
 
-    updateCurrentCharacter: function(){
+    _unicodeIterator: {
+        enumerable: false,
+        configurable: false,
+        writable: true,
+        value: null
     },
 
-    increment: function(){
-        this.index = this.nextIndex;
-        this.updateCurrentCharacter();
-        return this;
+    _nextUnicodeIterator: {
+        enumerable: false,
+        configurable: false,
+        writable: true,
+        value: null
     },
 
-    decrement: function(){
-        this.index -= 1;
-        this.updateCurrentCharacter();
-        return this;
+    index: {
+        enumerable: true,
+        configurable: false,
+        get: function UnicodeIterator_getIndex(){
+            return this._unicodeIterator._index;
+        }
     },
 
-    utf16: function(){
-        return this.str.substr(this.index, this.nextIndex - this.index);
+    nextIndex: {
+        enumerable: true,
+        configurable: false,
+        get: function UnicodeIterator_getNextIndex(){
+            return this._nextUnicodeIterator._index;
+        }
+    },
+
+    range: {
+        enumerable: true,
+        configurable: false,
+        get: function UserPerceivedCharacterIterator_range(){
+            return new JSRange(this.index, this.nextIndex - this.index);
+        }
+    },
+
+    utf16: {
+        enumerable: true,
+        configurable: false,
+        get: function UserPerceivedCharacterIterator_utf16(){
+            return this._unicodeIterator._string.substringInRange(this.range);
+        }
+    },
+
+    firstCharacter: {
+        enumerable: true,
+        configurable: false,
+        get: function UserPerceivedCharacterIterator_firstCharacter(){
+            return this._unicodeIterator._character;
+        }
+    },
+
+    increment: {
+        enumerable: true,
+        configurable: false,
+        value: function UserPerceivedCharacterIterator_increment(){
+            this._unicodeIterator = UnicodeIterator(this._nextUnicodeIterator);
+            var c1 = null;
+            var c2 = this._unicodeIterator.character;
+            do {
+                c1 = c2;
+                this._nextUnicodeIterator.increment();
+                c2 = this._nextUnicodeIterator.character;
+            } while (!String.isGraphemeClusterBoundary(c1, c2));
+            return this;
+        }
+    },
+
+    decrement: {
+        enumerable: true,
+        configurable: false,
+        value: function UserPerceivedCharacterIterator_decrement(){
+            if (this._unicodeIterator.index >= 0){
+                this._nextUnicodeIterator = UnicodeIterator(this._unicodeIterator);
+                this._unicodeIterator.decrement();
+                if (this._unicodeIterator.index >= 0){
+                    var c2 = null;
+                    var c1 = this._unicodeIterator.character;
+                    do {
+                        c2 = c1;
+                        this._unicodeIterator.decrement();
+                        c1 = this._unicodeIterator.character;
+                    } while (!String.isGraphemeClusterBoundary(c1, c2));
+                    this._unicodeIterator.increment();
+                }
+            }
+            return this;
+        }
+    },
+
+    isWordBoundary: {
+        enumerable: true,
+        configurable: false,
+        get: function UserPerceivedCharacterIterator_isWordBoundary(){
+            return this._unicodeIterator.isWordBoundary;
+        }
     }
-};
+
+});
 
 
 })();

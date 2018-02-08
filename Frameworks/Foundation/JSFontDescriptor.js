@@ -35,7 +35,7 @@ JSClass("JSFontDescriptor", JSObject, {
         return JSFontDescriptor.initWithProperties(this._family, weight, this._style);
     },
 
-    desciptorWithStyle: function(style){
+    descriptorWithStyle: function(style){
         return JSFontDescriptor.initWithProperties(this._family, this._weight, style);
     }
 

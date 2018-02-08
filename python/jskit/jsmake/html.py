@@ -61,6 +61,7 @@ class HTMLBuilder(Builder):
         self.workerProcesses = int(args.worker_processes)
         self.workerConnections = int(args.worker_connections)
         self.dockerOwner = args.docker_owner
+        self.useDocker = self.dockerOwner != u''
 
     def build(self):
         self.setup()

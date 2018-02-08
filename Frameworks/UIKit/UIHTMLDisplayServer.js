@@ -1,11 +1,11 @@
 // #import "UIKit/UIDisplayServer.js"
 // #import "UIKit/UIHTMLDisplayServerContext.js"
-// #import "UIKit/UIHTMLTextContainer.js"
+// #import "UIKit/UIHTMLTextFramesetter.js"
 // #feature Window.prototype.addEventListener
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
 // #feature Document.prototype.createElement
-/* global JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer, jslog_create, UIHTMLTextContainer */
+/* global JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer, jslog_create, UIHTMLTextFramesetter */
 'use strict';
 
 (function(){
@@ -209,8 +209,8 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     // -------------------------------------------------------------------------
     // MARK: - Text
 
-    createTextContainerWithSize: function(size){
-        return UIHTMLTextContainer.initWithDocument(this.domDocument, size);
+    createTextFramesetter: function(){
+        return UIHTMLTextFramesetter.initWithDocument(this.domDocument);
     }
 
 });
