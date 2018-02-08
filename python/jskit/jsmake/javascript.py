@@ -28,6 +28,9 @@ class JSCompilation(object):
         self.currentOutfile = None
         self.outfilesByName = {}
 
+    def importedScriptPaths(self):
+        return self.importedScriptsByPath.keys()
+
     def include(self, source, sourceName=None):
         if isinstance(source, basestring):
             self.includePath(source)

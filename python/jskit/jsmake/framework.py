@@ -6,8 +6,8 @@ class FrameworkBuilder(Builder):
     frameworkName = None
     includePaths = None
 
-    def __init__(self, projectPath, includePaths, outputParentPath, buildID, buildLabel, debug=False, args=None):
-        super(FrameworkBuilder, self).__init__(projectPath, includePaths, outputParentPath, buildID, buildLabel, debug)
+    def __init__(self, projectPath, includePaths, outputParentPath, debug=False, args=None):
+        super(FrameworkBuilder, self).__init__(projectPath, includePaths, outputParentPath, debug)
         self.includes = []
         self.parse_args(args)
 

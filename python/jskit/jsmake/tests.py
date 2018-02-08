@@ -16,8 +16,8 @@ class TestsBuilder(Builder):
     appJS = None
     indexFile = None
 
-    def __init__(self, projectPath, includePaths, outputParentPath, buildID, buildLabel, debug=False, args=[]):
-        super(TestsBuilder, self).__init__(projectPath, includePaths, outputParentPath, buildID, buildLabel, debug=True)
+    def __init__(self, projectPath, includePaths, outputParentPath, debug=False, args=[]):
+        super(TestsBuilder, self).__init__(projectPath, includePaths, outputParentPath, debug=True)
         self.includes = []
         self.includePaths.append(pkg_resources.resource_filename('jskit', 'jsmake/tests_resources'))
         self.includePaths.extend(self.absolutePathsRelativeToSourceRoot('.'))

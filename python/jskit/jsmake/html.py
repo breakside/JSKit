@@ -44,9 +44,8 @@ class HTMLBuilder(Builder):
     dockerOwner = ""
     dockerName = ""
 
-    def __init__(self, projectPath, includePaths, outputParentPath, buildID, buildLabel, debug=False, args=None):
-        super(HTMLBuilder, self).__init__(projectPath, includePaths, outputParentPath, buildID, buildLabel, debug)
-        self.includes = []
+    def __init__(self, projectPath, includePaths, outputParentPath, debug=False, args=None):
+        super(HTMLBuilder, self).__init__(projectPath, includePaths, outputParentPath, debug)
         self.includePaths.extend(self.absolutePathsRelativeToSourceRoot('Frameworks', 'Classes', '.'))
         self.parse_args(args)
 
@@ -78,6 +77,7 @@ class HTMLBuilder(Builder):
         self.finish()
 
     def setup(self):
+        self.includes = []
         super(HTMLBuilder, self).setup()
         self.outputConfPath = os.path.join(self.outputProjectPath, "conf")
         self.outputWebRootPath = os.path.join(self.outputProjectPath, "www")
@@ -202,6 +202,8 @@ class HTMLBuilder(Builder):
                 os.chmod(outputPath, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
                 self.manifest.append(outputPath)
                 self.appJS.append(outputPath)
+        for importedPath in self.jsCompilation.importedScriptPaths():
+            self.watchFile(importedPath)
 
     def buildPreflight(self):
         print "Creating preflight js..."
@@ -227,7 +229,9 @@ class HTMLBuilder(Builder):
         print "Creating index.html..."
         sys.stdout.flush()
         indexName = self.info.get('UIApplicationHTMLIndexFile', 'index.html')
-        document = HTML5Document(os.path.join(self.projectPath, indexName)).domDocument
+        indexPath = os.path.join(self.projectPath, indexName)
+        self.watchFile(indexPath)
+        document = HTML5Document(indexPath).domDocument
         self.indexFile = open(os.path.join(self.outputWebRootPath, indexName), 'w')
         stack = [document.documentElement]
         appSrc = []
@@ -310,6 +314,7 @@ class HTMLBuilder(Builder):
         print "Creating nginx.conf..."
         sys.stdout.flush()
         templateFile = os.path.join(self.projectPath, "nginx-debug.conf");
+        self.watchFile(templateFile)
         fp = open(templateFile, 'r')
         template = fp.read()
         fp.close()
@@ -338,6 +343,7 @@ class HTMLBuilder(Builder):
         print "Building docker %s..." % self.dockerIdentifier
         sys.stdout.flush()
         dockerFile = os.path.join(self.projectPath, "Dockerfile")
+        self.watchFile(dockerFile)
         dockerOutputFile = os.path.join(self.outputProjectPath, "Dockerfile")
         shutil.copyfile(dockerFile, dockerOutputFile)
         args = ["docker", "build", "-t", self.dockerIdentifier, os.path.relpath(self.outputProjectPath)]

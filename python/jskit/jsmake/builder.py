@@ -6,6 +6,7 @@ import json
 import hashlib
 import shutil
 import mimetypes
+import datetime
 from .image import ImageInfoExtractor
 from .font import FontInfoExtractor
 
@@ -20,31 +21,102 @@ class Builder(object):
     debug = False
     bundles = None
     mainBundle = None
+    watchedFiles = None
 
-    def __init__(self, projectPath, includePaths, outputParentPath, buildID, buildLabel, debug=False):
+    def __init__(self, projectPath, includePaths, outputParentPath, debug=False):
         self.includePaths = [os.path.realpath(path) for path in includePaths]
         self.projectPath = os.path.realpath(projectPath)
         self.outputParentPath = os.path.realpath(outputParentPath)
-        self.buildID = buildID
-        self.buildLabel = buildLabel
         self.debug = debug
         self.bundles = dict()
+        self.watchedFiles = []
+
+    def run(self, watch=False):
+        self._build()
+        if watch:
+            self.watchForChanges()
+
+    def _build(self):
+        buildDate = datetime.datetime.now()
+        self.buildID = unicode(hashlib.md5(buildDate.strftime(u"%Y-%m-%d-%H-%M-%S")).hexdigest())
+        self.buildLabel = unicode(buildDate.strftime(u"%Y-%m-%d-%H-%M-%S"))
+        self.build()
 
     def build(self):
         pass
+
+    def watchFile(self, path):
+        path = os.path.realpath(path)
+        self.watchedFiles.append(path)
+
+    def watchedFolders(self):
+        folders = [os.path.dirname(path) for path in self.watchedFiles]
+        folders.sort()
+        if len(folders) == 0:
+            return []
+        last = folders.pop()
+        uniqueFolders = [last]
+        while len(folders) > 0:
+            folder = folders.pop()
+            if folder != last:
+                last = folder
+                uniqueFolders.append(last)
+        return uniqueFolders
+
+    def watchForChanges(self):
+        try:
+            import watchdog
+            import watchdog.events
+            import watchdog.observers
+
+            class ChangeHandler(watchdog.events.FileSystemEventHandler):
+
+                observer = None
+                files = None
+
+                def __init__(self, observer, files):
+                    self.observer = observer
+                    self.files = files
+
+                def on_modified(self, event):
+                    path = os.path.realpath(event.src_path)
+                    print u"Changed %s" % path
+                    if path in self.files:
+                        self.observer.stop()
+        except:
+            print u"watchdog is not installed, cannot watch for file changes"
+            print u"$ pip install watchdog"
+            return
+        try:
+            while True:
+                print u"Waiting to rebuild when files change..."
+                # print '\n    '.join(self.watchedFiles)
+                observer = watchdog.observers.Observer()
+                handler = ChangeHandler(observer, self.watchedFiles)
+                for folder in self.watchedFolders():
+                    # print u"    %s" % folder
+                    observer.schedule(handler, folder, recursive=False)
+                observer.start()
+                while observer.isAlive():
+                    observer.join(3600)
+                self.watchedFiles = []
+                self._build()
+        except KeyboardInterrupt:
+            observer.stop()
+
 
     @staticmethod
     def readInfo(projectPath):
         infoName = 'Info.plist'
         infoPath = os.path.join(projectPath, infoName)
         if os.path.exists(infoPath):
-            return plistlib.readPlist(infoPath)
+            return infoPath, plistlib.readPlist(infoPath)
         else:
             infoName = 'Info.json'
             infoPath = os.path.join(projectPath, infoName)
             if (os.path.exists(infoPath)):
                 try:
-                    return json.load(open(infoPath))
+                    return infoPath, json.load(open(infoPath))
                 except Exception as e:
                     raise Exception("Error parsing Info.json: %s" % e.message)
             else:
@@ -54,7 +126,8 @@ class Builder(object):
     def setup(self):
         self.mainBundle = None
         self.bundles = dict()
-        self.info = Builder.readInfo(self.projectPath)
+        infofile, self.info = Builder.readInfo(self.projectPath)
+        self.watchFile(infofile)
         if 'JSBundleIdentifier' not in self.info:
             raise Exception("%s must include an entry for JSBundleIdentifier")
         self.bundles[self.info['JSBundleIdentifier']] = self.mainBundle = {}
@@ -87,9 +160,11 @@ class Builder(object):
                 except Exception as e:
                     raise Exception("Error parsing %s: %s" % (fullPath, e.message))
                 self.buildJSONLikeResource(nameComponents, obj)
+                self.watchFile(fullPath)
             elif ext == '.plist':
                 obj = plistlib.readPlist(fullPath)
                 self.buildJSONLikeResource(nameComponents, obj)
+                self.watchFile(fullPath)
             else:
                 mimeguess = mimetypes.guess_type(fullPath)
                 if mimeguess[0]:
@@ -133,6 +208,7 @@ class Builder(object):
         except Exception as e:
             raise Exception("Error parsing %s: %s" % (contentsPath, e.message))
         images = contents.get('images', [])
+        self.watchFile(contentsPath)
         for image in images:
             vector = False
             filename = image.get('filename', '')
@@ -165,6 +241,7 @@ class Builder(object):
             image=info
         )
         self.addResourceToMainBundle(nameComponents, resource)
+        self.watchFile(fullPath)
         return resource
 
     def buildFontResource(self, nameComponents, fullPath, mime):
@@ -180,6 +257,7 @@ class Builder(object):
             font=info
         )
         self.addResourceToMainBundle(nameComponents, resource)
+        self.watchFile(fullPath)
         return resource
 
     @staticmethod

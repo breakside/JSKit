@@ -1,5 +1,4 @@
 import argparse
-import datetime
 import hashlib
 import os.path
 
@@ -13,9 +12,6 @@ def main():
     parser.add_argument(u'--include-dir', default=[], action='append')
     parser.add_argument(u'project', default=u'.')
     args, unknown = parser.parse_known_args()
-    buildDate = datetime.datetime.now()
-    buildID = unicode(hashlib.md5(buildDate.strftime(u"%Y-%m-%d-%H-%M-%S")).hexdigest())
-    buildLabel = unicode(buildDate.strftime(u"%Y-%m-%d-%H-%M-%S"))
     kind = args.kind
     if kind is None:
         kind = determine_kind(args.project)
@@ -30,12 +26,12 @@ def main():
         builderClass = TestsBuilder
     else:
         raise Exception(u"Unsupported build type: %u" % args.kind)
-    builder = builderClass(projectPath=args.project, includePaths=args.include_dir, outputParentPath=args.output_dir, buildID=buildID, buildLabel=buildLabel, debug=args.debug, args=unknown)
-    builder.build()
+    builder = builderClass(projectPath=args.project, includePaths=args.include_dir, outputParentPath=args.output_dir, debug=args.debug, args=unknown)
+    builder.run(watch=args.debug and args.watch)
 
 def determine_kind(project):
     from .builder import Builder
-    info = Builder.readInfo(project)
+    infofile, info = Builder.readInfo(project)
     if 'JSBundleType' not in info:
         raise Exception("JSBundleType is required in Info to build without --kind flag")
     return info['JSBundleType']
