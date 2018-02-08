@@ -155,7 +155,7 @@ class HTMLBuilder(Builder):
                 self.findSpecIncludes(v)
 
     def buildAppCSS(self):
-        print "Creating application css..."
+        self.updateStatus("Creating application css...")
         sys.stdout.flush()
         outputPath = os.path.join(self.outputCacheBustingPath, 'app.css')
         fp = open(outputPath, 'w')
@@ -175,7 +175,7 @@ class HTMLBuilder(Builder):
         return 'url("../%s")' % variant[0]
 
     def buildAppJavascript(self):
-        print "Creating application js..."
+        self.updateStatus("Creating application js...")
         sys.stdout.flush()
         with tempfile.NamedTemporaryFile() as bundleJSFile:
             bundleJSFile.write("'use strict';\n")
@@ -206,7 +206,7 @@ class HTMLBuilder(Builder):
             self.watchFile(importedPath)
 
     def buildPreflight(self):
-        print "Creating preflight js..."
+        self.updateStatus("Creating preflight js...")
         sys.stdout.flush()
         self.featureCheck = JSFeatureCheck()
         self.featureCheck.addFeature(JSFeature('window'))
@@ -217,7 +217,7 @@ class HTMLBuilder(Builder):
         self.featureCheck.serialize(self.preflightFile, 'bootstrapper')
 
     def buildAppCacheManifest(self):
-        print "Creating manifest.appcache..."
+        self.updateStatus("Creating manifest.appcache...")
         sys.stdout.flush()
         self.manifestFile = open(os.path.join(self.outputWebRootPath, "manifest.appcache"), 'w')
         self.manifestFile.write("CACHE MANIFEST\n")
@@ -226,7 +226,7 @@ class HTMLBuilder(Builder):
             self.manifestFile.write("%s\n" % _webpath(os.path.relpath(name, self.outputWebRootPath)))
 
     def buildIndex(self):
-        print "Creating index.html..."
+        self.updateStatus("Creating index.html...")
         sys.stdout.flush()
         indexName = self.info.get('UIApplicationHTMLIndexFile', 'index.html')
         indexPath = os.path.join(self.projectPath, indexName)
@@ -311,7 +311,7 @@ class HTMLBuilder(Builder):
         self.indexFile = None
 
     def buildNginxConf(self):
-        print "Creating nginx.conf..."
+        self.updateStatus("Creating nginx.conf...")
         sys.stdout.flush()
         templateFile = os.path.join(self.projectPath, "nginx-debug.conf");
         self.watchFile(templateFile)
@@ -340,7 +340,7 @@ class HTMLBuilder(Builder):
         self.dockerIdentifier = "%s%s:%s" % (ownerPrefix, self.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
         self.dockerIdentifier = self.dockerIdentifier.lower()
         self.dockerName = self.info['JSBundleIdentifier'].lower()
-        print "Building docker %s..." % self.dockerIdentifier
+        self.updateStatus("Building docker %s..." % self.dockerIdentifier)
         sys.stdout.flush()
         dockerFile = os.path.join(self.projectPath, "Dockerfile")
         self.watchFile(dockerFile)
@@ -348,19 +348,19 @@ class HTMLBuilder(Builder):
         shutil.copyfile(dockerFile, dockerOutputFile)
         args = ["docker", "build", "-t", self.dockerIdentifier, os.path.relpath(self.outputProjectPath)]
         if subprocess.call(args) != 0:
-            print "! Error building docker with: %s" % ' '.join(args)
+            self.updateStatus("! Error building docker with: %s" % ' '.join(args))
             sys.stdout.flush()
 
 
     def finish(self):
         super(HTMLBuilder, self).finish()
-        print "\nDone!"
+        message = "Done!"
         if self.debug:
             if self.useDocker:
-                print "\ndocker run --rm --name %s -p%d:%d %s\n" % (self.dockerName, self.debugPort, self.debugPort, self.dockerIdentifier)
+                message += " > docker run --rm --name %s -p%d:%d %s" % (self.dockerName, self.debugPort, self.debugPort, self.dockerIdentifier)
             else:
-                print "\nnginx -p %s\n" % os.path.relpath(self.outputProjectPath)
-            sys.stdout.flush()
+                message += " > nginx -p %s" % os.path.relpath(self.outputProjectPath)
+        self.updateStatus(message)
 
 
 def _webpath(ospath):

@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import os.path
 import plistlib
 import json
@@ -22,6 +23,8 @@ class Builder(object):
     bundles = None
     mainBundle = None
     watchedFiles = None
+    statusIntro = ""
+    statusMessage = ""
 
     def __init__(self, projectPath, includePaths, outputParentPath, debug=False):
         self.includePaths = [os.path.realpath(path) for path in includePaths]
@@ -32,15 +35,39 @@ class Builder(object):
         self.watchedFiles = []
 
     def run(self, watch=False):
+        if watch:
+            self._print("Automatically rebuilding when files change\n")
         self._build()
         if watch:
             self.watchForChanges()
+        self._print("\n")
 
     def _build(self):
         buildDate = datetime.datetime.now()
         self.buildID = unicode(hashlib.md5(buildDate.strftime(u"%Y-%m-%d-%H-%M-%S")).hexdigest())
         self.buildLabel = unicode(buildDate.strftime(u"%Y-%m-%d-%H-%M-%S"))
+        self.beginStatus()
         self.build()
+
+    def _print(self, message, flush=True):
+        sys.stdout.write(message)
+        sys.stdout.flush()
+
+    def _erase(self, count, flush=False):
+        self._print("\x08" * count, flush=flush)
+        self._print(" " * count, flush=flush)
+        self._print("\x08" * count, flush=flush)
+
+    def beginStatus(self):
+        self._erase(len(self.statusIntro) + len(self.statusMessage))
+        self.statusIntro = (u"[build %s] " % self.buildLabel).encode('utf-8')
+        self.statusMessage = ""
+        self._print(self.statusIntro)
+
+    def updateStatus(self, message):
+        self._erase(len(self.statusMessage))
+        self.statusMessage = message.encode('utf-8')
+        self._print(self.statusMessage)
 
     def build(self):
         pass
@@ -73,6 +100,7 @@ class Builder(object):
 
                 observer = None
                 files = None
+                changed = ""
 
                 def __init__(self, observer, files):
                     self.observer = observer
@@ -80,7 +108,7 @@ class Builder(object):
 
                 def on_modified(self, event):
                     path = os.path.realpath(event.src_path)
-                    print u"Changed %s" % path
+                    self.changed = path
                     if path in self.files:
                         self.observer.stop()
         except:
@@ -89,7 +117,6 @@ class Builder(object):
             return
         try:
             while True:
-                print u"Waiting to rebuild when files change..."
                 # print '\n    '.join(self.watchedFiles)
                 observer = watchdog.observers.Observer()
                 handler = ChangeHandler(observer, self.watchedFiles)
@@ -99,6 +126,7 @@ class Builder(object):
                 observer.start()
                 while observer.isAlive():
                     observer.join(3600)
+                self.updateStatus(u"Changed %s" % handler.changed)
                 self.watchedFiles = []
                 self._build()
         except KeyboardInterrupt:
