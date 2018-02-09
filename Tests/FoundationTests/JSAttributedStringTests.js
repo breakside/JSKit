@@ -196,6 +196,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         var string = JSAttributedString.initWithString("Hello, world!", {bold: true});
         var range = JSRange(0, 5);
         string.setAttributesInRange({bold: true, italics: true}, range);
+        this.assertRunIteratorIsConsistent(string);
         var attributes = string.attributesAtIndex(0);
         TKAssertExactEquals(attributes.bold, true);
         TKAssertExactEquals(attributes.italics, true);
@@ -217,6 +218,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         var string = JSAttributedString.initWithString("Hello, world!", {bold: true});
         var range = JSRange(0, 5);
         string.addAttributesInRange({italics: true}, range);
+        this.assertRunIteratorIsConsistent(string);
         var attributes = string.attributesAtIndex(0);
         TKAssertExactEquals(attributes.bold, true);
         TKAssertExactEquals(attributes.italics, true);
@@ -238,6 +240,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         var string = JSAttributedString.initWithString("Hello, world!", {bold: true});
         var range = JSRange(0, 5);
         string.addAttributeInRange('italics', true, range);
+        this.assertRunIteratorIsConsistent(string);
         var attributes = string.attributesAtIndex(0);
         TKAssertExactEquals(attributes.bold, true);
         TKAssertExactEquals(attributes.italics, true);
@@ -259,6 +262,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         var string = JSAttributedString.initWithString("Hello, world!", {bold: true, italics: true, underline: true});
         var range = JSRange(0, 5);
         string.removeAttributesInRange(['bold', 'italics'], range);
+        this.assertRunIteratorIsConsistent(string);
         var attributes = string.attributesAtIndex(0);
         TKAssertExactEquals(attributes.bold, undefined);
         TKAssertExactEquals(attributes.italics, undefined);
@@ -285,6 +289,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         var string = JSAttributedString.initWithString("Hello, world!", {bold: true, italics: true, underline: true});
         var range = JSRange(0, 5);
         string.removeAttributeInRange('bold', range);
+        this.assertRunIteratorIsConsistent(string);
         var attributes = string.attributesAtIndex(0);
         TKAssertExactEquals(attributes.bold, undefined);
         TKAssertExactEquals(attributes.italics, true);
@@ -311,6 +316,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         var string = JSAttributedString.initWithString("Hello, world!", {bold: true, italics: true, underline: true});
         var range = JSRange(0, 5);
         string.removeAllAttributesInRange(range);
+        this.assertRunIteratorIsConsistent(string);
         var attributes = string.attributesAtIndex(0);
         TKAssertExactEquals(attributes.bold, undefined);
         TKAssertExactEquals(attributes.italics, undefined);
@@ -338,8 +344,10 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         var attributes;
         string.appendString("Hello");
         TKAssertEquals(string.string, "Hello");
+        this.assertRunIteratorIsConsistent(string);
         string.appendString(", world!");
         TKAssertEquals(string.string, "Hello, world!");
+        this.assertRunIteratorIsConsistent(string);
 
         string = JSAttributedString.init();
         string.addAttributeInRange('bold', true, JSRange(0, 0));
@@ -347,6 +355,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         TKAssertExactEquals(attributes.bold, true);
         string.appendString("Hello");
         TKAssertEquals(string.string, "Hello");
+        this.assertRunIteratorIsConsistent(string);
         attributes = string.attributesAtIndex(0);
         TKAssertExactEquals(attributes.bold, true);
         attributes = string.attributesAtIndex(1);
@@ -357,6 +366,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         TKAssertExactEquals(attributes.bold, true);
         string.appendString(", world!");
         TKAssertEquals(string.string, "Hello, world!");
+        this.assertRunIteratorIsConsistent(string);
         attributes = string.attributesAtIndex(0);
         TKAssertExactEquals(attributes.bold, true);
         attributes = string.attributesAtIndex(1);
@@ -381,6 +391,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         string = JSAttributedString.initWithString("Hello, world!", {bold: true});
         string.addAttributeInRange('italics', true, JSRange(5,8));
         string.replaceCharactersInRangeWithString(JSRange(5, 0), " there");
+        this.assertRunIteratorIsConsistent(string);
         attributes = string.attributesAtIndex(4);
         TKAssertExactEquals(attributes.bold, true);
         TKAssertExactEquals(attributes.italics, undefined);
@@ -422,6 +433,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         string.deleteCharactersInRange(range);
         TKAssertExactEquals(string.string.length, 5);
         TKAssertEquals(string.string, "Hello");
+        this.assertRunIteratorIsConsistent(string);
         attributes = string.attributesAtIndex(0);
         TKAssertExactEquals(attributes.bold, true);
         attributes = string.attributesAtIndex(1);
@@ -430,6 +442,22 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         TKAssertExactEquals(attributes.bold, true);
         attributes = string.attributesAtIndex(5);
         TKAssertExactEquals(attributes.bold, true);
+
+        string = JSAttributedString.initWithString("abcd");
+        range = JSRange(2, 1);
+        string.deleteCharactersInRange(range);
+        TKAssertExactEquals(string.string.length, 3);
+        TKAssertEquals(string.string, "abd");
+        this.assertRunIteratorIsConsistent(string);
+    },
+
+    testFixRuns: function(){
+        var string = JSAttributedString.initWithString("abcd");
+        var range = JSRange(2, 1);
+        string.deleteCharactersInRange(range);
+        TKAssertExactEquals(string.string.length, 3);
+        TKAssertEquals(string.string, "abd");
+        this.assertRunIteratorCount(string, 1);
     },
 
     testReplace: function(){
@@ -440,6 +468,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         range = JSRange(7, 5);
         string.replaceCharactersInRangeWithString(range, "everyone");
         TKAssertEquals(string.string, "Hello, everyone!");
+        this.assertRunIteratorIsConsistent(string);
         attributes = string.attributesAtIndex(7);
         TKAssertExactEquals(attributes.bold, true);
         attributes = string.attributesAtIndex(8);
@@ -454,6 +483,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         range = JSRange(5, 7);
         string.replaceCharactersInRangeWithString(range, " there, everyone");
         TKAssertEquals(string.string, "Hello there, everyone!");
+        this.assertRunIteratorIsConsistent(string);
         attributes = string.attributesAtIndex(5);
         TKAssertExactEquals(attributes.bold, true);
         TKAssertExactEquals(attributes.italics, undefined);
@@ -481,6 +511,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         range = JSRange(7, 5);
         string.replaceCharactersInRangeWithString(range, "everyone");
         TKAssertEquals(string.string, "Hello, everyone!");
+        this.assertRunIteratorIsConsistent(string);
         attributes = string.attributesAtIndex(5);
         TKAssertExactEquals(attributes.bold, true);
         TKAssertExactEquals(attributes.italics, undefined);
@@ -502,6 +533,26 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         attributes = string.attributesAtIndex(16);
         TKAssertExactEquals(attributes.bold, true);
         TKAssertExactEquals(attributes.italics, true);
+    },
+
+    assertRunIteratorIsConsistent: function(attributedString){
+        var iterator = attributedString.runIterator();
+        var expectedLocation = 0;
+        while (iterator.range.length > 0){
+            TKAssertEquals(iterator.range.location, expectedLocation);
+            expectedLocation += iterator.range.length;
+            iterator.increment();
+        }
+    },
+
+    assertRunIteratorCount: function(attributedString, expectedCount){
+        var iterator = attributedString.runIterator();
+        var count = 0;
+        while (iterator.range.length > 0){
+            iterator.increment();
+            count++;
+        }
+        TKAssertEquals(count, expectedCount);
     }
 
     

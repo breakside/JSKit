@@ -40,6 +40,7 @@ class HTMLBuilder(Builder):
     workerProcesses = 1
     workerConnections = 1024
     useDocker = False
+    dockerBuilt = False
     dockerIdentifier = ""
     dockerOwner = ""
     dockerName = ""
@@ -81,7 +82,7 @@ class HTMLBuilder(Builder):
         super(HTMLBuilder, self).setup()
         self.outputConfPath = os.path.join(self.outputProjectPath, "conf")
         self.outputWebRootPath = os.path.join(self.outputProjectPath, "www")
-        self.outputCacheBustingPath = os.path.join(self.outputWebRootPath, self.buildID)
+        self.outputCacheBustingPath = os.path.join(self.outputWebRootPath, self.buildID if not self.debug else "debug")
         self.outputResourcePath = os.path.join(self.outputWebRootPath, "Resources")
         if self.debug:
             for child in (self.outputWebRootPath,):
@@ -313,6 +314,7 @@ class HTMLBuilder(Builder):
     def buildNginxConf(self):
         self.updateStatus("Creating nginx.conf...")
         sys.stdout.flush()
+        confName = "nginx-release.conf" if not self.debug else "nginx-debug.conf"
         templateFile = os.path.join(self.projectPath, "nginx-debug.conf");
         self.watchFile(templateFile)
         fp = open(templateFile, 'r')
@@ -340,27 +342,26 @@ class HTMLBuilder(Builder):
         self.dockerIdentifier = "%s%s:%s" % (ownerPrefix, self.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
         self.dockerIdentifier = self.dockerIdentifier.lower()
         self.dockerName = self.info['JSBundleIdentifier'].lower()
-        self.updateStatus("Building docker %s..." % self.dockerIdentifier)
-        sys.stdout.flush()
-        dockerFile = os.path.join(self.projectPath, "Dockerfile")
-        self.watchFile(dockerFile)
-        dockerOutputFile = os.path.join(self.outputProjectPath, "Dockerfile")
-        shutil.copyfile(dockerFile, dockerOutputFile)
-        args = ["docker", "build", "-t", self.dockerIdentifier, os.path.relpath(self.outputProjectPath)]
-        if subprocess.call(args) != 0:
-            self.updateStatus("! Error building docker with: %s" % ' '.join(args))
+        if not self.dockerBuilt:
+            self.updateStatus("Building docker image %s..." % self.dockerIdentifier)
             sys.stdout.flush()
+            dockerFile = os.path.join(self.projectPath, "Dockerfile")
+            self.watchFile(dockerFile)
+            dockerOutputFile = os.path.join(self.outputProjectPath, "Dockerfile")
+            shutil.copyfile(dockerFile, dockerOutputFile)
+            args = ["docker", "build", "-t", self.dockerIdentifier, os.path.relpath(self.outputProjectPath)]
+            with tempfile.NamedTemporaryFile() as fp:
+                if subprocess.call(args, stdout=fp, stderr=fp) != 0:
+                    raise Exception("Error building docker with: %s" % ' '.join(args))
+                self.dockerBuilt = True
 
-
-    def finish(self):
-        super(HTMLBuilder, self).finish()
-        message = "Done!"
+    def targetUsage(self):
         if self.debug:
             if self.useDocker:
-                message += " > docker run --rm --name %s -p%d:%d %s" % (self.dockerName, self.debugPort, self.debugPort, self.dockerIdentifier)
+                wwwPath = os.path.join(os.path.realpath(self.outputProjectPath), 'www')
+                return "docker run \\\n    --rm \\\n    --name %s \\\n    -p%d:%d \\\n    --mount type=bind,source=%s,target=/jskitapp/www \\\n    %s" % (self.dockerName, self.debugPort, self.debugPort, wwwPath, self.dockerIdentifier)
             else:
-                message += " > nginx -p %s" % os.path.relpath(self.outputProjectPath)
-        self.updateStatus(message)
+                return "nginx -p %s" % os.path.relpath(self.outputProjectPath)
 
 
 def _webpath(ospath):

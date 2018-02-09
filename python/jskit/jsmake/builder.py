@@ -23,7 +23,6 @@ class Builder(object):
     bundles = None
     mainBundle = None
     watchedFiles = None
-    statusIntro = ""
     statusMessage = ""
 
     def __init__(self, projectPath, includePaths, outputParentPath, debug=False):
@@ -38,6 +37,11 @@ class Builder(object):
         if watch:
             self._print("Automatically rebuilding when files change\n")
         self._build()
+        if self.debug:
+            usage = self.targetUsage()
+            if usage is not None:
+                usage = ("$ %s" % usage).encode('utf-8')
+                self._print(usage, overwriteStatus=watch)
         if watch:
             self.watchForChanges()
         self._print("\n")
@@ -46,28 +50,43 @@ class Builder(object):
         buildDate = datetime.datetime.now()
         self.buildID = unicode(hashlib.md5(buildDate.strftime(u"%Y-%m-%d-%H-%M-%S")).hexdigest())
         self.buildLabel = unicode(buildDate.strftime(u"%Y-%m-%d-%H-%M-%S"))
-        self.beginStatus()
+        self.updateStatus("Starting build...")
         self.build()
+        self.updateStatus("Done!")
 
-    def _print(self, message, flush=True):
+    def _print(self, message, reprintStatus=False, overwriteStatus=False):
+        if overwriteStatus:
+            reprintStatus = True
+        if not overwriteStatus and len(self.statusMessage) > 0:
+            self._print_raw("\n", flush=False)
+        if overwriteStatus:
+            self._erase(len(self.statusMessage))
+        self._print_raw(message)
+        if reprintStatus:
+            if len(message) > 0 and message[-1] != "\n":
+                self._print_raw("\n", flush=False)
+            self._print_raw(self.statusMessage)
+        else:
+            self.statusMessage = ""
+
+    def _print_raw(self, message, flush=True):
         sys.stdout.write(message)
-        sys.stdout.flush()
+        if flush:
+            sys.stdout.flush()
 
     def _erase(self, count, flush=False):
-        self._print("\x08" * count, flush=flush)
-        self._print(" " * count, flush=flush)
-        self._print("\x08" * count, flush=flush)
-
-    def beginStatus(self):
-        self._erase(len(self.statusIntro) + len(self.statusMessage))
-        self.statusIntro = (u"[build %s] " % self.buildLabel).encode('utf-8')
-        self.statusMessage = ""
-        self._print(self.statusIntro)
+        if sys.stdout.isatty():
+            self._print_raw("\x08" * count, flush=flush)
+            self._print_raw("\x1B[0K")
+        elif count > 0:
+            self._print_raw("\n")
 
     def updateStatus(self, message):
         self._erase(len(self.statusMessage))
-        self.statusMessage = message.encode('utf-8')
-        self._print(self.statusMessage)
+        prefix = u"[build %s] " % self.buildLabel
+        line = prefix + message
+        self.statusMessage = line.encode('utf-8')
+        self._print_raw(self.statusMessage)
 
     def build(self):
         pass
@@ -312,4 +331,7 @@ class Builder(object):
                 os.unlink(linkPath)
             os.symlink(os.path.relpath(self.outputProjectPath, os.path.dirname(linkPath)), linkPath)
         self.info = None
+
+    def targetUsage(self):
+        return None
 

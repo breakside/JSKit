@@ -10,11 +10,16 @@ JSClass("UIHTMLTextLine", JSTextLine, {
     element: null,
     _strutRun: null,
 
-    initWithDocument: function(domDocument, attributes){
-        UIHTMLTextLine.$super.init.call(this);
-        this.element = domDocument.createElement('div');
-        this.element.style.whiteSpace = 'pre';
+    initWithReusableElement: function(element, alignment){
+        UIHTMLTextLine.$super.initWithAlignment.call(this, alignment);
+        this.element = element;
+        this.element.style.textAlign = alignment;
+    },
+
+    initWithDocument: function(domDocument, alignment){
+        this.initWithReusableElement(domDocument.createElement('div'), alignment);
         this.element.dataset.uiText = "line";
+        this.element.style.whiteSpace = 'pre';
         this.element.style.position = "relative";
         this.element.style.lineHeight = '0';
 

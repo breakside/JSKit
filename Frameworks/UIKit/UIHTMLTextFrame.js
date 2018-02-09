@@ -9,11 +9,11 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
 
     element: null,
 
-    initWithDocument: function(domDocument, size){
+    initWithReusableElement: function(element, size){
         UIHTMLTextFrame.$super.initWithSize.call(this, size);
-        this.element = domDocument.createElement('div');
-        this.element.style.position = 'absolute';
-        this.element.dataset.uiText = "frame";
+        this.element = element;
+        this.element.style.width = '%dpx'.sprintf(this.size.width);
+        this.element.style.height = '%dpx'.sprintf(this.size.height);
 
         // this.shade = this.element.appendChild(domDocument.createElement('div'));
         // this.shade.style.position = 'absolute';
@@ -24,17 +24,16 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
         // this.shade.style.backgroundColor = 'rgba(255,0,0,0.3)';
     },
 
+    initWithDocument: function(domDocument, size){
+        this.initWithReusableElement(domDocument.createElement('div'), size);
+        this.element.style.position = 'absolute';
+        this.element.dataset.uiText = "frame";
+    },
+
     drawInContextAtPoint: function(context, point){
         this.element.style.left = '%dpx'.sprintf(point.x);
         this.element.style.top = '%dpx'.sprintf(point.y);
-        this.element.style.width = '%dpx'.sprintf(this.size.width);
-        this.element.style.height = '%dpx'.sprintf(this.size.height);
         context.addExternalElement(this.element);
-    },
-
-    reinitWithSize: function(size){
-        this._size = JSSize(size);
-        this._lines = [];
     },
 
     addLine: function(line){

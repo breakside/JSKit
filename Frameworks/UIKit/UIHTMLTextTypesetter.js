@@ -12,7 +12,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
     _reusableRuns: null,
 
     initWithDocument: function(domDocument){
-        UIHTMLTextTypesetter.$super.init();
+        UIHTMLTextTypesetter.$super.init.call(this);
         this._domDocument = domDocument;
         this._reusableLines = [];
         this._reusableRuns = [];
@@ -28,38 +28,40 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         this._reusableLines.push(line);
     },
 
-    dequeueResuableLine: function(attributes){
+    dequeueResuableLine: function(alignment){
         var line;
         if (this._reusableLines.length > 0){
             line = this._reusableLines.pop();
             this.enqueueReusableRuns(line.runs);
-            line.reinit(attributes);
-            return line;
+            this.enqueueReusableRun(line.strut);
+            line = UIHTMLTextLine.initWithReusableElement(line.element, alignment);
+        }else{
+            line = UIHTMLTextLine.initWithDocument(this.domDocument, alignment);
         }
-        return UIHTMLTextLine.initWithDocument(this.domDocument, attributes);
+        return line;
     },
 
     enqueueReusableRuns: function(runs){
         for (var i = runs.length - 1; i >= 0; --i){
-            this.enqueueResuableRun(runs[i]);
+            this.enqueueReusableRun(runs[i]);
         }
     },
 
-    enqueueResuableRun: function(run){
+    enqueueReusableRun: function(run){
         this._reusableRuns.push(run);
-        run.element.style.display = 'none';
+        // run.element.style.display = 'none';
     },
 
     dequeueResuableRun: function(attributes){
         var run;
         if (this._reusableRuns.length > 0){
             run = this._reusableRuns.pop();
-            run.styleUsingAttributes(attributes);
-            run.textNode.nodeValue = '';
-            run.element.style.display = '';
-            return run;
+            // run.element.style.display = '';
+            run = UIHTMLTextRun.initWithReusableElement(run.element, attributes);
+        }else{
+            run = UIHTMLTextRun.initWithDocument(this.domDocument, attributes);
         }
-        return UIHTMLTextRun.initWithDocument(this.domDocument, attributes);
+        return run;
     },
 
     cleanupUnusedElements: function(){
@@ -86,8 +88,8 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         }
     },
 
-    constructLine: function(attributes){
-        return this.dequeueResuableLine(attributes);
+    constructLine: function(alignment){
+        return this.dequeueResuableLine(alignment);
     },
 
     constructRun: function(attributes){

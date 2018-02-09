@@ -130,7 +130,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
                 this.element.insertBefore(element, this.element.childNodes[this._childInsertionIndex]);
             }
         }else{
-            if (element.parentNode !== this.element || element.nextSibling !== null){
+            if (element.parentNode !== this.element){
                 this.element.appendChild(element);
             }
         }

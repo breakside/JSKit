@@ -7,9 +7,9 @@
 
 JSClass("JSTextRun", JSObject, {
 
-    origin: JSReadOnlyProperty('_origin', JSPoint.Zero),
-    size: JSReadOnlyProperty('_size', JSSize.Zero),
-    range: JSReadOnlyProperty('_range', JSRange.Zero),
+    origin: JSReadOnlyProperty('_origin', null),
+    size: JSReadOnlyProperty('_size', null),
+    range: JSReadOnlyProperty('_range', null),
 
     initWithAttributes: function(attributes){
         this._origin = JSPoint.Zero;
@@ -18,6 +18,9 @@ JSClass("JSTextRun", JSObject, {
     },
 
     drawInContext: function(context){
+    },
+
+    addCharacters: function(utf16){
     },
 
     addUserPerceivedCharacter: function(utf16){

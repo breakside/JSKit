@@ -5,11 +5,11 @@
 JSClass("MainViewController", UIViewController, {
 
     viewDidLoad: function(){
-        MainViewController.$super.viewDidLoad();
+        MainViewController.$super.viewDidLoad.call(this);
     },
 
     viewDidAppear: function(){
-        MainViewController.$super.viewDidAppear();
+        MainViewController.$super.viewDidAppear.call(this);
     },
 
 });

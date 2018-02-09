@@ -12,20 +12,30 @@ JSClass("UIHTMLTextRun", JSTextRun, {
     element: null,
     textNode: null,
 
-    initWithDocument: function(domDocument, attributes){
-        UIHTMLTextRun.$super.initWithAttributes(attributes);
-        this.element = domDocument.createElement('span');
-        this.element.style.visibility = 'hidden';
-        domDocument.body.appendChild(this.element);
+    initWithReusableElement: function(element, attributes){
+        UIHTMLTextRun.$super.initWithAttributes.call(this, attributes);
+        this.element = element;
         this.element.style.display = 'inline';
         this.element.style.verticalAlign = 'baseline';
+        if (this.element.firstChild === null){
+            this.textNode = this.element.appendChild(element.ownerDocument.createTextNode(''));
+        }else{
+            this.textNode = this.element.firstChild;
+            this.textNode.nodeValue = '';
+        }
+        this.styleUsingAttributes(attributes);
+
+        if (sharedDomRange === null){
+            sharedDomRange = element.ownerDocument.createRange();
+        }
+    },
+
+    initWithDocument: function(domDocument, attributes){
+        this.initWithReusableElement(domDocument.createElement('span'), attributes);
+        domDocument.body.appendChild(this.element);
+        this.element.style.visibility = 'hidden';
         this.element.style.position = 'absolute';
         this.element.dataset.uiText = "run";
-        this.textNode = this.element.appendChild(domDocument.createTextNode(''));
-        this.styleUsingAttributes(attributes);
-        if (sharedDomRange === null){
-            sharedDomRange = domDocument.createRange();
-        }
 
         // this.shade = this.element.appendChild(domDocument.createElement('div'));
         // this.shade.style.position = 'absolute';
@@ -36,17 +46,22 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         // this.shade.style.backgroundColor = 'rgba(0,0,255,0.3)';
     },
 
+    addCharacters: function(utf16){
+        this.textNode.nodeValue += utf16;
+        this._updateSize();
+    },
+
     addUserPerceivedCharacter: function(utf16){
         this.textNode.nodeValue += utf16;
-        this.updateSize();
+        this._updateSize();
     },
 
     removeTrailingCharacter: function(utf16Width){
         this.textNode.nodeValue = this.textNode.nodeValue.substr(0, this.textNode.nodeValue.length - utf16Width);
-        this.updateSize();
+        this._updateSize();
     },
 
-    updateSize: function(){
+    _updateSize: function(){
         this.size.width = this.element.offsetWidth;
     },
 

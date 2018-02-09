@@ -13,16 +13,16 @@ JSClass("UIHTMLTextFramesetter", JSTextFramesetter, {
 
     initWithDocument: function(domDocument){
         this._htmlTypesetter = UIHTMLTextTypesetter.initWithDocument(domDocument);
-        UIHTMLTextFramesetter.$super.initWithTypesetter(this._htmlTypesetter);
+        UIHTMLTextFramesetter.$super.initWithTypesetter.call(this, this._htmlTypesetter);
         this._domDocument = domDocument;
     },
 
     constructFrame: function(size){
-        if (this._reusableFrame === null){
-            this._reusableFrame = UIHTMLTextFrame.initWithDocument(this.domDocument, size);
-        }else{
+        if (this._reusableFrame !== null){
             this._htmlTypesetter.enqueueReusableLines(this._reusableFrame.lines);
-            this._reusableFrame.reinitWithSize(size);
+            this._reusableFrame = UIHTMLTextFrame.initWithReusableElement(this._reusableFrame.element, size);
+        }else{
+            this._reusableFrame = UIHTMLTextFrame.initWithDocument(this.domDocument, size);
         }
         return this._reusableFrame;
     },

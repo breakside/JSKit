@@ -55,6 +55,8 @@ JSClass("JSAttributedString", JSObject, {
         var run;
         var runIndex;
         var l;
+        var locationAdjustment = string.length - range.length;
+        var fixRange = JSRange.Zero;
         if (range.length > 0){
             // For the delete case, we cut out any runs within the range
             // But we remember the attributes of the first run in the range,
@@ -63,21 +65,22 @@ JSClass("JSAttributedString", JSObject, {
             var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
             var attributes = this._runs[runRange.location].attributes;
             this._runs.splice(runRange.location, runRange.length);
+            runIndex = runRange.location;
             if (string.length > 0){
                 // If text is being inserted, add a new range with the attributes previously saved
                 run = JSAttributedStringRun(JSRange(range.location, string.length), attributes);
-                this._runs.splice(runRange.location, 0, run);
-                // Adjust following run locations
-                var locationAdjustment = string.length - range.length;
-                for (runIndex = runRange.location + 1, l = this._runs.length; runIndex < l; ++runIndex){
-                    this._runs[runIndex].range.location += locationAdjustment;
-                }
-                this._fixRunsInRunRange(JSRange(runRange.location, 1));
+                this._runs.splice(runIndex, 0, run);
+                ++runIndex;
             }else{
                 // If we cut out all the runs, make sure to add an empty initial run back
                 if (this._runs.length === 0){
                     this._runs = [JSAttributedStringRun(JSRange(0, 0), attributes)];
+                    return;
                 }
+            }
+            fixRange.location = runIndex;
+            if (runIndex < this._runs.length){
+                fixRange.length = 1;
             }
         }else if (string.length > 0){
             // For a simple insert case, where nothing is deleted, all we have to
@@ -89,9 +92,15 @@ JSClass("JSAttributedString", JSObject, {
             run = this._runs[runIndex];
             run.range.length += string.length;
             ++runIndex;
+        }
+        if (locationAdjustment !== 0){
+            // Adjust following run locations
             for (l = this._runs.length; runIndex < l; ++runIndex){
-                this._runs[runIndex].range.location += string.length;
+                this._runs[runIndex].range.location += locationAdjustment;
             }
+        }
+        if (fixRange.length > 0){
+            this._fixRunsInRunRange(fixRange);
         }
     },
 
@@ -167,6 +176,9 @@ JSClass("JSAttributedString", JSObject, {
     },
 
     runIterator: function(index){
+        if (index === undefined){
+            index = 0;
+        }
         return new JSAttributedStringRunIterator(this, index);
     },
 
@@ -181,10 +193,10 @@ JSClass("JSAttributedString", JSObject, {
         if (expandedRunRange.end < this._runs.length - 1){
             expandedRunRange.length += 1;
         }
-        var lastRunIndex = runRange.end - 1;
+        var lastRunIndex = expandedRunRange.end - 1;
         var runB = this._runs[lastRunIndex];
         var runA;
-        for (var runIndex = lastRunIndex - 1; runIndex >= runRange.location; --runIndex){
+        for (var runIndex = lastRunIndex - 1; runIndex >= expandedRunRange.location; --runIndex){
             runA = this._runs[runIndex];
             if (runA.hasIdenticalAttributes(runB)){
                 this._runs.splice(runIndex, 1);
@@ -322,6 +334,7 @@ JSAttributedStringRun.prototype = {
                 return false;
             }
         }
+        return true;
     }
 
 };

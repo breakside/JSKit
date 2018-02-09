@@ -56,12 +56,12 @@ JSClass("UITextField", UIView, {
 
     becomeFirstResponder: function(){
         // show cursor at insertion point
-        this.layer.addSublayer(this._respondingIndicatorLayer);
+        this._respondingIndicatorLayer.backgroundColor = JSColor.blackColor();
         this._localEditor.didBecomeFirstResponder();
     },
 
     resignFirstResponder: function(){
-        this._respondingIndicatorLayer.removeFromSuperlayer();
+        this._respondingIndicatorLayer.backgroundColor = JSColor.initWithWhite(0.8);
         this._localEditor.didResignFirstResponder();
     },
 
@@ -96,6 +96,7 @@ JSClass("UITextField", UIView, {
         var layer = UILayer.init();
         layer.backgroundColor = JSColor.blackColor();
         layer.constraintBox = JSConstraintBox({left: 0, bottom: 0, right: 0, height: 1});
+        this.layer.addSublayer(layer);
         return layer;
     },
 

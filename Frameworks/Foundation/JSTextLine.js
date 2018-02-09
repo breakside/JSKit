@@ -15,15 +15,11 @@ JSClass("JSTextLine", JSObject, {
     strut: JSReadOnlyProperty('_strut', null),
     runs: JSReadOnlyProperty('_runs', null),
 
-    init: function(){
+    initWithAlignment: function(alignment){
         this._origin = JSPoint.Zero;
         this._size = JSSize.Zero;
         this._usedSize = JSSize.Zero;
         this._range = JSRange.Zero;
-        this._runs = [];
-    },
-
-    reinit: function(){
         this._runs = [];
     },
 
@@ -117,16 +113,16 @@ JSClass("JSTextLine", JSObject, {
         while (min < max){
             mid = Math.floor(min + (max - min) / 2);
             run = this._runs[mid];
-            if (point.x < run.origin.s){
+            if (point.x < run.origin.x){
                 max = mid;
-            }else if (point.x >= run.origin.x + run.size.height){
+            }else if (point.x >= run.origin.x + run.size.width){
                 min = mid + 1;
             }else{
                 min = max = mid;
             }
         }
         if (min == this._runs.length){
-            return null;
+            return this._runs[min - 1];
         }
         return this._runs[min];
     }
