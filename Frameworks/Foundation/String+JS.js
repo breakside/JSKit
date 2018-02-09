@@ -467,7 +467,8 @@ Object.defineProperties(String.prototype, {
     ucFirst: {
         enumerable: false,
         value: function String_ucFirst(){
-            return this.charAt(0).toUpperCase() + this.substr(1);
+            var iterator = this.userPerceivedCharacterIterator();
+            return this.substr(0, iterator.range.length).toUpperCase() + this.substr(iterator.range.length);
         }
     },
 

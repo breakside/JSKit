@@ -17,7 +17,7 @@ StateProperty.prototype.define = function(C, key, extensions){
         return this.state[key];
     };
     var setter = function JSContext_setStateProperty(value){
-        this.model[key] = value;
+        this.state[key] = value;
     };
     Object.defineProperty(C.prototype, setterName, {
         configurable: false,

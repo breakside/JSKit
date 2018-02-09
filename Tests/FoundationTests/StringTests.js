@@ -445,6 +445,36 @@ JSClass('StringTests', TKTestSuite, {
         TKAssertEquals(utf8.bytes[1], 0x9f);
         TKAssertEquals(utf8.bytes[2], 0x98);
         TKAssertEquals(utf8.bytes[3], 0x80);
+    },
+
+    testUCFirst: function(){
+        var str = "test";
+        var upper = str.ucFirst();
+        TKAssertEquals(upper, "Test");
+
+        str = "TEST";
+        upper = str.ucFirst();
+        TKAssertEquals(upper, "TEST");
+
+        str = " test";
+        upper = str.ucFirst();
+        TKAssertEquals(upper, " test");
+
+        str = " test";
+        upper = str.ucFirst();
+        TKAssertEquals(upper, " test");
+
+        str = "😀";
+        upper = str.ucFirst();
+        TKAssertEquals(upper, "😀");
+
+        str = "ümlat";
+        upper = str.ucFirst();
+        TKAssertEquals(upper, "Ümlat");
+
+        str = "u\u0308mlat";
+        upper = str.ucFirst();
+        TKAssertEquals(upper, "U\u0308mlat");
     }
 
 });
