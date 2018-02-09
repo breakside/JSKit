@@ -70,6 +70,8 @@ class TestsBuilder(Builder):
                 else:
                     shutil.copy(outfile.fp.name, outputPath)
                 self.appJS.append(outputPath)
+            for importedPath in self.jsCompilation.importedScriptPaths():
+                self.watchFile(importedPath)
 
     def buildIndex(self):
         self.indexFile = open(os.path.join(self.outputProjectPath, 'tests.html'), 'w')
@@ -103,6 +105,9 @@ class TestsBuilder(Builder):
         super(TestsBuilder, self).finish()
         self.indexFile.close()
         self.indexFile = None
+
+    def targetUsage(self):
+        return "open %s" % os.path.relpath(os.path.join(self.outputProjectPath, 'tests.html'))
 
 
 def _webpath(ospath):

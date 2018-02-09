@@ -44,7 +44,7 @@ class Builder(object):
                 self._print(usage, overwriteStatus=watch)
         if watch:
             self.watchForChanges()
-        self._print("\n")
+        self._print_raw("\n")
 
     def _build(self):
         buildDate = datetime.datetime.now()

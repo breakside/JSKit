@@ -59,6 +59,17 @@ JSClass.prototype = {
     definePropertiesFromExtensions: function(extensions){
         for (var i in extensions){
             if (typeof(extensions[i]) == 'function'){
+                var superclassMethod = this.prototype[i];
+                if (superclassMethod){
+                    // We might be providing a function that should override the getter/setter
+                    // for a custom dynamic property.  For the the override to work properly,
+                    // the original property needs to be redefined on our new class.
+                    if (superclassMethod._JSCustomProperty){
+                        if (!extensions[superclassMethod._JSCustomPropertyKey] && !Object.hasOwnProperty(this.prototype, superclassMethod._JSCustomPropertyKey)){
+                            superclassMethod._JSCustomProperty.define(this, superclassMethod._JSCustomPropertyKey, extensions);
+                        }
+                    }
+                }
                 Object.defineProperty(this.prototype, i, {
                     configurable: true,
                     enumerable: false,
@@ -161,12 +172,12 @@ JSClass.prototype = {
 function JSCustomProperty(){
 }
 
-function JSDynamicProperty(key, value, getterName, setterName){
+function JSDynamicProperty(privateKey, initialValue, getterName, setterName){
     if (this === undefined){
-        return new JSDynamicProperty(key, value, getterName, setterName);
+        return new JSDynamicProperty(privateKey, initialValue, getterName, setterName);
     }else{
-        this.key = key;
-        this.value = value;
+        this.privateKey = privateKey;
+        this.initialValue = initialValue;
         this.getterName = getterName;
         this.setterName = setterName;
     }
@@ -174,31 +185,51 @@ function JSDynamicProperty(key, value, getterName, setterName){
 
 JSDynamicProperty.prototype = Object.create(JSCustomProperty.prototype);
 
-JSDynamicProperty.prototype.define = function(C, key, extensions){
-    var setterName = this.setterName || C.nameOfSetMethodForKey(key);
-    var getterName = this.getterName || C.nameOfGetMethodForKey(key);
-    if (this.key){
-        Object.defineProperty(C.prototype, this.key, {
+JSDynamicProperty.prototype.define = function(C, publicKey, extensions){
+    var setterName = this.setterName || C.nameOfSetMethodForKey(publicKey);
+    var getterName = this.getterName || C.nameOfGetMethodForKey(publicKey);
+    if (this.privateKey){
+        Object.defineProperty(C.prototype, this.privateKey, {
             configurable: true,
             enumerable: false,
             writable: true,
-            value: this.value
+            value: this.initialValue
         });
     }
-    var getter = extensions[getterName] || extensions[C.nameOfBooleanGetMethodForKey(key)];
-    var privateKey = this.key;
+    var getter = extensions[getterName] || extensions[C.nameOfBooleanGetMethodForKey(publicKey)];
+    var privateKey = this.privateKey;
     if (!getter){
-        getter = function JSDynamicProperty_get(){
-            return this[privateKey];
-        };
+        // getter = C.$super.prototype[getterName] || C.$super.prototype[C.nameOfBooleanGetMethodForKey(publicKey)];
+    }
+    if (!getter){
+        Object.defineProperty(C.prototype, getterName, {
+            configurable: true,
+            enumerable: false,
+            value: function JSDynamicProperty_get(){
+                return this[privateKey];
+            }
+        });
+        getter = C.prototype[getterName];
     }
     var setter = extensions[setterName];
     if (!setter){
-        setter = function JSDynamicProperty_set(value){
-            this[privateKey] = value;
-        };
+        // setter = C.$super.prototype[setterName];
     }
-    Object.defineProperty(C.prototype, key, {
+    if (!setter){
+        Object.defineProperty(C.prototype, setterName, {
+            configurable: true,
+            enumerable: false,
+            value: function JSDynamicProperty_set(value){
+                this[privateKey] = value;
+            }
+        });
+        setter = C.prototype[setterName];
+    }
+    getter._JSCustomProperty = this;
+    getter._JSCustomPropertyKey = publicKey;
+    setter._JSCustomProperty = this;
+    setter._JSCustomPropertyKey = publicKey;
+    Object.defineProperty(C.prototype, publicKey, {
         configurable: true,
         enumerable: false,
         get: getter,
@@ -209,59 +240,66 @@ JSDynamicProperty.prototype.define = function(C, key, extensions){
 function JSCustomProperty(){
 }
 
-function JSReadOnlyProperty(key, value, getterName){
+function JSReadOnlyProperty(privateKey, initialValue, getterName){
     if (this === undefined){
-        return new JSReadOnlyProperty(key, value, getterName);
+        return new JSReadOnlyProperty(privateKey, initialValue, getterName);
     }else{
-        this.key = key;
-        this.value = value;
+        this.privateKey = privateKey;
+        this.initialValue = initialValue;
         this.getterName = getterName;
     }
 }
 
 JSReadOnlyProperty.prototype = Object.create(JSCustomProperty.prototype);
 
-JSReadOnlyProperty.prototype.define = function(C, key, extensions){
-    var getterName = this.getterName || C.nameOfGetMethodForKey(key);
-    if (this.key){
-        Object.defineProperty(C.prototype, this.key, {
+JSReadOnlyProperty.prototype.define = function(C, publicKey, extensions){
+    var getterName = this.getterName || C.nameOfGetMethodForKey(publicKey);
+    if (this.privateKey){
+        Object.defineProperty(C.prototype, this.privateKey, {
             configurable: true,
             enumerable: false,
             writable: true,
-            value: this.value
+            value: this.initialValue
         });
     }
-    var privateKey = this.key;
-    var getter = extensions[getterName] || extensions[C.nameOfBooleanGetMethodForKey(key)];
+    var privateKey = this.privateKey;
+    var getter = extensions[getterName] || extensions[C.nameOfBooleanGetMethodForKey(publicKey)];
     if (!getter){
-        getter = function JSReadOnlyProperty_get(){
-            return this[privateKey];
-        };
+        Object.defineProperty(C.prototype, getterName, {
+            configurable: true,
+            enumerable: false,
+            value: function JSReadOnlyProperty_get(){
+                return this[privateKey];
+            }
+        });
+        getter = C.prototype[getterName];
     }
-    Object.defineProperty(C.prototype, key, {
+    getter._JSCustomProperty = this;
+    getter._JSCustomPropertyKey = publicKey;
+    Object.defineProperty(C.prototype, publicKey, {
         configurable: true,
         enumerable: false,
         get: getter
     });
 };
 
-function JSLazyInitProperty(methodName){
+function JSLazyInitProperty(propertyInitMethodName){
     if (this === undefined){
-        return new JSLazyInitProperty(methodName);
+        return new JSLazyInitProperty(propertyInitMethodName);
     }else{
-        this.methodName = methodName;
+        this.propertyInitMethodName = propertyInitMethodName;
     }
 }
 
 JSLazyInitProperty.prototype = Object.create(JSCustomProperty.prototype);
 
 JSLazyInitProperty.prototype.define = function(C, key, extensions){
-    var methodName = this.methodName;
+    var propertyInitMethodName = this.propertyInitMethodName;
     Object.defineProperty(C.prototype, key, {
         configurable: true,
         enumerable: false,
         get: function(){
-            var x = this[methodName]();
+            var x = this[propertyInitMethodName]();
             Object.defineProperty(this, key, {
                 configurable: false,
                 enumerable: false,
