@@ -1,7 +1,7 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UITextLayer.js"
 // #import "UIKit/UITextEditor.js"
-/* global JSClass, JSProtocol, UIView, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer */
+/* global JSClass, JSProtocol, UIView, JSRect, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer */
 
 'use strict';
 
@@ -12,11 +12,13 @@ JSProtocol("UITextFieldDelegate", JSProtocol, {
 JSClass("UITextField", UIView, {
 
     enabled: JSDynamicProperty('_enabled', true, 'isEnabled'),
-    text: UIViewLayerProperty(),
-    attributedText: UIViewLayerProperty(),
-    textColor: UIViewLayerProperty(),
-    font: UIViewLayerProperty(),
+    text: JSDynamicProperty(),
+    attributedText: JSDynamicProperty(),
+    textColor: JSDynamicProperty(),
+    font: JSDynamicProperty(),
+    multiline: JSDynamicProperty('_multiline', false, 'isMultiline'),
     delegate: null,
+    _textLayer: null,
     _respondingIndicatorLayer: JSLazyInitProperty('_createRespondingIndicatorLayer'),
     _localEditor: null,
 
@@ -36,14 +38,91 @@ JSClass("UITextField", UIView, {
 
     _commonViewInit: function(){
         UITextField.$super._commonViewInit.call(this);
-        this.layer.textAlignment = JSTextAlignment.Left;
-        this.layer.lineBreakMode = JSLineBreakMode.Clip;
-        this._localEditor = UITextEditor.initWithTextLayer(this.layer);
+        this.clipsToBounds = true;
+        this._textLayer = UITextLayer.init();
+        this._textLayer.delegate = this;
+        this._textLayer.textAlignment = JSTextAlignment.Left;
+        this._textLayer.lineBreakMode = JSLineBreakMode.Clip;
+        this._textLayer.sizeTracksText = true;
+        this._textLayer.maximumNumberOfLines = 1;
+        this._localEditor = UITextEditor.initWithTextLayer(this._textLayer);
+        this._localEditor.delegate = this;
+        this.layer.addSublayer(this._textLayer);
+    },
+
+    setMultiline: function(multiline){
+        this._multiline = multiline;
+        if (this._multiline){
+            this._textLayer.maximumNumberOfLines = 0;
+        }else{
+            this._textLayer.maximumNumberOfLines = 1;
+        }
+    },
+
+    setText: function(text){
+        this._textLayer.text = text;
+    },
+
+    getText: function(){
+        return this._textLayer.text;
+    },
+
+    setAttributedText: function(attributedText){
+        this._textLayer.attributedText = attributedText;
+    },
+
+    getAttributedText: function(){
+        return this._textLayer.attributedText;
+    },
+
+    setTextColor: function(textColor){
+        this._textLayer.textColor = textColor;
+    },
+
+    getTextColor: function(){
+        return this._textLayer.textColor;
+    },
+
+    setFont: function(font){
+        this._textLayer.font = font;
+    },
+
+    getFont: function(){
+        return this._textLayer.font;
     },
 
     layoutSublayersOfLayer: function(layer){
-        layer.layoutSublayers();
-        this._localEditor.layout();
+        if (layer === this.layer){
+            layer.layoutSublayers();
+            this._textLayer.frame = layer.bounds;
+        }else if (layer === this._textLayer){
+            this._textLayer.layoutSublayers();
+            this._localEditor.layout();
+        }
+    },
+
+    textEditorDidPositionCursors: function(){
+        this._adjustTextPositionIfNeeded();
+    },
+
+    _adjustTextPositionIfNeeded: function(){
+        var cursorRect = this.layer.convertRectFromLayer(this._localEditor.insertionRect(), this._textLayer);
+        var adjustment = 0;
+        if ((cursorRect.origin.x < 0) || ((cursorRect.origin.x + cursorRect.size.width) > this.bounds.size.width)){
+            adjustment = this.bounds.size.width / 2.0 - cursorRect.origin.x;
+        }
+        var size = this._textLayer.frame.size;
+        var origin = JSPoint(this._textLayer.frame.origin.x + adjustment, this._textLayer.frame.origin.y);
+        if (origin.x + size.width < this.bounds.size.width){
+            origin.x = this.bounds.size.width - size.width;
+        }
+        if (origin.x > 0){
+            origin.x = 0;
+        }
+        var newFrame = JSRect(origin, size);
+        if (!this._textLayer.frame.isEqual(newFrame)){
+            this._textLayer.frame = newFrame;
+        }
     },
 
     canBecomeFirstResponder: function(){
@@ -73,7 +152,7 @@ JSClass("UITextField", UIView, {
             this.window.setFirstResponder(this);
         }
         var location = event.locationInView(this);
-        this._localEditor.handleMouseDownAtLocation(location);
+        this._localEditor.handleMouseDownAtLocation(this.layer.convertPointToLayer(location, this._textLayer));
     },
 
     mouseDragged: function(event){
@@ -81,7 +160,7 @@ JSClass("UITextField", UIView, {
             return UITextField.$super.mouseDragged.call(this, event);
         }
         var location = event.locationInView(this);
-        this._localEditor.handleMouseDraggedAtLocation(location);
+        this._localEditor.handleMouseDraggedAtLocation(this.layer.convertPointToLayer(location, this._textLayer));
     },
 
     mouseUp: function(event){
@@ -89,7 +168,7 @@ JSClass("UITextField", UIView, {
             return UITextField.$super.mouseUp.call(this, event);
         }
         var location = event.locationInView(this);
-        this._localEditor.handleMouseUpAtLocation(location);
+        this._localEditor.handleMouseUpAtLocation(this.layer.convertPointToLayer(location, this._textLayer));
     },
 
     _createRespondingIndicatorLayer: function(){
@@ -112,10 +191,13 @@ JSClass("UITextField", UIView, {
     },
 
     insertNewline: function(){
-        this._localEditor.insertNewline();
-        // if (this.delegate && this.delegate.textFieldDidRecieveEnter){
-        //     this.delegate.textFieldDidRecieveEnter(this);
-        // }
+        if (this.multiline){
+            this._localEditor.insertNewline();
+        }else{
+            if (this.delegate && this.delegate.textFieldDidRecieveEnter){
+                this.delegate.textFieldDidRecieveEnter(this);
+            }
+        }
     },
 
     insertTab: function(){
@@ -245,5 +327,3 @@ JSClass("UITextField", UIView, {
     }
 
 });
-
-UITextField.layerClass = UITextLayer;

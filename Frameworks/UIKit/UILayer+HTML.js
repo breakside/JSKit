@@ -18,6 +18,7 @@ UILayer.definePropertiesFromExtensions({
         this.updateHTMLProperty_bounds(context);
         this.updateHTMLProperty_transform(context);
         this.updateHTMLProperty_hidden(context);
+        this.updateHTMLProperty_clipsToBounds(context);
         this.updateHTMLProperty_alpha(context);
         this.updateHTMLProperty_backgroundColor(context);
         this.updateHTMLProperty_borderWidth(context);
@@ -46,6 +47,10 @@ UILayer.definePropertiesFromExtensions({
 
     updateHTMLProperty_hidden: function(context){
         context.style.display = this.presentation.hidden ? 'none' : '';
+    },
+
+    updateHTMLProperty_clipsToBounds: function(context){
+        context.style.overflow = this._clipsToBounds ? 'hidden' : '';
     },
 
     updateHTMLProperty_alpha: function(context){

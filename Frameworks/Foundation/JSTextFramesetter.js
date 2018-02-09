@@ -32,11 +32,17 @@ JSClass("JSTextFramesetter", JSObject, {
             line.origin.y = origin.y;
             origin.y += line.size.height;
             // TODO: any line spacing?
-            if (origin.y <= size.height){
+            if (size.height === 0 || origin.y <= size.height){
                 frame.addLine(line);
                 range.advance(line.range.length);
             }
         } while (line.range.length > 0 && range.length > 0 && (size.height === 0 || origin.y < size.height) && (maximumLines === 0 || frame.lines.length == maximumLines));
+        if (frame.size.width === 0){
+            frame.size.width = frame.usedSize.width;
+        }
+        if (frame.size.height === 0){
+            frame.size.height = frame.usedSize.height;
+        }
         frame.range.length = range.location - frame.range.location;
         return frame;
     },

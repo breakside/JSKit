@@ -45,6 +45,7 @@ JSClass('UIView', UIResponder, {
     constraintBox:      UIViewLayerProperty(),
     transform:          UIViewLayerProperty(),
     hidden:             UIViewLayerProperty(),
+    clipsToBounds:      UIViewLayerProperty(),
     alpha:              UIViewLayerProperty(),
     backgroundColor:    UIViewLayerProperty(),
     backgroundGradient: UIViewLayerProperty(),

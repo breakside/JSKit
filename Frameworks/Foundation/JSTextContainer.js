@@ -13,6 +13,7 @@ JSClass("JSTextContainer", JSObject, {
     textAlignment: JSDynamicProperty('_textAlignment', JSTextAlignment.Left),
     textLayoutManager: JSDynamicProperty('_textLayoutManager', null),
     maximumNumberOfLines: JSDynamicProperty('_maximumNumberOfLines', 0),
+    sizeTracksText: JSDynamicProperty('_sizeTracksText', false),
     framesetter: null,
     textFrame: JSReadOnlyProperty('_textFrame', null),
 
@@ -23,9 +24,12 @@ JSClass("JSTextContainer", JSObject, {
     },
 
     setSize: function(size){
+        var notify = !this._sizeTracksText || (this._maximumNumberOfLines === 0 && size.width != this._size.width);
         if (size.width != this._size.width || size.height != this._size.height){
             this._size = JSSize(size);
-            this._notifyLayoutManager();
+            if (notify){
+                this._notifyLayoutManager();
+            }
         }
     },
 
@@ -48,8 +52,28 @@ JSClass("JSTextContainer", JSObject, {
         }
     },
 
+    setSizeTracksText: function(sizeTracksText){
+        if (sizeTracksText != this._sizeTracksText){
+            this._sizeTracksText = sizeTracksText;
+            this._notifyLayoutManager();
+        }
+    },
+
     createTextFrame: function(attributedString, range){
-        this._textFrame = this.framesetter.createFrame(this.size, attributedString, range, this._maximumNumberOfLines, this._lineBreakMode, this._textAlignment);
+        var size = JSSize(this.size);
+        if (this._sizeTracksText){
+            size.height = 0;
+            if (this._maximumNumberOfLines !== 0){
+                size.width = 0;
+            }
+        }
+        this._textFrame = this.framesetter.createFrame(size, attributedString, range, this._maximumNumberOfLines, this._lineBreakMode, this._textAlignment);
+        if (this._sizeTracksText){
+            this.size.height = this._textFrame.height;
+            if (this._maximumNumberOfLines !== 0){
+                this.size.width = this._textFrame.width;
+            }
+        }
     },
 
     characterIndexAtPoint: function(point){

@@ -12,8 +12,6 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
     initWithReusableElement: function(element, size){
         UIHTMLTextFrame.$super.initWithSize.call(this, size);
         this.element = element;
-        this.element.style.width = '%dpx'.sprintf(this.size.width);
-        this.element.style.height = '%dpx'.sprintf(this.size.height);
 
         // this.shade = this.element.appendChild(domDocument.createElement('div'));
         // this.shade.style.position = 'absolute';
@@ -33,6 +31,8 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
     drawInContextAtPoint: function(context, point){
         this.element.style.left = '%dpx'.sprintf(point.x);
         this.element.style.top = '%dpx'.sprintf(point.y);
+        this.element.style.width = '%dpx'.sprintf(this.size.width);
+        this.element.style.height = '%dpx'.sprintf(this.size.height);
         context.addExternalElement(this.element);
     },
 

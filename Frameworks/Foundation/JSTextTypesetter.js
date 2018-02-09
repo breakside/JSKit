@@ -60,6 +60,7 @@ JSClass("JSTextTypesetter", JSObject, {
                 line.addRun(run);
                 runIterator.increment();
             } while (range.length > 0);
+            line.size.width = line.usedSize.width;
         }else{
             do {
                 run = this._createRun(width - x, attributedString.string, range.intersection(runIterator.range), runIterator.attributes, lineBreakMode);

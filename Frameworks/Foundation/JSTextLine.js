@@ -30,14 +30,14 @@ JSClass("JSTextLine", JSObject, {
 
     addRun: function(run){
         this._runs.push(run);
-        if (run.size.height > this._usedSize.height){
-            this._usedSize.height = run.size.height;
+        if (run.origin.y + run.size.height > this._usedSize.height){
+            this._usedSize.height = run.origin.y + run.size.height;
         }
-        if (run.size.height > this._size.height){
-            this._size.height = run.size.height;
+        if (this._usedSize.height > this._size.height){
+            this._size.height = this._usedSize.height;
         }
-        if (run.x + run.size.width > this._usedSize.width){
-            this._usedSize.width = run.x + run.size.width;
+        if (run.origin.x + run.size.width > this._usedSize.width){
+            this._usedSize.width = run.origin.x + run.size.width;
         }
     },
 

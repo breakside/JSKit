@@ -25,6 +25,9 @@ JSClass("JSTextFrame", JSObject, {
         if (line.origin.y + line.size.height > this._usedSize.height){
             this._usedSize.height = line.origin.y + line.size.height;
         }
+        if (line.origin.x + line.size.width > this._usedSize.width){
+            this._usedSize.width = line.origin.x + line.size.width;
+        }
     },
 
     drawInContextAtPoint: function(context, point){

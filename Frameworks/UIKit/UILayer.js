@@ -58,6 +58,7 @@ JSClass("UILayer", JSObject, {
     shadowColor:        UILayerAnimatedProperty(),
     shadowOffset:       UILayerAnimatedProperty(),
     shadowRadius:       UILayerAnimatedProperty(),
+    clipsToBounds:      JSDynamicProperty('_clipsToBounds'),
     model:              null,
     presentation:       null,
     superlayer:         null,
@@ -151,6 +152,15 @@ JSClass("UILayer", JSObject, {
         if (!bounds.origin.isEqual(oldBounds.origin)){
             this.boundsOriginDidChange();
         }
+    },
+
+    getClipsToBounds: function(){
+        return this._clipsToBounds;
+    },
+
+    setClipsToBounds: function(clipsToBounds){
+        this._clipsToBounds = true;
+        this.didChangeProperty('clipsToBounds');
     },
 
     boundsOriginDidChange: function(){

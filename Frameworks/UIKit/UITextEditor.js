@@ -7,6 +7,7 @@ JSClass("UITextEditor", JSObject, {
 
     textLayer: null,
     selections: null,
+    delegate: null,
     _cursorBlinkRate: 0.5,
     _cursorOffTimeout: null,
     _cursorOnTimeout: null,
@@ -85,6 +86,13 @@ JSClass("UITextEditor", JSObject, {
         }
     },
 
+    insertionRect: function(){
+        if (this.selections.length === 0){
+            return JSRect.Zero;
+        }
+        return this.selections[this.selections.length - 1].cursorLayer.frame;
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Cursor blinking
 
@@ -116,6 +124,9 @@ JSClass("UITextEditor", JSObject, {
         }
         this._cancelCursorTimers();
         this._cursorOn();
+        if (this.delegate && this.delegate.textEditorDidPositionCursors){
+            this.delegate.textEditorDidPositionCursors();
+        }
     },
 
     _cursorOff: function(){
@@ -518,6 +529,7 @@ JSClass("UITextEditor", JSObject, {
     },
 
     moveToEndOfLine: function(){
+        // TODO:
     },
 
     moveDown: function(){
