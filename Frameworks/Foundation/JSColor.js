@@ -1,33 +1,74 @@
 // #import "Foundation/JSObject.js"
-/* global JSClass, JSObject, JSColor */
+/* global JSClass, JSObject, JSCustomProperty, JSColor, JSReadOnlyProperty */
 'use strict';
 
+(function(){
+
+var ColorComponentProperty = function(){
+    if (this === undefined){
+        return new ColorComponentProperty();
+    }
+};
+
+ColorComponentProperty.prototype = Object.create(JSCustomProperty.prototype);
+
+ColorComponentProperty.prototype.define = function(C, publicKey, extensions){
+    var component = this.component;
+    var space = this.space;
+    Object.defineProperty(C.prototype, publicKey, {
+        enumerable: true,
+        configurable: false,
+        get: function JSColor_getComponent(){
+            var component = SpaceComponentMap[this._colorSpace][publicKey];
+            if (component === undefined){
+                return undefined;
+            }
+            return this._components[component];
+        },
+        set: function JSColor_setComponent(value){
+            var component = SpaceComponentMap[this._colorSpace][publicKey];
+            if (component === undefined){
+                SpaceComponentMap[this._colorSpace][publicKey] = value;
+            }
+        }
+    });
+};
+
 JSClass('JSColor', JSObject, {
-    colorSpace: null,
-    components: null,
+    colorSpace: JSReadOnlyProperty('_colorSpace'),
+    components: JSReadOnlyProperty('_components'),
+
+    red: ColorComponentProperty(),
+    green: ColorComponentProperty(),
+    blue: ColorComponentProperty(),
+    hue: ColorComponentProperty(),
+    saturation: ColorComponentProperty(),
+    lightness: ColorComponentProperty(),
+    alpha: ColorComponentProperty(),
+    white: ColorComponentProperty(),
 
     init: function(){
         this.initWithRGBA();
     },
 
     initWithSpaceAndComponents: function(colorSpace, components){
-        this.colorSpace = colorSpace;
-        this.components = components;
+        this._colorSpace = colorSpace;
+        this._components = components;
     },
 
     initWithRGBA: function(r, g, b, a){
-        this.colorSpace = JSColor.SpaceIdentifier.RGBA;
+        this._colorSpace = JSColor.SpaceIdentifier.RGBA;
         if (r === undefined) r = 0;
         if (g === undefined) g = 0;
         if (b === undefined) b = 0;
         if (a === undefined) a = 1.0;
-        this.components = [r,g,b,a];
+        this._components = [r,g,b,a];
     },
 
     initWithWhite: function(w){
-        this.colorSpace = JSColor.SpaceIdentifier.GRAY;
+        this._colorSpace = JSColor.SpaceIdentifier.GRAY;
         if (w === undefined) w = 0;
-        this.components = [w];
+        this._components = [w];
     },
 
     initWithSpec: function(spec, values){
@@ -46,7 +87,7 @@ JSClass('JSColor', JSObject, {
         }else if (values.white){
             this.initWithWhite(values.white);
         }
-    }
+    },
 
 });
 
@@ -57,6 +98,13 @@ JSColor.SpaceIdentifier = {
     HSL: 'hsl',
     GRAY: 'gray'
 };
+
+var SpaceComponentMap = {};
+SpaceComponentMap[JSColor.SpaceIdentifier.RGB] = { 'red': 0, 'green': 1, 'blue': 2 };
+SpaceComponentMap[JSColor.SpaceIdentifier.RGBA] = { 'red': 0, 'green': 1, 'blue': 2, 'alpha': 3 };
+SpaceComponentMap[JSColor.SpaceIdentifier.HSL] = { 'hue': 0, 'saturation': 1, 'lightness': 2 };
+SpaceComponentMap[JSColor.SpaceIdentifier.HSLA] = { 'hue': 0, 'saturation': 1, 'lightness': 2, 'alpha': 3 };
+SpaceComponentMap[JSColor.SpaceIdentifier.GRAY] = { 'white': 0 };
 
 JSColor.clearColor = function(){
     return JSColor.initWithRGBA(0, 0, 0, 0);
@@ -81,3 +129,5 @@ JSColor.greenColor = function(){
 JSColor.blueColor = function(){
     return JSColor.initWithRGBA(0, 0, 1.0);
 };
+
+})();

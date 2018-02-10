@@ -37,8 +37,8 @@ class TestsBuilder(Builder):
     def setup(self):
         super(TestsBuilder, self).setup()
         self.outputProductPath = os.path.join(self.outputProjectPath, self.buildID)
-        if self.debug:
-            shutil.rmtree(self.outputProjectPath)
+        if os.path.exists(self.outputProductPath) and self.debug:
+            shutil.rmtree(self.outputProductPath)
         os.makedirs(self.outputProductPath)
         self.appJS = []
 

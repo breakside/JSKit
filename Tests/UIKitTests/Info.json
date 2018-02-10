@@ -1,0 +1,8 @@
+{
+    "JSBundleType": "tests",
+    "JSBundleIdentifier": "com.owenshaw.JSKit.UIKitTests",
+    "JSBundleDisplayName": "UIKitTests",
+    "JSIncludes": [
+        "UIKit/UIKit+HTML.js"
+    ]
+}

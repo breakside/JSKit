@@ -45,7 +45,12 @@ JSClass('TKTestRun', JSObject, {
         try{
             var suiteInstance = suite.init();
             suiteInstance.setup();
-            suiteInstance[testName]();
+            try{
+                suiteInstance[testName]();
+            }catch (e){
+                suiteInstance.teardown();
+                throw e;
+            }
             suiteInstance.teardown();
             result = TKTestResult.initWithNamesAndResult(suite.className, testName, TKTestResult.Passed);
         }catch (e){

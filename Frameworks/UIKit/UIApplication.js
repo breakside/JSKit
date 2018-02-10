@@ -4,20 +4,28 @@
 /* global JSGlobalObject, JSClass, JSObject, UIResponder, UIApplication, UIWindowServer, JSBundle, JSFont, JSSpec, JSClassFromName, JSDynamicProperty, JSReadOnlyProperty, UIEvent  */
 'use strict';
 
+(function(){
+
+var sharedApplication = null;
+
 JSClass('UIApplication', UIResponder, {
 
     keyWindow: JSDynamicProperty(),
     windows: null,
     windowServer: null,
 
-    init: function(){
-        if (UIApplication._sharedApplication){
+    initWithWindowServer: function(windowServer){
+        if (sharedApplication){
             throw new Error("UIApplication.init: one application already initialized, and only one may exist");
         }
-        UIApplication._sharedApplication = this;
+        sharedApplication = this;
         this.windows = [];
-        this.windowServer = UIWindowServer.defaultServer;
+        this.windowServer = windowServer;
         this.windowServer.application = this;
+    },
+
+    deinit: function(){
+        sharedApplication = null;
     },
 
     run: function(){
@@ -86,16 +94,12 @@ UIApplication.InfoKeys = {
 Object.defineProperty(UIApplication, 'sharedApplication', {
     configurable: true,
     get: function UIApplication_getSharedApplication(){
-        var application = UIApplication.init();
-        Object.defineProperty(UIApplication, 'sharedApplication', {
-            value: application
-        });
-        return application;
+        return sharedApplication;
     }
 });
 
 JSGlobalObject.UIApplicationMain = function UIApplicationMain(){
-    var application = UIApplication.sharedApplication;
+    var application = UIApplication.initWithWindowServer(UIWindowServer.defaultServer);
     JSFont.registerBundleFonts(JSBundle.mainBundle);
     var info = JSBundle.mainBundle.info();
     if (info[UIApplication.InfoKeys.MainDefinitionResource]){
@@ -109,3 +113,5 @@ JSGlobalObject.UIApplicationMain = function UIApplicationMain(){
     }
     application.run();
 };
+
+})();

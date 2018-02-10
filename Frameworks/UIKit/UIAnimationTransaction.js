@@ -33,7 +33,7 @@ JSClass('UIAnimationTransaction', JSObject, {
         var animation;
         for (var i = 0, l = this.animations.length; i < l; ++i){
             animation = this.animations[i];
-            UIDisplayServer.defaultServer.setLayerNeedsAnimation(animation.layer);
+            animation.layer.setLayerNeedsAnimation();
         }
     }
 });

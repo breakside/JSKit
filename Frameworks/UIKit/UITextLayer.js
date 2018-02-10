@@ -30,7 +30,7 @@ JSClass("UITextLayer", UILayer, {
         this._displayTextLayoutManager = JSTextLayoutManager.init();
         this._displayTextLayoutManager.delegate = this;
         this._displayTextContainer = JSTextContainer.initWithSize(this._availableTextSize());
-        this._displayTextContainer.framesetter = UIWindowServer.defaultServer.displayServer.createTextFramesetter();
+        this._displayTextContainer.framesetter = null;
         this._textStorage = JSTextStorage.init();
         this._textStorage.addLayoutManager(this._displayTextLayoutManager);
         this._displayTextLayoutManager.addTextContainer(this._displayTextContainer);
@@ -166,7 +166,12 @@ JSClass("UITextLayer", UILayer, {
 
     layoutSublayers: function(){
         UITextLayer.$super.layoutSublayers.call(this);
-        this._displayTextLayoutManager.layoutIfNeeded();
+        if (this._displayServer !== null){
+            if (this._displayTextContainer.framesetter === null){
+                this._displayTextContainer.framesetter = this._displayServer.createTextFramesetter();
+            }
+            this._displayTextLayoutManager.layoutIfNeeded();
+        }
         if (this.sizeTracksText && this._displayTextContainer.textFrame !== null){
             this.bounds = JSRect(
                 0,

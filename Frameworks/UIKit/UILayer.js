@@ -465,7 +465,13 @@ JSClass("UILayer", JSObject, {
         }
         this.animationsByKey[key] = animation;
         animation.layer = this;
-        if (!UIAnimationTransaction.currentTransaction && this._displayServer !== null){
+        if (!UIAnimationTransaction.currentTransaction){
+            this.setNeedsAnimation();
+        }
+    },
+
+    setNeedsAnimation: function(){
+        if (this._displayServer !== null){
             this._displayServer.setLayerNeedsAnimation(this);
         }
     },

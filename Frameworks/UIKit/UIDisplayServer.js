@@ -71,7 +71,7 @@ JSClass("UIDisplayServer", JSObject, {
     // -------------------------------------------------------------------------
     // MARK: - Display
 
-    contextForLayer: function(){
+    contextForLayer: function(layer){
         throw new Error("UIDisplayServer.contextForLayer must be implemented by subclass");
     },
 

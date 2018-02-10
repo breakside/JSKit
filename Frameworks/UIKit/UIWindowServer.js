@@ -54,7 +54,7 @@ JSClass("UIWindowServer", JSObject, {
 
     createMouseEvent: function(type, timestamp, location){
         if (this.mouseDownWindow === null && (type === UIEvent.Type.LeftMouseDown || type === UIEvent.Type.RightMouseDown)){
-            this.mouseDownWindow = UIWindowServer.defaultServer.windowAtScreenLocation(location);
+            this.mouseDownWindow = this.windowAtScreenLocation(location);
             this.mouseDownType = type;
         }
         if (this.mouseDownWindow !== null){
