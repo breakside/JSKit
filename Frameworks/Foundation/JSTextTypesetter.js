@@ -1,142 +1,198 @@
 // #import "Foundation/JSObject.js"
-/* global JSClass, JSObject, JSTextTypesetter, JSRange, JSTextAlignment, JSTextLine, JSTextRun, JSPoint, JSAttributedString, JSFont, jslog_create */
+/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSTextGlyphStorage, JSTextTypesetter, JSSize, JSRange, JSTextAlignment, JSTextLine, JSTextRun, JSPoint, JSAttributedString, JSFont, jslog_create */
 'use strict';
 
 (function(){
 
 var logger = jslog_create("com.owenshaw.AlohaKit.typesetter");
 
+JSClass("JSTextGlyphStorage", JSObject, {
+
+    font: null,
+    width: 0,
+    range: null,
+
+    initWithFont: function(font, location){
+        this.font = font;
+        this.range = JSRange(location, 0);
+    },
+
+    fontContainingCharacter: function(character){
+        if (this.font.containsGlyphForCharacter(character.code)){
+            return this.font;
+        }
+        var i = 0;
+        while (i < this.fallbackFonts.length){
+            if (this.fallbackFonts[i].containsGlyphForCharacter(character.code)){
+                return this.fallbackFonts[i];
+            }
+        }
+        return this.font;
+    },
+
+    push: function(utf16){
+        // TODO: normalizing iterator?
+        var iterator = utf16.unicodeIterator();
+        var startingFont = this.fontContainingCharacter(iterator.character);
+        while (iterator.character !== null){
+            this.width += this.font.widthOfCharacter(iterator.character.code);
+            iterator.increment();
+        }
+    },
+
+    pop: function(){
+    }
+
+});
+
 JSClass("JSTextTypesetter", JSObject, {
+
+    attributedString: JSDynamicProperty('_attributedString'),
 
     init: function(){
     },
 
-    constructLine: function(alignment){
-        return JSTextLine.initWithAlignment(alignment);
+    constructLine: function(runs, origin, width, textAlignment){
+        return JSTextLine.initWithRuns(runs, origin, width, textAlignment);
     },
 
-    constructRun: function(attributes){
-        return JSTextRun.initWithAttributes(attributes);
+    constructAttachmentRun: function(attachment, size){
+        return JSTextRun.initWithAttachment(attachment, size);
     },
 
-    createLine: function(width, attributedString, range, lineBreakMode, textAlignment){
-        range = JSRange(range);
-        var runIterator = attributedString.runIterator(range.location);
-        var line = this.constructLine(textAlignment);
-        var strut = this.constructRun(runIterator.attributes);
-        strut.addUserPerceivedCharacter('\u200B');
-        strut.range.location = range.location;
-        strut.range.length = 0;
-        strut.origin.x = 0;
-        line.addStrut(strut);
-        line.size.width = width;
-        line.range.location = range.location;
+    constructRun: function(glyphStorage, attributes){
+        return JSTextRun.initWithGlyphStorage(glyphStorage, attributes);
+    },
+
+    constructGlyphStorage: function(font, location){
+        return JSTextGlyphStorage.initWithFont(font, location);
+    },
+
+    createLine: function(origin, width, range, lineBreakMode, textAlignment){
         if (range.length === 0){
-            line.range.length = 0;
-            return line;
+            return this._createEmptyLine(origin, width, range, textAlignment);
         }
+        if (width === 0){
+            return this._createUnconstrainedLine(origin, width, this._unconstrainedLineRange(range));
+        }
+        return this._createConstraintedLine();
+    },
+
+    _createEmptyLine: function(origin, width, range, textAlignment){
+        var attributes = this._attributedString.attributesAtIndex(range.location);
+        var font = JSTextTypesetter.FontFromAttributes(attributes);
+        var glyphStorage = this.constructGlyphStorage(font, range.location);
+        glyphStorage.push('\u200B');
+        var run = this.constructRun(glyphStorage, attributes);
+        return this.constructLine([run], origin, width, textAlignment);
+    },
+
+    _unconstrainedLineRange: function(range){
+        var i = range.location;
+        var l = range.end;
+        while (i < l){
+            ++i;
+            if (this._attributedString.string[i] == "\n"){
+                break;
+            }
+        }
+        return JSRange(range.location, i - range.location);
+    },
+
+    _createUnconstrainedLine: function(origin, width, range){
+        // No need to worry about line breaking, just make a line from the given range
+        var runs = [];
+        var run;
+        var x = 0;
+        var runIterator = this._attributedString.runIterator(range.location);
+        var remainingRange = JSRange(range);
+        do {
+            run = this._createUnconstrainedRun(remainingRange.intersection(runIterator.range), runIterator.attributes);
+            run.origin.x = x;
+            x += run.size.width;
+            runs.push(run);
+            remainingRange.advance(run.range.length);
+            runIterator.increment();
+        } while (remainingRange.length > 0);
+        // text alignment doesn't matter here because the line is only as wide as its content, so
+        // there's no room to adjust the run layout.
+        return this.constructLine(runs, origin, width, JSTextAlignment.Left);
+    },
+
+    _createUnconstrainedRun: function(range, attributes){
+        var iterator = this._attributedString.string.unicodeIterator(range.location);
+
+        // 1. Attachment Run
+        if (range.length === 1 && iterator.character.code == JSAttributedString.SpecialCharacter.Attachment){
+            // TODO: get attachment & size
+            var attachment = null;
+            var size = null;
+            return this.constructAttachmentRun(attachment, size);
+        }
+
+        // 2. Glyph Run
+        var font = JSTextTypesetter.FontFromAttributes(attributes);
+        var glyphStorage = this.constructGlyphStorage(font, range.location);
+        glyphStorage.push(this._attributedString.string.substringInRange(range));
+        return this.constructRun(glyphStorage, attributes);
+    },
+
+    _createConstraintedLine: function(origin, width, range, lineBreakMode, textAlignment){
+        var remainingRange = JSRange(range);
+        var runIterator = this._attributedString.runIterator(range.location);
+        var runs = [];
         var run;
         var i, l;
         var x = 0;
-        if (width === 0){
-            // If the width in unconstrainted, then the line can only end at a new line character,
-            // and we can optimize the run creation to do entire runs at a time instead of character
-            // by character.
-            var str = attributedString.string;
-            i = range.location;
-            l = range.end;
-            while (i < l){
-                ++i;
-                if (attributedString.string[i] == "\n"){
-                    break;
-                }
+        do {
+            run = this._createConstrainedRun(width - x, remainingRange.intersection(runIterator.range), runIterator.attributes, lineBreakMode);
+            run.origin.x = x;
+            x += run.size.width;
+            if (run.range.length > 0){
+                remainingRange.advance(run.range.length);
+                runs.push(run);
             }
-            range.length = i - range.location;
-            do {
-                run = this._createRun(0, attributedString.string, range.intersection(runIterator.range), runIterator.attributes, lineBreakMode);
-                run.origin.x = x;
-                x += run.size.width;
-                range.advance(run.range.length);
-                line.addRun(run);
+            if (remainingRange.location == runIterator.range.end){
                 runIterator.increment();
-            } while (range.length > 0);
-            line.size.width = line.usedSize.width;
-        }else{
-            do {
-                run = this._createRun(width - x, attributedString.string, range.intersection(runIterator.range), runIterator.attributes, lineBreakMode);
-                run.origin.x = x;
-                x += run.size.width;
-                if (run.range.length > 0){
-                    range.advance(run.range.length);
-                    line.addRun(run);
-                }
-                if (range.location == runIterator.range.end){
-                    runIterator.increment();
-                }
-            } while (run.range.length > 0 && range.length > 0 && (width === 0 || x < width) && attributedString.string[range.location - 1] != "\n");
-            switch (textAlignment){
-                case JSTextAlignment.Left:
-                    break;
-                case JSTextAlignment.Center:
-                    for (i = 0, l = line.runs.length; i < l; ++i){
-                        line.runs[i].origin.x += (line.size.width - line.usedSize.width) / 2.0;
-                    }
-                    break;
-                case JSTextAlignment.Right:
-                    for (i = 0, l = line.runs.length; i < l; ++i){
-                        line.runs[i].origin.x += (line.size.width - line.usedSize.width);
-                    }
-                    break;
-                case JSTextAlignment.Justify:
-                    // TODO: ugh
-                    break;
             }
-        }
-        line.range.length = range.location - line.range.location;
-        return line;
+        } while (run.range.length > 0 && remainingRange.length > 0 && (width === 0 || x < width) && this._attributedString.string[remainingRange.location - 1] != "\n");
+        return this.constructLine(runs, origin, width, JSRange(range.location, remainingRange.location - range.location), textAlignment);
     },
 
-    _createRun: function(width, str, range, attributes, lineBreakMode){
-        range = JSRange(range);
+    _createConstrainedRun: function(width, range, attributes, lineBreakMode){
         var font = JSTextTypesetter.FontFromAttributes(attributes);
-        var run = this.constructRun(attributes);
-        run.range.location = range.location;
-        var iterator = str.userPerceivedCharacterIterator(range.location);
+        var iterator = this._attributedString.userPerceivedCharacterIterator(range.location);
+
+        // 1. Attachment run
         if (range.length === 1 && iterator.firstCharacter.code == JSAttributedString.SpecialCharacter.Attachment){
             // TODO: get attachment & size
             var attachment = null;
             var size = null;
             if (size.width <= width){
-                run.addAttachment(attachment, size);
-                run.range.length = 1;
+                return this.constructAttachmentRun(attachment, size);
             }
-            run.size.width = size.width;
-            run.size.height = size.height;
-        }else{
-            if (width === 0){
-                // if the width is unconstrainted, then we can write all the characters at once
-                run.addCharacters(str.substringInRange(range));
-                range.advance(range.length);
-            }else{
-                do {
-                    // TODO: whitespace at the end of a line should not cause the span
-                    // width to grow beyond the line bounds
-                    if (iterator.firstCharacter.code != 0x0A){
-                        run.addUserPerceivedCharacter(iterator.utf16);
-                    }
-                    range.advance(iterator.range.length);
-                    iterator.increment();
-                } while (range.length > 0 && run.size.width < width && iterator.firstCharacter.code != 0x0A);
-                while (run.size.width > width){
-                    iterator.decrement();
-                    run.removeTrailingCharacter(iterator.range.length);
-                    range.advance(-iterator.range.length);
-                    // back up according to line break mode
-                }
-            }
-            run.range.length = range.location - run.range.location;
+            // attachment won't fit, return an empty run to trigger a line wrap
+            var emptyGlyphStorage = this.constructGlyphStorage(font, range.location);
+            return this.constructRun(emptyGlyphStorage, attributes);
         }
-        return run;
+
+        // 2. Glyph run
+        var glyphStorage = this.constructGlyphStorage(font, range.location);
+        var remainingRange = JSRange(range);
+        do {
+            // TODO: whitespace at the end of a line should not cause the span
+            // width to grow beyond the line bounds
+            if (iterator.firstCharacter.code != 0x0A){
+                glyphStorage.push(iterator.utf16);
+            }
+            remainingRange.advance(iterator.range.length);
+            iterator.increment();
+        } while (remainingRange.length > 0 && glyphStorage.size.width < width && iterator.firstCharacter.code != 0x0A);
+        if (glyphStorage.size.width > width){
+            glyphStorage.pop();
+            // back up according to line break mode
+        }
+        return this.constructRun(glyphStorage, attributes);
     },
 
 });

@@ -1,5 +1,5 @@
 // #import "UIKit/UIKit.js"
-/* global JSClass, setTimeout, UIDisplayServer, UIHTMLTextFramesetter, MockDisplayContext, UITextInputManager, MockTextInputManager, JSContext, UIWindowServer, MockWindowServer, MockDisplayServer */
+/* global JSClass, setTimeout, UIDisplayServer, JSTextFramesetter, MockDisplayContext, UITextInputManager, MockTextInputManager, JSContext, UIWindowServer, MockWindowServer, MockDisplayServer */
 'use strict';
 
 JSClass("MockWindowServer", UIWindowServer, {
@@ -87,7 +87,7 @@ JSClass("MockDisplayServer", UIDisplayServer, {
     },
 
     createTextFramesetter: function(){
-        return UIHTMLTextFramesetter.initWithDocument(this.domDocument);
+        return JSTextFramesetter.init();
     }
 
 });

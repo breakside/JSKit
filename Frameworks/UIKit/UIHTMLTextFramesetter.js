@@ -17,18 +17,18 @@ JSClass("UIHTMLTextFramesetter", JSTextFramesetter, {
         this._domDocument = domDocument;
     },
 
-    constructFrame: function(size){
+    constructFrame: function(lines, size){
         if (this._reusableFrame !== null){
-            this._htmlTypesetter.enqueueReusableLines(this._reusableFrame.lines);
-            this._reusableFrame = UIHTMLTextFrame.initWithReusableElement(this._reusableFrame.element, size);
-        }else{
-            this._reusableFrame = UIHTMLTextFrame.initWithDocument(this.domDocument, size);
+            return UIHTMLTextFrame.initWithReusableElement(this._reusableFrame.element, lines, size);
         }
-        return this._reusableFrame;
+        return UIHTMLTextFrame.initWithDocument(this.domDocument, lines, size);
     },
 
     createFrame: function(size, attributedString, range, maximumLines, lineBreakMode, textAlignment){
-        UIHTMLTextFramesetter.$super.createFrame.call(this, size, attributedString, range, maximumLines, lineBreakMode, textAlignment);
+        if (this._reusableFrame !== null){
+            this._htmlTypesetter.enqueueReusableLines(this._reusableFrame.lines);
+        }
+        this._reusableFrame = UIHTMLTextFramesetter.$super.createFrame.call(this, size, attributedString, range, maximumLines, lineBreakMode, textAlignment);
         this._htmlTypesetter.cleanupUnusedElements();
         return this._reusableFrame;
     }

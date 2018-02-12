@@ -1,5 +1,5 @@
 // #import "Foundation/JSObject.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSTextTypesetter, JSTextFrame, JSPoint, JSLineBreakMode, JSRange */
+/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSTextTypesetter, JSTextFrame, JSPoint, JSLineBreakMode, JSRange */
 'use strict';
 
 (function(){
@@ -7,6 +7,7 @@
 JSClass("JSTextFramesetter", JSObject, {
 
     typesetter: JSReadOnlyProperty('_typesetter'),
+    attributedString: JSDynamicProperty(),
 
     init: function(){
         this.initWithTypesetter(JSTextTypesetter.init());
@@ -16,35 +17,33 @@ JSClass("JSTextFramesetter", JSObject, {
         this._typesetter = typesetter;
     },
 
-    constructFrame: function(size){
-        return JSTextFrame.initWithSize(size);
+    getAttributedString: function(){
+        return this._typesetter.attributedString;
     },
 
-    createFrame: function(size, attributedString, range, maximumLines, lineBreakMode, textAlignment){
-        range = JSRange(range);
-        var frame = this.constructFrame(size);
-        frame.range.location = range.location;
+    setAttributedString: function(attributedString){
+        this._typesetter.attributedString = attributedString;
+    },
+
+    constructFrame: function(lines, size){
+        return JSTextFrame.initWithLines(lines, size);
+    },
+
+    createFrame: function(size, range, maximumLines, lineBreakMode, textAlignment){
+        var remianingRange = JSRange(range);
         var origin = JSPoint.Zero;
+        var lines = [];
         var line;
         do{
-            line = this._typesetter.createLine(size.width, attributedString, range, this.effectiveLineBreakMode(lineBreakMode, frame.lines.length + 1, maximumLines), textAlignment);
-            line.origin.x = origin.x;
-            line.origin.y = origin.y;
+            line = this._typesetter.createLine(origin, size.width, range, this.effectiveLineBreakMode(lineBreakMode, lines.length + 1, maximumLines), textAlignment);
             origin.y += line.size.height;
             // TODO: any line spacing?
             if (size.height === 0 || origin.y <= size.height){
-                frame.addLine(line);
-                range.advance(line.range.length);
+                lines.push(line);
+                remianingRange.advance(line.range.length);
             }
-        } while (line.range.length > 0 && range.length > 0 && (size.height === 0 || origin.y < size.height) && (maximumLines === 0 || frame.lines.length == maximumLines));
-        if (frame.size.width === 0){
-            frame.size.width = frame.usedSize.width;
-        }
-        if (frame.size.height === 0){
-            frame.size.height = frame.usedSize.height;
-        }
-        frame.range.length = range.location - frame.range.location;
-        return frame;
+        } while (line.range.length > 0 && remianingRange.length > 0 && (size.height === 0 || origin.y < size.height) && (maximumLines === 0 || lines.length == maximumLines));
+        return this.constructFrame(lines, size);
     },
 
     effectiveLineBreakMode: function(frameLineBreakMode, lineNumber, maximumLines){

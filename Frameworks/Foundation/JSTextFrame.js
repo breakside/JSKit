@@ -13,21 +13,21 @@ JSClass("JSTextFrame", JSObject, {
     range: JSReadOnlyProperty('_range', null),
     lines: JSReadOnlyProperty('_lines', null),
 
-    initWithSize: function(size){
-        this._size = JSSize(size);
-        this._usedSize = JSSize(size.width, 0);
-        this._range = JSRange.Zero;
-        this._lines = [];
-    },
-
-    addLine: function(line){
-        this._lines.push(line);
-        if (line.origin.y + line.size.height > this._usedSize.height){
-            this._usedSize.height = line.origin.y + line.size.height;
+    initWithLines: function(lines, size){
+        this._usedSize = JSSize.Zero;
+        this._range = JSRange(lines[0].range.location, lines[lines.length - 1].range.end - lines[0].range.location);
+        this._lines = lines;
+        var line;
+        for (var i = 0, l = lines.length; i < l; ++i){
+            line = lines[i];
+            if (line.origin.y + line.size.height > this._usedSize.height){
+                this._usedSize.height = line.origin.y + line.size.height;
+            }
+            if (line.origin.x + line.size.width > this._usedSize.width){
+                this._usedSize.width = line.origin.x + line.size.width;
+            }
         }
-        if (line.origin.x + line.size.width > this._usedSize.width){
-            this._usedSize.width = line.origin.x + line.size.width;
-        }
+        this._size = JSSize(size.width || this._usedSize.width, size.height || this._usedSize.height);
     },
 
     drawInContextAtPoint: function(context, point){

@@ -43,7 +43,7 @@ var HTMLFontMetricsCalculator = function(domDocument){
     this.baselineElement.style.vertialAlign = 'baseline';
     this.baselineElement.style.width = '1px';
     this.baselineElement.style.height = '1px';
-    this.atSizeElement.appendChild(this.domDocument.createTextNode('A'));
+    this.atSizeElement.appendChild(this.domDocument.createTextNode('Ay'));
     this.containerElement.appendChild(this.atSizeElement);
     this.containerElement.appendChild(this.baselineElement);
     this.domDocument.body.appendChild(this.containerElement);

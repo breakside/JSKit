@@ -56,9 +56,12 @@ class TTFInfoExtractor(FontInfoExtractor):
         for i in range(table_count):
             (tag, checksum, offset, length) = struct.unpack('!4sIII', self.fp.read(16))
             self.tables[tag] = (offset, length)
+            # print tag
         self.read_name(info)
         self.read_head(info)
         self.read_os2(info)
+        # self.read_cmap(info)
+        self.read_horizontal_metrics(info)
 
     def read_table(self, tag):
         if tag not in self.tables:
@@ -74,8 +77,9 @@ class TTFInfoExtractor(FontInfoExtractor):
         if data is None:
             return
         (flags, units_per_em, unused_created, unused_modified, x_min, y_min, x_max, y_max) = struct.unpack('!HHQQhhhh', data[16:44])
-        info['ascender'] = float(y_max) / float(units_per_em)
-        info['descender'] = float(y_min) / float(units_per_em)
+        info['yMax'] = y_max
+        info['yMin'] = y_min
+        info['unitsPerEM'] = units_per_em
 
     def read_name(self, info):
         data = self.read_table('name')
@@ -122,6 +126,122 @@ class TTFInfoExtractor(FontInfoExtractor):
         info['weight'] = struct.unpack('!H', data[4:6])[0]
         fs_selection = struct.unpack('!H', data[62:64])[0]
         info['style'] = 'italic' if fs_selection & 0x0001 else 'normal'
+
+    def read_cmap(self, info):
+        data = self.read_table('cmap')
+        version, subtableCount = struct.unpack('!HH', data[0:4])
+        offset = 4
+        candidates = []
+        for i in range(subtableCount):
+            platform_id, platform_specific_id, map_offset = struct.unpack('!HHI', data[offset:offset+8])
+            offset += 8
+            if platform_id == 0:
+                if platform_specific_id <= 4:
+                    candidates.append((platform_id, platform_specific_id, map_offset))
+            if platform_id == 3:
+                if platform_specific_id in (1, 10):
+                    candidates.append((platform_id, platform_specific_id, map_offset))
+
+        candidates.sort(key=lambda x: (x[0], -x[1]))
+        if len(candidates) > 0:
+            map_offset = candidates[0][2]
+            cmap_format = struct.unpack('!H', data[map_offset:map_offset+2])[0]
+            print "cmap %d" % cmap_format
+            if cmap_format == 0:
+                self.read_cmap_0(info, data[map_offset+6:map_offset+262])
+            elif cmap_format == 2:
+                length, langauge = struct.unpack('!HH', data[map_offset+2:map_offset+6])
+                self.read_cmap_2(info, data[map_offset+6:map_offset+length])
+            elif cmap_format == 4:
+                length, langauge = struct.unpack('!HH', data[map_offset+2:map_offset+6])
+                self.read_cmap_4(info, data[map_offset+6:map_offset+length])
+            elif cmap_format == 6:
+                length, langauge = struct.unpack('!HH', data[map_offset+2:map_offset+6])
+                self.read_cmap_6(info, data[map_offset+6:map_offset+length])
+            elif cmap_format == 8:
+                length, langauge = struct.unpack('!II', data[map_offset+4:map_offset+12])
+                self.read_cmap_8(info, data[map_offset+12:map_offset+length])
+            elif cmap_format == 10:
+                length, langauge = struct.unpack('!II', data[map_offset+4:map_offset+12])
+                self.read_cmap_10(info, data[map_offset+12:map_offset+length])
+            elif cmap_format == 12:
+                length, langauge = struct.unpack('!II', data[map_offset+4:map_offset+12])
+                self.read_cmap_12(info, data[map_offset+12:map_offset+length])
+            elif cmap_format == 13:
+                length, langauge = struct.unpack('!II', data[map_offset+4:map_offset+12])
+                self.read_cmap_13(info, data[map_offset+12:map_offset+length])
+            elif cmap_format == 14:
+                raise Exception(u"%s: cmap type 14 not supported" % self.fp.name)
+        else:
+            raise Exception(u"%s: no suitable cmap found" % self.fp.name)
+
+    def read_cmap_0(self, info, data):
+        glyph_indexes = struct.unpack('!256b', data)
+        entry = dict(start=None, glyphs=[])
+        info['character_map'] = dict()
+        for character_code in range(256):
+            if glyph_indexes[character_code] == 0:
+                if entry['start'] is not None:
+                    info['character_map'].append(entry)
+                entry = dict(start=None, glyphs=[])
+            else:
+                info['character_map'][character_code] = glyph_indexes[character_code]
+
+    def read_cmap_2(self, info, data):
+        sub_header_keys = struct.unpack('!256H', data[0:512])
+        for i in range(256):
+            value = sub_header_keys[i] / 8
+
+    def read_cmap_4(self, info, data):
+        # Useful for Basic Multilingual Plane (BMP) Unicode
+        seg_count_x2, search_range, entry_selector, range_shift = struct.unpack('!HHHH', data[0:8])
+        seg_count = seg_count_x2 / 2
+
+    def read_cmap_6(self, info, data):
+        # Useful for 
+        first_code, entry_count = struct.unpack('!HH', data[0:4])
+        glyph_indexes = struct.unpack('!%dH' % entry_count, data[4:])
+
+
+    def read_cmap_8(self, info, data):
+        pass
+
+    def read_cmap_10(self, info, data):
+        pass
+
+    def read_cmap_12(self, info, data):
+        # Useful for 32-bit unicode sparse groups
+        group_count = struct.unpack('!I',  data[0:4])[0]
+        offset = 4
+        info['cmap'] = []
+        for i in range(group_count):
+            start_code, end_code, start_glyph_index = struct.unpack('!III', data[offset:offset+12])
+            info['cmap'].append((start_code,end_code,start_glyph_index))
+            offset += 12
+
+    def read_cmap_13(self, info, data):
+        pass
+
+    def read_cmap_14(self, info, data):
+        pass
+
+    def read_horizontal_metrics(self, info):
+        data = self.read_table('hhea')
+        ascent, descent, line_gap = struct.unpack('!hhh', data[4:10])
+        info['ascender'] = ascent
+        info['descender'] = descent
+        # num_of_long_horiz_metrics = struct.unpack('!H', data[34:36])[0]
+        # data = self.read_table('hmtx')
+        # info['widths'] = []
+        # offset = 0
+        # for i in range(num_of_long_horiz_metrics):
+        #     advance_width, left_side_bearing = struct.unpack('!HH', data[offset:offset+4])
+        #     info['widths'].append(advance_width)
+        #     offset += 4
+        # i = num_of_long_horiz_metrics - 1
+        # while i > 0 and info['widths'][i] == info['widths'][i - 1]:
+        #     i -= 1
+        # info['widths'] = info['widths'][0:i+1]
 
 
 class WOFFInfoExtractor(TTFInfoExtractor):

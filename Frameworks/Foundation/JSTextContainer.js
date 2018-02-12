@@ -67,7 +67,8 @@ JSClass("JSTextContainer", JSObject, {
                 size.width = 0;
             }
         }
-        this._textFrame = this.framesetter.createFrame(size, attributedString, range, this._maximumNumberOfLines, this._lineBreakMode, this._textAlignment);
+        this.framesetter.attributedString = attributedString;
+        this._textFrame = this.framesetter.createFrame(size, range, this._maximumNumberOfLines, this._lineBreakMode, this._textAlignment);
         if (this._sizeTracksText){
             this.size.height = this._textFrame.height;
             if (this._maximumNumberOfLines !== 0){

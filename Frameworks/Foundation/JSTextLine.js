@@ -1,7 +1,7 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/CoreTypes.js"
 // #import "Foundation/JSTextRun.js"
-/* global JSClass, JSObject, JSSize, JSRange, JSPoint, JSRect, JSDynamicProperty, JSReadOnlyProperty, JSTextRun */
+/* global JSClass, JSObject, JSTextAlignment, JSSize, JSRange, JSPoint, JSRect, JSDynamicProperty, JSReadOnlyProperty, JSTextRun */
 'use strict';
 
 (function(){
@@ -12,33 +12,25 @@ JSClass("JSTextLine", JSObject, {
     size: JSReadOnlyProperty('_size', null),
     usedSize: JSReadOnlyProperty('_usedSize', null),
     range: JSReadOnlyProperty('_range', null),
-    strut: JSReadOnlyProperty('_strut', null),
     runs: JSReadOnlyProperty('_runs', null),
 
-    initWithAlignment: function(alignment){
-        this._origin = JSPoint.Zero;
-        this._size = JSSize.Zero;
+    initWithRuns: function(runs, origin, width, textAlignment){
+        this._origin = JSPoint(origin);
+        this._range = JSRange(runs[0].range.location, runs[runs.length - 1].range.end - runs[0].range.location);
+        this._runs = runs;
         this._usedSize = JSSize.Zero;
-        this._range = JSRange.Zero;
-        this._runs = [];
-    },
-
-    addStrut: function(run){
-        this._strut = run;
-        this._size.height = run.size.height;
-    },
-
-    addRun: function(run){
-        this._runs.push(run);
-        if (run.origin.y + run.size.height > this._usedSize.height){
-            this._usedSize.height = run.origin.y + run.size.height;
+        var run;
+        for (var i = 0, l = runs.length; i < l; ++i){
+            run = runs[i];
+            if (run.origin.y + run.size.height > this._usedSize.height){
+                this._usedSize.height = run.origin.y + run.size.height;
+            }
+            if (run.origin.x + run.size.width > this._usedSize.width){
+                this._usedSize.width = run.origin.x + run.size.width;
+            }
         }
-        if (this._usedSize.height > this._size.height){
-            this._size.height = this._usedSize.height;
-        }
-        if (run.origin.x + run.size.width > this._usedSize.width){
-            this._usedSize.width = run.origin.x + run.size.width;
-        }
+        this._size = JSSize(width || this._usedSize.width, this._usedSize.height);
+        this.align(textAlignment);
     },
 
     drawInContext: function(context){
@@ -64,7 +56,7 @@ JSClass("JSTextLine", JSObject, {
             rect.origin.y += run.origin.y;
             return rect;
         }
-        return JSRect(0, this.strut.origin.y, 0, this.strut.size.height);
+        return JSRect.Zero;
     },
 
     runContainingCharacterAtIndex: function(index){
@@ -125,6 +117,27 @@ JSClass("JSTextLine", JSObject, {
             return this._runs[min - 1];
         }
         return this._runs[min];
+    },
+
+    align: function(textAlignment){
+        var i, l;
+        switch (textAlignment){
+            case JSTextAlignment.Left:
+                break;
+            case JSTextAlignment.Center:
+                for (i = 0, l = this._runs.length; i < l; ++i){
+                    this._runs[i].origin.x += (this._size.width - this._usedSize.width) / 2.0;
+                }
+                break;
+            case JSTextAlignment.Right:
+                for (i = 0, l = this._runs.length; i < l; ++i){
+                    this._runs[i].origin.x += (this._size.width - this._usedSize.width);
+                }
+                break;
+            case JSTextAlignment.Justify:
+                // TODO: ugh
+                break;
+        }
     }
 
 });

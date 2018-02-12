@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIHTMLTextFrame.js"
-/* global JSClass, JSReadOnlyProperty, JSTextTypesetter, JSTextRun, UIHTMLTextRun, JSAttributedString, JSFont, JSRect */
+/* global JSClass, JSReadOnlyProperty, JSTextTypesetter, JSTextRun, UIHTMLTextRun, JSSize, JSAttributedString, JSFont, JSRect */
 'use strict';
 
 (function(){
@@ -12,66 +12,27 @@ JSClass("UIHTMLTextRun", JSTextRun, {
     element: null,
     textNode: null,
 
-    initWithReusableElement: function(element, attributes){
-        UIHTMLTextRun.$super.initWithAttributes.call(this, attributes);
-        this.element = element;
-        this.element.style.display = 'inline';
-        this.element.style.verticalAlign = 'baseline';
-        if (this.element.firstChild === null){
-            this.textNode = this.element.appendChild(element.ownerDocument.createTextNode(''));
-        }else{
-            this.textNode = this.element.firstChild;
-            this.textNode.nodeValue = '';
-        }
+    initWithGlyphStorage: function(glyphStorage, attributes){
+        UIHTMLTextRun.$super.initWithGlyphStorage.call(this, glyphStorage, attributes);
+        this.element = glyphStorage.element;
+        this.textNode = glyphStorage.textNode;
         this.styleUsingAttributes(attributes);
-
+        this._size = JSSize(this.element.offsetWidth, this.element.offsetHeight);
         if (sharedDomRange === null){
-            sharedDomRange = element.ownerDocument.createRange();
+            sharedDomRange = this.element.ownerDocument.createRange();
         }
     },
 
-    initWithDocument: function(domDocument, attributes){
-        this.initWithReusableElement(domDocument.createElement('span'), attributes);
-        domDocument.body.appendChild(this.element);
-        this.element.style.visibility = 'hidden';
-        this.element.style.position = 'absolute';
-        this.element.dataset.uiText = "run";
-
-        // this.shade = this.element.appendChild(domDocument.createElement('div'));
-        // this.shade.style.position = 'absolute';
-        // this.shade.style.top = '0';
-        // this.shade.style.left = '0';
-        // this.shade.style.bottom = '0';
-        // this.shade.style.right = '0';
-        // this.shade.style.backgroundColor = 'rgba(0,0,255,0.3)';
+    initWithAttachment: function(attachment, size){
+        UIHTMLTextRun.$super.initWithAttachment.call(this, attachment, size);
     },
 
-    addCharacters: function(utf16){
-        this.textNode.nodeValue += utf16;
-        this._updateSize();
-    },
-
-    addUserPerceivedCharacter: function(utf16){
-        this.textNode.nodeValue += utf16;
-        this._updateSize();
-    },
-
-    removeTrailingCharacter: function(utf16Width){
-        this.textNode.nodeValue = this.textNode.nodeValue.substr(0, this.textNode.nodeValue.length - utf16Width);
-        this._updateSize();
-    },
-
-    _updateSize: function(){
-        this.size.width = this.element.offsetWidth;
+    updateOrigin: function(){
+        this._origin.x = this.element.offsetLeft - this.element.parentNode.offsetLeft;
+        this._origin.y = this.element.offsetTop - this.element.parentNode.offsetTop;
     },
 
     styleUsingAttributes: function(attributes){
-        // Font
-        var font = JSTextTypesetter.FontFromAttributes(attributes);
-        this.element.style.font = font.cssString(font.htmlLineHeight + 4);
-        this._size.height = font.htmlLineHeight;
-        this.origin.y = 2;
-
         // Decorations (underline, strike)
         var decorations = [];
         if (attributes[JSAttributedString.Attribute.Underline]){

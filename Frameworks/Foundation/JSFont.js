@@ -15,8 +15,9 @@ JSClass("JSFont", JSObject, {
     descender: JSReadOnlyProperty('_descender', 0.0),
     lineHeight: JSReadOnlyProperty('_lineHeight', 0.0),
     leading: JSReadOnlyProperty('_leading', 0.0),
-    _ascenderInEMs: 0.0,
-    _descenderInEms: 0.0,
+    _unitsPerEM: 0,
+    _ascenderInUnits: 0,
+    _descenderInUnits: 0,
 
     getFamilyName: function(){
         return this._descriptor.family;
@@ -38,10 +39,45 @@ JSClass("JSFont", JSObject, {
     },
 
     _calculateMetrics: function(){
-        this._ascender = this._ascenderInEMs * this.pointSize;
-        this._descender = this._descenderInEms * this.pointSize;
+        this._ascender = this._ascenderInUnits / this._unitsPerEM * this.pointSize;
+        this._descender = this._descenderInUnits / this._unitsPerEM * this.pointSize;
         this._lineHeight = this._ascender - this._descender;
         this._leading = 0.0;
+    },
+
+    _glyphIndexForCharacter: function(character){
+        var cmap;
+        var min = 0;
+        var max = cmap.length;
+        var mid;
+        while (min < max){
+            mid = min + Math.floor((max - min) / 2);
+            if (character.code < cmap[mid][0]){
+                max = mid;
+            }else if (character.code > cmap[mid][1]){
+                min = mid + 1;
+            }else{
+                return cmap[mid][2] + (character.code - cmap[mid][0]);
+            }
+        }
+        return -1;
+
+    },
+
+    containsGlyphForCharacter: function(character){
+        return this._glyphIndexForCharacter(character) >= 0;
+    },
+
+    widthOfCharacter: function(character){
+        var widths;
+        var glyphIndex = this._glyphIndexForCharacter(character);
+        if (glyphIndex >= 0){
+            if (glyphIndex >= widths.length){
+                return widths[widths.length - 1];
+            }
+            return widths[glyphIndex];
+        }
+        return 0; // FIXME: should be width of unkonwn character
     }
 
 });
@@ -61,8 +97,9 @@ JSFont._fontWithResourceInfo = function(info, pointSize){
         font._fullName = info.name;
         font._postScriptName = info.postscript_name;
         font._faceName = info.face;
-        font._ascenderInEMs = info.ascender;
-        font._descenderInEms = info.descender;
+        font._unitsPerEM = info.unitsPerEM;
+        font._ascenderInUnits = info.ascender;
+        font._descenderInUnits = info.descender;
         font._pointSize = pointSize;
         font._calculateMetrics();
         for (var i = 0, l = JSFont._creationHooks.length; i < l; ++i){

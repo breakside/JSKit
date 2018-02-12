@@ -28,6 +28,10 @@ JSSize.prototype = {
 
     isEqual: function(other){
         return this.width == other.width && this.height == other.height;
+    },
+
+    toString: function(){
+        return "%sx%s".sprintf(this.width, this.height);
     }
 };
 
@@ -60,6 +64,10 @@ JSPoint.prototype = {
 
     isEqual: function(other){
         return this.x == other.x && this.y == other.y;
+    },
+
+    toString: function(){
+        return "%s,%s".sprintf(this.x, this.y);
     }
 };
 
@@ -113,6 +121,10 @@ JSRect.prototype = {
 
     isEqual: function(other){
         return this.origin.isEqual(other.origin) && this.size.isEqual(other.size);
+    },
+
+    toString: function(){
+        return "%s@%s".sprintf(this.size, this.origin);
     }
 };
 
@@ -172,6 +184,10 @@ JSRange.prototype = {
             return new JSRange(location, 0);
         }
         return new JSRange(location, end - location);
+    },
+
+    toString: function(){
+        return "%s,%s".sprintf(this.location, this.length);
     }
 };
 

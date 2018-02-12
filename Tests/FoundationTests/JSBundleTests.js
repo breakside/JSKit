@@ -8,6 +8,8 @@ JSClass('JSBundleTests', TKTestSuite, {
     setup: function(){
         JSBundle.bundles['com.owenshaw.Test'] = {
             'Info': {
+                'a': 1,
+                'b': 2
             },
             'Resources': {
                 'test1': [
@@ -33,6 +35,14 @@ JSClass('JSBundleTests', TKTestSuite, {
         TKAssertThrows(function(){
             bundle = JSBundle.initWithIdentifier('com.owenshaw.DoesNotExist');
         });
+    },
+
+    testInfo: function(){
+        var bundle = JSBundle.initWithIdentifier('com.owenshaw.Test');
+        var info = bundle.info();
+        TKAssertNotNull(info);
+        TKAssertEquals(info.a, 1);
+        TKAssertEquals(info.b, 2);
     },
 
     testResources: function(){

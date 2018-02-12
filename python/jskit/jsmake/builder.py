@@ -120,10 +120,27 @@ class Builder(object):
                 observer = None
                 files = None
                 changed = ""
+                resourcesPath= None
 
-                def __init__(self, observer, files):
+                def __init__(self, observer, files, resourcesPath):
                     self.observer = observer
                     self.files = files
+                    self.resourcesPath = resourcesPath
+
+                def is_resource(self, path):
+                    return path[0:len(self.resourcesPath)] == self.resourcesPath
+
+                def on_created(self, event):
+                    path = os.path.realpath(event.src_path)
+                    self.changed = path
+                    if self.is_resource(path):
+                        self.observer.stop()
+
+                def on_deleted(self, event):
+                    path = os.path.realpath(event.src_path)
+                    self.changed = path
+                    if self.is_resource(path):
+                        self.observer.stop()
 
                 def on_modified(self, event):
                     path = os.path.realpath(event.src_path)
@@ -135,13 +152,18 @@ class Builder(object):
             print u"$ pip install watchdog"
             return
         try:
+            resourcesPath = os.path.realpath(os.path.join(self.projectPath, "Resources"))
             while True:
                 # print '\n    '.join(self.watchedFiles)
                 observer = watchdog.observers.Observer()
-                handler = ChangeHandler(observer, self.watchedFiles)
+                handler = ChangeHandler(observer, self.watchedFiles, resourcesPath)
+                if os.path.exists(resourcesPath):
+                    # print "    %s" % resourcesPath
+                    observer.schedule(handler, resourcesPath, recursive=True)
                 for folder in self.watchedFolders():
-                    # print u"    %s" % folder
-                    observer.schedule(handler, folder, recursive=False)
+                    if folder[0:len(resourcesPath)] != resourcesPath:
+                        # print "    %s" % folder
+                        observer.schedule(handler, folder, recursive=False)
                 observer.start()
                 while observer.isAlive():
                     observer.join(3600)
@@ -191,6 +213,7 @@ class Builder(object):
             self.scanResourceFolder(resourcesPath, [])
 
     def scanResourceFolder(self, resourcesPath, parentNameComponents):
+        self.updateStatus("Building Resources...")
         dirname = os.path.join(resourcesPath, *parentNameComponents)
         for filename in os.listdir(dirname):
             name, ext = os.path.splitext(filename)
@@ -249,6 +272,7 @@ class Builder(object):
         self.addResourceToMainBundle(nameComponents, resource)
 
     def buildImageAssetResource(self, nameComponents, fullPath):
+        self.updateStatus("Packaging resource %s..." % os.path.basename(fullPath))
         contentsPath = os.path.join(fullPath, "Contents.json")
         try:
             contents = json.load(open(contentsPath))
@@ -274,6 +298,7 @@ class Builder(object):
                 resource["image"]["vector"] = vector
 
     def buildImageResource(self, nameComponents, fullPath, mime, scale):
+        self.updateStatus("Packaging resource %s..." % os.path.basename(fullPath))
         hash_, byte_size = self.hashOfPath(fullPath)
         info = dict(
             scale=scale
@@ -292,6 +317,7 @@ class Builder(object):
         return resource
 
     def buildFontResource(self, nameComponents, fullPath, mime):
+        self.updateStatus("Packaging resource %s..." % os.path.basename(fullPath))
         hash_, byte_size = self.hashOfPath(fullPath)
         info = dict()
         extractor = FontInfoExtractor.for_path(fullPath)

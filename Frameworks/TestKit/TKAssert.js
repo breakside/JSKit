@@ -71,14 +71,14 @@ function TKAssertNotExactEquals(a, b, message){
 function TKAssertObjectEquals(a, b, message){
     if (!a.isEqual(b)){
         message = message || '';
-        throw TKAssertion('TKAssertObjectEquals failed, !' + (a) + ' .isEqual(' + (b) + '). ' + message);
+        throw TKAssertion('TKAssertObjectEquals failed, ' + (a) + ' != ' + (b) + ' (using .isEqual()) ' + message);
     }
 }
 
 function TKAssertObjectNotEquals(a, b, message){
     if (a.isEqual(b)){
         message = message || '';
-        throw TKAssertion('TKAssertObjectNotEquals failed, ' + (a) + ' .isEqual(' + (b) + '). ' + message);
+        throw TKAssertion('TKAssertObjectNotEquals failed, ' + (a) + ' == ' + (b) + ' (using .isEqual()) ' + message);
     }
 }
 
