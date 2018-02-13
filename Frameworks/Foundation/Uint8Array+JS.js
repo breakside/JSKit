@@ -191,6 +191,20 @@ Object.defineProperties(Uint8Array.prototype, {
             }
             return new Uint8Array(encoded.buffer, encoded.byteOffset, j);
         }
+    },
+
+    isEqual: {
+        value: function(other){
+            if (this.length != other.length){
+                return false;
+            }
+            for (var i = 0, l = this.length; i < l; ++i){
+                if (this[i] != other[i]){
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 
 });

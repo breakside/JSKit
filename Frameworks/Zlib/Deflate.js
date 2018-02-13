@@ -1,6 +1,6 @@
 // https://tools.ietf.org/html/rfc1951
 // #feature Uint8Array
-// #include "Zlib/Huffman.js"
+// #import "Zlib/Huffman.js"
 /* global jslog_create, HuffmanTree, JSGlobalObject, Deflate, DeflateStream */
 'use strict';
 
@@ -172,16 +172,16 @@ DeflateStream.prototype = {
         }
         this.outputLength = 0;
         do {
-            header = this.readBits(3);
+            header = this._readBits(3);
             is_final_block = header & 0x01;
             type = (header & 0x06) >> 1;
             // logger.info("Deflate block #%d, type %d".sprintf(this.block_index, type));
             if (type === 0){
-                this.decodeUncompressedBlock();
+                this._decodeUncompressedBlock();
             }else if (type === 1){
-                this.decodeFixedHuffmanBlock();
+                this._decodeFixedHuffmanBlock();
             }else if (type === 2){
-                this.decodeDynamicHuffmanBlock();
+                this._decodeDynamicHuffmanBlock();
             }else{
                 throw new DeflateError("Deflate block #%d type unknown: %d".sprintf(this.block_index, type));
             }
@@ -207,10 +207,10 @@ DeflateStream.prototype = {
                 if (this.offset + block_length == L){
                     header |= 0x01;
                 }
-                this.writeBytes([header]);
-                this.writeBytes([block_length & 0xFF, (block_length >> 8) & 0xFF]);
-                this.writeBytes([~block_length & 0xFF, (~block_length >> 8) & 0xFF]);
-                this.writeBytes(new Uint8Array(this.input.buffer, this.input.byteOffset + this.offset, block_length));
+                this._writeBytes([header]);
+                this._writeBytes([block_length & 0xFF, (block_length >> 8) & 0xFF]);
+                this._writeBytes([~block_length & 0xFF, (~block_length >> 8) & 0xFF]);
+                this._writeBytes(new Uint8Array(this.input.buffer, this.input.byteOffset + this.offset, block_length));
                 this.offset += block_length;
             }
         }else{
@@ -218,7 +218,7 @@ DeflateStream.prototype = {
         }
     },
 
-    readBits: function(n){
+    _readBits: function(n){
         if (this.offset >= this.input.length){
             throw new DeflateError("Reading past the end");
         }
@@ -251,7 +251,7 @@ DeflateStream.prototype = {
         return x;
     },
 
-    writeBytes: function(bytes){
+    _writeBytes: function(bytes){
         var i, l;
         if (this.outputLength + bytes.length > this.output.length){
             if (this._isOutputProvided){
@@ -269,7 +269,7 @@ DeflateStream.prototype = {
         }
     },
 
-    decodeUncompressedBlock: function(){
+    _decodeUncompressedBlock: function(){
         if (this.bitOffset > 0){
             this.offset += 1;
             this.bitOffset = 0;
@@ -277,96 +277,96 @@ DeflateStream.prototype = {
         var len = (this.input[this.offset + 1] << 8) | this.input[this.offset];
         // logger.info("Deflate block #%d has length %d".sprintf(this.block_index, len));
         this.offset += 4;  // +2 for length and another +2 for nlength, which we don't use
-        this.writeBytes(new Uint8Array(this.input.buffer, this.input.byteOffset + this.offset, len));
+        this._writeBytes(new Uint8Array(this.input.buffer, this.input.byteOffset + this.offset, len));
         this.offset += len;
     },
 
-    decodeFixedHuffmanBlock: function(){
+    _decodeFixedHuffmanBlock: function(){
         this.huffmanLiterals = Deflate.HuffmanFixedLiterals;
         this.huffmanDistances = Deflate.HuffmanFixedDistances;
-        this.decodeHuffmanBlock();
+        this._decodeHuffmanBlock();
     },
 
-    decodeDynamicHuffmanBlock: function(){
-        var literal_code_count = this.readBits(5) + 257;
-        var distance_code_count = this.readBits(5) + 1;
-        var code_length_count = this.readBits(4) + 4;
+    _decodeDynamicHuffmanBlock: function(){
+        var literal_code_count = this._readBits(5) + 257;
+        var distance_code_count = this._readBits(5) + 1;
+        var code_length_count = this._readBits(4) + 4;
         var code_lengths = [];
         for (var i = 0; i < code_length_count; ++i){
-            code_lengths[Deflate.HuffmanDynamicLengthOrder[i]] = this.readBits(3);
+            code_lengths[Deflate.HuffmanDynamicLengthOrder[i]] = this._readBits(3);
         }
         this.huffmanTree = HuffmanTree(code_lengths);
-        code_lengths = this.readHuffmanCodeLengths(literal_code_count);
+        code_lengths = this._readHuffmanCodeLengths(literal_code_count);
         this.huffmanLiterals = HuffmanTree(code_lengths);
-        code_lengths = this.readHuffmanCodeLengths(distance_code_count);
+        code_lengths = this._readHuffmanCodeLengths(distance_code_count);
         this.huffmanDistances = HuffmanTree(code_lengths);
-        this.decodeHuffmanBlock();
+        this._decodeHuffmanBlock();
     },
 
-    decodeHuffmanBlock: function(){
+    _decodeHuffmanBlock: function(){
         var code;
         var length;
         var distance;
         var extra;
         do {
             this.huffmanTree = this.huffmanLiterals;
-            code = this.readHuffmanCode();
+            code = this._readHuffmanCode();
             // logger.info("found code %d".sprintf(code));
             if (code < 256){
                 // logger.info("Writing at %d %s (%#02x)".sprintf(this.outputLength, String.fromCharCode(code), code));
-                this.writeBytes([code]);
+                this._writeBytes([code]);
             }else if (code > 256 && code <= 287){
                 // logger.info("Found code %d".sprintf(code));
                 extra = 0;
                 if (code < 285){
                     if (code >= 281){
-                        extra = this.readBits(5);
+                        extra = this._readBits(5);
                     }else if (code >= 277){
-                        extra = this.readBits(4);
+                        extra = this._readBits(4);
                     }else if (code >= 273){
-                        extra = this.readBits(3);
+                        extra = this._readBits(3);
                     }else if (code >= 269){
-                        extra = this.readBits(2);
+                        extra = this._readBits(2);
                     }else if (code >= 265){
-                        extra = this.readBits(1);
+                        extra = this._readBits(1);
                     }
                 }
                 length = Deflate.LengthCodeMap[code] + extra;
                 this.huffmanTree = this.huffmanDistances;
-                code = this.readHuffmanCode();
+                code = this._readHuffmanCode();
                 // logger.info("Found distance code: %d".sprintf(code));
                 extra = 0;
                 if (code >= 28){
-                    extra = this.readBits(8) | (this.readBits(5) << 8);
+                    extra = this._readBits(8) | (this._readBits(5) << 8);
                 }else if (code >= 26){
-                    extra = this.readBits(8) | (this.readBits(4) << 8);
+                    extra = this._readBits(8) | (this._readBits(4) << 8);
                 }else if (code >= 24){
-                    extra = this.readBits(8) | (this.readBits(3) << 8);
+                    extra = this._readBits(8) | (this._readBits(3) << 8);
                 }else if (code >= 22){
-                    extra = this.readBits(8) | (this.readBits(2) << 8);
+                    extra = this._readBits(8) | (this._readBits(2) << 8);
                 }else if (code >= 20){
-                    extra = this.readBits(8) | (this.readBits(1) << 8);
+                    extra = this._readBits(8) | (this._readBits(1) << 8);
                 }else if (code >= 18){
-                    extra = this.readBits(8);
+                    extra = this._readBits(8);
                 }else if (code >= 16){
-                    extra = this.readBits(7);
+                    extra = this._readBits(7);
                 }else if (code >= 14){
-                    extra = this.readBits(6);
+                    extra = this._readBits(6);
                 }else if (code >= 12){
-                    extra = this.readBits(5);
+                    extra = this._readBits(5);
                 }else if (code >= 10){
-                    extra = this.readBits(4);
+                    extra = this._readBits(4);
                 }else if (code >= 8){
-                    extra = this.readBits(3);
+                    extra = this._readBits(3);
                 }else if (code >= 6){
-                    extra = this.readBits(2);
+                    extra = this._readBits(2);
                 }else if (code >= 4){
-                    extra = this.readBits(1);
+                    extra = this._readBits(1);
                 }
                 distance = Deflate.DistanceCodeMap[code] + extra;
                 // logger.info("At %d, copying %d bytes starting from %d (%d bytes back)".sprintf(this.outputLength, length, this.outputLength - distance, distance));
                 while (length > 0){
-                    this.writeBytes(new Uint8Array(this.output.buffer, this.outputLength - distance, Math.min(length, distance)));
+                    this._writeBytes(new Uint8Array(this.output.buffer, this.outputLength - distance, Math.min(length, distance)));
                     length -= distance;
                 }
             }else if (code != 256){
@@ -375,40 +375,40 @@ DeflateStream.prototype = {
         }while (code != 256);
     },
 
-    readHuffmanCode: function(){
+    _readHuffmanCode: function(){
         var node = this.huffmanTree;
         var b;
         while (node.value === null){
-            b = this.readBits(1);
+            b = this._readBits(1);
             node = node[b];
         }
         return node.value;
     },
 
-    readHuffmanCodeLengths: function(count){
+    _readHuffmanCodeLengths: function(count){
         var code_lengths = [];
         var code;
         var repeat;
         var i, j;
         for (i = 0; i < count; ++i){
-            code = this.readHuffmanCode();
+            code = this._readHuffmanCode();
             if (code < 16){
                 code_lengths[i] = code;
             }else if (code == 16){
-                repeat = this.readBits(2) + 3;
+                repeat = this._readBits(2) + 3;
                 code = code_lengths[i - 1];
                 for (j = 0; j < repeat; ++j, ++i){
                     code_lengths[i] = code;
                 }
                 i -= 1;  // Or else the outer for loop incrementer will skip an index
             }else if (code == 17){
-                repeat = this.readBits(3) + 3;
+                repeat = this._readBits(3) + 3;
                 for (j = 0; j < repeat; ++j, ++i){
                     code_lengths[i] = 0;
                 }
                 i -= 1;  // Or else the outer for loop incrementer will skip an index
             }else if (code == 18){
-                repeat = this.readBits(7) + 11;
+                repeat = this._readBits(7) + 11;
                 for (j = 0; j < repeat; ++j, ++i){
                     code_lengths[i] = 0;
                 }

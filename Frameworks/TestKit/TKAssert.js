@@ -9,23 +9,25 @@ function TKAssertion(message){
 }
 
 TKAssertion.LineForCurrentCaseInError = function(error){
-    var stack = error.stack.split("\n");
-    var prefix = TKAssertion.CurrentTestCase + '@';
-    for (var i = 0, l = stack.length; i < l; ++i){
-        var caller = stack[i];
-        if (caller.substr(0, 14) == '    at Object.'){
-            // chrome
-            caller = caller.substr(14);
-            prefix = TKAssertion.CurrentTestCase + ' (';
-        }else if (caller.charAt(0) == '.'){
-            // firefox
-            caller = caller.substr(1);
-        }
-        if (caller.substr(0, prefix.length) == prefix){
-            caller = caller.substr(prefix.length);
-            var parts = caller.split(':');
-            var line = parts[parts.length - 2];
-            return line;
+    if (error.stack){
+        var stack = error.stack.split("\n");
+        var prefix = TKAssertion.CurrentTestCase + '@';
+        for (var i = 0, l = stack.length; i < l; ++i){
+            var caller = stack[i];
+            if (caller.substr(0, 14) == '    at Object.'){
+                // chrome
+                caller = caller.substr(14);
+                prefix = TKAssertion.CurrentTestCase + ' (';
+            }else if (caller.charAt(0) == '.'){
+                // firefox
+                caller = caller.substr(1);
+            }
+            if (caller.substr(0, prefix.length) == prefix){
+                caller = caller.substr(prefix.length);
+                var parts = caller.split(':');
+                var line = parts[parts.length - 2];
+                return line;
+            }
         }
     }
     return 0;

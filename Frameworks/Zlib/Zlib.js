@@ -24,6 +24,7 @@ JSGlobalObject.Zlib = {
 
     compress: function(input){
         var stream = new ZlibStream(input);
+        stream.level = 0;
         stream.compress();
         return stream.output;
     }
@@ -62,7 +63,7 @@ ZlibStream.prototype = {
         if (this.input.length < 6){
             throw new ZlibError("Zlib format is invalid, not enough bytes for header and checksum");
         }
-        this.readHeader();
+        this._readHeader();
         var compressed_length = this.input.length - this.offset - 4;
         // logger.info("Zlib compressed data at offset %d with length %d".sprintf(this.offset, compressed_length));
         this.compressed = new Uint8Array(this.input.buffer, this.input.byteOffset + this.offset, compressed_length);
@@ -72,7 +73,7 @@ ZlibStream.prototype = {
         }else{
             throw new ZlibError("Zlib method unknown: %d".sprintf(this.method));
         }
-        this.checkOutput();
+        this._checkOutput();
     },
 
     compress: function(){
@@ -99,7 +100,7 @@ ZlibStream.prototype = {
         return new Uint8Array(this.output.buffer, this.output.byteOffset, this.offset);
     },
 
-    readHeader: function(){
+    _readHeader: function(){
         var method_and_info = this.input[this.offset++];
         var flags = this.input[this.offset++];
         this.method = method_and_info & 0xF;
@@ -119,7 +120,7 @@ ZlibStream.prototype = {
         }
     },
 
-    checkOutput: function(){
+    _checkOutput: function(){
         var given = new Uint32Array(1);
         given[0] = (this.input[this.offset] << 24) | (this.input[this.offset + 1] << 16) | (this.input[this.offset + 2] << 8) | this.input[this.offset + 3];
         var calculated = Adler32(this.output);
