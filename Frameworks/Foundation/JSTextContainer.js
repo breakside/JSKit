@@ -1,8 +1,8 @@
 // #include "Foundation/CoreTypes.js"
 // #include "Foundation/JSObject.js"
 // #include "Foundation/JSTextLayoutManager.js"
-// #include "Foundation/JSTextLine.js"
-/* global JSClass, JSObject, JSTextLine, JSTextFramesetter, JSDynamicProperty, JSTextLayoutManager, JSSize, JSRect, JSRange, JSPoint, JSReadOnlyProperty, JSAttributedString, JSLineBreakMode, JSTextAlignment */
+// #include "Foundation/JSTextFramesetter.js"
+/* global JSClass, JSObject, JSTextFramesetter, JSDynamicProperty, JSTextLayoutManager, JSSize, JSRect, JSRange, JSPoint, JSReadOnlyProperty, JSLineBreakMode, JSTextAlignment */
 'use strict';
 
 JSClass("JSTextContainer", JSObject, {

@@ -1,7 +1,6 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/CoreTypes.js"
-// #import "Foundation/JSTextRun.js"
-/* global JSClass, JSObject, JSSize, JSRange, JSPoint, JSDynamicProperty, JSReadOnlyProperty, JSTextRun */
+/* global JSClass, JSObject, JSSize, JSRange, JSPoint, JSDynamicProperty, JSReadOnlyProperty */
 'use strict';
 
 (function(){

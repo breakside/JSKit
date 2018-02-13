@@ -1,5 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIHTMLTextFrame.js"
+// #import "UIKit/UIHTMLTextTypesetter.js"
 /* global JSClass, JSReadOnlyProperty, JSTextFramesetter, UIHTMLTextFramesetter, UIHTMLTextTypesetter, UIHTMLTextFrame */
 'use strict';
 

@@ -1,5 +1,4 @@
 // #include "Foundation/JSAttributedString.js"
-// #include "Foundation/JSTextLayoutManager.js"
 /* global JSClass, JSAttributedString, JSTextStorage, JSReadOnlyProperty */
 'use strict';
 

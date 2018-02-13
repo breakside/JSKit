@@ -1,7 +1,8 @@
 // #include "Foundation/JSObject.js"
 // #include "Foundation/CoreTypes.js"
-// #include "Foundation/JSTextStorage.js"
-/* global JSClass, JSObject, JSDynamicProperty, JSTextStorage, JSTextFramesetter, JSAttributedString, JSCopy, JSColor, JSRange */
+// #include "Foundation/JSAttributedString.js"
+// #include "Foundation/JSColor.js"
+/* global JSClass, JSObject, JSDynamicProperty, JSAttributedString, JSCopy, JSColor, JSRange */
 'use strict';
 
 JSClass("JSTextLayoutManager", JSObject, {

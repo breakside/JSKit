@@ -1,5 +1,4 @@
 // #import "Foundation/Foundation.js"
-// #import "UIKit/UIHTMLTextFrame.js"
 /* global JSClass, JSReadOnlyProperty, JSTextTypesetter, JSTextRun, UIHTMLTextRun, JSSize, JSAttributedString, JSFont, JSRect */
 'use strict';
 
