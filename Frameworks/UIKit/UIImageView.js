@@ -1,5 +1,5 @@
-// #include "UIKit/UIView.js"
-// #include "UIKIt/UIImageLayer.js"
+// #import "UIKit/UIView.js"
+// #import "UIKit/UIImageLayer.js"
 /* global JSClass, UIView, UIImageView, UIImageLayer, JSRect, UIViewLayerProperty, JSDynamicProperty, JSSize */
 'use strict';
 

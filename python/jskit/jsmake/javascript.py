@@ -199,7 +199,7 @@ class JSScanner(object):
                 if command is not None:
                     if command in ('assert', 'assert.throw', 'assert.nothrow', 'assertEquals'):
                         return JSTestCode(arguments, assert_=command)
-                    raise Exception(u"Unknown test command '%u' in %u at %d", command, self.sourceName, self.sourceLine)
+                    raise Exception(u"Unknown test command '%s' in %s at %d" % (command, self.sourceName, self.sourceLine))
                 if lstripped[0:2] == "//":
                     return JSTestCode(lstripped[2:], sourceLine=self.sourceLine, rawline=line)
                 self.context = self.CONTEXT_JS
@@ -221,6 +221,8 @@ class JSScanner(object):
                     if command == "test":
                         self.context = self.CONTEXT_TEST
                         return JSTest(arguments, sourceLine=self.sourceLine, rawline=line)
+                    if command is not None:
+                        raise Exception(u"Unknown command '%s' in %s at %d" % (command, self.sourceName, self.sourceLine))
                     if stripped == '"use strict";' or stripped == "'use strict';":
                         return JSStrict(sourceLine=self.sourceLine, rawline=line)
             if not self.minify or self.context == self.CONTEXT_PASSTHRU:

@@ -231,6 +231,17 @@ Object.defineProperties(String.prototype, {
         }
     },
 
+    trimmedSplit: {
+        enumerable: false,
+        value: function String_trimmedSplit(splitOn){
+            var parts = this.split(splitOn);
+            for (var i = 0, l = parts.length; i < l; ++i){
+                parts[i] = parts[i].trim();
+            }
+            return parts;
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Encoding
 

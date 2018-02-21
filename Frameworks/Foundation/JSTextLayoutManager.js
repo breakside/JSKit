@@ -1,7 +1,7 @@
-// #include "Foundation/JSObject.js"
-// #include "Foundation/CoreTypes.js"
-// #include "Foundation/JSAttributedString.js"
-// #include "Foundation/JSColor.js"
+// #import "Foundation/JSObject.js"
+// #import "Foundation/CoreTypes.js"
+// #import "Foundation/JSAttributedString.js"
+// #import "Foundation/JSColor.js"
 /* global JSClass, JSObject, JSDynamicProperty, JSAttributedString, JSCopy, JSColor, JSRange */
 'use strict';
 

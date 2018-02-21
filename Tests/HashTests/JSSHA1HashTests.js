@@ -38,6 +38,11 @@ JSClass('JSSHA1HashTests', TKTestSuite, {
         var hex = hasher.digest().hexStringRepresentation();
         TKAssertEquals(hex, "dea356a2cddd90c7a7ecedc5ebb563934f460452");
 
+    },
+
+    testWebsocketExample: function(){
+        var hex = JSSHA1Hash("dGhlIHNhbXBsZSBub25jZQ==258EAFA5-E914-47DA-95CA-C5AB0DC85B11".utf8().bytes).hexStringRepresentation();
+        TKAssertEquals(hex, "b37a4f2cc0624f1690f64606cf385945b2bec4ea");
     }
 
 });

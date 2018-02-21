@@ -1,8 +1,8 @@
 // #import "Foundation/String+JS.js"
-/* global */
+/* global JSGlobalObject, JSMIMEHeaderMap, JSMIMEHeader */
 'use strict';
 
-var JSMIMEHeaderMap = function(other){
+JSGlobalObject.JSMIMEHeaderMap = function(other){
     if (this === undefined){
         if (other === null){
             return other;
@@ -27,8 +27,8 @@ JSMIMEHeaderMap.prototype = {
         var name;
         for (var i = 0, l = lines.length; i < l; ++i){
             line = lines[i];
-            name = line.split(': ', 1)[0];
-            this.add(name, line.substr(name.length + 2));
+            name = line.split(':', 1)[0];
+            this.add(name.trim(), line.substr(name.length + 2).trim());
         }
     },
 
@@ -41,7 +41,7 @@ JSMIMEHeaderMap.prototype = {
         var lowerName = name.lowercaseString();
         for (var i = this.headers.length - 1; i >= 0; --i){
             header = this.headers[i];
-            if (header.name == lowerName){
+            if (header.lowerName == lowerName){
                 this.headers.splice(i, 1);
             }
         }
@@ -52,8 +52,12 @@ JSMIMEHeaderMap.prototype = {
         this.add(name, value);
     },
 
-    get: function(name){
-        return this.getAll(name)[0];
+    get: function(name, defaultValue){
+        var values = this.getAll(name);
+        if (values.length === 0){
+            return defaultValue;
+        }
+        return values[0];
     },
 
     getAll: function(name){
@@ -62,7 +66,7 @@ JSMIMEHeaderMap.prototype = {
         var lowerName = name.lowercaseString();
         for (var i = 0, l = this.headers.length; i < l; ++i){
             header = this.headers[i];
-            if (header.name == lowerName){
+            if (header.lowerName == lowerName){
                 values.push(header.value);
             }
         }
@@ -70,7 +74,7 @@ JSMIMEHeaderMap.prototype = {
     }
 };
 
-var JSMIMEHeader = function(name, value){
+JSGlobalObject.JSMIMEHeader = function(name, value){
     if (this === undefined){
         if (name === null){
             return null;
@@ -79,9 +83,11 @@ var JSMIMEHeader = function(name, value){
     }else{
         if (name instanceof JSMIMEHeader){
             this.name = name.name;
+            this.lowerName = name.lowerName;
             this.value = name.value;
         }else{
             this.name = name;
+            this.lowerName = name.lowercaseString();
             this.value = value;
         }
     }

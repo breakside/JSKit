@@ -1,6 +1,6 @@
 // #import "Foundation/JSData.js"
 // #feature Blob
-// #Feature URL.createObjectURL
+// #feature URL.createObjectURL
 /* global JSData, Blob, URL */
 'use strict';
 

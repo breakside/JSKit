@@ -3,6 +3,13 @@
 
 (function(){
 
+var base64EncodingMap = [
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    '+', '/'
+];
+
 Object.defineProperties(Uint8Array.prototype, {
 
     zero: {
@@ -28,6 +35,31 @@ Object.defineProperties(Uint8Array.prototype, {
                     bytehex = '0' + bytehex;
                 }
                 str += bytehex;
+            }
+            return str;
+        }
+    },
+
+    base64StringRepresentation: {
+        enumerable: false,
+        value: function Uint8Array_base64StringRepresentation(){
+            var str = '';
+            var i, l;
+            for (i = 0, l = this.length - 2; i < l; i += 3){
+                str += base64EncodingMap[this[i] >> 2];
+                str += base64EncodingMap[((this[i] & 0x3) << 4) | (this[i + 1] >> 4)];
+                str += base64EncodingMap[((this[i + 1] & 0xF) << 2) | (this[i + 2] >> 6)];
+                str += base64EncodingMap[this[i + 2] & 0x3F];
+            }
+            if (i == this.length - 2){
+                str += base64EncodingMap[this[i] >> 2];
+                str += base64EncodingMap[((this[i] & 0x3) << 4) | (this[i + 1] >> 4)];
+                str += base64EncodingMap[((this[i + 1] & 0xF) << 2)];
+                str += '=';
+            }else if (i == this.length - 1){
+                str += base64EncodingMap[this[i] >> 2];
+                str += base64EncodingMap[(this[i] & 0x3) << 4];
+                str += '==';
             }
             return str;
         }
