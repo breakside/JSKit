@@ -103,7 +103,7 @@
           splash.parentNode.removeChild(splash);
           bootstrapStyle.parentNode.removeChild(bootstrapStyle);
           if (downListener != null){
-            document.body.removeEventListener('mousedown', downListener, true);
+            document.body.removeEventListener('mousedown', downListener, downListener.usesCapture);
           }
           break;
       }
@@ -111,13 +111,14 @@
     bootstrapper.run();
     try{
       downListener = {
+        usesCapture: true,
         handleEvent: function(e){
-          console.log('down');
           e.preventDefault();
         }
       };
-      document.body.addEventListener('mousedown', downListener, true);
+      document.body.addEventListener('mousedown', downListener, downListener.usesCapture);
     }catch (e){
+      downListener = null;
     }
   })();
   </script>

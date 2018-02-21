@@ -37,14 +37,20 @@ class Builder(object):
         if watch:
             self._print("Automatically rebuilding when files change\n")
         self._build()
+        print_final_newline = True
         if self.debug:
-            usage = self.targetUsage()
-            if usage is not None:
-                usage = ("$ %s" % usage).encode('utf-8')
-                self._print(usage, overwriteStatus=watch)
+            usages = self.targetUsage()
+            if usages is not None:
+                if isinstance(usages, basestring):
+                    usages = [usages]
+                for usage in usages:
+                    usage = ("$ %s\n" % usage).encode('utf-8')
+                    self._print(usage, overwriteStatus=watch)
+                    print_final_newline = False
         if watch:
             self.watchForChanges()
-        self._print_raw("\n")
+        if print_final_newline:
+            self._print_raw("\n")
 
     def _build(self):
         buildDate = datetime.datetime.now()

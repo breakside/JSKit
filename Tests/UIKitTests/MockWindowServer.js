@@ -19,6 +19,7 @@ JSClass("MockDisplayServer", UIDisplayServer, {
     rootLayers: null,
     contextsByLayerID: null,
     updateNeeded: true,
+    layerChangeCallback: null,
 
     init: function(){
         MockDisplayServer.$super.init.call(this);
@@ -63,6 +64,13 @@ JSClass("MockDisplayServer", UIDisplayServer, {
             }
         }
         layer._displayServer = null;
+    },
+
+    layerDidChangeProperty: function(layer, keyPath){
+        if (this.layerChangeCallback !== null){
+            this.layerChangeCallback.call(layer, keyPath);
+        }
+        MockDisplayServer.$super.layerDidChangeProperty.call(this, layer, keyPath);
     },
 
     setUpdateNeeded: function(){

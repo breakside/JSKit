@@ -2,8 +2,10 @@
 // by every other file
 // #import "Foundation/Javascript+HTML.js"
 
-// Extensions
+// Base
 // #import "Foundation/Foundation.js"
+
+// Extensions
 // #import "Foundation/JSColor+HTML.js"
 // #import "Foundation/JSData+HTML.js"
 // #import "Foundation/JSFont+HTML.js"

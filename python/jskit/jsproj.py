@@ -17,6 +17,10 @@ class Path(object):
         return os.path.join(self.root, *args)
 
 
+def filesafe_name(name):
+    return name.replace('\\', '').replace('/', '').replace(':', '').replace('\'', '').replace('"', '').replace('`', '').replace('.', '_')
+
+
 class ProjectBuilder(object):
 
     name = None
@@ -27,7 +31,8 @@ class ProjectBuilder(object):
         self.name = name
         self.template = template
         self.placeholders = dict(
-            PROJECT_NAME=self.name
+            PROJECT_NAME=self.name,
+            PROJECT_NAME_FILE_SAFE=filesafe_name(self.name),
         )
 
     def build(self):

@@ -1,7 +1,8 @@
 // #feature Uint32Array
+/* global JSGlobalObject, Adler32 */
 'use strict';
 
-function Adler32(bytes){
+JSGlobalObject.Adler32 = function(bytes){
     if (this === undefined){
         if (bytes){
             var checker = new Adler32();
@@ -13,7 +14,7 @@ function Adler32(bytes){
     }
     this.sum1 = 1;
     this.sum2 = 0;
-}
+};
 
 Adler32.prototype = {
     includeBytes: function(bytes){

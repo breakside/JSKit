@@ -1,4 +1,5 @@
-// #import "TestKit/TKTestRun.js"
+// #import "Foundation/Foundation+HTML.js"
+// #import "TestKit/TestKit.js"
 /* global document, JSClass, JSBundle, TKTestRun, TKTestResult, HTMLTestRun, console */
 'use strict';
 
@@ -159,5 +160,3 @@ function main(){
     var testRun = HTMLTestRun.initWithRootElement(document.body);
     testRun.runAllRegisteredSuites();
 }
-
-main();

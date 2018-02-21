@@ -1,15 +1,15 @@
 // #import "Foundation/Javascript.js"
-/* global JSGlobalObject */
+/* global JSGlobalObject, JSProtocol */
 'use strict';
 
-function JSProtocol(name, superprotocol, extensions){
+JSGlobalObject.JSProtocol = function(name, superprotocol, extensions){
     if (this === undefined){
         if (superprotocol instanceof JSProtocol){
             JSGlobalObject[name] = superprotocol.$extend(extensions);
             return JSGlobalObject[name];
         }
     }
-}
+};
 
 Object.defineProperty(JSProtocol, '$extend', {
   configurable: false,

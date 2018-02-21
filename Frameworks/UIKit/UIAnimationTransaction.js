@@ -11,8 +11,8 @@ JSClass('UIAnimationTransaction', JSObject, {
     animationCount: 0,
     animations: null,
 
-    init: function(){
-        this._animationCompleteBound = this.animationComplete.bind(this);
+    initPrivate: function(){
+        this._animationCompleteBound = this._animationComplete.bind(this);
         this.animations = [];
     },
 
@@ -22,18 +22,18 @@ JSClass('UIAnimationTransaction', JSObject, {
         this.animations.push(animation);
     },
 
-    animationComplete: function(animation){
+    _animationComplete: function(animation){
         --this.animationCount;
         if (this.animationCount === 0 && this.completionFunction){
             this.completionFunction();
         }
     },
 
-    flush: function(){
+    _flush: function(){
         var animation;
         for (var i = 0, l = this.animations.length; i < l; ++i){
             animation = this.animations[i];
-            animation.layer.setLayerNeedsAnimation();
+            animation.layer.setNeedsAnimation();
         }
     }
 });
@@ -43,7 +43,7 @@ UIAnimationTransaction.stack = [];
 UIAnimationTransaction.committed = [];
 
 UIAnimationTransaction.begin = function(){
-    var transaction = UIAnimationTransaction.init();
+    var transaction = UIAnimationTransaction.initPrivate();
     UIAnimationTransaction.stack.push(transaction);
     UIAnimationTransaction.currentTransaction = transaction;
     return transaction;
@@ -56,7 +56,7 @@ UIAnimationTransaction.commit = function(){
         UIAnimationTransaction.currentTransaction = null;
         for (var i = 0, l = UIAnimationTransaction.committed.length; i < l; ++i){
             transaction = UIAnimationTransaction.committed[i];
-            transaction.flush();
+            transaction._flush();
         }
     }else{
         UIAnimationTransaction.currentTransaction = UIAnimationTransaction.stack[UIAnimationTransaction.stack.length - 1];

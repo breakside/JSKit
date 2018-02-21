@@ -2,14 +2,14 @@
 // #import "UIKit/UIResponder.js"
 // #import "UIKit/UILayer.js"
 // #import "UIKit/UIAnimation.js"
-/* global JSClass, JSObject, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSDynamicProperty, JSRect, JSPoint, JSConstraintBox, JSColor, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty */
+/* global JSGlobalObject, JSClass, JSObject, UIViewLayerProperty, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSDynamicProperty, JSRect, JSPoint, JSConstraintBox, JSColor, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty */
 'use strict';
 
-function UIViewLayerProperty(){
+JSGlobalObject.UIViewLayerProperty = function(){
     if (this === undefined){
         return new UIViewLayerProperty();
     }
-}
+};
 
 UIViewLayerProperty.prototype = Object.create(JSCustomProperty.prototype);
 

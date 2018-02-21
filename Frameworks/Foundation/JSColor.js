@@ -66,7 +66,7 @@ JSClass('JSColor', JSObject, {
     },
 
     initWithWhite: function(w){
-        this._colorSpace = JSColor.SpaceIdentifier.GRAY;
+        this._colorSpace = JSColor.SpaceIdentifier.Gray;
         if (w === undefined) w = 0;
         this._components = [w];
     },
@@ -89,6 +89,25 @@ JSClass('JSColor', JSObject, {
         }
     },
 
+    isEqual: function(other){
+        if (!other || !other.isKindOfClass || !other.isKindOfClass(JSColor)){
+            return false;
+        }
+        if (this._colorSpace != other._colorSpace){
+            return false;
+        }
+        for (var i = 0, l = this._components.length; i < l; ++i){
+            if (Math.round(this._components[i] * 255) != Math.round(other._components[i] * 255)){
+                return false;
+            }
+        }
+        return true;
+    },
+
+    toString: function(){
+        return "%s(%s)".sprintf(this._colorSpace, this._components.join(','));
+    }
+
 });
 
 JSColor.SpaceIdentifier = {
@@ -96,7 +115,7 @@ JSColor.SpaceIdentifier = {
     RGBA: 'rgba',
     HSLA: 'hsla',
     HSL: 'hsl',
-    GRAY: 'gray'
+    Gray: 'gray'
 };
 
 var SpaceComponentMap = {};
@@ -104,7 +123,7 @@ SpaceComponentMap[JSColor.SpaceIdentifier.RGB] = { 'red': 0, 'green': 1, 'blue':
 SpaceComponentMap[JSColor.SpaceIdentifier.RGBA] = { 'red': 0, 'green': 1, 'blue': 2, 'alpha': 3 };
 SpaceComponentMap[JSColor.SpaceIdentifier.HSL] = { 'hue': 0, 'saturation': 1, 'lightness': 2 };
 SpaceComponentMap[JSColor.SpaceIdentifier.HSLA] = { 'hue': 0, 'saturation': 1, 'lightness': 2, 'alpha': 3 };
-SpaceComponentMap[JSColor.SpaceIdentifier.GRAY] = { 'white': 0 };
+SpaceComponentMap[JSColor.SpaceIdentifier.Gray] = { 'white': 0 };
 
 JSColor.clearColor = function(){
     return JSColor.initWithRGBA(0, 0, 0, 0);

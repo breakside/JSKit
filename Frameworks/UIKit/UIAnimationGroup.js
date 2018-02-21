@@ -17,6 +17,7 @@ JSClass('UIAnimationGroup', UIAnimation, {
 
     addAnimation: function(animation){
         this.animations.push(animation);
+        animation.layer = this._layer;
     },
 
     setLayer: function(layer){

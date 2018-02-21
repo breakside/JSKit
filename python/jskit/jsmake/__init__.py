@@ -24,6 +24,9 @@ def main():
     elif kind == u'tests':
         from .tests import TestsBuilder
         builderClass = TestsBuilder
+    elif kind == u'node':
+        from .node import NodeBuilder
+        builderClass = NodeBuilder
     else:
         raise Exception(u"Unsupported build type: %u" % args.kind)
     builder = builderClass(projectPath=args.project, includePaths=args.include_dir, outputParentPath=args.output_dir, debug=args.debug, args=unknown)

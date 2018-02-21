@@ -1,8 +1,8 @@
 // #import "Foundation/UnicodeProperties.js"
-/* global UnicodeProperties */
+/* global JSGlobalObject, UnicodeProperties, UnicodeChar */
 'use strict';
 
-function UnicodeChar(code){
+JSGlobalObject.UnicodeChar = function(code){
     if (this === undefined){
         if (!(code in UnicodeChar.database)){
             UnicodeChar.constructing[code] = true;
@@ -16,7 +16,7 @@ function UnicodeChar(code){
         delete UnicodeChar.constructing[code];
     }
     this.code = code;
-}
+};
 
 UnicodeChar.database = {};
 UnicodeChar.constructing = {};

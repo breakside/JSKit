@@ -372,8 +372,8 @@ Object.defineProperties(String.prototype, {
                             case 'd':
                                 // TODO: obey any other flags
                                 sub = arg.toString(10);
-                                if (flags.width){
-                                    sub = sub.leftPaddedString('0', flags.width);
+                                if (width){
+                                    sub = sub.leftPaddedString('0', width);
                                 }
                                 formatted += sub;
                                 break;
@@ -383,8 +383,8 @@ Object.defineProperties(String.prototype, {
                             case 'x':
                                 // TODO: obey any other flags
                                 sub = arg.toString(16);
-                                if (flags.width){
-                                    sub.leftPaddedString('0', flags.width);
+                                if (width){
+                                    sub = sub.leftPaddedString('0', width);
                                 }
                                 if (uppercase){
                                     sub = sub.toUpperCase();

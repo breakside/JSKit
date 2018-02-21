@@ -1,8 +1,5 @@
 {
     "JSBundleType": "tests",
     "JSBundleIdentifier": "com.owenshaw.JSKit.UIKitTests",
-    "JSBundleDisplayName": "UIKitTests",
-    "JSIncludes": [
-        "Foundation/Foundation+HTML.js"
-    ]
+    "JSBundleDisplayName": "UIKitTests"
 }

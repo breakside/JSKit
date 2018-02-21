@@ -4,14 +4,14 @@
 // #import "UIKit/UIDisplayServer.js"
 // #feature Math.min
 // #feature Math.max
-/* global JSCustomProperty, JSDynamicProperty, JSClass, JSObject, UILayer, UIDisplayServer, JSRect, JSPoint, JSSize, JSConstraintBox, JSAffineTransform, UIAnimationTransaction, UIBasicAnimation, JSSetDottedName, JSResolveDottedName, JSContext */
+/* global JSGlobalObject, UILayerAnimatedProperty, JSCustomProperty, JSDynamicProperty, JSClass, JSObject, UILayer, UIDisplayServer, JSRect, JSPoint, JSSize, JSConstraintBox, JSAffineTransform, UIAnimationTransaction, UIBasicAnimation, JSSetDottedName, JSResolveDottedName, JSContext */
 'use strict';
 
-function UILayerAnimatedProperty(){
+JSGlobalObject.UILayerAnimatedProperty = function(){
     if (this === undefined){
         return new UILayerAnimatedProperty();
     }
-}
+};
 
 UILayerAnimatedProperty.prototype = Object.create(JSCustomProperty.prototype);
 
@@ -250,14 +250,14 @@ JSClass("UILayer", JSObject, {
         if (sibling.superlayer !== this){
             throw Error('Cannot insert sublayer [%s] in view [%s] because sibling view [%s] is not a valid sublayer.');
         }
-        return this.insertSublayerAtIndex(sibling.level);
+        return this.insertSublayerAtIndex(sublayer, sibling.level);
     },
 
     insertSublayerAfterSibling: function(sublayer, sibling){
         if (sibling.superlayer !== this){
             throw Error('Cannot insert sublayer [%s] in view [%s] because sibling view [%s] is not a valid sublayer.');
         }
-        return this.insertSublayerAtIndex(sibling.level + 1);
+        return this.insertSublayerAtIndex(sublayer, sibling.level + 1);
     },
 
     removeSublayer: function(sublayer){
@@ -281,8 +281,8 @@ JSClass("UILayer", JSObject, {
     },
 
     removeAllSublayers: function(){
-        for (var i = 0, l = this.sublayers.length; i < l; ++i){
-            this.sublayer.removeFromSuperlayer();
+        for (var i = this.sublayers.length - 1; i >= 0; --i){
+            this.sublayers[i].removeFromSuperlayer();
         }
         this.sublayers = [];
     },

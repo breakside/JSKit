@@ -1,11 +1,11 @@
 // #import "UIKit/UIAnimation.js"
-/* global JSClass, UIAnimation, JSDynamicProperty, JSResolveDottedName */
+/* global JSClass, UIAnimation, JSDynamicProperty, JSReadOnlyProperty, JSResolveDottedName */
 'use strict';
 
 JSClass('UIPropertyAnimation', UIAnimation, {
     keyPath: null,
-    _updateContext: null,
-    _updateProperty: null,
+    updateContext: JSReadOnlyProperty('_updateContext', null),
+    updateProperty: JSReadOnlyProperty('_updateProperty', null),
     layer: JSDynamicProperty('_layer', null),  // FIXME: need to redeclare because setLayer is overwritten
 
     initWithKeyPath: function(keyPath){
@@ -14,9 +14,14 @@ JSClass('UIPropertyAnimation', UIAnimation, {
 
     setLayer: function(layer){
         this._layer = layer;
-        var parts = this.keyPath.split('.');
-        this._updateProperty = parts.pop();
-        this._updateContext = JSResolveDottedName(layer.presentation, parts.join('.'));
+        if (layer === null){
+            this._updateProperty = null;
+            this._updateContext = null;
+        }else{
+            var parts = this.keyPath.split('.');
+            this._updateProperty = parts.pop();
+            this._updateContext = JSResolveDottedName(layer.presentation, parts.join('.'));
+        }
     },
 
     getLayer: function(){

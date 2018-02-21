@@ -1,9 +1,9 @@
 // #import "Foundation/Foundation.js"
 // #import "Foundation/JSClass.js"
-/* global JSClass, JSClassForName */
+/* global JSGlobalObject, JSObject, JSClass, JSClassForName */
 'use strict';
 
-var JSObject = Object.create(JSClass.prototype, {
+JSGlobalObject.JSObject = Object.create(JSClass.prototype, {
     ID: {
         configurable: false,
         enumerable: false,

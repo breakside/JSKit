@@ -287,6 +287,10 @@ JSAffineTransform.prototype = {
             (this.c * this.ty - this.d * this.tx) / determinant,
             (this.b * this.tx - this.a * this.ty) / determinant
         );
+    },
+
+    isEqual: function(other){
+        return this.a == other.a && this.b == other.b && this.c == other.c && this.d == other.d && this.tx == other.tx && this.ty == other.ty;
     }
 };
 

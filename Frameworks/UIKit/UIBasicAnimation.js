@@ -1,14 +1,12 @@
 // #import "UIKit/UIPropertyAnimation.js"
-/* global JSClass, UIPropertyAnimation, UIAnimation, JSResolveDottedName, JSPoint, JSSize, JSRect, JSAffineTransform, JSColor */
+/* global JSClass, UIPropertyAnimation, UIAnimation, JSDynamicProperty, JSResolveDottedName, JSPoint, JSSize, JSRect, JSAffineTransform, JSColor */
 'use strict';
 
 JSClass('UIBasicAnimation', UIPropertyAnimation, {
     timingFunction: UIAnimation.linearTimingFunction,
     duration: null,
-    fromValue: null,
-    toValue: null,
-    _fromValue: null,
-    _toValue: null,
+    fromValue: JSDynamicProperty('_fromValue', null),
+    toValue: JSDynamicProperty('_toValue', null),
     _interpolation: null,
     _t0: null,
     _timeProgress: null,
@@ -28,14 +26,11 @@ JSClass('UIBasicAnimation', UIPropertyAnimation, {
     },
 
     _updateLayer: function(){
-        var from = this.fromValue;
-        var to = this.toValue || JSResolveDottedName(this.layer.model, this.keyPath);
-        if (!this._interpolation || from != this._fromValue || to != this._toValue){
-            this._fromValue = from;
-            this._toValue = to;
+        if (!this._interpolation){
+            this._toValue = JSResolveDottedName(this.layer.model, this.keyPath);
             this._determineInterpolation();
         }
-        this._updateContext[this._updateProperty] = this._interpolation(from, to, this._progress);
+        this._updateContext[this._updateProperty] = this._interpolation(this._fromValue, this._toValue, this._progress);
     },
 
     _determineInterpolation: function(){

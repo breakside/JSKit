@@ -1,12 +1,13 @@
+/* global JSGlobalObject, TKAssertion */
 'use strict';
 
-function TKAssertion(message){
+JSGlobalObject.TKAssertion = function(message){
     if (this === undefined){
         return new TKAssertion(message);
     }
     var line = TKAssertion.LineForCurrentCaseInError(new Error());
     this.message = 'Line ' + line + '. ' + (message || '');
-}
+};
 
 TKAssertion.LineForCurrentCaseInError = function(error){
     if (error.stack){
@@ -35,77 +36,96 @@ TKAssertion.LineForCurrentCaseInError = function(error){
 
 TKAssertion.CurrentTestCase = '';
 
-function TKAssert(condition, message){
+JSGlobalObject.TKAssert = function(condition, message){
     if (!condition){
         message = message || '';
         throw TKAssertion('TKAssert failed, expression is false. ' + message);
     }
-}
+};
 
-function TKAssertEquals(a, b, message){
+JSGlobalObject.TKAssertEquals = function(a, b, message){
     if (a != b){
         message = message || '';
         throw TKAssertion('TKAssertEquals failed, ' + (a) + ' != ' + (b) + '. ' + message);
     }
-}
+};
 
-function TKAssertNotEquals(a, b, message){
+JSGlobalObject.TKAssertNotEquals = function(a, b, message){
     if (a == b){
         message = message || '';
         throw TKAssertion('TKAssertNotEquals failed, ' + (a) + ' == ' + (b) + '. ' + message);
     }
-}
+};
 
-function TKAssertExactEquals(a, b, message){
+JSGlobalObject.TKAssertFloatEquals = function(a, b, threshold, message){
+    if (threshold === undefined){
+        threshold = Math.abs(b || 1 / 1000000);
+    }
+    if (isNaN(a)){
+        message = message || '';
+        throw TKAssertion('TKAssertFloatEquals failed, first arg is NaN. ' + message);
+    }
+    if (isNaN(b)){
+        message = message || '';
+        throw TKAssertion('TKAssertFloatEquals failed, second arg is NaN. ' + message);
+    }
+    var x = Math.abs(a - b);
+    if (x > threshold){
+        message = message || '';
+        throw TKAssertion('TKAssertFloatEquals failed, ' + (a) + ' != ' + (b) + ' +/- ' + threshold + '. ' + message);
+    }
+};
+
+JSGlobalObject.TKAssertExactEquals = function(a, b, message){
     if (a !== b){
         message = message || '';
         throw TKAssertion('TKAssertExactEquals failed, ' + (a) + ' !== ' + (b) + '. ' + message);
     }
-}
+};
 
-function TKAssertNotExactEquals(a, b, message){
+JSGlobalObject.TKAssertNotExactEquals = function(a, b, message){
     if (a === b){
         message = message || '';
         throw TKAssertion('TKAssertNotExactEquals failed, ' + (a) + ' === ' + (b) + '. ' + message);
     }
-}
+};
 
-function TKAssertObjectEquals(a, b, message){
+JSGlobalObject.TKAssertObjectEquals = function(a, b, message){
     if (!a.isEqual(b)){
         message = message || '';
         throw TKAssertion('TKAssertObjectEquals failed, ' + (a) + ' != ' + (b) + ' (using .isEqual()) ' + message);
     }
-}
+};
 
-function TKAssertObjectNotEquals(a, b, message){
+JSGlobalObject.TKAssertObjectNotEquals = function(a, b, message){
     if (a.isEqual(b)){
         message = message || '';
         throw TKAssertion('TKAssertObjectNotEquals failed, ' + (a) + ' == ' + (b) + ' (using .isEqual()) ' + message);
     }
-}
+};
 
-function TKAssertNotNull(expression, message){
+JSGlobalObject.TKAssertNotNull = function(expression, message){
     if (expression === null){
         message = message || '';
         throw TKAssertion('TKAssertNotNull failed, expression is null. ' + message);
     }
-}
+};
 
-function TKAssertNull(expression, message){
+JSGlobalObject.TKAssertNull = function(expression, message){
     if (expression !== null){
         message = message || '';
         throw TKAssertion('TKAssertNull failed, expression is not null ' + message);
     }
-}
+};
 
-function TKAssertUndefined(expression, message){
+JSGlobalObject.TKAssertUndefined = function(expression, message){
     if (expression !== undefined){
         message = message || '';
         throw TKAssertion('TKAssertNull failed, expression is not undefined ' + message);
     }
-}
+};
 
-function TKAssertThrows(f){
+JSGlobalObject.TKAssertThrows = function(f){
     var threw = false;
     try{
         f();
@@ -115,4 +135,4 @@ function TKAssertThrows(f){
     if (!threw){
         throw TKAssertion('TKAssertThrows failed, no exception thrown for ' + f);
     }
-}
+};

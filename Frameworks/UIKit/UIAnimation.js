@@ -48,8 +48,8 @@ UIAnimation.interpolateRect = function(from, to, progress){
 UIAnimation.interpolateAffineTransform = function(from, to, progress){
     return JSAffineTransform(
         from.a + (to.a - from.a) * progress,
-        from.b + (to.b - from.b) * progress,  // FIXME: this probably isn't the right interpolation for rotation/skew
-        from.c + (to.c - from.c) * progress,  // FIXME: this probably isn't the right interpolation for rotation/skew
+        from.b + (to.b - from.b) * progress,
+        from.c + (to.c - from.c) * progress,
         from.d + (to.d - from.d) * progress,
         from.tx + (to.tx - from.tx) * progress,
         from.ty + (to.ty - from.ty) * progress

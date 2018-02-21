@@ -2,9 +2,5 @@
     "JSBundleType": "html",
     "JSBundleIdentifier": "com.yourcompany.sample",
     "UIMainDefinitionResource": "MainWindow",
-    "UIApplicationTitle": "Sample App",
-    "JSIncludes": [
-        "UIKit/UIKit+HTML.js",
-        "main.js"
-    ]
+    "UIApplicationTitle": "Sample App"
 }

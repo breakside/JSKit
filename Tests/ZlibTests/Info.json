@@ -1,8 +1,5 @@
 {
     "JSBundleType": "tests",
     "JSBundleIdentifier": "com.owenshaw.JSKit.ZlibTests",
-    "JSBundleDisplayName": "ZlibTests",
-    "JSIncludes": [
-        "Foundation/Foundation+HTML.js"
-    ]
+    "JSBundleDisplayName": "ZlibTests"
 }

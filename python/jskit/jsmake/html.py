@@ -138,8 +138,7 @@ class HTMLBuilder(Builder):
         self.fonts.append(info)
 
     def findIncludes(self):
-        for path in self.info.get('JSIncludes', []):
-            self.includes.append(path)
+        self.includes.append('main.js')
         mainSpecName = self.info.get('UIMainDefinitionResource', None)
         if mainSpecName is not None:
             mainSpec = self.mainBundle["Resources"][mainSpecName][0]["value"]
@@ -341,7 +340,7 @@ class HTMLBuilder(Builder):
         ownerPrefix = ('%s/' % self.dockerOwner) if self.dockerOwner else ''
         self.dockerIdentifier = "%s%s:%s" % (ownerPrefix, self.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
         self.dockerIdentifier = self.dockerIdentifier.lower()
-        self.dockerName = self.info['JSBundleIdentifier'].lower()
+        self.dockerName = self.info['JSBundleIdentifier'].lower().replace('.', '_')
         if not self.dockerBuilt:
             self.updateStatus("Building docker image %s..." % self.dockerIdentifier)
             sys.stdout.flush()

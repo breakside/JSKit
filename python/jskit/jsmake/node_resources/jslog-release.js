@@ -1,7 +1,7 @@
 // #import "Foundation/JSLog.js"
-/* global JSLog */
+/* global JSLog, global */
 'use strict';
 
-function jslog_create(tag){
+global.jslog_create = function(tag){
     return new JSLog(tag);
-}
+};

@@ -12,7 +12,7 @@ JSColor.definePropertiesFromExtensions({
             return 'hsla(%d, %d, %d, %f)'.sprintf(Math.round(this.components[0] * 255), Math.round(this.components[1] * 255), Math.round(this.components[2] * 255), this.components[3]);
         }else if (this.colorSpace === JSColor.SpaceIdentifier.HSL){
             return 'hsl(%d, %d, %d)'.sprintf(Math.round(this.components[0] * 255), Math.round(this.components[1] * 255), Math.round(this.components[2] * 255), this.components[3]);
-        }else if (this.colorSpace === JSColor.SpaceIdentifier.GRAY){
+        }else if (this.colorSpace === JSColor.SpaceIdentifier.Gray){
             var w = Math.round(this.components[0] * 255);
             return 'rgb(' + [w, w, w].join(',') + ')';
         }else{

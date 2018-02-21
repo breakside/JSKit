@@ -2,10 +2,10 @@
 // #feature Object.defineProperty
 // #feature Object.getPrototypeOf
 // #feature Object.hasOwnProperty
-/* global JSGlobalObject */
+/* global JSGlobalObject, JSClass, JSDynamicProperty, JSCustomProperty, JSReadOnlyProperty, JSLazyInitProperty */
 'use strict';
 
-function JSClass(name, superclass, extensions){
+JSGlobalObject.JSClass = function(name, superclass, extensions){
     if (this === undefined){
         if (superclass instanceof JSClass){
             JSGlobalObject[name] = superclass.$extend(extensions, name);
@@ -14,7 +14,7 @@ function JSClass(name, superclass, extensions){
             throw new Error("JSClass(): superclass must be an instance of JSClass");
         }
     }
-}
+};
 
 JSClass.prototype = {
     className: '',
@@ -169,10 +169,10 @@ JSClass.prototype = {
     }
 };
 
-function JSCustomProperty(){
-}
+JSGlobalObject.JSCustomProperty = function(){
+};
 
-function JSDynamicProperty(privateKey, initialValue, getterName, setterName){
+JSGlobalObject.JSDynamicProperty = function(privateKey, initialValue, getterName, setterName){
     if (this === undefined){
         return new JSDynamicProperty(privateKey, initialValue, getterName, setterName);
     }else{
@@ -181,7 +181,7 @@ function JSDynamicProperty(privateKey, initialValue, getterName, setterName){
         this.getterName = getterName;
         this.setterName = setterName;
     }
-}
+};
 
 JSDynamicProperty.prototype = Object.create(JSCustomProperty.prototype);
 
@@ -237,10 +237,7 @@ JSDynamicProperty.prototype.define = function(C, publicKey, extensions){
     });
 };
 
-function JSCustomProperty(){
-}
-
-function JSReadOnlyProperty(privateKey, initialValue, getterName){
+JSGlobalObject.JSReadOnlyProperty = function(privateKey, initialValue, getterName){
     if (this === undefined){
         return new JSReadOnlyProperty(privateKey, initialValue, getterName);
     }else{
@@ -248,7 +245,7 @@ function JSReadOnlyProperty(privateKey, initialValue, getterName){
         this.initialValue = initialValue;
         this.getterName = getterName;
     }
-}
+};
 
 JSReadOnlyProperty.prototype = Object.create(JSCustomProperty.prototype);
 
@@ -283,13 +280,13 @@ JSReadOnlyProperty.prototype.define = function(C, publicKey, extensions){
     });
 };
 
-function JSLazyInitProperty(propertyInitMethodName){
+JSGlobalObject.JSLazyInitProperty = function(propertyInitMethodName){
     if (this === undefined){
         return new JSLazyInitProperty(propertyInitMethodName);
     }else{
         this.propertyInitMethodName = propertyInitMethodName;
     }
-}
+};
 
 JSLazyInitProperty.prototype = Object.create(JSCustomProperty.prototype);
 
