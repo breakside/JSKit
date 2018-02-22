@@ -1,0 +1,8 @@
+{
+    "JSBundleType": "framework",
+    "JSBundleIdentifier": "com.owenshaw.JSKit.ServerKit",
+    "JSFrameworkVariants": [
+        "ServerKit.js",
+        "ServerKit+Node.js"
+    ]
+}

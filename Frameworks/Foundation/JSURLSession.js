@@ -1,8 +1,9 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSURLSessionDataTask.js"
 // #import "Foundation/JSURLSessionUploadTask.js"
+// #import "Foundation/JSURLSessionStreamTask.js"
 // #import "Foundation/JSURLRequest.js"
-/* global JSObject, JSClass, JSURLSession, JSURLSessionDataTask, JSURLSessionUploadTask, JSURLRequest */
+/* global JSObject, JSClass, JSURLSession, JSURLSessionDataTask, JSURLSessionUploadTask, JSURLRequest, JSURLSessionStreamTask */
 'use strict';
 
 JSClass("JSURLSession", JSObject, {
@@ -31,6 +32,12 @@ JSClass("JSURLSession", JSObject, {
         return task;
     },
 
+    streamTaskWithURL: function(url){
+        var task = JSURLSessionStreamTask.initWithURL(url);
+        task.session = this;
+        return task;
+    },
+
     _taskDidSendBodyData: function(task, totalSent, totalExpected){
         if (task.progressDelegate && task.progressDelegate.taskDidSendBodyData){
             task.progressDelegate.taskDidSendBodyData(task, totalSent, totalExpected);
@@ -46,6 +53,24 @@ JSClass("JSURLSession", JSObject, {
         }
         if (this.delegate && this.delegate.urlSessionTaskDidSendBodyData){
             this.delegate.urlSessoinTaskDidReceiveBodyData(this, task, totalReceived, totalExpected);
+        }
+    },
+
+    _taskDidOpenStream: function(task){
+        if (task.streamDelegate && task.streamDelegate.taskDidOpenStream){
+            task.streamDelegate.taskDidOpenStream(task);
+        }
+        if (this.delegate && this.delegate.urlsSessionTaskDidOpenStream){
+            this.delegate.urlsSessionTaskDidOpenStream(this, task);
+        }
+    },
+
+    _taskDidReceiveStreamData: function(task, data){
+        if (task.streamDelegate && task.streamDelegate.taskDidReceiveStreamData){
+            task.streamDelegate.taskDidReceiveStreamData(task);
+        }
+        if (this.delegate && this.delegate.urlsSessionTaskDidReceiveStreamData){
+            this.delegate.urlsSessionTaskDidReceiveStreamData(this, task, data);
         }
     },
 

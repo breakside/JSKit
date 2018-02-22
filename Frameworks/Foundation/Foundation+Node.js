@@ -4,3 +4,6 @@
 
 // Base
 // #import "Foundation/Foundation.js"
+
+// Extensions
+// #import "Foundation/JSData+Node.js"

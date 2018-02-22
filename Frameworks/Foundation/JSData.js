@@ -46,4 +46,15 @@ JSClass("JSData", JSObject, {
         return JSData.initWithBytes(this.bytes.arrayByEncodingPercentEscapes(reserved, encodeSpaceAsPlus));
     },
 
+    isEqual: function(other){
+        return other.isKindOfClass(JSData) && this.bytes.isEqual(other.bytes);
+    },
+
+    toString: function(){
+        if (this.length > 10){
+            return new Uint8Array(this.bytes.buffer, this.bytes.byteOffset, 10).hexStringRepresentation() + '...';
+        }
+        return this.bytes.hexStringRepresentation();
+    }
+
 });
