@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation+HTML.js"
 // #import "TestKit/TestKit.js"
-/* global document, JSClass, JSBundle, TKTestRun, TKTestResult, HTMLTestRun, console */
+/* global document, window, JSClass, JSBundle, TKTestRun, TKTestResult, HTMLTestRun, console */
 'use strict';
 
 JSClass('HTMLTestRun', TKTestRun, {
@@ -118,6 +118,7 @@ JSClass('HTMLTestRun', TKTestRun, {
         var suiteResults;
         var suitePassed;
         var suiteFailed;
+        var run = 0;
         for (var suiteName in results){
             suiteResults = results[suiteName];
             suiteFailed = suiteResults[TKTestResult.Failed] > 0 || suiteResults[TKTestResult.Error] > 0;
@@ -127,17 +128,24 @@ JSClass('HTMLTestRun', TKTestRun, {
             }else if (suiteFailed){
                 failed += 1;
             }
+            run += 1;
         }
         var iconLabel = this.thead.rows[0].cells[0].childNodes[0];
         var textLabel = this.thead.rows[0].cells[1].childNodes[0];
+        var name = this.name;
+        if (run == 1){
+            for (suiteName in results){
+                name = suiteName;
+            }
+        }
         if (failed > 0){
             iconLabel.nodeValue = "‼️";
-            textLabel.nodeValue = this.name + ': ' + failed + ' test suites failed';
+            textLabel.nodeValue = name + ': ' + failed + ' test suites failed';
             this.thead.addEventListener('click', this, false);
             this.thead.addEventListener('mousedown', this, false);
         }else{
             iconLabel.nodeValue = "✅";
-            textLabel.nodeValue = this.name + ': All tests passed';
+            textLabel.nodeValue = name + ': All tests passed';
         }
     },
 
@@ -156,7 +164,29 @@ JSClass('HTMLTestRun', TKTestRun, {
     }
 });
 
+function parseOptions(){
+    var options = {};
+    var pairs = window.location.search.substr(1).split('&');
+    var keyValue;
+    for (var i = 0; i < pairs.length; ++i){
+        keyValue = pairs[i].split('=');
+        if (keyValue.length == 1){
+            options[keyValue[0]] = true;
+        }else{
+            var key = keyValue.shift();
+            options[key] = keyValue.join('=');
+        }
+    }
+    console.log(options);
+    return options;
+}
+
 function main(){
     var testRun = HTMLTestRun.initWithRootElement(document.body);
-    testRun.runAllRegisteredSuites();
+    var options = parseOptions();
+    if (options.suite){
+        testRun.runSuiteNamed(options.suite);
+    }else{
+        testRun.runAllRegisteredSuites();
+    }
 }

@@ -58,7 +58,7 @@ JSClass("UILayer", JSObject, {
     shadowColor:        UILayerAnimatedProperty(),
     shadowOffset:       UILayerAnimatedProperty(),
     shadowRadius:       UILayerAnimatedProperty(),
-    clipsToBounds:      JSDynamicProperty('_clipsToBounds'),
+    clipsToBounds:      JSDynamicProperty('_clipsToBounds', false),
     model:              null,
     presentation:       null,
     superlayer:         null,
@@ -159,7 +159,7 @@ JSClass("UILayer", JSObject, {
     },
 
     setClipsToBounds: function(clipsToBounds){
-        this._clipsToBounds = true;
+        this._clipsToBounds = clipsToBounds;
         this.didChangeProperty('clipsToBounds');
     },
 

@@ -66,6 +66,7 @@ JSClass('NodeTestRun', TKTestRun, {
         var suiteResults;
         var suitePassed;
         var suiteFailed;
+        var run = 0;
         for (var suiteName in results){
             suiteResults = results[suiteName];
             suiteFailed = suiteResults[TKTestResult.Failed] > 0 || suiteResults[TKTestResult.Error] > 0;
@@ -75,16 +76,51 @@ JSClass('NodeTestRun', TKTestRun, {
             }else if (suiteFailed){
                 failed += 1;
             }
+            run += 1;
         }
-        if (failed > 0){
-            process.stdout.write("\n‼️  " + this.name+ ': ' + failed + ' test suites failed\n');
-        }else{
-            process.stdout.write("\n✅ " + this.name + ': All tests passed\n');
+        if (run > 1){
+            if (failed > 0){
+                process.stdout.write("\n‼️  " + this.name+ ': ' + failed + ' test suites failed\n');
+            }else{
+                process.stdout.write("\n✅ " + this.name + ': All tests passed\n');
+            }
         }
     }
 });
 
+function parseOptions(){
+    var options = {};
+    var argv = process.argv.slice(1 + process.execArgv.length);
+    var arg;
+    var key = null;
+    for (var i = 1; i < argv.length; ++i){
+        arg = argv[i];
+        if (arg.length > 1 && arg.charAt(0) == '-' && arg.charAt(1) == '-'){
+            if (key !== null){
+                options[key] = true;
+                key = null;
+            }
+            key = arg.substr(2);
+        }else{
+            if (key !== null){
+                options[key] = arg;
+                key = null;
+            }
+        }
+    }
+    if (key !== null){
+        options[key] = true;
+        key = null;
+    }
+    return options;
+}
+
 module.exports.run = function(){
     var testRun = NodeTestRun.init();
-    testRun.runAllRegisteredSuites();
+    var options = parseOptions();
+    if (options.suite){
+        testRun.runSuiteNamed(options.suite);
+    }else{
+        testRun.runAllRegisteredSuites();
+    }
 };

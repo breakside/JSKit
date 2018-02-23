@@ -20,16 +20,16 @@ JSClass("Adler32Tests", TKTestSuite, {
     },
 
     testBytesFunction: function(){
-        // Tested against results from macOS app:
-        // #include <stdio.h>
-        // #include <zlib.h>
-        // int main(int argc, const char * argv[]) {
-        //     uint8_t bytes[] = {0,1,2,3,4,5,6,7,8,9};
-        //     unsigned long adler32 = 1;
-        //     adler32 = adler32_z(adler32, bytes, sizeof(bytes));
-        //     printf("adler32: %lu\n", adler32);
-        //     return 0;
-        // }
+        /// Tested against results from macOS app:
+        /// #include <stdio.h>
+        /// #include <zlib.h>
+        /// int main(int argc, const char * argv[]) {
+        ///     uint8_t bytes[] = {0,1,2,3,4,5,6,7,8,9};
+        ///     unsigned long adler32 = 1;
+        ///     adler32 = adler32_z(adler32, bytes, sizeof(bytes));
+        ///     printf("adler32: %lu\n", adler32);
+        ///     return 0;
+        /// }
         var data = new Uint8Array([0,1,2,3,4,5,6,7,8,9]);
         var sum = Adler32(data);
         TKAssert(!(sum instanceof Adler32));

@@ -53,7 +53,7 @@ JSClass("JSTextFrame", JSObject, {
         while (min < max){
             mid = Math.floor(min + (max - min) / 2);
             line = this._lines[mid];
-            i = line.range.location;
+            i = line.range.location - this.range.location;
             l = line.range.length;
             if (index < i){
                 max = mid;

@@ -91,8 +91,8 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         return UIHTMLTextRun.initWithGlyphStorage(glyphStorage, attributes);
     },
 
-    constructAttachmentRun: function(attachment, size){
-        return UIHTMLTextRun.initWithAttachment(attachment, size);
+    constructAttachmentRun: function(attachment, size, range){
+        return UIHTMLTextRun.initWithAttachment(attachment, size, range);
     },
 
     constructGlyphStorage: function(font, location){

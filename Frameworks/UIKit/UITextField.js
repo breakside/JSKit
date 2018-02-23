@@ -42,7 +42,7 @@ JSClass("UITextField", UIView, {
         this._textLayer = UITextLayer.init();
         this._textLayer.delegate = this;
         this._textLayer.textAlignment = JSTextAlignment.Left;
-        this._textLayer.lineBreakMode = JSLineBreakMode.Clip;
+        this._textLayer.lineBreakMode = JSLineBreakMode.WordWrap;
         this._textLayer.sizeTracksText = true;
         this._textLayer.maximumNumberOfLines = 1;
         this._localEditor = UITextEditor.initWithTextLayer(this._textLayer);
@@ -122,6 +122,13 @@ JSClass("UITextField", UIView, {
         var newFrame = JSRect(origin, size);
         if (!this._textLayer.frame.isEqual(newFrame)){
             this._textLayer.frame = newFrame;
+        }
+    },
+
+    layerDidChangeSize: function(layer){
+        if (layer === this._textLayer && this._multiline){
+            this.layer.bounds = JSRect(this.layer.bounds.origin, this._textLayer.bounds.size);
+            this.setNeedsLayout();
         }
     },
 

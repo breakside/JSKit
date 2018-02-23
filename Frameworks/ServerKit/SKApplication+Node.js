@@ -5,7 +5,7 @@
 SKApplication.definePropertiesFromExtensions({
 
     rawProcessArguments: function(){
-        return process.execArgv;
+        return process.argv.slice(1 + process.execArgv.length);
     }
 
 });

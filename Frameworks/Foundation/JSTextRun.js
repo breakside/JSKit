@@ -15,7 +15,7 @@ JSClass("JSTextRun", JSObject, {
     initWithGlyphStorage: function(glyphStorage, attributes){
         this.init();
         this._glyphStorage = glyphStorage;
-        this._size = JSSize(this._glyphStorage.font.lineHeight, this._glyphStorage.width);
+        this._size = JSSize(this._glyphStorage.width, this._glyphStorage.font.lineHeight);
         this._range = JSRange(this._glyphStorage.range);
         this._origin = JSPoint.Zero;
     },

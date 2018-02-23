@@ -28,13 +28,12 @@ JSClass("UIHTMLTextLine", JSTextLine, {
     },
 
     initWithDocument: function(domDocument, runs, origin, width, textAlignment){
-        this.initWithReusableElement(domDocument.createElement('div'), runs, origin, width, textAlignment);
+        this.initWithReusableElement(domDocument.body.appendChild(domDocument.createElement('div')), runs, origin, width, textAlignment);
         this.element.dataset.uiText = "line";
         this.element.style.whiteSpace = 'pre';
         this.element.style.lineHeight = '0';
         this.element.style.visibility = 'hidden';
         this.element.style.position = 'absolute';
-        domDocument.body.appendChild(this.element);
 
         // this.shade = this.element.appendChild(domDocument.createElement('div'));
         // this.shade.style.position = 'absolute';

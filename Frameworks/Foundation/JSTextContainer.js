@@ -8,7 +8,7 @@
 JSClass("JSTextContainer", JSObject, {
 
     size: JSDynamicProperty('_size', null),
-    range: JSReadOnlyProperty('_range', null),
+    range: JSReadOnlyProperty(),
     lineBreakMode: JSDynamicProperty('_lineBreakMode', JSLineBreakMode.WordWrap),
     textAlignment: JSDynamicProperty('_textAlignment', JSTextAlignment.Left),
     textLayoutManager: JSDynamicProperty('_textLayoutManager', null),
@@ -20,7 +20,13 @@ JSClass("JSTextContainer", JSObject, {
     initWithSize: function(size){
         this.framesetter = JSTextFramesetter.init();
         this._size = JSSize(size);
-        this._range = JSRange.Zero;
+    },
+
+    getRange: function(){
+        if (this._textFrame === null){
+            return JSSize.Zero;
+        }
+        return this._textFrame.range;
     },
 
     setSize: function(size){
@@ -92,7 +98,7 @@ JSClass("JSTextContainer", JSObject, {
         if (this._textFrame !== null){
             var line = this._textFrame.lineContainingCharacterAtIndex(index);
             if (line !== null){
-                var rect = line.rectForCharacterAtIndex(index - line.range.location);
+                var rect = line.rectForCharacterAtIndex(index - (line.range.location - this._textFrame.range.location));
                 rect.origin.x += line.origin.x;
                 rect.origin.y += line.origin.y;
                 return rect;

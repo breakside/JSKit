@@ -51,7 +51,9 @@ JSClass("JSTextLine", JSObject, {
     rectForCharacterAtIndex: function(index){
         var run = this.runContainingCharacterAtIndex(index);
         if (run !== null){
-            var rect = run.rectForCharacterAtIndex(index - run.range.location);
+            // FIXME: go all the way to the end of the line if character is not printed, 
+            // such as trailing whitespace at the end of a line.
+            var rect = run.rectForCharacterAtIndex(index - (run.range.location - this.range.location));
             rect.origin.x += run.origin.x;
             rect.origin.y += run.origin.y;
             return rect;
@@ -74,7 +76,7 @@ JSClass("JSTextLine", JSObject, {
         while (min < max){
             mid = Math.floor(min + (max - min) / 2);
             run = this._runs[mid];
-            i = run.range.location;
+            i = run.range.location - this.range.location;
             l = run.range.length;
             if (index < i){
                 max = mid;

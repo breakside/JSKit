@@ -5,7 +5,7 @@
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
 // #feature Document.prototype.createElement
-/* global JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer, jslog_create, UIHTMLTextFramesetter */
+/* global JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer, jslog_create, UIHTMLTextFramesetter, UIView */
 'use strict';
 
 (function(){
@@ -143,7 +143,13 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             if (element.dataset){
                 element.dataset.layerId = layer.objectID;
                 if (layer.delegate !== null){
-                    element.dataset.viewClass = layer.delegate.$class.className;
+                    if (layer.delegate.isKindOfClass(UIView) && layer.delegate.layer !== layer){
+                        element.dataset.layerClass = layer.$class.className;
+                    }else{
+                        element.dataset.viewClass = layer.delegate.$class.className;
+                    }
+                }else{
+                    element.dataset.layerClass = layer.$class.className;
                 }
             }
             this.contextsByLayerID[layer.objectID] = context;

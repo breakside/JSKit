@@ -22,6 +22,17 @@ JSClass('TKTestRun', JSObject, {
         this.endTests(this.results);
     },
 
+    runSuiteNamed: function(suiteName){
+        var suite;
+        for (var i = 0, l = TKTestSuite.RegisteredTestSuites.length; i < l; ++i){
+            suite = TKTestSuite.RegisteredTestSuites[i];
+            if (suite.className == suiteName){
+                this.runSuite(suite);
+            }
+        }
+        this.endTests(this.results);
+    },
+
     runSuite: function(suite){
         this.results[suite.className] = {};
         this.results[suite.className][TKTestResult.NotRun] = suite.cases.length;

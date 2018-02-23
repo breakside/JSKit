@@ -9,7 +9,6 @@ JSClass("UIHTMLTextGlyphStorage", JSTextGlyphStorage, {
     element: null,
     textNode: null,
     width: JSReadOnlyProperty(),
-    _lastPushLength: 0,
 
     initWithReusableElement: function(element, font, location){
         UIHTMLTextGlyphStorage.$super.initWithFont.call(this, font, location);
@@ -24,13 +23,13 @@ JSClass("UIHTMLTextGlyphStorage", JSTextGlyphStorage, {
     },
 
     initWithDocument: function(domDocument, font, location){
-        this.initWithReusableElement(domDocument.createElement('span'), font, location);
-        domDocument.body.appendChild(this.element);
+        this.initWithReusableElement(domDocument.body.appendChild(domDocument.createElement('span')), font, location);
         this.element.style.visibility = 'hidden';
         this.element.style.position = 'absolute';
         this.element.style.verticalAlign = 'baseline';
         this.element.style.display = 'inline';
         this.element.dataset.uiText = "run";
+        this.element.style.whiteSpace = 'pre';
 
         // this.shade = this.element.appendChild(domDocument.createElement('div'));
         // this.shade.style.position = 'absolute';
@@ -41,17 +40,27 @@ JSClass("UIHTMLTextGlyphStorage", JSTextGlyphStorage, {
         // this.shade.style.backgroundColor = 'rgba(0,0,255,0.3)';
     },
 
-    push: function(utf16){
-        this.textNode.nodeValue += utf16;
-        this.range.length += utf16.length;
-        this._lastPushLength = utf16.length;
+    push: function(utf16, preserveRange){
+        // Special handling for trailing newlines:
+        // - we should only see newlines at the end of a run based on JSTypesetter logic
+        // - we want to count the newline as part of our range
+        // - we don't want to actually render the newline in HTML because it affects our size
+        if (!preserveRange){
+            this.range.length += utf16.length;
+        }
+        if (utf16.length > 0 && utf16.charCodeAt(utf16.length - 1) == 0x0A){
+            utf16 = utf16.substr(0, utf16.length - 1);
+        }
+        if (utf16.length > 0){
+            this.textNode.nodeValue += utf16;
+        }
     },
 
-    pop: function(){
-        // only supports one pop, which for now is all we need
-        this.textNode.nodeValue = this.textNode.nodeValue.substr(0, this.textNode.nodeValue.length - this._lastPushLength);
-        this.range.length -= this._lastPushLength;
-        this._lastPushLength = 0;
+    truncate: function(length, preserveRange){
+        if (!preserveRange){
+            this.range.length = length;
+        }
+        this.textNode.nodeValue = this.textNode.nodeValue.substr(0, length);
     },
 
     getWidth: function(){

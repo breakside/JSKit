@@ -38,14 +38,24 @@ JSClass("JSTextFramesetter", JSObject, {
         var lines = [];
         var line;
         do{
-            line = this._typesetter.createLine(origin, size.width, range, this.effectiveLineBreakMode(lineBreakMode, lines.length + 1, maximumLines), textAlignment);
+            line = this._typesetter.createLine(origin, size.width, remianingRange, this.effectiveLineBreakMode(lineBreakMode, lines.length + 1, maximumLines), textAlignment);
             origin.y += line.size.height;
             // TODO: any line spacing?
             if (size.height === 0 || origin.y <= size.height){
                 lines.push(line);
                 remianingRange.advance(line.range.length);
             }
-        } while (line.range.length > 0 && remianingRange.length > 0 && (size.height === 0 || origin.y < size.height) && (maximumLines === 0 || lines.length == maximumLines));
+        } while (line.range.length > 0 && remianingRange.length > 0 && (size.height === 0 || origin.y < size.height) && (maximumLines === 0 || lines.length < maximumLines));
+
+        // If we don't have a maximum number of lines, but we were limited by size,
+        // and we want to tail truncate, then redo the final line with tail truncation on,
+        // since we didn't specify it ahead of time, not knowing if this was the final line or not.
+        if (maximumLines === 0 && remianingRange.length > 0 && lineBreakMode == JSLineBreakMode.TruncateTail){
+            line = lines.pop();
+            origin = JSPoint(line.origin);
+            line = this._typesetter.createLine(origin, size.width, JSRange(line.range.location, remianingRange.end - line.range.location), lineBreakMode, textAlignment);
+            lines.push(line);
+        }
         return this.constructFrame(lines, size);
     },
 

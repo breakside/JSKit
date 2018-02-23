@@ -22,13 +22,13 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         }
     },
 
-    initWithAttachment: function(attachment, size){
-        UIHTMLTextRun.$super.initWithAttachment.call(this, attachment, size);
+    initWithAttachment: function(attachment, size, range){
+        UIHTMLTextRun.$super.initWithAttachment.call(this, attachment, size, range);
     },
 
     updateOrigin: function(){
-        this._origin.x = this.element.offsetLeft - this.element.parentNode.offsetLeft;
-        this._origin.y = this.element.offsetTop - this.element.parentNode.offsetTop;
+        this._origin.x = this.element.offsetLeft;
+        this._origin.y = this.element.offsetTop;
     },
 
     styleUsingAttributes: function(attributes){

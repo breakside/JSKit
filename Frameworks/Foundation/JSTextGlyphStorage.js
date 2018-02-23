@@ -10,10 +10,14 @@ JSClass("JSTextGlyphStorage", JSObject, {
     font: null,
     width: 0,
     range: null,
+    utf16: null,
+    _characterWidths: null,
 
     initWithFont: function(font, location){
         this.font = font;
         this.range = JSRange(location, 0);
+        this.utf16 = "";
+        this._characterWidths = [];
     },
 
     fontContainingCharacter: function(character){
@@ -29,17 +33,48 @@ JSClass("JSTextGlyphStorage", JSObject, {
         return this.font;
     },
 
-    push: function(utf16){
+    pushExtra: function(utf16){
+        this.push(utf16, true);
+    },
+
+    push: function(utf16, preserveRange){
         // TODO: normalizing iterator?
+        // TODO: stop if fallback font is requied
+        if (!preserveRange){
+            this.range.length += utf16.length;
+        }
+        this.utf16 += utf16;
         var iterator = utf16.unicodeIterator();
         var startingFont = this.fontContainingCharacter(iterator.character);
+        var width;
         while (iterator.character !== null){
-            this.width += this.font.widthOfCharacter(iterator.character.code);
+            if (iterator.character.code != 0x0A){ // FIXME: Do we need this check, or is 0x0A always 0 in fonts already
+                width = this.font.widthOfCharacter(iterator.character);
+            }else{
+                width = 0;
+            }
+            this._characterWidths.push(width);
+            this.width += width;
+            for (var i = iterator.index + 1; i < iterator.nextIndex; ++i){
+                this._characterWidths.push(0);
+            }
             iterator.increment();
         }
     },
 
-    pop: function(){
+    trimTrailingWhitespace: function(length){
+        this.truncate(this.range.length - length, true);
+    },
+
+    truncate: function(length, preserveRange){
+        if (!preserveRange){
+            this.range.length = length;
+        }
+        this.utf16 = this.utf16.substr(0, length);
+        for (var i = this._characterWidths.length - 1; i >= length; --i){
+            this.width -= this._characterWidths[i];
+            this._characterWidths.pop();
+        }
     }
 
 });

@@ -60,7 +60,7 @@ JSGlobalObject.TKAssertNotEquals = function(a, b, message){
 
 JSGlobalObject.TKAssertFloatEquals = function(a, b, threshold, message){
     if (threshold === undefined){
-        threshold = Math.abs(b || 1 / 1000000);
+        threshold = Math.abs((b || 1) / 1000000);
     }
     if (isNaN(a)){
         message = message || '';
