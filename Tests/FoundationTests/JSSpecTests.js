@@ -1,0 +1,103 @@
+// #import "Foundation/Foundation.js"
+// #import "TestKit/TestKit.js"
+/* global JSClass, JSObject, TKTestSuite, JSSpec, JSPropertyList, JSSpecTests, JSSpecTestsObject */
+/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
+'use strict';
+
+JSClass("JSSpecTests", TKTestSuite, {
+
+    testResolvedValue: function(){
+        var plist = JSPropertyList.initWithObject({
+            "Number": 123,
+            "String": "abc",
+            "Boolean": true,
+            "Object": {
+                a: 1,
+                b: 2
+            }
+        });
+        var spec = JSSpec.initWithPropertyList(plist);
+        TKAssertExactEquals(spec.resolvedValue(plist.Number), 123);
+        TKAssertExactEquals(spec.resolvedValue(plist.String), "abc");
+        TKAssertExactEquals(spec.resolvedValue(plist.Boolean), true);
+        TKAssertExactEquals(spec.resolvedValue(plist.Object), plist.Object);
+    },
+
+    testResolvedVariable: function(){
+        var plist = JSPropertyList.initWithObject({
+            "test1": "$JSSpecTests.StaticTest",
+            "test2": "\\$JSSpecTests.StaticTest"
+        });
+        var spec = JSSpec.initWithPropertyList(plist);
+        TKAssertExactEquals(spec.resolvedValue(plist.test1), "hello");
+        TKAssertExactEquals(spec.resolvedValue(plist.test2), "$JSSpecTests.StaticTest");
+    },
+
+    testInstantiatedObject: function(){
+        var plist = JSPropertyList.initWithObject({
+            "test1": {
+                "JSObjectClass": "JSSpecTestsObject",
+                "testKey": 12
+            }
+        });
+        var spec = JSSpec.initWithPropertyList(plist);
+        var obj = spec.resolvedValue(plist.test1);
+        TKAssert(obj.isKindOfClass(JSSpecTestsObject));
+        TKAssertEquals(obj.test, 12);
+    },
+
+    testResolvedObject: function(){
+        var plist = JSPropertyList.initWithObject({
+            "Test One": {
+                "JSObjectClass": "JSSpecTestsObject",
+                "testKey": 12
+            },
+            "test2": "#Test One"
+        });
+        var spec = JSSpec.initWithPropertyList(plist);
+        var obj = spec.resolvedValue(plist.test2);
+        TKAssert(obj.isKindOfClass(JSSpecTestsObject));
+        TKAssertEquals(obj.test, 12);
+    },
+
+    testSingleInstantiation: function(){
+        var plist = JSPropertyList.initWithObject({
+            "Test One": {
+                "JSObjectClass": "JSSpecTestsObject",
+                "testKey": 12
+            },
+            "test2": "#Test One"
+        });
+        var spec = JSSpec.initWithPropertyList(plist);
+        var obj1 = spec.resolvedValue(plist.test2);
+        var obj2 = spec.resolvedValue(plist.test2);
+        TKAssertExactEquals(obj1, obj2);
+        TKAssertEquals(obj1.test, 12);
+    },
+
+    testFilesOwner: function(){
+        var plist = JSPropertyList.initWithObject({
+            "Test One": {
+                "JSObjectClass": "JSSpecTestsObject",
+                "testKey": 12
+            },
+            "JSFilesOwner": "#Test One"
+        });
+        var spec = JSSpec.initWithPropertyList(plist);
+        var owner = spec.filesOwner();
+        TKAssert(owner.isKindOfClass(JSSpecTestsObject));
+        TKAssertEquals(owner.test, 12);
+    }
+
+});
+
+JSClass("JSSpecTestsObject", JSObject, {
+    test: 0,
+
+    initWithSpec: function(spec, values){
+        JSSpecTestsObject.$super.initWithSpec.call(this, spec, values);
+        this.test = values.testKey;
+    }
+});
+
+JSSpecTests.StaticTest = "hello";

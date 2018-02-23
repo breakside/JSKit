@@ -17,7 +17,7 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             line = this.lines[i];
             if (line.element.parentNode !== this.element){
                 line.element.style.position = 'relative';
-                line.element.visibility = '';
+                line.element.style.visibility = '';
                 this.element.appendChild(line.element);
             }
         }

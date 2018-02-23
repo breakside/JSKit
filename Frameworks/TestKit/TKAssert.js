@@ -1,4 +1,5 @@
 /* global JSGlobalObject, TKAssertion */
+/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
 'use strict';
 
 JSGlobalObject.TKAssertion = function(message){

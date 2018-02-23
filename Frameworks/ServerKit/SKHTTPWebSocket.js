@@ -15,29 +15,38 @@ JSClass("SKHTTPWebSocket", JSObject, {
         this._frameParser.delegate = this;
     },
 
-    accept: function(){
+    startMessage: function(data){
+        var header = SKHTTPWebSocketParser.UnmaskedHeaderForData([data], SKHTTPWebSocketParser.FrameCode.binary, false);
+        this._write(header.nodeBuffer());
+        this._write(data.nodeBuffer());
     },
 
-    write: function(data){
-        var header = SKHTTPWebSocketParser.UnmaskedHeaderForData([data]);
-        this._unframedWrite(header.nodeBuffer());
-        this._unframedWrite(data.nodeBuffer());
+    continueMessage: function(data, isFinal){
+        var header = SKHTTPWebSocketParser.UnmaskedHeaderForData([data], SKHTTPWebSocketParser.FrameCode.continuation, isFinal);
+        this._write(header.nodeBuffer());
+        this._write(data.nodeBuffer());
+    },
+
+    writeMessage: function(data){
+        var header = SKHTTPWebSocketParser.UnmaskedHeaderForData([data], SKHTTPWebSocketParser.FrameCode.binary);
+        this._write(header.nodeBuffer());
+        this._write(data.nodeBuffer());
     },
 
     _receive: function(data){
         this._frameParser.receive(data);
     },
 
-    _unframedWrite: function(bytes){
+    _write: function(bytes){
     },
 
     cleanup: function(){
     },
 
     frameParserDidReceivePing: function(parser, chunks){
-        this._unframedWrite(SKHTTPWebSocketParser.UnmaskedHeaderForData(chunks), SKHTTPWebSocketParser.Code.pong);
+        this._write(SKHTTPWebSocketParser.UnmaskedHeaderForData(chunks), SKHTTPWebSocketParser.FrameCode.pong);
         for (var i = 0, l = chunks.length; i < l; ++i){
-            this._unframedWrite(chunks[i].nodeBuffer());
+            this._write(chunks[i].nodeBuffer());
         }
     },
 
@@ -50,9 +59,9 @@ JSClass("SKHTTPWebSocket", JSObject, {
             this.cleanup();
         }else{
             this._sentClose = true;
-            this._unframedWrite(SKHTTPWebSocketParser.UnmaskedHeaderForData(chunks), SKHTTPWebSocketParser.Code.close);
+            this._write(SKHTTPWebSocketParser.UnmaskedHeaderForData(chunks), SKHTTPWebSocketParser.FrameCode.close);
             for (var i = 0, l = chunks.length; i < l; ++i){
-                this._unframedWrite(chunks[i].nodeBuffer());
+                this._write(chunks[i].nodeBuffer());
             }
         }
     },
@@ -78,8 +87,8 @@ JSClass("SKHTTPWebSocket", JSObject, {
         var payload = JSData.initWithLength(2);
         payload[0] = status >> 8;
         payload[1] = status & 0xFF;
-        this._unframedWrite(SKHTTPWebSocketParser.UnmaskedHeaderForData([payload]), SKHTTPWebSocketParser.Code.close);
-        this._unframedWrite(payload.nodeBuffer());
+        this._write(SKHTTPWebSocketParser.UnmaskedHeaderForData([payload]), SKHTTPWebSocketParser.FrameCode.close);
+        this._write(payload.nodeBuffer());
     }
 
 });

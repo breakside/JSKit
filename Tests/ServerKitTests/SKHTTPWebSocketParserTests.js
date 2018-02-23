@@ -10,16 +10,6 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         var receiveCount = 0;
         var received = null;
         parser.delegate = {
-            frameParserDidReceivePing: function(parser, chunks){
-            },
-            frameParserDidReceivePong: function(parser, chunks){
-            },
-            frameParserDidReceiveClose: function(parser, chunks){
-            },
-            frameParserDidReceiveFrameOutOfSequence: function(parser){
-            },
-            frameParserDidReceiveInvalidLength: function(parser){
-            },
             frameParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
@@ -43,16 +33,6 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         var receiveCount = 0;
         var received = null;
         parser.delegate = {
-            frameParserDidReceivePing: function(parser, chunks){
-            },
-            frameParserDidReceivePong: function(parser, chunks){
-            },
-            frameParserDidReceiveClose: function(parser, chunks){
-            },
-            frameParserDidReceiveFrameOutOfSequence: function(parser){
-            },
-            frameParserDidReceiveInvalidLength: function(parser){
-            },
             frameParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
@@ -76,16 +56,6 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         var receiveCount = 0;
         var received = null;
         parser.delegate = {
-            frameParserDidReceivePing: function(parser, chunks){
-            },
-            frameParserDidReceivePong: function(parser, chunks){
-            },
-            frameParserDidReceiveClose: function(parser, chunks){
-            },
-            frameParserDidReceiveFrameOutOfSequence: function(parser){
-            },
-            frameParserDidReceiveInvalidLength: function(parser){
-            },
             frameParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
@@ -110,16 +80,6 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         var receiveCount = 0;
         var received = null;
         parser.delegate = {
-            frameParserDidReceivePing: function(parser, chunks){
-            },
-            frameParserDidReceivePong: function(parser, chunks){
-            },
-            frameParserDidReceiveClose: function(parser, chunks){
-            },
-            frameParserDidReceiveFrameOutOfSequence: function(parser){
-            },
-            frameParserDidReceiveInvalidLength: function(parser){
-            },
             frameParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
@@ -143,16 +103,6 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         var receiveCount = 0;
         var received = null;
         parser.delegate = {
-            frameParserDidReceivePing: function(parser, chunks){
-            },
-            frameParserDidReceivePong: function(parser, chunks){
-            },
-            frameParserDidReceiveClose: function(parser, chunks){
-            },
-            frameParserDidReceiveFrameOutOfSequence: function(parser){
-            },
-            frameParserDidReceiveInvalidLength: function(parser){
-            },
             frameParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
@@ -178,16 +128,6 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         receiveCount = 0;
         received = [];
         parser.delegate = {
-            frameParserDidReceivePing: function(parser, chunks){
-            },
-            frameParserDidReceivePong: function(parser, chunks){
-            },
-            frameParserDidReceiveClose: function(parser, chunks){
-            },
-            frameParserDidReceiveFrameOutOfSequence: function(parser){
-            },
-            frameParserDidReceiveInvalidLength: function(parser){
-            },
             frameParserDidReceiveData: function(parser, data){
                 received.push(data);
             }
@@ -212,6 +152,27 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         TKAssertEquals(header.length, 2);
         TKAssertEquals(header.bytes[0], 0x82);
         TKAssertEquals(header.bytes[1], 0x05);
+
+        header = SKHTTPWebSocketParser.UnmaskedHeaderForData([data], SKHTTPWebSocketParser.FrameCode.binary, false);
+        TKAssertNotNull(header);
+        TKAssert(header.isKindOfClass(JSData));
+        TKAssertEquals(header.length, 2);
+        TKAssertEquals(header.bytes[0], 0x02);
+        TKAssertEquals(header.bytes[1], 0x05);
+
+        header = SKHTTPWebSocketParser.UnmaskedHeaderForData([data], SKHTTPWebSocketParser.FrameCode.continuation, false);
+        TKAssertNotNull(header);
+        TKAssert(header.isKindOfClass(JSData));
+        TKAssertEquals(header.length, 2);
+        TKAssertEquals(header.bytes[0], 0x00);
+        TKAssertEquals(header.bytes[1], 0x05);
+
+        header = SKHTTPWebSocketParser.UnmaskedHeaderForData([data], SKHTTPWebSocketParser.FrameCode.continuation, true);
+        TKAssertNotNull(header);
+        TKAssert(header.isKindOfClass(JSData));
+        TKAssertEquals(header.length, 2);
+        TKAssertEquals(header.bytes[0], 0x80);
+        TKAssertEquals(header.bytes[1], 0x05);
     },
 
     testRealWorldData: function(){
@@ -220,16 +181,6 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         var receiveCount = 0;
         var received = null;
         parser.delegate = {
-            frameParserDidReceivePing: function(parser, chunks){
-            },
-            frameParserDidReceivePong: function(parser, chunks){
-            },
-            frameParserDidReceiveClose: function(parser, chunks){
-            },
-            frameParserDidReceiveFrameOutOfSequence: function(parser){
-            },
-            frameParserDidReceiveInvalidLength: function(parser){
-            },
             frameParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
@@ -240,5 +191,13 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         TKAssertEquals(received.length, 11);
         TKAssertObjectEquals(received, "testing 123".utf8());
     }
+
+    // TODO: lengths > 125
+    // TODO: lengths > 0xFFFF
+    // TODO: lengths > 2^31
+    // TODO: ping/pong
+    // TODO: close
+    // TODO: out of sequence
+    // TODO: unknown frame type
 
 });

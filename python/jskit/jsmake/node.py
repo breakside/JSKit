@@ -98,6 +98,10 @@ class NodeBuilder(Builder):
         else:
             self.includes.append('jslog-release.js')
         self.includes.append('main.js')
+        mainSpecName = self.info.get('SKMainDefinitionResource', None)
+        if mainSpecName is not None:
+            mainSpec = self.mainBundle["Resources"][mainSpecName][0]["value"]
+            self.findSpecIncludes(mainSpec)
 
     def buildAppJavascript(self):
         self.updateStatus("Creating application js...")

@@ -1,7 +1,7 @@
 // #import "Foundation/Javascript.js"
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSPropertyList.js"
-/* global JSClass, JSObject, JSPropertyList, JSSpec, JSClassFromName, JSGlobalObject, JSResolveDottedName */
+/* global JSClass, JSObject, JSPropertyList, JSSpec, JSGlobalObject, JSResolveDottedName */
 'use strict';
 
 JSClass('JSSpec', JSObject, {
@@ -10,7 +10,12 @@ JSClass('JSSpec', JSObject, {
     _objectMap: null,
 
     initWithResource: function(resource){
-        this._plist = JSPropertyList.initWithResource(resource);
+        var plist = JSPropertyList.initWithResource(resource);
+        this.initWithPropertyList(plist);
+    },
+
+    initWithPropertyList: function(plist){
+        this._plist = plist;
         this._objectMap = {};
     },
 
@@ -41,7 +46,7 @@ JSClass('JSSpec', JSObject, {
         if (typeof(value) == 'object'){
             if (JSSpec.Keys.ObjectClass in value){
                 var className = value[JSSpec.Keys.ObjectClass];
-                var obj = JSClassFromName(className).initWithSpec(this, value);
+                var obj = JSClass.FromName(className).initWithSpec(this, value);
                 return obj;
             }else{
                 return value;

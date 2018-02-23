@@ -28,6 +28,10 @@ SKHTTPRequest.definePropertiesFromExtensions({
         this._nodeRequest.socket.write(str);
     },
 
+    _close: function(){
+        this._nodeRequest.socket.destroy();
+    },
+
     getMethod: function(){
         return this._nodeRequest.method;
     }

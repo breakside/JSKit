@@ -31,6 +31,11 @@ UIScrollLayer.definePropertiesFromExtensions({
         element.removeEventListener('scroll', this);
     },
 
+    updateHTMLProperty_clipsToBounds: function(context){
+        // scroll layer always clips to bounds, and parent class logic interferes
+        // with overflow: auto that was set in initializeHTMLContext
+    },
+
     updateHTMLProperty_contentSize: function(context){
         // Always update the offset first so the width/height updates don't trigger their own scroll event
         // in the case where the content offset must be reduced to fit within the new size constraints.

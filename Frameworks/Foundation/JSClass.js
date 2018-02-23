@@ -2,7 +2,7 @@
 // #feature Object.defineProperty
 // #feature Object.getPrototypeOf
 // #feature Object.hasOwnProperty
-/* global JSGlobalObject, JSClass, JSDynamicProperty, JSCustomProperty, JSReadOnlyProperty, JSLazyInitProperty */
+/* global JSGlobalObject, JSClass, JSResolveDottedName, JSDynamicProperty, JSCustomProperty, JSReadOnlyProperty, JSLazyInitProperty */
 'use strict';
 
 JSGlobalObject.JSClass = function(name, superclass, extensions){
@@ -14,6 +14,10 @@ JSGlobalObject.JSClass = function(name, superclass, extensions){
             throw new Error("JSClass(): superclass must be an instance of JSClass");
         }
     }
+};
+
+JSClass.FromName = function(className){
+    return JSResolveDottedName(JSGlobalObject, className);
 };
 
 JSClass.prototype = {

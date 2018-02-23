@@ -1,7 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIResponder.js"
 // #import "UIKit/UIWindowServer.js"
-/* global JSGlobalObject, JSClass, JSObject, UIResponder, UIApplication, UIWindowServer, JSBundle, JSFont, JSSpec, JSClassFromName, JSDynamicProperty, JSReadOnlyProperty, UIEvent  */
+/* global JSGlobalObject, JSClass, JSObject, UIResponder, UIApplication, UIWindowServer, JSBundle, JSFont, JSSpec, JSDynamicProperty, JSReadOnlyProperty, UIEvent  */
 'use strict';
 
 (function(){
@@ -106,7 +106,7 @@ JSGlobalObject.UIApplicationMain = function UIApplicationMain(){
         var mainUIFile = JSSpec.initWithResource(info[UIApplication.InfoKeys.MainDefinitionResource]);
         application.delegate = mainUIFile.filesOwner();
     }else if (info[UIApplication.InfoKeys.ApplicationDelegate]){
-        var delegateClass = JSClassFromName(info[UIApplication.InfoKeys.ApplicationDelegate]);
+        var delegateClass = JSClass.FromName(info[UIApplication.InfoKeys.ApplicationDelegate]);
         application.delegate = delegateClass.init();
     }else{
         throw new Error("UIApplicationMain: Info is missing required key '%s' or '%s'".sprintf(UIApplication.InfoKeys.MainDefinitionResource, UIApplication.InfoKeys.ApplicationDelegate));

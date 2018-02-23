@@ -23,7 +23,8 @@ JSClass("JSURLSessionStreamTask", JSURLSessionTask, {
     cancel: function(){
     },
 
-    send: function(data){
+    sendMessage: function(data){
+
     }
 
 });

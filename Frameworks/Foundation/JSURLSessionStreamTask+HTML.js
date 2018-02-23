@@ -17,6 +17,7 @@ JSURLSessionStreamTask.definePropertiesFromExtensions({
         if (this._websocket === null){
             var url = this._currentURL;
             this._websocket = new WebSocket(url.encodedString, this.requestedProtocols);
+            this._websocket.binaryType = "arraybuffer";
             this._addEventListeners(this._websocket);
         }
     },
@@ -25,7 +26,7 @@ JSURLSessionStreamTask.definePropertiesFromExtensions({
         this._websocket.close();
     },
 
-    send: function(data){
+    sendMessage: function(data){
         if (this._websocket !== null && this._websocket.readyState == WebSocket.OPEN){
             this._websocket.send(data.bytes);
         }
@@ -60,10 +61,11 @@ JSURLSessionStreamTask.definePropertiesFromExtensions({
     },
 
     _event_error: function(e){
-        // TODO:
+        this.session._taskDidReceiveStreamError(this);
     },
 
     _event_close: function(e){
+        this.session._taskDidCloseStream(this);
         // TODO:
     }
 });

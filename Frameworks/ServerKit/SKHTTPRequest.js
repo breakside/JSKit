@@ -21,7 +21,7 @@ JSClass("SKHTTPRequest", JSObject, {
     url: JSReadOnlyProperty('_url', null),
     response: JSReadOnlyProperty('_response', null),
     headerMap: JSReadOnlyProperty('_headerMap', null),
-    method: JSReadOnlyProperty('_method'),
+    method: JSReadOnlyProperty('_method', null),
 
     initWithMethodAndURL: function(method, url){
         this._method = method;
@@ -33,14 +33,14 @@ JSClass("SKHTTPRequest", JSObject, {
         var version = this._headerMap.get('Sec-WebSocket-Version');
         if (version !== "13"){
             logger.warn("Unexpected websocket version: %s".sprintf(version));
-            this._nodeRequest.socket.destroy();
+            this._close();
             return null;
         }
         var requestedProtocols = this._headerMap.get('Sec-WebSocket-Protocol', '').trimmedSplit(',');
         var protocol = findFirstMatch(allowedProtocols, requestedProtocols);
         if (protocol === null){
             logger.warn("No match for protocols: %s".sprintf(requestedProtocols.join(", ")));
-            this._nodeRequest.socket.destroy();
+            this._close();
             return null;
         }
         var key = this._headerMap.get('Sec-WebSocket-Key', '');
@@ -53,8 +53,21 @@ JSClass("SKHTTPRequest", JSObject, {
             "Sec-WebSocket-Protocol: %s".sprintf(protocol)
         ];
         logger.info("Accepting websocket");
-        this._write(handshake.join("\r\n") + "\r\n\r\n");
+        this._writeRawHeaders(handshake);
         return this.createWebsocket(handshake);
+    },
+
+    rejectUpgrade: function(statusCode){
+        var response = [
+            "HTTP/1.1 %d".sprintf(statusCode),
+            "Content-Length: 0"
+        ];
+        this._writeRawHeaders(response);
+        this._close();
+    },
+
+    _writeRawHeaders: function(headers){
+        this._write(headers.join("\r\n") + "\r\n\r\n");
     },
 
     createWebsocket: function(){
@@ -63,8 +76,7 @@ JSClass("SKHTTPRequest", JSObject, {
     _write: function(){
     },
 
-    getMethod: function(){
-        return this._nodeRequest.method;
+    _close: function(){
     }
 
 });

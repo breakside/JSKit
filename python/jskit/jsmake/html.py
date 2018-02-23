@@ -144,16 +144,6 @@ class HTMLBuilder(Builder):
             mainSpec = self.mainBundle["Resources"][mainSpecName][0]["value"]
             self.findSpecIncludes(mainSpec)
 
-    def findSpecIncludes(self, spec):
-        for k, v in spec.items():
-            if k == 'JSIncludes':
-                for path in v:
-                    self.includes.append(path)
-            elif k == 'JSInclude':
-                self.includes.append(v)
-            elif isinstance(v, dict):
-                self.findSpecIncludes(v)
-
     def buildAppCSS(self):
         self.updateStatus("Creating application css...")
         sys.stdout.flush()

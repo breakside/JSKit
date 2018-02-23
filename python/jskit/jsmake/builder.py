@@ -8,6 +8,7 @@ import hashlib
 import shutil
 import mimetypes
 import datetime
+import collections
 from .image import ImageInfoExtractor
 from .font import FontInfoExtractor
 
@@ -191,7 +192,7 @@ class Builder(object):
             infoPath = os.path.join(projectPath, infoName)
             if (os.path.exists(infoPath)):
                 try:
-                    return infoPath, json.load(open(infoPath))
+                    return infoPath, json.load(open(infoPath), object_pairs_hook=collections.OrderedDict)
                 except Exception as e:
                     raise Exception("Error parsing Info.json: %s" % e.message)
             else:
@@ -213,6 +214,23 @@ class Builder(object):
         if not self.debug and os.path.exists(self.outputProjectPath):
             raise Exception("Output path already exists: %s" % self.outputProjectPath)
 
+    def findSpecIncludes(self, spec):
+        for k, v in spec.items():
+            if k == 'JSIncludes':
+                for path in v:
+                    self.includes.append(path)
+            elif k == 'JSInclude':
+                self.includes.append(v)
+            elif k == 'JSIncludeAll':
+                for includeDir in self.includePaths:
+                    path = os.path.join(includeDir, v)
+                    if os.path.exists(path) and os.path.isdir(path):
+                        for file in os.listdir(path):
+                            if file[-3:] == '.js':
+                                self.includes.append(u"%s/%s" % (v, file))
+            elif isinstance(v, dict):
+                self.findSpecIncludes(v)
+
     def buildResources(self):
         resourcesPath = os.path.join(self.projectPath, "Resources")
         if os.path.exists(resourcesPath):
@@ -232,7 +250,7 @@ class Builder(object):
                     self.scanResourceFolder(resourcesPath, nameComponents)
             elif ext == '.json':
                 try:
-                    obj = json.load(open(fullPath))
+                    obj = json.load(open(fullPath), object_pairs_hook=collections.OrderedDict)
                 except Exception as e:
                     raise Exception("Error parsing %s: %s" % (fullPath, e.message))
                 self.buildJSONLikeResource(nameComponents, obj)
@@ -281,7 +299,7 @@ class Builder(object):
         self.updateStatus("Packaging resource %s..." % os.path.basename(fullPath))
         contentsPath = os.path.join(fullPath, "Contents.json")
         try:
-            contents = json.load(open(contentsPath))
+            contents = json.load(open(contentsPath), object_pairs_hook=collections.OrderedDict)
         except Exception as e:
             raise Exception("Error parsing %s: %s" % (contentsPath, e.message))
         images = contents.get('images', [])

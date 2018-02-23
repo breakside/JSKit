@@ -42,7 +42,7 @@ JSClass("JSTextTypesetter", JSObject, {
         if (width === 0){
             return this._createUnconstrainedLine(origin, width, this._unconstrainedLineRange(range));
         }
-        return this._createConstraintedLine();
+        return this._createConstraintedLine(origin, width, range, lineBreakMode, textAlignment);
     },
 
     _createEmptyLine: function(origin, width, range, textAlignment){
@@ -123,12 +123,12 @@ JSClass("JSTextTypesetter", JSObject, {
                 runIterator.increment();
             }
         } while (run.range.length > 0 && remainingRange.length > 0 && (width === 0 || x < width) && this._attributedString.string[remainingRange.location - 1] != "\n");
-        return this.constructLine(runs, origin, width, JSRange(range.location, remainingRange.location - range.location), textAlignment);
+        return this.constructLine(runs, origin, width, textAlignment);
     },
 
     _createConstrainedRun: function(width, range, attributes, lineBreakMode){
         var font = JSTextTypesetter.FontFromAttributes(attributes);
-        var iterator = this._attributedString.userPerceivedCharacterIterator(range.location);
+        var iterator = this._attributedString.string.userPerceivedCharacterIterator(range.location);
 
         // 1. Attachment run
         if (range.length === 1 && iterator.firstCharacter.code == JSAttributedString.SpecialCharacter.Attachment){
@@ -154,8 +154,8 @@ JSClass("JSTextTypesetter", JSObject, {
             }
             remainingRange.advance(iterator.range.length);
             iterator.increment();
-        } while (remainingRange.length > 0 && glyphStorage.size.width < width && iterator.firstCharacter.code != 0x0A);
-        if (glyphStorage.size.width > width){
+        } while (remainingRange.length > 0 && glyphStorage.width < width && iterator.firstCharacter.code != 0x0A);
+        if (glyphStorage.width > width){
             glyphStorage.pop();
             // back up according to line break mode
         }

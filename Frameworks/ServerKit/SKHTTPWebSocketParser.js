@@ -32,7 +32,7 @@ JSClass("SKHTTPWebSocketParser", JSObject, {
     _initialMessageCode: -1,
 
     init: function(){
-        this.reset();
+        this._reset();
     },
 
     receive: function(framedData){
@@ -76,13 +76,14 @@ JSClass("SKHTTPWebSocketParser", JSObject, {
                 this.frame.received += length;
                 this._handleChunk(JSData.initWithBytes(chunk));
                 if (this.frame.received == this.frame.length){
-                    this.reset();
+                    this._reset();
                 }
             }
         }
     },
 
-    _handleChunk: function(chunk, isEndOfFrame){
+    _handleChunk: function(chunk){
+        var isEndOfFrame = this.frame.received == this.frame.length;
         switch (this.frame.code){
             case SKHTTPWebSocketParser.FrameCode.continuation:
             case SKHTTPWebSocketParser.FrameCode.text:
@@ -164,7 +165,7 @@ JSClass("SKHTTPWebSocketParser", JSObject, {
         }
     },
 
-    reset: function(){
+    _reset: function(){
         if (this.frame !== null){
             if (!this.frame.isFinal && this.frame.code != SKHTTPWebSocketParser.FrameCode.continuation){
                 this._initialMessageCode = this.frame.code;
@@ -181,9 +182,12 @@ JSClass("SKHTTPWebSocketParser", JSObject, {
 
 });
 
-SKHTTPWebSocketParser.UnmaskedHeaderForData = function(chunks, code){
+SKHTTPWebSocketParser.UnmaskedHeaderForData = function(chunks, code, isFinal){
     if (code === undefined){
         code = SKHTTPWebSocketParser.FrameCode.binary;
+    }
+    if (isFinal === undefined){
+        isFinal = true;
     }
     var length = 0;
     var i, l;
@@ -207,7 +211,7 @@ SKHTTPWebSocketParser.UnmaskedHeaderForData = function(chunks, code){
             length >>= 8;
         }
     }
-    header[0] = 0x80 | code;
+    header[0] = (isFinal ? 0x80 : 0x00) | code;
     return JSData.initWithBytes(header);
 };
 

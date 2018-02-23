@@ -32,8 +32,8 @@ JSClass("JSURLSession", JSObject, {
         return task;
     },
 
-    streamTaskWithURL: function(url){
-        var task = JSURLSessionStreamTask.initWithURL(url);
+    streamTaskWithURL: function(url, requestedProtocols){
+        var task = JSURLSessionStreamTask.initWithURL(url, requestedProtocols);
         task.session = this;
         return task;
     },
@@ -65,9 +65,27 @@ JSClass("JSURLSession", JSObject, {
         }
     },
 
+    _taskDidCloseStream: function(task){
+        if (task.streamDelegate && task.streamDelegate.taskDidCloseStream){
+            task.streamDelegate.taskDidCloseStream(task);
+        }
+        if (this.delegate && this.delegate.urlsSessionTaskDidCloseStream){
+            this.delegate.urlsSessionTaskDidCloseStream(this, task);
+        }
+    },
+
+    _taskDidReceiveStreamError: function(task){
+        if (task.streamDelegate && task.streamDelegate.taskDidReceiveStreamError){
+            task.streamDelegate.taskDidReceiveStreamError(task);
+        }
+        if (this.delegate && this.delegate.urlsSessionTaskDidReceiveStreamError){
+            this.delegate.urlsSessionTaskDidReceiveStreamError(this, task);
+        }
+    },
+
     _taskDidReceiveStreamData: function(task, data){
         if (task.streamDelegate && task.streamDelegate.taskDidReceiveStreamData){
-            task.streamDelegate.taskDidReceiveStreamData(task);
+            task.streamDelegate.taskDidReceiveStreamData(task, data);
         }
         if (this.delegate && this.delegate.urlsSessionTaskDidReceiveStreamData){
             this.delegate.urlsSessionTaskDidReceiveStreamData(this, task, data);

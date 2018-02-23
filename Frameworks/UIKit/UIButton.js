@@ -148,4 +148,4 @@ UIButton.DefaultDisabledBorderColor = JSColor.initWithRGBA(224/255,224/255,224/2
 
 UIButton.DefaultNormalTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
 UIButton.DefaultActiveTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
-UIButton.DefaultActiveDisabledColor = JSColor.initWithRGBA(152/255,152/255,152/255);
+UIButton.DefaultDisabledTitleColor = JSColor.initWithRGBA(152/255,152/255,152/255);

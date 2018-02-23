@@ -64,7 +64,3 @@ JSGlobalObject.JSSetDottedName = function JSSetDottedName(context, name, value){
     }
     context[parts[0]] = value;
 };
-
-JSGlobalObject.JSClassFromName = function JSClassFromName(className){
-    return JSResolveDottedName(JSGlobalObject, className);
-};

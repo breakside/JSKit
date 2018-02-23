@@ -14,8 +14,8 @@ SKHTTPWebSocket.definePropertiesFromExtensions({
         this._setupEventListeners();
     },
 
-    _unframedWrite: function(bytes){
-        logger.info("Sending: %d bytes", bytes.length);
+    _write: function(bytes){
+        logger.info("Sending: %s", bytes.hexStringRepresentation());
         this._nodeSocket.write(bytes);
     },
 
