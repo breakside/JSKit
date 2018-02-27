@@ -202,8 +202,8 @@ class Builder(object):
     def setup(self):
         self.mainBundle = None
         self.bundles = dict()
-        infofile, self.info = Builder.readInfo(self.projectPath)
-        self.watchFile(infofile)
+        self.infoFile, self.info = Builder.readInfo(self.projectPath)
+        self.watchFile(self.infoFile)
         if 'JSBundleIdentifier' not in self.info:
             raise Exception("%s must include an entry for JSBundleIdentifier")
         self.bundles[self.info['JSBundleIdentifier']] = self.mainBundle = {}

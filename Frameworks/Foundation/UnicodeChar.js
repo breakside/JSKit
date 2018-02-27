@@ -744,13 +744,3 @@ UnicodeChar.prototype = Object.create(Object.prototype, {
     }
 
 });
-
-// #test UnicodeChar private constructor
-// #assert.nothrow new UnicodeChar(65)
-// #assert.throw var c = UnicodeChar(65);
-// #assert.nothrow new UnicodeChar(65)
-
-// #test UnicodeChar singleton function
-// var c1 = UnicodeChar(66);
-// var c2 = UnicodeChar(66);
-// #assert c1 !== c2

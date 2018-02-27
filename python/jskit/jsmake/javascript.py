@@ -12,24 +12,35 @@ class JSCompilation(object):
     includePaths = None
     minify = True
     combine = True
-    importExternals = True
     importedScriptsByPath = None
     outfilesByName = None
+    weakIncludes = None
+    includeAliases = None
 
-    def __init__(self, includePaths, minify=True, combine=True, importExternals=True):
+    def __init__(self, includePaths, minify=True, combine=True):
         self.includePaths = includePaths
         self.minify = minify or combine
         self.combine = combine
-        self.importExternals = importExternals
         self.importedScriptsByPath = {}
         self.features = []
         self.outfiles = []
         self.testfiles = []
         self.currentOutfile = None
         self.outfilesByName = {}
+        self.weakIncludes = []
+        self.includeAliases = {}
 
     def importedScriptPaths(self):
         return self.importedScriptsByPath.keys()
+
+    def writeComment(self, comment):
+        if not self.combine:
+            return
+        if not self.currentOutfile:
+            self.startNewCombinedOutfile('comment')
+        lines = comment.split("\n")
+        for line in lines:
+            self.currentOutfile.write("// %s\n" % line.encode('utf-8'))
 
     def include(self, source, sourceName=None):
         if isinstance(source, basestring):
@@ -45,6 +56,12 @@ class JSCompilation(object):
             if os.path.exists(possiblePath):
                 includedSourcePath = possiblePath
                 break
+        if not includedSourcePath:
+            possibleAlias = os.path.dirname(sourcePath)
+            if possibleAlias in self.includeAliases:
+                possiblePath = os.path.join(self.includeAliases[possibleAlias], os.path.basename(sourcePath))
+                if os.path.exists(possiblePath):
+                    includedSourcePath = possiblePath
         if includedSourcePath:
             if includedSourcePath not in self.importedScriptsByPath:
                 self.importedScriptsByPath[includedSourcePath] = True
@@ -52,44 +69,47 @@ class JSCompilation(object):
         else:
             raise IncludeNotFoundException("Include not found: %s; include paths: %s" % (sourcePath, ", ".join(self.includePaths)))
 
-    def includeFilePointer(self, fp, sourceName=None):
+    def includeFilePointer(self, fp, sourceName=None, weak=False):
+        if self.combine and not self.currentOutfile:
+            self.startNewCombinedOutfile(fp.name + ' top')
         scanner = JSScanner(fp, sourceName, minify=self.minify)
         combinedFileOutputStarted = False
         fileIsStrict = False
         tests = []
-        if self.combine and not self.currentOutfile:
-            self.startNewCombinedOutfile()
         for line in scanner:
             if isinstance(line, JSImport):
-                # TODO respect importExternals flag
                 try:
                     if combinedFileOutputStarted:
                         self.currentOutfile.write("\n")
-                    self.includePath(line.path)
+                    if os.path.dirname(line.path) in self.weakIncludes:
+                        if line.path not in self.importedScriptsByPath:
+                            self.importedScriptsByPath[line.path] = True
+                            self.currentOutfile.write(line.rawline)
+                    else:
+                        self.includePath(line.path)
                     combinedFileOutputStarted = False
                 except IncludeNotFoundException:
                     raise Exception("ERROR: %s, line %d: include not found '%s'.  (include path is '%s')" % (sourceName if sourceName is not None else '(no file)', line.sourceLine, line.path, ":".join(self.includePaths)))
             elif isinstance(line, JSFeature):
                 self.features.append(line)
-            elif isinstance(line, JSTest):
-                test = line
-                tests.append(test)
-            elif isinstance(line, JSTestCode):
-                test.lines.append(line)
+            elif isinstance(line, JSBlank):
+                pass
             else:
                 if self.combine:
                     if isinstance(line, JSStrict):
                         fileIsStrict = True
-                        if not self.currentOutfile.started:
-                            self.currentOutfile.is_strict = True
-                            self.currentOutfile.write("'use strict';\n")
-                        elif not self.currentOutfile.is_strict:
-                            self.startNewCombinedOutfile()
-                            self.currentOutfile.is_strict = True
+                        if self.currentOutfile.isStrictDetermined and not self.currentOutfile.isStrict:
+                            self.startNewCombinedOutfile(fp.name + ' strict')
+                        if not self.currentOutfile.isStrictDetermined:
+                            self.currentOutfile.isStrict = True
+                            self.currentOutfile.isStrictDetermined = True
                             self.currentOutfile.write("'use strict';\n")
                     else:
-                        if not fileIsStrict and self.currentOutfile.is_strict:
-                            self.startNewCombinedOutfile()
+                        if self.currentOutfile.isStrictDetermined and self.currentOutfile.isStrict and not fileIsStrict:
+                            self.startNewCombinedOutfile(fp.name + ' not strict')
+                        if not self.currentOutfile.isStrictDetermined:
+                            self.currentOutfile.isStrict = False
+                            self.currentOutfile.isStrictDetermined = True
                         self.currentOutfile.write(line)
                         combinedFileOutputStarted = True
                 elif self.minify:
@@ -102,20 +122,13 @@ class JSCompilation(object):
                 self.currentOutfile.write("\n")
         else:
             self.outfiles.append(JSCompilationOutfile(fp=fp, name=sourceName, locked=True))
-        # if len(tests):
-            # TODO: write tests to another file
-            # keep track of that file so it can be included in the test suite
-            # testfileName = sourceName + u'_tests'
-            # testfile = None
-            # self.testfiles.append(testfile)
-            # i = 1
-            # for test in tests:
-            #     testName = testfileName + "_" + i
-            #     i += 1
 
-    def startNewCombinedOutfile(self):
+    def startNewCombinedOutfile(self, debugName):
         self.currentOutfile = JSCompilationOutfile(fp=tempfile.NamedTemporaryFile())
         self.outfiles.append(self.currentOutfile)
+        if self.combine or self.minify:
+            self.currentOutfile.write("// #precompiled\n\n")
+
 
     @staticmethod
     def preprocess(jsstr, context):
@@ -134,18 +147,25 @@ class JSCompilation(object):
 
 
 class JSCompilationOutfile(object):
-    is_strict = False
+    isStrictDetermined = False
+    isStrict = False
     name = None
     fp = None
-    started = False
+    maxLineLength = 4096
+    currentLineLength = 0
 
     def __init__(self, fp=None, name=None, locked=False):
         self.fp = fp
         self.name = name
 
     def write(self, data):
-        self.started = True
+        if self.currentLineLength > 0 and self.currentLineLength + len(data) > self.maxLineLength:
+            self.fp.write("\n")
+            self.currentLineLength = 0;
         self.fp.write(data)
+        self.currentLineLength += len(data)
+        if data[-1] == "\n":
+            self.currentLineLength = 0
 
 
 class IncludeNotFoundException(Exception):
@@ -160,11 +180,7 @@ class JSScanner(object):
     minify = True
 
     CONTEXT_JS = 'js'
-    CONTEXT_STRING_DQ = 'dq'
-    CONTEXT_STRING_SQ = 'sq'
     CONTEXT_COMMENT = 'comment'
-    CONTEXT_TEST = 'test'
-    CONTEXT_PASSTHRU = 'passthru'
 
     def __init__(self, fp, sourceName=None, minify=True):
         super(JSScanner, self).__init__()
@@ -192,40 +208,34 @@ class JSScanner(object):
             if lstripped[0:2] == "//":
                 cstripped = lstripped[2:].strip()
                 if cstripped[0:1] == "#":
-                    command, arguments = cstripped.split(" ", 1)
+                    if ' ' in cstripped:
+                        command, arguments = cstripped.split(" ", 1)
+                    else:
+                        command = cstripped
+                        arguments = ""
                     command = command[1:]
                     arguments = arguments.strip()
-            if self.context == self.CONTEXT_TEST:
-                if command is not None:
-                    if command in ('assert', 'assert.throw', 'assert.nothrow', 'assertEquals'):
-                        return JSTestCode(arguments, assert_=command)
-                    raise Exception(u"Unknown test command '%s' in %s at %d" % (command, self.sourceName, self.sourceLine))
-                if lstripped[0:2] == "//":
-                    return JSTestCode(lstripped[2:], sourceLine=self.sourceLine, rawline=line)
-                self.context = self.CONTEXT_JS
             if self.context == self.CONTEXT_JS:
                 if command == "precompiled":
-                    self.context = self.CONTEXT_PASSTHRU
-                else:
-                    if command == "import":
-                        i = arguments.find('"')
-                        if i >= 0:
-                            j = arguments.find('"', i + 1)
-                            if j >= 0:
-                                path = arguments[i + 1:j]
-                                return JSImport(path, sourceLine=self.sourceLine, rawline=line)
-                    if command == "feature":
-                        return JSFeature(arguments, sourceLine=self.sourceLine, rawline=line)
-                    if command == "var":
-                        return JSVar(arguments, sourceLine=self.sourceLine, indent=line[0:len(line) - len(lstripped)])
-                    if command == "test":
-                        self.context = self.CONTEXT_TEST
-                        return JSTest(arguments, sourceLine=self.sourceLine, rawline=line)
-                    if command is not None:
-                        raise Exception(u"Unknown command '%s' in %s at %d" % (command, self.sourceName, self.sourceLine))
-                    if stripped == '"use strict";' or stripped == "'use strict';":
-                        return JSStrict(sourceLine=self.sourceLine, rawline=line)
-            if not self.minify or self.context == self.CONTEXT_PASSTHRU:
+                    self.minify = False
+                    return JSBlank()
+                if command == "import":
+                    i = arguments.find('"')
+                    if i >= 0:
+                        j = arguments.find('"', i + 1)
+                        if j >= 0:
+                            path = arguments[i + 1:j]
+                            return JSImport(path, sourceLine=self.sourceLine, rawline=line)
+                    raise Exception("Invalid #import in %s at %d" % (command, self.sourceName, self.sourceLine))
+                if command == "feature":
+                    return JSFeature(arguments, sourceLine=self.sourceLine, rawline=line)
+                if command == "var":
+                    return JSVar(arguments, sourceLine=self.sourceLine, indent=line[0:len(line) - len(lstripped)])
+                if command is not None:
+                    raise Exception(u"Unknown command '%s' in %s at %d" % (command, self.sourceName, self.sourceLine))
+                if stripped == '"use strict";' or stripped == "'use strict';":
+                    return JSStrict(sourceLine=self.sourceLine, rawline=line)
+            if not self.minify:
                 return line
             while line != "":
                 if self.context == self.CONTEXT_JS:
@@ -286,6 +296,7 @@ def in_string_literal(line, pos):
                 delimiter = c
     return in_literal
 
+
 class JSImport(object):
     delay = False
     path = ""
@@ -300,6 +311,10 @@ class JSImport(object):
         self.rawline = rawline
 
 
+class JSBlank(object):
+    pass
+
+
 class JSFeature(object):
     check = None
     sourceLine = 0
@@ -309,32 +324,6 @@ class JSFeature(object):
         self.check = check
         self.sourceLine = sourceLine
         self.rawline = rawline
-
-
-class JSTest(object):
-    name = None
-    sourceLine = 0
-    rawline = ""
-    lines = None
-
-    def __init__(self, name, sourceLine=0, rawline=""):
-        self.name = name
-        self.sourceLine = sourceLine
-        self.rawline = rawline
-        self.lines = []
-
-
-class JSTestCode(object):
-    code = None
-    sourceLine = 0
-    rawline = ""
-    assert_ = None
-
-    def __init__(self, code, sourceLine=0, rawline="", assert_=None):
-        self.code = code
-        self.sourceLine = sourceLine
-        self.rawline = rawline
-        self.assert_ = assert_
 
 
 class JSVar(object):

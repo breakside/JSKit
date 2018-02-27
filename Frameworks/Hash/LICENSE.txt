@@ -1,0 +1,4 @@
+Copyright 2018 Owen Shaw
+
+Redistribution and use in source and binary forms, with or without
+modification, is prohibited without specific prior written permission.
