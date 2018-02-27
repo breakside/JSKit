@@ -7,12 +7,20 @@ JSClass('UIScrollView', UIView, {
 
     contentOffset: UIViewLayerProperty(),
     contentSize: UIViewLayerProperty(),
+    delaysContentTouches: false,
 
     setContentOffsetAnimated: function(contentOffset){
         var scrollView = this;
         UIView.animateWithDuration(0.25, function(){
             scrollView.contentOffset = contentOffset;
         });
+    },
+
+    hitTest: function(locationInView){
+        if (this.delaysContentTouches){
+            return this;
+        }
+        return UIScrollView.$super.hitTest.call(this, locationInView);
     }
 
 });

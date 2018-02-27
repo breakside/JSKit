@@ -21,14 +21,23 @@ UIScrollLayer.definePropertiesFromExtensions({
         sizer.style.width = '0px';
         sizer.style.height = '0px';
         sizer.dataset.scrollHelper = "sizer";
-        element.style.overflow = 'auto';
+        element.style.overflow = 'scroll';
+        element.style.webkitOverflowScrolling = 'touch';
         context.scrollContentSizer = sizer;
         element.addEventListener('scroll', this);
+        // element.addEventListener('touchstart', this, true);
+        // element.addEventListener('touchmove', this, true);
+        // element.addEventListener('touchend', this, true);
+        // element.addEventListener('touchcancel', this, true);
     },
 
     destroyHTMLContext: function(context){
         var element = context.element;
         element.removeEventListener('scroll', this);
+        // element.removeEventListener('touchstart', this, true);
+        // element.removeEventListener('touchmove', this, true);
+        // element.removeEventListener('touchend', this, true);
+        // element.removeEventListener('touchcancel', this, true);
     },
 
     updateHTMLProperty_clipsToBounds: function(context){
@@ -54,14 +63,32 @@ UIScrollLayer.definePropertiesFromExtensions({
     },
 
     handleEvent: function(e){
-        if (e.type == 'scroll'){
-            if (!this._ignoreNextSrollEvent){
-                var element = e.currentTarget;
-                this.model.contentOffset = JSPoint(element.scrollLeft, element.scrollTop);
-                this.model.bounds = JSRect(this.model.contentOffset, this.model.bounds.size);
-            }
-            this._ignoreNextSrollEvent = false;
+        this['_event_' + e.type](e);
+    },
+
+    _event_scroll: function(e){
+        if (!this._ignoreNextSrollEvent){
+            var element = e.currentTarget;
+            this.model.contentOffset = JSPoint(element.scrollLeft, element.scrollTop);
+            this.model.bounds = JSRect(this.model.contentOffset, this.model.bounds.size);
         }
+        this._ignoreNextSrollEvent = false;
+    },
+
+    _event_touchstart: function(e){
+        e.stopPropagation();
+    },
+
+    _event_touchmove: function(e){
+        e.stopPropagation();
+    },
+
+    _event_touchend: function(e){
+        e.stopPropagation();
+    },
+
+    _event_touchcancel: function(e){
+        e.stopPropagation();
     }
 
 });

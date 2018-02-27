@@ -64,6 +64,34 @@ JSClass("UIResponder", JSObject, {
         }
     },
 
+    touchesBegan: function(touches, event){
+        var next = this.getNextResponder();
+        if (next !== null){
+            next.touchesBegan(touches, event);
+        }
+    },
+
+    touchesEnded: function(touches, event){
+        var next = this.getNextResponder();
+        if (next !== null){
+            next.touchesEnded(touches, event);
+        }
+    },
+
+    touchesMoved: function(touches, event){
+        var next = this.getNextResponder();
+        if (next !== null){
+            next.touchesMoved(touches, event);
+        }
+    },
+
+    touchesCanceled: function(touches, event){
+        var next = this.getNextResponder();
+        if (next !== null){
+            next.touchesCanceled(touches, event);
+        }
+    },
+
     keyDown: function(event){
         var next = this.getNextResponder();
         if (next !== null){

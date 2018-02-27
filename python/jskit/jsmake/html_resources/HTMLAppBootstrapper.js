@@ -1,4 +1,4 @@
-/* global HTMLAppBootstrapper, window, navigator, localStorage, document, setTimeout, main, jslog_create */
+/* global HTMLAppBootstrapper, window, navigator, localStorage, document, setTimeout, main, jslog_create, console */
 'use strict';
 
 (function(){

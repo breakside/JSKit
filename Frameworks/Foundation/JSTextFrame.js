@@ -14,7 +14,11 @@ JSClass("JSTextFrame", JSObject, {
 
     initWithLines: function(lines, size){
         this._usedSize = JSSize.Zero;
-        this._range = JSRange(lines[0].range.location, lines[lines.length - 1].range.end - lines[0].range.location);
+        if (lines.length > 0){
+            this._range = JSRange(lines[0].range.location, lines[lines.length - 1].range.end - lines[0].range.location);   
+        }else{
+            this._range = JSRange.Zero;
+        }
         this._lines = lines;
         var line;
         for (var i = 0, l = lines.length; i < l; ++i){

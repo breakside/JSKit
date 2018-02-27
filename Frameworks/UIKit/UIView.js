@@ -55,6 +55,7 @@ JSClass('UIView', UIResponder, {
     shadowColor:        UIViewLayerProperty(),
     shadowOffset:       UIViewLayerProperty(),
     shadowRadius:       UIViewLayerProperty(),
+    isMultipleTouchEnabled: false,
 
     // -------------------------------------------------------------------------
     // MARK: - Creating a View

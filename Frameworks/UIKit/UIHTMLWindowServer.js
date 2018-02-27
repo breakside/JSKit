@@ -63,6 +63,13 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.addEventListener('beforecopy', this, false);
         this.rootElement.addEventListener('beforepaste', this, false);
         this.domWindow.addEventListener('resize', this, false);
+
+        // mobile
+        this.rootElement.addEventListener('touchstart', this, false);
+        this.rootElement.addEventListener('touchend', this, false);
+        this.rootElement.addEventListener('touchcancel', this, false);
+        this.rootElement.addEventListener('touchmove', this, false);
+
         // TODO: efficient mousemove (look into tracking areas)
         // TODO: mouse enter/exit (look into tracking areas)
         // TODO: dragging
@@ -165,16 +172,19 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     cut: function(e){
+        // FIXME: this.application no longer is a property
         this.application.sendAction('cut');
         // TODO: prepare DOM pasteboard from JSKit pasteboard?
     },
 
     copy: function(e){
+        // FIXME: this.application no longer is a property
         this.application.sendAction('copy');
         // TODO: prepare DOM pasteboard from JSKit pasteboard?
     },
 
     paste: function(e){
+        // FIXME: this.application no longer is a property
         // TODO: prepare JSKit pasteboard from DOM pasteboard?
         this.application.sendAction('paste');
     },
@@ -198,6 +208,24 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         }
     },
 
+    // mobile
+
+    touchstart: function(e){
+        this._createTouchEventFromDOMEvent(e, UIEvent.Type.TouchesBegan);
+    },
+
+    touchend: function(e){
+        this._createTouchEventFromDOMEvent(e, UIEvent.Type.TouchesEnded);
+    },
+
+    touchcancel: function(e){
+        this._createTouchEventFromDOMEvent(e, UIEvent.Type.TouchesCanceled);
+    },
+
+    touchmove: function(e){
+        this._createTouchEventFromDOMEvent(e, UIEvent.Type.TouchesMoved);
+    },
+
     _createMouseEventFromDOMEvent: function(e, type){
         var location = this._locationOfDOMEventInScreen(e);
         var timestamp = e.timeStamp / 1000.0;
@@ -209,13 +237,34 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         return JSPoint(e.clientX - screenBoundingRect.left, e.clientY - screenBoundingRect.top);
     },
 
+    _locationOfDOMTouchInScreen: function(touch){
+        var screenBoundingRect = this.rootElement.getBoundingClientRect();
+        return JSPoint(touch.clientX - screenBoundingRect.left, touch.clientY - screenBoundingRect.top);
+    },
+
     _createKeyEventFromDOMEvent: function(e, type){
         var timestamp = e.timeStamp / 1000.0;
         // TODO: maybe use e.key if available
         // see https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent#Key_names_and_Char_values
         var keyCode = e.keyCode;
         this.createKeyEvent(type, timestamp, keyCode);
-    }
+    },
+
+    _createTouchEventFromDOMEvent: function(e, type){
+        var timestamp = e.timeStamp / 1000.0;
+        var touchDescriptors = [];
+        var touchDescriptor = null;
+        var domTouch;
+        for (var i = 0, l = e.changedTouches.length; i < l; ++i){
+            domTouch = e.changedTouches[i];
+            touchDescriptor = {
+                identifier: domTouch.identifier,
+                location: this._locationOfDOMTouchInScreen(domTouch)
+            };
+            touchDescriptors.push(touchDescriptor);
+        }
+        this.createTouchEvent(type, timestamp, touchDescriptors);
+    },
 
 });
 

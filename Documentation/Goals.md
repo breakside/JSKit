@@ -15,29 +15,30 @@ really want to make is a rich interactive application.
 Javascript does help turn those static documents into dynamic and interactive
 experiences.  However, the document-centric thinking is hard to escape; coders
 must still live in a world  of the Document Object Model and often need to rig
-complex combinations of document elements to represent concepts that aren't
-easily expressed by standard elements.
+complex combinations of elements to represent concepts that aren't easily
+expressed by standard elements.
 
-JSKit strives to hide the document-specific concepts behind a new application
-paradigm, similar to what's found on mobile or desktop development environments
-that never had the document-baed legacy.
+JSKit strives to hide the document-specific concepts behind a coherent
+application paradigm, similar to what's found on mobile or desktop development
+environments that never had the document-baed legacy.
 
 
 Javascript Only
 ===============
 
-To add a simple feature, a web developer must typically write in at least three
-languages: HTML, CSS, and Javascript.
+Think about the coding required to add a simple feature in a typical web app.
+It requires editing at least three source files: HTML, CSS, and Javscript.
 
 While HTML and CSS have their uses, they often hinder writing highly dynamic and
 interactive applications.  You end up writing Javascript that generates HTML
 that fits in with already-written HTML.  Then all the CSS styling goes into a
-separate file, and gets complex fast since it can only refer to the
-HTML-specific elements, rather than higher level concepts you've created.
+separate file.  Styling rich application compoents can be a chore when the
+underlying HTML element structure is complex and CSS has to refer to what are
+effectively private implementation details.
 
 By requiring only Javascript, JSKit allows developers to ignore HTML and CSS,
-and focus on a single language.  In turn, code can be better organized because
-a feature can be implemented all together instead of spread across three files.
+and focus on a single language.  In turn, code can be better organized in one
+place with a straightforward API.
 
 
 Offline Abilities
@@ -74,5 +75,8 @@ The Complete Development Cycle
 ==============================
 
 Debug, test, deploy.
+
+- Debug builds without modifying javascript, so files you're editing are exactly the files the debugger sees
+- Separate files when debugging, combined/minified files for production
 
 

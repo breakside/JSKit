@@ -1,7 +1,8 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UIDisplayServer.js"
 // #import "UIKit/UIApplication.js"
-/* global JSClass, UIView, UIDisplayServer, JSConstraintBox, JSDynamicProperty, JSReadOnlyProperty, UIWindow, JSPoint, UIApplication, UIEvent */
+// #import "UIKit/UITouch.js"
+/* global JSClass, UIView, UIDisplayServer, JSConstraintBox, JSDynamicProperty, JSReadOnlyProperty, UIWindow, JSPoint, UIApplication, UIEvent, UITouch */
 'use strict';
 
 JSClass('UIWindow', UIView, {
@@ -152,6 +153,9 @@ JSClass('UIWindow', UIView, {
             case UIEvent.Category.Key:
                 this._sendKeyEvent(event);
                 break;
+            case UIEvent.Category.Touches:
+                this._sendTouchEvent(event);
+                break;
         }
     },
 
@@ -193,6 +197,47 @@ JSClass('UIWindow', UIView, {
                 break;
         }
 
+    },
+
+    _sendTouchEvent: function(event){
+        var touches = event.touchesInWindow(this);
+        var touchesByView = {};
+        var view;
+        for (var i = 0, l = touches.length; i < l; ++i){
+            // We only dispatch the touches that changed in this version of the event.
+            // A view can get all the touches it wants from the event.
+            if (touches[i].timestamp == event.timestamp){
+                view = this.hitTest(touches[i].locationInWindow);
+                if (!touchesByView[view.objectID]){
+                    touchesByView[view.objectID] = {view: view, touches: []};
+                }
+                touchesByView[view.objectID].touches.push(touches[i]);
+            }
+        }
+        for (var id in touchesByView){
+            view = touchesByView[id].view;
+            touches = touchesByView[id].touches;
+            if (!view.isMultipleTouchEnabled){
+                touches = [touches[0]];
+            }
+            this._sendEventTouchesToView(event, touches, touchesByView[id].view);
+        }
+    },
+
+    _sendEventTouchesToView: function(event, touches, view){
+        var touchesByPhase = {};
+        touchesByPhase[UITouch.Phase.began] = {method: 'touchesBegan', touches: []};
+        touchesByPhase[UITouch.Phase.moved] = {method: 'touchesMoved', touches: []};
+        touchesByPhase[UITouch.Phase.ended] = {method: 'touchesEnded', touches: []};
+        touchesByPhase[UITouch.Phase.canceled] = {method: 'touchesCanceled', touches: []};
+        for (var i = 0, l = touches.length; i < l; ++i){
+            touchesByPhase[touches[i].phase].touches.push(touches[i]);
+        }
+        for (var phase in touchesByPhase){
+            if (touchesByPhase[phase].touches.length > 0){
+                view[touchesByPhase[phase].method](touchesByPhase[phase].touches, event);
+            }
+        }
     },
 
     _sendKeyEvent: function(event){

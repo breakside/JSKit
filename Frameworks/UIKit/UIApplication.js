@@ -58,8 +58,9 @@ JSClass('UIApplication', UIResponder, {
     },
 
     sendEvent: function(event){
-        if (event.window){
-            event.window.sendEvent(event);
+        var windows = event.windows;
+        for (var i = 0, l = windows.length; i < l; ++i){
+            windows[i].sendEvent(event);
         }
     },
 
@@ -80,6 +81,33 @@ JSClass('UIApplication', UIResponder, {
         if (target !== null){
             target[action](sender);
         }
+    },
+
+    touchesBegan: function(touches, event){
+        // The application should be the final responder, so if a touch gets
+        // all the way here, it means nothing handled it, and we should try
+        // to re-send it as a mouse event to see if something handles that
+        var touch = touches[0];
+        var location = touch.window.convertPointToScreen(touch.locationInWindow);
+        this.windowServer.createMouseEvent(UIEvent.Type.LeftMouseDown, event.timestamp, location);
+    },
+
+    touchesMoved: function(touches, event){
+        var touch = touches[0];
+        var location = touch.window.convertPointToScreen(touch.locationInWindow);
+        this.windowServer.createMouseEvent(UIEvent.Type.LeftMouseDragged, event.timestamp, location);
+    },
+
+    touchesEnded: function(touches, event){
+        var touch = touches[0];
+        var location = touch.window.convertPointToScreen(touch.locationInWindow);
+        this.windowServer.createMouseEvent(UIEvent.Type.LeftMouseUp, event.timestamp, location);
+    },
+
+    touchesCanceled: function(touches, event){
+        var touch = touches[0];
+        var location = touch.window.convertPointToScreen(touch.locationInWindow);
+        this.windowServer.createMouseEvent(UIEvent.Type.LeftMouseUp, event.timestamp, location);
     }
 
 });

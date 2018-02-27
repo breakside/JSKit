@@ -46,12 +46,13 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
     //
     // The special string is:
     // abcd efgh ijkl
-    // mnop qrst uvwx
+    // mnop q  t uvwx
     // yzAB CDEF GHIJ
     //
-    // And the cursor is always placed between the r and the s, right in the middle.  Using four letters,
-    // qsrt, allows us to tell the difference between a single character move/delete and a word boundardy
-    // move/delete.  Having three words on the line allows us to tell the difference between a word boundary
+    // And the cursor is always placed between the q and the t, right in the middle.  Using four characters,
+    // q  t, allows us to tell the difference between a single character move/delete and a word boundardy
+    // move/delete.  Spaces around the insertion point don't confuse mobile text predictors as much as letters would.
+    // Having three words on the line allows us to tell the difference between a word boundary
     // move/delete and a line boundary move/delete.  Having three lines allows us to catch up/down moves.
 
     // TODO: have the hidden input follow the real cursor location, so things like emoji and dictation
@@ -68,6 +69,13 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
     //       way to have a first responder in a focused window, but the hidden textarea unfocused.
     // FIXME:watch out for undo/redo, which won't do the right thing...probably need to override
     //       the keyboard shortcuts as best we can.  Not sure how to disable the menus.
+    // FIXME:iOS shows the cursor for the hidden text input above everything...might need to go
+    //       offscreen for mobile safari
+    // FIXME:text entry on mobile without autocorrect is a pain
+    // FIXME:mobile safari shows the input accessory view, but would love to hide it
+    // FIXME:can't focus programmatically in mobile safari (need to try new MouseEvent())
+    // TODO: consider what could change on mobile where we are far less concerned about capturing
+    //       cursor movement as the result of key presses (e.g., no arrow keys to worry about)
 
     windowServer: null,
     domWindow: null,
@@ -78,6 +86,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
     _config: null,
     _rangeUpdateScheduled: false,
     _responder: null,
+    _responderWindow: null,
 
     initWithRootElement: function(rootElement){
         this.rootElement = rootElement;
@@ -119,8 +128,9 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
     },
 
     windowDidChangeResponder: function(window){
-        var responder = window.firstResponder;
-        if (responder){
+        this._responder = window.firstResponder;
+        this._responderWindow = window;
+        if (this._responder){
             this._config = UIHTMLTextInputManager._HiddenConfig;
             this.hiddenInputElement.focus();
             // FIXME: what if _isComposing is true?  The old responder needs to be told to stop
@@ -128,7 +138,6 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
         }else{
             this.hiddenInputElement.blur();
         }
-        this._responder = responder;
     },
 
     handleEvent: function(e){
@@ -148,7 +157,10 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
         if (e.currentTarget === this.domWindow){
             // logger.info("window blur");
         }else if (e.currentTarget === this.hiddenInputElement){
-            // logger.info("input blur");
+            // Mobile devices can hide the keyboard, blurring the hidden input
+            // field even when there's a current responder.  In such a case,
+            // we need to clear the current responder.
+            this._responderWindow.firstResponder = null;
         }
         e.stopPropagation();
     },
@@ -515,7 +527,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
 });
 
 UIHTMLTextInputManager._HiddenConfig = {
-    resetValue: 'abcd efgh ijkl\nmnop qrst uvwx\nyzAB CDEF GHIJ',
+    resetValue: 'abcd efgh ijkl\nmnop q  t uvwx\nyzAB CDEF GHIJ',
     resetSelection: JSRange(22, 0),
     prevChar: 1,
     nextChar: 1,

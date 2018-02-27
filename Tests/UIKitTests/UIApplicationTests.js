@@ -1,7 +1,7 @@
 // #import "UIKit/UIKit.js"
 // #import "TestKit/TestKit.js"
 // #import "MockWindowServer.js"
-/* global JSClass, JSObject, TKTestSuite, MockWindowServer, MockLayer, UIApplication, UIEvent, TKAssert, TKAssertNull, TKAssertEquals, TKAssertNotNull, TKAssertExactEquals, TKAssertThrows */
+/* global JSClass, JSObject, TKTestSuite, UITouch, JSPoint, MockWindowServer, MockLayer, UIApplication, UIEvent, TKAssert, TKAssertNull, TKAssertEquals, TKAssertNotNull, TKAssertExactEquals, TKAssertThrows */
 'use strict';
 
 (function(){
@@ -113,6 +113,39 @@ JSClass("UIApplicationTests", TKTestSuite, {
         var event = UIEvent.initKeyEventWithType(UIEvent.Type.KeyDown, 1, mockWindow, 0x41);
         this.app.sendEvent(event);
         TKAssertExactEquals(mockWindow.receivedEvent, event);
+    },
+
+    testSendTouchEvent: function(){
+        var mockWindow1 = {
+            objectID: 1,
+            layer: MockLayer.init() ,
+            receivedEvent: null,
+            sendEvent: function(event){
+                this.receivedEvent = event;
+            }
+        };
+        var mockWindow2 = {
+            objectID: 2,
+            layer: MockLayer.init() ,
+            receivedEvent: null,
+            sendEvent: function(event){
+                this.receivedEvent = event;
+            }
+        };
+        var event = UIEvent.initTouchEventWithType(UIEvent.Type.TouchesBegan, 123);
+        var touch1 = UITouch.initWithIdentifier(1, 123, mockWindow1, JSPoint(10, 15));
+        var touch2 = UITouch.initWithIdentifier(1, 124, mockWindow2, JSPoint(10, 15));
+        event.addTouch(touch1);
+        this.app.sendEvent(event);
+        TKAssertExactEquals(mockWindow1.receivedEvent, event);
+        TKAssertNull(mockWindow2.receivedEvent);
+
+        mockWindow1.receivedEvent = null;
+        event.addTouch(touch2);
+        event.updateTouches(UIEvent.Type.TouchesBegan, 124);
+        this.app.sendEvent(event);
+        TKAssertExactEquals(mockWindow1.receivedEvent, event);
+        TKAssertExactEquals(mockWindow2.receivedEvent, event);
     },
 
     testSendAction: function(){

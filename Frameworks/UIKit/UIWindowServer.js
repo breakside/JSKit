@@ -1,11 +1,10 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIEvent.js"
-/* global JSClass, JSObject, UIWindowServer, UIEvent, JSPoint, UIWindowServerInit */
+/* global JSClass, JSObject, UIWindowServer, UIEvent, JSPoint, UIWindowServerInit, UITouch */
 'use strict';
 
 JSClass("UIWindowServer", JSObject, {
 
-    application: null,
     windowStack: null,
     displayServer: null,
     textInputManager: null,
@@ -70,6 +69,65 @@ JSClass("UIWindowServer", JSObject, {
     createKeyEvent: function(type, timestamp, keyCode){
         var event = UIEvent.initKeyEventWithType(type, timestamp, this.keyWindow, keyCode);
         this.keyWindow.application.sendEvent(event);
+    },
+
+    activeTouchEvent: null,
+
+    createTouchEvent: function(type, timestamp, changedTouchDescriptors){
+        var touchWindow = null;
+        var touch;
+        var descriptor;
+        var location;
+        var i, l;
+        if (this.activeTouchEvent === null){
+            this.activeTouchEvent = UIEvent.initTouchEventWithType(type, timestamp);
+        }
+        var applicationsById = {};
+        for (i = 0, l = changedTouchDescriptors.length; i < l; ++i){
+            descriptor = changedTouchDescriptors[i];
+            touch = this.activeTouchEvent.touchForIdentifier(descriptor.identifier);
+            touchWindow = this.windowAtScreenLocation(changedTouchDescriptors[i].location);
+            // FIXME: touchWindow could be null (mobile safari continues reporting moved
+            // touches outside of the viewport)
+            location = touchWindow.convertPointFromScreen(changedTouchDescriptors[i].location);
+            if (touch === null){
+                touch = UITouch.initWithIdentifier(descriptor.identifier, timestamp, touchWindow, location);
+                this.activeTouchEvent.addTouch(touch);
+            }else{
+                touch.update(this._touchPhaseForEventType(type), timestamp, touchWindow, location);
+            }
+            applicationsById[touchWindow.application.objectID] = touchWindow.application;
+        }
+        this.activeTouchEvent.updateTouches(type, timestamp);
+
+        // Dispatch the event to the application(s)
+        for (var id in applicationsById){
+            applicationsById[id].sendEvent(this.activeTouchEvent);
+        }
+
+        // Clear the active touch memeber if all touches have ended
+        if ((type === UIEvent.Type.TouchesEnded) || (type === UIEvent.Type.TouchesCanceled)){
+            var hasActiveTouch = false;
+            for (i = 0, l = this.activeTouchEvent.touches.length; i < l && !hasActiveTouch; ++i){
+                hasActiveTouch = this.activeTouchEvent.touches[i].isActive();
+            }
+            if (!hasActiveTouch){
+                this.activeTouchEvent = null;
+            }
+        }
+    },
+
+    _touchPhaseForEventType: function(type){
+        switch(type){
+            case UIEvent.Type.TouchesBegan:
+                return UITouch.Phase.began;
+            case UIEvent.Type.TouchesMoved:
+                return UITouch.Phase.moved;
+            case UIEvent.Type.TouchesEnded:
+                return UITouch.Phase.ended;
+            case UIEvent.Type.TouchesCanceled:
+                return UITouch.Phase.canceled;
+        }
     }
 
 });
