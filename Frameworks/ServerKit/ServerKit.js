@@ -4,6 +4,8 @@
 // #import "ServerKit/SKHTTPRequest.js"
 // #import "ServerKit/SKHTTPResponse.js"
 // #import "ServerKit/SKHTTPWebSocket.js"
+// #import "ServerKit/SKHTTPWebSocketDelegate.js"
 // #import "ServerKit/SKHTTPWebSocketParser.js"
+// #import "ServerKit/SKHTTPWebSocketParserDelegate.js"
 // #import "ServerKit/SKHTTPResponder.js"
 // #import "ServerKit/SKHTTPResponderContext.js"

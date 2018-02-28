@@ -1,6 +1,6 @@
 // #import "ServerKit/ServerKit.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, SKHTTPWebSocketParser, TKAssertEquals, TKAssertObjectEquals, TKAssertNotNull, TKAssert, JSData */
+/* global JSClass, TKTestSuite, SKHTTPWebSocketParser, TKAssertEquals, TKAssertObjectEquals, TKAssertNotNull, TKAssert, JSData, JSRange */
 'use strict';
 
 JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
@@ -9,10 +9,14 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         var parser = SKHTTPWebSocketParser.init();
         var receiveCount = 0;
         var received = null;
+        var messageReceived = false;
         parser.delegate = {
             frameParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
+            },
+            frameParserDidReceiveMessage: function(parser){
+                messageReceived = true;
             }
         };
         var data = JSData.initWithBytes(new Uint8Array([0x82, 0x05, 0x01, 0x02, 0x03, 0x04, 0x05]));
@@ -26,16 +30,21 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         TKAssertEquals(received.bytes[2], 0x03);
         TKAssertEquals(received.bytes[3], 0x04);
         TKAssertEquals(received.bytes[4], 0x05);
+        TKAssert(messageReceived);
     },
 
     testUnmaksedTextFrame: function(){
         var parser = SKHTTPWebSocketParser.init();
         var receiveCount = 0;
         var received = null;
+        var messageReceived = false;
         parser.delegate = {
             frameParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
+            },
+            frameParserDidReceiveMessage: function(parser){
+                messageReceived = true;
             }
         };
         var data = JSData.initWithBytes(new Uint8Array([0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f]));
@@ -49,16 +58,21 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         TKAssertEquals(received.bytes[2], 0x6c);
         TKAssertEquals(received.bytes[3], 0x6c);
         TKAssertEquals(received.bytes[4], 0x6f);
+        TKAssert(messageReceived);
     },
 
     testMaskedBinaryFrame: function(){
         var parser = SKHTTPWebSocketParser.init();
         var receiveCount = 0;
         var received = null;
+        var messageReceived = false;
         parser.delegate = {
             frameParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
+            },
+            frameParserDidReceiveMessage: function(parser){
+                messageReceived = true;
             }
         };
         var mask = new Uint8Array([0xA, 0xB, 0xC, 0xD]);
@@ -73,16 +87,21 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         TKAssertEquals(received.bytes[2], 0x03);
         TKAssertEquals(received.bytes[3], 0x04);
         TKAssertEquals(received.bytes[4], 0x05);
+        TKAssert(messageReceived);
     },
 
     testMaskedTextFrame: function(){
         var parser = SKHTTPWebSocketParser.init();
         var receiveCount = 0;
         var received = null;
+        var messageReceived = false;
         parser.delegate = {
             frameParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
+            },
+            frameParserDidReceiveMessage: function(parser){
+                messageReceived = true;
             }
         };
         var data = JSData.initWithBytes(new Uint8Array([0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58]));
@@ -96,16 +115,21 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         TKAssertEquals(received.bytes[2], 0x6c);
         TKAssertEquals(received.bytes[3], 0x6c);
         TKAssertEquals(received.bytes[4], 0x6f);
+        TKAssert(messageReceived);
     },
 
     testFragmentedTextFrames: function(){
         var parser = SKHTTPWebSocketParser.init();
         var receiveCount = 0;
         var received = null;
+        var messageReceived = false;
         parser.delegate = {
             frameParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
+            },
+            frameParserDidReceiveMessage: function(parser){
+                messageReceived = true;
             }
         };
         var data = JSData.initWithBytes(new Uint8Array([0x01, 0x03, 0x48, 0x65, 0x6c]));
@@ -115,6 +139,7 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         TKAssertEquals(received.bytes[0], 0x48);
         TKAssertEquals(received.bytes[1], 0x65);
         TKAssertEquals(received.bytes[2], 0x6c);
+        TKAssert(!messageReceived);
 
         data = JSData.initWithBytes(new Uint8Array([0x80, 0x02, 0x6c, 0x6f]));
         parser.receive(data);
@@ -122,6 +147,7 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         TKAssertEquals(received.length, 2);
         TKAssertEquals(received.bytes[0], 0x6c);
         TKAssertEquals(received.bytes[1], 0x6f);
+        TKAssert(messageReceived);
 
 
         parser = SKHTTPWebSocketParser.init();
@@ -130,6 +156,9 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         parser.delegate = {
             frameParserDidReceiveData: function(parser, data){
                 received.push(data);
+            },
+            frameParserDidReceiveMessage: function(parser){
+                messageReceived = true;
             }
         };
         data = JSData.initWithBytes(new Uint8Array([0x01, 0x03, 0x48, 0x65, 0x6c, 0x80, 0x02, 0x6c, 0x6f]));
@@ -142,6 +171,43 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         TKAssertEquals(received[0].bytes[2], 0x6c);
         TKAssertEquals(received[1].bytes[0], 0x6c);
         TKAssertEquals(received[1].bytes[1], 0x6f);
+        TKAssert(messageReceived);
+    },
+
+    testFragmentedTextFramesByteByByte: function(){
+        var parser = SKHTTPWebSocketParser.init();
+        var receiveCount = 0;
+        var received = null;
+        var messageReceived = false;
+
+        parser = SKHTTPWebSocketParser.init();
+        received = [];
+        parser.delegate = {
+            frameParserDidReceiveData: function(parser, data){
+                received.push(data);
+            },
+            frameParserDidReceiveMessage: function(parser){
+                messageReceived = true;
+            }
+        };
+        var data = JSData.initWithBytes(new Uint8Array([0x01, 0x03, 0x48, 0x65, 0x6c, 0x80, 0x02, 0x6c, 0x6f]));
+        for (var i = 0, l = data.length - 1; i < l; ++i){
+            parser.receive(data.subdataInRange(JSRange(i, 1)));
+            TKAssert(!messageReceived);
+        }
+        parser.receive(data.subdataInRange(JSRange(data.length - 1, 1)));
+        TKAssertEquals(received.length, 5);
+        TKAssertEquals(received[0].length, 1);
+        TKAssertEquals(received[1].length, 1);
+        TKAssertEquals(received[2].length, 1);
+        TKAssertEquals(received[3].length, 1);
+        TKAssertEquals(received[4].length, 1);
+        TKAssertEquals(received[0].bytes[0], 0x48);
+        TKAssertEquals(received[1].bytes[0], 0x65);
+        TKAssertEquals(received[2].bytes[0], 0x6c);
+        TKAssertEquals(received[3].bytes[0], 0x6c);
+        TKAssertEquals(received[4].bytes[0], 0x6f);
+        TKAssert(messageReceived);
     },
 
     testUnmaskedHeaderForData: function(){
@@ -180,16 +246,21 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         var data = new Uint8Array([0x81, 0x8b, 0xab, 0x25, 0x15, 0x85, 0xdf, 0x40, 0x66, 0xf1, 0xc2, 0x4b, 0x72, 0xa5, 0x9a, 0x17, 0x26]);
         var receiveCount = 0;
         var received = null;
+        var messageReceived = false;
         parser.delegate = {
             frameParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
+            },
+            frameParserDidReceiveMessage: function(parser){
+                messageReceived = true;
             }
         };
         parser.receive(JSData.initWithBytes(data));
         TKAssertEquals(receiveCount, 1);
         TKAssertEquals(received.length, 11);
         TKAssertObjectEquals(received, "testing 123".utf8());
+        TKAssert(messageReceived);
     }
 
     // TODO: lengths > 125

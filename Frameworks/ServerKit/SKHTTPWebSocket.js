@@ -9,10 +9,12 @@ JSClass("SKHTTPWebSocket", JSObject, {
     _dataListener: null,
     _frameParser: null,
     _sentClose: false,
+    _messageChunks: null,
 
     init: function(){
         this._frameParser = SKHTTPWebSocketParser.init();
         this._frameParser.delegate = this;
+        this._messageChunks = [];
     },
 
     startMessage: function(data){
@@ -77,9 +79,17 @@ JSClass("SKHTTPWebSocket", JSObject, {
     },
 
     frameParserDidReceiveData: function(parser, chunk){
+        this._messageChunks.push(chunk);
         if (this.delegate && this.delegate.socketDidReceiveData){
-            this.delegate.socketDidReceiveData(chunk);
+            this.delegate.socketDidReceiveData(this, chunk);
         }
+    },
+
+    frameParserDidReceiveMessage: function(parser){
+        if (this.delegate && this.delegate.socketDidReceiveMessage){
+            this.delegate.socketDidReceiveMessage(this, this._messageChunks);
+        }
+        this._messageChunks = [];
     },
 
     _close: function(status){

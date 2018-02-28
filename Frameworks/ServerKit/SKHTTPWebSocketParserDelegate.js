@@ -9,6 +9,7 @@ JSProtocol("SKHTTPWebSocketParserDelegate", JSProtocol, {
     frameParserDidReceiveClose: ['parser', 'chunks'],
     frameParserDidReceiveFrameOutOfSequence: ['parser'],
     frameParserDidReceiveInvalidLength: ['parser'],
-    frameParserDidReceiveData: ['parser', 'data']
+    frameParserDidReceiveData: ['parser', 'data'],
+    frameParserDidReceiveMessage: ['parser']
 
 });

@@ -47,7 +47,7 @@ JSClass("SKHTTPWebSocketParser", JSObject, {
             // - read the first two bytes of a new frame
             // - use those bytes to determine how long the header is
             // - stop after the header is done, or if we're out of data
-            while (this._remainingHeaderCount > 0){
+            while (consumed < l && this._remainingHeaderCount > 0){
                 for (; this._remainingHeaderCount > 0 && consumed < l; ++consumed){
                     this._header[this._headerLength++] = framedBytes[consumed];
                     --this._remainingHeaderCount;
@@ -66,7 +66,7 @@ JSClass("SKHTTPWebSocketParser", JSObject, {
             // If we have created a frame, then we must be parsing frame data,
             // so read as much as we can, either to the end of the available data
             // or to the end of the frame's length.
-            if (this.frame !== null){
+            if (consumed < l && this.frame !== null){
                 var length = Math.min(l - consumed, this.frame.length - this.frame.received);
                 var chunk = new Uint8Array(framedBytes.buffer, framedBytes.byteOffset + consumed, length);
                 consumed += length;
@@ -89,24 +89,35 @@ JSClass("SKHTTPWebSocketParser", JSObject, {
             case SKHTTPWebSocketParser.FrameCode.text:
             case SKHTTPWebSocketParser.FrameCode.binary:
                 this.delegate.frameParserDidReceiveData(this, chunk);
+                if (isEndOfFrame && this.frame.isFinal){
+                    if (this.delegate.frameParserDidReceiveMessage){
+                        this.delegate.frameParserDidReceiveMessage(this);
+                    }
+                }
                 break;
             case SKHTTPWebSocketParser.FrameCode.ping:
                 if (isEndOfFrame){
-                    this.delegate.frameParserDidReceivePing(this, this.frame.chunks);
+                    if (this.delegate.frameParserDidReceivePing){
+                        this.delegate.frameParserDidReceivePing(this, this.frame.chunks);
+                    }
                 }else{
                     this.frame.chunks.push(chunk);
                 }
                 break;
             case SKHTTPWebSocketParser.FrameCode.pong:
                 if (isEndOfFrame){
-                    this.delegate.frameParserDidReceivePong(this, this.frame.chunks);
+                    if (this.delegate.frameParserDidReceivePong){
+                        this.delegate.frameParserDidReceivePong(this, this.frame.chunks);
+                    }
                 }else{
                     this.frame.chunks.push(chunk);
                 }
                 break;
             case SKHTTPWebSocketParser.FrameCode.close:
                 if (isEndOfFrame){
-                    this.delegate.frameParserDidReceiveClose(this, this.frame.chunks);
+                    if (this.delegate.frameParserDidReceiveClose){
+                        this.delegate.frameParserDidReceiveClose(this, this.frame.chunks);
+                    }
                 }else{
                     this.frame.chunks.push(chunk);
                 }
