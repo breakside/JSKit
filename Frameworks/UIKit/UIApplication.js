@@ -28,9 +28,14 @@ JSClass('UIApplication', UIResponder, {
         sharedApplication = null;
     },
 
+    launchOptions: function(){
+        return {};
+    },
+
     run: function(){
+        var launchOptions = this.launchOptions();
         if (this.delegate && this.delegate.applicationDidFinishLaunching){
-            this.delegate.applicationDidFinishLaunching();
+            this.delegate.applicationDidFinishLaunching(launchOptions);
         }
     },
 
@@ -117,6 +122,10 @@ UIApplication.InfoPlistName  = "Info";
 UIApplication.InfoKeys = {
     MainDefinitionResource: "UIMainDefinitionResource",
     ApplicationDelegate: "UIApplicationDelegate",
+};
+
+UIApplication.LaunchOptions = {
+    state: "UIApplicationLaunchOptionState"
 };
 
 Object.defineProperty(UIApplication, 'sharedApplication', {

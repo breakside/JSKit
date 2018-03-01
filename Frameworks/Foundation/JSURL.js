@@ -27,6 +27,7 @@ JSClass("JSURL", JSObject, {
     encodedQuery: JSDynamicProperty('_encodedQuery', null),
     encodedFragment: JSDynamicProperty('_encodedFragment', null),
     query: JSDynamicProperty('_query', null),
+    fragment: JSDynamicProperty(),
 
     isAbsolute: JSReadOnlyProperty(),
     encodedString: JSReadOnlyProperty(),
@@ -179,6 +180,21 @@ JSClass("JSURL", JSObject, {
         return encodedString;
     },
 
+    getFragment: function(){
+        if (this._encodedFragment === null){
+            return null;
+        }
+        return this._encodedFragment.bytes.arrayByDecodingPercentEscapes().stringByDecodingUTF8();
+    },
+
+    setFragment: function(fragment){
+        if (fragment === null){
+            this._encodedFragment = null;
+        }else{
+            this._encodedFragment = JSData.initWithBytes(fragment.utf8().bytes.arrayByEncodingPercentEscapes());
+        }
+    },
+
     toString: function(){
         return this.getEncodedString();
     },
@@ -220,9 +236,7 @@ JSClass("JSURL", JSObject, {
             return false;
         }
         if (this._encodedFragment !== null && url._encodedFragment !== null){
-            var decodedFragmentA = this._encodedFragment.arrayByDecodingPercentEscapes().stringByDecodingUTF8();
-            var decodedFragmentB = url._encodedFragment.arrayByDecodingPercentEscapes().stringByDecodingUTF8();
-            if (decodedFragmentA !== decodedFragmentB){
+            if (this.fragment !== url.fragment){
                 return false;
             }
         }else if (this._encodedFragment !== null || url._encodedFragment !== null){

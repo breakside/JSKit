@@ -70,7 +70,6 @@ class HTMLBuilder(Builder):
         self.buildAppCSS()
         self.buildAppJavascript()
         self.buildPreflight()
-        self.buildAppCacheManifest()
         self.buildIndex()
         self.buildNginxConf()
         if self.useDocker:
@@ -122,13 +121,14 @@ class HTMLBuilder(Builder):
         outputFontPath = os.path.join(self.outputResourcePath, resource['hash'] + ext)
         url = _webpath(os.path.relpath(outputFontPath, self.outputWebRootPath))
         variants = [(url, None)]
-        if mime != 'application/x-font-woff':
-            outputTmpWoffPath = os.path.join(self.outputResourcePath, resource['hash'] + '.woff')
-            sfnt_to_woff(fullPath, outputTmpWoffPath)
-            woff_hash, woff_size = Builder.hashOfPath(outputTmpWoffPath)
-            outputWoffPath = os.path.join(self.outputResourcePath, woff_hash + '.woff')
-            os.rename(outputTmpWoffPath, outputWoffPath)
-            variants.insert(0, (_webpath(os.path.relpath(outputWoffPath, self.outputWebRootPath)), 'woff'))
+        # if mime != 'application/x-font-woff':
+        #     outputTmpWoffPath = os.path.join(self.outputResourcePath, resource['hash'] + '.woff')
+        #     sfnt_to_woff(fullPath, outputTmpWoffPath)
+        #     woff_hash, woff_size = Builder.hashOfPath(outputTmpWoffPath)
+        #     outputWoffPath = os.path.join(self.outputResourcePath, woff_hash + '.woff')
+        #     os.rename(outputTmpWoffPath, outputWoffPath)
+        #     variants.insert(0, (_webpath(os.path.relpath(outputWoffPath, self.outputWebRootPath)), 'woff'))
+        #     self.manifest.append(outputWoffPath)
         info.update(dict(
             url=url,
             variants=variants
@@ -158,6 +158,7 @@ class HTMLBuilder(Builder):
             fp.write('}\n\n')
         fp.close()
         self.appCSS.append(outputPath)
+        self.manifest.append(outputPath)
 
     def font_src(self, variant):
         if variant[1]:
@@ -205,6 +206,8 @@ class HTMLBuilder(Builder):
             self.featureCheck.addFeature(feature)
         self.preflightFile = open(os.path.join(self.outputWebRootPath, 'preflight-%s.js' % self.featureCheck.hash), 'w')
         self.featureCheck.serialize(self.preflightFile, 'bootstrapper')
+        self.preflightFile.close()
+        self.manifest.append(self.preflightFile.name)
 
     def buildAppCacheManifest(self):
         self.updateStatus("Creating manifest.appcache...")
@@ -214,6 +217,7 @@ class HTMLBuilder(Builder):
         self.manifestFile.write("# build %s\n" % self.buildID)
         for name in self.manifest:
             self.manifestFile.write("%s\n" % _webpath(os.path.relpath(name, self.outputWebRootPath)))
+        self.manifestFile.close()
 
     def buildIndex(self):
         self.updateStatus("Creating index.html...")
@@ -287,6 +291,7 @@ class HTMLBuilder(Builder):
                                 os.link(outfile.fp.name, outputPath)
                             else:
                                 shutil.copy(outfile.fp.name, outputPath)
+                            self.manifest.append(outputPath)
                             relativePath = _webpath(os.path.relpath(outputPath, os.path.dirname(self.indexFile.name)))
                             script.setAttribute('src', relativePath)
                         node.parentNode.insertBefore(script, node)
@@ -294,7 +299,8 @@ class HTMLBuilder(Builder):
             for child in node.childNodes:
                 if child.nodeType == xml.dom.Node.ELEMENT_NODE:
                     stack.append(child)
-        if self.manifestFile and not self.debug:
+        self.buildAppCacheManifest()
+        if self.manifestFile:
             document.documentElement.setAttribute('manifest', _webpath(os.path.relpath(self.manifestFile.name, os.path.dirname(self.indexFile.name))))
         HTML5DocumentSerializer(document).serializeToFile(self.indexFile)
         self.indexFile.close()

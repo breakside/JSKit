@@ -554,8 +554,7 @@ JSClass("UITextEditor", JSObject, {
         this._cursorOn();
     },
 
-    
-    moveBackwardAndExtendSelection: function(){
+    moveBackwardAndModifySelection: function(){
         var textStorage = this.textLayer.attributedText;
         var selection;
         var perceivedCharacterRange;
@@ -571,41 +570,45 @@ JSClass("UITextEditor", JSObject, {
         this._cursorOn();
     },
 
-    moveWordBackwardAndExtendSelection: function(){
+    moveWordBackwardAndModifySelection: function(){
     },
 
-    moveToBeginningOfLineAndExtendSelection: function(){
+    moveToBeginningOfLineAndModifySelection: function(){
     },
 
-    moveUpAndExtendSelection: function(){
+    moveUpAndModifySelection: function(){
     },
 
-    moveToBeginningOfDocumentAndExtendSelection: function(){
+    moveToBeginningOfDocumentAndModifySelection: function(){
     },
 
-    moveForwardAndExtendSelection: function(){
+    moveForwardAndModifySelection: function(){
         var textStorage = this.textLayer.attributedText;
         var selection;
         var perceivedCharacterRange;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
-            perceivedCharacterRange = textStorage.string.rangeForUserPerceivedCharacterAtIndex(selection.range.location);
-            selection.range = JSRange(selection.range.location, perceivedCharacterRange.length + selection.range.length);
+            if (selection.range.end < textStorage.string.length - 1){
+                perceivedCharacterRange = textStorage.string.rangeForUserPerceivedCharacterAtIndex(selection.range.end);
+                selection.range = JSRange(selection.range.location, perceivedCharacterRange.length + selection.range.length);
+                selection.insertionIndex = selection.range.length;
+            }
         }
-        // TODO: collapse overlapping selections
-        // TODO: update cursors & selections
+        this._collapseOverlappingSelections();
+        this.layout();
+        this._cursorOn();
     },
 
-    moveWordForwardAndExtendSelection: function(){
+    moveWordForwardAndModifySelection: function(){
     },
 
-    moveToEndOfLineAndExtendSelection: function(){
+    moveToEndOfLineAndModifySelection: function(){
     },
 
-    moveDownAndExtendSelection: function(){
+    moveDownAndModifySelection: function(){
     },
 
-    moveToEndOfDocumentAndExtendSelection: function(){
+    moveToEndOfDocumentAndModifySelection: function(){
     },
 
     selectAll: function(){

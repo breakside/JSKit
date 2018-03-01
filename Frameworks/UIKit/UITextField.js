@@ -316,44 +316,44 @@ JSClass("UITextField", UIView, {
     },
 
     
-    moveBackwardAndExtendSelection: function(){
-        this._localEditor.moveBackwardAndExtendSelection();
+    moveBackwardAndModifySelection: function(){
+        this._localEditor.moveBackwardAndModifySelection();
     },
 
-    moveWordBackwardAndExtendSelection: function(){
-        this._localEditor.moveWordBackwardAndExtendSelection();
+    moveWordBackwardAndModifySelection: function(){
+        this._localEditor.moveWordBackwardAndModifySelection();
     },
 
-    moveToBeginningOfLineAndExtendSelection: function(){
-        this._localEditor.moveToBeginningOfLineAndExtendSelection();
+    moveToBeginningOfLineAndModifySelection: function(){
+        this._localEditor.moveToBeginningOfLineAndModifySelection();
     },
 
-    moveUpAndExtendSelection: function(){
-        this.moveToBeginningOfDocumentAndExtendSelection();
+    moveUpAndModifySelection: function(){
+        this.moveToBeginningOfDocumentAndModifySelection();
     },
 
-    moveToBeginningOfDocumentAndExtendSelection: function(){
-        this._localEditor.moveToBeginningOfDocumentAndExtendSelection();
+    moveToBeginningOfDocumentAndModifySelection: function(){
+        this._localEditor.moveToBeginningOfDocumentAndModifySelection();
     },
 
-    moveForwardAndExtendSelection: function(){
-        this._localEditor.moveForwardAndExtendSelection();
+    moveForwardAndModifySelection: function(){
+        this._localEditor.moveForwardAndModifySelection();
     },
 
-    moveWordForwardAndExtendSelection: function(){
-        this._localEditor.moveWordForwardAndExtendSelection();
+    moveWordForwardAndModifySelection: function(){
+        this._localEditor.moveWordForwardAndModifySelection();
     },
 
-    moveToEndOfLineAndExtendSelection: function(){
-        this._localEditor.moveToEndOfLineAndExtendSelection();
+    moveToEndOfLineAndModifySelection: function(){
+        this._localEditor.moveToEndOfLineAndModifySelection();
     },
 
-    moveDownAndExtendSelection: function(){
-        this.moveToEndOfDocumentAndExtendSelection();
+    moveDownAndModifySelection: function(){
+        this.moveToEndOfDocumentAndModifySelection();
     },
 
-    moveToEndOfDocumentAndExtendSelection: function(){
-        this._localEditor.moveToEndOfDocumentAndExtendSelection();
+    moveToEndOfDocumentAndModifySelection: function(){
+        this._localEditor.moveToEndOfDocumentAndModifySelection();
     },
 
     selectAll: function(){

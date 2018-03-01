@@ -30,16 +30,16 @@ JSProtocol('UITextInput', JSProtocol, {
     moveDown: [],
     moveToEndOfDocument: [],
     
-    moveBackwardAndExtendSelection: [],
-    moveWordBackwardAndExtendSelection: [],
-    moveToBeginningOfLineAndExtendSelection: [],
-    moveUpAndExtendSelection: [],
-    moveToBeginningOfDocumentAndExtendSelection: [],
-    moveForwardAndExtendSelection: [],
-    moveWordForwardAndExtendSelection: [],
-    moveToEndOfLineAndExtendSelection: [],
-    moveDownAndExtendSelection: [],
-    moveToEndOfDocumentAndExtendSelection: [],
+    moveBackwardAndModifySelection: [],
+    moveWordBackwardAndModifySelection: [],
+    moveToBeginningOfLineAndModifySelection: [],
+    moveUpAndModifySelection: [],
+    moveToBeginningOfDocumentAndModifySelection: [],
+    moveForwardAndModifySelection: [],
+    moveWordForwardAndModifySelection: [],
+    moveToEndOfLineAndModifySelection: [],
+    moveDownAndModifySelection: [],
+    moveToEndOfDocumentAndModifySelection: [],
     selectAll: []
     
 });
