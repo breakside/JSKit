@@ -4,7 +4,7 @@
 // #import "UIKit/UIHTMLDisplayServer.js"
 // #import "UIKit/UIHTMLTextInputManager.js"
 // #feature Element.prototype.addEventListener
-/* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager */
+/* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard */
 'use strict';
 
 JSClass("UIHTMLWindowServer", UIWindowServer, {
@@ -184,9 +184,22 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     paste: function(e){
-        // FIXME: this.application no longer is a property
-        // TODO: prepare JSKit pasteboard from DOM pasteboard?
-        this.application.sendAction('paste');
+        if (this.keyWindow === null){
+            return;
+        }
+        var domType;
+        var domValue;
+        for (var i = 0, l = e.clipboardData.types.length; i < l; ++i){
+            domType = e.clipboardData.types[i];
+            domValue = e.clipboardData.getData(domType);
+            switch (domType){
+                case 'text':
+                case 'text/plain':
+                    UIPasteboard.general.setValueForType(domValue, UIPasteboard.ContentType.plainText);
+                    break;
+            }
+        }
+        this.keyWindow.application.sendAction('paste');
     },
 
     beforecut: function(e){

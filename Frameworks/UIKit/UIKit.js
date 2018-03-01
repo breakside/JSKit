@@ -25,4 +25,6 @@
 // #import "UIKit/UIImageView.js"
 // #import "UIKit/UITextInputManager.js"
 // #import "UIKit/UITextInput.js"
+// #import "UIKit/UIWebView.js"
+// #import "UIKit/UIPasteboard.js"
 'use strict';

@@ -9,9 +9,15 @@ UILayer.definePropertiesFromExtensions({
         context.style.position = 'absolute';
         context.style.boxSizing = 'border-box';
         context.style.mozBoxSizing = 'border-box';
+        if (this.delegate && this.delegate.initializeLayerHTMLContext){
+            this.delegate.initializeLayerHTMLContext(this, context);
+        }
     },
 
     destroyHTMLContext: function(context){
+        if (this.delegate && this.delegate.destroyLayerHTMLContext){
+            this.delegate.destroyLayerHTMLContext(this, context);
+        }
     },
 
     updateAllHTMLProperties: function(context){

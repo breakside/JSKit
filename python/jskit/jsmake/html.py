@@ -303,8 +303,18 @@ class HTMLBuilder(Builder):
     def buildNginxConf(self):
         self.updateStatus("Creating nginx.conf...")
         sys.stdout.flush()
-        confName = "nginx-release.conf" if not self.debug else "nginx-debug.conf"
-        templateFile = os.path.join(self.projectPath, "nginx-debug.conf");
+        if self.debug:
+            cert = os.path.join(self.projectPath, "localhost.cert")
+            key = os.path.join(self.projectPath, "localhost.key")
+            if os.path.exists(cert) and os.path.exists(key):
+                confName = "nginx-debug-ssl.conf"
+                shutil.copy(cert, os.path.join(self.outputConfPath, "app.cert"))
+                shutil.copy(key, os.path.join(self.outputConfPath, "app.key"))
+            else:
+                confName = "nginx-debug.conf"
+        else:
+            confName = "nginx-release.conf"
+        templateFile = os.path.join(self.projectPath, confName);
         self.watchFile(templateFile)
         fp = open(templateFile, 'r')
         template = fp.read()

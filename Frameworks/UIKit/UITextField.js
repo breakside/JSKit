@@ -1,7 +1,7 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UITextLayer.js"
 // #import "UIKit/UITextEditor.js"
-/* global JSClass, JSProtocol, UIView, JSRect, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer */
+/* global JSClass, JSProtocol, UIView, JSRect, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard */
 
 'use strict';
 
@@ -89,6 +89,13 @@ JSClass("UITextField", UIView, {
 
     getFont: function(){
         return this._textLayer.font;
+    },
+
+    paste: function(){
+        if (UIPasteboard.general.containsType(UIPasteboard.ContentType.plainText)){
+            var text = UIPasteboard.general.valueForType(UIPasteboard.ContentType.plainText);
+            this._localEditor.insertText(text);
+        }
     },
 
     layoutSublayersOfLayer: function(layer){
