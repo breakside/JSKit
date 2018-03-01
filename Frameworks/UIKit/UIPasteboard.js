@@ -7,7 +7,7 @@ JSClass("UIPasteboard", JSObject, {
     _valuesByType: null,
 
     init: function(){
-        this._valuesByType= {};
+        this._valuesByType = {};
     },
 
     setValueForType: function(value, type){
@@ -23,7 +23,7 @@ JSClass("UIPasteboard", JSObject, {
 
     containsType: function(type){
         return this._valuesByType[type] && this._valuesByType[type].length > 0;
-    }
+    },
 
 });
 

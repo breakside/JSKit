@@ -172,15 +172,27 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     cut: function(e){
-        // FIXME: this.application no longer is a property
-        this.application.sendAction('cut');
-        // TODO: prepare DOM pasteboard from JSKit pasteboard?
+        if (this.keyWindow === null){
+            return;
+        }
+        this.keyWindow.application.sendAction('cut');
+        this._populateDomClipboard(e.clipboardData);
     },
 
     copy: function(e){
-        // FIXME: this.application no longer is a property
-        this.application.sendAction('copy');
-        // TODO: prepare DOM pasteboard from JSKit pasteboard?
+        if (this.keyWindow === null){
+            return;
+        }
+        this.keyWindow.application.sendAction('copy');
+        this._populateDomClipboard(e.clipboardData);
+    },
+
+    _populateDomClipboard: function(dataTransfer){
+        var pasteboard = UIPasteboard.general;
+        if (pasteboard.containsType(UIPasteboard.ContentType.plainText)){
+            dataTransfer.setData('text/plain', pasteboard.valueForType(UIPasteboard.ContentType.plainText));
+        }
+        // TODO: other types
     },
 
     paste: function(e){

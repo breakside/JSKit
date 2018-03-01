@@ -266,6 +266,19 @@ JSClass("UITextEditor", JSObject, {
         this._deleteRanges(ranges);
     },
 
+    deleteSelections: function(){
+        var textStorage = this.textLayer.attributedText;
+        var selection;
+        var ranges = [];
+        for (var i = 0, l = this.selections.length; i < l; ++i){
+            selection = this.selections[i];
+            if (selection.range.length > 0){
+                ranges.push(JSRange(selection.range));
+            }
+        }
+        this._deleteRanges(ranges);
+    },
+
     deleteWordBackward: function(){
         var textStorage = this.textLayer.attributedText;
         var selection;

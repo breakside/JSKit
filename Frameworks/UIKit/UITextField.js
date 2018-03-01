@@ -91,6 +91,26 @@ JSClass("UITextField", UIView, {
         return this._textLayer.font;
     },
 
+    cut: function(){
+        this.copy();
+        this._localEditor.deleteSelections();
+    },
+
+    copy: function(){
+        var selection;
+        var lines = [];
+        for (var i = 0, l = this._localEditor.selections.length; i < l; ++i){
+            selection = this._localEditor.selections[i];
+            if (selection.range.length > 0){
+                lines.push(this.attributedText.string.substringInRange(selection.range));
+            }
+        }
+        if (lines.length > 0){
+            var text = lines.join('\n');
+            UIPasteboard.general.setValueForType(text, UIPasteboard.ContentType.plainText);
+        }
+    },
+
     paste: function(){
         if (UIPasteboard.general.containsType(UIPasteboard.ContentType.plainText)){
             var text = UIPasteboard.general.valueForType(UIPasteboard.ContentType.plainText);
