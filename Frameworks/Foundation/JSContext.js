@@ -14,10 +14,10 @@ StateProperty.prototype = Object.create(JSCustomProperty.prototype);
 StateProperty.prototype.define = function(C, key, extensions){
     var setterName = C.nameOfSetMethodForKey(key);
     var getter = function JSContext_getStateProperty(){
-        return this.state[key];
+        return this._state[key];
     };
     var setter = function JSContext_setStateProperty(value){
-        this.state[key] = value;
+        this._state[key] = value;
     };
     Object.defineProperty(C.prototype, setterName, {
         configurable: false,

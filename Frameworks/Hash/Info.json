@@ -1,9 +1,8 @@
 {
     "JSBundleType": "framework",
-    "JSBundleIdentifier": "com.owenshaw.JSKit.ServerKit",
+    "JSBundleIdentifier": "com.owenshaw.JSKit.Hash",
     "JSFrameworkVariants": [
-        "ServerKit.js",
-        "ServerKit+Node.js"
+        "Hash.js"
     ],
     "JSWeakIncludes": [
         "Foundation"

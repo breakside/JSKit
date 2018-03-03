@@ -140,7 +140,7 @@ JSClass('JSRangeTests', TKTestSuite, {
         range1 = JSRange(5, 30);
         range2 = JSRange(36, 4);
         intersection = range1.intersection(range2);
-        TKAssertEquals(intersection.location, 36);
+        TKAssertEquals(intersection.location, 35);
         TKAssertEquals(intersection.length, 0);
         intersection = range2.intersection(range1);
         TKAssertEquals(intersection.location, 36);

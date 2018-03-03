@@ -136,6 +136,10 @@ JSClass("UITextLayer", UILayer, {
         return rect;
     },
 
+    lineContainingCharacterAtIndex: function(index){
+        return this._displayTextContainer.lineContainingCharacterAtIndex(index);
+    },
+
     // MARK: - Drawing
 
     _availableTextSize: function(){

@@ -1,9 +1,9 @@
 {
     "JSBundleType": "framework",
-    "JSBundleIdentifier": "com.owenshaw.JSKit.ServerKit",
+    "JSBundleIdentifier": "com.owenshaw.JSKit.Zlib",
+    "JSBundleVersion": "1.0.0",
     "JSFrameworkVariants": [
-        "ServerKit.js",
-        "ServerKit+Node.js"
+        "Zlib.js"
     ],
     "JSWeakIncludes": [
         "Foundation"

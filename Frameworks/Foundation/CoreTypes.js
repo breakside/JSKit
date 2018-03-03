@@ -172,6 +172,12 @@ JSRange.prototype = {
     },
 
     intersection: function(other){
+        if (other.end <= this.location){
+            return JSRange(this.location, 0);
+        }
+        if (other.location >= this.end){
+            return JSRange(this.end, 0);
+        }
         var location = this.location;
         if (other.location > location){
             location = other.location;
@@ -179,9 +185,6 @@ JSRange.prototype = {
         var end = this.end;
         if (other.end < end){
             end = other.end;
-        }
-        if (location > end){
-            return new JSRange(location, 0);
         }
         return new JSRange(location, end - location);
     },

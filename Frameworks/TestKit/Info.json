@@ -1,11 +1,11 @@
 {
     "JSBundleType": "framework",
-    "JSBundleIdentifier": "com.yourcompany.${PROJECT_NAME}",
+    "JSBundleIdentifier": "com.owenshaw.JSKit.TestKit",
     "JSBundleVersion": "1.0.0",
     "JSWeakIncludes": [
         "Foundation"
     ], 
     "JSFrameworkVariants": [
-        "${PROJECT_NAME}.js"
+        "TestKit.js"
     ]
 }

@@ -84,28 +84,38 @@ JSClass("JSTextContainer", JSObject, {
     },
 
     characterIndexAtPoint: function(point){
-        if (this._textFrame !== null){
-            var line = this._textFrame.lineContainingPoint(point);
-            if (line !== null){
-                point = JSPoint(point.x - line.origin.x, point.y - line.origin.y);
-                return line.characterIndexAtPoint(point);
-            }
+        var line = this.lineContainingPoint(point);
+        if (line !== null){
+            point = JSPoint(point.x - line.origin.x, point.y - line.origin.y);
+            return line.characterIndexAtPoint(point);
         }
         return 0;
     },
 
     rectForCharacterAtIndex: function(index){
-        if (this._textFrame !== null){
-            var line = this._textFrame.lineContainingCharacterAtIndex(index);
-            if (line !== null){
-                var rect = line.rectForCharacterAtIndex(index - (line.range.location - this._textFrame.range.location));
-                rect.origin.x += line.origin.x;
-                rect.origin.y += line.origin.y;
-                return rect;
-            }
+        var line = this.lineContainingCharacterAtIndex(index);
+        if (line !== null){
+            var rect = line.rectForCharacterAtIndex(index - (line.range.location - this._textFrame.range.location));
+            rect.origin.x += line.origin.x;
+            rect.origin.y += line.origin.y;
+            return rect;
         }
         // TODO: consider strut line
         return JSRect.Zero;
+    },
+
+    lineContainingCharacterAtIndex: function(index){
+        if (this._textFrame === null){
+            return null;
+        }
+        return this._textFrame.lineContainingCharacterAtIndex(index);
+    },
+
+    lineContainingPoint: function(point){
+        if (this._textFrame === null){
+            return null;
+        }
+        return this._textFrame.lineContainingPoint(point);
     },
 
     _notifyLayoutManager: function(){
