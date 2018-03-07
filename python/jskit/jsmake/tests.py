@@ -146,6 +146,7 @@ class TestsBuilder(Builder):
                 else:
                     exeJSFile.write("require('./%s');\n" % relativePath)
             exeJSFile.write("\nentry();\n")
+            exeJSFile.write("process.exit()\n");
         os.chmod(exePath, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
 
     def finish(self):

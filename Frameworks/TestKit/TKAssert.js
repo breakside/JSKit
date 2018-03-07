@@ -38,8 +38,11 @@ TKAssertion.LineForCurrentCaseInError = function(error){
 TKAssertion.CurrentTestCase = '';
 
 JSGlobalObject.TKAssert = function(condition, message){
-    if (!condition){
+    if (condition !== true){
         message = message || '';
+        if (condition !== false){
+            throw TKAssertion('TKAssert failed, ' + (condition) + ' is not a boolean. ' + message);
+        }
         throw TKAssertion('TKAssert failed, expression is false. ' + message);
     }
 };

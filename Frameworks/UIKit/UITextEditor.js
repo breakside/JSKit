@@ -31,17 +31,16 @@ JSClass("UITextEditor", JSObject, {
         }
     },
 
-    setSelectionRange: function(range){
+    setSelectionRange: function(range, affinity){
         if (range === undefined || range === null){
             range = JSRange.Zero;
         }else{
             range = this._sanitizedRange(range);
         }
-        var selection = UITextEditorSelection(range);
-        this._setSingleSelection(selection);
+        this.setSelectionRanges([range], affinity);
     },
 
-    setSelectionRanges: function(selectionRanges){
+    setSelectionRanges: function(selectionRanges, affinity){
         if (selectionRanges === null || selectionRanges === undefined || selectionRanges.length === 0){
             selectionRanges = [JSRange.Zero];
         }
@@ -49,8 +48,10 @@ JSClass("UITextEditor", JSObject, {
         selectionRanges.sort(function(a, b){
             return a.location - b.location;
         });
+        var range;
         for (var i = 0, l = selectionRanges.length; i < l; ++i){
-            selections.push(this._createSelection(this._sanitizedRange(selectionRanges[i])));
+            range = this._sanitizedRange(selectionRanges[i]);
+            selections.push(this._createSelection(range, affinity));
         }
         this._setSelections(selections);
     },
@@ -152,7 +153,7 @@ JSClass("UITextEditor", JSObject, {
         var cursorRect;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
-            characterRect = this.textLayer.rectForCharacterAtIndex(selection.range.location + selection.insertionIndex);
+            characterRect = this.textLayer.rectForCharacterAtIndex(selection.insertionLocation);
             cursorRect = JSRect(
                 characterRect.origin.x,
                 characterRect.origin.y,
@@ -224,7 +225,7 @@ JSClass("UITextEditor", JSObject, {
         // Collapse overlapping or adjacent ranges
         for (i = ranges.length - 1; i > 0; --i){
             if (ranges[i - 1].end >= ranges[i].location){
-                ranges[i - 1].length = ranges[i].end - ranges[i - 1].location;
+                ranges[i - 1].length = Math.max(ranges[i].end, ranges[i - 1].end) - ranges[i - 1].location;
                 ranges.splice(i, 1);
             }
         }
@@ -243,11 +244,10 @@ JSClass("UITextEditor", JSObject, {
                 this.selections.push(this._createSelection(JSRange(0, 0)));
             }
             this.selections[i].range = JSRange(adjustedRange.location, 0);
-            this.selections[i].insertionIndex = 0;
         }
-        for (var j = this.selections.length - i; j >= i; --j){
+        for (var j = this.selections.length - 1; j >= i; --j){
             this._removeSelectionFromLayer(this.selections[j]);
-            this.this.selections.splice(j, 1);
+            this.selections.splice(j, 1);
         }
         this._collapseOverlappingSelections();
     },
@@ -256,6 +256,7 @@ JSClass("UITextEditor", JSObject, {
         for (var i = this.selections.length - 1; i > 0; --i){
             if (this.selections[i - 1].range.end >= this.selections[i].range.location){
                 this.selections[i - 1].range.length = Math.max(this.selections[i].range.end, this.selections[i - 1].range.end) - this.selections[i - 1].range.location;
+                this._removeSelectionFromLayer(this.selections[i]);
                 this.selections.splice(i, 1);
             }
         }
@@ -275,7 +276,6 @@ JSClass("UITextEditor", JSObject, {
             adjustedRange = JSRange(selection.range.location + locationAdjustment, selection.range.length);
             textStorage.replaceCharactersInRangeWithString(adjustedRange, text);
             selection.range = JSRange(adjustedRange.location + textLength, 0);
-            selection.insertionIndex = 0;
             locationAdjustment += textLength - adjustedRange.length;
         }
     },
@@ -319,9 +319,7 @@ JSClass("UITextEditor", JSObject, {
         var ranges = [];
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
-            if (selection.range.length > 0){
-                ranges.push(JSRange(selection.range));
-            }
+            ranges.push(JSRange(selection.range));
         }
         this._deleteRanges(ranges);
     },
@@ -376,20 +374,7 @@ JSClass("UITextEditor", JSObject, {
 
     deleteToBeginningOfDocument: function(){
         var textStorage = this.textLayer.attributedText;
-        var ranges = [];
-        var selection;
-        for (var i = 0, l = this.selections.length; i < l; ++i){
-            selection = this.selections[i];
-            if (selection.range.length === 0){
-                if (selection.range.location > 0){
-                    ranges.push(JSRange(0, selection.range.location));
-                }else{
-                    ranges.push(JSRange(selection.range));
-                }
-            }else{
-                ranges.push(JSRange(selection.range));
-            }
-        }
+        var ranges = [JSRange(0, this.selections[this.selections.length - 1].range.end)];
         this._deleteRanges(ranges);
     },
 
@@ -468,20 +453,8 @@ JSClass("UITextEditor", JSObject, {
 
     deleteToEndOfDocument: function(){
         var textStorage = this.textLayer.attributedText;
-        var ranges = [];
-        var selection;
-        for (var i = 0, l = this.selections.length; i < l; ++i){
-            selection = this.selections[i];
-            if (selection.range.length === 0){
-                if (selection.range.location < textStorage.string.length){
-                    ranges.push(JSRange(selection.range.location, textStorage.string.length - selection.range.location));
-                }else{
-                    ranges.push(JSRange(selection.range));
-                }
-            }else{
-                ranges.push(JSRange(selection.range));
-            }
-        }
+        var location = this.selections[0].range.location;
+        var ranges = [JSRange(location, textStorage.string.length - location)];
         this._deleteRanges(ranges);
     },
     
@@ -498,7 +471,6 @@ JSClass("UITextEditor", JSObject, {
                 }
             }else{
                 selection.range = JSRange(selection.range.location, 0);
-                selection.insertionIndex = 0;
             }
         }
         this._collapseOverlappingSelections();
@@ -513,19 +485,14 @@ JSClass("UITextEditor", JSObject, {
         var indexOfPreviousWord;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
-            if (selection.range.length === 0){
-                if (selection.range.location > 0){
-                    wordRange = textStorage.string.rangeForWordAtIndex(selection.range.location);
-                    if (wordRange.location == selection.range.location){
-                        indexOfPreviousWord = textStorage.string.indexOfPreviousWordFromIndex(selection.range.location);
-                        selection.range = JSRange(indexOfPreviousWord, 0);
-                    }else{
-                        selection.range = JSRange(wordRange.location, 0);
-                    }
+            if (selection.range.location > 0){
+                wordRange = textStorage.string.rangeForWordAtIndex(selection.range.location);
+                if (wordRange.location == selection.range.location){
+                    indexOfPreviousWord = textStorage.string.indexOfPreviousWordFromIndex(selection.range.location);
+                    selection.range = JSRange(indexOfPreviousWord, 0);
+                }else{
+                    selection.range = JSRange(wordRange.location, 0);
                 }
-            }else{
-                selection.range = JSRange(selection.range.location, 0);
-                selection.insertionIndex = 0;
             }
         }
         this._collapseOverlappingSelections();
@@ -570,7 +537,6 @@ JSClass("UITextEditor", JSObject, {
                 }
             }else{
                 selection.range = JSRange(selection.range.end, 0);
-                selection.insertionIndex = 0;
             }
         }
         this._collapseOverlappingSelections();
@@ -586,22 +552,17 @@ JSClass("UITextEditor", JSObject, {
         var adjustedIndex;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
-            if (selection.range.length === 0){
-                if (selection.range.location < textStorage.string.length){
-                    adjustedIndex = selection.range.location;
-                    if (adjustedIndex > 0){
-                        adjustedIndex -= 1;
-                    }
-                    wordRange = textStorage.string.rangeForWordAtIndex(adjustedIndex);
-                    if (wordRange.end == selection.range.location){
-                        nextWordIndex = textStorage.string.indexOfNextWordFromIndex(selection.range.location);
-                        wordRange = textStorage.string.rangeForWordAtIndex(nextWordIndex);
-                    }
-                    selection.range = JSRange(wordRange.end, 0);
+            if (selection.range.end < textStorage.string.length){
+                adjustedIndex = selection.range.end;
+                if (adjustedIndex > 0){
+                    adjustedIndex -= 1;
                 }
-            }else{
-                selection.range = JSRange(selection.range.end, 0);
-                selection.insertionIndex = 0;
+                wordRange = textStorage.string.rangeForWordAtIndex(adjustedIndex);
+                if (wordRange.end == selection.range.end){
+                    nextWordIndex = textStorage.string.indexOfNextWordFromIndex(selection.range.end);
+                    wordRange = textStorage.string.rangeForWordAtIndex(nextWordIndex);
+                }
+                selection.range = JSRange(wordRange.end, 0);
             }
         }
         this._collapseOverlappingSelections();
@@ -646,8 +607,8 @@ JSClass("UITextEditor", JSObject, {
             if (selection.range.location > 0){
                 perceivedCharacterRange = textStorage.string.rangeForUserPerceivedCharacterAtIndex(selection.range.location - 1);
                 selection.range = JSRange(perceivedCharacterRange.location, perceivedCharacterRange.length + selection.range.length);
-                selection.insertionIndex = 0;
             }
+            selection.affinity = UITextEditor.SelectionAffinity.start;
         }
         this._collapseOverlappingSelections();
         this.layout();
@@ -655,6 +616,26 @@ JSClass("UITextEditor", JSObject, {
     },
 
     moveWordBackwardAndModifySelection: function(){
+        var textStorage = this.textLayer.attributedText;
+        var selection;
+        var wordRange;
+        var indexOfPreviousWord;
+        for (var i = 0, l = this.selections.length; i < l; ++i){
+            selection = this.selections[i];
+            if (selection.range.location > 0){
+                wordRange = textStorage.string.rangeForWordAtIndex(selection.range.location);
+                if (wordRange.location == selection.range.location){
+                    indexOfPreviousWord = textStorage.string.indexOfPreviousWordFromIndex(selection.range.location);
+                    selection.range = JSRange(indexOfPreviousWord, selection.range.end - indexOfPreviousWord);
+                }else{
+                    selection.range = JSRange(wordRange.location, selection.range.end - wordRange.location);
+                }
+            }
+            selection.affinity = UITextEditor.SelectionAffinity.start;
+        }
+        this._collapseOverlappingSelections();
+        this.layout();
+        this._cursorOn();
     },
 
     moveToBeginningOfLineAndModifySelection: function(){
@@ -664,6 +645,10 @@ JSClass("UITextEditor", JSObject, {
     },
 
     moveToBeginningOfDocumentAndModifySelection: function(){
+        var selection = this._createSelection(JSRange(0, this.selections[this.selections.length - 1].range.end), 0);
+        this._setSingleSelection(selection);
+        this.layout();
+        this._cursorOn();
     },
 
     moveForwardAndModifySelection: function(){
@@ -672,11 +657,11 @@ JSClass("UITextEditor", JSObject, {
         var perceivedCharacterRange;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
-            if (selection.range.end < textStorage.string.length - 1){
+            if (selection.range.end < textStorage.string.length){
                 perceivedCharacterRange = textStorage.string.rangeForUserPerceivedCharacterAtIndex(selection.range.end);
                 selection.range = JSRange(selection.range.location, perceivedCharacterRange.length + selection.range.length);
-                selection.insertionIndex = selection.range.length;
             }
+            selection.affinity = UITextEditor.SelectionAffinity.end;
         }
         this._collapseOverlappingSelections();
         this.layout();
@@ -684,6 +669,30 @@ JSClass("UITextEditor", JSObject, {
     },
 
     moveWordForwardAndModifySelection: function(){
+        var textStorage = this.textLayer.attributedText;
+        var selection;
+        var wordRange;
+        var nextWordIndex;
+        var adjustedIndex;
+        for (var i = 0, l = this.selections.length; i < l; ++i){
+            selection = this.selections[i];
+            if (selection.range.end < textStorage.string.length){
+                adjustedIndex = selection.range.end;
+                if (adjustedIndex > 0){
+                    adjustedIndex -= 1;
+                }
+                wordRange = textStorage.string.rangeForWordAtIndex(adjustedIndex);
+                if (wordRange.end == selection.range.end){
+                    nextWordIndex = textStorage.string.indexOfNextWordFromIndex(selection.range.end);
+                    wordRange = textStorage.string.rangeForWordAtIndex(nextWordIndex);
+                }
+                selection.range = JSRange(selection.range.location, wordRange.end - selection.range.location);
+            }
+            selection.affinity = UITextEditor.SelectionAffinity.end;
+        }
+        this._collapseOverlappingSelections();
+        this.layout();
+        this._cursorOn();
     },
 
     moveToEndOfLineAndModifySelection: function(){
@@ -693,40 +702,51 @@ JSClass("UITextEditor", JSObject, {
     },
 
     moveToEndOfDocumentAndModifySelection: function(){
+        var textStorage = this.textLayer.attributedText;
+        var location = this.selections[0].range.location;
+        var range = JSRange(location, textStorage.string.length - location);
+        var selection = this._createSelection(range, UITextEditor.SelectionAffinity.end);
+        this._setSingleSelection(selection);
+        this.layout();
+        this._cursorOn();
     },
 
     selectAll: function(){
         var textStorage = this.textLayer.attributedText;
         var range = JSRange(0, textStorage.string.length);
-        var selection = this._createSelection(range, range.length);
-        selection.insertionIndex = selection.range.length;
+        var selection = this._createSelection(range, UITextEditor.SelectionAffinity.end);
         this._setSingleSelection(selection);
     },
 
-    _createSelection: function(range, insertionIndex){
-        var selection = UITextEditorSelection(range, insertionIndex);
+    _createSelection: function(range, affinity){
+        var selection = UITextEditorSelection(range, affinity);
         selection.cursorLayer.backgroundColor = this._cursorColor;
         return selection;
     }
 
 });
 
-var UITextEditorSelection = function(range, insertionIndex){
+UITextEditor.SelectionAffinity = {
+    start: 0,
+    end: 1
+};
+
+var UITextEditorSelection = function(range, affinity){
     if (this === undefined){
         if (range === null){
             return null;
         }
-        return new UITextEditorSelection(range, insertionIndex);
+        return new UITextEditorSelection(range, affinity);
     }else{
         if (range instanceof UITextEditorSelection){
             this.range = JSRange(range.range);
-            this.insertionIndex = range.insertionIndex;
+            this.affinity = range.affinity;
         }else{
-            if (insertionIndex === undefined){
-                insertionIndex = range.length;
+            if (affinity === undefined){
+                affinity = UITextEditor.SelectionAffinity.end;
             }
             this.range = JSRange(range);
-            this.insertionIndex = insertionIndex;
+            this.affinity = affinity;
         }
         this.cursorLayer = UILayer.init();
     }
@@ -735,14 +755,28 @@ var UITextEditorSelection = function(range, insertionIndex){
 UITextEditorSelection.prototype = {
 
     range: null,
-    insertionIndex: null,
+    affinity: null,
     cursorLayer: null,
     selectionLayers: null,
 
     containsIndex: function(index){
         return this.range.length > 0 && this.range.contains(index);
-    }
+    },
 
 };
+
+Object.defineProperties(UITextEditorSelection.prototype, {
+
+    insertionLocation: {
+        get: function UITextEditorSelection_getInsertionIndex(){
+            var location = this.range.location;
+            if (this.affinity === UITextEditor.SelectionAffinity.end){
+                location += this.range.length;
+            }
+            return location;
+        }
+    }
+
+});
 
 })();
