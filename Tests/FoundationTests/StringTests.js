@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, JSRange, TKAssertNotNull, TKAssertEquals, TKAssertEquals */
+/* global JSClass, TKTestSuite, JSRange, TKAssertNotNull, TKAssertEquals, TKAssertEquals, TKAssertExactEquals */
 'use strict';
 
 JSClass('StringTests', TKTestSuite, {
@@ -70,6 +70,12 @@ JSClass('StringTests', TKTestSuite, {
         iterator.increment();
         TKAssertEquals(iterator.index, 10);
         TKAssertEquals(iterator.nextIndex, 10);
+
+        // starting in middle of pair
+        iterator = string.unicodeIterator(9);
+        TKAssertEquals(iterator.index, 8);
+        TKAssertEquals(iterator.nextIndex, 10);
+        TKAssertEquals(iterator.character.code, 0x1f600);
     },
 
     testUnicodeBackwardIterator: function(){
@@ -130,6 +136,12 @@ JSClass('StringTests', TKTestSuite, {
         iterator.increment();
         TKAssertEquals(iterator.index, 11);
         TKAssertEquals(iterator.nextIndex, 11);
+
+        // starting in middle of character span
+        iterator = string.userPerceivedCharacterIterator(2);
+        TKAssertEquals(iterator.index, 1);
+        TKAssertEquals(iterator.nextIndex, 3);
+        TKAssertEquals(iterator.utf16, "e\u0301");
 
         string = "e\u0301llo\u0308";
         TKAssertEquals(string.length, 6);
@@ -264,6 +276,134 @@ JSClass('StringTests', TKTestSuite, {
         iterator.decrement();
         TKAssertEquals(iterator.index, 4);
         TKAssertEquals(iterator.nextIndex, 6);
+    },
+
+    testMandatoryLineBreak: function(){
+        var string = "newline\nbreak";
+        var iterator = string.userPerceivedCharacterIterator(6);
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+
+        string = "double\n\nbreak";
+        iterator = string.userPerceivedCharacterIterator(5);
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+
+        string = "carriage\rbreak";
+        iterator = string.userPerceivedCharacterIterator(7);
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+
+        string = "double\r\rbreak";
+        iterator = string.userPerceivedCharacterIterator(5);
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+
+        string = "crlf\r\nbreak";
+        iterator = string.userPerceivedCharacterIterator(3);
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+
+        string = "lfcr\n\rbreak";
+        iterator = string.userPerceivedCharacterIterator(3);
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+
+        string = "feed\u000Cbreak";
+        iterator = string.userPerceivedCharacterIterator(3);
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+
+        string = "double\u000C\u000Cbreak";
+        iterator = string.userPerceivedCharacterIterator(5);
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+
+        string = "next\u0085break";
+        iterator = string.userPerceivedCharacterIterator(3);
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+
+        string = "double\u0085\u0085break";
+        iterator = string.userPerceivedCharacterIterator(5);
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+
+        string = "separator\u2028break";
+        iterator = string.userPerceivedCharacterIterator(8);
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+
+        string = "double\u2028\u2028break";
+        iterator = string.userPerceivedCharacterIterator(5);
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+
+        string = "p separator\u2029break";
+        iterator = string.userPerceivedCharacterIterator(10);
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+
+        string = "double\u2029\u2029break";
+        iterator = string.userPerceivedCharacterIterator(5);
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, true);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isMandatoryLineBreak, false);
     },
 
     testCharacterBoundaries: function(){

@@ -452,14 +452,14 @@ Object.defineProperty(JSInsets, 'Zero', {
 });
 
 JSGlobalObject.JSLineBreakMode = {
-    TruncateTail: 0,
-    WordWrap: 1,
-    CharacterWrap: 2
+    truncateTail: 0,
+    wordWrap: 1,
+    characterWrap: 2
 };
 
 JSGlobalObject.JSTextAlignment = {
-    Left: "left",
-    Center: "center",
-    Right: "right",
-    Justify: "justify"
+    left: "left",
+    center: "center",
+    right: "right",
+    justify: "justify"
 };

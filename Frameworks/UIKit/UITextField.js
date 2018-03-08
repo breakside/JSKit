@@ -41,8 +41,8 @@ JSClass("UITextField", UIView, {
         this.clipsToBounds = true;
         this._textLayer = UITextLayer.init();
         this._textLayer.delegate = this;
-        this._textLayer.textAlignment = JSTextAlignment.Left;
-        this._textLayer.lineBreakMode = JSLineBreakMode.WordWrap;
+        this._textLayer.textAlignment = JSTextAlignment.left;
+        this._textLayer.lineBreakMode = JSLineBreakMode.wordWrap;
         this._textLayer.sizeTracksText = true;
         this._textLayer.maximumNumberOfLines = 1;
         this._localEditor = UITextEditor.initWithTextLayer(this._textLayer);
@@ -214,7 +214,10 @@ JSClass("UITextField", UIView, {
     },
 
     _sanitizedText: function(text){
-        return text.replace('\r\n', ' ').replace('\r', ' ').replace('\n', ' ');
+        if (this._multiline){
+            return text.replace('\r\n', ' ').replace(/[\t\r\n\u000B\u000C\u0085\u2028\u2029]/, ' ');
+        }
+        return text;
     },
 
     // MARK: - UITextInput protocol

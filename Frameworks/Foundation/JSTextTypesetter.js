@@ -55,16 +55,18 @@ JSClass("JSTextTypesetter", JSObject, {
     },
 
     _unconstrainedLineRange: function(range){
-        var i = range.location;
-        var l = range.end;
-        while (i < l){
-            if (this._attributedString.string[i] == "\n"){ // FIXME: consider other line break codes
-                ++i;
-                break;
-            }
-            ++i;
+        var iterator = this._attributedString.string.userPerceivedCharacterIterator();
+        var end = range.end;
+        while (iterator.index < end && !iterator.isMandatoryLineBreak){
+            iterator.increment();
         }
-        return JSRange(range.location, i - range.location);
+        if (iterator.isMandatoryLineBreak){
+            iterator.increment();
+        }
+        if (iterator.index < end){
+            end = iterator.index;
+        }
+        return JSRange(range.location, end - range.location);
     },
 
     _createUnconstrainedLine: function(origin, range){
@@ -84,7 +86,7 @@ JSClass("JSTextTypesetter", JSObject, {
         } while (remainingRange.length > 0);
         // text alignment doesn't matter here because the line is only as wide as its content, so
         // there's no room to adjust the run layout.
-        return this.constructLine(runs, origin, 0, JSTextAlignment.Left);
+        return this.constructLine(runs, origin, 0, JSTextAlignment.left);
     },
 
     _createUnconstrainedRun: function(range, attributes){
@@ -138,7 +140,7 @@ JSClass("JSTextTypesetter", JSObject, {
                     glyphStorage = this.constructGlyphStorage(font, remainingRange.location);
                     runDescriptors.push({glyphStorage: glyphStorage, attributes: runIterator.attributes});
                 }
-                newline = iterator.firstCharacter.code == 0x0A;  // FIXME: consider all line break codes
+                newline = iterator.isMandatoryLineBreak;
                 printable = !newline && iterator.firstCharacter.code != 0x20; // FIXME: consider all whitespace codes
                 usedWidth -= glyphStorage.width;
                 glyphStorage.push(iterator.utf16);
@@ -178,7 +180,7 @@ JSClass("JSTextTypesetter", JSObject, {
         var runDescriptor;
         if (usedPrintableWidth > width){
 
-            if (lineBreakMode == JSLineBreakMode.WordWrap){
+            if (lineBreakMode == JSLineBreakMode.wordWrap){
                 // word wrapping
 
                 iterator.decrement();
@@ -196,7 +198,7 @@ JSClass("JSTextTypesetter", JSObject, {
                     this._truncateRangesToLocation(printableRanges, iterator.range.location);
                 }
 
-            }else if (lineBreakMode == JSLineBreakMode.TruncateTail){
+            }else if (lineBreakMode == JSLineBreakMode.truncateTail){
                 // character truncation with ellipsis
 
                 var ellipsis = "\u2026";

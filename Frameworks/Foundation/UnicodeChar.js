@@ -33,6 +33,15 @@ UnicodeChar.GeneralCategoryPropertyMap = {
     'Surrogate':                    'generalCategoryIsSurrogate'
 };
 
+UnicodeChar.LineBreaks = {
+    newLine:            0x000A,
+    formFeed:           0x000C,
+    carriageReturn:     0x000D,
+    nextLine:           0x0085,
+    lineSeparator:      0x2028,
+    paragraphSeparator: 0x2029
+};
+
 UnicodeChar.prototype = Object.create(Object.prototype, {
 
     _lazyInitGeneralCategoryProperty: {
@@ -740,6 +749,14 @@ UnicodeChar.prototype = Object.create(Object.prototype, {
             // ...
             Object.defineProperty(this, 'graphemeClusterBreakLVT', {value: this.hangulSyllableTypeIsLVT});
             return this.graphemeClusterBreakLVT;
+        }
+    },
+
+    isLineBreak: {
+        configurable: true,
+        get: function UnicodeChar_lazy_isLineBreak(){
+            Object.defineProperty(this, 'isLineBreak', {value: this.code === UnicodeChar.LineBreaks.newLine || this.code === UnicodeChar.LineBreaks.formFeed || this.code === UnicodeChar.LineBreaks.carriageReturn || this.code === UnicodeChar.LineBreaks.nextLine || this.code === UnicodeChar.LineBreaks.lineSeparator || this.code === UnicodeChar.LineBreaks.paragraphSeparator});
+            return this.isLineBreak;
         }
     }
 

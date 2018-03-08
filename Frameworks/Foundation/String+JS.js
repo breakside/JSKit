@@ -939,6 +939,22 @@ Object.defineProperties(UserPerceivedCharacterIterator.prototype, {
         get: function UserPerceivedCharacterIterator_isWordBoundary(){
             return this._unicodeIterator.isWordBoundary;
         }
+    },
+
+    isMandatoryLineBreak: {
+        enumerable: true,
+        configurable: false,
+        get: function UserPerceivedCharacterIterator_isMandatoryLineBreak(){
+            if (this._unicodeIterator.character === null){
+                return true;
+            }
+            // Note that even though we're only checking the first character,
+            // it will match the multi-char CRLF sequence, which is considered
+            // to be a single user perceived character.  In this case, only
+            // the CR is checked, but since no other user perceived character
+            // can start with CR, we know the second character must be LF.
+            return this._unicodeIterator.character.isLineBreak;
+        }
     }
 
 });

@@ -50,7 +50,7 @@ JSClass("JSTextFramesetter", JSObject, {
         // If we don't have a maximum number of lines, but we were limited by size,
         // and we want to tail truncate, then redo the final line with tail truncation on,
         // since we didn't specify it ahead of time, not knowing if this was the final line or not.
-        if (maximumLines === 0 && remianingRange.length > 0 && lineBreakMode == JSLineBreakMode.TruncateTail){
+        if (maximumLines === 0 && remianingRange.length > 0 && lineBreakMode == JSLineBreakMode.truncateTail){
             line = lines.pop();
             origin = JSPoint(line.origin);
             line = this._typesetter.createLine(origin, size.width, JSRange(line.range.location, remianingRange.end - line.range.location), lineBreakMode, textAlignment);
@@ -61,14 +61,14 @@ JSClass("JSTextFramesetter", JSObject, {
 
     effectiveLineBreakMode: function(frameLineBreakMode, lineNumber, maximumLines){
         switch (frameLineBreakMode){
-            case JSLineBreakMode.TruncateTail:
+            case JSLineBreakMode.truncateTail:
                 if (maximumLines > 0 && lineNumber == maximumLines){
                     return frameLineBreakMode;
                 }
-                return JSLineBreakMode.WordWrap;
-            case JSLineBreakMode.WordWrap:
+                return JSLineBreakMode.wordWrap;
+            case JSLineBreakMode.wordWrap:
                 return frameLineBreakMode;
-            case JSLineBreakMode.CharacterWrap:
+            case JSLineBreakMode.characterWrap:
                 return frameLineBreakMode;
         }
     }

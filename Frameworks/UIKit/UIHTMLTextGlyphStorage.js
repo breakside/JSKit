@@ -48,8 +48,9 @@ JSClass("UIHTMLTextGlyphStorage", JSTextGlyphStorage, {
         if (!preserveRange){
             this.range.length += utf16.length;
         }
-        if (utf16.length > 0 && utf16.charCodeAt(utf16.length - 1) == 0x0A){
-            utf16 = utf16.substr(0, utf16.length - 1);
+        var iterator = utf16.userPerceivedCharacterIterator(utf16.length - 1);
+        if (iterator.isMandatoryLineBreak){
+            utf16 = utf16.substr(0, iterator.index);
         }
         if (utf16.length > 0){
             this.textNode.nodeValue += utf16;

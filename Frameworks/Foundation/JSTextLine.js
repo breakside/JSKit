@@ -124,19 +124,19 @@ JSClass("JSTextLine", JSObject, {
     align: function(textAlignment){
         var i, l;
         switch (textAlignment){
-            case JSTextAlignment.Left:
+            case JSTextAlignment.left:
                 break;
-            case JSTextAlignment.Center:
+            case JSTextAlignment.center:
                 for (i = 0, l = this._runs.length; i < l; ++i){
                     this._runs[i].origin.x += (this._size.width - this._usedSize.width) / 2.0;
                 }
                 break;
-            case JSTextAlignment.Right:
+            case JSTextAlignment.right:
                 for (i = 0, l = this._runs.length; i < l; ++i){
                     this._runs[i].origin.x += (this._size.width - this._usedSize.width);
                 }
                 break;
-            case JSTextAlignment.Justify:
+            case JSTextAlignment.justify:
                 // TODO: ugh
                 break;
         }

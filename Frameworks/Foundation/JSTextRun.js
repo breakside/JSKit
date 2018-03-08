@@ -31,9 +31,11 @@ JSClass("JSTextRun", JSObject, {
     },
 
     characterIndexAtPoint: function(point){
+        return this.range.location;
     },
 
     rectForCharacterAtIndex: function(index){
+        return JSRect.Zero;
     }
 
 });

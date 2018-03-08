@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIHTMLTextRun.js"
-/* global JSClass, JSTextLine, UIHTMLTextLine, JSSize, UIHTMLTextRun, JSAttributedString, JSFont, JSLineBreakMode, JSRect */
+/* global JSClass, JSTextLine, UIHTMLTextLine, JSSize, UIHTMLTextRun, JSAttributedString, JSFont, JSRect */
 'use strict';
 
 (function(){

@@ -9,8 +9,8 @@ JSClass("JSTextContainer", JSObject, {
 
     size: JSDynamicProperty('_size', null),
     range: JSReadOnlyProperty(),
-    lineBreakMode: JSDynamicProperty('_lineBreakMode', JSLineBreakMode.WordWrap),
-    textAlignment: JSDynamicProperty('_textAlignment', JSTextAlignment.Left),
+    lineBreakMode: JSDynamicProperty('_lineBreakMode', JSLineBreakMode.wordWrap),
+    textAlignment: JSDynamicProperty('_textAlignment', JSTextAlignment.left),
     textLayoutManager: JSDynamicProperty('_textLayoutManager', null),
     maximumNumberOfLines: JSDynamicProperty('_maximumNumberOfLines', 0),
     sizeTracksText: JSDynamicProperty('_sizeTracksText', false),

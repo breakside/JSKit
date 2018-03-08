@@ -48,7 +48,7 @@ JSClass("JSTextGlyphStorage", JSObject, {
         var startingFont = this.fontContainingCharacter(iterator.character);
         var width;
         while (iterator.character !== null){
-            if (iterator.character.code != 0x0A){ // FIXME: Do we need this check, or is 0x0A always 0 in fonts already
+            if (!iterator.character.isLineBreak){ // FIXME: Do we need this check, or are line break characters always 0 in fonts?
                 width = this.font.widthOfCharacter(iterator.character);
             }else{
                 width = 0;
