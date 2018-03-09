@@ -118,6 +118,18 @@ JSClass("JSTextContainer", JSObject, {
         return this._textFrame.lineContainingPoint(point);
     },
 
+    lineBeforeLine: function(line){
+        return this._textFrame.lineBeforeLine(line);
+    },
+
+    lineAfterLine: function(line){
+        return this._textFrame.lineAfterLine(line);
+    },
+
+    rectForLine: function(line){
+        return this._textFrame.rectForLine(line);
+    },
+
     _notifyLayoutManager: function(){
         if (this._textLayoutManager !== null){
             this._textLayoutManager.setNeedsLayout();

@@ -1,6 +1,6 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/CoreTypes.js"
-/* global JSClass, JSObject, JSSize, JSRange, JSPoint, JSDynamicProperty, JSReadOnlyProperty */
+/* global JSClass, JSObject, JSSize, JSRange, JSRect, JSPoint, JSDynamicProperty, JSReadOnlyProperty */
 'use strict';
 
 (function(){
@@ -23,6 +23,7 @@ JSClass("JSTextFrame", JSObject, {
         var line;
         for (var i = 0, l = lines.length; i < l; ++i){
             line = lines[i];
+            line.frameIndex = i;
             if (line.origin.y + line.size.height > this._usedSize.height){
                 this._usedSize.height = line.origin.y + line.size.height;
             }
@@ -100,6 +101,24 @@ JSClass("JSTextFrame", JSObject, {
             return null;
         }
         return this._lines[min];
+    },
+
+    lineBeforeLine: function(line){
+        if (line.frameIndex > 0){
+            return this.lines[line.frameIndex - 1];
+        }
+        return null;
+    },
+
+    lineAfterLine: function(line){
+        if (line.frameIndex < this.lines.length - 1){
+            return this.lines[line.frameIndex + 1];
+        }
+        return null;
+    },
+
+    rectForLine: function(line){
+        return JSRect(line.origin, line.size);
     }
 
 });

@@ -124,20 +124,48 @@ JSClass("UITextLayer", UILayer, {
 
     // MARK: - Point location to character index conversion
 
+    _convertRectFromTextContainer: function(rect){
+        return JSRect(this._convertPointFromTextContainer(rect.origin), rect.size);
+    },
+
+    _convertRectToTextContainer: function(rect){
+        return JSRect(this._convertPointToTextContainer(rect.origin), rect.size);
+    },
+
+    _convertPointFromTextContainer: function(point){
+        return JSPoint(point.x + this._textInsets.left, point.y + this._textInsets.top);
+    },
+
+    _convertPointToTextContainer: function(point){
+        return JSPoint(point.x - this._textInsets.left, point.y - this._textInsets.top);
+    },
+
     characterIndexAtPoint: function(point){
-        point = JSPoint(point.x - this._textInsets.left, point.y - this._textInsets.top);
+        point = this._convertPointToTextContainer(point);
         var index = this._displayTextContainer.characterIndexAtPoint(point);
         return index;
     },
 
     rectForCharacterAtIndex: function(index){
         var rect = this._displayTextContainer.rectForCharacterAtIndex(index);
-        rect.origin = JSPoint(rect.origin.x + this._textInsets.left, rect.origin.y + this._textInsets.top);
-        return rect;
+        return this._convertRectFromTextContainer(rect);
+    },
+
+    rectForLine: function(line){
+        var rect = JSRect(this._displayTextContainer.rectForLine(line));
+        return this._convertRectFromTextContainer(rect);
     },
 
     lineContainingCharacterAtIndex: function(index){
         return this._displayTextContainer.lineContainingCharacterAtIndex(index);
+    },
+
+    lineBeforeLine: function(line){
+        return this._displayTextContainer.lineBeforeLine(line);
+    },
+
+    lineAfterLine: function(line){
+        return this._displayTextContainer.lineAfterLine(line);
     },
 
     // MARK: - Drawing

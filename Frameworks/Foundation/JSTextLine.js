@@ -13,6 +13,7 @@ JSClass("JSTextLine", JSObject, {
     usedSize: JSReadOnlyProperty('_usedSize', null),
     range: JSReadOnlyProperty('_range', null),
     runs: JSReadOnlyProperty('_runs', null),
+    frameIndex: 0,
 
     initWithRuns: function(runs, origin, width, textAlignment){
         this._origin = JSPoint(origin);

@@ -2401,16 +2401,504 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[2].insertionLocation, 97);
     },
 
-    _testMoveUp: function(){
+    testMoveUp: function(){
+        var editor = UITextEditor.initWithTextLayer(this.textLayer);
+
+        this.textLayer.frame = JSRect(0, 0, 670, 1000);
+        this.textLayer.lineBreakMode = JSLineBreakMode.wordWrap;
+        this.textLayer.font = UITextEditorTestsFont.init();
+        // 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60|70
+        // T        h     i     s     _        i     s     _        a     _        t     e     s     t     _        o     f     _        a     _        m     u     l     t     i     l     i     n     e     _    |
+        // t     e     x     t     _        f     i     e     l     d     _        t     h     a     t     _        s     h     o     u     l     d     _        w     r     a     p     _        t     o     _    |
+        // t     h     r     e     e     _        l     i     n     e     s     .                                                                                                                                  |
+        // T        h     e     n     _        b     r     e     a     k     _        t     o     _        a     _        f     o     u     r     t     h     .                                                    |
+        this.textLayer.text =
+            "This is a test of a multiline " +
+            "text field that should wrap to " +
+            "three lines.\n" + 
+            "Then break to a fourth.";
+        this.textLayer.layoutIfNeeded();
+
+        // first line
+        editor.setSelectionRange(JSRange(5, 0));
+        editor.moveUp();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 0);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+
+        // start of line
+        editor.setSelectionRange(JSRange(30, 0));
+        editor.moveUp();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 0);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+
+        // greater than half a character
+        editor.setSelectionRange(JSRange(79, 0));
+        editor.moveUp();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 67);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+
+        // less than half a character
+        editor.setSelectionRange(JSRange(38, 0));
+        editor.moveUp();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 7);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+
+        // exactly half a character
+        editor.setSelectionRange(JSRange(50, 0));
+        editor.moveUp();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 19);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+
+        // past end of line
+        editor.setSelectionRange(JSRange(95, 0));
+        editor.moveUp();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 73);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+
+        // selection range
+        editor.setSelectionRange(JSRange(10, 1));
+        editor.moveUp();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 0);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+        editor.setSelectionRange(JSRange(34, 1));
+        editor.moveUp();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 4);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+
+        // multiple selections
+        editor.setSelectionRanges([JSRange(0, 0), JSRange(10, 1), JSRange(30, 0), JSRange(35, 0), JSRange(71, 2), JSRange(97, 0)]);
+        editor.moveUp();
+        TKAssertEquals(editor.selections.length, 4);
+        TKAssertEquals(editor.selections[0].range.location, 0);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+        TKAssertEquals(editor.selections[1].range.location, 5);
+        TKAssertEquals(editor.selections[1].range.length, 0);
+        TKAssertEquals(editor.selections[2].range.location, 40);
+        TKAssertEquals(editor.selections[2].range.length, 0);
+        TKAssertEquals(editor.selections[3].range.location, 73);
+        TKAssertEquals(editor.selections[3].range.length, 0);
+
+        // affinity
+        editor.setSelectionRange(JSRange(61, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.moveUp();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 29);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+
+        this.textLayer.text =
+            "This_is_a_test_of_a_multiline" +
+            "_text field that should wrap t " +
+            "three lines.\n" + 
+            "Then break to a fourth.";
+        this.textLayer.layoutIfNeeded();
+        editor.setSelectionRange(JSRange(60, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.moveUp();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 29);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+
+        this.textLayer.text =
+            "This is a test of a multiline " +
+            "text field that should wrap " +
+            "tothree lines.\n" + 
+            "Then break to a fourth.";
+        this.textLayer.layoutIfNeeded();
+        editor.setSelectionRange(JSRange(58, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.moveUp();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 27);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
     },
 
-    _testMoveDown: function(){
+    testMoveDown: function(){
+        var editor = UITextEditor.initWithTextLayer(this.textLayer);
+
+        this.textLayer.frame = JSRect(0, 0, 670, 1000);
+        this.textLayer.lineBreakMode = JSLineBreakMode.wordWrap;
+        this.textLayer.font = UITextEditorTestsFont.init();
+        // 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60|70
+        // T        h     i     s     _        i     s     _        a     _        t     e     s     t     _        o     f     _        a     _        m     u     l     t     i     l     i     n     e     _    |
+        // t     e     x     t     _        f     i     e     l     d     _        T        h     a     t     _        s     h     o     u     l     d     _        w     r     a     p     _        t     o     _ |
+        // t     h     r     e     e     _        l     i     n     e     s     .                                                                                                                                  |
+        // T        h     e     n     _        b     r     e     a     k     _        t     o     _        a     _        f     o     u     r     t     h     .                                                    |
+        this.textLayer.text =
+            "This is a test of a multiline " +
+            "text field That should wrap to " +
+            "three lines.\n" + 
+            "Then break to a fourth.";
+        this.textLayer.layoutIfNeeded();
+
+        // last line
+        editor.setSelectionRange(JSRange(80, 0));
+        editor.moveDown();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 97);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+
+        // start of line
+        editor.setSelectionRange(JSRange(30, 0));
+        editor.moveDown();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 61);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+
+        // greater than half a character
+        editor.setSelectionRange(JSRange(11, 0));
+        editor.moveDown();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 42);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+
+        // less than half a character
+        editor.setSelectionRange(JSRange(21, 0));
+        editor.moveDown();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 52);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+
+        // exactly half a character
+        editor.setSelectionRange(JSRange(16, 0));
+        editor.moveDown();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 47);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+
+        // past end of line
+        editor.setSelectionRange(JSRange(50, 0));
+        editor.moveDown();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 73);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+
+        // selection range
+        editor.setSelectionRange(JSRange(10, 1), UITextEditor.SelectionInsertionPoint.start);
+        editor.moveDown();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 42);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+        editor.setSelectionRange(JSRange(90, 1));
+        editor.moveDown();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 97);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+
+        // multiple selections
+        editor.setSelectionRanges([JSRange(0, 0), JSRange(30, 0), JSRange(35, 0), JSRange(71, 2), JSRange(97, 0), JSRange(86, 1)]);
+        editor.moveDown();
+        TKAssertEquals(editor.selections.length, 5);
+        TKAssertEquals(editor.selections[0].range.location, 30);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+        TKAssertEquals(editor.selections[1].range.location, 61);
+        TKAssertEquals(editor.selections[1].range.length, 0);
+        TKAssertEquals(editor.selections[2].range.location, 66);
+        TKAssertEquals(editor.selections[2].range.length, 0);
+        TKAssertEquals(editor.selections[3].range.location, 86);
+        TKAssertEquals(editor.selections[3].range.length, 0);
+        TKAssertEquals(editor.selections[4].range.location, 97);
+        TKAssertEquals(editor.selections[4].range.length, 0);
+
+        // affinity
+        editor.setSelectionRange(JSRange(30, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.moveDown();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 60);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+
+        this.textLayer.text =
+            "This is a test of a multiline{" +
+            "text_field_that_should_wrap_to" +
+            "_three lines.\n" + 
+            "Then break to a fourth.";
+        this.textLayer.layoutIfNeeded();
+        editor.setSelectionRange(JSRange(29, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.moveDown();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 60);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+
+        this.textLayer.text =
+            "This is a test of a multiline " +
+            "text field that should wrap " +
+            "tothree lines.\n" + 
+            "Then break to a fourth.";
+        this.textLayer.layoutIfNeeded();
+        editor.setSelectionRange(JSRange(58, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.moveDown();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 72);
+        TKAssertEquals(editor.selections[0].range.length, 0);
+        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
     },
 
-    _testMoveUpAndModifySelection: function(){
+    testMoveUpAndModifySelection: function(){
+        var editor = UITextEditor.initWithTextLayer(this.textLayer);
+
+        this.textLayer.frame = JSRect(0, 0, 670, 1000);
+        this.textLayer.lineBreakMode = JSLineBreakMode.wordWrap;
+        this.textLayer.font = UITextEditorTestsFont.init();
+        // 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60|70
+        // T        h     i     s     _        i     s     _        a     _        t     e     s     t     _        o     f     _        a     _        m     u     l     t     i     l     i     n     e     _    |
+        // t     e     x     t     _        f     i     e     l     d     _        t     h     a     t     _        s     h     o     u     l     d     _        w     r     a     p     _        t     o     _    |
+        // t     h     r     e     e     _        l     i     n     e     s     .                                                                                                                                  |
+        // T        h     e     n     _        b     r     e     a     k     _        t     o     _        a     _        f     o     u     r     t     h     .                                                    |
+        this.textLayer.text =
+            "This is a test of a multiline " +
+            "text field that should wrap to " +
+            "three lines.\n" + 
+            "Then break to a fourth.";
+        this.textLayer.layoutIfNeeded();
+
+        // first line
+        editor.setSelectionRange(JSRange(5, 0));
+        editor.moveUpAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 0);
+        TKAssertEquals(editor.selections[0].range.length, 5);
+        TKAssertEquals(editor.selections[0].insertionLocation, 0);
+
+        // start of line
+        editor.setSelectionRange(JSRange(30, 0));
+        editor.moveUpAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 0);
+        TKAssertEquals(editor.selections[0].range.length, 30);
+        TKAssertEquals(editor.selections[0].insertionLocation, 0);
+
+        // greater than half a character
+        editor.setSelectionRange(JSRange(79, 0));
+        editor.moveUpAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 67);
+        TKAssertEquals(editor.selections[0].range.length, 12);
+        TKAssertEquals(editor.selections[0].insertionLocation, 67);
+
+        // less than half a character
+        editor.setSelectionRange(JSRange(38, 0));
+        editor.moveUpAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 7);
+        TKAssertEquals(editor.selections[0].range.length, 31);
+        TKAssertEquals(editor.selections[0].insertionLocation, 7);
+
+        // exactly half a character
+        editor.setSelectionRange(JSRange(50, 0));
+        editor.moveUpAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 19);
+        TKAssertEquals(editor.selections[0].range.length, 31);
+        TKAssertEquals(editor.selections[0].insertionLocation, 19);
+
+        // past end of line
+        editor.setSelectionRange(JSRange(95, 0));
+        editor.moveUpAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 73);
+        TKAssertEquals(editor.selections[0].range.length, 22);
+        TKAssertEquals(editor.selections[0].insertionLocation, 73);
+
+        // selection range
+        editor.setSelectionRange(JSRange(10, 1));
+        editor.moveUpAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 0);
+        TKAssertEquals(editor.selections[0].range.length, 11);
+        TKAssertEquals(editor.selections[0].insertionLocation, 0);
+        editor.setSelectionRange(JSRange(34, 1));
+        editor.moveUpAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 4);
+        TKAssertEquals(editor.selections[0].range.length, 31);
+        TKAssertEquals(editor.selections[0].insertionLocation, 4);
+
+        // multiple selections
+        editor.setSelectionRanges([JSRange(0, 0), JSRange(10, 1), JSRange(30, 0), JSRange(35, 0), JSRange(71, 2), JSRange(97, 0)]);
+        editor.moveUpAndModifySelection();
+        TKAssertEquals(editor.selections.length, 2);
+        TKAssertEquals(editor.selections[0].range.location, 0);
+        TKAssertEquals(editor.selections[0].range.length, 35);
+        TKAssertEquals(editor.selections[0].insertionLocation, 0);
+        TKAssertEquals(editor.selections[1].range.location, 40);
+        TKAssertEquals(editor.selections[1].range.length, 57);
+        TKAssertEquals(editor.selections[1].insertionLocation, 40);
+
+        // affinity
+        editor.setSelectionRange(JSRange(61, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.moveUpAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 29);
+        TKAssertEquals(editor.selections[0].range.length, 32);
+        TKAssertEquals(editor.selections[0].insertionLocation, 29);
+        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+
+        this.textLayer.text =
+            "This_is_a_test_of_a_multiline" +
+            "_text field that should wrap t " +
+            "three lines.\n" + 
+            "Then break to a fourth.";
+        this.textLayer.layoutIfNeeded();
+        editor.setSelectionRange(JSRange(60, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.moveUpAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 29);
+        TKAssertEquals(editor.selections[0].range.length, 31);
+        TKAssertEquals(editor.selections[0].insertionLocation, 29);
+        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+
+        this.textLayer.text =
+            "This is a test of a multiline " +
+            "text field that should wrap " +
+            "tothree lines.\n" + 
+            "Then break to a fourth.";
+        this.textLayer.layoutIfNeeded();
+        editor.setSelectionRange(JSRange(58, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.moveUpAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 27);
+        TKAssertEquals(editor.selections[0].range.length, 31);
+        TKAssertEquals(editor.selections[0].insertionLocation, 27);
+        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
     },
 
-    _testMoveDownAndModifySelection: function(){
+    testMoveDownAndModifySelection: function(){
+        var editor = UITextEditor.initWithTextLayer(this.textLayer);
+
+        this.textLayer.frame = JSRect(0, 0, 670, 1000);
+        this.textLayer.lineBreakMode = JSLineBreakMode.wordWrap;
+        this.textLayer.font = UITextEditorTestsFont.init();
+        // 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60 70 80 90 00 10 20 30 40 50 60|70
+        // T        h     i     s     _        i     s     _        a     _        t     e     s     t     _        o     f     _        a     _        m     u     l     t     i     l     i     n     e     _    |
+        // t     e     x     t     _        f     i     e     l     d     _        T        h     a     t     _        s     h     o     u     l     d     _        w     r     a     p     _        t     o     _ |
+        // t     h     r     e     e     _        l     i     n     e     s     .                                                                                                                                  |
+        // T        h     e     n     _        b     r     e     a     k     _        t     o     _        a     _        f     o     u     r     t     h     .                                                    |
+        this.textLayer.text =
+            "This is a test of a multiline " +
+            "text field That should wrap to " +
+            "three lines.\n" + 
+            "Then break to a fourth.";
+        this.textLayer.layoutIfNeeded();
+
+        // last line
+        editor.setSelectionRange(JSRange(80, 0));
+        editor.moveDownAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 80);
+        TKAssertEquals(editor.selections[0].range.length, 17);
+        TKAssertEquals(editor.selections[0].insertionLocation, 97);
+
+        // start of line
+        editor.setSelectionRange(JSRange(30, 0));
+        editor.moveDownAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 30);
+        TKAssertEquals(editor.selections[0].range.length, 31);
+        TKAssertEquals(editor.selections[0].insertionLocation, 61);
+
+        // greater than half a character
+        editor.setSelectionRange(JSRange(11, 0));
+        editor.moveDownAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 11);
+        TKAssertEquals(editor.selections[0].range.length, 31);
+        TKAssertEquals(editor.selections[0].insertionLocation, 42);
+
+        // less than half a character
+        editor.setSelectionRange(JSRange(21, 0));
+        editor.moveDownAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 21);
+        TKAssertEquals(editor.selections[0].range.length, 31);
+        TKAssertEquals(editor.selections[0].insertionLocation, 52);
+
+        // exactly half a character
+        editor.setSelectionRange(JSRange(16, 0));
+        editor.moveDownAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 16);
+        TKAssertEquals(editor.selections[0].range.length, 31);
+        TKAssertEquals(editor.selections[0].insertionLocation, 47);
+
+        // past end of line
+        editor.setSelectionRange(JSRange(50, 0));
+        editor.moveDownAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 50);
+        TKAssertEquals(editor.selections[0].range.length, 23);
+        TKAssertEquals(editor.selections[0].insertionLocation, 73);
+
+        // selection range
+        editor.setSelectionRange(JSRange(10, 1), UITextEditor.SelectionInsertionPoint.start);
+        editor.moveDownAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 10);
+        TKAssertEquals(editor.selections[0].range.length, 32);
+        TKAssertEquals(editor.selections[0].insertionLocation, 42);
+        editor.setSelectionRange(JSRange(90, 1));
+        editor.moveDownAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 90);
+        TKAssertEquals(editor.selections[0].range.length, 7);
+        TKAssertEquals(editor.selections[0].insertionLocation, 97);
+
+        // multiple selections
+        editor.setSelectionRanges([JSRange(0, 0), JSRange(30, 0), JSRange(35, 0), JSRange(71, 2), JSRange(97, 0), JSRange(86, 1)]);
+        editor.moveDownAndModifySelection();
+        TKAssertEquals(editor.selections.length, 2);
+        TKAssertEquals(editor.selections[0].range.location, 0);
+        TKAssertEquals(editor.selections[0].range.length, 66);
+        TKAssertEquals(editor.selections[0].insertionLocation, 66);
+        TKAssertEquals(editor.selections[1].range.location, 71);
+        TKAssertEquals(editor.selections[1].range.length, 26);
+        TKAssertEquals(editor.selections[1].insertionLocation, 97);
+
+        // affinity
+        editor.setSelectionRange(JSRange(30, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.moveDownAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 30);
+        TKAssertEquals(editor.selections[0].range.length, 30);
+        TKAssertEquals(editor.selections[0].insertionLocation, 60);
+        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+
+        this.textLayer.text =
+            "This is a test of a multiline{" +
+            "text_field_that_should_wrap_to" +
+            "_three lines.\n" + 
+            "Then break to a fourth.";
+        this.textLayer.layoutIfNeeded();
+        editor.setSelectionRange(JSRange(29, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.moveDownAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 29);
+        TKAssertEquals(editor.selections[0].range.length, 31);
+        TKAssertEquals(editor.selections[0].insertionLocation, 60);
+        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+
+        this.textLayer.text =
+            "This is a test of a multiline " +
+            "text field that should wrap " +
+            "tothree lines.\n" + 
+            "Then break to a fourth.";
+        this.textLayer.layoutIfNeeded();
+        editor.setSelectionRange(JSRange(58, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.moveDownAndModifySelection();
+        TKAssertEquals(editor.selections.length, 1);
+        TKAssertEquals(editor.selections[0].range.location, 58);
+        TKAssertEquals(editor.selections[0].range.length, 14);
+        TKAssertEquals(editor.selections[0].insertionLocation, 72);
+        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
     }
 
     // TODO: UI testing...not clear best approach. Should the internal layers of a selection be fair game?
