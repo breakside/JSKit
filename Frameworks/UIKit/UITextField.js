@@ -276,7 +276,6 @@ JSClass("UITextField", UIView, {
     deleteToEndOfDocument: function(){
         this._localEditor.deleteToEndOfDocument();
     },
-
     
     moveBackward: function(){
         this._localEditor.moveBackward();
@@ -291,7 +290,7 @@ JSClass("UITextField", UIView, {
     },
 
     moveUp: function(){
-        this.moveToBeginningOfDocument();
+        this._localEditor.moveUp();
     },
 
     moveToBeginningOfDocument: function(){
@@ -311,13 +310,12 @@ JSClass("UITextField", UIView, {
     },
 
     moveDown: function(){
-        this.moveToEndOfDocument();
+        this._localEditor.moveDown();
     },
 
     moveToEndOfDocument: function(){
         this._localEditor.moveToEndOfDocument();
     },
-
     
     moveBackwardAndModifySelection: function(){
         this._localEditor.moveBackwardAndModifySelection();
@@ -332,7 +330,7 @@ JSClass("UITextField", UIView, {
     },
 
     moveUpAndModifySelection: function(){
-        this.moveToBeginningOfDocumentAndModifySelection();
+        this._localEditor.moveUpAndModifySelection();
     },
 
     moveToBeginningOfDocumentAndModifySelection: function(){
@@ -352,7 +350,7 @@ JSClass("UITextField", UIView, {
     },
 
     moveDownAndModifySelection: function(){
-        this.moveToEndOfDocumentAndModifySelection();
+        this._localEditor.moveDownAndModifySelection();
     },
 
     moveToEndOfDocumentAndModifySelection: function(){
