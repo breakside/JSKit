@@ -425,7 +425,7 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
         TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
     },
 
-    testcharacterWrapping: function(){
+    testCharacterWrapping: function(){
         var attributes = {};
         attributes[JSAttributedString.Attribute.Font] = JSTextTypesetterTestsFont.init();
         var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
@@ -504,7 +504,7 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
         TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
     },
 
-    testwordWrapping: function(){
+    testWordWrapping: function(){
         var attributes = {};
         attributes[JSAttributedString.Attribute.Font] = JSTextTypesetterTestsFont.init();
         var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
@@ -552,6 +552,21 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
         TKAssertFloatEquals(line.runs[0].origin.x, 0);
         TKAssertFloatEquals(line.runs[0].origin.y, 0);
         TKAssertFloatEquals(line.runs[0].size.width, 90);
+        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
+
+        // Too narrow for even a single word, not at start of string, should fall back to character wrapping
+        line = typesetter.createLine(JSPoint.Zero, 90, JSRange(1, attributedString.string.length), JSLineBreakMode.wordWrap, JSTextAlignment.left);
+        TKAssertNotNull(line);
+        TKAssertEquals(line.range.location, 1);
+        TKAssertEquals(line.range.length, 4);
+        TKAssertFloatEquals(line.size.width, 90);
+        TKAssertFloatEquals(line.size.height, 16.40625);
+        TKAssertEquals(line.runs.length, 1);
+        TKAssertEquals(line.runs[0].range.location, 1);
+        TKAssertEquals(line.runs[0].range.length, 4);
+        TKAssertFloatEquals(line.runs[0].origin.x, 0);
+        TKAssertFloatEquals(line.runs[0].origin.y, 0);
+        TKAssertFloatEquals(line.runs[0].size.width, 80);
         TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
 
         // Too narrow for even a single character

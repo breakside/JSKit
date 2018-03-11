@@ -44,6 +44,7 @@ class HTMLBuilder(Builder):
     dockerIdentifier = ""
     dockerOwner = ""
     dockerName = ""
+    bootstrapVersion = 1
 
     def __init__(self, projectPath, includePaths, outputParentPath, debug=False, args=None):
         super(HTMLBuilder, self).__init__(projectPath, includePaths, outputParentPath, debug)
@@ -108,7 +109,7 @@ class HTMLBuilder(Builder):
         dontcare, ext = os.path.splitext(os.path.basename(fullPath))
         outputImagePath = os.path.join(self.outputResourcePath, resource['hash'] + ext)
         info.update(dict(
-             url=_webpath(os.path.relpath(outputImagePath, self.outputWebRootPath))
+             url=self.absoluteWebPath(outputImagePath)
         ))
         shutil.copyfile(fullPath, outputImagePath)
         self.manifest.append(outputImagePath)
@@ -119,7 +120,7 @@ class HTMLBuilder(Builder):
         info = resource["font"]
         dontcare, ext = os.path.splitext(os.path.basename(fullPath))
         outputFontPath = os.path.join(self.outputResourcePath, resource['hash'] + ext)
-        url = _webpath(os.path.relpath(outputFontPath, self.outputWebRootPath))
+        url = self.absoluteWebPath(outputFontPath)
         variants = [(url, None)]
         # if mime != 'application/x-font-woff':
         #     outputTmpWoffPath = os.path.join(self.outputResourcePath, resource['hash'] + '.woff')
@@ -127,7 +128,7 @@ class HTMLBuilder(Builder):
         #     woff_hash, woff_size = Builder.hashOfPath(outputTmpWoffPath)
         #     outputWoffPath = os.path.join(self.outputResourcePath, woff_hash + '.woff')
         #     os.rename(outputTmpWoffPath, outputWoffPath)
-        #     variants.insert(0, (_webpath(os.path.relpath(outputWoffPath, self.outputWebRootPath)), 'woff'))
+        #     variants.insert(0, (self.absoluteWebPath(outputWoffPath), 'woff'))
         #     self.manifest.append(outputWoffPath)
         info.update(dict(
             url=url,
@@ -162,8 +163,8 @@ class HTMLBuilder(Builder):
 
     def font_src(self, variant):
         if variant[1]:
-            return 'url("../%s") format("%s")' % (variant[0], variant[1])
-        return 'url("../%s")' % variant[0]
+            return 'url("%s") format("%s")' % (variant[0], variant[1])
+        return 'url("%s")' % variant[0]
 
     def buildAppJavascript(self):
         self.updateStatus("Creating application js...")
@@ -216,7 +217,7 @@ class HTMLBuilder(Builder):
         self.manifestFile.write("CACHE MANIFEST\n")
         self.manifestFile.write("# build %s\n" % self.buildID)
         for name in self.manifest:
-            self.manifestFile.write("%s\n" % _webpath(os.path.relpath(name, self.outputWebRootPath)))
+            self.manifestFile.write("%s\n" % self.absoluteWebPath(name))
         self.manifestFile.close()
 
     def buildIndex(self):
@@ -228,32 +229,11 @@ class HTMLBuilder(Builder):
         document = HTML5Document(indexPath).domDocument
         self.indexFile = open(os.path.join(self.outputWebRootPath, indexName), 'w')
         stack = [document.documentElement]
-        appSrc = []
-        for includedSourcePath in self.appJS:
-            relativePath = _webpath(os.path.relpath(includedSourcePath, os.path.dirname(self.indexFile.name)))
-            appSrc.append(relativePath)
-        jscontext = {
-            'preflightID': self.featureCheck.hash,
-            'preflightSrc': _webpath(os.path.relpath(self.preflightFile.name, self.outputWebRootPath)),
-            'appSrc': appSrc
-        }
         includePaths = (pkg_resources.resource_filename('jskit', 'jsmake/html_resources'),)
         hasInsertedLogger = False
         while len(stack) > 0:
             node = stack.pop()
-            if node.tagName == 'head':
-                for css in self.appCSS:
-                    style = document.createElement('link')
-                    style.setAttribute('rel', 'stylesheet')
-                    style.setAttribute('type', 'text/css')
-                    style.setAttribute('href', _webpath(os.path.relpath(css, self.outputWebRootPath)))
-                    node.appendChild(style)
-
-                if self.debug:
-                    self.includes.append('jslog-debug.js')
-                else:
-                    self.includes.append('jslog-release.js')
-            elif node.tagName == 'title' and node.parentNode.tagName == 'head':
+            if node.tagName == 'title' and node.parentNode.tagName == 'head':
                 node.appendChild(document.createTextNode(self.info.get('UIApplicationTitle', '')))
             elif node.tagName == 'script' and node.getAttribute('type') == 'text/javascript':
                 if not hasInsertedLogger:
@@ -274,6 +254,12 @@ class HTMLBuilder(Builder):
                     if child.nodeType == xml.dom.Node.TEXT_NODE:
                         oldScriptText += child.nodeValue
                 with tempfile.NamedTemporaryFile() as inscript:
+                    jscontext = {
+                        'preflightID': self.featureCheck.hash,
+                        'preflightSrc': self.absoluteWebPath(self.preflightFile.name),
+                        'appSrc': [self.absoluteWebPath(x) for x in self.appJS],
+                        'appCss': [self.absoluteWebPath(x) for x in self.appCSS]
+                    }
                     inscript.write(JSCompilation.preprocess(oldScriptText.strip(), jscontext))
                     compilation = JSCompilation(includePaths, minify=not self.debug, combine=not self.debug)
                     compilation.include(inscript)
@@ -292,8 +278,9 @@ class HTMLBuilder(Builder):
                             else:
                                 shutil.copy(outfile.fp.name, outputPath)
                             self.manifest.append(outputPath)
-                            relativePath = _webpath(os.path.relpath(outputPath, os.path.dirname(self.indexFile.name)))
-                            script.setAttribute('src', relativePath)
+                            self.watchFile(outfile.fp.name)
+                            webpath = self.absoluteWebPath(outputPath)
+                            script.setAttribute('src', webpath)
                         node.parentNode.insertBefore(script, node)
                 node.parentNode.removeChild(node)
             for child in node.childNodes:
@@ -301,17 +288,16 @@ class HTMLBuilder(Builder):
                     stack.append(child)
         self.buildAppCacheManifest()
         if self.manifestFile:
-            document.documentElement.setAttribute('manifest', _webpath(os.path.relpath(self.manifestFile.name, os.path.dirname(self.indexFile.name))))
+            document.documentElement.setAttribute('manifest', self.absoluteWebPath(self.manifestFile.name))
         HTML5DocumentSerializer(document).serializeToFile(self.indexFile)
         self.indexFile.close()
-        self.indexFile = None
 
     def buildNginxConf(self):
         self.updateStatus("Creating nginx.conf...")
         sys.stdout.flush()
         if self.debug:
-            cert = os.path.join(self.projectPath, "localhost.cert")
-            key = os.path.join(self.projectPath, "localhost.key")
+            cert = os.path.join(self.projectPath, "_localhost.cert")
+            key = os.path.join(self.projectPath, "_localhost.key")
             if os.path.exists(cert) and os.path.exists(key):
                 confName = "nginx-debug-ssl.conf"
                 shutil.copy(cert, os.path.join(self.outputConfPath, "app.cert"))
@@ -367,6 +353,9 @@ class HTMLBuilder(Builder):
                 return "docker run \\\n    --rm \\\n    --name %s \\\n    -p%d:%d \\\n    --mount type=bind,source=%s,target=/jskitapp/www \\\n    %s" % (self.dockerName, self.debugPort, self.debugPort, wwwPath, self.dockerIdentifier)
             else:
                 return "nginx -p %s" % os.path.relpath(self.outputProjectPath)
+
+    def absoluteWebPath(self, outputPath):
+        return '/' + _webpath(os.path.relpath(outputPath, self.outputWebRootPath))
 
 
 def _webpath(ospath):

@@ -10,16 +10,20 @@ JSClass("UITextEditor", JSObject, {
     textLayer: null,
     selections: null,
     delegate: null,
+    cursorColor: JSDynamicProperty('_cursorColor', null),
     _isFirstResponder: false,
     _cursorBlinkRate: 0.5,
     _cursorOffTimeout: null,
     _cursorOnTimeout: null,
     _handledSelectOnMouseDown: false,
-    cursorColor: JSDynamicProperty('_cursorColor', null),
+    _cursorLayers: null,
+    _selectionLayers: null,
 
     initWithTextLayer: function(textLayer){
         this.textLayer = textLayer;
         this._cursorColor = JSColor.initWithRGBA(0, 128/255.0, 255/255.0, 1.0);
+        this._cursorLayers = [];
+        this._selectionLayers = [];
         this.selections = [
             this._createSelection(JSRange(0, 0), 0)
         ];
@@ -27,8 +31,8 @@ JSClass("UITextEditor", JSObject, {
 
     setCursorColor: function(cursorColor){
         this._cursorColor = cursorColor;
-        for (var i = 0, l = this.selections.length; i < l; ++i){
-            this.selections.cursorLayer.backgroundColor = this._cursorColor;
+        for (var i = 0, l = this._cursorLayers.length; i < l; ++i){
+            this._cursorLayers[i].backgroundColor = this._cursorColor;
         }
     },
 
@@ -129,16 +133,17 @@ JSClass("UITextEditor", JSObject, {
     didBecomeFirstResponder: function(){
         this._isFirstResponder = true;
         for (var i = 0, l = this.selections.length; i < l; ++i){
-            this.textLayer.addSublayer(this.selections[i].cursorLayer);
+            this._cursorLayers.push(this._createCursorLayer());
         }
         this._positionCursors();
     },
 
     didResignFirstResponder: function(){
         this._cancelCursorTimers();
-        for (var i = 0, l = this.selections.length; i < l; ++i){
-            this.selections[i].cursorLayer.removeFromSuperlayer();
+        for (var i = 0, l = this._cursorLayers.length; i < l; ++i){
+            this._cursorLayers[i].removeFromSuperlayer();
         }
+        this._cursorLayers = [];
         this._isFirstResponder = false;
     },
 
@@ -146,11 +151,18 @@ JSClass("UITextEditor", JSObject, {
         if (this.selections.length === 0){
             return JSRect.Zero;
         }
-        return this.selections[this.selections.length - 1].cursorLayer.frame;
+        return this._cursorLayers[this._cursorLayers.length - 1].frame;
     },
 
     // -------------------------------------------------------------------------
     // MARK: - Cursor blinking
+
+    _createCursorLayer: function(){
+        var layer = UILayer.init();
+        layer.backgroundColor = this._cursorColor;
+        this.textLayer.addSublayer(layer);
+        return layer;
+    },
 
     _cancelCursorTimers: function(){
         if (this._cursorOffTimeout !== null){
@@ -164,12 +176,15 @@ JSClass("UITextEditor", JSObject, {
     },
 
     _positionCursors: function(){
+        if (!this._isFirstResponder){
+            return;
+        }
         var selection;
         var cursorRect;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
             cursorRect = this._cursorRectForSelection(selection);
-            selection.cursorLayer.frame = cursorRect;
+            this._cursorLayers[i].frame = cursorRect;
         }
         this._cursorOn();
         if (this.delegate && this.delegate.textEditorDidPositionCursors){
@@ -201,10 +216,8 @@ JSClass("UITextEditor", JSObject, {
         this._cancelCursorTimers();
         this._cursorOffTimeout = null;
         this._cursorOnTimeout = JSTimer.scheduledTimerWithInterval(this._cursorBlinkRate, this._cursorOn, this);
-        var selection;
-        for (var i = 0, l = this.selections.length; i < l; ++i){
-            selection = this.selections[i];
-            selection.cursorLayer.alpha = 0.0;
+        for (var i = 0, l = this._cursorLayers.length; i < l; ++i){
+            this._cursorLayers[i].alpha = 0.0;
         }
     },
 
@@ -212,10 +225,8 @@ JSClass("UITextEditor", JSObject, {
         this._cancelCursorTimers();
         this._cursorOnTimeout = null;
         this._cursorOffTimeout = JSTimer.scheduledTimerWithInterval(this._cursorBlinkRate, this._cursorOff, this);
-        var selection;
-        for (var i = 0, l = this.selections.length; i < l; ++i){
-            selection = this.selections[i];
-            selection.cursorLayer.alpha = 1.0;
+        for (var i = 0, l = this._cursorLayers.length; i < l; ++i){
+            this._cursorLayers[i].alpha = 1.0;
         }
     },
 
@@ -237,13 +248,14 @@ JSClass("UITextEditor", JSObject, {
 
     _setSelections: function(selections){
         var i, l;
-        for (i = 0, l = this.selections.length; i < l; ++i){
-            this._removeSelectionFromLayer(this.selections[i]);
-        }
         this.selections = selections;
         if (this._isFirstResponder){
-            for (i = 0, l = this.selections.length; i < l; ++i){
-                this.textLayer.addSublayer(this.selections[i].cursorLayer);
+            for (i = this._cursorLayers.length, l = this.selections.length; i < l; ++i){
+                this._cursorLayers.push(this._createCursorLayer());
+            }
+            for (var j = this._cursorLayers.length - 1; j >= i; --j){
+                this._cursorLayers[i].removeFromSuperlayer();
+                this._cursorLayers.splice(i, 1);
             }
         }
         this._collapseOverlappingSelections();
@@ -981,7 +993,6 @@ JSClass("UITextEditor", JSObject, {
 
     _createSelection: function(range, insertionPoint, affinity){
         var selection = UITextEditorSelection(range, insertionPoint, affinity);
-        selection.cursorLayer.backgroundColor = this._cursorColor;
         return selection;
     },
 
@@ -1033,8 +1044,6 @@ var UITextEditorSelection = function(range, insertionPoint, affinity){
             this.insertionPoint = insertionPoint;
             this.affinity = affinity;
         }
-        this.cursorLayer = UILayer.init();
-        this.selectionLayers = [];
     }
 };
 
@@ -1043,8 +1052,6 @@ UITextEditorSelection.prototype = {
     range: null,
     insertionPoint: null,
     affinity: null,
-    cursorLayer: null,
-    selectionLayers: null,
 
     containsIndex: function(index){
         return this.range.length > 0 && this.range.contains(index);

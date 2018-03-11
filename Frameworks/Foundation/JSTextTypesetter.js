@@ -186,10 +186,10 @@ JSClass("JSTextTypesetter", JSObject, {
                 iterator.decrement();
                 var characterBreakLocation = iterator.range.location;
                 // back up to a word boundary
-                while (!iterator.isWordBoundary){
+                while (iterator.index > range.location && !iterator.isWordBoundary){
                     iterator.decrement();
                 }
-                if (iterator.range.location == range.location){
+                if (iterator.range.location <= range.location){
                     // we couldn't fit a word in, so break by character
                     usedWidth -= this._truncateRunDescriptorsToLocation(runDescriptors, characterBreakLocation);
                     this._truncateRangesToLocation(printableRanges, characterBreakLocation);
