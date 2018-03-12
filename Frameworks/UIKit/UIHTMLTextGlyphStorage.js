@@ -51,6 +51,9 @@ JSClass("UIHTMLTextGlyphStorage", JSTextGlyphStorage, {
         var iterator = utf16.userPerceivedCharacterIterator(utf16.length - 1);
         if (iterator.isMandatoryLineBreak){
             utf16 = utf16.substr(0, iterator.index);
+            if (this.textNode.nodeValue === ''){
+                this.textNode.nodeValue = '\u200B';
+            }
         }
         if (utf16.length > 0){
             this.textNode.nodeValue += utf16;

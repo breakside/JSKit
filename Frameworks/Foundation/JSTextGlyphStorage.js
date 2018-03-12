@@ -20,7 +20,7 @@ JSClass("JSTextGlyphStorage", JSObject, {
         this._characterWidths = [];
     },
 
-    fontContainingCharacter: function(character){
+    fontForCharacter: function(character){
         if (this.font.containsGlyphForCharacter(character.code)){
             return this.font;
         }
@@ -45,7 +45,7 @@ JSClass("JSTextGlyphStorage", JSObject, {
         }
         this.utf16 += utf16;
         var iterator = utf16.unicodeIterator();
-        var startingFont = this.fontContainingCharacter(iterator.character);
+        var startingFont = this.fontForCharacter(iterator.character);
         var width;
         while (iterator.character !== null){
             if (!iterator.character.isLineBreak){ // FIXME: Do we need this check, or are line break characters always 0 in fonts?

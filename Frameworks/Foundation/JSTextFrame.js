@@ -23,7 +23,6 @@ JSClass("JSTextFrame", JSObject, {
         var line;
         for (var i = 0, l = lines.length; i < l; ++i){
             line = lines[i];
-            line.frameIndex = i;
             if (line.origin.y + line.size.height > this._usedSize.height){
                 this._usedSize.height = line.origin.y + line.size.height;
             }
@@ -43,10 +42,10 @@ JSClass("JSTextFrame", JSObject, {
         context.restore();
     },
 
-    lineContainingCharacterAtIndex: function(index){
+    lineIndexForCharacterAtIndex: function(index){
         // Bail if we have no lines
         if (this._lines.length === 0){
-            return null;
+            return -1;
         }
         // Locate the line that contains the index
         // Using a binary search for efficiency, in case there are a large number of lines
@@ -69,12 +68,20 @@ JSClass("JSTextFrame", JSObject, {
             }
         }
         if (min == this._lines.length){
-            return this._lines[min - 1];
+            min -= 1;
         }
-        return this._lines[min];
+        return min;
     },
 
-    lineContainingPoint: function(point){
+    lineForCharacterAtIndex: function(index){
+        var lineIndex = this.lineIndexForCharacterAtIndex(index);
+        if (lineIndex >= 0){
+            return this.lines[lineIndex];
+        }
+        return null;
+    },
+
+    lineAtPoint: function(point){
         // Bail if we have no lines
         if (this._lines.length === 0){
             return null;
@@ -101,20 +108,6 @@ JSClass("JSTextFrame", JSObject, {
             return null;
         }
         return this._lines[min];
-    },
-
-    lineBeforeLine: function(line){
-        if (line.frameIndex > 0){
-            return this.lines[line.frameIndex - 1];
-        }
-        return null;
-    },
-
-    lineAfterLine: function(line){
-        if (line.frameIndex < this.lines.length - 1){
-            return this.lines[line.frameIndex + 1];
-        }
-        return null;
     },
 
     rectForLine: function(line){

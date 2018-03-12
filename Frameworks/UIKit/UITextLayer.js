@@ -1,6 +1,6 @@
 // #import "UIKit/UILayer.js"
 // #import "UIKit/UIWindowServer.js"
-/* global JSClass, JSDynamicProperty, JSRect, JSPoint, JSSize, JSInsets, UILayer, UITextLayer, JSAttributedString, JSTextLayoutManager, JSTextContainer, JSTextStorage, UIWindowServer */
+/* global JSClass, JSDynamicProperty, JSReadOnlyProperty, JSRect, JSPoint, JSSize, JSInsets, UILayer, UITextLayer, JSAttributedString, JSTextLayoutManager, JSTextContainer, JSTextStorage, UIWindowServer */
 'use strict';
 
 JSClass("UITextLayer", UILayer, {
@@ -16,8 +16,8 @@ JSClass("UITextLayer", UILayer, {
     sizeTracksText: JSDynamicProperty(),
 
     _textStorage: null,
-    _displayTextLayoutManager: null,
-    _displayTextContainer: null,
+    textLayoutManager: JSReadOnlyProperty('_textLayoutManager', null),
+    textContainer: JSReadOnlyProperty('_textContainer', null),
 
     // MARK: - Creating a UITextLayer
 
@@ -27,76 +27,76 @@ JSClass("UITextLayer", UILayer, {
     },
 
     _commonTextLayerInit: function(){
-        this._displayTextLayoutManager = JSTextLayoutManager.init();
-        this._displayTextLayoutManager.delegate = this;
-        this._displayTextContainer = JSTextContainer.initWithSize(this._availableTextSize());
-        this._displayTextContainer.framesetter = null;
+        this._textLayoutManager = JSTextLayoutManager.init();
+        this._textLayoutManager.delegate = this;
+        this._textContainer = JSTextContainer.initWithSize(this._availableTextSize());
+        this._textContainer.framesetter = null;
         this._textStorage = JSTextStorage.init();
-        this._textStorage.addLayoutManager(this._displayTextLayoutManager);
-        this._displayTextLayoutManager.addTextContainer(this._displayTextContainer);
+        this._textStorage.addLayoutManager(this._textLayoutManager);
+        this._textLayoutManager.addTextContainer(this._textContainer);
         this.setNeedsLayout();
     },
 
     didChangeSize: function(){
         UITextLayer.$super.didChangeSize.call(this);
-        this._displayTextContainer.size = this._availableTextSize();
+        this._textContainer.size = this._availableTextSize();
     },
 
     // MARK: - Styling
 
     getFont: function(){
-        return this._displayTextLayoutManager.defaultFont;
+        return this._textLayoutManager.defaultFont;
     },
 
     setFont: function(font){
-        this._displayTextLayoutManager.defaultFont = font;
+        this._textLayoutManager.defaultFont = font;
     },
 
     getTextColor: function(){
-        return this._displayTextLayoutManager.defaultTextColor;
+        return this._textLayoutManager.defaultTextColor;
     },
 
     setTextColor: function(color){
-        this._displayTextLayoutManager.defaultTextColor = color;
+        this._textLayoutManager.defaultTextColor = color;
         this.setNeedsDisplay();
     },
 
     getLineBreakMode: function(){
-        return this._displayTextContainer.lineBreakMode;
+        return this._textContainer.lineBreakMode;
     },
 
     setLineBreakMode: function(lineBreakMode){
-        this._displayTextContainer.lineBreakMode = lineBreakMode;
+        this._textContainer.lineBreakMode = lineBreakMode;
     },
 
     getTextAlignment: function(){
-        return this._displayTextContainer.textAlignment;
+        return this._textContainer.textAlignment;
     },
 
     setTextAlignment: function(textAlignment){
-        this._displayTextContainer.textAlignment = textAlignment;
+        this._textContainer.textAlignment = textAlignment;
     },
 
     setTextInsets: function(insets){
         this._textInsets = JSInsets(insets);
-        this._displayTextContainer.size = this._availableTextSize();
+        this._textContainer.size = this._availableTextSize();
     },
 
     getMaximumNumberOfLines: function(){
-        return this._displayTextContainer.maximumNumberOfLines;
+        return this._textContainer.maximumNumberOfLines;
     },
 
     setMaximumNumberOfLines: function(maxLines){
-        this._displayTextContainer.maximumNumberOfLines = maxLines;
-        this._displayTextContainer.size = this._availableTextSize();
+        this._textContainer.maximumNumberOfLines = maxLines;
+        this._textContainer.size = this._availableTextSize();
     },
 
     getSizeTracksText: function(){
-        return this._displayTextContainer.sizeTracksText;
+        return this._textContainer.sizeTracksText;
     },
 
     setSizeTracksText: function(sizeTracksText){
-        this._displayTextContainer.sizeTracksText = sizeTracksText;
+        this._textContainer.sizeTracksText = sizeTracksText;
     },
 
     // MARK: - Fetching & Updating Text
@@ -118,54 +118,8 @@ JSClass("UITextLayer", UILayer, {
             text = JSTextStorage.initWithAttributedString(text);
         }
         this._textStorage = text;
-        this._displayTextLayoutManager.replaceTextStorage(this._textStorage);
+        this._textLayoutManager.replaceTextStorage(this._textStorage);
         this.setNeedsDisplay();
-    },
-
-    // MARK: - Point location to character index conversion
-
-    _convertRectFromTextContainer: function(rect){
-        return JSRect(this._convertPointFromTextContainer(rect.origin), rect.size);
-    },
-
-    _convertRectToTextContainer: function(rect){
-        return JSRect(this._convertPointToTextContainer(rect.origin), rect.size);
-    },
-
-    _convertPointFromTextContainer: function(point){
-        return JSPoint(point.x + this._textInsets.left, point.y + this._textInsets.top);
-    },
-
-    _convertPointToTextContainer: function(point){
-        return JSPoint(point.x - this._textInsets.left, point.y - this._textInsets.top);
-    },
-
-    characterIndexAtPoint: function(point){
-        point = this._convertPointToTextContainer(point);
-        var index = this._displayTextContainer.characterIndexAtPoint(point);
-        return index;
-    },
-
-    rectForCharacterAtIndex: function(index){
-        var rect = this._displayTextContainer.rectForCharacterAtIndex(index);
-        return this._convertRectFromTextContainer(rect);
-    },
-
-    rectForLine: function(line){
-        var rect = JSRect(this._displayTextContainer.rectForLine(line));
-        return this._convertRectFromTextContainer(rect);
-    },
-
-    lineContainingCharacterAtIndex: function(index){
-        return this._displayTextContainer.lineContainingCharacterAtIndex(index);
-    },
-
-    lineBeforeLine: function(line){
-        return this._displayTextContainer.lineBeforeLine(line);
-    },
-
-    lineAfterLine: function(line){
-        return this._displayTextContainer.lineAfterLine(line);
     },
 
     // MARK: - Drawing
@@ -178,38 +132,37 @@ JSClass("UITextLayer", UILayer, {
 
     drawInContext: function(context){
         var textOrigin = JSPoint(this._textInsets.left, this._textInsets.top);
-        if (this._isDisplayContext(context)){
-            this._displayTextLayoutManager.layoutIfNeeded();
-            if (this._displayTextContainer.textFrame !== null){
-                this._displayTextContainer.textFrame.drawInContextAtPoint(context, textOrigin);
-            }
-        }else{
-            var layoutManager = JSTextLayoutManager.init();
-            var textContainer = JSTextContainer.initWithSize(this._displayTextContainer.size);
-            textContainer.maximumNumberOfLines = this._displayTextContainer.maximumNumberOfLines;
-            textContainer.lineBreakMode = this._displayTextContainer.lineBreakMode;
-            textContainer.textAlignment = this._displayTextContainer.textAlignment;
-            layoutManager.addTextContainer(textContainer);
-            this._textStorage.addLayoutManager(layoutManager);
-            textContainer.textFrame.drawInContextAtPoint(context, textOrigin);
-            this._textStorage.removeLayoutManagerAtIndex(1);
-        }
+        this._textLayoutManager.layoutIfNeeded();
+        this._textLayoutManager.drawContainerInContextAtPoint(this._textContainer, context, textOrigin);
+        // if (this._isDisplayContext(context)){
+        // }else{
+        //     var layoutManager = JSTextLayoutManager.init();
+        //     var textContainer = JSTextContainer.initWithSize(this._textContainer.size);
+        //     textContainer.maximumNumberOfLines = this._textContainer.maximumNumberOfLines;
+        //     textContainer.lineBreakMode = this._textContainer.lineBreakMode;
+        //     textContainer.textAlignment = this._textContainer.textAlignment;
+        //     layoutManager.addTextContainer(textContainer);
+        //     this._textStorage.addLayoutManager(layoutManager);
+        //     textContainer.textFrame.drawInContextAtPoint(context, textOrigin);
+        //     this._textStorage.removeLayoutManagerAtIndex(1);
+        // }
     },
 
     layoutSublayers: function(){
         UITextLayer.$super.layoutSublayers.call(this);
         if (this._displayServer !== null){
-            if (this._displayTextContainer.framesetter === null){
-                this._displayTextContainer.framesetter = this._displayServer.createTextFramesetter();
+            if (this._textContainer.framesetter === null){
+                this._textContainer.framesetter = this._displayServer.createTextFramesetter();
             }
-            this._displayTextLayoutManager.layoutIfNeeded();
+            this._textContainer.origin = JSPoint(this._textInsets.left, this._textInsets.top);
+            this._textLayoutManager.layoutIfNeeded();
         }
-        if (this.sizeTracksText && this._displayTextContainer.textFrame !== null){
+        if (this.sizeTracksText && this._textContainer.textFrame !== null){
             this.bounds = JSRect(
                 0,
                 0,
-                this._displayTextContainer.textFrame.size.width + this._textInsets.left + this._textInsets.right,
-                this._displayTextContainer.textFrame.size.height + this._textInsets.top + this._textInsets.bottom
+                this._textContainer.textFrame.size.width + this._textInsets.left + this._textInsets.right,
+                this._textContainer.textFrame.size.height + this._textInsets.top + this._textInsets.bottom
             );
         }
     },

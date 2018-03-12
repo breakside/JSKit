@@ -13,7 +13,6 @@ JSClass("JSTextLine", JSObject, {
     usedSize: JSReadOnlyProperty('_usedSize', null),
     range: JSReadOnlyProperty('_range', null),
     runs: JSReadOnlyProperty('_runs', null),
-    frameIndex: 0,
 
     initWithRuns: function(runs, origin, width, textAlignment){
         this._origin = JSPoint(origin);
@@ -41,7 +40,7 @@ JSClass("JSTextLine", JSObject, {
     },
 
     characterIndexAtPoint: function(point){
-        var run = this.runContainingPoint(point);
+        var run = this.runAtPoint(point);
         if (run !== null){
             point = JSPoint(point.x - run.origin.x, point.y - run.origin.y);
             return run.characterIndexAtPoint(point);
@@ -50,7 +49,7 @@ JSClass("JSTextLine", JSObject, {
     },
 
     rectForCharacterAtIndex: function(index){
-        var run = this.runContainingCharacterAtIndex(index);
+        var run = this.runForCharacterAtIndex(index);
         if (run !== null){
             // FIXME: go all the way to the end of the line if character is not printed, 
             // such as trailing whitespace at the end of a line.
@@ -62,7 +61,7 @@ JSClass("JSTextLine", JSObject, {
         return JSRect.Zero;
     },
 
-    runContainingCharacterAtIndex: function(index){
+    runForCharacterAtIndex: function(index){
         // Bail if we have no runs
         if (this._runs.length === 0){
             return null;
@@ -93,7 +92,7 @@ JSClass("JSTextLine", JSObject, {
         return this._runs[min];
     },
 
-    runContainingPoint: function(point){
+    runAtPoint: function(point){
         // Bail if we have no runs
         if (this._runs.length === 0){
             return null;

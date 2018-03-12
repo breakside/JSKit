@@ -7,6 +7,7 @@
 
 JSClass("JSTextContainer", JSObject, {
 
+    origin: JSDynamicProperty('_origin', JSPoint.Zero),
     size: JSDynamicProperty('_size', null),
     range: JSReadOnlyProperty(),
     lineBreakMode: JSDynamicProperty('_lineBreakMode', JSLineBreakMode.wordWrap),
@@ -19,7 +20,15 @@ JSClass("JSTextContainer", JSObject, {
 
     initWithSize: function(size){
         this.framesetter = JSTextFramesetter.init();
+        this._origin = JSPoint.Zero;
         this._size = JSSize(size);
+    },
+
+    hitTest: function(point){
+        if (point.x >= 0 && point.x < this.size.width && point.y >= 0 && point.y < this.size.height){
+            return true;
+        }
+        return false;
     },
 
     getRange: function(){
@@ -76,15 +85,15 @@ JSClass("JSTextContainer", JSObject, {
         this.framesetter.attributedString = attributedString;
         this._textFrame = this.framesetter.createFrame(size, range, this._maximumNumberOfLines, this._lineBreakMode, this._textAlignment);
         if (this._sizeTracksText){
-            this.size.height = this._textFrame.height;
+            this.size.height = this._textFrame.size.height;
             if (this._maximumNumberOfLines !== 0){
-                this.size.width = this._textFrame.width;
+                this.size.width = this._textFrame.size.width;
             }
         }
     },
 
     characterIndexAtPoint: function(point){
-        var line = this.lineContainingPoint(point);
+        var line = this.lineAtPoint(point);
         if (line !== null){
             point = JSPoint(point.x - line.origin.x, point.y - line.origin.y);
             return line.characterIndexAtPoint(point);
@@ -93,7 +102,7 @@ JSClass("JSTextContainer", JSObject, {
     },
 
     rectForCharacterAtIndex: function(index){
-        var line = this.lineContainingCharacterAtIndex(index);
+        var line = this.lineForCharacterAtIndex(index);
         if (line !== null){
             var rect = line.rectForCharacterAtIndex(index - (line.range.location - this._textFrame.range.location));
             rect.origin.x += line.origin.x;
@@ -104,26 +113,25 @@ JSClass("JSTextContainer", JSObject, {
         return JSRect.Zero;
     },
 
-    lineContainingCharacterAtIndex: function(index){
+    lineIndexForCharacterAtIndex: function(index){
         if (this._textFrame === null){
             return null;
         }
-        return this._textFrame.lineContainingCharacterAtIndex(index);
+        return this._textFrame.lineIndexForCharacterAtIndex(index);
     },
 
-    lineContainingPoint: function(point){
+    lineForCharacterAtIndex: function(index){
         if (this._textFrame === null){
             return null;
         }
-        return this._textFrame.lineContainingPoint(point);
+        return this._textFrame.lineForCharacterAtIndex(index);
     },
 
-    lineBeforeLine: function(line){
-        return this._textFrame.lineBeforeLine(line);
-    },
-
-    lineAfterLine: function(line){
-        return this._textFrame.lineAfterLine(line);
+    lineAtPoint: function(point){
+        if (this._textFrame === null){
+            return null;
+        }
+        return this._textFrame.lineAtPoint(point);
     },
 
     rectForLine: function(line){
