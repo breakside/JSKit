@@ -16,6 +16,7 @@ JSClass("UIWindowServer", JSObject, {
 
     windowInserted: function(window){
         this.windowStack.push(window);
+        window.windowServer = this;
         this.displayServer.layerInserted(window.layer);
         // Force layout and display right now so all sizes are correct when viewDidAppear is called
         this.displayServer.updateDisplay();
@@ -24,6 +25,7 @@ JSClass("UIWindowServer", JSObject, {
     windowRemoved: function(window){
         for (var i = this.windowStack.length - 1; i >= 0; --i){
             if (this.windowStack[i] === window){
+                window.windowServer = null;
                 this.windowStack.splice(i, 1);
                 this.displayServer.layerRemoved(window.layer);
                 break;
@@ -46,6 +48,10 @@ JSClass("UIWindowServer", JSObject, {
             }
         }
         return null;
+    },
+
+    viewDidChangeCursor: function(view){
+        // subclasses should override
     },
 
     mouseDownWindow: null,

@@ -55,6 +55,7 @@ JSClass('UIView', UIResponder, {
     shadowColor:        UIViewLayerProperty(),
     shadowOffset:       UIViewLayerProperty(),
     shadowRadius:       UIViewLayerProperty(),
+    cursor:             JSDynamicProperty('_cursor', null),
     isMultipleTouchEnabled: false,
 
     // -------------------------------------------------------------------------

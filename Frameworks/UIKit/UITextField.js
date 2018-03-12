@@ -1,7 +1,8 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UITextLayer.js"
 // #import "UIKit/UITextEditor.js"
-/* global JSClass, JSProtocol, UIView, JSRect, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard */
+// #import "UIKit/UICursor.js"
+/* global JSClass, JSProtocol, UIView, UICursor, JSRect, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard */
 
 'use strict';
 
@@ -48,6 +49,12 @@ JSClass("UITextField", UIView, {
         this._localEditor = UITextEditor.initWithTextLayer(this._textLayer);
         this._localEditor.delegate = this;
         this.layer.addSublayer(this._textLayer);
+        this.cursor = UICursor.iBeam;
+    },
+
+    setEnabled: function(enabled){
+        this._enabled = enabled;
+        this.cursor = this._enabled ? UICursor.iBeam : null;
     },
 
     setMultiline: function(multiline){

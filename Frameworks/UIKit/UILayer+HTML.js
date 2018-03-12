@@ -1,6 +1,7 @@
 // #import "UIKit/UILayer.js"
+// #import "UIKit/UIView.js"
 // #import "UIKit/UIDisplayServer.js"
-/* global UILayer, JSConstraintBox, JSPoint, UIDisplayServer */
+/* global UILayer, JSConstraintBox, JSPoint, UIDisplayServer, UIView */
 'use strict';
 
 UILayer.definePropertiesFromExtensions({
@@ -99,4 +100,5 @@ UILayer.definePropertiesFromExtensions({
             context.style.boxShadow = '';
         }
     }
+
 });

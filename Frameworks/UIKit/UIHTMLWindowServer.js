@@ -95,6 +95,15 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         }
     },
 
+    viewDidChangeCursor: function(view){
+        var context = this.displayServer.contextForLayer(view.layer);
+        if (view.cursor !== null){
+            context.style.cursor = view.cursor.cssString();
+        }else{
+            context.style.cursor = '';
+        }
+    },
+
     mousedown: function(e){
         switch (e.button){
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:

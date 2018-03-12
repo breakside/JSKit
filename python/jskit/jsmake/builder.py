@@ -315,6 +315,7 @@ class Builder(object):
                     scale = int(matches.group(1))
             else:
                 vector = True
+                scale = None
             if filename:
                 imageFullPath = os.path.join(fullPath, filename)
                 mimeguess = mimetypes.guess_type(imageFullPath)
