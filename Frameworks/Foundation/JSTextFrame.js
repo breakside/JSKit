@@ -1,6 +1,6 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/CoreTypes.js"
-/* global JSClass, JSObject, JSSize, JSRange, JSRect, JSPoint, JSDynamicProperty, JSReadOnlyProperty */
+/* global JSClass, JSObject, JSSize, JSRange, JSRect, JSPoint, JSDynamicProperty, JSReadOnlyProperty, JSTextAlignment */
 'use strict';
 
 (function(){
@@ -12,8 +12,7 @@ JSClass("JSTextFrame", JSObject, {
     range: JSReadOnlyProperty('_range', null),
     lines: JSReadOnlyProperty('_lines', null),
 
-    initWithLines: function(lines, size){
-        this._usedSize = JSSize.Zero;
+    initWithLines: function(lines, size, textAlignment){
         if (lines.length > 0){
             this._range = JSRange(lines[0].range.location, lines[lines.length - 1].range.end - lines[0].range.location);   
         }else{
@@ -21,16 +20,33 @@ JSClass("JSTextFrame", JSObject, {
         }
         this._lines = lines;
         var line;
+        var y = 0;
+        var width = 0;
+        this._size = JSSize(size.width, size.height);
         for (var i = 0, l = lines.length; i < l; ++i){
             line = lines[i];
-            if (line.origin.y + line.size.height > this._usedSize.height){
-                this._usedSize.height = line.origin.y + line.size.height;
-            }
-            if (line.origin.x + line.size.width > this._usedSize.width){
-                this._usedSize.width = line.origin.x + line.size.width;
+            line.origin.y = y;
+            y += line.size.height;
+            if (line.size.width > width){
+                width = line.size.width;
             }
         }
-        this._size = JSSize(size.width || this._usedSize.width, size.height || this._usedSize.height);
+        this._usedSize = JSSize(width, y);
+        this._size = JSSize(this._size.width || this._usedSize.width, this._size.height || this._usedSize.height);
+        switch (textAlignment){
+            case JSTextAlignment.center:
+                for (i = 0, l = lines.length; i < l; ++i){
+                    line = lines[i];
+                    line.origin.x = (this._size.width - line.size.width + line.trailingWhitespaceWidth) / 2.0;
+                }
+                break;
+            case JSTextAlignment.right:
+                for (i = 0, l = lines.length; i < l; ++i){
+                    line = lines[i];
+                    line.origin.x = (this._size.width - line.size.width + line.trailingWhitespaceWidth);
+                }
+                break;
+        }
     },
 
     drawInContextAtPoint: function(context, point){

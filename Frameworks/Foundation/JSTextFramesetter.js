@@ -2,14 +2,14 @@
 // #import "Foundation/CoreTypes.js"
 // #import "Foundation/JSTextTypesetter.js"
 // #import "Foundation/JSTextFrame.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSTextTypesetter, JSTextFrame, JSPoint, JSLineBreakMode, JSRange */
+/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSTextTypesetter, JSTextFrame, JSPoint, JSLineBreakMode, JSRange, JSTextAlignment */
 'use strict';
 
 (function(){
 
 JSClass("JSTextFramesetter", JSObject, {
 
-    typesetter: JSReadOnlyProperty('_typesetter'),
+    typesetter: JSReadOnlyProperty('_typesetter', null),
     attributedString: JSDynamicProperty(),
 
     init: function(){
@@ -28,35 +28,43 @@ JSClass("JSTextFramesetter", JSObject, {
         this._typesetter.attributedString = attributedString;
     },
 
-    constructFrame: function(lines, size){
-        return JSTextFrame.initWithLines(lines, size);
+    constructFrame: function(lines, size, textAlignment){
+        return JSTextFrame.initWithLines(lines, size, textAlignment);
     },
 
     createFrame: function(size, range, maximumLines, lineBreakMode, textAlignment){
         var remianingRange = JSRange(range);
-        var origin = JSPoint.Zero;
+        var y = 0;
         var lines = [];
         var line;
+        var lineRange;
         do{
-            line = this._typesetter.createLine(origin, size.width, remianingRange, this.effectiveLineBreakMode(lineBreakMode, lines.length + 1, maximumLines), textAlignment);
-            origin.y += line.size.height;
+            lineRange = this._typesetter.suggestLineBreak(size.width, remianingRange, this.effectiveLineBreakMode(lineBreakMode, lines.length + 1, maximumLines));
+            line = this._typesetter.createLine(lineRange);
+            y += line.size.height;
             // TODO: any line spacing?
-            if (size.height === 0 || origin.y <= size.height){
+            if (size.height === 0 || y <= size.height){
                 lines.push(line);
                 remianingRange.advance(line.range.length);
             }
-        } while (line.range.length > 0 && remianingRange.length > 0 && (size.height === 0 || origin.y < size.height) && (maximumLines === 0 || lines.length < maximumLines));
+        } while (lineRange.length > 0 && remianingRange.length > 0 && (size.height === 0 || y < size.height) && (maximumLines === 0 || lines.length < maximumLines));
 
-        // If we don't have a maximum number of lines, but we were limited by size,
-        // and we want to tail truncate, then redo the final line with tail truncation on,
-        // since we didn't specify it ahead of time, not knowing if this was the final line or not.
-        if (maximumLines === 0 && remianingRange.length > 0 && lineBreakMode == JSLineBreakMode.truncateTail){
+        if (lineBreakMode == JSLineBreakMode.truncateTail){
             line = lines.pop();
-            origin = JSPoint(line.origin);
-            line = this._typesetter.createLine(origin, size.width, JSRange(line.range.location, remianingRange.end - line.range.location), lineBreakMode, textAlignment);
-            lines.push(line);
+            if (remianingRange.length > 0 && maximumLines === 0 || maximumLines > lines.length){
+                // we got truncated because of height.  Re-run the last line so it
+                // gets broken according to truncation rules rather than work break
+                lineRange = this._typesetter.suggestLineBreak(size.width, JSRange(line.range.location, line.range.length + remianingRange.length), lineBreakMode);
+                line = this._typesetter.createLine(lineRange);
+            }
+            var width = size.width;
+            if (width === 0){
+                width = Number.MAX_VALUE;
+            }
+            var truncated = line.truncatedLine(width);
+            lines.push(truncated);
         }
-        return this.constructFrame(lines, size);
+        return this.constructFrame(lines, size, textAlignment);
     },
 
     effectiveLineBreakMode: function(frameLineBreakMode, lineNumber, maximumLines){

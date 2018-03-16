@@ -11,42 +11,18 @@ JSClass("UIHTMLTextRun", JSTextRun, {
     element: null,
     textNode: null,
 
-    initWithGlyphStorage: function(glyphStorage, attributes){
-        UIHTMLTextRun.$super.initWithGlyphStorage.call(this, glyphStorage, attributes);
-        this.element = glyphStorage.element;
-        this.textNode = glyphStorage.textNode;
-        this.styleUsingAttributes(attributes);
-        this._size = JSSize(this.element.offsetWidth, this.element.offsetHeight);
+    initWithElement: function(element, font, attributes, range){
+        UIHTMLTextRun.$super.initWithGlyphs.call(this, [], font, attributes, range);
+        this.element = element;
+        this.textNode = element.firstChild;
         if (sharedDomRange === null){
             sharedDomRange = this.element.ownerDocument.createRange();
         }
     },
 
-    initWithAttachment: function(attachment, size, range){
-        UIHTMLTextRun.$super.initWithAttachment.call(this, attachment, size, range);
-    },
-
     updateOrigin: function(){
         this._origin.x = this.element.offsetLeft;
         this._origin.y = this.element.offsetTop;
-    },
-
-    styleUsingAttributes: function(attributes){
-        // Decorations (underline, strike)
-        var decorations = [];
-        if (attributes[JSAttributedString.Attribute.Underline]){
-            decorations.push('underline');
-        }
-        if (attributes[JSAttributedString.Attribute.Strike]){
-            decorations.push('line-through');
-        }
-        this.element.style.textDecoration = decorations.join(' ');
-
-        // Colors
-        var textColor = attributes[JSAttributedString.Attribute.TextColor];
-        var backgroundColor = attributes[JSAttributedString.Attribute.BackgroundColor];
-        this.element.style.color = textColor.cssString();
-        this.element.style.backgroundColor = backgroundColor ? backgroundColor.cssString() : '';
     },
 
     characterIndexAtPoint: function(point){
@@ -78,6 +54,16 @@ JSClass("UIHTMLTextRun", JSTextRun, {
             }
         }
         return this.range.location + min;
+    },
+
+    widthOfRange: function(range){
+        if (range.length === 0){
+            return 0;
+        }
+        sharedDomRange.setStart(this.textNode, range.location);
+        sharedDomRange.setEnd(this.textNode, range.end);
+        var clientRect = this._pickCorrectClientRectFromRects(sharedDomRange.getClientRects());
+        return clientRect.width;
     },
 
     rectForCharacterAtIndex: function(index){

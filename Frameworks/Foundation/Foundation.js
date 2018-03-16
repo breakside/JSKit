@@ -32,10 +32,10 @@
 // #import "Foundation/JSTextStorage.js"
 // #import "Foundation/JSTextFramesetter.js"
 // #import "Foundation/JSTextTypesetter.js"
-// #import "Foundation/JSTextGlyphStorage.js"
 // #import "Foundation/JSTextFrame.js"
 // #import "Foundation/JSTextLine.js"
 // #import "Foundation/JSTextRun.js"
+// #import "Foundation/JSTextGlyph.js"
 
 // #import "Foundation/JSTimer.js"
 

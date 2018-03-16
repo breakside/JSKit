@@ -2,10 +2,10 @@
 // #import "Foundation/CoreTypes.js"
 // #import "Foundation/JSAttributedString.js"
 // #import "Foundation/JSFont.js"
-// #import "Foundation/JSTextGlyphStorage.js"
 // #import "Foundation/JSTextLine.js"
 // #import "Foundation/JSTextRun.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSTextGlyphStorage, JSTextTypesetter, JSSize, JSRange, JSTextAlignment, JSTextLine, JSTextRun, JSPoint, JSAttributedString, JSFont, jslog_create, JSLineBreakMode */
+// #import "Foundation/JSTextGlyph.js"
+/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSTextTypesetter, JSSize, JSRange, JSTextAlignment, JSTextLine, JSTextRun, JSPoint, JSAttributedString, JSFont, jslog_create, JSLineBreakMode, JSTextGlyph */
 'use strict';
 
 (function(){
@@ -15,145 +15,131 @@ var logger = jslog_create("com.owenshaw.AlohaKit.typesetter");
 JSClass("JSTextTypesetter", JSObject, {
 
     attributedString: JSDynamicProperty('_attributedString'),
+    _suggestedLineLayout: null,
+
+    // MARK: - Creating a typesetter
 
     init: function(){
     },
 
-    constructLine: function(runs, origin, width, textAlignment){
-        return JSTextLine.initWithRuns(runs, origin, width, textAlignment);
+    setAttributedString: function(attributedString){
+        this._attributedString = attributedString;
     },
 
-    constructAttachmentRun: function(attachment, size, range){
-        return JSTextRun.initWithAttachment(attachment, size, range);
-    },
+    // MARK: - Creating a Line
 
-    constructRun: function(glyphStorage, attributes){
-        return JSTextRun.initWithGlyphStorage(glyphStorage, attributes);
-    },
-
-    constructGlyphStorage: function(font, location){
-        return JSTextGlyphStorage.initWithFont(font, location);
-    },
-
-    createLine: function(origin, width, range, lineBreakMode, textAlignment){
+    createLine: function(range){
         if (range.length === 0){
-            return this._createEmptyLine(origin, width, range, textAlignment);
+            return this._createEmptyLine(range);
+        }
+        var layout = this._suggestedLineLayout;
+        if (layout === null || !range.isEqual(layout.range)){
+            layout = this._layoutLine(Number.MAX_VALUE, range, JSLineBreakMode.characterWrap);
+        }
+        return this._createLineFromLayout(layout);
+    },
+
+    suggestLineBreak: function(width, range, lineBreakMode){
+        if (range.length === 0){
+            return JSRange(range);
         }
         if (width === 0){
-            return this._createUnconstrainedLine(origin, this._unconstrainedLineRange(range));
+            width = Number.MAX_VALUE;
         }
-        return this._createConstrainedLine(origin, width, range, lineBreakMode, textAlignment);
+        this._suggestedLineLayout = this._layoutLine(width, range, lineBreakMode);
+        return this._suggestedLineLayout.range;
     },
 
-    _createEmptyLine: function(origin, width, range, textAlignment){
+    // MARK: - Private Helpers for Line Creation
+
+    _createEmptyLine: function(range){
         var attributes = this._attributedString.attributesAtIndex(range.location);
         var font = JSTextTypesetter.FontFromAttributes(attributes);
-        var glyphStorage = this.constructGlyphStorage(font, range.location);
-        glyphStorage.pushExtra('\u200B');
-        var run = this.constructRun(glyphStorage, attributes);
-        return this.constructLine([run], origin, width, textAlignment);
+        return JSTextLine.initWithHeight(font.lineHeight, range.location);
     },
 
-    _unconstrainedLineRange: function(range){
-        var iterator = this._attributedString.string.userPerceivedCharacterIterator();
-        var end = range.end;
-        while (iterator.index < end && !iterator.isMandatoryLineBreak){
-            iterator.increment();
-        }
-        if (iterator.isMandatoryLineBreak){
-            iterator.increment();
-        }
-        if (iterator.index < end){
-            end = iterator.index;
-        }
-        return JSRange(range.location, end - range.location);
-    },
-
-    _createUnconstrainedLine: function(origin, range){
-        // No need to worry about line breaking, just make a line from the given range
+    _createLineFromLayout: function(layout){
+        // Create runs from the adjusted run descriptors
         var runs = [];
         var run;
         var x = 0;
-        var runIterator = this._attributedString.runIterator(range.location);
-        var remainingRange = JSRange(range);
-        do {
-            run = this._createUnconstrainedRun(remainingRange.intersection(runIterator.range), runIterator.attributes);
+        var runDescriptor;
+        for (var i = 0, l = layout.runDescriptors.length; i < l; ++i){
+            runDescriptor = layout.runDescriptors[i];
+            run = JSTextRun.initWithGlyphs(runDescriptor.glyphStack, runDescriptor.font, runDescriptor.attributes, JSRange(runDescriptor.location, runDescriptor.length));
             run.origin.x = x;
             x += run.size.width;
             runs.push(run);
-            remainingRange.advance(run.range.length);
-            runIterator.increment();
-        } while (remainingRange.length > 0);
-        // text alignment doesn't matter here because the line is only as wide as its content, so
-        // there's no room to adjust the run layout.
-        return this.constructLine(runs, origin, 0, JSTextAlignment.left);
-    },
-
-    _createUnconstrainedRun: function(range, attributes){
-        var iterator = this._attributedString.string.unicodeIterator(range.location);
-
-        // 1. Attachment Run
-        if (range.length === 1 && iterator.character.code == JSAttributedString.SpecialCharacter.Attachment){
-            // TODO: get attachment & size
-            var attachment = null;
-            var size = null;
-            return this.constructAttachmentRun(attachment, size, range);
         }
 
-        // 2. Glyph Run
-        var font = JSTextTypesetter.FontFromAttributes(attributes);
-        var glyphStorage = this.constructGlyphStorage(font, range.location);
-        glyphStorage.push(this._attributedString.string.substringInRange(range));
-        return this.constructRun(glyphStorage, attributes);
+        if (runs.length === 0){
+            return this._createEmptyLine(layout.range);
+        }
+
+        // Create a line from the runs
+        return JSTextLine.initWithRuns(runs, layout.trailingWhitespaceWidth);
     },
 
-    _createConstrainedLine: function(origin, width, range, lineBreakMode, textAlignment){
+    // MARK: - Private Helpers for Line Break Suggestion
+
+    fallbackFontsForFont: function(font){
+        // TODO: use font descriptor to choose an appropriate fallback font
+        return [];
+    },
+
+    fallbackFontForCharacter: function(character, defaultFont){
+        var i = 0;
+        var fallbackFonts = this.fallbackFontsForFont(defaultFont);
+        while (i < fallbackFonts.length){
+            if (fallbackFonts[i].containsGlyphForCharacter(character.code)){
+                return fallbackFonts[i];
+            }
+        }
+        return defaultFont;
+    },
+
+    _layoutLine: function(width, range, lineBreakMode){
         var remainingRange = JSRange(range);
         var runDescriptors = [];
         var i, l;
         var usedWidth = 0;
-        var usedPrintableWidth = 0;
         var newline = false;
-        var iterator = this._attributedString.string.userPerceivedCharacterIterator(range.location);
-        var runIterator = this._attributedString.runIterator(range.location);
-        var initialLineAttributes = runIterator.attributes;
         var font;
-        var glyphStorage = null;
-        var printableRange = JSRange(range.location, 0);
+        var glyph;
+        var runDescriptor = null;
+        var printableRange = JSTextTypesetterPrintableRange(range.location, 0, 0);
         var printableRanges = [printableRange];
         var printable;
 
+        var iterator = this._attributedString.string.userPerceivedCharacterIterator(range.location);
+        var runIterator = this._attributedString.runIterator(range.location);
+        var initialLineAttributes = runIterator.attributes;
         // Create run descriptors that at least fill the line
         do {
-            if (runIterator.range.length == 1 && iterator.firstCharacter.code == JSAttributedString.SpecialCharacter.Attachment){
-                // attachment run
-                // TODO: get attachment & size
-                var attachment = null;
-                var size = null;
-                runDescriptors.push({attachment: attachment, size: size, range: JSRange(runIterator.range), attributes: runIterator.attributes});
-                usedWidth += size.width;
-                printable = true;
-            }else{
-                // glyph run
-                if (glyphStorage === null){
-                    font = JSTextTypesetter.FontFromAttributes(runIterator.attributes);
-                    glyphStorage = this.constructGlyphStorage(font, remainingRange.location);
-                    runDescriptors.push({glyphStorage: glyphStorage, attributes: runIterator.attributes});
-                }
-                newline = iterator.isMandatoryLineBreak;
-                printable = !newline && iterator.firstCharacter.code != 0x20; // FIXME: consider all whitespace codes
-                usedWidth -= glyphStorage.width;
-                glyphStorage.push(iterator.utf16);
-                usedWidth += glyphStorage.width;
+            // if (runIterator.range.length == 1 && iterator.firstCharacter.code == JSAttributedString.SpecialCharacter.Attachment){
+            //     // attachment run
+            //     // TODO: get attachment size
+            //     var attachment = runIterator.attributes[JSAttributedString.Attribute.attachment];
+            // }
+            if (runDescriptor === null){
+                runDescriptor = JSTextTypesetterRunDescriptor(remainingRange.location, runIterator.attributes);
+                runDescriptors.push(runDescriptor);
             }
+            newline = iterator.isMandatoryLineBreak;
+            printable = !newline && !iterator.isWhiteSpace;
+            // TODO: fallback fonts
+            glyph = JSTextGlyph.FromUTF16(iterator.utf16, runDescriptor.font);
+            usedWidth += glyph.width;
+            runDescriptor.glyphStack.push(glyph);
+            runDescriptor.length += glyph.length;
             remainingRange.advance(iterator.range.length);
             if (printable){
-                usedPrintableWidth = usedWidth;
                 if (printableRange === null){
-                    printableRange = JSRange(iterator.range);
+                    printableRange = JSTextTypesetterPrintableRange(iterator.range.location, iterator.range.length, usedWidth);
                     printableRanges.push(printableRange);
                 }else{
                     printableRange.length += iterator.range.length;
+                    printableRange.width = usedWidth;
                 }
             }else{
                 printableRange = null;
@@ -172,13 +158,14 @@ JSClass("JSTextTypesetter", JSObject, {
                 do {
                     runIterator.increment();
                 }while (runIterator.range.end < iterator.range.location);
-                glyphStorage = null;
+                runDescriptor = null;
             }
-        } while (remainingRange.length > 0 && usedPrintableWidth <= width && !newline);
+        } while (remainingRange.length > 0 && printableRanges[printableRanges.length - 1].width <= width && !newline);
 
-        // Remove any characters causing overage, and add any truncation ellipsis
-        var runDescriptor;
-        if (usedPrintableWidth > width){
+        // Remove any characters causing overage
+        // But do nothing in truncation mode, just let the final character overflow so it can
+        // be appropriately truncated by the caller
+        if (printableRanges[printableRanges.length - 1].width > width && lineBreakMode != JSLineBreakMode.truncateTail){
 
             if (lineBreakMode == JSLineBreakMode.wordWrap){
                 // word wrapping
@@ -197,120 +184,49 @@ JSClass("JSTextTypesetter", JSObject, {
                     usedWidth -= this._truncateRunDescriptorsToLocation(runDescriptors, iterator.range.location);
                     this._truncateRangesToLocation(printableRanges, iterator.range.location);
                 }
-
-            }else if (lineBreakMode == JSLineBreakMode.truncateTail){
-                // character truncation with ellipsis
-
-                var ellipsis = "\u2026";
-                while (usedWidth > width && runDescriptors.length > 0){
-                    iterator.decrement();
-                    usedWidth -= this._truncateRunDescriptorsToLocation(runDescriptors, iterator.range.location);
-                    this._truncateRangesToLocation(printableRanges, iterator.range.location);
-                    if (runDescriptors.length === 0){
-                        // We've cut all the way back to the beginning of the line, try to show just an ellipsis,
-                        // and finally show nothing if even the ellipsis won't fit.
-                        glyphStorage = this.constructGlyphStorage(JSTextTypesetter.FontFromAttributes(initialLineAttributes), range.location);
-                        glyphStorage.pushExtra(ellipsis);
-                        if (glyphStorage.width <= width){
-                            usedWidth = glyphStorage.width;
-                            runDescriptors.push({glyphStorage: glyphStorage, attributes: initialLineAttributes});
-                            printableRanges[0].length = 1;
-                        }else{
-                            usedWidth = 0;
-                        }
-                    }else{
-                        runDescriptor = runDescriptors[runDescriptors.length - 1];
-                        if (runDescriptor.attachment){
-                            // The final descriptor is an attachment, so add a new glyph run for the ellipsis
-                            glyphStorage = this.constructGlyphStorage(JSTextTypesetter.FontFromAttributes(runDescriptor.attributes), runDescriptor.range.end);
-                            glyphStorage.pushExtra(ellipsis);
-                            usedWidth += glyphStorage.width;
-                            printableRanges[printableRanges.length - 1].length += 1;
-                        }else{
-                            // Add the ellipsis to the end of the final glyph run
-                            usedWidth -= runDescriptor.glyphStorage.width;
-                            runDescriptor.glyphStorage.pushExtra(ellipsis);
-                            usedWidth += runDescriptor.glyphStorage.width;
-                            if (printableRanges[printableRanges.length - 1].end == runDescriptor.glyphStorage.range.end){
-                                printableRanges[printableRanges.length - 1].length += 1;
-                            }else{
-                                printableRanges.push(JSRange(runDescriptor.glyphStorage.range.end, 1));
-                            }
-                        }
-                    }
-                }
-
             }else{
                 // character wrapping (or unknown/invalid line break mode value)
                 iterator.decrement();
                 usedWidth -= this._truncateRunDescriptorsToLocation(runDescriptors, iterator.range.location);
                 this._truncateRangesToLocation(printableRanges, iterator.range.location);
             }
+
+            printableRanges[printableRanges.length - 1].width = Math.min(usedWidth, printableRanges[printableRanges.length - 1].width);
         }
 
-        // remove non-printable trailing glyphs
-        // NOTE: while we could remove any runs that become empty after trimming
-        // whitespace, I prefer to keep them intact as 0-width, but non-0 range
-        // runs, which ensures that the range of every run in the line equals
-        // the range of the line.
         if (runDescriptors.length > 0){
-            i = runDescriptors.length - 1;
-            runDescriptor = runDescriptors[i];
-            // non-printable characters can only happen with glyph runs, so there's nothing to do if we see an attachment run
-            if (!runDescriptor.attachment){
-                var printableEnd = printableRanges[printableRanges.length - 1].end;
-                var trimLocation = runDescriptor.glyphStorage.range.end;
-                while (trimLocation > printableEnd && usedWidth > width){
-                    --trimLocation;
-                    runDescriptor = runDescriptors[i];
-                    usedWidth -= runDescriptor.glyphStorage.width;
-                    runDescriptor.glyphStorage.trimTrailingWhitespace(runDescriptor.glyphStorage.range.end - trimLocation);
-                    usedWidth += runDescriptor.glyphStorage.width;
-                    if (trimLocation == runDescriptor.glyphStorage.range.location){
-                        --i;
-                    }
-                }
-            }
+            var lastDescriptor = runDescriptors[runDescriptors.length - 1];
+            return {
+                runDescriptors: runDescriptors,
+                range: JSRange(range.location, lastDescriptor.location + lastDescriptor.length - range.location),
+                trailingWhitespaceWidth: usedWidth - printableRanges[printableRanges.length - 1].width
+            };
         }
 
-        // Create runs from the adjusted run descriptors
-        var runs = [];
-        var run;
-        var x = 0;
-        for (i = 0, l = runDescriptors.length; i < l; ++i){
-            run = this._createRunFromRunDescriptor(runDescriptors[i]);
-            run.origin.x = x;
-            x += run.size.width;
-            runs.push(run);
-        }
-
-        if (runs.length === 0){
-            return this._createEmptyLine(origin, width, range, textAlignment);
-        }
-
-        // Create a line from the runs
-        return this.constructLine(runs, origin, width, textAlignment);
+        return {
+            runDescriptors: [],
+            range: JSRange(range.location, 0),
+            trailingWhitespaceWidth: 0
+        };
     },
 
     _truncateRunDescriptorsToLocation: function(runDescriptors, location){
         var runDescriptor;
         var end = location + 1;
         var removedWidth = 0;
+        var glyph;
+        var i, l;
         while (runDescriptors.length > 0 && end > location){
             runDescriptor = runDescriptors[runDescriptors.length - 1];
-            if (runDescriptor.attachment){
-                end = runDescriptor.range.location;
-                removedWidth += runDescriptor.width;
+            end = runDescriptor.location + runDescriptor.length;
+            while (runDescriptor.glyphStack.length > 0 && end > location){
+                glyph = runDescriptor.glyphStack.pop();
+                end -= glyph.length;
+                removedWidth += glyph.width;
+                runDescriptor.length -= glyph.length;
+            }
+            if (runDescriptor.glyphStack.length === 0){
                 runDescriptors.pop();
-            }else{
-                end = runDescriptor.glyphStorage.range.location;
-                removedWidth += runDescriptor.glyphStorage.width;
-                if (end >= location){
-                    runDescriptors.pop();
-                }else{
-                    runDescriptor.glyphStorage.truncate(location - runDescriptor.glyphStorage.range.location);
-                    removedWidth -= runDescriptor.glyphStorage.width;
-                }
             }
         }
         return removedWidth;
@@ -329,29 +245,55 @@ JSClass("JSTextTypesetter", JSObject, {
             }
         }
         if (ranges.length === 0){
-            ranges.push(JSRange(location, 0));
+            ranges.push(JSTextTypesetterPrintableRange(location, 0, 0));
         }
-    },
-
-    _createRunFromRunDescriptor: function(runDescriptor){
-        if (runDescriptor.glyphStorage){
-            return this.constructRun(runDescriptor.glyphStorage, runDescriptor.attributes);
-        }
-        if (runDescriptor.attachment){
-            this.constructAttachmentRun(runDescriptor.attachment, runDescriptor.size, runDescriptor.range);
-        }
-        throw Error("Invalid run descriptor");
     }
 
 });
 
-JSTextTypesetter.FontFromAttributes = function(attributes){
-    var font = attributes[JSAttributedString.Attribute.Font];
-    if (attributes[JSAttributedString.Attribute.Bold]){
-        font = font.fontWithWeight(JSFont.Weight.Bold);
+var JSTextTypesetterRunDescriptor = function(location, attributes){
+    if (this === undefined){
+        return new JSTextTypesetterRunDescriptor(location, attributes);
     }
-    if (attributes[JSAttributedString.Attribute.Italic]){
-        font = font.fontWithStyle(JSFont.Style.Italic);
+    if (location instanceof JSTextTypesetterRunDescriptor){
+        this.location = location.location;
+        this.attributes = location.attributes;
+        this.length = location.length;
+        this.glyphStack = location.glyphStack;
+        this.height = location.height;
+        this.font = location.font;
+    }else{
+        this.location = location;
+        this.attributes = attributes;
+        this.font = JSTextTypesetter.FontFromAttributes(attributes);
+        this.height = this.font.lineHeight;
+        this.length = 0;
+        this.glyphStack = [];
+    }
+};
+
+var JSTextTypesetterPrintableRange = function(location, length, width){
+    if (this === undefined){
+        return new JSTextTypesetterPrintableRange(location, length, width);
+    }
+    if (location instanceof JSTextTypesetterPrintableRange){
+        this.location = location.location;
+        this.length = location.length;
+        this.width = location.width;
+    }else{
+        this.location = location;
+        this.length = length;
+        this.width = width;
+    }
+};
+
+JSTextTypesetter.FontFromAttributes = function(attributes){
+    var font = attributes[JSAttributedString.Attribute.font];
+    if (attributes[JSAttributedString.Attribute.bold]){
+        font = font.fontWithWeight(JSFont.Weight.bold);
+    }
+    if (attributes[JSAttributedString.Attribute.italic]){
+        font = font.fontWithStyle(JSFont.Style.italic);
     }
     return font;
 };

@@ -2490,9 +2490,9 @@ JSClass("UITextEditorTests", TKTestSuite, {
         editor.setSelectionRange(JSRange(61, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
         editor.moveUp();
         TKAssertEquals(editor.selections.length, 1);
-        TKAssertEquals(editor.selections[0].range.location, 29);
+        TKAssertEquals(editor.selections[0].range.location, 30);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
 
         this.textLayer.text =
             "This_is_a_test_of_a_multiline" +
@@ -2738,10 +2738,10 @@ JSClass("UITextEditorTests", TKTestSuite, {
         editor.setSelectionRange(JSRange(61, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
         editor.moveUpAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
-        TKAssertEquals(editor.selections[0].range.location, 29);
-        TKAssertEquals(editor.selections[0].range.length, 32);
-        TKAssertEquals(editor.selections[0].insertionLocation, 29);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].range.location, 30);
+        TKAssertEquals(editor.selections[0].range.length, 31);
+        TKAssertEquals(editor.selections[0].insertionLocation, 30);
+        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
 
         this.textLayer.text =
             "This_is_a_test_of_a_multiline" +
@@ -2926,7 +2926,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
 JSClass("UITextEditorTestsFont", JSFont, {
 
     init: function(){
-        this._descriptor = JSFontDescriptor.initWithProperties("UITextEditorTestsFont", JSFont.Weight.Regular, JSFont.Style.Normal);
+        this._descriptor = JSFontDescriptor.initWithProperties("UITextEditorTestsFont", JSFont.Weight.regular, JSFont.Style.normal);
         this._fullName = "UITextEditorTestsFont";
         this._postScriptName = "UITextEditorTestsFont";
         this._faceName = "UITextEditorTestsFont";

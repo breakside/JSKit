@@ -200,23 +200,35 @@ JSClass("UITextEditor", JSObject, {
     },
 
     _cursorRectForSelection: function(selection){
-        var characterRect;
+        var index = selection.insertionLocation;
+        var useRightEdge = false;
         if (selection.affinity === UITextEditor.SelectionAffinity.afterPreviousCharacter && selection.insertionLocation > 0){
-            characterRect = this.textLayoutManager.rectForCharacterAtIndex(selection.insertionLocation - 1);
-            return JSRect(
-                characterRect.origin.x + characterRect.size.width,
-                characterRect.origin.y,
-                1.0,
-                characterRect.size.height
-            );
+            index -= 1;
+            useRightEdge = true;
         }
-        characterRect = this.textLayoutManager.rectForCharacterAtIndex(selection.insertionLocation);
-        return JSRect(
-            characterRect.origin.x,
-            characterRect.origin.y,
-            1.0,
-            characterRect.size.height
+        var container = this.textLayoutManager.textContainerForCharacterAtIndex(index);
+        if (container === null){
+            return JSRect.Zero;
+        }
+        var rect = container.rectForCharacterAtIndex(index);
+        var x = rect.origin.x;
+        var cursorWidth = 1.0;
+        if (useRightEdge){
+            x += rect.size.width;
+        }
+        if (x < 0){
+            x = 0;
+        }
+        if (x > container.size.width - cursorWidth){
+            x = container.size.width - cursorWidth;
+        }
+        var cursorRectInContainer = JSRect(
+            x,
+            rect.origin.y,
+            cursorWidth,
+            rect.size.height
         );
+        return this.textLayoutManager.convertRectFromTextContainer(cursorRectInContainer, container);
     },
 
     _cursorOff: function(){

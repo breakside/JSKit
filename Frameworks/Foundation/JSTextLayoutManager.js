@@ -68,15 +68,15 @@ JSClass("JSTextLayoutManager", JSObject, {
 
     setDefaultTextColor: function(color){
         this._defaultTextColor = color;
-        this.setNeedsLayout();
+        // this.setNeedsLayout();
     },
 
     // MARK: - Private Helpers for finalizing runs
 
     effectiveAttributedString: function(){
         var defaultAttributes = {};
-        defaultAttributes[JSAttributedString.Attribute.Font] = this._defaultFont;
-        defaultAttributes[JSAttributedString.Attribute.TextColor] = this._defaultTextColor;
+        defaultAttributes[JSAttributedString.Attribute.font] = this._defaultFont;
+        defaultAttributes[JSAttributedString.Attribute.textColor] = this._defaultTextColor;
         var str = JSAttributedString.initWithAttributedString(this._textStorage, defaultAttributes);
         // TODO: add temporary attributes
         return str;

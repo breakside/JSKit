@@ -270,14 +270,14 @@ JSClass("JSAttributedString", JSObject, {
 });
 
 JSAttributedString.Attribute = {
-    Font: "font",
-    TextColor: "textColor",
-    BackgroundColor: "backgroundColor",
-    Bold: "bold",
-    Italic: "italic",
-    Underline: "underline",
-    Strike: "strike",
-    Attachment: "attachment"
+    font: "font",
+    textColor: "textColor",
+    backgroundColor: "backgroundColor",
+    bold: "bold",
+    italic: "italic",
+    underline: "underline",
+    strike: "strike",
+    attachment: "attachment"
 };
 
 JSAttributedString.SpecialCharacter = {

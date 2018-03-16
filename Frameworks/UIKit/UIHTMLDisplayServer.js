@@ -217,6 +217,53 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     createTextFramesetter: function(){
         return UIHTMLTextFramesetter.initWithDocument(this.domDocument);
+    },
+
+    // MARK: - Debugging
+
+    _clientRectElements: null,
+
+    _clientRectColors: [
+        'rgba(255,0,0,0.5)',
+        'rgba(0,0,255,0.5)',
+        'rgba(0,255,128,0.5)',
+        'rgba(255,128,128,0.5)',
+    ],
+
+    showClientRects: function(obj){
+        if (this._clientRectElements === null){
+            this._clientRectElements = [];
+        }
+        var parentRect = this.rootElement.getBoundingClientRect();
+        var rects = obj.getClientRects();
+        var element;
+        for (var i = 0, l = rects.length; i < l; ++i){
+            if (i < this._clientRectElements.length){
+                element = this._clientRectElements[i];
+            }else{
+                element = this.domDocument.createElement('div');
+                element.style.position = 'absolute';
+                element.style.border = '1px solid %s'.sprintf(this._clientRectColors[i % this._clientRectColors.length]);
+                element.style.boxSizing = 'border-box';
+                this.rootElement.appendChild(element);
+                this._clientRectElements.push(element);
+            }
+            element.style.width = '%dpx'.sprintf(rects[i].width || 1);
+            element.style.height = '%dpx'.sprintf(rects[i].height || 1);
+            element.style.left = '%dpx'.sprintf(rects[i].x - parentRect.x);
+            element.style.top = '%dpx'.sprintf(rects[i].y - parentRect.y);
+        }
+        for (var j = this._clientRectElements.length - 1; j >= i; --j){
+            element = this._clientRectElements.pop();
+            element.parentNode.removeChild(element);
+        }
+    },
+
+    hideClientRects: function(){
+        for (var i = 0, l = this._clientRectElements.length; i < l; ++i){
+            this._clientRectElements[i].parentNode.removeChild(this._clientRectElements[i]);
+        }
+        this._clientRectElements = [];
     }
 
 });

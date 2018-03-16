@@ -116,7 +116,7 @@ JSFont.fontWithResourceName = function(resourceName, pointSize){
 };
 
 JSFont.fontWithFamily = function(family, pointSize, weight, style){
-    var descriptor = JSFontDescriptor.initWithProperties(family, weight || JSFont.Weight.Regular, style || JSFont.Style.Normal);
+    var descriptor = JSFontDescriptor.initWithProperties(family, weight || JSFont.Weight.regular, style || JSFont.Style.normal);
     return JSFont.fontWithDescriptor(descriptor, pointSize);
 };
 
@@ -149,20 +149,20 @@ JSFont.registerFontResource = function(resource){
 };
 
 JSFont.Weight = {
-    UltraLight: 100,
-    Thin: 200,
-    Light: 300,
-    Regular: 400,
-    Medium: 500,
-    Semibold: 600,
-    Bold: 700,
-    Heavy: 800,
-    Black: 900
+    ultraLight: 100,
+    thin: 200,
+    light: 300,
+    regular: 400,
+    medium: 500,
+    semibold: 600,
+    bold: 700,
+    heavy: 800,
+    black: 900
 };
 
 JSFont.Style = {
-    Normal: "normal",
-    Italic: "italic"
+    normal: "normal",
+    italic: "italic"
 };
 
 JSFont._cache = {

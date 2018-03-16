@@ -1,16 +1,54 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, JSTextRun, JSTextGlyphStorage, JSTextRunTestsFont, JSFont, JSFontDescriptor, JSPoint */
+/* global JSClass, TKTestSuite, JSTextRun, JSTextRunTestsFont, JSFont, JSFontDescriptor, JSPoint, JSTextGlyph, JSRange */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
 'use strict';
 
 JSClass("JSTextRunTests", TKTestSuite, {
 
+    _glyphsFromString: function(str, font){
+        var iterator = str.userPerceivedCharacterIterator();
+        var glyphs = [];
+        while (iterator.firstCharacter !== null){
+            glyphs.push(JSTextGlyph.FromUTF16(iterator.utf16, font));
+            iterator.increment();
+        }
+        return glyphs;
+    },
+
+    testInitWithGlyphs: function(){
+        var font = JSTextRunTestsFont.init();
+        var glyphs = this._glyphsFromString("This is a test", font);
+        var run = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(12, 14));
+
+        TKAssertEquals(run.origin.x, 0);
+        TKAssertEquals(run.origin.y, 0);
+        TKAssertEquals(run.range.location, 12);
+        TKAssertEquals(run.range.length, 14);
+        TKAssertEquals(run.size.width, 320);
+        TKAssertEquals(run.size.height, 16.40625);
+        TKAssertEquals(run.glyphs.length, 14);
+    },
+
+    testCopy: function(){
+        var font = JSTextRunTestsFont.init();
+        var glyphs = this._glyphsFromString("This is a test", font);
+        var run = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(12, 14));
+
+        var run2 = run.copy();
+        TKAssertEquals(run2.origin.x, 0);
+        TKAssertEquals(run2.origin.y, 0);
+        TKAssertEquals(run2.range.location, 12);
+        TKAssertEquals(run2.range.length, 14);
+        TKAssertEquals(run2.size.width, 320);
+        TKAssertEquals(run2.size.height, 16.40625);
+        TKAssertEquals(run2.glyphs.length, 14);
+    },
+
     testCharacterIndexAtPoint: function(){
         var font = JSTextRunTestsFont.init();
-        var glyphStorage = JSTextGlyphStorage.initWithFont(font, 12);
-        glyphStorage.push("This is a test");
-        var run = JSTextRun.initWithGlyphStorage(glyphStorage);
+        var glyphs = this._glyphsFromString("This is a test", font);
+        var run = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(12, 14));
 
         // start
         var index = run.characterIndexAtPoint(JSPoint(0, 0));
@@ -71,9 +109,8 @@ JSClass("JSTextRunTests", TKTestSuite, {
 
     testRectForCharacterAtIndex: function(){
         var font = JSTextRunTestsFont.init();
-        var glyphStorage = JSTextGlyphStorage.initWithFont(font, 12);
-        glyphStorage.push("This is a test");
-        var run = JSTextRun.initWithGlyphStorage(glyphStorage);
+        var glyphs = this._glyphsFromString("This is a test", font);
+        var run = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(12, 14));
 
         // 0
         var rect = run.rectForCharacterAtIndex(0);
@@ -114,7 +151,7 @@ JSClass("JSTextRunTests", TKTestSuite, {
 JSClass("JSTextRunTestsFont", JSFont, {
 
     init: function(){
-        this._descriptor = JSFontDescriptor.initWithProperties("JSTextRunTestsFont", JSFont.Weight.Regular, JSFont.Style.Normal);
+        this._descriptor = JSFontDescriptor.initWithProperties("JSTextRunTestsFont", JSFont.Weight.regular, JSFont.Style.normal);
         this._fullName = "JSTextRunTestsFont";
         this._postScriptName = "JSTextRunTestsFont";
         this._faceName = "JSTextRunTestsFont";

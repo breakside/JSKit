@@ -6,23 +6,20 @@
 
 JSClass("JSTextTypesetterTests", TKTestSuite, {
 
-    testSingleRunUnconstrainedLine: function(){
+    testCreateLineSingleRun: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.Font] = JSTextTypesetterTestsFont.init();
+        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
         var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
         var typesetter = JSTextTypesetter.init();
         typesetter.attributedString = attributedString;
-        var line = typesetter.createLine(JSPoint(3, 4), 0, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
+        var line = typesetter.createLine(JSRange(0, attributedString.string.length));
         TKAssertNotNull(line);
-        TKAssert(line.isKindOfClass(JSTextLine));
         TKAssertEquals(line.range.location, 0);
         TKAssertEquals(line.range.length, 11);
-        TKAssertFloatEquals(line.origin.x, 3);
-        TKAssertFloatEquals(line.origin.y, 4);
-        TKAssertFloatEquals(line.size.width, 270);
-        TKAssertFloatEquals(line.size.height, 16.40625);
+        TKAssertEquals(line.size.width, 270);
+        TKAssertEquals(line.size.height, 16.40625);
+        TKAssertEquals(line.trailingWhitespaceWidth, 0);
         TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
         TKAssertEquals(line.runs[0].range.location, 0);
         TKAssertEquals(line.runs[0].range.length, 11);
         TKAssertFloatEquals(line.runs[0].origin.x, 0);
@@ -30,738 +27,483 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
         TKAssertFloatEquals(line.runs[0].size.width, 270);
         TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
 
-        // check that the passed range is respected
-        line = typesetter.createLine(JSPoint(3, 4), 0, JSRange(2, 3), JSLineBreakMode.characterWrap, JSTextAlignment.left);
+        // partial range
+        line = typesetter.createLine(JSRange(3, 6));
         TKAssertNotNull(line);
-        TKAssert(line.isKindOfClass(JSTextLine));
-        TKAssertEquals(line.range.location, 2);
-        TKAssertEquals(line.range.length, 3);
-        TKAssertFloatEquals(line.origin.x, 3);
-        TKAssertFloatEquals(line.origin.y, 4);
-        TKAssertFloatEquals(line.size.width, 60);
-        TKAssertFloatEquals(line.size.height, 16.40625);
+        TKAssertEquals(line.range.location, 3);
+        TKAssertEquals(line.range.length, 6);
+        TKAssertEquals(line.size.width, 140);
+        TKAssertEquals(line.size.height, 16.40625);
+        TKAssertEquals(line.trailingWhitespaceWidth, 0);
         TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 2);
+        TKAssertEquals(line.runs[0].range.location, 3);
+        TKAssertEquals(line.runs[0].range.length, 6);
+        TKAssertFloatEquals(line.runs[0].origin.x, 0);
+        TKAssertFloatEquals(line.runs[0].origin.y, 0);
+        TKAssertFloatEquals(line.runs[0].size.width, 140);
+        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
+    },
+
+    testCreateLineMultipleRun: function(){
+        var attributes = {};
+        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
+        var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
+        attributedString.addAttributeInRange('underline', true, JSRange(3, 6));
+        var typesetter = JSTextTypesetter.init();
+        typesetter.attributedString = attributedString;
+        var line = typesetter.createLine(JSRange(0, attributedString.string.length));
+        TKAssertNotNull(line);
+        TKAssertEquals(line.range.location, 0);
+        TKAssertEquals(line.range.length, 11);
+        TKAssertEquals(line.size.width, 270);
+        TKAssertEquals(line.size.height, 16.40625);
+        TKAssertEquals(line.trailingWhitespaceWidth, 0);
+        TKAssertEquals(line.runs.length, 3);
+        TKAssertEquals(line.runs[0].range.location, 0);
+        TKAssertEquals(line.runs[0].range.length, 3);
+        TKAssertFloatEquals(line.runs[0].origin.x, 0);
+        TKAssertFloatEquals(line.runs[0].origin.y, 0);
+        TKAssertFloatEquals(line.runs[0].size.width, 70);
+        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
+        TKAssertEquals(line.runs[1].range.location, 3);
+        TKAssertEquals(line.runs[1].range.length, 6);
+        TKAssertFloatEquals(line.runs[1].origin.x, 70);
+        TKAssertFloatEquals(line.runs[1].origin.y, 0);
+        TKAssertFloatEquals(line.runs[1].size.width, 140);
+        TKAssertFloatEquals(line.runs[1].size.height, 16.40625);
+        TKAssertEquals(line.runs[2].range.location, 9);
+        TKAssertEquals(line.runs[2].range.length, 2);
+        TKAssertFloatEquals(line.runs[2].origin.x, 210);
+        TKAssertFloatEquals(line.runs[2].origin.y, 0);
+        TKAssertFloatEquals(line.runs[2].size.width, 60);
+        TKAssertFloatEquals(line.runs[2].size.height, 16.40625);
+
+        // partial range
+        line = typesetter.createLine(JSRange(4, 6));
+        TKAssertNotNull(line);
+        TKAssertEquals(line.range.location, 4);
+        TKAssertEquals(line.range.length, 6);
+        TKAssertEquals(line.size.width, 150);
+        TKAssertEquals(line.size.height, 16.40625);
+        TKAssertEquals(line.runs.length, 2);
+        TKAssertEquals(line.runs[0].range.location, 4);
+        TKAssertEquals(line.runs[0].range.length, 5);
+        TKAssertFloatEquals(line.runs[0].origin.x, 0);
+        TKAssertFloatEquals(line.runs[0].origin.y, 0);
+        TKAssertFloatEquals(line.runs[0].size.width, 120);
+        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
+        TKAssertEquals(line.runs[1].range.location, 9);
+        TKAssertEquals(line.runs[1].range.length, 1);
+        TKAssertFloatEquals(line.runs[1].origin.x, 120);
+        TKAssertFloatEquals(line.runs[1].origin.y, 0);
+        TKAssertFloatEquals(line.runs[1].size.width, 30);
+        TKAssertFloatEquals(line.runs[1].size.height, 16.40625);
+    },
+
+    testCreateLineEmpty: function(){
+        var attributes = {};
+        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
+        var attributedString = JSAttributedString.initWithString('', attributes);
+        var typesetter = JSTextTypesetter.init();
+        typesetter.attributedString = attributedString;
+        var line = typesetter.createLine(JSRange(0, attributedString.string.length));
+        TKAssertNotNull(line);
+        TKAssertEquals(line.range.location, 0);
+        TKAssertEquals(line.range.length, 0);
+        TKAssertEquals(line.size.width, 0);
+        TKAssertEquals(line.size.height, 16.40625);
+        TKAssertEquals(line.trailingWhitespaceWidth, 0);
+        TKAssertEquals(line.runs.length, 0);
+    },
+
+    testCreateLineNewline: function(){
+        var attributes = {};
+        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
+        var attributedString = JSAttributedString.initWithString('\n', attributes);
+        var typesetter = JSTextTypesetter.init();
+        typesetter.attributedString = attributedString;
+        var line = typesetter.createLine(JSRange(0, attributedString.string.length));
+        TKAssertNotNull(line);
+        TKAssertEquals(line.range.location, 0);
+        TKAssertEquals(line.range.length, 1);
+        TKAssertEquals(line.size.width, 0);
+        TKAssertEquals(line.size.height, 16.40625);
+        TKAssertEquals(line.trailingWhitespaceWidth, 0);
+        TKAssertEquals(line.runs.length, 1);
+        TKAssertEquals(line.runs[0].range.location, 0);
+        TKAssertEquals(line.runs[0].range.length, 1);
+        TKAssertFloatEquals(line.runs[0].origin.x, 0);
+        TKAssertFloatEquals(line.runs[0].origin.y, 0);
+        TKAssertFloatEquals(line.runs[0].size.width, 0);
+        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
+    },
+
+    testCreateLineTrailingWhitespace: function(){
+        var attributes = {};
+        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
+        var attributedString = JSAttributedString.initWithString('Testing 123   ', attributes);
+        var typesetter = JSTextTypesetter.init();
+        typesetter.attributedString = attributedString;
+        var line = typesetter.createLine(JSRange(0, attributedString.string.length));
+        TKAssertNotNull(line);
+        TKAssertEquals(line.range.location, 0);
+        TKAssertEquals(line.range.length, 14);
+        TKAssertEquals(line.size.width, 360);
+        TKAssertEquals(line.size.height, 16.40625);
+        TKAssertEquals(line.trailingWhitespaceWidth, 90);
+        TKAssertEquals(line.runs.length, 1);
+        TKAssertEquals(line.runs[0].range.location, 0);
+        TKAssertEquals(line.runs[0].range.length, 14);
+        TKAssertFloatEquals(line.runs[0].origin.x, 0);
+        TKAssertFloatEquals(line.runs[0].origin.y, 0);
+        TKAssertFloatEquals(line.runs[0].size.width, 360);
+        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
+
+        // with newline
+        attributedString = JSAttributedString.initWithString('Testing 123  \n', attributes);
+        typesetter.attributedString = attributedString;
+        line = typesetter.createLine(JSRange(0, attributedString.string.length));
+        TKAssertNotNull(line);
+        TKAssertEquals(line.range.location, 0);
+        TKAssertEquals(line.range.length, 14);
+        TKAssertEquals(line.size.width, 330);
+        TKAssertEquals(line.size.height, 16.40625);
+        TKAssertEquals(line.trailingWhitespaceWidth, 60);
+        TKAssertEquals(line.runs.length, 1);
+        TKAssertEquals(line.runs[0].range.location, 0);
+        TKAssertEquals(line.runs[0].range.length, 14);
+        TKAssertFloatEquals(line.runs[0].origin.x, 0);
+        TKAssertFloatEquals(line.runs[0].origin.y, 0);
+        TKAssertFloatEquals(line.runs[0].size.width, 330);
+        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
+
+        // TODO: non-0x20 whitespace
+    },
+
+    testCreateLineWhitespace: function(){
+        var attributes = {};
+        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
+        var attributedString = JSAttributedString.initWithString('   ', attributes);
+        var typesetter = JSTextTypesetter.init();
+        typesetter.attributedString = attributedString;
+        var line = typesetter.createLine(JSRange(0, attributedString.string.length));
+        TKAssertNotNull(line);
+        TKAssertEquals(line.range.location, 0);
+        TKAssertEquals(line.range.length, 3);
+        TKAssertEquals(line.size.width, 90);
+        TKAssertEquals(line.size.height, 16.40625);
+        TKAssertEquals(line.trailingWhitespaceWidth, 90);
+        TKAssertEquals(line.runs.length, 1);
+        TKAssertEquals(line.runs[0].range.location, 0);
+        TKAssertEquals(line.runs[0].range.length, 3);
+        TKAssertFloatEquals(line.runs[0].origin.x, 0);
+        TKAssertFloatEquals(line.runs[0].origin.y, 0);
+        TKAssertFloatEquals(line.runs[0].size.width, 90);
+        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
+
+        // with newline
+        attributedString = JSAttributedString.initWithString('  \n', attributes);
+        typesetter.attributedString = attributedString;
+        line = typesetter.createLine(JSRange(0, attributedString.string.length));
+        TKAssertNotNull(line);
+        TKAssertEquals(line.range.location, 0);
+        TKAssertEquals(line.range.length, 3);
+        TKAssertEquals(line.size.width, 60);
+        TKAssertEquals(line.size.height, 16.40625);
+        TKAssertEquals(line.trailingWhitespaceWidth, 60);
+        TKAssertEquals(line.runs.length, 1);
+        TKAssertEquals(line.runs[0].range.location, 0);
         TKAssertEquals(line.runs[0].range.length, 3);
         TKAssertFloatEquals(line.runs[0].origin.x, 0);
         TKAssertFloatEquals(line.runs[0].origin.y, 0);
         TKAssertFloatEquals(line.runs[0].size.width, 60);
         TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
+
+        // TODO: non-0x20 whitespace
     },
 
-    testSingleRunUnconstrainedLineWithNewline: function(){
+    testSuggestLineBreakInRange: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.Font] = JSTextTypesetterTestsFont.init();
-        var attributedString = JSAttributedString.initWithString('Testing 123\nAnd more', attributes);
+        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
         var typesetter = JSTextTypesetter.init();
-        typesetter.attributedString = attributedString;
-        var line = typesetter.createLine(JSPoint.Zero, 0, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssert(line.isKindOfClass(JSTextLine));
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 12);
-        TKAssertFloatEquals(line.origin.x, 0);
-        TKAssertFloatEquals(line.origin.y, 0);
-        TKAssertFloatEquals(line.size.width, 270);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 12);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 270);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
 
-        // unconventional newline char
-        attributedString = JSAttributedString.initWithString('Testing 123\u2028And more', attributes);
-        typesetter = JSTextTypesetter.init();
+        // no range
+        var attributedString = JSAttributedString.initWithString('This is a test\n', attributes);
         typesetter.attributedString = attributedString;
-        line = typesetter.createLine(JSPoint.Zero, 0, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssert(line.isKindOfClass(JSTextLine));
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 12);
-        TKAssertFloatEquals(line.origin.x, 0);
-        TKAssertFloatEquals(line.origin.y, 0);
-        TKAssertFloatEquals(line.size.width, 270);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 12);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 270);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
+        var range = typesetter.suggestLineBreak(0, JSRange(0, 0), JSLineBreakMode.characterWrap);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 0);
 
-        // unconventional newline char
-        attributedString = JSAttributedString.initWithString('Testing 123\rAnd more', attributes);
-        typesetter = JSTextTypesetter.init();
-        typesetter.attributedString = attributedString;
-        line = typesetter.createLine(JSPoint.Zero, 0, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssert(line.isKindOfClass(JSTextLine));
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 12);
-        TKAssertFloatEquals(line.origin.x, 0);
-        TKAssertFloatEquals(line.origin.y, 0);
-        TKAssertFloatEquals(line.size.width, 270);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 12);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 270);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
+        // not at start
+        range = typesetter.suggestLineBreak(0, JSRange(1, 0), JSLineBreakMode.characterWrap);
+        TKAssertEquals(range.location, 1);
+        TKAssertEquals(range.length, 0);
 
-        // multitchar newline char
-        attributedString = JSAttributedString.initWithString('Testing 123\r\nAnd more', attributes);
-        typesetter = JSTextTypesetter.init();
-        typesetter.attributedString = attributedString;
-        line = typesetter.createLine(JSPoint.Zero, 0, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssert(line.isKindOfClass(JSTextLine));
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 13);
-        TKAssertFloatEquals(line.origin.x, 0);
-        TKAssertFloatEquals(line.origin.y, 0);
-        TKAssertFloatEquals(line.size.width, 270);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 13);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 270);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-    },
+        // limited range
+        range = typesetter.suggestLineBreak(0, JSRange(1, 1), JSLineBreakMode.characterWrap);
+        TKAssertEquals(range.location, 1);
+        TKAssertEquals(range.length, 1);
 
-    testSingleRunConstrainedLineWithNewline: function(){
-        var attributes = {};
-        attributes[JSAttributedString.Attribute.Font] = JSTextTypesetterTestsFont.init();
-        var attributedString = JSAttributedString.initWithString('Testing 123\nAnd more', attributes);
-        var typesetter = JSTextTypesetter.init();
-        typesetter.attributedString = attributedString;
-        var line = typesetter.createLine(JSPoint.Zero, 350, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssert(line.isKindOfClass(JSTextLine));
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 12);
-        TKAssertFloatEquals(line.origin.x, 0);
-        TKAssertFloatEquals(line.origin.y, 0);
-        TKAssertFloatEquals(line.size.width, 350);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 12);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 270);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
+        // before line break
+        range = typesetter.suggestLineBreak(0, JSRange(0, 14), JSLineBreakMode.characterWrap);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 14);
 
-        // break and size happen at same time
-        line = typesetter.createLine(JSPoint.Zero, 270, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssert(line.isKindOfClass(JSTextLine));
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 12);
-        TKAssertFloatEquals(line.origin.x, 0);
-        TKAssertFloatEquals(line.origin.y, 0);
-        TKAssertFloatEquals(line.size.width, 270);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 12);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 270);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
+        // after line break
+        range = typesetter.suggestLineBreak(0, JSRange(0, 15), JSLineBreakMode.characterWrap);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
 
-        // break is after a run change
-        attributedString.addAttributeInRange(JSAttributedString.Attribute.Underline, true, JSRange(0, 11));
-        typesetter.attributedString = attributedString;
-        line = typesetter.createLine(JSPoint.Zero, 300, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 12);
-        TKAssertFloatEquals(line.size.width, 300);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 2);
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 11);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 270);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-        TKAssertEquals(line.runs[1].range.location, 11);
-        TKAssertEquals(line.runs[1].range.length, 1);
-        TKAssertFloatEquals(line.runs[1].origin.x, 270);
-        TKAssertFloatEquals(line.runs[1].origin.y, 0);
-        TKAssertFloatEquals(line.runs[1].size.width, 0);
-        TKAssertFloatEquals(line.runs[1].size.height, 16.40625);
-
-        // unconventional newline char
-        attributedString = JSAttributedString.initWithString('Testing 123\u2028And more', attributes);
-        typesetter = JSTextTypesetter.init();
-        typesetter.attributedString = attributedString;
-        line = typesetter.createLine(JSPoint.Zero, 350, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssert(line.isKindOfClass(JSTextLine));
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 12);
-        TKAssertFloatEquals(line.origin.x, 0);
-        TKAssertFloatEquals(line.origin.y, 0);
-        TKAssertFloatEquals(line.size.width, 350);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 12);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 270);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-
-        // unconventional newline char
-        attributedString = JSAttributedString.initWithString('Testing 123\rAnd more', attributes);
-        typesetter = JSTextTypesetter.init();
-        typesetter.attributedString = attributedString;
-        line = typesetter.createLine(JSPoint.Zero, 350, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssert(line.isKindOfClass(JSTextLine));
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 12);
-        TKAssertFloatEquals(line.origin.x, 0);
-        TKAssertFloatEquals(line.origin.y, 0);
-        TKAssertFloatEquals(line.size.width, 350);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 12);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 270);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-
-        // multichar newline char
-        attributedString = JSAttributedString.initWithString('Testing 123\r\nAnd more', attributes);
-        typesetter = JSTextTypesetter.init();
-        typesetter.attributedString = attributedString;
-        line = typesetter.createLine(JSPoint.Zero, 350, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssert(line.isKindOfClass(JSTextLine));
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 13);
-        TKAssertFloatEquals(line.origin.x, 0);
-        TKAssertFloatEquals(line.origin.y, 0);
-        TKAssertFloatEquals(line.size.width, 350);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 13);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 270);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
+        // end of string
+        range = typesetter.suggestLineBreak(0, JSRange(15, 0), JSLineBreakMode.characterWrap);
+        TKAssertEquals(range.location, 15);
+        TKAssertEquals(range.length, 0);
 
     },
 
-    testEmptyUnconstrainedLine: function(){
+    testSuggestLineBreakMandatory: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.Font] = JSTextTypesetterTestsFont.init();
-        var attributedString = JSAttributedString.initWithString('', attributes);
+        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
         var typesetter = JSTextTypesetter.init();
+
+        // break at end
+        var attributedString = JSAttributedString.initWithString('This is a test\n', attributes);
         typesetter.attributedString = attributedString;
-        var line = typesetter.createLine(JSPoint(3, 4), 0, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssert(line.isKindOfClass(JSTextLine));
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 0);
-        TKAssertFloatEquals(line.origin.x, 3);
-        TKAssertFloatEquals(line.origin.y, 4);
-        TKAssertFloatEquals(line.size.width, 0);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 0);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 0);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
+        var range = typesetter.suggestLineBreak(0, JSRange(0, 15));
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+
+        // break in middle
+        attributedString = JSAttributedString.initWithString('This is a test\nof line breaking', attributes);
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(0, JSRange(0, 31));
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+
+        // not at start
+        range = typesetter.suggestLineBreak(0, JSRange(4, 20));
+        TKAssertEquals(range.location, 4);
+        TKAssertEquals(range.length, 11);
+
+        // after break
+        range = typesetter.suggestLineBreak(0, JSRange(15, 16));
+        TKAssertEquals(range.location, 15);
+        TKAssertEquals(range.length, 16);
+
+        // only break
+        range = typesetter.suggestLineBreak(0, JSRange(14, 1));
+        TKAssertEquals(range.location, 14);
+        TKAssertEquals(range.length, 1);
+
+        // carriage return
+        attributedString = JSAttributedString.initWithString('This is a test\rof line breaking', attributes);
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(0, JSRange(0, 31));
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+
+        // crlf
+        attributedString = JSAttributedString.initWithString('This is a test\r\nof line breaking', attributes);
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(0, JSRange(0, 31));
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 16);
+
+        // form feed
+        attributedString = JSAttributedString.initWithString('This is a test\u000cof line breaking', attributes);
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(0, JSRange(0, 31));
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+
+        // next line
+        attributedString = JSAttributedString.initWithString('This is a test\u0085of line breaking', attributes);
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(0, JSRange(0, 31));
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+
+        // line separator
+        attributedString = JSAttributedString.initWithString('This is a test\u2028of line breaking', attributes);
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(0, JSRange(0, 31));
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+
+        // paragraph separator
+        attributedString = JSAttributedString.initWithString('This is a test\u2029of line breaking', attributes);
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(0, JSRange(0, 31));
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+
+        // multiple newlines
+        attributedString = JSAttributedString.initWithString('This is a test\n\nof line breaking', attributes);
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(0, JSRange(0, 31));
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+        range = typesetter.suggestLineBreak(0, JSRange(15, 16));
+        TKAssertEquals(range.location, 15);
+        TKAssertEquals(range.length, 1);
+
+        // multiple carriage returns
+        attributedString = JSAttributedString.initWithString('This is a test\r\rof line breaking', attributes);
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(0, JSRange(0, 31));
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+        range = typesetter.suggestLineBreak(0, JSRange(15, 16));
+        TKAssertEquals(range.location, 15);
+        TKAssertEquals(range.length, 1);
+
+        // lf cr
+        attributedString = JSAttributedString.initWithString('This is a test\n\rof line breaking', attributes);
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(0, JSRange(0, 31));
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+        range = typesetter.suggestLineBreak(0, JSRange(15, 16));
+        TKAssertEquals(range.location, 15);
+        TKAssertEquals(range.length, 1);
+
+        // multiple form feeds
+        attributedString = JSAttributedString.initWithString('This is a test\u000c\u000cof line breaking', attributes);
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(0, JSRange(0, 31));
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+        range = typesetter.suggestLineBreak(0, JSRange(15, 16));
+        TKAssertEquals(range.location, 15);
+        TKAssertEquals(range.length, 1);
+
+        // multiple next lines
+        attributedString = JSAttributedString.initWithString('This is a test\u0085\u0085of line breaking', attributes);
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(0, JSRange(0, 31));
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+        range = typesetter.suggestLineBreak(0, JSRange(15, 16));
+        TKAssertEquals(range.location, 15);
+        TKAssertEquals(range.length, 1);
+
+        // multiple line separators
+        attributedString = JSAttributedString.initWithString('This is a test\u2028\u2028of line breaking', attributes);
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(0, JSRange(0, 31));
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+        range = typesetter.suggestLineBreak(0, JSRange(15, 16));
+        TKAssertEquals(range.location, 15);
+        TKAssertEquals(range.length, 1);
+
+        // multiple paragraph seprators
+        attributedString = JSAttributedString.initWithString('This is a test\u2029\u2029of line breaking', attributes);
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(0, JSRange(0, 31));
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+        range = typesetter.suggestLineBreak(0, JSRange(15, 16));
+        TKAssertEquals(range.location, 15);
+        TKAssertEquals(range.length, 1);
     },
 
-    testWhitespaceUnconstrainedLine: function(){
+    testSuggestLineBreakCharacterWrap: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.Font] = JSTextTypesetterTestsFont.init();
-        var attributedString = JSAttributedString.initWithString('    ', attributes);
+        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
         var typesetter = JSTextTypesetter.init();
+        var attributedString = JSAttributedString.initWithString('Testing character wrapping', attributes);
         typesetter.attributedString = attributedString;
-        var line = typesetter.createLine(JSPoint(3, 4), 0, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssert(line.isKindOfClass(JSTextLine));
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 4);
-        TKAssertFloatEquals(line.origin.x, 3);
-        TKAssertFloatEquals(line.origin.y, 4);
-        TKAssertFloatEquals(line.size.width, 120);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 4);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 120);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
+
+        // at start
+        var range = typesetter.suggestLineBreak(100, JSRange(0, 26), JSLineBreakMode.characterWrap);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 4);
+
+        // not at start
+        range = typesetter.suggestLineBreak(100, JSRange(1, 26), JSLineBreakMode.characterWrap);
+        TKAssertEquals(range.location, 1);
+        TKAssertEquals(range.length, 5);
+
+        // trailing whitespace
+        range = typesetter.suggestLineBreak(160, JSRange(0, 26), JSLineBreakMode.characterWrap);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 8);
+
+        // trailing whitespace
+        range = typesetter.suggestLineBreak(150, JSRange(0, 26), JSLineBreakMode.characterWrap);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 8);
+
+        // no room for even a single char
+        range = typesetter.suggestLineBreak(10, JSRange(0, 26), JSLineBreakMode.characterWrap);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 0);
+
+        // at newline
+        attributedString = JSAttributedString.initWithString('Testing\ncharacter wrapping', attributes);
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(150, JSRange(0, 26), JSLineBreakMode.characterWrap);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 8);
+
+        // after newline
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(160, JSRange(0, 26), JSLineBreakMode.characterWrap);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 8);
     },
 
-    testNewlineUnconstrainedLine: function(){
+    testSuggestLineBreakWordWrap: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.Font] = JSTextTypesetterTestsFont.init();
-        var attributedString = JSAttributedString.initWithString('\n', attributes);
+        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
         var typesetter = JSTextTypesetter.init();
+        var attributedString = JSAttributedString.initWithString('Testing word wrapping in a line of text', attributes);
         typesetter.attributedString = attributedString;
-        var line = typesetter.createLine(JSPoint(3, 4), 0, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssert(line.isKindOfClass(JSTextLine));
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 1);
-        TKAssertFloatEquals(line.origin.x, 3);
-        TKAssertFloatEquals(line.origin.y, 4);
-        TKAssertFloatEquals(line.size.width, 0);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 1);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 0);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
+
+        // at start
+        var range = typesetter.suggestLineBreak(370, JSRange(0, 39), JSLineBreakMode.wordWrap);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 13);
+
+        // not at start
+        range = typesetter.suggestLineBreak(370, JSRange(1, 38), JSLineBreakMode.wordWrap);
+        TKAssertEquals(range.location, 1);
+        TKAssertEquals(range.length, 12);
+
+        // trailing whitespace
+        range = typesetter.suggestLineBreak(260, JSRange(0, 39), JSLineBreakMode.wordWrap);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 13);
+
+        // trailing whitespace
+        range = typesetter.suggestLineBreak(270, JSRange(0, 26), JSLineBreakMode.wordWrap);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 13);
+
+        // too small for word, fall back to char wrapping
+        range = typesetter.suggestLineBreak(75, JSRange(0, 26), JSLineBreakMode.wordWrap);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 3);
+
+        // too small for char
+        range = typesetter.suggestLineBreak(5, JSRange(0, 26), JSLineBreakMode.wordWrap);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 0);
+
+        // at newline
+        attributedString = JSAttributedString.initWithString('Testing word\nwrapping in a line of text', attributes);
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(260, JSRange(0, 39), JSLineBreakMode.wordWrap);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 13);
+
+        // after newline
+        typesetter.attributedString = attributedString;
+        range = typesetter.suggestLineBreak(270, JSRange(0, 26), JSLineBreakMode.wordWrap);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 13);
     },
-
-    testEmptyConstrainedLine: function(){
-        var attributes = {};
-        attributes[JSAttributedString.Attribute.Font] = JSTextTypesetterTestsFont.init();
-        var attributedString = JSAttributedString.initWithString('', attributes);
-        var typesetter = JSTextTypesetter.init();
-        typesetter.attributedString = attributedString;
-        var line = typesetter.createLine(JSPoint(3, 4), 100, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssert(line.isKindOfClass(JSTextLine));
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 0);
-        TKAssertFloatEquals(line.origin.x, 3);
-        TKAssertFloatEquals(line.origin.y, 4);
-        TKAssertFloatEquals(line.size.width, 100);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 0);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 0);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-    },
-
-    testWhitespaceConstrainedLine: function(){
-        var attributes = {};
-        attributes[JSAttributedString.Attribute.Font] = JSTextTypesetterTestsFont.init();
-        var attributedString = JSAttributedString.initWithString('    ', attributes);
-        var typesetter = JSTextTypesetter.init();
-        typesetter.attributedString = attributedString;
-        var line = typesetter.createLine(JSPoint(3, 4), 100, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssert(line.isKindOfClass(JSTextLine));
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 4);
-        TKAssertFloatEquals(line.origin.x, 3);
-        TKAssertFloatEquals(line.origin.y, 4);
-        TKAssertFloatEquals(line.size.width, 100);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 4);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 90);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-    },
-
-    testNewlineConstrainedLine: function(){
-        var attributes = {};
-        attributes[JSAttributedString.Attribute.Font] = JSTextTypesetterTestsFont.init();
-        var attributedString = JSAttributedString.initWithString('\n', attributes);
-        var typesetter = JSTextTypesetter.init();
-        typesetter.attributedString = attributedString;
-        var line = typesetter.createLine(JSPoint(3, 4), 100, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssert(line.isKindOfClass(JSTextLine));
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 1);
-        TKAssertFloatEquals(line.origin.x, 3);
-        TKAssertFloatEquals(line.origin.y, 4);
-        TKAssertFloatEquals(line.size.width, 100);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 1);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 0);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-    },
-
-    testCharacterWrapping: function(){
-        var attributes = {};
-        attributes[JSAttributedString.Attribute.Font] = JSTextTypesetterTestsFont.init();
-        var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
-        var typesetter = JSTextTypesetter.init();
-        typesetter.attributedString = attributedString;
-        var line = typesetter.createLine(JSPoint.Zero, 100, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 4);
-        TKAssertFloatEquals(line.size.width, 100);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 4);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 90);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-
-        // Too narrow for even a single character
-        line = typesetter.createLine(JSPoint.Zero, 10, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 0);
-        TKAssertFloatEquals(line.size.width, 10);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 0);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 0);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-    },
-
-    testRightAlign: function(){
-        var attributes = {};
-        attributes[JSAttributedString.Attribute.Font] = JSTextTypesetterTestsFont.init();
-        var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
-        var typesetter = JSTextTypesetter.init();
-        typesetter.attributedString = attributedString;
-        var line = typesetter.createLine(JSPoint.Zero, 100, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.right);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 4);
-        TKAssertFloatEquals(line.size.width, 100);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 4);
-        TKAssertFloatEquals(line.runs[0].origin.x, 10);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 90);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-    },
-
-    testCenterAlign: function(){
-        var attributes = {};
-        attributes[JSAttributedString.Attribute.Font] = JSTextTypesetterTestsFont.init();
-        var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
-        var typesetter = JSTextTypesetter.init();
-        typesetter.attributedString = attributedString;
-        var line = typesetter.createLine(JSPoint.Zero, 100, JSRange(0, attributedString.string.length), JSLineBreakMode.characterWrap, JSTextAlignment.center);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 4);
-        TKAssertFloatEquals(line.size.width, 100);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 4);
-        TKAssertFloatEquals(line.runs[0].origin.x, 5);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 90);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-    },
-
-    testWordWrapping: function(){
-        var attributes = {};
-        attributes[JSAttributedString.Attribute.Font] = JSTextTypesetterTestsFont.init();
-        var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
-        var typesetter = JSTextTypesetter.init();
-        typesetter.attributedString = attributedString;
-        var line = typesetter.createLine(JSPoint.Zero, 230, JSRange(0, attributedString.string.length), JSLineBreakMode.wordWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 8);
-        TKAssertFloatEquals(line.size.width, 230);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 8);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 180);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-
-        // not wide enough for whitespace
-        line = typesetter.createLine(JSPoint.Zero, 170, JSRange(0, attributedString.string.length), JSLineBreakMode.wordWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 8);
-        TKAssertFloatEquals(line.size.width, 170);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 8);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 150);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-
-        // Too narrow for even a single word, should fall back to character wrapping
-        line = typesetter.createLine(JSPoint.Zero, 100, JSRange(0, attributedString.string.length), JSLineBreakMode.wordWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 4);
-        TKAssertFloatEquals(line.size.width, 100);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 4);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 90);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-
-        // Too narrow for even a single word, not at start of string, should fall back to character wrapping
-        line = typesetter.createLine(JSPoint.Zero, 90, JSRange(1, attributedString.string.length), JSLineBreakMode.wordWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 1);
-        TKAssertEquals(line.range.length, 4);
-        TKAssertFloatEquals(line.size.width, 90);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssertEquals(line.runs[0].range.location, 1);
-        TKAssertEquals(line.runs[0].range.length, 4);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 80);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-
-        // Too narrow for even a single character
-        line = typesetter.createLine(JSPoint.Zero, 10, JSRange(0, attributedString.string.length), JSLineBreakMode.wordWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 0);
-        TKAssertFloatEquals(line.size.width, 10);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 0);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 0);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-    },
-
-    testWhitespaceAtEndOfLine: function(){
-        var attributes = {};
-        attributes[JSAttributedString.Attribute.Font] = JSTextTypesetterTestsFont.init();
-        var attributedString = JSAttributedString.initWithString('Testing          123', attributes);
-        var typesetter = JSTextTypesetter.init();
-        typesetter.attributedString = attributedString;
-        var line = typesetter.createLine(JSPoint.Zero, 230, JSRange(0, attributedString.string.length), JSLineBreakMode.wordWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 17);
-        TKAssertFloatEquals(line.size.width, 230);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 17);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 210);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-
-        // end of line whitespace split by an attribute run change
-        attributedString.addAttributeInRange(JSAttributedString.Attribute.Underline, true, JSRange(0, 12));
-        typesetter.attributedString = attributedString;
-        line = typesetter.createLine(JSPoint.Zero, 230, JSRange(0, attributedString.string.length), JSLineBreakMode.wordWrap, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 17);
-        TKAssertFloatEquals(line.size.width, 230);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 2);
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 12);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 210);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-        TKAssertEquals(line.runs[1].range.location, 12);
-        TKAssertEquals(line.runs[1].range.length, 5);
-        TKAssertFloatEquals(line.runs[1].origin.x, 210);
-        TKAssertFloatEquals(line.runs[1].origin.y, 0);
-        TKAssertFloatEquals(line.runs[1].size.width, 0);
-        TKAssertFloatEquals(line.runs[1].size.height, 16.40625);
-    },
-
-    testTruncation: function(){
-        var attributes = {};
-        attributes[JSAttributedString.Attribute.Font] = JSTextTypesetterTestsFont.init();
-        var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
-        var typesetter = JSTextTypesetter.init();
-        typesetter.attributedString = attributedString;
-        var line = typesetter.createLine(JSPoint.Zero, 230, JSRange(0, attributedString.string.length), JSLineBreakMode.truncateTail, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 9);
-        TKAssertFloatEquals(line.size.width, 230);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 9);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 220);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-
-        // character fits, but needs to be removed for ellipsis
-        line = typesetter.createLine(JSPoint.Zero, 240, JSRange(0, attributedString.string.length), JSLineBreakMode.truncateTail, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 9);
-        TKAssertFloatEquals(line.size.width, 240);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 9);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 220);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-
-        // no room for a character, but room for ellipsis
-        line = typesetter.createLine(JSPoint.Zero, 15, JSRange(0, attributedString.string.length), JSLineBreakMode.truncateTail, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 0);
-        TKAssertFloatEquals(line.size.width, 15);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 0);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 10);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-
-        // no room for ellipsis
-        line = typesetter.createLine(JSPoint.Zero, 5, JSRange(0, attributedString.string.length), JSLineBreakMode.truncateTail, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 0);
-        TKAssertFloatEquals(line.size.width, 5);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssert(line.runs[0].isKindOfClass(JSTextRun));
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 0);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 0);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-
-        // preserve trailing whitespace
-        line = typesetter.createLine(JSPoint.Zero, 200, JSRange(0, attributedString.string.length), JSLineBreakMode.truncateTail, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 8);
-        TKAssertFloatEquals(line.size.width, 200);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 8);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 190);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-
-        // truncation at run change
-        attributedString.addAttributeInRange(JSAttributedString.Attribute.Underline, true, JSRange(0, 4));
-        typesetter.attributedString = attributedString;
-        line = typesetter.createLine(JSPoint.Zero, 90, JSRange(0, attributedString.string.length), JSLineBreakMode.truncateTail, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 3);
-        TKAssertFloatEquals(line.size.width, 90);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 3);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 80);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-
-        // truncation after run change (first char of new run doesn't fit)
-        attributedString.addAttributeInRange(JSAttributedString.Attribute.Underline, true, JSRange(0, 4));
-        typesetter.attributedString = attributedString;
-        line = typesetter.createLine(JSPoint.Zero, 100, JSRange(0, attributedString.string.length), JSLineBreakMode.truncateTail, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 4);
-        TKAssertFloatEquals(line.size.width, 100);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 4);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 100);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-
-        // truncation after run change (first char of new run fits, but ellipsis should take on style of old run)
-        attributedString.addAttributeInRange(JSAttributedString.Attribute.Underline, true, JSRange(0, 4));
-        typesetter.attributedString = attributedString;
-        line = typesetter.createLine(JSPoint.Zero, 110, JSRange(0, attributedString.string.length), JSLineBreakMode.truncateTail, JSTextAlignment.left);
-        TKAssertNotNull(line);
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 4);
-        TKAssertFloatEquals(line.size.width, 110);
-        TKAssertFloatEquals(line.size.height, 16.40625);
-        TKAssertEquals(line.runs.length, 1);
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 4);
-        TKAssertFloatEquals(line.runs[0].origin.x, 0);
-        TKAssertFloatEquals(line.runs[0].origin.y, 0);
-        TKAssertFloatEquals(line.runs[0].size.width, 100);
-        TKAssertFloatEquals(line.runs[0].size.height, 16.40625);
-    }
 
     // TODO: more multi-run tests
     // TODO: attachments
@@ -775,7 +517,7 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
 JSClass("JSTextTypesetterTestsFont", JSFont, {
 
     init: function(){
-        this._descriptor = JSFontDescriptor.initWithProperties("JSTextTypesetterTestsFont", JSFont.Weight.Regular, JSFont.Style.Normal);
+        this._descriptor = JSFontDescriptor.initWithProperties("JSTextTypesetterTestsFont", JSFont.Weight.regular, JSFont.Style.normal);
         this._fullName = "JSTextTypesetterTestsFont";
         this._postScriptName = "JSTextTypesetterTestsFont";
         this._faceName = "JSTextTypesetterTestsFont";

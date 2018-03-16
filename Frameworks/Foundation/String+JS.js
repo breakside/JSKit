@@ -812,6 +812,15 @@ Object.defineProperties(UnicodeIterator.prototype, {
         get: function UnicodeIterator_isWordBoundary(){
             return this._string.isWordBoundary(this.index);
         }
+    },
+
+    isWhiteSpace: {
+        enumerable: true,
+        configurable: false,
+        get: function UnicodeIterator_isWhiteSpace(){
+            return this.character !== null && (this.character.code == 0x20 || this.character.code == 0x0A || this.character.code == 0x0B || this.character.code == 0x0C || this.character.code == 0x0D);
+            // TODO: consider other whitespace
+        }
     }
 
 });
@@ -938,6 +947,14 @@ Object.defineProperties(UserPerceivedCharacterIterator.prototype, {
         configurable: false,
         get: function UserPerceivedCharacterIterator_isWordBoundary(){
             return this._unicodeIterator.isWordBoundary;
+        }
+    },
+
+    isWhiteSpace: {
+        enumerable: true,
+        configurable: false,
+        get: function UserPerceivedCharacterIterator_isWhiteSpace(){
+            return this._unicodeIterator.isWhiteSpace;
         }
     },
 
