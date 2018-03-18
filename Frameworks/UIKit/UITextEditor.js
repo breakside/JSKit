@@ -27,7 +27,7 @@ JSClass("UITextEditor", JSObject, {
         this._cursorLayers = [];
         this._selectionLayers = [];
         this.selections = [
-            this._createSelection(JSRange(0, 0), 0)
+            this._createSelection(JSRange(0, 0), UITextEditor.SelectionInsertionPoint.end)
         ];
     },
 
@@ -50,8 +50,6 @@ JSClass("UITextEditor", JSObject, {
     setSelectionRange: function(range, insertionPoint, affinity){
         if (range === undefined || range === null){
             range = JSRange.Zero;
-        }else{
-            range = this._sanitizedRange(range);
         }
         this.setSelectionRanges([range], insertionPoint, affinity);
     },
@@ -66,7 +64,7 @@ JSClass("UITextEditor", JSObject, {
         });
         var range;
         for (var i = 0, l = selectionRanges.length; i < l; ++i){
-            range = this._sanitizedRange(selectionRanges[i]);
+            range = selectionRanges[i];
             selections.push(this._createSelection(range, insertionPoint, affinity));
         }
         this._setSelections(selections);
@@ -88,24 +86,16 @@ JSClass("UITextEditor", JSObject, {
         //    and be ready for any subsequent drag to extend the new selection
         //
         // TODO: double and triple mouse downs to select word and line, respectively
-        var index = this.textLayoutManager.characterIndexAtPoint(location);
         var isInSelection = false;
-        var selection;
         // FIXME: Should we hit test selection rects intead of check index? (yes)
         // Optimization: we really only care about selections that are visible
         // Optimization: could binary search through selections
-        for (var i = 0, l = this.selections.length; i < l && !isInSelection; ++i){
-            selection = this.selections[i];
-            isInSelection = selection.containsIndex(index);
-        }
         if (isInSelection){
             // Wait for drag
             this._handledSelectOnMouseDown = false;
         }else{
             this._handledSelectOnMouseDown = true;
-            this._setSingleSelectionAtIndex(index);
-            // TODO: if index is a wrapped line boundary and the click was at the end of the previous
-            // line, set the selection affinity accordingly
+            this._setSingleSelectionAtLocation(location);
         }
     },
 
@@ -125,10 +115,9 @@ JSClass("UITextEditor", JSObject, {
     },
 
     handleMouseUpAtLocation: function(location){
-        var index = this.textLayoutManager.characterIndexAtPoint(location);
         // TODO: not if we've dragged (need to work out drag events, may not even send mouseUp)
         if (!this._handledSelectOnMouseDown){
-            this._setSingleSelectionAtIndex(index);
+            this._setSingleSelectionAtLocation(location);
         }
     },
 
@@ -216,11 +205,15 @@ JSClass("UITextEditor", JSObject, {
         if (useRightEdge){
             x += rect.size.width;
         }
-        if (x < 0){
-            x = 0;
-        }
         if (x > container.size.width - cursorWidth){
             x = container.size.width - cursorWidth;
+        }
+        if (x < 0){
+            if (useRightEdge){
+                x = -cursorWidth;
+            }else{
+                x = 0;
+            }
         }
         var cursorRectInContainer = JSRect(
             x,
@@ -251,6 +244,31 @@ JSClass("UITextEditor", JSObject, {
 
     // -------------------------------------------------------------------------
     // MARK: - Common editing operations
+
+    _setSingleSelectionAtLocation: function(location){
+        var index = this.textLayoutManager.characterIndexAtPoint(location);
+        var rect = this.textLayoutManager.rectForCharacterAtIndex(index);
+        var affinity;
+        if (rect.origin.y > location.y){
+            // If the character is below where we clicked, then we must be immediately
+            // after a line break, and should really show the cursor on the previous line.
+            // Either
+            // 1. The location is after a hard line break, in which case the cursor should go before the line break
+            // 2. The location is after a wrap, in which case the cursor should go at the end of the clicked line
+            if (index > 0){
+                var iterator = this.textLayoutManager.textStorage.string.userPerceivedCharacterIterator(index - 1);
+                if (iterator.isMandatoryLineBreak){
+                    index = iterator.range.location;
+                    affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+                }
+            }
+            if (affinity === undefined){
+                affinity = UITextEditor.SelectionAffinity.afterPreviousCharacter;
+            }
+        }
+        var selection = this._createSelection(JSRange(index, 0), UITextEditor.SelectionInsertionPoint.end, affinity);
+        this._setSingleSelection(selection);
+    },
 
     _setSingleSelectionAtIndex: function(index){
         var selection = this._createSelection(JSRange(index, 0), 0);
@@ -746,7 +764,7 @@ JSClass("UITextEditor", JSObject, {
                     selection.affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
                 }
             }else{
-                selection.range = JSRange(line.range.end, 0);
+                selection.range = this._sanitizedRange(JSRange(line.range.end, 0));
                 selection.affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
             }
         }
@@ -864,7 +882,7 @@ JSClass("UITextEditor", JSObject, {
     },
 
     moveToBeginningOfDocumentAndModifySelection: function(){
-        var selection = this._createSelection(JSRange(0, this.selections[this.selections.length - 1].range.end), 0);
+        var selection = this._createSelection(JSRange(0, this.selections[this.selections.length - 1].range.end), UITextEditor.insertionPoint.start);
         this._setSingleSelection(selection);
         this.layout();
         this._cursorOn();
@@ -1000,6 +1018,7 @@ JSClass("UITextEditor", JSObject, {
     },
 
     _createSelection: function(range, insertionPoint, affinity){
+        range = this._sanitizedRange(range);
         var selection = UITextEditorSelection(range, insertionPoint, affinity);
         return selection;
     },

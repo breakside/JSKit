@@ -169,9 +169,13 @@ JSClass("UITextLayer", UILayer, {
 
     // MARK: - Layout Manager delegate
 
-    layoutManagerDidInvalidateLayout: function(){
+    layoutManagerDidInvalidateLayout: function(layoutManager){
         this.setNeedsLayout();
         this.setNeedsDisplay();
+    },
+
+    layoutManagerTextContainerForLocation: function(layoutManager, location){
+        return this._textContainer;
     }
 
 });

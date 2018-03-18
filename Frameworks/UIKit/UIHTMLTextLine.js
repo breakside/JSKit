@@ -8,12 +8,13 @@
 JSClass("UIHTMLTextLine", JSTextLine, {
 
     element: null,
+    emptyTextNode: null,
 
-    initWithElementAndFont: function(element, height, location){
+    initWithElementAndFont: function(element, font, height, location){
         UIHTMLTextLine.$super.initWithHeight.call(this, height, location);
         this.element = element;
-        element.style.lineHeight = '%dpx'.sprintf(height);
-        element.appendChild(element.ownerDocument.createTextNode('\u200B'));
+        element.style.font = font.cssString(height);
+        this.emptyTextNode = element.appendChild(element.ownerDocument.createTextNode('\u200B'));
     },
 
     initWithElement: function(element, runs, trailingWhitespaceWidth){
@@ -45,6 +46,23 @@ JSClass("UIHTMLTextLine", JSTextLine, {
         // This should perhaps return a copy, but for our current use cases,
         // there's no need to copy since the original line gets abandoned.
         return this;
+    },
+
+    rectForEmptyCharacter: function(){
+        if (this.emptyTextNode === null){
+            return UIHTMLTextLine.$super.rectForEmptyCharacter.call(this);
+        }
+        var range = this.emptyTextNode.ownerDocument.createRange();
+        range.setStart(this.emptyTextNode, 0);
+        range.setEnd(this.emptyTextNode, 0);
+        var clientRect = range.getClientRects()[0];
+        var elementClientRect = this.element.getBoundingClientRect();
+        return JSRect(
+            clientRect.left - elementClientRect.left,
+            clientRect.top - elementClientRect.top,
+            clientRect.width,
+            clientRect.height
+        );
     }
 
 });

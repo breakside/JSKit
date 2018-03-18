@@ -51,7 +51,7 @@ JSClass("JSTextFramesetter", JSObject, {
 
         if (lineBreakMode == JSLineBreakMode.truncateTail){
             line = lines.pop();
-            if (remianingRange.length > 0 && maximumLines === 0 || maximumLines > lines.length){
+            if (remianingRange.length > 0 && maximumLines === 0 || maximumLines > lines.length + 1){
                 // we got truncated because of height.  Re-run the last line so it
                 // gets broken according to truncation rules rather than work break
                 lineRange = this._typesetter.suggestLineBreak(size.width, JSRange(line.range.location, line.range.length + remianingRange.length), lineBreakMode);

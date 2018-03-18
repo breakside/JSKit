@@ -12,6 +12,7 @@ JSClass("JSTextLayoutManager", JSObject, {
     textStorage: JSDynamicProperty('_textStorage', null),
     defaultFont: JSDynamicProperty('_defaultFont', null),
     defaultTextColor: JSDynamicProperty('_defaultTextColor', null),
+    includeEmptyFinalLine: false,
 
     delegate: null,
 
@@ -78,6 +79,18 @@ JSClass("JSTextLayoutManager", JSObject, {
         defaultAttributes[JSAttributedString.Attribute.font] = this._defaultFont;
         defaultAttributes[JSAttributedString.Attribute.textColor] = this._defaultTextColor;
         var str = JSAttributedString.initWithAttributedString(this._textStorage, defaultAttributes);
+        if (this.includeEmptyFinalLine && str.string.length > 0){
+            var iterator  = str.string.userPerceivedCharacterIterator(str.string.length - 1);
+            if (iterator.isMandatoryLineBreak){
+                // if we add a space after a trailing newline, the browser will
+                // draw another line like we want.  Note that a 0x200B zero-width space
+                // might be preferred, but it does not cause the browser to draw another line.
+                // The regular space is invisible, and as long as the editor knows to ingore
+                // anything beyond textStorage.string.length (as it should do anyway),
+                // the space will never be revealed by cursor movement or editor behavior.
+                str.appendString(" ");
+            }
+        }
         // TODO: add temporary attributes
         return str;
     },
@@ -218,9 +231,19 @@ JSClass("JSTextLayoutManager", JSObject, {
 
     characterIndexAtPoint: function(point){
         var container = this.textContainerAtPoint(point);
+        if (container === null && this.delegate && this.delegate.layoutManagerTextContainerForLocation){
+            container = this.delegate.layoutManagerTextContainerForLocation(this, point);
+        }
         if (container !== null){
             point = this.convertPointToTextContainer(point, container);
-            return container.characterIndexAtPoint(point);
+            var index = container.characterIndexAtPoint(point);
+            // We may get an index length + 1 due to the way includeEmptyFinalLine
+            // is implemented by adding an extra invisible character.
+            // Correct to index so the caller isn't affected by this extra char.
+            if (index > this.textStorage.string.length){
+                index = this.textStorage.string.length;
+            }
+            return index;
         }
         return 0;
     },

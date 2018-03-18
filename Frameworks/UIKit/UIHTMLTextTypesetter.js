@@ -45,16 +45,16 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
     _styleElement: function(size, lineBreakMode){
         if (size.width){
             this._element.style.width = '%dpx'.sprintf(size.width);
+            this._element.style.whiteSpace = 'pre-wrap';
         }else{
-            // FIXME: will wrap at the size of the window :(
             this._element.style.width = '';
+            this._element.style.whiteSpace = 'pre';
         }
         if (lineBreakMode === null){
             this._element.style.whiteSpace = 'nowrap';
             this._element.style.wordBreak = '';
             this._element.style.overflowWrap = '';
         }else{
-            this._element.style.whiteSpace = 'pre-wrap';
             switch (lineBreakMode){
                 case JSLineBreakMode.characterWrap:
                     this._element.style.wordBreak = 'break-all';
@@ -145,7 +145,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         var attributes = this._attributedString.attributesAtIndex(range.location);
         var font = JSTextTypesetter.FontFromAttributes(attributes);
         var element = this._createLineElement();
-        return UIHTMLTextLine.initWithElementAndFont(element, font.htmlLineHeight + 4, range.location);
+        return UIHTMLTextLine.initWithElementAndFont(element, font, font.htmlLineHeight + 4, range.location);
     },
 
     suggestLineBreak: function(width, range, lineBreakMode){

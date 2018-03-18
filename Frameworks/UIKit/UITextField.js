@@ -2,7 +2,7 @@
 // #import "UIKit/UITextLayer.js"
 // #import "UIKit/UITextEditor.js"
 // #import "UIKit/UICursor.js"
-/* global JSClass, JSProtocol, UIView, UICursor, JSRect, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard */
+/* global JSClass, JSProtocol, UIView, UICursor, JSRect, JSSize, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard */
 
 'use strict';
 
@@ -59,6 +59,7 @@ JSClass("UITextField", UIView, {
 
     setMultiline: function(multiline){
         this._multiline = multiline;
+        this._textLayer.textLayoutManager.includeEmptyFinalLine = multiline;
         if (this._multiline){
             this._textLayer.maximumNumberOfLines = 0;
         }else{

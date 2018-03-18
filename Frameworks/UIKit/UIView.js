@@ -2,7 +2,7 @@
 // #import "UIKit/UIResponder.js"
 // #import "UIKit/UILayer.js"
 // #import "UIKit/UIAnimation.js"
-/* global JSGlobalObject, JSClass, JSObject, UIViewLayerProperty, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSDynamicProperty, JSRect, JSPoint, JSConstraintBox, JSColor, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty */
+/* global JSGlobalObject, JSClass, JSObject, UIViewLayerProperty, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSDynamicProperty, JSRect, JSPoint, JSConstraintBox, JSColor, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty, UIWindowServer */
 'use strict';
 
 JSGlobalObject.UIViewLayerProperty = function(){
@@ -170,6 +170,11 @@ JSClass('UIView', UIResponder, {
 
     getWindow: function(){
         return this._window;
+    },
+
+    setCursor: function(cursor){
+        this._cursor = cursor;
+        UIWindowServer.defaultServer.viewDidChangeCursor(this);
     },
 
     // -------------------------------------------------------------------------

@@ -66,6 +66,10 @@ JSClass("JSTextLine", JSObject, {
             rect.origin.y += run.origin.y;
             return rect;
         }
+        return this.rectForEmptyCharacter();
+    },
+
+    rectForEmptyCharacter: function(index){
         return JSRect(0, 0, 0, this.size.height);
     },
 

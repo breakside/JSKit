@@ -5,6 +5,7 @@
 JSProtocol("JSTextLayoutManagerDelegate", JSProtocol, {
 
     layoutManagerDidInvalidateLayout: ['layoutMangaer'],
-    layoutManagerDidCompleteLayoutForContainer: ['layoutManager', 'container', 'isAtEnd']
+    layoutManagerDidCompleteLayoutForContainer: ['layoutManager', 'container', 'isAtEnd'],
+    layoutManagerTextContainerForLocation: ['layoutManager', 'location']
 
 });
