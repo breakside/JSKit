@@ -603,6 +603,11 @@ Object.defineProperties(String.prototype, {
             if (c1.wordBreakRegionalIndicator && c2.wordBreakRegionalIndicator){
                 return false;
             }
+            // Custom: space × space
+            // FIXME: Use all whitespace characters, not just 0x20
+            if (c1.code == 0x20 && c2.code == 0x20){
+                return false;
+            }
             // WB14: Any ÷ Any
             return true;
         }

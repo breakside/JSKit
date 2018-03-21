@@ -1,5 +1,5 @@
 /* global JSGlobalObject, TKAssertion */
-/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
+/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
 JSGlobalObject.TKAssertion = function(message){
@@ -84,6 +84,34 @@ JSGlobalObject.TKAssertExactEquals = function(a, b, message){
     if (a !== b){
         message = message || '';
         throw TKAssertion('TKAssertExactEquals failed, ' + (a) + ' !== ' + (b) + '. ' + message);
+    }
+};
+
+JSGlobalObject.TKAssertLessThan = function(a, b, message){
+    if (a >= b){
+        message = message || '';
+        throw TKAssertion('TKAssertExactEquals failed, ' + (a) + ' >= ' + (b) + '. ' + message);
+    }
+};
+
+JSGlobalObject.TKAssertGreaterThan = function(a, b, message){
+    if (a <= b){
+        message = message || '';
+        throw TKAssertion('TKAssertExactEquals failed, ' + (a) + ' ,+ ' + (b) + '. ' + message);
+    }
+};
+
+JSGlobalObject.TKAssertLessThanOrEquals = function(a, b, message){
+    if (a > b){
+        message = message || '';
+        throw TKAssertion('TKAssertExactEquals failed, ' + (a) + ' > ' + (b) + '. ' + message);
+    }
+};
+
+JSGlobalObject.TKAssertGreaterThanOrEquals = function(a, b, message){
+    if (a < b){
+        message = message || '';
+        throw TKAssertion('TKAssertExactEquals failed, ' + (a) + ' < ' + (b) + '. ' + message);
     }
 };
 

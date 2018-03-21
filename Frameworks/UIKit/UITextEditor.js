@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UILayer.js"
-/* global JSClass, JSDynamicProperty, JSObject, JSRange, UITextEditor, JSRect, JSPoint, JSColor, UILayer, JSTimer */
+/* global JSClass, JSDynamicProperty, JSObject, JSRange, UITextEditor, JSRect, JSPoint, JSColor, UILayer, JSTimer, JSBinarySearcher */
 'use strict';
 
 (function(){
@@ -13,6 +13,7 @@ JSClass("UITextEditor", JSObject, {
     delegate: null,
     cursorColor: JSDynamicProperty('_cursorColor', null),
     cursorWidth: 1.0,
+    repeatedClickTimeout: 0.2,
     _isFirstResponder: false,
     _cursorBlinkRate: 0.5,
     _cursorOffTimeout: null,
@@ -21,6 +22,9 @@ JSClass("UITextEditor", JSObject, {
     _cursorLayers: null,
     _selectionHighlightLayers: null,
     _selectionHighlightColor: null,
+    _repeatClickLocation: null,
+    _repeatClickTimestamp: 0,
+    _repeatClickCount: 0,
 
     initWithTextLayer: function(textLayer){
         this.selectionLayer = textLayer;
@@ -86,14 +90,21 @@ JSClass("UITextEditor", JSObject, {
         this._positionCursors();
     },
 
-    handleMouseDownAtLocation: function(location){
+    handleMouseDownAtLocation: function(location, event){
+        if (this._repeatClickLocation !== null && this._repeatClickLocation.isEqual(location) && event.timestamp  - this._repeatClickTimestamp < this.repeatedClickTimeout){
+            this._handledSelectOnMouseDown = true;
+            this._handleRepeatMouseDownAtLocation(location, event);
+            return;
+        }
+        this._repeatClickLocation = location;
+        this._repeatClickTimestamp = event.timestamp;
+        this._repeatClickCount = 1;
         // When mousing down, we behave differently depending on if the location is
         // in an existing selection or outside of every selection.
         // 1. Inside a selection means we may start dragging the selection, so don't update anything yet
         // 2. Outside a selection means we should immediately create a single selection point at the location
         //    and be ready for any subsequent drag to extend the new selection
         //
-        // TODO: double and triple mouse downs to select word and line, respectively
         var isInSelection = false;
         // FIXME: Should we hit test selection rects intead of check index? (yes)
         // Optimization: we really only care about selections that are visible
@@ -107,11 +118,34 @@ JSClass("UITextEditor", JSObject, {
         }
     },
 
+    _handleRepeatMouseDownAtLocation: function(location, event){
+        var range = null;
+        var affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+        var selection = this._selectionAtLocation(location);
+        var index = selection.range.location - (selection.affinity == UITextEditor.SelectionAffinity.afterPreviousCharacter ? 1 : 0);
+        if (this._repeatClickCount === 1){
+            range = this.textLayoutManager.textStorage.string.rangeForWordAtIndex(index);
+            affinity = selection.affinity;
+            ++this._repeatClickCount;
+        }else{
+            var line = this.textLayoutManager.lineForCharacterAtIndex(index);
+            range = JSRange(line.range);
+            this._repeatClickCount = 0;
+            this._repeatClickLocation = null;
+            this._repeatClickTimestamp = 0;
+        }
+        selection = this._createSelection(range, UITextEditor.SelectionInsertionPoint.end, affinity);
+        this._insertSelection(selection);
+        this._cursorOn();
+    },
+
     handleMouseDraggedAtLocation: function(location){
         if (this._handledSelectOnMouseDown){
+            var existingSelection = this.selections[0];
             var index = this.textLayoutManager.characterIndexAtPoint(location);
             // We should only have one selection, based on the logic that sets _handledSelectOnMouseDown
             // in handleMouseDownAtLocation
+            // NOTE: this will change when/if multiple mouse selections are allowed
             var selection = this.selections[0];
             var length = index - selection.range.location;
             if (length < 0){
@@ -305,7 +339,7 @@ JSClass("UITextEditor", JSObject, {
     // -------------------------------------------------------------------------
     // MARK: - Common editing operations
 
-    _setSingleSelectionAtLocation: function(location){
+    _selectionAtLocation: function(location){
         var index = this.textLayoutManager.characterIndexAtPoint(location);
         var rect = this.textLayoutManager.rectForCharacterAtIndex(index);
         var affinity;
@@ -327,6 +361,11 @@ JSClass("UITextEditor", JSObject, {
             }
         }
         var selection = this._createSelection(JSRange(index, 0), UITextEditor.SelectionInsertionPoint.end, affinity);
+        return selection;
+    },
+
+    _setSingleSelectionAtLocation: function(location){
+        var selection = this._selectionAtLocation(location);
         this._setSingleSelection(selection);
     },
 
@@ -342,6 +381,16 @@ JSClass("UITextEditor", JSObject, {
     _setSelections: function(selections){
         var i, l;
         this.selections = selections;
+        this._collapseOverlappingSelections();
+        this.layout();
+    },
+
+    _insertSelection: function(selection){
+        var searcher = JSBinarySearcher(this.selections, function(a, b){
+            return a.range.location - b.range.location;
+        });
+        var index = searcher.insertionIndexForValue(selection);
+        this.selections.splice(index, 0, selection);
         this._collapseOverlappingSelections();
         this.layout();
     },

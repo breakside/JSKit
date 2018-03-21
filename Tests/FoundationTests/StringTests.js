@@ -454,31 +454,56 @@ JSClass('StringTests', TKTestSuite, {
     },
 
     testWordBoundaries: function(){
-        var string = "Hello, world. \"this\" is a test!";
+        var string = "Hello, world. \"this\" is a     test!";
+
+        // start of text/word
         var range = string.rangeForWordAtIndex(0);
         TKAssertEquals(range.location, 0);
         TKAssertEquals(range.length, 5);
+
+        // middle of word ending with comma
         range = string.rangeForWordAtIndex(1);
         TKAssertEquals(range.location, 0);
         TKAssertEquals(range.length, 5);
+
+        // last letter of word ending in comma
         range = string.rangeForWordAtIndex(4);
         TKAssertEquals(range.location, 0);
         TKAssertEquals(range.length, 5);
+
+        // comma
         range = string.rangeForWordAtIndex(5);
         TKAssertEquals(range.location, 5);
         TKAssertEquals(range.length, 1);
+
+        // single space
         range = string.rangeForWordAtIndex(6);
         TKAssertEquals(range.location, 6);
         TKAssertEquals(range.length, 1);
+
+        // word ending in period
         range = string.rangeForWordAtIndex(7);
         TKAssertEquals(range.location, 7);
         TKAssertEquals(range.length, 5);
+
+        // middle of word ending in period
         range = string.rangeForWordAtIndex(8);
         TKAssertEquals(range.location, 7);
         TKAssertEquals(range.length, 5);
+
+        // end of word endinbg in period
         range = string.rangeForWordAtIndex(11);
         TKAssertEquals(range.location, 7);
         TKAssertEquals(range.length, 5);
+
+        // TODO: quotes
+
+        // multiple spaces
+        range = string.rangeForWordAtIndex(26);
+        TKAssertEquals(range.location, 25);
+        TKAssertEquals(range.length, 5);
+
+        // TODO: end of string
     },
 
     testUnicodeWordBoundaries: function(){

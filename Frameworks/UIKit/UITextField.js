@@ -194,7 +194,7 @@ JSClass("UITextField", UIView, {
             this.window.setFirstResponder(this);
         }
         var location = event.locationInView(this);
-        this._localEditor.handleMouseDownAtLocation(this.layer.convertPointToLayer(location, this._textLayer));
+        this._localEditor.handleMouseDownAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);
     },
 
     mouseDragged: function(event){
