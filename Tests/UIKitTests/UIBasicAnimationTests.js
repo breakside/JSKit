@@ -211,20 +211,20 @@ JSClass("UIBasicAnimationTests", TKTestSuite, {
         var animation = UIBasicAnimation.initWithKeyPath('backgroundColor');
         animation.layer = layer;
         animation.duration = 1000;
-        animation.fromValue = layer.model.backgroundColor = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.RGB, [0.0, 0.2, 0.4]);
-        layer.model.backgroundColor = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.RGB, [0.2, 0.6, 1.0]);
+        animation.fromValue = layer.model.backgroundColor = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.0, 0.2, 0.4]);
+        layer.model.backgroundColor = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.2, 0.6, 1.0]);
         animation.updateForTime(0);
         TKAssert(!animation.isComplete);
-        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.RGB, [0.0, 0.2, 0.4]));
+        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.0, 0.2, 0.4]));
         animation.updateForTime(100);
         TKAssert(!animation.isComplete);
-        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.RGB, [0.02, 0.24, 0.46]));
+        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.02, 0.24, 0.46]));
         animation.updateForTime(200);
         TKAssert(!animation.isComplete);
-        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.RGB, [0.04, 0.28, 0.52]));
+        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.04, 0.28, 0.52]));
         animation.updateForTime(900);
         TKAssert(!animation.isComplete);
-        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.RGB, [0.18, 0.56, 0.94]));
+        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.18, 0.56, 0.94]));
     },
 
     testInterpolate4Color: function(){

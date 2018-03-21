@@ -57,7 +57,7 @@ JSClass('JSColor', JSObject, {
     },
 
     initWithRGBA: function(r, g, b, a){
-        this._colorSpace = JSColor.SpaceIdentifier.RGBA;
+        this._colorSpace = JSColor.SpaceIdentifier.rgba;
         if (r === undefined) r = 0;
         if (g === undefined) g = 0;
         if (b === undefined) b = 0;
@@ -66,7 +66,7 @@ JSClass('JSColor', JSObject, {
     },
 
     initWithWhite: function(w){
-        this._colorSpace = JSColor.SpaceIdentifier.Gray;
+        this._colorSpace = JSColor.SpaceIdentifier.gray;
         if (w === undefined) w = 0;
         this._components = [w];
     },
@@ -106,24 +106,42 @@ JSClass('JSColor', JSObject, {
 
     toString: function(){
         return "%s(%s)".sprintf(this._colorSpace, this._components.join(','));
+    },
+
+    colorWithAlpha: function(alpha){
+        switch (this.colorSpace){
+            case JSColor.SpaceIdentifier.rgb:
+            case JSColor.SpaceIdentifier.rgba:
+                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgba, [this.red, this.green, this.blue, alpha]);
+            case JSColor.SpaceIdentifier.hsl:
+            case JSColor.SpaceIdentifier.hsla:
+                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.hsla, [this.hue, this.saturation, this.lightness, alpha]);
+            case JSColor.SpaceIdentifier.gray:
+            case JSColor.SpaceIdentifier.graya:
+                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.graya, [this.white, alpha]);
+            default:
+                return null;
+        }
     }
 
 });
 
 JSColor.SpaceIdentifier = {
-    RGB: 'rgb',
-    RGBA: 'rgba',
-    HSLA: 'hsla',
-    HSL: 'hsl',
-    Gray: 'gray'
+    rgb: 'rgb',
+    rgba: 'rgba',
+    hsla: 'hsla',
+    hsl: 'hsl',
+    gray: 'gray',
+    graya: 'graya',
 };
 
 var SpaceComponentMap = {};
-SpaceComponentMap[JSColor.SpaceIdentifier.RGB] = { 'red': 0, 'green': 1, 'blue': 2 };
-SpaceComponentMap[JSColor.SpaceIdentifier.RGBA] = { 'red': 0, 'green': 1, 'blue': 2, 'alpha': 3 };
-SpaceComponentMap[JSColor.SpaceIdentifier.HSL] = { 'hue': 0, 'saturation': 1, 'lightness': 2 };
-SpaceComponentMap[JSColor.SpaceIdentifier.HSLA] = { 'hue': 0, 'saturation': 1, 'lightness': 2, 'alpha': 3 };
-SpaceComponentMap[JSColor.SpaceIdentifier.Gray] = { 'white': 0 };
+SpaceComponentMap[JSColor.SpaceIdentifier.rgb] = { 'red': 0, 'green': 1, 'blue': 2 };
+SpaceComponentMap[JSColor.SpaceIdentifier.rgba] = { 'red': 0, 'green': 1, 'blue': 2, 'alpha': 3 };
+SpaceComponentMap[JSColor.SpaceIdentifier.hsl] = { 'hue': 0, 'saturation': 1, 'lightness': 2 };
+SpaceComponentMap[JSColor.SpaceIdentifier.hsla] = { 'hue': 0, 'saturation': 1, 'lightness': 2, 'alpha': 3 };
+SpaceComponentMap[JSColor.SpaceIdentifier.gray] = { 'white': 0 };
+SpaceComponentMap[JSColor.SpaceIdentifier.graya] = { 'white': 0, 'alpha': 1 };
 
 JSColor.clearColor = function(){
     return JSColor.initWithRGBA(0, 0, 0, 0);

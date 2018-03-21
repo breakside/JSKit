@@ -200,12 +200,12 @@ JSClass("UIAnimationTests", TKTestSuite, {
     },
 
     testInterpolate1Color: function(){
-        var color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.Gray, [0.2]);
-        var color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.Gray, [0.6]);
+        var color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.gray, [0.2]);
+        var color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.gray, [0.6]);
         var color3 = UIAnimation.interpolate1Color(color1, color2, 0.5);
         TKAssertFloatEquals(color1.components[0], 0.2);
         TKAssertFloatEquals(color2.components[0], 0.6);
-        TKAssertEquals(color3.colorSpace, JSColor.SpaceIdentifier.Gray);
+        TKAssertEquals(color3.colorSpace, JSColor.SpaceIdentifier.gray);
         TKAssertFloatEquals(color3.components[0], 0.4);
         color3 = UIAnimation.interpolate1Color(color1, color2, 0);
         TKAssertFloatEquals(color3.components[0], 0.2);
@@ -215,16 +215,16 @@ JSClass("UIAnimationTests", TKTestSuite, {
         TKAssertFloatEquals(color3.components[0], 1.0);
         color3 = UIAnimation.interpolate1Color(color1, color2, -0.1);
         TKAssertFloatEquals(color3.components[0], 0.16);
-        color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.Gray, [-0.2]);
-        color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.Gray, [1.6]);
+        color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.gray, [-0.2]);
+        color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.gray, [1.6]);
         color3 = UIAnimation.interpolate1Color(color1, color2, 0.25);
         TKAssertFloatEquals(color3.components[0], 0.25);
-        color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.Gray, [0.7]);
-        color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.Gray, [0.7]);
+        color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.gray, [0.7]);
+        color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.gray, [0.7]);
         color3 = UIAnimation.interpolate1Color(color1, color2, 0.3);
         TKAssertFloatEquals(color3.components[0], 0.7);
-        color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.Gray, [0.7]);
-        color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.Gray, [0.3]);
+        color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.gray, [0.7]);
+        color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.gray, [0.3]);
         color3 = UIAnimation.interpolate1Color(color1, color2, 0.25);
         TKAssertFloatEquals(color3.components[0], 0.6);
     },
@@ -265,8 +265,8 @@ JSClass("UIAnimationTests", TKTestSuite, {
     },
 
     testInterpolate3Color: function(){
-        var color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.RGB, [0.2, 0.0, 0.5]);
-        var color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.RGB, [0.6, 1.0, 0.1]);
+        var color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.2, 0.0, 0.5]);
+        var color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.6, 1.0, 0.1]);
         var color3 = UIAnimation.interpolate3Color(color1, color2, 0.5);
         TKAssertFloatEquals(color1.components[0], 0.2);
         TKAssertFloatEquals(color1.components[1], 0.0);
@@ -274,7 +274,7 @@ JSClass("UIAnimationTests", TKTestSuite, {
         TKAssertFloatEquals(color2.components[0], 0.6);
         TKAssertFloatEquals(color2.components[1], 1.0);
         TKAssertFloatEquals(color2.components[2], 0.1);
-        TKAssertEquals(color3.colorSpace, JSColor.SpaceIdentifier.RGB);
+        TKAssertEquals(color3.colorSpace, JSColor.SpaceIdentifier.rgb);
         TKAssertFloatEquals(color3.components[0], 0.4);
         TKAssertFloatEquals(color3.components[1], 0.5);
         TKAssertFloatEquals(color3.components[2], 0.3);
@@ -294,8 +294,8 @@ JSClass("UIAnimationTests", TKTestSuite, {
         TKAssertFloatEquals(color3.components[0], 0.16);
         TKAssertFloatEquals(color3.components[1], -0.1);
         TKAssertFloatEquals(color3.components[2], 0.54);
-        color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.RGB, [-0.2, 0.5, 1.0]);
-        color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.RGB, [1.6, 0.5, 0.0]);
+        color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [-0.2, 0.5, 1.0]);
+        color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [1.6, 0.5, 0.0]);
         color3 = UIAnimation.interpolate3Color(color1, color2, 0.25);
         TKAssertFloatEquals(color3.components[0], 0.25);
         TKAssertFloatEquals(color3.components[1], 0.5);
@@ -303,8 +303,8 @@ JSClass("UIAnimationTests", TKTestSuite, {
     },
 
     testInterpolate4Color: function(){
-        var color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.RGBA, [0.2, 0.0, 0.5, 1.0]);
-        var color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.RGBA, [0.6, 1.0, 0.1, 0.8]);
+        var color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgba, [0.2, 0.0, 0.5, 1.0]);
+        var color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgba, [0.6, 1.0, 0.1, 0.8]);
         var color3 = UIAnimation.interpolate4Color(color1, color2, 0.5);
         TKAssertFloatEquals(color1.components[0], 0.2);
         TKAssertFloatEquals(color1.components[1], 0.0);
@@ -314,7 +314,7 @@ JSClass("UIAnimationTests", TKTestSuite, {
         TKAssertFloatEquals(color2.components[1], 1.0);
         TKAssertFloatEquals(color2.components[2], 0.1);
         TKAssertFloatEquals(color2.components[3], 0.8);
-        TKAssertEquals(color3.colorSpace, JSColor.SpaceIdentifier.RGBA);
+        TKAssertEquals(color3.colorSpace, JSColor.SpaceIdentifier.rgba);
         TKAssertFloatEquals(color3.components[0], 0.4);
         TKAssertFloatEquals(color3.components[1], 0.5);
         TKAssertFloatEquals(color3.components[2], 0.3);
@@ -339,8 +339,8 @@ JSClass("UIAnimationTests", TKTestSuite, {
         TKAssertFloatEquals(color3.components[1], -0.1);
         TKAssertFloatEquals(color3.components[2], 0.54);
         TKAssertFloatEquals(color3.components[3], 1.02);
-        color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.RGBA, [-0.2, 0.5, 1.0, 0.0]);
-        color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.RGBA, [1.6, 0.5, 0.0, 0.0]);
+        color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgba, [-0.2, 0.5, 1.0, 0.0]);
+        color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgba, [1.6, 0.5, 0.0, 0.0]);
         color3 = UIAnimation.interpolate4Color(color1, color2, 0.25);
         TKAssertFloatEquals(color3.components[0], 0.25);
         TKAssertFloatEquals(color3.components[1], 0.5);

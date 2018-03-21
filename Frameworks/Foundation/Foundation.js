@@ -45,5 +45,7 @@
 // #import "Foundation/JSURLSessionTask.js"
 // #import "Foundation/JSURLSessionDataTask.js"
 // #import "Foundation/JSURLSessionUploadTask.js"
+// #import "Foundation/JSURLSessionDelegate.js"
+// #import "Foundation/JSURLSessionStreamTaskDelegate.js"
 
 'use strict';

@@ -1,7 +1,7 @@
-// #import "Foundation/JSPrototype.js"
-/* global JSPrototype */
+// #import "Foundation/JSProtocol.js"
+/* global JSProtocol */
 
-JSPrototype("JSURLSessionStreamTaskDelegate", JSPrototype, {
+JSProtocol("JSURLSessionStreamTaskDelegate", JSProtocol, {
 
     taskDidOpenStream: ['task'],
     taskDidCloseStream: ['task'],

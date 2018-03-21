@@ -28,4 +28,6 @@
 // #import "UIKit/UIWebView.js"
 // #import "UIKit/UIPasteboard.js"
 // #import "UIKit/UICursor.js"
+// #import "UIKit/UITextEditor.js"
+// #import "UIKit/UITextEditorDelegate.js"
 'use strict';

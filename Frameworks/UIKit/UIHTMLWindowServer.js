@@ -56,6 +56,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.addEventListener('dragstart', this, false);
         this.rootElement.addEventListener('dragend', this, false);
         this.rootElement.addEventListener('mouseleave', this, false);
+        this.rootElement.addEventListener('contextmenu', this, false);
         this.rootElement.addEventListener('cut', this, false);
         this.rootElement.addEventListener('copy', this, false);
         this.rootElement.addEventListener('paste', this, false);
@@ -160,6 +161,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                 this.stopListeningForMouseDrag();
                 break;
         }
+    },
+
+    contextmenu: function(e){
     },
 
     dragstart: function(e){

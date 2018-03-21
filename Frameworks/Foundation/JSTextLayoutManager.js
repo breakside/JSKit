@@ -258,7 +258,62 @@ JSClass("JSTextLayoutManager", JSObject, {
 
     lineEnumerator: function(index){
         return new JSTextLayoutManagerLineEnumerator(this, index);
-    }
+    },
+
+    rectsForCharacterRange: function(range){
+        this.layoutIfNeeded();
+        var remainingRange = JSRange(range);
+        var rects = [];
+        var lineEnumerator = this.lineEnumerator(remainingRange.location);
+        var line;
+        var container;
+        var rect;
+        var characterRect;
+        var rightX;
+        var leftX;
+        var iterator;
+        while (remainingRange.length > 0 && lineEnumerator.line !== null){
+            line = lineEnumerator.line;
+            container = lineEnumerator.container;
+            if (remainingRange.end >= line.range.end){
+                rightX = line.size.width;
+                iterator = this.textStorage.string.userPerceivedCharacterIterator(line.range.end - 1);
+                if (iterator.isMandatoryLineBreak){
+                    rightX += 8;
+                }
+            }else{
+                characterRect = line.rectForCharacterAtIndex(remainingRange.end - line.range.location);
+                rightX = characterRect.origin.x;
+            }
+            if (remainingRange.location === line.range.location){
+                leftX = 0;
+            }else{
+                characterRect = line.rectForCharacterAtIndex(remainingRange.location - line.range.location);
+                leftX = characterRect.origin.x;
+            }
+            rect = JSRect(line.origin.x + leftX, line.origin.y, rightX - leftX, line.size.height);
+            if (rect.origin.x < 0){
+                rect.size.width += rect.origin.x;
+                rect.origin.x = 0;
+            }
+            if (rect.origin.y < 0){
+                rect.size.height += rect.origin.y;
+                rect.origin.y = 0;
+            }
+            if (rect.origin.x + rect.size.width > container.size.width){
+                rect.size.width = container.size.width - rect.origin.x;
+            }
+            if (rect.origin.y + rect.size.height > container.size.height){
+                rect.size.height = container.size.height - rect.origin.y;
+            }
+            if (rect.size.width > 0 && rect.size.height > 0){
+                rects.push(this.convertRectFromTextContainer(rect, container));
+            }
+            remainingRange.advance(line.range.end - remainingRange.location);
+            lineEnumerator.increment();
+        }
+        return rects;
+    },
 
     // TODO: temporary attributes
 

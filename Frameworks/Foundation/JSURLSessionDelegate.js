@@ -1,7 +1,7 @@
-// #import "Foundation/JSPrototype.js"
-/* global JSPrototype */
+// #import "Foundation/JSProtocol.js"
+/* global JSProtocol */
 
-JSPrototype("JSURLSessionDelegate", JSPrototype, {
+JSProtocol("JSURLSessionDelegate", JSProtocol, {
 
     urlSessionTaskDidSendBodyData: ['session', 'task', 'totalSent', 'totalExpected'],
     urlSessoinTaskDidReceiveBodyData: ['session', 'task', 'totalReceived', 'totalExpected'],
