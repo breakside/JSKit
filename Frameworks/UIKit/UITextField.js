@@ -2,7 +2,7 @@
 // #import "UIKit/UITextLayer.js"
 // #import "UIKit/UITextEditor.js"
 // #import "UIKit/UICursor.js"
-/* global JSClass, JSProtocol, UIView, UICursor, JSRect, JSSize, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard */
+/* global JSClass, JSProtocol, UIView, UICursor, JSRect, JSSize, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard, JSTimer */
 
 'use strict';
 
@@ -22,6 +22,13 @@ JSClass("UITextField", UIView, {
     _textLayer: null,
     _respondingIndicatorLayer: JSLazyInitProperty('_createRespondingIndicatorLayer'),
     _localEditor: null,
+    _boundsScrollThreshold: 7,
+    _boundsScrollDistance: 0,
+    _boundsScrollInterval: 0.03,
+    _boundsScrollTimer: null,
+    _lastDragLocation: null,
+    _lastDragEvent: null,
+    _isDragging: false,
 
     // TODO: placeholder
 
@@ -137,17 +144,35 @@ JSClass("UITextField", UIView, {
     },
 
     textEditorDidPositionCursors: function(){
-        this._adjustTextPositionIfNeeded();
+        if (!this._isDragging){
+            this._adjustCursorPositionToCenterIfNeeded();
+        }
     },
 
-    _adjustTextPositionIfNeeded: function(){
+    _adjustCursorPositionToCenterIfNeeded: function(){
         var cursorRect = this.layer.convertRectFromLayer(this._localEditor.insertionRect(), this._textLayer);
         var adjustment = 0;
         if ((cursorRect.origin.x < 0) || ((cursorRect.origin.x + cursorRect.size.width) > this.bounds.size.width)){
             adjustment = this.bounds.size.width / 2.0 - cursorRect.origin.x;
         }
-        var size = this._textLayer.frame.size;
         var origin = JSPoint(this._textLayer.frame.origin.x + adjustment, this._textLayer.frame.origin.y);
+        this._adjustTextPositionToOrigin(origin);
+    },
+
+    _adjustCursorPositionToVisibleIfNeeded: function(){
+        var cursorRect = this.layer.convertRectFromLayer(this._localEditor.insertionRect(), this._textLayer);
+        var adjustment = 0;
+        if (cursorRect.origin.x < 0){
+            adjustment = -cursorRect.origin.x;
+        }else if ((cursorRect.origin.x + cursorRect.size.width) > this.bounds.size.width){
+            adjustment = this.bounds.size.width - cursorRect.origin.x;
+        }
+        var origin = JSPoint(this._textLayer.frame.origin.x + adjustment, this._textLayer.frame.origin.y);
+        this._adjustTextPositionToOrigin(origin);
+    },
+
+    _adjustTextPositionToOrigin: function(origin){
+        var size = this._textLayer.frame.size;
         if (origin.x + size.width < this.bounds.size.width){
             origin.x = this.bounds.size.width - size.width;
         }
@@ -201,16 +226,49 @@ JSClass("UITextField", UIView, {
         if (!this._enabled){
             return UITextField.$super.mouseDragged.call(this, event);
         }
+        this._isDragging = true;
         var location = event.locationInView(this);
-        this._localEditor.handleMouseDraggedAtLocation(this.layer.convertPointToLayer(location, this._textLayer));
+        this._lastDragLocation = location;
+        this._lastDragEvent = event;
+        var distanceFromRightEdge = Math.max(0, this.bounds.size.width - location.x);
+        if (distanceFromRightEdge < this._boundsScrollThreshold){
+            this._boundsScrollDistance = distanceFromRightEdge - this._boundsScrollThreshold;
+        }else if (location.x <= this._boundsScrollThreshold){
+            this._boundsScrollDistance = this._boundsScrollThreshold - Math.max(location.x, 0);
+        }else{
+            this._boundsScrollDistance = 0;
+        }
+        if (this._boundsScrollDistance === 0){
+            if (this._boundsScrollTimer !== null){
+                this._boundsScrollTimer.invalidate();
+                this._boundsScrollTimer = null;
+            }
+        }else{
+            if (this._boundsScrollTimer === null){
+                this._boundsScrollTimer = JSTimer.initWithInterval(this._boundsScrollInterval, true, function(){
+                    this._adjustTextPositionToOrigin(JSPoint(this._textLayer.frame.origin.x + this._boundsScrollDistance, this._textLayer.frame.origin.y));
+                    this._localEditor.handleMouseDraggedAtLocation(this.layer.convertPointToLayer(this._lastDragLocation, this._textLayer), this._lastDragEvent);
+                    this._adjustCursorPositionToVisibleIfNeeded();
+                }, this);
+                this._boundsScrollTimer.schedule();
+            }
+        }
+        this._localEditor.handleMouseDraggedAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);
     },
 
     mouseUp: function(event){
+        this._isDragging = false;
+        this._lastDragEvent = null;
+        this._lastDragLocation = null;
+        if (this._boundsScrollTimer !== null){
+            this._boundsScrollTimer.invalidate();
+            this._boundsScrollTimer = null;
+        }
         if (!this._enabled){
             return UITextField.$super.mouseUp.call(this, event);
         }
         var location = event.locationInView(this);
-        this._localEditor.handleMouseUpAtLocation(this.layer.convertPointToLayer(location, this._textLayer));
+        this._localEditor.handleMouseUpAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);
     },
 
     _createRespondingIndicatorLayer: function(){

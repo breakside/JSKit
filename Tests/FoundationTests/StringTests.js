@@ -506,6 +506,146 @@ JSClass('StringTests', TKTestSuite, {
         // TODO: end of string
     },
 
+    testWordBeforeIndex: function(){
+        var str = "Hello, World!  This is a test     of\nword naiviation\r\nhello.";
+
+        // start
+        var index = str.indexOfWordStartBeforeIndex(0);
+        TKAssertEquals(index, 0);
+
+        // first word
+        index = str.indexOfWordStartBeforeIndex(4);
+        TKAssertEquals(index, 0);
+
+        // after comma
+        index = str.indexOfWordStartBeforeIndex(6);
+        TKAssertEquals(index, 0);
+
+        // start of word 2
+        index = str.indexOfWordStartBeforeIndex(7);
+        TKAssertEquals(index, 0);
+
+        // in word 2
+        index = str.indexOfWordStartBeforeIndex(9);
+        TKAssertEquals(index, 7);
+
+        // in middle of double space
+        index = str.indexOfWordStartBeforeIndex(14);
+        TKAssertEquals(index, 7);
+
+        // after double space
+        index = str.indexOfWordStartBeforeIndex(15);
+        TKAssertEquals(index, 7);
+
+        // next word
+        index = str.indexOfWordStartBeforeIndex(16);
+        TKAssertEquals(index, 15);
+
+        // middle of several spaces
+        index = str.indexOfWordStartBeforeIndex(33);
+        TKAssertEquals(index, 25);
+
+        // before newline
+        index = str.indexOfWordStartBeforeIndex(36);
+        TKAssertEquals(index, 34);
+
+        // after newline
+        index = str.indexOfWordStartBeforeIndex(37);
+        TKAssertEquals(index, 34);
+
+        // word after newline
+        index = str.indexOfWordStartBeforeIndex(39);
+        TKAssertEquals(index, 37);
+
+        // middle of CRLF
+        index = str.indexOfWordStartBeforeIndex(53);
+        TKAssertEquals(index, 42);
+
+        // after CRLF
+        index = str.indexOfWordStartBeforeIndex(54);
+        TKAssertEquals(index, 42);
+
+        // end of string
+        index = str.indexOfWordStartBeforeIndex(60);
+        TKAssertEquals(index, 54);
+    },
+
+    testWordAfterIndex: function(){
+        var str = "Hello, World!  This is a test     of\nword naiviation\r\nhello.";
+
+        // start
+        var index = str.indexOfWordEndAfterIndex(0);
+        TKAssertEquals(index, 5);
+
+        // first word
+        index = str.indexOfWordEndAfterIndex(4);
+        TKAssertEquals(index, 5);
+
+        // before comma
+        index = str.indexOfWordEndAfterIndex(5);
+        TKAssertEquals(index, 12);
+
+        // after comma
+        index = str.indexOfWordEndAfterIndex(6);
+        TKAssertEquals(index, 12);
+
+        // start of word 2
+        index = str.indexOfWordEndAfterIndex(7);
+        TKAssertEquals(index, 12);
+
+        // in word 2
+        index = str.indexOfWordEndAfterIndex(9);
+        TKAssertEquals(index, 12);
+
+        // in middle of double space
+        index = str.indexOfWordEndAfterIndex(14);
+        TKAssertEquals(index, 19);
+
+        // after double space
+        index = str.indexOfWordEndAfterIndex(15);
+        TKAssertEquals(index, 19);
+
+        // next word
+        index = str.indexOfWordEndAfterIndex(16);
+        TKAssertEquals(index, 19);
+
+        // middle of several spaces
+        index = str.indexOfWordEndAfterIndex(33);
+        TKAssertEquals(index, 36);
+
+        // before newline
+        index = str.indexOfWordEndAfterIndex(36);
+        TKAssertEquals(index, 41);
+
+        // after newline
+        index = str.indexOfWordEndAfterIndex(37);
+        TKAssertEquals(index, 41);
+
+        // word after newline
+        index = str.indexOfWordEndAfterIndex(39);
+        TKAssertEquals(index, 41);
+
+        // before CRLF
+        index = str.indexOfWordEndAfterIndex(52);
+        TKAssertEquals(index, 59);
+
+        // middle of CRLF
+        index = str.indexOfWordEndAfterIndex(53);
+        TKAssertEquals(index, 59);
+
+        // after CRLF
+        index = str.indexOfWordEndAfterIndex(54);
+        TKAssertEquals(index, 59);
+
+        // before period
+        index = str.indexOfWordEndAfterIndex(59);
+        TKAssertEquals(index, 60);
+
+        // end of string
+        index = str.indexOfWordEndAfterIndex(60);
+        TKAssertEquals(index, 60);
+    },
+
     testUnicodeWordBoundaries: function(){
         var string = "Hello, wörld. \"this\" is a te\u0301st 😀!";
         var range = string.rangeForWordAtIndex(0);
@@ -546,50 +686,53 @@ JSClass('StringTests', TKTestSuite, {
         TKAssertEquals(range.length, 1);
     },
 
-    _testWordBoundarySpaces: function(){
-        // disabled until I can decide exactly what I want here
-        // Unicode word break standard doesn't treat runs of whitespace as a word; each space is its own word
-        // But for practical use, I think treating consecutive whitespace as a word makes sense
-        var str = "  Hello     there,\t   what\n\na test!  ";
-        var range = str.rangeForWordAtIndex(0);
+    testLineBoundaries: function(){
+        var str = "This is a test \n of line boundaries\rwith hard\r\nline breaks\n\rof various kinds";
+
+        // start of text
+        var range = str.rangeForLineAtIndex(0);
         TKAssertEquals(range.location, 0);
-        TKAssertEquals(range.length, 2);
-        range = str.rangeForWordAtIndex(1);
+        TKAssertEquals(range.length, 16);
+
+        // middle of line
+        range = str.rangeForLineAtIndex(7);
         TKAssertEquals(range.location, 0);
-        TKAssertEquals(range.length, 2);
-        range = str.rangeForWordAtIndex(2);
-        TKAssertEquals(range.location, 2);
-        TKAssertEquals(range.length, 5);
-        range = str.rangeForWordAtIndex(7);
-        TKAssertEquals(range.location, 7);
-        TKAssertEquals(range.length, 5);
-        range = str.rangeForWordAtIndex(11);
-        TKAssertEquals(range.location, 7);
-        TKAssertEquals(range.length, 5);
-        range = str.rangeForWordAtIndex(17);
-        TKAssertEquals(range.location, 17);
+        TKAssertEquals(range.length, 16);
+
+        // end of line, before break
+        range = str.rangeForLineAtIndex(15);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 16);
+
+        // after break
+        range = str.rangeForLineAtIndex(16);
+        TKAssertEquals(range.location, 16);
+        TKAssertEquals(range.length, 20);
+
+        // CRLF
+        range = str.rangeForLineAtIndex(39);
+        TKAssertEquals(range.location, 36);
+        TKAssertEquals(range.length, 11);
+
+        // LFCR
+        range = str.rangeForLineAtIndex(50);
+        TKAssertEquals(range.location, 47);
+        TKAssertEquals(range.length, 12);
+
+        // only newline
+        range = str.rangeForLineAtIndex(59);
+        TKAssertEquals(range.location, 59);
         TKAssertEquals(range.length, 1);
-        range = str.rangeForWordAtIndex(18);
-        TKAssertEquals(range.location, 18);
-        TKAssertEquals(range.length, 4);
-        range = str.rangeForWordAtIndex(19);
-        TKAssertEquals(range.location, 18);
-        TKAssertEquals(range.length, 4);
-        range = str.rangeForWordAtIndex(20);
-        TKAssertEquals(range.location, 18);
-        TKAssertEquals(range.length, 4);
-        range = str.rangeForWordAtIndex(26);
-        TKAssertEquals(range.location, 26);
-        TKAssertEquals(range.length, 2);
-        range = str.rangeForWordAtIndex(27);
-        TKAssertEquals(range.location, 26);
-        TKAssertEquals(range.length, 2);
-        range = str.rangeForWordAtIndex(35);
-        TKAssertEquals(range.location, 35);
-        TKAssertEquals(range.length, 2);
-        range = str.rangeForWordAtIndex(36);
-        TKAssertEquals(range.location, 35);
-        TKAssertEquals(range.length, 2);
+
+        // final line
+        range = str.rangeForLineAtIndex(65);
+        TKAssertEquals(range.location, 60);
+        TKAssertEquals(range.length, 16);
+
+        // end of text
+        range = str.rangeForLineAtIndex(76);
+        TKAssertEquals(range.location, 60);
+        TKAssertEquals(range.length, 16);
     },
 
     testUTF8: function(){

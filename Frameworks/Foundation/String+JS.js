@@ -133,42 +133,58 @@ Object.defineProperties(String.prototype, {
         }
     },
 
-    indexOfNextWordFromIndex: {
+    indexOfWordEndAfterIndex: {
         enumerable: false,
         value: function String_indexOfNextWordFromIndex(index){
-            var range = this.rangeForWordAtIndex(index);
-            index = range.end;
-            var L = this.length;
-            var word;
-            var a, b;
-            while (index < L){
-                range = this.rangeForWordAtIndex(index);
-                word = this.substringInRange(range);
-                if (word.search(/[^\s]/) >= 0){
-                    return index;
-                }
-                index = range.end;
+            var range = JSRange(index, 0);
+            while (range.end < this.length && !this._isWordLikeRange(range)){
+                range = this.rangeForWordAtIndex(range.end);
             }
-            return L;
+            return range.end;
         }
     },
 
-    indexOfPreviousWordFromIndex: {
+    indexOfWordStartBeforeIndex: {
         enumerable: false,
         value: function String_indexOfPreviousWordFromIndex(index){
-            var range = this.rangeForWordAtIndex(index);
-            index = range.location - 1;
-            var word;
-            var a, b;
-            while (index >= 0){
-                range = this.rangeForWordAtIndex(index);
-                word = this.substringInRange(range);
-                if (word.search(/[^\s]/) >= 0){
-                    return range.location;
-                }
-                index = range.location - 1;
+            var range = JSRange(index, 0);
+            while (range.location > 0 && !this._isWordLikeRange(range)){
+                range = this.rangeForWordAtIndex(range.location - 1);
             }
-            return 0;
+            return range.location;
+        }
+    },
+
+    _isWordLikeRange: {
+        enumerable: false,
+        value: function String_isWhitespaceRange(range){
+            var iterator = this.unicodeIterator(range.location);
+            while (iterator.index < range.end){
+                if (iterator.character.wordBreakAHLetter || iterator.character.wordBreakNumeric){
+                    return true;
+                }
+                iterator.increment();
+            }
+            return false;
+        }
+    },
+
+    rangeForLineAtIndex: {
+        enumerable: false,
+        value: function String_rangeForLineAtIndex(index){
+            var iterator1 = this.userPerceivedCharacterIterator(index);
+            var startIndex = iterator1.range.location;
+            var iterator2 = UserPerceivedCharacterIterator(iterator1);
+            iterator1.decrement();
+            while (!iterator1.isMandatoryLineBreak){
+                startIndex = iterator1.range.location;
+                iterator1.decrement();
+            }
+            while (!iterator2.isMandatoryLineBreak){
+                iterator2.increment();
+            }
+            var endIndex = iterator2.range.end;
+            return JSRange(startIndex, endIndex - startIndex);
         }
     },
 
@@ -834,23 +850,28 @@ var UserPerceivedCharacterIterator = function(str, index){
     if (this === undefined){
         return new UserPerceivedCharacterIterator(str, index);
     }
-    this._unicodeIterator = new UnicodeIterator(str, index);
-    this._nextUnicodeIterator = new UnicodeIterator(this._unicodeIterator);
-    var c1 = null;
-    var c2 = this._unicodeIterator.character;
-    do {
-        c1 = c2;
-        this._nextUnicodeIterator.increment();
-        c2 = this._nextUnicodeIterator.character;
-    } while (!String.isGraphemeClusterBoundary(c1, c2));
-    c1 = this._unicodeIterator.character;
-    c2 = null;
-    do {
-        c2 = c1;
-        this._unicodeIterator.decrement();
+    if (str instanceof UserPerceivedCharacterIterator){
+        this._unicodeIterator = new UnicodeIterator(str._unicodeIterator);
+        this._nextUnicodeIterator = new UnicodeIterator(str._nextUnicodeIterator);
+    }else{
+        this._unicodeIterator = new UnicodeIterator(str, index);
+        this._nextUnicodeIterator = new UnicodeIterator(this._unicodeIterator);
+        var c1 = null;
+        var c2 = this._unicodeIterator.character;
+        do {
+            c1 = c2;
+            this._nextUnicodeIterator.increment();
+            c2 = this._nextUnicodeIterator.character;
+        } while (!String.isGraphemeClusterBoundary(c1, c2));
         c1 = this._unicodeIterator.character;
-    } while (!String.isGraphemeClusterBoundary(c1, c2));
-    this._unicodeIterator.increment();
+        c2 = null;
+        do {
+            c2 = c1;
+            this._unicodeIterator.decrement();
+            c1 = this._unicodeIterator.character;
+        } while (!String.isGraphemeClusterBoundary(c1, c2));
+        this._unicodeIterator.increment();
+    }
 };
 
 Object.defineProperties(UserPerceivedCharacterIterator.prototype, {

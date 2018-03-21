@@ -121,7 +121,7 @@ JSClass("JSTextFrame", JSObject, {
             }
         }
         if (min == this._lines.length){
-            return null;
+            min -= 1;
         }
         return this._lines[min];
     },
