@@ -24,7 +24,7 @@ JSClass("UIImageLayer", UILayer, {
 
     drawInContext: function(context){
         if (this._image !== null && this.presentation.imageFrame.size.width > 0 && this.presentation.imageFrame.size.height > 0){
-            context.drawImage(this.presentation.imageFrame, this._image);
+            context.drawImage(this._image, this.presentation.imageFrame);
         }
     }
 

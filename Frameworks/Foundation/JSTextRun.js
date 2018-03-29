@@ -28,6 +28,7 @@ JSClass("JSTextRun", JSObject, {
     },
 
     drawInContext: function(context){
+        // TODO: draw each glyph (including attachments)
     },
 
     characterIndexAtPoint: function(point){

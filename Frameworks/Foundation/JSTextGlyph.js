@@ -22,4 +22,8 @@ JSTextGlyph.FromUTF16 = function(utf16, font){
     return JSTextGlyph(utf16.length, width);
 };
 
+JSTextGlyph.FromAttachment = function(attachment){
+    return JSTextGlyph(1, attachment.size.width);
+};
+
 })();

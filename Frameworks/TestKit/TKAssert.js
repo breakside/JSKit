@@ -1,5 +1,5 @@
 /* global JSGlobalObject, TKAssertion */
-/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
+/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
 JSGlobalObject.TKAssertion = function(message){
@@ -153,7 +153,14 @@ JSGlobalObject.TKAssertNull = function(expression, message){
 JSGlobalObject.TKAssertUndefined = function(expression, message){
     if (expression !== undefined){
         message = message || '';
-        throw TKAssertion('TKAssertNull failed, expression is not undefined ' + message);
+        throw TKAssertion('TKAssertUndefined failed, expression is not undefined ' + message);
+    }
+};
+
+JSGlobalObject.TKAssertNotUndefined = function(expression, message){
+    if (expression === undefined){
+        message = message || '';
+        throw TKAssertion('TKAssertNotUndefined failed, expression is undefined ' + message);
     }
 };
 

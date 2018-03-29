@@ -44,6 +44,13 @@ JSClass("JSTextStorage", JSAttributedString, {
         }
     },
 
+    replaceCharactersInRangeWithAttributedString: function(range, attributedString){
+        JSTextStorage.$super.replaceCharactersInRangeWithAttributedString.call(this, range, attributedString);
+        for (var i = 0, l = this._layoutManagers.length; i < l; ++i){
+            this._layoutManagers[i].textStorageDidReplaceCharactersInRange(range, attributedString.string.length);
+        }
+    },
+
     setAttributesInRange: function(attributes, range){
         JSTextStorage.$super.setAttributesInRange.call(this, attributes, range);
         for (var i = 0, l = this._layoutManagers.length; i < l; ++i){

@@ -1,4 +1,6 @@
-// #import "PDFKit/PDFLexical.js"
+// #import "PDFKit/PDFTypes.js"
+// #import "PDFKit/PDFWriter.js"
+// #import "PDFKit/PDFContext.js"
 // #import "PDFKit/PDFFilter.js"
 // #import "PDFKit/PDFPredictorFilter.js"
 // #import "PDFKit/PDFASCIIHexFilter.js"
@@ -6,3 +8,5 @@
 // #import "PDFKit/PDFDeflateFilter.js"
 // #import "PDFKit/PDFRunLengthFilter.js"
 // #import "PDFKit/PDFLZWFilter.js"
+// #import "PDFKit/JSColor+PDF.js"
+'use strict';

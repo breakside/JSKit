@@ -1,0 +1,5 @@
+{
+    "JSBundleType": "tests",
+    "JSBundleIdentifier": "com.owenshaw.JSKit.PDFKitTests",
+    "JSBundleDisplayName": "PDFKitTests"
+}

@@ -110,17 +110,13 @@ JSClass("JSTextTypesetter", JSObject, {
         var printableRange = JSTextTypesetterPrintableRange(range.location, 0, 0);
         var printableRanges = [printableRange];
         var printable;
+        var attachment;
 
         var iterator = this._attributedString.string.userPerceivedCharacterIterator(range.location);
         var runIterator = this._attributedString.runIterator(range.location);
         var initialLineAttributes = runIterator.attributes;
         // Create run descriptors that at least fill the line
         do {
-            // if (runIterator.range.length == 1 && iterator.firstCharacter.code == JSAttributedString.SpecialCharacter.Attachment){
-            //     // attachment run
-            //     // TODO: get attachment size
-            //     var attachment = runIterator.attributes[JSAttributedString.Attribute.attachment];
-            // }
             if (runDescriptor === null){
                 runDescriptor = JSTextTypesetterRunDescriptor(remainingRange.location, runIterator.attributes);
                 runDescriptors.push(runDescriptor);
@@ -128,7 +124,15 @@ JSClass("JSTextTypesetter", JSObject, {
             newline = iterator.isMandatoryLineBreak;
             printable = !newline && !iterator.isWhiteSpace;
             // TODO: fallback fonts
-            glyph = JSTextGlyph.FromUTF16(iterator.utf16, runDescriptor.font);
+            if (runIterator.range.length == 1 && iterator.firstCharacter.code == JSAttributedString.SpecialCharacter.Attachment){
+                attachment = runIterator.attributes[JSAttributedString.Attribute.attachment];
+                attachment.layout(width);
+                glyph = JSTextGlyph.FromAttachment(attachment);
+                runDescriptor.height = attachment.size.height;
+            }else{
+                attachment = null;
+                glyph = JSTextGlyph.FromUTF16(iterator.utf16, runDescriptor.font);
+            }
             usedWidth += glyph.width;
             runDescriptor.glyphStack.push(glyph);
             runDescriptor.length += glyph.length;

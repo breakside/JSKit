@@ -2,7 +2,7 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSTextLayoutManager.js"
 // #import "Foundation/JSTextFramesetter.js"
-/* global JSClass, JSObject, JSTextFramesetter, JSDynamicProperty, JSTextLayoutManager, JSSize, JSRect, JSRange, JSPoint, JSReadOnlyProperty, JSLineBreakMode, JSTextAlignment */
+/* global JSClass, JSObject, JSTextFramesetter, JSDynamicProperty, JSTextLayoutManager, JSSize, JSRect, JSRange, JSPoint, JSReadOnlyProperty, JSLineBreakMode, JSTextAlignment, JSAttributedString */
 'use strict';
 
 JSClass("JSTextContainer", JSObject, {
@@ -26,9 +26,16 @@ JSClass("JSTextContainer", JSObject, {
 
     hitTest: function(point){
         if (point.x >= 0 && point.x < this.size.width && point.y >= 0 && point.y < this.size.height){
-            return true;
+            var line = this.lineAtPoint(point);
+            if (line !== null){
+                var run = line.runAtPoint(JSPoint(point.x - line.origin.x, point.y - line.origin.y));
+                if (run !== null){
+                    return run;
+                }
+            }
+            return this;
         }
-        return false;
+        return null;
     },
 
     getRange: function(){
@@ -84,6 +91,7 @@ JSClass("JSTextContainer", JSObject, {
         }
         this.framesetter.attributedString = attributedString;
         this._textFrame = this.framesetter.createFrame(size, range, this._maximumNumberOfLines, this._lineBreakMode, this._textAlignment);
+        // TODO: get hit objects from framesetter or frame, use them in hitTest
         if (this._sizeTracksText){
             this.size.height = this._textFrame.size.height;
             if (this._maximumNumberOfLines !== 0){

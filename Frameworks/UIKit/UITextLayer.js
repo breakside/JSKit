@@ -18,6 +18,7 @@ JSClass("UITextLayer", UILayer, {
     _textStorage: null,
     textLayoutManager: JSReadOnlyProperty('_textLayoutManager', null),
     textContainer: JSReadOnlyProperty('_textContainer', null),
+    _hasSetDisplayFramesetter: false,
 
     // MARK: - Creating a UITextLayer
 
@@ -30,7 +31,6 @@ JSClass("UITextLayer", UILayer, {
         this._textLayoutManager = JSTextLayoutManager.init();
         this._textLayoutManager.delegate = this;
         this._textContainer = JSTextContainer.initWithSize(this._availableTextSize());
-        this._textContainer.framesetter = null;
         this._textStorage = JSTextStorage.init();
         this._textStorage.addLayoutManager(this._textLayoutManager);
         this._textLayoutManager.addTextContainer(this._textContainer);
@@ -122,6 +122,12 @@ JSClass("UITextLayer", UILayer, {
         this.setNeedsDisplay();
     },
 
+    // MARK: - Converting coordinates to Text Container
+
+    convertPointToTextContainer: function(point){
+        return JSPoint(point.x - this._textContainer.origin.x, point.y - this._textContainer.origin.y);
+    },
+
     // MARK: - Drawing
 
     _availableTextSize: function(){
@@ -148,11 +154,24 @@ JSClass("UITextLayer", UILayer, {
         // }
     },
 
+    sizeToFit: function(){
+        this.layoutIfNeeded();
+        if (this._textContainer.textFrame !== null){
+            this.bounds = JSRect(
+                0,
+                0,
+                this._textContainer.textFrame.size.width + this._textInsets.left + this._textInsets.right,
+                this._textContainer.textFrame.size.height + this._textInsets.top + this._textInsets.bottom
+            );
+        }
+    },
+
     layoutSublayers: function(){
         UITextLayer.$super.layoutSublayers.call(this);
         if (this._displayServer !== null){
-            if (this._textContainer.framesetter === null){
+            if (!this._hasSetDisplayFramesetter){
                 this._textContainer.framesetter = this._displayServer.createTextFramesetter();
+                this._hasSetDisplayFramesetter = true;
             }
             this._textContainer.origin = JSPoint(this._textInsets.left, this._textInsets.top);
             this._textLayoutManager.layoutIfNeeded();

@@ -32,6 +32,7 @@ JSClass("UITextEditor", JSObject, {
         this._cursorLayers = [];
         this._selectionHighlightLayers = [];
         this.textLayoutManager = textLayer.textLayoutManager;
+        this.textLayoutManager.editor = this;
         this.cursorColor = JSColor.initWithRGBA(0, 128/255.0, 255/255.0, 1.0);
         this.selections = [
             this._createSelection(JSRange(0, 0), UITextEditor.SelectionInsertionPoint.end)
@@ -84,6 +85,18 @@ JSClass("UITextEditor", JSObject, {
 
     _sanitizedRange: function(range){
         return JSRange(0, this.textLayoutManager.textStorage.string.length).intersection(range);
+    },
+
+    textStorageDidChange: function(){
+        this._sanitizeSelections();
+    },
+
+    _sanitizeSelections: function(){
+        for (var i = 0, l = this.selections.length; i < l; ++i){
+            this.selections[i].range = this._sanitizedRange(this.selections[i].range);
+        }
+        this._collapseOverlappingSelections();
+        this.layout();
     },
 
     layout: function(){
@@ -425,6 +438,7 @@ JSClass("UITextEditor", JSObject, {
         var adjustedRange;
         var locationAdjustment = 0;
         var textStorage = this.textLayoutManager.textStorage;
+        this._isHandlingSelectionAdjustments = true;
         for (i = 0, l = ranges.length; i < l; ++i){
             range = ranges[i];
             adjustedRange = JSRange(range.location + locationAdjustment, range.length);
@@ -437,6 +451,7 @@ JSClass("UITextEditor", JSObject, {
             }
             this.selections[i].range = JSRange(adjustedRange.location, 0);
         }
+        this._isHandlingSelectionAdjustments = false;
         for (var j = this.selections.length - 1; j >= i; --j){
             this.selections.splice(j, 1);
         }
@@ -462,6 +477,27 @@ JSClass("UITextEditor", JSObject, {
         }
     },
 
+    _isHandlingSelectionAdjustments: false,
+
+    textStorageDidReplaceCharactersInRange: function(range, insertedLength){
+        if (this._isHandlingSelectionAdjustments){
+            return true;
+        }
+        var selection;
+        var locationAdjustment = insertedLength - range.length;
+        for (var i = this.selections.length - 1; i >= 0; --i){
+            selection = this.selections[i];
+            if (selection.range.location >= range.end){
+                selection.range = JSRange(selection.range.location + locationAdjustment, selection.range.length);
+            }else if (selection.range.location >= range.location){
+                selection.range = JSRange(range.location, Math.max(0, selection.range.length + locationAdjustment));
+            }else{
+                break;
+            }
+        }
+        this._collapseOverlappingSelections();
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - UITextInput protocol
 
@@ -471,6 +507,7 @@ JSClass("UITextEditor", JSObject, {
         var textLength = text.length;
         var locationAdjustment = 0;
         var adjustedRange;
+        this._isHandlingSelectionAdjustments = true;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
             adjustedRange = JSRange(selection.range.location + locationAdjustment, selection.range.length);
@@ -478,6 +515,7 @@ JSClass("UITextEditor", JSObject, {
             selection.range = JSRange(adjustedRange.location + textLength, 0);
             locationAdjustment += textLength - adjustedRange.length;
         }
+        this._isHandlingSelectionAdjustments = false;
         this._resetSelectionAffinity();
     },
 

@@ -36,6 +36,7 @@
 // #import "Foundation/JSTextLine.js"
 // #import "Foundation/JSTextRun.js"
 // #import "Foundation/JSTextGlyph.js"
+// #import "Foundation/JSTextAttachment.js"
 
 // #import "Foundation/JSTimer.js"
 

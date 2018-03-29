@@ -15,13 +15,19 @@ JSClass('UIWindow', UIView, {
     application: JSReadOnlyProperty('_application', null),
     firstResponder: JSDynamicProperty('_firstResponder', null),
     headKeyView: JSDynamicProperty('_firstKeyResponder', null),
+    windowServer: JSReadOnlyProperty(),
 
     // -------------------------------------------------------------------------
     // MARK: - Creating a Window
 
     init: function(){
+        this.initWithApplication(UIApplication.sharedApplication);
+    },
+
+    initWithApplication: function(application){
         UIWindow.$super.initWithConstraintBox.call(this, JSConstraintBox.Margin(0));
-        this._commonWindowInit();
+        this._application = application;
+        this._commonWindowInit(application);
     },
 
     initWithSpec: function(spec, values){
@@ -34,6 +40,7 @@ JSClass('UIWindow', UIView, {
         }else if ('contentView' in values){
             this.contentView = spec.resolvedValue(values.contentView);
         }
+        this._application = UIApplication.sharedApplication;
         this._commonWindowInit();
     },
 
@@ -78,6 +85,17 @@ JSClass('UIWindow', UIView, {
             this._contentViewController.viewDidAppear();
         }
     },
+
+    // MARK: - Window Server
+
+    getWindowServer: function(){
+        if (this._application !== null){
+            return this._application.windowServer;
+        }
+        return null;
+    },
+
+    // MARK: - Events
 
     mouseDown: function(){
         this.setFirstResponder(null);
@@ -258,7 +276,6 @@ JSClass('UIWindow', UIView, {
     // MARK: - Private methods
 
     _commonWindowInit: function(){
-        this._application = UIApplication.sharedApplication;
         this.window = this;
         if (this._contentView === null){
             this.contentView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));

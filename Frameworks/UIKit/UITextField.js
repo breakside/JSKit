@@ -2,7 +2,8 @@
 // #import "UIKit/UITextLayer.js"
 // #import "UIKit/UITextEditor.js"
 // #import "UIKit/UICursor.js"
-/* global JSClass, JSProtocol, UIView, UICursor, JSRect, JSSize, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard, JSTimer */
+// #import "UIKit/UITextAttachmentView.js"
+/* global JSClass, JSProtocol, UIView, UICursor, JSRect, JSSize, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard, JSTimer, JSTextRun, JSAttributedString, UITextAttachmentView */
 
 'use strict';
 
@@ -18,6 +19,7 @@ JSClass("UITextField", UIView, {
     textColor: JSDynamicProperty(),
     font: JSDynamicProperty(),
     multiline: JSDynamicProperty('_multiline', false, 'isMultiline'),
+    selections: JSReadOnlyProperty(),
     delegate: null,
     _textLayer: null,
     _respondingIndicatorLayer: JSLazyInitProperty('_createRespondingIndicatorLayer'),
@@ -104,6 +106,18 @@ JSClass("UITextField", UIView, {
 
     getFont: function(){
         return this._textLayer.font;
+    },
+
+    getSelections: function(){
+        return this._localEditor.selections;
+    },
+
+    setSelectionRange: function(range, insertionPoint, affinity){
+        this._localEditor.setSelectionRange(range, insertionPoint, affinity);
+    },
+
+    setSelectionRanges: function(selectionRanges, insertionPoint, affinity){
+        this._localEditor.setSelectionRanges(selectionRanges, insertionPoint, affinity);
     },
 
     cut: function(){
@@ -209,6 +223,21 @@ JSClass("UITextField", UIView, {
     resignFirstResponder: function(){
         this._respondingIndicatorLayer.backgroundColor = JSColor.initWithWhite(0.8);
         this._localEditor.didResignFirstResponder();
+    },
+
+    hitTest: function(location){
+        var locationInTextLayer = this.layer.convertPointToLayer(location, this._textLayer);
+        var locationInTextContainer = this._textLayer.convertPointToTextContainer(locationInTextLayer);
+        var textObject = this._textLayer.textContainer.hitTest(locationInTextContainer);
+        if (textObject !== null && textObject.isKindOfClass(JSTextRun)){
+            var attachment = textObject.attributes[JSAttributedString.Attribute.attachment];
+            if (attachment !== undefined){
+                if (attachment.isKindOfClass(UITextAttachmentView)){
+                    return attachment.view;
+                }
+            }
+        }
+        return UITextField.$super.hitTest.call(this, location);
     },
 
     mouseDown: function(event){

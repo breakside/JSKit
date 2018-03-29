@@ -15,6 +15,7 @@ JSClass("JSTextLayoutManager", JSObject, {
     includeEmptyFinalLine: false,
 
     delegate: null,
+    editor: null,
 
     _textContainers: null,
     _needsLayout: false,
@@ -58,6 +59,9 @@ JSClass("JSTextLayoutManager", JSObject, {
             storage.addLayoutManager(this);
         }
         this.setNeedsLayout();
+        if (this.editor){
+            this.editor.textStorageDidChange();
+        }
     },
 
     // MARK: - Styling
@@ -129,6 +133,9 @@ JSClass("JSTextLayoutManager", JSObject, {
     textStorageDidReplaceCharactersInRange: function(range, insertedLength){
         // TODO: is there a way to be smarter here and only adjust the pieces that have changed?
         this.setNeedsLayout();
+        if (this.editor){
+            this.editor.textStorageDidReplaceCharactersInRange(range, insertedLength);
+        }
     },
 
     textStorageDidChangeAttributesInRange: function(range){
@@ -197,7 +204,7 @@ JSClass("JSTextLayoutManager", JSObject, {
         for (var i = 0, l = this._textContainers.length; i < l; ++i){
             container = this._textContainers[i];
             pointInContainer = this.convertPointToTextContainer(point, container);
-            if (container.hitTest(pointInContainer)){
+            if (container.hitTest(pointInContainer) !== null){
                 return container;
             }
         }

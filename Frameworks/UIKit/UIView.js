@@ -161,6 +161,9 @@ JSClass('UIView', UIResponder, {
 
     setWindow: function(window){
         if (window != this._window){
+            if (this._window === null && this.cursor !== null && window.windowServer !== null){
+                window.windowServer.viewDidChangeCursor(this);
+            }
             this._window = window;
             for (var i = 0, l = this.subviews.length; i < l; ++i){
                 this.subviews[i].window = window;
@@ -174,7 +177,9 @@ JSClass('UIView', UIResponder, {
 
     setCursor: function(cursor){
         this._cursor = cursor;
-        UIWindowServer.defaultServer.viewDidChangeCursor(this);
+        if (this.window !== null && this.window.windowServer !== null){
+            this.window.windowServer.viewDidChangeCursor(this);
+        }
     },
 
     // -------------------------------------------------------------------------
@@ -190,6 +195,10 @@ JSClass('UIView', UIResponder, {
 
     layoutSublayersOfLayer: function(layer){
         this.layoutSubviews();
+    },
+
+    sizeToFit: function(){
+        this.layer.sizeToFit();
     },
 
     // -------------------------------------------------------------------------

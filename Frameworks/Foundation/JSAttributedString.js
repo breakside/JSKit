@@ -34,6 +34,12 @@ JSClass("JSAttributedString", JSObject, {
         }
     },
 
+    initWithAttachment: function(attachment){
+        var attributes = {};
+        attributes[JSAttributedString.Attribute.attachment] = attachment;
+        this.initWithString(JSAttributedString.SpecialCharacter.AttachmentUTF16, attributes);
+    },
+
     // MARK: - Getting the unattributed string value
 
     getString: function(){
@@ -44,6 +50,10 @@ JSClass("JSAttributedString", JSObject, {
 
     appendString: function(string){
         this.replaceCharactersInRangeWithString(JSRange(this._string.length, 0), string);
+    },
+
+    appendAttributedString: function(attributedString){
+        this.replaceCharactersInRangeWithAttributedString(JSRange(this._string.length, 0), attributedString);
     },
 
     deleteCharactersInRange: function(range){
@@ -101,6 +111,32 @@ JSClass("JSAttributedString", JSObject, {
         }
         if (fixRange.length > 0){
             this._fixRunsInRunRange(fixRange);
+        }
+    },
+
+    replaceCharactersInRangeWithAttributedString: function(range, attributedString){
+        var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
+        if (range.length > 0 || this._string.length === 0){
+            this._runs.splice(runRange.location, runRange.length);
+        }
+        this._string = this._string.stringByReplacingCharactersInRangeWithString(range, attributedString.string);
+        var runLocationAdjustment = range.location;
+        var runIndex = runRange.location;
+        var run;
+        var copiedRun;
+        var i, l;
+        for (i = 0, l = attributedString._runs.length; i < l; ++i){
+            run = attributedString._runs[i];
+            copiedRun = JSAttributedStringRun(JSRange(run.range.location + runLocationAdjustment, run.range.length), run.attributes);
+            this._runs.splice(runIndex, 0, copiedRun);
+            ++runIndex;
+        }
+        var locationAdjustment = attributedString.string.length - range.length;
+        if (locationAdjustment !== 0){
+            for (i = runIndex, l = this._runs.length; i < l; ++i){
+                run = this._runs[i];
+                run.range.location += locationAdjustment;
+            }
         }
     },
 
@@ -281,7 +317,8 @@ JSAttributedString.Attribute = {
 };
 
 JSAttributedString.SpecialCharacter = {
-    Attachment: 0xFFFC
+    Attachment: 0xFFFC,
+    AttachmentUTF16: "\uFFFC"
 };
 
 function JSAttributedStringRun(range, attributes){

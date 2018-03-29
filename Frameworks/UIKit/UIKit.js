@@ -30,4 +30,7 @@
 // #import "UIKit/UICursor.js"
 // #import "UIKit/UITextEditor.js"
 // #import "UIKit/UITextEditorDelegate.js"
+// #import "UIKit/UITextAttachmentView.js"
+// #import "UIKit/UITokenField.js"
+// #import "UIKit/UITokenFieldDelegate.js"
 'use strict';

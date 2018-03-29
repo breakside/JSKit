@@ -554,6 +554,9 @@ JSClass("UILayer", JSObject, {
         }
     },
 
+    sizeToFit: function(){
+    },
+
     _frameForConstraintBox: function(constraintBox){
         return UILayer.FrameForConstraintBoxInBounds(constraintBox, this.model.bounds);
     },
@@ -596,8 +599,8 @@ JSClass("UILayer", JSObject, {
     },
 
     _renderInContext: function(context, includeSublayers){
-        context.drawLayerProperties(this);
         if (this.presentation.hidden) return;
+        context.drawLayerProperties(this);
         this._drawInContext(context);
         if (includeSublayers){
             var sublayer;
@@ -680,35 +683,56 @@ UILayer.Properties = {
 JSContext.definePropertiesFromExtensions({
     drawLayerProperties: function(layer){
         var properties = layer.presentation;
-        if (properties.hidden) return;
+        if (properties.hidden){
+            return;
+        }
         var bounds = JSRect(0, 0, properties.bounds.size.width, properties.bounds.size.height);
         this.save();
         this.alpha = properties.alpha;
-        if (properties.transform !== JSAffineTransform.Identity){
-            this.concatCTM(properties.transform);
+        this.transformationMatrix = properties.transform;
+        if (properties.transform.isEqual(JSAffineTransform.Identity)){
+            this.concatenate(properties.transform);
         }
         if (properties.shadowColor){
-            this.shadowColor = properties.shadowColor;
-            this.shadowOffset = properties.shadowOffset;
-            this.shadowBlur = properties.shadowRadius;
+            this.setShadow(properties.shadowOffet, properties.shadowBlur, properties.shadowColor);
         }
-        if (properties.cornerRadius){
-            // TODO: cornerRadius
+        this.beginPath();
+        var rect = properties.bounds;
+        var cornerRadius = properties.cornerRadius;
+        var fill = false;
+        var stroke = false;
+        if (properties.borderWidth && properties.borderColor){
+            rect = rect.rectWithInsets(properties.borderWidth / 2.0);
+            cornerRadius -= properties.borderWidth / 2.0;
+            this.lineWidth = properties.borderWidth;
+            this.strokeColor = properties.borderColor;
+            stroke = true;
+        }
+        if (properties.backgroundColor){
+            this.fillColor = properties.backgroundColor;
+            fill = true;
+        }
+        if (cornerRadius > 0){
+            this.addRoundedRect(rect, cornerRadius);
         }else{
-            if (properties.backgroundColor){
-                this.fillColor = properties.backgroundColor;
-                this.fillRect(properties.bounds);
+            this.addRect(rect);
+        }
+        if (fill || stroke){
+            var drawingMode;
+            if (fill && stroke){
+                drawingMode = JSContext.DrawingMode.fillStroke;
+            }else if (stroke){
+                drawingMode = JSContext.DrawingMode.stroke;
+            }else{
+                drawingMode = JSContext.DrawingMode.fill;
             }
-            if (properties.backgroundGradient){
-                this.drawLinearGradient(properties.backgroundGradient, properties.bounds.origin.y, properties.bounds.origin.y + properties.bounds.size.height);
-                // TODO: raidal gradients, horizontal linear?
-            }
-            this.shadowColor = null;
-            if (properties.borderWidth){
-                this.lineWidth = properties.borderWidth;
-                this.lineColor = properties.borderColor;
-                this.strokeRect(properties.bounds.rectWithInsets(properties.borderWidth / 2.0));
-            }
+            this.drawPath(drawingMode);
+        }
+        if (properties.backgroundGradient){
+            this.save();
+            this.clip();
+            this.drawLinearGradient(properties.backgroundGradient, properties.bounds.origin.y, properties.bounds.origin.y + properties.bounds.size.height);
+            this.restore();
         }
         this.restore();
     }

@@ -12,6 +12,7 @@ JSClass('UILabel', UIView, {
     lineBreakMode: UIViewLayerProperty(),
     textAlignment: UIViewLayerProperty(),
     maximumNumberOfLines: UIViewLayerProperty(),
+    textInsets: UIViewLayerProperty(),
 
     initWithSpec: function(spec, values){
         UILabel.$super.initWithSpec.call(this, spec, values);

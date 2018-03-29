@@ -11,7 +11,6 @@ var logger = jslog_create("html-typesetter");
 var sharedDomRange = null;
 var sharedElement = null;
 
-/// NOTE: This typesetter is optimized to be used with UIHTMLTextFramesetter
 JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
 
     domDocument: JSReadOnlyProperty('_domDocument'),
@@ -76,9 +75,15 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         var span;
         var runDescriptors = [];
         var runDescriptor;
+        var attachment;
         while (remainingRange.length > 0){
-            // TODO: attachments
             var utf16 = this._attributedString.string.substringInRange(runIterator.range.intersection(remainingRange));
+            if (runIterator.range.length === 1 && utf16 == JSAttributedString.SpecialCharacter.AttachmentUTF16){
+                attachment = runIterator.attributes[JSAttributedString.Attribute.attachment];
+                utf16 = '';
+            }else{
+                attachment = null;
+            }
             if (i < this._element.childNodes.length){
                 span = this._element.childNodes[i];
                 span.firstChild.nodeValue = utf16;
@@ -86,7 +91,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                 span = this._element.appendChild(this._element.ownerDocument.createElement('span'));
                 span.appendChild(span.ownerDocument.createTextNode(utf16));
             }
-            runDescriptor = UIHTMLTextTypesetterRunDescriptor(span, runIterator.attributes, runIterator.range.intersection(remainingRange));
+            runDescriptor = UIHTMLTextTypesetterRunDescriptor(span, runIterator.attributes, runIterator.range.intersection(remainingRange), attachment);
             runDescriptors.push(runDescriptor);
             remainingRange.advance(utf16.length);
             runIterator.increment();
@@ -127,8 +132,14 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         for (i = 0, l = fragments.length; i < l; ++i){
             fragment = fragments[i];
             var span = fragment.runDescriptor.span.cloneNode(false);
-            span.appendChild(span.ownerDocument.createTextNode(this.attributedString.string.substringInRange(fragment.range)));
+            if (!fragment.runDescriptor.attachment){
+                span.appendChild(span.ownerDocument.createTextNode(this.attributedString.string.substringInRange(fragment.range)));
+            }
             run = UIHTMLTextRun.initWithElement(span, fragment.runDescriptor.font, fragment.runDescriptor.attributes, fragment.range);
+            if (fragment.runDescriptor.attachment){
+                var context = UIHTMLDisplayServerContext.initWithElement(span);
+                fragment.runDescriptor.attachment.drawInContext(context);
+            }
             runs.push(run);
         }
         return UIHTMLTextLine.initWithElement(element, runs, 0);
@@ -234,39 +245,57 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
 
 });
 
-var UIHTMLTextTypesetterRunDescriptor = function(span, attributes, range){
+var UIHTMLTextTypesetterRunDescriptor = function(span, attributes, range, attachment){
     if (this === undefined){
-        return new UIHTMLTextTypesetterRunDescriptor(span, attributes, range);
+        return new UIHTMLTextTypesetterRunDescriptor(span, attributes, range, attachment);
     }
     this.span = span;
     this.font = JSTextTypesetter.FontFromAttributes(attributes);
     this.attributes = attributes;
     this.range = JSRange(range);
+    this.attachment = attachment || null;
     this.updateStyle();
 };
 
 UIHTMLTextTypesetterRunDescriptor.prototype = {
 
     updateStyle: function(){
-        // Font
-        var font = JSTextTypesetter.FontFromAttributes(this.attributes);
-        this.span.style.font = font.cssString(font.htmlLineHeight + 4);
+        if (this.attachment !== null){
+            this.span.style.display = 'inline-block';
+            this.span.style.position = 'relative';
+            this.span.style.width = '%dpx'.sprintf(this.attachment.size.width);
+            this.span.style.height = '%dpx'.sprintf(this.attachment.size.height);
+            this.span.style.verticalAlign = 'bottom';
+            this.span.style.font = '';
+            this.span.style.textDecoration = '';
+            this.span.style.color = '';
+            this.span.style.backgroundColor = '';
+        }else{
+            this.span.style.display = '';
+            this.span.style.width = '';
+            this.span.style.height = '';
+            this.span.style.position = '';
+            this.span.style.verticalAlign = '';
+            // Font
+            var font = JSTextTypesetter.FontFromAttributes(this.attributes);
+            this.span.style.font = font.cssString(font.htmlLineHeight + 4);
 
-        // Decorations (underline, strike)
-        var decorations = [];
-        if (this.attributes[JSAttributedString.Attribute.underline]){
-            decorations.push('underline');
-        }
-        if (this.attributes[JSAttributedString.Attribute.strike]){
-            decorations.push('line-through');
-        }
-        this.span.style.textDecoration = decorations.join(' ');
+            // Decorations (underline, strike)
+            var decorations = [];
+            if (this.attributes[JSAttributedString.Attribute.underline]){
+                decorations.push('underline');
+            }
+            if (this.attributes[JSAttributedString.Attribute.strike]){
+                decorations.push('line-through');
+            }
+            this.span.style.textDecoration = decorations.join(' ');
 
-        // Colors
-        var textColor = this.attributes[JSAttributedString.Attribute.textColor];
-        var backgroundColor = this.attributes[JSAttributedString.Attribute.backgroundColor];
-        this.span.style.color = textColor ? textColor.cssString() : 'black';
-        this.span.style.backgroundColor = backgroundColor ? backgroundColor.cssString() : '';
+            // Colors
+            var textColor = this.attributes[JSAttributedString.Attribute.textColor];
+            var backgroundColor = this.attributes[JSAttributedString.Attribute.backgroundColor];
+            this.span.style.color = textColor ? textColor.cssString() : 'black';
+            this.span.style.backgroundColor = backgroundColor ? backgroundColor.cssString() : '';
+        }
     },
 
     rangeOfLine: function(lineIndex, startingLocation){

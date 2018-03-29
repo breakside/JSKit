@@ -1,6 +1,5 @@
 // #import "PDFKit/PDFFilter.js"
-// #import "PDFKit/PDFLexical.js"
-/* global JSClass, PDFFilter, JSData, PDFLexical */
+/* global JSClass, PDFFilter, JSData */
 'use strict';
 
 JSClass("PDFASCIIHexFilter", PDFFilter, {

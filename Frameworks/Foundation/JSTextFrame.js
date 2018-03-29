@@ -51,7 +51,7 @@ JSClass("JSTextFrame", JSObject, {
 
     drawInContextAtPoint: function(context, point){
         context.save();
-        context.translateCTM(point.x, point.y);
+        context.translateBy(point.x, point.y);
         for (var i = 0, l = this._lines.length; i < l; ++i){
             this._lines[i].drawInContext(context);
         }

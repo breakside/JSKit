@@ -14,7 +14,9 @@ JSClass("UIHTMLTextRun", JSTextRun, {
     initWithElement: function(element, font, attributes, range){
         UIHTMLTextRun.$super.initWithGlyphs.call(this, [], font, attributes, range);
         this.element = element;
-        this.textNode = element.firstChild;
+        if (element.childNodes.length > 0){
+            this.textNode = element.firstChild;
+        }
         if (sharedDomRange === null){
             sharedDomRange = this.element.ownerDocument.createRange();
         }
@@ -60,6 +62,9 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         if (range.length === 0){
             return 0;
         }
+        if (this.textNode === null){
+            return this.element.getBoundingClientRect().width;
+        }
         sharedDomRange.setStart(this.textNode, range.location);
         sharedDomRange.setEnd(this.textNode, range.end);
         var clientRect = this._pickCorrectClientRectFromRects(sharedDomRange.getClientRects());
@@ -67,6 +72,13 @@ JSClass("UIHTMLTextRun", JSTextRun, {
     },
 
     rectForCharacterAtIndex: function(index){
+        if (this.textNode === null){
+            if (index === this.range.location){
+                var boundingRect = this.element.getBoundingClientRect();
+                return JSRect(0, 0, boundingRect.width, boundingRect.height);
+            }
+            return JSRect.Zero;
+        }
         // Create a DOM range for the character in the span because the DOM range can
         // report its size and coordinates
         var rect;

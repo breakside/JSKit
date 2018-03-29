@@ -21,13 +21,16 @@ ColorComponentProperty.prototype.define = function(C, publicKey, extensions){
         get: function JSColor_getComponent(){
             var component = SpaceComponentMap[this._colorSpace][publicKey];
             if (component === undefined){
+                if (publicKey == 'alpha'){
+                    return 1.0;
+                }
                 return undefined;
             }
             return this._components[component];
         },
         set: function JSColor_setComponent(value){
             var component = SpaceComponentMap[this._colorSpace][publicKey];
-            if (component === undefined){
+            if (component !== undefined){
                 SpaceComponentMap[this._colorSpace][publicKey] = value;
             }
         }
@@ -122,9 +125,65 @@ JSClass('JSColor', JSObject, {
             default:
                 return null;
         }
+    },
+
+    rgbaColor: function(){
+        switch (this.colorSpace){
+            case JSColor.SpaceIdentifier.rgb:
+                return this.colorWithAlpha(1.0);
+            case JSColor.SpaceIdentifier.rgba:
+                return this;
+            case JSColor.SpaceIdentifier.hsl:
+                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, JSColor.HSLToRGB(this.hue, this.saturation, this.lightness));
+            case JSColor.SpaceIdentifier.hsla:
+                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, JSColor.HSLToRGB(this.hue, this.saturation, this.lightness)).colorWithAlpha(this.alpha);
+            case JSColor.SpaceIdentifier.gray:
+                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, JSColor.GrayToRGB(this.white));
+            case JSColor.SpaceIdentifier.graya:
+                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, JSColor.GrayToRGB(this.white)).colorWithAlpha(this.alpha);
+            default:
+                return null;
+        }
     }
 
 });
+
+JSColor.HSLToRGB = function(h, s, l){
+    var m2;
+    if (l < 0.5){
+        m2 = l * (s + 1);
+    }else{
+        m2 = l + s - l * s;
+    }
+    var m1 = l * 2 - m2;
+    var r = JSColor._HueToRGB(m1, m2, h + 1 / 3);
+    var g = JSColor._HueToRGB(m1, m2, h);
+    var b = JSColor._HueToRGB(m1, m2, h - 1 / 3);
+    return [r, g, b];
+};
+
+JSColor._HueToRGB = function(m1, m2, h){
+    if (h < 0){
+        h +=1 ;
+    }else if (h > 1){
+        h -= 1;
+    }
+    if (6 * h < 1){
+        return m1 + (m2 - m1) * h * 6;
+    }
+    if (2 * h < 1){
+        return m2;
+    }
+    if (3 * h < 2){
+        return m1 + (m2 - m1) * (2 / 3 - h) * 6;
+    }
+    return m1;
+};
+
+JSColor.GrayToRGB = function(white){
+    // FIXME: could get fancier here with gray coversion
+    return [white, white, white];
+};
 
 JSColor.SpaceIdentifier = {
     rgb: 'rgb',
