@@ -89,31 +89,23 @@ JSClass("PDFContext", JSContext, {
     },
 
     moveToPoint: function(x, y){
-        this._writeStreamData("%f %f m ".sprintf(x, y));
+        this._writeStreamData("%n %n m ", x, y);
     },
 
     addLineToPoint: function(x, y){
-        this._writeStreamData("%f %f l ".sprintf(x, y));
+        this._writeStreamData("%n %n l ", x, y);
     },
 
     addRect: function(rect){
-        this._writeStreamData("%f %f %f %f re ".sprintf(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height));
-    },
-
-    addArc: function(center, radius, startAngle, endAngle, clockwise){
-        // TODO: does PDF have this command?  Use bezier if not (implemnet in base class)?
-    },
-
-    addArcUsingTangents: function(tangent1End, tangent2End, radius){
-        // TODO: does PDF have this command?  Use base class implemenation if not?
+        this._writeStreamData("%n %n %n %n re ", rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
     },
 
     addCurveToPoint: function(point, control1, control2){
-        this._writeStreamData("%f %f %f %f %f %f c ".sprintf(control1.x, control1.y, control2.x, control2.y, point.x, point.y));
+        this._writeStreamData("%n %n %n %n %n %n c ", control1.x, control1.y, control2.x, control2.y, point.x, point.y);
     },
 
     addQuadraticCurveToPoint: function(point, control){
-        this._writeStreamData("%f %f %f %f y ".sprintf(control.x, control.y, point.x, point.y));
+        this._writeStreamData("%n %n %n %n y ", control.x, control.y, point.x, point.y);
     },
 
     closePath: function(){
@@ -151,7 +143,7 @@ JSClass("PDFContext", JSContext, {
         }
     },
 
-    stokePath: function(){
+    strokePath: function(){
         this._writeStreamData("S ");
     },
 
@@ -248,7 +240,7 @@ JSClass("PDFContext", JSContext, {
 
     setTransfomrationMatrix: function(tm){
         PDFContext.$super.setTransfomrationMatrix.call(this, tm);
-        this._writeStreamData("%f %f %f %f %f %f cm ".sprintf(tm.a, tm.b, tm.c, tm.d, tm.tx, tm.ty));
+        this._writeStreamData("%n %n %n %n %n %n cm ", tm.a, tm.b, tm.c, tm.d, tm.tx, tm.ty);
     },
 
     // ----------------------------------------------------------------------
@@ -291,11 +283,15 @@ JSClass("PDFContext", JSContext, {
 
     setMiterLimit: function(miterLimit){
         PDFContext.$super.setMiterLimit.call(this, miterLimit);
-        this._writeStreamData("%f M ".sprintf(miterLimit));
+        this._writeStreamData("%n M ", miterLimit);
     },
 
     setLineDash: function(phase, lengths){
-        this._writeStreamData("[%s] %f d ".sprintf(lengths.join(" "), phase));
+        var lengthsStr = "";
+        for (var i = 0, l = lengths.length; i < l; ++i){
+            lengthsStr += this._writer.format("%n ", lengths[i]);
+        }
+        this._writeStreamData("[ %s] %n d ", lengthsStr, phase);
     },
 
     // ----------------------------------------------------------------------
@@ -318,6 +314,9 @@ JSClass("PDFContext", JSContext, {
         if (typeof(data) === 'string'){
             if (data.charAt(data.length - 1) != " "){
                 data += " ";
+            }
+            if (arguments.length > 1){
+                data = this._writer.format.apply(this._writer, arguments);
             }
             data = data.utf8();
         }

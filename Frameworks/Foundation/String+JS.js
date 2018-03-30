@@ -299,28 +299,21 @@ Object.defineProperties(String.prototype, {
 
     // -------------------------------------------------------------------------
     // MARK: - Formatting
-    sprintf: {
+
+    format: {
         enumerable: false,
-        value: function String_sprintf(){
+        value: function String_format(formatter, args){
             var formatted = "";
             var formatting = false;
             var using_numbered_args = false;
             var found_first_format = false;
-            var args = Array.prototype.slice.call(arguments);
             var arg;
             var sub;
             var index;
-            var flags = {};
-            var width;
-            var precision;
             var uppercase;
-            var flag_map = {
-                "'": 'thousands',
-                '-': 'left_justified',
-                '+': 'signed',
-                ' ': 'space',
-                '#': 'alternate',
-                '0': 'zero'
+            var options = {
+                width: null,
+                precision: null
             };
             for (var i = 0, l = this.length; i < l; ++i){
                 var c = this[i];
@@ -351,16 +344,21 @@ Object.defineProperties(String.prototype, {
                             }
                             arg = args.shift();
                         }
-                        flags = {};
-                        while (c in flag_map){
-                            flags[flag_map[c]] = true;
-                            ++i;
-                            if (i >= l){
-                                throw new Error("Invalid format string, unexpected end: " + this);
+                        options.width = null;
+                        options.precision = null;
+                        if (formatter.flag_map){
+                            for (var f in formatter.flag_map){
+                                options[formatter.flag_map[f]] = false;
                             }
-                            c = this[i];
+                            while (c in formatter.flag_map){
+                                options[formatter.flag_map[c]] = true;
+                                ++i;
+                                if (i >= l){
+                                    throw new Error("Invalid format string, unexpected end: " + this);
+                                }
+                                c = this[i];
+                            }
                         }
-                        width = null;
                         if (c >= '1' && c <= '9'){
                             sub = '';
                             do {
@@ -371,11 +369,10 @@ Object.defineProperties(String.prototype, {
                                 }
                                 c = this[i];
                             } while (c >= '0' && c <= '9');
-                            width = parseInt(sub, 10);
+                            options.width = parseInt(sub, 10);
                         }
-                        precision = null;
                         if (c == '.'){
-                            precision = 0;
+                            options.precision = 0;
                             sub = '';
                             ++i;
                             if (i >= l){
@@ -391,48 +388,13 @@ Object.defineProperties(String.prototype, {
                                 c = this[i];
                             }
                             if (sub.length){
-                                precision = parseInt(sub, 10);
+                                options.precision = parseInt(sub, 10);
                             }
                         }
-                        uppercase = false;
-                        switch (c){
-                            case 'd':
-                                // TODO: obey any other flags
-                                sub = arg.toString(10);
-                                if (width){
-                                    sub = sub.leftPaddedString('0', width);
-                                }
-                                formatted += sub;
-                                break;
-                            case 'X':
-                                uppercase = true;
-                                // intentional fallthrough
-                            case 'x':
-                                // TODO: obey any other flags
-                                sub = arg.toString(16);
-                                if (width){
-                                    sub = sub.leftPaddedString('0', width);
-                                }
-                                if (uppercase){
-                                    sub = sub.toUpperCase();
-                                }
-                                if (flags.alternate){
-                                    sub = '0x' + sub;
-                                }
-                                formatted += sub;
-                                break;
-                            case 's':
-                                // TODO: obey any flags
-                                formatted += arg.toString ? arg.toString() : arg;
-                                break;
-                            case 'f':
-                                if (Math.abs(arg) < 0.000001){
-                                    arg = 0;
-                                }
-                                formatted += arg.toString ? arg.toString() : arg;
-                                break;
-                            default:
-                                throw new Error("Invalid format string, unknown conversion specifier: " + c + "; " + this);
+                        if (c in formatter){
+                            formatted += formatter[c](arg, options);
+                        }else{
+                            throw new Error("Invalid format string, unknown conversion specifier: " + c + "; " + this);
                         }
                     }
                     formatting = false;
@@ -455,6 +417,13 @@ Object.defineProperties(String.prototype, {
                 throw new Error("Invalid format string, unused arguments: " + this);
             }
             return formatted;
+        }
+    },
+
+    sprintf: {
+        enumerable: false,
+        value: function String_sprintf(){
+            return this.format.call(this, printf_formatter, Array.prototype.slice.call(arguments));
         }
     },
 
@@ -1002,6 +971,59 @@ Object.defineProperties(UserPerceivedCharacterIterator.prototype, {
 
 });
 
+var printf_formatter = {
+
+    flag_map: {
+        "'": 'thousands',
+        '-': 'left_justified',
+        '+': 'signed',
+        ' ': 'space',
+        '#': 'alternate',
+        '0': 'zero'
+    },
+
+    d: function(arg, options){
+        var str = Math.floor(arg).toString(10);
+        // TODO: obey any other options
+        if (options.width){
+            str = str.leftPaddedString(options.zero ? '0' : ' ', options.width);
+        }
+        return str;
+    },
+
+    x: function(arg, options){
+        // TODO: obey any other options
+        var str = arg.toString(16);
+        if (options.width){
+            str = str.leftPaddedString(options.zero ? '0' : ' ', options.width);
+        }
+        if (options.uppercase){
+            str = str.toUpperCase();
+        }
+        if (options.alternate){
+            str = '0x' + str;
+        }
+        return str;
+    },
+
+    X: function(arg, options){
+        options.uppercase = true;
+        return this.x(arg, options);
+    },
+
+    s: function(arg, options){
+        // TODO: obey any other options
+        return arg.toString ? arg.toString() : arg;
+    },
+
+    f: function(arg, options){
+        // TODO: obey any other options
+        if (Math.abs(arg) < 0.000001){
+            arg = 0;
+        }
+        return arg.toString ? arg.toString() : arg;
+    }
+};
 
 })();
 

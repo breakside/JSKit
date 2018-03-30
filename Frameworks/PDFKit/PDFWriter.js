@@ -23,6 +23,10 @@ JSClass("PDFWriter", JSObject, {
         this._trailer = PDFTrailerObject();
     },
 
+    format: function(message){
+        return message.format(pdf_formatter, Array.prototype.slice.call(arguments, 1));
+    },
+
     indirect: function(){
         var obj;
         for (var i = 0, l = arguments.length; i < l; ++i){
@@ -113,7 +117,7 @@ JSClass("PDFWriter", JSObject, {
     },
 
     _writeNameObject: function(name){
-        this._write("/%s", PDFWriter.EscapedName(name.value));
+        this._write(pdf_formatter.N(name));
     },
 
     _writeStringObject: function(str){
@@ -124,46 +128,11 @@ JSClass("PDFWriter", JSObject, {
     },
 
     _writeNumberObject: function(n){
-        // Number.toString() gets most cases correct for PDF, but could generate
-        // some strings that are not valid PDF numbers
-        // 1. NaN - No concept in PDF, unclear what to do, but 0 seems ok
-        // 2. Infinity - No concept in PDF, unclear what to do, but the max number seems ok
-        // 3. Exponential Notation - Not valid in PDF.  Very large or very small numbers.
-        //
-        // The PDF spec isn't clear on how many digits a number may have.  I've chosen
-        // 10 whole digits and 5 decimal digits.  The xref table uses 10 digit numbers,
-        // so that feels like a good max.  The decimal precision is more of a guess as
-        // to what is necessary.
-        if (Number.isNaN(n)){
-            // TODO: warning?  error?
-            this._write("0");
-        }else if (!Number.isFinite(n)){
-            // TODOD: warning?  error?
-            this._write("9999999999.99999");
-        }else{
-            if (n === 0){
-                this._write("0");
-            }else{
-                if (n < 0){
-                    this._write("-");
-                    n = -n;
-                }
-                var whole = Math.floor(n);
-                var decimal = Math.floor((n - whole) * 100000 + 0.5) / 100000;
-                if (Math.log(whole) > 10){
-                    this._write("9999999999.99999");
-                }else{
-                    this._write(whole.toString());
-                    if (decimal > 0){
-                        this._write(decimal.toString().substr(1));
-                    }
-                }
-            }
-        }
+        this._write(pdf_formatter.n(n));
     },
 
     _writeBooleanObject: function(bool){
-        this._write(bool ? "true" : false);
+        this._write(pdf_formatter.b(bool));
     },
 
     _writeNullObject: function(){
@@ -201,7 +170,7 @@ JSClass("PDFWriter", JSObject, {
     _write: function(data){
         if (typeof(data) == 'string'){
             if (arguments.length > 1){
-                data = String.prototype.sprintf.apply(data, Array.prototype.splice.call(arguments, 1, arguments.length - 1));
+                data = String.prototype.sprintf.apply(data, Array.prototype.slice.call(arguments, 1));
             }
             data = data.utf8();
         }
@@ -215,7 +184,7 @@ JSClass("PDFWriter", JSObject, {
         var xref;
         for (var i = 0, l = this._crossReferenceTable.length; i < l; ++i){
             xref = this._crossReferenceTable[i];
-            this._write("%10d %5d %s \n", xref.offset, xref.generation, xref.status === CrossReferenceTableEntry.Status.free ? "f" : "n");
+            this._write("%010d %05d %s \n", xref.offset, xref.generation, xref.status === CrossReferenceTableEntry.Status.free ? "f" : "n");
         }
     },
 
@@ -227,11 +196,6 @@ JSClass("PDFWriter", JSObject, {
     },
 
 });
-
-PDFWriter.EscapedName = function(name){
-    // TODO: replace any delimiter or whitespace with #xx
-    return name;
-};
 
 JSClass("PDFWriterStream", JSObject, {
 
@@ -259,5 +223,72 @@ CrossReferenceTableEntry.Status = {
     free: 'f',
     used: 'n'
 };
+
+var pdf_formatter = {
+
+    _maxWholeDigits: 10,
+    _maxDecimalDigits: 10,
+
+    // boolean
+    b: function(b, options){
+        return b === true ? "true" : "false";
+    },
+
+    // number
+    n: function(n, options){
+        // Number.toString() gets most cases correct for PDF, but could generate
+        // some strings that are not valid PDF numbers
+        // 1. NaN - No concept in PDF, unclear what to do, but 0 seems ok
+        // 2. Infinity - No concept in PDF, unclear what to do, but the max number seems ok
+        // 3. Exponential Notation - Not valid in PDF.  Very large or very small numbers.
+        //
+        // The PDF spec isn't clear on how many digits a number may have.  I've chosen
+        // 10 whole digits and 10 decimal digits.  The xref table uses 10 digit numbers,
+        // so that feels like a good max.  The decimal precision is more of a guess as
+        // to what is necessary.
+        if (Number.isNaN(n)){
+            // TODO: warning?  error?
+            return "0";
+        }
+        if (!Number.isFinite(n)){
+            // TODOD: warning?  error?
+            return "9999999999.99999";
+        }
+        if (n === 0){
+            return "0";
+        }
+        var str = "";
+        if (n < 0){
+            str += "-";
+            n = -n;
+        }
+        var whole = Math.floor(n);
+        var decimal = Math.floor((n - whole) * pdf_formatter._decimalMultiplier + 0.5) / pdf_formatter._decimalMultiplier;
+        if (whole >= pdf_formatter._maxNumber){
+            return "9999999999.99999";
+        }else{
+            str += whole.toString();
+            if (decimal > 0){
+                str += decimal.toString().substr(1);
+            }
+        }
+        return str;
+    },
+
+    // name
+    N: function(name, options){
+        // TODO: escape special characters
+        var str = "/" + name.value;
+        return str;
+    },
+
+    // regular string
+    s: function(str, options){
+        return str;
+    }
+};
+
+pdf_formatter._maxNumber = Math.pow(10, pdf_formatter._maxWholeDigits);
+pdf_formatter._decimalMultiplier = Math.pow(10, pdf_formatter._maxDecimalDigits);
 
 })();

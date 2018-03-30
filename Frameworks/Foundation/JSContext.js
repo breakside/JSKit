@@ -3,6 +3,12 @@
 /* global JSClass, JSObject, JSDynamicProperty, JSAffineTransform, JSPoint, JSColor, JSContext, JSCustomProperty */
 'use strict';
 
+(function(){
+
+var TWO_PI = Math.PI * 2;
+var HALF_PI = Math.PI / 2;
+var CIRCLE_CURVE_MAGIC = 0.551784;
+
 function StateProperty(){
     if (this === undefined){
         return new StateProperty();
@@ -12,13 +18,20 @@ function StateProperty(){
 StateProperty.prototype = Object.create(JSCustomProperty.prototype);
 
 StateProperty.prototype.define = function(C, publicKey, extensions){
+    var getterName = C.nameOfGetMethodForKey(publicKey);
     var setterName = C.nameOfSetMethodForKey(publicKey);
-    var getter = function JSContext_getStateProperty(){
-        return this._state[publicKey];
-    };
-    var setter = function JSContext_setStateProperty(value){
-        this._state[publicKey] = value;
-    };
+    var getter = extensions[getterName];
+    if (!getter){
+        getter = function JSContext_getStateProperty(){
+            return this._state[publicKey];
+        };
+    }
+    var setter = extensions[setterName];
+    if (!setter){
+        setter = function JSContext_setStateProperty(value){
+            this._state[publicKey] = value;
+        };   
+    }
     getter._JSCustomProperty = this;
     getter._JSCustomPropertyKey = publicKey;
     setter._JSCustomProperty = this;
@@ -50,12 +63,15 @@ JSClass("JSContext", JSObject, {
     // MARK: - Constructing Paths
 
     beginPath: function(){
+        this._clearPoints();
     },
 
     moveToPoint: function(point){
+        this._rememberPoint(point);
     },
 
     addLineToPoint: function(point){
+        this._rememberPoint(point);
     },
 
     addRect: function(rect){
@@ -79,8 +95,7 @@ JSClass("JSContext", JSObject, {
         if (cornerRadius > halfHeight){
             cornerRadius = halfHeight;
         }
-        var magic = 0.551784;
-        var magicRadius = magic * cornerRadius;
+        var magicRadius = CIRCLE_CURVE_MAGIC * cornerRadius;
 
         var p1 = JSPoint(rect.origin.x, rect.origin.y + cornerRadius);
         var p2 = JSPoint(rect.origin.x + cornerRadius, rect.origin.y);
@@ -114,14 +129,108 @@ JSClass("JSContext", JSObject, {
     },
 
     addArc: function(center, radius, startAngle, endAngle, clockwise){
+        if (radius === 0){
+            return;
+        }
+        var p1 = JSPoint(center.x + radius * Math.cos(startAngle), center.y + radius * Math.sin(startAngle));
+        this.moveToPoint(p1.x, p1.y);
+        if (startAngle === endAngle){
+            return;
+        }
+        if (clockwise){
+            this._addClockwiseArc(center, radius, startAngle, startAngle - endAngle);
+        }else{
+            this._addAntiClockwiseArc(center, radius, startAngle, endAngle - startAngle);
+        }
+    },
+
+    _addClockwiseArc: function(center, radius, startAngle, sweep){
+        if (sweep <= -TWO_PI || sweep > TWO_PI){
+            sweep = TWO_PI;
+        }else if (sweep <= 0){
+            sweep += TWO_PI;
+        }
+        var transform = JSAffineTransform.Identity;
+        transform = transform.translatedBy(center.x, center.y);
+        transform = transform.scaledBy(radius, radius);
+        transform = transform.rotatedBy(startAngle);
+        var p2;
+        var c1;
+        var c2;
+        while (sweep >= HALF_PI){
+            p2 = JSPoint(0, -1);
+            c1 = JSPoint(1, -CIRCLE_CURVE_MAGIC);
+            c2 = JSPoint(CIRCLE_CURVE_MAGIC, -1);
+            this.addCurveToPoint(transform.convertPointFromTransform(p2), transform.convertPointFromTransform(c1), transform.convertPointFromTransform(c2));
+            transform = transform.rotatedBy(-HALF_PI);
+            sweep -= HALF_PI;
+        }
+        if (sweep > 0){
+            transform = transform.rotatedBy(-sweep / 2);
+            p2 = JSPoint(Math.cos(sweep / 2), -Math.sin(sweep / 2));
+            c2 = JSPoint((4 - p2.x) / 3, ((1 - p2.x) * (3 - p2.x)) / (3 * p2.y));
+            c1 = JSPoint(c2.x, -c2.y);
+            this.addCurveToPoint(transform.convertPointFromTransform(p2), transform.convertPointFromTransform(c1), transform.convertPointFromTransform(c2));
+        }
+    },
+
+    _addAntiClockwiseArc: function(center, radius, startAngle, sweep){
+        if (sweep <= -TWO_PI || sweep > TWO_PI){
+            sweep = TWO_PI;
+        }else if (sweep <= 0){
+            sweep += TWO_PI;
+        }
+        var transform = JSAffineTransform.Identity;
+        transform = transform.translatedBy(center.x, center.y);
+        transform = transform.scaledBy(radius, radius);
+        transform = transform.rotatedBy(startAngle);
+        var p2;
+        var c1;
+        var c2;
+        while (sweep >= HALF_PI){
+            p2 = JSPoint(0, 1);
+            c1 = JSPoint(1, CIRCLE_CURVE_MAGIC);
+            c2 = JSPoint(CIRCLE_CURVE_MAGIC, 1);
+            this.addCurveToPoint(transform.convertPointFromTransform(p2), transform.convertPointFromTransform(c1), transform.convertPointFromTransform(c2));
+            transform = transform.rotatedBy(HALF_PI);
+            sweep -= HALF_PI;
+        }
+        if (sweep > 0){
+            transform = transform.rotatedBy(sweep / 2);
+            p2 = JSPoint(Math.cos(sweep / 2), Math.sin(sweep / 2));
+            c2 = JSPoint((4 - p2.x) / 3, ((1 - p2.x) * (3 - p2.x)) / (3 * p2.y));
+            c1 = JSPoint(c2.x, -c2.y);
+            this.addCurveToPoint(transform.convertPointFromTransform(p2), transform.convertPointFromTransform(c1), transform.convertPointFromTransform(c2));
+        }
     },
 
     addArcUsingTangents: function(tangent1End, tangent2End, radius){
-        // TODO: calculate appropriate values and call addArc
-        // TODO: need to know current position
+        if (this._lastPoint === null){
+            this._rememberPoint(tangent1End);
+        }
+        var p0 = JSPoint(this._lastPoint);
+        var p1 = JSPoint(tangent1End);
+        var p2 = JSPoint(tangent2End);
+
+        if (radius === 0 || p0.isEqual(p1) || p1.isEqual(p2)){
+            this.addLineToPoint(p1.x, p1.y);
+            return;
+        }
+
+        if ((p0.x == p1.x == p2.x) || (p0.y == p1.y == p2.y)){
+            this.addLineToPoint(p1.x, p1.y);
+            return;
+        }
+
+        // TODO: calculate values
+        var startAngle;
+        var endAngle;
+        var center;
+        this.addArc(center, radius, startAngle, endAngle, false);
     },
 
     addCurveToPoint: function(point, control1, control2){
+        this._rememberPoint(point);
     },
 
     addQuadraticCurveToPoint: function(point, control){
@@ -155,6 +264,24 @@ JSClass("JSContext", JSObject, {
     },
 
     closePath: function(){
+        if (this._firstPoint !== null){
+            this._rememberPoint(this._firstPoint);
+        }
+    },
+
+    _firstPoint: null,
+    _lastPoint: null,
+
+    _clearPoints: function(){
+        this._firstPoint = null;
+        this._lastPoint = null;
+    },
+
+    _rememberPoint: function(point){
+        if (this._firstPoint === null){
+            this._firstPoint = JSPoint(point);
+        }
+        this._lastPoint = JSPoint(point);
     },
 
     // ----------------------------------------------------------------------
@@ -394,3 +521,5 @@ JSContextLineDash.prototype = {
     phase: null,
     segments: null
 };
+
+})();

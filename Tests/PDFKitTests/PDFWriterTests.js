@@ -228,11 +228,11 @@ JSClass("PDFWriterTests", TKTestSuite, {
         writer = PDFWriter.initWithStream(stream);
         isClosed = false;
         doc = PDFDocumentObject();
-        doc.XNumber = 12.3456789;
+        doc.XNumber = 12.345678987654;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
         TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber 12.34568 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f ", "0000000009 00000 n ", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "63", "%%EOF"];
+        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber 12.3456789877 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f ", "0000000009 00000 n ", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "68", "%%EOF"];
         TKAssertEquals(stream.string, expected.join("\n"));
 
         // Decimal Rounding (Positive, Down)
@@ -240,11 +240,11 @@ JSClass("PDFWriterTests", TKTestSuite, {
         writer = PDFWriter.initWithStream(stream);
         isClosed = false;
         doc = PDFDocumentObject();
-        doc.XNumber = 12.345432;
+        doc.XNumber = 12.345678912345;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
         TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber 12.34543 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f ", "0000000009 00000 n ", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "63", "%%EOF"];
+        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber 12.3456789123 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f ", "0000000009 00000 n ", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "68", "%%EOF"];
         TKAssertEquals(stream.string, expected.join("\n"));
 
         // Decimal Rounding (Negative, Up)
@@ -252,11 +252,11 @@ JSClass("PDFWriterTests", TKTestSuite, {
         writer = PDFWriter.initWithStream(stream);
         isClosed = false;
         doc = PDFDocumentObject();
-        doc.XNumber = -12.3456789;
+        doc.XNumber = -12.345678987654;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
         TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber -12.34568 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f ", "0000000009 00000 n ", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "64", "%%EOF"];
+        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber -12.3456789877 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f ", "0000000009 00000 n ", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "69", "%%EOF"];
         TKAssertEquals(stream.string, expected.join("\n"));
 
         // Decimal Rounding (Negative, Down)
@@ -264,11 +264,11 @@ JSClass("PDFWriterTests", TKTestSuite, {
         writer = PDFWriter.initWithStream(stream);
         isClosed = false;
         doc = PDFDocumentObject();
-        doc.XNumber = -12.345432;
+        doc.XNumber = -12.345678912345;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
         TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber -12.34543 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f ", "0000000009 00000 n ", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "64", "%%EOF"];
+        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber -12.3456789123 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f ", "0000000009 00000 n ", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "69", "%%EOF"];
         TKAssertEquals(stream.string, expected.join("\n"));
 
         // Decimal Rounding (To Zero)
@@ -276,7 +276,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         writer = PDFWriter.initWithStream(stream);
         isClosed = false;
         doc = PDFDocumentObject();
-        doc.XNumber = 12.000000001234;
+        doc.XNumber = 12.000000000001234;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
         TKAssert(isClosed);
