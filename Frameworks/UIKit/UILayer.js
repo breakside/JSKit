@@ -688,8 +688,8 @@ JSContext.definePropertiesFromExtensions({
         }
         var bounds = JSRect(0, 0, properties.bounds.size.width, properties.bounds.size.height);
         this.save();
-        this.alpha = properties.alpha;
-        this.transformationMatrix = properties.transform;
+        this.setAlpha(properties.alpha);
+        this.concatenate(properties.transform);
         if (properties.transform.isEqual(JSAffineTransform.Identity)){
             this.concatenate(properties.transform);
         }
@@ -704,12 +704,12 @@ JSContext.definePropertiesFromExtensions({
         if (properties.borderWidth && properties.borderColor){
             rect = rect.rectWithInsets(properties.borderWidth / 2.0);
             cornerRadius -= properties.borderWidth / 2.0;
-            this.lineWidth = properties.borderWidth;
-            this.strokeColor = properties.borderColor;
+            this.setLineWidth(properties.borderWidth);
+            this.setStrokeColor(properties.borderColor);
             stroke = true;
         }
         if (properties.backgroundColor){
-            this.fillColor = properties.backgroundColor;
+            this.setFillColor(properties.backgroundColor);
             fill = true;
         }
         if (cornerRadius > 0){

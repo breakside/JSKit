@@ -68,6 +68,12 @@ JSPoint.prototype = {
 
     toString: function(){
         return "%s,%s".sprintf(this.x, this.y);
+    },
+
+    distanceToPoint: function(other){
+        var dx = other.x - this.x;
+        var dy = other.y - this.y;
+        return Math.sqrt(dx * dx + dy * dy);
     }
 };
 

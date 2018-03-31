@@ -354,40 +354,35 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     // ----------------------------------------------------------------------
     // MARK: - Transformations
 
-    setTransfomrationMatrix: function(tm){
-        UIHTMLDisplayServerContext.$super.setTransfomrationMatrix.call(this, tm);
-        this.canvasContext.setTransform(tm.a, tm.b, tm.c, tm.d, tm.tx, tm.ty);
+    scaleBy: function(sx, sy){
+        this.canvasContext.scale(sx, sy);
+    },
+
+    rotateBy: function(angle){
+        this.canvasContext.rotate(angle);
+    },
+
+    translateBy: function(tx, ty){
+        this.canvasContext.translate(tx, ty);
+    },
+
+    concatenate: function(transform){
+        this.canvasContext.transform(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
     },
 
     // ----------------------------------------------------------------------
     // MARK: - Drawing Options
 
-    getLineWidth: function(){
-        return this.canvasContext.lineWidth;
-    },
-
     setLineWidth: function(lineWidth){
         this.canvasContext.lineWidth = lineWidth;
-    },
-
-    getLineCap: function(){
-        return this.canvasContext.lineCap;
     },
 
     setLineCap: function(lineCap){
         this.canvasContext.lineCap = lineCap;
     },
 
-    getLineJoin: function(){
-        return this.canvasContext.lineJoin;
-    },
-
     setLineJoin: function(lineJoin){
         this.canvasContext.lineJoin = lineJoin;
-    },
-
-    getMiterLimit: function(){
-        return this.canvasContext.miterLimit;
     },
 
     setMiterLimit: function(miterLimit){

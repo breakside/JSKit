@@ -5,58 +5,12 @@
 
 (function(){
 
-var TWO_PI = Math.PI * 2;
-var HALF_PI = Math.PI / 2;
-var CIRCLE_CURVE_MAGIC = 0.551784;
-
-function StateProperty(){
-    if (this === undefined){
-        return new StateProperty();
-    }
-}
-
-StateProperty.prototype = Object.create(JSCustomProperty.prototype);
-
-StateProperty.prototype.define = function(C, publicKey, extensions){
-    var getterName = C.nameOfGetMethodForKey(publicKey);
-    var setterName = C.nameOfSetMethodForKey(publicKey);
-    var getter = extensions[getterName];
-    if (!getter){
-        getter = function JSContext_getStateProperty(){
-            return this._state[publicKey];
-        };
-    }
-    var setter = extensions[setterName];
-    if (!setter){
-        setter = function JSContext_setStateProperty(value){
-            this._state[publicKey] = value;
-        };   
-    }
-    getter._JSCustomProperty = this;
-    getter._JSCustomPropertyKey = publicKey;
-    setter._JSCustomProperty = this;
-    setter._JSCustomPropertyKey = publicKey;
-    Object.defineProperty(C.prototype, setterName, {
-        configurable: true,
-        enumerable: false,
-        value: setter
-    });
-    Object.defineProperty(C.prototype, publicKey, {
-        configurable: true,
-        enumerable: false,
-        set: setter,
-        get: getter
-    });
-};
-
 JSClass("JSContext", JSObject, {
 
     // ----------------------------------------------------------------------
     // MARK: - Creating a Context
 
     init: function(){
-        this._state = Object.create(this.$class.StateProperties);
-        this._stateStack = [];
     },
 
     // ----------------------------------------------------------------------
@@ -66,12 +20,12 @@ JSClass("JSContext", JSObject, {
         this._clearPoints();
     },
 
-    moveToPoint: function(point){
-        this._rememberPoint(point);
+    moveToPoint: function(x, y){
+        this._rememberPoint(JSPoint(x, y));
     },
 
-    addLineToPoint: function(point){
-        this._rememberPoint(point);
+    addLineToPoint: function(x, y){
+        this._rememberPoint(JSPoint(x, y));
     },
 
     addRect: function(rect){
@@ -95,7 +49,7 @@ JSClass("JSContext", JSObject, {
         if (cornerRadius > halfHeight){
             cornerRadius = halfHeight;
         }
-        var magicRadius = CIRCLE_CURVE_MAGIC * cornerRadius;
+        var magicRadius = ELLIPSE_CURVE_MAGIC * cornerRadius;
 
         var p1 = JSPoint(rect.origin.x, rect.origin.y + cornerRadius);
         var p2 = JSPoint(rect.origin.x + cornerRadius, rect.origin.y);
@@ -129,27 +83,46 @@ JSClass("JSContext", JSObject, {
     },
 
     addArc: function(center, radius, startAngle, endAngle, clockwise){
+        if (radius < 0){
+            throw new Error("Negative radius not allowed in addArc");
+        }
+
+        // Start by either moving to or drawing a line to the starting ponit of the arc
+        var p1 = JSPoint(center.x + radius * Math.cos(startAngle), center.y + radius * Math.sin(startAngle));
+        if (this._lastPoint === null){
+            this.moveToPoint(p1.x, p1.y);
+        }else{
+            this.addLineToPoint(p1.x, p1.y);
+        }
+
+        // If there's no radius, then there's nothing left to do
         if (radius === 0){
             return;
         }
-        var p1 = JSPoint(center.x + radius * Math.cos(startAngle), center.y + radius * Math.sin(startAngle));
-        this.moveToPoint(p1.x, p1.y);
-        if (startAngle === endAngle){
-            return;
-        }
-        if (clockwise){
-            this._addClockwiseArc(center, radius, startAngle, startAngle - endAngle);
-        }else{
-            this._addAntiClockwiseArc(center, radius, startAngle, endAngle - startAngle);
-        }
-    },
 
-    _addClockwiseArc: function(center, radius, startAngle, sweep){
-        if (sweep <= -TWO_PI || sweep > TWO_PI){
-            sweep = TWO_PI;
-        }else if (sweep <= 0){
+        // Figure out how much of an angle we're going to draw
+        var direction = clockwise ? -1 : 1;
+        var sweep = direction * (endAngle - startAngle);
+
+        // If the sweep is against the specified direction (negative), adjust it to be
+        // the corresponding positive angle.  Note that a counter-direction
+        // sweep can never result in an etire circle.
+        while (sweep <= 0){
             sweep += TWO_PI;
         }
+
+        // If the sweep is more than a complete circle, just make it a
+        // complete circle since any more will overdraw.
+        if (sweep > TWO_PI){
+            sweep = TWO_PI;
+        }
+
+        // The arc points much easier to express in unit-circle coordinates,
+        // so we'll make a transform that can convert from unit-circle coordinates
+        // to our coordinates.  Note that we could instead encode the transform
+        // directly into the context, but that would generate more instructions
+        // (in a case such as PDF) and require the reader to do more calculations
+        // on its end.
         var transform = JSAffineTransform.Identity;
         transform = transform.translatedBy(center.x, center.y);
         transform = transform.scaledBy(radius, radius);
@@ -157,47 +130,25 @@ JSClass("JSContext", JSObject, {
         var p2;
         var c1;
         var c2;
-        while (sweep >= HALF_PI){
-            p2 = JSPoint(0, -1);
-            c1 = JSPoint(1, -CIRCLE_CURVE_MAGIC);
-            c2 = JSPoint(CIRCLE_CURVE_MAGIC, -1);
-            this.addCurveToPoint(transform.convertPointFromTransform(p2), transform.convertPointFromTransform(c1), transform.convertPointFromTransform(c2));
-            transform = transform.rotatedBy(-HALF_PI);
-            sweep -= HALF_PI;
-        }
-        if (sweep > 0){
-            transform = transform.rotatedBy(-sweep / 2);
-            p2 = JSPoint(Math.cos(sweep / 2), -Math.sin(sweep / 2));
-            c2 = JSPoint((4 - p2.x) / 3, ((1 - p2.x) * (3 - p2.x)) / (3 * p2.y));
-            c1 = JSPoint(c2.x, -c2.y);
-            this.addCurveToPoint(transform.convertPointFromTransform(p2), transform.convertPointFromTransform(c1), transform.convertPointFromTransform(c2));
-        }
-    },
 
-    _addAntiClockwiseArc: function(center, radius, startAngle, sweep){
-        if (sweep <= -TWO_PI || sweep > TWO_PI){
-            sweep = TWO_PI;
-        }else if (sweep <= 0){
-            sweep += TWO_PI;
-        }
-        var transform = JSAffineTransform.Identity;
-        transform = transform.translatedBy(center.x, center.y);
-        transform = transform.scaledBy(radius, radius);
-        transform = transform.rotatedBy(startAngle);
-        var p2;
-        var c1;
-        var c2;
+        // Our arc algorithm handles angles less than 90 degrees.  For sweeps
+        // greater than 90 degrees, we can do quarter-circles at a time using
+        // the ellipse magic number until we're left with only a sweep less than 90.
         while (sweep >= HALF_PI){
-            p2 = JSPoint(0, 1);
-            c1 = JSPoint(1, CIRCLE_CURVE_MAGIC);
-            c2 = JSPoint(CIRCLE_CURVE_MAGIC, 1);
+            p2 = JSPoint(0, direction);
+            c1 = JSPoint(1, direction * ELLIPSE_CURVE_MAGIC);
+            c2 = JSPoint(ELLIPSE_CURVE_MAGIC, direction);
             this.addCurveToPoint(transform.convertPointFromTransform(p2), transform.convertPointFromTransform(c1), transform.convertPointFromTransform(c2));
-            transform = transform.rotatedBy(HALF_PI);
+            transform = transform.rotatedBy(direction * HALF_PI);
             sweep -= HALF_PI;
         }
+
+        // If there's any < 90 degree sweep remaining, use the arc-specific
+        // curve derivation.
         if (sweep > 0){
-            transform = transform.rotatedBy(sweep / 2);
-            p2 = JSPoint(Math.cos(sweep / 2), Math.sin(sweep / 2));
+            // Derviation at https://www.tinaja.com/glib/bezcirc2.pdf
+            transform = transform.rotatedBy(direction * sweep / 2);
+            p2 = JSPoint(Math.cos(sweep / 2), direction * Math.sin(sweep / 2));
             c2 = JSPoint((4 - p2.x) / 3, ((1 - p2.x) * (3 - p2.x)) / (3 * p2.y));
             c1 = JSPoint(c2.x, -c2.y);
             this.addCurveToPoint(transform.convertPointFromTransform(p2), transform.convertPointFromTransform(c1), transform.convertPointFromTransform(c2));
@@ -205,28 +156,146 @@ JSClass("JSContext", JSObject, {
     },
 
     addArcUsingTangents: function(tangent1End, tangent2End, radius){
+        // Bail if the raduis is negative
+        if (radius <= 0){
+            throw new Error("Negative radius not allowed in addArcUsingTangents");
+        }
+
+        // The tangent line logic expects there to be a starting point on the current subpath.
+        // If there isn't one, add one at the first point given.
+        // Note: this will cause an early exit because p0 and p1 will be the same
+        // and making an arc requires three unique points in order to figure two
+        // tangent lines.
         if (this._lastPoint === null){
             this._rememberPoint(tangent1End);
         }
+
+        // Setup our three main points that create two interescting tangent lines
         var p0 = JSPoint(this._lastPoint);
         var p1 = JSPoint(tangent1End);
         var p2 = JSPoint(tangent2End);
 
+        // If there's no radius, or if any two points are equal, we don't have
+        // enough information to make an arc, so just make line to p1 and stop
         if (radius === 0 || p0.isEqual(p1) || p1.isEqual(p2)){
             this.addLineToPoint(p1.x, p1.y);
             return;
         }
 
-        if ((p0.x == p1.x == p2.x) || (p0.y == p1.y == p2.y)){
+        // Setup a couple vectors representing our two line directions
+        var v1 = JSPoint(p1.x - p0.x, p1.y - p0.y);
+        var v2 = JSPoint(p1.x - p2.x, p1.y - p2.y);
+
+        // Use the vectors to figure slope and intercepts of our lines.
+        // If all points are on the same line, the two slopes and intercepts
+        // will be equivalent.  In this case, there's no angle in which to place
+        // the circle/arc.  So just make a line to p1 and stop.
+        var slope1 = v1.y / v1.x;
+        var slope2 = v2.y / v2.x;
+        var intercept1 = p1.y - p1.x * slope1;
+        var intercept2 = p1.y - p1.x * slope2;
+        if (slope1 == slope2 && intercept1 == intercept2){
             this.addLineToPoint(p1.x, p1.y);
             return;
         }
 
-        // TODO: calculate values
-        var startAngle;
-        var endAngle;
-        var center;
-        this.addArc(center, radius, startAngle, endAngle, false);
+        // Figure out starting and ending angles, making them both positive for
+        // uniformity.
+        var a1 = Math.atan(slope1);
+        if (a1 < 0){
+            a1 += TWO_PI;
+        }
+        var a2 = Math.atan(slope2);
+        if (a2 < 0){
+            a2 += TWO_PI;
+        }
+
+        // By definition, the circle we draw will have a center that is exactly half way
+        // through the angle formed by our tangent lines.  The angle can be found with a little
+        // vector math (the dot product of the two vectors divided by the product of their magnitues
+        // equals the cosine of the angle).
+        var angleAtP1 = Math.acos((v1.x * v2.x + v1.y * v2.y) / (Math.sqrt(v1.x * v1.x + v1.y * v1.y) * Math.sqrt(v2.x * v2.x + v2.y * v2.y)));
+
+        // Once we know the angle, we know there's a right triangle formed by p1, center, and either
+        // tangent point.  Since we know the radius, simple trig
+        var distanceFromP1ToCenter = radius / Math.sin(angleAtP1 / 2);
+        var distanceFromP1ToEitherT = distanceFromP1ToCenter * Math.cos(angleAtP1 / 2);
+
+        // Figure the tangent points and center point of the circle.
+        // Because we started with an atan() call, which can't tell the difference between
+        // mirrored angles, we do a check to see which side of p1 we're on, and add 180 degrees
+        // if necesary.  Also, figure the start and end angles by adding or subtracting 90 degrees
+        // from the tangent lines, again considering which way things are actually oriented.
+        var t1, t2, center, startAngle, endAngle;
+        if (p1.x >= p0.x){
+            t1 = JSPoint(p1.x - distanceFromP1ToEitherT * Math.cos(a1), p1.y - distanceFromP1ToEitherT * Math.sin(a1));
+            center = JSPoint(t1.x + radius * Math.cos(a1 - HALF_PI), t1.y + radius * Math.sin(a1 - HALF_PI));
+            startAngle = a1 + HALF_PI;
+        }else{
+            t1 = JSPoint(p1.x - distanceFromP1ToEitherT * Math.cos(a1 + Math.PI), p1.y - distanceFromP1ToEitherT * Math.sin(a1 + Math.PI));
+            center = JSPoint(t1.x + radius * Math.cos(a1 + HALF_PI), t1.y + radius * Math.sin(a1 + HALF_PI));
+            startAngle = a1 - HALF_PI;
+        }
+        if (p1.x >= p2.x){
+            t2 = JSPoint(p1.x - distanceFromP1ToEitherT * Math.cos(a2), p1.y - distanceFromP1ToEitherT * Math.sin(a2));
+            endAngle = a2 - HALF_PI;
+        }else{
+            t2 = JSPoint(p1.x - distanceFromP1ToEitherT * Math.cos(a2 + Math.PI), p1.y - distanceFromP1ToEitherT * Math.sin(a2 + Math.PI));
+            endAngle = a2 + HALF_PI;
+        }
+
+        // For debugging, draws the points, lines and circle, which helps show
+        // where we think things are and why we're drawing an arc where we draw it.
+        // this.save();
+        // this.setLineWidth(0.5);
+        // this.setStrokeColor(JSColor.initWithRGBA(0.9, 0.0, 0.0, 1.0));
+        // this.strokeEllipseInRect(JSRect(center.x - radius, center.y - radius, radius * 2, radius * 2));
+        // this.beginPath();
+        // this.setLineWidth(0.75);
+        // this.setStrokeColor(JSColor.initWithRGBA(0, 0, 0.9, 1.0));
+        // this.moveToPoint(t1.x, t1.y);
+        // this.addLineToPoint(p1.x, p1.y);
+        // this.addLineToPoint(t2.x, t2.y);
+        // this.strokePath();
+        // this.beginPath();
+        // this.setStrokeColor(JSColor.initWithRGBA(0.9, 0.0, 0.0, 1.0));
+        // this.setLineWidth(0.5);
+        // this.moveToPoint(p0.x, p0.y);
+        // this.addLineToPoint(p1.x, p1.y);
+        // this.addLineToPoint(p2.x, p2.y);
+        // this.strokePath();
+        // this.beginPath();
+        // this.setFillColor(JSColor.initWithRGBA(0, 0, 0.9, 1.0));
+        // this.fillEllipseInRect(JSRect(p0.x - 1.5, p0.y - 1.5, 3, 3));
+        // this.setFillColor(JSColor.initWithRGBA(0, 0.9, 0.9, 1.0));
+        // this.fillEllipseInRect(JSRect(p1.x - 1.5, p1.y - 1.5, 3, 3));
+        // this.setFillColor(JSColor.initWithRGBA(0, 0.9, 0.0, 1.0));
+        // this.fillEllipseInRect(JSRect(p2.x - 1.5, p2.y - 1.5, 3, 3));
+        // this.setFillColor(JSColor.initWithRGBA(0.9, 0.0, 0.0, 1.0));
+        // this.fillEllipseInRect(JSRect(t1.x - 1.5, t1.y - 1.5, 3, 3));
+        // this.setFillColor(JSColor.initWithRGBA(0.9, 0.9, 0.0, 1.0));
+        // this.fillEllipseInRect(JSRect(t2.x - 1.5, t2.y - 1.5, 3, 3));
+        // this.restore();
+        // this.beginPath();
+
+        // Adjust our start and end angles and figure out if the shortest
+        // distance is clockwise or counter clockwise.
+        // Note: we could swap the angles and always arc in a fixed direction,
+        // but I think it makes more sense to always arc from p0 to p2.
+        if (startAngle < 0){
+            startAngle += TWO_PI;
+        }
+        if (endAngle < 0){
+            endAngle += TWO_PI;
+        }
+        var clockwise;
+        if (startAngle > endAngle){
+            clockwise = startAngle - endAngle < Math.PI;
+        }else{
+            clockwise = endAngle - startAngle > Math.PI;
+        }
+        this.moveToPoint(t1.x, t1.y);
+        this.addArc(center, radius, startAngle, endAngle, clockwise);
     },
 
     addCurveToPoint: function(point, control1, control2){
@@ -390,11 +459,14 @@ JSClass("JSContext", JSObject, {
     // ----------------------------------------------------------------------
     // MARK: - Fill, Stroke, Shadow Colors
 
-    alpha: StateProperty(),
+    setAlpha: function(alpha){
+    },
 
-    fillColor: StateProperty(),
+    setFillColor: function(fillColor){
+    },
 
-    strokeColor: StateProperty(),
+    setStrokeColor: function(strokeColor){
+    },
 
     setShadow: function(offset, blur, color){
     },
@@ -408,38 +480,36 @@ JSClass("JSContext", JSObject, {
     // ----------------------------------------------------------------------
     // MARK: - Transformations
 
-    transformationMatrix: StateProperty(),
-
     scaleBy: function(sx, sy){
-        this.transformationMatrix = this.transformationMatrix.scaledBy(sx, sy);
     },
 
     rotateBy: function(angle){
-        this.transformationMatrix = this.transformationMatrix.rotatedBy(angle);
     },
 
     rotateByDegrees: function(degrees){
-        this.transformationMatrix = this.transformationMatrix.rotatedByDegrees(degrees);
+        this.rotate(degrees / 180 * Math.PI);
     },
 
     translateBy: function(tx, ty){
-        this.transformationMatrix = this.transformationMatrix.translatedBy(tx, ty);
     },
 
     concatenate: function(transform){
-        this.transformationMatrix = this.transformationMatrix.concatenatedWith(transform);
     },
 
     // ----------------------------------------------------------------------
     // MARK: - Drawing Options
 
-    lineWidth:      StateProperty(),
+    setLineWidth: function(lineWidth){
+    },
 
-    lineCap:        StateProperty(),
+    setLineCap: function(lineCap){
+    },
 
-    lineJoin:       StateProperty(),
+    setLineJoin: function(lineJoin){
+    },
 
-    miterLimit:     StateProperty(),
+    setMiterLimit: function(miterLimit){
+    },
 
     setLineDash: function(phase, lengths){
     },
@@ -447,17 +517,10 @@ JSClass("JSContext", JSObject, {
     // ----------------------------------------------------------------------
     // MARK: - Graphics State
 
-    _stateStack: null,
-
     save: function(){
-        this._stateStack.push(this._state);
-        this._state = Object.create(this._state);
     },
 
     restore: function(){
-        if (this._stateStack.length){
-            this._state = this._stateStack.pop();
-        }
     },
 
 });
@@ -492,17 +555,6 @@ JSContext.TextDrawingMode = {
     stroke: 1
 };
 
-JSContext.StateProperties = {
-    alpha:                  1.0,
-    fillColor:              JSColor.blackColor(),
-    strokeColor:            JSColor.blackColor(),
-    transformationMatrix:   JSAffineTransform.Identity,
-    lineWidth:              1.0,
-    lineCap:                JSContext.LineCap.butt,
-    lineJoin:               JSContext.LineJoin.miter,
-    miterLimit:             10.0
-};
-
 function JSContextLineDash(phase, segments){
     if (this === undefined){
         return new JSContextLineDash(phase, segments);
@@ -521,5 +573,13 @@ JSContextLineDash.prototype = {
     phase: null,
     segments: null
 };
+
+var TWO_PI = Math.PI * 2;
+var HALF_PI = Math.PI / 2;
+
+// percentage between two points where a bezier control point should be placed
+// in order to best approximate an ellipse, or circle in the ideal case.
+// Derivation at https://www.tinaja.com/glib/ellipse4.pdf
+var ELLIPSE_CURVE_MAGIC = 0.551784;
 
 })();

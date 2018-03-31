@@ -2,7 +2,7 @@
 // #import "PDFKit/PDFWriter.js"
 // #import "PDFKit/PDFTypes.js"
 // #import "PDFKit/JSColor+PDF.js"
-/* global JSClass, JSContext, PDFContext, PDFWriter, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFNameObject, PDFStreamObject */
+/* global JSClass, JSContext, PDFContext, PDFWriter, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFNameObject, PDFStreamObject, JSAffineTransform */
 'use strict';
 
 JSClass("PDFContext", JSContext, {
@@ -85,30 +85,37 @@ JSClass("PDFContext", JSContext, {
     // MARK: - Constructing Paths
 
     beginPath: function(){
+        PDFContext.$super.beginPath.call(this);
         this._writeStreamData("n ");
     },
 
     moveToPoint: function(x, y){
+        PDFContext.$super.moveToPoint.call(this, x, y);
         this._writeStreamData("%n %n m ", x, y);
     },
 
     addLineToPoint: function(x, y){
+        PDFContext.$super.addLineToPoint.call(this, x, y);
         this._writeStreamData("%n %n l ", x, y);
     },
 
     addRect: function(rect){
+        this._rememberPoint(rect.origin);
         this._writeStreamData("%n %n %n %n re ", rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
     },
 
     addCurveToPoint: function(point, control1, control2){
+        PDFContext.$super.addCurveToPoint.call(this, point, control1, control2);
         this._writeStreamData("%n %n %n %n %n %n c ", control1.x, control1.y, control2.x, control2.y, point.x, point.y);
     },
 
     addQuadraticCurveToPoint: function(point, control){
+        this._rememberPoint(point);
         this._writeStreamData("%n %n %n %n y ", control.x, control.y, point.x, point.y);
     },
 
     closePath: function(){
+        PDFContext.$super.closePath.call(this);
         this._writeStreamData("h ");
     },
 
@@ -204,18 +211,15 @@ JSClass("PDFContext", JSContext, {
     // MARK: - Fill, Stroke, Shadow Colors
 
     setAlpha: function(alpha){
-        PDFContext.$super.setAlpha.call(this, alpha);
         // TODO: adjust state parameter dictionary with alpha
     },
 
     setFillColor: function(fillColor){
-        PDFContext.$super.setFillColor.call(this, fillColor);
         this._writeStreamData(fillColor.pdfFillColorCommand());
         // TODO: adjust state parameter dictionary with alpha
     },
 
     setStrokeColor: function(strokeColor){
-        PDFContext.$super.setStrokeColor.call(this, strokeColor);
         this._writeStreamData(strokeColor.pdfStrokeColorCommand());
         // TODO: adjust state parameter dictionary with alpha
     },
@@ -238,8 +242,19 @@ JSClass("PDFContext", JSContext, {
     // ----------------------------------------------------------------------
     // MARK: - Transformations
 
-    setTransfomrationMatrix: function(tm){
-        PDFContext.$super.setTransfomrationMatrix.call(this, tm);
+    scaleBy: function(sx, sy){
+        this.concatenate(JSAffineTransform.Scaled(sx, sy));
+    },
+
+    rotateBy: function(angle){
+        this.concatenate(JSAffineTransform.Rotated(angle));
+    },
+
+    translateBy: function(tx, ty){
+        this.concatenate(JSAffineTransform.Translated(tx, ty));
+    },
+
+    concatenate: function(tm){
         this._writeStreamData("%n %n %n %n %n %n cm ", tm.a, tm.b, tm.c, tm.d, tm.tx, tm.ty);
     },
 
@@ -247,12 +262,10 @@ JSClass("PDFContext", JSContext, {
     // MARK: - Drawing Options
 
     setLineWidth: function(lineWidth){
-        PDFContext.$super.setLineWidth.call(this, lineWidth);
         this._writeStreamData("%s w ".sprintf(lineWidth));
     },
 
     setLineCap: function(lineCap){
-        PDFContext.$super.setLineCap.call(this, lineCap);
         switch (lineCap){
             case JSContext.LineCap.butt:
                 this._writeStreamData("0 J ");
@@ -267,7 +280,6 @@ JSClass("PDFContext", JSContext, {
     },
 
     setLineJoin: function(lineJoin){
-        PDFContext.$super.setLineJoin.call(this, lineJoin);
         switch (lineJoin){
             case JSContext.LineJoin.miter:
                 this._writeStreamData("0 j ");
@@ -282,7 +294,6 @@ JSClass("PDFContext", JSContext, {
     },
 
     setMiterLimit: function(miterLimit){
-        PDFContext.$super.setMiterLimit.call(this, miterLimit);
         this._writeStreamData("%n M ", miterLimit);
     },
 
@@ -298,12 +309,10 @@ JSClass("PDFContext", JSContext, {
     // MARK: - Graphics State
 
     save: function(){
-        PDFContext.$super.save.call(this);
         this._writeStreamData("q ");
     },
 
     restore: function(){
-        PDFContext.$super.save.call(this);
         this._writeStreamData("Q ");
     },
 
