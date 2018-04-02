@@ -76,6 +76,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
         this._canvasElements = [];
         this._externalElements = [];
         this._previousExternalElements = [];
+        this._fontStack = [];
     },
 
     initWithElement: function(element){
@@ -293,6 +294,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
 
     setFont: function(font){
         this.canvasContext.font = font.cssString();
+        this._font = font;
     },
 
     setTextDrawingMode: function(textDrawingMode){
@@ -300,17 +302,13 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     },
 
     showGlyphs: function(glyphs, points){
-        var text = this._glyphsToText(glyphs);
-        if (this._textDrawingMode == JSContext.TextDrawingMode.stroke){
-            this.canvasContext.strokeText(text, points[0].x, points[0].y);
-        }else{
+        var text = this._font.stringForGlyphs(glyphs);
+        if (this._textDrawingMode == JSContext.TextDrawingMode.fill || this._textDrawingMode == JSContext.TextDrawingMode.fillStroke){
             this.canvasContext.fillText(text, points[0].x, points[0].y);
         }
-    },
-
-    _glyphsToText: function(glyphs){
-        // TODO: convert glyphs back to string...maybe we should optimize and save the coversion on JSTextGlyph
-        return "";
+        if (this._textDrawingMode == JSContext.TextDrawingMode.stroke || this._textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+            this.canvasContext.strokeText(text, points[0].x, points[0].y);
+        }
     },
 
     // ----------------------------------------------------------------------
@@ -402,6 +400,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
         if (this._canvasContext){
             this._canvasContext.save();
         }
+        this._fontStack.push(this._font);
     },
 
 
@@ -410,6 +409,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
         if (this._canvasContext){
             this._canvasContext.restore();
         }
+        this._font = this._fontStack.pop();
     },
 
     // ----------------------------------------------------------------------

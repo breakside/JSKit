@@ -1,7 +1,12 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSFontDescriptor.js"
-/* global JSClass, JSObject, JSBundle, JSReadOnlyProperty, JSFont, JSFontDescriptor */
+// #import "Foundation/CoreTypes.js"
+// #import "Zlib/Zlib.js"
+// #feature DataView
+/* global JSClass, JSObject, JSBundle, JSReadOnlyProperty, JSFont, JSFontDescriptor, DataView, Zlib, JSRange, UnicodeChar */
 'use strict';
+
+(function(){
 
 JSClass("JSFont", JSObject, {
 
@@ -45,39 +50,76 @@ JSClass("JSFont", JSObject, {
         this._leading = 0.0;
     },
 
-    _glyphIndexForCharacter: function(character){
-        var cmap;
-        var min = 0;
-        var max = cmap.length;
-        var mid;
-        while (min < max){
-            mid = min + Math.floor((max - min) / 2);
-            if (character.code < cmap[mid][0]){
-                max = mid;
-            }else if (character.code > cmap[mid][1]){
-                min = mid + 1;
+    glyphForCharacter: function(character){
+        if (!this._cache.cmap){
+            var cmapBytes = Zlib.uncompress(this._cache.cmap64.data.dataByDecodingBase64().bytes);
+            this._cache.cmap = {
+                tables: new CMap(this._cache.cmap64.format, cmapBytes),
+                map: {},
+                reverseMap: {}
+            };
+        }
+        var glyphIndex = this._cache.cmap.map[character.code];
+        if (glyphIndex === undefined){
+            this._cache.cmap.map[character.code] = glyphIndex = this._cache.cmap.tables.glyphForCharacterCode(character.code);
+            this._cache.cmap.reverseMap[glyphIndex] = character.code;
+        }
+        return glyphIndex;
+    },
+
+    // IMPORTANT: This only works of the glyphs have previously been looked up by glyphForCharacter
+    characterForGlyph: function(glyph){
+        if (!this._cache.cmap){
+            return null;
+        }
+        var code = this._cache.cmap.reverseMap[glyph];
+        if (code === undefined){
+            return null;
+        }
+        return UnicodeChar(code);
+    },
+
+    // IMPORTANT: This only works of the glyphs have previously been looked up by glyphForCharacter
+    charactersForGlyphs: function(glyphs){
+        var chars = [];
+        for (var i = 0, l = glyphs.length; i < l; ++i){
+            chars.push(this.characterForGlyph(glyphs[i]));
+        }
+        return chars;
+    },
+
+    // IMPORTANT: This only works of the glyphs have previously been looked up by glyphForCharacter
+    stringForGlyphs: function(glyphs){
+        if (!this._cache.cmap){
+            return null;
+        }
+        var i, l;
+        var codes = [];
+        for (i = 0, l = glyphs.length; i < l; ++i){
+            codes.push(this._cache.cmap.reverseMap[glyphs[i]]);
+        }
+        return String.fromCodePoint.apply(undefined, codes);
+    },
+
+    widthOfGlyph: function(glyphIndex){
+        if (!this._cache.widths){
+            if (this._cache.widths64){
+                var widthBytes = Zlib.uncompress(this._cache.widths64.dataByDecodingBase64().bytes);
+                if (widthBytes.length > 1){
+                    this._cache.widths = new DataView(widthBytes.buffer, widthBytes.byteOffset, widthBytes.length);
+                }else{
+                    delete this._cache.widths64;
+                    return 0;
+                }
             }else{
-                return cmap[mid][2] + (character.code - cmap[mid][0]);
+                return 0;
             }
         }
-        return -1;
-
-    },
-
-    containsGlyphForCharacter: function(character){
-        return this._glyphIndexForCharacter(character) >= 0;
-    },
-
-    widthOfCharacter: function(character){
-        var widths;
-        var glyphIndex = this._glyphIndexForCharacter(character);
-        if (glyphIndex >= 0){
-            if (glyphIndex >= widths.length){
-                return widths[widths.length - 1];
-            }
-            return widths[glyphIndex];
+        var byteOffset = glyphIndex * 2;
+        if (byteOffset < this._cache.widths.byteLength - 1){
+            return this._cache.widths.getUint16(byteOffset) / this._unitsPerEM * this.pointSize;
         }
-        return 0; // FIXME: should be width of unkonwn character
+        return this._cache.widths.getUint16(this._cache.widths.byteLength - 2) / this._unitsPerEM * this.pointSize;
     }
 
 });
@@ -90,7 +132,17 @@ JSFont.addCreationHook = function(method){
 
 JSFont._fontWithResourceInfo = function(info, pointSize){
     var id = info.unique_identifier;
-    var font = JSFont._cache[id];
+    var cache = JSFont._cache[id];
+    if (!cache){
+        cache = JSFont._cache[id] = {
+            widths64: info.widths,
+            cmap64: info.cmap,
+            cmap: null,
+            widths: null,
+            sizes: {}
+        };
+    }
+    var font = cache.sizes[pointSize];
     if (!font){
         font = JSFont.init();
         font._descriptor = JSFontDescriptor.initWithProperties(info.family, info.weight, info.style);
@@ -105,7 +157,8 @@ JSFont._fontWithResourceInfo = function(info, pointSize){
         for (var i = 0, l = JSFont._creationHooks.length; i < l; ++i){
             JSFont._creationHooks[i].call(font);
         }
-        JSFont._cache[id] = font;
+        font._cache = cache;
+        cache.sizes[pointSize] = font;
     }
     return font;
 };
@@ -170,3 +223,252 @@ JSFont._cache = {
 
 JSFont._families = {
 };
+
+var CMap = function(format, data){
+    if (this === undefined){
+        return new CMap(format, data);
+    }
+    this.data = new DataView(data.buffer, data.byteOffset, data.length);
+    this.glyphForCharacterCode = this['glyphForCharacterCode_format' + format];
+    var init = this['init_format' + format];
+    if (init){
+        init.call(this);
+    }
+};
+
+CMap.prototype = {
+
+    // Format 0 - 8 bit map
+    // Not used for unicode encodings because an 8 bit character
+    // map doesn't make any sense.  No need to support.
+
+    // Format 2 - 8/16 bit map for Chinese and Japanese
+    // Not used for unicode encodings.  No need to support.
+
+    // Format 4 - 16 bit sparse ranges
+    //
+    // Unlike the Format 12 sparse array, Format 4
+    // searching is a little complicated.
+    //
+    // We'll ignore the search range stuff and just do
+    // a binary search using start and end codes.
+    //
+    // If a matching group is found, use idRangeOffset
+    // and idDelta to determine the glyph.
+    //
+    // 1. If idRangeOffset is 0, the glyph is just the
+    //    character code + idDelta
+    // 2. Otherwise, isRangeOffset specifies how many
+    //    bytes ahead the glyph is.
+    //    (offset for idRangeOffset) + idRangeOffset + 2 * (code - start)
+    // 
+    // +----------+---------------------+
+    // | Uint16   | numberOfGroups * 2  |
+    // +----------+---------------------+
+    // | Uint16   | searchRange         |
+    // +----------+---------------------+
+    // | Uint16   | entrySelector       |
+    // +----------+---------------------+
+    // | Uint16   | rangeShift          |
+    // +----------+---------------------+
+    // | Uint16[] | endCodes            |
+    // +----------+---------------------+
+    // | Uint16   | reserved            |
+    // +----------+---------------------+
+    // | Uint16[] | startCodes          |
+    // +----------+---------------------+
+    // | Uint16[] | idDeltas            |
+    // +----------+---------------------+
+    // | Uint16[] | idRangeOffsets      |
+    // +----------+---------------------+
+    // | Uint16[] | glyphs              |
+    // +----------+---------------------+
+
+    init_format4: function(){
+        this.numberOfGroups = this.data.getUint16(0) / 2;
+        this.endOffset = 8;
+        this.startOffset = this.endOffset + 2 * this.numberOfGroups + 2;
+        this.idDeltaOffset = this.startOffset + 2 * this.numberOfGroups;
+        this.idRangeOffset = this.idDeltaOffset + 2 * this.numberOfGroups;
+    },
+
+    glyphForCharacterCode_format4: function(code){
+        var start;
+        var end;
+        var idDelta;
+        var idRangeOffset;
+        var min = 0;
+        var max = this.numberOfGroups;
+        var mid;
+        while (min < max){
+            mid = min + Math.floor((max - min) / 2);
+            start = this.data.getUint16(this.startOffset + 2 * mid);
+            end = this.data.getUint16(this.endOffset + 2 * mid);
+            if (code < start){
+                max = mid;
+            }else if (code > end){
+                min = mid + 1;
+            }else{
+                idDelta = this.data.getInt16(this.idDeltaOffset + 2 * mid);
+                idRangeOffset = this.data.getUint16(this.idRangeOffset + 2 * mid);
+                if (idRangeOffset === 0){
+                    return (code + idDelta) % 0xFFFF;
+                }
+                return this.data.getUint16(this.idRangeOffset + 2 * mid + idRangeOffset + 2 * (code - start));
+            }
+        }
+        return 0;
+    },
+
+    // Format 6 - 16 bit trimmed table
+    //
+    // One table for a range of character codes. Typically
+    // used when the font's glyphs are for a contiguous range
+    // of characters, and all of them are 16-bit characters.
+    //
+    // +----------+----------------+
+    // | Uint16   | firstCharCode  |
+    // +----------+----------------+
+    // | Uint16   | count          |
+    // +----------+----------------+
+    // | Uint16[] | glyphs         |
+    // +----------+----------------+
+
+    init_format6: function(){
+        this.range = JSRange(this.data.getUint16(0), this.data.getUint16(2));
+    },
+
+    glyphForCharacterCode_format6: function(code){
+        if (!this.range.contains(code)){
+            return 0;
+        }
+        return this.data.getUint16(4 + 2 * (code - this.range.location));
+    },
+
+    // Format 8 - mixed 16 and 32 bit.  Use of format 8 is discouraged,
+    // and the jskit compiler changes format 8 into format 12, so we never
+    // have to deal with it here anyway.
+
+
+    // Format 10 - 32-bit trimmed table
+    //
+    // One table for a range of character codes.  Typically
+    // used when the font's glyphs are for a contiguous range
+    // of characters.
+    //
+    // +----------+----------------+
+    // | Uint32   | firstCharCode  |
+    // +----------+----------------+
+    // | Uint32   | count          |
+    // +----------+----------------+
+    // | Uint16[] | glyphs         |
+    // +----------+----------------+
+
+    init_format10: function(){
+        this.range = JSRange(this.data.getUint32(0), this.data.getUint32(4));
+    },
+
+    glyphForCharacterCode_format10: function(code){
+        if (!this.range.contains(code)){
+            return 0;
+        }
+        return this.data.getUint16(8 + 2 * (code - this.range.location));
+    },
+
+    // Format 12 - 32-bit sparse tables
+    // 
+    // +----------+----------------+
+    // | Uint32   | numberOfGroups |
+    // +----------+----------------+
+    // | Group[n] | Group array    |
+    // +----------+----------------+
+    // 
+    // Group:
+    // +--------+-----------------+
+    // | Uint32 | firstCharCode   |
+    // +--------+-----------------+
+    // | Uint32 | endCharCode     |
+    // +--------+-----------------+
+    // | Uint32 | firstGlyphIndex |
+    // +--------+-----------------+
+
+    init_format12: function(){
+        this.numberOfGroups = this.data.getUint32(0);
+    },
+
+    glyphForCharacterCode_format12: function(code){
+        var min = 0;
+        var max = this.numberOfGroups;
+        var mid;
+        var start;
+        var end;
+        var i;
+        while (min < max){
+            mid = min + Math.floor((max - min) / 2);
+            i = 4 + mid * 12;
+            start = this.data.getUint32(i);
+            end = this.data.getUint32(i + 4);
+            if (code < start){
+                max = mid;
+            }else if (code > end){
+                min = mid + 1;
+            }else{
+                return this.data.getUint32(i + 8) + (code - start);
+            }
+        }
+        return 0;
+    },
+
+    // Format 13 - Many to one
+    // 
+    // Almost identical to format 12, but all characters
+    // in a group map to the same glyph, rather than mapping
+    // to sequential glyphs.  Typically only used for a
+    // "Last Resort" font.
+    //
+    // +----------+----------------+
+    // | Uint32   | numberOfGroups |
+    // +----------+----------------+
+    // | Group[n] | Group array    |
+    // +----------+----------------+
+    // 
+    // Group:
+    // +--------+-----------------+
+    // | Uint32 | firstCharCode   |
+    // +--------+-----------------+
+    // | Uint32 | endCharCode     |
+    // +--------+-----------------+
+    // | Uint32 | glyphIndex      |
+    // +--------+-----------------+
+
+    init_format13: function(){
+        this.numberOfGroups = this.data.getUint32(0);
+    },
+
+    glyphForCharacterCode_format13: function(code){
+        var min = 0;
+        var max = this.numberOfGroups;
+        var mid;
+        var start;
+        var end;
+        var i;
+        while (min < max){
+            mid = min + Math.floor((max - min) / 2);
+            i = 4 + mid * 12;
+            start = this.data.getUint32(i);
+            end = this.data.getUint32(i + 4);
+            if (code < start){
+                max = mid;
+            }else if (code > end){
+                min = mid + 1;
+            }else{
+                return this.data.getUint32(i + 8);
+            }
+        }
+        return 0;
+    },
+
+    // TODO: Format 14 - Unicode Variations
+};
+
+})();

@@ -44,6 +44,12 @@ UnicodeChar.LineBreaks = {
 
 UnicodeChar.prototype = Object.create(Object.prototype, {
 
+    utf16: {
+        get: function UnicodeChar_utf16(){
+            return String.fromCodePoint(this.code);
+        }
+    },
+
     _lazyInitGeneralCategoryProperty: {
         value: function(category){
             var propertyName = UnicodeChar.GeneralCategoryPropertyMap[category];

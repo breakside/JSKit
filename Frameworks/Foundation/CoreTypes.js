@@ -346,6 +346,10 @@ JSAffineTransform.RotatedDegrees = function(degs){
     return JSAffineTransform.Rotated(degs * Math.PI / 180.0);
 };
 
+JSAffineTransform.Flipped = function(height){
+    return JSAffineTransform.Translated(0, height).scaledBy(1, -1);
+};
+
 JSGlobalObject.JSConstraintBox = function JSConstraintBox(props){
     if (this === undefined){
         if (props === null){

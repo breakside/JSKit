@@ -1,27 +1,29 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, JSTextGlyph, JSTextRun, JSTextLine, JSRange, JSFont, JSFontDescriptor, JSPoint, JSTextLineTestsFont */
+/* global JSClass, TKTestSuite, JSTextRun, JSTextLine, JSRange, JSFont, JSFontDescriptor, JSPoint, JSTextLineTestsFont */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
 'use strict';
 
 JSClass("JSTextLineTests", TKTestSuite, {
 
     _glyphsFromString: function(str, font){
-        var iterator = str.userPerceivedCharacterIterator();
+        var iterator = str.unicodeIterator();
         var glyphs = [];
-        while (iterator.firstCharacter !== null){
-            glyphs.push(JSTextGlyph.FromUTF16(iterator.utf16, font));
+        var lengths = [];
+        while (iterator.character !== null){
+            glyphs.push(font.glyphForCharacter(iterator.character));
+            lengths.push(iterator.nextIndex - iterator.index);
             iterator.increment();
         }
-        return glyphs;
+        return {glyphs: glyphs, lengths: lengths};
     },
 
     testInitWithRuns: function(){
         var font = JSTextLineTestsFont.init();
         var glyphs = this._glyphsFromString("This is a test", font);
-        var run1 = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(12, 14));
+        var run1 = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(12, 14));
         glyphs = this._glyphsFromString(" of a text line", font);
-        var run2 = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(26, 15));
+        var run2 = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(26, 15));
         var line = JSTextLine.initWithRuns([run1, run2], 0);
 
         TKAssertEquals(line.runs.length, 2);
@@ -56,9 +58,9 @@ JSClass("JSTextLineTests", TKTestSuite, {
     testCopy: function(){
         var font = JSTextLineTestsFont.init();
         var glyphs = this._glyphsFromString("This is a test", font);
-        var run1 = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(12, 14));
+        var run1 = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(12, 14));
         glyphs = this._glyphsFromString(" of a text line", font);
-        var run2 = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(26, 15));
+        var run2 = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(26, 15));
         var line = JSTextLine.initWithRuns([run1, run2], 0);
 
         var line2 = line.copy();
@@ -80,9 +82,9 @@ JSClass("JSTextLineTests", TKTestSuite, {
     testCharacterAtPoint: function(){
         var font = JSTextLineTestsFont.init();
         var glyphs = this._glyphsFromString("This is a test", font);
-        var run1 = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(12, 14));
+        var run1 = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(12, 14));
         glyphs = this._glyphsFromString(" of a text line", font);
-        var run2 = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(26, 15));
+        var run2 = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(26, 15));
         var line = JSTextLine.initWithRuns([run1, run2], 0);
 
         // start
@@ -158,9 +160,9 @@ JSClass("JSTextLineTests", TKTestSuite, {
     testRectForCharacterAtIndex: function(){
         var font = JSTextLineTestsFont.init();
         var glyphs = this._glyphsFromString("This is a test", font);
-        var run1 = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(12, 14));
+        var run1 = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(12, 14));
         glyphs = this._glyphsFromString(" of a text line", font);
-        var run2 = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(26, 15));
+        var run2 = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(26, 15));
         var line = JSTextLine.initWithRuns([run1, run2], 0);
 
         // 0
@@ -229,9 +231,9 @@ JSClass("JSTextLineTests", TKTestSuite, {
     testTruncatedLine: function(){
         var font = JSTextLineTestsFont.init();
         var glyphs = this._glyphsFromString("This is a test", font);
-        var run1 = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(12, 14));
+        var run1 = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(12, 14));
         glyphs = this._glyphsFromString(" of a text line", font);
-        var run2 = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(26, 15));
+        var run2 = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(26, 15));
         var line = JSTextLine.initWithRuns([run1, run2], 0);
 
         // no need to truncate
@@ -287,20 +289,35 @@ JSClass("JSTextLineTestsFont", JSFont, {
         this._calculateMetrics();
     },
 
-    containsGlyphForCharacter: function(character){
-        return true;
-    },
-
-    widthOfCharacter: function(character){
+    glyphForCharacter: function(character){
         if (character.code == 0x2026){ // ellipsis
-            return 10;
+            return 1;
         }
         if (character.code == 0x200B){ // zero-width space
-            return 0;
+            return 4;
         }
         if (character.code >= 0x61){  // lowercase, {, }, |, ~
+            return 2;
+        }
+        return 3; // uppercase, digits, most punctuation
+
+    },
+
+    widthOfGlyph: function(glyph){
+        if (glyph === 0){
+            return 30;
+        }
+        if (glyph == 1){
+            return 10;
+        }
+        if (glyph == 2){
             return 20;
         }
-        return 30; // uppercase, digits, most punctuation
+        if (glyph == 3){
+            return 30;
+        }
+        if (glyph == 4){
+            return 0;
+        }
     }
 });

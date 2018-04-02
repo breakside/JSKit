@@ -1,25 +1,27 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, JSTextRun, JSTextRunTestsFont, JSFont, JSFontDescriptor, JSPoint, JSTextGlyph, JSRange */
+/* global JSClass, TKTestSuite, JSTextRun, JSTextRunTestsFont, JSFont, JSFontDescriptor, JSPoint, JSRange */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
 'use strict';
 
 JSClass("JSTextRunTests", TKTestSuite, {
 
     _glyphsFromString: function(str, font){
-        var iterator = str.userPerceivedCharacterIterator();
+        var iterator = str.unicodeIterator();
         var glyphs = [];
-        while (iterator.firstCharacter !== null){
-            glyphs.push(JSTextGlyph.FromUTF16(iterator.utf16, font));
+        var lengths = [];
+        while (iterator.character !== null){
+            glyphs.push(font.glyphForCharacter(iterator.character));
+            lengths.push(iterator.nextIndex - iterator.index);
             iterator.increment();
         }
-        return glyphs;
+        return {glyphs: glyphs, lengths: lengths};
     },
 
     testInitWithGlyphs: function(){
         var font = JSTextRunTestsFont.init();
         var glyphs = this._glyphsFromString("This is a test", font);
-        var run = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(12, 14));
+        var run = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(12, 14));
 
         TKAssertEquals(run.origin.x, 0);
         TKAssertEquals(run.origin.y, 0);
@@ -33,7 +35,7 @@ JSClass("JSTextRunTests", TKTestSuite, {
     testCopy: function(){
         var font = JSTextRunTestsFont.init();
         var glyphs = this._glyphsFromString("This is a test", font);
-        var run = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(12, 14));
+        var run = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(12, 14));
 
         var run2 = run.copy();
         TKAssertEquals(run2.origin.x, 0);
@@ -48,7 +50,7 @@ JSClass("JSTextRunTests", TKTestSuite, {
     testCharacterIndexAtPoint: function(){
         var font = JSTextRunTestsFont.init();
         var glyphs = this._glyphsFromString("This is a test", font);
-        var run = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(12, 14));
+        var run = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(12, 14));
 
         // start
         var index = run.characterIndexAtPoint(JSPoint(0, 0));
@@ -110,7 +112,7 @@ JSClass("JSTextRunTests", TKTestSuite, {
     testRectForCharacterAtIndex: function(){
         var font = JSTextRunTestsFont.init();
         var glyphs = this._glyphsFromString("This is a test", font);
-        var run = JSTextRun.initWithGlyphs(glyphs, font, {}, JSRange(12, 14));
+        var run = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(12, 14));
 
         // 0
         var rect = run.rectForCharacterAtIndex(0);
@@ -162,20 +164,35 @@ JSClass("JSTextRunTestsFont", JSFont, {
         this._calculateMetrics();
     },
 
-    containsGlyphForCharacter: function(character){
-        return true;
-    },
-
-    widthOfCharacter: function(character){
+    glyphForCharacter: function(character){
         if (character.code == 0x2026){ // ellipsis
-            return 10;
+            return 1;
         }
         if (character.code == 0x200B){ // zero-width space
-            return 0;
+            return 4;
         }
         if (character.code >= 0x61){  // lowercase, {, }, |, ~
+            return 2;
+        }
+        return 3; // uppercase, digits, most punctuation
+
+    },
+
+    widthOfGlyph: function(glyph){
+        if (glyph === 0){
+            return 30;
+        }
+        if (glyph == 1){
+            return 10;
+        }
+        if (glyph == 2){
             return 20;
         }
-        return 30; // uppercase, digits, most punctuation
+        if (glyph == 3){
+            return 30;
+        }
+        if (glyph == 4){
+            return 0;
+        }
     }
 });

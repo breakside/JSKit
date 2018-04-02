@@ -4,8 +4,7 @@
 // #import "Foundation/JSFont.js"
 // #import "Foundation/JSTextLine.js"
 // #import "Foundation/JSTextRun.js"
-// #import "Foundation/JSTextGlyph.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSTextTypesetter, JSSize, JSRange, JSTextAlignment, JSTextLine, JSTextRun, JSPoint, JSAttributedString, JSFont, jslog_create, JSLineBreakMode, JSTextGlyph */
+/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSTextTypesetter, JSSize, JSRange, JSTextAlignment, JSTextLine, JSTextRun, JSPoint, JSAttributedString, JSFont, jslog_create, JSLineBreakMode */
 'use strict';
 
 (function(){
@@ -66,7 +65,7 @@ JSClass("JSTextTypesetter", JSObject, {
         var runDescriptor;
         for (var i = 0, l = layout.runDescriptors.length; i < l; ++i){
             runDescriptor = layout.runDescriptors[i];
-            run = JSTextRun.initWithGlyphs(runDescriptor.glyphStack, runDescriptor.font, runDescriptor.attributes, JSRange(runDescriptor.location, runDescriptor.length));
+            run = JSTextRun.initWithGlyphs(runDescriptor.glyphs, runDescriptor.glyphCharacterLengths, runDescriptor.font, runDescriptor.attributes, JSRange(runDescriptor.location, runDescriptor.length));
             run.origin.x = x;
             x += run.size.width;
             runs.push(run);
@@ -91,7 +90,7 @@ JSClass("JSTextTypesetter", JSObject, {
         var i = 0;
         var fallbackFonts = this.fallbackFontsForFont(defaultFont);
         while (i < fallbackFonts.length){
-            if (fallbackFonts[i].containsGlyphForCharacter(character.code)){
+            if (fallbackFonts[i].glyphForCharacter(character.code) > 0){
                 return fallbackFonts[i];
             }
         }
@@ -115,7 +114,8 @@ JSClass("JSTextTypesetter", JSObject, {
         var iterator = this._attributedString.string.userPerceivedCharacterIterator(range.location);
         var runIterator = this._attributedString.runIterator(range.location);
         var initialLineAttributes = runIterator.attributes;
-        // Create run descriptors that at least fill the line
+        var codeIterator;
+        // Create run descriptors that at fill the line, maybe going a bit over
         do {
             if (runDescriptor === null){
                 runDescriptor = JSTextTypesetterRunDescriptor(remainingRange.location, runIterator.attributes);
@@ -123,19 +123,31 @@ JSClass("JSTextTypesetter", JSObject, {
             }
             newline = iterator.isMandatoryLineBreak;
             printable = !newline && !iterator.isWhiteSpace;
-            // TODO: fallback fonts
             if (runIterator.range.length == 1 && iterator.firstCharacter.code == JSAttributedString.SpecialCharacter.Attachment){
+                // FIXME: attachment
                 attachment = runIterator.attributes[JSAttributedString.Attribute.attachment];
                 attachment.layout(width);
-                glyph = JSTextGlyph.FromAttachment(attachment);
                 runDescriptor.height = attachment.size.height;
+                runDescriptor.length = 1;
+                usedWidth += attachment.size.width;
             }else{
-                attachment = null;
-                glyph = JSTextGlyph.FromUTF16(iterator.utf16, runDescriptor.font);
+                // TODO: fallback fonts
+
+                // newline characters do not result in glyphs, but we should still
+                // count them in the run descriptor length to the resulting JSRun
+                // has the correct range including the newline
+                if (!newline){
+                    codeIterator = iterator.utf16.unicodeIterator();
+                    while (codeIterator.character !== null){
+                        glyph = runDescriptor.font.glyphForCharacter(iterator.firstCharacter);
+                        usedWidth += runDescriptor.font.widthOfGlyph(glyph);
+                        runDescriptor.glyphs.push(glyph);
+                        runDescriptor.glyphCharacterLengths.push(codeIterator.nextIndex - codeIterator.index);
+                        codeIterator.increment();
+                    }
+                }
+                runDescriptor.length += iterator.range.length;
             }
-            usedWidth += glyph.width;
-            runDescriptor.glyphStack.push(glyph);
-            runDescriptor.length += glyph.length;
             remainingRange.advance(iterator.range.length);
             if (printable){
                 if (printableRange === null){
@@ -219,17 +231,19 @@ JSClass("JSTextTypesetter", JSObject, {
         var end = location + 1;
         var removedWidth = 0;
         var glyph;
+        var characterLength;
         var i, l;
         while (runDescriptors.length > 0 && end > location){
             runDescriptor = runDescriptors[runDescriptors.length - 1];
             end = runDescriptor.location + runDescriptor.length;
-            while (runDescriptor.glyphStack.length > 0 && end > location){
-                glyph = runDescriptor.glyphStack.pop();
-                end -= glyph.length;
-                removedWidth += glyph.width;
-                runDescriptor.length -= glyph.length;
+            while (end > location && runDescriptor.glyphs.length > 0){
+                glyph = runDescriptor.glyphs.pop();
+                removedWidth += runDescriptor.font.widthOfGlyph(glyph);
+                characterLength = runDescriptor.glyphCharacterLengths.pop();
+                runDescriptor.length -= characterLength;
+                end -= characterLength;
             }
-            if (runDescriptor.glyphStack.length === 0){
+            if (runDescriptor.glyphs.length === 0){
                 runDescriptors.pop();
             }
         }
@@ -263,7 +277,8 @@ var JSTextTypesetterRunDescriptor = function(location, attributes){
         this.location = location.location;
         this.attributes = location.attributes;
         this.length = location.length;
-        this.glyphStack = location.glyphStack;
+        this.glyphs = location.glyphs;
+        this.glyphCharacterLengths = location.glyphCharacterLengths;
         this.height = location.height;
         this.font = location.font;
     }else{
@@ -272,7 +287,8 @@ var JSTextTypesetterRunDescriptor = function(location, attributes){
         this.font = JSTextTypesetter.FontFromAttributes(attributes);
         this.height = this.font.lineHeight;
         this.length = 0;
-        this.glyphStack = [];
+        this.glyphs = [];
+        this.glyphCharacterLengths = [];
     }
 };
 

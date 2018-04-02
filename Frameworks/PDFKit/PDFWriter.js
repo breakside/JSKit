@@ -99,7 +99,7 @@ JSClass("PDFWriter", JSObject, {
             }else{
                 this._writeObject(obj.resolvedValue);
             }
-        }else if (preferIndirect && obj.indirect && obj.indirect instanceof PDFIndirectObject){
+        }else if (preferIndirect && obj && obj.indirect && obj.indirect instanceof PDFIndirectObject){
             this._writeIndirectObject(obj.indirect);
         }else if (obj instanceof PDFObject){
             this._writeDictionaryObject(obj);
@@ -121,10 +121,7 @@ JSClass("PDFWriter", JSObject, {
     },
 
     _writeStringObject: function(str){
-        // TODO: watch out for 255 max length
-        this._write("(");
-        // TODO: escape and write string
-        this._write(")");
+        this._write(pdf_formatter.S(str));
     },
 
     _writeNumberObject: function(n){
@@ -285,6 +282,11 @@ var pdf_formatter = {
     // regular string
     s: function(str, options){
         return str;
+    },
+
+    S: function(str, options){
+        // TODO: escapes
+        return "(" + str + ")";
     }
 };
 

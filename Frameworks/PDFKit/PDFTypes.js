@@ -7,4 +7,5 @@
 // #import "PDFKit/PDFGraphicsStateParametersObject.js"
 // #import "PDFKit/PDFStreamObject.js"
 // #import "PDFKit/PDFTrailerObject.js"
+// #import "PDFKit/PDFFontObject.js"
 'use strict';

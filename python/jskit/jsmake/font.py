@@ -1,6 +1,7 @@
 import struct
 import os.path
 import zlib
+import base64
 
 
 class FontInfoExtractor(object):
@@ -16,10 +17,10 @@ class FontInfoExtractor(object):
         if sig == '\x77\x4f\x46\x46':
             return WOFFInfoExtractor(fp)
         # TTF doesn't really have a magic signature, but it always starts with
-        # a version number: 0x00 0x01 0x00 0x00.
+        # a version number: 0x00 0x01 0x00 0x00.  (Some mac fonts may start with 'true').
         # OTF may have the TTF version, or may have 'OTTO' for its version.  For our purposes
         # of extracting name & overall metrics, OTF is identical to TTF
-        elif sig == '\x00\x01\x00\x00' or sig[0:4] == '\x4F\x54\x54\x4F':
+        elif sig == '\x00\x01\x00\x00' or sig[0:4] == '\x4F\x54\x54\x4F' or sig[0:4] == '\x74\x72\x75\x65':
             return TTFInfoExtractor(fp)
         return FontInfoExtractor()
 
@@ -60,8 +61,10 @@ class TTFInfoExtractor(FontInfoExtractor):
         self.read_name(info)
         self.read_head(info)
         self.read_os2(info)
-        # self.read_cmap(info)
+        self.read_cmap(info)
         self.read_horizontal_metrics(info)
+        sizes = sorted([(tag, self.tables[tag][1]) for tag in self.tables], key=lambda x: -x[1])
+        # info['sizes'] = sizes
 
     def read_table(self, tag):
         if tag not in self.tables:
@@ -134,11 +137,26 @@ class TTFInfoExtractor(FontInfoExtractor):
         candidates = []
         for i in range(subtableCount):
             platform_id, platform_specific_id, map_offset = struct.unpack('!HHI', data[offset:offset+8])
+            print (platform_id, platform_specific_id)
             offset += 8
+            # 0 = Unicode
             if platform_id == 0:
+                # 0 = Default
+                # 1 = Version 1.1
+                # 2 = ISO 10646 1993 semantics (deprecated)
+                # 3 = Unicode 2.0 or later semantics (BMP only)
+                # 4 = Unicode 2.0 or later semantics (non-BMP characters allowed)
                 if platform_specific_id <= 4:
                     candidates.append((platform_id, platform_specific_id, map_offset))
+                # (not supported) 5 = Unicode Variation Sequences
+                # (not supported) 6 = Full Unicode coverage (used with type 13.0 cmaps by OpenType)
+            # 3 = Windows
             if platform_id == 3:
+                # 1 = Unicode BMP (UCS-2)
+                # 10 = Unicode UCS-4
+                # Fonts that support Unicode BMP characters on the Windows platform must have a format 4 'cmap' subtable for platform ID 3, platform-specific encoding 1. 
+                # Fonts that support Unicode supplementary-plane characters on the Windows platform must have a format 12 subtable for platform ID 3, encoding ID 10. 
+                # To ensure backward compatibility with older software and devices, a format 4 subtable for platform ID 3, encoding ID 1 is also required
                 if platform_specific_id in (1, 10):
                     candidates.append((platform_id, platform_specific_id, map_offset))
 
@@ -146,102 +164,48 @@ class TTFInfoExtractor(FontInfoExtractor):
         if len(candidates) > 0:
             map_offset = candidates[0][2]
             cmap_format = struct.unpack('!H', data[map_offset:map_offset+2])[0]
-            print "cmap %d" % cmap_format
-            if cmap_format == 0:
-                self.read_cmap_0(info, data[map_offset+6:map_offset+262])
-            elif cmap_format == 2:
-                length, langauge = struct.unpack('!HH', data[map_offset+2:map_offset+6])
-                self.read_cmap_2(info, data[map_offset+6:map_offset+length])
-            elif cmap_format == 4:
-                length, langauge = struct.unpack('!HH', data[map_offset+2:map_offset+6])
-                self.read_cmap_4(info, data[map_offset+6:map_offset+length])
-            elif cmap_format == 6:
-                length, langauge = struct.unpack('!HH', data[map_offset+2:map_offset+6])
-                self.read_cmap_6(info, data[map_offset+6:map_offset+length])
+            info["cmap"] = dict(
+                format=cmap_format
+            )
+            # if cmap_format == 0:
+            #     info["cmap"]["data"] = base64.b64encode(zlib.compress(data[map_offset+6:map_offset+262]))
+            # else:
+            adjustment = 0
+            if cmap_format in (4, 6):
+                struct_format = '!HH'
+                struct_length = 4
             elif cmap_format == 8:
-                length, langauge = struct.unpack('!II', data[map_offset+4:map_offset+12])
-                self.read_cmap_8(info, data[map_offset+12:map_offset+length])
-            elif cmap_format == 10:
-                length, langauge = struct.unpack('!II', data[map_offset+4:map_offset+12])
-                self.read_cmap_10(info, data[map_offset+12:map_offset+length])
-            elif cmap_format == 12:
-                length, langauge = struct.unpack('!II', data[map_offset+4:map_offset+12])
-                self.read_cmap_12(info, data[map_offset+12:map_offset+length])
-            elif cmap_format == 13:
-                length, langauge = struct.unpack('!II', data[map_offset+4:map_offset+12])
-                self.read_cmap_13(info, data[map_offset+12:map_offset+length])
-            elif cmap_format == 14:
-                raise Exception(u"%s: cmap type 14 not supported" % self.fp.name)
+                # 8 is a mixed 16-bit to 32-bit format, and is discouraged because
+                # rendering systems typically will already know if a character is
+                # 16 or 32 bit.  Aside from telling which characters are which width,
+                # format 8 looks identical to format 12, so we'll just call it 12 and
+                # take the relevant slice of data
+                info["cmap"]["format"] = 12
+                adjustment = 65536
+            elif cmap_format in (8, 10, 12, 13):
+                struct_format = '!II'
+                struct_length = 8
+            else:
+                raise Exception(u"%s: cmap type %d not supported" % (self.fp.name, cmap_format))
+            length, langauge = struct.unpack(struct_format, data[map_offset+2:map_offset+2+struct_length])
+            info["cmap"]["data"] = base64.b64encode(zlib.compress(data[map_offset+6+adjustment:map_offset+length-adjustment]))
         else:
             raise Exception(u"%s: no suitable cmap found" % self.fp.name)
-
-    def read_cmap_0(self, info, data):
-        glyph_indexes = struct.unpack('!256b', data)
-        entry = dict(start=None, glyphs=[])
-        info['character_map'] = dict()
-        for character_code in range(256):
-            if glyph_indexes[character_code] == 0:
-                if entry['start'] is not None:
-                    info['character_map'].append(entry)
-                entry = dict(start=None, glyphs=[])
-            else:
-                info['character_map'][character_code] = glyph_indexes[character_code]
-
-    def read_cmap_2(self, info, data):
-        sub_header_keys = struct.unpack('!256H', data[0:512])
-        for i in range(256):
-            value = sub_header_keys[i] / 8
-
-    def read_cmap_4(self, info, data):
-        # Useful for Basic Multilingual Plane (BMP) Unicode
-        seg_count_x2, search_range, entry_selector, range_shift = struct.unpack('!HHHH', data[0:8])
-        seg_count = seg_count_x2 / 2
-
-    def read_cmap_6(self, info, data):
-        # Useful for 
-        first_code, entry_count = struct.unpack('!HH', data[0:4])
-        glyph_indexes = struct.unpack('!%dH' % entry_count, data[4:])
-
-
-    def read_cmap_8(self, info, data):
-        pass
-
-    def read_cmap_10(self, info, data):
-        pass
-
-    def read_cmap_12(self, info, data):
-        # Useful for 32-bit unicode sparse groups
-        group_count = struct.unpack('!I',  data[0:4])[0]
-        offset = 4
-        info['cmap'] = []
-        for i in range(group_count):
-            start_code, end_code, start_glyph_index = struct.unpack('!III', data[offset:offset+12])
-            info['cmap'].append((start_code,end_code,start_glyph_index))
-            offset += 12
-
-    def read_cmap_13(self, info, data):
-        pass
-
-    def read_cmap_14(self, info, data):
-        pass
 
     def read_horizontal_metrics(self, info):
         data = self.read_table('hhea')
         ascent, descent, line_gap = struct.unpack('!hhh', data[4:10])
         info['ascender'] = ascent
         info['descender'] = descent
-        # num_of_long_horiz_metrics = struct.unpack('!H', data[34:36])[0]
-        # data = self.read_table('hmtx')
-        # info['widths'] = []
-        # offset = 0
-        # for i in range(num_of_long_horiz_metrics):
-        #     advance_width, left_side_bearing = struct.unpack('!HH', data[offset:offset+4])
-        #     info['widths'].append(advance_width)
-        #     offset += 4
-        # i = num_of_long_horiz_metrics - 1
-        # while i > 0 and info['widths'][i] == info['widths'][i - 1]:
-        #     i -= 1
-        # info['widths'] = info['widths'][0:i+1]
+        num_of_long_horiz_metrics = struct.unpack('!H', data[34:36])[0]
+        data = self.read_table('hmtx')
+        widths = ""
+        offset = 0
+        for i in range(num_of_long_horiz_metrics):
+            advance_width, left_side_bearing = struct.unpack('!HH', data[offset:offset+4])
+            widths += struct.pack('!H', advance_width)
+            offset += 4
+        info['widths'] = base64.b64encode(zlib.compress(widths))
 
 
 class WOFFInfoExtractor(TTFInfoExtractor):

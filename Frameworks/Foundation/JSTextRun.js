@@ -1,6 +1,5 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/CoreTypes.js"
-// #import "Foundation/JSTextGlyph.js"
 /* global JSClass, JSTextRun, JSObject, JSSize, JSRange, JSRect, JSPoint, JSDynamicProperty, JSReadOnlyProperty */
 'use strict';
 
@@ -12,23 +11,32 @@ JSClass("JSTextRun", JSObject, {
     size: JSReadOnlyProperty('_size', null),
     range: JSReadOnlyProperty('_range', null),
     glyphs: null,
+    glyphCharacterLengths: null,
     attributes: null,
     font: null,
 
-    initWithGlyphs: function(glyphs, font, attributes, range){
+    initWithGlyphs: function(glyphs, glyphCharacterLengths, font, attributes, range){
         this.glyphs = glyphs;
+        this.glyphCharacterLengths = glyphCharacterLengths;
         this.attributes = attributes;
         this.font = font;
         this._size = JSSize(0, font.lineHeight);
         for (var i = 0, l = glyphs.length; i < l; ++i){
-            this._size.width += glyphs[i].width;
+            this._size.width += font.widthOfGlyph(glyphs[i]);
         }
         this._range = JSRange(range);
         this._origin = JSPoint.Zero;
     },
 
     drawInContext: function(context){
-        // TODO: draw each glyph (including attachments)
+        // TODO: text matrix?
+        // TODO: text position?
+        // TODO: attachments
+        context.save();
+        context.setFont(this.font);
+        // TODO: other attributes
+        context.showGlyphs(this.glyphs);
+        context.restore();
     },
 
     characterIndexAtPoint: function(point){
@@ -38,14 +46,18 @@ JSClass("JSTextRun", JSObject, {
         }
         var index = this.range.location;
         var glyph;
+        var width;
+        var characterLength;
         for (var i = 0, l = this.glyphs.length; i < l && x < point.x; ++i){
             glyph = this.glyphs[i];
-            x += glyph.width;
-            index += glyph.length;
+            width = this.font.widthOfGlyph(glyph);
+            characterLength = this.glyphCharacterLengths[i];
+            x += width;
+            index += characterLength;
         }
         if (x > point.x && i > 0){
-            if (x - point.x > (glyph.width / 2)){
-                index -= glyph.length;
+            if (x - point.x > (width / 2)){
+                index -= characterLength;
             }
         }
         return index;
@@ -57,13 +69,22 @@ JSClass("JSTextRun", JSObject, {
         }
         var x = 0;
         var glyph = null;
+        var width;
+        var characterLength;
         var runningIndex = 0;
         for (var i = 0, l = this.glyphs.length; runningIndex < index && i < l; ++i){
             glyph = this.glyphs[i];
-            x += glyph.width;
-            runningIndex += glyph.length;
+            width = this.font.widthOfGlyph(glyph);
+            characterLength = this.glyphCharacterLengths[i];
+            x += width;
+            runningIndex += characterLength;
         }
-        return JSRect(x, 0, i < l ? this.glyphs[i].width : 0, this._size.height);
+        if (i < l){
+            width = this.font.widthOfGlyph(this.glyphs[i]);
+        }else{
+            width = 0;
+        }
+        return JSRect(x, 0, width, this._size.height);
     },
 
     copy: function(){
@@ -74,8 +95,13 @@ JSClass("JSTextRun", JSObject, {
         run.attributes = this.attributes;
         run.font = this.font;
         run.glyphs = [];
-        for (var i = 0, l = this.glyphs.length; i < l; ++i){
+        run.glyphCharacterLengths = [];
+        var i, l;
+        for (i = 0, l = this.glyphs.length; i < l; ++i){
             run.glyphs.push(this.glyphs[i]);
+        }
+        for (i = 0, l = this.glyphCharacterLengths.length; i < l; ++i){
+            run.glyphCharacterLengths.push(this.glyphCharacterLengths[i]);
         }
         return run;
     }

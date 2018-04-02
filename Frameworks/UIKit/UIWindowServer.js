@@ -16,7 +16,6 @@ JSClass("UIWindowServer", JSObject, {
 
     windowInserted: function(window){
         this.windowStack.push(window);
-        window.windowServer = this;
         this.displayServer.layerInserted(window.layer);
         // Force layout and display right now so all sizes are correct when viewDidAppear is called
         this.displayServer.updateDisplay();

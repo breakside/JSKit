@@ -12,7 +12,7 @@ JSClass("UIHTMLTextRun", JSTextRun, {
     textNode: null,
 
     initWithElement: function(element, font, attributes, range){
-        UIHTMLTextRun.$super.initWithGlyphs.call(this, [], font, attributes, range);
+        UIHTMLTextRun.$super.initWithGlyphs.call(this, [], [], font, attributes, range);
         this.element = element;
         if (element.childNodes.length > 0){
             this.textNode = element.firstChild;

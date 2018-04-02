@@ -27,21 +27,25 @@ JSClass("PDFContextTests", TKTestSuite, {
 
         var expected = [
             "%PDF-1.7",
-            "1 0 obj",
-            "<< /Kids [ ] /Count 0 /Type /Pages >>",
-            "endobj",
             "2 0 obj",
+            "<< >>",
+            "endobj",
+            "1 0 obj",
+            "<< /Kids [ ] /Count 0 /Resources 2 0 R /MediaBox [ 0 0 612 792 ] /Type /Pages >>",
+            "endobj",
+            "3 0 obj",
             "<< /Pages 1 0 R /Type /Catalog >>",
             "endobj",
             "xref",
-            "0 3",
+            "0 4",
             "0000000000 65535 f ",
+            "0000000030 00000 n ",
             "0000000009 00000 n ",
-            "0000000062 00000 n ",
+            "0000000126 00000 n ",
             "trailer",
-            "<< /Root 2 0 R /Size 3 >>",
+            "<< /Root 3 0 R /Size 4 >>",
             "startxref",
-            "111",
+            "175",
             "%%EOF"
         ];
 
@@ -64,40 +68,44 @@ JSClass("PDFContextTests", TKTestSuite, {
 
         var expected = [
             "%PDF-1.7",
-            "3 0 obj",
-            "<< /Length 2 0 R >>",
+            "4 0 obj",
+            "<< /Length 3 0 R >>",
             "stream",
-            "",
+            "q 1 0 0 -1 0 792 cm Q ",
             "endstream",
             "endobj",
-            "2 0 obj",
-            "0",
-            "endobj",
-            "5 0 obj",
-            "<< >>",
-            "endobj",
-            "4 0 obj",
-            "<< /Contents 3 0 R /Parent 1 0 R /Resources 5 0 R /Type /Page >>",
-            "endobj",
-            "1 0 obj",
-            "<< /Kids [ 4 0 R ] /Count 1 /Type /Pages >>",
+            "3 0 obj",
+            "22",
             "endobj",
             "6 0 obj",
+            "<< >>",
+            "endobj",
+            "5 0 obj",
+            "<< /Contents 4 0 R /Parent 1 0 R /Resources 6 0 R /Type /Page >>",
+            "endobj",
+            "2 0 obj",
+            "<< >>",
+            "endobj",
+            "1 0 obj",
+            "<< /Kids [ 5 0 R ] /Count 1 /Resources 2 0 R /MediaBox [ 0 0 612 792 ] /Type /Pages >>",
+            "endobj",
+            "7 0 obj",
             "<< /Pages 1 0 R /Type /Catalog >>",
             "endobj",
             "xref",
-            "0 7",
+            "0 8",
             "0000000000 65535 f ",
-            "0000000180 00000 n ",
-            "0000000062 00000 n ",
+            "0000000224 00000 n ",
+            "0000000203 00000 n ",
+            "0000000084 00000 n ",
             "0000000009 00000 n ",
-            "0000000100 00000 n ",
-            "0000000079 00000 n ",
-            "0000000239 00000 n ",
+            "0000000123 00000 n ",
+            "0000000102 00000 n ",
+            "0000000326 00000 n ",
             "trailer",
-            "<< /Root 6 0 R /Size 7 >>",
+            "<< /Root 7 0 R /Size 8 >>",
             "startxref",
-            "288",
+            "375",
             "%%EOF"
         ];
 
@@ -119,46 +127,9 @@ JSClass("PDFContextTests", TKTestSuite, {
 
         TKAssert(isClosed);
 
-        var expected = [
-            "%PDF-1.7",
-            "3 0 obj",
-            "<< /Length 2 0 R >>",
-            "stream",
-            "n 100 200 300 400 re f ",
-            "endstream",
-            "endobj",
-            "2 0 obj",
-            "23",
-            "endobj",
-            "5 0 obj",
-            "<< >>",
-            "endobj",
-            "4 0 obj",
-            "<< /Contents 3 0 R /Parent 1 0 R /Resources 5 0 R /Type /Page >>",
-            "endobj",
-            "1 0 obj",
-            "<< /Kids [ 4 0 R ] /Count 1 /Type /Pages >>",
-            "endobj",
-            "6 0 obj",
-            "<< /Pages 1 0 R /Type /Catalog >>",
-            "endobj",
-            "xref",
-            "0 7",
-            "0000000000 65535 f ",
-            "0000000204 00000 n ",
-            "0000000085 00000 n ",
-            "0000000009 00000 n ",
-            "0000000124 00000 n ",
-            "0000000103 00000 n ",
-            "0000000263 00000 n ",
-            "trailer",
-            "<< /Root 6 0 R /Size 7 >>",
-            "startxref",
-            "312",
-            "%%EOF"
-        ];
-
-        TKAssertEquals(stream.string, expected.join("\n"));
+        var streams = stream.getStreams();
+        TKAssertEquals(streams.length, 1);
+        TKAssertEquals(streams[0], "q 1 0 0 -1 0 792 cm n 100 200 300 400 re f Q \n");
     },
 
     testCircle: function(){
@@ -178,7 +149,7 @@ JSClass("PDFContextTests", TKTestSuite, {
 
         var streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "n 150 200 m 177.5892 200 200 222.4108 200 250 c 200 277.5892 177.5892 300 150 300 c 122.4108 300 100 277.5892 100 250 c 100 222.4108 122.4108 200 150 200 c h f \n");
+        TKAssertEquals(streams[0], "q 1 0 0 -1 0 792 cm n 150 200 m 177.5892 200 200 222.4108 200 250 c 200 277.5892 177.5892 300 150 300 c 122.4108 300 100 277.5892 100 250 c 100 222.4108 122.4108 200 150 200 c h f Q \n");
     },
 
     testRoundedRect: function(){
@@ -199,7 +170,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         var streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
 
-        TKAssertEquals(streams[0], "n 100 220 m 100 208.96432 108.96432 200 120 200 c 180 200 l 191.03568 200 200 208.96432 200 220 c 200 280 l 200 291.03568 191.03568 300 180 300 c 120 300 l 108.96432 300 100 291.03568 100 280 c h f \n");
+        TKAssertEquals(streams[0], "q 1 0 0 -1 0 792 cm n 100 220 m 100 208.96432 108.96432 200 120 200 c 180 200 l 191.03568 200 200 208.96432 200 220 c 200 280 l 200 291.03568 191.03568 300 180 300 c 120 300 l 108.96432 300 100 291.03568 100 280 c h f Q \n");
     },
 
     testArc: function(){
@@ -217,10 +188,10 @@ JSClass("PDFContextTests", TKTestSuite, {
         TKAssert(isClosed);
         var streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "150 200 m 150 213.260824492 144.7321579817 225.9785201369 135.3553390593 235.3553390593 c S \n");
+        TKAssertEquals(streams[0], "q 1 0 0 -1 0 792 cm 150 200 m 150 213.260824492 144.7321579817 225.9785201369 135.3553390593 235.3553390593 c S Q \n");
     },
 
-    _debugArcUsingTangents: function(){
+    debugArcUsingTangents: function(){
         var stream = PDFContextTestsStringStream.init();
         var context = PDFContext.initWithStream(stream);
         var isClosed = false;
@@ -274,6 +245,41 @@ JSClass("PDFContextTests", TKTestSuite, {
         context.addArcUsingTangents(JSPoint(50, 75), JSPoint(75, 100), radius);
         context.strokePath();
 
+        context.translateBy(100, 0);
+
+        context.beginPath();
+        context.moveToPoint(50, 100);
+        context.addArcUsingTangents(JSPoint(50, 75), JSPoint(75, 100), radius);
+        context.strokePath();
+
+        context.translateBy(100, 0);
+
+        context.beginPath();
+        context.moveToPoint(75, 50);
+        context.addArcUsingTangents(JSPoint(100, 100), JSPoint(75, 125), radius);
+        context.strokePath();
+
+        context.translateBy(100, 0);
+
+        context.beginPath();
+        context.moveToPoint(75, 50);
+        context.addArcUsingTangents(JSPoint(50, 100), JSPoint(75, 125), radius);
+        context.strokePath();
+
+        context.translateBy(-400, 100);
+
+        context.beginPath();
+        context.moveToPoint(100, 100);
+        context.addArcUsingTangents(JSPoint(100, 75), JSPoint(50, 100), radius);
+        context.strokePath();
+
+        context.translateBy(100, 0);
+
+        context.beginPath();
+        context.moveToPoint(100, 50);
+        context.addArcUsingTangents(JSPoint(75, 125), JSPoint(50, 100), radius);
+        context.strokePath();
+
         context.endPage();
         context.endDocument(function(){ isClosed = true;});
         TKAssert(isClosed);
@@ -296,7 +302,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         TKAssert(isClosed);
         var streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "n 50 50 m 50 75 m 50 75 l 50 88.7946 61.2054 100 75 100 c S \n");
+        TKAssertEquals(streams[0], "q 1 0 0 -1 0 792 cm n 50 50 m 50 75 m 50 75 l 50 88.7946 61.2054 100 75 100 c S Q \n");
 
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
@@ -311,7 +317,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         TKAssert(isClosed);
         streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "n 50 75 m 57.3223304703 82.3223304703 m 57.3223304703 82.3223304703 l 67.0765856741 92.0765856741 82.9234143259 92.0765856741 92.6776695297 82.3223304703 c S \n");
+        TKAssertEquals(streams[0], "q 1 0 0 -1 0 792 cm n 50 75 m 57.3223304703 82.3223304703 m 57.3223304703 82.3223304703 l 67.0765856741 92.0765856741 82.9234143259 92.0765856741 92.6776695297 82.3223304703 c S Q \n");
 
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
@@ -326,7 +332,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         TKAssert(isClosed);
         streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "n 50 100 m 75 100 m 75 100 l 88.7946 100 100 88.7946 100 75 c S \n");
+        TKAssertEquals(streams[0], "q 1 0 0 -1 0 792 cm n 50 100 m 75 100 m 75 100 l 88.7946 100 100 88.7946 100 75 c S Q \n");
 
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
@@ -341,7 +347,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         TKAssert(isClosed);
         streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "n 100 100 m 107.3223304703 92.6776695297 m 107.3223304703 92.6776695297 l 117.0765856741 82.9234143259 117.0765856741 67.0765856741 107.3223304703 57.3223304703 c S \n");
+        TKAssertEquals(streams[0], "q 1 0 0 -1 0 792 cm n 100 100 m 107.3223304703 92.6776695297 m 107.3223304703 92.6776695297 l 117.0765856741 82.9234143259 117.0765856741 67.0765856741 107.3223304703 57.3223304703 c S Q \n");
 
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
@@ -356,7 +362,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         TKAssert(isClosed);
         streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "n 100 100 m 100 75 m 100 75 l 100 61.2054 88.7946 50 75 50 c S \n");
+        TKAssertEquals(streams[0], "q 1 0 0 -1 0 792 cm n 100 100 m 100 75 m 100 75 l 100 61.2054 88.7946 50 75 50 c S Q \n");
 
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
@@ -371,7 +377,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         TKAssert(isClosed);
         streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "n 100 75 m 92.6776695297 67.6776695297 m 92.6776695297 67.6776695297 l 82.9234143259 57.9234143259 67.0765856741 57.9234143259 57.3223304703 67.6776695297 c S \n");
+        TKAssertEquals(streams[0], "q 1 0 0 -1 0 792 cm n 100 75 m 92.6776695297 67.6776695297 m 92.6776695297 67.6776695297 l 82.9234143259 57.9234143259 67.0765856741 57.9234143259 57.3223304703 67.6776695297 c S Q \n");
 
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
@@ -386,7 +392,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         TKAssert(isClosed);
         streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "n 75 50 m 67.6776695297 57.3223304703 m 67.6776695297 57.3223304703 l 57.9234143259 67.0765856741 57.9234143259 82.9234143259 67.6776695297 92.6776695297 c S \n");
+        TKAssertEquals(streams[0], "q 1 0 0 -1 0 792 cm n 75 50 m 67.6776695297 57.3223304703 m 67.6776695297 57.3223304703 l 57.9234143259 67.0765856741 57.9234143259 82.9234143259 67.6776695297 92.6776695297 c S Q \n");
     }
 
 });

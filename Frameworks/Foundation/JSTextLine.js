@@ -1,7 +1,7 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/CoreTypes.js"
 // #import "Foundation/JSTextRun.js"
-/* global JSClass, JSObject, JSTextLine, JSTextGlyph, JSTextAlignment, JSSize, JSRange, JSPoint, JSRect, JSDynamicProperty, JSReadOnlyProperty, JSTextRun */
+/* global JSClass, JSObject, JSTextLine, JSTextAlignment, JSSize, JSRange, JSPoint, JSRect, JSDynamicProperty, JSReadOnlyProperty, JSTextRun */
 'use strict';
 
 (function(){
@@ -167,12 +167,13 @@ JSClass("JSTextLine", JSObject, {
 
         // Find the run that has space for ellipis
         var run;
+        var tokenChar = token.unicodeIterator().character;
         var tokenGlyph;
         var tokenRun;
         do {
             run = line.runs[runIndex];
-            tokenGlyph = JSTextGlyph.FromUTF16(token, run.font);
-            tokenRun = JSTextRun.initWithGlyphs([tokenGlyph], run.font, run.attributes, JSRange.Zero);
+            tokenGlyph = run.font.glyphForCharacter(tokenChar);
+            tokenRun = JSTextRun.initWithGlyphs([tokenGlyph], [1], run.font, run.attributes, JSRange.Zero);
             if (line.size.width - run.size.width + tokenRun.size.width <= width){
                 break;
             }
@@ -191,12 +192,21 @@ JSClass("JSTextLine", JSObject, {
         line.size.width += tokenRun.size.width;
 
         var glyph;
+        var characterLength;
+        var glyphWidth;
         while (line.size.width > width){
+            // FIXME: could break up user perceived characters
+            // Combining marks seem to have 0 width in some fonts, in which case
+            // they won't be broken up since removing just the mark won't
+            // reduce the line's width, but I'm not sure if that's
+            // true for all multi-codepoint characters and all fonts
             glyph = run.glyphs.pop();
-            run.size.width -= glyph.width;
-            run.range.length -= glyph.length;
-            line.size.width -= glyph.width;
-            line.range.length -= glyph.length;
+            glyphWidth = run.font.widthOfGlyph(glyph);
+            characterLength = run.glyphCharacterLengths.pop();
+            run.size.width -= glyphWidth;
+            run.range.length -= characterLength;
+            line.size.width -= glyphWidth;
+            line.range.length -= characterLength;
         }
 
         return line;

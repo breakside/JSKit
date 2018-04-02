@@ -226,21 +226,49 @@ JSClass("JSContext", JSObject, {
         // mirrored angles, we do a check to see which side of p1 we're on, and add 180 degrees
         // if necesary.  Also, figure the start and end angles by adding or subtracting 90 degrees
         // from the tangent lines, again considering which way things are actually oriented.
-        var t1, t2, center, startAngle, endAngle;
+        var t1, t2;
         if (p1.x >= p0.x){
             t1 = JSPoint(p1.x - distanceFromP1ToEitherT * Math.cos(a1), p1.y - distanceFromP1ToEitherT * Math.sin(a1));
-            center = JSPoint(t1.x + radius * Math.cos(a1 - HALF_PI), t1.y + radius * Math.sin(a1 - HALF_PI));
-            startAngle = a1 + HALF_PI;
         }else{
             t1 = JSPoint(p1.x - distanceFromP1ToEitherT * Math.cos(a1 + Math.PI), p1.y - distanceFromP1ToEitherT * Math.sin(a1 + Math.PI));
-            center = JSPoint(t1.x + radius * Math.cos(a1 + HALF_PI), t1.y + radius * Math.sin(a1 + HALF_PI));
-            startAngle = a1 - HALF_PI;
         }
         if (p1.x >= p2.x){
             t2 = JSPoint(p1.x - distanceFromP1ToEitherT * Math.cos(a2), p1.y - distanceFromP1ToEitherT * Math.sin(a2));
-            endAngle = a2 - HALF_PI;
         }else{
             t2 = JSPoint(p1.x - distanceFromP1ToEitherT * Math.cos(a2 + Math.PI), p1.y - distanceFromP1ToEitherT * Math.sin(a2 + Math.PI));
+        }
+
+        // Figure the center point
+        var center11, center12, center21, center22;
+        center11 = JSPoint(t1.x + radius * Math.cos(a1 + HALF_PI), t1.y + radius * Math.sin(a1 + HALF_PI));
+        center12 = JSPoint(t1.x + radius * Math.cos(a1 - HALF_PI), t1.y + radius * Math.sin(a1 - HALF_PI));
+        center21 = JSPoint(t2.x + radius * Math.cos(a2 + HALF_PI), t2.y + radius * Math.sin(a2 + HALF_PI));
+        center22 = JSPoint(t2.x + radius * Math.cos(a2 - HALF_PI), t2.y + radius * Math.sin(a2 - HALF_PI));
+
+        var center, startAngle, endAngle;
+        var min = center11.distanceToPoint(center21);
+        center = center11;
+        startAngle = a1 - HALF_PI;
+        endAngle = a2 - HALF_PI;
+        var d = center12.distanceToPoint(center21);
+        if (d < min){
+            min = d;
+            center = center12;
+            startAngle = a1 + HALF_PI;
+            endAngle = a2 - HALF_PI;
+        }
+        d = center11.distanceToPoint(center22);
+        if (d < min){
+            min = d;
+            center = center11;
+            startAngle = a1 - HALF_PI;
+            endAngle = a2 + HALF_PI;
+        }
+        d = center12.distanceToPoint(center22);
+        if (d < min){
+            min = d;
+            center = center12;
+            startAngle = a1 + HALF_PI;
             endAngle = a2 + HALF_PI;
         }
 
@@ -275,6 +303,14 @@ JSClass("JSContext", JSObject, {
         // this.fillEllipseInRect(JSRect(t1.x - 1.5, t1.y - 1.5, 3, 3));
         // this.setFillColor(JSColor.initWithRGBA(0.9, 0.9, 0.0, 1.0));
         // this.fillEllipseInRect(JSRect(t2.x - 1.5, t2.y - 1.5, 3, 3));
+        // this.setFillColor(JSColor.initWithRGBA(0.4, 0.4, 0.4, 1.0));
+        // this.fillEllipseInRect(JSRect(center11.x - 1.5, center11.y - 1.5, 3, 3));
+        // this.setFillColor(JSColor.initWithRGBA(0, 0, 0, 1.0));
+        // this.fillEllipseInRect(JSRect(center12.x - 1.5, center12.y - 1.5, 3, 3));
+        // this.setFillColor(JSColor.initWithRGBA(0.9, 0, 0, 1.0));
+        // this.fillEllipseInRect(JSRect(center21.x - 0.5, center21.y - 0.5, 3, 3));
+        // this.setFillColor(JSColor.initWithRGBA(0, 0, 0.9, 1.0));
+        // this.fillEllipseInRect(JSRect(center22.x - 0.5, center22.y - 0.5, 3, 3));
         // this.restore();
         // this.beginPath();
 
@@ -552,7 +588,8 @@ JSContext.DrawingMode = {
 
 JSContext.TextDrawingMode = {
     fill: 0,
-    stroke: 1
+    stroke: 1,
+    fillStroke: 2
 };
 
 function JSContextLineDash(phase, segments){

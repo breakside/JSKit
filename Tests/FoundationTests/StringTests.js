@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, JSRange, TKAssertNotNull, TKAssertEquals, TKAssertEquals, TKAssertExactEquals */
+/* global JSClass, TKTestSuite, JSRange, TKAssertNotNull, TKAssertObjectEquals, TKAssertEquals, TKAssertEquals, TKAssertExactEquals */
 'use strict';
 
 JSClass('StringTests', TKTestSuite, {
@@ -783,6 +783,17 @@ JSClass('StringTests', TKTestSuite, {
         str = "u\u0308mlat";
         upper = str.ucFirst();
         TKAssertEquals(upper, "U\u0308mlat");
+    },
+
+    testBase64Decode: function(){
+        TKAssertEquals("".dataByDecodingBase64().bytes.stringByDecodingUTF8(), "");
+        TKAssertEquals("Zg==".dataByDecodingBase64().bytes.stringByDecodingUTF8(), "f");
+        TKAssertEquals("Zm8=".dataByDecodingBase64().bytes.stringByDecodingUTF8(), "fo");
+        TKAssertEquals("Zm9v".dataByDecodingBase64().bytes.stringByDecodingUTF8(), "foo");
+        TKAssertEquals("Zm9vYg==".dataByDecodingBase64().bytes.stringByDecodingUTF8(), "foob");
+        TKAssertEquals("Zm9vYmE=".dataByDecodingBase64().bytes.stringByDecodingUTF8(), "fooba");
+        TKAssertEquals("Zm9vYmFy".dataByDecodingBase64().bytes.stringByDecodingUTF8(), "foobar");
+        TKAssertObjectEquals("s3pPLMBiTxaQ9kYGzzhZRbK+xOo=".dataByDecodingBase64().bytes, new Uint8Array([0xb3, 0x7a, 0x4f, 0x2c, 0xc0, 0x62, 0x4f, 0x16, 0x90, 0xf6, 0x46, 0x06, 0xcf, 0x38, 0x59, 0x45, 0xb2, 0xbe, 0xc4, 0xea]));
     }
 
 });

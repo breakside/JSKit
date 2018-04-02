@@ -528,20 +528,35 @@ JSClass("JSTextTypesetterTestsFont", JSFont, {
         this._calculateMetrics();
     },
 
-    containsGlyphForCharacter: function(character){
-        return true;
-    },
-
-    widthOfCharacter: function(character){
+    glyphForCharacter: function(character){
         if (character.code == 0x2026){ // ellipsis
-            return 10;
+            return 1;
         }
         if (character.code == 0x200B){ // zero-width space
-            return 0;
+            return 4;
         }
-        if (character.code >= 0x61){
+        if (character.code >= 0x61){  // lowercase, {, }, |, ~
+            return 2;
+        }
+        return 3; // uppercase, digits, most punctuation
+
+    },
+
+    widthOfGlyph: function(glyph){
+        if (glyph === 0){
+            return 30;
+        }
+        if (glyph == 1){
+            return 10;
+        }
+        if (glyph == 2){
             return 20;
         }
-        return 30;
+        if (glyph == 3){
+            return 30;
+        }
+        if (glyph == 4){
+            return 0;
+        }
     }
 });
