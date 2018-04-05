@@ -12,8 +12,21 @@ JSClass('IKBitmap', JSObject, {
     data: JSReadOnlyProperty('_data', null),
 
     initWithData: function(data, size){
+        if (data === null){
+            return null;
+        }
         this._data = data;
         this._size = JSSize(size);
+    },
+
+    initWithEncodedData: function(data){
+        var format = IKBitmap.FormatOfData(data);
+        var decoder = IKDecoder.initWithFormat(format);
+        if (decoder === null){
+            return null;
+        }
+        var info = decoder.decodeData(data);
+        return this.initWithData(info.data, info.size);
     },
 
     encode: function(format, callback){
@@ -32,20 +45,6 @@ JSClass('IKBitmap', JSObject, {
 });
 
 IKBitmap.BitmapFromEncodedData = function(data, callback){
-    var format = IKBitmap.FormatOfData(data);
-    var decoder = IKDecoder.initWithFormat(format);
-    if (decoder === null){
-        callback(null);
-        return;
-    }
-    decoder.decodeData(data, function(data, size){
-        if (data === null){
-            callback(null);
-            return;
-        }
-        var bitmap = IKBitmap.initWithData(data, size);
-        callback(bitmap);
-    });
 };
 
 IKBitmap.FormatOfData = function(data){

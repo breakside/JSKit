@@ -250,6 +250,32 @@ JSClass("ZlibTests", TKTestSuite, {
         str += output.stringByDecodingUTF8();
         TKAssertEquals(stream.state, ZlibStream.State.done);
         TKAssertEquals(str, 'this is a testthis is a testthis is a test');
+    },
+
+    testPNGSample: function(){
+        var stream = new ZlibStream();
+        stream.input = new Uint8Array([0x08,0x1D,0x63,0xF8,0xCF,0xC0,0xC0,0xF0,0x9F,0x81,0x11,0x48,0xFC,0xFF,0xCF,0x00,0x00,0x1E,0xF6,0x04,0xFD]);
+        stream.outputBuffer = new ArrayBuffer(7);
+        var output = stream.uncompress();
+        TKAssertNotEquals(stream.state, ZlibStream.State.done);
+        TKAssertEquals(output.length, 7);
+        TKAssertEquals(output[0], 0);
+        TKAssertEquals(output[1], 255);
+        TKAssertEquals(output[2], 0);
+        TKAssertEquals(output[3], 0);
+        TKAssertEquals(output[4], 0);
+        TKAssertEquals(output[5], 255);
+        TKAssertEquals(output[6], 0);
+        output = stream.uncompress();
+        TKAssertEquals(stream.state, ZlibStream.State.done);
+        TKAssertEquals(output.length, 7);
+        TKAssertEquals(output[0], 1);
+        TKAssertEquals(output[1], 0);
+        TKAssertEquals(output[2], 0);
+        TKAssertEquals(output[3], 255);
+        TKAssertEquals(output[4], 255);
+        TKAssertEquals(output[5], 255);
+        TKAssertEquals(output[6], 0);
     }
 
 });

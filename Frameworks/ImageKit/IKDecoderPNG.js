@@ -1,13 +1,14 @@
 // #import "ImageKit/IKDecoder.js"
 // #import "Zlib/Zlib.js"
-/* global IKDecoder, JSClass, JSSize, DataView, JSPoint, IKDecoderPNG, ZlibStream, ArrayBuffer */
+/* feature DataView, ArrayBuffer */
+/* global IKDecoder, JSClass, JSSize, DataView, JSPoint, IKDecoderPNG, ZlibStream, ArrayBuffer, JSData */
 'use strict';
 
 (function(){
 
 JSClass("IKDecoderPNG", IKDecoder, {
 
-    callback: null,
+    bitmapBytes: null,
     size: null,
     bitDepth: 0,
     colorType: 0,
@@ -15,7 +16,6 @@ JSClass("IKDecoderPNG", IKDecoder, {
     filterMethod: 0,
     interlaceMethod: 0,
     dataView: null,
-    bitmapBytes: null,
     error: null,
     dataStream: null,
     chroma: null,
@@ -27,16 +27,29 @@ JSClass("IKDecoderPNG", IKDecoder, {
     lastScanline: null,
     scanline: null,
     scanlineLength: 0,
-    expectedScanlineLength: 0,
     paintOffset: 0,
     paintAdvance: 0,
 
-    decodeData: function(data, callback){
+    decodeData: function(data){
         var bytes = data.bytes;
-        this.callback = callback;
-        this.dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
-        this.readSections();
-        callback(this.bitmapBytes);
+        if (bytes.length < 12){
+            this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.invalidData, 0, "Not enough data for a valid PNG file");
+        }
+        if (bytes[0] != 0x89 ||
+            bytes[1] != 0x50 ||
+            bytes[2] != 0x4E ||
+            bytes[3] != 0x47 ||
+            bytes[4] != 0x0D ||
+            bytes[5] != 0x0A ||
+            bytes[6] != 0x1A ||
+            bytes[7] != 0x0A){
+            this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.invalidData, 0, "PNG magic bytes not valid");
+        }
+        if (this.error === null){
+            this.dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+            this.readSections();
+        }
+        return {data: JSData.initWithBytes(this.bitmapBytes), size: this.size};
     },
 
     readSections: function(){
@@ -46,23 +59,30 @@ JSClass("IKDecoderPNG", IKDecoder, {
         var check;
         var section;
         var method;
+        var crc;
         do {
             length = this.dataView.getUint32(offset);
             if (offset + length + 12 > this.dataView.byteLength){
                 this.bitmapBytes = null;
+                this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.lengthBeyondEnd, offset, "Length of section extends beyond available data");
             }else{
                 offset += 4;
                 type = String.fromCharCode(this.dataView.getUint8(offset), this.dataView.getUint8(offset + 1), this.dataView.getUint8(offset + 2), this.dataView.getUint8(offset + 3));
                 method = this['read_' + type];
+                offset += 4;
                 if (method){
                     section = new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + offset, length);
                     offset += length;
                     check = this.dataView.getUint32(offset);
                     offset += 4;
-                    if (check == crc(section)){
+                    crc = new CRC();
+                    crc.update(new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + offset - length - 8, 4));
+                    crc.update(section);
+                    if (check == crc.final){
                         method.call(this, section);
                     }else{
                         this.bitmapBytes = null;
+                        this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.crcFailed, offset - 4, "CRC for '%s' failed".sprintf(type));
                     }
                 }else{
                     offset += length + 4;   
@@ -76,12 +96,15 @@ JSClass("IKDecoderPNG", IKDecoder, {
             return false;
         }
         if (this.compressionMethod != IKDecoderPNG.CompressionMethod.deflate){
+            this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.invalidCompression, 8, "Invalid compression methond: %d".sprintf(this.compressionMethod));
             return false;
         }
         if (this.filterMethod != IKDecoderPNG.FilterMethod.adaptive){
+            this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.invalidFilter, 8, "Invalid filter methond: %d".sprintf(this.filterMethod));
             return false;
         }
         if (this.interlaceMethod != IKDecoderPNG.InterlaceMethod.standard && this.interlaceMethod != IKDecoderPNG.InterlaceMethod.adam7){
+            this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.invalidInterlace, 8, "Invalid interlace methond: %d".sprintf(this.interlaceMethod));
             return false;
         }
         return true;
@@ -100,6 +123,7 @@ JSClass("IKDecoderPNG", IKDecoder, {
             case IKDecoderPNG.ColorType.truecolorWithAlpha:
                 return (this.bitDepth == IKDecoderPNG.BitDepth.eight || this.bitDepth == IKDecoderPNG.BitDepth.sixteen);
         }
+        this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.invalidColorTypeAndDepth, 8, "Invalid color type and depth combination: %d color, %d bits".sprintf(this.colorType, this.bitDepth));
         return false;
     },
 
@@ -118,7 +142,7 @@ JSClass("IKDecoderPNG", IKDecoder, {
                         this.numberOfComponents = 1;
                         break;
                     case IKDecoderPNG.ColorType.truecolor:
-                        this.numberOfComponents = 2;
+                        this.numberOfComponents = 3;
                         break;
                     case IKDecoderPNG.ColorType.indexed:
                         this.numberOfComponents = 1;
@@ -134,14 +158,14 @@ JSClass("IKDecoderPNG", IKDecoder, {
                 this.bytesPerRow = this.size.width * this.bitDepth / 8 * this.numberOfComponents;
                 switch  (this.interlaceMethod){
                     case IKDecoderPNG.InterlaceMethod.standard:
-                        this.expectedScanlineLength = this.bytesPerRow + 1;
+                        this.pass = 0;
                         break;
                     case IKDecoderPNG.InterlaceMethod.adam7:
                         this.pass = 1;
                         break;
                 }
                 this.filterByteOffset = (this.bitDepth < 8) ? 1 : (this.numberOfComponents * this.bitDepth / 8);
-                this.bitmapBytes = new Uint8Array(this.bytesPerRow * this.size.height);
+                this.bitmapBytes = new Uint8Array(this.size.width * this.size.height * 4);
             }
         }
     },
@@ -234,14 +258,19 @@ JSClass("IKDecoderPNG", IKDecoder, {
 
     read_IDAT: function(bytes){
         if (this.dataStream === null){
+            this.scanline = new Uint8Array(this.bytesPerRow + 1);
             this.dataStream = new ZlibStream();
-            this.dataStream.outputBuffer = new ArrayBuffer(this.bytesPerRow + 1);
+            this.dataStream.outputBuffer = this.scanline.buffer;
         }
         var output;
         this.dataStream.input = bytes;
         do {
-            output = this.dataStream.inflate();
-            this.receive(output);
+            this.dataStream.outputOffset = this.scanlineLength;
+            output = this.dataStream.uncompress();
+            this.scanlineLength += output.length;
+            if (this.scanlineLength == this.scanline.length){
+                this.readScanline();
+            }
         }while (output.length > 0);
     },
 
@@ -253,19 +282,6 @@ JSClass("IKDecoderPNG", IKDecoder, {
     correctColors: function(){
         if (this.chroma){
 
-        }
-    },
-
-    receive: function(bytes){
-        var i = 0;
-        var l = bytes.length;
-        while (i < l){
-            for (; i < l && this.scanlineLength < this.expectedScanlineLength; ++i){
-                this.scanline[this.scanlineLength++] = bytes[i];
-            }
-            if (this.scanlineLength == this.expectedScanlineLength){
-                this.readScanline();
-            }
         }
     },
 
@@ -550,10 +566,76 @@ IKDecoderPNG.InterlaceMethod = {
     adam7: 1
 };
 
-var crc = function(bytes){
-    var check = new Uint32Array(1);
-    check[0] = 0xFFFF;
-    return check[0];
+IKDecoderPNG.ErrorCode = {
+    invalidData: 1,
+    lengthBeyondEnd: 2,
+    crcFailed: 3,
+    invalidCompression: 4,
+    invalidFilter: 5,
+    invalidInterlace: 6,
+    invalidColorTypeAndDepth: 7
 };
+
+var IKDecoderPNGError = function(code, byteOffset, msg){
+    if (this === undefined){
+        return new IKDecoderPNGError(code, byteOffset, msg);
+    }
+    this.name = "IKDecoderPNGError";
+    this.code = code;
+    this.byteOffset = byteOffset;
+    this.msg = msg;
+};
+
+IKDecoderPNGError.prototype = Object.create(Error.prototype);
+
+var CRC = function(bytes){
+    if (this === undefined){
+        var crc = new CRC();
+        crc.update(bytes);
+        return crc.final;
+    }
+    this.workpad = new Uint32Array([0xFFFFFFFF, 0]);
+};
+
+CRC.prototype = Object.create({}, {
+
+    workpad: {writable: true, value: null},
+
+    update: {
+        value: function CRC_update(bytes){
+            for (var i = 0, l = bytes.length; i < l; ++i){
+                this.workpad[1] = this.workpad[0] ^ bytes[i];
+                this.workpad[0] = CRC.table[this.workpad[1] & 0xFF] ^ ((this.workpad[0] >> 8) & 0xFFFFFF);
+            }
+        }
+    },
+
+    final: {
+        get: function CRC_final(){
+            this.workpad[0] = this.workpad[0] ^ 0xFFFFFFFF;
+            return this.workpad[0];
+        }
+    }
+
+});
+
+Object.defineProperty(CRC, 'table', {
+    configurable: true,
+    get: function(){
+        var table = new Uint32Array(256);
+        for (var i = 0; i < 256; ++i){
+            table[i] = i;
+            for (var j = 0; j < 8; ++j){
+                if (table[i] & 1){
+                    table[i] = 0xEDB88320 ^ ((table[i] >> 1) & 0x7FFFFFFF);
+                }else{
+                    table[i] = (table[i] >> 1) & 0x7FFFFFFF;
+                }
+            }
+        }
+        Object.defineProperty(CRC, 'table', {value: table});
+        return table;
+    }
+});
 
 })();

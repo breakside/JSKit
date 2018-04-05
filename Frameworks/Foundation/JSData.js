@@ -15,6 +15,9 @@ JSClass("JSData", JSObject, {
     },
 
     initWithBytes: function(bytes){
+        if (bytes === null){
+            return null;
+        }
         this.bytes = bytes;
         this.length = this.bytes.length;
     },

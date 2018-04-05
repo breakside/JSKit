@@ -299,13 +299,14 @@ DeflateBuffer.prototype = Object.create({}, {
 
     overwrite: {
         value: function DeflateBuffer_write(byte){
-            if (this.length === this.bytes.length){
+            this.bytes[(this.offset + this.length) % this.bytes.length] = byte;
+            ++this.length;
+            if (this.length > this.bytes.length){
                 this.offset++;
                 if (this.offset === this.bytes.length){
                     this.offset = 0;
                 }
             }
-            this.bytes[(this.offset + this.length) % this.bytes.length] = byte;
         }
     },
 
@@ -382,6 +383,7 @@ var HuffmanBlock = function(isFinal){
     this.huffmanLiterals = null;
     this.huffmanDistances = null;
     this.code = null;
+    this.code2 = null;
     this.extra = null;
     this.extra2 = null;
     this.extra3 = null;
@@ -417,9 +419,15 @@ HuffmanBlock.prototype = {
                 this.node = null;
             }
             if (this.code < 256){
+                if (output.length == output.bytes.length){
+                    break;
+                }
                 output.bytes[output.length++] = this.code;
                 stream._window.overwrite(this.code);
             }else if (this.code > 256 && this.code <= 287){
+                if (output.length == output.bytes.length){
+                    break;
+                }
                 if (this.extra === null){
                     this.extra = 0;
                     if (this.code < 285){
@@ -512,7 +520,7 @@ HuffmanBlock.prototype = {
             this.extra = null;
             this.extra2 = null;
             this.extra3 = null;
-        }while (!this.isDone && output.length < output.bytes.length);
+        }while (!this.isDone);
     }
 };
 
