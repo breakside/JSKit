@@ -2,35 +2,83 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSData.js"
 // #import "Foundation/JSBundle.js"
-/* global JSClass, JSObject, JSBundle, JSImage, JSData, JSConstraintBox */
+// #import "Foundation/JSURLSession.js"
+/* global JSClass, JSReadOnlyProperty, JSSize, JSObject, JSBundle, JSImage, JSData, JSConstraintBox, _JSResourceImage, _JSDataImage, _JSURLImage, JSURLSession, JSURLResponse */
 'use strict';
+
+(function(){
 
 JSClass('JSImage', JSObject, {
 
-    url: null,
-    resourceName: null,
-    resource: null,
-    data: null,
-    file: null,
-    width: 0,
-    height: 0,
-    stretchBox: null,
-    scale: 1,
+    size: JSReadOnlyProperty('_size', null),
+    scale: JSReadOnlyProperty('_scale', 1),
+    stretchBox: JSReadOnlyProperty('_stretchBox', null),
+    dataFormat: JSReadOnlyProperty('_dataFormat', 0),
 
     init: function(){
-    },
-
-    initWithURL: function(url, width, height, scale){
-        this.url = url;
-        this.width = width;
-        this.height = height;
-        this.scale = 1;
+        this._initWithPixelSize(JSSize.Zero, 1);
     },
 
     initWithResourceName: function(name){
+        return _JSResourceImage.initWithResourceName(name);
+    },
+
+    initWithData: function(data, scale){
+        return _JSDataImage.initWithData(data, scale);
+    },
+
+    initWithURL: function(url, size, scale){
+        return _JSURLImage.initWithURL(url, size, scale);
+    },
+
+    _initWithPixelSize: function(size, scale){
+        this._size = JSSize(size.width / scale, size.height / scale);
+        this._scale = scale;
+    },
+
+    copy: function(image){
+        if (image === undefined){
+            image = JSImage.init();
+        }
+        image._size = JSSize(this._size);
+        image._scale = this._scale;
+        image._dataFormat = this._dataFormat;
+        return image;
+    },
+
+    stretchableImageWithCapSizes: function(leftCapWidth, topCapHeight, rightCapWidth, bottomCapHeight){
+        var image = this.copy();
+        image._stretchBox = JSConstraintBox.Margin(topCapHeight, rightCapWidth, bottomCapHeight, leftCapWidth);
+        return image;
+    },
+
+    preferredScale: function(){
+        return 1;
+    },
+
+    getData: function(callback){
+        callback(null);
+    }
+
+});
+
+JSImage.DataFormat = {
+    unknown: 0,
+    png: 1,
+    jpeg: 2
+};
+
+JSClass("_JSResourceImage", JSImage, {
+
+    bundle: null,
+    resourceName: null,
+    resource: null,
+
+    initWithResourceName: function(name, bundle){
         var idealScale = this.preferredScale();
+        this.bundle = bundle || JSBundle.mainBundle;
         this.resourceName = name;
-        var resources = JSBundle.mainBundle.resourcesNamed(this.resourceName);
+        var resources = this.bundle.resourcesNamed(this.resourceName);
         var resource;
         for (var i = 0; i < resources.length; ++i){
             resource = resources[i];
@@ -52,93 +100,82 @@ JSClass('JSImage', JSObject, {
                 }
             }
         }
-        this.scale = this.resource.image.scale || 1;
-        this.width = this.resource.image.width / this.scale;
-        this.height = this.resource.image.height / this.scale;
-        Object.defineProperty(this, 'data', {
-            configurable: true,
-            get: JSImage.prototype._getDataFromResource
-        });
+        if (this.resource === null){
+            return null;
+        }
+        _JSResourceImage.$super._initWithPixelSize.call(this, JSSize(this.resource.image.width, this.resource.image.height), this.resource.image.scale || 1);
     },
 
-    initWithData: function(data, scale){
-        this.data = data;
-        this.scale = scale;
-        if (this.data.bytes.length >= 16){
-            // PNG magic bytes
-            if (this.data.bytes[0] == 0x89 &&
-                this.data.bytes[1] == 0x50 &&
-                this.data.bytes[2] == 0x4E &&
-                this.data.bytes[3] == 0x47 &&
-                this.data.bytes[4] == 0x0D &&
-                this.data.bytes[5] == 0x0A &&
-                this.data.bytes[6] == 0x1A &&
-                this.data.bytes[7] == 0x0A)
-            {
-                // Verifying "IHDR" signature
-                if (this.data.bytes[10] == 0x49 && this.data.bytes[11] == 0x48 && this.data.bytes[12] == 0x44 && this.data.bytes[13] == 0x52){
-                    this.width = ((this.data.bytes[14] << 8) | this.data.bytes[15]) / this.scale;
-                    this.height = ((this.data.bytes[16] << 8) | this.data.bytes[17]) / this.scale;
-                }else{
-                    // Invalid PNG
-                }
-            // JPEG magic bytes
-            }else if (this.data.bytes[0] == 0xFF && this.data.bytes[1] == 0xD8){
-                // TODO: JPEG
-            }else{
-                // Not a PNG or JPEG
-            }
-        }else{
-            // Very small, not enough room for a PNG header
-        }
-    },
-
-    stretchableImageWithCapSizes: function(leftCapWidth, topCapHeight, rightCapWidth, bottomCapHeight){
-        var image = JSImage.init();
-        image.width = this.width;
-        image.height = this.height;
-        image.scale = this.scale;
-        if (this.resource !== null){
-            image.resourceName = this.resourceName;
-            image.resource = this.resource;
-        }else if (this.file !== null){
-            image.file = this.file;
-        }else if (this.data !== null){
-            image.data = this.data;
-        }
-        if (rightCapWidth === undefined){
-            rightCapWidth = leftCapWidth;
-        }
-        if (bottomCapHeight === undefined){
-            bottomCapHeight = topCapHeight;
-        }
-        image.stretchBox = JSConstraintBox.Margin(topCapHeight, rightCapWidth, bottomCapHeight, leftCapWidth);
+    copy: function(){
+        var image = _JSResourceImage.init();
+        _JSResourceImage.$super.copy.call(this, image);
+        image.bundle = this.bundle;
+        image.resourceName = this.resourceName;
+        image.resource = this.resource;
         return image;
     },
 
-    preferredScale: function(){
-        return 1;
-    },
-
-    _getDataFromResource: function(){
-        // TODO: overwritten by the renderer?
-    },
-
-    // initWithFile: function(file){
-    //     this.file = file;
-    //     // TODO: width & height
-    //     Object.define(this, 'data', {
-    //         configurable: true,
-    //         writable: true,
-    //         get: JSImage.prototype._getDataFromFile
-    //     });
-    // },
-
-    // _getDataFromFile: function(){
-    //     var reader = new FileReaderSync(); // FIXME: not available except in web worker
-    //     var bytes = reader.readAsArrayBuffer(this.file);
-    //     this.data = JSData.initWithBytes(bytes);
-    //     return this.data;
-    // },
+    getData: function(callback){
+        // TODO: read bundle data
+    }
 
 });
+
+JSClass("_JSDataImage", JSImage, {
+
+    data: null,
+
+    initWithData: function(data, scale){
+        this.data = data;
+        var size = JSSize.Zero;
+        _JSDataImage.$super._initWithPixelSize.call(this, size, scale);
+    },
+
+    copy: function(){
+        var image = _JSDataImage.init();
+        _JSDataImage.$super.copy.call(this, image);
+        image.data = this.data;
+        return image;
+    },
+
+    getData: function(callback){
+        callback(this.data);
+    }
+
+});
+
+JSClass("_JSURLImage", JSImage, {
+
+    url: null,
+
+    initWithURL: function(url, size, scale){
+        _JSURLImage.$super._initWithPixelSize.call(this, size, scale);
+        this.url = url;
+    },
+
+    copy: function(){
+        var image = _JSURLImage.init();
+        _JSURLImage.$super.copy.call(this, image);
+        image.url = this.url;
+        return image;
+    },
+
+    getData: function(callback){
+        var session = JSURLSession.sharedSession;
+        var task = session.dataTaskWithURL(this.url, function(error){
+            if (error !== null){
+                callback(null);
+            }
+            var response = task.response;
+            if (response.statusClass != JSURLResponse.StatusClass.success){
+                callback(null);
+            }
+            callback(response.data);
+        });
+        task.resume();
+    }
+
+});
+
+
+})();

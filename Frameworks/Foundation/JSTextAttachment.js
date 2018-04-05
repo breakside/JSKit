@@ -1,5 +1,5 @@
 // #import "Foundation/JSObject.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSSize */
+/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSSize, JSRect */
 'use strict';
 
 JSClass("JSTextAttachment", JSObject, {
@@ -12,12 +12,19 @@ JSClass("JSTextAttachment", JSObject, {
         this._size = JSSize.Zero;
     },
 
-    layout: function(lineWidth){
-        
+    initWithImage: function(image){
+        this._image = image;
+        this._size = JSSize(image.width, image.height);
     },
 
-    drawInContext: function(context){
-        
+    layout: function(font, lineWidth){
+        if (this._size.width > lineWidth){
+            this._size = JSSize(lineWidth, this._size.height * lineWidth / this._size.width);
+        }
+    },
+
+    drawInContextAtPoint: function(context, point){
+        context.drawImage(this._image, JSRect(point, this._size));
     }
 
 });

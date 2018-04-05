@@ -480,8 +480,11 @@ JSClass("JSContext", JSObject, {
     // ----------------------------------------------------------------------
     // MARK: - Text
 
-    textMatrix: JSDynamicProperty('_textMatrix', null),
-    textPosition: JSDynamicProperty('_textPosition', null),
+    setTextMatrix: function(textMatrix){
+    },
+
+    setTextPosition: function(textPosition){
+    },
 
     setFont: function(font){
     },

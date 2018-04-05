@@ -53,7 +53,7 @@ JSClass("JSTextFrame", JSObject, {
         context.save();
         context.translateBy(point.x, point.y);
         for (var i = 0, l = this._lines.length; i < l; ++i){
-            this._lines[i].drawInContext(context);
+            this._lines[i].drawInContextAtPoint(context, this._lines[i].origin);
         }
         context.restore();
     },

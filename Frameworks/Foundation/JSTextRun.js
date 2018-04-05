@@ -1,6 +1,6 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/CoreTypes.js"
-/* global JSClass, JSTextRun, JSObject, JSSize, JSRange, JSRect, JSPoint, JSDynamicProperty, JSReadOnlyProperty */
+/* global JSClass, JSTextRun, JSObject, JSSize, JSRange, JSRect, JSPoint, JSDynamicProperty, JSReadOnlyProperty, JSAffineTransform */
 'use strict';
 
 (function(){
@@ -9,6 +9,7 @@ JSClass("JSTextRun", JSObject, {
 
     origin: JSReadOnlyProperty('_origin', null),
     size: JSReadOnlyProperty('_size', null),
+    baseline: 0,
     range: JSReadOnlyProperty('_range', null),
     glyphs: null,
     glyphCharacterLengths: null,
@@ -20,6 +21,7 @@ JSClass("JSTextRun", JSObject, {
         this.glyphCharacterLengths = glyphCharacterLengths;
         this.attributes = attributes;
         this.font = font;
+        this.baseline = -font.descender;
         this._size = JSSize(0, font.lineHeight);
         for (var i = 0, l = glyphs.length; i < l; ++i){
             this._size.width += font.widthOfGlyph(glyphs[i]);
@@ -28,14 +30,21 @@ JSClass("JSTextRun", JSObject, {
         this._origin = JSPoint.Zero;
     },
 
-    drawInContext: function(context){
-        // TODO: text matrix?
-        // TODO: text position?
+    drawInContextAtPoint: function(context, point){
         // TODO: attachments
+        
+        // debugging
+        // context.save();
+        // context.setFillColor(JSColor.initWithRGBA(1.0, 0.9, 0.9, 1.0));
+        // context.setStrokeColor(JSColor.initWithRGBA(1.0, 0.9, 0.9, 1.0));
+        // context.strokeRect(JSRect(this.origin, this.size));
+        // context.fillEllipseInRect(JSRect(this.origin.x - 2.5, this.origin.y - 2.5, 5, 5));
+        // context.restore();
+
         context.save();
         context.setFont(this.font);
-        // TODO: other attributes
-        context.showGlyphs(this.glyphs);
+        context.showGlyphs(this.glyphs, [JSPoint(this.origin.x, -this.origin.y - this.font.lineHeight - this.font.descender)]);
+
         context.restore();
     },
 

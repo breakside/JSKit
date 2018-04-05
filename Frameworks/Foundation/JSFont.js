@@ -164,7 +164,7 @@ JSFont._fontWithResourceInfo = function(info, pointSize){
 };
 
 JSFont.fontWithResourceName = function(resourceName, pointSize){
-    var resource = JSBundle.mainBundle.resourceNamed(resourceName);
+    var resource = JSBundle.mainBundle.resourceNamed(resourceName, 'font');
     return JSFont._fontWithResourceInfo(resource.font, pointSize);
 };
 

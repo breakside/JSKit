@@ -31,6 +31,10 @@ JSClass("UIHTMLTextLine", JSTextLine, {
         }
     },
 
+    verticallyAlignRuns: function(){
+        // HTML does this for us
+    },
+
     truncatedLine: function(width, token){
         if (token === undefined){
             token = '\u2026';

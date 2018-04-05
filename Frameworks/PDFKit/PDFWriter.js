@@ -112,7 +112,7 @@ JSClass("PDFWriter", JSObject, {
         }else if (typeof(obj) == 'number'){
             this._writeNumberObject(obj);
         }else{
-            throw new Error("PDFWriter unknown object: %s".sprintf(obj));
+            this._writeDictionaryObject(obj);
         }
     },
 
@@ -243,13 +243,16 @@ var pdf_formatter = {
         // 10 whole digits and 10 decimal digits.  The xref table uses 10 digit numbers,
         // so that feels like a good max.  The decimal precision is more of a guess as
         // to what is necessary.
-        if (Number.isNaN(n)){
+        if (n === null || n === undefined || Number.isNaN(n)){
             // TODO: warning?  error?
             return "0";
         }
         if (!Number.isFinite(n)){
-            // TODOD: warning?  error?
-            return "9999999999.99999";
+            if (n < 0){
+                n = -this._maxNumber;
+            }else{
+                n = this._maxNumber;
+            }
         }
         if (n === 0){
             return "0";
@@ -261,8 +264,19 @@ var pdf_formatter = {
         }
         var whole = Math.floor(n);
         var decimal = Math.floor((n - whole) * pdf_formatter._decimalMultiplier + 0.5) / pdf_formatter._decimalMultiplier;
+        if (decimal >= 1){
+            whole += 1;
+            decimal = 0;
+        }
         if (whole >= pdf_formatter._maxNumber){
-            return "9999999999.99999";
+            var i;
+            for (i = 0; i < this._maxWholeDigits; ++i){
+                str += "9";
+            }
+            str += ".";
+            for (i = 0; i < this._maxDecimalDigits; ++i){
+                str += "9";
+            }
         }else{
             str += whole.toString();
             if (decimal > 0){

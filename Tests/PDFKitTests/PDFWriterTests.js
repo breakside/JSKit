@@ -6,6 +6,49 @@
 
 JSClass("PDFWriterTests", TKTestSuite, {
 
+    testFormat: function(){
+        var writer = PDFWriter.init();
+
+        // Numbers
+        TKAssertEquals(writer.format("%n", 0), "0");
+        TKAssertEquals(writer.format("%n", 1), "1");
+        TKAssertEquals(writer.format("%n", -1), "-1");
+        TKAssertEquals(writer.format("%n", 1.2), "1.2");
+        TKAssertEquals(writer.format("%n", -1.2), "-1.2");
+        TKAssertEquals(writer.format("%n", 1.2345678987654), "1.2345678988");
+        TKAssertEquals(writer.format("%n", -1.2345678987654), "-1.2345678988");
+        TKAssertEquals(writer.format("%n", 1.2345678901234), "1.2345678901");
+        TKAssertEquals(writer.format("%n", -1.2345678901234), "-1.2345678901");
+        TKAssertEquals(writer.format("%n", 10000000000000), "9999999999.9999999999");
+        TKAssertEquals(writer.format("%n", -10000000000000), "-9999999999.9999999999");
+        TKAssertEquals(writer.format("%n", 5.0000000000001), "5");
+        TKAssertEquals(writer.format("%n", -5.0000000000001), "-5");
+        TKAssertEquals(writer.format("%n", 5.9999999999999), "6");
+        TKAssertEquals(writer.format("%n", -5.9999999999999), "-6");
+        TKAssertEquals(writer.format("%n", null), "0");
+        TKAssertEquals(writer.format("%n", null / null), "0");
+        TKAssertEquals(writer.format("%n", undefined), "0");
+        TKAssertEquals(writer.format("%n", Infinity), "9999999999.9999999999");
+        TKAssertEquals(writer.format("%n", -Infinity), "-9999999999.9999999999");
+
+        // Bools
+        TKAssertEquals(writer.format("%b", true), "true");
+        TKAssertEquals(writer.format("%b", false), "false");
+        TKAssertEquals(writer.format("%b", "asdf"), "false");
+        TKAssertEquals(writer.format("%b", 0), "false");
+        TKAssertEquals(writer.format("%b", 1), "false");
+        TKAssertEquals(writer.format("%b", null), "false");
+        TKAssertEquals(writer.format("%b", undefined), "false");
+        TKAssertEquals(writer.format("%b", Infinity), "false");
+        TKAssertEquals(writer.format("%b", null / null), "false");
+
+        // TODO: Names
+
+        // TODO: regular strings
+
+        // TODO: PDF strings
+    },
+
     testEmptyDocument: function(){
         var stream = PDFWriterTestsStringStream.init();
         var writer = PDFWriter.initWithStream(stream);
@@ -304,7 +347,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
         TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber 9999999999.99999 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f ", "0000000009 00000 n ", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "71", "%%EOF"];
+        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber 9999999999.9999999999 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f ", "0000000009 00000 n ", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "76", "%%EOF"];
         TKAssertEquals(stream.string, expected.join("\n"));
 
         // Max
@@ -316,7 +359,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
         TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber 9999999999.99999 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f ", "0000000009 00000 n ", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "71", "%%EOF"];
+        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber 9999999999.9999999999 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f ", "0000000009 00000 n ", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "76", "%%EOF"];
         TKAssertEquals(stream.string, expected.join("\n"));
     }
 

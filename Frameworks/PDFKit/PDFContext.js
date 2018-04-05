@@ -3,10 +3,20 @@
 // #import "PDFKit/PDFTypes.js"
 // #import "PDFKit/JSColor+PDF.js"
 // #import "PDFKit/JSRect+PDF.js"
-/* global JSClass, JSContext, PDFContext, PDFWriter, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFNameObject, PDFStreamObject, JSAffineTransform, JSRect, PDFFontObject */
+/* global JSClass, JSContext, PDFContext, PDFWriter, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFNameObject, PDFStreamObject, JSAffineTransform, JSRect, PDFType1FontObject, PDFImageObject, JSData, JSImage */
 'use strict';
 
 (function(){
+
+// Note: PDF coordinates default to 0,0 in the lower left corner.
+// However, this context will automatically flip the coordinates so
+// 0,0 is in the upper left corner, like the default for the other 
+// drawing contexts in JSKit.  This also includes flipping text
+// and images automatically, too.  So even if you were to unflip
+// back to default PDF coordinates, text and images would then
+// be upside down (just as if you were to flip an HTML canvas context,
+// for example).  Overall, it made more sense to change this PDF
+// context to match the others than to change the others to match PDF.
 
 JSClass("PDFContext", JSContext, {
 
@@ -22,6 +32,10 @@ JSClass("PDFContext", JSContext, {
     _fontInfo: null,
     _nextFontNumber: 1,
     _fontStack: null,
+    _textMatrix: null,
+
+    _imageInfo: null,
+    _nextImageNumber: 1,
 
     // ----------------------------------------------------------------------
     // MARK: - Creating a PDF Context
@@ -34,6 +48,9 @@ JSClass("PDFContext", JSContext, {
         PDFContext.$super.init.call(this);
         this._fontInfo = {};
         this._fontStack = [];
+        this._textMatrixStack = [];
+        this._textMatrix = JSAffineTransform.Scaled(1, -1);
+        this._imageInfo = {};
         if (mediaBox === undefined){
             mediaBox = JSRect(0, 0, this._dpi * this._defaultPageWidthInInches, this._dpi * this._defaultPageHeightInInches);
         }
@@ -47,20 +64,38 @@ JSClass("PDFContext", JSContext, {
     },
 
     // ----------------------------------------------------------------------
+    // MARK: - Adjusting Default coordinates
+
+    flipCoordinates: function(){
+        if (this._page === null){
+            throw new Error("Invlaid state.  Make sure to call beginPage() first");
+        }
+        var mediaBox = this._page.MediaBox || this._pages.MediaBox;
+        this.concatenate(JSAffineTransform.Flipped(mediaBox[3] - mediaBox[1]));
+    },
+
+    // ----------------------------------------------------------------------
     // MARK: - Managing Pages & Document
 
-    beginPage: function(mediaBox){
+    beginPage: function(options){
+        if (options === undefined){
+            options = {};
+        }
         this.endPage();
         this._page = PDFPageObject();
         this._page.Parent = this._pages.indirect;
         this._page.Resources = PDFResourcesObject();
-        if (mediaBox !== undefined){
-            this._page.mediaBox = mediaBox.pdfRectangle();
+        if (options.mediaBox !== undefined){
+            this._page.MediaBox = options.mediaBox.pdfRectangle();
         }
         this._createNewContentStream();
         this._writer.indirect(this._page, this._page.Resources);
         this.save();
-        this.concatenate(JSAffineTransform.Flipped(mediaBox ? mediaBox.size.height : (this._pages.MediaBox[3] - this._pages.MediaBox[1])));
+
+        // exact equivalence to false means the default (undefined) is true
+        if (options.flipCoordinates !== false){
+            this.flipCoordinates();
+        }
     },
 
     endPage: function(){
@@ -93,12 +128,54 @@ JSClass("PDFContext", JSContext, {
     },
 
     _populateImageResources: function(job){
-        // TODO: loop through referenced images and add jobs for fetching data
+        var infos = [];
+        for (var objId in this._imageInfo){
+            infos.push(this._imageInfo[objId]);
+        }
+        if (infos.length > 0){
+            if (this._pages.Resources.XObject === undefined){
+                this._pages.Resources.XObject = {};
+            }
+            var imageJob;
+            for (var i = infos.length - 1; i >= 0; --i){
+                imageJob = job.queue.insertJob(this, this._populateImageResource);
+                imageJob.imageInfo = infos[i];
+            }
+        }
         job.complete();
     },
 
     _populateImageResource: function(job){
-        // TODO: fectch image data and write a stream object
+        var info = job.imageInfo;
+        var image = info.image;
+        var xobjects = this._pages.Resources.XObject;
+        var writer = this._writer;
+        var pdfimage = PDFImageObject();
+        pdfimage.Length = writer.createIndirect();
+        pdfimage.Width = image.size.width * image.scale;
+        pdfimage.Height = image.size.height * image.scale;
+        image.getData(function(data){
+            if (image.dataFormat == JSImage.DataFormat.png){
+                pdfimage.Filter = PDFStreamObject.Filters.flate;
+            }else if (image.dataFormat == JSImage.DataFormat.jpeg){
+                pdfimage.Filter = PDFStreamObject.Filters.dct;
+            }
+            // TODO: color space
+            // TODO: bits per component
+            pdfimage.BitsPerComponent = 8;
+            writer.writeObject(pdfimage);
+            xobjects[info.resourceName.value] = pdfimage.indirect;
+            writer.beginStreamObject(pdfimage);
+            // TODO: strip/maniuplate data as needed to match expected filter
+            var length = 0;
+            if (data !== null){
+                writer.writeStreamData(data);
+            }
+            writer.endStreamObject();
+            pdfimage.Length.resolvedValue = length;
+            writer.writeObject(pdfimage.Length);
+            job.complete();
+        });
     },
 
     _populateFontResources: function(job){
@@ -111,7 +188,7 @@ JSClass("PDFContext", JSContext, {
             var fontJob;
             for (var i = infos.length - 1; i >= 0; --i){
                 fontJob = job.queue.insertJob(this, this._populateFontResource);
-                fontJob.info = infos[i];
+                fontJob.fontInfo = infos[i];
             }
         }
         job.complete();
@@ -121,11 +198,13 @@ JSClass("PDFContext", JSContext, {
         // TODO: get TTF data from file
         // TODO: slice font to only include info.usedGlyphs
         // For a font subset, the PostScript name of the font -- the value of the font’s BaseFont entry and the font descriptor’s FontName entry -- shall begin with a tag followed by a plus sign (+). The tag shall consist of exactly six uppercase letters; the choice of letters is arbitrary, but different subsets in the same PDF file shall have different tags.
-        var info = job.info;
+        var info = job.fontInfo;
         var fonts = this._pages.Resources.Font;
-        var ttfData = null;
-        var font = PDFFontObject();
-        fonts[info.resourceName.value] = font;
+        var font = PDFType1FontObject();
+        font.BaseFont = PDFNameObject("Helvetica");
+        this._writer.writeObject(font);
+        fonts[info.resourceName.value] = font.indirect;
+        job.complete();
     },
 
     _finalizeDocument: function(job){
@@ -237,9 +316,25 @@ JSClass("PDFContext", JSContext, {
     // MARK: - Images
 
     drawImage: function(image, rect){
-        // TODO:
-        // 1. Add imgage data to PDF ad a resource
-        // 2. /ImageName Do
+        // TODO: support svg and pdf images
+        if (image.dataFormat != JSImage.DataFormat.png && image.dataFormat != JSImage.DataFormat.jpeg){
+            throw new Error("Unsupported image format: %d", image.dataFormat);
+        }
+        var info = this._infoForImage(image);
+        this.save();
+        var transform = JSAffineTransform.Translated(rect.origin.x, rect.origin.y + rect.size.height).scaledBy(rect.size.width, -rect.size.height);
+        this.concatenate(transform);
+        this._writeStreamData("%N Do", info.resourceName);
+        this.restore();
+    },
+
+    _infoForImage: function(image){
+        var info = this._imageInfo[image.objectID];
+        if (!info){
+            info = this._imageInfo[image.objectID] = PDFImageInfo(image);
+            info.resourceName = PDFNameObject("IM%d".sprintf(this._nextImageNumber++));
+        }
+        return info;
     },
 
     // ----------------------------------------------------------------------
@@ -256,8 +351,8 @@ JSClass("PDFContext", JSContext, {
     // ----------------------------------------------------------------------
     // MARK: - Text
 
-    setTextMatrix: function(textMatrix){
-        // TODO: PDF command
+    setTextMatrix: function(tm){
+        this._textMatrix = tm;
     },
 
     setTextPosition: function(textPosition){
@@ -275,21 +370,28 @@ JSClass("PDFContext", JSContext, {
     showGlyphs: function(glyphs, points){
         var chars = this._font.charactersForGlyphs(glyphs);
         var info = this._infoForFont(this._font);
-        var encoded = this._encodedString(chars);
+        var encoded = this._encodedString(chars, info);
+        var tm = this._textMatrix;
         info.useGlyphs(glyphs);
         info.hasMacEncoding = info.hasMacEncoding || encoded.isMacEncoding;
         info.hasUTF16Encoding = info.hasUTF16Encoding || !encoded.isMacEncoding;
         // TODO: positioning
         this._writeStreamData("BT %N %n Tf", encoded.fontResourceName, this._font.pointSize);
+        this._writeStreamData("%n %n %n %n %n %n Tm ", tm.a, tm.b, tm.c, tm.d, tm.tx, tm.ty);
+        this._writeStreamData("%n %n Td", points[0].x, points[0].y);
         this._writeStreamData("%S Tj", encoded.string);
         this._writeStreamData("ET ");
     },
 
-    _encodeString: function(codes, font){
+    _encodedString: function(chars, info){
+        var codes = [];
+        for (var i = 0, l = chars.length; i < l; ++i){
+            codes.push(chars[i].code);
+        }
         // TODO: determine which encoding to use, and build a string
         return {
-            string: null,
-            fontResourceName: null,
+            string: String.fromCodePoint.apply(null, codes),
+            fontResourceName: info.resourceName,
             isMacEncoding: false
         };
     },
@@ -407,23 +509,28 @@ JSClass("PDFContext", JSContext, {
     save: function(){
         this._writeStreamData("q ");
         this._fontStack.push(this._font);
+        this._textMatrixStack.push(this._textMatrix);
     },
 
     restore: function(){
         this._writeStreamData("Q ");
         this._font = this._fontStack.pop();
+        this._textMatrix = this._textMatrixStack.pop();
     },
 
     // ----------------------------------------------------------------------
     // MARK: - Private Helpers
 
     _writeStreamData: function(data){
+        if (this._content === null){
+            throw new Error("Cannot perform operation, invalid state.  Make sure to call beginPage() first.");
+        }
         if (typeof(data) === 'string'){
-            if (data.charAt(data.length - 1) != " "){
-                data += " ";
-            }
             if (arguments.length > 1){
                 data = this._writer.format.apply(this._writer, arguments);
+            }
+            if (data[data.length - 1] != " "){
+                data += " ";
             }
             data = data.utf8();
         }
@@ -466,6 +573,17 @@ PDFFontInfo.prototype = {
         }
         this.usedGlyphs.splice(mid, 0, glyph);
     }
+};
+
+var PDFImageInfo = function(image){
+    if (this === undefined){
+        return new PDFImageInfo(image);
+    }
+    this.image = image;
+    this.resourceName = null;
+};
+
+PDFImageInfo.prototype = {
 };
 
 var PDFJobQueue = function(){
@@ -531,6 +649,7 @@ var PDFJob = function(queue, target, action){
         return new PDFJob(queue, target, action);
     }
     this.queue = queue;
+    this.resourceName = null;
     this._target = target;
     this._action = action;
 };

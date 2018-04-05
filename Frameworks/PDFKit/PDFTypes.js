@@ -8,4 +8,5 @@
 // #import "PDFKit/PDFStreamObject.js"
 // #import "PDFKit/PDFTrailerObject.js"
 // #import "PDFKit/PDFFontObject.js"
+// #import "PDFKit/PDFImageObject.js"
 'use strict';

@@ -1,29 +1,26 @@
 // #import "Foundation/JSImage.js"
 // #feature URL.createObjectURL
-/* global JSImage, URL, window */
+/* global JSImage, _JSResourceImage, _JSDataImage, _JSURLImage, URL, window */
 'use strict';
 
-JSImage.definePropertiesFromExtensions({
+_JSResourceImage.definePropertiesFromExtensions({
     htmlURLString: function(){
-        if (this.url){
-            return this.url;
-        }
-        if (this.resource){
-            return this.resource.image.url;
-        }
-        if (this.file){
-            if (!this._fileURL){
-                this._fileURL = URL.createObjectURL(this.file);
-            }
-            return this._fileURL;
-        }
-        if (this.data){
-            return this.data.htmlURLString();
-        }
-        return null;
+        return this.resource.image.url;
     },
 
     preferredScale: function(){
         return window.devicePixelRatio || 1;
+    }
+});
+
+_JSDataImage.definePropertiesFromExtensions({
+    htmlURLString: function(){
+        return this.data.htmlURLString();
+    }
+});
+
+_JSURLImage.definePropertiesFromExtensions({
+    htmlURLString: function(){
+        return this.url;
     }
 });

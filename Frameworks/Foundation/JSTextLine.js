@@ -41,12 +41,33 @@ JSClass("JSTextLine", JSObject, {
             }
             this._size.width += run.size.width;
         }
+        this.verticallyAlignRuns();
     },
 
-    drawInContext: function(context){
-        for (var i = 0, l = this._runs.length; i < l; ++i){
-            this._runs[i].drawInContext(context);
+    verticallyAlignRuns: function(){
+        var height = this._size.height;
+        var run;
+        var baseline = 0;
+        var i, l;
+        for (i = 0, l = this._runs.length; i < l; ++i){
+            run = this._runs[i];
+            if (run.baseline > baseline){
+                baseline = run.baseline;
+            }
         }
+        for (i = 0, l = this._runs.length; i < l; ++i){
+            run = this._runs[i];
+            run.origin.y = height - baseline + run.baseline - run.size.height;
+        }
+    },
+
+    drawInContextAtPoint: function(context, point){
+        context.save();
+        context.translateBy(point.x, point.y);
+        for (var i = 0, l = this._runs.length; i < l; ++i){
+            this._runs[i].drawInContextAtPoint(context, this._runs[i].origin);
+        }
+        context.restore();
     },
 
     characterIndexAtPoint: function(point){
@@ -208,6 +229,8 @@ JSClass("JSTextLine", JSObject, {
             line.size.width -= glyphWidth;
             line.range.length -= characterLength;
         }
+
+        line.verticallyAlignRuns();
 
         return line;
     }

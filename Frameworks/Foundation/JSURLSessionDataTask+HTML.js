@@ -4,7 +4,7 @@
 // #import "Foundation/JSURLResponse.js"
 // #feature XMLHttpRequest
 // #feature setTimeout
-/* global JSClass, JSURLSessionDataTask, JSLazyInitProperty, XMLHttpRequest, jslog_create, JSURLResponse, JSURLRequest, JSURL, setTimeout */
+/* global JSClass, JSURLSessionDataTask, JSLazyInitProperty, XMLHttpRequest, jslog_create, JSURLResponse, JSURLRequest, JSURL, setTimeout, JSData */
 'use strict';
 
 (function(){
@@ -31,7 +31,7 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
             }
         }
         if (this._xmlRequest.readyState !== XMLHttpRequest.UNSENT){
-            this._xmlRequest.send(data);   
+            this._xmlRequest.send(data);
         }else{
             var self = this;
             setTimeout(function(){
@@ -47,6 +47,7 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
     _createXMLRequest: function(){
         var request = this._currentRequest;
         var xmlRequest = new XMLHttpRequest();
+        xmlRequest.responseType = "arraybuffer";
         var headers = request.headers;
         var header;
         for (var i = 0, l = headers.length; i < l; ++i){
@@ -108,7 +109,8 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
     },
 
     _finalizeResponse: function(){
-        // TODO: deal with response body
+        var bytes = Uint8Array(this._xmlRequest.response);
+        this._currentRequest._response.data = JSData.initWithBytes(bytes);
     },
 
     _complete: function(){

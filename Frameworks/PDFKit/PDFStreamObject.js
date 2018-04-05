@@ -18,3 +18,16 @@ JSGlobalObject.PDFStreamObject.prototype = Object.create(PDFObject.prototype, {
     FDecodeParams:  PDFObjectProperty,
     DL:             PDFObjectProperty
 });
+
+PDFStreamObject.Filters = {
+    asciiHex: PDFNameObject("ASCIIHexDecode"),
+    ascii85: PDFNameObject("ASCII85Decode"),
+    lzw: PDFNameObject("LZWDeccode"),
+    flate: PDFNameObject("FlateDecode"),
+    runLength: PDFNameObject("RunLengthDecode"),
+    ccittFax: PDFNameObject("CCITTFaxDecode"),
+    jbig2: PDFNameObject("JBIG2Decode"),
+    dct: PDFNameObject("DCTDecode"),
+    jpx: PDFNameObject("JPXDecode"),
+    crypt: PDFNameObject("Crypt")
+};

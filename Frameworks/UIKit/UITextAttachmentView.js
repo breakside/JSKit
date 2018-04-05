@@ -15,6 +15,9 @@ JSClass("UITextAttachmentView", JSTextAttachment, {
         return this.view.frame.size;
     },
 
+    layout: function(font, lineWidth){
+    },
+
     drawInContext: function(context){
         this.view.layer.renderInContext(context);
     }

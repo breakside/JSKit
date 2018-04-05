@@ -137,7 +137,7 @@ class TTFInfoExtractor(FontInfoExtractor):
         candidates = []
         for i in range(subtableCount):
             platform_id, platform_specific_id, map_offset = struct.unpack('!HHI', data[offset:offset+8])
-            print (platform_id, platform_specific_id)
+            # print (platform_id, platform_specific_id)
             offset += 8
             # 0 = Unicode
             if platform_id == 0:
