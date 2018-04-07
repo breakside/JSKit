@@ -546,6 +546,7 @@ HuffmanBlock.prototype = {
                 }
             }
             this.code = null;
+            this.code2 = null;
             this.extra = null;
             this.extra2 = null;
             this.extra3 = null;
