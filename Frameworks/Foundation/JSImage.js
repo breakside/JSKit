@@ -113,10 +113,6 @@ JSClass("_JSResourceImage", JSImage, {
         image.resourceName = this.resourceName;
         image.resource = this.resource;
         return image;
-    },
-
-    getData: function(callback){
-        // TODO: read bundle data
     }
 
 });

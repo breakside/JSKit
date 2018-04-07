@@ -22,18 +22,34 @@ JSClass('TKTestRun', JSObject, {
         this.endTests(this.results);
     },
 
-    runSuiteNamed: function(suiteName){
+    _suiteForName: function(suiteName){
         var suite;
         for (var i = 0, l = TKTestSuite.RegisteredTestSuites.length; i < l; ++i){
             suite = TKTestSuite.RegisteredTestSuites[i];
             if (suite.className == suiteName){
-                this.runSuite(suite);
+                return suite;
             }
+        }
+        return  null;
+    },
+
+    runSuiteNamed: function(suiteName){
+        var suite = this._suiteForName(suiteName);
+        if (suite !== null){
+            this.runSuite(suite);
         }
         this.endTests(this.results);
     },
 
-    runSuite: function(suite){
+    runCaseNamed: function(suiteName, caseName){
+        var suite = this._suiteForName(suiteName);
+        if (suite !== null){
+            this.runSuite(suite, [caseName]);
+        }
+        this.endTests(this.results);
+    },
+
+    runSuite: function(suite, cases){
         this.results[suite.className] = {};
         this.results[suite.className][TKTestResult.NotRun] = suite.cases.length;
         this.results[suite.className][TKTestResult.Passed] = 0;
@@ -42,8 +58,12 @@ JSClass('TKTestRun', JSObject, {
         this.startSuite(suite);
         var testName;
         var result;
-        for (var i = 0, l = suite.cases.length; i < l; ++i){
-            testName = suite.cases[i];
+        var i, l;
+        if (cases === undefined){
+            cases = suite.cases;
+        }
+        for (i = 0, l = cases.length; i < l; ++i){
+            testName = cases[i];
             this.runCase(suite, testName);
         }
         this.endSuite(suite, this.results[suite.className]);

@@ -4,3 +4,4 @@ env/*
 *.egg-info
 *.sublime-workspace
 Tests/Frameworks
+Sandbox/pdftest

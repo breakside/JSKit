@@ -406,9 +406,9 @@ JSClass("PDFContextTestsStringStream", PDFWriterStream, {
         this.string = "";
     },
 
-    write: function(data){
-        for (var i = 0, l = data.bytes.length; i < l; ++i){
-            this.string += String.fromCharCode(data.bytes[i]);
+    write: function(bytes, offset, length){
+        for (; offset < length; ++offset){
+            this.string += String.fromCharCode(bytes[offset]);
         }
     },
 

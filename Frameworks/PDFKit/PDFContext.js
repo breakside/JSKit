@@ -3,7 +3,8 @@
 // #import "PDFKit/PDFTypes.js"
 // #import "PDFKit/JSColor+PDF.js"
 // #import "PDFKit/JSRect+PDF.js"
-/* global JSClass, JSContext, PDFContext, PDFWriter, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFNameObject, PDFStreamObject, JSAffineTransform, JSRect, PDFType1FontObject, PDFImageObject, JSData, JSImage */
+// #import "ImageKit/ImageKit.js"
+/* global JSClass, JSContext, PDFContext, PDFWriter, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFNameObject, PDFStreamObject, JSAffineTransform, JSRect, PDFType1FontObject, PDFImageObject, JSData, JSImage, IKBitmap */
 'use strict';
 
 (function(){
@@ -152,24 +153,23 @@ JSClass("PDFContext", JSContext, {
         var writer = this._writer;
         var pdfimage = PDFImageObject();
         pdfimage.Length = writer.createIndirect();
-        pdfimage.Width = image.size.width * image.scale;
-        pdfimage.Height = image.size.height * image.scale;
-        image.getData(function(data){
-            if (image.dataFormat == JSImage.DataFormat.png){
-                pdfimage.Filter = PDFStreamObject.Filters.flate;
-            }else if (image.dataFormat == JSImage.DataFormat.jpeg){
-                pdfimage.Filter = PDFStreamObject.Filters.dct;
-            }
-            // TODO: color space
-            // TODO: bits per component
+        image.getBitmap(function(bitmap){
+            pdfimage.Width = bitmap.size.width;
+            pdfimage.Height = bitmap.size.height;
+            pdfimage.ColorSpace = PDFNameObject("/DeviceRGB");
             pdfimage.BitsPerComponent = 8;
             writer.writeObject(pdfimage);
             xobjects[info.resourceName.value] = pdfimage.indirect;
             writer.beginStreamObject(pdfimage);
-            // TODO: strip/maniuplate data as needed to match expected filter
+            // TODO: compress the stream
             var length = 0;
-            if (data !== null){
-                writer.writeStreamData(data);
+            var offset = 0;
+            var stream = writer.stream;
+            for (var row = 0; row < bitmap.size.height; ++row){
+                for (var col = 0; col < bitmap.size.width; ++col){
+                    stream.write(bitmap.data.bytes, offset, 3);
+                    offset += 4;
+                }
             }
             writer.endStreamObject();
             pdfimage.Length.resolvedValue = length;
@@ -316,7 +316,8 @@ JSClass("PDFContext", JSContext, {
     // MARK: - Images
 
     drawImage: function(image, rect){
-        // TODO: support svg and pdf images
+        // TODO: pdf images
+        // TODO: support svg images (perhaps by compiling them to PDF)
         if (image.dataFormat != JSImage.DataFormat.png && image.dataFormat != JSImage.DataFormat.jpeg){
             throw new Error("Unsupported image format: %d", image.dataFormat);
         }

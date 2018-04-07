@@ -6,20 +6,18 @@
 
 JSClass("DeflateTests", TKTestSuite, {
 
-    _testDeflateLevel0: function(){
+    testDeflateLevel0: function(){
         var inflated = "this is a test".utf8().bytes;
-        var stream = new DeflateStream(inflated, 7, 0);
-        stream.deflate();
-        TKAssertObjectEquals(stream.output, [0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74]);
+        var output = Deflate.deflate(inflated, 0);
+        TKAssertObjectEquals(output, [0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74]);
     },
 
-    _testDeflateLevel0Long: function(){
+    testDeflateLevel0Long: function(){
         var inflated = new Uint8Array(0xFFFF + 0xFF);
         for (var i = 0; i < inflated.length; ++i){
             inflated[i] = i & 0xFF;
         }
-        var stream = new DeflateStream(inflated, 7, 0);
-        stream.deflate();
+        var output = Deflate.deflate(inflated, 0);
         var expected = new Uint8Array(0xFFFF + 0xFF + 10);
         expected[0] = 0x00;
         expected[1] = 0xFF;
@@ -39,8 +37,74 @@ JSClass("DeflateTests", TKTestSuite, {
         }
         // Doing a regular assert so the two really large arrays don't get printed
         // if the assertion fails, as they would if we used TKAssertObjectEquals
-        TKAssert(stream.output.isEqual(expected));
+        TKAssert(output.isEqual(expected));
 
+    },
+
+    testDeflateLevel0InChuncks: function(){
+        // All input, limited output
+        var stream = new DeflateStream(0);
+        stream.input = "this is a test".utf8().bytes;
+        stream.outputBuffer = new ArrayBuffer(4);
+        var output = stream.deflate(true);
+        TKAssertNotEquals(stream.state, DeflateStream.State.done);
+        TKAssertObjectEquals(output, new Uint8Array([0x01,0x0e,0x00,0xf1]));
+        output = stream.deflate(true);
+        TKAssertNotEquals(stream.state, DeflateStream.State.done);
+        TKAssertObjectEquals(output, new Uint8Array([0xff,0x74,0x68,0x69]));
+        output = stream.deflate(true);
+        TKAssertNotEquals(stream.state, DeflateStream.State.done);
+        TKAssertObjectEquals(output, new Uint8Array([0x73,0x20,0x69,0x73]));
+        output = stream.deflate(true);
+        TKAssertNotEquals(stream.state, DeflateStream.State.done);
+        TKAssertObjectEquals(output, new Uint8Array([0x20,0x61,0x20,0x74]));
+        output = stream.deflate(true);
+        TKAssertEquals(stream.state, DeflateStream.State.done);
+        TKAssertObjectEquals(output, new Uint8Array([0x65,0x73,0x74]));
+
+        // Limited input, plenty of output
+        stream = new DeflateStream(0);
+        var fullInput = "this is a test".utf8().bytes;
+        stream.input = new Uint8Array(fullInput.buffer, 0, 2);
+        stream.outputBuffer = new ArrayBuffer(32);
+        output = stream.deflate();
+        TKAssertNotEquals(stream.state, DeflateStream.State.done);
+        TKAssertEquals(output.length, 0);
+        stream.input = new Uint8Array(fullInput.buffer, 2, 3);
+        output = stream.deflate();
+        TKAssertNotEquals(stream.state, DeflateStream.State.done);
+        TKAssertEquals(output.length, 0);
+        stream.input = new Uint8Array(fullInput.buffer, 5, 4);
+        output = stream.deflate();
+        TKAssertNotEquals(stream.state, DeflateStream.State.done);
+        TKAssertEquals(output.length, 0);
+        stream.input = new Uint8Array(fullInput.buffer, 9, 5);
+        output = stream.deflate(true);
+        TKAssertEquals(stream.state, DeflateStream.State.done);
+        TKAssertObjectEquals(output, [0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74]);
+
+        // All input, plenty of output, final block empty
+        stream = new DeflateStream(0);
+        stream.input = "this is a test".utf8().bytes;
+        stream.outputBuffer = new ArrayBuffer(32);
+        output = stream.deflate();
+        TKAssertNotEquals(stream.state, DeflateStream.State.done);
+        TKAssertEquals(output.length, 0);
+        stream.input = new Uint8Array();
+        output = stream.deflate(true);
+        TKAssertEquals(stream.state, DeflateStream.State.done);
+        TKAssertObjectEquals(output, [0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74]);
+
+        // All input, plenty of output, final block empty with original input
+        stream = new DeflateStream(0);
+        stream.input = "this is a test".utf8().bytes;
+        stream.outputBuffer = new ArrayBuffer(32);
+        output = stream.deflate();
+        TKAssertNotEquals(stream.state, DeflateStream.State.done);
+        TKAssertEquals(output.length, 0);
+        output = stream.deflate(true);
+        TKAssertEquals(stream.state, DeflateStream.State.done);
+        TKAssertObjectEquals(output, [0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74]);
     },
 
     testInflateLevel0: function(){

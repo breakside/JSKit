@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "PDFKit/PDFTypes.js"
-/* global JSClass, JSObject, PDFDocumentObject, PDFStream, PDFNameObject, PDFIndirectObject, PDFObject, PDFWriter, PDFTrailerObject */
+/* global JSClass, JSReadOnlyProperty, JSObject, PDFDocumentObject, PDFStream, PDFNameObject, PDFIndirectObject, PDFObject, PDFWriter, PDFTrailerObject */
 'use strict';
 
 (function(){
@@ -8,7 +8,7 @@
 JSClass("PDFWriter", JSObject, {
 
     version: "1.7",
-    _stream: null,
+    stream: JSReadOnlyProperty('_stream', null),
     _crossReferenceTable: null,
     _crossReferenceOffset: 0,
     _offset: 0,
@@ -172,7 +172,7 @@ JSClass("PDFWriter", JSObject, {
             data = data.utf8();
         }
         this._offset += data.length;
-        this._stream.write(data);
+        this._stream.write(data.bytes, 0, data.bytes.length);
     },
 
     _writeCrossReferenceTable: function(){
@@ -196,7 +196,7 @@ JSClass("PDFWriter", JSObject, {
 
 JSClass("PDFWriterStream", JSObject, {
 
-    write: function(data){
+    write: function(bytes, offset, length){
     },
 
     close: function(callback){

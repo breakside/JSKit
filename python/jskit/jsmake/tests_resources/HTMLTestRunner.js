@@ -185,7 +185,11 @@ function main(){
     var testRun = HTMLTestRun.initWithRootElement(document.body);
     var options = parseOptions();
     if (options.suite){
-        testRun.runSuiteNamed(options.suite);
+        if (options.case){
+            testRun.runCaseNamed(options.suite, options.case);
+        }else{
+            testRun.runSuiteNamed(options.suite);
+        }
     }else{
         testRun.runAllRegisteredSuites();
     }

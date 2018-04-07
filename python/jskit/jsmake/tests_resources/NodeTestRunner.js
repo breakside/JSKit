@@ -119,7 +119,11 @@ module.exports.run = function(){
     var testRun = NodeTestRun.init();
     var options = parseOptions();
     if (options.suite){
-        testRun.runSuiteNamed(options.suite);
+        if (options.case){
+            testRun.runCaseNamed(options.suite, options.case);
+        }else{
+            testRun.runSuiteNamed(options.suite);
+        }
     }else{
         testRun.runAllRegisteredSuites();
     }

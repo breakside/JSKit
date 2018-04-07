@@ -3,7 +3,8 @@
     "JSBundleIdentifier": "com.owenshaw.JSKit.PDFKit",
     "JSBundleVersion": "1.0.0",
     "JSWeakIncludes": [
-        "Foundation"
+        "Foundation",
+        "ImageKit",
     ], 
     "JSFrameworkVariants": [
         "PDFKit.js"
