@@ -13,14 +13,13 @@ JSClass('JSImage', JSObject, {
     size: JSReadOnlyProperty('_size', null),
     scale: JSReadOnlyProperty('_scale', 1),
     stretchBox: JSReadOnlyProperty('_stretchBox', null),
-    dataFormat: JSReadOnlyProperty('_dataFormat', 0),
 
     init: function(){
         this._initWithPixelSize(JSSize.Zero, 1);
     },
 
-    initWithResourceName: function(name){
-        return _JSResourceImage.initWithResourceName(name);
+    initWithResourceName: function(name, bundle){
+        return _JSResourceImage.initWithResourceName(name, bundle);
     },
 
     initWithData: function(data, scale){
@@ -42,7 +41,6 @@ JSClass('JSImage', JSObject, {
         }
         image._size = JSSize(this._size);
         image._scale = this._scale;
-        image._dataFormat = this._dataFormat;
         return image;
     },
 
@@ -88,7 +86,7 @@ JSClass("_JSResourceImage", JSImage, {
                 }else{
                     if (resource.image.vector){
                         this.resource = resource;
-                        return;
+                        break;
                     }
                     if (resource.image.scale == idealScale){
                         this.resource = resource;

@@ -4,21 +4,23 @@
 
 JSClass('JSBundle', JSObject, {
 
-    identifier: null,
-    resources: null,
-    fonts: null,
+    _dict: null,
 
     initWithIdentifier: function(identifier){
         this.identifier = identifier;
-        if (!(this.identifier in JSBundle.bundles)){
+        var dict = JSBundle.bundles[this.identifier];
+        if (dict === undefined){
             throw new Error("Bundle not found: %s".sprintf(this.identifier));
         }
-        this.resources = JSBundle.bundles[this.identifier].Resources;
-        this.fonts = JSBundle.bundles[this.identifier].Fonts;
+        this.initWithDictionary(dict);
+    },
+
+    initWithDictionary: function(dict){
+        this._dict = dict;
     },
 
     info: function(){
-        return JSBundle.bundles[this.identifier].Info;
+        return this._dict.Info;
     },
 
     resourceNamed: function(name, kind){
@@ -33,19 +35,25 @@ JSClass('JSBundle', JSObject, {
 
     resourcesNamed: function(name){
         if (this.hasResource(name)){
-            return this.resources[name];
+            return this._dict.Resources[name];
         }
         throw new Error("JSBundle.resourcesNamed: resource '%s' not found".sprintf(name));
     },
 
     hasResource: function(name){
-        return name in this.resources;
+        return name in this._dict.Resources;
     }
 
 });
 
 JSBundle.bundles = {};
 JSBundle.mainBundleIdentifier = null;
+
+JSBundle.Type = {
+    object: 'object',
+    image: 'image',
+    font: 'font'
+};
 
 Object.defineProperty(JSBundle, 'mainBundle', {
     configurable: true,

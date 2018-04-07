@@ -13,6 +13,9 @@ from .javascript import JSCompilation
 class TestsBuilder(Builder):
 
     outputProductPath = None
+    outputResourcePath = None
+    nginxPath = None
+    nginxWwwPath = None
     includes = None
     appJS = None
     indexFile = None
@@ -30,24 +33,46 @@ class TestsBuilder(Builder):
 
     def build(self):
         self.setup()
+        self.buildResources()
         self.findIncludes()
         self.buildHTMLJavascript()
         self.buildHTML()
+        self.buildNginx()
         self.buildNodeExecutable()
         self.finish()
 
     def setup(self):
         super(TestsBuilder, self).setup()
-        self.outputProductPath = os.path.join(self.outputProjectPath, self.buildID)
+        self.outputProductPath = os.path.join(self.outputProjectPath, "Code")
+        self.outputResourcePath = os.path.join(self.outputProjectPath, "Resources")
+        self.nginxPath = os.path.join(self.outputProjectPath, "nginx")
+        self.nginxWwwPath = os.path.join(self.nginxPath, "www")
         if self.debug:
-            for child in (self.outputProjectPath,):
-                if os.path.exists(child):
+            for child in os.listdir(self.outputProjectPath):
+                if child != 'nginx' and child[0] != '.':
+                    child = os.path.join(self.outputProjectPath, child)
                     if os.path.isdir(child):
                         shutil.rmtree(child)
                     else:
                         os.unlink(child)
-        os.makedirs(self.outputProductPath)
+        if not os.path.exists(self.outputProductPath):
+            os.makedirs(self.outputProductPath)
+        if not os.path.exists(self.outputResourcePath):
+            os.makedirs(self.outputResourcePath)
+        if not os.path.exists(self.nginxPath):
+            os.makedirs(self.nginxPath)
         self.appJS = []
+
+    def buildImageResource(self, nameComponents, fullPath, mime, scale):
+        resource = super(TestsBuilder, self).buildImageResource(nameComponents, fullPath, mime, scale)
+        info = resource["image"]
+        outputImagePath = os.path.join(os.path.join(self.outputResourcePath, *nameComponents[:-1]), os.path.basename(fullPath))
+        info.update(dict(
+             url=os.path.relpath(outputImagePath, self.outputProjectPath).replace(os.sep, '/'),
+             path=outputImagePath,
+        ))
+        shutil.copyfile(fullPath, outputImagePath)
+        return resource
 
     def findIncludes(self):
         for (dirname, folders, files) in os.walk(self.projectPath):
@@ -79,7 +104,9 @@ class TestsBuilder(Builder):
                 self.watchFile(importedPath)
 
     def buildHTML(self):
-        self.indexFile = open(os.path.join(self.outputProjectPath, 'tests.html'), 'w')
+        if not os.path.exists(self.nginxWwwPath):
+            os.makedirs(self.nginxWwwPath)
+        self.indexFile = open(os.path.join(self.nginxWwwPath, 'tests.html'), 'w')
         dom = xml.dom.minidom.getDOMImplementation()
         doctype = dom.createDocumentType("html", None, None)
         document = dom.createDocument(None, "html", doctype)
@@ -92,7 +119,7 @@ class TestsBuilder(Builder):
         style.setAttribute("rel", "stylesheet")
         style.setAttribute("type", "text/css")
         style.setAttribute("href", "tests.css")
-        shutil.copy(pkg_resources.resource_filename('jskit', 'jsmake/tests_resources/tests.css'), os.path.join(self.outputProjectPath, 'tests.css'))
+        shutil.copy(pkg_resources.resource_filename('jskit', 'jsmake/tests_resources/tests.css'), os.path.join(self.nginxWwwPath, 'tests.css'))
         title = head.appendChild(document.createElement("title"))
         title.appendChild(document.createTextNode("Tests"))
         body = html.appendChild(document.createElement("body"))
@@ -100,7 +127,7 @@ class TestsBuilder(Builder):
         script.setAttribute("type", "text/javascript")
         script.appendChild(document.createTextNode("""'use strict';function jslog_create(){ return console; }"""))
         for includedSourcePath in self.appJS:
-            relativePath = _webpath(os.path.relpath(includedSourcePath, os.path.dirname(self.indexFile.name)))
+            relativePath = _webpath(os.path.relpath(includedSourcePath, self.outputProjectPath))
             script = body.appendChild(document.createElement("script"))
             script.setAttribute("type", "text/javascript")
             script.setAttribute("src", relativePath)
@@ -108,6 +135,24 @@ class TestsBuilder(Builder):
         script.setAttribute("type", "text/javascript")
         script.appendChild(document.createTextNode("""main();"""))
         HTML5DocumentSerializer(document).serializeToFile(self.indexFile)
+        shutil.copy(pkg_resources.resource_filename('jskit', 'jsmake/tests_resources/tests.css'), os.path.join(self.nginxWwwPath, 'tests.css'))
+        resourcesLinkPath = os.path.join(self.nginxWwwPath, "Resources")
+        if os.path.exists(resourcesLinkPath):
+            os.unlink(resourcesLinkPath)
+        codeLinkPath = os.path.join(self.nginxWwwPath, "Code")
+        if os.path.exists(codeLinkPath):
+            os.unlink(codeLinkPath)
+        os.symlink(self.outputResourcePath, resourcesLinkPath)
+        os.symlink(self.outputProductPath, codeLinkPath)
+
+    def buildNginx(self):
+        confdir = os.path.join(self.nginxPath, 'conf')
+        logdir = os.path.join(self.nginxPath, 'logs')
+        if not os.path.exists(confdir):
+            os.makedirs(confdir)
+        if not os.path.exists(logdir):
+            os.makedirs(logdir)
+        shutil.copy(pkg_resources.resource_filename('jskit', 'jsmake/tests_resources/nginx.conf'), os.path.join(confdir, 'nginx.conf'))
 
     def buildNodeExecutable(self):
         requires = []
@@ -146,7 +191,6 @@ class TestsBuilder(Builder):
                 else:
                     exeJSFile.write("require('./%s');\n" % relativePath)
             exeJSFile.write("\nentry();\n")
-            exeJSFile.write("process.exit()\n");
         os.chmod(exePath, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
 
     def finish(self):
@@ -155,7 +199,11 @@ class TestsBuilder(Builder):
         self.indexFile = None
 
     def targetUsage(self):
-        return ["open %s" % os.path.relpath(os.path.join(self.outputProjectPath, 'tests.html')), "%s" % os.path.relpath(os.path.join(self.outputProjectPath, 'tests'))]
+        return [
+            "nginx -p %s && open http://localhost:8088/" % os.path.relpath(self.nginxPath),
+            "open %s" % os.path.relpath(os.path.join(self.nginxWwwPath, 'tests.html')),
+            "%s" % os.path.relpath(os.path.join(self.outputProjectPath, 'tests'))
+        ]
 
 
 def _webpath(ospath):

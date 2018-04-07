@@ -109,7 +109,7 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
     },
 
     _finalizeResponse: function(){
-        var bytes = Uint8Array(this._xmlRequest.response);
+        var bytes = new Uint8Array(this._xmlRequest.response);
         this._currentRequest._response.data = JSData.initWithBytes(bytes);
     },
 

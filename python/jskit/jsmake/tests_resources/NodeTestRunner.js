@@ -85,6 +85,7 @@ JSClass('NodeTestRun', TKTestRun, {
                 process.stdout.write("\n✅ " + this.name + ': All tests passed\n');
             }
         }
+        process.exit();
     }
 });
 

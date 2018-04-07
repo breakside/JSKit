@@ -1,9 +1,11 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TKAssert.js"
-/* global JSObject, JSClass, TKAssertion , TKTestSuite*/
+/* global JSObject, JSClass, TKAssertion, TKTestSuite, Promise */
 'use strict';
 
 JSClass("TKTestSuite", JSObject, {
+
+    expectation: null,
 
     init: function(){
     },
@@ -12,6 +14,11 @@ JSClass("TKTestSuite", JSObject, {
     },
 
     teardown: function(){
+    },
+
+    wait: function(expectation, timeout){
+        expectation.setTimeout(timeout);
+        this.expectation = expectation;
     }
 
 });

@@ -44,11 +44,11 @@ JSClass('IKBitmap', JSObject, {
 
 });
 
-IKBitmap.BitmapFromEncodedData = function(data, callback){
-};
-
 IKBitmap.FormatOfData = function(data){
-    var bytes = bytes;
+    if (data === null){
+        return IKBitmap.Format.unknown;
+    }
+    var bytes = data.bytes;
     if (bytes.length >= 16){
         // PNG magic bytes
         if (bytes[0] == 0x89 &&
@@ -61,12 +61,14 @@ IKBitmap.FormatOfData = function(data){
             bytes[7] == 0x0A)
         {
             // Verifying "IHDR" signature
-            if (bytes[10] == 0x49 && bytes[11] == 0x48 && bytes[12] == 0x44 && bytes[13] == 0x52){
+            if (bytes[12] == 0x49 && bytes[13] == 0x48 && bytes[14] == 0x44 && bytes[15] == 0x52){
                 return IKBitmap.Format.png;
                 // Invalid PNG
             }
+        }
+    }else if (bytes.length >= 2){
         // JPEG magic bytes
-        }else if (bytes[0] == 0xFF && bytes[1] == 0xD8){
+        if (bytes[0] == 0xFF && bytes[1] == 0xD8){
             return IKBitmap.Format.jpeg;
         }
     }

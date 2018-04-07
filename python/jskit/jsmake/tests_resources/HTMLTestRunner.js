@@ -27,7 +27,7 @@ JSClass('HTMLTestRun', TKTestRun, {
         cell = row.insertCell(1);
         cell.className = 'name';
         cell.colSpan = 2;
-        cell.appendChild(doc.createTextNode(''));
+        cell.appendChild(doc.createTextNode('Running'));
         var style = doc.createElement('style');
         style.type = "text/css";
         doc.head.appendChild(style);

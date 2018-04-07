@@ -154,6 +154,9 @@ JSClass("PDFContext", JSContext, {
         var pdfimage = PDFImageObject();
         pdfimage.Length = writer.createIndirect();
         image.getBitmap(function(bitmap){
+            if (bitmap === null){
+                throw new Error("null bitmap");
+            }
             pdfimage.Width = bitmap.size.width;
             pdfimage.Height = bitmap.size.height;
             pdfimage.ColorSpace = PDFNameObject("/DeviceRGB");
@@ -318,9 +321,6 @@ JSClass("PDFContext", JSContext, {
     drawImage: function(image, rect){
         // TODO: pdf images
         // TODO: support svg images (perhaps by compiling them to PDF)
-        if (image.dataFormat != JSImage.DataFormat.png && image.dataFormat != JSImage.DataFormat.jpeg){
-            throw new Error("Unsupported image format: %d", image.dataFormat);
-        }
         var info = this._infoForImage(image);
         this.save();
         var transform = JSAffineTransform.Translated(rect.origin.x, rect.origin.y + rect.size.height).scaledBy(rect.size.width, -rect.size.height);

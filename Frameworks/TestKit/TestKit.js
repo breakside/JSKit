@@ -4,3 +4,4 @@
 // #import "TestKit/TKTestSuite.js"
 // #import "TestKit/TKTestResult.js"
 // #import "TestKit/TKTestRun.js"
+// #import "TestKit/TKExpectation.js"

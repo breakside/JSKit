@@ -8,83 +8,44 @@
 JSClass('TKTestRun', JSObject, {
 
     results: null,
+    suiteQueue: null,
+    caseQueue: null,
 
     init: function(){
+        this.suiteQueue = [];
+        this.caseQueue = [];
         this.results = {};
     },
 
     runAllRegisteredSuites: function(){
         var suite;
-        for (var i = 0, l = TKTestSuite.RegisteredTestSuites.length; i < l; ++i){
-            suite = TKTestSuite.RegisteredTestSuites[i];
-            this.runSuite(suite);
+        for (var i = TKTestSuite.RegisteredTestSuites.length - 1; i >= 0; --i){
+            this.suiteQueue.push(TKTestSuite.RegisteredTestSuites[i]);
         }
-        this.endTests(this.results);
-    },
-
-    _suiteForName: function(suiteName){
-        var suite;
-        for (var i = 0, l = TKTestSuite.RegisteredTestSuites.length; i < l; ++i){
-            suite = TKTestSuite.RegisteredTestSuites[i];
-            if (suite.className == suiteName){
-                return suite;
-            }
-        }
-        return  null;
+        this.resume();
     },
 
     runSuiteNamed: function(suiteName){
-        var suite = this._suiteForName(suiteName);
-        if (suite !== null){
-            this.runSuite(suite);
+        var suite = this.suiteForName(suiteName);
+        if (suite){
+            this.suiteQueue.push(suite);
         }
-        this.endTests(this.results);
+        this.resume();
     },
 
     runCaseNamed: function(suiteName, caseName){
-        var suite = this._suiteForName(suiteName);
-        if (suite !== null){
-            this.runSuite(suite, [caseName]);
-        }
-        this.endTests(this.results);
+        this.suite = this.suiteForName(suiteName);
+        this.caseQueue.push(caseName);
+        this.resume();
     },
 
-    runSuite: function(suite, cases){
-        this.results[suite.className] = {};
-        this.results[suite.className][TKTestResult.NotRun] = suite.cases.length;
-        this.results[suite.className][TKTestResult.Passed] = 0;
-        this.results[suite.className][TKTestResult.Failed] = 0;
-        this.results[suite.className][TKTestResult.Error] = 0;
-        this.startSuite(suite);
-        var testName;
-        var result;
-        var i, l;
-        if (cases === undefined){
-            cases = suite.cases;
-        }
-        for (i = 0, l = cases.length; i < l; ++i){
-            testName = cases[i];
-            this.runCase(suite, testName);
-        }
-        this.endSuite(suite, this.results[suite.className]);
-    },
-
-    runCase: function(suite, testName){
+    _runCase: function(suite, testName){
         TKAssertion.CurrentTestCase = testName;
         this.startCase(suite, testName);
-        var result;
-        try{
-            var suiteInstance = suite.init();
-            suiteInstance.setup();
-            try{
-                suiteInstance[testName]();
-            }catch (e){
-                suiteInstance.teardown();
-                throw e;
-            }
-            suiteInstance.teardown();
-            result = TKTestResult.initWithNamesAndResult(suite.className, testName, TKTestResult.Passed);
-        }catch (e){
+        var result = null;
+        var suiteInstance = null;
+        var run = this;
+        var errorCatcher = function(e){
             if (e instanceof TKAssertion){
                 result = TKTestResult.initWithNamesAndResult(suite.className, testName, TKTestResult.Failed);
                 result.message = e.message;
@@ -94,12 +55,35 @@ JSClass('TKTestRun', JSObject, {
                 result.error = e;
                 result.message = "Line " + line + ". " + e.toString();
             }
+        };
+        var resultWriter = function(){
+            if (result === null){
+                result = TKTestResult.initWithNamesAndResult(suite.className, testName, TKTestResult.Passed);
+            }
+            if (result.result != TKTestResult.NotRun){
+                run.results[suite.className][TKTestResult.NotRun] -= 1;
+                run.results[suite.className][result.result] += 1;
+            }
+            suiteInstance.teardown();
+            run.endCase(suite, testName, result);
+            run.resume();
+        };
+        try{
+            suiteInstance = suite.init();
+            suiteInstance.setup();
+            suiteInstance[testName]();
+        }catch (e){
+            errorCatcher(e);
+        }finally{
+            if (suiteInstance !== null){
+                run.pause();
+                if (suiteInstance.expectation){
+                    suiteInstance.expectation.catch(errorCatcher).finally(resultWriter);
+                }else{
+                    resultWriter();
+                }
+            }
         }
-        if (result.result != TKTestResult.NotRun){
-            this.results[suite.className][TKTestResult.NotRun] -= 1;
-            this.results[suite.className][result.result] += 1;
-        }
-        this.endCase(suite, testName, result);
     },
 
     startSuite: function(suite){
@@ -115,6 +99,58 @@ JSClass('TKTestRun', JSObject, {
     },
 
     endTests: function(results){
-    }
+    },
+
+    suite: null,
+    isRunning: false,
+
+    resume: function(){
+        this.isRunning = true;
+        while (this.isRunning){
+            if (this.suite === null){
+                if (this.suiteQueue.length > 0){
+                    this.suite = this.suiteQueue.pop();
+                    for (var i = this.suite.cases.length - 1; i >= 0; --i){
+                        this.caseQueue.push(this.suite.cases[i]);
+                    }
+                }
+            }
+            if (this.suite !== null){
+                if (!(this.suite.className in this.results)){
+                    this.results[this.suite.className] = {};
+                    this.results[this.suite.className][TKTestResult.NotRun] = this.caseQueue.length;
+                    this.results[this.suite.className][TKTestResult.Passed] = 0;
+                    this.results[this.suite.className][TKTestResult.Failed] = 0;
+                    this.results[this.suite.className][TKTestResult.Error] = 0;
+                    this.startSuite(this.suite);
+                }
+                if (this.caseQueue.length > 0){
+                    var caseName = this.caseQueue.pop();
+                    this._runCase(this.suite, caseName);
+                }else{
+                    this.endSuite(this.suite, this.results[this.suite.className]);
+                    this.suite = null;
+                }
+            }else{
+                this.endTests(this.results);
+                this.pause();
+            }
+        }
+    },
+
+    pause: function(){
+        this.isRunning = false;
+    },
+
+    suiteForName: function(suiteName){
+        var suite;
+        for (var i = 0, l = TKTestSuite.RegisteredTestSuites.length; i < l; ++i){
+            suite = TKTestSuite.RegisteredTestSuites[i];
+            if (suite.className == suiteName){
+                return suite;
+            }
+        }
+        return  null;
+    },
 
 });
