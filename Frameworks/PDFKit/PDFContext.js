@@ -4,7 +4,7 @@
 // #import "PDFKit/JSColor+PDF.js"
 // #import "PDFKit/JSRect+PDF.js"
 // #import "ImageKit/ImageKit.js"
-/* global JSClass, JSContext, PDFContext, PDFWriter, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFNameObject, PDFStreamObject, JSAffineTransform, JSRect, PDFType1FontObject, PDFImageObject, JSData, JSImage, IKBitmap */
+/* global JSClass, JSContext, PDFContext, PDFWriter, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFNameObject, PDFStreamObject, JSAffineTransform, JSRect, PDFType1FontObject, PDFImageObject, JSData, JSImage, IKBitmap, PDFColorSpaceObject */
 'use strict';
 
 (function(){
@@ -134,7 +134,7 @@ JSClass("PDFContext", JSContext, {
             infos.push(this._imageInfo[objId]);
         }
         if (infos.length > 0){
-            if (this._pages.Resources.XObject === undefined){
+            if (this._pages.Resources.XObject === null){
                 this._pages.Resources.XObject = {};
             }
             var imageJob;
@@ -159,10 +159,8 @@ JSClass("PDFContext", JSContext, {
             }
             pdfimage.Width = bitmap.size.width;
             pdfimage.Height = bitmap.size.height;
-            pdfimage.ColorSpace = PDFNameObject("/DeviceRGB");
+            pdfimage.ColorSpace = PDFColorSpaceObject.Builtin.deviceRGB;
             pdfimage.BitsPerComponent = 8;
-            writer.writeObject(pdfimage);
-            xobjects[info.resourceName.value] = pdfimage.indirect;
             writer.beginStreamObject(pdfimage);
             // TODO: compress the stream
             var length = 0;
@@ -172,11 +170,13 @@ JSClass("PDFContext", JSContext, {
                 for (var col = 0; col < bitmap.size.width; ++col){
                     stream.write(bitmap.data.bytes, offset, 3);
                     offset += 4;
+                    length += 3;
                 }
             }
             writer.endStreamObject();
             pdfimage.Length.resolvedValue = length;
             writer.writeObject(pdfimage.Length);
+            xobjects[info.resourceName.value] = pdfimage.indirect;
             job.complete();
         });
     },

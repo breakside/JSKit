@@ -9,4 +9,5 @@
 // #import "PDFKit/PDFTrailerObject.js"
 // #import "PDFKit/PDFFontObject.js"
 // #import "PDFKit/PDFImageObject.js"
+// #import "PDFKit/PDFColorSpaceObject.js"
 'use strict';

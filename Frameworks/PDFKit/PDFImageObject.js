@@ -9,7 +9,7 @@ JSGlobalObject.PDFImageObject = function(){
 };
 
 JSGlobalObject.PDFImageObject.prototype = Object.create(PDFStreamObject.prototype, {
-    Type:               { enumerable: true, value: PDFNameObject("Font") },
+    Type:               { enumerable: true, value: PDFNameObject("XObject") },
     Subtype:            { enumerable: true, value: PDFNameObject("Image") },
     Width:              PDFObjectProperty,
     Height:             PDFObjectProperty,
