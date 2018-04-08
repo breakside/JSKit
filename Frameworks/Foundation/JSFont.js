@@ -163,9 +163,19 @@ JSFont._fontWithResourceInfo = function(info, pointSize){
     return font;
 };
 
-JSFont.fontWithResourceName = function(resourceName, pointSize){
-    var resource = JSBundle.mainBundle.resourceNamed(resourceName, 'font');
-    return JSFont._fontWithResourceInfo(resource.font, pointSize);
+JSFont.fontWithResourceName = function(name, pointSize){
+    var ext;
+    var extIndex = name.lastIndexOf('.');
+    var idealScale = this.preferredScale();
+    var i, l;
+    if (extIndex > 0 && extIndex < name.length - 1){
+        ext = name.substr(extIndex + 1);
+        name = name.substr(0, extIndex);
+    }else{
+        ext = "ttf";
+    }
+    var metadata = JSBundle.mainBundle.resourceNamed(name, ext);
+    return JSFont._fontWithResourceInfo(metadata.font, pointSize);
 };
 
 JSFont.fontWithFamily = function(family, pointSize, weight, style){
@@ -186,18 +196,18 @@ JSFont.fontWithDescriptor = function(descriptor, pointSize){
 };
 
 JSFont.registerBundleFonts = function(bundle){
-    var resource;
-    for (var i = 0, l = bundle.fonts.length; i < l; ++i){
-        resource = bundle.resourceNamed(bundle.fonts[i], 'font');
-        JSFont.registerFontResource(resource);
+    var fonts = bundle.fonts();
+    for (var i = 0, l = fonts.length; i < l; ++i){
+        JSFont.registerFontResource(fonts[i]);
     }
 };
 
-JSFont.registerFontResource = function(resource){
-    var info = resource.font;
+JSFont.registerFontResource = function(metadata){
+    var info = metadata.font;
     if (!(info.family in JSFont._families)){
         JSFont._families[info.family] = [];
     }
+    // TODO: remember resource path so we can load the font data later
     JSFont._families[info.family].push(info);
 };
 

@@ -11,6 +11,7 @@ import datetime
 import collections
 from .image import ImageInfoExtractor
 from .font import FontInfoExtractor
+from .bundle import Bundle
 
 
 class Builder(object):
@@ -200,17 +201,14 @@ class Builder(object):
 
 
     def setup(self):
-        self.mainBundle = None
+        self.mainBundle = Bundle()
         self.bundles = dict()
-        self.infoFile, self.info = Builder.readInfo(self.projectPath)
+        self.infoFile, self.mainBundle.info = Builder.readInfo(self.projectPath)
         self.watchFile(self.infoFile)
-        if 'JSBundleIdentifier' not in self.info:
+        if 'JSBundleIdentifier' not in self.mainBundle.info:
             raise Exception("%s must include an entry for JSBundleIdentifier")
-        self.bundles[self.info['JSBundleIdentifier']] = self.mainBundle = {}
-        self.mainBundle["Info"] = self.info
-        self.mainBundle["Resources"] = {}
-        self.mainBundle["Fonts"] = []
-        self.outputProjectPath = os.path.join(self.outputParentPath, 'builds', self.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
+        self.bundles[self.mainBundle.info['JSBundleIdentifier']] = self.mainBundle
+        self.outputProjectPath = os.path.join(self.outputParentPath, 'builds', self.mainBundle.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
         if not self.debug and os.path.exists(self.outputProjectPath):
             raise Exception("Output path already exists: %s" % self.outputProjectPath)
 
@@ -240,123 +238,62 @@ class Builder(object):
         self.updateStatus("Building Resources...")
         dirname = os.path.join(resourcesPath, *parentNameComponents)
         for filename in os.listdir(dirname):
-            name, ext = os.path.splitext(filename)
+            if filename[0] == '.':
+                continue
             fullPath = os.path.join(dirname, filename)
-            nameComponents = parentNameComponents + [name]
+            nameComponents = parentNameComponents + [filename]
+            dontcare, ext = os.path.splitext(filename)
             if os.path.isdir(fullPath):
-                if ext == '.imageset':
-                    self.buildImageAssetResource(nameComponents, fullPath)
-                else:
-                    self.scanResourceFolder(resourcesPath, nameComponents)
+                self.scanResourceFolder(resourcesPath, nameComponents)
             elif ext == '.json':
                 try:
                     obj = json.load(open(fullPath), object_pairs_hook=collections.OrderedDict)
                 except Exception as e:
                     raise Exception("Error parsing %s: %s" % (fullPath, e.message))
-                self.buildJSONLikeResource(nameComponents, obj)
-                self.watchFile(fullPath)
+                self.buildJSONLikeResource(nameComponents, fullPath, obj)
             elif ext == '.plist':
                 obj = plistlib.readPlist(fullPath)
-                self.buildJSONLikeResource(nameComponents, obj)
-                self.watchFile(fullPath)
+                self.buildJSONLikeResource(nameComponents, fullPath, obj)
             else:
-                mimeguess = mimetypes.guess_type(fullPath)
-                if mimeguess[0]:
-                    primary_type, secondary_type = mimeguess[0].split('/')
-                    if primary_type == 'image':
-                        name, scale = self.imagePropertiesFromName(name)
-                        nameComponents = parentNameComponents + [name]
-                        self.buildImageResource(nameComponents, fullPath, mimeguess[0], scale)
-                    elif primary_type == 'application':
-                        if secondary_type in ('x-font-ttf', 'x-font-otf', 'x-font-woff'):
-                            self.buildFontResource(nameComponents, fullPath, mimeguess[0])
+                mime, encoding = mimetypes.guess_type(fullPath)
+                if mime is None:
+                    mime = 'application/octet-stream'
+                primary_type, secondary_type = mime.split('/')
+                if primary_type == 'image':
+                    self.buildImageResource(nameComponents, fullPath, mime)
+                elif primary_type == 'application' and secondary_type in ('x-font-ttf', 'x-font-otf', 'x-font-woff'):
+                    self.buildFontResource(nameComponents, fullPath, mime)
+                else:
+                    self.buildBinaryResource(nameComponents, fullPath, mime)
 
-    def addResourceToMainBundle(self, nameComponents, resource):
-        bundleKey = '/'.join(nameComponents)
-        if bundleKey not in self.mainBundle["Resources"]:
-            self.mainBundle["Resources"][bundleKey] = []
-        self.mainBundle["Resources"][bundleKey].append(resource)
-        if resource["kind"] == "font":
-            self.mainBundle["Fonts"].append(bundleKey)
-
-    def imagePropertiesFromName(self, name):
-        scale = 1
-        matches = re.search("^(.+?)(@(\d)+x)?$", name)
-        if matches is not None:
-            if matches.group(2) is not None:
-                scale = int(matches.group(3))
-                name = matches.group(1)
-        return (name, scale)
-
-    def buildJSONLikeResource(self, nameComponents, obj):
-        resource = dict(
-            kind="object",
+    def buildJSONLikeResource(self, nameComponents, fullPath, obj):
+        metadata = dict(
             value=obj
         )
-        self.addResourceToMainBundle(nameComponents, resource)
-
-    def buildImageAssetResource(self, nameComponents, fullPath):
-        self.updateStatus("Packaging resource %s..." % os.path.basename(fullPath))
-        contentsPath = os.path.join(fullPath, "Contents.json")
-        try:
-            contents = json.load(open(contentsPath), object_pairs_hook=collections.OrderedDict)
-        except Exception as e:
-            raise Exception("Error parsing %s: %s" % (contentsPath, e.message))
-        images = contents.get('images', [])
-        self.watchFile(contentsPath)
-        for image in images:
-            vector = False
-            filename = image.get('filename', '')
-            scaleString = image.get('scale', '')
-            if scaleString:
-                scale = 1
-                matches = re.search('^(\d+)[Xx]$', scaleString)
-                if matches:
-                    scale = int(matches.group(1))
-            else:
-                vector = True
-                scale = None
-            if filename:
-                imageFullPath = os.path.join(fullPath, filename)
-                mimeguess = mimetypes.guess_type(imageFullPath)
-                resource = self.buildImageResource(nameComponents, imageFullPath, mimeguess[0], scale)
-                resource["image"]["vector"] = vector
-
-    def buildImageResource(self, nameComponents, fullPath, mime, scale):
-        self.updateStatus("Packaging resource %s..." % os.path.basename(fullPath))
-        hash_, byte_size = self.hashOfPath(fullPath)
-        info = dict(
-            scale=scale
-        )
-        extractor = ImageInfoExtractor.for_path(fullPath)
-        extractor.populate_dict(info)
-        resource = dict(
-            kind="image",
-            hash=hash_,
-            mimetype=mime,
-            byte_size=byte_size,
-            image=info
-        )
-        self.addResourceToMainBundle(nameComponents, resource)
         self.watchFile(fullPath)
-        return resource
+        return self.mainBundle.addResource(nameComponents, metadata)
+
+    def buildImageResource(self, nameComponents, fullPath, mime):
+        return self.buildBinaryResource(nameComponents, fullPath, mime, dict(image=ImageInfoExtractor.for_path(fullPath)))
 
     def buildFontResource(self, nameComponents, fullPath, mime):
+        return self.buildBinaryResource(nameComponents, fullPath, mime, dict(font=FontInfoExtractor.for_path(fullPath)))
+
+    def buildBinaryResource(self, nameComponents, fullPath, mime, extractors=dict()):
         self.updateStatus("Packaging resource %s..." % os.path.basename(fullPath))
         hash_, byte_size = self.hashOfPath(fullPath)
-        info = dict()
-        extractor = FontInfoExtractor.for_path(fullPath)
-        extractor.populate_dict(info)
-        resource = dict(
-            kind="font",
+        metadata = dict(
             hash=hash_,
             mimetype=mime,
             byte_size=byte_size,
-            font=info
         )
-        self.addResourceToMainBundle(nameComponents, resource)
+        for k in extractors:
+            info = dict()
+            extractor = extractors[k]
+            extractor.populate_dict(info)
+            metadata[k] = info
         self.watchFile(fullPath)
-        return resource
+        return self.mainBundle.addResource(nameComponents, metadata)
 
     @staticmethod
     def hashOfPath(fullPath):
@@ -381,7 +318,6 @@ class Builder(object):
             if os.path.lexists(linkPath):
                 os.unlink(linkPath)
             os.symlink(os.path.relpath(self.outputProjectPath, os.path.dirname(linkPath)), linkPath)
-        self.info = None
 
     def targetUsage(self):
         return None

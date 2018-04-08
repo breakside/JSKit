@@ -103,25 +103,29 @@ class HTMLBuilder(Builder):
         self.appCSS = []
         self.fonts = []
 
-    def buildImageResource(self, nameComponents, fullPath, mime, scale):
-        resource = super(HTMLBuilder, self).buildImageResource(nameComponents, fullPath, mime, scale)
-        info = resource["image"]
+    def buildBinaryResource(self, nameComponents, fullPath, mime, extractors=dict()):
+        resourceIndex = super(HTMLBuilder, self).buildBinaryResource(nameComponents, fullPath, mime, extractors)
+        metadata = self.mainBundle.resources[resourceIndex]
         dontcare, ext = os.path.splitext(os.path.basename(fullPath))
-        outputImagePath = os.path.join(self.outputResourcePath, resource['hash'] + ext)
-        info.update(dict(
-             url=self.absoluteWebPath(outputImagePath)
+        outputPath = os.path.join(self.outputResourcePath, metadata['hash'] + ext)
+        metadata.update(dict(
+             htmlURL=self.absoluteWebPath(outputPath)
         ))
-        shutil.copyfile(fullPath, outputImagePath)
-        self.manifest.append(outputImagePath)
-        return resource
+        shutil.copyfile(fullPath, outputPath)
+        self.manifest.append(outputPath)
+        return resourceIndex
 
     def buildFontResource(self, nameComponents, fullPath, mime):
-        resource = super(HTMLBuilder, self).buildFontResource(nameComponents, fullPath, mime)
-        info = resource["font"]
-        dontcare, ext = os.path.splitext(os.path.basename(fullPath))
-        outputFontPath = os.path.join(self.outputResourcePath, resource['hash'] + ext)
-        url = self.absoluteWebPath(outputFontPath)
-        variants = [(url, None)]
+        resourceIndex = super(HTMLBuilder, self).buildFontResource(nameComponents, fullPath, mime)
+        metadata = self.mainBundle.resources[resourceIndex]
+        info = metadata["font"]
+        variants = [(metadata["htmlURL"], None)]
+        # Early on, this builder made woff variants of ttf font.  Turns out that woff variants
+        # don't make sense anymore:
+        # 1. The point of woff is to compress ttfs...
+        # 2. But with appcache, we'll always download the ttf and woff, which is worse than just ttf
+        # 3. Furthermore, some of our code (PDF processing) epxects to deal with TTF only
+        # 4. And we can alway gzip transfer the ttf at the server/transport level
         # if mime != 'application/x-font-woff':
         #     outputTmpWoffPath = os.path.join(self.outputResourcePath, resource['hash'] + '.woff')
         #     sfnt_to_woff(fullPath, outputTmpWoffPath)
@@ -130,19 +134,14 @@ class HTMLBuilder(Builder):
         #     os.rename(outputTmpWoffPath, outputWoffPath)
         #     variants.insert(0, (self.absoluteWebPath(outputWoffPath), 'woff'))
         #     self.manifest.append(outputWoffPath)
-        info.update(dict(
-            url=url,
-            variants=variants
-        ))
-        shutil.copyfile(fullPath, outputFontPath)
-        self.manifest.append(outputFontPath)
-        self.fonts.append(info)
+        self.fonts.append(dict(info=info, variants=variants))
+        return resourceIndex
 
     def findIncludes(self):
         self.includes.append('main.js')
-        mainSpecName = self.info.get('UIMainDefinitionResource', None)
+        mainSpecName = self.mainBundle.info.get('UIMainDefinitionResource', None)
         if mainSpecName is not None:
-            mainSpec = self.mainBundle["Resources"][mainSpecName][0]["value"]
+            mainSpec = self.mainBundle[mainSpecName]["value"]
             self.findSpecIncludes(mainSpec)
 
     def buildAppCSS(self):
@@ -152,9 +151,9 @@ class HTMLBuilder(Builder):
         fp = open(outputPath, 'w')
         for font in self.fonts:
             fp.write('@font-face {\n')
-            fp.write('  font-family: "%s";\n' % font['family'])
-            fp.write('  font-style: %s;\n' % font['style'])
-            fp.write('  font-weight: %s;\n' % font['weight'])
+            fp.write('  font-family: "%s";\n' % font['info']['family'])
+            fp.write('  font-style: %s;\n' % font['info']['style'])
+            fp.write('  font-weight: %s;\n' % font['info']['weight'])
             fp.write('  src: %s;\n' % ', '.join([self.font_src(variant) for variant in font['variants']]))
             fp.write('}\n\n')
         fp.close()
@@ -171,8 +170,8 @@ class HTMLBuilder(Builder):
         sys.stdout.flush()
         with tempfile.NamedTemporaryFile() as bundleJSFile:
             bundleJSFile.write("'use strict';\n")
-            bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))
-            bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.info['JSBundleIdentifier'])
+            bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug, default=lambda x: x.jsonObject()))
+            bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.mainBundle.info['JSBundleIdentifier'])
             self.jsCompilation = JSCompilation(self.includePaths, minify=not self.debug, combine=not self.debug)
             for path in self.includes:
                 self.jsCompilation.include(path)
@@ -223,7 +222,7 @@ class HTMLBuilder(Builder):
     def buildIndex(self):
         self.updateStatus("Creating index.html...")
         sys.stdout.flush()
-        indexName = self.info.get('UIApplicationHTMLIndexFile', 'index.html')
+        indexName = self.mainBundle.info.get('UIApplicationHTMLIndexFile', 'index.html')
         indexPath = os.path.join(self.projectPath, indexName)
         self.watchFile(indexPath)
         document = HTML5Document(indexPath).domDocument
@@ -234,7 +233,7 @@ class HTMLBuilder(Builder):
         while len(stack) > 0:
             node = stack.pop()
             if node.tagName == 'title' and node.parentNode.tagName == 'head':
-                node.appendChild(document.createTextNode(self.info.get('UIApplicationTitle', '')))
+                node.appendChild(document.createTextNode(self.mainBundle.info.get('UIApplicationTitle', '')))
             elif node.tagName == 'script' and node.getAttribute('type') == 'text/javascript':
                 if not hasInsertedLogger:
                     loggerResource = None
@@ -330,9 +329,9 @@ class HTMLBuilder(Builder):
 
     def buildDocker(self):
         ownerPrefix = ('%s/' % self.dockerOwner) if self.dockerOwner else ''
-        self.dockerIdentifier = "%s%s:%s" % (ownerPrefix, self.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
+        self.dockerIdentifier = "%s%s:%s" % (ownerPrefix, self.mainBundle.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
         self.dockerIdentifier = self.dockerIdentifier.lower()
-        self.dockerName = self.info['JSBundleIdentifier'].lower().replace('.', '_')
+        self.dockerName = self.mainBundle.info['JSBundleIdentifier'].lower().replace('.', '_')
         if not self.dockerBuilt:
             self.updateStatus("Building docker image %s..." % self.dockerIdentifier)
             sys.stdout.flush()

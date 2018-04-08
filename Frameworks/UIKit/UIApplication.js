@@ -117,8 +117,6 @@ JSClass('UIApplication', UIResponder, {
 
 });
 
-UIApplication.InfoPlistName  = "Info";
-
 UIApplication.InfoKeys = {
     MainDefinitionResource: "UIMainDefinitionResource",
     ApplicationDelegate: "UIApplicationDelegate",

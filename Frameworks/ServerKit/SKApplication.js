@@ -85,8 +85,6 @@ SKApplication.ParseLaunchOptions = function(optionDefinitions, rawArguments){
     return options;
 };
 
-SKApplication.InfoPlistName  = "Info";
-
 SKApplication.InfoKeys = {
     MainDefinitionResource: "SKMainDefinitionResource",
     ApplicationDelegate: "SKApplicationDelegate",

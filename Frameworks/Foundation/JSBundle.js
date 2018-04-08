@@ -19,32 +19,57 @@ JSClass('JSBundle', JSObject, {
         this._dict = dict;
     },
 
-    info: function(){
-        return this._dict.Info;
-    },
-
-    resourceNamed: function(name, kind){
-        var resources = this.resourcesNamed(name);
-        for (var i = 0; i < resources.length; ++i){
-            if (resources[i].kind == kind){
-                return resources[i];
+    metadataForResourceName: function(name, ext, subdirectory){
+        var lookupKey = name;
+        if (ext !== undefined && ext !== null){
+            lookupKey += '.' + ext;
+        }
+        if (subdirectory !== undefined && subdirectory !== null){
+            lookupKey = subdirectory + '/' + lookupKey;
+        }
+        var lookup = this._dict.ResourceLookup.global;
+        var hits = lookup[lookupKey];
+        if (hits !== undefined){
+            return this._dict.Resources[hits[0]];
+        }
+        var devlang = this._dict.Info[JSBundle.InfoKeys.developmentLanguage];
+        var langs = [];
+        // TODO: add user-preferred languages
+        if (devlang !== undefined){
+            langs.push(devlang);
+        }
+        for (var i = 0, l = langs.length; i < l; ++i){
+            lookup = this._dict.ResourceLookup[langs[i]];
+            if (lookup){
+                hits = lookup[lookupKey];
+                if (hits !== undefined){
+                    return this._dict.Resources[hits[0]];
+                }
             }
         }
         return null;
     },
 
-    resourcesNamed: function(name){
-        if (this.hasResource(name)){
-            return this._dict.Resources[name];
-        }
-        throw new Error("JSBundle.resourcesNamed: resource '%s' not found".sprintf(name));
+    getResourceData: function(metadata){
     },
 
-    hasResource: function(name){
-        return name in this._dict.Resources;
+    info: function(){
+        return this._dict.Info;
+    },
+
+    fonts: function(){
+        var fonts = [];
+        for (var i = 0, l = this._dict.Fonts.length; i < l; ++i){
+            fonts.push(this._dict.Resources[this._dict.Fonts[i]]);
+        }
+        return fonts();
     }
 
 });
+
+JSBundle.InfoKeys = {
+    developmentLanguage: 'JSDevelopmentLanguage'
+};
 
 JSBundle.bundles = {};
 JSBundle.mainBundleIdentifier = null;

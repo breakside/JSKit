@@ -63,16 +63,16 @@ class TestsBuilder(Builder):
             os.makedirs(self.nginxPath)
         self.appJS = []
 
-    def buildImageResource(self, nameComponents, fullPath, mime, scale):
-        resource = super(TestsBuilder, self).buildImageResource(nameComponents, fullPath, mime, scale)
-        info = resource["image"]
-        outputImagePath = os.path.join(os.path.join(self.outputResourcePath, *nameComponents[:-1]), os.path.basename(fullPath))
-        info.update(dict(
-             url=os.path.relpath(outputImagePath, self.outputProjectPath).replace(os.sep, '/'),
-             path=outputImagePath,
+    def buildBinaryResource(self, nameComponents, fullPath, mime, extractors=dict()):
+        resourceIndex = super(TestsBuilder, self).buildBinaryResource(nameComponents, fullPath, mime, extractors)
+        metadata = self.mainBundle.resources[resourceIndex]
+        outputPath = os.path.join(self.outputResourcePath, *nameComponents)
+        metadata.update(dict(
+             htmlURL=os.path.relpath(outputPath, self.outputProjectPath).replace(os.sep, '/'),
+             nodeBundlePath=outputPath
         ))
-        shutil.copyfile(fullPath, outputImagePath)
-        return resource
+        shutil.copyfile(fullPath, outputPath)
+        return resourceIndex
 
     def findIncludes(self):
         for (dirname, folders, files) in os.walk(self.projectPath):
@@ -83,8 +83,8 @@ class TestsBuilder(Builder):
     def buildHTMLJavascript(self):
         with tempfile.NamedTemporaryFile() as bundleJSFile:
             bundleJSFile.write("'use strict';\n")
-            bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))
-            bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.info['JSBundleIdentifier'])
+            bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug, default=lambda x: x.jsonObject()))
+            bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.mainBundle.info['JSBundleIdentifier'])
             jsCompilation = JSCompilation(self.includePaths, minify=False, combine=False)
             jsCompilation.include('HTMLTestRunner.js')
             for path in self.includes:
@@ -158,8 +158,8 @@ class TestsBuilder(Builder):
         requires = []
         with tempfile.NamedTemporaryFile() as bundleJSFile:
             bundleJSFile.write("'use strict';\n")
-            bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))
-            bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.info['JSBundleIdentifier'])
+            bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug, default=lambda x: x.jsonObject()))
+            bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.mainBundle.info['JSBundleIdentifier'])
             jsCompilation = JSCompilation(self.includePaths, minify=False, combine=False)
             jsCompilation.include('NodeTestRunner.js')
             for path in self.includes:

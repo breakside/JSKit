@@ -55,7 +55,7 @@ class NodeBuilder(Builder):
     def setup(self):
         self.includes = []
         super(NodeBuilder, self).setup()
-        self.outputBundlePath = os.path.join(self.outputProjectPath, self.info.get('JSExecutableName'))
+        self.outputBundlePath = os.path.join(self.outputProjectPath, self.mainBundle.info.get('JSExecutableName'))
         self.outputExecutablePath = os.path.join(self.outputBundlePath, "Node")
         self.outputResourcePath = os.path.join(self.outputBundlePath, "Resources")
         if self.debug:
@@ -67,29 +67,18 @@ class NodeBuilder(Builder):
                         os.unlink(child)
         os.makedirs(self.outputResourcePath)
         self.requires = []
-        self.fonts = []
 
-    def buildImageResource(self, nameComponents, fullPath, mime, scale):
-        resource = super(NodeBuilder, self).buildImageResource(nameComponents, fullPath, mime, scale)
-        info = resource["image"]
-        dontcare, ext = os.path.splitext(os.path.basename(fullPath))
-        outputImagePath = os.path.join(self.outputResourcePath, resource['hash'] + ext)
-        info.update(dict(
-             path=_unixpath(os.path.relpath(outputImagePath, self.outputExecutablePath))
+    def buildBinaryResource(self, nameComponents, fullPath, mime, extractors=dict()):
+        resourceIndex = super(NodeBuilder, self).buildBinaryResource(nameComponents, fullPath, mime, extractors)
+        metadata = self.mainBundle.resources[resourceIndex]
+        outputPath = os.path.join(self.outputResourcePath, *nameComponents)
+        metadata.update(dict(
+             nodeBundlePath=_unixpath(os.path.relpath(outputPath, self.outputBundlePath))
         ))
-        shutil.copyfile(fullPath, outputImagePath)
-        return resource
-
-    def buildFontResource(self, nameComponents, fullPath, mime):
-        resource = super(NodeBuilder, self).buildFontResource(nameComponents, fullPath, mime)
-        info = resource["font"]
-        dontcare, ext = os.path.splitext(os.path.basename(fullPath))
-        outputFontPath = os.path.join(self.outputResourcePath, resource['hash'] + ext)
-        info.update(dict(
-            path=_unixpath(os.path.relpath(outputFontPath, self.outputExecutablePath))
-        ))
-        shutil.copyfile(fullPath, outputFontPath)
-        self.fonts.append(info)
+        if not os.path.exists(os.path.dirname(outputPath)):
+            os.makedirs(os.path.dirname(outputPath))
+        shutil.copyfile(fullPath, outputPath)
+        return resourceIndex
 
     def findIncludes(self):
         loggerResource = None
@@ -98,9 +87,9 @@ class NodeBuilder(Builder):
         else:
             self.includes.append('jslog-release.js')
         self.includes.append('main.js')
-        mainSpecName = self.info.get('SKMainDefinitionResource', None)
+        mainSpecName = self.mainBundle.info.get('SKMainDefinitionResource', None)
         if mainSpecName is not None:
-            mainSpec = self.mainBundle["Resources"][mainSpecName][0]["value"]
+            mainSpec = self.mainBundle[mainSpecName]["value"]
             self.findSpecIncludes(mainSpec)
 
     def buildAppJavascript(self):
@@ -108,8 +97,11 @@ class NodeBuilder(Builder):
         sys.stdout.flush()
         with tempfile.NamedTemporaryFile() as bundleJSFile:
             bundleJSFile.write("'use strict';\n")
-            bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug))
-            bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.info['JSBundleIdentifier'])
+            bundleJSFile.write("var process = require('process');\n")
+            bundleJSFile.write("var path = require('path');\n")
+            bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug, default=lambda x: x.jsonObject()))
+            bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.mainBundle.info['JSBundleIdentifier'])
+            bundleJSFile.write("JSBundle.bundles[JSBundle.mainBundleIdentifier].nodeRootPath = path.dirname(path.dirname(process.argv[1]));\n")
             self.jsCompilation = JSCompilation(self.includePaths, minify=False, combine=False)
             for path in self.includes:
                 self.jsCompilation.include(path)
@@ -129,8 +121,8 @@ class NodeBuilder(Builder):
             self.watchFile(importedPath)
 
     def buildExecutable(self):
-        entryFile, entryFunction = self.info.get('EntryPoint', 'main.js:main').split(':')
-        self.exePath = os.path.join(self.outputExecutablePath, self.info.get('JSExecutableName'))
+        entryFile, entryFunction = self.mainBundle.info.get('EntryPoint', 'main.js:main').split(':')
+        self.exePath = os.path.join(self.outputExecutablePath, self.mainBundle.info.get('JSExecutableName'))
         with open(self.exePath, 'w') as exeJSFile:
             exeJSFile.write("#!/usr/bin/env node\n")
             exeJSFile.write("'use strict';\n\n")
@@ -145,9 +137,9 @@ class NodeBuilder(Builder):
 
     def buildDocker(self):
         ownerPrefix = ('%s/' % self.dockerOwner) if self.dockerOwner else ''
-        self.dockerIdentifier = "%s%s:%s" % (ownerPrefix, self.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
+        self.dockerIdentifier = "%s%s:%s" % (ownerPrefix, self.mainBundle.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
         self.dockerIdentifier = self.dockerIdentifier.lower()
-        self.dockerName = self.info['JSBundleIdentifier'].lower().replace('.', '_')
+        self.dockerName = self.mainBundle.info['JSBundleIdentifier'].lower().replace('.', '_')
         if not self.dockerBuilt:
             self.updateStatus("Building docker image %s..." % self.dockerIdentifier)
             sys.stdout.flush()

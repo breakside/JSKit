@@ -69,48 +69,95 @@ JSImage.DataFormat = {
 JSClass("_JSResourceImage", JSImage, {
 
     bundle: null,
-    resourceName: null,
-    resource: null,
+    metadata: null,
 
     initWithResourceName: function(name, bundle){
-        var idealScale = this.preferredScale();
         this.bundle = bundle || JSBundle.mainBundle;
-        this.resourceName = name;
-        var resources = this.bundle.resourcesNamed(this.resourceName);
-        var resource;
-        for (var i = 0; i < resources.length; ++i){
-            resource = resources[i];
-            if (resource.kind == "image"){
-                if (this.resource === null){
-                    this.resource = resource;
-                }else{
-                    if (resource.image.vector){
-                        this.resource = resource;
+        var ext;
+        var extIndex = name.lastIndexOf('.');
+        var idealScale = this.preferredScale();
+        var i, l;
+        var scale = 1;
+        if (extIndex > 0 && extIndex < name.length - 1){
+            // If the name includes an extension, we're going to look in the bundle for that file
+            ext = name.substr(extIndex + 1);
+            name = name.substr(0, extIndex);
+        }else{
+            // If the name doesn't include an extension, we're going to assume its an image set,
+            // falling back to a png if no imageset is found
+            var set = this.bundle.metadataForResourceName('Contents', 'json', name + '.imageset');
+            if (set !== null){
+                set = set.value;
+                var match = -1;
+                // If we have an image set, search through its images to find the best match for our ideal scale
+                for (i = 0, l = set.images.length; i < l; ++i){
+                    if (!set.images[i].scale){
+                        match = i;
+                        scale = 1;
                         break;
                     }
-                    if (resource.image.scale == idealScale){
-                        this.resource = resource;
-                    }else if (this.resource.image.scale < idealScale && resource.image.scale > this.resource.image.scale){
-                        this.resource = resource;
-                    }else if (this.resource.image.scale > idealScale && resource.image.scale > idealScale && resource.image.scale < this.resource.image.scale){
-                        this.resource = resource;
+                    if (set.images[i].scale == idealScale){
+                        match = i;
+                        scale = idealScale;
+                        break;
                     }
+                    if (match < 0){
+                        match = i;
+                        scale = set.images[match].scale;
+                    }else if (set.images[match].scale < idealScale && set.images[i].scale < set.images[match].scale){
+                        match = i;
+                        scale = set.images[match].scale;
+                    }
+                }
+                if (match >= 0){
+                    this.metadata = this.bundle.metadataForResourceName(set.images[match].filename, null, name + '.imageset');
+                }
+            }else{
+                // If an imageset wasn't found, assume png for the extension
+                ext = 'png';
+            }
+        }
+
+        if (this.metadata === null){
+            // If we haven't found our resource yet, search by name
+            var scaleMatches = name.match(/@(\d)x$/);
+            if (scaleMatches !== null){
+                // If the name already includes a scale, assume it's an exact resource name
+                this.metadata = this.bundle.metadataForResourceName(name, ext);
+                scale = parseInt(scaleMatches[1]);
+            }else{
+                // If there's no scale specified, search for the best scale match
+                var scales = [];
+                switch (idealScale){
+                    case 1:
+                        scales = [{name: name, scale: 1}, {name: name + '@2x', scale: 2}];
+                        break;
+                    case 2:
+                        scales = [{name: name + '@2x', scale: 2}, {name: name, scale: 1}];
+                        break;
+                }
+                for (i = 0, l = scales.length; i < l && this.metadata === null; ++i){
+                    this.metadata = this.bundle.metadataForResourceName(scales[i].name, ext);
+                    scale = scales[i].scale;
                 }
             }
         }
-        if (this.resource === null){
+        if (this.metadata === null){
             return null;
         }
-        _JSResourceImage.$super._initWithPixelSize.call(this, JSSize(this.resource.image.width, this.resource.image.height), this.resource.image.scale || 1);
+        _JSResourceImage.$super._initWithPixelSize.call(this, JSSize(this.metadata.image.width, this.metadata.image.height), scale);
     },
 
     copy: function(){
         var image = _JSResourceImage.init();
         _JSResourceImage.$super.copy.call(this, image);
         image.bundle = this.bundle;
-        image.resourceName = this.resourceName;
-        image.resource = this.resource;
+        image.metadata = this.metadata;
         return image;
+    },
+
+    getData: function(callback){
+        this.bundle.getResourceData(this.metadata, callback);
     }
 
 });
@@ -157,14 +204,10 @@ JSClass("_JSURLImage", JSImage, {
     getData: function(callback){
         var session = JSURLSession.sharedSession;
         var task = session.dataTaskWithURL(this.url, function(error){
-            if (error !== null){
+            if (error !== null || task.response.statusClass != JSURLResponse.StatusClass.success){
                 callback(null);
             }
-            var response = task.response;
-            if (response.statusClass != JSURLResponse.StatusClass.success){
-                callback(null);
-            }
-            callback(response.data);
+            callback(task.response.data);
         });
         task.resume();
     }
