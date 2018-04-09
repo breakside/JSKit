@@ -11,10 +11,10 @@ JSClass("UIImageView", UIView, {
     _previousSize: null,
 
     initWithImage: function(image){
-        var frameThatFits = JSRect(0, 0, image.width, image.height);
+        var frameThatFits = JSRect(0, 0, image.size.width, image.size.height);
+        this._previousSize = JSSize.Zero;
         UIImageView.$super.initWithFrame.call(this, frameThatFits);
         this.image = image;
-        this._previousSize = JSSize.Zero;
         this._scaleImage();
     },
 

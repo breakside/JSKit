@@ -62,7 +62,7 @@ JSClass('JSBundle', JSObject, {
         for (var i = 0, l = this._dict.Fonts.length; i < l; ++i){
             fonts.push(this._dict.Resources[this._dict.Fonts[i]]);
         }
-        return fonts();
+        return fonts;
     }
 
 });

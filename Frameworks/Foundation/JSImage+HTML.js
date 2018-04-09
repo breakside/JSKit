@@ -5,7 +5,7 @@
 
 _JSResourceImage.definePropertiesFromExtensions({
     htmlURLString: function(){
-        return this.resource.image.url;
+        return this.metadata.htmlURL;
     },
 
     preferredScale: function(){

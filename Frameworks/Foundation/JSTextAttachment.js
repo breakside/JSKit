@@ -14,7 +14,7 @@ JSClass("JSTextAttachment", JSObject, {
 
     initWithImage: function(image){
         this._image = image;
-        this._size = JSSize(image.width, image.height);
+        this._size = JSSize(image.size);
     },
 
     layout: function(font, lineWidth){

@@ -13,7 +13,7 @@ JSClass('JSPropertyList', JSObject, {
             ext = name.substr(extIndex + 1);
             name = name.substr(0, extIndex);
         }else{
-            ext = '.json';
+            ext = 'json';
         }
         var metadata = JSBundle.mainBundle.metadataForResourceName(name, ext);
         this.initWithObject(metadata.value);
