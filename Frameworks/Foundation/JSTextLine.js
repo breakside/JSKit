@@ -45,7 +45,6 @@ JSClass("JSTextLine", JSObject, {
     },
 
     verticallyAlignRuns: function(){
-        var height = this._size.height;
         var run;
         var baseline = 0;
         var i, l;
@@ -55,6 +54,13 @@ JSClass("JSTextLine", JSObject, {
                 baseline = run.baseline;
             }
         }
+        var height = this._size.height;
+        for (i = 0, l = this._runs.length; i < l; ++i){
+            if (run.size.height - run.baseline + baseline > height){
+                height = run.size.height - run.baseline + baseline;
+            }
+        }
+        this._size.height = height;
         for (i = 0, l = this._runs.length; i < l; ++i){
             run = this._runs[i];
             run.origin.y = height - baseline + run.baseline - run.size.height;
@@ -193,6 +199,11 @@ JSClass("JSTextLine", JSObject, {
         var tokenRun;
         do {
             run = line.runs[runIndex];
+            // FIXME: attachment font will return a 0-width glyph here, meaning ellipis won't be shown
+            // Fix could be to change the truncatedLine() api to take an already-constructed line as the
+            // token, but then we might not match the font of the final run.  I suppose we only really
+            // want to match the font size of the final run, and international fonts may also miss the 
+            // ellipsis token.
             tokenGlyph = run.font.glyphForCharacter(tokenChar);
             tokenRun = JSTextRun.initWithGlyphs([tokenGlyph], [1], run.font, run.attributes, JSRange.Zero);
             if (line.size.width - run.size.width + tokenRun.size.width <= width){

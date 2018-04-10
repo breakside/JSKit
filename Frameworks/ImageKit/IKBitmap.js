@@ -10,13 +10,15 @@ JSClass('IKBitmap', JSObject, {
 
     size: JSReadOnlyProperty('_size', null),
     data: JSReadOnlyProperty('_data', null),
+    colorSpace: JSReadOnlyProperty('_colorSpace', null),
 
-    initWithData: function(data, size){
+    initWithData: function(data, size, colorSpace){
         if (data === null){
             return null;
         }
         this._data = data;
         this._size = JSSize(size);
+        this.colorSpace = colorSpace || null;
     },
 
     initWithEncodedData: function(data){
@@ -26,7 +28,7 @@ JSClass('IKBitmap', JSObject, {
             return null;
         }
         var info = decoder.decodeData(data);
-        return this.initWithData(info.data, info.size);
+        return this.initWithData(info.data, info.size, info.colorSpace);
     },
 
     encode: function(format, callback){

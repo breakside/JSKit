@@ -3,7 +3,7 @@
 // #import "Foundation/CoreTypes.js"
 // #import "Zlib/Zlib.js"
 // #feature DataView
-/* global JSClass, JSObject, JSBundle, JSReadOnlyProperty, JSFont, JSFontDescriptor, DataView, Zlib, JSRange, UnicodeChar */
+/* global JSClass, JSObject, JSBundle, JSReadOnlyProperty, JSPoint, JSFont, JSFontDescriptor, DataView, Zlib, JSRange, UnicodeChar */
 'use strict';
 
 (function(){
@@ -120,6 +120,61 @@ JSClass("JSFont", JSObject, {
             return this._cache.widths.getUint16(byteOffset) / this._unitsPerEM * this.pointSize;
         }
         return this._cache.widths.getUint16(this._cache.widths.byteLength - 2) / this._unitsPerEM * this.pointSize;
+    },
+
+    drawGlyphsInContextAtPoint: function(glyphs, context, point){
+        // TODO: if this is a color bitmap font (like emojis), use drawImage() instead of showGlyphs()
+        context.save();
+        context.setFont(this);
+        context.showGlyphs(glyphs, [JSPoint(this.origin.x, -this.origin.y - this.font.lineHeight - this.font.descender)]);
+        context.restore();
+    }
+
+});
+
+JSClass("JSAttachmentFont", JSFont, {
+
+    _attachment: null,
+
+    initWithAttachment: function(attachment){
+        this._attachment = attachment;
+        this._fullName = "";
+        this._postScriptName = "";
+        this._faceName = "";
+        this._pointSize = attachment.size.height;
+        this._lineHeight = attachment.size.height;
+        this._descender = attachment.baselineAdjustment;
+        this._ascender = this._lineHeight + this._descender;
+        this._descriptor = JSFontDescriptor.initWithFamily('_JSAttachmentFont+' + attachment.objectID);
+    },
+
+    fontWithStyle: function(){
+        return this;
+    },
+
+    fontWithWeight: function(){
+        return this;
+    },
+
+    glyphForCharacter: function(character){
+        if (character.code === 0xFFFC){
+            return 1;
+        }
+        return 0;
+    },
+
+    widthOfGlyph: function(glyph){
+        if (glyph === 1){
+            return this._attachment.size.width;
+        }
+        return 0;
+    },
+
+    drawGlyphsInContextAtPoint: function(glyphs, context, point){
+        if (glyphs.length != 1 || glyphs[0] != 1){
+            throw new Error("JSAttachmentFont can only draw a single glyph at a time");
+        }
+        this._attachment.drawInContextAtPoint(point);
     }
 
 });

@@ -52,7 +52,6 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     element: null,
     borderElement: null,
     style: null,
-    canvas: null,
     canvasContext: JSDynamicProperty('_canvasContext', null),
     propertiesNeedingUpdate: null,
     needsFullDisplay: false,
@@ -144,6 +143,8 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
         if (this._canvasElementIndex == this._canvasElements.length){
             var canvasElement = this.element.ownerDocument.createElement('canvas');
             canvasElement.style.position = 'absolute';
+            canvasElement.style.width = '100%';
+            canvasElement.style.height = '100%';
             this._canvasElements.push(canvasElement);
         }
         var element = this._canvasElements[this._canvasElementIndex];
@@ -154,12 +155,23 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     getCanvasContext: function(){
         // FIXME: needs to respect state of any prior canvas
         if (!this._canvasContext){
+            var scale = this.element.ownerDocument.defaultView.devicePixelRatio || 1;
             var canvas = this._dequeueReusableCanvasElement();
-            // TODO: size canvas
+            canvas.width = this.size.width * scale;
+            canvas.height = this.size.height * scale;
             this._insertChildElement(canvas);
             this._canvasContext = canvas.getContext('2d');
+            if (scale != 1){
+                this._canvasContext.scale(scale, scale);
+            }
         }
         return this._canvasContext;
+    },
+
+    updateSize: function(size){
+        this.style.width = size.width + 'px';
+        this.style.height = size.height + 'px';
+        this.size = size;
     },
 
     // ----------------------------------------------------------------------
@@ -396,7 +408,6 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     // MARK: - Graphics State
 
     save: function(){
-        UIHTMLDisplayServerContext.$super.save.call(this);
         if (this._canvasContext){
             this._canvasContext.save();
         }
@@ -405,7 +416,6 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
 
 
     restore: function(){
-        UIHTMLDisplayServerContext.$super.restore.call(this);
         if (this._canvasContext){
             this._canvasContext.restore();
         }

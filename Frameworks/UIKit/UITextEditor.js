@@ -7,7 +7,7 @@
 
 JSClass("UITextEditor", JSObject, {
 
-    selectionLayer: null,
+    layoutLayer: null,
     textLayoutManager: null,
     selections: null,
     delegate: null,
@@ -28,7 +28,7 @@ JSClass("UITextEditor", JSObject, {
     _draggingSelectionIndex: null,
 
     initWithTextLayer: function(textLayer){
-        this.selectionLayer = textLayer;
+        this.layoutLayer = textLayer;
         this._cursorLayers = [];
         this._selectionHighlightLayers = [];
         this.textLayoutManager = textLayer.textLayoutManager;
@@ -41,7 +41,7 @@ JSClass("UITextEditor", JSObject, {
 
     setCursorColor: function(cursorColor){
         this._cursorColor = cursorColor;
-        this._selectionHighlightColor = cursorColor.colorWithAlpha(0.3);
+        this._selectionHighlightColor = cursorColor.colorWithAlpha(0.25);
         var i, l;
         for (i = 0, l = this._cursorLayers.length; i < l; ++i){
             this._cursorLayers[i].backgroundColor = this._cursorColor;
@@ -218,7 +218,7 @@ JSClass("UITextEditor", JSObject, {
     _createCursorLayer: function(){
         var layer = UILayer.init();
         layer.backgroundColor = this._cursorColor;
-        this.selectionLayer.addSublayer(layer);
+        this.layoutLayer.addSublayer(layer);
         return layer;
     },
 
@@ -358,7 +358,7 @@ JSClass("UITextEditor", JSObject, {
     _createSelectionHighlightLayer: function(){
         var layer = UILayer.init();
         layer.backgroundColor = this._selectionHighlightColor;
-        this.selectionLayer.addSublayer(layer);
+        this.layoutLayer.addSublayer(layer);
         return layer;
     },
 

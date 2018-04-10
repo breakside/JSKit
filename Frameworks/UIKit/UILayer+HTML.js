@@ -35,8 +35,7 @@ UILayer.definePropertiesFromExtensions({
     },
 
     updateHTMLProperty_bounds: function(context){
-        context.style.width = this.presentation.bounds.size.width + 'px';
-        context.style.height = this.presentation.bounds.size.height + 'px';
+        context.updateSize(this.presentation.bounds.size);
     },
 
     updateHTMLProperty_transform: function(context){

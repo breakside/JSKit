@@ -159,6 +159,7 @@ JSClass("PDFContext", JSContext, {
             }
             pdfimage.Width = bitmap.size.width;
             pdfimage.Height = bitmap.size.height;
+            // TODO: embed icc profile from bitmap, if present
             pdfimage.ColorSpace = PDFColorSpaceObject.Builtin.deviceRGB;
             pdfimage.BitsPerComponent = 8;
             writer.beginStreamObject(pdfimage);
@@ -325,7 +326,7 @@ JSClass("PDFContext", JSContext, {
         this.save();
         var transform = JSAffineTransform.Translated(rect.origin.x, rect.origin.y + rect.size.height).scaledBy(rect.size.width, -rect.size.height);
         this.concatenate(transform);
-        this._writeStreamData("%N Do", info.resourceName);
+        this._writeStreamData("%N Do ", info.resourceName);
         this.restore();
     },
 
@@ -369,6 +370,7 @@ JSClass("PDFContext", JSContext, {
     },
 
     showGlyphs: function(glyphs, points){
+        // TODO: if any glyphs are bitmaps (like in emoji fonts), might need to draw them as images
         var chars = this._font.charactersForGlyphs(glyphs);
         var info = this._infoForFont(this._font);
         var encoded = this._encodedString(chars, info);
@@ -377,10 +379,10 @@ JSClass("PDFContext", JSContext, {
         info.hasMacEncoding = info.hasMacEncoding || encoded.isMacEncoding;
         info.hasUTF16Encoding = info.hasUTF16Encoding || !encoded.isMacEncoding;
         // TODO: positioning
-        this._writeStreamData("BT %N %n Tf", encoded.fontResourceName, this._font.pointSize);
+        this._writeStreamData("BT %N %n Tf ", encoded.fontResourceName, this._font.pointSize);
         this._writeStreamData("%n %n %n %n %n %n Tm ", tm.a, tm.b, tm.c, tm.d, tm.tx, tm.ty);
-        this._writeStreamData("%n %n Td", points[0].x, points[0].y);
-        this._writeStreamData("%S Tj", encoded.string);
+        this._writeStreamData("%n %n Td ", points[0].x, points[0].y);
+        this._writeStreamData("%S Tj ", encoded.string);
         this._writeStreamData("ET ");
     },
 

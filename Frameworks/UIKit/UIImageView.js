@@ -15,6 +15,7 @@ JSClass("UIImageView", UIView, {
         this._previousSize = JSSize.Zero;
         UIImageView.$super.initWithFrame.call(this, frameThatFits);
         this.image = image;
+        this.backgroundColor = null;
         this._scaleImage();
     },
 

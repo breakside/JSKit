@@ -595,6 +595,12 @@ JSClass("UILayer", JSObject, {
     },
 
     renderInContext: function(context){
+        if (this._displayServer !== null){
+            var displayContext = this._displayServer.contextForLayer(this);
+            if (context === displayContext){
+                return;
+            }
+        }
         this._renderInContext(context, true);
     },
 

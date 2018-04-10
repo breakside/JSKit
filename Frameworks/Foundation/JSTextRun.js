@@ -15,6 +15,7 @@ JSClass("JSTextRun", JSObject, {
     glyphCharacterLengths: null,
     attributes: null,
     font: null,
+    attachment: null,
 
     initWithGlyphs: function(glyphs, glyphCharacterLengths, font, attributes, range){
         this.glyphs = glyphs;
@@ -31,8 +32,6 @@ JSClass("JSTextRun", JSObject, {
     },
 
     drawInContextAtPoint: function(context, point){
-        // TODO: attachments
-        
         // debugging
         // context.save();
         // context.setFillColor(JSColor.initWithRGBA(1.0, 0.9, 0.9, 1.0));
@@ -40,12 +39,7 @@ JSClass("JSTextRun", JSObject, {
         // context.strokeRect(JSRect(this.origin, this.size));
         // context.fillEllipseInRect(JSRect(this.origin.x - 2.5, this.origin.y - 2.5, 5, 5));
         // context.restore();
-
-        context.save();
-        context.setFont(this.font);
-        context.showGlyphs(this.glyphs, [JSPoint(this.origin.x, -this.origin.y - this.font.lineHeight - this.font.descender)]);
-
-        context.restore();
+        this.font.drawGlyphsInContextAtPoint(this.glyphs, context, point);
     },
 
     characterIndexAtPoint: function(point){

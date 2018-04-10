@@ -12,9 +12,12 @@ JSClass("JSTextAttachment", JSObject, {
         this._size = JSSize.Zero;
     },
 
-    initWithImage: function(image){
+    initWithImage: function(image, size){
+        if (size === undefined){
+            size = image.size;
+        }
         this._image = image;
-        this._size = JSSize(image.size);
+        this._size = JSSize(size);
     },
 
     layout: function(font, lineWidth){

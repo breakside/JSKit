@@ -110,7 +110,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         var context = this.contextForLayer(layer);
         if (context.needsFullDisplay){
             context.resetForDisplay();
-            layer._renderInContext(context, false);
+            layer.display();
             context.cleanupAfterDisplay();
         }else{
             context.drawLayerProperties(layer);
