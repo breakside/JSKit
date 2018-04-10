@@ -1,14 +1,20 @@
+// https://www.w3.org/TR/2003/REC-PNG-20031110/
 // #import "ImageKit/IKDecoder.js"
+// #import "ImageKit/IKBitmap.js"
+// #import "ImageKit/IKColorSpace.js"
 // #import "Zlib/Zlib.js"
 /* feature DataView, ArrayBuffer */
-/* global IKDecoder, JSClass, JSSize, DataView, JSPoint, IKDecoderPNG, ZlibStream, ArrayBuffer, JSData */
+/* global IKDecoder, IKBitmap, JSClass, JSSize, DataView, JSPoint, IKDecoderPNG, ZlibStream, ArrayBuffer, JSData, IKColorSpace */
 'use strict';
 
 (function(){
 
 JSClass("IKDecoderPNG", IKDecoder, {
 
+    format: IKBitmap.Format.png,
+
     bitmapBytes: null,
+    colorSpace: null,
     size: null,
     bitDepth: 0,
     colorType: 0,
@@ -59,7 +65,8 @@ JSClass("IKDecoderPNG", IKDecoder, {
             this.dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
             this.readSections();
         }
-        return {data: JSData.initWithBytes(this.bitmapBytes), size: this.size};
+        var bitmapData = JSData.initWithBytes(this.bitmapBytes);
+        return IKBitmap.initWithData(bitmapData, this.size, this.colorSpace);
     },
 
     readSections: function(){
@@ -211,7 +218,12 @@ JSClass("IKDecoderPNG", IKDecoder, {
         if (this.dataStream !== null || this.bitmapBytes === null || this.sRGB !== null){
             return;
         }
-        // TODO: if we want to support color profiles
+        // IKBitmap is currently defined as only supporting the sRGBA color space
+        // So it only makes sense to use the color space info if either:
+        // 1. We do the conversion to sRGB ourselves
+        // 2. We update IKBitmap to allow different color spaces and do no coversion ourselves
+        // var data = JSData.initWithBytes(bytes);
+        // this.colorSpace = IKColorSpace.initWithProfileData(bytes);
     },
 
     read_sRGB: function(bytes){

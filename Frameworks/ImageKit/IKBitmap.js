@@ -18,7 +18,7 @@ JSClass('IKBitmap', JSObject, {
         }
         this._data = data;
         this._size = JSSize(size);
-        this.colorSpace = colorSpace || null;
+        this._colorSpace = colorSpace || null;
     },
 
     initWithEncodedData: function(data){
@@ -27,8 +27,7 @@ JSClass('IKBitmap', JSObject, {
         if (decoder === null){
             return null;
         }
-        var info = decoder.decodeData(data);
-        return this.initWithData(info.data, info.size, info.colorSpace);
+        return decoder.decodeData(data);
     },
 
     encode: function(format, callback){
@@ -37,7 +36,7 @@ JSClass('IKBitmap', JSObject, {
             callback(null);
             return;
         }
-        encoder.encodeData(this._data, callback);
+        encoder.encodeBitmap(this);
     },
 
     close: function(){

@@ -1,5 +1,6 @@
 // #import "Foundation/JSObject.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSSize, JSRect */
+// #import "Foundation/JSImage.js"
+/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSSize, JSRect, JSImage */
 'use strict';
 
 JSClass("JSTextAttachment", JSObject, {
@@ -18,6 +19,11 @@ JSClass("JSTextAttachment", JSObject, {
         }
         this._image = image;
         this._size = JSSize(size);
+    },
+
+    initWithImageName: function(name, size){
+        var image = JSImage.initWithResourceName(name);
+        this.initWithImage(image, size);
     },
 
     layout: function(font, lineWidth){

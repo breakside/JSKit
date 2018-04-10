@@ -261,7 +261,7 @@ class Builder(object):
                 primary_type, secondary_type = mime.split('/')
                 if primary_type == 'image':
                     self.buildImageResource(nameComponents, fullPath, mime)
-                elif primary_type == 'application' and secondary_type in ('x-font-ttf', 'x-font-otf', 'x-font-woff'):
+                elif (primary_type == 'font' and secondary_type in ('ttf',)) or (primary_type == 'application' and secondary_type in ('x-font-ttf', 'x-font-otf', 'x-font-woff')):
                     self.buildFontResource(nameComponents, fullPath, mime)
                 else:
                     self.buildBinaryResource(nameComponents, fullPath, mime)

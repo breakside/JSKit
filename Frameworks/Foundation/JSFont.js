@@ -126,7 +126,7 @@ JSClass("JSFont", JSObject, {
         // TODO: if this is a color bitmap font (like emojis), use drawImage() instead of showGlyphs()
         context.save();
         context.setFont(this);
-        context.showGlyphs(glyphs, [JSPoint(this.origin.x, -this.origin.y - this.font.lineHeight - this.font.descender)]);
+        context.showGlyphs(glyphs, [JSPoint(point.x, -point.y - this.lineHeight - this.descender)]);
         context.restore();
     }
 
@@ -174,7 +174,7 @@ JSClass("JSAttachmentFont", JSFont, {
         if (glyphs.length != 1 || glyphs[0] != 1){
             throw new Error("JSAttachmentFont can only draw a single glyph at a time");
         }
-        this._attachment.drawInContextAtPoint(point);
+        this._attachment.drawInContextAtPoint(context, point);
     }
 
 });

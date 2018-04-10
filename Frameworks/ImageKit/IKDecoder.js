@@ -5,16 +5,23 @@
 JSClass("IKDecoder", JSObject, {
 
     initWithFormat: function(format){
-        switch (format){
-            case IKBitmap.Format.png:
-                return IKDecoderPNG.init();
-            case IKBitmap.Format.jpeg:
-                return IKDecoderJPEG.init();
+        var decoderClass = IKDecoder.DecoderClassesByFormat[format];
+        if (decoderClass !== undefined){
+            return decoderClass.init();
         }
         return null;
     },
 
     decodeData: function(data){
+        return null;
     }
 
 });
+
+IKDecoder.DecoderClassesByFormat = {};
+
+IKDecoder.$extend = function(extensions, name){
+    var subclass = JSClass.prototype.$extend.call(this, extensions, name);
+    this.DecoderClassesByFormat[extensions.format] = subclass;
+    return subclass;
+};

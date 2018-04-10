@@ -1,20 +1,26 @@
 // #import "Foundation/Foundation.js"
-/* global JSObject, JSClass, IKDecoder, IKBitmap, IKDecoderPNG, IKDecoderJPEG */
+/* global JSObject, JSClass, IKEncoder */
 'use strict';
 
 JSClass("IKEncoder", JSObject, {
 
     initWithFormat: function(format){
-        switch (format){
-            case IKBitmap.Format.png:
-                return IKDecoderPNG.init();
-            case IKBitmap.Format.jpeg:
-                return IKDecoderJPEG.init();
+        var encoderClass = IKEncoder.EncoderClassesByFormat[format];
+        if (encoderClass !== undefined){
+            return encoderClass.init();
         }
         return null;
     },
 
-    decodeData: function(data, callback){
+    encodeBitmap: function(bitmap){
     }
 
 });
+
+IKEncoder.EncoderClassesByFormat = {};
+
+IKEncoder.$extend = function(extensions, name){
+    var subclass = JSClass.prototype.$extend.call(this, extensions, name);
+    this.EncoderClassesByFormat[extensions.format] = subclass;
+    return subclass;
+};

@@ -1,5 +1,6 @@
 // #import "Foundation/JSObject.js"
-/* global JSClass, JSReadOnlyProperty, JSObject, JSAttributedString, JSRange, JSCopy */
+// #import "Foundation/JSTextAttachment.js"
+/* global JSClass, JSReadOnlyProperty, JSObject, JSAttributedString, JSRange, JSCopy, JSTextAttachment */
 'use strict';
 
 (function(){
@@ -40,6 +41,11 @@ JSClass("JSAttributedString", JSObject, {
         this.initWithString(JSAttributedString.SpecialCharacter.AttachmentUTF16, attributes);
     },
 
+    initWithImageAttachmentName: function(name, size){
+        var attachment = JSTextAttachment.initWithImageName(name, size);
+        this.initWithAttachment(attachment);
+    },
+
     // MARK: - Getting the unattributed string value
 
     getString: function(){
@@ -54,6 +60,14 @@ JSClass("JSAttributedString", JSObject, {
 
     appendAttributedString: function(attributedString){
         this.replaceCharactersInRangeWithAttributedString(JSRange(this._string.length, 0), attributedString);
+    },
+
+    insertString: function(string, index){
+        this.replaceCharactersInRangeWithString(JSRange(index, 0), string);
+    },
+
+    insertAttributedString: function(attributedString, index){
+        this.replaceCharactersInRangeWithAttributedString(JSRange(index, 0), attributedString);
     },
 
     deleteCharactersInRange: function(range){
