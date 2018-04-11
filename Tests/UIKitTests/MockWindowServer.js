@@ -17,14 +17,14 @@ JSClass("MockDisplayServer", UIDisplayServer, {
 
     rootContext: null,
     rootLayers: null,
-    contextsByLayerID: null,
+    contextsByObjectID: null,
     updateNeeded: true,
     layerChangeCallback: null,
 
     init: function(){
         MockDisplayServer.$super.init.call(this);
         this.rootLayers = [];
-        this.contextsByLayerID = {};
+        this.contextsByObjectID = {};
         this.rootContext = MockDisplayContext.init();
     },
 
@@ -32,7 +32,7 @@ JSClass("MockDisplayServer", UIDisplayServer, {
         layer._displayServer = this;
         var parentContext;
         if (layer.superlayer){
-            parentContext = this.contextsByLayerID[layer.superlayer.objectID];
+            parentContext = this.contextsByObjectID[layer.superlayer.objectID];
         }else{
             parentContext = this.rootContext;
             this.rootLayers.push(layer);
@@ -54,8 +54,8 @@ JSClass("MockDisplayServer", UIDisplayServer, {
     },
 
     layerRemoved: function(layer){
-        if (this.contextsByLayerID[layer.objectID]){
-            delete this.contextsByLayerID[layer.objectID];
+        if (this.contextsByObjectID[layer.objectID]){
+            delete this.contextsByObjectID[layer.objectID];
         }
         if (layer.superlayer === null){
             for (var i = this.rootLayers.length - 1; i >= 0; --i){
@@ -83,10 +83,10 @@ JSClass("MockDisplayServer", UIDisplayServer, {
     },
 
     contextForLayer: function(layer){
-        var context = this.contextsByLayerID[layer.objectID];
+        var context = this.contextsByObjectID[layer.objectID];
         if (context === undefined){
             context = MockDisplayContext.init();
-            this.contextsByLayerID[layer.objectID] = context;
+            this.contextsByObjectID[layer.objectID] = context;
         }
         return context;
     },

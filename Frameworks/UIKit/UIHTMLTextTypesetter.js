@@ -17,10 +17,12 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
     _element: null,
     _cachedLayout: null,
     _suggestionCache: null,
+    _htmlDisplayServer: null,
 
-    initWithDocument: function(domDocument){
+    initWithDocument: function(domDocument, htmlDisplayServer){
         UIHTMLTextTypesetter.$super.init.call(this);
         this._domDocument = domDocument;
+        this._htmlDisplayServer = htmlDisplayServer;
         if (sharedElement === null){
             sharedElement = domDocument.createElement('div');
             sharedElement.style.position = 'absolute';
@@ -93,7 +95,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
             }
             runDescriptor = UIHTMLTextTypesetterRunDescriptor(span, runIterator.attributes, runIterator.range.intersection(remainingRange), attachment);
             runDescriptors.push(runDescriptor);
-            remainingRange.advance(utf16.length);
+            remainingRange.advance(runIterator.range.length);
             runIterator.increment();
             ++i;
         }
@@ -128,21 +130,36 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         var element = this._createLineElement();
         var fragment;
         var runs = [];
+        var attachments = [];
         var run;
         for (i = 0, l = fragments.length; i < l; ++i){
             fragment = fragments[i];
             var span = fragment.runDescriptor.span.cloneNode(false);
             if (!fragment.runDescriptor.attachment){
                 span.appendChild(span.ownerDocument.createTextNode(this.attributedString.string.substringInRange(fragment.range)));
+            }else{
+                // FIXME:
+                // 1. Want context for attachment to be resuable to minimize dom manipulations, but
+                //    also need a distinct context per text frame that uses this string+attachment
+                // 2. Need a way to tell the display server that the context can be destroyed
+                attachments.push({
+                    context: this._htmlDisplayServer.contextForAttachment(fragment.runDescriptor.attachment, span),
+                    attachment: fragment.runDescriptor.attachment
+                });
+                var div = span.ownerDocument.createElement('div');
+                div.style.position = 'absolute';
+                div.appendChild(span.ownerDocument.createTextNode('a'));
+                span.appendChild(div);
+                span.style.backgroundColor = 'red';
             }
             run = UIHTMLTextRun.initWithElement(span, fragment.runDescriptor.font, fragment.runDescriptor.attributes, fragment.range);
-            if (fragment.runDescriptor.attachment){
-                var context = UIHTMLDisplayServerContext.initWithElement(span);
-                fragment.runDescriptor.attachment.drawInContext(context);
-            }
             runs.push(run);
         }
-        return UIHTMLTextLine.initWithElement(element, runs, 0);
+
+        // NOTE: Deferring calculation of trailingWhitespaceWidth until all the lines are done and added to
+        // a frame, otherwise unecessary and expensive browser layout operations will be triggered.
+
+        return UIHTMLTextLine.initWithElement(element, runs, 0, attachments);
     },
 
     _createLineElement: function(){
@@ -156,7 +173,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         var attributes = this._attributedString.attributesAtIndex(range.location);
         var font = JSTextTypesetter.FontFromAttributes(attributes);
         var element = this._createLineElement();
-        return UIHTMLTextLine.initWithElementAndFont(element, font, font.htmlLineHeight + 4, range.location);
+        return UIHTMLTextLine.initWithElementAndFont(element, font, font.htmlLineHeight, range.location);
     },
 
     suggestLineBreak: function(width, range, lineBreakMode){
@@ -265,7 +282,7 @@ UIHTMLTextTypesetterRunDescriptor.prototype = {
             this.span.style.position = 'relative';
             this.span.style.width = '%dpx'.sprintf(this.attachment.size.width);
             this.span.style.height = '%dpx'.sprintf(this.attachment.size.height);
-            this.span.style.verticalAlign = 'bottom';
+            this.span.style.verticalAlign = '%dpx'.sprintf(this.attachment.baselineAdjustment);
             this.span.style.font = '';
             this.span.style.textDecoration = '';
             this.span.style.color = '';
@@ -278,7 +295,7 @@ UIHTMLTextTypesetterRunDescriptor.prototype = {
             this.span.style.verticalAlign = '';
             // Font
             var font = JSTextTypesetter.FontFromAttributes(this.attributes);
-            this.span.style.font = font.cssString(font.htmlLineHeight + 4);
+            this.span.style.font = font.cssString(font.htmlLineHeight);
 
             // Decorations (underline, strike)
             var decorations = [];

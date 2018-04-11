@@ -389,25 +389,21 @@ JSClass("UILayer", JSObject, {
             otherStack.push(stackLayer);
             stackLayer = stackLayer.superlayer;
         }
-        var commonAncestor = null;
         while (ourStack.length > 0 && otherStack.length > 0 && ourStack[ourStack.length - 1] === otherStack[otherStack.length - 1]){
-            commonAncestor = ourStack.pop();
+            ourStack.pop();
             otherStack.pop();
         }
-        if (layer === null || commonAncestor !== null){
-            var convertedPoint = JSPoint(point);
-            var i, l;
-            for (i = 0, l = ourStack.length; i < l; ++i){
-                stackLayer = ourStack[i];
-                convertedPoint = stackLayer._convertPointToSuperlayer(convertedPoint);
-            }
-            for (i = otherStack.length - 1; i >= 0; --i){
-                stackLayer = otherStack[i];
-                convertedPoint = stackLayer._convertPointFromSuperlayer(convertedPoint);
-            }
-            return convertedPoint;
+        var convertedPoint = JSPoint(point);
+        var i, l;
+        for (i = 0, l = ourStack.length; i < l; ++i){
+            stackLayer = ourStack[i];
+            convertedPoint = stackLayer._convertPointToSuperlayer(convertedPoint);
         }
-        return null;
+        for (i = otherStack.length - 1; i >= 0; --i){
+            stackLayer = otherStack[i];
+            convertedPoint = stackLayer._convertPointFromSuperlayer(convertedPoint);
+        }
+        return convertedPoint;
     },
 
     // -------------------------------------------------------------------------
@@ -620,14 +616,6 @@ JSClass("UILayer", JSObject, {
                 context.restore();
             }
         }
-    },
-
-    _isDisplayContext: function(context){
-        if (this._displayServer !== null){
-            var displayContext = this._displayServer.contextForLayer(this);
-            return context === displayContext;
-        }
-        return false;
     }
 
 });

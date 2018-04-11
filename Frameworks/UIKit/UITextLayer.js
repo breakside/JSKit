@@ -140,18 +140,6 @@ JSClass("UITextLayer", UILayer, {
         var textOrigin = JSPoint(this._textInsets.left, this._textInsets.top);
         this._textLayoutManager.layoutIfNeeded();
         this._textLayoutManager.drawContainerInContextAtPoint(this._textContainer, context, textOrigin);
-        // if (this._isDisplayContext(context)){
-        // }else{
-        //     var layoutManager = JSTextLayoutManager.init();
-        //     var textContainer = JSTextContainer.initWithSize(this._textContainer.size);
-        //     textContainer.maximumNumberOfLines = this._textContainer.maximumNumberOfLines;
-        //     textContainer.lineBreakMode = this._textContainer.lineBreakMode;
-        //     textContainer.textAlignment = this._textContainer.textAlignment;
-        //     layoutManager.addTextContainer(textContainer);
-        //     this._textStorage.addLayoutManager(layoutManager);
-        //     textContainer.textFrame.drawInContextAtPoint(context, textOrigin);
-        //     this._textStorage.removeLayoutManagerAtIndex(1);
-        // }
     },
 
     sizeToFit: function(){

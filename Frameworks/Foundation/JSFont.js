@@ -142,8 +142,8 @@ JSClass("JSAttachmentFont", JSFont, {
         this._postScriptName = "";
         this._faceName = "";
         this._pointSize = attachment.size.height;
-        this._lineHeight = attachment.size.height;
-        this._descender = attachment.baselineAdjustment;
+        this._lineHeight = attachment.size.height + Math.max(0, attachment.baselineAdjustment);
+        this._descender = Math.min(0, attachment.baselineAdjustment);
         this._ascender = this._lineHeight + this._descender;
         this._descriptor = JSFontDescriptor.initWithFamily('_JSAttachmentFont+' + attachment.objectID);
     },

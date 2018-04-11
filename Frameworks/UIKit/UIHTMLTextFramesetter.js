@@ -12,8 +12,8 @@ JSClass("UIHTMLTextFramesetter", JSTextFramesetter, {
     _htmlTypesetter: null,
     _reusableFrameElement: null,
 
-    initWithDocument: function(domDocument){
-        this._htmlTypesetter = UIHTMLTextTypesetter.initWithDocument(domDocument);
+    initWithDocument: function(domDocument, htmlDisplayServer){
+        this._htmlTypesetter = UIHTMLTextTypesetter.initWithDocument(domDocument, htmlDisplayServer);
         UIHTMLTextFramesetter.$super.initWithTypesetter.call(this, this._htmlTypesetter);
         this._domDocument = domDocument;
     },

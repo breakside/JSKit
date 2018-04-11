@@ -33,7 +33,7 @@ JSClass("UIButton", UIControl, {
     },
 
     commonUIButtonInit: function(){
-        this._titleLabel = UILabel.initWithConstraintBox(JSConstraintBox.Margin(1, 0));
+        this._titleLabel = UILabel.initWithConstraintBox(JSConstraintBox.Margin(3));
         this._titleLabel.textAlignment = JSTextAlignment.center;
         this._titleLabel.backgroundColor = JSColor.clearColor();
         this.addSubview(this._titleLabel);

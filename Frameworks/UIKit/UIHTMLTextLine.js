@@ -9,19 +9,22 @@ JSClass("UIHTMLTextLine", JSTextLine, {
 
     element: null,
     emptyTextNode: null,
+    attachments: null,
 
     initWithElementAndFont: function(element, font, height, location){
         UIHTMLTextLine.$super.initWithHeight.call(this, height, location);
         this.element = element;
         element.style.font = font.cssString(height);
         this.emptyTextNode = element.appendChild(element.ownerDocument.createTextNode('\u200B'));
+        this.attachments = [];
     },
 
-    initWithElement: function(element, runs, trailingWhitespaceWidth){
+    initWithElement: function(element, runs, trailingWhitespaceWidth, attachments){
         // constructing this.element before super init because super init calls
         // this.align, which neesd to use this.element
         UIHTMLTextLine.$super.initWithRuns.call(this, runs, trailingWhitespaceWidth);
         this.element = element;
+        this.attachments = attachments || [];
         var run;
         for (var i = 0, l = runs.length; i < l; ++i){
             run = this.runs[i];

@@ -278,7 +278,6 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
             var imageElement = this.element.ownerDocument.createElement('div');
             imageElement.style.position = 'absolute';
             imageElement.style.borderColor = 'transparent';
-            imageElement.style.borderStyle = 'solid';
             imageElement.style.boxSizing = 'border-box';
             imageElement.style.mozBoxSizing = 'border-box';
             this._imageElements.push(imageElement);

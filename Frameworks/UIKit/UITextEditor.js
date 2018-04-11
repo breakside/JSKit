@@ -12,7 +12,7 @@ JSClass("UITextEditor", JSObject, {
     selections: null,
     delegate: null,
     cursorColor: JSDynamicProperty('_cursorColor', null),
-    cursorWidth: 1.0,
+    cursorWidth: 2.0,
     repeatedClickTimeout: 0.2,
     _isFirstResponder: false,
     _cursorBlinkRate: 0.5,
@@ -270,7 +270,7 @@ JSClass("UITextEditor", JSObject, {
         if (container === null){
             return JSRect.Zero;
         }
-        var rect = container.rectForCharacterAtIndex(index);
+        var rect = container.rectForCharacterAtIndex(index, true);
         var x = rect.origin.x;
         if (useRightEdge){
             x += rect.size.width;

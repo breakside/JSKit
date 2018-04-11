@@ -1,6 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIHTMLTextLine.js"
-/* global JSClass, JSTextFrame, UIHTMLTextFrame, UIHTMLTextLine, JSAttributedString, JSRange, JSFont, JSPoint, JSRect, JSSize */
+// #import "UIKit/UIHTMLDisplayServerContext.js"
+/* global JSClass, JSTextFrame, UIHTMLTextFrame, UIHTMLTextLine, JSAttributedString, JSRange, JSFont, JSPoint, JSRect, JSSize, UIHTMLDisplayServerContext */
 'use strict';
 
 (function(){
@@ -8,11 +9,14 @@
 JSClass("UIHTMLTextFrame", JSTextFrame, {
 
     element: null,
+    attachments: null,
 
     initWithElement: function(element, lines, size, textAlignment){
         this.element = element;
+        this.attachments = [];
         var line;
         var i, l;
+        var j, k;
 
         // add all the lines to our element
         for (i = 0, l = lines.length; i < l; ++i){
@@ -20,6 +24,9 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             if (line.element.parentNode !== this.element){
                 line.element.style.position = 'absolute';
                 this.element.appendChild(line.element);
+            }
+            for (j = 0, k = line.attachments.length; j < k; ++j){
+                this.attachments.push(line.attachments[j]);
             }
         }
 
@@ -38,7 +45,7 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             line._origin = JSPoint(0, y);
             line._size = JSSize(lineClientRect.width, lineClientRect.height);
             y += line._size.height;
-            for (var j = 0, k = line.runs.length; j < k; ++j){
+            for (j = 0, k = line.runs.length; j < k; ++j){
                 run = line.runs[j];
                 runClientRect = run.element.getBoundingClientRect();
                 run._origin = JSPoint(runClientRect.x - lineClientRect.x, runClientRect.y - lineClientRect.y);
@@ -47,6 +54,9 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             // measure any trailing whitespace
             for (j = line.runs.length - 1; j >= 0; --j){
                 run = line.runs[j];
+                if (!run.textNode || run.textNode.nodeValue.length === 0){
+                    break;
+                }
                 iterator = run.textNode.nodeValue.unicodeIterator(run.textNode.nodeValue.length);
                 iterator.decrement();
                 while (iterator.index > 0 && iterator.isWhiteSpace){
@@ -78,13 +88,21 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
     },
 
     drawInContextAtPoint: function(context, point){
-        if (this.element.style.visibility == 'hidden'){
-            this.element.style.visibility = '';
+        if (context.isKindOfClass(UIHTMLDisplayServerContext)){
+            if (this.element.style.visibility == 'hidden'){
+                this.element.style.visibility = '';
+            }
+            this.element.style.left = '%dpx'.sprintf(point.x);
+            this.element.style.top = '%dpx'.sprintf(point.y);
+            context.addExternalElement(this.element);
+            var attachmentInfo;
+            for (var i = 0, l = this.attachments.length; i < l; ++i){
+                attachmentInfo = this.attachments[i];
+                attachmentInfo.attachment.drawInContextAtPoint(attachmentInfo.context, JSPoint.Zero);
+            }
+        }else{
+            UIHTMLTextFrame.$super.drawInContextAtPoint.call(this, context, point);
         }
-        this.element.style.left = '%dpx'.sprintf(point.x);
-        this.element.style.top = '%dpx'.sprintf(point.y);
-        var line;
-        context.addExternalElement(this.element);
     },
 
 });

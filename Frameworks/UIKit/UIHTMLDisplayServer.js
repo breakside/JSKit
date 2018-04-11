@@ -22,7 +22,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     rootBounds: null,
     displayFrameID: null,
     _displayFrameBound: null,
-    contextsByLayerID: null,
+    contextsByObjectID: null,
 
     // -------------------------------------------------------------------------
     // MARK: - HTML Display Setup
@@ -34,7 +34,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         this.domDocument = this.rootElement.ownerDocument;
         this.domWindow = this.domDocument.defaultView;
         this.rootLayers = [];
-        this.contextsByLayerID = {};
+        this.contextsByObjectID = {};
         this._displayFrameBound = this.displayFrame.bind(this);
         this.determineRootBounds();
         // TODO: fill in system fonts
@@ -133,28 +133,66 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     },
 
     contextForLayer: function(layer){
-        var context = this.contextsByLayerID[layer.objectID];
+        var context = this.contextsByObjectID[layer.objectID];
         if (context === undefined){
             var element = this.domDocument.createElement('div');
             context = UIHTMLDisplayServerContext.initWithElement(element);
-            layer.initializeHTMLContext(context);
-            context.layerManagedNodeCount = context.element.childNodes.length;
-            context.firstSublayerNodeIndex = context.layerManagedNodeCount;
-            if (element.dataset){
-                element.dataset.layerId = layer.objectID;
-                if (layer.delegate !== null){
-                    if (layer.delegate.isKindOfClass(UIView) && layer.delegate.layer !== layer){
-                        element.dataset.layerClass = layer.$class.className;
-                    }else{
-                        element.dataset.viewClass = layer.delegate.$class.className;
-                    }
-                }else{
-                    element.dataset.layerClass = layer.$class.className;
-                }
-            }
-            this.contextsByLayerID[layer.objectID] = context;
+            this.associateContextWithLayer(context, layer);
         }
         return context;
+    },
+
+    contextForAttachment: function(attachment, parentElement){
+        var context;
+        if (attachment.isKindOfClass(UITextAttachmentView)){
+            var layer = attachment.view.layer;
+            context = this.contextForLayer(layer);
+            if (layer._displayServer === null){
+                layer._displayServer = this;
+                if (layer._needsLayout){
+                    this.setLayerNeedsLayout(layer);
+                    layer._needsLayout = false;
+                }
+                this.setLayerNeedsReposition(layer);
+                this.setLayerNeedsDisplay(layer);
+                for (var i = 0, l = layer.sublayers.length; i < l; ++i){
+                    this.layerInserted(layer.sublayers[i]);
+                }
+            }
+        }else{
+            context = this.contextsByObjectID[attachment.objectID];
+            if (context === undefined){
+                var element = this.domDocument.createElement('div');
+                context = UIHTMLDisplayServerContext.initWithElement(element);
+                this.contextsByObjectID[attachment.objectID] = context;
+            }
+        }
+        if (context.element.parentNode !== parentElement){
+            parentElement.appendChild(context.element);
+        }
+        return context;
+    },
+
+    associateContextWithLayer: function(context, layer){
+        if (layer.objectID in this.contextsByObjectID){
+            throw new Error("Layer already has a context");
+        }
+        layer.initializeHTMLContext(context);
+        context.layerManagedNodeCount = context.element.childNodes.length;
+        context.firstSublayerNodeIndex = context.layerManagedNodeCount;
+        if (context.element.dataset){
+            context.element.dataset.layerId = layer.objectID;
+            if (layer.delegate !== null){
+                if (layer.delegate.isKindOfClass(UIView) && layer.delegate.layer !== layer){
+                    context.element.dataset.layerClass = layer.$class.className;
+                }else{
+                    context.element.dataset.viewClass = layer.delegate.$class.className;
+                }
+            }else{
+                context.element.dataset.layerClass = layer.$class.className;
+            }
+        }
+        this.contextsByObjectID[layer.objectID] = context;
     },
 
     // -------------------------------------------------------------------------
@@ -164,7 +202,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         layer._displayServer = this;
         var parentContext;
         if (layer.superlayer){
-            parentContext = this.contextsByLayerID[layer.superlayer.objectID];
+            parentContext = this.contextsByObjectID[layer.superlayer.objectID];
         }else{
             parentContext = this.rootContext;
             this.rootLayers.push(layer);
@@ -193,7 +231,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     },
 
     layerRemoved: function(layer){
-        var context = this.contextsByLayerID[layer.objectID];
+        var context = this.contextsByObjectID[layer.objectID];
         if (context){
             if (context.element.parentNode){
                 context.element.parentNode.removeChild(context.element);
@@ -201,7 +239,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             // FIXME: when a view is just moving to a new superview, we shouldn't destroy the context
             layer.destroyHTMLContext(context);
             context.destroy();
-            delete this.contextsByLayerID[layer.objectID];
+            delete this.contextsByObjectID[layer.objectID];
         }
         if (layer.superlayer === null){
             for (var i = this.rootLayers.length - 1; i >= 0; --i){
@@ -216,7 +254,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     // MARK: - Text
 
     createTextFramesetter: function(){
-        return UIHTMLTextFramesetter.initWithDocument(this.domDocument);
+        return UIHTMLTextFramesetter.initWithDocument(this.domDocument, this);
     },
 
     // MARK: - Debugging

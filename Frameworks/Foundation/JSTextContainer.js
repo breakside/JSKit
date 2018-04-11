@@ -109,15 +109,19 @@ JSClass("JSTextContainer", JSObject, {
         return 0;
     },
 
-    rectForCharacterAtIndex: function(index){
+    rectForCharacterAtIndex: function(index, useLineHeight){
         var line = this.lineForCharacterAtIndex(index);
         if (line !== null){
             var rect = line.rectForCharacterAtIndex(index - (line.range.location - this._textFrame.range.location));
-            rect.origin.x += line.origin.x;
-            rect.origin.y += line.origin.y;
+            if (useLineHeight){
+                rect.origin.y = line.origin.y;
+                rect.size.height = line.size.height;
+            }else{
+                rect.origin.x += line.origin.x;
+                rect.origin.y += line.origin.y;
+            }
             return rect;
         }
-        // TODO: consider strut line
         return JSRect.Zero;
     },
 

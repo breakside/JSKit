@@ -1,5 +1,5 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSReadOnlyProperty, JSTextTypesetter, JSTextRun, UIHTMLTextRun, JSSize, JSAttributedString, JSFont, JSRect */
+/* global JSClass, JSReadOnlyProperty, JSTextTypesetter, JSTextRun, UIHTMLTextRun, JSSize, JSAttributedString, JSFont, JSRect, JSRange */
 'use strict';
 
 (function(){
@@ -14,7 +14,7 @@ JSClass("UIHTMLTextRun", JSTextRun, {
     initWithElement: function(element, font, attributes, range){
         UIHTMLTextRun.$super.initWithGlyphs.call(this, [], [], font, attributes, range);
         this.element = element;
-        if (element.childNodes.length > 0){
+        if (element.childNodes.length > 0 && element.firstChild.nodeType === element.TEXT_NODE){
             this.textNode = element.firstChild;
         }
         if (sharedDomRange === null){
@@ -25,6 +25,29 @@ JSClass("UIHTMLTextRun", JSTextRun, {
     updateOrigin: function(){
         this._origin.x = this.element.offsetLeft;
         this._origin.y = this.element.offsetTop;
+    },
+
+    drawInContextAtPoint: function(context, point){
+        // UIHTMLTextRun should only exist inside a UIHTMLTextFrame structure, and
+        // UIHTMLTextFrame short-circuits the drawing in an HTML context by simply adding its element,
+        // which already contains all line and run elements, to the context.
+        // However, if UIHTMLTextFrame is asked to draw in a non-HTML context, it follows
+        // the default logic from JSTextFrame, in which case it calls on lines and runs to draw themselves.
+        // Therefore, if we're called here, it means a non-HTML context is drawing the text frame.
+        // Since we don't have references to any glyphs for drawing, and since we may need
+        // to resolve fallback fonts for parts of this run, we can't rely on the JSTextRun drawing logic.
+        // Instead, we'll use a generic typesetter to re-set our run.
+        // NOTE: this assumes that the metrics of the typest run won't be noticably different
+        // from the HTML layout.
+        // NOTE: If fallback fonts are not available to the generic typesetter, some glyphs
+        // that show in HTML may not show in this drawing
+        // NOTE: calling line.drawInContextAtPoint will not cause recursive loops back here
+        // because all of line's runs will be JSTextRuns, not UIHTMLTextRuns
+        var typesetter = JSTextTypesetter.init();
+        typesetter.attributedString = JSAttributedString.initWithString(this.textNode.value, this.attributes);
+        var line = typesetter.createLine(JSRange(0, typesetter.attributedString.string.length));
+        line.drawInContextAtPoint(context, point);
+        // TODO: what if this is an attachment run?
     },
 
     characterIndexAtPoint: function(point){
@@ -73,9 +96,12 @@ JSClass("UIHTMLTextRun", JSTextRun, {
 
     rectForCharacterAtIndex: function(index){
         if (this.textNode === null){
-            if (index === this.range.location){
-                var boundingRect = this.element.getBoundingClientRect();
+            var boundingRect = this.element.getBoundingClientRect();
+            if (index === 0){
                 return JSRect(0, 0, boundingRect.width, boundingRect.height);
+            }
+            if (index === 1){
+                return JSRect(boundingRect.width, 0, 0, boundingRect.height);
             }
             return JSRect.Zero;
         }
