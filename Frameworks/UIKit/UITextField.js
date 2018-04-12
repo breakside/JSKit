@@ -3,7 +3,7 @@
 // #import "UIKit/UITextEditor.js"
 // #import "UIKit/UICursor.js"
 // #import "UIKit/UITextAttachmentView.js"
-/* global JSClass, JSProtocol, UIView, UICursor, JSRect, JSSize, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard, JSTimer, JSTextRun, JSAttributedString, UITextAttachmentView */
+/* global JSClass, JSProtocol, UIView, UICursor, JSInsets, JSRect, JSSize, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard, JSTimer, JSTextRun, JSAttributedString, UITextAttachmentView */
 
 'use strict';
 
@@ -20,6 +20,7 @@ JSClass("UITextField", UIView, {
     font: JSDynamicProperty(),
     multiline: JSDynamicProperty('_multiline', false, 'isMultiline'),
     selections: JSReadOnlyProperty(),
+    textInsets: JSDynamicProperty(),
     delegate: null,
     _textLayer: null,
     _respondingIndicatorLayer: JSLazyInitProperty('_createRespondingIndicatorLayer'),
@@ -36,6 +37,9 @@ JSClass("UITextField", UIView, {
 
     initWithSpec: function(spec, values){
         UITextField.$super.initWithSpec.call(this, spec, values);
+        if ("textInsets" in values){
+            this.textInsets = JSInsets.apply(undefined, values.textInsets.parseNumberArray());
+        }
         if ("font" in values){
             var font = spec.resolvedValue(values.font);
             var descriptor = spec.resolvedValue(font.descriptor);
@@ -53,11 +57,13 @@ JSClass("UITextField", UIView, {
         this._textLayer.delegate = this;
         this._textLayer.textAlignment = JSTextAlignment.left;
         this._textLayer.lineBreakMode = JSLineBreakMode.wordWrap;
-        this._textLayer.sizeTracksText = true;
+        this._textLayer.widthTracksText = true;
+        this._textLayer.heightTracksText = true;
         this._textLayer.maximumNumberOfLines = 1;
         this._localEditor = UITextEditor.initWithTextLayer(this._textLayer);
         this._localEditor.delegate = this;
         this.layer.addSublayer(this._textLayer);
+        this._respondingIndicatorLayer.backgroundColor = JSColor.initWithWhite(0.8);
         this.cursor = UICursor.iBeam;
     },
 
@@ -69,11 +75,8 @@ JSClass("UITextField", UIView, {
     setMultiline: function(multiline){
         this._multiline = multiline;
         this._textLayer.textLayoutManager.includeEmptyFinalLine = multiline;
-        if (this._multiline){
-            this._textLayer.maximumNumberOfLines = 0;
-        }else{
-            this._textLayer.maximumNumberOfLines = 1;
-        }
+        this._textLayer.widthTracksText = !multiline;
+        this._textLayer.maximumNumberOfLines = multiline ? 0 : 1;
     },
 
     setText: function(text){
@@ -108,6 +111,14 @@ JSClass("UITextField", UIView, {
         return this._textLayer.font;
     },
 
+    setTextInsets: function(textInsets){
+        this._textLayer.textInsets = textInsets;
+    },
+
+    getTextInsets: function(){
+        return this._textLayer.textInsets;
+    },
+
     getSelections: function(){
         return this._localEditor.selections;
     },
@@ -138,9 +149,11 @@ JSClass("UITextField", UIView, {
             var text = lines.join('\n');
             UIPasteboard.general.setValueForType(text, UIPasteboard.ContentType.plainText);
         }
+        // TODO: attributed text
     },
 
     paste: function(){
+        // TODO: attributed text
         if (UIPasteboard.general.containsType(UIPasteboard.ContentType.plainText)){
             var text = UIPasteboard.general.valueForType(UIPasteboard.ContentType.plainText);
             this._localEditor.insertText(text);
@@ -223,21 +236,6 @@ JSClass("UITextField", UIView, {
     resignFirstResponder: function(){
         this._respondingIndicatorLayer.backgroundColor = JSColor.initWithWhite(0.8);
         this._localEditor.didResignFirstResponder();
-    },
-
-    hitTest: function(location){
-        var locationInTextLayer = this.layer.convertPointToLayer(location, this._textLayer);
-        var locationInTextContainer = this._textLayer.convertPointToTextContainer(locationInTextLayer);
-        var textObject = this._textLayer.textContainer.hitTest(locationInTextContainer);
-        if (textObject !== null && textObject.isKindOfClass(JSTextRun)){
-            var attachment = textObject.attributes[JSAttributedString.Attribute.attachment];
-            if (attachment !== undefined){
-                if (attachment.isKindOfClass(UITextAttachmentView)){
-                    return attachment.view;
-                }
-            }
-        }
-        return UITextField.$super.hitTest.call(this, location);
     },
 
     mouseDown: function(event){

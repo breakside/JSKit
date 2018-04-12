@@ -14,6 +14,13 @@ JSClass("UIHTMLTextRun", JSTextRun, {
     initWithElement: function(element, font, attributes, range){
         UIHTMLTextRun.$super.initWithGlyphs.call(this, [], [], font, attributes, range);
         this.element = element;
+        // Setting the correct height is important because the html line height may be less
+        // than the font's pure line height.  In such a case, we don't want to overestimate
+        // how tall a run/line is because that could lead to the framesetter thinking there's
+        // not enough room for a line even when there really is.
+        // NOTE: we do NOT want to measure the html element here and cause an expensive layout.
+        // Only the UIHTMLTextFrame does the final measuring.
+        this._size.height = font.htmlLineHeight;
         if (element.childNodes.length > 0 && element.firstChild.nodeType === element.TEXT_NODE){
             this.textNode = element.firstChild;
         }

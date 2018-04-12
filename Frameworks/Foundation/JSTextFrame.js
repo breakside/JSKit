@@ -8,7 +8,6 @@
 JSClass("JSTextFrame", JSObject, {
 
     size: JSReadOnlyProperty('_size', null),
-    usedSize: JSReadOnlyProperty('_usedSize', null),
     range: JSReadOnlyProperty('_range', null),
     lines: JSReadOnlyProperty('_lines', null),
 
@@ -22,7 +21,6 @@ JSClass("JSTextFrame", JSObject, {
         var line;
         var y = 0;
         var width = 0;
-        this._size = JSSize(size.width, size.height);
         for (var i = 0, l = lines.length; i < l; ++i){
             line = lines[i];
             line.origin.y = y;
@@ -31,8 +29,13 @@ JSClass("JSTextFrame", JSObject, {
                 width = line.size.width;
             }
         }
-        this._usedSize = JSSize(width, y);
-        this._size = JSSize(this._size.width || this._usedSize.width, this._size.height || this._usedSize.height);
+        this._size = JSSize(size);
+        if (this._size.width === 0 || this._size.width === Number.MAX_VALUE){
+            this._size.width = width;
+        }
+        if (this._size.height === 0 || this._size.height === Number.MAX_VALUE){
+            this._size.height = y;
+        }
         switch (textAlignment){
             case JSTextAlignment.center:
                 for (i = 0, l = lines.length; i < l; ++i){

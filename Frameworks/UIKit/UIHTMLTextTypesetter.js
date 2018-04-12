@@ -9,12 +9,12 @@
 var logger = jslog_create("html-typesetter");
 
 var sharedDomRange = null;
-var sharedElement = null;
+var layoutElementStack = [];
+var layoutElementIndex = 0;
 
 JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
 
     domDocument: JSReadOnlyProperty('_domDocument'),
-    _element: null,
     _cachedLayout: null,
     _suggestionCache: null,
     _htmlDisplayServer: null,
@@ -23,54 +23,70 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         UIHTMLTextTypesetter.$super.init.call(this);
         this._domDocument = domDocument;
         this._htmlDisplayServer = htmlDisplayServer;
-        if (sharedElement === null){
-            sharedElement = domDocument.createElement('div');
-            sharedElement.style.position = 'absolute';
-            sharedElement.style.right = '0';
-            sharedElement.style.right = '0';
-            sharedElement.style.backgroundColor = 'rgb(255,240,240)';
-            sharedElement.style.lineHeight = '0';
-            this._domDocument.body.appendChild(sharedElement);
-        }
-        this._element = sharedElement;
         if (sharedDomRange === null){
             sharedDomRange = this._domDocument.createRange();
         }
     },
 
     layoutRange: function(range, size, lineBreakMode){
-        this._styleElement(size, lineBreakMode);
-        this._updateElement(range);
+        if (size.width <= 0 || size.height <= 0){
+            size = JSSize(size.width <= 0 ? Number.MAX_VALUE : size.width, size.height <= 0 ? Number.MAX_VALUE : size.height);
+        }
+        // Because Javascript only has a single thread, two typesetter instances
+        // generally won't overlap, and we can save some energy by reusing the same
+        // dom element to do the layout for every typesetter.
+        // However, there is a case where layout happens recursively:
+        // when an attachment view in one typesetter needs to typeset a string of its own.
+        // (attachment views need to layout immediately so their size is known).
+        // Therefore, we need a stack of layout elements rather than a single shared element.
+        // FIXME: Allow removal of element after it is no longer needed
+        var layoutElement;
+        if (layoutElementIndex < layoutElementStack.length){
+            layoutElement = layoutElementStack[layoutElementIndex];
+        }else{
+            layoutElement = this._domDocument.createElement('div');
+            layoutElement.style.position = 'absolute';
+            layoutElement.style.right = '0';
+            layoutElement.style.right = '0';
+            layoutElement.style.backgroundColor = 'rgb(255,240,240)';
+            layoutElement.style.lineHeight = '0';
+            this._domDocument.body.appendChild(layoutElement);
+            layoutElementStack.push(layoutElement);
+        }
+        ++layoutElementIndex;
+        this._styleElement(layoutElement, size, lineBreakMode);
+        this._updateElement(layoutElement, range);
+        --layoutElementIndex;
     },
 
-    _styleElement: function(size, lineBreakMode){
-        if (size.width){
-            this._element.style.width = '%dpx'.sprintf(size.width);
-            this._element.style.whiteSpace = 'pre-wrap';
+    _styleElement: function(element, size, lineBreakMode){
+        if (size.width < Number.MAX_VALUE){
+            element.style.width = '%dpx'.sprintf(size.width);
+            element.style.whiteSpace = 'pre-wrap';
         }else{
-            this._element.style.width = '';
-            this._element.style.whiteSpace = 'pre';
+            element.style.width = '';
+            element.style.whiteSpace = 'pre';
         }
         if (lineBreakMode === null){
-            this._element.style.whiteSpace = 'nowrap';
-            this._element.style.wordBreak = '';
-            this._element.style.overflowWrap = '';
+            element.style.whiteSpace = 'nowrap';
+            element.style.wordBreak = '';
+            element.style.overflowWrap = '';
         }else{
             switch (lineBreakMode){
                 case JSLineBreakMode.characterWrap:
-                    this._element.style.wordBreak = 'break-all';
-                    this._element.style.overflowWrap = '';
+                    element.style.wordBreak = 'break-all';
+                    element.style.overflowWrap = '';
                     break;
                 case JSLineBreakMode.truncateTail:
                 case JSLineBreakMode.wordWrap:
-                    this._element.style.wordBreak = '';
-                    this._element.style.overflowWrap = 'break-word';
+                    element.style.wordBreak = '';
+                    element.style.overflowWrap = 'break-word';
                     break;
             }
         }
     },
 
-    _updateElement: function(range){
+    _updateElement: function(element, range){
         var remainingRange = JSRange(range);
         var runIterator = this.attributedString.runIterator(range.location);
         var i = 0;
@@ -86,12 +102,18 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
             }else{
                 attachment = null;
             }
-            if (i < this._element.childNodes.length){
-                span = this._element.childNodes[i];
+            if (i < element.childNodes.length){
+                span = element.childNodes[i];
                 span.firstChild.nodeValue = utf16;
             }else{
-                span = this._element.appendChild(this._element.ownerDocument.createElement('span'));
+                span = element.appendChild(element.ownerDocument.createElement('span'));
                 span.appendChild(span.ownerDocument.createTextNode(utf16));
+            }
+            if (attachment !== null){
+                // Triggering display context creation here so an attachment view can become part
+                // of the display server and do a proper layout before its size is needed when we
+                // create the run descriptor below.
+                this._htmlDisplayServer.attachmentInserted(attachment, span);
             }
             runDescriptor = UIHTMLTextTypesetterRunDescriptor(span, runIterator.attributes, runIterator.range.intersection(remainingRange), attachment);
             runDescriptors.push(runDescriptor);
@@ -99,8 +121,8 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
             runIterator.increment();
             ++i;
         }
-        for (var j = this._element.childNodes.length - 1; j >= i; --j){
-            this._element.removeChild(this._element.childNodes[j]);
+        for (var j = element.childNodes.length - 1; j >= i; --j){
+            element.removeChild(element.childNodes[j]);
         }
         this._cachedLayout = {
             runDescriptors: runDescriptors,
@@ -146,11 +168,6 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                     context: this._htmlDisplayServer.contextForAttachment(fragment.runDescriptor.attachment, span),
                     attachment: fragment.runDescriptor.attachment
                 });
-                var div = span.ownerDocument.createElement('div');
-                div.style.position = 'absolute';
-                div.appendChild(span.ownerDocument.createTextNode('a'));
-                span.appendChild(div);
-                span.style.backgroundColor = 'red';
             }
             run = UIHTMLTextRun.initWithElement(span, fragment.runDescriptor.font, fragment.runDescriptor.attributes, fragment.range);
             runs.push(run);
@@ -211,8 +228,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         var stop = false;
         var shouldIncludeExtraLine = lineBreakMode == JSLineBreakMode.truncateTail;
 
-        var boundingRect = this._element.getBoundingClientRect();
-        var x = boundingRect.x;
+        var x = Number.MIN_VALUE;
 
         do {
 
@@ -224,7 +240,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                 // Since we've found our break, just stop here
                 stop = !shouldIncludeExtraLine;
                 shouldIncludeExtraLine = false;
-                x = boundingRect.x;
+                x = Number.MIN_VALUE;
             }else if (runLineIndex < runDescriptor.numberOfLines - 1){
                 // This run has at least one more wrap/break point, so just add up to the next line
                 lineRange = runDescriptor.rangeOfLine(runLineIndex, remainingRange.location);
@@ -232,7 +248,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                 runLineIndex++;
                 stop = !shouldIncludeExtraLine;
                 shouldIncludeExtraLine = false;
-                x = boundingRect.x;
+                x = Number.MIN_VALUE;
                 remainingRange.advance(fragment.range.length);
                 fragments.push(fragment);
             }else{
@@ -295,7 +311,7 @@ UIHTMLTextTypesetterRunDescriptor.prototype = {
             this.span.style.verticalAlign = '';
             // Font
             var font = JSTextTypesetter.FontFromAttributes(this.attributes);
-            this.span.style.font = font.cssString(font.htmlLineHeight);
+            this.span.style.font = font.cssString();
 
             // Decorations (underline, strike)
             var decorations = [];

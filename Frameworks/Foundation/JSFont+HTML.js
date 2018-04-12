@@ -12,7 +12,7 @@ JSFont.definePropertiesFromExtensions({
 
     cssString: function(lineHeight){
         if (lineHeight === undefined){
-            lineHeight = this._htmlLineHeight;
+            lineHeight = this.htmlLineHeight;
         }
         return '%d %s %fpx/%fpx %s'.sprintf(
             this._descriptor._weight,

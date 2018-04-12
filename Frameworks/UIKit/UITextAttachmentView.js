@@ -12,6 +12,7 @@ JSClass("UITextAttachmentView", JSTextAttachment, {
     },
 
     getSize: function(){
+        this.view.layoutIfNeeded();
         return this.view.frame.size;
     },
 

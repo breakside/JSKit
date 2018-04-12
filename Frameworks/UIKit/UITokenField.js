@@ -1,6 +1,6 @@
 // #import "UIKit/UITextField.js"
 // #import "UIKit/UITextAttachmentView.js"
-/* global JSClass, UITextField, UITokenField, JSAttributedString, UITextAttachmentView, UIView, UITokenFieldTokenView, UILabel, JSRange, JSRect, JSPoint, JSDynamicProperty, JSInsets, JSColor, jslog_create */
+/* global JSClass, UITextField, UITokenField, JSSize, JSAttributedString, JSLineBreakMode, UITextAttachmentView, UIView, UITokenFieldTokenView, UILabel, JSRange, JSRect, JSPoint, JSDynamicProperty, JSInsets, JSColor, jslog_create */
 'use strict';
 
 (function(){
@@ -98,6 +98,7 @@ JSClass("UITokenField", UITextField, {
     _createAttachmentStringForRepresentedObject: function(representedObject){
         var view = this._createViewForRepresentedObject(representedObject);
         var attachment = UITextAttachmentView.initWithView(view);
+        attachment.baselineAdjustment = view.labelView.font.htmlDescender - view.labelView.textInsets.bottom;
         return JSAttributedString.initWithAttachment(attachment);
     },
 
@@ -111,7 +112,37 @@ JSClass("UITokenField", UITextField, {
         }
         str = representedObject.toString();
         return UITokenFieldTokenView.initWithString(str, this);
-    }
+    },
+
+    hitTest: function(point){
+        var attributedText = this.attributedText;
+        if (attributedText.length > 0){
+            var layoutManager = this._textLayer.textLayoutManager;
+            var index = layoutManager.characterIndexAtPoint(point);
+            var iterator = attributedText.string.unicodeIterator(index);
+            var rect;
+            var attachment;
+            var stopNext = iterator.index === 0;
+            var stop = false;
+            while (!stop){
+                if (iterator.character.code === JSAttributedString.SpecialCharacter.Attachment){
+                    attachment = attributedText.attributeAtIndex(JSAttributedString.Attribute.attachment, iterator.index);
+                    if (attachment && attachment.isKindOfClass(UITextAttachmentView)){
+                        rect = layoutManager.rectForCharacterAtIndex(iterator.index);
+                        if (rect.containsPoint(point)){
+                            return attachment.view;
+                        }
+                    }
+                }
+                stop = stopNext;
+                if (!stop){
+                    iterator.decrement();
+                    stopNext = true;
+                }
+            }
+        }
+        return UITokenField.$super.hitTest.call(this, point);
+    },
 
 });
 
@@ -120,21 +151,24 @@ JSClass("UITokenFieldTokenView", UIView, {
     labelView: null,
     textColor: JSDynamicProperty(),
     font: JSDynamicProperty(),
-    textInsets: JSDynamicProperty(),
+    tokenInsets: JSDynamicProperty('_tokenInsets', null),
     textField: null,
 
     initWithString: function(str, textField){
         UITokenFieldTokenView.$super.init.call(this);
-        this._textInsets = JSInsets(2, 4);
-        this.labelView = UILabel.initWithFrame(JSRect(0, 0, 100, textField.font.lineHeight));
+        this.labelView = UILabel.initWithFrame(this.bounds);
+        this.labelView.textInsets = JSInsets(1, 7);
+        this.labelView.maximumNumberOfLines = 1;
+        this.labelView.lineBreakMode = JSLineBreakMode.truncateTail;
         this.textField = textField;
         this.labelView.font = this.textField.font;
         this.labelView.text = str;
-        this.labelView.borderWidth = 1.0;
-        this.labelView.borderColor = JSColor.initWithRGBA(0.72, 0.72, 0.8, 1.0);
-        this.labelView.backgroundColor = JSColor.initWithRGBA(0.9, 0.9, 1.0, 1.0);
-        this.labelView.cornerRadius = textField.font.lineHeight;
+        this.labelView.backgroundColor = JSColor.initWithRGBA(210/255, 231/255, 251/255, 1.0);
+        this.labelView.borderColor = JSColor.initWithRGBA(116/255, 181/255, 243/255, 1.0);
+        this.labelView.borderWidth = 0.5;
+        this.labelView.cornerRadius = 3.0;
         this.addSubview(this.labelView);
+        this._tokenInsets = JSInsets(0, 1.5, 0, 1.5);
         this.setNeedsLayout();
     },
 
@@ -156,9 +190,14 @@ JSClass("UITokenFieldTokenView", UIView, {
     },
 
     layoutSubviews: function(){
+        var availableWidth = this.textField.bounds.width - this.textField.textInsets.left - this.textField.textInsets.right - this._tokenInsets.left - this._tokenInsets.right;
         this.labelView.sizeToFit();
-        var ourSize = this.labelView.frame.size;
-        this.labelView.position = JSPoint(ourSize.width / 2.0, ourSize.height.height / 2.0);
+        if (this.labelView.frame.size.width > availableWidth){
+            this.labelView.frame = JSRect(0, 0, availableWidth, this.labelView.size.height);
+        }
+        var ourSize = JSSize(this.labelView.frame.size);
+        ourSize.width += this._tokenInsets.left + this._tokenInsets.right;
+        this.labelView.position = JSPoint(this._tokenInsets.left + this.labelView.frame.size.width / 2.0, ourSize.height.height / 2.0);
         this.bounds = JSRect(JSPoint.Zero, ourSize);
     },
 

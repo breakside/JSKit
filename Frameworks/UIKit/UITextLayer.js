@@ -13,7 +13,8 @@ JSClass("UITextLayer", UILayer, {
     textAlignment: JSDynamicProperty(),
     textInsets: JSDynamicProperty('_textInsets', JSInsets.Zero),
     maximumNumberOfLines: JSDynamicProperty(),
-    sizeTracksText: JSDynamicProperty(),
+    widthTracksText: JSDynamicProperty('_widthTracksText', false),
+    heightTracksText: JSDynamicProperty('_heightTracksText', false),
 
     _textStorage: null,
     textLayoutManager: JSReadOnlyProperty('_textLayoutManager', null),
@@ -91,12 +92,22 @@ JSClass("UITextLayer", UILayer, {
         this._textContainer.size = this._availableTextSize();
     },
 
-    getSizeTracksText: function(){
-        return this._textContainer.sizeTracksText;
+    getWidthTracksText: function(){
+        return this._widthTracksText;
     },
 
-    setSizeTracksText: function(sizeTracksText){
-        this._textContainer.sizeTracksText = sizeTracksText;
+    setWidthTracksText: function(widthTracksText){
+        this._widthTracksText = widthTracksText;
+        this._textContainer.size = this._availableTextSize();
+    },
+
+    getHeightTracksText: function(){
+        return this._heightTracksText;
+    },
+
+    setHeightTracksText: function(heightTracksText){
+        this._heightTracksText = heightTracksText;
+        this._textContainer.size = this._availableTextSize();
     },
 
     // MARK: - Fetching & Updating Text
@@ -133,6 +144,12 @@ JSClass("UITextLayer", UILayer, {
     _availableTextSize: function(){
         var width = this.bounds.size.width - this._textInsets.left - this._textInsets.right;
         var height = this.bounds.size.height - this._textInsets.top - this._textInsets.bottom;
+        if (this._widthTracksText){
+            width = Number.MAX_VALUE;
+        }
+        if (this._heightTracksText){
+            height = Number.MAX_VALUE;
+        }
         return JSSize(width, height);
     },
 
@@ -143,14 +160,14 @@ JSClass("UITextLayer", UILayer, {
     },
 
     sizeToFit: function(){
+        this._textContainer.size = JSSize(Number.MAX_VALUE, Number.MAX_VALUE);
         this.layoutIfNeeded();
         if (this._textContainer.textFrame !== null){
-            this.bounds = JSRect(
-                0,
-                0,
-                this._textContainer.textFrame.size.width + this._textInsets.left + this._textInsets.right,
-                this._textContainer.textFrame.size.height + this._textInsets.top + this._textInsets.bottom
-            );
+            var width = this._textContainer.textFrame.size.width + this._textInsets.left + this._textInsets.right;
+            var height = this._textContainer.textFrame.size.height + this._textInsets.top + this._textInsets.bottom;
+            if (width != this.bounds.width || height != this.bounds.height){
+                this.bounds = JSRect(0, 0, width, height);
+            }
         }
     },
 
@@ -164,13 +181,16 @@ JSClass("UITextLayer", UILayer, {
             this._textContainer.origin = JSPoint(this._textInsets.left, this._textInsets.top);
             this._textLayoutManager.layoutIfNeeded();
         }
-        if (this.sizeTracksText && this._textContainer.textFrame !== null){
-            this.bounds = JSRect(
-                0,
-                0,
-                this._textContainer.textFrame.size.width + this._textInsets.left + this._textInsets.right,
-                this._textContainer.textFrame.size.height + this._textInsets.top + this._textInsets.bottom
-            );
+        if ((this._widthTracksText || this._heightTracksText) && this._textContainer.textFrame !== null){
+            var width = this.bounds.size.width;
+            var height = this.bounds.size.height;
+            if (this._widthTracksText){
+                width = this._textContainer.textFrame.size.width + this._textInsets.left + this._textInsets.right;
+            }
+            if (this._heightTracksText){
+                height = this._textContainer.textFrame.size.height + this._textInsets.top + this._textInsets.bottom;
+            }
+            this.bounds = JSRect(0, 0, width, height);
         }
     },
 

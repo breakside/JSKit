@@ -2,7 +2,7 @@
 // #import "Foundation/CoreTypes.js"
 // #import "Foundation/JSTextTypesetter.js"
 // #import "Foundation/JSTextFrame.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSTextTypesetter, JSTextFrame, JSPoint, JSLineBreakMode, JSRange, JSTextAlignment */
+/* global JSClass, JSObject, JSSize, JSReadOnlyProperty, JSDynamicProperty, JSTextTypesetter, JSTextFrame, JSPoint, JSLineBreakMode, JSRange, JSTextAlignment */
 'use strict';
 
 (function(){
@@ -38,39 +38,41 @@ JSClass("JSTextFramesetter", JSObject, {
         var lines = [];
         var line;
         var lineRange;
+        if (size.width < 0 || size.height < 0){
+            size = JSSize(size.width < 0 ? 0 : size.width, size.height < 0 ? 0 : size.height);
+        }
+        var widthLimit = size.width || Number.MAX_VALUE;
+        var heightLimit = size.height || Number.MAX_VALUE;
+        var lineLimit = maximumLines || Number.MAX_VALUE;
         do{
-            lineRange = this._typesetter.suggestLineBreak(size.width, remianingRange, this.effectiveLineBreakMode(lineBreakMode, lines.length + 1, maximumLines));
+            lineRange = this._typesetter.suggestLineBreak(widthLimit, remianingRange, this.effectiveLineBreakMode(lineBreakMode, lines.length + 1, lineLimit));
             line = this._typesetter.createLine(lineRange);
             y += line.size.height;
             // TODO: any line spacing?
-            if (size.height === 0 || y <= size.height){
+            if (y <= heightLimit){
                 lines.push(line);
                 remianingRange.advance(line.range.length);
             }
-        } while (lineRange.length > 0 && remianingRange.length > 0 && (size.height === 0 || y < size.height) && (maximumLines === 0 || lines.length < maximumLines));
+        } while (lineRange.length > 0 && remianingRange.length > 0 && y < heightLimit && lines.length < lineLimit);
 
-        if (lineBreakMode == JSLineBreakMode.truncateTail){
+        if (lineBreakMode == JSLineBreakMode.truncateTail && lines.length > 0){
             line = lines.pop();
-            if (remianingRange.length > 0 && maximumLines === 0 || maximumLines > lines.length + 1){
+            if (remianingRange.length > 0 && lineLimit > lines.length + 1){
                 // we got truncated because of height.  Re-run the last line so it
                 // gets broken according to truncation rules rather than work break
-                lineRange = this._typesetter.suggestLineBreak(size.width, JSRange(line.range.location, line.range.length + remianingRange.length), lineBreakMode);
+                lineRange = this._typesetter.suggestLineBreak(widthLimit, JSRange(line.range.location, line.range.length + remianingRange.length), lineBreakMode);
                 line = this._typesetter.createLine(lineRange);
             }
-            var width = size.width;
-            if (width === 0){
-                width = Number.MAX_VALUE;
-            }
-            var truncated = line.truncatedLine(width);
+            var truncated = line.truncatedLine(widthLimit);
             lines.push(truncated);
         }
         return this.constructFrame(lines, size, textAlignment);
     },
 
-    effectiveLineBreakMode: function(frameLineBreakMode, lineNumber, maximumLines){
+    effectiveLineBreakMode: function(frameLineBreakMode, lineNumber, lineLimit){
         switch (frameLineBreakMode){
             case JSLineBreakMode.truncateTail:
-                if (maximumLines > 0 && lineNumber == maximumLines){
+                if (lineNumber == lineLimit){
                     return frameLineBreakMode;
                 }
                 return JSLineBreakMode.wordWrap;

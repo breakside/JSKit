@@ -42,7 +42,11 @@ JSClass("UIHTMLTextLine", JSTextLine, {
         if (token === undefined){
             token = '\u2026';
         }
-        this.element.style.width = '%dpx'.sprintf(width);
+        if (width < Number.MAX_VALUE){
+            this.element.style.width = '%dpx'.sprintf(width);
+        }else{
+            this.element.style.width = '';
+        }
         this.element.style.overflow = 'hidden';
         // only firefox supports an arbitrary string as the token, so for now
         // we'll just hard code ellipsis

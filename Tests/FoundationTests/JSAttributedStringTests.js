@@ -414,7 +414,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         var attributes;
         string = JSAttributedString.initWithString("Hello, world!", {bold: true});
         string.addAttributeInRange('italics', true, JSRange(5,8));
-        string.replaceCharactersInRangeWithString(JSRange(5, 0), " there");
+        string.insertString(" there", 5);
         this.assertRunIteratorIsConsistent(string);
         attributes = string.attributesAtIndex(4);
         TKAssertExactEquals(attributes.bold, true);
@@ -453,7 +453,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         var attributes;
         string = JSAttributedString.initWithString("Hello, world!", {bold: true});
         var attributed = JSAttributedString.initWithString(" there", {italics: true});
-        string.replaceCharactersInRangeWithAttributedString(JSRange(5, 0), attributed);
+        string.insertAttributedString(attributed, 5);
         this.assertRunIteratorIsConsistent(string);
         attributes = string.attributesAtIndex(4);
         TKAssertExactEquals(attributes.bold, true);

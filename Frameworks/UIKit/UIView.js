@@ -50,6 +50,7 @@ JSClass('UIView', UIResponder, {
     backgroundColor:    UIViewLayerProperty(),
     backgroundGradient: UIViewLayerProperty(),
     borderWidth:        UIViewLayerProperty(),
+    borderColor:        UIViewLayerProperty(),
     cornerRadius:       UIViewLayerProperty(),
     borderRadius:       UIViewLayerProperty(),
     shadowColor:        UIViewLayerProperty(),
@@ -187,6 +188,10 @@ JSClass('UIView', UIResponder, {
 
     setNeedsLayout: function(){
         this.layer.setNeedsLayout();
+    },
+
+    layoutIfNeeded: function(){
+        this.layer.layoutIfNeeded();
     },
 
     layoutSubviews: function(){

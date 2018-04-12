@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UILayer.js"
-/* global JSClass, JSDynamicProperty, JSObject, JSRange, UITextEditor, JSRect, JSPoint, JSColor, UILayer, JSTimer, JSBinarySearcher */
+/* global JSClass, JSDynamicProperty, JSAttributedString, JSCopy, JSObject, JSRange, UITextEditor, JSRect, JSPoint, JSColor, UILayer, JSTimer, JSBinarySearcher */
 'use strict';
 
 (function(){
@@ -14,6 +14,7 @@ JSClass("UITextEditor", JSObject, {
     cursorColor: JSDynamicProperty('_cursorColor', null),
     cursorWidth: 2.0,
     repeatedClickTimeout: 0.2,
+    insertAttributes: null,
     _isFirstResponder: false,
     _cursorBlinkRate: 0.5,
     _cursorOffTimeout: null,
@@ -271,7 +272,7 @@ JSClass("UITextEditor", JSObject, {
             return JSRect.Zero;
         }
         var rect = container.rectForCharacterAtIndex(index, true);
-        var x = rect.origin.x;
+        var x = rect.origin.x - Math.floor(this.cursorWidth / 2);
         if (useRightEdge){
             x += rect.size.width;
         }
@@ -477,6 +478,16 @@ JSClass("UITextEditor", JSObject, {
         }
     },
 
+    _insertAttributesForSelection: function(selection){
+        var index = selection.range.location > 0 ? selection.range.location - 1 : 0;
+        var attributes = this.textLayoutManager.textStorage.attributesAtIndex(index);
+        if (JSAttributedString.Attribute.attachment in attributes){
+            attributes = JSCopy(attributes);
+            delete attributes[JSAttributedString.Attribute.attachment];
+        }
+        return attributes;
+    },
+
     _isHandlingSelectionAdjustments: false,
 
     textStorageDidReplaceCharactersInRange: function(range, insertedLength){
@@ -507,11 +518,16 @@ JSClass("UITextEditor", JSObject, {
         var textLength = text.length;
         var locationAdjustment = 0;
         var adjustedRange;
+        var insertAttributes;
         this._isHandlingSelectionAdjustments = true;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
+            insertAttributes = this.insertAttributes;
+            if (insertAttributes === null){
+                insertAttributes = this._insertAttributesForSelection(selection);
+            }
             adjustedRange = JSRange(selection.range.location + locationAdjustment, selection.range.length);
-            textStorage.replaceCharactersInRangeWithString(adjustedRange, text);
+            textStorage.replaceCharactersInRangeWithAttributedString(adjustedRange, JSAttributedString.initWithString(text, insertAttributes));
             selection.range = JSRange(adjustedRange.location + textLength, 0);
             locationAdjustment += textLength - adjustedRange.length;
         }

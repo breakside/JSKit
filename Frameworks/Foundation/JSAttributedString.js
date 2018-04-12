@@ -75,57 +75,70 @@ JSClass("JSAttributedString", JSObject, {
     },
 
     replaceCharactersInRangeWithString: function(range, string){
-        this._string = this._string.stringByReplacingCharactersInRangeWithString(range, string);
-        var run;
-        var runIndex;
-        var l;
-        var locationAdjustment = string.length - range.length;
-        var fixRange = JSRange.Zero;
-        if (range.length > 0){
-            // For the delete case, we cut out any runs within the range
-            // But we remember the attributes of the first run in the range,
-            // because those attributes will be used for the inserted text.
-            // This attibute usage seems to match a typical editor behavior.
-            var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
-            var attributes = this._runs[runRange.location].attributes;
-            this._runs.splice(runRange.location, runRange.length);
-            runIndex = runRange.location;
-            if (string.length > 0){
-                // If text is being inserted, add a new range with the attributes previously saved
-                run = JSAttributedStringRun(JSRange(range.location, string.length), attributes);
-                this._runs.splice(runIndex, 0, run);
-                ++runIndex;
+        var insertAttributes = {};
+        if (string.length > 0){
+            if (range.length > 0 || range.location === 0){
+                insertAttributes = JSCopy(this.attributesAtIndex(range.location));
             }else{
-                // If we cut out all the runs, make sure to add an empty initial run back
-                if (this._runs.length === 0){
-                    this._runs = [JSAttributedStringRun(JSRange(0, 0), attributes)];
-                    return;
-                }
+                insertAttributes = JSCopy(this.attributesAtIndex(range.location - 1));
             }
-            fixRange.location = runIndex;
-            if (runIndex < this._runs.length){
-                fixRange.length = 1;
-            }
-        }else if (string.length > 0){
-            // For a simple insert case, where nothing is deleted, all we have to
-            // do is extend the range that immediately precedes the insertion point
-            // We use the preceding range because this matches the typical editor behavior
-            // when typing at the end of a run.
-            var index = range.location > 0 ? range.location - 1 : 0;
-            runIndex = this._runIndexForStringIndex(index);
-            run = this._runs[runIndex];
-            run.range.length += string.length;
-            ++runIndex;
-        }
-        if (locationAdjustment !== 0){
-            // Adjust following run locations
-            for (l = this._runs.length; runIndex < l; ++runIndex){
-                this._runs[runIndex].range.location += locationAdjustment;
+            if (JSAttributedString.Attribute.attachment in insertAttributes){
+                delete insertAttributes[JSAttributedString.Attribute.attachment];
             }
         }
-        if (fixRange.length > 0){
-            this._fixRunsInRunRange(fixRange);
-        }
+        this.replaceCharactersInRangeWithAttributedString(range, JSAttributedString.initWithString(string, insertAttributes));
+
+        // this._string = this._string.stringByReplacingCharactersInRangeWithString(range, string);
+        // var run;
+        // var runIndex;
+        // var l;
+        // var locationAdjustment = string.length - range.length;
+        // var fixRange = JSRange.Zero;
+        // if (range.length > 0){
+        //     // For the delete case, we cut out any runs within the range
+        //     // But we remember the attributes of the first run in the range,
+        //     // because those attributes will be used for the inserted text.
+        //     // This attibute usage seems to match a typical editor behavior.
+        //     var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
+        //     var attributes = this._runs[runRange.location].attributes;
+        //     this._runs.splice(runRange.location, runRange.length);
+        //     runIndex = runRange.location;
+        //     if (string.length > 0){
+        //         // If text is being inserted, add a new range with the attributes previously saved
+        //         run = JSAttributedStringRun(JSRange(range.location, string.length), attributes);
+        //         this._runs.splice(runIndex, 0, run);
+        //         ++runIndex;
+        //     }else{
+        //         // If we cut out all the runs, make sure to add an empty initial run back
+        //         if (this._runs.length === 0){
+        //             this._runs = [JSAttributedStringRun(JSRange(0, 0), attributes)];
+        //             return;
+        //         }
+        //     }
+        //     fixRange.location = runIndex;
+        //     if (runIndex < this._runs.length){
+        //         fixRange.length = 1;
+        //     }
+        // }else if (string.length > 0){
+        //     // For a simple insert case, where nothing is deleted, all we have to
+        //     // do is extend the range that immediately precedes the insertion point
+        //     // We use the preceding range because this matches the typical editor behavior
+        //     // when typing at the end of a run.
+        //     var index = range.location > 0 ? range.location - 1 : 0;
+        //     runIndex = this._runIndexForStringIndex(index);
+        //     run = this._runs[runIndex];
+        //     run.range.length += string.length;
+        //     ++runIndex;
+        // }
+        // if (locationAdjustment !== 0){
+        //     // Adjust following run locations
+        //     for (l = this._runs.length; runIndex < l; ++runIndex){
+        //         this._runs[runIndex].range.location += locationAdjustment;
+        //     }
+        // }
+        // if (fixRange.length > 0){
+        //     this._fixRunsInRunRange(fixRange);
+        // }
     },
 
     replaceCharactersInRangeWithAttributedString: function(range, attributedString){
@@ -139,11 +152,13 @@ JSClass("JSAttributedString", JSObject, {
         var run;
         var copiedRun;
         var i, l;
-        for (i = 0, l = attributedString._runs.length; i < l; ++i){
-            run = attributedString._runs[i];
-            copiedRun = JSAttributedStringRun(JSRange(run.range.location + runLocationAdjustment, run.range.length), run.attributes);
-            this._runs.splice(runIndex, 0, copiedRun);
-            ++runIndex;
+        if (attributedString.string.length > 0 || this._runs.length === 0){
+            for (i = 0, l = attributedString._runs.length; i < l; ++i){
+                run = attributedString._runs[i];
+                copiedRun = JSAttributedStringRun(JSRange(run.range.location + runLocationAdjustment, run.range.length), run.attributes);
+                this._runs.splice(runIndex, 0, copiedRun);
+                ++runIndex;
+            }
         }
         var locationAdjustment = attributedString.string.length - range.length;
         if (locationAdjustment !== 0){
@@ -152,16 +167,19 @@ JSClass("JSAttributedString", JSObject, {
                 run.range.location += locationAdjustment;
             }
         }
+        this._fixRunsAtIndex(runIndex);
+        this._fixRunsAtIndex(runRange.location);
     },
 
     // MARK: - Attribute mutations
 
     setAttributesInRange: function(attributes, range){
         var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
-        var run;
-        for (var runIndex = runRange.location, l = runRange.end; runIndex < l; ++runIndex){
-            run = this._runs[runIndex];
-            run.attributes = JSCopy(attributes);
+        var run = this._runs[runRange.location];
+        run.attributes = JSCopy(attributes);
+        if (runRange.length > 1){
+            run.range.length = this._runs[runRange.end - 1].end - run.range.location;
+            this._runs.splice(runRange.location + 1, runRange.length - 1);
         }
         this._fixRunsInRunRange(JSRange(runRange.location, 1));
     },
@@ -240,7 +258,7 @@ JSClass("JSAttributedString", JSObject, {
             expandedRunRange.location -= 1;
             expandedRunRange.length += 1;
         }
-        if (expandedRunRange.end < this._runs.length - 1){
+        if (expandedRunRange.end < this._runs.length){
             expandedRunRange.length += 1;
         }
         var lastRunIndex = expandedRunRange.end - 1;
@@ -255,6 +273,21 @@ JSClass("JSAttributedString", JSObject, {
             }else{
                 runB = runA;
             }
+        }
+    },
+
+    _fixRunsAtIndex: function(runIndex){
+        if (runIndex === 0){
+            return;
+        }
+        if (runIndex === this._runs.length){
+            return;
+        }
+        var runA = this._runs[runIndex - 1];
+        var runB = this._runs[runIndex];
+        if (runA.hasIdenticalAttributes(runB)){
+            this._runs.splice(runIndex, 1);
+            runA.range.length += runB.range.length;
         }
     },
 

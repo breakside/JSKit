@@ -204,7 +204,7 @@ JSClass("JSTextLayoutManager", JSObject, {
         for (var i = 0, l = this._textContainers.length; i < l; ++i){
             container = this._textContainers[i];
             pointInContainer = this.convertPointToTextContainer(point, container);
-            if (container.hitTest(pointInContainer) !== null){
+            if (point.x >= 0 && point.x < container.size.width && point.y >= 0 && point.y < container.size.y){
                 return container;
             }
         }

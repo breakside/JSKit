@@ -14,7 +14,6 @@ JSClass("JSTextContainer", JSObject, {
     textAlignment: JSDynamicProperty('_textAlignment', JSTextAlignment.left),
     textLayoutManager: JSDynamicProperty('_textLayoutManager', null),
     maximumNumberOfLines: JSDynamicProperty('_maximumNumberOfLines', 0),
-    sizeTracksText: JSDynamicProperty('_sizeTracksText', false),
     framesetter: null,
     textFrame: JSReadOnlyProperty('_textFrame', null),
 
@@ -22,20 +21,6 @@ JSClass("JSTextContainer", JSObject, {
         this.framesetter = JSTextFramesetter.init();
         this._origin = JSPoint.Zero;
         this._size = JSSize(size);
-    },
-
-    hitTest: function(point){
-        if (point.x >= 0 && point.x < this.size.width && point.y >= 0 && point.y < this.size.height){
-            var line = this.lineAtPoint(point);
-            if (line !== null){
-                var run = line.runAtPoint(JSPoint(point.x - line.origin.x, point.y - line.origin.y));
-                if (run !== null){
-                    return run;
-                }
-            }
-            return this;
-        }
-        return null;
     },
 
     getRange: function(){
@@ -46,10 +31,12 @@ JSClass("JSTextContainer", JSObject, {
     },
 
     setSize: function(size){
-        var notify = !this._sizeTracksText || (this._maximumNumberOfLines === 0 && size.width != this._size.width);
         if (size.width != this._size.width || size.height != this._size.height){
             this._size = JSSize(size);
-            if (notify){
+            // Only notify the layout manager if we're actually change frame size
+            // The frame size can be different from our size if we were sized without
+            // constraints, and are now being sized to match the result
+            if (!this._textFrame || size.width != this._textFrame.size.width || size.height != this._textFrame.size.height){
                 this._notifyLayoutManager();
             }
         }
@@ -74,30 +61,9 @@ JSClass("JSTextContainer", JSObject, {
         }
     },
 
-    setSizeTracksText: function(sizeTracksText){
-        if (sizeTracksText != this._sizeTracksText){
-            this._sizeTracksText = sizeTracksText;
-            this._notifyLayoutManager();
-        }
-    },
-
     createTextFrame: function(attributedString, range){
-        var size = JSSize(this.size);
-        if (this._sizeTracksText){
-            size.height = 0;
-            if (this._maximumNumberOfLines !== 0){
-                size.width = 0;
-            }
-        }
         this.framesetter.attributedString = attributedString;
-        this._textFrame = this.framesetter.createFrame(size, range, this._maximumNumberOfLines, this._lineBreakMode, this._textAlignment);
-        // TODO: get hit objects from framesetter or frame, use them in hitTest
-        if (this._sizeTracksText){
-            this.size.height = this._textFrame.size.height;
-            if (this._maximumNumberOfLines !== 0){
-                this.size.width = this._textFrame.size.width;
-            }
-        }
+        this._textFrame = this.framesetter.createFrame(this.size, range, this._maximumNumberOfLines, this._lineBreakMode, this._textAlignment);
     },
 
     characterIndexAtPoint: function(point){

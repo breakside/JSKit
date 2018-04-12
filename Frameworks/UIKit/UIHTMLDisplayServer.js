@@ -1,11 +1,12 @@
 // #import "UIKit/UIDisplayServer.js"
 // #import "UIKit/UIHTMLDisplayServerContext.js"
 // #import "UIKit/UIHTMLTextFramesetter.js"
+// #import "UIKit/UITextAttachmentView.js"
 // #feature Window.prototype.addEventListener
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
 // #feature Document.prototype.createElement
-/* global JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer, jslog_create, UIHTMLTextFramesetter, UIView */
+/* global JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer, jslog_create, UIHTMLTextFramesetter, UIView, UITextAttachmentView */
 'use strict';
 
 (function(){
@@ -142,12 +143,11 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         return context;
     },
 
-    contextForAttachment: function(attachment, parentElement){
-        var context;
+    attachmentInserted: function(attachment, parentElement){
         if (attachment.isKindOfClass(UITextAttachmentView)){
             var layer = attachment.view.layer;
-            context = this.contextForLayer(layer);
             if (layer._displayServer === null){
+                var context = this.contextForLayer(layer);
                 layer._displayServer = this;
                 if (layer._needsLayout){
                     this.setLayerNeedsLayout(layer);
@@ -158,7 +158,18 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
                 for (var i = 0, l = layer.sublayers.length; i < l; ++i){
                     this.layerInserted(layer.sublayers[i]);
                 }
+                if (context.element.parentNode !== parentElement){
+                    parentElement.appendChild(context.element);
+                }
             }
+        }
+    },
+
+    contextForAttachment: function(attachment, parentElement){
+        var context;
+        if (attachment.isKindOfClass(UITextAttachmentView)){
+            var layer = attachment.view.layer;
+            context = this.contextForLayer(layer);
         }else{
             context = this.contextsByObjectID[attachment.objectID];
             if (context === undefined){

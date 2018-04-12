@@ -42,7 +42,7 @@ JSClass("JSTextTypesetter", JSObject, {
         if (range.length === 0){
             return JSRange(range);
         }
-        if (width === 0){
+        if (width <= 0){
             width = Number.MAX_VALUE;
         }
         this._suggestedLineLayout = this._layoutLine(width, range, lineBreakMode);
