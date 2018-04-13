@@ -115,6 +115,12 @@ JSRect.prototype = {
     size: null,
 
     rectWithInsets: function(top, right, bottom, left){
+        if (top instanceof JSInsets){
+            right = top.right;
+            bottom = top.bottom;
+            left = top.left;
+            top = top.top;
+        }
         if (right === undefined) right = top;
         if (bottom === undefined) bottom = top;
         if (left === undefined) left = right;

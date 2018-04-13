@@ -7,6 +7,8 @@
 
 'use strict';
 
+(function(){
+
 JSProtocol("UITextFieldDelegate", JSProtocol, {
     textFieldDidRecieveEnter: ['textField']
 });
@@ -20,8 +22,9 @@ JSClass("UITextField", UIView, {
     font: JSDynamicProperty(),
     multiline: JSDynamicProperty('_multiline', false, 'isMultiline'),
     selections: JSReadOnlyProperty(),
-    textInsets: JSDynamicProperty(),
+    textInsets: JSDynamicProperty('_textInsets', null),
     delegate: null,
+    _clipView: null,
     _textLayer: null,
     _respondingIndicatorLayer: JSLazyInitProperty('_createRespondingIndicatorLayer'),
     _localEditor: null,
@@ -52,7 +55,10 @@ JSClass("UITextField", UIView, {
 
     _commonViewInit: function(){
         UITextField.$super._commonViewInit.call(this);
-        this.clipsToBounds = true;
+        this._textInsets = JSInsets.Zero;
+        this._clipView = UIView.init(this.bounds);
+        this._clipView.backgroundColor = null;
+        this._clipView.clipsToBounds = true;
         this._textLayer = UITextLayer.init();
         this._textLayer.delegate = this;
         this._textLayer.textAlignment = JSTextAlignment.left;
@@ -62,7 +68,8 @@ JSClass("UITextField", UIView, {
         this._textLayer.maximumNumberOfLines = 1;
         this._localEditor = UITextEditor.initWithTextLayer(this._textLayer);
         this._localEditor.delegate = this;
-        this.layer.addSublayer(this._textLayer);
+        this._clipView.layer.addSublayer(this._textLayer);
+        this.addSubview(this._clipView);
         this._respondingIndicatorLayer.backgroundColor = JSColor.initWithWhite(0.8);
         this.cursor = UICursor.iBeam;
     },
@@ -112,11 +119,12 @@ JSClass("UITextField", UIView, {
     },
 
     setTextInsets: function(textInsets){
-        this._textLayer.textInsets = textInsets;
+        this._textInsets = textInsets;
+        this.setNeedsLayout();
     },
 
     getTextInsets: function(){
-        return this._textLayer.textInsets;
+        return this._textInsets;
     },
 
     getSelections: function(){
@@ -162,59 +170,70 @@ JSClass("UITextField", UIView, {
 
     layoutSublayersOfLayer: function(layer){
         if (layer === this.layer){
-            layer.layoutSublayers();
-            this._textLayer.frame = layer.bounds;
+            this.layoutSubviews();
+            if (this._multiline){
+                this._textLayer.frame = JSRect(this._textLayer.bounds.origin, JSSize(
+                    this._clipView.bounds.size.width,
+                    this._textLayer.frame.size.height
+                ));
+            }
         }else if (layer === this._textLayer){
             this._textLayer.layoutSublayers();
             this._localEditor.layout();
         }
     },
 
-    textEditorDidPositionCursors: function(){
+    layoutSubviews: function(){
+        UITextField.$super.layoutSubviews.call(this);
+        this._clipView.frame = this.bounds.rectWithInsets(this._textInsets);
+    },
+
+    textEditorDidPositionCursors: function(textEditor){
         if (!this._isDragging){
             this._adjustCursorPositionToCenterIfNeeded();
         }
     },
 
     _adjustCursorPositionToCenterIfNeeded: function(){
-        var cursorRect = this.layer.convertRectFromLayer(this._localEditor.insertionRect(), this._textLayer);
-        var adjustment = 0;
-        if ((cursorRect.origin.x < 0) || ((cursorRect.origin.x + cursorRect.size.width) > this.bounds.size.width)){
-            adjustment = this.bounds.size.width / 2.0 - cursorRect.origin.x;
+        var clipBounds = this._clipView.bounds;
+        var cursorRectInTextLayer = this._localEditor.insertionRect();
+        var cursorRect = this._clipView.layer.convertRectFromLayer(cursorRectInTextLayer, this._textLayer);
+        if ((cursorRect.origin.x < clipBounds.origin.x) || (cursorRect.origin.x + cursorRect.size.width > clipBounds.origin.x + clipBounds.size.width)){
+            this._adjustClipViewOrigin(JSPoint(cursorRect.origin.x - clipBounds.size.width / 2.0, clipBounds.origin.y));
         }
-        var origin = JSPoint(this._textLayer.frame.origin.x + adjustment, this._textLayer.frame.origin.y);
-        this._adjustTextPositionToOrigin(origin);
     },
 
     _adjustCursorPositionToVisibleIfNeeded: function(){
-        var cursorRect = this.layer.convertRectFromLayer(this._localEditor.insertionRect(), this._textLayer);
+        var clipBounds = this._clipView.bounds;
+        var cursorRect = this._clipView.layer.convertRectFromLayer(this._localEditor.insertionRect(), this._textLayer);
         var adjustment = 0;
-        if (cursorRect.origin.x < 0){
-            adjustment = -cursorRect.origin.x;
-        }else if ((cursorRect.origin.x + cursorRect.size.width) > this.bounds.size.width){
-            adjustment = this.bounds.size.width - cursorRect.origin.x;
+        if (cursorRect.origin.x < clipBounds.origin.x){
+            this._adjustClipViewOrigin(JSPoint(cursorRect.origin.x, clipBounds.origin.y));
+        }else if (cursorRect.origin.x + cursorRect.size.width > clipBounds.origin.x + clipBounds.size.width){
+            this._adjustClipViewOrigin(JSPoint(cursorRect.origin.x + cursorRect.size.width - clipBounds.size.width, clipBounds.origin.y));
         }
-        var origin = JSPoint(this._textLayer.frame.origin.x + adjustment, this._textLayer.frame.origin.y);
-        this._adjustTextPositionToOrigin(origin);
     },
 
-    _adjustTextPositionToOrigin: function(origin){
+    _adjustClipViewOrigin: function(origin){
         var size = this._textLayer.frame.size;
-        if (origin.x + size.width < this.bounds.size.width){
-            origin.x = this.bounds.size.width - size.width;
+        if (origin.x > size.width - this._clipView.bounds.size.width){
+            origin.x = size.width - this._clipView.bounds.size.width;
         }
-        if (origin.x > 0){
+        if (origin.x < 0){
             origin.x = 0;
         }
-        var newFrame = JSRect(origin, size);
-        if (!this._textLayer.frame.isEqual(newFrame)){
-            this._textLayer.frame = newFrame;
+        var newBounds = JSRect(origin, this._clipView.bounds.size);
+        if (!this._clipView.bounds.isEqual(newBounds)){
+            this._clipView.bounds = newBounds;
         }
     },
 
     layerDidChangeSize: function(layer){
         if (layer === this._textLayer && this._multiline){
-            this.layer.bounds = JSRect(this.layer.bounds.origin, this._textLayer.bounds.size);
+            this.layer.bounds = JSRect(this.layer.bounds.origin, JSSize(
+                this.layer.bounds.size.width,
+                this._textLayer.bounds.size.height + this._textInsets.top + this._textInsets.bottom
+            ));
             this.setNeedsLayout();
         }
     },
@@ -257,11 +276,11 @@ JSClass("UITextField", UIView, {
         var location = event.locationInView(this);
         this._lastDragLocation = location;
         this._lastDragEvent = event;
-        var distanceFromRightEdge = Math.max(0, this.bounds.size.width - location.x);
+        var distanceFromRightEdge = Math.max(0, this.bounds.size.width - location.x - this._textInsets.right);
         if (distanceFromRightEdge < this._boundsScrollThreshold){
-            this._boundsScrollDistance = distanceFromRightEdge - this._boundsScrollThreshold;
-        }else if (location.x <= this._boundsScrollThreshold){
-            this._boundsScrollDistance = this._boundsScrollThreshold - Math.max(location.x, 0);
+            this._boundsScrollDistance = this._boundsScrollThreshold - distanceFromRightEdge;
+        }else if (location.x - this.textInsets.left <= this._boundsScrollThreshold){
+            this._boundsScrollDistance = Math.max(location.x - this.textInsets.left, 0) - this._boundsScrollThreshold;
         }else{
             this._boundsScrollDistance = 0;
         }
@@ -273,7 +292,7 @@ JSClass("UITextField", UIView, {
         }else{
             if (this._boundsScrollTimer === null){
                 this._boundsScrollTimer = JSTimer.initWithInterval(this._boundsScrollInterval, true, function(){
-                    this._adjustTextPositionToOrigin(JSPoint(this._textLayer.frame.origin.x + this._boundsScrollDistance, this._textLayer.frame.origin.y));
+                    this._adjustClipViewOrigin(JSPoint(this._clipView.bounds.origin.x + this._boundsScrollDistance, this._clipView.bounds.origin.y));
                     this._localEditor.handleMouseDraggedAtLocation(this.layer.convertPointToLayer(this._lastDragLocation, this._textLayer), this._lastDragEvent);
                     this._adjustCursorPositionToVisibleIfNeeded();
                 }, this);
@@ -331,11 +350,11 @@ JSClass("UITextField", UIView, {
     },
 
     insertTab: function(){
-        this.window.setFirstReponderToKeyViewAfterView(this);
+        this.window.setFirstResponderToKeyViewAfterView(this);
     },
 
     insertBacktab: function(){
-        this.window.setFirstReponderToKeyViewBeforeView(this);
+        this.window.setFirstResponderToKeyViewBeforeView(this);
     },
 
     deleteBackward: function(){
@@ -455,3 +474,5 @@ JSClass("UITextField", UIView, {
     }
 
 });
+
+})();

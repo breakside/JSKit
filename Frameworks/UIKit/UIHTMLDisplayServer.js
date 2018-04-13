@@ -127,8 +127,8 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         var parentScrolls = context.element.parentNode !== null && (context.element.parentNode.style.overflow == 'auto' || context.element.parentNode.style.overflow == 'scroll');
         var superorigin = (layer.superlayer !== null && !parentScrolls) ? layer.superlayer.presentation.bounds.origin : JSPoint.Zero;
         var size = layer.presentation.bounds.size;
-        origin.x -= size.width * layer.presentation.anchorPoint.x - superorigin.x;
-        origin.y -= size.height * layer.presentation.anchorPoint.y - superorigin.y;
+        origin.x -= size.width * layer.presentation.anchorPoint.x + superorigin.x;
+        origin.y -= size.height * layer.presentation.anchorPoint.y + superorigin.y;
         context.style.top = origin.y + 'px';
         context.style.left = origin.x + 'px';
     },
@@ -143,28 +143,6 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         return context;
     },
 
-    attachmentInserted: function(attachment, parentElement){
-        if (attachment.isKindOfClass(UITextAttachmentView)){
-            var layer = attachment.view.layer;
-            if (layer._displayServer === null){
-                var context = this.contextForLayer(layer);
-                layer._displayServer = this;
-                if (layer._needsLayout){
-                    this.setLayerNeedsLayout(layer);
-                    layer._needsLayout = false;
-                }
-                this.setLayerNeedsReposition(layer);
-                this.setLayerNeedsDisplay(layer);
-                for (var i = 0, l = layer.sublayers.length; i < l; ++i){
-                    this.layerInserted(layer.sublayers[i]);
-                }
-                if (context.element.parentNode !== parentElement){
-                    parentElement.appendChild(context.element);
-                }
-            }
-        }
-    },
-
     contextForAttachment: function(attachment, parentElement){
         var context;
         if (attachment.isKindOfClass(UITextAttachmentView)){
@@ -177,9 +155,9 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
                 context = UIHTMLDisplayServerContext.initWithElement(element);
                 this.contextsByObjectID[attachment.objectID] = context;
             }
-        }
-        if (context.element.parentNode !== parentElement){
-            parentElement.appendChild(context.element);
+        // if (context.element.parentNode !== parentElement){
+        //     parentElement.appendChild(context.element);
+        // }
         }
         return context;
     },
@@ -248,17 +226,64 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
                 context.element.parentNode.removeChild(context.element);
             }
             // FIXME: when a view is just moving to a new superview, we shouldn't destroy the context
+            this._destroyContextForLayer(layer);
+        }
+        if (layer.superlayer === null){
+            for (var i = this.rootLayers.length - 1; i >= 0; --i){
+                if (this.rootLayers[i] === layer){
+                    this.rootLayers.splice(i, 1);
+                    break;
+                }
+            }
+        }
+        layer._displayServer = null;
+    },
+
+    _destroyContextForLayer: function(layer){
+        for (var i = 0, l = layer.sublayers.length; i < l; ++i){
+            this._destroyContextForLayer(layer.sublayers[i]);
+        }
+        var context = this.contextsByObjectID[layer.objectID];
+        if (context){
             layer.destroyHTMLContext(context);
             context.destroy();
             delete this.contextsByObjectID[layer.objectID];
         }
-        if (layer.superlayer === null){
-            for (var i = this.rootLayers.length - 1; i >= 0; --i){
-                this.rootLayers.splice(i, 1);
-                break;
+    },
+
+    attachmentInserted: function(attachment, parentElement){
+        // if (attachment.isKindOfClass(UITextAttachmentView)){
+        //     var layer = attachment.view.layer;
+        //     if (layer._displayServer === null){
+        //         var context = this.contextForLayer(layer);
+        //         layer._displayServer = this;
+        //         if (layer._needsLayout){
+        //             this.setLayerNeedsLayout(layer);
+        //             layer._needsLayout = false;
+        //         }
+        //         this.setLayerNeedsReposition(layer);
+        //         this.setLayerNeedsDisplay(layer);
+        //         for (var i = 0, l = layer.sublayers.length; i < l; ++i){
+        //             this.layerInserted(layer.sublayers[i]);
+        //         }
+        //         if (context.element.parentNode !== parentElement){
+        //             parentElement.appendChild(context.element);
+        //         }
+        //     }
+        // }
+    },
+
+    attachmentRemoved: function(attachment){
+        if (attachment.isKindOfClass(UITextAttachmentView)){
+            // this.layerRemoved(attachment.view.layer);
+            attachment.view.removeFromSuperview();
+        }else{
+            var context = this.contextsByObjectID[attachment.objectID];
+            if (context !== null){
+                context.destroy();
+                delete this.contextsByObjectID[attachment.objectID];
             }
         }
-        layer._displayServer = null;
     },
 
     // -------------------------------------------------------------------------

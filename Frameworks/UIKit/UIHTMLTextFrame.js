@@ -1,7 +1,8 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIHTMLTextLine.js"
 // #import "UIKit/UIHTMLDisplayServerContext.js"
-/* global JSClass, JSTextFrame, UIHTMLTextFrame, UIHTMLTextLine, JSAttributedString, JSRange, JSFont, JSPoint, JSRect, JSSize, UIHTMLDisplayServerContext */
+// #import "UIKit/UITextAttachmentView.js"
+/* global JSClass, JSTextFrame, UIHTMLTextFrame, UIHTMLTextLine, JSAttributedString, JSRange, JSFont, JSPoint, JSRect, JSSize, UIHTMLDisplayServerContext, UITextAttachmentView */
 'use strict';
 
 (function(){
@@ -24,9 +25,6 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             if (line.element.parentNode !== this.element){
                 line.element.style.position = 'absolute';
                 this.element.appendChild(line.element);
-            }
-            for (j = 0, k = line.attachments.length; j < k; ++j){
-                this.attachments.push(line.attachments[j]);
             }
         }
 
@@ -75,6 +73,21 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             }
         }
 
+        var attachmentInfo;
+        for (i = 0, l = lines.length; i < l; ++i){
+            line = lines[i];
+            for (j = 0, k = line.attachments.length; j < k; ++j){
+                attachmentInfo = line.attachments[j];
+                if (attachmentInfo.attachment.isKindOfClass(UITextAttachmentView)){
+                    attachmentInfo.attachment.view.frame = JSRect(
+                        JSPoint(line.origin.x + attachmentInfo.run.origin.x, line.origin.y + attachmentInfo.run.origin.y),
+                        attachmentInfo.attachment.view.frame.size
+                    );
+                }
+                this.attachments.push(attachmentInfo);
+            }
+        }
+
         // Superclass init will adjust origins according to text alignment, but
         // we must have properly set the line size and trailingWhitespaceWidth first
         UIHTMLTextFrame.$super.initWithLines.call(this, lines, size, textAlignment);
@@ -103,7 +116,9 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             var attachmentInfo;
             for (var i = 0, l = this.attachments.length; i < l; ++i){
                 attachmentInfo = this.attachments[i];
-                attachmentInfo.attachment.drawInContextAtPoint(attachmentInfo.context, JSPoint.Zero);
+                if (!attachmentInfo.attachment.isKindOfClass(UITextAttachmentView)){
+                    attachmentInfo.attachment.drawInContextAtPoint(attachmentInfo.context, JSPoint.Zero);
+                }
             }
         }else{
             UIHTMLTextFrame.$super.drawInContextAtPoint.call(this, context, point);

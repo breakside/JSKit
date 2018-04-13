@@ -1,6 +1,7 @@
 // #import "UIKit/UITextField.js"
 // #import "UIKit/UITextAttachmentView.js"
-/* global JSClass, UITextField, UITokenField, JSSize, JSAttributedString, JSLineBreakMode, UITextAttachmentView, UIView, UITokenFieldTokenView, UILabel, JSRange, JSRect, JSPoint, JSDynamicProperty, JSInsets, JSColor, jslog_create */
+// #import "UIKit/UICursor.js"
+/* global JSClass, UITextField, UITokenField, JSSize, UICursor, JSAttributedString, JSLineBreakMode, UITextAttachmentView, UIView, UITokenFieldTokenView, UILabel, JSRange, JSRect, JSPoint, JSDynamicProperty, JSInsets, JSColor, jslog_create */
 'use strict';
 
 (function(){
@@ -10,11 +11,38 @@ var logger = jslog_create("uikit.tokenfield");
 JSClass("UITokenField", UITextField, {
 
     tokenDelegate: null,
-    _representedObjects: null,
+    representedObjects: JSDynamicProperty(),
+    tokensView: null,
 
     _commonViewInit: function(){
         UITokenField.$super._commonViewInit.call(this);
-        this._representedObjects = [];
+        this.tokensView = UIView.initWithFrame(JSRect.Zero);
+        this._clipView.addSubview(this.tokensView);
+        this.setNeedsLayout();
+    },
+
+    getRepresentedObjects: function(){
+        var iterator = this.attributedText.runIterator();
+        var attachment;
+        var representedObjects = [];
+        while (iterator.range.location < this.attributedText.string.length){
+            attachment = iterator.attachment;
+            if (attachment !== null && attachment.representedObject !== null){
+                representedObjects.push(attachment.representedObject);
+            }
+            iterator.increment();
+        }
+        return representedObjects;
+    },
+
+    setRepresentedObjects: function(representedObjects){
+        var str = JSAttributedString.init();
+        var obj;
+        for (var i = 0, l = representedObjects.length; i < l; ++i){
+            obj = representedObjects[i];
+            str.appendAttributedString(this._createAttachmentStringForRepresentedObject(obj));
+        }
+        this.attributedText = str;
     },
 
     insertNewline: function(){
@@ -48,56 +76,49 @@ JSClass("UITokenField", UITextField, {
         var originalString = this.text;
         var iterator = originalString.unicodeIterator();
         var range = JSRange(0, 0);
-        var objectIndex = 0;
         var attachmentString;
         var indexAdjustment = 0;
+        var representedObject;
         while (iterator.character !== null){
             if (iterator.character.code === JSAttributedString.SpecialCharacter.Attachment){
                 if (range.length > 0){
-                    if (this._convertStringToToken(originalString, range, objectIndex)){
-                        attachmentString = this._createAttachmentStringForRepresentedObject(this._representedObjects[objectIndex]);
+                    representedObject = this._convertStringToRepresentedObject(originalString, range);
+                    if (representedObject !== null){
+                        attachmentString = this._createAttachmentStringForRepresentedObject(representedObject);
                         this.attributedText.replaceCharactersInRangeWithAttributedString(JSRange(range.location + indexAdjustment, range.length), attachmentString);
                         indexAdjustment += attachmentString.string.length - range.length;
-                        ++objectIndex;
                     }
                 }
                 range = JSRange(iterator.nextIndex, 0);
-                ++objectIndex;
             }else{
                 range.length += iterator.nextIndex - iterator.index;
             }
             iterator.increment();
         }
         if (range.length > 0){
-            if (this._convertStringToToken(originalString, range, objectIndex)){
-                attachmentString = this._createAttachmentStringForRepresentedObject(this._representedObjects[objectIndex]);
+            representedObject = this._convertStringToRepresentedObject(originalString, range);
+            if (representedObject !== null){
+                attachmentString = this._createAttachmentStringForRepresentedObject(representedObject);
                 this.attributedText.replaceCharactersInRangeWithAttributedString(JSRange(range.location + indexAdjustment, range.length), attachmentString);
             }
         }
     },
 
-    _convertStringToToken: function(string, range, objectIndex){
+    _convertStringToRepresentedObject: function(string, range){
         var representedObject;
         var objectString;
         objectString = string.substringInRange(range);
-        representedObject = this._representedObjectForString(objectString);
-        if (representedObject !== null){
-            this._representedObjects.splice(objectIndex, 0, representedObject);
-            return true;
-        }
-        return false;
-    },
-
-    _representedObjectForString: function(string){
         if (this.tokenDelegate && this.tokenDelegate.tokenFieldRepresentedObjectForString){
-            return this.tokenDelegate.tokenFieldRepresentedObjectForString(this, string);
+            return this.tokenDelegate.tokenFieldRepresentedObjectForString(this, objectString);
         }
-        return string;
+        return objectString;
     },
 
     _createAttachmentStringForRepresentedObject: function(representedObject){
         var view = this._createViewForRepresentedObject(representedObject);
+        this.tokensView.addSubview(view);
         var attachment = UITextAttachmentView.initWithView(view);
+        attachment.representedObject = representedObject;
         attachment.baselineAdjustment = view.labelView.font.htmlDescender - view.labelView.textInsets.bottom;
         return JSAttributedString.initWithAttachment(attachment);
     },
@@ -112,37 +133,7 @@ JSClass("UITokenField", UITextField, {
         }
         str = representedObject.toString();
         return UITokenFieldTokenView.initWithString(str, this);
-    },
-
-    hitTest: function(point){
-        var attributedText = this.attributedText;
-        if (attributedText.length > 0){
-            var layoutManager = this._textLayer.textLayoutManager;
-            var index = layoutManager.characterIndexAtPoint(point);
-            var iterator = attributedText.string.unicodeIterator(index);
-            var rect;
-            var attachment;
-            var stopNext = iterator.index === 0;
-            var stop = false;
-            while (!stop){
-                if (iterator.character.code === JSAttributedString.SpecialCharacter.Attachment){
-                    attachment = attributedText.attributeAtIndex(JSAttributedString.Attribute.attachment, iterator.index);
-                    if (attachment && attachment.isKindOfClass(UITextAttachmentView)){
-                        rect = layoutManager.rectForCharacterAtIndex(iterator.index);
-                        if (rect.containsPoint(point)){
-                            return attachment.view;
-                        }
-                    }
-                }
-                stop = stopNext;
-                if (!stop){
-                    iterator.decrement();
-                    stopNext = true;
-                }
-            }
-        }
-        return UITokenField.$super.hitTest.call(this, point);
-    },
+    }
 
 });
 
@@ -165,10 +156,12 @@ JSClass("UITokenFieldTokenView", UIView, {
         this.labelView.text = str;
         this.labelView.backgroundColor = JSColor.initWithRGBA(210/255, 231/255, 251/255, 1.0);
         this.labelView.borderColor = JSColor.initWithRGBA(116/255, 181/255, 243/255, 1.0);
+        this.backgroundColor = null;
         this.labelView.borderWidth = 0.5;
         this.labelView.cornerRadius = 3.0;
         this.addSubview(this.labelView);
         this._tokenInsets = JSInsets(0, 1.5, 0, 1.5);
+        this.labelView.cursor = UICursor.arrow;
         this.setNeedsLayout();
     },
 
@@ -190,15 +183,23 @@ JSClass("UITokenFieldTokenView", UIView, {
     },
 
     layoutSubviews: function(){
-        var availableWidth = this.textField.bounds.width - this.textField.textInsets.left - this.textField.textInsets.right - this._tokenInsets.left - this._tokenInsets.right;
+        var availableWidth = this.textField.bounds.size.width - this.textField.textInsets.left - this.textField.textInsets.right - this._tokenInsets.left - this._tokenInsets.right;
         this.labelView.sizeToFit();
         if (this.labelView.frame.size.width > availableWidth){
-            this.labelView.frame = JSRect(0, 0, availableWidth, this.labelView.size.height);
+            this.labelView.frame = JSRect(0, 0, availableWidth, this.labelView.frame.size.height);
         }
         var ourSize = JSSize(this.labelView.frame.size);
         ourSize.width += this._tokenInsets.left + this._tokenInsets.right;
-        this.labelView.position = JSPoint(this._tokenInsets.left + this.labelView.frame.size.width / 2.0, ourSize.height.height / 2.0);
+        this.labelView.position = JSPoint(this._tokenInsets.left + this.labelView.frame.size.width / 2.0, ourSize.height / 2.0);
         this.bounds = JSRect(JSPoint.Zero, ourSize);
+    },
+
+    containsPoint: function(locationInView){
+        return this.labelView.containsPoint(this.layer.convertPointToLayer(locationInView, this.labelView.layer));
+    },
+
+    hitTest: function(locationInView){
+        return UITokenFieldTokenView.$super.hitTest.call(this, locationInView);
     },
 
     mouseDown: function(event){

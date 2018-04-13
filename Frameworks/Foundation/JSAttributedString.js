@@ -435,7 +435,7 @@ Object.defineProperties(JSAttributedStringRunIterator.prototype, {
     range: {
         enumerable: true,
         configurable: false,
-        get: function JSAttributedStringRunIterator_run(){
+        get: function JSAttributedStringRunIterator_getRange(){
             if (this._runIndex < 0){
                 return JSRange(-1, 0);
             }
@@ -449,7 +449,7 @@ Object.defineProperties(JSAttributedStringRunIterator.prototype, {
     attributes: {
         enumerable: true,
         configurable: false,
-        get: function JSAttributedStringRunIterator_run(){
+        get: function JSAttributedStringRunIterator_getAttributes(){
             if (this._runIndex < 0){
                 return {};
             }
@@ -473,10 +473,28 @@ Object.defineProperties(JSAttributedStringRunIterator.prototype, {
     decrement: {
         enumerable: false,
         configurable: false,
-        value: function JSAttributedStringRunIterator_increment(){
+        value: function JSAttributedStringRunIterator_decrement(){
             if (this._runIndex >= 0){
                 --this._runIndex;
             }
+        }
+    },
+
+    attachment: {
+        enumerable: false,
+        configurable: false,
+        get: function JSAttributedStringRunIterator_getAttachment(){
+            if (this._runIndex < 0){
+                return null;
+            }
+            if (this._runIndex >= this._attributedString._runs.length){
+                return null;
+            }
+            var run = this._attributedString._runs[this._runIndex];
+            if (run.range.length === 1 && this._attributedString.charCodeAt(run.range.location) === JSAttributedString.SpecialCharacter.Attachment){
+                return run.attributes[JSAttributedString.Attribute.attachment];
+            }
+            return null;
         }
     }
 });

@@ -14,7 +14,6 @@ JSClass('UIWindow', UIView, {
     contentView: JSDynamicProperty('_contentView', null),
     application: JSReadOnlyProperty('_application', null),
     firstResponder: JSDynamicProperty('_firstResponder', null),
-    headKeyView: JSDynamicProperty('_firstKeyResponder', null),
     windowServer: JSReadOnlyProperty(),
 
     // -------------------------------------------------------------------------
@@ -130,7 +129,7 @@ JSClass('UIWindow', UIView, {
         }
     },
 
-    setFirstReponderToKeyViewAfterView: function(view){
+    setFirstResponderToKeyViewAfterView: function(view){
         if (view === null){
             return;
         }
@@ -139,16 +138,21 @@ JSClass('UIWindow', UIView, {
         do {
             next = view.nextKeyView;
             if (next === null && !haveLooped){
-                next = this.headKeyView;
+                next = this.nextKeyView;
                 haveLooped = true;
             }
-        } while (next !== null && !next.hidden && !next.canBecomeFirstResponder());
+        } while (next !== null && (next.hidden || !next.canBecomeFirstResponder()));
         if (next !== null){
             this.firstResponder = next;
         }
     },
 
     setFirstResponderToKeyViewBeforeView: function(view){
+        if (view === null){
+            return;
+        }
+        var keyView = this.nextKeyView;
+
     },
 
     getNextResponder: function(){

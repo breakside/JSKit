@@ -267,14 +267,18 @@ JSClass('UIView', UIResponder, {
     hitTest: function(locationInView){
         var subview;
         var locationInSubview;
-        for (var i = this.subviews.length - 1; i >= 0; --i){
+        var hit = null;
+        for (var i = this.subviews.length - 1; i >= 0 && hit === null; --i){
             subview = this.subviews[i];
             locationInSubview = this.layer.convertPointToLayer(locationInView, subview.layer);
-            if (subview.containsPoint(locationInSubview)){
-                return subview.hitTest(locationInSubview);
+            if (!subview.hidden && (!subview.clipsToBounds || subview.containsPoint(locationInSubview))){
+                hit  = subview.hitTest(locationInSubview);
             }
         }
-        return this;
+        if (hit === null && this.containsPoint(locationInView)){
+            hit = this;
+        }
+        return hit;
     },
 
     // MARK: - Private Methods

@@ -94,6 +94,14 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         var runDescriptors = [];
         var runDescriptor;
         var attachment;
+        var attachments = [];
+        var previousAttachmentsByID = {};
+        if (this._cachedLayout !== null){
+            for (i = 0; i < this._cachedLayout.attachments.length; ++i){
+                previousAttachmentsByID[this._cachedLayout.attachments[i].objectID] = this._cachedLayout.attachments[i];
+            }
+        }
+        i = 0;
         while (remainingRange.length > 0){
             var utf16 = this._attributedString.string.substringInRange(runIterator.range.intersection(remainingRange));
             if (runIterator.range.length === 1 && utf16 == JSAttributedString.SpecialCharacter.AttachmentUTF16){
@@ -114,6 +122,10 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                 // of the display server and do a proper layout before its size is needed when we
                 // create the run descriptor below.
                 this._htmlDisplayServer.attachmentInserted(attachment, span);
+                if (attachment.objectID in previousAttachmentsByID){
+                    delete previousAttachmentsByID[attachment.objectID];
+                }
+                attachments.push(attachment);
             }
             runDescriptor = UIHTMLTextTypesetterRunDescriptor(span, runIterator.attributes, runIterator.range.intersection(remainingRange), attachment);
             runDescriptors.push(runDescriptor);
@@ -124,9 +136,13 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         for (var j = element.childNodes.length - 1; j >= i; --j){
             element.removeChild(element.childNodes[j]);
         }
+        for (var id in previousAttachmentsByID){
+            this._htmlDisplayServer.attachmentRemoved(previousAttachmentsByID[id]);
+        }
         this._cachedLayout = {
             runDescriptors: runDescriptors,
-            range: JSRange(range)
+            range: JSRange(range),
+            attachments: attachments
         };
         this._suggestionCache = null;
     },
@@ -159,18 +175,19 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
             var span = fragment.runDescriptor.span.cloneNode(false);
             if (!fragment.runDescriptor.attachment){
                 span.appendChild(span.ownerDocument.createTextNode(this.attributedString.string.substringInRange(fragment.range)));
-            }else{
-                // FIXME:
-                // 1. Want context for attachment to be resuable to minimize dom manipulations, but
-                //    also need a distinct context per text frame that uses this string+attachment
-                // 2. Need a way to tell the display server that the context can be destroyed
-                attachments.push({
-                    context: this._htmlDisplayServer.contextForAttachment(fragment.runDescriptor.attachment, span),
-                    attachment: fragment.runDescriptor.attachment
-                });
             }
             run = UIHTMLTextRun.initWithElement(span, fragment.runDescriptor.font, fragment.runDescriptor.attributes, fragment.range);
             runs.push(run);
+            if (fragment.runDescriptor.attachment){
+                // FIXME:
+                // 1. Want context for attachment to be resuable to minimize dom manipulations, but
+                //    also need a distinct context per text frame that uses this string+attachment
+                attachments.push({
+                    context: this._htmlDisplayServer.contextForAttachment(fragment.runDescriptor.attachment, span),
+                    attachment: fragment.runDescriptor.attachment,
+                    run: run
+                });
+            }
         }
 
         // NOTE: Deferring calculation of trailingWhitespaceWidth until all the lines are done and added to
@@ -388,7 +405,7 @@ Object.defineProperties(UIHTMLTextTypesetterRunDescriptor.prototype, {
     startX: {
         get: function UIHTMLTextTypesetterRunDescriptor_getStartX(){
             var firstRect = this.clientRects[0];
-            return firstRect.x + firstRect.width;
+            return firstRect.x;
         }
     },
 

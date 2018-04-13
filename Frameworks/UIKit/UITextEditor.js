@@ -491,22 +491,21 @@ JSClass("UITextEditor", JSObject, {
     _isHandlingSelectionAdjustments: false,
 
     textStorageDidReplaceCharactersInRange: function(range, insertedLength){
-        if (this._isHandlingSelectionAdjustments){
-            return true;
-        }
-        var selection;
-        var locationAdjustment = insertedLength - range.length;
-        for (var i = this.selections.length - 1; i >= 0; --i){
-            selection = this.selections[i];
-            if (selection.range.location >= range.end){
-                selection.range = JSRange(selection.range.location + locationAdjustment, selection.range.length);
-            }else if (selection.range.location >= range.location){
-                selection.range = JSRange(range.location, Math.max(0, selection.range.length + locationAdjustment));
-            }else{
-                break;
+        if (!this._isHandlingSelectionAdjustments){
+            var selection;
+            var locationAdjustment = insertedLength - range.length;
+            for (var i = this.selections.length - 1; i >= 0; --i){
+                selection = this.selections[i];
+                if (selection.range.location >= range.end){
+                    selection.range = JSRange(selection.range.location + locationAdjustment, selection.range.length);
+                }else if (selection.range.location >= range.location){
+                    selection.range = JSRange(range.location, Math.max(0, selection.range.length + locationAdjustment));
+                }else{
+                    break;
+                }
             }
+            this._collapseOverlappingSelections();
         }
-        this._collapseOverlappingSelections();
     },
 
     // -------------------------------------------------------------------------

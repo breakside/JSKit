@@ -85,8 +85,6 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
     _selectedRange: JSRange(0, 0),
     _config: null,
     _rangeUpdateScheduled: false,
-    _responder: null,
-    _responderWindow: null,
 
     initWithRootElement: function(rootElement){
         this.rootElement = rootElement;
@@ -128,9 +126,8 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
     },
 
     windowDidChangeResponder: function(window){
-        this._responder = window.firstResponder;
-        this._responderWindow = window;
-        if (this._responder){
+        UIHTMLTextInputManager.$super.windowDidChangeResponder.call(this, window);
+        if (this.responder){
             this._config = UIHTMLTextInputManager._HiddenConfig;
             this.hiddenInputElement.focus();
             // FIXME: what if _isComposing is true?  The old responder needs to be told to stop
@@ -160,7 +157,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
             // Mobile devices can hide the keyboard, blurring the hidden input
             // field even when there's a current responder.  In such a case,
             // we need to clear the current responder.
-            this._responderWindow.firstResponder = null;
+            // this.responderWindow.firstResponder = null;
         }
         e.stopPropagation();
     },
@@ -184,12 +181,12 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
         if (e.keyCode == 0x09){  // TAB
             e.preventDefault();
             if (e.shiftKey){
-                if (this._responder && this._responder.insertBacktab){
-                    this._responder.insertBacktab();
+                if (this.responder && this.responder.insertBacktab){
+                    this.responder.insertBacktab();
                 }
             }else{
-                if (this._responder && this._responder.insertTab){
-                    this._responder.insertTab();
+                if (this.responder && this.responder.insertTab){
+                    this.responder.insertTab();
                 }
             }
         }
@@ -288,62 +285,62 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
             switch (this._selectedRange.location){
                 case 0:
                     // start of document
-                    if (this._responder && this._responder.moveToBeginningOfDocument){
-                        this._responder.moveToBeginningOfDocument();
+                    if (this.responder && this.responder.moveToBeginningOfDocument){
+                        this.responder.moveToBeginningOfDocument();
                     }
                     break;
                 case this._config.resetSelection.location - this._config.prevLine:
                     // previous line
-                    if (this._responder && this._responder.moveUp){
-                        this._responder.moveUp();
+                    if (this.responder && this.responder.moveUp){
+                        this.responder.moveUp();
                     }
                     break;
                 case this._config.resetSelection.location - this._config.starOfLine:
                     // start of line
-                    if (this._responder && this._responder.moveToBeginningOfLine){
-                        this._responder.moveToBeginningOfLine();
+                    if (this.responder && this.responder.moveToBeginningOfLine){
+                        this.responder.moveToBeginningOfLine();
                     }
                     break;
                 case this._config.resetSelection.location - this._config.prevWord:
                     // back 1 word
-                    if (this._responder && this._responder.moveWordBackward){
-                        this._responder.moveWordBackward();
+                    if (this.responder && this.responder.moveWordBackward){
+                        this.responder.moveWordBackward();
                     }
                     break;
                 case this._config.resetSelection.location - this._config.prevChar:
                     // back 1 char
-                    if (this._responder && this._responder.moveBackward){
-                        this._responder.moveBackward();
+                    if (this.responder && this.responder.moveBackward){
+                        this.responder.moveBackward();
                     }
                     break;
                 case this._config.resetSelection.location + this._config.nextChar:
                     // forward 1 char
-                    if (this._responder && this._responder.moveForward){
-                        this._responder.moveForward();
+                    if (this.responder && this.responder.moveForward){
+                        this.responder.moveForward();
                     }
                     break;
                 case this._config.resetSelection.location + this._config.nextWord:
                     // forward 1 word
-                    if (this._responder && this._responder.moveWordForward){
-                        this._responder.moveWordForward();
+                    if (this.responder && this.responder.moveWordForward){
+                        this.responder.moveWordForward();
                     }
                     break;
                 case this._config.resetSelection.location + this._config.endOfLine:
                     // end of line
-                    if (this._responder && this._responder.moveToEndOfLine){
-                        this._responder.moveToEndOfLine();
+                    if (this.responder && this.responder.moveToEndOfLine){
+                        this.responder.moveToEndOfLine();
                     }
                     break;
                 case this._config.resetSelection.location + this._config.nextLine:
                     // next line
-                    if (this._responder && this._responder.moveDown){
-                        this._responder.moveDown();
+                    if (this.responder && this.responder.moveDown){
+                        this.responder.moveDown();
                     }
                     break;
                 case this._config.resetValue.length:
                     // end of document
-                    if (this._responder && this._responder.moveToEndOfDocument){
-                        this._responder.moveToEndOfDocument();
+                    if (this.responder && this.responder.moveToEndOfDocument){
+                        this.responder.moveToEndOfDocument();
                     }
                     break;
                 default:
@@ -354,40 +351,40 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
             // If the selection has a range, we're selecting something rather than moving
             if (this._selectedRange.location === 0 && this._selectedRange.length == this._config.resetValue.length){
                 // select all
-                if (this._responder && this._responder.selectAll){
-                    this._responder.selectAll();
+                if (this.responder && this.responder.selectAll){
+                    this.responder.selectAll();
                 }
             }else if (this._selectedRange.location == this._config.resetSelection.location){
                 // forward selection
                 switch (this._selectedRange.length){
                     case this._config.nextChar:
                         // select next char
-                        if (this._responder && this._responder.moveForwardAndModifySelection){
-                            this._responder.moveForwardAndModifySelection();
+                        if (this.responder && this.responder.moveForwardAndModifySelection){
+                            this.responder.moveForwardAndModifySelection();
                         }
                         break;
                     case this._config.nextWord:
                         // select to end of word
-                        if (this._responder && this._responder.moveWordForwardAndModifySelection){
-                            this._responder.moveWordForwardAndModifySelection();
+                        if (this.responder && this.responder.moveWordForwardAndModifySelection){
+                            this.responder.moveWordForwardAndModifySelection();
                         }
                         break;
                     case this._config.endOfLine:
                         // select to end of line
-                        if (this._responder && this._responder.moveToEndOfLineAndModifySelection){
-                            this._responder.moveToEndOfLineAndModifySelection();
+                        if (this.responder && this.responder.moveToEndOfLineAndModifySelection){
+                            this.responder.moveToEndOfLineAndModifySelection();
                         }
                         break;
                     case this._config.nextLine:
                         // select to next line
-                        if (this._responder && this._responder.moveDownAndModifySelection){
-                            this._responder.moveDownAndModifySelection();
+                        if (this.responder && this.responder.moveDownAndModifySelection){
+                            this.responder.moveDownAndModifySelection();
                         }
                         break;
                     case this._config.resetValue.length - this._config.resetSelection.location:
                         // select to end of document
-                        if (this._responder && this._responder.moveToEndOfDocumentAndModifySelection){
-                            this._responder.moveToEndOfDocumentAndModifySelection();
+                        if (this.responder && this.responder.moveToEndOfDocumentAndModifySelection){
+                            this.responder.moveToEndOfDocumentAndModifySelection();
                         }
                         break;
                     default:
@@ -399,32 +396,32 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                 switch (this._selectedRange.length){
                     case this._config.prevChar:
                         // select prev char
-                        if (this._responder && this._responder.moveBackwardAndModifySelection){
-                            this._responder.moveBackwardAndModifySelection();
+                        if (this.responder && this.responder.moveBackwardAndModifySelection){
+                            this.responder.moveBackwardAndModifySelection();
                         }
                         break;
                     case this._config.prevWord:
                         // select to start of word
-                        if (this._responder && this._responder.moveWordBackwardAndModifySelection){
-                            this._responder.moveWordBackwardAndModifySelection();
+                        if (this.responder && this.responder.moveWordBackwardAndModifySelection){
+                            this.responder.moveWordBackwardAndModifySelection();
                         }
                         break;
                     case this._config.starOfLine:
                         // select to start of line
-                        if (this._responder && this._responder.moveToBeginningOfLineAndModifySelection){
-                            this._responder.moveToBeginningOfLineAndModifySelection();
+                        if (this.responder && this.responder.moveToBeginningOfLineAndModifySelection){
+                            this.responder.moveToBeginningOfLineAndModifySelection();
                         }
                         break;
                     case this._config.prevLine:
                         // select to previous line
-                        if (this._responder && this._responder.moveUpAndModifySelection){
-                            this._responder.moveUpAndModifySelection();
+                        if (this.responder && this.responder.moveUpAndModifySelection){
+                            this.responder.moveUpAndModifySelection();
                         }
                         break;
                     case this._config.resetSelection.location:
                         // select to start of document
-                        if (this._responder && this._responder.moveToBeginningOfDocumentAndModifySelection){
-                            this._responder.moveToBeginningOfDocumentAndModifySelection();
+                        if (this.responder && this.responder.moveToBeginningOfDocumentAndModifySelection){
+                            this.responder.moveToBeginningOfDocumentAndModifySelection();
                         }
                         break;
                     default:
@@ -460,12 +457,12 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                     // TODO: dispatch compose update action
                 }else{
                     if (text == "\n" || text == "\r" || text == "\r\n"){
-                        if (this._responder && this._responder.insertNewline){
-                            this._responder.insertNewline();
+                        if (this.responder && this.responder.insertNewline){
+                            this.responder.insertNewline();
                         }
                     }else{
-                        if (this._responder && this._responder.insertText){
-                            this._responder.insertText(text);
+                        if (this.responder && this.responder.insertText){
+                            this.responder.insertText(text);
                         }
                     }
                 }
@@ -480,40 +477,40 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                 var half1 = original.substr(0, l);
                 var half2 = original.substr(l);
                 if (value == half1.substr(0, half1.length - this._config.prevChar) + half2){
-                    if (this._responder && this._responder.deleteBackward){
-                        this._responder.deleteBackward();
+                    if (this.responder && this.responder.deleteBackward){
+                        this.responder.deleteBackward();
                     }
                 }else if (value == half1.substr(0, half1.length - this._config.prevWord) + half2){
-                    if (this._responder && this._responder.deleteWordBackward){
-                        this._responder.deleteWordBackward();
+                    if (this.responder && this.responder.deleteWordBackward){
+                        this.responder.deleteWordBackward();
                     }
                 }else if (value == half1.substr(0, half1.length - this._config.starOfLine) + half2){
-                    if (this._responder && this._responder.deleteToBeginningOfLine){
-                        this._responder.deleteToBeginningOfLine();
+                    if (this.responder && this.responder.deleteToBeginningOfLine){
+                        this.responder.deleteToBeginningOfLine();
                     }
                 }else if (value == half2){
-                    if (this._responder && this._responder.deleteToBeginningOfDocument){
-                        this._responder.deleteToBeginningOfDocument();
+                    if (this.responder && this.responder.deleteToBeginningOfDocument){
+                        this.responder.deleteToBeginningOfDocument();
                     }
                 }else if (value == half1 + half2.substr(this._config.nextChar)){
-                    if (this._responder && this._responder.deleteForward){
-                        this._responder.deleteForward();
+                    if (this.responder && this.responder.deleteForward){
+                        this.responder.deleteForward();
                     }
                 }else if (value == half1 + half2.substr(this._config.nextWord)){
-                    if (this._responder && this._responder.deleteWordForward){
-                        this._responder.deleteWordForward();
+                    if (this.responder && this.responder.deleteWordForward){
+                        this.responder.deleteWordForward();
                     }
                 }else if (value == half1 + half2.substr(this._config.endOfLine)){
-                    if (this._responder && this._responder.deleteToEndOfLine){
-                        this._responder.deleteToEndOfLine();
+                    if (this.responder && this.responder.deleteToEndOfLine){
+                        this.responder.deleteToEndOfLine();
                     }
                 }else if (value == half1){
-                    if (this._responder && this._responder.deleteToEndOfDocument){
-                        this._responder.deleteToEndOfDocument();
+                    if (this.responder && this.responder.deleteToEndOfDocument){
+                        this.responder.deleteToEndOfDocument();
                     }
                 }else if (value === ""){
-                    if (this._responder && this._responder.deleteAll){
-                        this._responder.deleteAll();
+                    if (this.responder && this.responder.deleteAll){
+                        this.responder.deleteAll();
                     }
                 }else{
                     logger.warn("Unexpected delete:\n%s".sprintf(value));

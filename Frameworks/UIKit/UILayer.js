@@ -309,7 +309,7 @@ JSClass("UILayer", JSObject, {
         if (p0 !== null){
             var p1 = this.convertPointToLayer(JSPoint(rect.origin.x + rect.size.width, rect.origin.y), layer);
             var p2 = this.convertPointToLayer(JSPoint(rect.origin.x, rect.origin.y + rect.size.height), layer);
-            var p3 = this.convertPointToLayer(JSPoint(rect.origin.x + rect.size.width ,rect.origin + rect.size.height), layer);
+            var p3 = this.convertPointToLayer(JSPoint(rect.origin.x + rect.size.width ,rect.origin.y + rect.size.height), layer);
             var minX = Math.min(p0.x, p1.x, p2.x, p3.x);
             var maxX = Math.max(p0.x, p1.x, p2.x, p3.x);
             var minY = Math.min(p0.y, p1.y, p2.y, p3.y);
@@ -413,17 +413,21 @@ JSClass("UILayer", JSObject, {
         return point.x >= this.model.bounds.origin.x && point.y >= this.model.bounds.origin.y && point.x < this.model.bounds.origin.x + this.model.bounds.size.width && point.y < this.model.bounds.origin.y + this.model.bounds.size.height;
     },
 
-    hitTest: function(locationInView){
+    hitTest: function(locationInLayer){
         var sublayer;
         var locationInSublayer;
-        for (var i = this.sublayers.length - 1; i >= 0; --i){
+        var hit = null;
+        for (var i = this.sublayers.length - 1; i >= 0 && hit === null; --i){
             sublayer = this.sublayers[i];
-            locationInSublayer = this.convertPointToLayer(locationInView, sublayer);
-            if (sublayer.containsPoint(locationInSublayer)){
-                return sublayer.hitTest(locationInSublayer);
+            locationInSublayer = this.convertPointToLayer(locationInLayer, sublayer);
+            if (!sublayer.hidden && (!sublayer.clipsToBounds || sublayer.containsPoint(locationInSublayer))){
+                hit = sublayer.hitTest(locationInSublayer);
             }
         }
-        return this;
+        if (hit === null && this.containsPoint(locationInLayer)){
+            hit = this;
+        }
+        return hit;
     },
 
     // -------------------------------------------------------------------------

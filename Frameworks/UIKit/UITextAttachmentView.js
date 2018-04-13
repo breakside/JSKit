@@ -1,14 +1,16 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIView.js"
-/* global JSClass, JSTextAttachment, UIView */
+/* global JSClass, JSTextAttachment, UIView, JSPoint */
 'use strict';
 
 JSClass("UITextAttachmentView", JSTextAttachment, {
 
     view: null,
+    originOffset: null,
 
     initWithView: function(view){
         this.view = view;
+        this.originOffset = JSPoint.Zero;
     },
 
     getSize: function(){
@@ -20,7 +22,9 @@ JSClass("UITextAttachmentView", JSTextAttachment, {
     },
 
     drawInContext: function(context){
-        this.view.layer.renderInContext(context);
+        if (!this.view.superview){
+            this.view.layer.renderInContext(context);
+        }
     }
 
 });

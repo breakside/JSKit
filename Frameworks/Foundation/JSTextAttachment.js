@@ -7,6 +7,7 @@ JSClass("JSTextAttachment", JSObject, {
 
     size: JSReadOnlyProperty('_size', null),
     image: JSDynamicProperty('_image', null),
+    representedObject: null,
     baselineAdjustment: 0,
 
     init: function(){
