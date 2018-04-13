@@ -22,6 +22,12 @@ JSClass("UIResponder", JSObject, {
         return null;
     },
 
+    mouseEntered: function(event){
+    },
+
+    mouseExited: function(event){
+    },
+
     mouseDown: function(event){
         var next = this.getNextResponder();
         if (next !== null){

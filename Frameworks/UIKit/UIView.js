@@ -162,8 +162,21 @@ JSClass('UIView', UIResponder, {
 
     setWindow: function(window){
         if (window != this._window){
-            if (this._window === null && this.cursor !== null && window.windowServer !== null){
-                window.windowServer.viewDidChangeCursor(this);
+            var lastWindowServer = null;
+            var newWindowServer = null;
+            if (this._window !== null){
+                lastWindowServer = this._window.windowServer;
+            }
+            if (window !== null){
+                newWindowServer = window.windowServer;
+            }
+            if (lastWindowServer !== newWindowServer && this.cursor !== null){
+                if (lastWindowServer !== null){
+                    lastWindowServer.viewDidChangeCursor(this, null);
+                }
+                if (newWindowServer !== null){
+                    newWindowServer.viewDidChangeCursor(this, this.cursor);
+                }
             }
             this._window = window;
             for (var i = 0, l = this.subviews.length; i < l; ++i){
@@ -179,7 +192,7 @@ JSClass('UIView', UIResponder, {
     setCursor: function(cursor){
         this._cursor = cursor;
         if (this.window !== null && this.window.windowServer !== null){
-            this.window.windowServer.viewDidChangeCursor(this);
+            this.window.windowServer.viewDidChangeCursor(this, this.cursor);
         }
     },
 

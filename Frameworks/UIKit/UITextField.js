@@ -274,6 +274,9 @@ JSClass("UITextField", UIView, {
         if (!this._enabled){
             return UITextField.$super.mouseDragged.call(this, event);
         }
+        if (!this._isDragging){
+            this.cursor.push();
+        }
         this._isDragging = true;
         var location = event.locationInView(this);
         this._lastDragLocation = location;
@@ -305,6 +308,9 @@ JSClass("UITextField", UIView, {
     },
 
     mouseUp: function(event){
+        if (this._isDragging){
+            this.cursor.pop();
+        }
         this._isDragging = false;
         this._lastDragEvent = null;
         this._lastDragLocation = null;

@@ -22,8 +22,58 @@ JSClass("UICursor", JSObject, {
             return this.systemIdentifier;
         }
         return 'url("%s") %d %d, default'.sprintf(this.image.htmlURLString(), this.hotSpot.x, this.hotSpot.y);
-    }
+    },
 
+    push: function(){
+        UICursor.push(this);
+    },
+
+    pop: function(){
+        UICursor.pop();
+    }
+});
+
+UICursor.hide = function(){
+    if (UICursor._hideCount === 0){
+        UICursor._windowServer.hideCursor();
+    }
+    ++UICursor._hideCount;
+};
+
+UICursor.unhide = function(){
+    if (UICursor._hideCount === 0){
+        return;
+    }
+    --UICursor._hideCount;
+    if (UICursor._hideCount === 0){
+        UICursor._windowServer.unhideCursor();
+    }
+};
+
+UICursor.push = function(cursor){
+    UICursor._stack.push(cursor);
+    UICursor.show();
+};
+
+UICursor.pop = function(){
+    if (UICursor._stack.length > 1){
+        UICursor._stack.pop();
+        UICursor.show();
+    }
+};
+
+UICursor.show = function(){
+    if (this._hideCount === 0){
+        UICursor._windowServer.setCursor(UICursor.currentCursor);
+    }
+};
+
+Object.defineProperties(UICursor, {
+    currentCursor: {
+        get: function UICursor_getCurrentCursor(){
+            return UICursor._stack[UICursor._stack.length - 1];
+        }
+    }
 });
 
 UICursor.SystemIdentifier = {
@@ -49,3 +99,7 @@ UICursor.openHand = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.
 UICursor.closedHand = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.closedHand);
 UICursor.dragLink = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.dragLink);
 UICursor.dragCopy = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.dragCopy);
+
+UICursor._hideCount = 0;
+UICursor._stack = [UICursor.arrow];
+UICursor._windowServer = null;

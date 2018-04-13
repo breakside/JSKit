@@ -1,6 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIEvent.js"
-/* global JSClass, JSObject, UIWindowServer, UIEvent, JSPoint, UIWindowServerInit, UITouch */
+// #import "UIKit/UICursor.js"
+/* global JSClass, JSObject, UIWindowServer, UIEvent, JSPoint, UIWindowServerInit, UITouch, UICursor */
 'use strict';
 
 JSClass("UIWindowServer", JSObject, {
@@ -49,8 +50,19 @@ JSClass("UIWindowServer", JSObject, {
         return null;
     },
 
-    viewDidChangeCursor: function(view){
+    viewDidChangeCursor: function(view, cursor){
         // subclasses should override
+    },
+
+    hideCursor: function(){
+        // subclasses should override
+    },
+
+    unhideCursor: function(){
+        // subclasses should override
+    },
+
+    setCursor: function(cursor){
     },
 
     mouseDownWindow: null,
@@ -147,6 +159,7 @@ Object.defineProperty(UIWindowServer, 'defaultServer', {
             enumerable: false,
             value: UIWindowServerInit()
         });
+        UICursor._windowServer = UIWindowServer.defaultServer;
         return UIWindowServer.defaultServer;
     }
 });

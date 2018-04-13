@@ -4,7 +4,7 @@
 // #import "UIKit/UIHTMLDisplayServer.js"
 // #import "UIKit/UIHTMLTextInputManager.js"
 // #feature Element.prototype.addEventListener
-/* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard */
+/* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor */
 'use strict';
 
 JSClass("UIHTMLWindowServer", UIWindowServer, {
@@ -13,12 +13,14 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     domDocument: null,
     domWindow: null,
     mouseDownButton: -1,
+    _cursorViewsById: null,
 
     initWithRootElement: function(rootElement){
         UIHTMLWindowServer.$super.init.call(this);
         this.rootElement = rootElement;
         this.domDocument = this.rootElement.ownerDocument;
         this.domWindow = this.domDocument.defaultView;
+        this._cursorViewsById = {};
         this.setupRenderingEnvironment();
         this.setupEventListeners();
         this.mouseDownButton = UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE;
@@ -45,7 +47,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                 this.rootElement.style.position = 'relative';
             }
         }
-        this.rootElement.style.cursor = 'default';
+        this.setCursor(UICursor.currentCursor);
     },
 
     setupEventListeners: function(){
@@ -96,12 +98,55 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         }
     },
 
-    viewDidChangeCursor: function(view){
-        var context = this.displayServer.contextForLayer(view.layer);
-        if (view.cursor !== null){
-            context.style.cursor = view.cursor.cssString();
+    _isOverridingCursor: false,
+
+    viewDidChangeCursor: function(view, cursor){
+        if (cursor === null){
+            delete this._cursorViewsById[view.objecID];
         }else{
-            context.style.cursor = '';
+            this._cursorViewsById[view.objectID] = view;
+        }
+        if (!this._isOverridingCursor){
+            this._setViewCursor(view, cursor !== null ? cursor.cssString() : '');
+        }
+    },
+
+    _setViewCursor: function(view, cssCursor){
+        var context = this.displayServer.contextForLayer(view.layer);
+        context.style.cursor = cssCursor;
+    },
+
+    hideCursor: function(){
+        this._setCursor("none", true);
+    },
+
+    unhideCursor: function(){
+        this.setCursor(UICursor.currentCursor);
+    },
+
+    setCursor: function(cursor){
+        this._setCursor(cursor.cssString(), UICursor._stack.length > 1);
+    },
+
+    _setCursor: function(cssCursor, isOverride){
+        this.rootElement.style.cursor = cssCursor;
+        var id;
+        var view;
+        if (isOverride){
+            if (!this._isOverridingCursor){
+                this._isOverridingCursor = true;
+                for (id in this._cursorViewsById){
+                    this._setViewCursor(this._cursorViewsById[id], '');
+                }
+            }
+        }else{
+            if (this._isOverridingCursor){
+                this._isOverridingCursor = false;
+                for (id in this._cursorViewsById){
+                    view = this._cursorViewsById[id];
+                    this._setViewCursor(view, view.cursor.cssString());
+                }
+            }
         }
     },
 
