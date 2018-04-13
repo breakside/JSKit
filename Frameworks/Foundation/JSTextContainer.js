@@ -63,7 +63,10 @@ JSClass("JSTextContainer", JSObject, {
 
     createTextFrame: function(attributedString, range){
         this.framesetter.attributedString = attributedString;
-        this._textFrame = this.framesetter.createFrame(this.size, range, this._maximumNumberOfLines, this._lineBreakMode, this._textAlignment);
+        var paragraphAttributes = {};
+        paragraphAttributes[JSAttributedString.Attribute.lineBreakMode] = this._lineBreakMode;
+        paragraphAttributes[JSAttributedString.Attribute.textAlignment] = this._textAlignment;
+        this._textFrame = this.framesetter.createFrame(this.size, range, this._maximumNumberOfLines, paragraphAttributes);
     },
 
     characterIndexAtPoint: function(point){

@@ -104,7 +104,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         i = 0;
         while (remainingRange.length > 0){
             var utf16 = this._attributedString.string.substringInRange(runIterator.range.intersection(remainingRange));
-            if (runIterator.range.length === 1 && utf16 == JSAttributedString.SpecialCharacter.AttachmentUTF16){
+            if (runIterator.range.length === 1 && utf16 == JSAttributedString.SpecialCharacter.attachmentUTF16){
                 attachment = runIterator.attributes[JSAttributedString.Attribute.attachment];
                 utf16 = '';
             }else{
@@ -207,7 +207,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         var attributes = this._attributedString.attributesAtIndex(range.location);
         var font = JSTextTypesetter.FontFromAttributes(attributes);
         var element = this._createLineElement();
-        return UIHTMLTextLine.initWithElementAndFont(element, font, font.htmlLineHeight, range.location);
+        return UIHTMLTextLine.initWithElementAndFont(element, font, font.displayLineHeight, range.location);
     },
 
     suggestLineBreak: function(width, range, lineBreakMode){

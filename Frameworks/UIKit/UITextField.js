@@ -21,6 +21,7 @@ JSClass("UITextField", UIView, {
     textColor: JSDynamicProperty(),
     font: JSDynamicProperty(),
     multiline: JSDynamicProperty('_multiline', false, 'isMultiline'),
+    minimumHeight: JSDynamicProperty('_minimumHeight', 0),
     selections: JSReadOnlyProperty(),
     textInsets: JSDynamicProperty('_textInsets', null),
     delegate: null,
@@ -51,6 +52,7 @@ JSClass("UITextField", UIView, {
         if ("text" in values){
             this.text = values.text;
         }
+        this._minimumHeight = this.bounds.size.height;
     },
 
     _commonViewInit: function(){
@@ -232,7 +234,7 @@ JSClass("UITextField", UIView, {
         if (layer === this._textLayer && this._multiline){
             this.layer.bounds = JSRect(this.layer.bounds.origin, JSSize(
                 this.layer.bounds.size.width,
-                this._textLayer.bounds.size.height + this._textInsets.top + this._textInsets.bottom
+                Math.max(this._minimumHeight, this._textLayer.bounds.size.height + this._textInsets.top + this._textInsets.bottom)
             ));
             this.setNeedsLayout();
         }

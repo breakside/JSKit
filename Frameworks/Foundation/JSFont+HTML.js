@@ -6,13 +6,9 @@
 
 JSFont.definePropertiesFromExtensions({
 
-    htmlLineHeight: JSReadOnlyProperty('_htmlLineHeight', 0),
-    htmlAscender: JSReadOnlyProperty('_htmlAscender', 0),
-    htmlDescender: JSReadOnlyProperty('_htmlDescender', 0),
-
     cssString: function(lineHeight){
         if (lineHeight === undefined){
-            lineHeight = this.htmlLineHeight;
+            lineHeight = this.displayLineHeight;
         }
         return '%d %s %fpx/%fpx %s'.sprintf(
             this._descriptor._weight,
@@ -79,9 +75,9 @@ HTMLFontMetricsCalculator.prototype = {
         var lineHeight = this.atSizeElement.offsetHeight;
         var ascender = this.baselineElement.offsetTop + this.baselineElement.offsetHeight - this.atSizeElement.offsetTop;
         var descender = ascender - lineHeight;
-        font._htmlDescender = descender;
-        font._htmlAscender = ascender;
-        font._htmlLineHeight = lineHeight;
+        font._displayDescender = descender;
+        font._displayAscender = ascender;
+        font._displayLineHeight = lineHeight;
     }
 
 };

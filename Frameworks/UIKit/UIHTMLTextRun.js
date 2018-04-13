@@ -20,7 +20,7 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         // not enough room for a line even when there really is.
         // NOTE: we do NOT want to measure the html element here and cause an expensive layout.
         // Only the UIHTMLTextFrame does the final measuring.
-        this._size.height = font.htmlLineHeight;
+        this._size.height = font.displayLineHeight;
         if (element.childNodes.length > 0 && element.firstChild.nodeType === element.TEXT_NODE){
             this.textNode = element.firstChild;
         }
@@ -116,8 +116,9 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         // report its size and coordinates
         var rect;
         if (index < this.textNode.nodeValue.length){
-            sharedDomRange.setStart(this.textNode, index);
-            sharedDomRange.setEnd(this.textNode, index + 1);
+            var iterator = this.textNode.nodeValue.userPerceivedCharacterIterator(index);
+            sharedDomRange.setStart(this.textNode, iterator.range.location);
+            sharedDomRange.setEnd(this.textNode, iterator.range.end);
         }else{
             sharedDomRange.setStart(this.textNode, this.textNode.nodeValue.length);
             sharedDomRange.setEnd(this.textNode, this.textNode.nodeValue.length);

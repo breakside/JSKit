@@ -42,7 +42,7 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             lineClientRect = line.element.getBoundingClientRect();
             line._origin = JSPoint(0, y);
             // The line height should already be an integer, because it is derived from its
-            // runs, which use integer font.htmlLineHeight values for their heights.
+            // runs, which use integer font.displayLineHeight values for their heights.
             // However, the width may be a non-integer.  We round up because if we don't,
             // the browser may round down when we ask for a line to be X.y pixels wide, and
             // that wouldn't leave enough space for the final character.
@@ -99,6 +99,7 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
         // position the lines
         for (i = 0, l = this.lines.length; i < l; ++i){
             line = this.lines[i];
+            line.element.style.height = '%dpx'.sprintf(line.size.height);
             line.element.style.left = '%dpx'.sprintf(line.origin.x);
             line.element.style.top = '%dpx'.sprintf(line.origin.y);
         }

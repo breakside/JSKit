@@ -773,16 +773,18 @@ JSClass("UITextEditor", JSObject, {
         var lineRect;
         var cursorRect;
         var lineEnumerator;
+        var cursorX;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
             selection.insertionPoint = UITextEditor.SelectionInsertionPoint.start;
             cursorRect = this._cursorRectForSelection(selection);
+            cursorX = cursorRect.origin.x + Math.floor(cursorRect.size.width / 2.0);
             lineEnumerator = this.textLayoutManager.lineEnumerator(selection.range.location - (selection.affinity === UITextEditor.SelectionAffinity.afterPreviousCharacter ? 1 : 0));
             line = lineEnumerator.line;
             lineEnumerator.decrement();
             if (lineEnumerator.line !== null){
                 lineRect = lineEnumerator.rect;
-                pointOnPreviousLine = JSPoint(cursorRect.origin.x, lineRect.origin.y + lineRect.size.height / 2);
+                pointOnPreviousLine = JSPoint(cursorX, lineRect.origin.y + lineRect.size.height / 2);
                 index = this.textLayoutManager.characterIndexAtPoint(pointOnPreviousLine);
                 selection.range = JSRange(index, 0);
                 if (selection.range.location === line.range.location && selection.range.location > 0){
@@ -879,17 +881,19 @@ JSClass("UITextEditor", JSObject, {
         var line;
         var lineRect;
         var cursorRect;
+        var cursorX;
         var lineEnumerator;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
             selection.insertionPoint = UITextEditor.SelectionInsertionPoint.end;
             cursorRect = this._cursorRectForSelection(selection);
+            cursorX = cursorRect.origin.x + Math.floor(cursorRect.size.width / 2.0);
             lineEnumerator = this.textLayoutManager.lineEnumerator(selection.range.end - (selection.affinity === UITextEditor.SelectionAffinity.afterPreviousCharacter ? 1 : 0));
             line = lineEnumerator.line;
             lineEnumerator.increment();
             if (lineEnumerator.line !== null){
                 lineRect = lineEnumerator.rect;
-                pointOnNextLine = JSPoint(cursorRect.origin.x, lineRect.origin.y + lineRect.size.height / 2);
+                pointOnNextLine = JSPoint(cursorX, lineRect.origin.y + lineRect.size.height / 2);
                 index = this.textLayoutManager.characterIndexAtPoint(pointOnNextLine);
                 selection.range = JSRange(index, 0);
                 if (selection.range.location === lineEnumerator.line.range.end && selection.range.location > 0){
@@ -997,16 +1001,18 @@ JSClass("UITextEditor", JSObject, {
         var line;
         var lineRect;
         var cursorRect;
+        var cursorX;
         var lineEnumerator;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
             cursorRect = this._cursorRectForSelection(selection);
+            cursorX = cursorRect.origin.x + Math.floor(cursorRect.size.width / 2.0);
             lineEnumerator = this.textLayoutManager.lineEnumerator((selection.insertionPoint == UITextEditor.SelectionInsertionPoint.start ? selection.range.location : selection.range.end) - (selection.affinity === UITextEditor.SelectionAffinity.afterPreviousCharacter ? 1 : 0));
             line = lineEnumerator.line;
             lineEnumerator.decrement();
             if (lineEnumerator.line !== null){
                 lineRect = lineEnumerator.rect;
-                pointOnPreviousLine = JSPoint(cursorRect.origin.x, lineRect.origin.y + lineRect.size.height / 2);
+                pointOnPreviousLine = JSPoint(cursorX, lineRect.origin.y + lineRect.size.height / 2);
                 index = this.textLayoutManager.characterIndexAtPoint(pointOnPreviousLine);
                 if (index === line.range.location && index > 0){
                     var iterator = textStorage.string.userPerceivedCharacterIterator(index - 1);
@@ -1143,15 +1149,17 @@ JSClass("UITextEditor", JSObject, {
         var lineEnumerator;
         var lineRect;
         var cursorRect;
+        var cursorX;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
             cursorRect = this._cursorRectForSelection(selection);
+            cursorX = cursorRect.origin.x + Math.floor(cursorRect.size.width / 2.0);
             lineEnumerator = this.textLayoutManager.lineEnumerator((selection.insertionPoint == UITextEditor.SelectionInsertionPoint.start ? selection.range.location : selection.range.end) - (selection.affinity === UITextEditor.SelectionAffinity.afterPreviousCharacter ? 1 : 0));
             line = lineEnumerator.line;
             lineEnumerator.increment();
             if (lineEnumerator.line !== null){
                 lineRect = lineEnumerator.rect;
-                pointOnNextLine = JSPoint(cursorRect.origin.x, lineRect.origin.y + lineRect.size.height / 2);
+                pointOnNextLine = JSPoint(cursorX, lineRect.origin.y + lineRect.size.height / 2);
                 index = this.textLayoutManager.characterIndexAtPoint(pointOnNextLine);
                 if (index === lineEnumerator.line.range.end && index > 0){
                     var iterator = textStorage.string.userPerceivedCharacterIterator(index - 1);

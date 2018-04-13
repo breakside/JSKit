@@ -80,7 +80,7 @@ JSClass("UITokenField", UITextField, {
         var indexAdjustment = 0;
         var representedObject;
         while (iterator.character !== null){
-            if (iterator.character.code === JSAttributedString.SpecialCharacter.Attachment){
+            if (iterator.character.code === JSAttributedString.SpecialCharacter.attachment){
                 if (range.length > 0){
                     representedObject = this._convertStringToRepresentedObject(originalString, range);
                     if (representedObject !== null){
@@ -119,7 +119,7 @@ JSClass("UITokenField", UITextField, {
         this.tokensView.addSubview(view);
         var attachment = UITextAttachmentView.initWithView(view);
         attachment.representedObject = representedObject;
-        attachment.baselineAdjustment = view.labelView.font.htmlDescender - view.labelView.textInsets.bottom;
+        attachment.baselineAdjustment = view.labelView.font.displayDescender - view.labelView.textInsets.bottom;
         return JSAttributedString.initWithAttachment(attachment);
     },
 
@@ -148,7 +148,7 @@ JSClass("UITokenFieldTokenView", UIView, {
     initWithString: function(str, textField){
         UITokenFieldTokenView.$super.init.call(this);
         this.labelView = UILabel.initWithFrame(this.bounds);
-        this.labelView.textInsets = JSInsets(1, 7);
+        this.labelView.textInsets = JSInsets(1, 5);
         this.labelView.maximumNumberOfLines = 1;
         this.labelView.lineBreakMode = JSLineBreakMode.truncateTail;
         this.textField = textField;

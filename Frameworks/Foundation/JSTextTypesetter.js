@@ -131,7 +131,7 @@ JSClass("JSTextTypesetter", JSObject, {
             printable = !newline && !iterator.isWhiteSpace;
 
             // Adjust the run's font if needed
-            if (runIterator.range.length == 1 && iterator.firstCharacter.code == JSAttributedString.SpecialCharacter.Attachment){
+            if (runIterator.range.length == 1 && iterator.firstCharacter.code == JSAttributedString.SpecialCharacter.attachment){
                 // 1. Attachment font:
                 // Attachment runs use a special "attachment font" that can draw the attachment rather
                 // than draw a glyph.  It's perhaps a little strange to call an attachment a font, but

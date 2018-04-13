@@ -2,7 +2,8 @@
 // #import "Foundation/CoreTypes.js"
 // #import "Foundation/JSTextTypesetter.js"
 // #import "Foundation/JSTextFrame.js"
-/* global JSClass, JSObject, JSSize, JSReadOnlyProperty, JSDynamicProperty, JSTextTypesetter, JSTextFrame, JSPoint, JSLineBreakMode, JSRange, JSTextAlignment */
+// #import "Foundation/JSAttributedString.js"
+/* global JSClass, JSObject, JSSize, JSReadOnlyProperty, JSDynamicProperty, JSTextTypesetter, JSTextFrame, JSPoint, JSLineBreakMode, JSRange, JSTextAlignment, JSAttributedString */
 'use strict';
 
 (function(){
@@ -32,7 +33,12 @@ JSClass("JSTextFramesetter", JSObject, {
         return JSTextFrame.initWithLines(lines, size, textAlignment);
     },
 
-    createFrame: function(size, range, maximumLines, lineBreakMode, textAlignment){
+    createFrame: function(size, range, maximumLines, paragraphAttributes){
+        if (paragraphAttributes === undefined){
+            paragraphAttributes = {};
+        }
+        var lineBreakMode = paragraphAttributes[JSAttributedString.Attribute.lineBreakMode] || JSLineBreakMode.truncateTail;
+        var textAlignment = paragraphAttributes[JSAttributedString.Attribute.textAlignment] || JSTextAlignment.left;
         var remianingRange = JSRange(range);
         var y = 0;
         var lines = [];

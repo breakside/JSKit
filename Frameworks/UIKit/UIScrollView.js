@@ -9,6 +9,11 @@ JSClass('UIScrollView', UIView, {
     contentSize: UIViewLayerProperty(),
     delaysContentTouches: false,
 
+    _commonViewInit: function(){
+        UIScrollView.$super._commonViewInit.call(this);
+        this.clipsToBounds = true;
+    },
+
     setContentOffsetAnimated: function(contentOffset){
         var scrollView = this;
         UIView.animateWithDuration(0.25, function(){

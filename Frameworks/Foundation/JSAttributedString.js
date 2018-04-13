@@ -38,7 +38,7 @@ JSClass("JSAttributedString", JSObject, {
     initWithAttachment: function(attachment){
         var attributes = {};
         attributes[JSAttributedString.Attribute.attachment] = attachment;
-        this.initWithString(JSAttributedString.SpecialCharacter.AttachmentUTF16, attributes);
+        this.initWithString(JSAttributedString.SpecialCharacter.attachmentUTF16, attributes);
     },
 
     initWithImageAttachmentName: function(name, size){
@@ -360,12 +360,15 @@ JSAttributedString.Attribute = {
     italic: "italic",
     underline: "underline",
     strike: "strike",
-    attachment: "attachment"
+    attachment: "attachment",
+    lineSpacing: "lineSpacing",
+    textAlignment: "textAlignment",
+    lineBreakMode: "lineBreakMode"
 };
 
 JSAttributedString.SpecialCharacter = {
-    Attachment: 0xFFFC,
-    AttachmentUTF16: "\uFFFC"
+    attachment: 0xFFFC,
+    attachmentUTF16: "\uFFFC"
 };
 
 function JSAttributedStringRun(range, attributes){
@@ -491,7 +494,7 @@ Object.defineProperties(JSAttributedStringRunIterator.prototype, {
                 return null;
             }
             var run = this._attributedString._runs[this._runIndex];
-            if (run.range.length === 1 && this._attributedString.charCodeAt(run.range.location) === JSAttributedString.SpecialCharacter.Attachment){
+            if (run.range.length === 1 && this._attributedString.charCodeAt(run.range.location) === JSAttributedString.SpecialCharacter.attachment){
                 return run.attributes[JSAttributedString.Attribute.attachment];
             }
             return null;

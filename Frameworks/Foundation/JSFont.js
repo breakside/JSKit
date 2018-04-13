@@ -19,6 +19,9 @@ JSClass("JSFont", JSObject, {
     ascender: JSReadOnlyProperty('_ascender', 0.0),
     descender: JSReadOnlyProperty('_descender', 0.0),
     lineHeight: JSReadOnlyProperty('_lineHeight', 0.0),
+    displayLineHeight: JSReadOnlyProperty('_displayLineHeight', 0),
+    displayAscender: JSReadOnlyProperty('_displayAscender', 0),
+    displayDescender: JSReadOnlyProperty('_displayDescender', 0),
     leading: JSReadOnlyProperty('_leading', 0.0),
     _unitsPerEM: 0,
     _ascenderInUnits: 0,
@@ -44,9 +47,9 @@ JSClass("JSFont", JSObject, {
     },
 
     _calculateMetrics: function(){
-        this._ascender = this._ascenderInUnits / this._unitsPerEM * this.pointSize;
-        this._descender = this._descenderInUnits / this._unitsPerEM * this.pointSize;
-        this._lineHeight = this._ascender - this._descender;
+        this._ascender = this._displayAscender = this._ascenderInUnits / this._unitsPerEM * this.pointSize;
+        this._descender = this._displayDescender = this._descenderInUnits / this._unitsPerEM * this.pointSize;
+        this._lineHeight = this._displayLineHeight = this._ascender - this._descender;
         this._leading = 0.0;
     },
 

@@ -1,7 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIHTMLTextFrame.js"
 // #import "UIKit/UIHTMLTextTypesetter.js"
-/* global JSClass, JSReadOnlyProperty, JSTextFramesetter, UIHTMLTextFramesetter, UIHTMLTextTypesetter, UIHTMLTextFrame */
+/* global JSClass, JSReadOnlyProperty, JSTextFramesetter, UIHTMLTextFramesetter, UIHTMLTextTypesetter, UIHTMLTextFrame, JSAttributedString, JSLineBreakMode */
 'use strict';
 
 (function(){
@@ -18,11 +18,15 @@ JSClass("UIHTMLTextFramesetter", JSTextFramesetter, {
         this._domDocument = domDocument;
     },
 
-    createFrame: function(size, range, maximumLines, lineBreakMode, textAlignment){
+    createFrame: function(size, range, maximumLines, paragraphAttributes){
+        if (paragraphAttributes === undefined){
+            paragraphAttributes = {};
+        }
+        var lineBreakMode = paragraphAttributes[JSAttributedString.Attribute.lineBreakMode] || JSLineBreakMode.truncateTail;
         this._creatingFrame = true;
         this._resetReusableFrameElement();
         this._htmlTypesetter.layoutRange(range, size, lineBreakMode);
-        return UIHTMLTextFramesetter.$super.createFrame.call(this, size, range, maximumLines, lineBreakMode, textAlignment);
+        return UIHTMLTextFramesetter.$super.createFrame.call(this, size, range, maximumLines, paragraphAttributes);
     },
 
     constructFrame: function(lines, size, textAlignment){
