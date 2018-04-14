@@ -155,9 +155,9 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
                 context = UIHTMLDisplayServerContext.initWithElement(element);
                 this.contextsByObjectID[attachment.objectID] = context;
             }
-        // if (context.element.parentNode !== parentElement){
-        //     parentElement.appendChild(context.element);
-        // }
+            if (context.element.parentNode !== parentElement){
+                parentElement.appendChild(context.element);
+            }
         }
         return context;
     },

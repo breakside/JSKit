@@ -57,6 +57,7 @@ JSClass('UIView', UIResponder, {
     shadowOffset:       UIViewLayerProperty(),
     shadowRadius:       UIViewLayerProperty(),
     cursor:             JSDynamicProperty('_cursor', null),
+    mouseTrackingType:  0,
     isMultipleTouchEnabled: false,
 
     // -------------------------------------------------------------------------
@@ -170,12 +171,22 @@ JSClass('UIView', UIResponder, {
             if (window !== null){
                 newWindowServer = window.windowServer;
             }
-            if (lastWindowServer !== newWindowServer && this.cursor !== null){
-                if (lastWindowServer !== null){
-                    lastWindowServer.viewDidChangeCursor(this, null);
+            if (lastWindowServer !== newWindowServer){
+                if (this.cursor !== null){
+                    if (lastWindowServer !== null){
+                        lastWindowServer.viewDidChangeCursor(this, null);
+                    }
+                    if (newWindowServer !== null){
+                        newWindowServer.viewDidChangeCursor(this, this.cursor);
+                    }
                 }
-                if (newWindowServer !== null){
-                    newWindowServer.viewDidChangeCursor(this, this.cursor);
+                if (this.mouseTrackingType !== UIView.MouseTracking.none){
+                    if (lastWindowServer !== null){
+                        lastWindowServer.viewDidChangeMouseTracking(this, UIView.MouseTracking.none);
+                    }
+                    if (newWindowServer !== null){
+                        newWindowServer.viewDidChangeMouseTracking(this, this.mouseTrackingType);
+                    }
                 }
             }
             this._window = window;
@@ -238,6 +249,22 @@ JSClass('UIView', UIResponder, {
             return this.viewController;
         }
         return this.superview;
+    },
+
+    startMouseTracking: function(trackingType){
+        this.mouseTrackingType = trackingType;
+        if (this.window !== null){
+            var windowServer = this.window.windowServer;
+            windowServer.viewDidChangeMouseTracking(this);
+        }
+    },
+
+    stopMouseTracking: function(){
+        this.mouseTrackingType = UIView.MouseTracking.none;
+        if (this.window !== null){
+            var windowServer = this.window.windowServer;
+            windowServer.viewDidChangeMouseTracking(this);
+        }
     },
 
     // -------------------------------------------------------------------------
@@ -332,6 +359,13 @@ JSClass('UIView', UIResponder, {
     },
 
 });
+
+UIView.MouseTracking = {
+    none: 0,
+    move: 1,
+    enterAndExit: 2,
+    all: 3
+};
 
 UIView.layerClass = UILayer;
 

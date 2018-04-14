@@ -2,16 +2,42 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSTextLayoutManager.js"
 // #import "Foundation/JSTextFramesetter.js"
-/* global JSClass, JSObject, JSTextFramesetter, JSDynamicProperty, JSTextLayoutManager, JSSize, JSRect, JSRange, JSPoint, JSReadOnlyProperty, JSLineBreakMode, JSTextAlignment, JSAttributedString */
+/* global JSClass, JSObject, JSTextFramesetter, JSCustomProperty, JSDynamicProperty, JSTextLayoutManager, JSSize, JSRect, JSRange, JSPoint, JSReadOnlyProperty, JSLineBreakMode, JSTextAlignment, JSAttributedString */
 'use strict';
+
+(function(){
+
+var JSTextContainerAttributeProperty = function(){
+    if (this === undefined){
+        return new JSTextContainerAttributeProperty();
+    }
+};
+
+JSTextContainerAttributeProperty.prototype = Object.create(JSCustomProperty.prototype);
+
+JSTextContainerAttributeProperty.prototype.define = function(C, key, extensions){
+    Object.defineProperty(C.prototype, key, {
+        configurable: false,
+        enumerable: false,
+        set: function UIView_setLayerProperty(value){
+            this.framesetter.attributes[key] = value;
+            this._notifyLayoutManager();
+        },
+        get: function UIView_getLayerProperty(){
+            return this.framesetter.attributes[key];
+        }
+    });
+};
 
 JSClass("JSTextContainer", JSObject, {
 
     origin: JSDynamicProperty('_origin', JSPoint.Zero),
     size: JSDynamicProperty('_size', null),
     range: JSReadOnlyProperty(),
-    lineBreakMode: JSDynamicProperty('_lineBreakMode', JSLineBreakMode.wordWrap),
-    textAlignment: JSDynamicProperty('_textAlignment', JSTextAlignment.left),
+    lineBreakMode: JSTextContainerAttributeProperty(),
+    textAlignment: JSTextContainerAttributeProperty(),
+    lineSpacing: JSTextContainerAttributeProperty(),
+    minimumLineHeight: JSTextContainerAttributeProperty(),
     textLayoutManager: JSDynamicProperty('_textLayoutManager', null),
     maximumNumberOfLines: JSDynamicProperty('_maximumNumberOfLines', 0),
     framesetter: null,
@@ -42,18 +68,6 @@ JSClass("JSTextContainer", JSObject, {
         }
     },
 
-    setLineBreakMode: function(lineBreakMode){
-        if (lineBreakMode != this._lineBreakMode){
-            this._lineBreakMode = lineBreakMode;
-            this._notifyLayoutManager();
-        }
-    },
-
-    setTextAlignment: function(textAlignment){
-        this._textAlignment = textAlignment;
-        // TODO: update lines
-    },
-
     setMaximumNumberOfLines: function(maxLines){
         if (maxLines != this._maximumNumberOfLines){
             this._maximumNumberOfLines = maxLines;
@@ -63,10 +77,7 @@ JSClass("JSTextContainer", JSObject, {
 
     createTextFrame: function(attributedString, range){
         this.framesetter.attributedString = attributedString;
-        var paragraphAttributes = {};
-        paragraphAttributes[JSAttributedString.Attribute.lineBreakMode] = this._lineBreakMode;
-        paragraphAttributes[JSAttributedString.Attribute.textAlignment] = this._textAlignment;
-        this._textFrame = this.framesetter.createFrame(this.size, range, this._maximumNumberOfLines, paragraphAttributes);
+        this._textFrame = this.framesetter.createFrame(this.size, range, this._maximumNumberOfLines);
     },
 
     characterIndexAtPoint: function(point){
@@ -126,3 +137,5 @@ JSClass("JSTextContainer", JSObject, {
     }
 
 });
+
+})();

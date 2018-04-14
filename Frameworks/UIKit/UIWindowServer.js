@@ -63,6 +63,11 @@ JSClass("UIWindowServer", JSObject, {
     },
 
     setCursor: function(cursor){
+        // subclasses should override
+    },
+
+    viewDidChangeMouseTracking: function(view, trackingType){
+        // subclasses should override
     },
 
     mouseDownWindow: null,
@@ -81,6 +86,20 @@ JSClass("UIWindowServer", JSObject, {
             this.mouseDownWindow = null;
             this.mouseDownType = null;
         }
+    },
+
+    createMouseTrackingEvent: function(type, timestamp, location, view){
+        // Mouse tracking events are only sent to the key window when the mouse is not down
+        // TODO: allow this behavior to be adjusted with tracking options
+        if (view.window !== this.keyWindow){
+            return;
+        }
+        if (this.mouseDownWindow !== null){
+            return;
+        }
+        var event = UIEvent.initMouseEventWithType(type, timestamp, view.window, view.window.convertPointFromScreen(location));
+        event.trackingView = view;
+        view.window.application.sendEvent(event);
     },
 
     createKeyEvent: function(type, timestamp, keyCode){

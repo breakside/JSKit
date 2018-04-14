@@ -12,7 +12,7 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
     element: null,
     attachments: null,
 
-    initWithElement: function(element, lines, size, textAlignment){
+    initWithElement: function(element, lines, size, attributes){
         this.element = element;
         this.attachments = [];
         var line;
@@ -90,7 +90,7 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
 
         // Superclass init will adjust origins according to text alignment, but
         // we must have properly set the line size and trailingWhitespaceWidth first
-        UIHTMLTextFrame.$super.initWithLines.call(this, lines, size, textAlignment);
+        UIHTMLTextFrame.$super.initWithLines.call(this, lines, size, attributes);
 
         // set our size
         this.element.style.width = '%dpx'.sprintf(this.size.width);

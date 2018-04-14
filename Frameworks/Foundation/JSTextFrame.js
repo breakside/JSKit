@@ -11,7 +11,7 @@ JSClass("JSTextFrame", JSObject, {
     range: JSReadOnlyProperty('_range', null),
     lines: JSReadOnlyProperty('_lines', null),
 
-    initWithLines: function(lines, size, textAlignment){
+    initWithLines: function(lines, size, attributes){
         if (lines.length > 0){
             this._range = JSRange(lines[0].range.location, lines[lines.length - 1].range.end - lines[0].range.location);   
         }else{
@@ -23,8 +23,7 @@ JSClass("JSTextFrame", JSObject, {
         var width = 0;
         for (var i = 0, l = lines.length; i < l; ++i){
             line = lines[i];
-            line.origin.y = y;
-            y += line.size.height;
+            y = line.origin.y + line.size.height;
             if (line.size.width > width){
                 width = line.size.width;
             }
@@ -36,7 +35,7 @@ JSClass("JSTextFrame", JSObject, {
         if (this._size.height === 0 || this._size.height === Number.MAX_VALUE){
             this._size.height = y;
         }
-        switch (textAlignment){
+        switch (attributes.textAlignment){
             case JSTextAlignment.center:
                 for (i = 0, l = lines.length; i < l; ++i){
                     line = lines[i];

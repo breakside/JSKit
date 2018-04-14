@@ -1,5 +1,6 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSContext, JSObject, UIHTMLDisplayServerContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash */
+// #import "UIKit/UIView.js"
+/* global JSClass, JSContext, JSObject, UIHTMLDisplayServerContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
 'use strict';
 
 function HTMLCanvasProperty(name){
@@ -51,6 +52,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
 
     element: null,
     borderElement: null,
+    trackingElement: null,
     style: null,
     canvasContext: JSDynamicProperty('_canvasContext', null),
     propertiesNeedingUpdate: null,
@@ -172,6 +174,45 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
         this.style.width = size.width + 'px';
         this.style.height = size.height + 'px';
         this.size = size;
+    },
+
+    // ----------------------------------------------------------------------
+    // MARK: - Tracking
+
+    startMouseTracking: function(trackingType, listener){
+        if (this.trackingElement === null){
+            this.trackingElement = this.element.ownerDocument.createElement('div');
+            this.trackingElement.style.position = 'absolute';
+            this.trackingElement.style.top = '0';
+            this.trackingElement.style.left = '0';
+            this.trackingElement.style.bottom = '0';
+            this.trackingElement.style.right = '0';
+            this.element.appendChild(this.trackingElement);
+        }else if (this.trackingListener !== null){
+            this.trackingElement.removeEventListener('mouseenter', this.trackingListener);
+            this.trackingElement.removeEventListener('mouseleave', this.trackingListener);
+            this.trackingElement.removeEventListener('mousemove', this.trackingListener);
+        }
+        this.trackingListener = listener;
+        if (trackingType & UIView.MouseTracking.enterAndExit){
+            this.trackingElement.addEventListener('mouseenter', this.trackingListener);
+            this.trackingElement.addEventListener('mouseleave', this.trackingListener);
+        }
+        if (trackingType & UIView.MouseTracking.move){
+            this.trackingElement.addEventListener('mousemove', this.trackingListener);
+        }
+    },
+
+    endMouseTracking: function(){
+        if (this.trackingElement === null || this.trackingListener === null){
+            return;
+        }
+        this.trackingElement.removeEventListener('mouseenter', this.trackingListener);
+        this.trackingElement.removeEventListener('mouseleave', this.trackingListener);
+        this.trackingElement.removeEventListener('mousemove', this.trackingListener);
+        this.trackingElement.parentNode.removeChild(this.trackingElement);
+        this.trackingElement = null;
+        this.trackingListener = null;
     },
 
     // ----------------------------------------------------------------------
@@ -427,8 +468,14 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     drawLayerProperties: function(layer){
         var needsBorderElement = this.borderElement === null && layer.presentation.borderWidth > 0;
         if (needsBorderElement){
+            // TODO: could possibly use outline with a negative outline-offset value
+            // instead of a separate element.  Needs investigation.  Browser support?  Behavior?
             this.borderElement = this.element.ownerDocument.createElement('div');
-            this.element.appendChild(this.borderElement);
+            if (this.trackingElement !== null){
+                this.element.insertBefore(this.borderElement, this.trackingElement);
+            }else{
+                this.element.appendChild(this.borderElement);
+            }
             this.borderElement.style.position = 'absolute';
             this.borderElement.style.top = '0';
             this.borderElement.style.left = '0';

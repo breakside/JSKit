@@ -22,12 +22,6 @@ JSClass("UIResponder", JSObject, {
         return null;
     },
 
-    mouseEntered: function(event){
-    },
-
-    mouseExited: function(event){
-    },
-
     mouseDown: function(event){
         var next = this.getNextResponder();
         if (next !== null){
@@ -67,6 +61,27 @@ JSClass("UIResponder", JSObject, {
         var next = this.getNextResponder();
         if (next !== null){
             next.rightMouseDragged(event);
+        }
+    },
+
+    mouseEntered: function(event){
+        var next = this.getNextResponder();
+        if (next !== null){
+            next.mouseEntered(event);
+        }
+    },
+
+    mouseExited: function(event){
+        var next = this.getNextResponder();
+        if (next !== null){
+            next.mouseExited(event);
+        }
+    },
+
+    mouseMoved: function(event){
+        var next = this.getNextResponder();
+        if (next !== null){
+            next.mouseMoved(event);
         }
     },
 

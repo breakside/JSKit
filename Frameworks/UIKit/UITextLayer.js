@@ -1,7 +1,30 @@
 // #import "UIKit/UILayer.js"
 // #import "UIKit/UIWindowServer.js"
-/* global JSClass, JSDynamicProperty, JSReadOnlyProperty, JSRect, JSPoint, JSSize, JSInsets, UILayer, UITextLayer, JSAttributedString, JSTextLayoutManager, JSTextContainer, JSTextStorage, UIWindowServer */
+/* global JSClass, JSDynamicProperty, JSCustomProperty, JSReadOnlyProperty, JSRect, JSPoint, JSSize, JSInsets, UILayer, UITextLayer, JSAttributedString, JSTextLayoutManager, JSTextContainer, JSTextStorage, UIWindowServer */
 'use strict';
+
+(function(){
+
+var UITextLayerContainerProperty = function(){
+    if (this === undefined){
+        return new UITextLayerContainerProperty();
+    }
+};
+
+UITextLayerContainerProperty.prototype = Object.create(JSCustomProperty.prototype);
+
+UITextLayerContainerProperty.prototype.define = function(C, key, extensions){
+    Object.defineProperty(C.prototype, key, {
+        configurable: false,
+        enumerable: false,
+        set: function UIView_setLayerProperty(value){
+            this.textContainer[key] = value;
+        },
+        get: function UIView_getLayerProperty(){
+            return this.textContainer[key];
+        }
+    });
+};
 
 JSClass("UITextLayer", UILayer, {
 
@@ -9,8 +32,10 @@ JSClass("UITextLayer", UILayer, {
     attributedText: JSDynamicProperty(),
     font: JSDynamicProperty(),
     textColor: JSDynamicProperty(),
-    lineBreakMode: JSDynamicProperty(),
-    textAlignment: JSDynamicProperty(),
+    lineBreakMode: UITextLayerContainerProperty(),
+    textAlignment: UITextLayerContainerProperty(),
+    lineSpacing: UITextLayerContainerProperty(),
+    minimumLineHeight: UITextLayerContainerProperty(),
     textInsets: JSDynamicProperty('_textInsets', JSInsets.Zero),
     maximumNumberOfLines: JSDynamicProperty(),
     widthTracksText: JSDynamicProperty('_widthTracksText', false),
@@ -61,23 +86,7 @@ JSClass("UITextLayer", UILayer, {
         this._textLayoutManager.defaultTextColor = color;
         this.setNeedsDisplay();
     },
-
-    getLineBreakMode: function(){
-        return this._textContainer.lineBreakMode;
-    },
-
-    setLineBreakMode: function(lineBreakMode){
-        this._textContainer.lineBreakMode = lineBreakMode;
-    },
-
-    getTextAlignment: function(){
-        return this._textContainer.textAlignment;
-    },
-
-    setTextAlignment: function(textAlignment){
-        this._textContainer.textAlignment = textAlignment;
-    },
-
+    
     setTextInsets: function(insets){
         this._textInsets = JSInsets(insets);
         this._textContainer.size = this._availableTextSize();
@@ -175,7 +184,9 @@ JSClass("UITextLayer", UILayer, {
         UITextLayer.$super.layoutSublayers.call(this);
         if (this._displayServer !== null){
             if (!this._hasSetDisplayFramesetter){
+                var attributes = this._textContainer.framesetter.attributes;
                 this._textContainer.framesetter = this._displayServer.createTextFramesetter();
+                this._textContainer.framesetter.attributes = attributes;
                 this._hasSetDisplayFramesetter = true;
             }
             this._textContainer.origin = JSPoint(this._textInsets.left, this._textInsets.top);
@@ -206,3 +217,5 @@ JSClass("UITextLayer", UILayer, {
     }
 
 });
+
+})();

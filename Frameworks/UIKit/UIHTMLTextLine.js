@@ -43,9 +43,9 @@ JSClass("UIHTMLTextLine", JSTextLine, {
             token = '\u2026';
         }
         if (width < Number.MAX_VALUE){
-            this.element.style.width = '%dpx'.sprintf(width);
+            this.element.style.maxWidth = '%dpx'.sprintf(width);
         }else{
-            this.element.style.width = '';
+            this.element.style.maxWidth = '';
         }
         this.element.style.overflow = 'hidden';
         // only firefox supports an arbitrary string as the token, so for now

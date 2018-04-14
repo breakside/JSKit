@@ -129,6 +129,8 @@ class TTFInfoExtractor(FontInfoExtractor):
         info['weight'] = struct.unpack('!H', data[4:6])[0]
         fs_selection = struct.unpack('!H', data[62:64])[0]
         info['style'] = 'italic' if fs_selection & 0x0001 else 'normal'
+        info['os2ascender'], info['os2descender'], info['os2line_gap'] = struct.unpack('!hhh', data[68:74])
+        info['winascender'], info['windescender'] = struct.unpack('!HH', data[74:78])
 
     def read_cmap(self, info):
         data = self.read_table('cmap')
@@ -194,9 +196,7 @@ class TTFInfoExtractor(FontInfoExtractor):
 
     def read_horizontal_metrics(self, info):
         data = self.read_table('hhea')
-        ascent, descent, line_gap = struct.unpack('!hhh', data[4:10])
-        info['ascender'] = ascent
-        info['descender'] = descent
+        info['ascender'], info['descender'] , info['line_gap'] = struct.unpack('!hhh', data[4:10])
         num_of_long_horiz_metrics = struct.unpack('!H', data[34:36])[0]
         data = self.read_table('hmtx')
         widths = ""

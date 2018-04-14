@@ -326,6 +326,7 @@ UIHTMLTextTypesetterRunDescriptor.prototype = {
             this.span.style.height = '';
             this.span.style.position = '';
             this.span.style.verticalAlign = '';
+            this.span.style.borderBottomWidth = '100%';
             // Font
             var font = JSTextTypesetter.FontFromAttributes(this.attributes);
             this.span.style.font = font.cssString();
@@ -369,7 +370,7 @@ UIHTMLTextTypesetterRunDescriptor.prototype = {
         while (min < max){
             mid = Math.floor(min + (max - min) / 2);
             sharedDomRange.setStart(textNode, mid);
-            sharedDomRange.setEnd(textNode, mid);
+            sharedDomRange.setEnd(textNode, mid + 1);
             rects = sharedDomRange.getClientRects();
             if (rects.length == 1 || rects[0].y == rects[1].y){
                 if (rects[0].y < y){

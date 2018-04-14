@@ -361,6 +361,7 @@ JSAttributedString.Attribute = {
     underline: "underline",
     strike: "strike",
     attachment: "attachment",
+    lineHeight: "lineHeight",
     lineSpacing: "lineSpacing",
     textAlignment: "textAlignment",
     lineBreakMode: "lineBreakMode"

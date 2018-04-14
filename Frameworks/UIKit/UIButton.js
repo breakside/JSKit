@@ -1,6 +1,6 @@
 // #import "UIKit/UIControl.js"
 // #import "UIKit/UILabel.js"
-/* global JSClass, UIControl, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSConstraintBox, JSColor, UIButton, JSTextAlignment, JSPoint */
+/* global JSClass, UIControl, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSConstraintBox, JSColor, UIButton, JSTextAlignment, JSPoint, UIView */
 'use strict';
 
 JSClass("UIButton", UIControl, {
@@ -42,20 +42,24 @@ JSClass("UIButton", UIControl, {
         this.layer.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
         this.layer.shadowOffset = JSPoint(0, 1);
         this.layer.shadowRadius = 1;
-        this._state = UIButton.State.Normal;
+        this._state = UIButton.State.normal;
         this._backgroundColorsByState = {};
-        this._backgroundColorsByState[UIButton.State.Normal] = UIButton.DefaultNormalBackgroundColor;
-        this._backgroundColorsByState[UIButton.State.Active] = UIButton.DefaultActiveBackgroundColor;
-        this._backgroundColorsByState[UIButton.State.Disabled] = UIButton.DefaultDisabledBackgroundColor;
+        this._backgroundColorsByState[UIButton.State.normal] = UIButton.DefaultNormalBackgroundColor;
+        this._backgroundColorsByState[UIButton.State.active] = UIButton.DefaultActiveBackgroundColor;
+        this._backgroundColorsByState[UIButton.State.disabled] = UIButton.DefaultDisabledBackgroundColor;
+        this._backgroundColorsByState[UIButton.State.over] = UIButton.DefaultOverBackgroundColor;
         this._titleColorsByState = {};
-        this._titleColorsByState[UIButton.State.Normal] = UIButton.DefaultNormalTitleColor;
-        this._titleColorsByState[UIButton.State.Active] = UIButton.DefaultActiveTitleColor;
-        this._titleColorsByState[UIButton.State.Disabled] = UIButton.DefaultDisabledTitleColor;
+        this._titleColorsByState[UIButton.State.normal] = UIButton.DefaultNormalTitleColor;
+        this._titleColorsByState[UIButton.State.active] = UIButton.DefaultActiveTitleColor;
+        this._titleColorsByState[UIButton.State.disabled] = UIButton.DefaultDisabledTitleColor;
+        this._titleColorsByState[UIButton.State.over] = UIButton.DefaultOverTitleColor;
         this._borderColorsByState = {};
-        this._borderColorsByState[UIButton.State.Normal] = UIButton.DefaultNormalBorderColor;
-        this._borderColorsByState[UIButton.State.Active] = UIButton.DefaultActiveBorderColor;
-        this._borderColorsByState[UIButton.State.Disabled] = UIButton.DefaultDisabledBorderColor;
+        this._borderColorsByState[UIButton.State.normal] = UIButton.DefaultNormalBorderColor;
+        this._borderColorsByState[UIButton.State.active] = UIButton.DefaultActiveBorderColor;
+        this._borderColorsByState[UIButton.State.disabled] = UIButton.DefaultDisabledBorderColor;
+        this._borderColorsByState[UIButton.State.over] = UIButton.DefaultOverBorderColor;
         this._update();
+        this.startMouseTracking(UIView.MouseTracking.enterAndExit);
     },
 
     getTitleLabel: function(){
@@ -63,11 +67,16 @@ JSClass("UIButton", UIControl, {
     },
 
     setEnabled: function(enabled){
-        this._setState(enabled ? UIButton.State.Normal : UIButton.State.Disabled);
+        if (this._state != UIButton.state.disabled){
+            this.stopMouseTracking();
+        }else if (enabled){
+            this.startMouseTracking(UIView.MouseTracking.enterAndExit);
+        }
+        this._setState(enabled ? UIButton.State.normal : UIButton.State.disabled);
     },
 
     isEnabled: function(enabled){
-        return this._state != UIButton.State.Disabled;
+        return this._state != UIButton.State.disabled;
     },
 
     getState: function(){
@@ -88,7 +97,7 @@ JSClass("UIButton", UIControl, {
 
     mouseDown: function(event){
         if (this.enabled){
-            this._setState(UIButton.State.Active);
+            this._setState(UIButton.State.active);
         }else{
             UIButton.$super.mouseDown.call(this, event);
         }
@@ -96,10 +105,10 @@ JSClass("UIButton", UIControl, {
 
     mouseUp: function(event){
         if (this.enabled){
-            if (this.state == UIButton.State.Active){
+            if (this.state == UIButton.State.active){
                 this.sendActionsForEvent(UIControl.Event.PrimaryAction);
+                this._setState(UIButton.State.over);
             }
-            this._setState(UIButton.State.Normal);
         }
     },
 
@@ -107,8 +116,16 @@ JSClass("UIButton", UIControl, {
         if (this.enabled){
             var location = event.locationInView(this);
             var selected = this.containsPoint(location);
-            this._setState(selected ? UIButton.State.Active : UIButton.State.Normal);
+            this._setState(selected ? UIButton.State.active : UIButton.State.normal);
         }
+    },
+
+    mouseEntered: function(event){
+        this._setState(UIButton.State.over);
+    },
+
+    mouseExited: function(event){
+        this._setState(UIButton.State.normal);
     },
 
     _update: function(){
@@ -128,24 +145,28 @@ JSClass("UIButton", UIControl, {
 });
 
 UIButton.Style = {
-    Default: 0,
-    Custom: 1,
+    default: 0,
+    custom: 1,
 };
 
 UIButton.State = {
-    Normal: 0,
-    Active: 1,
-    Disabled: 2
+    normal: 0,
+    active: 1,
+    disabled: 2,
+    over: 3
 };
 
 UIButton.DefaultNormalBackgroundColor = JSColor.initWithRGBA(250/255,250/255,250/255);
 UIButton.DefaultActiveBackgroundColor = JSColor.initWithRGBA(224/255,224/255,224/255);
 UIButton.DefaultDisabledBackgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255);
+UIButton.DefaultOverBackgroundColor = JSColor.initWithRGBA(240/255,240/255,255/255);
 
 UIButton.DefaultNormalBorderColor = JSColor.initWithRGBA(204/255,204/255,204/255);
 UIButton.DefaultActiveBorderColor = JSColor.initWithRGBA(192/255,192/255,192/255);
 UIButton.DefaultDisabledBorderColor = JSColor.initWithRGBA(224/255,224/255,224/255);
+UIButton.DefaultOverBorderColor = JSColor.initWithRGBA(192/255,192/255,192/255);
 
 UIButton.DefaultNormalTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
 UIButton.DefaultActiveTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
 UIButton.DefaultDisabledTitleColor = JSColor.initWithRGBA(152/255,152/255,152/255);
+UIButton.DefaultOverTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);

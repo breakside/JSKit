@@ -18,19 +18,15 @@ JSClass("UIHTMLTextFramesetter", JSTextFramesetter, {
         this._domDocument = domDocument;
     },
 
-    createFrame: function(size, range, maximumLines, paragraphAttributes){
-        if (paragraphAttributes === undefined){
-            paragraphAttributes = {};
-        }
-        var lineBreakMode = paragraphAttributes[JSAttributedString.Attribute.lineBreakMode] || JSLineBreakMode.truncateTail;
+    createFrame: function(size, range, maximumLines){
         this._creatingFrame = true;
         this._resetReusableFrameElement();
-        this._htmlTypesetter.layoutRange(range, size, lineBreakMode);
-        return UIHTMLTextFramesetter.$super.createFrame.call(this, size, range, maximumLines, paragraphAttributes);
+        this._htmlTypesetter.layoutRange(range, size, this.attributes.lineBreakMode);
+        return UIHTMLTextFramesetter.$super.createFrame.call(this, size, range, maximumLines);
     },
 
-    constructFrame: function(lines, size, textAlignment){
-        return UIHTMLTextFrame.initWithElement(this._reusableFrameElement, lines, size, textAlignment);
+    constructFrame: function(lines, size, attributes){
+        return UIHTMLTextFrame.initWithElement(this._reusableFrameElement, lines, size, attributes);
     },
 
     _resetReusableFrameElement: function(){

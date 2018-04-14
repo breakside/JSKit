@@ -12,9 +12,11 @@ JSClass("JSTextFramesetter", JSObject, {
 
     typesetter: JSReadOnlyProperty('_typesetter', null),
     attributedString: JSDynamicProperty(),
+    attributes: null,
 
     init: function(){
         this.initWithTypesetter(JSTextTypesetter.init());
+        this.attributes = Object.create(JSTextParagraphAttributes);
     },
 
     initWithTypesetter: function(typesetter){
@@ -29,16 +31,11 @@ JSClass("JSTextFramesetter", JSObject, {
         this._typesetter.attributedString = attributedString;
     },
 
-    constructFrame: function(lines, size, textAlignment){
-        return JSTextFrame.initWithLines(lines, size, textAlignment);
+    constructFrame: function(lines, size, attributes){
+        return JSTextFrame.initWithLines(lines, size, attributes);
     },
 
-    createFrame: function(size, range, maximumLines, paragraphAttributes){
-        if (paragraphAttributes === undefined){
-            paragraphAttributes = {};
-        }
-        var lineBreakMode = paragraphAttributes[JSAttributedString.Attribute.lineBreakMode] || JSLineBreakMode.truncateTail;
-        var textAlignment = paragraphAttributes[JSAttributedString.Attribute.textAlignment] || JSTextAlignment.left;
+    createFrame: function(size, range, maximumLines){
         var remianingRange = JSRange(range);
         var y = 0;
         var lines = [];
@@ -50,29 +47,37 @@ JSClass("JSTextFramesetter", JSObject, {
         var widthLimit = size.width || Number.MAX_VALUE;
         var heightLimit = size.height || Number.MAX_VALUE;
         var lineLimit = maximumLines || Number.MAX_VALUE;
+        var spacing;
         do{
-            lineRange = this._typesetter.suggestLineBreak(widthLimit, remianingRange, this.effectiveLineBreakMode(lineBreakMode, lines.length + 1, lineLimit));
+            lineRange = this._typesetter.suggestLineBreak(widthLimit, remianingRange, this.effectiveLineBreakMode(this.attributes.lineBreakMode, lines.length + 1, lineLimit));
             line = this._typesetter.createLine(lineRange);
+            line.origin.y = y;
             y += line.size.height;
-            // TODO: any line spacing?
             if (y <= heightLimit){
+                spacing = (this.attributes.lineSpacing - 1.0) * line.size.height;
+                if (y + spacing > heightLimit){
+                    line.size.height += heightLimit - y;
+                }else if (spacing > 0){
+                    line.size.height += spacing;
+                }
+                y += spacing;
                 lines.push(line);
                 remianingRange.advance(line.range.length);
             }
         } while (lineRange.length > 0 && remianingRange.length > 0 && y < heightLimit && lines.length < lineLimit);
 
-        if (lineBreakMode == JSLineBreakMode.truncateTail && lines.length > 0){
+        if (this.attributes.lineBreakMode == JSLineBreakMode.truncateTail && lines.length > 0){
             line = lines.pop();
             if (remianingRange.length > 0 && lineLimit > lines.length + 1){
                 // we got truncated because of height.  Re-run the last line so it
                 // gets broken according to truncation rules rather than work break
-                lineRange = this._typesetter.suggestLineBreak(widthLimit, JSRange(line.range.location, line.range.length + remianingRange.length), lineBreakMode);
+                lineRange = this._typesetter.suggestLineBreak(widthLimit, JSRange(line.range.location, line.range.length + remianingRange.length), this.attributes.lineBreakMode);
                 line = this._typesetter.createLine(lineRange);
             }
             var truncated = line.truncatedLine(widthLimit);
             lines.push(truncated);
         }
-        return this.constructFrame(lines, size, textAlignment);
+        return this.constructFrame(lines, size, this.attributes);
     },
 
     effectiveLineBreakMode: function(frameLineBreakMode, lineNumber, lineLimit){
@@ -90,5 +95,12 @@ JSClass("JSTextFramesetter", JSObject, {
     }
 
 });
+
+var JSTextParagraphAttributes = {
+    minimumLineHeight: 0,
+    lineSpacing: 1.0,
+    textAlignment: JSTextAlignment.left,
+    lineBreakMode: JSLineBreakMode.truncateTail
+};
 
 })();

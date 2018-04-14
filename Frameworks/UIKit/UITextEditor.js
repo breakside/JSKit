@@ -271,7 +271,7 @@ JSClass("UITextEditor", JSObject, {
         if (container === null){
             return JSRect.Zero;
         }
-        var rect = container.rectForCharacterAtIndex(index, true);
+        var rect = container.rectForCharacterAtIndex(index);
         var x = rect.origin.x - Math.floor(this.cursorWidth / 2);
         if (useRightEdge){
             x += rect.size.width;

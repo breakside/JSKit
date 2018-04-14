@@ -13,6 +13,7 @@ JSClass('UIEvent', JSObject, {
     type: JSReadOnlyProperty('_type', -1),
     keyCode: JSReadOnlyProperty('_keyCode', -1),
     touches: JSReadOnlyProperty('_touches', null),
+    trackingView: null,
 
     initMouseEventWithType: function(type, timestamp, window, location){
         this._timestamp = timestamp;

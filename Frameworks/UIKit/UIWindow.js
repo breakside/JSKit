@@ -217,6 +217,15 @@ JSClass('UIWindow', UIView, {
             case UIEvent.Type.RightMouseDragged:
                 this.mouseDownHitView.rightMouseDragged(event);
                 break;
+            case UIEvent.Type.MouseEntered:
+                event.trackingView.mouseEntered(event);
+                break;
+            case UIEvent.Type.MouseExited:
+                event.trackingView.mouseExited(event);
+                break;
+            case UIEvent.Type.MouseMoved:
+                event.trackingView.mouseMoved(event);
+                break;
         }
 
     },

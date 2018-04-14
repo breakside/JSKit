@@ -1,10 +1,11 @@
 // #import "UIKit/UIWindowServer.js"
 // #import "UIKit/UIEvent.js"
+// #import "UIKit/UIView.js"
 // #import "UIKit/UIWindowServer.js"
 // #import "UIKit/UIHTMLDisplayServer.js"
 // #import "UIKit/UIHTMLTextInputManager.js"
 // #feature Element.prototype.addEventListener
-/* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor */
+/* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor, UIView */
 'use strict';
 
 JSClass("UIHTMLWindowServer", UIWindowServer, {
@@ -147,6 +148,35 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                     this._setViewCursor(view, view.cursor.cssString());
                 }
             }
+        }
+    },
+
+    viewDidChangeMouseTracking: function(view, trackingType){
+        var context = this.displayServer.contextForLayer(view.layer);
+        var windowServer = this;
+        if (trackingType === UIView.MouseTracking.none){
+            context.stopMouseTracking();
+        }else{
+            var listener = {
+                handleEvent: function(e){
+                    e.stopPropagation();
+                    e.preventDefault();
+                    this[e.type](e);
+                },
+
+                mouseenter: function(e){
+                    windowServer._createMouseTrackingEventFromDOMEvent(e, UIEvent.Type.MouseEntered, view);
+                },
+
+                mouseleave: function(e){
+                    windowServer._createMouseTrackingEventFromDOMEvent(e, UIEvent.Type.MouseExited, view);
+                },
+
+                mousemove: function(e){
+                    windowServer._createMouseTrackingEventFromDOMEvent(e, UIEvent.Type.MouseMoved, view);
+                }
+            };
+            context.startMouseTracking(trackingType, listener);
         }
     },
 
@@ -313,6 +343,12 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         var location = this._locationOfDOMEventInScreen(e);
         var timestamp = e.timeStamp / 1000.0;
         this.createMouseEvent(type, timestamp, location);
+    },
+
+    _createMouseTrackingEventFromDOMEvent: function(e, type, view){
+        var location = this._locationOfDOMEventInScreen(e);
+        var timestamp = e.timeStamp / 1000.0;
+        this.createMouseTrackingEvent(type, timestamp, location, view);
     },
 
     _locationOfDOMEventInScreen: function(e){
