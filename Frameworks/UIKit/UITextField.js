@@ -296,12 +296,11 @@ JSClass("UITextField", UIView, {
             }
         }else{
             if (this._boundsScrollTimer === null){
-                this._boundsScrollTimer = JSTimer.initWithInterval(this._boundsScrollInterval, true, function(){
+                this._boundsScrollTimer = JSTimer.scheduledRepeatingTimerWithInterval(this._boundsScrollInterval, function(){
                     this._adjustClipViewOrigin(JSPoint(this._clipView.bounds.origin.x + this._boundsScrollDistance, this._clipView.bounds.origin.y));
                     this._localEditor.handleMouseDraggedAtLocation(this.layer.convertPointToLayer(this._lastDragLocation, this._textLayer), this._lastDragEvent);
                     this._adjustCursorPositionToVisibleIfNeeded();
                 }, this);
-                this._boundsScrollTimer.schedule();
             }
         }
         this._localEditor.handleMouseDraggedAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);

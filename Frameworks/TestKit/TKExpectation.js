@@ -33,12 +33,11 @@ JSClass("TKExpectation", JSObject, {
     /// Typically called automatically by TKTestSuite.wait, a timeout ensures that
     /// the test won't get stuck forever, while also enforcing strict async timing requirements
     setTimeout: function(timeout){
-        this.timeoutTimer = JSTimer.initWithInterval(timeout, false, function(){
+        this.timeoutTimer = JSTimer.scheduledTimerWithInterval(timeout, function(){
             this.error = new Error("Expectation took longer than %f seconds".sprintf(timeout));
             this.timeoutTimer = null;
             this._finish();
         }, this);
-        this.timeoutTimer.schedule();
     },
 
     /// Catch any error that occurs, including timeout

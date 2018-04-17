@@ -74,8 +74,8 @@ JSClass('UIApplication', UIResponder, {
         if (sender === undefined){
             sender = this;
         }
-        if (target === undefined){
-            target = this.targetForAction(action, sender);
+        if (target === undefined || target === null){
+            target = this.firstTargetForAction(action, sender);
         }
         if (target !== null){
             target[action](sender);

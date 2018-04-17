@@ -98,6 +98,12 @@ JSClass("UIWindowServer", JSObject, {
                 }
             }
         }
+        if (window === this.mouseEventWindow){
+            this.mouseEventWindow = null;
+        }
+        if (window === this.mouseDownWindow){
+            this.mouseDownWindow = null;
+        }
         // TODO: make next window on stack key/main
     },
 

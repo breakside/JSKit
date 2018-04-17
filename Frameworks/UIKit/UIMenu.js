@@ -98,10 +98,12 @@ JSClass("UIMenu", JSObject, {
     },
 
     updateEnabled: function(){
+        this._highlightedItem = null;
         var target;
         var item;
         for (var i = 0, l = this._items.length; i < l; ++i){
             item = this._items[i];
+            item.highlighted = false;
             if (!item.submenu){
                 target = item.target;
                 if (target === null){
@@ -109,6 +111,15 @@ JSClass("UIMenu", JSObject, {
                 }
                 item.enabled = target !== null && (!target.canPerformAction || target.canPerformAction(item.action, item));
             }
+        }
+    },
+
+    performActionForItem: function(item){
+        var target = item.target;
+        if (target !== null){
+            target[item.action](item);
+        }else{
+            UIApplication.sharedApplication.sendAction(item.action, null, item);
         }
     },
 

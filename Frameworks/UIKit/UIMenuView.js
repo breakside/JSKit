@@ -177,8 +177,7 @@ JSClass("UIMenuWindow", UIWindow, {
                 this._menu.highlightedItem.highlighted = true;
                 this.menuView.itemViews[this._itemViewIndexesByItemId[item.objectID]].setItem(this._menu.highlightedItem);
                 if (this._menu.highlightedItem.submenu && openingSubmenu){
-                    this.submenuTimer = JSTimer.initWithInterval(0.3, false, this.openHighlightedSubmenu, this);
-                    this.submenuTimer.schedule();
+                    this.submenuTimer = JSTimer.scheduledTimerWithInterval(0.3, this.openHighlightedSubmenu, this);
                 }
             }
         }
@@ -214,6 +213,19 @@ JSClass("UIMenuWindow", UIWindow, {
     },
 
     mouseUp: function(event){
+        var item = this._menu.highlightedItem;
+        if (item){
+            this.stopMouseTracking();
+            this._highlightItem(null);
+            var timer = JSTimer.scheduledTimerWithInterval(0.05, function(){
+                this._highlightItem(item);
+                timer = JSTimer.scheduledTimerWithInterval(0.05, function(){
+                    var menu = this._menu;
+                    this.closeAll();
+                    menu.performActionForItem(item);
+                }, this);
+            }, this);
+        }
     },
 
     mouseDown: function(event){
