@@ -19,11 +19,11 @@ JSTextContainerAttributeProperty.prototype.define = function(C, key, extensions)
     Object.defineProperty(C.prototype, key, {
         configurable: false,
         enumerable: false,
-        set: function UIView_setLayerProperty(value){
+        set: function JSTextContainer_setAttributeProperty(value){
             this.framesetter.attributes[key] = value;
             this._notifyLayoutManager();
         },
-        get: function UIView_getLayerProperty(){
+        get: function JSTextContainer_getAttributeProperty(){
             return this.framesetter.attributes[key];
         }
     });

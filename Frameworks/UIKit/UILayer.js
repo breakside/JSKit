@@ -605,7 +605,7 @@ JSClass("UILayer", JSObject, {
     },
 
     _renderInContext: function(context, includeSublayers){
-        if (this.presentation.hidden) return;
+        // if (this.presentation.hidden) return;
         context.drawLayerProperties(this);
         this._drawInContext(context);
         if (includeSublayers){
@@ -613,11 +613,13 @@ JSClass("UILayer", JSObject, {
             var transform;
             for (var i = 0, l = this.sublayers.length; i < l; ++i){
                 sublayer = this.sublayers[i];
-                context.save();
-                transform = sublayer._transformFromSuperlayer();
-                context.concatCTM(transform);
-                sublayer.renderInContext(context);
-                context.restore();
+                if (!sublayer.hidden){
+                    context.save();
+                    transform = sublayer._transformFromSuperlayer();
+                    context.concatCTM(transform);
+                    sublayer.renderInContext(context);
+                    context.restore();
+                }
             }
         }
     }
@@ -674,7 +676,7 @@ UILayer.Properties = {
     borderColor             : null,
     cornerRadius            : null,
     shadowColor             : null,
-    shadowOffset            : JSSize.Zero,
+    shadowOffset            : JSPoint.Zero,
     shadowRadius            : 0.0
 };
 

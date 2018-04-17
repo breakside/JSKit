@@ -104,6 +104,16 @@ JSClass("JSFont", JSObject, {
         return String.fromCodePoint.apply(undefined, codes);
     },
 
+    widthOfString: function(str){
+        var iterator = str.unicodeIterator();
+        var width = 0;
+        while (iterator.index < str.length){
+            width += this.widthOfGlyph(this.glyphForCharacter(iterator.character));
+            iterator.increment();
+        }
+        return width;
+    },
+
     widthOfGlyph: function(glyphIndex){
         if (!this._cache.widths){
             if (this._cache.widths64){
@@ -224,7 +234,6 @@ JSFont._fontWithResourceInfo = function(info, pointSize){
 JSFont.fontWithResourceName = function(name, pointSize){
     var ext;
     var extIndex = name.lastIndexOf('.');
-    var idealScale = this.preferredScale();
     var i, l;
     if (extIndex > 0 && extIndex < name.length - 1){
         ext = name.substr(extIndex + 1);
@@ -232,7 +241,7 @@ JSFont.fontWithResourceName = function(name, pointSize){
     }else{
         ext = "ttf";
     }
-    var metadata = JSBundle.mainBundle.resourceNamed(name, ext);
+    var metadata = JSBundle.mainBundle.metadataForResourceName(name, ext);
     return JSFont._fontWithResourceInfo(metadata.font, pointSize);
 };
 
@@ -268,6 +277,23 @@ JSFont.registerFontResource = function(metadata){
     // TODO: remember resource path so we can load the font data later
     JSFont._families[info.family].push(info);
 };
+
+JSFont._systemFontDescriptor = null;
+
+JSFont.registerSystemFontResource = function(resourceName){
+    var font = JSFont.fontWithResourceName(resourceName, JSFont.systemFontSize);
+    JSFont._systemFontDescriptor = font.descriptor;
+};
+
+JSFont.registerSystemFont = function(familyName, weight, style){
+    JSFont._systemFontDescriptor = JSFontDescriptor.initWithProperties(familyName, weight || JSFont.Weight.regular, style || JSFont.Style.normal);
+};
+
+JSFont.systemFontOfSize = function(pointSize){
+    return JSFont.fontWithDescriptor(this._systemFontDescriptor, pointSize);
+};
+
+JSFont.systemFontSize = 14.0;
 
 JSFont.Weight = {
     ultraLight: 100,

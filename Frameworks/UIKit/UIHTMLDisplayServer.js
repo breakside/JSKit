@@ -6,12 +6,14 @@
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
 // #feature Document.prototype.createElement
-/* global JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer, jslog_create, UIHTMLTextFramesetter, UIView, UITextAttachmentView */
+/* global JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer, jslog_create, UITextFramesetter, UIHTMLTextFramesetter, UIView, UITextAttachmentView */
 'use strict';
 
 (function(){
 
 var logger = jslog_create("uikit.display-server");
+
+var sharedInstance = null;
 
 JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
@@ -38,6 +40,10 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         this.contextsByObjectID = {};
         this._displayFrameBound = this.displayFrame.bind(this);
         this.determineRootBounds();
+        if (sharedInstance !== null){
+            throw new Error("Only one UIHTMLDisplayServer instance is allowed");
+        }
+        sharedInstance = this;
         // TODO: fill in system fonts
         // (use the trick of creating some divs and spans offscreen and deriving font properties from their relative sizes)
     },
@@ -53,6 +59,8 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             layer = this.rootLayers[i];
             if (layer.constraintBox){
                 layer.frame = UILayer.FrameForConstraintBoxInBounds(layer.constraintBox, this.rootBounds);
+            }else{
+                // TODO: reposition root layers so they aren't offscreen
             }
         }
     },
@@ -195,7 +203,9 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         }else{
             parentContext = this.rootContext;
             this.rootLayers.push(layer);
-            layer.frame = UILayer.FrameForConstraintBoxInBounds(layer.constraintBox, this.rootBounds);
+            if (layer.constraintBox){
+                layer.frame = UILayer.FrameForConstraintBoxInBounds(layer.constraintBox, this.rootBounds);
+            }
         }
         if (parentContext){
             var context = this.contextForLayer(layer);
@@ -285,14 +295,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             }
         }
     },
-
-    // -------------------------------------------------------------------------
-    // MARK: - Text
-
-    createTextFramesetter: function(){
-        return UIHTMLTextFramesetter.initWithDocument(this.domDocument, this);
-    },
-
+    
     // MARK: - Debugging
 
     _clientRectElements: null,
@@ -338,6 +341,14 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             this._clientRectElements[i].parentNode.removeChild(this._clientRectElements[i]);
         }
         this._clientRectElements = [];
+    }
+
+});
+
+UITextFramesetter.definePropertiesFromExtensions({
+
+    init: function(){
+        return UIHTMLTextFramesetter.initWithDocument(sharedInstance.domDocument, sharedInstance);
     }
 
 });

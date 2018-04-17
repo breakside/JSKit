@@ -6,16 +6,28 @@
 JSClass("UIImageView", UIView, {
 
     scaleMode: JSDynamicProperty('_scaleMode', 0),
+    renderMode: UIViewLayerProperty(),
+    templateColor: UIViewLayerProperty(),
     image: UIViewLayerProperty(),
 
     _previousSize: null,
 
-    initWithImage: function(image){
-        var frameThatFits = JSRect(0, 0, image.size.width, image.size.height);
+    _commonViewInit: function(){
+        UIImageView.$super._commonViewInit.call(this);
+        this.backgroundColor = null;
         this._previousSize = JSSize.Zero;
+    },
+
+    initWithRenderMode: function(renderMode){
+        UIImageView.$super.init.call(this);
+        this.renderMode = renderMode || UIImageView.RenderMode.original;
+    },
+
+    initWithImage: function(image, renderMode){
+        var frameThatFits = JSRect(0, 0, image.size.width, image.size.height);
         UIImageView.$super.initWithFrame.call(this, frameThatFits);
         this.image = image;
-        this.backgroundColor = null;
+        this.renderMode = renderMode || UIImageView.RenderMode.original;
         this._scaleImage();
     },
 
@@ -23,7 +35,7 @@ JSClass("UIImageView", UIView, {
         var size = JSSize(this.layer.bounds.size);
         if (!this._previousSize.isEqual(size)){
             switch (this._scaleMode){
-                case UIImageView.ScaleMode.Fit:
+                case UIImageView.ScaleMode.fit:
                     this.layer.imageFrame = JSRect(0, 0, size.width, size.height);
                     break;
                 // TODO: support other scales
@@ -38,23 +50,25 @@ JSClass("UIImageView", UIView, {
         }
     },
 
-    getScaleMode: function(){
-        return this._scaleMode;
-    },
-
     setScaleMode: function(scaleMode){
         this._scaleMode = scaleMode;
         this._previousSize = JSSize.Zero;
         this._scaleImage();
-    }
+    },
 
+    setTintColor: function(tintColor){
+        this._tintColor = tintColor;
+        this.setNeedsDisplay();
+    }
 });
 
 UIImageView.layerClass = UIImageLayer;
 
 UIImageView.ScaleMode = {
-    Fit: 0,
-    AspectFit: 1,
-    AspectFill: 2,
-    Center: 3
+    fit: 0,
+    aspectFit: 1,
+    aspectFill: 2,
+    center: 3
 };
+
+UIImageView.RenderMode = UIImageLayer.RenderMode;

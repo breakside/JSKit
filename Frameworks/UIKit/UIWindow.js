@@ -2,7 +2,7 @@
 // #import "UIKit/UIDisplayServer.js"
 // #import "UIKit/UIApplication.js"
 // #import "UIKit/UITouch.js"
-/* global JSClass, UIView, UIDisplayServer, JSConstraintBox, JSDynamicProperty, JSReadOnlyProperty, UIWindow, JSPoint, UIApplication, UIEvent, UITouch */
+/* global JSClass, UIView, UIDisplayServer, JSColor, JSConstraintBox, JSDynamicProperty, JSReadOnlyProperty, UIWindow, JSPoint, UIApplication, UIEvent, UITouch */
 'use strict';
 
 JSClass('UIWindow', UIView, {
@@ -15,18 +15,21 @@ JSClass('UIWindow', UIView, {
     application: JSReadOnlyProperty('_application', null),
     firstResponder: JSDynamicProperty('_firstResponder', null),
     windowServer: JSReadOnlyProperty(),
+    screen: JSReadOnlyProperty('_screen', null),
 
     // -------------------------------------------------------------------------
     // MARK: - Creating a Window
 
     init: function(){
-        this.initWithApplication(UIApplication.sharedApplication);
+        UIWindow.$super.init.call(this);
+        this._application = UIApplication.sharedApplication;
+        this._commonWindowInit();
     },
 
     initWithApplication: function(application){
         UIWindow.$super.initWithConstraintBox.call(this, JSConstraintBox.Margin(0));
         this._application = application;
-        this._commonWindowInit(application);
+        this._commonWindowInit();
     },
 
     initWithSpec: function(spec, values){
@@ -70,12 +73,23 @@ JSClass('UIWindow', UIView, {
     // -------------------------------------------------------------------------
     // MARK: - Key Window
 
+    canBecomeMainWindow: function(){
+        return true;
+    },
+
     canBecomeKeyWindow: function(){
+        return true;
+    },
+
+    canBecomeFirstResponder: function(){
         return true;
     },
 
     makeKeyAndVisible: function(){
         this._application.windowInserted(this);
+        if (this.canBecomeMainWindow()){
+            this._application.mainWindow = this;
+        }
         if (this.canBecomeKeyWindow()){
             this._application.keyWindow = this;
         }
@@ -85,6 +99,14 @@ JSClass('UIWindow', UIView, {
         }
     },
 
+    // -------------------------------------------------------------------------
+    // MARK: - Closing
+
+    close: function(){
+        this._application.windowRemoved(this);
+    },
+
+    // -------------------------------------------------------------------------
     // MARK: - Window Server
 
     getWindowServer: function(){
@@ -94,6 +116,7 @@ JSClass('UIWindow', UIView, {
         return null;
     },
 
+    // -------------------------------------------------------------------------
     // MARK: - Events
 
     mouseDown: function(){
@@ -152,7 +175,7 @@ JSClass('UIWindow', UIView, {
             return;
         }
         var keyView = this.nextKeyView;
-
+        // TODO:
     },
 
     getNextResponder: function(){
@@ -191,6 +214,9 @@ JSClass('UIWindow', UIView, {
         }
         switch (event.type){
             case UIEvent.Type.LeftMouseDown:
+                if (this.canBecomeMainWindow() && this._application.mainWindow !== this){
+                    this._application.mainWindow = this;
+                }
                 if (this.canBecomeKeyWindow() && this._application.keyWindow !== this){
                     this._application.keyWindow = this;
                 }
@@ -290,6 +316,9 @@ JSClass('UIWindow', UIView, {
 
     _commonWindowInit: function(){
         this.window = this;
+        this._firstResponder = this.canBecomeFirstResponder() ? this : this._application;
+        this.backgroundColor = JSColor.whiteColor();
+        this.clipsToBounds = true;
         if (this._contentView === null){
             this.contentView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));
         }

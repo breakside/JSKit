@@ -297,15 +297,34 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
                 imageElement.style.height = rect.size.height + 'px';
                 var cssURL = "url('" + url + "')";
                 var box = image.stretchBox;
-                if (box === null){
+                if (box !== null){
+                    imageElement.style.backgroundColor = '';
+                    imageElement.style.backgroundImage = '';
+                    imageElement.style.maskImage = '';
+                    imageElement.style.maskSize = '';
+                    imageElement.style.webkitMaskImage = '';
+                    imageElement.style.webkitMaskSize = '';
+                    imageElement.style.borderWidth = '%dpx %dpx %dpx %dpx'.sprintf(box.top, box.right, box.bottom, box.left);
+                    imageElement.style.borderImage = cssURL + " %d %d %d %d fill stretch".sprintf(box.top * image.scale, box.right * image.scale, box.bottom * image.scale, box.left * image.scale);
+                }else if (image.templateColor !== null){
+                    imageElement.backgroundImage = '';
+                    imageElement.style.borderWidth = '';
+                    imageElement.style.borderImage = '';
+                    imageElement.style.maskImage = cssURL;
+                    imageElement.style.maskSize = '100% 100%';
+                    imageElement.style.webkitMaskImage = cssURL;
+                    imageElement.style.webkitMaskSize = '100% 100%';
+                    imageElement.style.backgroundColor = image.templateColor.cssString();
+                }else{
+                    imageElement.style.backgroundColor = '';
                     imageElement.style.backgroundImage = cssURL;
                     imageElement.style.backgroundSize = '100% 100%';
                     imageElement.style.borderWidth = '';
                     imageElement.style.borderImage = '';
-                }else{
-                    imageElement.style.backgroundImage = '';
-                    imageElement.style.borderWidth = '%dpx %dpx %dpx %dpx'.sprintf(box.top, box.right, box.bottom, box.left);
-                    imageElement.style.borderImage = cssURL + " %d %d %d %d fill stretch".sprintf(box.top * image.scale, box.right * image.scale, box.bottom * image.scale, box.left * image.scale);
+                    imageElement.style.maskImage = '';
+                    imageElement.style.maskSize = '';
+                    imageElement.style.webkitMaskImage = '';
+                    imageElement.style.webkitMaskSize = '';
                 }
                 this._insertChildElement(imageElement);
             }else{

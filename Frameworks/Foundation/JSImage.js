@@ -13,6 +13,7 @@ JSClass('JSImage', JSObject, {
     size: JSReadOnlyProperty('_size', null),
     scale: JSReadOnlyProperty('_scale', 1),
     stretchBox: JSReadOnlyProperty('_stretchBox', null),
+    templateColor: JSReadOnlyProperty('_templateColor', null),
 
     init: function(){
         this._initWithPixelSize(JSSize.Zero, 1);
@@ -41,12 +42,20 @@ JSClass('JSImage', JSObject, {
         }
         image._size = JSSize(this._size);
         image._scale = this._scale;
+        image._stretchBox = this._stretchBox;
+        image._templateColor = this._templateColor;
         return image;
     },
 
     stretchableImageWithCapSizes: function(leftCapWidth, topCapHeight, rightCapWidth, bottomCapHeight){
         var image = this.copy();
         image._stretchBox = JSConstraintBox.Margin(topCapHeight, rightCapWidth, bottomCapHeight, leftCapWidth);
+        return image;
+    },
+
+    templateImageWithColor: function(color){
+        var image = this.copy();
+        image._templateColor = color;
         return image;
     },
 
@@ -130,10 +139,13 @@ JSClass("_JSResourceImage", JSImage, {
                 var scales = [];
                 switch (idealScale){
                     case 1:
-                        scales = [{name: name, scale: 1}, {name: name + '@2x', scale: 2}];
+                        scales = [{name: name, scale: 1}, {name: name + '@2x', scale: 2}, {name: name + '@3x', scale: 3}];
                         break;
                     case 2:
-                        scales = [{name: name + '@2x', scale: 2}, {name: name, scale: 1}];
+                        scales = [{name: name + '@2x', scale: 2}, {name: name + '@3x', scale: 3}, {name: name, scale: 1}];
+                        break;
+                    case 3:
+                        scales = [{name: name + '@3x', scale: 3}, {name: name + '@2x', scale: 2}, {name: name, scale: 1}];
                         break;
                 }
                 for (i = 0, l = scales.length; i < l && this.metadata === null; ++i){

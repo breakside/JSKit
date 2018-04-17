@@ -1,6 +1,6 @@
 // #import "UIKit/UILayer.js"
-// #import "UIKit/UIWindowServer.js"
-/* global JSClass, JSDynamicProperty, JSCustomProperty, JSReadOnlyProperty, JSRect, JSPoint, JSSize, JSInsets, UILayer, UITextLayer, JSAttributedString, JSTextLayoutManager, JSTextContainer, JSTextStorage, UIWindowServer */
+// #import "UIKit/UITextFramesetter.js"
+/* global JSClass, JSDynamicProperty, JSCustomProperty, JSReadOnlyProperty, JSRect, JSPoint, JSSize, JSInsets, UILayer, UITextLayer, JSAttributedString, JSTextLayoutManager, JSTextContainer, JSTextStorage, JSFont, UITextFramesetter */
 'use strict';
 
 (function(){
@@ -17,10 +17,10 @@ UITextLayerContainerProperty.prototype.define = function(C, key, extensions){
     Object.defineProperty(C.prototype, key, {
         configurable: false,
         enumerable: false,
-        set: function UIView_setLayerProperty(value){
+        set: function UITextLayer_setContainerProperty(value){
             this.textContainer[key] = value;
         },
-        get: function UIView_getLayerProperty(){
+        get: function UITextLayer_getContainerProperty(){
             return this.textContainer[key];
         }
     });
@@ -57,9 +57,11 @@ JSClass("UITextLayer", UILayer, {
         this._textLayoutManager = JSTextLayoutManager.init();
         this._textLayoutManager.delegate = this;
         this._textContainer = JSTextContainer.initWithSize(this._availableTextSize());
+        this._textContainer.framesetter = UITextFramesetter.init();
         this._textStorage = JSTextStorage.init();
         this._textStorage.addLayoutManager(this._textLayoutManager);
         this._textLayoutManager.addTextContainer(this._textContainer);
+        this.font = JSFont.systemFontOfSize(JSFont.systemFontSize);
         this.setNeedsLayout();
     },
 
@@ -182,16 +184,8 @@ JSClass("UITextLayer", UILayer, {
 
     layoutSublayers: function(){
         UITextLayer.$super.layoutSublayers.call(this);
-        if (this._displayServer !== null){
-            if (!this._hasSetDisplayFramesetter){
-                var attributes = this._textContainer.framesetter.attributes;
-                this._textContainer.framesetter = this._displayServer.createTextFramesetter();
-                this._textContainer.framesetter.attributes = attributes;
-                this._hasSetDisplayFramesetter = true;
-            }
-            this._textContainer.origin = JSPoint(this._textInsets.left, this._textInsets.top);
-            this._textLayoutManager.layoutIfNeeded();
-        }
+        this._textContainer.origin = JSPoint(this._textInsets.left, this._textInsets.top);
+        this._textLayoutManager.layoutIfNeeded();
         if ((this._widthTracksText || this._heightTracksText) && this._textContainer.textFrame !== null){
             var width = this.bounds.size.width;
             var height = this.bounds.size.height;

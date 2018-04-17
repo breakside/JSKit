@@ -128,7 +128,10 @@ JSClass("UIResponder", JSObject, {
     },
 
     canPerformAction: function(action, sender){
-        return this[action] !== undefined;
+        if (this[action] !== undefined && this[action] !== null && typeof(this[action]) == 'function'){
+            return true;
+        }
+        return false;
     },
 
     targetForAction: function(action, sender){

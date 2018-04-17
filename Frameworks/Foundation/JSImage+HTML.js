@@ -1,15 +1,10 @@
 // #import "Foundation/JSImage.js"
-// #feature URL.createObjectURL
-/* global JSImage, _JSResourceImage, _JSDataImage, _JSURLImage, URL, window, JSURLSession, JSURLResponse */
+/* global JSImage, _JSResourceImage, _JSDataImage, _JSURLImage */
 'use strict';
 
 _JSResourceImage.definePropertiesFromExtensions({
     htmlURLString: function(){
         return this.metadata.htmlURL;
-    },
-
-    preferredScale: function(){
-        return window.devicePixelRatio || 1;
     }
 });
 

@@ -1,5 +1,5 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, UIAnimationTransaction, UIDisplayServer, UIDisplayServerInit, UIEvent, JSPoint, JSTextFramesetter */
+/* global JSClass, JSObject, JSReadOnlyProperty, UIAnimationTransaction, UIDisplayServer, UIDisplayServerInit, UIEvent, JSPoint */
 'use strict';
 
 JSClass("UIDisplayServer", JSObject, {
@@ -194,13 +194,6 @@ JSClass("UIDisplayServer", JSObject, {
             }
         }
         return completedAnimations;
-    },
-
-    // -------------------------------------------------------------------------
-    // MARK: - Text
-
-    createTextFramesetter: function(){
-        return JSTextFramesetter.init();
     }
 
 });

@@ -16,11 +16,11 @@ JSClass("JSTextFramesetter", JSObject, {
 
     init: function(){
         this.initWithTypesetter(JSTextTypesetter.init());
-        this.attributes = Object.create(JSTextParagraphAttributes);
     },
 
     initWithTypesetter: function(typesetter){
         this._typesetter = typesetter;
+        this.attributes = Object.create(JSTextParagraphAttributes);
     },
 
     getAttributedString: function(){

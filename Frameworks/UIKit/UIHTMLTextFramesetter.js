@@ -1,12 +1,13 @@
 // #import "Foundation/Foundation.js"
+// #import "UIKit/UITextFramesetter.js"
 // #import "UIKit/UIHTMLTextFrame.js"
 // #import "UIKit/UIHTMLTextTypesetter.js"
-/* global JSClass, JSReadOnlyProperty, JSTextFramesetter, UIHTMLTextFramesetter, UIHTMLTextTypesetter, UIHTMLTextFrame, JSAttributedString, JSLineBreakMode */
+/* global JSClass, JSReadOnlyProperty, UITextFramesetter, UIHTMLTextFramesetter, UIHTMLTextTypesetter, UIHTMLTextFrame, JSAttributedString, JSLineBreakMode */
 'use strict';
 
 (function(){
 
-JSClass("UIHTMLTextFramesetter", JSTextFramesetter, {
+JSClass("UIHTMLTextFramesetter", UITextFramesetter, {
 
     _domDocument: null,
     _htmlTypesetter: null,

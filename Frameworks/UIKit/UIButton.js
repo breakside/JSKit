@@ -1,6 +1,6 @@
 // #import "UIKit/UIControl.js"
 // #import "UIKit/UILabel.js"
-/* global JSClass, UIControl, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSConstraintBox, JSColor, UIButton, JSTextAlignment, JSPoint, UIView */
+/* global JSClass, UIControl, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSConstraintBox, JSColor, UIButton, JSTextAlignment, JSPoint, UIView, JSFont */
 'use strict';
 
 JSClass("UIButton", UIControl, {
@@ -36,6 +36,7 @@ JSClass("UIButton", UIControl, {
         this._titleLabel = UILabel.initWithConstraintBox(JSConstraintBox.Margin(3));
         this._titleLabel.textAlignment = JSTextAlignment.center;
         this._titleLabel.backgroundColor = JSColor.clearColor();
+        this._titleLabel.font = JSFont.systemFontOfSize(JSFont.systemFontSize).fontWithWeight(JSFont.Weight.regular);
         this.addSubview(this._titleLabel);
         this.layer.borderWidth = 1;
         this.layer.cornerRadius = 3;

@@ -122,14 +122,14 @@ JSClass('UIView', UIResponder, {
         if (sibling.superview !== this){
             throw Error('Cannot insert subview [%s] in view [%s] because sibling view [%s] is not a valid subview.');
         }
-        return this._insertSubviewAtIndex(sibling.level, sibling.layer.level);
+        return this._insertSubviewAtIndex(subview, sibling.level, sibling.layer.level);
     },
 
     insertSubviewAfterSibling: function(subview, sibling){
         if (sibling.superview !== this){
             throw Error('Cannot insert subview [%s] in view [%s] because sibling view [%s] is not a valid subview.');
         }
-        return this._insertSubviewAtIndex(sibling.level + 1, sibling.layer.level + 1);
+        return this._insertSubviewAtIndex(subview, sibling.level + 1, sibling.layer.level + 1);
     },
 
     removeSubview: function(subview){
@@ -271,14 +271,20 @@ JSClass('UIView', UIResponder, {
     // MARK: - Coordinate conversion
 
     convertPointToView: function(point, view){
-        if (view.window === this.window){
+        if (view !== null && view.window === this.window){
             return this.layer.convertPointToLayer(point, view.layer);
         }
-        if (this.window !== null && view.window !== null){
+        if (this.window !== null){
             var ourWindowPoint = this.layer.convertPointToLayer(point, this.window.layer);
             var screenPoint = this.window.convertPointToScreen(ourWindowPoint);
-            var otherWindowPoint = view.window.convertPointFromScreen(screenPoint);
-            return view.window.layer.convertPointToLayer(otherWindowPoint, view.layer);
+            if (view !== null){
+                if (view.window !== null){
+                    var otherWindowPoint = view.window.convertPointFromScreen(screenPoint);
+                    return view.window.layer.convertPointToLayer(otherWindowPoint, view.layer);
+                }
+                return null;
+            }
+            return screenPoint;
         }
         return null;
     },
@@ -329,7 +335,6 @@ JSClass('UIView', UIResponder, {
         this.layer = this.$class.layerClass.init();
         this.layer.delegate = this;
         this.subviews = [];
-        this.backgroundColor = JSColor.whiteColor();
     },
 
     // MARK: Subview management helpers

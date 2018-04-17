@@ -1,11 +1,12 @@
 // #import "UIKit/UIWindowServer.js"
 // #import "UIKit/UIEvent.js"
 // #import "UIKit/UIView.js"
+// #import "UIKit/UIScreen.js"
 // #import "UIKit/UIWindowServer.js"
 // #import "UIKit/UIHTMLDisplayServer.js"
 // #import "UIKit/UIHTMLTextInputManager.js"
 // #feature Element.prototype.addEventListener
-/* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor, UIView */
+/* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor, UIView, JSRect, UIScreen */
 'use strict';
 
 JSClass("UIHTMLWindowServer", UIWindowServer, {
@@ -28,6 +29,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.displayServer = UIHTMLDisplayServer.initWithRootElement(rootElement);
         this.textInputManager = UIHTMLTextInputManager.initWithRootElement(rootElement);
         this.textInputManager.windowServer = this;
+        this.screen = UIScreen.initWithFrame(JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight), this.domDocument.defaultView.devicePixelRatio || 1);
     },
 
     setupRenderingEnvironment: function(){
@@ -317,6 +319,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
 
     resize: function(e){
         if (e.currentTarget === this.domWindow){
+            this.screen.frame = JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight);
             this.displayServer.updateRootBounds();
         }
     },

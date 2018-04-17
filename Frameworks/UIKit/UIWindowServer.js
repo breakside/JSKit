@@ -10,13 +10,16 @@ JSClass("UIWindowServer", JSObject, {
     displayServer: null,
     textInputManager: null,
     keyWindow: null,
+    screen: null,
 
     init: function(){
         this.windowStack = [];
     },
 
     windowInserted: function(window){
+        window.level = window.layer.level = this.windowStack.length;
         this.windowStack.push(window);
+        window._screen = this.screen;
         this.displayServer.layerInserted(window.layer);
         // Force layout and display right now so all sizes are correct when viewDidAppear is called
         this.displayServer.updateDisplay();
@@ -25,9 +28,9 @@ JSClass("UIWindowServer", JSObject, {
     windowRemoved: function(window){
         for (var i = this.windowStack.length - 1; i >= 0; --i){
             if (this.windowStack[i] === window){
-                window.windowServer = null;
                 this.windowStack.splice(i, 1);
                 this.displayServer.layerRemoved(window.layer);
+                window._screen = null;
                 break;
             }
         }
@@ -89,9 +92,9 @@ JSClass("UIWindowServer", JSObject, {
     },
 
     createMouseTrackingEvent: function(type, timestamp, location, view){
-        // Mouse tracking events are only sent to the key window when the mouse is not down
+        // Mouse tracking events are only sent to the key and main windows when the mouse is not down
         // TODO: allow this behavior to be adjusted with tracking options
-        if (view.window !== this.keyWindow){
+        if (view.window !== this.keyWindow && view.window !== this.mainWindow){
             return;
         }
         if (this.mouseDownWindow !== null){

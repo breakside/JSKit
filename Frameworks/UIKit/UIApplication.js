@@ -10,8 +10,9 @@ var sharedApplication = null;
 
 JSClass('UIApplication', UIResponder, {
 
+    mainWindow: JSDynamicProperty(),
     keyWindow: JSDynamicProperty(),
-    windows: null,
+    windows: JSReadOnlyProperty(),
     windowServer: null,
 
     initWithWindowServer: function(windowServer){
@@ -19,7 +20,6 @@ JSClass('UIApplication', UIResponder, {
             throw new Error("UIApplication.init: one application already initialized, and only one may exist");
         }
         sharedApplication = this;
-        this.windows = [];
         this.windowServer = windowServer;
         this.windowServer.application = this;
     },
@@ -39,8 +39,20 @@ JSClass('UIApplication', UIResponder, {
         }
     },
 
+    getWindows: function(){
+        return this.windowServer.windowStack;
+    },
+
+    getMainWindow: function(){
+        return this.windowServer.mainWindow;
+    },
+
     getKeyWindow: function(){
         return this.windowServer.keyWindow;
+    },
+
+    setMainWindow: function(window){
+        this.windowServer.mainWindow = window;
     },
 
     setKeyWindow: function(window){
@@ -48,17 +60,10 @@ JSClass('UIApplication', UIResponder, {
     },
 
     windowInserted: function(window){
-        this.windows.push(window);
         this.windowServer.windowInserted(window);
     },
 
     windowRemoved: function(window){
-        for (var i = this.windows.length - 1; i >= 0; --i){
-            if (this.windows[i] === window){
-                this.windows.splice(i, 1);
-                break;
-            }
-        }
         this.windowServer.windowRemoved(window);
     },
 
@@ -137,6 +142,7 @@ JSGlobalObject.UIApplicationMain = function UIApplicationMain(){
     var application = UIApplication.initWithWindowServer(UIWindowServer.defaultServer);
     JSFont.registerBundleFonts(JSBundle.mainBundle);
     var info = JSBundle.mainBundle.info();
+    JSFont.registerSystemFontResource(info.UIApplicationSystemFont);
     if (info[UIApplication.InfoKeys.MainDefinitionResource]){
         var mainUIFile = JSSpec.initWithResource(info[UIApplication.InfoKeys.MainDefinitionResource]);
         application.delegate = mainUIFile.filesOwner();

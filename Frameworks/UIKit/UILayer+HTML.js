@@ -94,7 +94,7 @@ UILayer.definePropertiesFromExtensions({
 
     updateHTMLProperty_shadow: function(context){
         if (this.presentation.shadowColor){
-            context.style.boxShadow = '%fpx %fpx %fpx %s'.sprintf(this.shadowOffset.x, this.shadowOffset.y, this.shadowRadius, this.shadowColor.cssString());
+            context.style.boxShadow = '%fpx %fpx %fpx %s'.sprintf(this.shadowOffset.x, this.shadowOffset.y, this.shadowRadius, this.presentation.shadowColor.cssString());
         }else{
             context.style.boxShadow = '';
         }
