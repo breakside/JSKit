@@ -255,7 +255,7 @@ JSClass('UIView', UIResponder, {
         this.mouseTrackingType = trackingType;
         if (this.window !== null){
             var windowServer = this.window.windowServer;
-            windowServer.viewDidChangeMouseTracking(this);
+            windowServer.viewDidChangeMouseTracking(this, this.mouseTrackingType);
         }
     },
 
@@ -263,7 +263,7 @@ JSClass('UIView', UIResponder, {
         this.mouseTrackingType = UIView.MouseTracking.none;
         if (this.window !== null){
             var windowServer = this.window.windowServer;
-            windowServer.viewDidChangeMouseTracking(this);
+            windowServer.viewDidChangeMouseTracking(this, this.mouseTrackingType);
         }
     },
 

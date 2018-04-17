@@ -78,6 +78,7 @@ JSClass("UIMenuWindow", UIWindow, {
         }
         this.menuView.bounds = JSRect(JSPoint.Zero, menuSize);
         this.bounds = JSRect(0, 0, menuSize.width, menuSize.height + this._capSize * 2);
+        this.startMouseTracking(UIView.MouseTracking.all);
     },
 
     setAlternateItemsShown: function(shown){
@@ -87,6 +88,11 @@ JSClass("UIMenuWindow", UIWindow, {
         for (var i = 1, l = this._menu.items.length; i < l; ++i){
             item = this._menu.items[i];
             if (item.alternate){
+                if (shown && previousItem === this._menu.highlightedItem){
+                    this._highlightItem(item);
+                }else if (!shown && item === this._menu.highlightedItem){
+                    this._highlightItem(previousItem);
+                }
                 itemView = this.menuView.itemViews[this._itemViewIndexesByItemId[previousItem.objectID]];
                 itemView.hidden = shown;
                 itemView = this.menuView.itemViews[this._itemViewIndexesByItemId[item.objectID]];
@@ -136,32 +142,41 @@ JSClass("UIMenuWindow", UIWindow, {
         var location = event.locationInView(this.clipView);
         var highlightedItem = null;
         var itemView;
+        var item;
         if (this.clipView.containsPoint(location)){
             var locationInMenuView = event.locationInView(this.menuView);
             itemView = this.menuView.itemViewAtLocation(locationInMenuView);
-            if (itemView !== null && itemView.enabled){
-                highlightedItem = this._menu.items[this._itemIndexesByItemViewId[itemView.objectID]];
+            if (itemView !== null){
+                item = this._menu.items[this._itemIndexesByItemViewId[itemView.objectID]];
+                if (item.enabled){
+                    highlightedItem = item;
+                }
             }
         }
-        if (this.menu.highlightedItem !== highlightedItem){
-            if (this.menu.highlightedItem !== null){
-                this.menu.hilightedItem.highlighted = false;
-                this.menu.itemViews[this._itemViewIndexesByItemId[this.menu.highlightedItem.objectID]].setItem(this.menu.highlightedItem);
-                if (this.menu.highlightedItem.submenu){
+        this._highlightItem(highlightedItem, true);
+        // TODO: scrolling
+    },
+
+    _highlightItem: function(item, openingSubmenu){
+        if (this._menu.highlightedItem !== item){
+            if (this._menu.highlightedItem !== null){
+                this._menu.highlightedItem.highlighted = false;
+                this.menuView.itemViews[this._itemViewIndexesByItemId[this._menu.highlightedItem.objectID]].setItem(this._menu.highlightedItem);
+                if (this._menu.highlightedItem.submenu){
                     if (this.submenu !== null){
                         this.submenu.close();
                         this.submenu = null;
                     }else if (this.submenuTimer !== null){
-                        this.submenuTimer.invaliate();
+                        this.submenuTimer.invalidate();
                         this.submenuTimer = null;
                     }
                 }
             }
-            this.menu.highlightedItem = highlightedItem;
-            if (this.menu.highlightedItem !== null){
-                this.menu.highlightedItem.highlighted = true;
-                itemView.setItem(this.menu.highlightedItem);
-                if (this.menu.highlightedItem.submenu){
+            this._menu._highlightedItem = item;
+            if (this._menu.highlightedItem !== null){
+                this._menu.highlightedItem.highlighted = true;
+                this.menuView.itemViews[this._itemViewIndexesByItemId[item.objectID]].setItem(this._menu.highlightedItem);
+                if (this._menu.highlightedItem.submenu && openingSubmenu){
                     this.submenuTimer = JSTimer.initWithInterval(0.3, false, this.openHighlightedSubmenu, this);
                     this.submenuTimer.schedule();
                 }
@@ -169,13 +184,26 @@ JSClass("UIMenuWindow", UIWindow, {
         }
     },
 
+    hitTest: function(location){
+        var hit = UIMenuWindow.$super.hitTest.call(this, location);
+        if (hit !== null){
+            return hit;
+        }
+        return this;
+    },
+
     keyDown: function(event){
         // FIXME: find a better way of checking than using code 18
         if (event.keyCode == 18){
             this.setAlternateItemsShown(true);
+        }else if (event.keyCode == 27){
+            this.closeAll();
         }
-        // TODO: search list
-        // TODO: key navigation
+        // TODO: left = close, if submenu
+        // TODO: right = open submenu and select first item
+        // TODO: up = up
+        // TODO: down = down
+        // TODO: select by typing title
     },
 
     keyUp: function(event){
@@ -189,26 +217,24 @@ JSClass("UIMenuWindow", UIWindow, {
     },
 
     mouseDown: function(event){
-    },
-
-    mouseExited: function(event){
-    },
-
-    mouseEntered: function(event){
-        if (this.submenu){
-            this.submenu.close();
-            this.submenu = null;
+        var location = event.locationInView(this);
+        if (!this.containsPoint(location)){
+            this.closeAll();
         }
     },
 
-    makeKeyAndVisible: function(){
-        UIMenuWindow.$super.makeKeyAndVisible.call(this);
-        this.startMouseTracking(UIView.MouseTracking.all);
+    mouseExited: function(event){
+        if (!this.submenu){
+            this._highlightItem(null);
+        }
     },
 
-    openHighlightedSubmenu: function(){
+    mouseEntered: function(event){
+    },
+
+    openHighlightedSubmenu: function(selectingFirstItem){
         this.submenuTimer = null;
-        var item = this.menu.highlightedItem;
+        var item = this._menu.highlightedItem;
         if (!item){
             return;
         }
@@ -217,8 +243,18 @@ JSClass("UIMenuWindow", UIWindow, {
             return;
         }
         var firstSubmenuItem = this.submenu.items[0] || null;
-        var location = JSPoint(this.highlightedItemView.bounds.size.width, 0);
-        this.submenu.openWithItemAtLocationInView(firstSubmenuItem, location, this.highlightedItemView);
+        var itemView = this.menuView.itemViews[this._itemViewIndexesByItemId[item.objectID]];
+        var location = JSPoint(itemView.bounds.size.width, 0);
+        this.submenu.openWithItemAtLocationInView(firstSubmenuItem, location, itemView);
+        if (selectingFirstItem){
+            for (var i = 0, l = this.submenu.items.length; i < l; ++i){
+                // FIXME: what if we're showing alternates?
+                if (this.submenu.items[i].enabled){
+                    this.submenu.window._highlightItem(this.submenu.items[i]);
+                    break;
+                }
+            }
+        }
     },
 
     close: function(){
@@ -230,6 +266,14 @@ JSClass("UIMenuWindow", UIWindow, {
         UIMenuWindow.$super.close.call(this);
         this._menu = null;
     },
+
+    closeAll: function(){
+        var top = this._menu;
+        while (top.supermenu !== null && top.supermenu.window !== null){
+            top = top.supermenu;
+        }
+        top.window.close();
+    }
 
 });
 
@@ -258,7 +302,7 @@ JSClass("UIMenuView", UIView, {
     },
 
     itemViewAtLocation: function(location){
-        var searcher = new JSBinarySearcher(this.menuView.itemViews, function(y, itemView){
+        var searcher = new JSBinarySearcher(this.itemViews, function(y, itemView){
             if (y < itemView.frame.origin.y){
                 return -1;
             }
@@ -481,6 +525,10 @@ JSClass("UIMenuSeparatorItemView", UIView, {
         this.lineLayer = UILayer.init();
         this.lineLayer.constraintBox = JSConstraintBox({left: 0, right: 0, height: 2});
         this.layer.addSublayer(this.lineLayer);
+    },
+
+    layoutSubviews: function(){
+        UIMenuSeparatorItemView.$super.layoutSubviews.call(this);
     },
 
 });

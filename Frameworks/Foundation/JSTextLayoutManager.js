@@ -67,13 +67,15 @@ JSClass("JSTextLayoutManager", JSObject, {
     // MARK: - Styling
 
     setDefaultFont: function(font){
-        this._defaultFont = font;
-        this.setNeedsLayout();
+        if (font !== this._defaultFont){
+            this._defaultFont = font;
+            this.setNeedsLayout();
+        }
     },
 
     setDefaultTextColor: function(color){
         this._defaultTextColor = color;
-        // this.setNeedsLayout();
+        this.setNeedsLayout();
     },
 
     // MARK: - Private Helpers for finalizing runs

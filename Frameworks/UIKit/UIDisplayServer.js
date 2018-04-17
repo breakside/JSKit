@@ -30,6 +30,14 @@ JSClass("UIDisplayServer", JSObject, {
         throw new Error("UIDisplayServer.layerRemoved must be implemented by subclass");
     },
 
+    windowInserted: function(window){
+        this.layerInserted(window.layer);
+    },
+
+    windowRemoved: function(window){
+        this.layerRemoved(window.layer);
+    },
+
     layerDidChangeProperty: function(layer, keyPath){
         var parts = keyPath.split('.');
         switch (parts[0]){

@@ -320,7 +320,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     resize: function(e){
         if (e.currentTarget === this.domWindow){
             this.screen.frame = JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight);
-            this.displayServer.updateRootBounds();
+            this.screenDidChangeFrame();
         }
     },
 

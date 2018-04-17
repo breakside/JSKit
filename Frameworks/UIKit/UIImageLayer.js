@@ -37,6 +37,11 @@ JSClass("UIImageLayer", UILayer, {
     setRenderMode: function(renderMode){
         this._renderMode = renderMode;
         this.setNeedsDisplay();
+    },
+
+    setTemplateColor: function(templateColor){
+        this._templateColor = templateColor;
+        this.setNeedsDisplay();
     }
 
 });

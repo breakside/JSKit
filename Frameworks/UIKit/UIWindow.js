@@ -86,24 +86,22 @@ JSClass('UIWindow', UIView, {
     },
 
     makeKeyAndVisible: function(){
-        this._application.windowInserted(this);
-        if (this.canBecomeMainWindow()){
-            this._application.mainWindow = this;
-        }
-        if (this.canBecomeKeyWindow()){
-            this._application.keyWindow = this;
-        }
+        this.windowServer.makeWindowKeyAndVisible(this);
         if (this._contentViewController){
             this._contentViewController.viewWillAppear();
             this._contentViewController.viewDidAppear();
         }
     },
 
+    orderFront: function(){
+        this.windowServer.orderWindowFront(this);
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Closing
 
     close: function(){
-        this._application.windowRemoved(this);
+        this.windowServer.windowRemoved(this);
     },
 
     // -------------------------------------------------------------------------
@@ -147,7 +145,7 @@ JSClass('UIWindow', UIView, {
                 }
             }
             if (this._firstResponder !== previousResponder){
-                this._application.windowServer.windowDidChangeResponder(this);
+                this.windowServer.windowDidChangeResponder(this);
             }
         }
     },
@@ -214,34 +212,48 @@ JSClass('UIWindow', UIView, {
         }
         switch (event.type){
             case UIEvent.Type.LeftMouseDown:
-                if (this.canBecomeMainWindow() && this._application.mainWindow !== this){
-                    this._application.mainWindow = this;
+                if (this.canBecomeMainWindow() && this.windowServer.mainWindow !== this){
+                    this.windowServer.mainWindow = this;
                 }
-                if (this.canBecomeKeyWindow() && this._application.keyWindow !== this){
-                    this._application.keyWindow = this;
+                if (this.canBecomeKeyWindow() && this.windowServer.keyWindow !== this){
+                    this.windowServer.keyWindow = this;
                 }
                 this.mouseDownHitView.mouseDown(event);
                 break;
             case UIEvent.Type.LeftMouseUp:
-                this.mouseDownHitView.mouseUp(event);
-                if (this.mouseDownType == UIEvent.Type.LeftMouseDown){
-                    this.mouseDownHitView = null;
+                if (this.mouseDownHitView === null){
+                    this.mouseUp(event);
+                }else{
+                    this.mouseDownHitView.mouseUp(event);
+                    if (this.mouseDownType == UIEvent.Type.LeftMouseDown){
+                        this.mouseDownHitView = null;
+                    }
                 }
                 break;
             case UIEvent.Type.LeftMouseDragged:
-                this.mouseDownHitView.mouseDragged(event);
+                if (this.mouseDownHitView !== null){
+                    this.mouseDownHitView.mouseDragged(event);
+                }
                 break;
             case UIEvent.Type.RightMouseDown:
-                this.mouseDownHitView.rightMouseDown(event);
+                if (this.mouseDownHitView !== null){
+                    this.mouseDownHitView.rightMouseDown(event);
+                }
                 break;
             case UIEvent.Type.RightMouseUp:
-                this.mouseDownHitView.rightMouseUp(event);
-                if (this.mouseDownType == UIEvent.Type.RightMouseDown){
-                    this.mouseDownHitView = null;
+                if (this.mouseDownHitView === null){
+                    this.rightMouseUp(event);
+                }else{
+                    this.mouseDownHitView.rightMouseUp(event);
+                    if (this.mouseDownType == UIEvent.Type.RightMouseDown){
+                        this.mouseDownHitView = null;
+                    }
                 }
                 break;
             case UIEvent.Type.RightMouseDragged:
-                this.mouseDownHitView.rightMouseDragged(event);
+                if (this.mouseDownHitView !== null){
+                    this.mouseDownHitView.rightMouseDragged(event);
+                }
                 break;
             case UIEvent.Type.MouseEntered:
                 event.trackingView.mouseEntered(event);
@@ -316,7 +328,6 @@ JSClass('UIWindow', UIView, {
 
     _commonWindowInit: function(){
         this.window = this;
-        this._firstResponder = this.canBecomeFirstResponder() ? this : this._application;
         this.backgroundColor = JSColor.whiteColor();
         this.clipsToBounds = true;
         if (this._contentView === null){

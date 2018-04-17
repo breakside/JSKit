@@ -52,7 +52,7 @@ UILayer.definePropertiesFromExtensions({
     },
 
     updateHTMLProperty_hidden: function(context){
-        context.style.display = this.presentation.hidden ? 'none' : '';
+        context.style.visibility = this.presentation.hidden ? 'hidden' : '';
     },
 
     updateHTMLProperty_clipsToBounds: function(context){

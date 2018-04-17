@@ -27,6 +27,7 @@ JSClass("UIMenu", JSObject, {
     borderColor: JSDynamicProperty('_borderColor', defaultBorderColor),
     itemInsets: JSDynamicProperty('_itemInsets', null),
     minimumWidth: JSDynamicProperty('_minimumWidth', 48),
+    supermenu: null,
     _itemsByTag: null,
 
     _commonInit: function(){
@@ -66,6 +67,9 @@ JSClass("UIMenu", JSObject, {
         if (item.tag !== null){
             this._itemsByTag[item.tag] = item;
         }
+        if (item.submenu){
+            item.submenu.supermenu = this;
+        }
     },
 
     removeItemWithTag: function(tag){
@@ -78,6 +82,9 @@ JSClass("UIMenu", JSObject, {
     removeItem: function(item){
         for (var i = 0, l = this._items.length; i < l; ++i){
             if (this._items[i] === item){
+                if (item.submenu){
+                    item.submenu.supermenu = null;
+                }
                 this.removeItemAtIndex(i);
                 break;
             }
@@ -91,15 +98,14 @@ JSClass("UIMenu", JSObject, {
     },
 
     updateEnabled: function(){
-        var firstResponder = UIApplication.sharedApplication.mainWindow.firstResponder;
-        var item;
         var target;
+        var item;
         for (var i = 0, l = this._items.length; i < l; ++i){
             item = this._items[i];
             if (!item.submenu){
                 target = item.target;
                 if (target === null){
-                    target = firstResponder.targetForAction(item.action, item);
+                    target = UIApplication.sharedApplication.firstTargetForAction(item.action, item);
                 }
                 item.enabled = target !== null && (!target.canPerformAction || target.canPerformAction(item.action, item));
             }
@@ -140,7 +146,7 @@ JSClass("UIMenu", JSObject, {
         }
 
         this.window.frame = JSRect(origin, size);
-        this.window.makeKeyAndVisible();
+        this.window.windowServer.makeMenuKeyAndVisible(this);
     },
 
     close: function(){

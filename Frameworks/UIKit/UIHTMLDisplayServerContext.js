@@ -187,6 +187,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
             this.trackingElement.style.left = '0';
             this.trackingElement.style.bottom = '0';
             this.trackingElement.style.right = '0';
+            this.trackingElement.dataset.tag = "tracking";
             this.element.appendChild(this.trackingElement);
         }else if (this.trackingListener !== null){
             this.trackingElement.removeEventListener('mouseenter', this.trackingListener);
@@ -203,7 +204,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
         }
     },
 
-    endMouseTracking: function(){
+    stopMouseTracking: function(){
         if (this.trackingElement === null || this.trackingListener === null){
             return;
         }
@@ -500,6 +501,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
             this.borderElement.style.left = '0';
             this.borderElement.style.bottom = '0';
             this.borderElement.style.right = '0';
+            this.borderElement.dataset.tag = "border";
         }
 
         if (!this._hasRenderedOnce){

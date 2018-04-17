@@ -20,9 +20,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     domWindow: null,
     domDocument: null,
     rootElement: null,
-    rootLayers: null,
-    rootContext: null,
-    rootBounds: null,
+    windowsContext: null,
     displayFrameID: null,
     _displayFrameBound: null,
     contextsByObjectID: null,
@@ -33,36 +31,15 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     initWithRootElement: function(rootElement){
         UIHTMLDisplayServer.$super.init.call(this);
         this.rootElement = rootElement;
-        this.rootContext = UIHTMLDisplayServerContext.initWithElement(this.rootElement);
         this.domDocument = this.rootElement.ownerDocument;
         this.domWindow = this.domDocument.defaultView;
-        this.rootLayers = [];
+        this.windowsContext = UIHTMLDisplayServerContext.initWithElement(this.rootElement);
         this.contextsByObjectID = {};
         this._displayFrameBound = this.displayFrame.bind(this);
-        this.determineRootBounds();
         if (sharedInstance !== null){
             throw new Error("Only one UIHTMLDisplayServer instance is allowed");
         }
         sharedInstance = this;
-        // TODO: fill in system fonts
-        // (use the trick of creating some divs and spans offscreen and deriving font properties from their relative sizes)
-    },
-
-    determineRootBounds: function(){
-        this.rootBounds = JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight);
-    },
-
-    updateRootBounds: function(){
-        this.determineRootBounds();
-        var layer;
-        for (var i = 0, l = this.rootLayers.length; i < l; ++i){
-            layer = this.rootLayers[i];
-            if (layer.constraintBox){
-                layer.frame = UILayer.FrameForConstraintBoxInBounds(layer.constraintBox, this.rootBounds);
-            }else{
-                // TODO: reposition root layers so they aren't offscreen
-            }
-        }
     },
 
     // -------------------------------------------------------------------------
@@ -195,26 +172,31 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     // -------------------------------------------------------------------------
     // MARK: - Notifications
 
+    windowInserted: function(window){
+        this._layerInserted(window.layer, this.windowsContext);
+    },
+
     layerInserted: function(layer){
-        layer._displayServer = this;
-        var parentContext;
-        if (layer.superlayer){
-            parentContext = this.contextsByObjectID[layer.superlayer.objectID];
-        }else{
-            parentContext = this.rootContext;
-            this.rootLayers.push(layer);
-            if (layer.constraintBox){
-                layer.frame = UILayer.FrameForConstraintBoxInBounds(layer.constraintBox, this.rootBounds);
-            }
+        if (!layer.superlayer){
+            throw new Error("Cannot insert layer without a superlayer");
         }
-        if (parentContext){
-            var context = this.contextForLayer(layer);
-            var insertIndex = parentContext.firstSublayerNodeIndex + layer.level;
-            if (insertIndex < parentContext.element.childNodes.length){
+        var parentContext = this.contextsByObjectID[layer.superlayer.objectID];
+        this._layerInserted(layer, parentContext);
+    },
+
+    _layerInserted: function(layer, parentContext){
+        var known = layer._displayServer === this;
+        layer._displayServer = this;
+        var context = this.contextForLayer(layer);
+        var insertIndex = parentContext.firstSublayerNodeIndex + layer.level;
+        if (insertIndex < parentContext.element.childNodes.length){
+            if (context.element !== parentContext.element.childNodes[insertIndex]){
                 parentContext.element.insertBefore(context.element, parentContext.element.childNodes[insertIndex]);
-            }else{
-                parentContext.element.appendChild(context.element);
             }
+        }else{
+            parentContext.element.appendChild(context.element);
+        }
+        if (!known){
             if (layer._needsLayout){
                 this.setLayerNeedsLayout(layer);
                 layer._needsLayout = false;
@@ -224,12 +206,13 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             for (var i = 0, l = layer.sublayers.length; i < l; ++i){
                 this.layerInserted(layer.sublayers[i]);
             }
-        }else{
-            logger.warn("layerInserted called without valid parent context");
         }
     },
 
     layerRemoved: function(layer){
+        for (var i = 0, l = layer.sublayers.length; i < l; ++i){
+            this.layerRemoved(layer.sublayers[i]);
+        }
         var context = this.contextsByObjectID[layer.objectID];
         if (context){
             if (context.element.parentNode){
@@ -237,14 +220,6 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             }
             // FIXME: when a view is just moving to a new superview, we shouldn't destroy the context
             this._destroyContextForLayer(layer);
-        }
-        if (layer.superlayer === null){
-            for (var i = this.rootLayers.length - 1; i >= 0; --i){
-                if (this.rootLayers[i] === layer){
-                    this.rootLayers.splice(i, 1);
-                    break;
-                }
-            }
         }
         layer._displayServer = null;
     },

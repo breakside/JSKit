@@ -10,8 +10,8 @@ var sharedApplication = null;
 
 JSClass('UIApplication', UIResponder, {
 
-    mainWindow: JSDynamicProperty(),
-    keyWindow: JSDynamicProperty(),
+    mainWindow: JSReadOnlyProperty(),
+    keyWindow: JSReadOnlyProperty(),
     windows: JSReadOnlyProperty(),
     windowServer: null,
 
@@ -21,7 +21,7 @@ JSClass('UIApplication', UIResponder, {
         }
         sharedApplication = this;
         this.windowServer = windowServer;
-        this.windowServer.application = this;
+        this._windowsById = {};
     },
 
     deinit: function(){
@@ -51,22 +51,6 @@ JSClass('UIApplication', UIResponder, {
         return this.windowServer.keyWindow;
     },
 
-    setMainWindow: function(window){
-        this.windowServer.mainWindow = window;
-    },
-
-    setKeyWindow: function(window){
-        this.windowServer.keyWindow = window;
-    },
-
-    windowInserted: function(window){
-        this.windowServer.windowInserted(window);
-    },
-
-    windowRemoved: function(window){
-        this.windowServer.windowRemoved(window);
-    },
-
     sendEvent: function(event){
         var windows = event.windows;
         for (var i = 0, l = windows.length; i < l; ++i){
@@ -74,19 +58,24 @@ JSClass('UIApplication', UIResponder, {
         }
     },
 
+    firstTargetForAction: function(action, sender){
+        var target = null;
+        var window = this.mainWindow;
+        if (window !== null){
+            var responder = window.firstResponder || window;
+            if (responder !== null){
+                target = responder.targetForAction(action, sender);
+            }
+        }
+        return target;
+    },
+
     sendAction: function(action, target, sender){
         if (sender === undefined){
             sender = this;
         }
         if (target === undefined){
-            target = null;
-            var window = this.keyWindow;
-            if (window !== null){
-                var responder = window.firstResponder;
-                if (responder !== null){
-                    target = responder.targetForAction(action, sender);
-                }
-            }
+            target = this.targetForAction(action, sender);
         }
         if (target !== null){
             target[action](sender);
