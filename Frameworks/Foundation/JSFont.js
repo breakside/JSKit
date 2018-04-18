@@ -290,6 +290,9 @@ JSFont.registerSystemFont = function(familyName, weight, style){
 };
 
 JSFont.systemFontOfSize = function(pointSize){
+    if (this._systemFontDescriptor === null){
+        return null;
+    }
     return JSFont.fontWithDescriptor(this._systemFontDescriptor, pointSize);
 };
 

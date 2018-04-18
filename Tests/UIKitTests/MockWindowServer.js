@@ -1,5 +1,5 @@
 // #import "UIKit/UIKit.js"
-/* global JSClass, setTimeout, UIDisplayServer, JSTextFramesetter, MockDisplayContext, UITextInputManager, MockTextInputManager, JSContext, UIWindowServer, MockWindowServer, MockDisplayServer */
+/* global JSClass, setTimeout, UIDisplayServer, JSTextFramesetter, MockDisplayContext, UITextInputManager, MockTextInputManager, JSContext, UIWindowServer, MockWindowServer, MockDisplayServer, UIScreen, JSRect */
 'use strict';
 
 JSClass("MockWindowServer", UIWindowServer, {
@@ -9,6 +9,7 @@ JSClass("MockWindowServer", UIWindowServer, {
         this.displayServer = MockDisplayServer.init();
         this.textInputManager = MockTextInputManager.init();
         this.textInputManager.windowServer = this;
+        this.screen = UIScreen.initWithFrame(JSRect(0, 0, 1500, 1000));
     },
 
 });
@@ -28,28 +29,34 @@ JSClass("MockDisplayServer", UIDisplayServer, {
         this.rootContext = MockDisplayContext.init();
     },
 
+    windowInserted: function(window){
+        this.rootLayers.push(window.layer);
+        this._layerInserted(window.layer, this.rootContext);
+    },
+
     layerInserted: function(layer){
-        layer._displayServer = this;
-        var parentContext;
-        if (layer.superlayer){
-            parentContext = this.contextsByObjectID[layer.superlayer.objectID];
+        if (!layer.superlayer){
+            this._layerInserted(layer, this.rootContext);
         }else{
-            parentContext = this.rootContext;
-            this.rootLayers.push(layer);
+            var parentContext = this.contextsByObjectID[layer.superlayer.objectID];
+            if (!parentContext){
+                throw new Error("Cannot insert a layer without a superlayer also inserted.");
+            }
+            this._layerInserted(layer, parentContext);
         }
-        if (parentContext){
-            var context = this.contextForLayer(layer);
-            if (layer._needsLayout){
-                this.setLayerNeedsLayout(layer);
-                layer._needsLayout = false;
-            }
-            this.setLayerNeedsReposition(layer);
-            this.setLayerNeedsDisplay(layer);
-            for (var i = 0, l = layer.sublayers.length; i < l; ++i){
-                this.layerInserted(layer.sublayers[i]);
-            }
-        }else{
-            throw new Error("layerInserted called without valid parent context");
+    },
+
+    _layerInserted: function(layer, parentContext){
+        layer._displayServer = this;
+        var context = this.contextForLayer(layer);
+        if (layer._needsLayout){
+            this.setLayerNeedsLayout(layer);
+            layer._needsLayout = false;
+        }
+        this.setLayerNeedsReposition(layer);
+        this.setLayerNeedsDisplay(layer);
+        for (var i = 0, l = layer.sublayers.length; i < l; ++i){
+            this.layerInserted(layer.sublayers[i]);
         }
     },
 

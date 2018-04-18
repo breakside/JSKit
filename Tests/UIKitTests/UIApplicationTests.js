@@ -59,47 +59,30 @@ JSClass("UIApplicationTests", TKTestSuite, {
         TKAssert(launched);
     },
 
-    testWindowInserted: function(){
+    testWindows: function(){
         var mockWindow1 = { layer: MockLayer.init() };
         var mockWindow2 = { layer: MockLayer.init() };
         TKAssertEquals(this.app.windows.length, 0);
-        this.app.windowInserted(mockWindow1);
+        this.app.windowServer.windowStack.push(mockWindow1);
         TKAssertEquals(this.app.windows.length, 1);
-        TKAssert(mockWindow1.layer.displayed);
-        TKAssert(!this.app.windowServer.displayServer.updateNeeded);
-        this.app.windowInserted(mockWindow2);
+        this.app.windowServer.windowStack.push(mockWindow1);
         TKAssertEquals(this.app.windows.length, 2);
-        TKAssertExactEquals(this.app.windows[0], mockWindow1);
-        TKAssertExactEquals(this.app.windows[1], mockWindow2);
-    },
-
-    testWindowRemoved: function(){
-        var mockWindow1 = { layer: MockLayer.init() };
-        var mockWindow2 = { layer: MockLayer.init() };
-        var mockWindow3 = { layer: MockLayer.init() };
-        TKAssertEquals(this.app.windows.length, 0);
-        this.app.windowInserted(mockWindow1);
+        this.app.windowServer.windowStack.pop();
         TKAssertEquals(this.app.windows.length, 1);
-        this.app.windowInserted(mockWindow2);
-        TKAssertEquals(this.app.windows.length, 2);
-        this.app.windowInserted(mockWindow3);
-        TKAssertEquals(this.app.windows.length, 3);
-        this.app.windowRemoved(mockWindow2);
-        TKAssertEquals(this.app.windows.length, 2);
-        TKAssertExactEquals(this.app.windows[0], mockWindow1);
-        TKAssertExactEquals(this.app.windows[1], mockWindow3);
-        this.app.windowRemoved(mockWindow1);
-        TKAssertEquals(this.app.windows.length, 1);
-        TKAssertExactEquals(this.app.windows[0], mockWindow3);
-        this.app.windowRemoved(mockWindow3);
-        TKAssertEquals(this.app.windows.length, 0);
     },
 
     testKeyWindow: function(){
         var mockWindow = { layer: MockLayer.init() };
         TKAssertNull(this.app.keyWindow);
-        this.app.keyWindow = mockWindow;
+        this.app.windowServer.keyWindow = mockWindow;
         TKAssertExactEquals(this.app.keyWindow, mockWindow);
+    },
+
+    testMainWindow: function(){
+        var mockWindow = { layer: MockLayer.init() };
+        TKAssertNull(this.app.mainWindow);
+        this.app.windowServer.mainWindow = mockWindow;
+        TKAssertExactEquals(this.app.mainWindow, mockWindow);
     },
 
     testSendEvent: function(){
@@ -164,7 +147,7 @@ JSClass("UIApplicationTests", TKTestSuite, {
             layer: MockLayer.init() ,
             firstResponder: mockResponder
         };
-        this.app.keyWindow = mockWindow;
+        this.app.windowServer.mainWindow = mockWindow;
         TKAssertEquals(testCount, 0);
         this.app.sendAction('test');
         TKAssertEquals(testCount, 1);
