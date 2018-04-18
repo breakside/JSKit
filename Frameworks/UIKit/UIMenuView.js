@@ -111,6 +111,7 @@ JSClass("UIMenuWindow", UIWindow, {
             }
         }
         this.menuView.bounds = JSRect(JSPoint.Zero, menuSize);
+        this.menuView.layoutIfNeeded();
         this.bounds = JSRect(0, 0, menuSize.width, menuSize.height + this._capSize * 2);
         this.startMouseTracking(UIView.MouseTracking.all);
     },
@@ -157,7 +158,7 @@ JSClass("UIMenuWindow", UIWindow, {
 
     locationOfItem: function(item){
         var targetView = this;
-        if (item !== null){
+        if (item !== null && item !== undefined){
             var itemViewIndex = this._itemViewIndexesByItemId[item.objectID];
             targetView = this.menuView.itemViews[itemViewIndex];
         }
@@ -252,6 +253,8 @@ JSClass("UIMenuWindow", UIWindow, {
 
     mouseEntered: function(event){
         this.makeKey();
+        this._lastMoveLocation = event.locationInView(this);
+        this._adjustHighlightForLocation(this._lastMoveLocation);
     },
 
     // -----------------------------------------------------------------------
@@ -472,11 +475,9 @@ JSClass("UIMenuWindow", UIWindow, {
         if (!this.submenu){
             return;
         }
-        var firstSubmenuItem = this.submenu.items[0] || null;
         var itemView = this.menuView.itemViews[this._itemViewIndexesByItemId[item.objectID]];
-        var location = JSPoint(itemView.bounds.size.width, 0);
         if (needsOpen){
-            this.submenu._openAtLocation(firstSubmenuItem, location, itemView, this._menu._contextTarget);
+            this.submenu._openAsSubmenu(itemView);
         }
         if (selectingFirstItem){
             for (var i = 0, l = this.submenu.items.length; i < l; ++i){

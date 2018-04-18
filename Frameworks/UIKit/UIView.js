@@ -303,6 +303,42 @@ JSClass('UIView', UIResponder, {
         return view.convertRectToView(rect, this);
     },
 
+    convertPointFromScreen: function(point){
+        if (this.window === null){
+            return null;
+        }
+        var p = this.window.convertPointFromScreen(point);
+        if (p === null){
+            return null;
+        }
+        return this.convertPointFromView(p, this.window);
+    },
+
+    convertPointToScreen: function(point){
+        if (this.window === null){
+            return null;
+        }
+        return this.window.convertPointToScreen(this.convertPointToView(point, this.window));
+    },
+
+    convertRectFromScreen: function(rect){
+        if (this.window === null){
+            return null;
+        }
+        var r = this.window.convertRectFromScreen(rect);
+        if (r === null){
+            return null;
+        }
+        return this.convertRectFromView(r, this.window);
+    },
+
+    convertRectToScreen: function(rect){
+        if (this.window === null){
+            return null;
+        }
+        return this.window.convertRectToScreen(this.convertRectToView(rect, this.window));
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Hit Testing
 

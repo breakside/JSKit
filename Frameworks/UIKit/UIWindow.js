@@ -2,7 +2,7 @@
 // #import "UIKit/UIDisplayServer.js"
 // #import "UIKit/UIApplication.js"
 // #import "UIKit/UITouch.js"
-/* global JSClass, UIView, UIDisplayServer, JSColor, JSConstraintBox, JSDynamicProperty, JSReadOnlyProperty, UIWindow, JSPoint, UIApplication, UIEvent, UITouch */
+/* global JSClass, UIView, UIDisplayServer, JSColor, JSRect, JSConstraintBox, JSDynamicProperty, JSReadOnlyProperty, UIWindow, JSPoint, UIApplication, UIEvent, UITouch */
 'use strict';
 
 JSClass('UIWindow', UIView, {
@@ -189,11 +189,32 @@ JSClass('UIWindow', UIView, {
     },
 
     convertPointFromScreen: function(point){
-        return this.layer._convertPointFromSuperlayer(point);
+        if (this._screen === null){
+            return null;
+        }
+        return this.layer._convertPointFromSuperlayer(JSPoint(point.x - this._screen.frame.origin.x, point.y - this.screen.frame.origin.y));
     },
 
     convertPointToScreen: function(point){
-        return this.layer._convertPointToSuperlayer(point);
+        if (this._screen === null){
+            return null;
+        }
+        point = this.layer._convertPointToSuperlayer(point);
+        return JSPoint(point.x + this._screen.frame.origin.x, point.y + this._screen.frame.origin.y);
+    },
+
+    convertRectFromScreen: function(rect){
+        if (this._screen === null){
+            return null;
+        }
+        return JSRect(this.convertPointFromScreen(rect.origin), rect.size);
+    },
+
+    convertRectToScreen: function(rect){
+        if (this._screen === null){
+            return null;
+        }
+        return JSRect(this.convertPointToScreen(rect.origin), rect.size);
     },
 
     sendEvent: function(event){

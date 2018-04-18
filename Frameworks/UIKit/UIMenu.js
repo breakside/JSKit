@@ -124,54 +124,271 @@ JSClass("UIMenu", JSObject, {
         }
     },
 
-    openAtLocationInContextView: function(location, view){
-        this._openAtLocation(this.items[0] || null, location, view, view, true);
-    },
-
-    openAtLocationInView: function(location, view){
-        this.openWithItemAtLocationInView(null, location, view, true);
-    },
-
-    openWithItemAtLocationInView: function(targetItem, location, view){
-        this._openAtLocation(targetItem, location, view, null, true);
-    },
-
-    _openAtLocation: function(targetItem, location, view, contextTarget, isKey){
-        this._contextTarget = contextTarget;
+    _createWindow: function(screen){
         this.updateEnabled();
-        this.window = UIMenuWindow.init();
-        this.window.setMenu(this);
+        var window = UIMenuWindow.init();
+        window.setMenu(this);
+        return window;
+    },
 
-        var origin = view.convertPointToView(location, null);
-        var itemLocation = this.window.locationOfItem(targetItem);
-        origin.x -= itemLocation.x;
-        origin.y -= itemLocation.y;
-
-        var screen = view.window.screen;
-        var safeFrame = screen.availableFrame.rectWithInsets(4, 7);
-        var maximumWidth = view.window.screen.frame.size.width * 0.3;
-
-        var size = JSSize(this.window.frame.size);
-        if (size.width < this.minimumWidth){
-            size.width = this.minimumWidth;
+    _showWindow: function(window, isKey){
+        if (isKey === undefined){
+            isKey = true;
         }
-        if (size.width > maximumWidth){
-            size.width = maximumWidth;
-        }
-        if (origin.y < safeFrame.origin.y){
-            this.window.setContentOffset(JSPoint(0, safeFrame.origin.y - origin.y));
-            origin.y = safeFrame.origin.y;
-        }
-        if (origin.y + size.height > safeFrame.origin.y + safeFrame.size.height){
-            size.height = safeFrame.origin.y + safeFrame.size.height - origin.y;
-        }
-
-        this.window.frame = JSRect(origin, size);
+        this.window = window;
         if (isKey){
             this.window.windowServer.makeMenuKeyAndVisible(this);
         }else{
             this.window.windowServer.makeMenuVisible(this);
         }
+    },
+
+    _screenMetrics: function(screen){
+        var safeFrame = screen.availableFrame.rectWithInsets(4, 7);
+        return {
+            safeFrame: safeFrame,
+            maximumWidth: safeFrame.size.width * 0.3
+        };
+    },
+
+    openAdjacentToView: function(view, preferredPlacement){
+        if (preferredPlacement === undefined){
+            preferredPlacement = UIMenu.Placement.below;
+        }
+        var window = this._createWindow(view.window.screen);
+        var screen = this._screenMetrics(view.window.screen);
+
+        var origin = JSPoint.Zero;
+        var size = JSSize(window.frame.size);
+
+        // Limit width to the max screen width
+        if (size.width > screen.safeFrame.maximumWidth){
+            size.width = screen.safeFrame.maximumWidth;
+        }
+
+        // Figure out how much space we have all around the view
+        var viewFrame = view.convertRectToScreen(view.bounds);
+        var over;
+        var spaces = {
+            above: viewFrame.origin.y - screen.safeFrame.origin.y,
+            below: screen.safeFrame.origin.y + screen.safeFrame.size.height - viewFrame.origin.y - viewFrame.size.height,
+            left: viewFrame.origin.x - screen.safeFrame.origin.x,
+            right: screen.safeFrame.origin.x + screen.safeFrame.size.width - viewFrame.origin.x - viewFrame.size.width
+        };
+
+        if (preferredPlacement == UIMenu.Placement.above){
+            if (spaces.above >= size.height){
+                // Place above if there's room
+                origin.y = viewFrame.origin.y - size.height;
+            }else if (spaces.above * 2 > spaces.below){
+                // Place above and adjust height if there's not enough room,
+                // but the room that is availble is still preferable to below
+                origin.y = screen.safeFrame.origin.y;
+                size.height = viewFrame.origin.y - origin.y;
+            }else if (spaces.below >= size.height){
+                // Place below if there's room
+                origin.y = viewFrame.origin.y + viewFrame.size.height;
+            }else{
+                // Place below and adjust height if there's not enough room
+                origin.y = viewFrame.origin.y + viewFrame.size.height;
+                size.height = screen.safeFrame.origin.y - screen.safeFrame.size.height - origin.y;
+            }
+            // Prefer to line up with the left edge
+            origin.x = viewFrame.origin.x;
+        }else if (preferredPlacement == UIMenu.Placement.left){
+            if (spaces.left >= size.width || spaces.left > spaces.right){
+                // Place to the left if there's enough room, or if there's
+                // more room than on the right
+                origin.x = viewFrame.origin.x - size.width;
+            }else{
+                // Place to the right otherwise
+                origin.x = viewFrame.origin.x + viewFrame.size.width;
+            }
+            // Prefer to line up with the top edge
+            origin.y = viewFrame.origin.y;
+        }else if (preferredPlacement == UIMenu.Placement.right){
+            if (spaces.right >= size.width || spaces.right > spaces.left){
+                // Place to the right if there's enough room, or if there's more
+                // room than on the left
+                origin.x = viewFrame.origin.x + viewFrame.size.width;
+            }else{
+                // Place to the left otherwise
+                origin.x = viewFrame.origin.x - size.width;
+            }
+            // Prefer to line up with the top edge
+            origin.y = viewFrame.origin.y;
+        }else{
+            if (spaces.below >= size.height){
+                // Place below if there's enough room
+                origin.y = viewFrame.origin.y + viewFrame.size.height;
+            }else if (spaces.below * 2 > spaces.above){
+                // Place below and adjust height if there's not enough room,
+                // but the available room is still preferable to above
+                origin.y = viewFrame.origin.y + viewFrame.size.height;
+                size.height = screen.safeFrame.origin.y - screen.safeFrame.size.height - origin.y;
+            }else if (spaces.above >= size.height){
+                // Place above if there's enough room
+                origin.y = viewFrame.origin.y - size.height;
+            }else{
+                // Place above and adjust height if there's not enough room
+                origin.y = screen.safeFrame.origin.y;
+                size.height = viewFrame.origin.y - origin.y;
+            }
+            // Prefer to line up iwth the left edge
+            origin.x = viewFrame.origin.x;
+        }
+
+        // Adjust our x position if we've overflowed either side
+        over = origin.x + size.width - screen.safeFrame.origin.x - screen.safeFrame.size.width;
+        if (over > 0){
+            origin.x -= over;
+        }
+        if (origin.x < 0){
+            origin.x = screen.safeFrame.origin.x;
+        }
+
+        // Make sure the height is no taller than the safe space
+        if (size.height > screen.safeFrame.size.height){
+            size.height = screen.safeFrame.size.height;
+        }
+
+        // Adjsut the y position if we've overflowed
+        // NOTE: y adjustments should not be necessary in the .above and .below
+        // cases becuase they set the origin and height to valid values.
+        over = origin.y + size.height - screen.safeFrame.origin.y - screen.safeFrame.size.height;
+        if (over > 0){
+            origin.y -= over;
+        }
+        if (origin.y < 0){
+            origin.y = screen.safeFrame.origin.y;
+        }
+
+        window.frame = JSRect(origin, size);
+        this._showWindow(window);
+    },
+
+    openWithItemAtLocationInView: function(targetItem, location, view){
+        var window = this._createWindow(view.window.screen);
+        var screen = this._screenMetrics(view.window.screen);
+        var size = JSSize(window.frame.size);
+
+        // Limit width to the max screen width
+        if (size.width > screen.safeFrame.maximumWidth){
+            size.width = screen.safeFrame.maximumWidth;
+        }
+
+        var locationInScreen = view.convertPointToScreen(location);
+        var targetLocation = window.locationOfItem(targetItem);
+
+        // Set our origin so the origin of the target item matches the given location
+        var origin = JSPoint(locationInScreen.x - targetLocation.x, locationInScreen.y - targetLocation.y);
+
+        // Adjust our x position if we've overflowed
+        var over = origin.x + size.width - screen.safeFrame.origin.x - screen.safeFrame.size.width;
+        if (over > 0){
+            origin.x -= over;
+        }
+        if (origin.x < 0){
+            origin.x = screen.safeFrame.origin.x;
+        }
+
+        var offset = JSPoint.Zero;
+
+        // If we extend beyond the top of the safe area, adjust our origin, size, and
+        // scroll position so to the target item still lines up
+        if (origin.y < 0){
+            over = -origin.y;
+            origin.y = screen.safeFrame.origin.y;
+            if (size.height - over >= 60){
+                offset.y = over;
+                size.height -= over;
+            }
+        }
+
+        // If we extend beyond the bottom, adjust our height
+        over = origin.y + size.height - screen.safeFrame.origin.y - screen.safeFrame.size.height;
+        if (over > 0){
+            if (size.height - over < 60){
+                origin.y = screen.safeFrame.origin.y + screen.safeFrame.size.height - size.height;
+            }else{
+                size.height -= over;
+            }
+        }
+
+        window.frame = JSRect(origin, size);
+        this._showWindow(window);
+    },
+
+    openAtLocationInContextView: function(location, view){
+        this._contextTarget = view;
+        this._openWithFirstItemRightOfRectInView(JSRect(location, JSSize.Zero), view);
+    },
+
+    _openAsSubmenu: function(parentItemView){
+        this._contextTarget = this.supermenu._contextTarget;
+        this._openWithFirstItemRightOfRectInView(parentItemView.bounds, parentItemView);
+    },
+
+    _openWithFirstItemRightOfRectInView: function(rect, view){
+        var window = this._createWindow(view.window.screen);
+        var screen = this._screenMetrics(view.window.screen);
+
+        var origin = JSPoint.Zero;
+        var size = JSSize(window.frame.size);
+
+        // Limit width to the max screen width
+        if (size.width > screen.safeFrame.maximumWidth){
+            size.width = screen.safeFrame.maximumWidth;
+        }
+
+        // Figure out how much space we have on either side of the target rect
+        // IMPORTANT: target rect is assumed to leave enough room on at least
+        // one side.   In our two uses cases 1) submenus, and 2) context menus,
+        // this must be true because 1) a menu is < 1/3 screen wide, leaving
+        // at least 1/3 on one side, and 2) context menu rects are Zero size
+        var viewFrame = view.convertRectToScreen(rect);
+        var over;
+        var spaces = {
+            left: viewFrame.origin.x - screen.safeFrame.origin.x,
+            right: screen.safeFrame.origin.x + screen.safeFrame.size.width - viewFrame.origin.x - viewFrame.size.width
+        };
+
+        // Prefer the right side, but use left if there's not enough space
+        if (spaces.right >= size.width){
+            origin.x = viewFrame.origin.x + viewFrame.size.width;
+        }else{
+            origin.x = viewFrame.origin.x - size.width;
+        }
+
+        // Prefer the y origin at the top of our rect
+        origin.y = viewFrame.origin.y;
+
+        // Adjust the y origin so it is even with the top of the first item
+        if (this.items.length > 0){
+            // NOTE: assuming no scale factor between window and screen
+            // Can't convert point to screen coordinates because the window
+            // hasn't been added to a screen yet
+            origin.y -= window.locationOfItem(this.items[0]).y;
+        }
+
+        // Adjust the height so it's no taller than the safe area
+        if (size.height > screen.safeFrame.size.height){
+            size.height = screen.safeFrame.size.height;
+        }
+
+        // Adjust the y origin up if we'd otherwise overflow
+        over = origin.y + size.height - screen.safeFrame.origin.y - screen.safeFrame.size.height;
+        if (over > 0){
+            origin.y -= over;
+        }
+
+        // Make sure the y origin is at least 0
+        if (origin.y < 0){
+            origin.y = 0;
+        }
+
+        window.frame = JSRect(origin, size);
+        this._showWindow(window);
     },
 
     close: function(){
@@ -181,5 +398,12 @@ JSClass("UIMenu", JSObject, {
     }
 
 });
+
+UIMenu.Placement = {
+    below: 0,
+    right: 1,
+    above: 2,
+    left: 3
+};
 
 })();
