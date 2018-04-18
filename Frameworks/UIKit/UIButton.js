@@ -108,7 +108,9 @@ JSClass("UIButton", UIControl, {
         if (this.enabled){
             if (this.state == UIButton.State.active){
                 this.sendActionsForEvent(UIControl.Event.PrimaryAction);
-                this._setState(UIButton.State.over);
+                if (this.state === UIButton.State.active){
+                    this._setState(UIButton.State.over);
+                }
             }
         }
     },

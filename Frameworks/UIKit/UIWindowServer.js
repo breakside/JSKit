@@ -2,7 +2,8 @@
 // #import "UIKit/UIEvent.js"
 // #import "UIKit/UICursor.js"
 // #import "UIKit/UILayer.js"
-/* global JSClass, JSObject, UIWindowServer, UIEvent, JSPoint, UIWindowServerInit, UITouch, UICursor, UILayer */
+// #import "UIKit/UIView.js"
+/* global JSClass, JSObject, UIWindowServer, UIEvent, JSPoint, UIWindowServerInit, UITouch, UICursor, UILayer, UIView */
 'use strict';
 
 JSClass("UIWindowServer", JSObject, {
@@ -22,12 +23,35 @@ JSClass("UIWindowServer", JSObject, {
         this._windowsById = {};
     },
 
+    _previousEventWindow: null,
+
+    _beginWindowLevelChange: function(){
+        if (this._previousEventWindow !== null){
+            return;
+        }
+        var location = this._getLastMouseLocation();
+        this._previousEventWindow = this.windowForEventAtLocation(location);
+    },
+
+    _endWindowLevelChange: function(){
+        if (this._previousEventWindow === null){
+            return;
+        }
+        var location = this._getLastMouseLocation();
+        var previousEventWindow = this._previousEventWindow;
+        var currentEventWindow = this.windowForEventAtLocation(location);
+        this._previousEventWindow = null;
+        this._createTrackingEventsForWindowLevelChangeAtLocation(location, previousEventWindow, currentEventWindow);
+    },
+
     makeMenuVisible: function(menu){
+        this._beginWindowLevelChange();
         this._menuStack.push(menu);
         this.makeWindowVisible(menu.window);
         if (this.mouseEventWindow !== null){
             this.mouseEventWindow = menu.window;
         }
+        this._endWindowLevelChange();
     },
 
     makeMenuKeyAndVisible: function(menu){
@@ -69,14 +93,16 @@ JSClass("UIWindowServer", JSObject, {
         if (window.objectID in this._windowsById){
             return;
         }
+        this._beginWindowLevelChange();
         this._windowsById[window.objectID] = window;
         window.level = window.layer.level = this.windowStack.length;
-        this.windowStack.push(window);
         window._screen = this.screen;
         if (window.constraintBox){
             window.frame = UILayer.FrameForConstraintBoxInBounds(window.constraintBox, window._screen.frame);
         }
+        this.windowStack.push(window);
         this.displayServer.windowInserted(window);
+        this._endWindowLevelChange();
         // Force layout and display right now so all sizes are correct when viewDidAppear is called
         this.displayServer.updateDisplay();
     },
@@ -85,6 +111,7 @@ JSClass("UIWindowServer", JSObject, {
         if (!(window.objectID in this._windowsById)){
             return;
         }
+        this._beginWindowLevelChange();
         delete this._windowsById[window.objectID];
         var i;
         for (i = this._menuStack.length - 1; i >= 0; --i){
@@ -127,7 +154,7 @@ JSClass("UIWindowServer", JSObject, {
         if (window === this.mouseDownWindow){
             this.mouseDownWindow = null;
         }
-        // TODO: make next window on stack key/main
+        this._endWindowLevelChange();
     },
 
     orderWindowFront: function(window){
@@ -137,6 +164,7 @@ JSClass("UIWindowServer", JSObject, {
         if (window === this.windowStack[this.windowStack.length - 1]){
             return;
         }
+        this._beginWindowLevelChange();
         for (var i = this.windowStack.length - 1; i >= 0; --i){
             if (this.windowStack[i] === window){
                 this.windowStack.splice(i, 1);
@@ -147,6 +175,7 @@ JSClass("UIWindowServer", JSObject, {
             }
             this.windowStack[i].level = this.windowStack[i].layer.level = i - 1;
         }
+        this._endWindowLevelChange();
     },
 
     windowDidChangeResponder: function(window){
@@ -207,26 +236,35 @@ JSClass("UIWindowServer", JSObject, {
     mouseDownType: null,
     mouseEventWindow: null,
 
+    _getLastMouseLocation: function(){
+        return JSPoint.Zero;
+    },
+
     createMouseEvent: function(type, timestamp, location){
         if (this.mouseDownWindow === null && (type === UIEvent.Type.LeftMouseDown || type === UIEvent.Type.RightMouseDown)){
             this.mouseDownWindow = this.mouseEventWindow = this.windowForEventAtLocation(location);
             this.mouseDownType = type;
         }
         var event;
-        if (this.mouseEventWindow !== null){
-            event = UIEvent.initMouseEventWithType(type, timestamp, this.mouseEventWindow, this.mouseEventWindow.convertPointFromScreen(location));
-            this.mouseEventWindow.application.sendEvent(event);
-        }
-        if ((type === UIEvent.Type.LeftMouseUp && this.mouseDownType === UIEvent.Type.LeftMouseDown) || (type === UIEvent.Type.RightMouseUp && this.mouseDownType === UIEvent.Type.RightMouseDown)){
-            // If a mouse down causes a new window to open, like a menu, the resulting mouse up will be sent to the
-            // menu window, but we also want to hear about it in the original window in order to do things like update the button state
-            if (this.mouseDownWindow !== this.mouseEventWindow){
-                event = UIEvent.initMouseEventWithType(type, timestamp, this.mouseDownWindow, this.mouseDownWindow.convertPointFromScreen(location));
-                this.mouseDownWindow.application.sendEvent(event);
-            }
+        var targetWindow = this.mouseEventWindow;
+        var originalDownWindow = this.mouseDownWindow;
+        var downType = this.mouseDownType;
+        if ((type === UIEvent.Type.LeftMouseUp && downType === UIEvent.Type.LeftMouseDown) || (type === UIEvent.Type.RightMouseUp && downType === UIEvent.Type.RightMouseDown)){
             this.mouseDownWindow = null;
             this.mouseDownType = null;
             this.mouseEventWindow = null;
+        }
+        if (targetWindow !== null){
+            event = UIEvent.initMouseEventWithType(type, timestamp, targetWindow, targetWindow.convertPointFromScreen(location));
+            targetWindow.application.sendEvent(event);
+        }
+        if ((type === UIEvent.Type.LeftMouseUp && downType === UIEvent.Type.LeftMouseDown) || (type === UIEvent.Type.RightMouseUp && downType === UIEvent.Type.RightMouseDown)){
+            // If a mouse down causes a new window to open, like a menu, the resulting mouse up will be sent to the
+            // menu window, but we also want to hear about it in the original window in order to do things like update the button state
+            if (originalDownWindow !== targetWindow){
+                event = UIEvent.initMouseEventWithType(type, timestamp, originalDownWindow, originalDownWindow.convertPointFromScreen(location));
+                originalDownWindow.application.sendEvent(event);
+            }
         }
     },
 
@@ -253,8 +291,38 @@ JSClass("UIWindowServer", JSObject, {
         return true;
     },
 
-    createMouseTrackingEvent: function(type, timestamp, location, view){
-        if (!this._shouldCreateTrackingEventForView(view)){
+    _createTrackingEventsForWindowLevelChangeAtLocation: function(location, previousWindow, currentWindow){
+        if (currentWindow === previousWindow){
+            return;
+        }
+        var view;
+        if (previousWindow !== null && (previousWindow.objectID in this._windowsById)){
+            view = this._trackingViewInWindowAtLocation(previousWindow, location);
+            if (view !== null){
+                this.createMouseTrackingEvent(UIEvent.Type.MouseExited, -1, location, view, true);
+            }
+        }
+        if (currentWindow !== null && (currentWindow.objectID in this._windowsById)){
+            view = this._trackingViewInWindowAtLocation(currentWindow, location);
+            if (view !== null){
+                this.createMouseTrackingEvent(UIEvent.Type.MouseEntered, -1, location, view, true);
+            }
+        }
+    },
+
+    _trackingViewInWindowAtLocation: function(window, location){
+        var view = window.hitTest(window.convertPointFromScreen(location));
+        while (view.superview !== null && ((view.mouseTrackingType & UIView.MouseTracking.enterAndExit) === 0)){
+            view = view.superview;
+        }
+        if ((view.mouseTrackingType & UIView.MouseTracking.enterAndExit) !== 0){
+            return view;
+        }
+        return null;
+    },
+
+    createMouseTrackingEvent: function(type, timestamp, location, view, force){
+        if (!force && !this._shouldCreateTrackingEventForView(view)){
             return;
         }
         var event = UIEvent.initMouseEventWithType(type, timestamp, view.window, view.window.convertPointFromScreen(location));

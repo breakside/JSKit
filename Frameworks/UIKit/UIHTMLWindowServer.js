@@ -16,6 +16,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     domWindow: null,
     mouseDownButton: -1,
     _cursorViewsById: null,
+    _lastDomClientMouseLocation: null,
 
     initWithRootElement: function(rootElement){
         UIHTMLWindowServer.$super.init.call(this);
@@ -30,6 +31,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.textInputManager = UIHTMLTextInputManager.initWithRootElement(rootElement);
         this.textInputManager.windowServer = this;
         this.screen = UIScreen.initWithFrame(JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight), this.domDocument.defaultView.devicePixelRatio || 1);
+        this._lastDomClientMouseLocation = {clientX: 0, clientY: 0};
     },
 
     setupRenderingEnvironment: function(){
@@ -56,6 +58,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     setupEventListeners: function(){
         this.rootElement.addEventListener('mousedown', this, false);
         this.rootElement.addEventListener('mouseup', this, false);
+        this.rootElement.addEventListener('mousemove', this, false);
         this.rootElement.addEventListener('keydown', this, false);
         this.rootElement.addEventListener('keyup', this, false);
         this.rootElement.addEventListener('dragstart', this, false);
@@ -76,20 +79,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.addEventListener('touchcancel', this, false);
         this.rootElement.addEventListener('touchmove', this, false);
 
-        // TODO: efficient mousemove (look into tracking areas)
-        // TODO: mouse enter/exit (look into tracking areas)
         // TODO: dragging
         // TODO: special things like file input change
-        // TODO: touch events?
         // TODO: does stopping key events interfere with browser keyboard shortcuts? (some, yes)
-    },
-
-    startListeningForMouseDrag: function(){
-        this.rootElement.ownerDocument.addEventListener('mousemove', this, false);
-    },
-
-    stopListeningForMouseDrag: function(){
-        this.rootElement.ownerDocument.removeEventListener('mousemove', this, false);
     },
 
     handleEvent: function(e){
@@ -175,6 +167,8 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                 },
 
                 mousemove: function(e){
+                    windowServer._lastDomClientMouseLocation.clientX = e.clientX;
+                    windowServer._lastDomClientMouseLocation.clientY = e.clientY;
                     windowServer._createMouseTrackingEventFromDOMEvent(e, UIEvent.Type.MouseMoved, view);
                 }
             };
@@ -193,7 +187,6 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         }
         if (this.mouseDownButton == UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE){
             this.mouseDownButton = e.button;
-            this.startListeningForMouseDrag();
         }
     },
 
@@ -209,12 +202,13 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             }
             if (e.button == this.mouseDownButton){
                 this.mouseDownButton = UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE;
-                this.stopListeningForMouseDrag();
             }
         }
     },
 
     mousemove: function(e){
+        this._lastDomClientMouseLocation.clientX = e.clientX;
+        this._lastDomClientMouseLocation.clientY = e.clientY;
         switch (this.mouseDownButton){
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.LeftMouseDragged);
@@ -225,17 +219,19 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         }
     },
 
+    _getLastMouseLocation: function(){
+        return this._locationOfDOMEventInScreen(this._lastDomClientMouseLocation);
+    },
+
     mouseleave: function(e){
         switch (this.mouseDownButton){
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.LeftMouseUp);
                 this.mouseDownButton = UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE;
-                this.stopListeningForMouseDrag();
                 break;
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT:
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.RightMouseUp);
                 this.mouseDownButton = UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE;
-                this.stopListeningForMouseDrag();
                 break;
         }
     },
