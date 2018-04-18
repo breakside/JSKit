@@ -52,6 +52,16 @@ JSClass("UIHTMLTextLine", JSTextLine, {
         // we'll just hard code ellipsis
         this.element.style.textOverflow = 'ellipsis';
 
+        // Adopt relevant styles from the final run, otherwise the ellipis will
+        // use the style of the line div.  Currently this only adopts text color,
+        // and font, taking care to keep our line height 0;
+        if (this._runs.length > 0){
+            var lastRun = this._runs[this._runs.length - 1];
+            this.element.style.color = lastRun.element.style.color;
+            this.element.style.font = lastRun.element.style.font;
+            this.element.style.lineHeight = '0';
+        }
+
         // TODO: update range?
 
         // This should perhaps return a copy, but for our current use cases,

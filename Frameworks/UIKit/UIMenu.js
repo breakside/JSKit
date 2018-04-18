@@ -138,7 +138,7 @@ JSClass("UIMenu", JSObject, {
         origin.y -= itemLocation.y;
 
         var screen = view.window.screen;
-        var safeFrame = screen.availableFrame.rectWithInsets(0, 7);
+        var safeFrame = screen.availableFrame.rectWithInsets(4, 7);
         var maximumWidth = view.window.screen.frame.size.width * 0.3;
 
         var size = JSSize(this.window.frame.size);

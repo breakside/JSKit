@@ -11,6 +11,8 @@
 var submenuIndicatorImage = JSImage.initWithURL(JSURL.initWithString('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMTZweCIgaGVpZ2h0PSIxNnB4IiB2aWV3Qm94PSIwIDAgMTYgMTYiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8ZyBpZD0iQXJ0Ym9hcmQiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPgogICAgICAgIDxwb2x5Z29uIGlkPSJQYXRoIiBmaWxsPSIjMDAwMDAwIiBwb2ludHM9IjMgMyAxMyA4IDMgMTMiPjwvcG9seWdvbj4KICAgIDwvZz4KPC9zdmc+'), JSSize(16, 16), 1);
 var onStateImage = JSImage.initWithURL(JSURL.initWithString('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMTZweCIgaGVpZ2h0PSIxNnB4IiB2aWV3Qm94PSIwIDAgMTYgMTYiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxnPgogICAgICAgIDxwYXRoIGQ9Ik0xMS4xMjU4NDI3LDIuNTE0MzU3MDcgQzExLjM5NDA1NTksMi4wMzE1NzMzNCAxMi4wMDI4NTkyLDEuODU3NjI5NTQgMTIuNDg1NjQyOSwyLjEyNTg0MjcyIEMxMi45Njg0MjY3LDIuMzk0MDU1OTEgMTMuMTQyMzcwNSwzLjAwMjg1OTIgMTIuODc0MTU3MywzLjQ4NTY0MjkzIEw3Ljg3NDE1NzI4LDEyLjQ4NTY0MjkgQzcuNTUxNTA2MzcsMTMuMDY2NDE0NiA2Ljc2MjY4MDAzLDEzLjE3Njg5MzYgNi4yOTI4OTMyMiwxMi43MDcxMDY4IEwzLjI5Mjg5MzIyLDkuNzA3MTA2NzggQzIuOTAyMzY4OTMsOS4zMTY1ODI0OSAyLjkwMjM2ODkzLDguNjgzNDE3NTEgMy4yOTI4OTMyMiw4LjI5Mjg5MzIyIEMzLjY4MzQxNzUxLDcuOTAyMzY4OTMgNC4zMTY1ODI0OSw3LjkwMjM2ODkzIDQuNzA3MTA2NzgsOC4yOTI4OTMyMiBMNi43Njk2NzQxMiwxMC4zNTU0NjA2IEwxMS4xMjU4NDI3LDIuNTE0MzU3MDcgWiIgZmlsbD0iIzAwMDAwMCI+PC9wYXRoPgogICAgPC9nPgo8L3N2Zz4='), JSSize(16, 16), 1);
 var mixedStateImage = JSImage.initWithURL(JSURL.initWithString('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMTZweCIgaGVpZ2h0PSIxNnB4IiB2aWV3Qm94PSIwIDAgMTYgMTYiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxnPgogICAgICAgIDxwb2x5Z29uIGZpbGw9IiMwMDAwMDAiIHBvaW50cz0iMyA3IDMgOSAxMyA5IDEzIDciPjwvcG9seWdvbj4KICAgIDwvZz4KPC9zdmc+'), JSSize(16, 16), 1);
+var scrollUpImage = JSImage.initWithURL(JSURL.initWithString('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMTZweCIgaGVpZ2h0PSIxNnB4IiB2aWV3Qm94PSIwIDAgMTYgMTYiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxnPgogICAgICAgIDxwb2x5Z29uIGZpbGw9IiMwMDAwMDAiIHBvaW50cz0iMiAxMSA4IDUgMTQgMTEiPjwvcG9seWdvbj4KICAgIDwvZz4KPC9zdmc+'), JSSize(16, 16), 1);
+var scrollDownImage = JSImage.initWithURL(JSURL.initWithString('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMTZweCIgaGVpZ2h0PSIxNnB4IiB2aWV3Qm94PSIwIDAgMTYgMTYiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxnPgogICAgICAgIDxwb2x5Z29uIGZpbGw9IiMwMDAwMDAiIHBvaW50cz0iMiA1IDE0IDUgOCAxMSI+PC9wb2x5Z29uPgogICAgPC9nPgo8L3N2Zz4='), JSSize(16, 16), 1);
 
 JSClass("UIMenuWindow", UIWindow, {
 
@@ -18,6 +20,8 @@ JSClass("UIMenuWindow", UIWindow, {
     menuView: null,
     upIndicatorView: null,
     downIndicatorView: null,
+    upIndicatorImageView: null,
+    downIndicatorImageView: null,
     contentSize: JSReadOnlyProperty(),
     contentOffset: JSDynamicProperty(),
     responder: null,
@@ -27,12 +31,20 @@ JSClass("UIMenuWindow", UIWindow, {
     _menu: null,
     _itemIndexesByItemViewId: null,
     _itemViewIndexesByItemId: null,
+    _scrollTimer: null,
+    _scrollDistance: 0,
 
     init: function(){
         UIMenuWindow.$super.init.call(this);
         this.contentView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));
         this.upIndicatorView = UIView.initWithConstraintBox({top: 0, left: 0, right: 0, height: 16});
+        this.upIndicatorImageView = UIImageView.initWithImage(scrollUpImage, UIImageView.RenderMode.template);
+        this.upIndicatorImageView.constraintBox = JSConstraintBox.Size(this.upIndicatorImageView.frame.size.width, this.upIndicatorImageView.frame.size.height);
+        this.upIndicatorView.addSubview(this.upIndicatorImageView);
         this.downIndicatorView = UIView.initWithConstraintBox({bottom: 0, left: 0, right: 0, height: 16});
+        this.downIndicatorImageView = UIImageView.initWithImage(scrollDownImage, UIImageView.RenderMode.template);
+        this.downIndicatorImageView.constraintBox = JSConstraintBox.Size(this.downIndicatorImageView.frame.size.width, this.downIndicatorImageView.frame.size.height);
+        this.downIndicatorView.addSubview(this.downIndicatorImageView);
         this.clipView = UIView.initWithConstraintBox(JSConstraintBox.Margin(this._capSize, 0));
         this.menuView = UIMenuView.init();
         this.contentView.addSubview(this.clipView);
@@ -54,6 +66,10 @@ JSClass("UIMenuWindow", UIWindow, {
         this.borderColor = menu.borderColor;
         this.borderWidth = 0.5;
         this.contentView.backgroundColor = menu.backgroundColor;
+        this.upIndicatorView.backgroundColor = menu.backgroundColor;
+        this.downIndicatorView.backgroundColor = menu.backgroundColor;
+        this.upIndicatorImageView.templateColor = menu.textColor;
+        this.downIndicatorImageView.templateColor = menu.textColor;
         this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.2);
         this.shadowRadius = 14;
         this.cornerRadius = 6;
@@ -106,6 +122,9 @@ JSClass("UIMenuWindow", UIWindow, {
         UIMenuWindow.$super.layoutSubviews.call(this);
         this.contentView.layoutIfNeeded();
         this.menuView.frame = JSRect(0, 0, this.clipView.bounds.size.width, this.menuView.frame.size.height);
+        var offset = this.contentOffset;
+        this.upIndicatorView.hidden = offset.y <= 0;
+        this.downIndicatorView.hidden = offset.y >= this.menuView.frame.size.height - this.clipView.bounds.size.height;
     },
 
     locationOfItem: function(item){
@@ -122,7 +141,7 @@ JSClass("UIMenuWindow", UIWindow, {
     },
 
     getContentOffset: function(){
-        return this.clipView.bounds.offset;
+        return this.clipView.bounds.origin;
     },
 
     setContentOffset: function(offset){
@@ -139,22 +158,71 @@ JSClass("UIMenuWindow", UIWindow, {
     },
 
     mouseMoved: function(event){
-        var location = event.locationInView(this.clipView);
+        this._lastMoveLocation = event.locationInView(this);
+        this._adjustHighlightForLocation(this._lastMoveLocation);
+    },
+
+    _adjustHighlightForLocation: function(location){
+        var subviewLocation;
         var highlightedItem = null;
         var itemView;
         var item;
-        if (this.clipView.containsPoint(location)){
-            var locationInMenuView = event.locationInView(this.menuView);
-            itemView = this.menuView.itemViewAtLocation(locationInMenuView);
-            if (itemView !== null){
-                item = this._menu.items[this._itemIndexesByItemViewId[itemView.objectID]];
-                if (item.enabled){
-                    highlightedItem = item;
+        subviewLocation = this.convertPointToView(location, this.upIndicatorView);
+        if (!this.upIndicatorView.hidden && this.upIndicatorView.containsPoint(subviewLocation)){
+            if (this._scrollTimer === null){
+                this._scrollTimer = JSTimer.scheduledRepeatingTimerWithInterval(0.1, this._scrollUp, this);
+            }
+        }else{
+            subviewLocation = this.convertPointToView(location, this.downIndicatorView);
+            if (!this.downIndicatorView.hidden && this.downIndicatorView.containsPoint(subviewLocation)){
+                if (this._scrollTimer === null){
+                    this._scrollTimer = JSTimer.scheduledRepeatingTimerWithInterval(0.1, this._scrollDown, this);
+                }
+            }else{
+                if (this._scrollTimer !== null){
+                    this._scrollTimer.invalidate();
+                    this._scrollTimer = null;
+                }
+                subviewLocation = this.convertPointToView(location, this.clipView);
+                if (this.clipView.containsPoint(subviewLocation)){
+                    var locationInMenuView = this.convertPointToView(location, this.menuView);
+                    itemView = this.menuView.itemViewAtLocation(locationInMenuView);
+                    if (itemView !== null){
+                        item = this._menu.items[this._itemIndexesByItemViewId[itemView.objectID]];
+                        if (item.enabled){
+                            highlightedItem = item;
+                        }
+                    }
                 }
             }
         }
         this._highlightItem(highlightedItem, true);
         // TODO: scrolling
+    },
+
+    _scrollUp: function(){
+        var offset = this.contentOffset;
+        if (offset.y <= 10){
+            this.contentOffset = JSPoint(0, 0);
+            this._scrollTimer.invalidate();
+            this._scrollTimer = null;
+            this._adjustHighlightForLocation(this._lastMoveLocation);
+        }else{
+            this.contentOffset = JSPoint(0, offset.y - 10);
+        }
+    },
+
+    _scrollDown: function(){
+        var offset = this.contentOffset;
+        var end = this.contentSize.height - this.clipView.bounds.size.height;
+        if (offset.y > end - 10){
+            this.contentOffset = JSPoint(0, end);
+            this._scrollTimer.invalidate();
+            this._scrollTimer = null;
+            this._adjustHighlightForLocation(this._lastMoveLocation);
+        }else{
+            this.contentOffset = JSPoint(0, offset.y + 10);
+        }
     },
 
     _highlightItem: function(item, openingSubmenu){
@@ -238,6 +306,10 @@ JSClass("UIMenuWindow", UIWindow, {
     mouseExited: function(event){
         if (!this.submenu){
             this._highlightItem(null);
+        }
+        if (this._scrollTimer){
+            this._scrollTimer.invalidate();
+            this._scrollTimer = null;
         }
     },
 
