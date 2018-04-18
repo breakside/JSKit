@@ -33,6 +33,11 @@ JSClass("UIMenuWindow", UIWindow, {
     _itemViewIndexesByItemId: null,
     _scrollTimer: null,
     _scrollDistance: 0,
+    _isShowingAlternates: false,
+    _isClosing: false,
+
+    // -----------------------------------------------------------------------
+    // MARK: - Creating a Menu Window
 
     init: function(){
         UIMenuWindow.$super.init.call(this);
@@ -57,9 +62,17 @@ JSClass("UIMenuWindow", UIWindow, {
         this._itemViewIndexesByItemId = {};
     },
 
+    // -----------------------------------------------------------------------
+    // MARK: - Window Behavior
+
     canBecomeMainWindow: function(){
+        // Since menus are basically like modal panels, we never want to be the
+        // main view, or take visual focus away from the main view that opened us.
         return false;
     },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Upating the Window Contents
 
     setMenu: function(menu){
         this._menu = menu;
@@ -77,6 +90,11 @@ JSClass("UIMenuWindow", UIWindow, {
         var item;
         var itemView;
         var menuSize = JSSize.Zero;
+        // TODO: optimize by only drawing those views that fill the screen
+        // We don't need to know the true height because we aren't showing a
+        // scroll bar, only indicators that there is more.
+        // Although, a UI that uses very long menus is poorly designed, so this
+        // is a low priority
         for (var i = 0, l = menu.items.length; i < l; ++i){
             item = menu.items[i];
             if (!item.hidden){
@@ -97,7 +115,13 @@ JSClass("UIMenuWindow", UIWindow, {
         this.startMouseTracking(UIView.MouseTracking.all);
     },
 
+    // -----------------------------------------------------------------------
+    // MARK: - Showing/Hiding Alternate Menu Items
+
     setAlternateItemsShown: function(shown){
+        if (this._menu.supermenu && this._menu.supermenu.window){
+            this._menu.supermenu.window.setAlternateItemsShown(shown);
+        }
         var item;
         var itemView;
         var previousItem = this._menu.items[0];
@@ -116,7 +140,11 @@ JSClass("UIMenuWindow", UIWindow, {
             }
             previousItem = item;
         }
+        this._isShowingAlternates = shown;
     },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Layout
 
     layoutSubviews: function(){
         UIMenuWindow.$super.layoutSubviews.call(this);
@@ -135,6 +163,9 @@ JSClass("UIMenuWindow", UIWindow, {
         }
         return this.convertPointFromView(JSPoint.Zero, targetView);
     },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Scrolling
 
     getContentSize: function(){
         return this.menuView.frame.size;
@@ -157,9 +188,211 @@ JSClass("UIMenuWindow", UIWindow, {
         this.downIndicatorView.hidden = y >= this.menuView.frame.size.height - this.clipView.bounds.size.height;
     },
 
+    _scrollUp: function(){
+        var offset = this.contentOffset;
+        if (offset.y <= 10){
+            this.contentOffset = JSPoint(0, 0);
+            this._scrollTimer.invalidate();
+            this._scrollTimer = null;
+            this._adjustHighlightForLocation(this._lastMoveLocation);
+        }else{
+            this.contentOffset = JSPoint(0, offset.y - 10);
+        }
+    },
+
+    _scrollDown: function(){
+        var offset = this.contentOffset;
+        var end = this.contentSize.height - this.clipView.bounds.size.height;
+        if (offset.y > end - 10){
+            this.contentOffset = JSPoint(0, end);
+            this._scrollTimer.invalidate();
+            this._scrollTimer = null;
+            this._adjustHighlightForLocation(this._lastMoveLocation);
+        }else{
+            this.contentOffset = JSPoint(0, offset.y + 10);
+        }
+    },
+
+    _scrollItemVisible: function(item){
+        var itemView = this.menuView.itemViews[this._itemViewIndexesByItemId[item.objectID]];
+        var frame = this.contentView.convertRectFromView(itemView.bounds, itemView);
+        var offset = this.contentOffset;
+        var distance = 0;
+        if (!this.upIndicatorView.hidden){
+             distance = this.upIndicatorView.frame.origin.y + this.upIndicatorView.frame.size.height - frame.origin.y;
+             if (distance > 0){
+                this.contentOffset = JSPoint(0, offset.y - distance);
+             }
+        }
+        if (!this.downIndicatorView.hidden){
+            distance = frame.origin.y + frame.size.height - this.downIndicatorView.frame.origin.y;
+            if (distance > 0){
+                this.contentOffset = JSPoint(0, offset.y + distance);
+            }
+        }
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Mouse Tracking
+
     mouseMoved: function(event){
         this._lastMoveLocation = event.locationInView(this);
         this._adjustHighlightForLocation(this._lastMoveLocation);
+    },
+
+    mouseExited: function(event){
+        if (!this.submenu){
+            this._highlightItem(null);
+        }
+        if (this._scrollTimer){
+            this._scrollTimer.invalidate();
+            this._scrollTimer = null;
+        }
+    },
+
+    mouseEntered: function(event){
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Mouse Events
+
+    hitTest: function(location){
+        var hit = UIMenuWindow.$super.hitTest.call(this, location);
+        if (hit !== null){
+            return hit;
+        }
+        // Take all events
+        // Since the Window Server checks menu windows first for hits,
+        // always returning ourself means that we'll get all clicks on the
+        // screen, allowing us to dismiss ourself when a click is outside
+        // of our view.
+        return this;
+    },
+
+    mouseUp: function(event){
+        if (this._isClosing){
+            return;
+        }
+        this._performActionForHighlightedItem();
+    },
+
+    mouseDown: function(event){
+        if (this._isClosing){
+            return;
+        }
+        if (this._menu.supermenu && this._menu.supermenu.window){
+            this._menu.supermenu.window.mouseDown(event);
+        }else{
+            var location = event.locationInView(this);
+            if (!this.containsPoint(location)){
+                this.closeAll();
+            }
+        }
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Key Events
+
+    keyDown: function(event){
+        if (this._isClosing){
+            return;
+        }
+        // FIXME: find a better way of checking than using code 18
+        if (event.keyCode == 18){
+            this.setAlternateItemsShown(true);
+        }else if (event.keyCode == 27){
+            this.closeAll();
+        }else if (event.keyCode == 38){
+            this._highlightPreviousItem();
+        }else if (event.keyCode == 40){
+            this._highlightNextItem();
+        }else if (event.keyCode == 39){
+            if (this._menu.highlightedItem && this._menu.highlightedItem.submenu){
+                this.openHighlightedSubmenu(true);
+            }
+        }else if (event.keyCode == 37){
+            if (this._menu.supermenu && this._menu.supermenu.window){
+                this.close();
+            }
+        }else if (event.keyCode == 13){
+            this._performActionForHighlightedItem();
+        }
+        // TODO: select by typing title
+    },
+
+    keyUp: function(event){
+        if (this._isClosing){
+            return;
+        }
+        // FIXME: find a better way of checking than using code 18
+        if (event.keyCode == 18){
+            this.setAlternateItemsShown(false);
+        }
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Item Highlighting
+
+    _highlightItem: function(item, openingSubmenu){
+        if (this._menu.highlightedItem !== item){
+            if (this._menu.highlightedItem !== null){
+                this._menu.highlightedItem.highlighted = false;
+                this.menuView.itemViews[this._itemViewIndexesByItemId[this._menu.highlightedItem.objectID]].setItem(this._menu.highlightedItem);
+                if (this._menu.highlightedItem.submenu){
+                    if (this.submenu !== null){
+                        this.submenu.close();
+                        this.submenu = null;
+                    }else if (this.submenuTimer !== null){
+                        this.submenuTimer.invalidate();
+                        this.submenuTimer = null;
+                    }
+                }
+            }
+            this._menu._highlightedItem = item;
+            if (this._menu.highlightedItem !== null){
+                this._menu.highlightedItem.highlighted = true;
+                this.menuView.itemViews[this._itemViewIndexesByItemId[item.objectID]].setItem(this._menu.highlightedItem);
+                if (this._menu.highlightedItem.submenu && openingSubmenu){
+                    this.submenuTimer = JSTimer.scheduledTimerWithInterval(0.3, this.openHighlightedSubmenu, this);
+                }
+            }
+        }
+    },
+
+    _highlightPreviousItem: function(){
+        var index = this._menu.items.length;
+        if (this._menu.highlightedItem !== null){
+            var itemView = this.menuView.itemViews[this._itemViewIndexesByItemId[this._menu.highlightedItem.objectID]];
+            index = this._itemIndexesByItemViewId[itemView.objectID];
+        }
+        var item;
+        --index;
+        for (; index >= 0; --index){
+            item = this._menu.items[index];
+            if (item.enabled && (this._isShowingAlternates || !item.alternate)){
+                this._highlightItem(item);
+                this._scrollItemVisible(item);
+                break;
+            }
+        }
+    },
+
+    _highlightNextItem: function(){
+        var index = -1;
+        if (this._menu.highlightedItem !== null){
+            var itemView = this.menuView.itemViews[this._itemViewIndexesByItemId[this._menu.highlightedItem.objectID]];
+            index = this._itemIndexesByItemViewId[itemView.objectID];
+        }
+        var item;
+        ++index;
+        for (; index < this._menu.items.length; ++index){
+            item = this._menu.items[index];
+            if (item.enabled && (this._isShowingAlternates || !item.alternate)){
+                this._highlightItem(item);
+                this._scrollItemVisible(item);
+                break;
+            }
+        }
     },
 
     _adjustHighlightForLocation: function(location){
@@ -197,127 +430,37 @@ JSClass("UIMenuWindow", UIWindow, {
             }
         }
         this._highlightItem(highlightedItem, true);
-        // TODO: scrolling
     },
 
-    _scrollUp: function(){
-        var offset = this.contentOffset;
-        if (offset.y <= 10){
-            this.contentOffset = JSPoint(0, 0);
-            this._scrollTimer.invalidate();
-            this._scrollTimer = null;
-            this._adjustHighlightForLocation(this._lastMoveLocation);
-        }else{
-            this.contentOffset = JSPoint(0, offset.y - 10);
-        }
-    },
+    // -----------------------------------------------------------------------
+    // MARK: - Performing Actions
 
-    _scrollDown: function(){
-        var offset = this.contentOffset;
-        var end = this.contentSize.height - this.clipView.bounds.size.height;
-        if (offset.y > end - 10){
-            this.contentOffset = JSPoint(0, end);
-            this._scrollTimer.invalidate();
-            this._scrollTimer = null;
-            this._adjustHighlightForLocation(this._lastMoveLocation);
-        }else{
-            this.contentOffset = JSPoint(0, offset.y + 10);
-        }
-    },
-
-    _highlightItem: function(item, openingSubmenu){
-        if (this._menu.highlightedItem !== item){
-            if (this._menu.highlightedItem !== null){
-                this._menu.highlightedItem.highlighted = false;
-                this.menuView.itemViews[this._itemViewIndexesByItemId[this._menu.highlightedItem.objectID]].setItem(this._menu.highlightedItem);
-                if (this._menu.highlightedItem.submenu){
-                    if (this.submenu !== null){
-                        this.submenu.close();
-                        this.submenu = null;
-                    }else if (this.submenuTimer !== null){
-                        this.submenuTimer.invalidate();
-                        this.submenuTimer = null;
-                    }
-                }
-            }
-            this._menu._highlightedItem = item;
-            if (this._menu.highlightedItem !== null){
-                this._menu.highlightedItem.highlighted = true;
-                this.menuView.itemViews[this._itemViewIndexesByItemId[item.objectID]].setItem(this._menu.highlightedItem);
-                if (this._menu.highlightedItem.submenu && openingSubmenu){
-                    this.submenuTimer = JSTimer.scheduledTimerWithInterval(0.3, this.openHighlightedSubmenu, this);
-                }
-            }
-        }
-    },
-
-    hitTest: function(location){
-        var hit = UIMenuWindow.$super.hitTest.call(this, location);
-        if (hit !== null){
-            return hit;
-        }
-        return this;
-    },
-
-    keyDown: function(event){
-        // FIXME: find a better way of checking than using code 18
-        if (event.keyCode == 18){
-            this.setAlternateItemsShown(true);
-        }else if (event.keyCode == 27){
-            this.closeAll();
-        }
-        // TODO: left = close, if submenu
-        // TODO: right = open submenu and select first item
-        // TODO: up = up
-        // TODO: down = down
-        // TODO: select by typing title
-    },
-
-    keyUp: function(event){
-        // FIXME: find a better way of checking than using code 18
-        if (event.keyCode == 18){
-            this.setAlternateItemsShown(false);
-        }
-    },
-
-    mouseUp: function(event){
+    _performActionForHighlightedItem: function(){
         var item = this._menu.highlightedItem;
         if (item){
-            this.stopMouseTracking();
-            this._highlightItem(null);
-            var timer = JSTimer.scheduledTimerWithInterval(0.05, function(){
-                this._highlightItem(item);
-                timer = JSTimer.scheduledTimerWithInterval(0.05, function(){
-                    var menu = this._menu;
-                    this.closeAll();
-                    menu.performActionForItem(item);
+            if (item.submenu){
+                this.openHighlightedSubmenu(true);
+            }else{
+                this._isClosing = true;
+                this.stopMouseTracking();
+                this._highlightItem(null);
+                var timer = JSTimer.scheduledTimerWithInterval(0.05, function(){
+                    this._highlightItem(item);
+                    timer = JSTimer.scheduledTimerWithInterval(0.05, function(){
+                        var menu = this._menu;
+                        this.closeAll();
+                        menu.performActionForItem(item);
+                    }, this);
                 }, this);
-            }, this);
+            }
         }
-    },
-
-    mouseDown: function(event){
-        var location = event.locationInView(this);
-        if (!this.containsPoint(location)){
-            this.closeAll();
-        }
-    },
-
-    mouseExited: function(event){
-        if (!this.submenu){
-            this._highlightItem(null);
-        }
-        if (this._scrollTimer){
-            this._scrollTimer.invalidate();
-            this._scrollTimer = null;
-        }
-    },
-
-    mouseEntered: function(event){
     },
 
     openHighlightedSubmenu: function(selectingFirstItem){
-        this.submenuTimer = null;
+        if (this.submenuTimer !== null){
+            this.submenuTimer.invalidate();
+            this.submenuTimer = null;
+        }
         var item = this._menu.highlightedItem;
         if (!item){
             return;
@@ -332,8 +475,7 @@ JSClass("UIMenuWindow", UIWindow, {
         this.submenu.openWithItemAtLocationInView(firstSubmenuItem, location, itemView);
         if (selectingFirstItem){
             for (var i = 0, l = this.submenu.items.length; i < l; ++i){
-                // FIXME: what if we're showing alternates?
-                if (this.submenu.items[i].enabled){
+                if (this.submenu.items[i].enabled && (this._isShowingAlternates || !this.submenu.items[i].alternate)){
                     this.submenu.window._highlightItem(this.submenu.items[i]);
                     break;
                 }
@@ -341,10 +483,16 @@ JSClass("UIMenuWindow", UIWindow, {
         }
     },
 
+    // -----------------------------------------------------------------------
+    // MARK: - Closing
+
     close: function(){
         if (this.submenu){
             this.submenu.close();
             this.submenu = null;
+        }
+        if (this._menu.supermenu && this._menu.supermenu.window){
+            this._menu.supermenu.window.submenu = null;
         }
         this.stopMouseTracking();
         UIMenuWindow.$super.close.call(this);

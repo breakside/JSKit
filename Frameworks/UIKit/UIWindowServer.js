@@ -37,7 +37,7 @@ JSClass("UIWindowServer", JSObject, {
         }
         if (window.canBecomeKeyWindow()){
             this.keyWindow = window;
-            this.textInputManager.windowDidChangeResponder(window);
+            this.textInputManager.windowDidChangeResponder(this.keyWindow);
         }
         this.orderWindowFront(window);
     },
@@ -84,7 +84,7 @@ JSClass("UIWindowServer", JSObject, {
             for (i = this.windowStack.length - 1; i >= 0; --i){
                 if (this.windowStack[i].canBecomeKeyWindow()){
                     this.keyWindow = this.windowStack[i];
-                    this.textInputManager.windowDidChangeResponder(window);
+                    this.textInputManager.windowDidChangeResponder(this.keyWindow);
                     break;
                 }
             }
