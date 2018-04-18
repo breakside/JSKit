@@ -85,6 +85,14 @@ JSClass('UIWindow', UIView, {
         return true;
     },
 
+    makeVisible: function(){
+        this.windowServer.makeWindowVisible(this);
+    },
+
+    makeKey: function(){
+        this.windowServer.makeWindowKey(this);
+    },
+
     makeKeyAndVisible: function(){
         this.windowServer.makeWindowKeyAndVisible(this);
         if (this._contentViewController){

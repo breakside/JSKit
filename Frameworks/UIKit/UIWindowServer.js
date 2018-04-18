@@ -22,24 +22,47 @@ JSClass("UIWindowServer", JSObject, {
         this._windowsById = {};
     },
 
-    makeMenuKeyAndVisible: function(menu){
+    makeMenuVisible: function(menu){
         this._menuStack.push(menu);
-        this.makeWindowKeyAndVisible(menu.window);
+        this.makeWindowVisible(menu.window);
         if (this.mouseEventWindow !== null){
             this.mouseEventWindow = menu.window;
         }
     },
 
-    makeWindowKeyAndVisible: function(window){
+    makeMenuKeyAndVisible: function(menu){
+        this.makeMenuVisible(menu);
+        this.makeWindowKey(menu.window);
+    },
+
+    makeWindowVisible: function(window){
         this.windowInserted(window);
+        this.orderWindowFront(window);
+    },
+
+    makeWindowKeyAndVisible: function(window){
+        this.makeWindowVisible(window);
+        this.makeWindowKey(window);
+    },
+
+    makeWindowMain: function(window){
+        if (this.mainWindow === window){
+            return;
+        }
         if (window.canBecomeMainWindow()){
             this.mainWindow = window;
+        }
+    },
+
+    makeWindowKey: function(window){
+        this.makeWindowMain(window);
+        if (this.keyWindow === window){
+            return;
         }
         if (window.canBecomeKeyWindow()){
             this.keyWindow = window;
             this.textInputManager.windowDidChangeResponder(this.keyWindow);
         }
-        this.orderWindowFront(window);
     },
 
     windowInserted: function(window){

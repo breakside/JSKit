@@ -58,14 +58,14 @@ JSClass('UIApplication', UIResponder, {
         }
     },
 
-    firstTargetForAction: function(action, sender){
-        var target = null;
-        var window = this.mainWindow;
-        if (window !== null){
-            var responder = window.firstResponder || window;
-            if (responder !== null){
-                target = responder.targetForAction(action, sender);
+    firstTargetForAction: function(action, target, sender){
+        if (target === null){
+            if (this.mainWindow !== null){
+                target = this.mainWindow.firstResponder || this.mainWindow;
             }
+        }
+        if (target !== null && target.targetForAction && typeof(target.targetForAction) === 'function'){
+            target = target.targetForAction(action, sender);
         }
         return target;
     },
@@ -74,9 +74,10 @@ JSClass('UIApplication', UIResponder, {
         if (sender === undefined){
             sender = this;
         }
-        if (target === undefined || target === null){
-            target = this.firstTargetForAction(action, sender);
+        if (target === undefined){
+            target = null;
         }
+        target = this.firstTargetForAction(action, target, sender);
         if (target !== null){
             target[action](sender);
         }

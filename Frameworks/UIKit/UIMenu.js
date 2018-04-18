@@ -29,6 +29,7 @@ JSClass("UIMenu", JSObject, {
     minimumWidth: JSDynamicProperty('_minimumWidth', 48),
     supermenu: null,
     _itemsByTag: null,
+    _contextTarget: null,
 
     _commonInit: function(){
         this._items = [];
@@ -107,27 +108,36 @@ JSClass("UIMenu", JSObject, {
             if (!item.submenu){
                 target = item.target;
                 if (target === null){
-                    target = UIApplication.sharedApplication.firstTargetForAction(item.action, item);
+                    target = UIApplication.sharedApplication.firstTargetForAction(item.action, this._contextTarget, item);
                 }
                 item.enabled = target !== null && (!target.canPerformAction || target.canPerformAction(item.action, item));
             }
         }
     },
 
-    performActionForItem: function(item){
+    performActionForItem: function(item, contextTarget){
         var target = item.target;
         if (target !== null){
             target[item.action](item);
         }else{
-            UIApplication.sharedApplication.sendAction(item.action, null, item);
+            UIApplication.sharedApplication.sendAction(item.action, contextTarget, item);
         }
     },
 
+    openAtLocationInContextView: function(location, view){
+        this._openAtLocation(this.items[0] || null, location, view, view, true);
+    },
+
     openAtLocationInView: function(location, view){
-        this.openWithItemAtLocationInView(null, location, view);
+        this.openWithItemAtLocationInView(null, location, view, true);
     },
 
     openWithItemAtLocationInView: function(targetItem, location, view){
+        this._openAtLocation(targetItem, location, view, null, true);
+    },
+
+    _openAtLocation: function(targetItem, location, view, contextTarget, isKey){
+        this._contextTarget = contextTarget;
         this.updateEnabled();
         this.window = UIMenuWindow.init();
         this.window.setMenu(this);
@@ -157,10 +167,15 @@ JSClass("UIMenu", JSObject, {
         }
 
         this.window.frame = JSRect(origin, size);
-        this.window.windowServer.makeMenuKeyAndVisible(this);
+        if (isKey){
+            this.window.windowServer.makeMenuKeyAndVisible(this);
+        }else{
+            this.window.windowServer.makeMenuVisible(this);
+        }
     },
 
     close: function(){
+        this._contextTarget = null;
         this.window.close();
         this.window = null;
     }
