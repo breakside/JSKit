@@ -2,7 +2,7 @@
     "JSBundleType": "framework",
     "JSBundleIdentifier": "com.yourcompany.${PROJECT_NAME}",
     "JSBundleVersion": "1.0.0",
-    "JSWeakIncludes": [
+    "JSIncludeFrameworks": [
         "Foundation"
     ], 
     "JSFrameworkVariants": [

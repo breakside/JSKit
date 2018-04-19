@@ -1,3 +1,6 @@
+// #import "Foundation/Foundation.js"
+// #import "ImageKit/ImageKit.js"
+
 // #import "PDFKit/PDFTypes.js"
 // #import "PDFKit/PDFWriter.js"
 // #import "PDFKit/PDFContext.js"

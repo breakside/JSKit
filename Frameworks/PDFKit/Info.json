@@ -2,9 +2,9 @@
     "JSBundleType": "framework",
     "JSBundleIdentifier": "com.owenshaw.JSKit.PDFKit",
     "JSBundleVersion": "1.0.0",
-    "JSWeakIncludes": [
+    "JSIncludeFrameworks": [
         "Foundation",
-        "ImageKit",
+        "ImageKit"
     ], 
     "JSFrameworkVariants": [
         "PDFKit.js"

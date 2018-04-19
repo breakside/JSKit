@@ -103,9 +103,9 @@ class HTMLBuilder(Builder):
         self.appCSS = []
         self.fonts = []
 
-    def buildBinaryResource(self, nameComponents, fullPath, mime, extractors=dict()):
-        resourceIndex = super(HTMLBuilder, self).buildBinaryResource(nameComponents, fullPath, mime, extractors)
-        metadata = self.mainBundle.resources[resourceIndex]
+    def buildBinaryResource(self, bundle, nameComponents, fullPath, mime, extractors=dict()):
+        resourceIndex = super(HTMLBuilder, self).buildBinaryResource(bundle, nameComponents, fullPath, mime, extractors)
+        metadata = bundle.resources[resourceIndex]
         dontcare, ext = os.path.splitext(os.path.basename(fullPath))
         outputPath = os.path.join(self.outputResourcePath, metadata['hash'] + ext)
         metadata.update(dict(
@@ -115,15 +115,15 @@ class HTMLBuilder(Builder):
         self.manifest.append(outputPath)
         return resourceIndex
 
-    def buildFontResource(self, nameComponents, fullPath, mime):
-        resourceIndex = super(HTMLBuilder, self).buildFontResource(nameComponents, fullPath, mime)
-        metadata = self.mainBundle.resources[resourceIndex]
+    def buildFontResource(self, bundle, nameComponents, fullPath, mime):
+        resourceIndex = super(HTMLBuilder, self).buildFontResource(bundle, nameComponents, fullPath, mime)
+        metadata = bundle.resources[resourceIndex]
         info = metadata["font"]
         variants = [(metadata["htmlURL"], None)]
         # Early on, this builder made woff variants of ttf font.  Turns out that woff variants
         # don't make sense anymore:
         # 1. The point of woff is to compress ttfs...
-        # 2. But with appcache, we'll always download the ttf and woff, which is worse than just ttf
+        # 2. But with appcache, we'll always download the ttf and woff, which is worse than just uncompressed ttf
         # 3. Furthermore, some of our code (PDF processing) epxects to deal with TTF only
         # 4. And we can alway gzip transfer the ttf at the server/transport level
         # if mime != 'application/x-font-woff':
@@ -171,7 +171,7 @@ class HTMLBuilder(Builder):
         with tempfile.NamedTemporaryFile() as bundleJSFile:
             bundleJSFile.write("'use strict';\n")
             bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug, default=lambda x: x.jsonObject()))
-            bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.mainBundle.info['JSBundleIdentifier'])
+            bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.mainBundle.identifier)
             self.jsCompilation = JSCompilation(self.includePaths, minify=not self.debug, combine=not self.debug)
             for path in self.includes:
                 self.jsCompilation.include(path)
@@ -329,9 +329,9 @@ class HTMLBuilder(Builder):
 
     def buildDocker(self):
         ownerPrefix = ('%s/' % self.dockerOwner) if self.dockerOwner else ''
-        self.dockerIdentifier = "%s%s:%s" % (ownerPrefix, self.mainBundle.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
+        self.dockerIdentifier = "%s%s:%s" % (ownerPrefix, self.mainBundle.identifier, self.buildLabel if not self.debug else 'debug')
         self.dockerIdentifier = self.dockerIdentifier.lower()
-        self.dockerName = self.mainBundle.info['JSBundleIdentifier'].lower().replace('.', '_')
+        self.dockerName = self.mainBundle.identifier.lower().replace('.', '_')
         if not self.dockerBuilt:
             self.updateStatus("Building docker image %s..." % self.dockerIdentifier)
             sys.stdout.flush()

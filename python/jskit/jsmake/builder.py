@@ -202,15 +202,31 @@ class Builder(object):
 
     def setup(self):
         self.mainBundle = Bundle()
+        resourcesPath = os.path.join(self.projectPath, "Resources")
+        if os.path.exists(resourcesPath):
+            self.mainBundle.resourcesPath = resourcesPath
         self.bundles = dict()
         self.infoFile, self.mainBundle.info = Builder.readInfo(self.projectPath)
         self.watchFile(self.infoFile)
         if 'JSBundleIdentifier' not in self.mainBundle.info:
             raise Exception("%s must include an entry for JSBundleIdentifier")
-        self.bundles[self.mainBundle.info['JSBundleIdentifier']] = self.mainBundle
-        self.outputProjectPath = os.path.join(self.outputParentPath, 'builds', self.mainBundle.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
+        self.bundles[self.mainBundle.identifier] = self.mainBundle
+        self.outputProjectPath = os.path.join(self.outputParentPath, 'builds', self.mainBundle.identifier, self.buildLabel if not self.debug else 'debug')
         if not self.debug and os.path.exists(self.outputProjectPath):
             raise Exception("Output path already exists: %s" % self.outputProjectPath)
+        for frameworkName in self.mainBundle.info.get('JSIncludeFrameworks', []):
+            self.setupIncludedFramework(frameworkName)
+
+    def setupIncludedFramework(self, frameworkName):
+        for path in self.includePaths:
+            frameworkPath = os.path.join(path, frameworkName)
+            if os.path.exists(frameworkPath) and os.path.isdir(frameworkPath):
+                frameworkBundle = Bundle()
+                infoFile, frameworkBundle.info = Builder.readInfo(frameworkPath)
+                self.bundles[frameworkBundle.identifier] = frameworkBundle
+                framewordResourcesPath = os.path.join(frameworkPath, 'Resources')
+                if os.path.exists(framewordResourcesPath):
+                    frameworkBundle.resourcesPath = framewordResourcesPath
 
     def findSpecIncludes(self, spec):
         for k, v in spec.items():
@@ -230,11 +246,11 @@ class Builder(object):
                 self.findSpecIncludes(v)
 
     def buildResources(self):
-        resourcesPath = os.path.join(self.projectPath, "Resources")
-        if os.path.exists(resourcesPath):
-            self.scanResourceFolder(resourcesPath, [])
+        for identifier, bundle in self.bundles.items():
+            if bundle.resourcesPath is not None:
+                self.scanResourceFolder(bundle, bundle.resourcesPath, [])
 
-    def scanResourceFolder(self, resourcesPath, parentNameComponents):
+    def scanResourceFolder(self, bundle, resourcesPath, parentNameComponents):
         self.updateStatus("Building Resources...")
         dirname = os.path.join(resourcesPath, *parentNameComponents)
         for filename in os.listdir(dirname):
@@ -244,42 +260,42 @@ class Builder(object):
             nameComponents = parentNameComponents + [filename]
             dontcare, ext = os.path.splitext(filename)
             if os.path.isdir(fullPath):
-                self.scanResourceFolder(resourcesPath, nameComponents)
+                self.scanResourceFolder(bundle, resourcesPath, nameComponents)
             elif ext == '.json':
                 try:
                     obj = json.load(open(fullPath), object_pairs_hook=collections.OrderedDict)
                 except Exception as e:
                     raise Exception("Error parsing %s: %s" % (fullPath, e.message))
-                self.buildJSONLikeResource(nameComponents, fullPath, obj)
+                self.buildJSONLikeResource(bundle, nameComponents, fullPath, obj)
             elif ext == '.plist':
                 obj = plistlib.readPlist(fullPath)
-                self.buildJSONLikeResource(nameComponents, fullPath, obj)
+                self.buildJSONLikeResource(bundle, nameComponents, fullPath, obj)
             else:
                 mime, encoding = mimetypes.guess_type(fullPath)
                 if mime is None:
                     mime = 'application/octet-stream'
                 primary_type, secondary_type = mime.split('/')
                 if primary_type == 'image':
-                    self.buildImageResource(nameComponents, fullPath, mime)
+                    self.buildImageResource(bundle, nameComponents, fullPath, mime)
                 elif (primary_type == 'font' and secondary_type in ('ttf',)) or (primary_type == 'application' and secondary_type in ('x-font-ttf', 'x-font-otf', 'x-font-woff')):
-                    self.buildFontResource(nameComponents, fullPath, mime)
+                    self.buildFontResource(bundle, nameComponents, fullPath, mime)
                 else:
-                    self.buildBinaryResource(nameComponents, fullPath, mime)
+                    self.buildBinaryResource(bundle, nameComponents, fullPath, mime)
 
-    def buildJSONLikeResource(self, nameComponents, fullPath, obj):
+    def buildJSONLikeResource(self, bundle, nameComponents, fullPath, obj):
         metadata = dict(
             value=obj
         )
         self.watchFile(fullPath)
-        return self.mainBundle.addResource(nameComponents, metadata)
+        return bundle.addResource(nameComponents, metadata)
 
-    def buildImageResource(self, nameComponents, fullPath, mime):
-        return self.buildBinaryResource(nameComponents, fullPath, mime, dict(image=ImageInfoExtractor.for_path(fullPath)))
+    def buildImageResource(self, bundle, nameComponents, fullPath, mime):
+        return self.buildBinaryResource(bundle, nameComponents, fullPath, mime, dict(image=ImageInfoExtractor.for_path(fullPath)))
 
-    def buildFontResource(self, nameComponents, fullPath, mime):
-        return self.buildBinaryResource(nameComponents, fullPath, mime, dict(font=FontInfoExtractor.for_path(fullPath)))
+    def buildFontResource(self, bundle, nameComponents, fullPath, mime):
+        return self.buildBinaryResource(bundle, nameComponents, fullPath, mime, dict(font=FontInfoExtractor.for_path(fullPath)))
 
-    def buildBinaryResource(self, nameComponents, fullPath, mime, extractors=dict()):
+    def buildBinaryResource(self, bundle, nameComponents, fullPath, mime, extractors=dict()):
         self.updateStatus("Packaging resource %s..." % os.path.basename(fullPath))
         hash_, byte_size = self.hashOfPath(fullPath)
         metadata = dict(
@@ -293,7 +309,7 @@ class Builder(object):
             extractor.populate_dict(info)
             metadata[k] = info
         self.watchFile(fullPath)
-        return self.mainBundle.addResource(nameComponents, metadata)
+        return bundle.addResource(nameComponents, metadata)
 
     @staticmethod
     def hashOfPath(fullPath):

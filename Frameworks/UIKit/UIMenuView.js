@@ -3,16 +3,10 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UILabel.js"
 // #import "UIKit/UIImageView.js"
-/* global JSClass, JSLazyInitProperty, JSReadOnlyProperty, JSDynamicProperty, UIWindow, UIMenu, UIView, JSColor, JSSize, JSRect, UILabel, UIImageView, UIMenuItem, JSTextAlignment, JSInsets, JSPoint, UILayer, JSConstraintBox, UIMenuWindow, UIMenuView, UIMenuItemView, JSBinarySearcher, JSTimer, JSURL, JSImage, UIMenuSeparatorItemView */
+/* global JSClass, JSLazyInitProperty, JSReadOnlyProperty, JSDynamicProperty, UIWindow, UIMenu, UIView, JSColor, JSSize, JSRect, UILabel, UIImageView, UIMenuItem, JSTextAlignment, JSInsets, JSPoint, UILayer, JSConstraintBox, UIMenuWindow, UIMenuView, UIMenuItemView, JSBinarySearcher, JSTimer, JSURL, JSImage, UIMenuSeparatorItemView, JSBundle */
 'use strict';
 
 (function(){
-
-var submenuIndicatorImage = JSImage.initWithURL(JSURL.initWithString('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMTZweCIgaGVpZ2h0PSIxNnB4IiB2aWV3Qm94PSIwIDAgMTYgMTYiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8ZyBpZD0iQXJ0Ym9hcmQiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPgogICAgICAgIDxwb2x5Z29uIGlkPSJQYXRoIiBmaWxsPSIjMDAwMDAwIiBwb2ludHM9IjMgMyAxMyA4IDMgMTMiPjwvcG9seWdvbj4KICAgIDwvZz4KPC9zdmc+'), JSSize(16, 16), 1);
-var onStateImage = JSImage.initWithURL(JSURL.initWithString('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMTZweCIgaGVpZ2h0PSIxNnB4IiB2aWV3Qm94PSIwIDAgMTYgMTYiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxnPgogICAgICAgIDxwYXRoIGQ9Ik0xMS4xMjU4NDI3LDIuNTE0MzU3MDcgQzExLjM5NDA1NTksMi4wMzE1NzMzNCAxMi4wMDI4NTkyLDEuODU3NjI5NTQgMTIuNDg1NjQyOSwyLjEyNTg0MjcyIEMxMi45Njg0MjY3LDIuMzk0MDU1OTEgMTMuMTQyMzcwNSwzLjAwMjg1OTIgMTIuODc0MTU3MywzLjQ4NTY0MjkzIEw3Ljg3NDE1NzI4LDEyLjQ4NTY0MjkgQzcuNTUxNTA2MzcsMTMuMDY2NDE0NiA2Ljc2MjY4MDAzLDEzLjE3Njg5MzYgNi4yOTI4OTMyMiwxMi43MDcxMDY4IEwzLjI5Mjg5MzIyLDkuNzA3MTA2NzggQzIuOTAyMzY4OTMsOS4zMTY1ODI0OSAyLjkwMjM2ODkzLDguNjgzNDE3NTEgMy4yOTI4OTMyMiw4LjI5Mjg5MzIyIEMzLjY4MzQxNzUxLDcuOTAyMzY4OTMgNC4zMTY1ODI0OSw3LjkwMjM2ODkzIDQuNzA3MTA2NzgsOC4yOTI4OTMyMiBMNi43Njk2NzQxMiwxMC4zNTU0NjA2IEwxMS4xMjU4NDI3LDIuNTE0MzU3MDcgWiIgZmlsbD0iIzAwMDAwMCI+PC9wYXRoPgogICAgPC9nPgo8L3N2Zz4='), JSSize(16, 16), 1);
-var mixedStateImage = JSImage.initWithURL(JSURL.initWithString('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMTZweCIgaGVpZ2h0PSIxNnB4IiB2aWV3Qm94PSIwIDAgMTYgMTYiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxnPgogICAgICAgIDxwb2x5Z29uIGZpbGw9IiMwMDAwMDAiIHBvaW50cz0iMyA3IDMgOSAxMyA5IDEzIDciPjwvcG9seWdvbj4KICAgIDwvZz4KPC9zdmc+'), JSSize(16, 16), 1);
-var scrollUpImage = JSImage.initWithURL(JSURL.initWithString('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMTZweCIgaGVpZ2h0PSIxNnB4IiB2aWV3Qm94PSIwIDAgMTYgMTYiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxnPgogICAgICAgIDxwb2x5Z29uIGZpbGw9IiMwMDAwMDAiIHBvaW50cz0iMiAxMSA4IDUgMTQgMTEiPjwvcG9seWdvbj4KICAgIDwvZz4KPC9zdmc+'), JSSize(16, 16), 1);
-var scrollDownImage = JSImage.initWithURL(JSURL.initWithString('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMTZweCIgaGVpZ2h0PSIxNnB4IiB2aWV3Qm94PSIwIDAgMTYgMTYiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxnPgogICAgICAgIDxwb2x5Z29uIGZpbGw9IiMwMDAwMDAiIHBvaW50cz0iMiA1IDE0IDUgOCAxMSI+PC9wb2x5Z29uPgogICAgPC9nPgo8L3N2Zz4='), JSSize(16, 16), 1);
 
 JSClass("UIMenuWindow", UIWindow, {
 
@@ -43,11 +37,11 @@ JSClass("UIMenuWindow", UIWindow, {
         UIMenuWindow.$super.init.call(this);
         this.contentView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));
         this.upIndicatorView = UIView.initWithConstraintBox({top: 0, left: 0, right: 0, height: 16});
-        this.upIndicatorImageView = UIImageView.initWithImage(scrollUpImage, UIImageView.RenderMode.template);
+        this.upIndicatorImageView = UIImageView.initWithImage(images.scrollUp, UIImageView.RenderMode.template);
         this.upIndicatorImageView.constraintBox = JSConstraintBox.Size(this.upIndicatorImageView.frame.size.width, this.upIndicatorImageView.frame.size.height);
         this.upIndicatorView.addSubview(this.upIndicatorImageView);
         this.downIndicatorView = UIView.initWithConstraintBox({bottom: 0, left: 0, right: 0, height: 16});
-        this.downIndicatorImageView = UIImageView.initWithImage(scrollDownImage, UIImageView.RenderMode.template);
+        this.downIndicatorImageView = UIImageView.initWithImage(images.scrollDown, UIImageView.RenderMode.template);
         this.downIndicatorImageView.constraintBox = JSConstraintBox.Size(this.downIndicatorImageView.frame.size.width, this.downIndicatorImageView.frame.size.height);
         this.downIndicatorView.addSubview(this.downIndicatorImageView);
         this.clipView = UIView.initWithConstraintBox(JSConstraintBox.Margin(this._capSize, 0));
@@ -627,7 +621,7 @@ JSClass("UIMenuItemView", UIView, {
     },
 
     _createSubmenuImageView: function(){
-        this._submenuImageView = UIImageView.initWithImage(submenuIndicatorImage, UIImageView.RenderMode.template);
+        this._submenuImageView = UIImageView.initWithImage(images.submenu, UIImageView.RenderMode.template);
         this.insertSubviewAfterSibling(this._submenuImageView, this.titleLabel);
         return this._submenuImageView;
     },
@@ -689,12 +683,12 @@ JSClass("UIMenuItemView", UIView, {
                 break;
             case UIMenuItem.State.on:
                 this.stateImageView.hidden = false;
-                this.stateImageView.image = item.onImage !== null ? item.onImage : onStateImage;
+                this.stateImageView.image = item.onImage !== null ? item.onImage : images.stateOn;
                 this.stateImageView.templateColor = textColor;
                 break;
             case UIMenuItem.State.mixed:
                 this.stateImageView.hidden = false;
-                this.stateImageView.image = item.mixedImage !== null ? item.mixedImage : mixedStateImage;
+                this.stateImageView.image = item.mixedImage !== null ? item.mixedImage : images.stateMixed;
                 this.stateImageView.templateColor = textColor;
                 break;
         }
@@ -777,5 +771,57 @@ var optionSymbol = "\u2325";
 var shiftSymbol = "\u21e7";
 var commandSymbol = "\u2318";
 var controlSymbol = "";
+
+var images = Object.create({}, {
+
+    bundle: {
+        configurable: true,
+        get: function(){
+            Object.defineProperty(this, 'bundle', {value: JSBundle.initWithIdentifier("com.owenshaw.JSKit.UIKit") });
+            return this.bundle;
+        }
+    },
+
+    submenu: {
+        configurable: true,
+        get: function(){
+            Object.defineProperty(this, 'submenu', {value: JSImage.initWithResourceName("UIMenuItemSubmenu", this.bundle) });
+            return this.submenu;
+        }
+    },
+
+    stateOn: {
+        configurable: true,
+        get: function(){
+            Object.defineProperty(this, 'stateOn', {value: JSImage.initWithResourceName("UIMenuItemOn", this.bundle) });
+            return this.stateOn;
+        }
+    },
+
+    stateMixed: {
+        configurable: true,
+        get: function(){
+            Object.defineProperty(this, 'stateMixed', {value: JSImage.initWithResourceName("UIMenuItemMixed", this.bundle) });
+            return this.stateMixed;
+        }
+    },
+
+    scrollUp: {
+        configurable: true,
+        get: function(){
+            Object.defineProperty(this, 'scrollUp', {value: JSImage.initWithResourceName("UIMenuUp", this.bundle) });
+            return this.scrollUp;
+        }
+    },
+
+    scrollDown: {
+        configurable: true,
+        get: function(){
+            Object.defineProperty(this, 'scrollDown', {value: JSImage.initWithResourceName("UIMenuDown", this.bundle) });
+            return this.scrollDown;
+        }
+    }
+
+});
 
 })();

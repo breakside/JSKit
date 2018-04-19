@@ -4,7 +4,7 @@
     "JSFrameworkVariants": [
         "Hash.js"
     ],
-    "JSWeakIncludes": [
+    "JSIncludeFrameworks": [
         "Foundation"
     ]
 }

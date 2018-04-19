@@ -1,5 +1,6 @@
 // #import "Foundation/JSProtocol.js"
 /* global JSProtocol */
+'use strict';
 
 JSProtocol("JSURLSessionDelegate", JSProtocol, {
 

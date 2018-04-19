@@ -5,7 +5,7 @@
     "JSFrameworkVariants": [
         "Zlib.js"
     ],
-    "JSWeakIncludes": [
+    "JSIncludeFrameworks": [
         "Foundation"
     ]
 }

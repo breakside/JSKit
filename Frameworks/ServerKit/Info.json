@@ -5,7 +5,7 @@
         "ServerKit.js",
         "ServerKit+Node.js"
     ],
-    "JSWeakIncludes": [
+    "JSIncludeFrameworks": [
         "Foundation"
     ]
 }

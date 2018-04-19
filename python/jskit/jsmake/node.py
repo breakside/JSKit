@@ -17,7 +17,7 @@ from .javascript import JSCompilation, JSFeature
 class NodeBuilder(Builder):
     outputBundlePath = ""
     outputExecutablePath = ""
-    outputResourcePath = ""
+    outputResourcePathBy = ""
     jsCompilation = None
     featureCheck = None
     includes = None
@@ -68,10 +68,10 @@ class NodeBuilder(Builder):
         os.makedirs(self.outputResourcePath)
         self.requires = []
 
-    def buildBinaryResource(self, nameComponents, fullPath, mime, extractors=dict()):
-        resourceIndex = super(NodeBuilder, self).buildBinaryResource(nameComponents, fullPath, mime, extractors)
-        metadata = self.mainBundle.resources[resourceIndex]
-        outputPath = os.path.join(self.outputResourcePath, *nameComponents)
+    def buildBinaryResource(self, bundle, nameComponents, fullPath, mime, extractors=dict()):
+        resourceIndex = super(NodeBuilder, self).buildBinaryResource(bundle, nameComponents, fullPath, mime, extractors)
+        metadata = bundle.resources[resourceIndex]
+        outputPath = os.path.join(self.outputResourcePath, bundle.identifier, *nameComponents)
         metadata.update(dict(
              nodeBundlePath=_unixpath(os.path.relpath(outputPath, self.outputBundlePath))
         ))
@@ -100,7 +100,7 @@ class NodeBuilder(Builder):
             bundleJSFile.write("var process = require('process');\n")
             bundleJSFile.write("var path = require('path');\n")
             bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug, default=lambda x: x.jsonObject()))
-            bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.mainBundle.info['JSBundleIdentifier'])
+            bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.mainBundle.identifier)
             bundleJSFile.write("JSBundle.bundles[JSBundle.mainBundleIdentifier].nodeRootPath = path.dirname(path.dirname(process.argv[1]));\n")
             self.jsCompilation = JSCompilation(self.includePaths, minify=False, combine=False)
             for path in self.includes:
@@ -137,9 +137,9 @@ class NodeBuilder(Builder):
 
     def buildDocker(self):
         ownerPrefix = ('%s/' % self.dockerOwner) if self.dockerOwner else ''
-        self.dockerIdentifier = "%s%s:%s" % (ownerPrefix, self.mainBundle.info['JSBundleIdentifier'], self.buildLabel if not self.debug else 'debug')
+        self.dockerIdentifier = "%s%s:%s" % (ownerPrefix, self.mainBundle.identifier, self.buildLabel if not self.debug else 'debug')
         self.dockerIdentifier = self.dockerIdentifier.lower()
-        self.dockerName = self.mainBundle.info['JSBundleIdentifier'].lower().replace('.', '_')
+        self.dockerName = self.mainBundle.identifier.lower().replace('.', '_')
         if not self.dockerBuilt:
             self.updateStatus("Building docker image %s..." % self.dockerIdentifier)
             sys.stdout.flush()

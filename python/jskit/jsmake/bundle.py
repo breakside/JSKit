@@ -3,6 +3,7 @@ import os.path
 class Bundle(object):
 
     info = None
+    resourcesPath = None
     resources = None
     resourceLookup = None
 
@@ -16,6 +17,10 @@ class Bundle(object):
         if len(hits) == 0:
             return None
         return self.resources[hits[0]]
+
+    @property
+    def identifier(self):
+        return self.info.get('JSBundleIdentifier', None)
 
     def addResource(self, pathComponents, metadata):
         name, ext = os.path.splitext(pathComponents[0])

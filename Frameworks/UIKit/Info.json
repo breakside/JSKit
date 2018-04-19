@@ -2,9 +2,9 @@
     "JSBundleType": "framework",
     "JSBundleIdentifier": "com.owenshaw.JSKit.UIKit",
     "JSBundleVersion": "1.0.0",
-    "JSWeakIncludes": [
+    "JSIncludeFrameworks": [
         "Foundation"
-    ], 
+    ],
     "JSFrameworkVariants": [
         "UIKit.js",
         "UIKit+HTML.js"

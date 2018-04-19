@@ -2,7 +2,7 @@
     "JSBundleType": "framework",
     "JSBundleIdentifier": "com.owenshaw.JSKit.TestKit",
     "JSBundleVersion": "1.0.0",
-    "JSWeakIncludes": [
+    "JSIncludeFrameworks": [
         "Foundation"
     ], 
     "JSFrameworkVariants": [
