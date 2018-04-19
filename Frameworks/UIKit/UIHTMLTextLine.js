@@ -62,7 +62,8 @@ JSClass("UIHTMLTextLine", JSTextLine, {
             this.element.style.lineHeight = '0';
         }
 
-        // TODO: update range?
+        // TODO: update range and cut out extra run, but leave text in html???
+        // TODO: add JSTextRun with ellipsis? (in case this line is drawn to a non-html context, and so .runs is consistent)
 
         // This should perhaps return a copy, but for our current use cases,
         // there's no need to copy since the original line gets abandoned.

@@ -98,6 +98,9 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         sharedDomRange.setStart(this.textNode, range.location);
         sharedDomRange.setEnd(this.textNode, range.end);
         var clientRect = this._pickCorrectClientRectFromRects(sharedDomRange.getClientRects());
+        if (clientRect === undefined){
+            return 0;
+        }
         return clientRect.width;
     },
 
