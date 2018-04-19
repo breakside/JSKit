@@ -46,6 +46,7 @@ JSClass('UIWindow', UIView, {
         this._commonWindowInit();
     },
 
+    // -------------------------------------------------------------------------
     // MARK: - Content View
 
     setContentView: function(contentView){
@@ -68,6 +69,13 @@ JSClass('UIWindow', UIView, {
             this._contentViewController.viewDidDisappear();
         }
         this._contentViewController = contentViewController;
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Layout
+
+    layoutSubviews: function(){
+        this.contentView.frame = this.bounds;
     },
 
     // -------------------------------------------------------------------------

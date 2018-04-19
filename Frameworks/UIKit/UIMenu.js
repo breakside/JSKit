@@ -34,7 +34,10 @@ JSClass("UIMenu", JSObject, {
     _commonInit: function(){
         this._items = [];
         this._itemsByTag = {};
-        this._font = JSFont.systemFontOfSize(JSFont.systemFontSize).fontWithWeight(JSFont.Weight.regular);
+        this._font = JSFont.systemFontOfSize(JSFont.systemFontSize);
+        if (this._font !== null){
+            this._font = this._font.fontWithWeight(JSFont.Weight.regular);
+        }
         this._itemInsets = JSInsets(4, 0);
     },
 
@@ -60,6 +63,11 @@ JSClass("UIMenu", JSObject, {
 
     addItem: function(item){
         this.insertItemAtIndex(item, this._items.length);
+    },
+
+    addItemWithTitle: function(title, action){
+        var item = UIMenuItem.initWithTitle(title, action);
+        this.addItem(item);
     },
 
     insertItemAtIndex: function(item, index){
@@ -147,7 +155,7 @@ JSClass("UIMenu", JSObject, {
         var safeFrame = screen.availableFrame.rectWithInsets(4, 7);
         return {
             safeFrame: safeFrame,
-            maximumWidth: safeFrame.size.width * 0.3
+            maximumWidth: Math.floor(safeFrame.size.width * 0.3)
         };
     },
 
@@ -162,8 +170,8 @@ JSClass("UIMenu", JSObject, {
         var size = JSSize(window.frame.size);
 
         // Limit width to the max screen width
-        if (size.width > screen.safeFrame.maximumWidth){
-            size.width = screen.safeFrame.maximumWidth;
+        if (size.width > screen.maximumWidth){
+            size.width = screen.maximumWidth;
         }
 
         // Figure out how much space we have all around the view
@@ -191,7 +199,7 @@ JSClass("UIMenu", JSObject, {
             }else{
                 // Place below and adjust height if there's not enough room
                 origin.y = viewFrame.origin.y + viewFrame.size.height;
-                size.height = screen.safeFrame.origin.y - screen.safeFrame.size.height - origin.y;
+                size.height = screen.safeFrame.origin.y + screen.safeFrame.size.height - origin.y;
             }
             // Prefer to line up with the left edge
             origin.x = viewFrame.origin.x;
@@ -225,7 +233,7 @@ JSClass("UIMenu", JSObject, {
                 // Place below and adjust height if there's not enough room,
                 // but the available room is still preferable to above
                 origin.y = viewFrame.origin.y + viewFrame.size.height;
-                size.height = screen.safeFrame.origin.y - screen.safeFrame.size.height - origin.y;
+                size.height = screen.safeFrame.origin.y + screen.safeFrame.size.height - origin.y;
             }else if (spaces.above >= size.height){
                 // Place above if there's enough room
                 origin.y = viewFrame.origin.y - size.height;
@@ -243,7 +251,7 @@ JSClass("UIMenu", JSObject, {
         if (over > 0){
             origin.x -= over;
         }
-        if (origin.x < 0){
+        if (origin.x < screen.safeFrame.origin.x){
             origin.x = screen.safeFrame.origin.x;
         }
 
@@ -259,7 +267,7 @@ JSClass("UIMenu", JSObject, {
         if (over > 0){
             origin.y -= over;
         }
-        if (origin.y < 0){
+        if (origin.y < screen.safeFrame.origin.y){
             origin.y = screen.safeFrame.origin.y;
         }
 
@@ -273,8 +281,8 @@ JSClass("UIMenu", JSObject, {
         var size = JSSize(window.frame.size);
 
         // Limit width to the max screen width
-        if (size.width > screen.safeFrame.maximumWidth){
-            size.width = screen.safeFrame.maximumWidth;
+        if (size.width > screen.maximumWidth){
+            size.width = screen.maximumWidth;
         }
 
         var locationInScreen = view.convertPointToScreen(location);
@@ -288,7 +296,7 @@ JSClass("UIMenu", JSObject, {
         if (over > 0){
             origin.x -= over;
         }
-        if (origin.x < 0){
+        if (origin.x < screen.safeFrame.origin.x){
             origin.x = screen.safeFrame.origin.x;
         }
 
@@ -296,10 +304,10 @@ JSClass("UIMenu", JSObject, {
 
         // If we extend beyond the top of the safe area, adjust our origin, size, and
         // scroll position so to the target item still lines up
-        if (origin.y < 0){
-            over = -origin.y;
+        if (origin.y < screen.safeFrame.origin.y){
+            over = screen.safeFrame.origin.y - origin.y;
             origin.y = screen.safeFrame.origin.y;
-            if (size.height - over >= 60){
+            if (locationInScreen.y >= screen.safeFrame.origin.y && size.height - over >= 60){
                 offset.y = over;
                 size.height -= over;
             }
@@ -308,7 +316,7 @@ JSClass("UIMenu", JSObject, {
         // If we extend beyond the bottom, adjust our height
         over = origin.y + size.height - screen.safeFrame.origin.y - screen.safeFrame.size.height;
         if (over > 0){
-            if (size.height - over < 60){
+            if ((locationInScreen.y >= screen.safeFrame.origin.y + screen.safeFrame.size.height) || (size.height - over < 60)){
                 origin.y = screen.safeFrame.origin.y + screen.safeFrame.size.height - size.height;
             }else{
                 size.height -= over;
@@ -316,6 +324,8 @@ JSClass("UIMenu", JSObject, {
         }
 
         window.frame = JSRect(origin, size);
+        window.layoutIfNeeded();
+        window.contentOffset = offset;
         this._showWindow(window);
     },
 
@@ -337,8 +347,8 @@ JSClass("UIMenu", JSObject, {
         var size = JSSize(window.frame.size);
 
         // Limit width to the max screen width
-        if (size.width > screen.safeFrame.maximumWidth){
-            size.width = screen.safeFrame.maximumWidth;
+        if (size.width > screen.maximumWidth){
+            size.width = screen.maximumWidth;
         }
 
         // Figure out how much space we have on either side of the target rect
@@ -347,7 +357,21 @@ JSClass("UIMenu", JSObject, {
         // this must be true because 1) a menu is < 1/3 screen wide, leaving
         // at least 1/3 on one side, and 2) context menu rects are Zero size
         var viewFrame = view.convertRectToScreen(rect);
+
+        // If our rect if offscreen to the left or right, move it over
+        if (viewFrame.origin.x + viewFrame.size.width < screen.safeFrame.origin.x){
+            viewFrame.origin.x = screen.safeFrame.origin.x - viewFrame.size.width;
+        }else if (viewFrame.origin.x > screen.safeFrame.origin.x + screen.safeFrame.size.width){
+            viewFrame.origin.x = screen.safeFrame.origin.x + screen.safeFrame.size.width;
+        }
+
+        // If our rect is offscreen to the top, move it down
+        if (viewFrame.origin.y < screen.safeFrame.origin.y){
+            viewFrame.origin.y = screen.safeFrame.origin.y;
+        }
+
         var over;
+
         var spaces = {
             left: viewFrame.origin.x - screen.safeFrame.origin.x,
             right: screen.safeFrame.origin.x + screen.safeFrame.size.width - viewFrame.origin.x - viewFrame.size.width
@@ -383,8 +407,8 @@ JSClass("UIMenu", JSObject, {
         }
 
         // Make sure the y origin is at least 0
-        if (origin.y < 0){
-            origin.y = 0;
+        if (origin.y < screen.safeFrame.origin.y){
+            origin.y = screen.safeFrame.origin.y;
         }
 
         window.frame = JSRect(origin, size);

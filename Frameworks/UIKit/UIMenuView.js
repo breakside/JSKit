@@ -113,6 +113,7 @@ JSClass("UIMenuWindow", UIWindow, {
         this.menuView.bounds = JSRect(JSPoint.Zero, menuSize);
         this.menuView.layoutIfNeeded();
         this.bounds = JSRect(0, 0, menuSize.width, menuSize.height + this._capSize * 2);
+        this.layoutIfNeeded();
         this.startMouseTracking(UIView.MouseTracking.all);
     },
 
