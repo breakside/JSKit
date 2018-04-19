@@ -182,6 +182,18 @@ JSClass("UITextLayer", UILayer, {
         }
     },
 
+    sizeToFitConstraints: function(maxSize){
+        this._textContainer.size = JSSize(maxSize.width - this._textInsets.left - this._textInsets.right, maxSize.height - this._textInsets.top - this._textInsets.bottom);
+        this.layoutIfNeeded();
+        if (this._textContainer.textFrame !== null){
+            var width = this._textContainer.textFrame.usedSize.width + this._textInsets.left + this._textInsets.right;
+            var height = this._textContainer.textFrame.usedSize.height + this._textInsets.top + this._textInsets.bottom;
+            if (width != this.bounds.width || height != this.bounds.height){
+                this.bounds = JSRect(0, 0, width, height);
+            }
+        }
+    },
+
     layoutSublayers: function(){
         UITextLayer.$super.layoutSublayers.call(this);
         this._textContainer.origin = JSPoint(this._textInsets.left, this._textInsets.top);

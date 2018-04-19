@@ -10,6 +10,7 @@ JSClass("UIHTMLTextLine", JSTextLine, {
     element: null,
     emptyTextNode: null,
     attachments: null,
+    overflowed: false,
 
     initWithElementAndFont: function(element, font, height, location){
         UIHTMLTextLine.$super.initWithHeight.call(this, height, location);
@@ -39,14 +40,15 @@ JSClass("UIHTMLTextLine", JSTextLine, {
     },
 
     truncatedLine: function(width, token){
+        if (!this.overflowed || width === Number.MAX_VALUE || width === 0){
+            return this;
+        }
+
         if (token === undefined){
             token = '\u2026';
         }
-        if (width < Number.MAX_VALUE){
-            this.element.style.maxWidth = '%dpx'.sprintf(width);
-        }else{
-            this.element.style.maxWidth = '';
-        }
+
+        this.element.style.maxWidth = '%dpx'.sprintf(width);
         this.element.style.overflow = 'hidden';
         // only firefox supports an arbitrary string as the token, so for now
         // we'll just hard code ellipsis
@@ -62,8 +64,11 @@ JSClass("UIHTMLTextLine", JSTextLine, {
             this.element.style.lineHeight = '0';
         }
 
-        // TODO: update range and cut out extra run, but leave text in html???
-        // TODO: add JSTextRun with ellipsis? (in case this line is drawn to a non-html context, and so .runs is consistent)
+        // Add an ellipsis...if it fits, great!  If not, we'll get the html generated ellipis
+        this.element.appendChild(this.element.ownerDocument.createTextNode(token));
+
+        // TODO: add JSTextRun with ellipsis (in case this line is drawn to a non-html context, and so .runs is consistent)
+        // but this would also possibly require backing up 1+ characters to make enough room for the ellipis
 
         // This should perhaps return a copy, but for our current use cases,
         // there's no need to copy since the original line gets abandoned.

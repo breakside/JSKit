@@ -28,6 +28,7 @@ JSClass("JSTimer", JSObject, {
                 }).bind(this), intervalInMilliseconds);
             }else{
                 this._id = JSGlobalObject.setTimeout((function JSTimer_timeout(t){
+                    this._id = null;
                     this._action.call(this._target);
                 }).bind(this), intervalInMilliseconds);
             }

@@ -30,6 +30,10 @@ JSClass('UILabel', UIView, {
         if ("lineBreakMode" in values){
             this.lineBreakMode = spec.resolvedValue(values.lineBreakMode);
         }
+    },
+
+    sizeToFitConstraints: function(maxSize){
+        this.layer.sizeToFitConstraints(maxSize);
     }
 
 });

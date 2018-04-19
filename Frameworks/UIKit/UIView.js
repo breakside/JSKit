@@ -57,6 +57,7 @@ JSClass('UIView', UIResponder, {
     shadowOffset:       UIViewLayerProperty(),
     shadowRadius:       UIViewLayerProperty(),
     cursor:             JSDynamicProperty('_cursor', null),
+    tooltip:            null,
     mouseTrackingType:  0,
     isMultipleTouchEnabled: false,
 
@@ -92,6 +93,9 @@ JSClass('UIView', UIResponder, {
         }
         if ("backgroundColor" in values){
             this.backgroundColor = spec.resolvedValue(values.backgroundColor);
+        }
+        if ("tooltip" in values){
+            this.tooltip = spec.resolvedValue(values.tooltip);
         }
         if ("subviews" in values){
             for (var i = 0, l = values.subviews.length; i < l; ++i){

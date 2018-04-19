@@ -167,8 +167,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                 },
 
                 mousemove: function(e){
-                    windowServer._lastDomClientMouseLocation.clientX = e.clientX;
-                    windowServer._lastDomClientMouseLocation.clientY = e.clientY;
+                    windowServer.mousemove(e);
                     windowServer._createMouseTrackingEventFromDOMEvent(e, UIEvent.Type.MouseMoved, view);
                 }
             };
@@ -209,6 +208,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     mousemove: function(e){
         this._lastDomClientMouseLocation.clientX = e.clientX;
         this._lastDomClientMouseLocation.clientY = e.clientY;
+        this.mouseDidMove(e.timeStamp);
         switch (this.mouseDownButton){
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.LeftMouseDragged);

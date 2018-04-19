@@ -56,6 +56,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         ++layoutElementIndex;
         this._styleElement(layoutElement, size, lineBreakMode);
         this._updateElement(layoutElement, range);
+        this._cachedLayout.lineBreakMode = lineBreakMode;
         --layoutElementIndex;
     },
 
@@ -73,11 +74,11 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
             element.style.overflowWrap = '';
         }else{
             switch (lineBreakMode){
+                case JSLineBreakMode.truncateTail:
                 case JSLineBreakMode.characterWrap:
                     element.style.wordBreak = 'break-all';
                     element.style.overflowWrap = '';
                     break;
-                case JSLineBreakMode.truncateTail:
                 case JSLineBreakMode.wordWrap:
                     element.style.wordBreak = '';
                     element.style.overflowWrap = 'break-word';
@@ -170,6 +171,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         var runs = [];
         var attachments = [];
         var run;
+        var overflowed = false;
         for (i = 0, l = fragments.length; i < l; ++i){
             fragment = fragments[i];
             var span = fragment.runDescriptor.span.cloneNode(false);
@@ -188,12 +190,15 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                     run: run
                 });
             }
+            overflowed = fragment.overflowed;
         }
 
         // NOTE: Deferring calculation of trailingWhitespaceWidth until all the lines are done and added to
         // a frame, otherwise unecessary and expensive browser layout operations will be triggered.
 
-        return UIHTMLTextLine.initWithElement(element, runs, 0, attachments);
+        var line = UIHTMLTextLine.initWithElement(element, runs, 0, attachments);
+        line.overflowed = overflowed;
+        return line;
     },
 
     _createLineElement: function(){
@@ -214,7 +219,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         if (range.length === 0){
             return JSRange(range);
         }
-        if (this._cachedLayout === null || !this._cachedLayout.range.containsRange(range)){
+        if (this._cachedLayout === null || this._cachedLayout.lineBreakMode != lineBreakMode || !this._cachedLayout.range.containsRange(range)){
             logger.warn("Calling suggestLineBreak on unprepared range, re-calculating layout");
             this.layoutRange(range, JSSize(width, 0), lineBreakMode);
         }
@@ -243,7 +248,6 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         var lineRange;
 
         var stop = false;
-        var shouldIncludeExtraLine = lineBreakMode == JSLineBreakMode.truncateTail;
 
         var x = Number.MIN_VALUE;
 
@@ -255,16 +259,14 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                 // This run starts off positioned to the left of the previous run's end, so
                 // it must be on a new line.  Happens when the previous run's end coincides with a line wrap/break.
                 // Since we've found our break, just stop here
-                stop = !shouldIncludeExtraLine;
-                shouldIncludeExtraLine = false;
+                stop = true;
                 x = Number.MIN_VALUE;
             }else if (runLineIndex < runDescriptor.numberOfLines - 1){
                 // This run has at least one more wrap/break point, so just add up to the next line
                 lineRange = runDescriptor.rangeOfLine(runLineIndex, remainingRange.location);
                 fragment = UIHTMLTextTypesetterRunDescriptorFragment(runDescriptor, remainingRange.intersection(lineRange));
                 runLineIndex++;
-                stop = !shouldIncludeExtraLine;
-                shouldIncludeExtraLine = false;
+                stop = true;
                 x = Number.MIN_VALUE;
                 remainingRange.advance(fragment.range.length);
                 fragments.push(fragment);
@@ -279,6 +281,10 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
             }
 
         }while (runIndex < runDescriptors.length && !stop && remainingRange.length > 0);
+
+        if (lineBreakMode == JSLineBreakMode.truncateTail && remainingRange.length > 0){
+            fragment.overflowed = true;
+        }
 
         this._suggestionCache = {
             fragments: fragments,
@@ -430,6 +436,7 @@ var UIHTMLTextTypesetterRunDescriptorFragment = function(runDescriptor, range){
     }
     this.runDescriptor = runDescriptor;
     this.range = range;
+    this.overflowed = false;
 };
 
 })();

@@ -70,7 +70,7 @@ JSClass("JSTextFramesetter", JSObject, {
             line = lines.pop();
             if (remianingRange.length > 0 && lineLimit > lines.length + 1){
                 // we got truncated because of height.  Re-run the last line so it
-                // gets broken according to truncation rules rather than work break
+                // gets broken according to truncation rules rather than word break
                 lineRange = this._typesetter.suggestLineBreak(widthLimit, JSRange(line.range.location, line.range.length + remianingRange.length), this.attributes.lineBreakMode);
                 line = this._typesetter.createLine(lineRange);
             }

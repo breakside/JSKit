@@ -8,6 +8,7 @@
 JSClass("JSTextFrame", JSObject, {
 
     size: JSReadOnlyProperty('_size', null),
+    usedSize: JSReadOnlyProperty('_usedSize', null),
     range: JSReadOnlyProperty('_range', null),
     lines: JSReadOnlyProperty('_lines', null),
 
@@ -29,6 +30,7 @@ JSClass("JSTextFrame", JSObject, {
             }
         }
         this._size = JSSize(size);
+        this._usedSize = JSSize(width, y);
         if (this._size.width === 0 || this._size.width === Number.MAX_VALUE){
             this._size.width = width;
         }

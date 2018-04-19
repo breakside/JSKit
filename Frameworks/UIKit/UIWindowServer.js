@@ -3,7 +3,8 @@
 // #import "UIKit/UICursor.js"
 // #import "UIKit/UILayer.js"
 // #import "UIKit/UIView.js"
-/* global JSClass, JSObject, UIWindowServer, UIEvent, JSPoint, UIWindowServerInit, UITouch, UICursor, UILayer, UIView */
+// #import "UIKit/UITooltipWindow.js"
+/* global JSClass, JSObject, UIWindowServer, UIEvent, JSPoint, UIWindowServerInit, UITouch, UICursor, UILayer, UIView, JSTimer, UITooltipWindow, JSSize, JSRect */
 'use strict';
 
 JSClass("UIWindowServer", JSObject, {
@@ -16,11 +17,15 @@ JSClass("UIWindowServer", JSObject, {
     screen: null,
     _menuStack: [],
     _windowsById: null,
+    _mouseIdleTimer: null,
+    _tooltipWindow: null,
+    _tooltipSourceView: null,
 
     init: function(){
         this.windowStack = [];
         this._menuStack = [];
         this._windowsById = {};
+        this._mouseIdleTimer = JSTimer.initWithInterval(1.25, false, this.mouseDidIdle, this);
     },
 
     _previousEventWindow: null,
@@ -328,6 +333,77 @@ JSClass("UIWindowServer", JSObject, {
         var event = UIEvent.initMouseEventWithType(type, timestamp, view.window, view.window.convertPointFromScreen(location));
         event.trackingView = view;
         view.window.application.sendEvent(event);
+    },
+
+    mouseDidMove: function(timestamp){
+        this._mouseIdleTimer.invalidate();
+        if (this._tooltipWindow !== null){
+            var location = this._getLastMouseLocation();
+            var window = this.windowForEventAtLocation(location);
+            var shouldHideTooltip = true;
+            var view = null;
+            if (window !== null){
+                view = window.hitTest(window.convertPointFromScreen(location));
+                if (view === this._tooltipSourceView){
+                    shouldHideTooltip = false;
+                }
+            }
+            if (shouldHideTooltip){
+                this.hideTooltip();
+                if (view !== null && view.tooltip !== null){
+                    this.showTooltipForView(view, location);
+                }
+            }
+        }else{
+            this._mouseIdleTimer.schedule();
+        }
+    },
+
+    mouseDidIdle: function(){
+        var location = this._getLastMouseLocation();
+        var window = this.windowForEventAtLocation(location);
+        if (window !== null){
+            var view = window.hitTest(window.convertPointFromScreen(location));
+            if (view !== null && view.tooltip !== null){
+                this.showTooltipForView(view, location);
+            }
+        }
+    },
+
+    showTooltipForView: function(view, screenLocation){
+        var safeArea = view.window.screen.frame.rectWithInsets(3);
+
+        this._tooltipSourceView = view;
+        this._tooltipWindow = UITooltipWindow.initWithString(view.tooltip, JSSize(safeArea.size.width * 0.3, safeArea.size.height));
+
+        var origin = JSPoint(screenLocation);
+        origin.y += 20; // Accounting for cursor
+
+        if (origin.y + this._tooltipWindow.frame.size.height >= safeArea.origin.y + safeArea.size.height){
+            origin.y = screenLocation.y - this._tooltipWindow.frame.size.height;
+        }
+
+        if (origin.y < safeArea.origin.y){
+            origin.y = safeArea.origin.y;
+            origin.x += 20; // Accounting for cursor, since we're probably overlapping after this y-origin adjustment
+        }
+
+        if (origin.x + this._tooltipWindow.frame.size.width >= safeArea.origin.x + safeArea.size.width){
+            origin.x = safeArea.origin.x + safeArea.size.width - this._tooltipWindow.frame.size.width;
+        }
+        if (origin.x < safeArea.origin.x){
+            origin.x = safeArea.origin.x;
+        }
+
+        this._tooltipWindow.frame = JSRect(origin, this._tooltipWindow.frame.size);
+        this._tooltipWindow.makeVisible();
+    },
+
+    hideTooltip: function(){
+        this._tooltipWindow.close();
+        this._tooltipWindow = null;
+        this._tooltipSourceView = null;
+        this._mouseIdleTimer.schedule();
     },
 
     createKeyEvent: function(type, timestamp, keyCode){
