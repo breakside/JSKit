@@ -715,6 +715,8 @@ JSClass("UIMenuItemView", UIView, {
             size.width += this._keyWidth + this._keyModifierLabel.frame.size.width + this._padding.right;
         }
         size.height = this.titleLabel.font.displayLineHeight + this._padding.top + this._padding.bottom;
+        size.width = Math.ceil(size.width);
+        size.height = Math.ceil(size.height);
         this.bounds = JSRect(JSPoint.Zero, size);
     },
 

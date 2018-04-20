@@ -2,7 +2,8 @@
 // #import "UIKit/UIResponder.js"
 // #import "UIKit/UILayer.js"
 // #import "UIKit/UIAnimation.js"
-/* global JSGlobalObject, JSClass, JSObject, UIViewLayerProperty, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSDynamicProperty, JSRect, JSPoint, JSConstraintBox, JSColor, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty, UIWindowServer */
+// #import "UIKit/UIDraggingDestination.js"
+/* global JSGlobalObject, JSClass, JSObject, UIViewLayerProperty, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSDynamicProperty, JSRect, JSPoint, JSConstraintBox, JSColor, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty, UIWindowServer, UIDragOperation */
 'use strict';
 
 JSGlobalObject.UIViewLayerProperty = function(){
@@ -272,6 +273,52 @@ JSClass('UIView', UIResponder, {
     },
 
     // -------------------------------------------------------------------------
+    // MARK: - Drag & Drop Source
+
+    beginDraggingSessionWithItems: function(items, event){
+        if (this.window === null){
+            return;
+        }
+        return this.window.windowServer.createDraggingSessionWithItems(items, event, this);
+    },
+
+    draggingSessionEnded: function(session, operation){
+
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Drag & Drop Destination
+
+    registerForDraggedTypes: function(pasteboardTypes){
+        for (var i = 0, l = pasteboardTypes.length; i < l; ++i){
+            this._registeredDraggedTypes.push(pasteboardTypes[i]);
+        }
+    },
+
+    unregisterDraggedTypes: function(){
+        this._registeredDraggedTypes = [];
+    },
+
+    registeredDraggedTypes: JSDynamicProperty('_registeredDraggedTypes', null),
+
+    draggingEntered: function(){
+        return UIDragOperation.none;
+    },
+
+    draggingUpdated: function(){
+        return UIDragOperation.none;
+    },
+
+    draggingEnded: function(){
+    },
+
+    draggingExited: function(){
+    },
+
+    performDragOperation: function(){
+    },
+
+    // -------------------------------------------------------------------------
     // MARK: - Coordinate conversion
 
     convertPointToView: function(point, view){
@@ -375,6 +422,7 @@ JSClass('UIView', UIResponder, {
         this.layer = this.$class.layerClass.init();
         this.layer.delegate = this;
         this.subviews = [];
+        this._registeredDraggedTypes = [];
     },
 
     // MARK: Subview management helpers

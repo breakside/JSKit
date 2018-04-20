@@ -6,17 +6,18 @@
 // #import "UIKit/UIHTMLDisplayServer.js"
 // #import "UIKit/UIHTMLTextInputManager.js"
 // #feature Element.prototype.addEventListener
-/* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor, UIView, JSRect, UIScreen */
+/* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor, UIView, JSRect, UIScreen, UIDraggingSession, UIHTMLDataTransferPasteboard */
 'use strict';
+
+(function(){
 
 JSClass("UIHTMLWindowServer", UIWindowServer, {
 
     rootElement: null,
     domDocument: null,
     domWindow: null,
-    mouseDownButton: -1,
     _cursorViewsById: null,
-    _lastDomClientMouseLocation: null,
+    _screenClientOrigin: null,
 
     initWithRootElement: function(rootElement){
         UIHTMLWindowServer.$super.init.call(this);
@@ -26,12 +27,11 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this._cursorViewsById = {};
         this.setupRenderingEnvironment();
         this.setupEventListeners();
-        this.mouseDownButton = UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE;
         this.displayServer = UIHTMLDisplayServer.initWithRootElement(rootElement);
         this.textInputManager = UIHTMLTextInputManager.initWithRootElement(rootElement);
         this.textInputManager.windowServer = this;
         this.screen = UIScreen.initWithFrame(JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight), this.domDocument.defaultView.devicePixelRatio || 1);
-        this._lastDomClientMouseLocation = {clientX: 0, clientY: 0};
+        this._updateScreenClientOrigin();
     },
 
     setupRenderingEnvironment: function(){
@@ -52,6 +52,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                 this.rootElement.style.position = 'relative';
             }
         }
+        this.rootElement.style.userSelect = 'none';
+        this.rootElement.style.mozUserSelect = 'none';
+        this.rootElement.style.webkitUserSelect = 'none';
         this.setCursor(UICursor.currentCursor);
     },
 
@@ -61,8 +64,12 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.addEventListener('mousemove', this, false);
         this.rootElement.addEventListener('keydown', this, false);
         this.rootElement.addEventListener('keyup', this, false);
-        this.rootElement.addEventListener('dragstart', this, false);
-        this.rootElement.addEventListener('dragend', this, false);
+        // this.rootElement.addEventListener('dragstart', this, false);
+        // this.rootElement.addEventListener('dragend', this, false);
+        this.rootElement.addEventListener('dragover', this, false);
+        this.rootElement.addEventListener('dragenter', this, false);
+        // this.rootElement.addEventListener('dragleave', this, false);
+        this.rootElement.addEventListener('drop', this, false);
         this.rootElement.addEventListener('mouseleave', this, false);
         this.rootElement.addEventListener('contextmenu', this, false);
         this.rootElement.addEventListener('cut', this, false);
@@ -79,15 +86,20 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.addEventListener('touchcancel', this, false);
         this.rootElement.addEventListener('touchmove', this, false);
 
-        // TODO: dragging
         // TODO: special things like file input change
         // TODO: does stopping key events interfere with browser keyboard shortcuts? (some, yes)
     },
 
     handleEvent: function(e){
         this[e.type](e);
-        // FIXME: I think stopping a mousedown in Firefox prevents dragstart from working
         e.stopPropagation();
+        // TODO: Don't prevent default of mousedown or mousemove, because doing so prevents drag events from firing.
+        // Earlier code did prevent default of mousedown and mousemove, as a method
+        // of preventing text selection on the page for things that should not be selectable
+        // (most labels, in a typical app are not selectable).  However, it's possible to
+        // use CSS user-select: none to prevent text selection, and all modern browsers support that,
+        // so there's no side-effect of keeping the default down and move behaviors.
+        // FIXME: there actually is a side-effect: the text input textarea is blurred on mousedown
         if (e.cancelable){
             e.preventDefault();
         }
@@ -167,7 +179,6 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                 },
 
                 mousemove: function(e){
-                    windowServer.mousemove(e);
                     windowServer._createMouseTrackingEventFromDOMEvent(e, UIEvent.Type.MouseMoved, view);
                 }
             };
@@ -176,6 +187,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     mousedown: function(e){
+        this._updateMouseLocation(e);
         switch (e.button){
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.LeftMouseDown);
@@ -184,65 +196,28 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.RightMouseDown);
                 break;
         }
-        if (this.mouseDownButton == UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE){
-            this.mouseDownButton = e.button;
-        }
     },
 
     mouseup: function(e){
-        if (this.mouseDownButton != UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE){
-            switch (e.button){
-                case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
-                    this._createMouseEventFromDOMEvent(e, UIEvent.Type.LeftMouseUp);
-                    break;
-                case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT:
-                    this._createMouseEventFromDOMEvent(e, UIEvent.Type.RightMouseUp);
-                    break;
-            }
-            if (e.button == this.mouseDownButton){
-                this.mouseDownButton = UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE;
-            }
+        this._updateMouseLocation(e);
+        switch (e.button){
+            case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
+                this._createMouseEventFromDOMEvent(e, UIEvent.Type.LeftMouseUp);
+                break;
+            case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT:
+                this._createMouseEventFromDOMEvent(e, UIEvent.Type.RightMouseUp);
+                break;
         }
     },
 
     mousemove: function(e){
-        this._lastDomClientMouseLocation.clientX = e.clientX;
-        this._lastDomClientMouseLocation.clientY = e.clientY;
-        this.mouseDidMove(e.timeStamp);
-        switch (this.mouseDownButton){
-            case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
-                this._createMouseEventFromDOMEvent(e, UIEvent.Type.LeftMouseDragged);
-                break;
-            case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT:
-                this._createMouseEventFromDOMEvent(e, UIEvent.Type.RightMouseDragged);
-                break;
-        }
-    },
-
-    _getLastMouseLocation: function(){
-        return this._locationOfDOMEventInScreen(this._lastDomClientMouseLocation);
+        this._updateMouseLocation(e);
+        this.mouseDidMove(e.timeStamp / 1000.0);
     },
 
     mouseleave: function(e){
-        switch (this.mouseDownButton){
-            case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
-                this._createMouseEventFromDOMEvent(e, UIEvent.Type.LeftMouseUp);
-                this.mouseDownButton = UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE;
-                break;
-            case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT:
-                this._createMouseEventFromDOMEvent(e, UIEvent.Type.RightMouseUp);
-                this.mouseDownButton = UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE;
-                break;
-        }
-    },
-
-    contextmenu: function(e){
-    },
-
-    dragstart: function(e){
-    },
-
-    dragend: function(e){
+        this._updateMouseLocation(e);
+        this.resetMouseState(e.timeStamp / 1000.0);
     },
 
     keydown: function(e){
@@ -257,12 +232,68 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         }
     },
 
+    contextmenu: function(e){
+        // do nothing (all dom events are prevented by default), we have our our context menus
+    },
+
+    dragstart: function(e){
+        // Unused.  We don't support HTML drag source events.
+        // They aren't terribly useful because they only add the ability
+        // to drag text or html out of the browser.  It also seems like
+        // our mousedown and mousemove event.preventDefault() stops the
+        // browser from generating drag events.  Working around this isn't
+        // yet worth the small benefit of dragging text out of the browser.
+    },
+
+    dragend: function(e){
+        // Unused.  We don't support HTML drag source events.
+        // They aren't terribly useful because they only add the ability
+        // to drag text or html out of the browser.  It also seems like
+        // our mousedown and mousemove event.preventDefault() stops the
+        // browser from generating drag events.  Working around this isn't
+        // yet worth the small benefit of dragging text out of the browser.
+    },
+
+    dragenter: function(e){
+        // If we haven't yet started a dragging session, then the drag must
+        // have originated outside the browser, and this is the first update
+        // we've heard.  Make a new session from the dataTransfer.
+        if (!this._draggingSession){
+            this._updateMouseLocation(e);
+            var pasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
+            var session = UIDraggingSession.initWithPasteboard(pasteboard);
+            this.startDraggingSession(session);
+        }
+    },
+
+    dragover: function(e){
+        this._updateMouseLocation(e);
+        this.mouseDidMove(e.timeStamp / 1000.0);
+    },
+
+    dragleave: function(e){
+        // Fired ever time the drag target changes.  We'll get a dragover immediately after,
+        // and that's where we update the UI.
+        // Intially thought we needed to know when the drag left the root element, in order
+        // to cancel the dragging session, but we still get a mouseleave in that case, which
+        // cancels the dragging session itself.
+    },
+
+    drop: function(e){
+        this._updateMouseLocation(e);
+        // The original dataTransfer object from dragenter doesn't have readable files for security reasons
+        // so we need to update the pasteboard with the new dataTransfer object, which has readable files
+        this._draggingSession._pasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
+        this.draggingSessionDidPerformOperation();
+    },
+
     cut: function(e){
         if (this.keyWindow === null){
             return;
         }
         this.keyWindow.application.sendAction('cut');
-        this._populateDomClipboard(e.clipboardData);
+        var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.clipboardData);
+        temporaryPasteboard.copy(UIPasteboard.general);
     },
 
     copy: function(e){
@@ -270,33 +301,16 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             return;
         }
         this.keyWindow.application.sendAction('copy');
-        this._populateDomClipboard(e.clipboardData);
-    },
-
-    _populateDomClipboard: function(dataTransfer){
-        var pasteboard = UIPasteboard.general;
-        if (pasteboard.containsType(UIPasteboard.ContentType.plainText)){
-            dataTransfer.setData('text/plain', pasteboard.valueForType(UIPasteboard.ContentType.plainText));
-        }
-        // TODO: other types
+        var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.clipboardData);
+        temporaryPasteboard.copy(UIPasteboard.general);
     },
 
     paste: function(e){
         if (this.keyWindow === null){
             return;
         }
-        var domType;
-        var domValue;
-        for (var i = 0, l = e.clipboardData.types.length; i < l; ++i){
-            domType = e.clipboardData.types[i];
-            domValue = e.clipboardData.getData(domType);
-            switch (domType){
-                case 'text':
-                case 'text/plain':
-                    UIPasteboard.general.setValueForType(domValue, UIPasteboard.ContentType.plainText);
-                    break;
-            }
-        }
+        var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.clipboardData);
+        UIPasteboard.general.copy(temporaryPasteboard);
         this.keyWindow.application.sendAction('paste');
     },
 
@@ -339,25 +353,21 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     _createMouseEventFromDOMEvent: function(e, type){
-        var location = this._locationOfDOMEventInScreen(e);
         var timestamp = e.timeStamp / 1000.0;
-        this.createMouseEvent(type, timestamp, location);
+        this.createMouseEvent(type, timestamp, this.mouseLocation);
     },
 
     _createMouseTrackingEventFromDOMEvent: function(e, type, view){
-        var location = this._locationOfDOMEventInScreen(e);
+        this._updateMouseLocation(e);
         var timestamp = e.timeStamp / 1000.0;
-        this.createMouseTrackingEvent(type, timestamp, location, view);
-    },
-
-    _locationOfDOMEventInScreen: function(e){
-        var screenBoundingRect = this.rootElement.getBoundingClientRect();
-        return JSPoint(e.clientX - screenBoundingRect.left, e.clientY - screenBoundingRect.top);
+        if (type === UIEvent.Type.MouseMoved){
+            this.mouseDidMove(timestamp);
+        }
+        this.createMouseTrackingEvent(type, timestamp, this.mouseLocation, view);
     },
 
     _locationOfDOMTouchInScreen: function(touch){
-        var screenBoundingRect = this.rootElement.getBoundingClientRect();
-        return JSPoint(touch.clientX - screenBoundingRect.left, touch.clientY - screenBoundingRect.top);
+        return JSPoint(touch.clientX - this._screenClientOrigin.x, touch.clientY - this._screenClientOrigin.y);
     },
 
     _createKeyEventFromDOMEvent: function(e, type){
@@ -384,6 +394,21 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.createTouchEvent(type, timestamp, touchDescriptors);
     },
 
+    screenDidChangeFrame: function(){
+        UIHTMLWindowServer.$super.screenDidChangeFrame.call(this);
+        this._updateScreenClientOrigin();
+    },
+
+    _updateScreenClientOrigin: function(){
+        var clientRect = this.rootElement.getBoundingClientRect();
+        this._screenClientOrigin = JSPoint(clientRect.left, clientRect.top);
+    },
+
+    _updateMouseLocation: function(e){
+        this.mouseLocation.x = e.clientX - this._screenClientOrigin.x;
+        this.mouseLocation.y = e.clientY - this._screenClientOrigin.y;
+    },
+
 });
 
 // From https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
@@ -395,3 +420,57 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
 UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE = -1;
 UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT = 0;
 UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT = 2;
+
+JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
+
+    _dataTransfer: null,
+    _typeMap: null,
+
+    initWithDataTransfer: function(dataTransfer){
+        this._dataTransfer = dataTransfer;
+        this._typeMap = {};
+        var i, l;
+        var type;
+        var alias;
+        for (i = 0, l = dataTransfer.types.length; i < l; ++i){
+            type = dataTransfer.types[i];
+            alias = DataTransferTypeAliases[type] || type;
+            this._typeMap[alias] = type;
+        }
+    },
+
+    getTypes: function(){
+        return Object.keys(this._typeMap);
+    },
+
+    setValueForType: function(value, type){
+        var alias = DataTransferTypeAliases[type] || type;
+        try{
+            this._dataTransfer.setData(type, value);
+            this._typeMap[alias] = type;
+        }catch(e){
+        }
+    },
+
+    valueForType: function(type){
+        if (type === UIPasteboard.ContentType.files){
+            return this._dataTransfer.files;
+        }
+        var dataTransferType = this._typeMap[type];
+        if (dataTransferType === undefined){
+            return null;
+        }
+        return this._dataTransfer.getData(dataTransferType);
+    },
+
+    containsType: function(type){
+        return type in this._typeMap;
+    },
+
+});
+
+var DataTransferTypeAliases = {
+    'Text': 'text/plain'
+};
+
+})();

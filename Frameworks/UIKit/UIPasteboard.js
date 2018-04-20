@@ -1,13 +1,18 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject, UIPasteboard */
+/* global JSClass, JSObject, JSReadOnlyProperty, UIPasteboard */
 'use strict';
 
 JSClass("UIPasteboard", JSObject, {
 
     _valuesByType: null,
+    types: JSReadOnlyProperty(),
 
     init: function(){
         this._valuesByType = {};
+    },
+
+    getTypes: function(){
+        return Object.keys(this._valuesByType);
     },
 
     setValueForType: function(value, type){
@@ -22,8 +27,24 @@ JSClass("UIPasteboard", JSObject, {
     },
 
     containsType: function(type){
-        return this._valuesByType[type] && this._valuesByType[type].length > 0;
+        return (type in this._valuesByType) && this._valuesByType[type].length > 0;
     },
+
+    containsAnyType: function(types){
+        for (var i = 0, l = types.length; i < l; ++i){
+            if (this.containsType(types[i])){
+                return true;
+            }
+        }
+        return false;
+    },
+
+    copy: function(other){
+        var types = other.types;
+        for (var i = 0, l = types.length; i < l; ++i){
+            this.setValueForType(other.valueForType(types[i]));
+        }
+    }
 
 });
 
@@ -42,5 +63,6 @@ Object.defineProperty(UIPasteboard, 'general', {
 
 UIPasteboard.ContentType = {
     plainText: 'text/plain',
-    html: 'text/html'
+    html: 'text/html',
+    files: 'Files'
 };

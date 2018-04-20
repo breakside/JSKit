@@ -256,7 +256,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
             runDescriptor = runDescriptors[runIndex];
 
             if (runLineIndex === 0 && runDescriptor.startX < x){
-                // This run starts off positioned to the left of the previous run's end, so
+                // This run starts off positioned to the left of (or equal to) the previous run's start, so
                 // it must be on a new line.  Happens when the previous run's end coincides with a line wrap/break.
                 // Since we've found our break, just stop here
                 stop = true;
@@ -275,7 +275,14 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                 fragment = UIHTMLTextTypesetterRunDescriptorFragment(runDescriptor, remainingRange.intersection(runDescriptor.range));
                 runIndex++;
                 runLineIndex = 0;
-                x = runDescriptor.endX;
+                // adding 1 so there's a little give in the check above
+                // NOTE: the original logic here was to set x = runDescriptor.endX,
+                // under the theory that a run in the same line will have a startX >= the previous run's endX.
+                // This was true most of the time in most browsers, but Firefox had an interesting behavior
+                // when an italicized run was followed by another run.  The endX of the italicized run was
+                // greater than the startX of the following run.  So, using the startX of the previous run
+                // works just as well, provided the text is left justified.
+                x = runDescriptor.startX + 1;
                 remainingRange.advance(fragment.range.length);
                 fragments.push(fragment);
             }

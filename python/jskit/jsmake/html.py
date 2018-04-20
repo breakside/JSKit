@@ -153,7 +153,8 @@ class HTMLBuilder(Builder):
             fp.write('@font-face {\n')
             fp.write('  font-family: "%s";\n' % font['info']['family'])
             fp.write('  font-style: %s;\n' % font['info']['style'])
-            fp.write('  font-weight: %s;\n' % font['info']['weight'])
+            # TTF weights can be 1 to 1000, CSS weights can on be multiples of 100
+            fp.write('  font-weight: %s;\n' % ((font['info']['weight'] / 100) * 100))
             fp.write('  src: %s;\n' % ', '.join([self.font_src(variant) for variant in font['variants']]))
             fp.write('}\n\n')
         fp.close()

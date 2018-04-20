@@ -22,7 +22,8 @@ JSClass("UIHTMLTextFramesetter", UITextFramesetter, {
     createFrame: function(size, range, maximumLines){
         this._creatingFrame = true;
         this._resetReusableFrameElement();
-        this._htmlTypesetter.layoutRange(range, size, this.attributes.lineBreakMode);
+        var lineBreakMode = this.effectiveLineBreakMode(this.attributes.lineBreakMode, 1, maximumLines);
+        this._htmlTypesetter.layoutRange(range, size, lineBreakMode);
         return UIHTMLTextFramesetter.$super.createFrame.call(this, size, range, maximumLines);
     },
 

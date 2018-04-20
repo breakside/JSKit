@@ -4,8 +4,13 @@
 // #import "UIKit/UILayer.js"
 // #import "UIKit/UIView.js"
 // #import "UIKit/UITooltipWindow.js"
-/* global JSClass, JSObject, UIWindowServer, UIEvent, JSPoint, UIWindowServerInit, UITouch, UICursor, UILayer, UIView, JSTimer, UITooltipWindow, JSSize, JSRect */
+// #import "UIKit/UIDraggingSession.js"
+/* global JSClass, JSObject, UIWindowServer, UIEvent, JSPoint, UIWindowServerInit, UITouch, UICursor, UILayer, UIView, JSTimer, UITooltipWindow, JSSize, JSRect, UIDraggingSession, UIDragOperation, jslog_create */
 'use strict';
+
+(function(){
+
+var logger = jslog_create("com.owenshaw.UIKit.WindowServer");
 
 JSClass("UIWindowServer", JSObject, {
 
@@ -15,39 +20,28 @@ JSClass("UIWindowServer", JSObject, {
     keyWindow: null,
     mainWindow: null,
     screen: null,
+    mouseLocation: null,
     _menuStack: [],
     _windowsById: null,
     _mouseIdleTimer: null,
     _tooltipWindow: null,
     _tooltipSourceView: null,
+    _draggingSession: null,
+    _activeEvent: null,
+
+    // -----------------------------------------------------------------------
+    // MARK: - Creating a Window Server
 
     init: function(){
         this.windowStack = [];
         this._menuStack = [];
         this._windowsById = {};
-        this._mouseIdleTimer = JSTimer.initWithInterval(1.25, false, this.mouseDidIdle, this);
+        this._mouseIdleTimer = JSTimer.initWithInterval(1.25, false, this._mouseDidIdle, this);
+        this.mouseLocation = JSPoint.Zero;
     },
 
-    _previousEventWindow: null,
-
-    _beginWindowLevelChange: function(){
-        if (this._previousEventWindow !== null){
-            return;
-        }
-        var location = this._getLastMouseLocation();
-        this._previousEventWindow = this.windowForEventAtLocation(location);
-    },
-
-    _endWindowLevelChange: function(){
-        if (this._previousEventWindow === null){
-            return;
-        }
-        var location = this._getLastMouseLocation();
-        var previousEventWindow = this._previousEventWindow;
-        var currentEventWindow = this.windowForEventAtLocation(location);
-        this._previousEventWindow = null;
-        this._createTrackingEventsForWindowLevelChangeAtLocation(location, previousEventWindow, currentEventWindow);
-    },
+    // -----------------------------------------------------------------------
+    // MARK: - Inserting and Removing Windows
 
     makeMenuVisible: function(menu){
         this._beginWindowLevelChange();
@@ -183,9 +177,146 @@ JSClass("UIWindowServer", JSObject, {
         this._endWindowLevelChange();
     },
 
+    _previousEventWindow: null,
+
+    _beginWindowLevelChange: function(){
+        if (this._previousEventWindow !== null){
+            return;
+        }
+        this._previousEventWindow = this.windowForEventAtLocation(this.mouseLocation);
+    },
+
+    _endWindowLevelChange: function(){
+        if (this._previousEventWindow === null){
+            return;
+        }
+        var previousEventWindow = this._previousEventWindow;
+        var currentEventWindow = this.windowForEventAtLocation(this.mouseLocation);
+        this._previousEventWindow = null;
+        this._createTrackingEventsForWindowLevelChangeAtLocation(this.mouseLocation, previousEventWindow, currentEventWindow);
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Screen Coordination
+
+    screenDidChangeFrame: function(){
+        var window;
+        for (var i = 0, l = this.windowStack.length; i < l; ++i){
+            window = this.windowStack[i];
+            if (window.constraintBox){
+                window.frame = UILayer.FrameForConstraintBoxInBounds(window.constraintBox, window._screen.frame);
+            }
+        }
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Text Input Coordination
+
     windowDidChangeResponder: function(window){
         this.textInputManager.windowDidChangeResponder(window);
     },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Cursor Managment
+
+    viewDidChangeCursor: function(view, cursor){
+        // subclasses should override
+    },
+
+    hideCursor: function(){
+        // subclasses should override
+    },
+
+    unhideCursor: function(){
+        // subclasses should override
+    },
+
+    setCursor: function(cursor){
+        // subclasses should override
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Tooltips
+
+    showTooltipForView: function(view, screenLocation){
+        var safeArea = view.window.screen.frame.rectWithInsets(3);
+
+        this._tooltipSourceView = view;
+        this._tooltipWindow = UITooltipWindow.initWithString(view.tooltip, JSSize(safeArea.size.width * 0.3, safeArea.size.height));
+
+        var origin = JSPoint(screenLocation);
+        origin.y += 20; // Accounting for cursor
+
+        if (origin.y + this._tooltipWindow.frame.size.height >= safeArea.origin.y + safeArea.size.height){
+            origin.y = screenLocation.y - this._tooltipWindow.frame.size.height;
+        }
+
+        if (origin.y < safeArea.origin.y){
+            origin.y = safeArea.origin.y;
+            origin.x += 20; // Accounting for cursor, since we're probably overlapping after this y-origin adjustment
+        }
+
+        if (origin.x + this._tooltipWindow.frame.size.width >= safeArea.origin.x + safeArea.size.width){
+            origin.x = safeArea.origin.x + safeArea.size.width - this._tooltipWindow.frame.size.width;
+        }
+        if (origin.x < safeArea.origin.x){
+            origin.x = safeArea.origin.x;
+        }
+
+        this._tooltipWindow.frame = JSRect(origin, this._tooltipWindow.frame.size);
+        this._tooltipWindow.makeVisible();
+    },
+
+    hideTooltip: function(){
+        this._tooltipWindow.close();
+        this._tooltipWindow = null;
+        this._tooltipSourceView = null;
+    },
+
+    updateTooltip: function(){
+        if (this._tooltipWindow === null){
+            return;
+        }
+        var window = this.windowForEventAtLocation(this.mouseLocation);
+        var shouldHideTooltip = true;
+        var view = null;
+        if (window !== null){
+            view = window.hitTest(window.convertPointFromScreen(this.mouseLocation));
+            if (view === this._tooltipSourceView){
+                shouldHideTooltip = false;
+            }
+        }
+        if (shouldHideTooltip){
+            this.hideTooltip();
+            if (view !== null && view.tooltip !== null){
+                this.showTooltipForView(view, this.mouseLocation);
+            }
+        }
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Sending Events
+
+    _sendEventToApplication: function(event, application){
+        this._activeEvent = event;
+        application.sendEvent(event);
+        this._activeEvent = null;
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Keyboard Events
+
+    createKeyEvent: function(type, timestamp, keyCode){
+        var event = UIEvent.initKeyEventWithType(type, timestamp, this.keyWindow, keyCode);
+        if (this.shouldDraggingSessionHandleKey(event)){
+            this.handleDraggingKeyEvent(event);
+        }else{
+            this._sendEventToApplication(event, this.keyWindow.application);
+        }
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Finding Windows by Location
 
     windowAtScreenLocation: function(location){
         var _window;
@@ -207,70 +338,148 @@ JSClass("UIWindowServer", JSObject, {
         return this.windowAtScreenLocation(location);
     },
 
-    viewDidChangeCursor: function(view, cursor){
-        // subclasses should override
+    // -----------------------------------------------------------------------
+    // MARK: - Mouse Events
+
+    mouseDownWindow: null,
+    isLeftMouseDown: false,
+    isRightMouseDown: false,
+    mouseDownCount: 0,
+    mouseEventWindow: null,
+
+    createMouseEvent: function(type, timestamp, location){
+        var isADown = false;
+        var isAnUp = false;
+        var ignore = false;
+        switch (type){
+            case UIEvent.Type.LeftMouseDown:
+                isADown = true;
+                ignore = this.isLeftMouseDown;
+                this.isLeftMouseDown = true;
+                break;
+            case UIEvent.Type.RightMouseDown:
+                isADown = true;
+                ignore = this.isLeftMouseDown;
+                this.isRightMouseDown = true;
+                break;
+            case UIEvent.Type.LeftMouseUp:
+                isAnUp = true;
+                ignore = !this.isLeftMouseDown;
+                this.isLeftMouseDown = false;
+                break;
+            case UIEvent.Type.RightMouseUp:
+                isAnUp = true;
+                ignore = !this.isRightMouseDown;
+                this.isRightMouseDown = false;
+                break;
+        }
+
+        if (ignore){
+            logger.warn("Ignoring mouse event: %d".sprintf(type));
+            return;
+        }
+
+        if (isADown){
+            if (this.mouseDownCount === 0 && this._draggingSession === null){
+                this.mouseDownWindow = this.mouseEventWindow = this.windowForEventAtLocation(location);
+            }
+            ++this.mouseDownCount;
+        }
+
+        var event;
+        var targetWindow = this.mouseEventWindow;
+        var originalDownWindow = this.mouseDownWindow;
+
+        if (isAnUp){
+            --this.mouseDownCount;
+            if (this.mouseDownCount === 0){
+                this.mouseDownWindow = null;
+                this.mouseEventWindow = null;
+            }
+        }
+
+        if (this._draggingSession !== null){
+            if (type == UIEvent.Type.LeftMouseUp){
+                this.draggingSessionDidPerformOperation();
+            }
+        }else{
+            if (targetWindow !== null){
+                event = UIEvent.initMouseEventWithType(type, timestamp, targetWindow, targetWindow.convertPointFromScreen(location));
+                this._sendEventToApplication(event, targetWindow.application);
+                /* Need to figure this out, probably still required, but I need a test case
+                if ((type === UIEvent.Type.LeftMouseUp && downType === UIEvent.Type.LeftMouseDown) || (type === UIEvent.Type.RightMouseUp && downType === UIEvent.Type.RightMouseDown)){
+                    // If a mouse down causes a new window to open, like a menu, the resulting mouse up will be sent to the
+                    // menu window, but we also want to hear about it in the original window in order to do things like update the button state
+                    if (originalDownWindow !== targetWindow){
+                        event = UIEvent.initMouseEventWithType(type, timestamp, originalDownWindow, originalDownWindow.convertPointFromScreen(location));
+                        this._sendEventToApplication(event, originalDownWindow.application);
+                    }
+                }
+                */
+            }
+        }
     },
 
-    hideCursor: function(){
-        // subclasses should override
+    resetMouseState: function(timestamp){
+        if (this._draggingSession !== null){
+            // stop the dragging session immediately because we don't want the
+            // mouse up to be interpreted as a drop
+            this.stopDraggingSession();
+        }
+        if (this.isRightMouseDown){
+            this.createMouseEvent(UIEvent.Type.RightMouseUp, timestamp, this.mouseLocation);
+        }
+        if (this.isLeftMouseDown){
+            this.createMouseEvent(UIEvent.Type.LeftMouseUp, timestamp, this.mouseLocation);
+        }
     },
 
-    unhideCursor: function(){
-        // subclasses should override
+    mouseDidMove: function(timestamp){
+        this._mouseIdleTimer.invalidate();
+        if (this._draggingSession !== null){
+            this.draggingSessionDidChangeLocation();
+        }else{
+            if (this.mouseDownCount === 0){
+                if (this._tooltipWindow === null){
+                    this._mouseIdleTimer.schedule();
+                }else{
+                    this.updateTooltip();
+                }
+            }else{
+                if (this.isLeftMouseDown){
+                    this.createMouseEvent(UIEvent.Type.LeftMouseDragged, timestamp, this.mouseLocation);
+                }
+                if (this.isRightMouseDown){
+                    this.createMouseEvent(UIEvent.Type.RightMouseDragged, timestamp, this.mouseLocation);
+                }
+            }
+        }
     },
 
-    setCursor: function(cursor){
-        // subclasses should override
+    _mouseDidIdle: function(){
+        var window = this.windowForEventAtLocation(this.mouseLocation);
+        if (window !== null){
+            var view = window.hitTest(window.convertPointFromScreen(this.mouseLocation));
+            if (view !== null && view.tooltip !== null){
+                this.showTooltipForView(view, this.mouseLocation);
+            }
+        }
     },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Mouse Tracking
 
     viewDidChangeMouseTracking: function(view, trackingType){
         // subclasses should override
     },
 
-    screenDidChangeFrame: function(){
-        var window;
-        for (var i = 0, l = this.windowStack.length; i < l; ++i){
-            window = this.windowStack[i];
-            if (window.constraintBox){
-                window.frame = UILayer.FrameForConstraintBoxInBounds(window.constraintBox, window._screen.frame);
-            }
+    createMouseTrackingEvent: function(type, timestamp, location, view, force){
+        if (!force && !this._shouldCreateTrackingEventForView(view)){
+            return;
         }
-    },
-
-    mouseDownWindow: null,
-    mouseDownType: null,
-    mouseEventWindow: null,
-
-    _getLastMouseLocation: function(){
-        return JSPoint.Zero;
-    },
-
-    createMouseEvent: function(type, timestamp, location){
-        if (this.mouseDownWindow === null && (type === UIEvent.Type.LeftMouseDown || type === UIEvent.Type.RightMouseDown)){
-            this.mouseDownWindow = this.mouseEventWindow = this.windowForEventAtLocation(location);
-            this.mouseDownType = type;
-        }
-        var event;
-        var targetWindow = this.mouseEventWindow;
-        var originalDownWindow = this.mouseDownWindow;
-        var downType = this.mouseDownType;
-        if ((type === UIEvent.Type.LeftMouseUp && downType === UIEvent.Type.LeftMouseDown) || (type === UIEvent.Type.RightMouseUp && downType === UIEvent.Type.RightMouseDown)){
-            this.mouseDownWindow = null;
-            this.mouseDownType = null;
-            this.mouseEventWindow = null;
-        }
-        if (targetWindow !== null){
-            event = UIEvent.initMouseEventWithType(type, timestamp, targetWindow, targetWindow.convertPointFromScreen(location));
-            targetWindow.application.sendEvent(event);
-        }
-        if ((type === UIEvent.Type.LeftMouseUp && downType === UIEvent.Type.LeftMouseDown) || (type === UIEvent.Type.RightMouseUp && downType === UIEvent.Type.RightMouseDown)){
-            // If a mouse down causes a new window to open, like a menu, the resulting mouse up will be sent to the
-            // menu window, but we also want to hear about it in the original window in order to do things like update the button state
-            if (originalDownWindow !== targetWindow){
-                event = UIEvent.initMouseEventWithType(type, timestamp, originalDownWindow, originalDownWindow.convertPointFromScreen(location));
-                originalDownWindow.application.sendEvent(event);
-            }
-        }
+        var event = UIEvent.initMouseEventWithType(type, timestamp, view.window, view.window.convertPointFromScreen(location));
+        event.trackingView = view;
+        this._sendEventToApplication(event, view.window.application);
     },
 
     _shouldCreateTrackingEventForView: function(view){
@@ -326,90 +535,116 @@ JSClass("UIWindowServer", JSObject, {
         return null;
     },
 
-    createMouseTrackingEvent: function(type, timestamp, location, view, force){
-        if (!force && !this._shouldCreateTrackingEventForView(view)){
-            return;
+    // -----------------------------------------------------------------------
+    // MARK: - Drag and Drop
+
+    _draggingSource: null,
+    _draggingDestination: null,
+    _dragOperation: 0,
+
+    createDraggingSessionWithItems: function(items, event, view){
+        if (event.type != UIEvent.Type.LeftMouseDragged){
+            throw new Error("Cannot create drag session with event type: %d", event.type);
         }
-        var event = UIEvent.initMouseEventWithType(type, timestamp, view.window, view.window.convertPointFromScreen(location));
-        event.trackingView = view;
-        view.window.application.sendEvent(event);
+        var session = UIDraggingSession.initWithItems(items, event, view);
+        this._draggingSource = view;
+        this.startDraggingSession(session);
+        return session;
     },
 
-    mouseDidMove: function(timestamp){
-        this._mouseIdleTimer.invalidate();
+    startDraggingSession: function(session){
+        if (this._draggingSession !== null){
+            this.stopDraggingSession();
+            logger.warn("Creating a new dragging session with one already active.");
+        }
+        this._draggingSession = session;
         if (this._tooltipWindow !== null){
-            var location = this._getLastMouseLocation();
-            var window = this.windowForEventAtLocation(location);
-            var shouldHideTooltip = true;
-            var view = null;
-            if (window !== null){
-                view = window.hitTest(window.convertPointFromScreen(location));
-                if (view === this._tooltipSourceView){
-                    shouldHideTooltip = false;
-                }
-            }
-            if (shouldHideTooltip){
-                this.hideTooltip();
-                if (view !== null && view.tooltip !== null){
-                    this.showTooltipForView(view, location);
-                }
-            }
-        }else{
-            this._mouseIdleTimer.schedule();
+            this.hideTooltip();
         }
     },
 
-    mouseDidIdle: function(){
-        var location = this._getLastMouseLocation();
-        var window = this.windowForEventAtLocation(location);
+    stopDraggingSession: function(){
+        if (this._draggingSource){
+            this._draggingSource.draggingSessionEnded(this._draggingSession, UIDragOperation.none);
+        }
+        if (this._draggingDestination){
+            this._draggingDestination.draggingExited(); // FIXME: arguments
+        }
+        this._cleanupDraggingSession();
+    },
+
+    draggingSessionDidChangeLocation: function(){
+        var window = this.windowForEventAtLocation(this.mouseLocation);
+        var operation = UIDragOperation.none;
         if (window !== null){
-            var view = window.hitTest(window.convertPointFromScreen(location));
-            if (view !== null && view.tooltip !== null){
-                this.showTooltipForView(view, location);
+            var view = window.hitTest(window.convertPointFromScreen(this.mouseLocation));
+            while (view !== null && !this._draggingSession.isValidDestination(view)){
+                view = view.superview;
+            }
+            if (view !== this._draggingDestination){
+                if (this._draggingDestination !== null){
+                    this._draggingDestination.draggingExited(); // FIXME: arguments
+                }
+                this._draggingDestination = view;
+                if (this._draggingDestination !== null){
+                    operation = this._draggingDestination.draggingEntered(); // FIXME: arguments
+                }
+            }else if (this._draggingDestination !== null){
+                operation = this._draggingDestination.draggingUpdated(); // FIXME: arguments
             }
         }
+        this._dragOperation = operation;
+        return operation;
     },
 
-    showTooltipForView: function(view, screenLocation){
-        var safeArea = view.window.screen.frame.rectWithInsets(3);
-
-        this._tooltipSourceView = view;
-        this._tooltipWindow = UITooltipWindow.initWithString(view.tooltip, JSSize(safeArea.size.width * 0.3, safeArea.size.height));
-
-        var origin = JSPoint(screenLocation);
-        origin.y += 20; // Accounting for cursor
-
-        if (origin.y + this._tooltipWindow.frame.size.height >= safeArea.origin.y + safeArea.size.height){
-            origin.y = screenLocation.y - this._tooltipWindow.frame.size.height;
+    draggingSessionDidPerformOperation: function(){
+        if (this._draggingDestination !== null && this._dragOperation !== UIDragOperation.none){
+            this._draggingDestination.performDragOperation(); // FIXME: arguments
         }
-
-        if (origin.y < safeArea.origin.y){
-            origin.y = safeArea.origin.y;
-            origin.x += 20; // Accounting for cursor, since we're probably overlapping after this y-origin adjustment
+        if (this._draggingSource !== null){
+            this._draggingSource.draggingSessionEnded(this._draggingSession, this._dragOperation);
         }
-
-        if (origin.x + this._tooltipWindow.frame.size.width >= safeArea.origin.x + safeArea.size.width){
-            origin.x = safeArea.origin.x + safeArea.size.width - this._tooltipWindow.frame.size.width;
-        }
-        if (origin.x < safeArea.origin.x){
-            origin.x = safeArea.origin.x;
-        }
-
-        this._tooltipWindow.frame = JSRect(origin, this._tooltipWindow.frame.size);
-        this._tooltipWindow.makeVisible();
+        this._cleanupDraggingSession();
     },
 
-    hideTooltip: function(){
-        this._tooltipWindow.close();
-        this._tooltipWindow = null;
-        this._tooltipSourceView = null;
-        this._mouseIdleTimer.schedule();
+    _cleanupDraggingSession: function(){
+        this._draggingSession = null;
+        this._draggingSource = null;
+        this._draggingDestination = null;
+        this._dragOperation = UIDragOperation.none;
     },
 
-    createKeyEvent: function(type, timestamp, keyCode){
-        var event = UIEvent.initKeyEventWithType(type, timestamp, this.keyWindow, keyCode);
-        this.keyWindow.application.sendEvent(event);
+    shouldDraggingSessionHandleKey: function(){
+        return this._draggingSession !== null;
     },
+
+    handleDraggingKeyEvent: function(event){
+        switch (event.type){
+            case UIEvent.Type.KeyDown:
+                switch (event.keyCode){
+                    case 27:
+                        // Resetting the entire mouse state.  If we only stopped the drag
+                        // session, mouse move events would be directed to the view that
+                        // started the drag, and it likely will just start another drag
+                        this.resetMouseState();
+                        break;
+                    case 18:
+                        // prefer copy
+                        break;
+                }
+                break;
+            case UIEvent.Type.KeyUp:
+                switch (event.keyCode){
+                    case 18:
+                        // remove copy preference
+                        break;
+                }
+                break;
+        }
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Touch Events
 
     activeTouchEvent: null,
 
@@ -442,7 +677,7 @@ JSClass("UIWindowServer", JSObject, {
 
         // Dispatch the event to the application(s)
         for (var id in applicationsById){
-            applicationsById[id].sendEvent(this.activeTouchEvent);
+            this._sendEventToApplication(this.activeTouchEvent, applicationsById[id]);
         }
 
         // Clear the active touch memeber if all touches have ended
@@ -471,6 +706,8 @@ JSClass("UIWindowServer", JSObject, {
     }
 
 });
+
+})();
 
 // Lazy init a property, so the first access is a function call, but subsequent accesses are simple values
 Object.defineProperty(UIWindowServer, 'defaultServer', {
