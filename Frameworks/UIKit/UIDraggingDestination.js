@@ -17,6 +17,6 @@ JSGlobalObject.UIDragOperation = {
     none: 0,
     copy: 1,
     link: 2,
-    generic: 4,
-    move: 16
+    move: 4,
+    all: 7
 };

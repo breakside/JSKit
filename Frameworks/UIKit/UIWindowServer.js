@@ -538,16 +538,11 @@ JSClass("UIWindowServer", JSObject, {
     // -----------------------------------------------------------------------
     // MARK: - Drag and Drop
 
-    _draggingSource: null,
-    _draggingDestination: null,
-    _dragOperation: 0,
-
     createDraggingSessionWithItems: function(items, event, view){
         if (event.type != UIEvent.Type.LeftMouseDragged){
             throw new Error("Cannot create drag session with event type: %d", event.type);
         }
         var session = UIDraggingSession.initWithItems(items, event, view);
-        this._draggingSource = view;
         this.startDraggingSession(session);
         return session;
     },
@@ -564,16 +559,14 @@ JSClass("UIWindowServer", JSObject, {
     },
 
     stopDraggingSession: function(){
-        if (this._draggingSource){
-            this._draggingSource.draggingSessionEnded(this._draggingSession, UIDragOperation.none);
-        }
-        if (this._draggingDestination){
-            this._draggingDestination.draggingExited(); // FIXME: arguments
-        }
-        this._cleanupDraggingSession();
+        this._draggingSession.operation = UIDragOperation.none;
+        this.draggingSessionDidPerformOperation();
     },
 
     draggingSessionDidChangeLocation: function(){
+        if (!this._draggingSession.isActive){
+            return;
+        }
         var window = this.windowForEventAtLocation(this.mouseLocation);
         var operation = UIDragOperation.none;
         if (window !== null){
@@ -581,37 +574,27 @@ JSClass("UIWindowServer", JSObject, {
             while (view !== null && !this._draggingSession.isValidDestination(view)){
                 view = view.superview;
             }
-            if (view !== this._draggingDestination){
-                if (this._draggingDestination !== null){
-                    this._draggingDestination.draggingExited(); // FIXME: arguments
+            if (view !== this._draggingSession.destination){
+                if (this._draggingSession.destination !== null){
+                    this._draggingSession.destination.draggingExited(); // FIXME: arguments
                 }
-                this._draggingDestination = view;
-                if (this._draggingDestination !== null){
-                    operation = this._draggingDestination.draggingEntered(); // FIXME: arguments
+                this._draggingSession.destination = view;
+                if (this._draggingSession.destination !== null){
+                    operation = this._draggingSession.destination.draggingEntered(); // FIXME: arguments
                 }
-            }else if (this._draggingDestination !== null){
-                operation = this._draggingDestination.draggingUpdated(); // FIXME: arguments
+            }else if (this._draggingSession.destination !== null){
+                operation = this._draggingSession.destination.draggingUpdated(); // FIXME: arguments
             }
         }
-        this._dragOperation = operation;
-        return operation;
+        this._draggingSession.operation = operation;
     },
 
     draggingSessionDidPerformOperation: function(){
-        if (this._draggingDestination !== null && this._dragOperation !== UIDragOperation.none){
-            this._draggingDestination.performDragOperation(); // FIXME: arguments
+        if (!this._draggingSession.isActive){
+            this._draggingSession.operation = UIDragOperation.none;
         }
-        if (this._draggingSource !== null){
-            this._draggingSource.draggingSessionEnded(this._draggingSession, this._dragOperation);
-        }
-        this._cleanupDraggingSession();
-    },
-
-    _cleanupDraggingSession: function(){
+        this._draggingSession.end();
         this._draggingSession = null;
-        this._draggingSource = null;
-        this._draggingDestination = null;
-        this._dragOperation = UIDragOperation.none;
     },
 
     shouldDraggingSessionHandleKey: function(){

@@ -42,7 +42,7 @@ JSClass("UIPasteboard", JSObject, {
     copy: function(other){
         var types = other.types;
         for (var i = 0, l = types.length; i < l; ++i){
-            this.setValueForType(other.valueForType(types[i]));
+            this.setValueForType(other.valueForType(types[i]), types[i]);
         }
     }
 

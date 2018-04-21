@@ -6,7 +6,7 @@
 // #import "UIKit/UIHTMLDisplayServer.js"
 // #import "UIKit/UIHTMLTextInputManager.js"
 // #feature Element.prototype.addEventListener
-/* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor, UIView, JSRect, UIScreen, UIDraggingSession, UIHTMLDataTransferPasteboard */
+/* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor, UIView, JSRect, UIScreen, UIDraggingSession, UIHTMLDataTransferPasteboard, UIDragOperation */
 'use strict';
 
 (function(){
@@ -64,11 +64,10 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.addEventListener('mousemove', this, false);
         this.rootElement.addEventListener('keydown', this, false);
         this.rootElement.addEventListener('keyup', this, false);
-        // this.rootElement.addEventListener('dragstart', this, false);
-        // this.rootElement.addEventListener('dragend', this, false);
+        this.rootElement.addEventListener('dragstart', this, false);
+        this.rootElement.addEventListener('dragend', this, false);
         this.rootElement.addEventListener('dragover', this, false);
         this.rootElement.addEventListener('dragenter', this, false);
-        // this.rootElement.addEventListener('dragleave', this, false);
         this.rootElement.addEventListener('drop', this, false);
         this.rootElement.addEventListener('mouseleave', this, false);
         this.rootElement.addEventListener('contextmenu', this, false);
@@ -100,7 +99,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         // use CSS user-select: none to prevent text selection, and all modern browsers support that,
         // so there's no side-effect of keeping the default down and move behaviors.
         // FIXME: there actually is a side-effect: the text input textarea is blurred on mousedown
-        if (e.cancelable){
+        if (e.cancelable && e.type != 'mousedown' && e.type != 'mousemove' && e.type != 'dragstart'){
             e.preventDefault();
         }
     },
@@ -166,7 +165,6 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             var listener = {
                 handleEvent: function(e){
                     e.stopPropagation();
-                    e.preventDefault();
                     this[e.type](e);
                 },
 
@@ -217,7 +215,16 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
 
     mouseleave: function(e){
         this._updateMouseLocation(e);
-        this.resetMouseState(e.timeStamp / 1000.0);
+        // When the mouse leaves the root element, we won't get further events.
+        // For example, if a mouse button is down, we won't hear about an up outside
+        // the root element.  Therefore, the best option is to reset our mouse state, 
+        // which effectively works like a mouse up for any button that is down.
+        // An exception, however, is a dragging session that was initiated here in html
+        // (i.e., a session with source); we will continue to get the drag events for it,
+        // and want to keep the drag going.
+        if (this._draggingSession === null || this._draggingSession.source === null){
+            this.resetMouseState(e.timeStamp / 1000.0);
+        }
     },
 
     keydown: function(e){
@@ -237,21 +244,16 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     dragstart: function(e){
-        // Unused.  We don't support HTML drag source events.
-        // They aren't terribly useful because they only add the ability
-        // to drag text or html out of the browser.  It also seems like
-        // our mousedown and mousemove event.preventDefault() stops the
-        // browser from generating drag events.  Working around this isn't
-        // yet worth the small benefit of dragging text out of the browser.
+        this._draggingSession.isActive = true;
+        var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
+        temporaryPasteboard.copy(this._draggingSession.pasteboard);
+        e.dataTransfer.effectAllowed = DragOperationToEffectAllowed[this._draggingSession.allowedOperations] || 'none';
+        // TODO: set dragImage
     },
 
     dragend: function(e){
-        // Unused.  We don't support HTML drag source events.
-        // They aren't terribly useful because they only add the ability
-        // to drag text or html out of the browser.  It also seems like
-        // our mousedown and mousemove event.preventDefault() stops the
-        // browser from generating drag events.  Working around this isn't
-        // yet worth the small benefit of dragging text out of the browser.
+        e.target.draggable = false;
+        this.resetMouseState(e.timeStamp / 1000.0);
     },
 
     dragenter: function(e){
@@ -262,6 +264,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             this._updateMouseLocation(e);
             var pasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
             var session = UIDraggingSession.initWithPasteboard(pasteboard);
+            session.allowedOperations = EffectAllowedToDragOperation[e.effectAllowed] || UIDragOperation.none;
             this.startDraggingSession(session);
         }
     },
@@ -269,14 +272,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     dragover: function(e){
         this._updateMouseLocation(e);
         this.mouseDidMove(e.timeStamp / 1000.0);
-    },
-
-    dragleave: function(e){
-        // Fired ever time the drag target changes.  We'll get a dragover immediately after,
-        // and that's where we update the UI.
-        // Intially thought we needed to know when the drag left the root element, in order
-        // to cancel the dragging session, but we still get a mouseleave in that case, which
-        // cancels the dragging session itself.
+        e.dataTransfer.dropEffect = DragOperationToDropEffect[this._draggingSession.operation] || 'none';
     },
 
     drop: function(e){
@@ -409,6 +405,14 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.mouseLocation.y = e.clientY - this._screenClientOrigin.y;
     },
 
+    createDraggingSessionWithItems: function(items, event, view){
+        var session = UIHTMLWindowServer.$super.createDraggingSessionWithItems.call(this, items, event, view);
+        session.isActive = false;
+        var context = this.displayServer.contextForLayer(view.layer);
+        context.element.draggable = true;
+        return session;
+    }
+
 });
 
 // From https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
@@ -417,7 +421,6 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
 // 2: Secondary button pressed, usually the right button
 // 3: Fourth button, typically the Browser Back button
 // 4: Fifth button, typically the Browser Forward button
-UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_NONE = -1;
 UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT = 0;
 UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT = 2;
 
@@ -434,7 +437,7 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
         var alias;
         for (i = 0, l = dataTransfer.types.length; i < l; ++i){
             type = dataTransfer.types[i];
-            alias = DataTransferTypeAliases[type] || type;
+            alias = DataTransferTypeAliases[type.toLowerCase()] || type;
             this._typeMap[alias] = type;
         }
     },
@@ -444,7 +447,7 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
     },
 
     setValueForType: function(value, type){
-        var alias = DataTransferTypeAliases[type] || type;
+        var alias = DataTransferTypeAliases[type.toLowerCase()] || type;
         try{
             this._dataTransfer.setData(type, value);
             this._typeMap[alias] = type;
@@ -470,7 +473,41 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
 });
 
 var DataTransferTypeAliases = {
-    'Text': 'text/plain'
+    'text': 'text/plain',
+    'url':  'text/uri-list'
+};
+
+var DragOperationToDropEffect = [
+    'none',
+    'copy',
+    'link',
+    'copy',
+    'move',
+    'copy',
+    'link',
+    'copy',
+];
+
+var DragOperationToEffectAllowed = [
+    'none',
+    'copy',
+    'link',
+    'copyLink',
+    'move',
+    'copyMove',
+    'linkMove',
+    'all'
+];
+
+var EffectAllowedToDragOperation = {
+    'none':     UIDragOperation.none,
+    'copy':     UIDragOperation.copy,
+    'link':     UIDragOperation.link,
+    'copyLink': UIDragOperation.copy | UIDragOperation.link,
+    'move':     UIDragOperation.move,
+    'copyMove': UIDragOperation.copy | UIDragOperation.move,
+    'linkMove': UIDragOperation.link | UIDragOperation.move,
+    'all':      UIDragOperation.all
 };
 
 })();
