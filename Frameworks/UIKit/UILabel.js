@@ -22,7 +22,7 @@ JSClass('UILabel', UIView, {
             this.font = JSFont.fontWithDescriptor(descriptor, font.pointSize);
         }
         if ("text" in values){
-            this.text = values.text;
+            this.text = spec.resolvedValue(values.text);
         }
         if ("lines" in values){
             this.maximumNumberOfLines = spec.resolvedValue(values.lines);

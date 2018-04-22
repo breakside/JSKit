@@ -5,7 +5,8 @@
 
 JSClass('JSPropertyList', JSObject, {
 
-    initWithResource: function(name){
+    initWithResource: function(name, bundle){
+        bundle = bundle || JSBundle.mainBundle;
         var ext;
         var extIndex = name.lastIndexOf('.');
         var extentions = [];
@@ -15,7 +16,7 @@ JSClass('JSPropertyList', JSObject, {
         }else{
             ext = 'json';
         }
-        var metadata = JSBundle.mainBundle.metadataForResourceName(name, ext);
+        var metadata = bundle.metadataForResourceName(name, ext);
         this.initWithObject(metadata.value);
     },
 

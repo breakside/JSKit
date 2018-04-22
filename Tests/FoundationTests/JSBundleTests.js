@@ -89,4 +89,8 @@ JSClass('JSBundleTests', TKTestSuite, {
         TKAssertNull(test2);
     }
 
+    // TODO: localized resources
+
+    // TODO: localized strings
+
 });

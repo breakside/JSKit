@@ -9,6 +9,7 @@ import shutil
 import mimetypes
 import datetime
 import collections
+import yaml
 from .image import ImageInfoExtractor
 from .font import FontInfoExtractor
 from .bundle import Bundle
@@ -26,6 +27,7 @@ class Builder(object):
     mainBundle = None
     watchedFiles = None
     statusMessage = ""
+    stringsFiles = None
 
     def __init__(self, projectPath, includePaths, outputParentPath, debug=False):
         self.includePaths = [os.path.realpath(path) for path in includePaths]
@@ -34,6 +36,7 @@ class Builder(object):
         self.debug = debug
         self.bundles = dict()
         self.watchedFiles = []
+        self.stringsFiles = []
 
     def run(self, watch=False):
         if watch:
@@ -253,6 +256,11 @@ class Builder(object):
     def scanResourceFolder(self, bundle, resourcesPath, parentNameComponents):
         self.updateStatus("Building Resources...")
         dirname = os.path.join(resourcesPath, *parentNameComponents)
+        localization = None
+        if len(parentNameComponents) > 0:
+            possibleLang, parentExt = os.path.splitext(parentNameComponents[-1])
+            if parentExt == '.lproj':
+                localization = possibleLang
         for filename in os.listdir(dirname):
             if filename[0] == '.':
                 continue
@@ -270,6 +278,8 @@ class Builder(object):
             elif ext == '.plist':
                 obj = plistlib.readPlist(fullPath)
                 self.buildJSONLikeResource(bundle, nameComponents, fullPath, obj)
+            elif ext == '.yaml' and localization is not None:
+                self.buildStringsFile(bundle, localization, nameComponents, fullPath)
             else:
                 mime, encoding = mimetypes.guess_type(fullPath)
                 if mime is None:
@@ -308,6 +318,28 @@ class Builder(object):
             extractor = extractors[k]
             extractor.populate_dict(info)
             metadata[k] = info
+        self.watchFile(fullPath)
+        return bundle.addResource(nameComponents, metadata)
+
+    def buildStringsFile(self, bundle, localization, nameComponents, fullPath):
+        strings = dict()
+        fp = open(fullPath, 'r')
+        obj = yaml.safe_load(fp)
+        top = obj.get(localization, None)
+        if top is None:
+            raise Exception("Expecting top level key '%s' in '%s'" % (localization, fullPath))
+
+        def walk(node, prefix=u''):
+            for x in node:
+                if isinstance(node[x], basestring):
+                    strings[prefix + x] = node[x]
+                else:
+                    walk(node[x], prefix + x + '.')
+
+        walk(top)
+        metadata = dict(
+            strings=strings
+        )
         self.watchFile(fullPath)
         return bundle.addResource(nameComponents, metadata)
 

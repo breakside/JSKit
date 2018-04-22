@@ -32,8 +32,15 @@ JSClass('JSBundle', JSObject, {
         if (hits !== undefined){
             return this._dict.Resources[hits[0]];
         }
+        return this._localizedMetadataForLookupKey(lookupKey);
+    },
+
+    _localizedMetadataForLookupKey: function(lookupKey, filter){
+        var lookup;
+        var hits;
         var devlang = this._dict.Info[JSBundle.InfoKeys.developmentLanguage];
         var langs = [];
+        var metadata;
         // TODO: add user-preferred languages
         if (devlang !== undefined){
             langs.push(devlang);
@@ -43,7 +50,10 @@ JSClass('JSBundle', JSObject, {
             if (lookup){
                 hits = lookup[lookupKey];
                 if (hits !== undefined){
-                    return this._dict.Resources[hits[0]];
+                    metadata = this._dict.Resources[hits[0]];
+                    if (!filter || filter(metadata)){
+                        return metadata;
+                    }
                 }
             }
         }
@@ -63,7 +73,21 @@ JSClass('JSBundle', JSObject, {
             fonts.push(this._dict.Resources[this._dict.Fonts[i]]);
         }
         return fonts;
-    }
+    },
+
+    localizedString: function(key, table){
+        if (table === undefined){
+            table = "Localizable";
+        }
+        table += '.yaml';
+        var metadata = this._localizedMetadataForLookupKey(table, function(m){
+            return key in m.strings;
+        });
+        if (metadata !== null){
+            return metadata.strings[key];
+        }
+        return "";
+    },
 
 });
 
