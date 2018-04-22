@@ -154,7 +154,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                 this._isOverridingCursor = true;
                 for (id in this._cursorViewsById){
                     context = this.displayServer.contextForLayer(this._cursorViewsById[id].layer);
-                    this._setViewCursor(context.element, ['']);
+                    this._setElementCursor(context.element, ['']);
                 }
             }
         }else{
@@ -163,7 +163,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                 for (id in this._cursorViewsById){
                     view = this._cursorViewsById[id];
                     context = this.displayServer.contextForLayer(view.layer);
-                    this._setViewCursor(context.element, view.cursor.cssStrings());
+                    this._setElementCursor(context.element, view.cursor.cssStrings());
                 }
             }
         }
@@ -467,11 +467,15 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
     },
 
     setValueForType: function(value, type){
-        var alias = DataTransferTypeAliases[type.toLowerCase()] || type;
         try{
             this._dataTransfer.setData(type, value);
-            this._typeMap[alias] = type;
+            this._typeMap[type] = type;
         }catch(e){
+            var reverseAlias = DataTransferTypeAliasesReveresed[type.toLowerCase()];
+            if (reverseAlias){
+                this._dataTransfer.setData(reverseAlias, value);
+                this._typeMap[type] = reverseAlias;
+            }
         }
     },
 
@@ -495,6 +499,11 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
 var DataTransferTypeAliases = {
     'text': 'text/plain',
     'url':  'text/uri-list'
+};
+
+var DataTransferTypeAliasesReveresed = {
+    'text/plain': 'Text',
+    'text/uri-list': 'Url'
 };
 
 var DragOperationToDropEffect = [

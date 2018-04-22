@@ -309,9 +309,6 @@ JSClass('UIView', UIResponder, {
         return UIDragOperation.none;
     },
 
-    draggingEnded: function(){
-    },
-
     draggingExited: function(){
     },
 

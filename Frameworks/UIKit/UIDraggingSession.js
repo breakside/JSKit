@@ -32,9 +32,9 @@ JSClass("UIDraggingSession", JSObject, {
         }
         if (this.destination){
             if (this.operation === UIDragOperation.none){
-                this.destination.draggingExited(); // FIXME: arguments
+                this.destination.draggingExited(this);
             }else{
-                this.destination.performDragOperation(); // FIXME: arguments
+                this.destination.performDragOperation(this, this.operation);
             }
         }
     },
@@ -42,9 +42,6 @@ JSClass("UIDraggingSession", JSObject, {
     initWithPasteboard: function(pasteboard, screenLocation){
         this._screenLocation = JSPoint(screenLocation);
         this._pasteboard = pasteboard;
-    },
-
-    enumerateItems: function(destination, callback){
     },
 
     isValidDestination: function(destination){

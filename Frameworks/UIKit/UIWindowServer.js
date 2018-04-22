@@ -576,14 +576,14 @@ JSClass("UIWindowServer", JSObject, {
             }
             if (view !== this._draggingSession.destination){
                 if (this._draggingSession.destination !== null){
-                    this._draggingSession.destination.draggingExited(); // FIXME: arguments
+                    this._draggingSession.destination.draggingExited(this._draggingSession);
                 }
                 this._draggingSession.destination = view;
                 if (this._draggingSession.destination !== null){
-                    operation = this._draggingSession.destination.draggingEntered(); // FIXME: arguments
+                    operation = this._draggingSession.destination.draggingEntered(this._draggingSession);
                 }
             }else if (this._draggingSession.destination !== null){
-                operation = this._draggingSession.destination.draggingUpdated(); // FIXME: arguments
+                operation = this._draggingSession.destination.draggingUpdated(this._draggingSession);
             }
         }
         this._draggingSession.operation = operation & this._draggingSession.allowedOperations;
