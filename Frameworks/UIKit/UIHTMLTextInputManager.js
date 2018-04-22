@@ -85,6 +85,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
     _selectedRange: JSRange(0, 0),
     _config: null,
     _rangeUpdateScheduled: false,
+    _isFocused: false,
 
     initWithRootElement: function(rootElement){
         this.rootElement = rootElement;
@@ -127,13 +128,21 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
 
     windowDidChangeResponder: function(window){
         UIHTMLTextInputManager.$super.windowDidChangeResponder.call(this, window);
+        this._ensureCorrectFocus();
+    },
+
+    _ensureCorrectFocus: function(){
         if (this.textInputClient){
             this._config = UIHTMLTextInputManager._HiddenConfig;
-            this.hiddenInputElement.focus();
+            if (!this._isFocused){
+                this.hiddenInputElement.focus();
+            }
             // FIXME: what if _isComposing is true?  The old responder needs to be told to stop
             this._reset();
         }else{
-            this.hiddenInputElement.blur();
+            if (this._isFocused){
+                this.hiddenInputElement.blur();
+            }
         }
     },
 
@@ -145,6 +154,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
         if (e.currentTarget === this.domWindow){
             // logger.info("window focus");
         }else if (e.currentTarget === this.hiddenInputElement){
+            this._isFocused = true;
             // logger.info("input focus");
         }
         e.stopPropagation();
@@ -154,6 +164,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
         if (e.currentTarget === this.domWindow){
             // logger.info("window blur");
         }else if (e.currentTarget === this.hiddenInputElement){
+            this._isFocused = false;
             // Mobile devices can hide the keyboard, blurring the hidden input
             // field even when there's a current responder.  In such a case,
             // we need to clear the current responder.

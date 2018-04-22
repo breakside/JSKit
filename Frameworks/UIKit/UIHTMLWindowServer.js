@@ -197,6 +197,13 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     mouseup: function(e){
+        // The original mousedown handler called preventDefault, which ensured that
+        // we wouldn't lose focus from our hidden text intput field (the browser
+        // default on mouse down is to blur a focused text field).  However, to
+        // accomodate drag and drop, we can't prevent default on mousedown.  Now,
+        // each mousedown causes a blur on the text input.  So, we need to restore
+        // the focus on mouse up
+        this.textInputManager._ensureCorrectFocus();
         this._updateMouseLocation(e);
         switch (e.button){
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
@@ -264,7 +271,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             this._updateMouseLocation(e);
             var pasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
             var session = UIDraggingSession.initWithPasteboard(pasteboard);
-            session.allowedOperations = EffectAllowedToDragOperation[e.effectAllowed] || UIDragOperation.none;
+            session.allowedOperations = EffectAllowedToDragOperation[e.dataTransfer.effectAllowed] || UIDragOperation.none;
             this.startDraggingSession(session);
         }
     },

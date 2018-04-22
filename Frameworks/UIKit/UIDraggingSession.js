@@ -11,7 +11,7 @@ JSClass("UIDraggingSession", JSObject, {
     pasteboard: JSReadOnlyProperty('_pasteboard', null),
     source: null,
     destination: null,
-    allowedOperations: UIDragOperation.link,
+    allowedOperations: UIDragOperation.all,
     operation: UIDragOperation.none,
     isActive: true,
 

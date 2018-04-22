@@ -586,7 +586,7 @@ JSClass("UIWindowServer", JSObject, {
                 operation = this._draggingSession.destination.draggingUpdated(); // FIXME: arguments
             }
         }
-        this._draggingSession.operation = operation;
+        this._draggingSession.operation = operation & this._draggingSession.allowedOperations;
     },
 
     draggingSessionDidPerformOperation: function(){
