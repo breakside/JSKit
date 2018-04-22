@@ -23,6 +23,10 @@ JSClass('JSImage', JSObject, {
         return _JSResourceImage.initWithResourceName(name, bundle);
     },
 
+    initWithResourceMetadata: function(metadata, bundle){
+        return _JSResourceImage.initWithResourceMetadata(metadata, bundle);
+    },
+
     initWithData: function(data, scale){
         return _JSDataImage.initWithData(data, scale);
     },
@@ -79,6 +83,12 @@ JSClass("_JSResourceImage", JSImage, {
 
     bundle: null,
     metadata: null,
+
+    initWithResourceMetadata: function(metadata, bundle){
+        this.metadata = metadata;
+        this.bundle = bundle;
+        _JSResourceImage.$super._initWithPixelSize.call(this, JSSize(this.metadata.image.width, this.metadata.image.height), metadata.scale || 1);
+    },
 
     initWithResourceName: function(name, bundle){
         this.bundle = bundle || JSBundle.mainBundle;

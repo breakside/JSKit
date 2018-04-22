@@ -1,10 +1,10 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject, JSPoint, UICursor */
+/* global JSClass, JSObject, JSPoint, UICursor, JSImage, JSBundle, JSCopy */
 'use strict';
 
 JSClass("UICursor", JSObject, {
 
-    image: null,
+    _scaledImages: null,
     hotSpot: JSPoint.Zero,
     systemIdentifier: null,
 
@@ -12,16 +12,56 @@ JSClass("UICursor", JSObject, {
         this.systemIdentifier = systemIdentifier;
     },
 
-    initWithImage: function(image, hotSpot){
-        this.image = image;
-        this.hotSpot = hotSpot;
+    initWithImageNamed: function(imageName, hotSpot, bundle){
+        bundle = bundle || JSBundle.mainBundle;
+        var setName = imageName + '.imageset';
+        var set = bundle.metadataForResourceName('Contents', 'json', setName);
+        var info;
+        var image;
+        var scaledImages = [];
+        var metadata;
+        if (set !== null){
+            set = set.value;
+            for (var i = 0, l = set.images.length; i < l; ++i){
+                info = set.images[i];
+                metadata = JSCopy(bundle.metadataForResourceName(info.filename, null, setName));
+                metadata.scale = info.scale || 1;
+                image = JSImage.initWithResourceMetadata(metadata, bundle);
+                scaledImages.push(image);
+            }
+        }else{
+            image = JSImage.initWithResourceName(imageName, bundle);
+            scaledImages.push(image);
+        }
+        this._initWithScaledImages(scaledImages, hotSpot);
     },
 
-    cssString: function(){
+    initWithImage: function(image, hotSpot){
+        this._initWithScaledImages([image], hotSpot);
+    },
+
+    _initWithScaledImages: function(scaledImages, hotSpot){
+        this._scaledImages = scaledImages;
+        this.hotSpot = JSPoint(hotSpot);
+    },
+
+    cssStrings: function(){
         if (this.systemIdentifier !== null){
-            return this.systemIdentifier;
+            return [this.systemIdentifier];
         }
-        return 'url("%s") %d %d, default'.sprintf(this.image.htmlURLString(), this.hotSpot.x, this.hotSpot.y);
+        var image1x = this._scaledImages[0];
+        var image;
+        var imageSet = [];
+        for (var i = 0, l = this._scaledImages.length; i < l; ++i){
+            image = this._scaledImages[i];
+            if (image.scale === 1){
+                image1x = image;
+            }
+            imageSet.push('url("%s") %fx'.sprintf(image.htmlURLString(), image.scale));
+        }
+        var fallbackCSS = 'url("%s") %d %d, default'.sprintf(image1x.htmlURLString(), this.hotSpot.x, this.hotSpot.y);
+        var webkitCSS = '-webkit-image-set(%s) %d %d, default'.sprintf(imageSet.join(", "), this.hotSpot.x, this.hotSpot.y);
+        return [webkitCSS, fallbackCSS];
     },
 
     push: function(){

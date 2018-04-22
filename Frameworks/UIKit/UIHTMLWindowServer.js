@@ -113,13 +113,23 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             this._cursorViewsById[view.objectID] = view;
         }
         if (!this._isOverridingCursor){
-            this._setViewCursor(view, cursor !== null ? cursor.cssString() : '');
+            var context = this.displayServer.contextForLayer(view.layer);
+            this._setElementCursor(context.element, cursor !== null ? cursor.cssStrings() : ['']);
         }
     },
 
-    _setViewCursor: function(view, cssCursor){
-        var context = this.displayServer.contextForLayer(view.layer);
-        context.style.cursor = cssCursor;
+    _setElementCursor: function(element, cssCursorStrings){
+        // UICursor.cssStrings() returns a set of css strings, one of which
+        // should work in our browser, but some of which may fail because they
+        // use commands specific to other browsers.  The failure looks like
+        // style.cursor is an empty string, so we'll keep going until it's
+        // not an empty string, or we're out of options
+        for (var i = 0, l = cssCursorStrings.length; i < l; ++i){
+            element.style.cursor = cssCursorStrings[i];
+            if (element.style.cursor !== ''){
+                break;
+            }
+        }
     },
 
     hideCursor: function(){
@@ -131,18 +141,20 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     setCursor: function(cursor){
-        this._setCursor(cursor.cssString(), UICursor._stack.length > 1);
+        this._setCursor(cursor.cssStrings(), UICursor._stack.length > 1);
     },
 
-    _setCursor: function(cssCursor, isOverride){
-        this.rootElement.style.cursor = cssCursor;
+    _setCursor: function(cssCursorStrings, isOverride){
+        this._setElementCursor(this.rootElement, cssCursorStrings);
         var id;
         var view;
+        var context;
         if (isOverride){
             if (!this._isOverridingCursor){
                 this._isOverridingCursor = true;
                 for (id in this._cursorViewsById){
-                    this._setViewCursor(this._cursorViewsById[id], '');
+                    context = this.displayServer.contextForLayer(this._cursorViewsById[id].layer);
+                    this._setViewCursor(context.element, ['']);
                 }
             }
         }else{
@@ -150,7 +162,8 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                 this._isOverridingCursor = false;
                 for (id in this._cursorViewsById){
                     view = this._cursorViewsById[id];
-                    this._setViewCursor(view, view.cursor.cssString());
+                    context = this.displayServer.contextForLayer(view.layer);
+                    this._setViewCursor(context.element, view.cursor.cssStrings());
                 }
             }
         }
