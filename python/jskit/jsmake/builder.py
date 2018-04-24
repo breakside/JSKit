@@ -9,7 +9,7 @@ import shutil
 import mimetypes
 import datetime
 import collections
-import yaml
+from . import yml
 from .image import ImageInfoExtractor
 from .font import FontInfoExtractor
 from .bundle import Bundle
@@ -191,16 +191,18 @@ class Builder(object):
         infoPath = os.path.join(projectPath, infoName)
         if os.path.exists(infoPath):
             return infoPath, plistlib.readPlist(infoPath)
-        else:
-            infoName = 'Info.json'
-            infoPath = os.path.join(projectPath, infoName)
-            if (os.path.exists(infoPath)):
-                try:
-                    return infoPath, json.load(open(infoPath), object_pairs_hook=collections.OrderedDict)
-                except Exception as e:
-                    raise Exception("Error parsing Info.json: %s" % e.message)
-            else:
-                raise Exception("An Info.json or Info.plist file is required to build")
+        infoName = 'Info.yaml'
+        infoPath = os.path.join(projectPath, infoName)
+        if os.path.exists(infoPath):
+            return infoPath, yml.load(infoPath)
+        infoName = 'Info.json'
+        infoPath = os.path.join(projectPath, infoName)
+        if os.path.exists(infoPath):
+            try:
+                return infoPath, json.load(open(infoPath), object_pairs_hook=collections.OrderedDict)
+            except Exception as e:
+                raise Exception("Error parsing Info.json: %s" % e.message)
+        raise Exception("An Info.(json|plist|yaml) file is required to build")
 
 
     def setup(self):
@@ -233,18 +235,27 @@ class Builder(object):
 
     def findSpecIncludes(self, spec):
         for k, v in spec.items():
-            if k == 'JSIncludes':
-                for path in v:
-                    self.includes.append(path)
-            elif k == 'JSInclude':
-                self.includes.append(v)
-            elif k == 'JSIncludeAll':
+            if k == 'class':
+                path = v + '.js'
                 for includeDir in self.includePaths:
-                    path = os.path.join(includeDir, v)
-                    if os.path.exists(path) and os.path.isdir(path):
-                        for file in os.listdir(path):
-                            if file[-3:] == '.js':
-                                self.includes.append(u"%s/%s" % (v, file))
+                    if os.path.exists(os.path.join(includeDir, path)):
+                        self.includes.append(path)
+            elif k == 'include':
+                if isinstance(v, basestring):
+                    includes = [v]
+                else:
+                    includes = v
+                for path in includes:
+                    if path[-2:] == "/*":
+                        name = path[:-2]
+                        for includeDir in self.includePaths:
+                            path = os.path.join(includeDir, name)
+                            if os.path.exists(path) and os.path.isdir(path):
+                                for file in os.listdir(path):
+                                    if file[-3:] == '.js':
+                                        self.includes.append(u"%s/%s" % (name, file))
+                    else:
+                        self.includes.append(path)
             elif isinstance(v, dict):
                 self.findSpecIncludes(v)
 
@@ -278,8 +289,12 @@ class Builder(object):
             elif ext == '.plist':
                 obj = plistlib.readPlist(fullPath)
                 self.buildJSONLikeResource(bundle, nameComponents, fullPath, obj)
-            elif ext == '.yaml' and localization is not None:
-                self.buildStringsFile(bundle, localization, nameComponents, fullPath)
+            elif ext == '.yaml':
+                if localization is not None:
+                    self.buildStringsFile(bundle, localization, nameComponents, fullPath)
+                else:
+                    obj = yml.load(fullPath)
+                    self.buildJSONLikeResource(bundle, nameComponents, fullPath, obj)
             else:
                 mime, encoding = mimetypes.guess_type(fullPath)
                 if mime is None:
@@ -323,8 +338,7 @@ class Builder(object):
 
     def buildStringsFile(self, bundle, localization, nameComponents, fullPath):
         strings = dict()
-        fp = open(fullPath, 'r')
-        obj = yaml.safe_load(fp)
+        obj = yml.load(fullPath)
         top = obj.get(localization, None)
         if top is None:
             raise Exception("Expecting top level key '%s' in '%s'" % (localization, fullPath))

@@ -191,17 +191,24 @@ JSClass('JSBundle', JSObject, {
 
     localizedString: function(key, table){
         if (table === undefined){
-            table = "Localizable";
+            table = "Localizable.strings";
         }
-        table += '.yaml';
         var metadata = this._localizedMetadataForLookupKey(table, function(m){
             return key in m.strings;
         });
         if (metadata !== null){
             return metadata.strings[key];
         }
-        return "";
+        return key;
     },
+
+    localizedStringForInfoKey: function(infoKey){
+        var infoValue = this._dict.Info[infoKey];
+        if (infoValue && infoValue.length > 0 && infoValue.charAt(0) === '.'){
+            return this.localizedString(infoValue.substr(1), "Info.strings");
+        }
+        return infoValue;
+    }
 
 });
 

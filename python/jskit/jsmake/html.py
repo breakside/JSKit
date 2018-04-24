@@ -234,7 +234,7 @@ class HTMLBuilder(Builder):
         while len(stack) > 0:
             node = stack.pop()
             if node.tagName == 'title' and node.parentNode.tagName == 'head':
-                node.appendChild(document.createTextNode(self.mainBundle.info.get('UIApplicationTitle', '')))
+                node.appendChild(document.createTextNode(self.mainBundle.developmentLoocalizedInfoString('UIApplicationTitle')))
             elif node.tagName == 'script' and node.getAttribute('type') == 'text/javascript':
                 if not hasInsertedLogger:
                     loggerResource = None

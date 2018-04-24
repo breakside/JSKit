@@ -1,7 +1,4 @@
 {
     "JSBundleIdentifier": "com.yourcompany.sample",
-    "JSBundleDisplayName": "${PROJECT_NAME}",
-    "JSIncludes": [
-        "Foundation/Foundation+HTML.js"
-    ]
+    "JSBundleDisplayName": "${PROJECT_NAME}"
 }

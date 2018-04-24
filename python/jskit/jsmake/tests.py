@@ -66,7 +66,9 @@ class TestsBuilder(Builder):
     def buildBinaryResource(self, bundle, nameComponents, fullPath, mime, extractors=dict()):
         resourceIndex = super(TestsBuilder, self).buildBinaryResource(bundle, nameComponents, fullPath, mime, extractors)
         metadata = bundle.resources[resourceIndex]
-        outputPath = os.path.join(self.outputResourcePath, *nameComponents)
+        outputPath = os.path.join(self.outputResourcePath, bundle.identifier, *nameComponents)
+        if not os.path.exists(os.path.dirname(outputPath)):
+            os.makedirs(os.path.dirname(outputPath))
         metadata.update(dict(
              htmlURL=os.path.relpath(outputPath, self.outputProjectPath).replace(os.sep, '/'),
              nodeBundlePath=outputPath

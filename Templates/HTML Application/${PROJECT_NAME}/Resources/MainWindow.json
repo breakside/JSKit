@@ -1,28 +1,26 @@
 {
-	"JSFilesOwner": "#App Delegate",
-	"App Delegate": {
-		"JSObjectClass": "ApplicationDelegate",
-		"JSInclude": "ApplicationDelegate.js",
-		"JSOutlets": {
-			"window": "#Main Window"
-		}
-	},
-	"Dark Color": {
-		"JSObjectClass" : "JSColor",
-		"rgba": "204,0,0"
-	},
-	"Main Window": {
-		"JSObjectClass": "UIWindow",
-		"contentViewController": "#Main View Controller"
-	},
-	"Main View Controller": {
-		"JSObjectClass": "MainViewController",
-		"view": "#Main View",
-		"JSInclude": "MainViewController.js"
-	},
-	"Main View": {
-		"JSObjectClass": "UIView",
-		"constraintBox.margin": 0,
-		"backgroundColor": "#Dark Color"
-	}
+    "File's Owner": "/App Delegate",
+    "App Delegate": {
+        "class": "ApplicationDelegate",
+        "outlets": {
+            "window": "/Main Window"
+        }
+    },
+    "Dark Color": {
+        "class" : "JSColor",
+        "rgba": "204,0,0"
+    },
+    "Main Window": {
+        "class": "UIWindow",
+        "contentViewController": "/Main View Controller"
+    },
+    "Main View Controller": {
+        "class": "MainViewController",
+        "view": "/Main View"
+    },
+    "Main View": {
+        "class": "UIView",
+        "constraintBox.margin": 0,
+        "backgroundColor": "/Dark Color"
+    }
 }

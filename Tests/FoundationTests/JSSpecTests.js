@@ -36,7 +36,7 @@ JSClass("JSSpecTests", TKTestSuite, {
     testInstantiatedObject: function(){
         var plist = JSPropertyList.initWithObject({
             "test1": {
-                "JSObjectClass": "JSSpecTestsObject",
+                "class": "JSSpecTestsObject",
                 "testKey": 12
             }
         });
@@ -49,10 +49,10 @@ JSClass("JSSpecTests", TKTestSuite, {
     testResolvedObject: function(){
         var plist = JSPropertyList.initWithObject({
             "Test One": {
-                "JSObjectClass": "JSSpecTestsObject",
+                "class": "JSSpecTestsObject",
                 "testKey": 12
             },
-            "test2": "#Test One"
+            "test2": "/Test One"
         });
         var spec = JSSpec.initWithPropertyList(plist);
         var obj = spec.resolvedValue(plist.test2);
@@ -63,10 +63,10 @@ JSClass("JSSpecTests", TKTestSuite, {
     testSingleInstantiation: function(){
         var plist = JSPropertyList.initWithObject({
             "Test One": {
-                "JSObjectClass": "JSSpecTestsObject",
+                "class": "JSSpecTestsObject",
                 "testKey": 12
             },
-            "test2": "#Test One"
+            "test2": "/Test One"
         });
         var spec = JSSpec.initWithPropertyList(plist);
         var obj1 = spec.resolvedValue(plist.test2);
@@ -78,25 +78,47 @@ JSClass("JSSpecTests", TKTestSuite, {
     testFilesOwner: function(){
         var plist = JSPropertyList.initWithObject({
             "Test One": {
-                "JSObjectClass": "JSSpecTestsObject",
+                "class": "JSSpecTestsObject",
                 "testKey": 12
             },
-            "JSFilesOwner": "#Test One"
+            "File's Owner": "/Test One"
         });
         var spec = JSSpec.initWithPropertyList(plist);
         var owner = spec.filesOwner();
         TKAssert(owner.isKindOfClass(JSSpecTestsObject));
         TKAssertEquals(owner.test, 12);
+    },
+
+    testCircularReference: function(){
+        var plist = JSPropertyList.initWithObject({
+            "Test One": {
+                "class": "JSSpecTestsObject",
+                "testKey": 12,
+                "target": "/Test Two",
+            },
+            "Test Two": {
+                "class": "JSSpecTestsObject",
+                "target": "/Test One"
+            },
+            "File's Owner": "/Test One"
+        });
+        var spec = JSSpec.initWithPropertyList(plist);
+        var owner = spec.filesOwner();
+        TKAssertNotNull(owner);
     }
 
 });
 
 JSClass("JSSpecTestsObject", JSObject, {
     test: 0,
+    target: null,
 
     initWithSpec: function(spec, values){
         JSSpecTestsObject.$super.initWithSpec.call(this, spec, values);
         this.test = values.testKey;
+        if ('target' in values){
+            this.target = spec.resolvedValue(values.target);
+        }
     }
 });
 

@@ -17,7 +17,7 @@ JSClass("UIControl", UIView, {
     },
 
     initWithSpec: function(spec, values){
-        UIControl.$super.initWithSpec.call(this, spec);
+        UIControl.$super.initWithSpec.call(this, spec, values);
         this.commonUIControlInit();
         if (('target' in values) && ('action' in values)){
             var target = spec.resolvedValue(values.target);

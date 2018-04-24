@@ -28,17 +28,20 @@ JSObject.prototype = Object.create(Object.prototype, {
 });
 
 JSObject.defineInitMethod = function(methodName){
+    var isSpec = methodName === 'initWithSpec';
     Object.defineProperty(this, methodName, {
         configurable: true,
         enumerable: false,
         value: function JSObject_createAndInit(){
-            var args = Array.prototype.slice.call(arguments, 0);
             var obj = Object.create(this.prototype);
             obj.objectID = ++JSObject.ID;
             obj._observers = [];
             obj._bindings = {};
             obj._observableKeys = {};
-            var result = obj[methodName].apply(obj, args);
+            if (isSpec && arguments.length > 0 && arguments[0] !== null && arguments[0].willInitObject){
+                arguments[0].willInitObject(obj);
+            }
+            var result = obj[methodName].apply(obj, Array.prototype.slice.call(arguments, 0));
             if (result === undefined){
                 return obj;
             }
@@ -70,15 +73,15 @@ JSObject.definePropertiesFromExtensions({
     },
 
     initWithSpec: function(spec, values){
-        if ("JSBindings" in values){
-            for (var i = 0, l = values.JSBindings.length; i < l; ++i){
-                var bindingValues = values.JSBindings[i];
+        if ("bindings" in values){
+            for (var i = 0, l = values.bindings.length; i < l; ++i){
+                var bindingValues = values.bindings[i];
                 this.bind(bindingValues.binding, spec.resolvedValue(bindingValues.toObject), bindingValues.keyPath, bindingValues.options);
             }
         }
-        if ("JSOutlets" in values){
-            for (var key in values.JSOutlets){
-                this.setValueForKey(key, spec.resolvedValue(values.JSOutlets[key]));
+        if ("outlets" in values){
+            for (var key in values.outlets){
+                this.setValueForKey(key, spec.resolvedValue(values.outlets[key]));
             }
         }
     },

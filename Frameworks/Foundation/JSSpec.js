@@ -11,6 +11,7 @@ JSClass('JSSpec', JSObject, {
     _objectMap: null,
     _bundle: null,
     _baseName: null,
+    _keyForNextObjectInit: null,
 
     initWithResource: function(resource, bundle){
         var extIndex = resource.lastIndexOf('.');
@@ -40,8 +41,9 @@ JSClass('JSSpec', JSObject, {
                 var c = value.charAt(0);
                 var _value = value.substr(1);
                 switch (c) {
-                    case '#':
+                    case '/':
                         if (!(_value in this._objectMap)){
+                            this._keyForNextObjectInit = _value;
                             this._objectMap[_value] = this.resolvedValue(this._plist[_value]);
                         }
                         return this._objectMap[_value];
@@ -49,7 +51,7 @@ JSClass('JSSpec', JSObject, {
                         return JSResolveDottedName(JSGlobalObject, _value);
                     case '.':
                         if (this._bundle !== null && this._baseName !== null){
-                            return this._bundle.localizedString(_value, this._baseName);
+                            return this._bundle.localizedString(_value, this._baseName + '.strings');
                         }
                         return value;
                     case '\\':
@@ -68,11 +70,19 @@ JSClass('JSSpec', JSObject, {
             }
         }
         return value;
+    },
+
+    willInitObject: function(obj){
+        if (this._keyForNextObjectInit === null){
+            return;
+        }
+        this._objectMap[this._keyForNextObjectInit] = obj;
+        this._keyForNextObjectInit = null;
     }
 
 });
 
 JSSpec.Keys = {
-    FilesOwner: "JSFilesOwner",
-    ObjectClass: "JSObjectClass"
+    FilesOwner: "File's Owner",
+    ObjectClass: "class"
 };

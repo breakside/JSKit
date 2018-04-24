@@ -61,3 +61,14 @@ class Bundle(object):
             Fonts=[i for i in range(len(self.resources)) if "font" in self.resources[i]]
         )
 
+    def developmentLoocalizedInfoString(self, infoKey):
+        infoValue = self.info.get(infoKey, '')
+        devlang = self.info.get('JSDevelopmentLanguage', None)
+        if devlang is not None and devlang in self.resourceLookup:
+            if len(infoValue) > 0 and infoValue[0] == '.':
+                table = self.resourceLookup.get(devlang, dict()).get("Info.strings", [])
+                if len(table) > 0:
+                    table = self.resources[table[0]]['strings']
+                    return table.get(infoValue[1:], '')
+        return infoValue
+

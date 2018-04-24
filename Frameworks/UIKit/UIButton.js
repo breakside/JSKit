@@ -29,7 +29,7 @@ JSClass("UIButton", UIControl, {
     },
 
     initWithSpec: function(spec, values){
-        UIButton.$super.initWithSpec.call(this, spec);
+        UIButton.$super.initWithSpec.call(this, spec, values);
         if ('styler' in values){
             this._styler = spec.resolvedValue(values.styler);
         }else{
