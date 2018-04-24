@@ -47,7 +47,7 @@ class TestsBuilder(Builder):
         self.outputResourcePath = os.path.join(self.outputProjectPath, "Resources")
         self.nginxPath = os.path.join(self.outputProjectPath, "nginx")
         self.nginxWwwPath = os.path.join(self.nginxPath, "www")
-        if self.debug:
+        if self.debug and os.path.exists(self.outputProjectPath):
             for child in os.listdir(self.outputProjectPath):
                 if child != 'nginx' and child[0] != '.':
                     child = os.path.join(self.outputProjectPath, child)
@@ -63,9 +63,9 @@ class TestsBuilder(Builder):
             os.makedirs(self.nginxPath)
         self.appJS = []
 
-    def buildBinaryResource(self, nameComponents, fullPath, mime, extractors=dict()):
-        resourceIndex = super(TestsBuilder, self).buildBinaryResource(nameComponents, fullPath, mime, extractors)
-        metadata = self.mainBundle.resources[resourceIndex]
+    def buildBinaryResource(self, bundle, nameComponents, fullPath, mime, extractors=dict()):
+        resourceIndex = super(TestsBuilder, self).buildBinaryResource(bundle, nameComponents, fullPath, mime, extractors)
+        metadata = bundle.resources[resourceIndex]
         outputPath = os.path.join(self.outputResourcePath, *nameComponents)
         metadata.update(dict(
              htmlURL=os.path.relpath(outputPath, self.outputProjectPath).replace(os.sep, '/'),

@@ -22,11 +22,18 @@ class Bundle(object):
     def identifier(self):
         return self.info.get('JSBundleIdentifier', None)
 
+    def addLocalization(self, localization):
+        if 'JSLocalizations' not in self.info:
+            self.info['JSLocalizations'] = []
+        if localization not in self.info['JSLocalizations']:
+            self.info['JSLocalizations'].append(localization)
+
     def addResource(self, pathComponents, metadata):
         name, ext = os.path.splitext(pathComponents[0])
         localization = 'global'
         if ext == '.lproj':
             localization = name
+            self.addLocalization(localization)
             pathComponents.pop(0)
         path = '/'.join(pathComponents)
         metadata['path'] = path

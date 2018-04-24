@@ -11,6 +11,7 @@
 // #import "Foundation/JSProtocol.js"
 // #import "Foundation/JSObject.js"
 
+// #import "Foundation/JSLocale.js"
 // #import "Foundation/JSAttributedString.js"
 // #import "Foundation/JSBundle.js"
 // #import "Foundation/JSPropertyList.js"

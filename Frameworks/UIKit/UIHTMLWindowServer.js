@@ -78,6 +78,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.addEventListener('beforecopy', this, false);
         this.rootElement.addEventListener('beforepaste', this, false);
         this.domWindow.addEventListener('resize', this, false);
+        this.domWindow.addEventListener('languagechange', this, false);
 
         // mobile
         this.rootElement.addEventListener('touchstart', this, false);
@@ -348,6 +349,11 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             this.screen.frame = JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight);
             this.screenDidChangeFrame();
         }
+    },
+
+    languagechange: function(e){
+        // TODO: could reload the page, but what about unsaved work?
+        // Notify JSLocale and have it handle things?
     },
 
     // mobile

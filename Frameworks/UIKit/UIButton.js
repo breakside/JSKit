@@ -143,7 +143,7 @@ JSClass("UIButton", UIControl, {
         }
         this._state = state;
         this._update();
-    },
+    }
 
 });
 

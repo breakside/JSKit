@@ -1,10 +1,12 @@
 // #import "Foundation/JSObject.js"
-/* global JSClass, JSObject, JSBundle */
+// #import "Foundation/JSLocale.js"
+/* global JSClass, JSObject, JSBundle, JSLocale */
 'use strict';
 
 JSClass('JSBundle', JSObject, {
 
     _dict: null,
+    _supportedPreferredLanguages: null,
 
     initWithIdentifier: function(identifier){
         this.identifier = identifier;
@@ -17,6 +19,125 @@ JSClass('JSBundle', JSObject, {
 
     initWithDictionary: function(dict){
         this._dict = dict;
+        this._updateSupportedUserLanguages();
+    },
+
+    _updateSupportedUserLanguages: function(){
+        this._supportedPreferredLanguages = [];
+        var localizationIdentifiers = this._dict.Info.JSLocalizations || [];
+        var locale;
+        var locales = {};
+        var i, l;
+        var localeKey;
+        // Make a map of supported locales
+        //
+        // Fill in missing generic language codes and language+script codes
+        // based on the least-speicific entry matching that langauge code or
+        // languge+script code.  A tie in specificity goes to the first entry found.
+        // 
+        // ['en-US', 'en-GB', 'en', 'de-DE', 'fr', 'zh-Hans-CN', 'zh-Hans']
+        // --->
+        // {
+        //    'en':         'en',
+        //    'en-US':      'en-US',
+        //    'en-GB':      'en-GB',
+        //    'de':         'de-DE',
+        //    'de-DE':      'de-DE',
+        //    'fr':         'fr',
+        //    'zh':         'zh-Hans',
+        //    'zh-Hans':    'zh-Hans',
+        //    'zh-Hans-CN': 'zh-Hans-CN'
+        // }
+        for (i = 0, l = localizationIdentifiers.length; i < l; ++i){
+            locale = JSLocale.initWithIdentifier(localizationIdentifiers[i]);
+            localeKey = locale.languageCode;
+            if (!(localeKey in locales) || locale.isLessSpecificThan(locales[localeKey])){
+                locales[localeKey] = locale;
+            }
+            if (locale.scriptCode !== null){
+                localeKey = locale.languageCode + '-' + locale.scriptCode;
+                if (!(localeKey in locales) || locale.isLessSpecificThan(locales[localeKey])){
+                    locales[localeKey] = locale;
+                }
+                if (locale.regionCode !== null){
+                    localeKey += '-' + locale.regionCode;
+                    if (!(localeKey in locales) || locale.isLessSpecificThan(locales[localeKey])){
+                        locales[localeKey] = locale;
+                    }
+                }
+            }else if (locale.regionCode !== null){
+                localeKey += '-' + locale.regionCode;
+                if (!(localeKey in locales) || locale.isLessSpecificThan(locales[localeKey])){
+                    locales[localeKey] = locale;
+                }
+            }
+        }
+
+        // Make a sorted list of uer preferred languages (or fallbacks) that we have in the bundle
+        var preferredLanguages = JSLocale.preferredLanguages;
+        for (i = 0, l = preferredLanguages.length; i < l; ++i){
+            locale = JSLocale.initWithIdentifier(preferredLanguages[i]);
+            localeKey = locale.identifierWithoutExtensions;
+            if (localeKey in locales){
+                // We have a direct match in the bundle, which may either be an
+                // exact hit, or an upgrade based on the fill-ins we added above,
+                // when an exact match isn't available.
+                // en-US -> en-US
+                // en -> en-US
+                // 
+                // NOTE: This means a fill in may take precedence over a lower priority exact match
+                // bundle: ('en-US', 'de-DE')
+                // user: ('en', 'de-DE')
+                // Will match en to en-US even though it is not exact.
+                // This kind of ambiguity is removed if the user preferences always include a region
+                this._supportedPreferredLanguages.push(locales[localeKey].identifier);
+            }else if (locale.regionCode !== null){
+                // If we don't have an exact match, the user preference may be specific to a script
+                // or region we don't support, but there may be an alternative script or region we
+                // do support in the same language.  In this case, we'll try to match the language
+                // as best we can.
+                // en-GB -> en
+                // en-GB -> en-US
+                if (locale.scriptCode !== null){
+                    // We have langauge + script + region, but no exact match, so try just language + script
+                    localeKey = locale.languageCode + '-' + locale.scriptCode;
+                    if (localeKey in locales){
+                        this._supportedPreferredLanguages.push(locales[localeKey].identifier);
+                    }else{
+                        // language + script didn't find a match, so try language + region
+                        localeKey = locale.languageCode + '-' + locale.region;
+                        if (localeKey in locales){
+                            this._supportedPreferredLanguages.push(locales[localeKey].identifier);
+                        }else{
+                            // language + region didn't find a match, so try just language
+                            localeKey = locale.languageCode;
+                            if (localeKey in locales){
+                                this._supportedPreferredLanguages.push(locales[localeKey].identifier);
+                            }
+                        }
+                    }
+                }else{
+                    // We have langauge + region, but no exact match, so try just language
+                    localeKey = locale.languageCode;
+                    if (localeKey in locales){
+                        this._supportedPreferredLanguages.push(locales[localeKey].identifier);
+                    }
+                }
+            }else if (locale.scriptCode !== null){
+                // we have language + script, but no exact match, so try just language
+                localeKey = locale.languageCode;
+                if (localeKey in locales){
+                    this._supportedPreferredLanguages.push(locales[localeKey].identifier);
+                }
+            }
+        }
+        // Add the dev language as the final fallback, because we know it exists
+        // NOTE: this may be a duplicate entry, but duplicates cause no problems because
+        // they'll never be reached.
+        var devlang = this._dict.Info[JSBundle.InfoKeys.developmentLanguage];
+        if (devlang !== undefined){
+            this._supportedPreferredLanguages.push(devlang);
+        }
     },
 
     metadataForResourceName: function(name, ext, subdirectory){
@@ -38,22 +159,15 @@ JSClass('JSBundle', JSObject, {
     _localizedMetadataForLookupKey: function(lookupKey, filter){
         var lookup;
         var hits;
-        var devlang = this._dict.Info[JSBundle.InfoKeys.developmentLanguage];
-        var langs = [];
+        var langs = this._supportedPreferredLanguages;
         var metadata;
-        // TODO: add user-preferred languages
-        if (devlang !== undefined){
-            langs.push(devlang);
-        }
         for (var i = 0, l = langs.length; i < l; ++i){
             lookup = this._dict.ResourceLookup[langs[i]];
-            if (lookup){
-                hits = lookup[lookupKey];
-                if (hits !== undefined){
-                    metadata = this._dict.Resources[hits[0]];
-                    if (!filter || filter(metadata)){
-                        return metadata;
-                    }
+            hits = lookup[lookupKey];
+            if (hits !== undefined){
+                metadata = this._dict.Resources[hits[0]];
+                if (!filter || filter(metadata)){
+                    return metadata;
                 }
             }
         }
