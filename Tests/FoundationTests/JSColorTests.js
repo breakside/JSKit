@@ -1,6 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, JSColor, TKTestSuite, TKAssert, TKAssertNull, TKAssertNotNull, TKAssertEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertThrows, JSBundle */
+/* global JSClass, JSColor, TKTestSuite, JSBundle */
+/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
 JSClass('JSColorTests', TKTestSuite, {
@@ -120,5 +121,27 @@ JSClass('JSColorTests', TKTestSuite, {
         color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgba, [0.202, 0.4, 0.6, 1.0]);
         color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgba, [0.203, 0.4, 0.6, 0.999]);
         TKAssertObjectEquals(color1, color2);
+    },
+
+    testColorByBlendingColor: function(){
+        var color1 = JSColor.initWithRGBA(0.1, 0.2, 0.3, 1);
+        var color2 = JSColor.initWithRGBA(0.8, 0.7, 0.1, 0.5);
+        var color = color1.colorByBlendingColor(color2, 0.2);
+        TKAssertFloatEquals(color.components[0], 0.24);
+        TKAssertFloatEquals(color.components[1], 0.3);
+        TKAssertFloatEquals(color.components[2], 0.26);
+        TKAssertFloatEquals(color.components[3], 1);
+
+        color = color1.colorByBlendingColor(color2, 0.8);
+        TKAssertFloatEquals(color.components[0], 0.66);
+        TKAssertFloatEquals(color.components[1], 0.6);
+        TKAssertFloatEquals(color.components[2], 0.14);
+        TKAssertFloatEquals(color.components[3], 1);
+
+        color = color2.colorByBlendingColor(color1, 0.2);
+        TKAssertFloatEquals(color.components[0], 0.66);
+        TKAssertFloatEquals(color.components[1], 0.6);
+        TKAssertFloatEquals(color.components[2], 0.14);
+        TKAssertFloatEquals(color.components[3], 0.5);
     }
 });

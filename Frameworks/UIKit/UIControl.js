@@ -16,9 +16,14 @@ JSClass("UIControl", UIView, {
         this.commonUIControlInit();
     },
 
-    initWithSpec: function(spec){
+    initWithSpec: function(spec, values){
         UIControl.$super.initWithSpec.call(this, spec);
         this.commonUIControlInit();
+        if (('target' in values) && ('action' in values)){
+            var target = spec.resolvedValue(values.target);
+            var action = target[spec.resolvedValue(values.action)];
+            this.addTargetedAction(target, action);
+        }
     },
 
     initWithConstraintBox: function(box){

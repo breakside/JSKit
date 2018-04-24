@@ -127,6 +127,23 @@ JSClass('JSColor', JSObject, {
         }
     },
 
+    colorDarkenedByPercentage: function(darkenPercentage){
+        return this.rgbaColor().colorByBlendingColor(JSColor.initWithRGBA(0, 0, 0, 1), darkenPercentage);
+    },
+
+    colorLightenedByPercentage: function(lightenPercentage){
+        return this.rgbaColor().colorByBlendingColor(JSColor.initWithRGBA(1, 1, 1, 1), lightenPercentage);
+    },
+
+    colorByBlendingColor: function(otherColor, blendPercentage){
+        otherColor = otherColor.rgbaColor();
+        var original = this.rgbaColor();
+        var r = original.red   + (otherColor.red   - original.red)   * blendPercentage;
+        var g = original.green + (otherColor.green - original.green) * blendPercentage;
+        var b = original.blue  + (otherColor.blue  - original.blue)  * blendPercentage;
+        return JSColor.initWithRGBA(r, g, b, original.alpha);
+    },
+
     rgbaColor: function(){
         switch (this.colorSpace){
             case JSColor.SpaceIdentifier.rgb:
@@ -134,13 +151,35 @@ JSClass('JSColor', JSObject, {
             case JSColor.SpaceIdentifier.rgba:
                 return this;
             case JSColor.SpaceIdentifier.hsl:
-                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, JSColor.HSLToRGB(this.hue, this.saturation, this.lightness));
+                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, JSColor.HSLToRGB(this.hue, this.saturation, this.lightness)).colorWithAlpha(1.0);
             case JSColor.SpaceIdentifier.hsla:
                 return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, JSColor.HSLToRGB(this.hue, this.saturation, this.lightness)).colorWithAlpha(this.alpha);
             case JSColor.SpaceIdentifier.gray:
-                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, JSColor.GrayToRGB(this.white));
+                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, JSColor.GrayToRGB(this.white)).colorWithAlpha(1.0);
             case JSColor.SpaceIdentifier.graya:
                 return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, JSColor.GrayToRGB(this.white)).colorWithAlpha(this.alpha);
+            default:
+                return null;
+        }
+    },
+
+    grayColor: function(){
+        var rgba;
+        switch (this.colorSpace){
+            case JSColor.SpaceIdentifier.rgb:
+                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.gray, JSColor.RGBToGray(this.red, this.blue, this.green)).colorWithAlpha(1.0);
+            case JSColor.SpaceIdentifier.rgba:
+                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.gray, JSColor.RGBToGray(this.red, this.blue, this.green)).colorWithAlpha(this.alpha);
+            case JSColor.SpaceIdentifier.hsl:
+                rgba = this.rgbaColor();
+                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.gray, JSColor.RGBToGray(rgba.red, rgba.blue, rgba.green)).colorWithAlpha(1.0);
+            case JSColor.SpaceIdentifier.hsla:
+                rgba = this.rgbaColor();
+                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.gray, JSColor.RGBToGray(rgba.red, rgba.blue, rgba.green)).colorWithAlpha(this.alpha);
+            case JSColor.SpaceIdentifier.gray:
+                return this.colorWithAlpha(1.0);
+            case JSColor.SpaceIdentifier.graya:
+                return this;
             default:
                 return null;
         }
@@ -183,6 +222,10 @@ JSColor._HueToRGB = function(m1, m2, h){
 JSColor.GrayToRGB = function(white){
     // FIXME: could get fancier here with gray coversion
     return [white, white, white];
+};
+
+JSColor.RGBToGray = function(r, g, b){
+    return [(r + g + b) / 3.0];
 };
 
 JSColor.SpaceIdentifier = {
