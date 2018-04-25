@@ -59,10 +59,6 @@ JSClass("UIButton", UIControl, {
         }
         var location = event.locationInView(this);
         this.active = this.containsPoint(location);
-    },
-
-    _didChangeState: function(){
-        this._styler.updateControl(this);
     }
 
 });

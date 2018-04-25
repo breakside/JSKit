@@ -105,11 +105,7 @@ JSClass("UIPopupButton", UIControl, {
             this._selectedItem = null;
             this._selectedIndex = -1;
         }
-    },
-
-    _didChangeState: function(){
-        this._styler.updateControl(this);
-    },
+    }
 
 });
 

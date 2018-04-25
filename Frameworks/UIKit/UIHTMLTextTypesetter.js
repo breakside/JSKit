@@ -249,7 +249,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
 
         var stop = false;
 
-        var x = Number.MIN_VALUE;
+        var x = -Number.MAX_VALUE;
 
         do {
 
@@ -260,14 +260,14 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                 // it must be on a new line.  Happens when the previous run's end coincides with a line wrap/break.
                 // Since we've found our break, just stop here
                 stop = true;
-                x = Number.MIN_VALUE;
+                x = -Number.MAX_VALUE;
             }else if (runLineIndex < runDescriptor.numberOfLines - 1){
                 // This run has at least one more wrap/break point, so just add up to the next line
                 lineRange = runDescriptor.rangeOfLine(runLineIndex, remainingRange.location);
                 fragment = UIHTMLTextTypesetterRunDescriptorFragment(runDescriptor, remainingRange.intersection(lineRange));
                 runLineIndex++;
                 stop = true;
-                x = Number.MIN_VALUE;
+                x = -Number.MAX_VALUE;
                 remainingRange.advance(fragment.range.length);
                 fragments.push(fragment);
             }else{

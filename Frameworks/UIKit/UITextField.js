@@ -1,9 +1,9 @@
-// #import "UIKit/UIView.js"
+// #import "UIKit/UIControl.js"
 // #import "UIKit/UITextLayer.js"
 // #import "UIKit/UITextEditor.js"
 // #import "UIKit/UICursor.js"
 // #import "UIKit/UITextAttachmentView.js"
-/* global JSClass, JSProtocol, UIView, UICursor, JSInsets, JSRect, JSSize, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard, JSTimer, JSTextRun, JSAttributedString, UITextAttachmentView, UITextFieldStyler, UITextFieldDefaultStyler */
+/* global JSClass, JSProtocol, UIControl, UIView, UICursor, JSInsets, JSRect, JSSize, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard, JSTimer, JSTextRun, JSAttributedString, UITextAttachmentView, UIControlStyler, UITextFieldStyler, UITextFieldDefaultStyler */
 
 'use strict';
 
@@ -13,9 +13,8 @@ JSProtocol("UITextFieldDelegate", JSProtocol, {
     textFieldDidRecieveEnter: ['textField']
 });
 
-JSClass("UITextField", UIView, {
+JSClass("UITextField", UIControl, {
 
-    enabled: JSDynamicProperty('_enabled', true, 'isEnabled'),
     text: JSDynamicProperty(),
     attributedText: JSDynamicProperty(),
     textColor: JSDynamicProperty(),
@@ -27,7 +26,6 @@ JSClass("UITextField", UIView, {
     delegate: null,
     _clipView: null,
     _textLayer: null,
-    _respondingIndicatorLayer: JSLazyInitProperty('_createRespondingIndicatorLayer'),
     _localEditor: null,
     _boundsScrollThreshold: 7,
     _boundsScrollDistance: 0,
@@ -55,8 +53,8 @@ JSClass("UITextField", UIView, {
         this._minimumHeight = this.bounds.size.height;
     },
 
-    _commonViewInit: function(){
-        UITextField.$super._commonViewInit.call(this);
+    commonUIControlInit: function(){
+        UITextField.$super.commonUIControlInit.call(this);
         this._textInsets = JSInsets.Zero;
         this._clipView = UIView.init(this.bounds);
         this._clipView.backgroundColor = null;
@@ -72,13 +70,11 @@ JSClass("UITextField", UIView, {
         this._localEditor.delegate = this;
         this._clipView.layer.addSublayer(this._textLayer);
         this.addSubview(this._clipView);
-        this._respondingIndicatorLayer.backgroundColor = JSColor.initWithWhite(0.8);
         this.cursor = UICursor.iBeam;
-    },
-
-    setEnabled: function(enabled){
-        this._enabled = enabled;
-        this.cursor = this._enabled ? UICursor.iBeam : null;
+        if (this._styler === null){
+            this._styler = UITextField.defaultStyler;
+        }
+        this._styler.initializeControl(this);
     },
 
     setMultiline: function(multiline){
@@ -190,6 +186,16 @@ JSClass("UITextField", UIView, {
         this._clipView.frame = this.bounds.rectWithInsets(this._textInsets);
     },
 
+    drawLayerInContext: function(layer, context){
+        if (layer === this.layer){
+            if (this._styler !== null){
+                this._styler.drawControlLayerInContext(this, layer, context);
+            }
+        }else if (layer === this._textLayer){
+            layer.drawInContext(context);
+        }
+    },
+
     textEditorDidPositionCursors: function(textEditor){
         if (!this._isDragging){
             this._adjustCursorPositionToCenterIfNeeded();
@@ -241,7 +247,7 @@ JSClass("UITextField", UIView, {
     },
 
     canBecomeFirstResponder: function(){
-        return this._enabled;
+        return this.enabled;
     },
 
     canResignFirstResponder: function(){
@@ -249,18 +255,17 @@ JSClass("UITextField", UIView, {
     },
 
     becomeFirstResponder: function(){
-        // show cursor at insertion point
-        this._respondingIndicatorLayer.backgroundColor = JSColor.blackColor();
+        this.active = true;
         this._localEditor.didBecomeFirstResponder();
     },
 
     resignFirstResponder: function(){
-        this._respondingIndicatorLayer.backgroundColor = JSColor.initWithWhite(0.8);
+        this.active = false;
         this._localEditor.didResignFirstResponder();
     },
 
     mouseDown: function(event){
-        if (!this._enabled){
+        if (!this.enabled){
             return UITextField.$super.mouseDown.call(this, event);
         }
         if (!this.isFirstResponder()){
@@ -271,7 +276,7 @@ JSClass("UITextField", UIView, {
     },
 
     mouseDragged: function(event){
-        if (!this._enabled){
+        if (!this.enabled){
             return UITextField.$super.mouseDragged.call(this, event);
         }
         if (!this._isDragging){
@@ -317,19 +322,11 @@ JSClass("UITextField", UIView, {
             this._boundsScrollTimer.invalidate();
             this._boundsScrollTimer = null;
         }
-        if (!this._enabled){
+        if (!this.enabled){
             return UITextField.$super.mouseUp.call(this, event);
         }
         var location = event.locationInView(this);
         this._localEditor.handleMouseUpAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);
-    },
-
-    _createRespondingIndicatorLayer: function(){
-        var layer = UILayer.init();
-        layer.backgroundColor = JSColor.blackColor();
-        layer.constraintBox = JSConstraintBox({left: 0, bottom: 0, right: 0, height: 1});
-        this.layer.addSublayer(layer);
-        return layer;
     },
 
     _sanitizedText: function(text){
@@ -480,6 +477,55 @@ JSClass("UITextField", UIView, {
         this._localEditor.selectAll();
     }
 
+});
+
+JSClass("UITextFieldStyler", UIControlStyler, {
+
+});
+
+JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
+
+    showsOverState: false,
+
+    initializeControl: function(textField){
+        textField.stylerProperties.respondingIndicatorLayer = UILayer.init();
+        textField.stylerProperties.respondingIndicatorLayer.backgroundColor = JSColor.blackColor();
+        textField.stylerProperties.respondingIndicatorLayer.constraintBox = JSConstraintBox({left: 0, bottom: 0, right: 0, height: 1});
+        textField.layer.addSublayer(textField.stylerProperties.respondingIndicatorLayer);
+    },
+
+    updateControl: function(textField){
+        if (textField.active){
+            textField.stylerProperties.respondingIndicatorLayer.backgroundColor = JSColor.blackColor();
+        }else{
+            textField.stylerProperties.respondingIndicatorLayer.backgroundColor = JSColor.initWithWhite(0.8);
+        }
+    }
+
+});
+
+Object.defineProperties(UITextFieldDefaultStyler, {
+    shared: {
+        configurable: true,
+        get: function UITextFieldDefaultStyler_getShared(){
+            var shared = UITextFieldDefaultStyler.init();
+            Object.defineProperty(this, 'shared', {value: shared});
+            return shared;
+        }
+    }
+});
+
+Object.defineProperties(UITextField, {
+    defaultStyler: {
+        configurable: true,
+        get: function UITextField_getDefaultStyler(){
+            Object.defineProperty(UITextField, 'defaultStyler', {writable: true, value: UITextFieldDefaultStyler.shared});
+            return UITextField.defaultStyler;
+        },
+        set: function UITextField_setDefaultStyler(defaultStyler){
+            Object.defineProperty(UITextField, 'defaultStyler', {writable: true, value: defaultStyler});
+        }
+    }
 });
 
 })();

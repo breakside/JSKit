@@ -77,10 +77,6 @@ JSClass("UICheckbox", UIControl, {
         this._isMixed = isMixed;
         this._isOn = false;
         this._styler.updateControl(this);
-    },
-
-    _didChangeState: function(){
-        this._styler.updateControl(this);
     }
 
 });

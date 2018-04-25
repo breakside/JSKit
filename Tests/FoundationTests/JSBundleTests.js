@@ -47,18 +47,18 @@ JSClass('JSBundleTests', TKTestSuite, {
                     'test2': [1, 2]
                 },
                 'en': {
-                    'Localizable.yaml': [3],
-                    'Test.yaml': [7]
+                    'Localizable.strings.yaml': [3],
+                    'Test.strings.yaml': [7]
                 },
                 'en-GB': {
-                    'Localizable.yaml': [4]
+                    'Localizable.strings.yaml': [4]
                 },
                 'de-DE': {
-                    'Localizable.yaml': [5],
-                    'Test.yaml': [8]
+                    'Localizable.strings.yaml': [5],
+                    'Test.strings.yaml': [8]
                 },
                 'zn-Hans-CN': {
-                    'Localizable.yaml': [6]
+                    'Localizable.strings.yaml': [6]
                 }
             },
             'Fonts': {

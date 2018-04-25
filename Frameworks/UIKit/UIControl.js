@@ -131,6 +131,10 @@ JSClass("UIControl", UIView, {
         }
     },
 
+    _didChangeState: function(){
+        this._styler.updateControl(this);
+    },
+
     _toggleState: function(flag, on){
         var newState = this._state;
         if (on){
@@ -179,6 +183,11 @@ JSClass("UIControl", UIView, {
 
     mouseExited: function(event){
         this.over = false;
+    },
+
+    rightMouseDown: function(){
+        // Do nothing by default, so the event doesn't propagate to the next
+        // responder.  Subclasses can override as needed
     },
 
     setWindow: function(window){

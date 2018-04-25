@@ -139,10 +139,6 @@ JSClass("UIRadioButton", UIControl, {
     setOn: function(isOn){
         this._isOn = isOn;
         this._styler.updateControl(this);
-    },
-
-    _didChangeState: function(){
-        this._styler.updateControl(this);
     }
 
 });
