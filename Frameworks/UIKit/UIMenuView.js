@@ -3,7 +3,7 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UILabel.js"
 // #import "UIKit/UIImageView.js"
-/* global JSClass, JSLazyInitProperty, JSReadOnlyProperty, JSDynamicProperty, UIWindow, UIMenu, UIView, JSColor, JSSize, JSRect, UILabel, UIImageView, UIMenuItem, JSTextAlignment, JSInsets, JSPoint, UILayer, JSConstraintBox, UIMenuWindow, UIMenuView, UIMenuItemView, JSBinarySearcher, JSTimer, JSURL, JSImage, UIMenuSeparatorItemView, JSBundle */
+/* global JSClass, JSLazyInitProperty, JSReadOnlyProperty, JSDynamicProperty, UIWindow, UIMenu, UIView, JSColor, JSSize, JSRect, UILabel, UIImageView, UIMenuItem, JSTextAlignment, JSInsets, JSPoint, UILayer, JSConstraintBox, UIMenuWindow, UIMenuView, UIMenuItemView, JSBinarySearcher, JSTimer, JSURL, JSImage, JSBundle */
 'use strict';
 
 (function(){
@@ -21,7 +21,7 @@ JSClass("UIMenuWindow", UIWindow, {
     responder: null,
     submenu: null,
     submenuTimer: null,
-    _capSize: 5,
+    _styler: null,
     _menu: null,
     _itemIndexesByItemViewId: null,
     _itemViewIndexesByItemId: null,
@@ -33,9 +33,10 @@ JSClass("UIMenuWindow", UIWindow, {
     // -----------------------------------------------------------------------
     // MARK: - Creating a Menu Window
 
-    init: function(){
+    initWithMenu: function(menu){
         UIMenuWindow.$super.init.call(this);
-        this.contentView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));
+        this._styler = menu.styler;
+        this.contentView = UIView.init();
         this.upIndicatorView = UIView.initWithConstraintBox({top: 0, left: 0, right: 0, height: 16});
         this.upIndicatorImageView = UIImageView.initWithImage(images.scrollUp, UIImageView.RenderMode.template);
         this.upIndicatorImageView.constraintBox = JSConstraintBox.Size(this.upIndicatorImageView.frame.size.width, this.upIndicatorImageView.frame.size.height);
@@ -44,7 +45,7 @@ JSClass("UIMenuWindow", UIWindow, {
         this.downIndicatorImageView = UIImageView.initWithImage(images.scrollDown, UIImageView.RenderMode.template);
         this.downIndicatorImageView.constraintBox = JSConstraintBox.Size(this.downIndicatorImageView.frame.size.width, this.downIndicatorImageView.frame.size.height);
         this.downIndicatorView.addSubview(this.downIndicatorImageView);
-        this.clipView = UIView.initWithConstraintBox(JSConstraintBox.Margin(this._capSize, 0));
+        this.clipView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));
         this.menuView = UIMenuView.init();
         this.contentView.addSubview(this.clipView);
         this.clipView.addSubview(this.menuView);
@@ -54,6 +55,7 @@ JSClass("UIMenuWindow", UIWindow, {
         this.downIndicatorView.hidden = true;
         this._itemIndexesByItemViewId = {};
         this._itemViewIndexesByItemId = {};
+        this.setMenu(menu);
     },
 
     // -----------------------------------------------------------------------
@@ -76,17 +78,7 @@ JSClass("UIMenuWindow", UIWindow, {
 
     setMenu: function(menu){
         this._menu = menu;
-        this.borderColor = menu.borderColor;
-        this.borderWidth = 0.5;
-        this.contentView.backgroundColor = menu.backgroundColor;
-        this.upIndicatorView.backgroundColor = menu.backgroundColor;
-        this.downIndicatorView.backgroundColor = menu.backgroundColor;
-        this.upIndicatorImageView.templateColor = menu.textColor;
-        this.downIndicatorImageView.templateColor = menu.textColor;
-        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.2);
-        this.shadowRadius = 14;
-        this.cornerRadius = 6;
-        this.menuView.backgroundColor = menu.backgroundColor;
+        this._styler.initializeMenu(menu, this);
         var item;
         var itemView;
         var menuSize = JSSize.Zero;
@@ -112,7 +104,7 @@ JSClass("UIMenuWindow", UIWindow, {
         }
         this.menuView.bounds = JSRect(JSPoint.Zero, menuSize);
         this.menuView.layoutIfNeeded();
-        this.bounds = JSRect(0, 0, menuSize.width, menuSize.height + this._capSize * 2);
+        this.bounds = JSRect(0, 0, menuSize.width, menuSize.height + this.clipView.constraintBox.top + this.clipView.constraintBox.bottom);
         this.layoutIfNeeded();
         this.startMouseTracking(UIView.MouseTracking.all);
     },
@@ -540,10 +532,13 @@ JSClass("UIMenuView", UIView, {
     addViewForItem: function(item){
         var view = item.view;
         if (view === null){
-            view = UIMenuItemView.init();
-            view.setItem(item);
-        }else if (view.isKindOfClass(UIMenuSeparatorItemView)){
-            view.lineLayer.backgroundColor = item.menu.disabledTextColor;
+            if (item.separator){
+                view = UIView.init();
+                item.menu.styler.initializeSeparatorView(view);
+            }else{
+                view = UIMenuItemView.initWithStyler(item.menu.styler);
+                view.setItem(item);
+            }
         }
         view.hidden = item.alternate;
         this.addSubview(view);
@@ -599,28 +594,26 @@ JSClass("UIMenuView", UIView, {
 
 JSClass("UIMenuItemView", UIView, {
 
-    imageView: JSLazyInitProperty('_createImageView'),
-    _imageView: null,
-    stateImageView: JSLazyInitProperty('_createStateImageView'),
-    _stateImageView: null,
-    submenuImageView: JSLazyInitProperty('_createSubmenuImageView'),
-    _submenuImageView: null,
     titleLabel: null,
+    imageView: JSLazyInitProperty('_createImageView'),
+    stateImageView: JSLazyInitProperty('_createStateImageView'),
+    submenuImageView: JSLazyInitProperty('_createSubmenuImageView'),
     keyLabel: JSLazyInitProperty('_createKeyLabel'),
-    _keyLabel: null,
     keyModifierLabel: JSLazyInitProperty('_createKeyModifierLabel'),
+    _imageView: null,
+    _stateImageView: null,
+    _submenuImageView: null,
+    _keyLabel: null,
     _keyModifierLabel: null,
-    _showStatusColumn: false,
-    _indentationLevel: 0,
-    _padding: null,
-    _keyWidth: 0,
-    _indentationSize: 10,
+    _styler: null,
+    _item: null,
 
-    init: function(){
+    initWithStyler: function(styler){
         UIMenuItemView.$super.init.call(this);
         this.titleLabel = UILabel.init();
-        this._padding = JSInsets(2, 3, 2, 7);
         this.addSubview(this.titleLabel);
+        this._styler = styler;
+        this._styler.initializeItemView(this);
     },
 
     _createImageView: function(){
@@ -654,40 +647,26 @@ JSClass("UIMenuItemView", UIView, {
     },
 
     setItem: function(item){
+        this._item = item;
         this.titleLabel.text = item.title;
-        this.titleLabel.font = item.menu.font;
         if (item.image !== null){
             this.imageView.image = item.image;
         }else if (this._imageView !== null){
             this._imageView.hidden = true;
         }
-        var textColor = item.textColor;
-        this.titleLabel.textColor = textColor;
         if (item.submenu){
-            this.submenuImageView.templateColor = textColor;
+            this.submenuImageView.hidden = false;
         }else if (this._submenuImageView !== null){
             this._submenuImageView.hidden = true;
         }
         if (item.keyEquivalent !== null){
+            this.keyLabel.hidden = false;
             this.keyLabel.text = item.keyEquivalent.toUpperCase();
-            this.keyLabel.font = item.menu.font;
-            this.keyLabel.textColor = textColor;
+            // FIXME: get get modifier string from item properties
             this.keyModifierLabel.text = "\u2303\u2318";
-            this.keyModifierLabel.font = item.menu.font;
-            this.keyModifierLabel.textColor = textColor;
-            this._keyWidth = Math.ceil(this.keyLabel.font.widthOfString("W"));
         }else if (this._keyLabel !== null){
             this._keyLabel.hidden = true;
             this._keyModifierLabel.hidden = true;
-            this._keyWidth = 0;
-        }
-        if (this._keyLabel !== null){
-            this._keyLabel.textColor = textColor;
-        }
-        if (item.highlighted){
-            this.backgroundColor = item.menu.highlightColor;
-        }else{
-            this.backgroundColor = null;
         }
         switch (item.state){
             case UIMenuItem.State.off:
@@ -699,91 +678,23 @@ JSClass("UIMenuItemView", UIView, {
             case UIMenuItem.State.on:
                 this.stateImageView.hidden = false;
                 this.stateImageView.image = item.onImage !== null ? item.onImage : images.stateOn;
-                this.stateImageView.templateColor = textColor;
                 break;
             case UIMenuItem.State.mixed:
                 this.stateImageView.hidden = false;
                 this.stateImageView.image = item.mixedImage !== null ? item.mixedImage : images.stateMixed;
-                this.stateImageView.templateColor = textColor;
                 break;
         }
-        this._showStatusColumn = item.menu.showStatusColumn;
-        this._indentationLevel = item.indentationLevel;
+        this._styler.updateItemView(this, this._item);
         this.setNeedsLayout();
     },
 
+    layoutSubviews: function(){
+        this._styler.layoutItemView(this, this._item);
+    },
+
     sizeToFit: function(){
-        var size = JSSize(this._padding.left + this._padding.right, 0);
-        var lineHeight = this.titleLabel.font.displayLineHeight;
-        var imageSize = lineHeight;
-        if (this._showStatusColumn){
-            size.width += imageSize + this._padding.left;
-        }
-        if (this._imageView !== null && !this._imageView.hidden){
-            size.width += imageSize + this._padding.left;
-        }
-        size.width += this._indentationSize * this._indentationLevel;
-        this.titleLabel.sizeToFit();
-        size.width += this.titleLabel.frame.size.width;
-        if (this._submenuImageView !== null && !this._submenuImageView.hidden){
-            size.width += this._submenuImageView.frame.size.width + this._padding.right;
-        }else if (this._keyLabel !== null && !this._keyLabel.hidden){
-            this._keyModifierLabel.sizeToFit();
-            size.width += this._keyWidth + this._keyModifierLabel.frame.size.width + this._padding.right;
-        }
-        size.height = lineHeight + this._padding.top + this._padding.bottom;
-        size.width = Math.ceil(size.width);
-        size.height = Math.ceil(size.height);
-        this.bounds = JSRect(JSPoint.Zero, size);
-    },
-
-    layoutSubviews: function(){
-        var left = this._padding.left;
-        var right = this.bounds.size.width - this._padding.right;
-        var lineHeight = this.titleLabel.font.displayLineHeight;
-        var imageSize = lineHeight;
-        if (this._showStatusColumn){
-            if (this._stateImageView !== null && !this._stateImageView.hidden){
-                this._stateImageView.frame = JSRect(left, this._padding.top, imageSize, imageSize);
-            }
-            left += imageSize + this._padding.left;
-        }
-        if (this._imageView !== null && !this._imageView.hidden){
-            this._imageView.frame = JSRect(left, this._padding.top, imageSize, imageSize);
-            left += imageSize + this._padding.left;
-        }
-        left += this._indentationSize * this._indentationLevel;
-        if (this._submenuImageView !== null && !this._submenuImageView.hidden){
-            this._submenuImageView.frame = JSRect(right - this._submenuImageView.frame.size.width, this._padding.top, imageSize, imageSize);
-            right -= this._submenuImageView.frame.size.width + this._padding.right;
-        }else if (this._keyLabel !== null && !this._keyLabel.hidden){
-            this._keyLabel.frame = JSRect(right - this._keyWidth, this._padding.top, this._keyWidth, this._keyLabel.font.displayLineHeight);
-            right -= this._keyWidth;
-            this._keyModifierLabel.frame = JSRect(right - this._keyModifierLabel.frame.size.width, this._padding.top, this._keyModifierLabel.frame.size.width, this._keyModifierLabel.font.displayLineHeight);
-            right -= this._keyModifierLabel.frame.size.width + this._padding.right;
-        }
-        if (left > right){
-            left = right;
-        }
-        this.titleLabel.frame = JSRect(left, this._padding.top, right - left, lineHeight);
-    },
-
-});
-
-JSClass("UIMenuSeparatorItemView", UIView, {
-
-    lineLayer: null,
-
-    init: function(){
-        UIMenuSeparatorItemView.$super.initWithFrame(JSRect(0, 0, 1, 10));
-        this.lineLayer = UILayer.init();
-        this.lineLayer.constraintBox = JSConstraintBox({left: 0, right: 0, height: 2});
-        this.layer.addSublayer(this.lineLayer);
-    },
-
-    layoutSubviews: function(){
-        UIMenuSeparatorItemView.$super.layoutSubviews.call(this);
-    },
+        this._styler.sizeItemViewToFit(this, this._item);
+    }
 
 });
 

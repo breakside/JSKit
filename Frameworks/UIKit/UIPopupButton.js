@@ -66,14 +66,11 @@ JSClass("UIPopupButton", UIControl, {
             this.active = true;
             var popup = this;
             var font = this.titleLabel.font;
-            // FIXME: somehow get this itemTitleInset from the menu itself
-            // Problem is that the menu doesn't calcualte this unitl the open call is made,
-            // But we need to use the value as part of the open call.
-            var itemTitleInset = JSPoint(3 + font.displayLineHeight + 3, 2);
-            var titleOffset = JSPoint(this.titleLabel.frame.origin.x - itemTitleInset.x, this.titleLabel.frame.origin.y - itemTitleInset.y);
-            this.menu.minimumWidth = this.indicatorView.frame.origin.x - titleOffset.x;
+            var itemTitleOffset = this.menu.itemTitleOffset;
+            var itemOrigin = JSPoint(this.titleLabel.frame.origin.x - itemTitleOffset.x, this.titleLabel.frame.origin.y - itemTitleOffset.y);
+            this.menu.minimumWidth = this.indicatorView.frame.origin.x - itemOrigin.x;
             this.menu.font = font;
-            this.menu.openWithItemAtLocationInView(this._selectedItem, titleOffset, this, function(){
+            this.menu.openWithItemAtLocationInView(this._selectedItem, itemOrigin, this, function(){
                 popup.active = false;
             });
         }else{

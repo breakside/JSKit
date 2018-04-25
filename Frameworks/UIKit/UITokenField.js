@@ -14,8 +14,8 @@ JSClass("UITokenField", UITextField, {
     representedObjects: JSDynamicProperty(),
     tokensView: null,
 
-    _commonViewInit: function(){
-        UITokenField.$super._commonViewInit.call(this);
+    commonUIControlInit: function(){
+        UITokenField.$super.commonUIControlInit.call(this);
         this.tokensView = UIView.initWithFrame(JSRect.Zero);
         this._clipView.addSubview(this.tokensView);
         this.setNeedsLayout();

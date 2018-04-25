@@ -1,17 +1,10 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIMenuItem.js"
 // #import "UIKit/UIApplication.js"
-/* global JSClass, JSObject, JSDynamicProperty, JSReadOnlyProperty, UIMenu, UIMenuItem, JSSize, JSColor, JSFont, JSRect, JSPoint, UIWindow, UIMenuWindow, UIMenuView, UIMenuItemView, JSInsets, UIApplication */
+/* global JSClass, JSObject, JSDynamicProperty, JSReadOnlyProperty, UIMenu, UIMenuItem, JSSize, JSColor, JSFont, JSRect, JSPoint, UIWindow, UIMenuWindow, UIMenuView, UIMenuItemView, JSInsets, UIApplication, UIMenuStyler, UIMenuDefaultStyler, JSConstraintBox, UILayer */
 'use strict';
 
 (function(){
-
-var defaultTextColor = JSColor.initWithRGBA(51/255, 51/255, 51/255, 1);
-var defaultHighlightTextColor = JSColor.initWithRGBA(1, 1, 1, 1);
-var defaultDisabledTextColor = JSColor.initWithRGBA(223/255, 223/255, 223/255, 1);
-var defaultHighlightColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1);
-var defaultBackgroundColor = JSColor.initWithRGBA(240/255, 240/255, 240/255, 1);
-var defaultBorderColor = JSColor.initWithRGBA(184/255, 184/255, 184/255, 1);
 
 JSClass("UIMenu", JSObject, {
 
@@ -24,15 +17,25 @@ JSClass("UIMenu", JSObject, {
         if (this._font !== null){
             this._font = this._font.fontWithWeight(JSFont.Weight.regular);
         }
-        this._itemInsets = JSInsets(4, 0);
+        if (this._styler === null){
+            this._styler = UIMenu.defaultStyler;
+        }
     },
 
     init: function(){
         this._commonInit();
     },
 
+    initWithStyler: function(styler){
+        this._styler = styler;
+        this._commonInit();
+    },
+
     initWithSpec: function(spec, values){
         UIMenu.$super.initWithSpec.call(this, spec, values);
+        if ('styler' in values){
+            this._styler = spec.resolvedValue(values.styler);
+        }
         this._commonInit();
         var item;
         if ('items' in values){
@@ -45,16 +48,15 @@ JSClass("UIMenu", JSObject, {
 
     // MARK: - Display Properties
 
-    showStatusColumn: JSDynamicProperty('_showStatusColumn', true),
+    styler: JSReadOnlyProperty('_styler', null),
     font: JSDynamicProperty('_font', null),
-    textColor: JSDynamicProperty('_textColor', defaultTextColor),
-    disabledTextColor: JSDynamicProperty('_disabledTextColor', defaultDisabledTextColor),
-    highlightedTextColor: JSDynamicProperty('_highlightedTextColor', defaultHighlightTextColor),
-    highlightColor: JSDynamicProperty('_highlightColor', defaultHighlightColor),
-    backgroundColor: JSDynamicProperty('_backgroundColor', defaultBackgroundColor),
-    borderColor: JSDynamicProperty('_borderColor', defaultBorderColor),
-    itemInsets: JSDynamicProperty('_itemInsets', null),
+    showStatusColumn: JSDynamicProperty('_showStatusColumn', true),
     minimumWidth: JSDynamicProperty('_minimumWidth', 48),
+    itemTitleOffset: JSReadOnlyProperty(),
+
+    getItemTitleOffset: function(){
+        return this._styler.getItemTitleOffset(this);
+    },
 
     // MARK: - Accessing Items
 
@@ -163,8 +165,7 @@ JSClass("UIMenu", JSObject, {
 
     _createWindow: function(screen){
         this.updateEnabled();
-        var window = UIMenuWindow.init();
-        window.setMenu(this);
+        var window = UIMenuWindow.initWithMenu(this);
         return window;
     },
 
@@ -485,5 +486,237 @@ UIMenu.Placement = {
     above: 2,
     left: 3
 };
+
+JSClass("UIMenuStyler", JSObject, {
+
+    initializeMenu: function(menu, window){
+    },
+
+    getItemTitleOffset: function(menu){
+        return JSPoint.Zero;
+    },
+
+    initializeSeparatorView: function(view){
+    },
+
+    initializeItemView: function(view){
+    },
+
+    updateItemView: function(view, item){
+    },
+
+    sizeItemViewToFit: function(view, item){
+    },
+
+    layoutItemView: function(view, item){
+    }
+
+});
+
+var defaultTextColor = JSColor.initWithRGBA(51/255, 51/255, 51/255, 1);
+var defaultHighlightTextColor = JSColor.initWithRGBA(1, 1, 1, 1);
+var defaultDisabledTextColor = JSColor.initWithRGBA(223/255, 223/255, 223/255, 1);
+var defaultHighlightColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1);
+var defaultBackgroundColor = JSColor.initWithRGBA(240/255, 240/255, 240/255, 1);
+var defaultBorderColor = JSColor.initWithRGBA(184/255, 184/255, 184/255, 1);
+
+JSClass("UIMenuDefaultStyler", UIMenuStyler, {
+
+    cornerRadius: JSDynamicProperty('_cornerRadius', 6),
+    capSize: JSDynamicProperty('_capSize', 5),
+    textColor: JSDynamicProperty('_textColor', defaultTextColor),
+    disabledTextColor: JSDynamicProperty('_disabledTextColor', defaultDisabledTextColor),
+    highlightedTextColor: JSDynamicProperty('_highlightedTextColor', defaultHighlightTextColor),
+    highlightColor: JSDynamicProperty('_highlightColor', defaultHighlightColor),
+    backgroundColor: JSDynamicProperty('_backgroundColor', defaultBackgroundColor),
+    borderColor: JSDynamicProperty('_borderColor', defaultBorderColor),
+    borderWidth: JSDynamicProperty('_borderWidth', 0.5),
+    itemPadding: JSDynamicProperty('_itemPadding', JSInsets(2, 3, 2, 7)),
+    indentationSize: JSDynamicProperty('_indentationSize', 10),
+    _keyWidth: 0,
+
+    initWithSpec: function(spec, values){
+        UIMenuDefaultStyler.$super.initWithSpec.call(this, spec, values);
+        if ('capSize' in values){
+            this._capSize = spec.resolvedValue(values.capSize);
+        }
+        if ('cornerRadius' in values){
+            this._cornerRadius = spec.resolvedValue(values.cornerRadius);
+        }
+        if ('textColor' in values){
+            this._textColor = spec.resolvedValue(values.textColor);
+        }
+        if ('disabledTextColor' in values){
+            this._disabledTextColor = spec.resolvedValue(values.disabledTextColor);
+        }
+        if ('highlightedTextColor' in values){
+            this._highlightedTextColor = spec.resolvedValue(values.highlightedTextColor);
+        }
+        if ('highlightColor' in values){
+            this._highlightColor = spec.resolvedValue(values.highlightColor);
+        }
+        if ('backgroundColor' in values){
+            this._backgroundColor = spec.resolvedValue(values.backgroundColor);
+        }
+        if ('borderColor' in values){
+            this._borderColor = spec.resolvedValue(values.borderColor);
+        }
+        if ('borderWidth' in values){
+            this._borderWidth = spec.resolvedValue(values.borderWidth);
+        }
+    },
+
+    initializeMenu: function(menu, window){
+        window.borderColor = this._borderColor;
+        window.borderWidth = this._borderWidth;
+        window.contentView.backgroundColor = this._backgroundColor;
+        window.upIndicatorView.backgroundColor = this._backgroundColor;
+        window.downIndicatorView.backgroundColor = this._backgroundColor;
+        window.upIndicatorImageView.templateColor = this._textColor;
+        window.downIndicatorImageView.templateColor = this._textColor;
+        window.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.2);
+        window.shadowRadius = 14;
+        window.cornerRadius = this._cornerRadius;
+        window.menuView.backgroundColor = this._backgroundColor;
+        window.clipView.constraintBox = JSConstraintBox.Margin(this._capSize, 0);
+        this._keyWidth = Math.ceil(menu.font.widthOfString("W"));
+    },
+
+    getTextColorForItem: function(item){
+        if (item.enabled){
+            if (item.highlighted){
+                return this._highlightedTextColor;
+            }
+            return this._textColor;
+        }
+        return this._disabledTextColor;
+    },
+
+    initializeSeparatorView: function(view){
+        view.frame = JSRect(0, 0, 1, 10);
+        var lineLayer = UILayer.init();
+        lineLayer.constraintBox = JSConstraintBox({left: 0, right: 0, height: 2});
+        lineLayer.backgroundColor = this.disabledTextColor;
+        view.layer.addSublayer(lineLayer);
+    },
+
+    initializeItemView: function(view){
+    },
+
+    updateItemView: function(view, item){
+        var textColor = this.getTextColorForItem(item);
+        view.titleLabel.font = item.menu.font;
+        view.titleLabel.textColor = textColor;
+        if (view._submenuImageView !== null){
+            view.submenuImageView.templateColor = textColor;
+        }
+        if (item.keyEquivalent){
+            view.keyLabel.font = item.menu.font;
+            view.keyLabel.textColor = textColor;
+            view.keyModifierLabel.font = item.menu.font;
+            view.keyModifierLabel.textColor = textColor;
+        }
+        if (item.highlighted){
+            view.backgroundColor = this.highlightColor;
+        }else{
+            view.backgroundColor = null;
+        }
+        if (view._stateImageView !== null){
+            view.stateImageView.templateColor = textColor;
+        }
+    },
+
+    sizeItemViewToFit: function(view, item){
+        var size = JSSize(this._itemPadding.left + this._itemPadding.right, 0);
+        var lineHeight = item.menu.font.displayLineHeight;
+        var imageSize = lineHeight;
+        if (item.menu.showStatusColumn){
+            size.width += imageSize + this._itemPadding.left;
+        }
+        if (item.image !== null){
+            size.width += imageSize + this._itemPadding.left;
+        }
+        size.width += this._indentationSize * item._indentationLevel;
+        view.titleLabel.sizeToFit();
+        size.width += view.titleLabel.frame.size.width;
+        if (item.submenu !== null){
+            size.width += view._submenuImageView.frame.size.width + this._itemPadding.right;
+        }else if (item.keyEquivalent){
+            view._keyModifierLabel.sizeToFit();
+            size.width += this._keyWidth + view._keyModifierLabel.frame.size.width + this._itemPadding.right;
+        }
+        size.height = lineHeight + this._itemPadding.top + this._itemPadding.bottom;
+        size.width = Math.ceil(size.width);
+        size.height = Math.ceil(size.height);
+        view.bounds = JSRect(JSPoint.Zero, size);
+    },
+
+    layoutItemView: function(view, item){
+        var left = this._itemPadding.left;
+        var right = view.bounds.size.width - this._itemPadding.right;
+        var lineHeight = item.menu.font.displayLineHeight;
+        var imageSize = lineHeight;
+        if (item.menu.showStatusColumn){
+            if (view._stateImageView !== null && !view._stateImageView.hidden){
+                view._stateImageView.frame = JSRect(left, this._itemPadding.top, imageSize, imageSize);
+            }
+            left += imageSize + this._itemPadding.left;
+        }
+        if (view._imageView !== null && !view._imageView.hidden){
+            view._imageView.frame = JSRect(left, this._itemPadding.top, imageSize, imageSize);
+            left += imageSize + this._itemPadding.left;
+        }
+        left += this._indentationSize * item.indentationLevel;
+        if (view._submenuImageView !== null && !view._submenuImageView.hidden){
+            view._submenuImageView.frame = JSRect(right - view._submenuImageView.frame.size.width, this._itemPadding.top, imageSize, imageSize);
+            right -= view._submenuImageView.frame.size.width + this._itemPadding.right;
+        }else if (view._keyLabel !== null && !view._keyLabel.hidden){
+            view._keyLabel.frame = JSRect(right - this._keyWidth, this._itemPadding.top, this._keyWidth, view._keyLabel.font.displayLineHeight);
+            right -= this._keyWidth;
+            view._keyModifierLabel.frame = JSRect(right - view._keyModifierLabel.frame.size.width, this._itemPadding.top, view._keyModifierLabel.frame.size.width, view._keyModifierLabel.font.displayLineHeight);
+            right -= view._keyModifierLabel.frame.size.width + this._itemPadding.right;
+        }
+        if (left > right){
+            left = right;
+        }
+        view.titleLabel.frame = JSRect(left, this._itemPadding.top, right - left, lineHeight);
+    },
+
+    getItemTitleOffset: function(menu){
+        var x = this._itemPadding.left;
+        var lineHeight = menu.font.displayLineHeight;
+        var imageSize = lineHeight;
+        if (menu.showStatusColumn){
+            x += imageSize + this._itemPadding.left;
+        }
+        var y = this._itemPadding.top;
+        return JSPoint(x, y);
+    }
+
+});
+
+Object.defineProperties(UIMenuDefaultStyler, {
+    shared: {
+        configurable: true,
+        get: function UIMenuDefaultStyler_getShared(){
+            var shared = UIMenuDefaultStyler.init();
+            Object.defineProperty(this, 'shared', {value: shared});
+            return shared;
+        }
+    }
+});
+
+Object.defineProperties(UIMenu, {
+    defaultStyler: {
+        configurable: true,
+        get: function UIMenu_getDefaultStyler(){
+            Object.defineProperty(UIMenu, 'defaultStyler', {writable: true, value: UIMenuDefaultStyler.shared});
+            return UIMenu.defaultStyler;
+        },
+        set: function UIMenu_setDefaultStyler(defaultStyler){
+            Object.defineProperty(UIMenu, 'defaultStyler', {writable: true, value: defaultStyler});
+        }
+    }
+});
 
 })();
