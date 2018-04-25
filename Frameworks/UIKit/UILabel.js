@@ -17,9 +17,7 @@ JSClass('UILabel', UIView, {
     initWithSpec: function(spec, values){
         UILabel.$super.initWithSpec.call(this, spec, values);
         if ("font" in values){
-            var font = spec.resolvedValue(values.font);
-            var descriptor = spec.resolvedValue(font.descriptor);
-            this.font = JSFont.fontWithDescriptor(descriptor, font.pointSize);
+            this.font = JSFont.initWithSpec(spec, values.font);
         }
         if ("text" in values){
             this.text = spec.resolvedValue(values.text);

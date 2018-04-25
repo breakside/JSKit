@@ -1,8 +1,7 @@
 // #import "UIKit/UIView.js"
-// #import "UIKit/UIDisplayServer.js"
 // #import "UIKit/UIApplication.js"
 // #import "UIKit/UITouch.js"
-/* global JSClass, UIView, UIDisplayServer, JSColor, JSRect, JSConstraintBox, JSDynamicProperty, JSReadOnlyProperty, UIWindow, JSPoint, UIApplication, UIEvent, UITouch */
+/* global JSClass, UIView, JSColor, JSRect, JSConstraintBox, JSDynamicProperty, JSReadOnlyProperty, UIWindow, JSPoint, UIApplication, UIEvent, UITouch */
 'use strict';
 
 JSClass('UIWindow', UIView, {

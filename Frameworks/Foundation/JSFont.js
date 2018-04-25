@@ -27,6 +27,23 @@ JSClass("JSFont", JSObject, {
     _ascenderInUnits: 0,
     _descenderInUnits: 0,
 
+    initWithSpec: function(spec, values){
+        var descriptor = JSFont._systemFontDescriptor;
+        var pointSize = JSFont.systemFontSize;
+        if ('descriptor' in values){
+            descriptor = spec.resolvedValue(values.descriptor);
+        }else if ('family' in values){
+            descriptor = JSFontDescriptor.initWithSpec(spec, values);
+        }
+        if ('pointSize' in values){
+            pointSize = spec.resolvedValue(values.pointSize);
+        }
+        if (descriptor !== null){
+            return JSFont.fontWithDescriptor(descriptor, pointSize);
+        }
+        return null;
+    },
+
     getFamilyName: function(){
         return this._descriptor.family;
     },

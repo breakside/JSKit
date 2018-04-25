@@ -1,5 +1,5 @@
 // #import "UIKit/UIView.js"
-/* global JSClass, UIView, UIControl, JSReadOnlyProperty, JSDynamicProperty, JSRect */
+/* global JSClass, JSObject, UIView, UIControl, JSReadOnlyProperty, JSDynamicProperty, JSRect */
 'use strict';
 
 JSClass("UIControl", UIView, {
@@ -49,6 +49,19 @@ JSClass("UIControl", UIView, {
 
     styler: JSReadOnlyProperty('_styler', null),
     stylerProperties:  null,
+
+    layoutSubviews: function(){
+        UIControl.$super.layoutSubviews.call(this);
+        if (this._styler !== null){
+            this._styler.layoutControl(this);
+        }
+    },
+
+    drawLayerInContext: function(layer, context){
+        if (this._styler !== null){
+            this._styler.drawControlLayerInContext(this, layer, context);
+        }
+    },
 
     // MARK: - Actions
 
@@ -179,6 +192,23 @@ JSClass("UIControl", UIView, {
         UIControl.$super.setWindow.call(this, window);
     }
 
+});
+
+JSClass("UIControlStyler", JSObject, {
+
+    showsOverState: false,
+
+    initializeControl: function(control){
+    },
+
+    updateControl: function(control){
+    },
+
+    layoutControl: function(control){
+    },
+
+    drawControlLayerInContext: function(control, layer, context){
+    }
 
 });
 

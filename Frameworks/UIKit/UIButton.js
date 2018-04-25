@@ -1,6 +1,6 @@
 // #import "UIKit/UIControl.js"
 // #import "UIKit/UILabel.js"
-/* global JSClass, JSObject, UIControl, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSConstraintBox, JSColor, UIButton, JSTextAlignment, JSPoint, UIView, JSFont, UIButtonStyler, UIButtonDefaultStyler, JSRect */
+/* global JSClass, JSObject, UIControl, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSConstraintBox, JSColor, UIButton, JSTextAlignment, JSPoint, UIView, JSFont, UIButtonStyler, UIButtonDefaultStyler, JSRect */
 'use strict';
 
 JSClass("UIButton", UIControl, {
@@ -10,7 +10,7 @@ JSClass("UIButton", UIControl, {
     initWithSpec: function(spec, values){
         UIButton.$super.initWithSpec.call(this, spec, values);
         if ('font' in values){
-            this._titleLabel.font = spec.resolvedValue(values.font);
+            this._titleLabel.font = JSFont.initWithSpec(spec, values.font);
         }
         if ('title' in values){
             this._titleLabel.text = spec.resolvedValue(values.title);
@@ -28,16 +28,7 @@ JSClass("UIButton", UIControl, {
             this._styler = UIButton.defaultStyler;
         }
         this.hasOverState = this._styler.showsOverState;
-        this._styler.initializeButton(this);
-    },
-
-    layoutSubviews: function(){
-        UIButton.$super.layoutSubviews.call(this);
-        this._styler.layoutButton(this);
-    },
-
-    drawLayerInContext: function(layer, context){
-        this._styler.drawButtonLayerInContext(this, layer, context);
+        this._styler.initializeControl(this);
     },
 
     getTitleLabel: function(){
@@ -71,26 +62,12 @@ JSClass("UIButton", UIControl, {
     },
 
     _didChangeState: function(){
-        this._styler.updateButton(this);
+        this._styler.updateControl(this);
     }
 
 });
 
-JSClass("UIButtonStyler", JSObject, {
-
-    showsOverState: false,
-
-    initializeButton: function(button){
-    },
-
-    updateButton: function(button){
-    },
-
-    layoutButton: function(button){
-    },
-
-    drawButtonLayerInContext: function(button, layer, context){
-    }
+JSClass("UIButtonStyler", UIControlStyler, {
 
 });
 
@@ -98,17 +75,17 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
 
     showsOverState: false,
 
-    initializeButton: function(button){
+    initializeControl: function(button){
         button.titleLabel.constraintBox = JSConstraintBox.Margin(3);
         button.layer.borderWidth = 1;
         button.layer.cornerRadius = 3;
         button.layer.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
         button.layer.shadowOffset = JSPoint(0, 1);
         button.layer.shadowRadius = 1;
-        this.updateButton(button);
+        this.updateControl(button);
     },
 
-    updateButton: function(button){
+    updateControl: function(button){
         if (!button.enabled){
             button.layer.backgroundColor    = UIButtonDefaultStyler.DisabledBackgroundColor;
             button.layer.borderColor        = UIButtonDefaultStyler.DisabledBorderColor;
