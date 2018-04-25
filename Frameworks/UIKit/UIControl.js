@@ -1,14 +1,19 @@
 // #import "UIKit/UIView.js"
-/* global JSClass, UIView, UIControl */
+/* global JSClass, UIView, UIControl, JSReadOnlyProperty, JSDynamicProperty, JSRect */
 'use strict';
 
 JSClass("UIControl", UIView, {
 
-    _actionsByEvent: null,
+    // MARK: - Creating a Control
 
     init: function(){
         UIControl.$super.init.call(this);
         this.commonUIControlInit();
+    },
+
+    initWithStyler: function(styler){
+        this._styler = styler;
+        this.initWithFrame(JSRect(0, 0, 100, 100));
     },
 
     initWithFrame: function(frame){
@@ -18,6 +23,9 @@ JSClass("UIControl", UIView, {
 
     initWithSpec: function(spec, values){
         UIControl.$super.initWithSpec.call(this, spec, values);
+        if ('styler' in values){
+            this._styler = spec.resolvedValue(values.styler);
+        }
         this.commonUIControlInit();
         if (('target' in values) && ('action' in values)){
             var target = spec.resolvedValue(values.target);
@@ -33,14 +41,25 @@ JSClass("UIControl", UIView, {
 
     commonUIControlInit: function(){
         this._actionsByEvent = {};
+        this._state = UIControl.State.normal;
+        this.stylerProperties = {};
     },
 
+    // MARK: - Styler
+
+    styler: JSReadOnlyProperty('_styler', null),
+    stylerProperties:  null,
+
+    // MARK: - Actions
+
+    _actionsByEvent: null,
+
     addTargetedAction: function(target, action){
-        this.addTargetedActionForEvent(target, action, UIControl.Event.PrimaryAction);
+        this.addTargetedActionForEvent(target, action, UIControl.Event.primaryAction);
     },
 
     addAction: function(action){
-        this.addActionForEvent(action, UIControl.Event.PrimaryAction);
+        this.addActionForEvent(action, UIControl.Event.primaryAction);
     },
 
     addTargetedActionForEvent: function(target, action, controlEvent){
@@ -75,14 +94,105 @@ JSClass("UIControl", UIView, {
                 actions[i](this);
             }
         }
+    },
+
+    // MARK: - State
+
+    state: JSReadOnlyProperty('_state', null),
+    enabled: JSDynamicProperty(null, null, 'isEnabled'),
+    over: JSDynamicProperty(null, null, 'isOver'),
+    active: JSDynamicProperty(null, null, 'isActive'),
+
+    _updateState: function(newState){
+        if (newState != this._state){
+            var wasEnabled = this.isEnabled();
+            this._state = newState;
+            var isEnabled = this.isEnabled();
+            if (this.hasOverState && wasEnabled != isEnabled){
+                if (isEnabled){
+                    this.startMouseTracking(UIView.MouseTracking.enterAndExit);
+                }else{
+                    this.stopMouseTracking();
+                }
+            }
+            this._didChangeState();
+        }
+    },
+
+    _toggleState: function(flag, on){
+        var newState = this._state;
+        if (on){
+            newState |= flag;
+        }else{
+            newState &= ~flag;
+        }
+        this._updateState(newState);
+    },
+
+    isEnabled: function(){
+        return (this._state & UIControl.State.disabled) === 0;
+    },
+
+    setEnabled: function(isEnabled){  
+        this._toggleState(UIControl.State.disabled, !isEnabled);
+    },
+
+    isOver: function(){
+        return (this._state & UIControl.State.over) === UIControl.State.over;
+    },
+
+    setOver: function(isOver){
+        this._toggleState(UIControl.State.over, isOver);
+    },
+
+    isActive: function(){
+        return (this._state & UIControl.State.active) === UIControl.State.active;
+    },
+
+    setActive: function(isActive){
+        this._toggleState(UIControl.State.active, isActive);
+    },
+
+    // MARK: - Mouse Tracking
+
+    hasOverState: false,
+    _hasSetInitialTracking: false,
+
+    mouseEntered: function(event){
+        if (!this.enabled){
+            return;
+        }
+        this.over = true;
+    },
+
+    mouseExited: function(event){
+        this.over = false;
+    },
+
+    setWindow: function(window){
+        if (!this._hasSetInitialTracking){
+            if (this.hasOverState && this.enabled){
+                this.startMouseTracking(UIView.MouseTracking.enterAndExit);
+            }
+            this._hasSetInitialTracking = true;
+        }
+        UIControl.$super.setWindow.call(this, window);
     }
+
 
 });
 
+UIControl.State = {
+    normal:     0,
+    over:       1 << 0,
+    active:     1 << 1,
+    disabled:   1 << 2,
+};
+
 UIControl.Event = {
-    PrimaryAction: 0,
-    ValueChanged: 1,
-    EditingDidBegin: 2,
-    EditingChanged: 3,
-    EditingDidEnd: 4
+    primaryAction:      1 << 0,
+    valueChanged:       1 << 1,
+    editingDidBegin:    1 << 2,
+    editingChanged:     1 << 3,
+    editingDidEnd:      1 << 4
 };
