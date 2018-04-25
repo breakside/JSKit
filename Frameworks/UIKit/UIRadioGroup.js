@@ -156,44 +156,45 @@ JSClass("UIRadioButtonDefaultStyler", UIRadioButtonStyler, {
     showsOverState: false,
     labelPadding: 3,
 
-    initializeControl: function(checkbox){
-        checkbox.stylerProperties.boxLayer = UILayer.init();
-        checkbox.stylerProperties.boxLayer.borderWidth = 1;
-        checkbox.stylerProperties.boxLayer.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
-        checkbox.stylerProperties.boxLayer.shadowOffset = JSPoint(0, 1);
-        checkbox.stylerProperties.boxLayer.shadowRadius = 1;
-        checkbox.stylerProperties.indicatorView = UIImageView.initWithImage(images.radioOn);
-        checkbox.insertSubviewAtIndex(checkbox.stylerProperties.indicatorView, 0);
-        checkbox.layer.insertSublayerAtIndex(checkbox.stylerProperties.boxLayer, 0);
-        checkbox.setNeedsLayout();
-        this.updateControl(checkbox);
+    initializeControl: function(button){
+        button.stylerProperties.boxLayer = UILayer.init();
+        button.stylerProperties.boxLayer.borderWidth = 1;
+        button.stylerProperties.boxLayer.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
+        button.stylerProperties.boxLayer.shadowOffset = JSPoint(0, 1);
+        button.stylerProperties.boxLayer.shadowRadius = 1;
+        button.stylerProperties.indicatorView = UIImageView.initWithImage(images.radioOn);
+        button.insertSubviewAtIndex(button.stylerProperties.indicatorView, 0);
+        button.layer.insertSublayerAtIndex(button.stylerProperties.boxLayer, 0);
+        button.setNeedsLayout();
+        this.updateControl(button);
     },
 
-    updateControl: function(checkbox){
-        if (!checkbox.enabled){
-            checkbox.stylerProperties.boxLayer.backgroundColor    = UIRadioButtonDefaultStyler.DisabledBackgroundColor;
-            checkbox.stylerProperties.boxLayer.borderColor        = UIRadioButtonDefaultStyler.DisabledBorderColor;
-            checkbox.titleLabel.textColor                         = UIRadioButtonDefaultStyler.DisabledTitleColor;
-        }else if (checkbox.active){
-            checkbox.stylerProperties.boxLayer.backgroundColor    = UIRadioButtonDefaultStyler.ActiveBackgroundColor;
-            checkbox.stylerProperties.boxLayer.borderColor        = UIRadioButtonDefaultStyler.ActiveBorderColor;
-            checkbox.titleLabel.textColor                         = UIRadioButtonDefaultStyler.ActiveTitleColor;
+    updateControl: function(button){
+        if (!button.enabled){
+            button.stylerProperties.boxLayer.backgroundColor    = UIRadioButtonDefaultStyler.DisabledBackgroundColor;
+            button.stylerProperties.boxLayer.borderColor        = UIRadioButtonDefaultStyler.DisabledBorderColor;
+            button.titleLabel.textColor                         = UIRadioButtonDefaultStyler.DisabledTitleColor;
+        }else if (button.active){
+            button.stylerProperties.boxLayer.backgroundColor    = UIRadioButtonDefaultStyler.ActiveBackgroundColor;
+            button.stylerProperties.boxLayer.borderColor        = UIRadioButtonDefaultStyler.ActiveBorderColor;
+            button.titleLabel.textColor                         = UIRadioButtonDefaultStyler.ActiveTitleColor;
         }else{
-            checkbox.stylerProperties.boxLayer.backgroundColor    = UIRadioButtonDefaultStyler.NormalBackgroundColor;
-            checkbox.stylerProperties.boxLayer.borderColor        = UIRadioButtonDefaultStyler.NormalBorderColor;
-            checkbox.titleLabel.textColor                         = UIRadioButtonDefaultStyler.NormalTitleColor;
+            button.stylerProperties.boxLayer.backgroundColor    = UIRadioButtonDefaultStyler.NormalBackgroundColor;
+            button.stylerProperties.boxLayer.borderColor        = UIRadioButtonDefaultStyler.NormalBorderColor;
+            button.titleLabel.textColor                         = UIRadioButtonDefaultStyler.NormalTitleColor;
         }
-        checkbox.stylerProperties.indicatorView.hidden = !checkbox.on;
+        button.stylerProperties.indicatorView.templateColor = button.titleLabel.textColor;
+        button.stylerProperties.indicatorView.hidden = !button.on;
     },
 
-    layoutControl: function(checkbox){
-        var height = checkbox.titleLabel.font.displayLineHeight;
+    layoutControl: function(button){
+        var height = button.titleLabel.font.displayLineHeight;
         var boxSize = JSSize(height, height);
-        checkbox.stylerProperties.boxLayer.cornerRadius = boxSize.width / 2;
-        checkbox.stylerProperties.boxLayer.frame = JSRect(JSPoint.Zero, boxSize);
-        checkbox.stylerProperties.indicatorView.frame = checkbox.stylerProperties.boxLayer.frame;
+        button.stylerProperties.boxLayer.cornerRadius = boxSize.width / 2;
+        button.stylerProperties.boxLayer.frame = JSRect(JSPoint.Zero, boxSize);
+        button.stylerProperties.indicatorView.frame = button.stylerProperties.boxLayer.frame;
         var x = boxSize.width + this.labelPadding;
-        checkbox.titleLabel.frame = JSRect(x, 0, checkbox.bounds.size.width - x, height);
+        button.titleLabel.frame = JSRect(x, 0, button.bounds.size.width - x, height);
     }
 
 });

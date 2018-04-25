@@ -122,6 +122,7 @@ JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
             checkbox.stylerProperties.boxLayer.borderColor        = UICheckboxDefaultStyler.NormalBorderColor;
             checkbox.titleLabel.textColor                         = UICheckboxDefaultStyler.NormalTitleColor;
         }
+        checkbox.stylerProperties.indicatorView.templateColor = checkbox.titleLabel.textColor;
         if (checkbox.on){
             checkbox.stylerProperties.indicatorView.hidden = false;
             checkbox.stylerProperties.indicatorView.image = images.checkboxOn;

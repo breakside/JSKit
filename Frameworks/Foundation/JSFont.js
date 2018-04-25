@@ -34,6 +34,13 @@ JSClass("JSFont", JSObject, {
             descriptor = spec.resolvedValue(values.descriptor);
         }else if ('family' in values){
             descriptor = JSFontDescriptor.initWithSpec(spec, values);
+        }else{
+            if ('weight' in values){
+                descriptor = descriptor.descriptorWithWeight(spec.resolvedValue(values.weight));
+            }
+            if ('style' in values){
+                descriptor = descriptor.descriptorWithStyle(spec.resolvedValue(values.style));
+            }
         }
         if ('pointSize' in values){
             pointSize = spec.resolvedValue(values.pointSize);

@@ -112,6 +112,9 @@ JSClass('UIWindow', UIView, {
         this.windowServer.orderWindowFront(this);
     },
 
+    didBecomeVisible: function(){
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Closing
 

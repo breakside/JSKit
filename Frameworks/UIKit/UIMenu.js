@@ -15,21 +15,7 @@ var defaultBorderColor = JSColor.initWithRGBA(184/255, 184/255, 184/255, 1);
 
 JSClass("UIMenu", JSObject, {
 
-    items: JSReadOnlyProperty('_items', null),
-    highlightedItem: JSReadOnlyProperty('_highlightedItem', null),
-    showStatusColumn: JSDynamicProperty('_showStatusColumn', true),
-    font: JSDynamicProperty('_font', null),
-    textColor: JSDynamicProperty('_textColor', defaultTextColor),
-    disabledTextColor: JSDynamicProperty('_disabledTextColor', defaultDisabledTextColor),
-    highlightedTextColor: JSDynamicProperty('_highlightedTextColor', defaultHighlightTextColor),
-    highlightColor: JSDynamicProperty('_highlightColor', defaultHighlightColor),
-    backgroundColor: JSDynamicProperty('_backgroundColor', defaultBackgroundColor),
-    borderColor: JSDynamicProperty('_borderColor', defaultBorderColor),
-    itemInsets: JSDynamicProperty('_itemInsets', null),
-    minimumWidth: JSDynamicProperty('_minimumWidth', 48),
-    supermenu: null,
-    _itemsByTag: null,
-    _contextTarget: null,
+    // MARK: - Creating a Menu
 
     _commonInit: function(){
         this._items = [];
@@ -57,21 +43,44 @@ JSClass("UIMenu", JSObject, {
         }
     },
 
+    // MARK: - Display Properties
+
+    showStatusColumn: JSDynamicProperty('_showStatusColumn', true),
+    font: JSDynamicProperty('_font', null),
+    textColor: JSDynamicProperty('_textColor', defaultTextColor),
+    disabledTextColor: JSDynamicProperty('_disabledTextColor', defaultDisabledTextColor),
+    highlightedTextColor: JSDynamicProperty('_highlightedTextColor', defaultHighlightTextColor),
+    highlightColor: JSDynamicProperty('_highlightColor', defaultHighlightColor),
+    backgroundColor: JSDynamicProperty('_backgroundColor', defaultBackgroundColor),
+    borderColor: JSDynamicProperty('_borderColor', defaultBorderColor),
+    itemInsets: JSDynamicProperty('_itemInsets', null),
+    minimumWidth: JSDynamicProperty('_minimumWidth', 48),
+
+    // MARK: - Accessing Items
+
+    items: JSReadOnlyProperty('_items', null),
+    highlightedItem: JSReadOnlyProperty('_highlightedItem', null),
+    _itemsByTag: null,
+
     itemWithTag: function(tag){
         return this._itemsByTag[tag] || null;
     },
+
+    // MARK: - Adding Items
 
     addItem: function(item){
         this.insertItemAtIndex(item, this._items.length);
     },
 
-    addItemWithTitle: function(title, action){
-        var item = UIMenuItem.initWithTitle(title, action);
+    addItemWithTitle: function(title, action, target){
+        var item = UIMenuItem.initWithTitle(title, action, target);
         this.addItem(item);
+        return item;
     },
 
     insertItemAtIndex: function(item, index){
-        this.items.splice(index, 0, item);
+        this._items.splice(index, 0, item);
+        item.index = index;
         item.menu = this;
         if (item.tag !== null){
             this._itemsByTag[item.tag] = item;
@@ -79,32 +88,46 @@ JSClass("UIMenu", JSObject, {
         if (item.submenu){
             item.submenu.supermenu = this;
         }
+        for (var i = index + 1, l = this._items.length; i < l; ++i){
+            this._items[i].index = i;
+        }
     },
+
+    // MARK: - Removing Items
 
     removeItemWithTag: function(tag){
         var item = this.itemWithTag(tag);
         if (item !== null){
-            this.removeItem(item);
+            this.removeItemAtIndex(item.index);
         }
     },
 
     removeItem: function(item){
-        for (var i = 0, l = this._items.length; i < l; ++i){
-            if (this._items[i] === item){
-                if (item.submenu){
-                    item.submenu.supermenu = null;
-                }
-                this.removeItemAtIndex(i);
-                break;
-            }
+        if (item.menu === this){
+            this.removeItemAtIndex(item.index);
         }
     },
 
     removeItemAtIndex: function(index){
         var item = this._items[index];
+        if (item.submenu){
+            item.submenu.supermenu = null;
+        }
+        if (item.tag in this._itemsByTag){
+            delete this._itemsByTag[item.tag];
+        }
         item.menu = null;
         this._items.splice(index, 1);
+        for (var i = index, l = this._items.length; i < l; ++i){
+            this._items[i].index = i;
+        }
     },
+
+    // MARK: - Supermenu
+
+    supermenu: null,
+
+    // MARK: - Updating
 
     updateEnabled: function(){
         this._highlightedItem = null;
@@ -123,6 +146,8 @@ JSClass("UIMenu", JSObject, {
         }
     },
 
+    // MARK: - Performing Item Actions
+
     performActionForItem: function(item, contextTarget){
         var target = item.target;
         if (target !== null){
@@ -131,6 +156,10 @@ JSClass("UIMenu", JSObject, {
             UIApplication.sharedApplication.sendAction(item.action, contextTarget, item);
         }
     },
+
+    // MARK: - Opening a Menu
+
+    _contextTarget: null,
 
     _createWindow: function(screen){
         this.updateEnabled();
@@ -168,6 +197,12 @@ JSClass("UIMenu", JSObject, {
 
         var origin = JSPoint.Zero;
         var size = JSSize(window.frame.size);
+
+        // Ensure we're at least the minimum width
+        // (although max width will take precedence)
+        if (size.width < this._minimumWidth){
+            size.width = this._minimumWidth;
+        }
 
         // Limit width to the max screen width
         if (size.width > screen.maximumWidth){
@@ -275,10 +310,17 @@ JSClass("UIMenu", JSObject, {
         this._showWindow(window);
     },
 
-    openWithItemAtLocationInView: function(targetItem, location, view){
+    openWithItemAtLocationInView: function(targetItem, location, view, closeCallback){
+        this._closeCallback = closeCallback;
         var window = this._createWindow(view.window.screen);
         var screen = this._screenMetrics(view.window.screen);
         var size = JSSize(window.frame.size);
+
+        // Ensure we're at least the minimum width
+        // (although max width will take precedence)
+        if (size.width < this._minimumWidth){
+            size.width = this._minimumWidth;
+        }
 
         // Limit width to the max screen width
         if (size.width > screen.maximumWidth){
@@ -346,6 +388,12 @@ JSClass("UIMenu", JSObject, {
         var origin = JSPoint.Zero;
         var size = JSSize(window.frame.size);
 
+        // Ensure we're at least the minimum width
+        // (although max width will take precedence)
+        if (size.width < this._minimumWidth){
+            size.width = this._minimumWidth;
+        }
+
         // Limit width to the max screen width
         if (size.width > screen.maximumWidth){
             size.width = screen.maximumWidth;
@@ -388,11 +436,11 @@ JSClass("UIMenu", JSObject, {
         origin.y = viewFrame.origin.y;
 
         // Adjust the y origin so it is even with the top of the first item
-        if (this.items.length > 0){
+        if (this._items.length > 0){
             // NOTE: assuming no scale factor between window and screen
             // Can't convert point to screen coordinates because the window
             // hasn't been added to a screen yet
-            origin.y -= window.locationOfItem(this.items[0]).y;
+            origin.y -= window.locationOfItem(this._items[0]).y;
         }
 
         // Adjust the height so it's no taller than the safe area
@@ -415,10 +463,18 @@ JSClass("UIMenu", JSObject, {
         this._showWindow(window);
     },
 
+    // MARK: - Closing
+
     close: function(){
         this._contextTarget = null;
         this.window.close();
         this.window = null;
+    },
+
+    didClose: function(){
+        if (this._closeCallback){
+            this._closeCallback(this);
+        }
     }
 
 });

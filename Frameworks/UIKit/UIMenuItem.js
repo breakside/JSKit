@@ -5,6 +5,7 @@
 JSClass("UIMenuItem", JSObject, {
 
     menu: null,
+    index: 0,
     title: JSDynamicProperty('_title', null),
     keyEquivalent: JSDynamicProperty('_keyEquivalent', null),
     image: JSDynamicProperty('_image', null),
@@ -57,8 +58,10 @@ JSClass("UIMenuItem", JSObject, {
         // TODO: image
     },
 
-    initWithTitle: function(title, action){
+    initWithTitle: function(title, action, target){
         this._title = title;
+        this.action = action || null;
+        this.target = target || null;
     },
 
     initSeparator: function(){

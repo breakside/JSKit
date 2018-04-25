@@ -65,6 +65,12 @@ JSClass("UIMenuWindow", UIWindow, {
         return false;
     },
 
+    didBecomeVisible: function(){
+        this._mouseUpTimer = JSTimer.scheduledTimerWithInterval(0.15, function(){
+            this._mouseUpTimer = null;
+        }, this);
+    },
+
     // -----------------------------------------------------------------------
     // MARK: - Upating the Window Contents
 
@@ -255,6 +261,8 @@ JSClass("UIMenuWindow", UIWindow, {
     // -----------------------------------------------------------------------
     // MARK: - Mouse Events
 
+    _mouseUpTimer: null,
+
     hitTest: function(location){
         var hit = UIMenuWindow.$super.hitTest.call(this, location);
         if (hit !== null){
@@ -269,6 +277,9 @@ JSClass("UIMenuWindow", UIWindow, {
     },
 
     mouseUp: function(event){
+        if (this._mouseUpTimer !== null){
+            return true;
+        }
         if (this._isClosing){
             return;
         }
@@ -334,6 +345,10 @@ JSClass("UIMenuWindow", UIWindow, {
 
     _highlightItem: function(item, openingSubmenu){
         if (this._menu.highlightedItem !== item){
+            if (this._mouseUpTimer !== null){
+                this._mouseUpTimer.invalidate();
+                this._mouseUpTimer = null;
+            }
             if (this._menu.highlightedItem !== null){
                 this._menu.highlightedItem.highlighted = false;
                 this.menuView.itemViews[this._itemViewIndexesByItemId[this._menu.highlightedItem.objectID]].setItem(this._menu.highlightedItem);
@@ -498,6 +513,7 @@ JSClass("UIMenuWindow", UIWindow, {
         }
         this.stopMouseTracking();
         UIMenuWindow.$super.close.call(this);
+        this._menu.didClose();
         this._menu = null;
     },
 
@@ -596,7 +612,6 @@ JSClass("UIMenuItemView", UIView, {
     _keyModifierLabel: null,
     _showStatusColumn: false,
     _indentationLevel: 0,
-    _imageSize: 16,
     _padding: null,
     _keyWidth: 0,
     _indentationSize: 10,
@@ -699,11 +714,13 @@ JSClass("UIMenuItemView", UIView, {
 
     sizeToFit: function(){
         var size = JSSize(this._padding.left + this._padding.right, 0);
+        var lineHeight = this.titleLabel.font.displayLineHeight;
+        var imageSize = lineHeight;
         if (this._showStatusColumn){
-            size.width += this._imageSize + this._padding.left;
+            size.width += imageSize + this._padding.left;
         }
         if (this._imageView !== null && !this._imageView.hidden){
-            size.width += this._imageSize + this._padding.left;
+            size.width += imageSize + this._padding.left;
         }
         size.width += this._indentationSize * this._indentationLevel;
         this.titleLabel.sizeToFit();
@@ -714,7 +731,7 @@ JSClass("UIMenuItemView", UIView, {
             this._keyModifierLabel.sizeToFit();
             size.width += this._keyWidth + this._keyModifierLabel.frame.size.width + this._padding.right;
         }
-        size.height = this.titleLabel.font.displayLineHeight + this._padding.top + this._padding.bottom;
+        size.height = lineHeight + this._padding.top + this._padding.bottom;
         size.width = Math.ceil(size.width);
         size.height = Math.ceil(size.height);
         this.bounds = JSRect(JSPoint.Zero, size);
@@ -723,19 +740,21 @@ JSClass("UIMenuItemView", UIView, {
     layoutSubviews: function(){
         var left = this._padding.left;
         var right = this.bounds.size.width - this._padding.right;
+        var lineHeight = this.titleLabel.font.displayLineHeight;
+        var imageSize = lineHeight;
         if (this._showStatusColumn){
             if (this._stateImageView !== null && !this._stateImageView.hidden){
-                this._stateImageView.frame = JSRect(left, this._padding.top, this._imageSize, this._imageSize);
+                this._stateImageView.frame = JSRect(left, this._padding.top, imageSize, imageSize);
             }
-            left += this._imageSize + this._padding.left;
+            left += imageSize + this._padding.left;
         }
         if (this._imageView !== null && !this._imageView.hidden){
-            this._imageView.frame = JSRect(left, this._padding.top, this._imageSize, this._imageSize);
-            left += this._imageSize + this._padding.left;
+            this._imageView.frame = JSRect(left, this._padding.top, imageSize, imageSize);
+            left += imageSize + this._padding.left;
         }
         left += this._indentationSize * this._indentationLevel;
         if (this._submenuImageView !== null && !this._submenuImageView.hidden){
-            this._submenuImageView.frame = JSRect(right - this._submenuImageView.frame.size.width, this._padding.top, this._imageSize, this._imageSize);
+            this._submenuImageView.frame = JSRect(right - this._submenuImageView.frame.size.width, this._padding.top, imageSize, imageSize);
             right -= this._submenuImageView.frame.size.width + this._padding.right;
         }else if (this._keyLabel !== null && !this._keyLabel.hidden){
             this._keyLabel.frame = JSRect(right - this._keyWidth, this._padding.top, this._keyWidth, this._keyLabel.font.displayLineHeight);
@@ -746,8 +765,7 @@ JSClass("UIMenuItemView", UIView, {
         if (left > right){
             left = right;
         }
-        var titleHeight = this.titleLabel.font.displayLineHeight;
-        this.titleLabel.frame = JSRect(left, this._padding.top, right - left, titleHeight);
+        this.titleLabel.frame = JSRect(left, this._padding.top, right - left, lineHeight);
     },
 
 });

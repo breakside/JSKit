@@ -104,6 +104,7 @@ JSClass("UIWindowServer", JSObject, {
         this._endWindowLevelChange();
         // Force layout and display right now so all sizes are correct when viewDidAppear is called
         this.displayServer.updateDisplay();
+        window.didBecomeVisible();
     },
 
     windowRemoved: function(window){

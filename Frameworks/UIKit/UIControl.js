@@ -7,8 +7,7 @@ JSClass("UIControl", UIView, {
     // MARK: - Creating a Control
 
     init: function(){
-        UIControl.$super.init.call(this);
-        this.commonUIControlInit();
+        this.initWithFrame(JSRect(0, 0, 100, 100));
     },
 
     initWithStyler: function(styler){
