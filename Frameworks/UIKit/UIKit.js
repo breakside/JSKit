@@ -48,6 +48,7 @@
 // #import "UIKit/UIControl.js"
 // #import "UIKit/UIButton.js"
 // #import "UIKit/UICheckbox.js"
+// #import "UIKit/UIRadioGroup.js"
 
 // Menus
 // #import "UIKit/UIMenu.js"

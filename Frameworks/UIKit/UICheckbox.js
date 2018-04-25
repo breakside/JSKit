@@ -4,6 +4,8 @@
 /* global JSClass, JSObject, UILayer, JSSize, UIControl, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSConstraintBox, JSColor, UICheckbox, JSTextAlignment, JSPoint, UIView, JSFont, UICheckboxStyler, UICheckboxDefaultStyler, JSRect, UIImageView, JSBundle, JSImage */
 'use strict';
 
+(function(){
+
 JSClass("UICheckbox", UIControl, {
 
     titleLabel: JSReadOnlyProperty('_titleLabel', null),
@@ -178,7 +180,7 @@ var images = Object.create({}, {
     checkboxOn: {
         configurable: true,
         get: function(){
-            Object.defineProperty(this, 'checkboxOn', {value: JSImage.initWithResourceName("UIMenuItemOn", this.bundle) });
+            Object.defineProperty(this, 'checkboxOn', {value: JSImage.initWithResourceName("UICheckboxOn", this.bundle) });
             return this.checkboxOn;
         }
     },
@@ -186,7 +188,7 @@ var images = Object.create({}, {
     checkboxMixed: {
         configurable: true,
         get: function(){
-            Object.defineProperty(this, 'checkboxMixed', {value: JSImage.initWithResourceName("UIMenuItemMixed", this.bundle) });
+            Object.defineProperty(this, 'checkboxMixed', {value: JSImage.initWithResourceName("UICheckboxMixed", this.bundle) });
             return this.checkboxMixed;
         }
     },
@@ -205,3 +207,5 @@ Object.defineProperties(UICheckbox, {
         }
     }
 });
+
+})();
