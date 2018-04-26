@@ -10,10 +10,7 @@ var sharedApplication = null;
 
 JSClass('UIApplication', UIResponder, {
 
-    mainWindow: JSReadOnlyProperty(),
-    keyWindow: JSReadOnlyProperty(),
-    windows: JSReadOnlyProperty(),
-    windowServer: null,
+    // MARK: - Initialization & Startup
 
     initWithWindowServer: function(windowServer){
         if (sharedApplication){
@@ -39,6 +36,13 @@ JSClass('UIApplication', UIResponder, {
         }
     },
 
+    // MARK: - Managing Windows
+
+    mainWindow: JSReadOnlyProperty(),
+    keyWindow: JSReadOnlyProperty(),
+    windows: JSReadOnlyProperty(),
+    windowServer: null,
+
     getWindows: function(){
         return this.windowServer.windowStack;
     },
@@ -50,6 +54,8 @@ JSClass('UIApplication', UIResponder, {
     getKeyWindow: function(){
         return this.windowServer.keyWindow;
     },
+
+    // MARK: - Sending Events & Actions
 
     sendEvent: function(event){
         var windows = event.windows;
@@ -82,6 +88,8 @@ JSClass('UIApplication', UIResponder, {
             target[action](sender);
         }
     },
+
+    // MARK: - Touch Event Conversion
 
     touchesBegan: function(touches, event){
         // The application should be the final responder, so if a touch gets

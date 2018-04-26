@@ -29,6 +29,7 @@ JSClass("UIMenuWindow", UIWindow, {
     _scrollDistance: 0,
     _isShowingAlternates: false,
     _isClosing: false,
+    receivesAllEvents: true,
 
     // -----------------------------------------------------------------------
     // MARK: - Creating a Menu Window
@@ -229,9 +230,22 @@ JSClass("UIMenuWindow", UIWindow, {
     // -----------------------------------------------------------------------
     // MARK: - Mouse Tracking
 
+    shouldReceiveTrackingInBack: true,
+
     mouseMoved: function(event){
         this._lastMoveLocation = event.locationInView(this);
         this._adjustHighlightForLocation(this._lastMoveLocation);
+    },
+
+    mouseDragged: function(event){
+        var location = event.locationInView(this);
+        this._lastMoveLocation = event.locationInView(this);
+        this._adjustHighlightForLocation(this._lastMoveLocation);
+        if (!this.containsPoint(location)){
+            if (this._menu.supermenu !== null && this._menu.supermenu.window !== null){
+                this._menu.supermenu.window.mouseDragged(event);
+            }
+        }
     },
 
     mouseExited: function(event){
@@ -255,19 +269,6 @@ JSClass("UIMenuWindow", UIWindow, {
 
     _mouseUpTimer: null,
 
-    hitTest: function(location){
-        var hit = UIMenuWindow.$super.hitTest.call(this, location);
-        if (hit !== null){
-            return hit;
-        }
-        // Take all events
-        // Since the Window Server checks menu windows first for hits,
-        // always returning ourself means that we'll get all clicks on the
-        // screen, allowing us to dismiss ourself when a click is outside
-        // of our view.
-        return this;
-    },
-
     mouseUp: function(event){
         if (this._mouseUpTimer !== null){
             return true;
@@ -275,7 +276,16 @@ JSClass("UIMenuWindow", UIWindow, {
         if (this._isClosing){
             return;
         }
-        this._performActionForHighlightedItem();
+        var location = event.locationInView(this);
+        if (this.containsPoint(location)){
+            this._performActionForHighlightedItem();
+        }else{
+            if (this._menu.supermenu && this._menu.supermenu.window){
+                this._menu.supermenu.window.mouseUp(event);
+            }else{
+                this.closeAll();
+            }
+        }
     },
 
     mouseDown: function(event){
@@ -317,7 +327,7 @@ JSClass("UIMenuWindow", UIWindow, {
                 this.close();
             }
         }else if (event.keyCode == 13){
-            this._performActionForHighlightedItem();
+            this._performActionForHighlightedItem(true);
         }
         // TODO: select by typing title
     },
@@ -441,11 +451,11 @@ JSClass("UIMenuWindow", UIWindow, {
     // -----------------------------------------------------------------------
     // MARK: - Performing Actions
 
-    _performActionForHighlightedItem: function(){
+    _performActionForHighlightedItem: function(selectingFirstSubmenuItem){
         var item = this._menu.highlightedItem;
         if (item){
             if (item.submenu){
-                this.openHighlightedSubmenu(true);
+                this.openHighlightedSubmenu(selectingFirstSubmenuItem);
             }else{
                 this._isClosing = true;
                 this.stopMouseTracking();

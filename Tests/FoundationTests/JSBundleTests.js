@@ -48,17 +48,23 @@ JSClass('JSBundleTests', TKTestSuite, {
                 },
                 'en': {
                     'Localizable.strings.yaml': [3],
-                    'Test.strings.yaml': [7]
+                    'Localizable.strings': [3],
+                    'Test.strings.yaml': [7],
+                    'Test.strings': [7]
                 },
                 'en-GB': {
-                    'Localizable.strings.yaml': [4]
+                    'Localizable.strings.yaml': [4],
+                    'Localizable.strings': [4]
                 },
                 'de-DE': {
                     'Localizable.strings.yaml': [5],
-                    'Test.strings.yaml': [8]
+                    'Localizable.strings': [5],
+                    'Test.strings.yaml': [8],
+                    'Test.strings': [8]
                 },
                 'zn-Hans-CN': {
-                    'Localizable.strings.yaml': [6]
+                    'Localizable.strings.yaml': [6],
+                    'Localizable.strings': [6]
                 }
             },
             'Fonts': {
@@ -199,17 +205,17 @@ JSClass('JSBundleTests', TKTestSuite, {
         // Specific table
         JSLocale.preferredLanguages = ['en-US'];
         bundle._updateSupportedUserLanguages();
-        str = bundle.localizedString("testing", "Test");
+        str = bundle.localizedString("testing", "Test.strings");
         TKAssertEquals(str, "Testing");
-        str = bundle.localizedString("testing2", "Test");
+        str = bundle.localizedString("testing2", "Test.strings");
         TKAssertEquals(str, "Testing 2");
 
         // Specific table fallback
         JSLocale.preferredLanguages = ['de'];
         bundle._updateSupportedUserLanguages();
-        str = bundle.localizedString("testing", "Test");
+        str = bundle.localizedString("testing", "Test.strings");
         TKAssertEquals(str, "Testen");
-        str = bundle.localizedString("testing2", "Test");
+        str = bundle.localizedString("testing2", "Test.strings");
         TKAssertEquals(str, "Testing 2");
     }
 

@@ -15,6 +15,7 @@ JSClass('UIWindow', UIView, {
     firstResponder: JSDynamicProperty('_firstResponder', null),
     windowServer: JSReadOnlyProperty(),
     screen: JSReadOnlyProperty('_screen', null),
+    receivesAllEvents: false,
 
     // -------------------------------------------------------------------------
     // MARK: - Creating a Window
@@ -241,13 +242,32 @@ JSClass('UIWindow', UIView, {
         }
     },
 
-    mouseDownHitView: null,
+    adoptMouseEvents: function(fromWindow){
+        this.mouseEventView = this;
+        this.mouseDownType = fromWindow.mouseDownType;
+    },
+
+    cancelMouseEvents: function(){
+        this.mouseEventView = null;
+        this.mouseDownType = null;
+    },
+
+    shouldReceiveTrackingInBack: false,
+
+    mouseEventView: null,
     mouseDownType: null,
 
     _sendMouseEvent: function(event){
-        if (event.type == UIEvent.Type.LeftMouseDown || event.type == UIEvent.Type.RightMouseDown){
-            this.mouseDownHitView = this.hitTest(event.locationInWindow);
+        if (this.mouseEventView === null && event.type == UIEvent.Type.LeftMouseDown || event.type == UIEvent.Type.RightMouseDown){
+            this.mouseEventView = this.hitTest(event.locationInWindow);
+            if (this.receivesAllEvents && this.mouseEventView === null){
+                this.mouseEventView = this;
+            }
             this.mouseDownType = event.type;
+        }
+        var eventTarget = event.trackingView || this.mouseEventView;
+        if (eventTarget === null){
+            return;
         }
         switch (event.type){
             case UIEvent.Type.LeftMouseDown:
@@ -257,51 +277,37 @@ JSClass('UIWindow', UIView, {
                 if (this.canBecomeKeyWindow() && this.windowServer.keyWindow !== this){
                     this.windowServer.keyWindow = this;
                 }
-                this.mouseDownHitView.mouseDown(event);
+                eventTarget.mouseDown(event);
                 break;
             case UIEvent.Type.LeftMouseUp:
-                if (this.mouseDownHitView === null){
-                    this.mouseUp(event);
-                }else{
-                    this.mouseDownHitView.mouseUp(event);
-                    if (this.mouseDownType == UIEvent.Type.LeftMouseDown){
-                        this.mouseDownHitView = null;
-                    }
+                eventTarget.mouseUp(event);
+                if (this.mouseDownType == UIEvent.Type.LeftMouseDown){
+                    this.mouseEventView = null;
                 }
                 break;
             case UIEvent.Type.LeftMouseDragged:
-                if (this.mouseDownHitView !== null){
-                    this.mouseDownHitView.mouseDragged(event);
-                }
+                eventTarget.mouseDragged(event);
                 break;
             case UIEvent.Type.RightMouseDown:
-                if (this.mouseDownHitView !== null){
-                    this.mouseDownHitView.rightMouseDown(event);
-                }
+                eventTarget.rightMouseDown(event);
                 break;
             case UIEvent.Type.RightMouseUp:
-                if (this.mouseDownHitView === null){
-                    this.rightMouseUp(event);
-                }else{
-                    this.mouseDownHitView.rightMouseUp(event);
-                    if (this.mouseDownType == UIEvent.Type.RightMouseDown){
-                        this.mouseDownHitView = null;
-                    }
+                eventTarget.rightMouseUp(event);
+                if (this.mouseDownType == UIEvent.Type.RightMouseDown){
+                    this.mouseEventView = null;
                 }
                 break;
             case UIEvent.Type.RightMouseDragged:
-                if (this.mouseDownHitView !== null){
-                    this.mouseDownHitView.rightMouseDragged(event);
-                }
+                eventTarget.rightMouseDragged(event);
                 break;
             case UIEvent.Type.MouseEntered:
-                event.trackingView.mouseEntered(event);
+                eventTarget.mouseEntered(event);
                 break;
             case UIEvent.Type.MouseExited:
-                event.trackingView.mouseExited(event);
+                eventTarget.mouseExited(event);
                 break;
             case UIEvent.Type.MouseMoved:
-                event.trackingView.mouseMoved(event);
+                eventTarget.mouseMoved(event);
                 break;
         }
 

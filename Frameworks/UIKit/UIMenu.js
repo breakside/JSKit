@@ -175,9 +175,9 @@ JSClass("UIMenu", JSObject, {
         }
         this.window = window;
         if (isKey){
-            this.window.windowServer.makeMenuKeyAndVisible(this);
+            this.window.makeKeyAndVisible();
         }else{
-            this.window.windowServer.makeMenuVisible(this);
+            this.window.makeVisible();
         }
     },
 
@@ -379,10 +379,10 @@ JSClass("UIMenu", JSObject, {
 
     _openAsSubmenu: function(parentItemView){
         this._contextTarget = this.supermenu._contextTarget;
-        this._openWithFirstItemRightOfRectInView(parentItemView.bounds, parentItemView);
+        this._openWithFirstItemRightOfRectInView(parentItemView.bounds, parentItemView, false);
     },
 
-    _openWithFirstItemRightOfRectInView: function(rect, view){
+    _openWithFirstItemRightOfRectInView: function(rect, view, isKey){
         var window = this._createWindow(view.window.screen);
         var screen = this._screenMetrics(view.window.screen);
 
@@ -461,7 +461,7 @@ JSClass("UIMenu", JSObject, {
         }
 
         window.frame = JSRect(origin, size);
-        this._showWindow(window);
+        this._showWindow(window, isKey);
     },
 
     // MARK: - Closing

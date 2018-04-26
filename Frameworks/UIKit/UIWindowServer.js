@@ -21,7 +21,6 @@ JSClass("UIWindowServer", JSObject, {
     mainWindow: null,
     screen: null,
     mouseLocation: null,
-    _menuStack: [],
     _windowsById: null,
     _mouseIdleTimer: null,
     _tooltipWindow: null,
@@ -34,7 +33,6 @@ JSClass("UIWindowServer", JSObject, {
 
     init: function(){
         this.windowStack = [];
-        this._menuStack = [];
         this._windowsById = {};
         this._mouseIdleTimer = JSTimer.initWithInterval(1.25, false, this._mouseDidIdle, this);
         this.mouseLocation = JSPoint.Zero;
@@ -42,21 +40,6 @@ JSClass("UIWindowServer", JSObject, {
 
     // -----------------------------------------------------------------------
     // MARK: - Inserting and Removing Windows
-
-    makeMenuVisible: function(menu){
-        this._beginWindowLevelChange();
-        this._menuStack.push(menu);
-        this.makeWindowVisible(menu.window);
-        if (this.mouseEventWindow !== null){
-            this.mouseEventWindow = menu.window;
-        }
-        this._endWindowLevelChange();
-    },
-
-    makeMenuKeyAndVisible: function(menu){
-        this.makeMenuVisible(menu);
-        this.makeWindowKey(menu.window);
-    },
 
     makeWindowVisible: function(window){
         this.windowInserted(window);
@@ -105,6 +88,11 @@ JSClass("UIWindowServer", JSObject, {
         // Force layout and display right now so all sizes are correct when viewDidAppear is called
         this.displayServer.updateDisplay();
         window.didBecomeVisible();
+        if (window.receivesAllEvents && this.mouseEventWindow !== null){
+            window.adoptMouseEvents(this.mouseEventWindow);
+            this.mouseEventWindow.cancelMouseEvents();
+            this.mouseEventWindow = window;
+        }
     },
 
     windowRemoved: function(window){
@@ -114,12 +102,6 @@ JSClass("UIWindowServer", JSObject, {
         this._beginWindowLevelChange();
         delete this._windowsById[window.objectID];
         var i;
-        for (i = this._menuStack.length - 1; i >= 0; --i){
-            if (this._menuStack[i].window === window){
-                this._menuStack.splice(i, 1);
-                break;
-            }
-        }
         for (i = this.windowStack.length - 1; i >= 0; --i){
             if (this.windowStack[i] === window){
                 this.windowStack.splice(i, 1);
@@ -149,10 +131,11 @@ JSClass("UIWindowServer", JSObject, {
             }
         }
         if (window === this.mouseEventWindow){
-            this.mouseEventWindow = null;
-        }
-        if (window === this.mouseDownWindow){
-            this.mouseDownWindow = null;
+            this.mouseEventWindow = this.windowForEventAtLocation(this.mouseLocation);
+            if (this.mouseEventWindow !== null){
+                this.mouseEventWindow.adoptMouseEvents(window);
+                window.cancelMouseEvents();
+            }
         }
         this._endWindowLevelChange();
     },
@@ -333,8 +316,11 @@ JSClass("UIWindowServer", JSObject, {
     },
 
     windowForEventAtLocation: function(location){
-        if (this._menuStack.length > 0){
-            return this._menuStack[this._menuStack.length - 1].window;
+        if (this.windowStack.length === 0){
+            return null;
+        }
+        if (this.windowStack[this.windowStack.length - 1].receivesAllEvents){
+            return this.windowStack[this.windowStack.length - 1];
         }
         return this.windowAtScreenLocation(location);
     },
@@ -342,7 +328,6 @@ JSClass("UIWindowServer", JSObject, {
     // -----------------------------------------------------------------------
     // MARK: - Mouse Events
 
-    mouseDownWindow: null,
     isLeftMouseDown: false,
     isRightMouseDown: false,
     mouseDownCount: 0,
@@ -382,19 +367,17 @@ JSClass("UIWindowServer", JSObject, {
 
         if (isADown){
             if (this.mouseDownCount === 0 && this._draggingSession === null){
-                this.mouseDownWindow = this.mouseEventWindow = this.windowForEventAtLocation(location);
+                this.mouseEventWindow = this.windowForEventAtLocation(location);
             }
             ++this.mouseDownCount;
         }
 
         var event;
         var targetWindow = this.mouseEventWindow;
-        var originalDownWindow = this.mouseDownWindow;
 
         if (isAnUp){
             --this.mouseDownCount;
             if (this.mouseDownCount === 0){
-                this.mouseDownWindow = null;
                 this.mouseEventWindow = null;
             }
         }
@@ -407,16 +390,6 @@ JSClass("UIWindowServer", JSObject, {
             if (targetWindow !== null){
                 event = UIEvent.initMouseEventWithType(type, timestamp, targetWindow, targetWindow.convertPointFromScreen(location));
                 this._sendEventToApplication(event, targetWindow.application);
-                /* Need to figure this out, probably still required, but I need a test case
-                if ((type === UIEvent.Type.LeftMouseUp && downType === UIEvent.Type.LeftMouseDown) || (type === UIEvent.Type.RightMouseUp && downType === UIEvent.Type.RightMouseDown)){
-                    // If a mouse down causes a new window to open, like a menu, the resulting mouse up will be sent to the
-                    // menu window, but we also want to hear about it in the original window in order to do things like update the button state
-                    if (originalDownWindow !== targetWindow){
-                        event = UIEvent.initMouseEventWithType(type, timestamp, originalDownWindow, originalDownWindow.convertPointFromScreen(location));
-                        this._sendEventToApplication(event, originalDownWindow.application);
-                    }
-                }
-                */
             }
         }
     },
@@ -484,23 +457,12 @@ JSClass("UIWindowServer", JSObject, {
     },
 
     _shouldCreateTrackingEventForView: function(view){
-        // If a menu is open, mouse tracking events are only sent to menu views, regardless of if
-        // the mouse is down or up
-        if (this._menuStack.length > 0){
-            // loop backwards because we're most likely tracking on the topmost menu
-            for (var i = this._menuStack.length - 1; i >= 0; --i){
-                if (view.window === this._menuStack[i].window){
-                    return true;
-                }
-            }
-            return false;
-        }
         // Mouse tracking events are only sent to the key and main windows when the mouse is not down
         // TODO: allow this behavior to be adjusted with tracking options
-        if (view.window !== this.keyWindow && view.window !== this.mainWindow){
+        if (view.window !== this.keyWindow && view.window !== this.mainWindow && !view.window.shouldReceiveTrackingInBack){
             return false;
         }
-        if (this.mouseDownWindow !== null){
+        if (this.mouseEventWindow !== null){
             return false;
         }
         return true;
@@ -527,6 +489,9 @@ JSClass("UIWindowServer", JSObject, {
 
     _trackingViewInWindowAtLocation: function(window, location){
         var view = window.hitTest(window.convertPointFromScreen(location));
+        if (view === null){
+            return null;
+        }
         while (view.superview !== null && ((view.mouseTrackingType & UIView.MouseTracking.enterAndExit) === 0)){
             view = view.superview;
         }
