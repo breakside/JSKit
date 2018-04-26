@@ -78,6 +78,11 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
                 context.propertiesNeedingUpdate.shadow = true;
                 UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
                 break;
+            case 'cornerRadii':
+                context = this.contextForLayer(layer);
+                context.propertiesNeedingUpdate.cornerRadius = true;
+                UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
+                break;
             default:
                 context = this.contextForLayer(layer);
                 context.propertiesNeedingUpdate[parts[0]] = true;
@@ -109,8 +114,17 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         // the superlayer's bounds to consider.
         var context = this.contextForLayer(layer);
         var origin = JSPoint(layer.presentation.position);
-        var parentScrolls = context.element.parentNode !== null && (context.element.parentNode.style.overflow == 'auto' || context.element.parentNode.style.overflow == 'scroll');
-        var superorigin = (layer.superlayer !== null && !parentScrolls) ? layer.superlayer.presentation.bounds.origin : JSPoint.Zero;
+        var superorigin;
+        if (layer.superlayer !== null){
+            var superContext = this.contextForLayer(layer.superlayer);
+            if (superContext.scrollOrigin){
+                superorigin = superContext.scrollOrigin;
+            }else{
+                superorigin = layer.superlayer.presentation.bounds.origin;
+            }
+        }else{
+            superorigin = JSPoint.Zero;
+        }
         var size = layer.presentation.bounds.size;
         origin.x -= size.width * layer.presentation.anchorPoint.x + superorigin.x;
         origin.y -= size.height * layer.presentation.anchorPoint.y + superorigin.y;
@@ -188,7 +202,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         var known = layer._displayServer === this;
         layer._displayServer = this;
         var context = this.contextForLayer(layer);
-        var insertIndex = parentContext.firstSublayerNodeIndex + layer.level;
+        var insertIndex = parentContext.firstSublayerNodeIndex + layer.sublayerIndex;
         if (insertIndex < parentContext.element.childNodes.length){
             if (context.element !== parentContext.element.childNodes[insertIndex]){
                 parentContext.element.insertBefore(context.element, parentContext.element.childNodes[insertIndex]);

@@ -53,6 +53,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     element: null,
     borderElement: null,
     trackingElement: null,
+    sublayerElement: null,
     style: null,
     canvasContext: JSDynamicProperty('_canvasContext', null),
     propertiesNeedingUpdate: null,
@@ -71,6 +72,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     initWithElementUnmodified: function(element){
         UIHTMLDisplayServerContext.$super.init.call(this);
         this.element = element;
+        this.sublayerElement = this.element;
         this.style = element.style;
         this.propertiesNeedingUpdate = {};
         this._imageElements = [];

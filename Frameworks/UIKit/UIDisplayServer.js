@@ -62,18 +62,17 @@ JSClass("UIDisplayServer", JSObject, {
         this._isUpdating = true;
         var completedAnimations = this._updateAnimations(t);
         this._flushLayerLayoutQueue();
-        this._flushLayerRepositionQueue();
         this._flushLayerDisplayQueue();
-
+        this._flushLayerRepositionQueue();
         if (this._animationCount > 0){
             this.setUpdateNeeded();
         }
+        this._isUpdating = false;
 
         // Call any animation callbacks
         for (var i = 0, l = completedAnimations.length; i < l; ++i){
             completedAnimations[i].completionFunction(completedAnimations[i]);
         }
-        this._isUpdating = false;
     },
 
     // -------------------------------------------------------------------------
@@ -190,7 +189,7 @@ JSClass("UIDisplayServer", JSObject, {
                 animation.updateForTime(t);
                 if (animation.isComplete){
                     layer.removeAnimationForKey(key);
-                    if (animation.completionFuncstion){
+                    if (animation.completionFunction){
                         completedAnimations.push(animation);
                     }
                 }

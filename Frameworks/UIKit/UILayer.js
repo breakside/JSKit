@@ -4,7 +4,7 @@
 // #import "UIKit/UIDisplayServer.js"
 // #feature Math.min
 // #feature Math.max
-/* global JSGlobalObject, UILayerAnimatedProperty, JSCustomProperty, JSDynamicProperty, JSClass, JSObject, UILayer, UIDisplayServer, JSRect, JSPoint, JSSize, JSConstraintBox, JSAffineTransform, UIAnimationTransaction, UIBasicAnimation, JSSetDottedName, JSResolveDottedName, JSContext */
+/* global JSGlobalObject, UILayerAnimatedProperty, JSCustomProperty, JSDynamicProperty, JSClass, JSObject, UILayer, UIDisplayServer, JSRect, JSPoint, JSSize, JSConstraintBox, JSAffineTransform, UIAnimationTransaction, UIBasicAnimation, JSSetDottedName, JSResolveDottedName, JSContext, UILayerCornerRadii */
 'use strict';
 
 JSGlobalObject.UILayerAnimatedProperty = function(){
@@ -55,6 +55,7 @@ JSClass("UILayer", JSObject, {
     borderWidth:        UILayerAnimatedProperty(),
     borderColor:        UILayerAnimatedProperty(),
     cornerRadius:       UILayerAnimatedProperty(),
+    cornerRadii:        UILayerAnimatedProperty(),
     shadowColor:        UILayerAnimatedProperty(),
     shadowOffset:       UILayerAnimatedProperty(),
     shadowRadius:       UILayerAnimatedProperty(),
@@ -63,7 +64,7 @@ JSClass("UILayer", JSObject, {
     presentation:       null,
     superlayer:         null,
     sublayers:          null,
-    level:              null,
+    sublayerIndex:      null,
     animationsByKey:    null,
     animationCount:     0,
     _displayServer:     null,
@@ -223,18 +224,18 @@ JSClass("UILayer", JSObject, {
     insertSublayerAtIndex: function(sublayer, index){
         var i, l;
         if (sublayer.superlayer === this){
-            for (i = sublayer.level + 1, l = this.sublayers.length; i < l; ++i){
-                this.sublayers[i].level -= 1;
+            for (i = sublayer.sublayerIndex + 1, l = this.sublayers.length; i < l; ++i){
+                this.sublayers[i].sublayerIndex -= 1;
             }
-            this.sublayers.splice(sublayer.level,1);
-            if (index > sublayer.level){
+            this.sublayers.splice(sublayer.sublayerIndex,1);
+            if (index > sublayer.sublayerIndex){
                 --index;
             }
         }
         this.sublayers.splice(index, 0, sublayer);
-        sublayer.level = index;
-        for (i = sublayer.level + 1, l = this.sublayers.length; i < l; ++i){
-            this.sublayers[i].level += 1;
+        sublayer.sublayerIndex = index;
+        for (i = sublayer.sublayerIndex + 1, l = this.sublayers.length; i < l; ++i){
+            this.sublayers[i].sublayerIndex += 1;
         }
         sublayer.superlayer = this;
         if (sublayer.model.constraintBox){
@@ -250,14 +251,14 @@ JSClass("UILayer", JSObject, {
         if (sibling.superlayer !== this){
             throw Error('Cannot insert sublayer [%s] in view [%s] because sibling view [%s] is not a valid sublayer.');
         }
-        return this.insertSublayerAtIndex(sublayer, sibling.level);
+        return this.insertSublayerAtIndex(sublayer, sibling.sublayerIndex);
     },
 
     insertSublayerAfterSibling: function(sublayer, sibling){
         if (sibling.superlayer !== this){
             throw Error('Cannot insert sublayer [%s] in view [%s] because sibling view [%s] is not a valid sublayer.');
         }
-        return this.insertSublayerAtIndex(sublayer, sibling.level + 1);
+        return this.insertSublayerAtIndex(sublayer, sibling.sublayerIndex + 1);
     },
 
     removeSublayer: function(sublayer){
@@ -265,12 +266,12 @@ JSClass("UILayer", JSObject, {
             if (this._displayServer !== null){
                 this._displayServer.layerRemoved(sublayer);
             }
-            for (var i = sublayer.level + 1, l = this.sublayers.length; i < l; ++i){
-                this.sublayers[i].level -= 1;
+            for (var i = sublayer.sublayerIndex + 1, l = this.sublayers.length; i < l; ++i){
+                this.sublayers[i].sublayerIndex -= 1;
             }
-            this.sublayers.splice(sublayer.level,1);
+            this.sublayers.splice(sublayer.sublayerIndex,1);
             sublayer.superlayer = null;
-            sublayer.level = null;
+            sublayer.sublayerIndex = null;
         }
     },
 
@@ -490,7 +491,7 @@ JSClass("UILayer", JSObject, {
                     delete this.presentation[parts[0]];
                 }else{
                     // If we're dealing with a sub-property, there could be other active animations that
-                    // are altering other sub-properties of the same top-level property.  While we could
+                    // are altering other sub-properties of the same top-sublayerIndex property.  While we could
                     // check for others, there doesn't seem to be much benefit, so just overwrite this
                     // animation's presentation property with the model property.
                     JSSetDottedName(this.presentation, key, JSResolveDottedName(this.model, key));
@@ -675,9 +676,20 @@ UILayer.Properties = {
     borderWidth             : null,
     borderColor             : null,
     cornerRadius            : null,
+    cornerRadii             : null,
     shadowColor             : null,
     shadowOffset            : JSPoint.Zero,
     shadowRadius            : 0.0
+};
+
+JSGlobalObject.UILayerCornerRadii = function(topLeft, topRight, bottomRight, bottomLeft){
+    if (this === undefined){
+        return new UILayerCornerRadii(topLeft, topRight, bottomRight, bottomLeft);
+    }
+    this.topLeft = topLeft;
+    this.topRight = topRight;
+    this.bottomRight = bottomRight;
+    this.bottomLeft = bottomLeft;
 };
 
 JSContext.definePropertiesFromExtensions({

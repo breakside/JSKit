@@ -271,7 +271,7 @@ JSClass("UIMenuWindow", UIWindow, {
 
     mouseUp: function(event){
         if (this._mouseUpTimer !== null){
-            return true;
+            return;
         }
         if (this._isClosing){
             return;
@@ -324,7 +324,7 @@ JSClass("UIMenuWindow", UIWindow, {
             }
         }else if (event.keyCode == 37){
             if (this._menu.supermenu && this._menu.supermenu.window){
-                this.close();
+                this._menu.close();
             }
         }else if (event.keyCode == 13){
             this._performActionForHighlightedItem(true);
@@ -515,7 +515,6 @@ JSClass("UIMenuWindow", UIWindow, {
         }
         this.stopMouseTracking();
         UIMenuWindow.$super.close.call(this);
-        this._menu.didClose();
         this._menu = null;
     },
 
@@ -524,7 +523,16 @@ JSClass("UIMenuWindow", UIWindow, {
         while (top.supermenu !== null && top.supermenu.window !== null){
             top = top.supermenu;
         }
-        top.window.close();
+        top.close();
+    },
+
+    // MARK: - Submenus
+
+    deepestMenuWindow: function(){
+        if (this.submenu && this.submenu.window){
+            return this.submenu.window.deepestMenuWindow();
+        }
+        return this;
     }
 
 });
@@ -672,8 +680,18 @@ JSClass("UIMenuItemView", UIView, {
         if (item.keyEquivalent !== null){
             this.keyLabel.hidden = false;
             this.keyLabel.text = item.keyEquivalent.toUpperCase();
-            // FIXME: get get modifier string from item properties
-            this.keyModifierLabel.text = "\u2303\u2318";
+            var modifierText = "";
+            if (item.keyModifiers & UIMenuItem.KeyModifiers.option){
+                modifierText += optionSymbol;
+            }
+            if (item.keyModifiers & UIMenuItem.KeyModifiers.control){
+                modifierText += controlSymbol;
+            }
+            if (item.keyModifiers & UIMenuItem.KeyModifiers.shift){
+                modifierText += shiftSymbol;
+            }
+            modifierText += commandSymbol;
+            this.keyModifierLabel.text = modifierText;
         }else if (this._keyLabel !== null){
             this._keyLabel.hidden = true;
             this._keyModifierLabel.hidden = true;

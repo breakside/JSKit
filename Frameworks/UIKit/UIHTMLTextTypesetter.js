@@ -50,6 +50,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
             layoutElement.style.right = '0';
             layoutElement.style.backgroundColor = 'rgb(255,240,240)';
             layoutElement.style.lineHeight = '0';
+            layoutElement.style.visibility = 'hidden';
             this._domDocument.body.appendChild(layoutElement);
             layoutElementStack.push(layoutElement);
         }

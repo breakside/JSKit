@@ -7,7 +7,7 @@ JSClass("ApplicationDelegate", JSObject, {
     window: null,
     mainViewController: null,
 
-    applicationDidFinishLaunching: function(){
+    applicationDidFinishLaunching: function(application, launchOptions){
         this.window.makeKeyAndVisible();
     }
 

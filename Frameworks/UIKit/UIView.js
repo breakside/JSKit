@@ -35,7 +35,7 @@ JSClass('UIView', UIResponder, {
     viewController:     null,     // UIViewController
     window:             JSDynamicProperty('_window', null),     // UIWindow
     superview:          null,     // UIView
-    level:              null,     // int
+    subviewIndex:       null,     // int
     subviews:           null,     // Array
     layer:              null,     // UILayer
     nextKeyView:        null,     // UIView
@@ -116,7 +116,7 @@ JSClass('UIView', UIResponder, {
     insertSubviewAtIndex: function(subview, index){
         var layerIndex;
         if (index < this.subviews.length){
-            layerIndex = this.subviews[index].layer.level;
+            layerIndex = this.subviews[index].layer.sublayerIndex;
         }else{
             layerIndex = this.layer.sublayers.length;
         }
@@ -127,26 +127,26 @@ JSClass('UIView', UIResponder, {
         if (sibling.superview !== this){
             throw Error('Cannot insert subview [%s] in view [%s] because sibling view [%s] is not a valid subview.');
         }
-        return this._insertSubviewAtIndex(subview, sibling.level, sibling.layer.level);
+        return this._insertSubviewAtIndex(subview, sibling.subviewIndex, sibling.layer.sublayerIndex);
     },
 
     insertSubviewAfterSibling: function(subview, sibling){
         if (sibling.superview !== this){
             throw Error('Cannot insert subview [%s] in view [%s] because sibling view [%s] is not a valid subview.');
         }
-        return this._insertSubviewAtIndex(subview, sibling.level + 1, sibling.layer.level + 1);
+        return this._insertSubviewAtIndex(subview, sibling.subviewIndex + 1, sibling.layer.sublayerIndex + 1);
     },
 
     removeSubview: function(subview){
         if (subview.superview === this){
             this.layer.removeSublayer(subview.layer);
-            for (var i = subview.level + 1, l = this.subviews.length; i < l; ++i){
-                this.subviews[i].level -= 1;
+            for (var i = subview.subviewIndex + 1, l = this.subviews.length; i < l; ++i){
+                this.subviews[i].subviewIndex -= 1;
             }
-            this.subviews.splice(subview.level,1);
+            this.subviews.splice(subview.subviewIndex,1);
             subview.superview = null;
             subview.setWindow(null);
-            subview.level = null;
+            subview.subviewIndex = null;
         }
     },
 
@@ -427,20 +427,20 @@ JSClass('UIView', UIResponder, {
     _insertSubviewAtIndex: function(subview, index, layerIndex){
         var i, l;
         if (subview.superview === this){
-            for (i = subview.level + 1, l = this.subviews.length; i < l; ++i){
-                this.subviews[i].level -= 1;
+            for (i = subview.subviewIndex + 1, l = this.subviews.length; i < l; ++i){
+                this.subviews[i].subviewIndex -= 1;
             }
-            this.subviews.splice(subview.level,1);
-            if (index > subview.level){
+            this.subviews.splice(subview.subviewIndex,1);
+            if (index > subview.subviewIndex){
                 --index;
             }
         }else if (subview.superview){
             subview.removeFromSuperview();
         }
         this.subviews.splice(index, 0, subview);
-        subview.level = index;
-        for (i = subview.level + 1, l = this.subviews.length; i < l; ++i){
-            this.subviews[i].level += 1;
+        subview.subviewIndex = index;
+        for (i = subview.subviewIndex + 1, l = this.subviews.length; i < l; ++i){
+            this.subviews[i].subviewIndex += 1;
         }
         subview.superview = this;
         subview.setWindow(this.window);

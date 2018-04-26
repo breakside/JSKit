@@ -70,9 +70,8 @@ JSClass("UIPopupButton", UIControl, {
             var itemOrigin = JSPoint(this.titleLabel.frame.origin.x - itemTitleOffset.x, this.titleLabel.frame.origin.y - itemTitleOffset.y);
             this.menu.minimumWidth = this.indicatorView.frame.origin.x - itemOrigin.x;
             this.menu.font = font;
-            this.menu.openWithItemAtLocationInView(this._selectedItem, itemOrigin, this, function(){
-                popup.active = false;
-            });
+            this.menu.delegate = this;
+            this.menu.openWithItemAtLocationInView(this._selectedItem, itemOrigin, this);
         }else{
             UIPopupButton.$super.mouseDown.call(this, event);
         }
@@ -85,6 +84,12 @@ JSClass("UIPopupButton", UIControl, {
             this.sendActionsForEvent(UIControl.Event.valueChanged);
         }
         this.active = false;
+        this.menu.delegate = null;
+    },
+
+    menuDidClose: function(menu){
+        this.active = false;
+        this.menu.delegate = null;
     },
 
     setSelectedIndex: function(index){

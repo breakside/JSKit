@@ -32,7 +32,7 @@ JSClass('UIApplication', UIResponder, {
     run: function(){
         var launchOptions = this.launchOptions();
         if (this.delegate && this.delegate.applicationDidFinishLaunching){
-            this.delegate.applicationDidFinishLaunching(launchOptions);
+            this.delegate.applicationDidFinishLaunching(this, launchOptions);
         }
     },
 

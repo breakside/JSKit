@@ -24,7 +24,7 @@ JSClass('SKApplication', JSObject, {
 
     run: function(){
         if (this.delegate && this.delegate.applicationDidFinishLaunching){
-            this.delegate.applicationDidFinishLaunching(this.launchOptions);
+            this.delegate.applicationDidFinishLaunching(this, this.launchOptions);
         }
     },
 

@@ -98,15 +98,15 @@ JSClass("UILayerTests", TKTestSuite, {
         TKAssertEquals(layer1.sublayers.length, 1);
         TKAssertExactEquals(layer1.sublayers[0], layer2);
         TKAssertExactEquals(layer2.superlayer, layer1);
-        TKAssertEquals(layer2.level, 0);
+        TKAssertEquals(layer2.sublayerIndex, 0);
         layer1.addSublayer(layer3);
         TKAssertEquals(layer1.sublayers.length, 2);
         TKAssertExactEquals(layer1.sublayers[0], layer2);
         TKAssertExactEquals(layer1.sublayers[1], layer3);
         TKAssertExactEquals(layer2.superlayer, layer1);
         TKAssertExactEquals(layer3.superlayer, layer1);
-        TKAssertEquals(layer2.level, 0);
-        TKAssertEquals(layer3.level, 1);
+        TKAssertEquals(layer2.sublayerIndex, 0);
+        TKAssertEquals(layer3.sublayerIndex, 1);
     },
 
     testInsertSublayerAtIndex: function(){
@@ -120,23 +120,23 @@ JSClass("UILayerTests", TKTestSuite, {
         TKAssertEquals(layer1.sublayers.length, 1);
         TKAssertExactEquals(layer1.sublayers[0], layer2);
         TKAssertExactEquals(layer2.superlayer, layer1);
-        TKAssertEquals(layer2.level, 0);
+        TKAssertEquals(layer2.sublayerIndex, 0);
         layer1.insertSublayerAtIndex(layer3, 0);
         TKAssertEquals(layer1.sublayers.length, 2);
         TKAssertExactEquals(layer1.sublayers[0], layer3);
         TKAssertExactEquals(layer1.sublayers[1], layer2);
         TKAssertExactEquals(layer2.superlayer, layer1);
         TKAssertExactEquals(layer3.superlayer, layer1);
-        TKAssertEquals(layer2.level, 1);
-        TKAssertEquals(layer3.level, 0);
+        TKAssertEquals(layer2.sublayerIndex, 1);
+        TKAssertEquals(layer3.sublayerIndex, 0);
         layer1.insertSublayerAtIndex(layer2, 0);
         TKAssertEquals(layer1.sublayers.length, 2);
         TKAssertExactEquals(layer1.sublayers[0], layer2);
         TKAssertExactEquals(layer1.sublayers[1], layer3);
         TKAssertExactEquals(layer2.superlayer, layer1);
         TKAssertExactEquals(layer3.superlayer, layer1);
-        TKAssertEquals(layer2.level, 0);
-        TKAssertEquals(layer3.level, 1);
+        TKAssertEquals(layer2.sublayerIndex, 0);
+        TKAssertEquals(layer3.sublayerIndex, 1);
     },
 
     testInsertSublayerBeforeSibling: function(){
@@ -154,8 +154,8 @@ JSClass("UILayerTests", TKTestSuite, {
         TKAssertExactEquals(layer1.sublayers[1], layer2);
         TKAssertExactEquals(layer2.superlayer, layer1);
         TKAssertExactEquals(layer3.superlayer, layer1);
-        TKAssertEquals(layer2.level, 1);
-        TKAssertEquals(layer3.level, 0);
+        TKAssertEquals(layer2.sublayerIndex, 1);
+        TKAssertEquals(layer3.sublayerIndex, 0);
     },
 
     testInsertSublayerAfterSibling: function(){
@@ -173,8 +173,8 @@ JSClass("UILayerTests", TKTestSuite, {
         TKAssertExactEquals(layer1.sublayers[1], layer3);
         TKAssertExactEquals(layer2.superlayer, layer1);
         TKAssertExactEquals(layer3.superlayer, layer1);
-        TKAssertEquals(layer2.level, 0);
-        TKAssertEquals(layer3.level, 1);
+        TKAssertEquals(layer2.sublayerIndex, 0);
+        TKAssertEquals(layer3.sublayerIndex, 1);
     },
 
     testRemoveSublayer: function(){
@@ -188,14 +188,14 @@ JSClass("UILayerTests", TKTestSuite, {
         TKAssertExactEquals(layer1.sublayers[1], layer3);
         TKAssertExactEquals(layer2.superlayer, layer1);
         TKAssertExactEquals(layer3.superlayer, layer1);
-        TKAssertEquals(layer2.level, 0);
-        TKAssertEquals(layer3.level, 1);
+        TKAssertEquals(layer2.sublayerIndex, 0);
+        TKAssertEquals(layer3.sublayerIndex, 1);
         layer1.removeSublayer(layer2);
         TKAssertEquals(layer1.sublayers.length, 1);
         TKAssertExactEquals(layer1.sublayers[0], layer3);
         TKAssertNull(layer2.superlayer);
         TKAssertExactEquals(layer3.superlayer, layer1);
-        TKAssertEquals(layer3.level, 0);
+        TKAssertEquals(layer3.sublayerIndex, 0);
     },
 
     testRemoveFromSuperlayer: function(){
@@ -209,14 +209,14 @@ JSClass("UILayerTests", TKTestSuite, {
         TKAssertExactEquals(layer1.sublayers[1], layer3);
         TKAssertExactEquals(layer2.superlayer, layer1);
         TKAssertExactEquals(layer3.superlayer, layer1);
-        TKAssertEquals(layer2.level, 0);
-        TKAssertEquals(layer3.level, 1);
+        TKAssertEquals(layer2.sublayerIndex, 0);
+        TKAssertEquals(layer3.sublayerIndex, 1);
         layer2.removeFromSuperlayer();
         TKAssertEquals(layer1.sublayers.length, 1);
         TKAssertExactEquals(layer1.sublayers[0], layer3);
         TKAssertNull(layer2.superlayer);
         TKAssertExactEquals(layer3.superlayer, layer1);
-        TKAssertEquals(layer3.level, 0);
+        TKAssertEquals(layer3.sublayerIndex, 0);
     },
 
     testRemoveAllSublayers: function(){
@@ -230,8 +230,8 @@ JSClass("UILayerTests", TKTestSuite, {
         TKAssertExactEquals(layer1.sublayers[1], layer3);
         TKAssertExactEquals(layer2.superlayer, layer1);
         TKAssertExactEquals(layer3.superlayer, layer1);
-        TKAssertEquals(layer2.level, 0);
-        TKAssertEquals(layer3.level, 1);
+        TKAssertEquals(layer2.sublayerIndex, 0);
+        TKAssertEquals(layer3.sublayerIndex, 1);
         layer1.removeAllSublayers();
         TKAssertEquals(layer1.sublayers.length, 0);
         TKAssertNull(layer2.superlayer);

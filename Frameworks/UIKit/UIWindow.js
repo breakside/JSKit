@@ -16,6 +16,7 @@ JSClass('UIWindow', UIView, {
     windowServer: JSReadOnlyProperty(),
     screen: JSReadOnlyProperty('_screen', null),
     receivesAllEvents: false,
+    level: 0,
 
     // -------------------------------------------------------------------------
     // MARK: - Creating a Window
@@ -27,16 +28,13 @@ JSClass('UIWindow', UIView, {
     },
 
     initWithApplication: function(application){
-        UIWindow.$super.initWithConstraintBox.call(this, JSConstraintBox.Margin(0));
+        UIWindow.$super.init.call(this);
         this._application = application;
         this._commonWindowInit();
     },
 
     initWithSpec: function(spec, values){
         UIWindow.$super.initWithSpec.call(this, spec, values);
-        if (!('constraintBox' in values) && !('constraintBox.margin' in values) && !('frame' in values)){
-            this.constraintBox = JSConstraintBox.Margin(0);
-        }
         if ('contentViewController' in values){
             this.contentViewController = spec.resolvedValue(values.contentViewController);
         }else if ('contentView' in values){
@@ -373,7 +371,9 @@ JSClass('UIWindow', UIView, {
 
     _commonWindowInit: function(){
         this.window = this;
-        this.backgroundColor = JSColor.whiteColor();
+        if (this.backgroundColor === null){
+            this.backgroundColor = JSColor.whiteColor();
+        }
         this.clipsToBounds = true;
         if (this._contentView === null){
             this.contentView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));
@@ -381,3 +381,9 @@ JSClass('UIWindow', UIView, {
     }
 
 });
+
+UIWindow.Level = {
+    back: -1,
+    normal: 0,
+    front: 1,
+};

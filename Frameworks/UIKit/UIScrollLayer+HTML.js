@@ -13,6 +13,7 @@ UIScrollLayer.definePropertiesFromExtensions({
 
     initializeHTMLContext: function(context){
         UIScrollLayer.$super.initializeHTMLContext.call(this, context);
+        context.scrollOrigin = JSPoint.Zero;
         var element = context.element;
         var sizer = element.appendChild(element.ownerDocument.createElement('div'));
         sizer.style.position = 'absolute';
@@ -29,6 +30,13 @@ UIScrollLayer.definePropertiesFromExtensions({
         // element.addEventListener('touchmove', this, true);
         // element.addEventListener('touchend', this, true);
         // element.addEventListener('touchcancel', this, true);
+    },
+
+    updateAllHTMLProperties: function(context){
+        UIScrollLayer.$super.updateAllHTMLProperties.call(this, context);
+        this.updateHTMLProperty_contentSize(context);
+        this.updateHTMLProperty_contentOffset(context);
+        this.updateHTMLProperty_contentInsets(context);
     },
 
     destroyHTMLContext: function(context){
@@ -50,8 +58,7 @@ UIScrollLayer.definePropertiesFromExtensions({
         // in the case where the content offset must be reduced to fit within the new size constraints.
         // UIScrollLayer will have already done this calculation, and an offset update will be pending.
         this.updateHTMLProperty_contentOffset(context);
-        context.scrollContentSizer.style.width = this.presentation.contentSize.width + 'px';
-        context.scrollContentSizer.style.height = this.presentation.contentSize.height + 'px';
+        this._updateSizer(context);
     },
 
     updateHTMLProperty_contentOffset: function(context){
@@ -62,6 +69,17 @@ UIScrollLayer.definePropertiesFromExtensions({
         }
     },
 
+    updateHTMLProperty_contentInsets: function(context){
+        context.scrollOrigin.x = -this.presentation.contentInsets.left;
+        context.scrollOrigin.y = -this.presentation.contentInsets.top;
+        this._updateSizer(context);
+    },
+
+    _updateSizer: function(context){   
+        context.scrollContentSizer.style.width = (this.presentation.contentSize.width + this.presentation.contentInsets.left + this.presentation.contentInsets.right) + 'px';
+        context.scrollContentSizer.style.height = (this.presentation.contentSize.height + this.presentation.contentInsets.top + this.presentation.contentInsets.bottom) + 'px';
+    },
+
     handleEvent: function(e){
         this['_event_' + e.type](e);
     },
@@ -70,7 +88,7 @@ UIScrollLayer.definePropertiesFromExtensions({
         if (!this._ignoreNextSrollEvent){
             var element = e.currentTarget;
             this.model.contentOffset = JSPoint(element.scrollLeft, element.scrollTop);
-            this.model.bounds = JSRect(this.model.contentOffset, this.model.bounds.size);
+            this._updateBoundsForContentOffset();
         }
         this._ignoreNextSrollEvent = false;
     },

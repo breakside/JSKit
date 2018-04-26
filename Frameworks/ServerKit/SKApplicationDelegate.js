@@ -4,6 +4,6 @@
 
 JSProtocol("SKApplicationDelegate", JSProtocol, {
 
-    applicationDidFinishLaunching: []
+    applicationDidFinishLaunching: ['application', 'launchOptions']
 
 });

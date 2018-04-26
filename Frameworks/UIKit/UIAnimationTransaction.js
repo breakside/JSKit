@@ -4,7 +4,7 @@
 'use strict';
 
 JSClass('UIAnimationTransaction', JSObject, {
-    duration: 0.25,
+    duration: 250,
     delay: 0,
     completionFunction: null,
     timingFunction: null,

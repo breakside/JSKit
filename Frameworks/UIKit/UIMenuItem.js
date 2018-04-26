@@ -8,6 +8,7 @@ JSClass("UIMenuItem", JSObject, {
     index: 0,
     title: JSDynamicProperty('_title', null),
     keyEquivalent: JSDynamicProperty('_keyEquivalent', null),
+    keyModifiers: JSDynamicProperty('_keyModifiers', 0),
     image: JSDynamicProperty('_image', null),
     onImage: JSDynamicProperty('_onImage', null),
     offImage: JSDynamicProperty('_offImage', null),
@@ -51,6 +52,9 @@ JSClass("UIMenuItem", JSObject, {
             if ('keyEquivalent' in values){
                 this._keyEquivalent = spec.resolvedValue(values.keyEquivalent);
             }
+            if ('keyModifiers' in values){
+                this._keyModifiers = spec.resolvedValue(values.keyModifiers);
+            }
             if ('alternate' in values){
                 this._isAlternate = !!values.alternate;
             }
@@ -83,3 +87,15 @@ UIMenuItem.State = {
     on: 1,
     mixed: 2
 };
+
+UIMenuItem.KeyModifiers = {
+    none:       0,
+    option:     1 << 0,
+    control:    1 << 1,
+    shift:      1 << 2
+};
+
+UIMenuItem.KeyModifiers.optionControl = UIMenuItem.KeyModifiers.option | UIMenuItem.KeyModifiers.control;
+UIMenuItem.KeyModifiers.optionShift = UIMenuItem.KeyModifiers.option | UIMenuItem.KeyModifiers.shift;
+UIMenuItem.KeyModifiers.optionControlShift = UIMenuItem.KeyModifiers.option | UIMenuItem.KeyModifiers.control | UIMenuItem.KeyModifiers.shift;
+UIMenuItem.KeyModifiers.controlShift = UIMenuItem.KeyModifiers.control | UIMenuItem.KeyModifiers.shift;

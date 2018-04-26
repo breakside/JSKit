@@ -1,7 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIMenuItem.js"
 // #import "UIKit/UIApplication.js"
-/* global JSClass, JSObject, JSDynamicProperty, JSReadOnlyProperty, UIMenu, UIMenuItem, JSSize, JSColor, JSFont, JSRect, JSPoint, UIWindow, UIMenuWindow, UIMenuView, UIMenuItemView, JSInsets, UIApplication, UIMenuStyler, UIMenuDefaultStyler, JSConstraintBox, UILayer */
+/* global JSClass, JSObject, UIView, JSDynamicProperty, JSReadOnlyProperty, UIMenu, UIMenuItem, JSSize, JSColor, JSFont, JSRect, JSPoint, UIWindow, UIMenuWindow, UIMenuView, UIMenuItemView, JSInsets, UIApplication, UIMenuStyler, UIMenuDefaultStyler, JSConstraintBox, UILayer, UIAnimationTransaction, UIBasicAnimation */
 'use strict';
 
 (function(){
@@ -45,6 +45,10 @@ JSClass("UIMenu", JSObject, {
             }
         }
     },
+
+    // MARK: - Delegate
+
+    delgate: null,
 
     // MARK: - Display Properties
 
@@ -161,8 +165,10 @@ JSClass("UIMenu", JSObject, {
 
     // MARK: - Opening a Menu
 
+    window: null,
     _contextTarget: null,
 
+    // Semi-private: used by UIMenuBar
     _createWindow: function(screen){
         this.updateEnabled();
         var window = UIMenuWindow.initWithMenu(this);
@@ -174,11 +180,7 @@ JSClass("UIMenu", JSObject, {
             isKey = true;
         }
         this.window = window;
-        if (isKey){
-            this.window.makeKeyAndVisible();
-        }else{
-            this.window.makeVisible();
-        }
+        this.window.makeKeyAndVisible();
     },
 
     _screenMetrics: function(screen){
@@ -311,8 +313,7 @@ JSClass("UIMenu", JSObject, {
         this._showWindow(window);
     },
 
-    openWithItemAtLocationInView: function(targetItem, location, view, closeCallback){
-        this._closeCallback = closeCallback;
+    openWithItemAtLocationInView: function(targetItem, location, view){
         var window = this._createWindow(view.window.screen);
         var screen = this._screenMetrics(view.window.screen);
         var size = JSSize(window.frame.size);
@@ -374,15 +375,16 @@ JSClass("UIMenu", JSObject, {
 
     openAtLocationInContextView: function(location, view){
         this._contextTarget = view;
-        this._openWithFirstItemRightOfRectInView(JSRect(location, JSSize.Zero), view);
+        this._openWithFirstItemRightOfRectInView(JSRect(location, JSSize(1,0)), view);
     },
 
     _openAsSubmenu: function(parentItemView){
         this._contextTarget = this.supermenu._contextTarget;
         this._openWithFirstItemRightOfRectInView(parentItemView.bounds, parentItemView, false);
+        this.window.makeKey();
     },
 
-    _openWithFirstItemRightOfRectInView: function(rect, view, isKey){
+    _openWithFirstItemRightOfRectInView: function(rect, view){
         var window = this._createWindow(view.window.screen);
         var screen = this._screenMetrics(view.window.screen);
 
@@ -461,21 +463,30 @@ JSClass("UIMenu", JSObject, {
         }
 
         window.frame = JSRect(origin, size);
-        this._showWindow(window, isKey);
+        this._showWindow(window);
     },
 
     // MARK: - Closing
 
     close: function(){
+        if (this.window.layer.animationsByKey.alpha){
+            this.window.layer.removeAnimationForKey('alpha');
+        }
         this._contextTarget = null;
         this.window.close();
         this.window = null;
+        if (this.delegate && this.delegate.menuDidClose){
+            this.delegate.menuDidClose(this);
+        }
     },
 
-    didClose: function(){
-        if (this._closeCallback){
-            this._closeCallback(this);
-        }
+    closeWithAnimation: function(){
+        var menu = this;
+        UIView.animateWithDuration(0.2, function(){
+            menu.window.alpha = 0;
+        }, function(){
+            menu.close();
+        });
     }
 
 });
@@ -644,6 +655,9 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
         }else if (item.keyEquivalent){
             view._keyModifierLabel.sizeToFit();
             size.width += this._keyWidth + view._keyModifierLabel.frame.size.width + this._itemPadding.right;
+        }else{
+            // double the right padding if there's nothing there
+            size.width += this._itemPadding.right;
         }
         size.height = lineHeight + this._itemPadding.top + this._itemPadding.bottom;
         size.width = Math.ceil(size.width);
@@ -675,6 +689,8 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
             right -= this._keyWidth;
             view._keyModifierLabel.frame = JSRect(right - view._keyModifierLabel.frame.size.width, this._itemPadding.top, view._keyModifierLabel.frame.size.width, view._keyModifierLabel.font.displayLineHeight);
             right -= view._keyModifierLabel.frame.size.width + this._itemPadding.right;
+        }else{
+            right -= this._itemPadding.right;
         }
         if (left > right){
             left = right;

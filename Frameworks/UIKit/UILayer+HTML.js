@@ -86,9 +86,15 @@ UILayer.definePropertiesFromExtensions({
     },
 
     updateHTMLProperty_cornerRadius: function(context){
-        context.style.borderRadius = this.presentation.cornerRadius ? this.presentation.cornerRadius + 'px' : '';
+        var css = '';
+        if (this.presentation.cornerRadii){
+            css = '%fpx %fpx %fpx %fpx'.sprintf(this.presentation.cornerRadii.topLeft, this.presentation.cornerRadii.topRight, this.presentation.cornerRadii.bottomRight, this.presentation.cornerRadii.bottomLeft);
+        }else if (this.presentation.cornerRadius){
+            css = '%fpx'.sprintf(this.presentation.cornerRadius);
+        }
+        context.style.borderRadius = css;
         if (context.borderElement !== null){
-            context.borderElement.style.borderRadius = this.presentation.cornerRadius ? this.presentation.cornerRadius + 'px' : '';
+            context.borderElement.style.borderRadius = css;
         }
     },
 

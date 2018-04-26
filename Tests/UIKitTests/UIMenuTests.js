@@ -357,7 +357,7 @@ JSClass("UIMenuTests", TKTestSuite, {
         this.testView.frame = JSRect(10, 20, 30, 40);
         menu = this._createMenuWithItemCount(24, "Item Seven");
         menu.openAtLocationInContextView(JSPoint(5, 5), this.testView);
-        TKAssertEquals(menu.window.frame.origin.x, 15 - item1Offset.x);
+        TKAssertEquals(menu.window.frame.origin.x, 16);
         TKAssertEquals(menu.window.frame.origin.y, 25 - item1Offset.y);
         TKAssertGreaterThanOrEquals(menu.window.frame.size.width, 200);
         TKAssertGreaterThanOrEquals(menu.window.frame.size.height, 480);
@@ -367,7 +367,7 @@ JSClass("UIMenuTests", TKTestSuite, {
         this.testView.frame = JSRect(10, 600, 30, 40);
         menu = this._createMenuWithItemCount(24, "Item Seven");
         menu.openAtLocationInContextView(JSPoint(5, 5), this.testView);
-        TKAssertEquals(menu.window.frame.origin.x, 15);
+        TKAssertEquals(menu.window.frame.origin.x, 16);
         TKAssertEquals(menu.window.frame.origin.y + menu.window.frame.size.height, 996);
         TKAssertGreaterThanOrEquals(menu.window.frame.size.width, 200);
         TKAssertGreaterThanOrEquals(menu.window.frame.size.height, 480);

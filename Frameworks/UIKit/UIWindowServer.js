@@ -5,7 +5,7 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UITooltipWindow.js"
 // #import "UIKit/UIDraggingSession.js"
-/* global JSClass, JSObject, UIWindowServer, UIEvent, JSPoint, UIWindowServerInit, UITouch, UICursor, UILayer, UIView, JSTimer, UITooltipWindow, JSSize, JSRect, UIDraggingSession, UIDragOperation, jslog_create */
+/* global JSClass, JSObject, JSDynamicProperty, UIWindowServer, UIWindow, UIEvent, JSPoint, UIWindowServerInit, UITouch, UICursor, UILayer, UIView, JSTimer, UITooltipWindow, JSSize, JSRect, UIDraggingSession, UIDragOperation, JSConstraintBox, JSInsets, JSRange, jslog_create */
 'use strict';
 
 (function(){
@@ -19,6 +19,7 @@ JSClass("UIWindowServer", JSObject, {
     textInputManager: null,
     keyWindow: null,
     mainWindow: null,
+    menuBar: JSDynamicProperty('_menuBar', null),
     screen: null,
     mouseLocation: null,
     _windowsById: null,
@@ -27,6 +28,7 @@ JSClass("UIWindowServer", JSObject, {
     _tooltipSourceView: null,
     _draggingSession: null,
     _activeEvent: null,
+    _normalLevelRange: null,
 
     // -----------------------------------------------------------------------
     // MARK: - Creating a Window Server
@@ -34,6 +36,7 @@ JSClass("UIWindowServer", JSObject, {
     init: function(){
         this.windowStack = [];
         this._windowsById = {};
+        this._normalLevelRange = JSRange.Zero;
         this._mouseIdleTimer = JSTimer.initWithInterval(1.25, false, this._mouseDidIdle, this);
         this.mouseLocation = JSPoint.Zero;
     },
@@ -75,20 +78,41 @@ JSClass("UIWindowServer", JSObject, {
         if (window.objectID in this._windowsById){
             return;
         }
+        // Special case for the first normal window inserted when there isn't a back window yet.
+        // We assume it's the main back window, saving the developer from having to specify
+        if (this._normalLevelRange.location === 0 && window.level === UIWindow.Level.normal){
+            window.level = UIWindow.Level.back;
+            window.constraintBox = JSConstraintBox.Margin(0);
+        }
         this._beginWindowLevelChange();
         this._windowsById[window.objectID] = window;
-        window.level = window.layer.level = this.windowStack.length;
+        switch (window.level){
+            case UIWindow.Level.back:
+                window.subviewIndex = window.layer.sublayerIndex = this._normalLevelRange.location;
+                this._normalLevelRange.location += 1;
+                break;
+            case UIWindow.Level.normal:
+                window.subviewIndex = window.layer.sublayerIndex = this._normalLevelRange.end;
+                this._normalLevelRange.length += 1;
+                break;
+            case UIWindow.Level.front:
+                window.subviewIndex = window.layer.sublayerIndex = this.windowStack.length;
+                break;
+        }
         window._screen = this.screen;
         if (window.constraintBox){
             window.frame = UILayer.FrameForConstraintBoxInBounds(window.constraintBox, window._screen.frame);
         }
-        this.windowStack.push(window);
+        this.windowStack.splice(window.subviewIndex, 0, window);
+        for (var i = window.subviewIndex + 1; i < this.windowStack.length; ++i){
+            this.windowStack[i].subviewIndex = this.windowStack[i].layer.sublayerIndex = i;
+        }
         this.displayServer.windowInserted(window);
         this._endWindowLevelChange();
         // Force layout and display right now so all sizes are correct when viewDidAppear is called
         this.displayServer.updateDisplay();
         window.didBecomeVisible();
-        if (window.receivesAllEvents && this.mouseEventWindow !== null){
+        if (window.receivesAllEvents && this.mouseEventWindow !== null && window.layer.sublayerIndex > this.mouseEventWindow.layer.sublayerIndex){
             window.adoptMouseEvents(this.mouseEventWindow);
             this.mouseEventWindow.cancelMouseEvents();
             this.mouseEventWindow = window;
@@ -109,11 +133,19 @@ JSClass("UIWindowServer", JSObject, {
                 window._screen = null;
                 break;
             }
-            this.windowStack[i].level = this.windowStack[i].layer.level = i - 1;
+            this.windowStack[i].subviewIndex = this.windowStack[i].layer.sublayerIndex = i - 1;
+        }
+        switch (window.level){
+            case UIWindow.Level.back:
+                this._normalLevelRange.location -= 1;
+                break;
+            case UIWindow.Level.normal:
+                this._normalLevelRange.length -= 1;
+                break;
         }
         if (window === this.keyWindow){
             this.keyWindow = null;
-            for (i = this.windowStack.length - 1; i >= 0; --i){
+            for (i = window.subviewIndex - 1; i >= 0; --i){
                 if (this.windowStack[i].canBecomeKeyWindow()){
                     this.keyWindow = this.windowStack[i];
                     this.textInputManager.windowDidChangeResponder(this.keyWindow);
@@ -123,7 +155,7 @@ JSClass("UIWindowServer", JSObject, {
         }
         if (window === this.mainWindow){
             this.mainWindow = null;
-            for (i = this.windowStack.length - 1; i >= 0; --i){
+            for (i = window.subviewIndex - 1; i >= 0; --i){
                 if (this.windowStack[i].canBecomeMainWindow()){
                     this.mainWindow = this.windowStack[i];
                     break;
@@ -144,19 +176,34 @@ JSClass("UIWindowServer", JSObject, {
         if (!(window.objectID in this._windowsById)){
             return;
         }
-        if (window === this.windowStack[this.windowStack.length - 1]){
+        var toLevel;
+        switch (window.level){
+            case UIWindow.Level.back:
+                toLevel = this._normalLevelRange.location - 1;
+                break;
+            case UIWindow.Level.normal:
+                toLevel = this._normalLevelRange.end - 1;
+                break;
+            case UIWindow.Level.front:
+                toLevel = this.windowStack.length - 1;
+                break;
+        }
+        if (toLevel === window.subviewIndex){
             return;
         }
+        if (toLevel < window.subviewIndex){
+            throw new Error("orderFront will result in backwards movement of window");
+        }
         this._beginWindowLevelChange();
-        for (var i = this.windowStack.length - 1; i >= 0; --i){
+        for (var i = toLevel; i >= 0; --i){
             if (this.windowStack[i] === window){
                 this.windowStack.splice(i, 1);
-                window.level = window.layer.level = this.windowStack.length;
-                this.windowStack.push(window);
+                window.subviewIndex = window.layer.sublayerIndex = toLevel;
+                this.windowStack.splice(toLevel, 0, window);
                 this.displayServer.layerInserted(window.layer);
                 break;
             }
-            this.windowStack[i].level = this.windowStack[i].layer.level = i - 1;
+            this.windowStack[i].subviewIndex = this.windowStack[i].layer.sublayerIndex = i - 1;
         }
         this._endWindowLevelChange();
     },
@@ -190,7 +237,16 @@ JSClass("UIWindowServer", JSObject, {
             if (window.constraintBox){
                 window.frame = UILayer.FrameForConstraintBoxInBounds(window.constraintBox, window._screen.frame);
             }
+            // TODO: adjust windows so they're on the screen
         }
+    },
+
+    updateScreenAvailableInsets: function(){
+        var insets = JSInsets.Zero;
+        if (this.menuBar !== null){
+            insets.top = this.menuBar.frame.size.height;
+        }
+        this.screen.availableInsets = insets;
     },
 
     // -----------------------------------------------------------------------
@@ -217,6 +273,22 @@ JSClass("UIWindowServer", JSObject, {
 
     setCursor: function(cursor){
         // subclasses should override
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Menu Bar
+
+    setMenuBar: function(menuBar){
+        if (this._menuBar){
+            this._menuBar.close();
+        }
+        this._menuBar = menuBar;
+        if (this._menuBar){
+            this._menuBar.layoutIfNeeded();
+            this._menuBar.constraintBox = JSConstraintBox({top: 0, left: 0, right: 0, height: this._menuBar.frame.size.height});
+            this._menuBar.makeVisible();
+        }
+        this.updateScreenAvailableInsets();
     },
 
     // -----------------------------------------------------------------------
@@ -316,13 +388,19 @@ JSClass("UIWindowServer", JSObject, {
     },
 
     windowForEventAtLocation: function(location){
-        if (this.windowStack.length === 0){
-            return null;
+        var _window;
+        var locationInWindow;
+        for (var i = this.windowStack.length - 1; i >= 0; --i){
+            _window = this.windowStack[i];
+            if (_window.receivesAllEvents){
+                return _window;
+            }
+            locationInWindow = _window.convertPointFromScreen(location);
+            if (_window.containsPoint(locationInWindow)){
+                return _window;
+            }
         }
-        if (this.windowStack[this.windowStack.length - 1].receivesAllEvents){
-            return this.windowStack[this.windowStack.length - 1];
-        }
-        return this.windowAtScreenLocation(location);
+        return null;
     },
 
     // -----------------------------------------------------------------------
