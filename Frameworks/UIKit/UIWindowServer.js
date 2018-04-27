@@ -5,7 +5,7 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UITooltipWindow.js"
 // #import "UIKit/UIDraggingSession.js"
-/* global JSClass, JSObject, JSDynamicProperty, UIWindowServer, UIWindow, UIEvent, JSPoint, UIWindowServerInit, UITouch, UICursor, UILayer, UIView, JSTimer, UITooltipWindow, JSSize, JSRect, UIDraggingSession, UIDragOperation, JSConstraintBox, JSInsets, JSRange, jslog_create */
+/* global JSClass, JSObject, JSDynamicProperty, JSReadOnlyProperty, UIWindowServer, UIWindow, UIEvent, JSPoint, UIWindowServerInit, UITouch, UICursor, UILayer, UIView, JSTimer, UITooltipWindow, JSSize, JSRect, UIDraggingSession, UIDragOperation, JSConstraintBox, JSInsets, JSRange, jslog_create */
 'use strict';
 
 (function(){
@@ -27,7 +27,7 @@ JSClass("UIWindowServer", JSObject, {
     _tooltipWindow: null,
     _tooltipSourceView: null,
     _draggingSession: null,
-    _activeEvent: null,
+    activeEvent: JSReadOnlyProperty('_activeEvent', null),
     _normalLevelRange: null,
 
     // -----------------------------------------------------------------------
@@ -353,10 +353,19 @@ JSClass("UIWindowServer", JSObject, {
     // -----------------------------------------------------------------------
     // MARK: - Sending Events
 
+    _eventQueue: null,
+
     _sendEventToApplication: function(event, application){
-        this._activeEvent = event;
-        application.sendEvent(event);
-        this._activeEvent = null;
+        if (this._activeEvent === null){
+            this._eventQueue = [event];
+            while (this._eventQueue.length > 0){
+                this._activeEvent = this._eventQueue.pop();
+                application.sendEvent(this._activeEvent);
+            }
+            this._activeEvent = null;
+        }else{
+            this._eventQueue.push(event);
+        }
     },
 
     // -----------------------------------------------------------------------

@@ -3,7 +3,8 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UILabel.js"
 // #import "UIKit/UIImageView.js"
-/* global JSClass, JSLazyInitProperty, JSReadOnlyProperty, JSDynamicProperty, UIWindow, UIMenu, UIView, JSColor, JSSize, JSRect, UILabel, UIImageView, UIMenuItem, JSTextAlignment, JSInsets, JSPoint, UILayer, JSConstraintBox, UIMenuWindow, UIMenuView, UIMenuItemView, JSBinarySearcher, JSTimer, JSURL, JSImage, JSBundle */
+// #import "UIKit/UIEvent.js"
+/* global JSClass, JSLazyInitProperty, JSReadOnlyProperty, JSDynamicProperty, UIEvent, UIWindow, UIMenu, UIView, JSColor, JSSize, JSRect, UILabel, UIImageView, UIMenuItem, JSTextAlignment, JSInsets, JSPoint, UILayer, JSConstraintBox, UIMenuWindow, UIMenuView, UIMenuItemView, JSBinarySearcher, JSTimer, JSURL, JSImage, JSBundle */
 'use strict';
 
 (function(){
@@ -69,9 +70,12 @@ JSClass("UIMenuWindow", UIWindow, {
     },
 
     didBecomeVisible: function(){
-        this._mouseUpTimer = JSTimer.scheduledTimerWithInterval(0.15, function(){
-            this._mouseUpTimer = null;
-        }, this);
+        var event = this.windowServer.activeEvent;
+        if (event !== null && event.type == UIEvent.Type.LeftMouseDown){
+            var location = event.locationInView(this);
+            this._adjustHighlightForLocation(location);
+            this._itemDownTimestamp = event.timestamp;
+        }
     },
 
     // -----------------------------------------------------------------------
@@ -267,10 +271,10 @@ JSClass("UIMenuWindow", UIWindow, {
     // -----------------------------------------------------------------------
     // MARK: - Mouse Events
 
-    _mouseUpTimer: null,
+    _itemDownTimestamp: 0,
 
     mouseUp: function(event){
-        if (this._mouseUpTimer !== null){
+        if (event.timestamp - this._itemDownTimestamp < 0.2){
             return;
         }
         if (this._isClosing){
@@ -347,10 +351,7 @@ JSClass("UIMenuWindow", UIWindow, {
 
     _highlightItem: function(item, openingSubmenu){
         if (this._menu.highlightedItem !== item){
-            if (this._mouseUpTimer !== null){
-                this._mouseUpTimer.invalidate();
-                this._mouseUpTimer = null;
-            }
+            this._itemDownTimestamp = 0;
             if (this._menu.highlightedItem !== null){
                 this._menu.highlightedItem.highlighted = false;
                 this.menuView.itemViews[this._itemViewIndexesByItemId[this._menu.highlightedItem.objectID]].setItem(this._menu.highlightedItem);

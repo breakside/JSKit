@@ -1,6 +1,6 @@
 // #import "UIKit/UIWindow.js"
 // #import "UIKit/UIMenu.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSTimer, JSPoint, JSConstraintBox, JSBinarySearcher, JSSize, JSLazyInitProperty, UIView, UIWindow, JSDynamicProperty, UIMenuBar, JSRect, JSInsets, UIMenuBarItemCollectionView, UIMenuBarItemView, UIMenuBarItem, UILabel, UIImageView, JSFont, JSTextAlignment, JSColor, UIMenuDefaultStyler, UILayerCornerRadii */
+/* global JSClass, JSObject, JSReadOnlyProperty, JSPoint, JSConstraintBox, JSBinarySearcher, JSSize, JSLazyInitProperty, UIView, UIWindow, JSDynamicProperty, UIMenuBar, JSRect, JSInsets, UIMenuBarItemCollectionView, UIMenuBarItemView, UIMenuBarItem, UILabel, UIImageView, JSFont, JSTextAlignment, JSColor, UIMenuDefaultStyler, UILayerCornerRadii */
 'use strict';
 
 JSClass("UIMenuBar", UIWindow, {
@@ -264,25 +264,23 @@ JSClass("UIMenuBar", UIWindow, {
         }
     },
 
+    _itemDownTimestamp: 0,
+
     mouseDown: function(event){
         var location = event.locationInView(this);
         if (this._clipView.containsPoint(location)){
             var itemView = this._menuItemAtLocation(location);
             if (itemView !== null){
                 if (itemView !== this._highlightedItemView){
+                    this._itemDownTimestamp = event.timestamp;
                     this._selectMenuItemView(itemView);
-                    this._mouseUpTimer = JSTimer.scheduledTimerWithInterval(0.3, function(){
-                        this._mouseUpTimer = null;
-                    }, this);
                 }
             }
         }
     },
 
-    _mouseUpTimer: null,
-
     mouseUp: function(event){
-        if (this._mouseUpTimer !== null){
+        if (event.timestamp - this._itemDownTimestamp < 0.3){
             return;
         }
         var location = event.locationInView(this._clipView);
@@ -304,10 +302,7 @@ JSClass("UIMenuBar", UIWindow, {
             var itemView = this._menuItemAtLocation(location);
             this._selectMenuItemView(itemView);
         }else{
-            if (this._mouseUpTimer !== null){
-                this._mouseUpTimer.invalidate();
-                this._mouseUpTimer = null;
-            }
+            this._itemDownTimestamp = 0;
             if (this.submenu){
                 this.submenu.window.deepestMenuWindow().mouseDragged(event);
             }
