@@ -219,19 +219,28 @@ class Builder(object):
         self.outputProjectPath = os.path.join(self.outputParentPath, 'builds', self.mainBundle.identifier, self.buildLabel if not self.debug else 'debug')
         if not self.debug and os.path.exists(self.outputProjectPath):
             raise Exception("Output path already exists: %s" % self.outputProjectPath)
-        for frameworkName in self.mainBundle.info.get('JSIncludeFrameworks', []):
+        self.includedFrameworks = dict()
+        self.includeBundleFrameworks(self.mainBundle)
+
+    def includeBundleFrameworks(self, bundle):
+        for frameworkName in bundle.info.get('JSIncludeFrameworks', []):
             self.setupIncludedFramework(frameworkName)
 
     def setupIncludedFramework(self, frameworkName):
+        if frameworkName in self.includedFrameworks:
+            return
+        self.includedFrameworks[frameworkName] = True
         for path in self.includePaths:
             frameworkPath = os.path.join(path, frameworkName)
             if os.path.exists(frameworkPath) and os.path.isdir(frameworkPath):
                 frameworkBundle = Bundle()
+                frameworkBundle.name = frameworkName
                 infoFile, frameworkBundle.info = Builder.readInfo(frameworkPath)
                 self.bundles[frameworkBundle.identifier] = frameworkBundle
                 framewordResourcesPath = os.path.join(frameworkPath, 'Resources')
                 if os.path.exists(framewordResourcesPath):
                     frameworkBundle.resourcesPath = framewordResourcesPath
+                self.includeBundleFrameworks(frameworkBundle)
 
     def findSpecIncludes(self, spec):
         for k, v in spec.items():
@@ -383,4 +392,11 @@ class Builder(object):
 
     def targetUsage(self):
         return None
+
+    def licenseText(self):
+        licenseFile = os.path.join(self.projectPath, self.mainBundle.info.get('JSLicense', 'LICENSE.txt'))
+        if os.path.exists(licenseFile):
+            with open(licenseFile, 'r') as license:
+                return license.read()
+        return ""
 

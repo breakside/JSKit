@@ -1,11 +1,10 @@
 {
     "JSBundleType": "framework",
     "JSBundleIdentifier": "com.owenshaw.JSKit.ServerKit",
-    "JSFrameworkVariants": [
-        "ServerKit.js",
-        "ServerKit+Node.js"
-    ],
     "JSIncludeFrameworks": [
         "Foundation"
-    ]
+    ],
+    "JSBundleEnvironments": {
+        "node": "ServerKit+Node.js"
+    }
 }

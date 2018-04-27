@@ -1,5 +1,9 @@
 {
     "JSBundleType": "tests",
     "JSBundleIdentifier": "com.owenshaw.JSKit.HashTests",
-    "JSBundleDisplayName": "HashTests"
+    "JSBundleDisplayName": "HashTests",
+    "JSIncludeFrameworks": [
+        "TestKit",
+        "Hash"
+    ]
 }

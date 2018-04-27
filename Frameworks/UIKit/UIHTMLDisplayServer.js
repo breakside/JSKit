@@ -40,6 +40,14 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             throw new Error("Only one UIHTMLDisplayServer instance is allowed");
         }
         sharedInstance = this;
+
+        UITextFramesetter.definePropertiesFromExtensions({
+
+            init: function(){
+                return UIHTMLTextFramesetter.initWithDocument(sharedInstance.domDocument, sharedInstance);
+            }
+
+        });
     },
 
     // -------------------------------------------------------------------------
@@ -330,14 +338,6 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             this._clientRectElements[i].parentNode.removeChild(this._clientRectElements[i]);
         }
         this._clientRectElements = [];
-    }
-
-});
-
-UITextFramesetter.definePropertiesFromExtensions({
-
-    init: function(){
-        return UIHTMLTextFramesetter.initWithDocument(sharedInstance.domDocument, sharedInstance);
     }
 
 });

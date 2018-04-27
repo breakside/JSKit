@@ -5,8 +5,7 @@
     "JSIncludeFrameworks": [
         "Foundation"
     ],
-    "JSFrameworkVariants": [
-        "UIKit.js",
-        "UIKit+HTML.js"
-    ]
+    "JSBundleEnvironments": {
+        "html": "UIKit+HTML.js"
+    }
 }

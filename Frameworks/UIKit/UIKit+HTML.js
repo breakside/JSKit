@@ -1,7 +1,3 @@
-// #import "Foundation/Foundation+HTML.js"
-
-// #import "UIKit/UIKit.js"
-
 // Extensions
 // #import "UIKit/UIApplication+HTML.js"
 // #import "UIKit/UILayer+HTML.js"

@@ -2,6 +2,7 @@ import os.path
 
 class Bundle(object):
 
+    name = None
     info = None
     resourcesPath = None
     resources = None
@@ -21,6 +22,12 @@ class Bundle(object):
     @property
     def identifier(self):
         return self.info.get('JSBundleIdentifier', None)
+
+    def includeForEnvironment(self, env):
+        include = self.info.get('JSBundleEnvironments', dict()).get(env, None)
+        if include is not None and self.name is not None:
+            return "%s/%s" % (self.name, include)
+        return None
 
     def addLocalization(self, localization):
         if 'JSLocalizations' not in self.info:

@@ -139,6 +139,10 @@ class HTMLBuilder(Builder):
 
     def findIncludes(self):
         self.includes.append('main.js')
+        for bundle in self.bundles.values():
+            envInclude = bundle.includeForEnvironment('html')
+            if envInclude is not None:
+                self.includes.append(envInclude)
         mainSpecName = self.mainBundle.info.get('UIMainDefinitionResource', None)
         if mainSpecName is not None:
             mainSpec = self.mainBundle[mainSpecName]["value"]
@@ -174,17 +178,23 @@ class HTMLBuilder(Builder):
             bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug, default=lambda x: x.jsonObject()))
             bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.mainBundle.identifier)
             self.jsCompilation = JSCompilation(self.includePaths, minify=not self.debug, combine=not self.debug)
+            if not self.debug:
+                license = self.licenseText()
+                self.jsCompilation.writeComment(u"%s (%s)\n----\n%s" % (self.mainBundle.info.get('JSBundleIdentifier'), self.mainBundle.info.get('JSBundleVersion'), license))
             for path in self.includes:
                 self.jsCompilation.include(path)
             self.jsCompilation.include(bundleJSFile, 'bundle.js')
+            appJSNumber = 0
             for outfile in self.jsCompilation.outfiles:
                 outfile.fp.flush()
                 if outfile.name:
                     outputPath = os.path.join(self.outputCacheBustingPath, outfile.name)
-                elif len(self.appJS) == 0:
+                elif appJSNumber == 0:
                     outputPath = os.path.join(self.outputCacheBustingPath, 'app.js')
+                    appJSNumber += 1
                 else:
-                    outputPath = os.path.join(self.outputCacheBustingPath, 'app%d.js' % len(self.appJS))
+                    outputPath = os.path.join(self.outputCacheBustingPath, 'app%d.js' % appJSNumber)
+                    appJSNumber += 1
                 if not os.path.exists(os.path.dirname(outputPath)):
                     os.makedirs(os.path.dirname(outputPath))
                 if self.debug and outfile.fp != bundleJSFile:

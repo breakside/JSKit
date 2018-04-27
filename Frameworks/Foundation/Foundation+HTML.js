@@ -1,10 +1,3 @@
-// This import must be first because it defines JSGlobalObjet, which is required
-// by every other file
-// #import "Foundation/Javascript+HTML.js"
-
-// Base
-// #import "Foundation/Foundation.js"
-
 // Extensions
 // #import "Foundation/JSColor+HTML.js"
 // #import "Foundation/JSData+HTML.js"

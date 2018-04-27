@@ -16,6 +16,7 @@ class JSCompilation(object):
     outfilesByName = None
     weakIncludes = None
     includeAliases = None
+    precombiledOutfileIndex = 0
 
     def __init__(self, includePaths, minify=True, combine=True):
         self.includePaths = includePaths
@@ -33,6 +34,10 @@ class JSCompilation(object):
     def importedScriptPaths(self):
         return self.importedScriptsByPath.keys()
 
+    def setImportedScriptPaths(self, paths):
+        for path in paths:
+            self.importedScriptsByPath[path] = True
+
     def writeComment(self, comment):
         if not self.combine:
             return
@@ -49,23 +54,24 @@ class JSCompilation(object):
             source.seek(0)
             self.includeFilePointer(source, sourceName=sourceName)
 
-    def includePath(self, sourcePath):
-        includedSourcePath = None
+    def resolveIncludePath(self, sourcePath):
         for includePath in self.includePaths:
             possiblePath = os.path.join(includePath, sourcePath)
             if os.path.exists(possiblePath):
-                includedSourcePath = possiblePath
-                break
-        if not includedSourcePath:
-            possibleAlias = os.path.dirname(sourcePath)
-            if possibleAlias in self.includeAliases:
-                possiblePath = os.path.join(self.includeAliases[possibleAlias], os.path.basename(sourcePath))
-                if os.path.exists(possiblePath):
-                    includedSourcePath = possiblePath
+                return possiblePath
+        possibleAlias = os.path.dirname(sourcePath)
+        if possibleAlias in self.includeAliases:
+            possiblePath = os.path.join(self.includeAliases[possibleAlias], os.path.basename(sourcePath))
+            if os.path.exists(possiblePath):
+                return possiblePath
+        return None
+
+    def includePath(self, sourcePath, weak=False):
+        includedSourcePath = self.resolveIncludePath(sourcePath)
         if includedSourcePath:
             if includedSourcePath not in self.importedScriptsByPath:
                 self.importedScriptsByPath[includedSourcePath] = True
-                self.includeFilePointer(open(includedSourcePath, 'r'), sourceName=sourcePath)
+                self.includeFilePointer(open(includedSourcePath, 'r'), sourceName=sourcePath, weak=weak)
         else:
             raise IncludeNotFoundException("Include not found: %s; include paths: %s" % (sourcePath, ", ".join(self.includePaths)))
 
@@ -76,25 +82,27 @@ class JSCompilation(object):
         combinedFileOutputStarted = False
         fileIsStrict = False
         tests = []
+        precompiled = False
         for line in scanner:
             if isinstance(line, JSImport):
                 try:
                     if combinedFileOutputStarted:
                         self.currentOutfile.write("\n")
-                    if os.path.dirname(line.path) in self.weakIncludes:
-                        if line.path not in self.importedScriptsByPath:
-                            self.importedScriptsByPath[line.path] = True
+                    weakInclude = os.path.dirname(line.path) in self.weakIncludes
+                    if not weak and weakInclude:
+                        includedSourcePath = self.resolveIncludePath(line.path)
+                        if includedSourcePath not in self.importedScriptsByPath:
                             self.currentOutfile.write(line.rawline)
-                    else:
-                        self.includePath(line.path)
+                    # print "%s includes %s" % (sourceName, line.path)
+                    self.includePath(line.path, weak=weakInclude)
                     combinedFileOutputStarted = False
                 except IncludeNotFoundException:
                     raise Exception("ERROR: %s, line %d: include not found '%s'.  (include path is '%s')" % (sourceName if sourceName is not None else '(no file)', line.sourceLine, line.path, ":".join(self.includePaths)))
             elif isinstance(line, JSFeature):
                 self.features.append(line)
-            elif isinstance(line, JSBlank):
-                pass
-            else:
+            elif isinstance(line, JSPrecompiled):
+                precompiled = True
+            elif not precompiled and not weak:
                 if self.combine:
                     if isinstance(line, JSStrict):
                         fileIsStrict = True
@@ -117,11 +125,16 @@ class JSCompilation(object):
                         self.outfilesByName[sourceName] = JSCompilationOutfile(fp=tempfile.NamedTemporaryFile(), name=sourceName)
                         self.outfiles.append(self.outfilesByName[sourceName])
                     self.outfilesByName[sourceName].write(line)
-        if self.combine:
-            if combinedFileOutputStarted:
-                self.currentOutfile.write("\n")
-        else:
-            self.outfiles.append(JSCompilationOutfile(fp=fp, name=sourceName, locked=True))
+        if not weak:
+            if precompiled:
+                outfile = JSCompilationOutfile(fp=fp, name=sourceName, locked=True)
+                self.outfiles.insert(self.precombiledOutfileIndex, outfile)
+                self.precombiledOutfileIndex += 1
+            elif self.combine:
+                if combinedFileOutputStarted:
+                    self.currentOutfile.write("\n")
+            else:
+                self.outfiles.append(JSCompilationOutfile(fp=fp, name=sourceName, locked=True))
 
     def startNewCombinedOutfile(self, debugName):
         self.currentOutfile = JSCompilationOutfile(fp=tempfile.NamedTemporaryFile())
@@ -218,7 +231,7 @@ class JSScanner(object):
             if self.context == self.CONTEXT_JS:
                 if command == "precompiled":
                     self.minify = False
-                    return JSBlank()
+                    return JSPrecompiled(rawline=line)
                 if command == "import":
                     i = arguments.find('"')
                     if i >= 0:
@@ -311,8 +324,11 @@ class JSImport(object):
         self.rawline = rawline
 
 
-class JSBlank(object):
-    pass
+class JSPrecompiled(object):
+    rawline = ""
+    
+    def __init__(self, rawline=""):
+        self.rawline = rawline
 
 
 class JSFeature(object):

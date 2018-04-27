@@ -5,8 +5,8 @@
     "JSIncludeFrameworks": [
         "Zlib"
     ], 
-    "JSFrameworkVariants": [
-        "Foundation.js",
-        "Foundation+HTML.js"
-    ]
+    "JSBundleEnvironments": {
+        "html": "Foundation+HTML.js",
+        "node": "Foundation+Node.js"
+    }
 }

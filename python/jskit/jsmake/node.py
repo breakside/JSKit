@@ -87,6 +87,10 @@ class NodeBuilder(Builder):
         else:
             self.includes.append('jslog-release.js')
         self.includes.append('main.js')
+        for bundle in self.bundles.values():
+            envInclude = bundle.includeForEnvironment('node')
+            if envInclude is not None:
+                self.includes.append(envInclude)
         mainSpecName = self.mainBundle.info.get('SKMainDefinitionResource', None)
         if mainSpecName is not None:
             mainSpec = self.mainBundle[mainSpecName]["value"]
@@ -126,6 +130,7 @@ class NodeBuilder(Builder):
         with open(self.exePath, 'w') as exeJSFile:
             exeJSFile.write("#!/usr/bin/env node\n")
             exeJSFile.write("'use strict';\n\n")
+            exeJSFile.write("global.JSGlobalObject = global;\n\n")
             for path in self.requires:
                 relativePath = _unixpath(os.path.relpath(path, os.path.dirname(self.exePath)))
                 if relativePath == entryFile:

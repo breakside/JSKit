@@ -4,8 +4,5 @@
     "JSBundleVersion": "1.0.0",
     "JSIncludeFrameworks": [
         "Foundation"
-    ], 
-    "JSFrameworkVariants": [
-        "TestKit.js"
     ]
 }

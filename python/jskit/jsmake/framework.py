@@ -9,6 +9,7 @@ class FrameworkBuilder(Builder):
     includePaths = None
     frameworkOutputPath = None
     weakIncludes = None
+    importedPaths = None
 
     def __init__(self, projectPath, includePaths, outputParentPath, debug=False, args=None):
         super(FrameworkBuilder, self).__init__(projectPath, includePaths, outputParentPath, debug)
@@ -33,34 +34,45 @@ class FrameworkBuilder(Builder):
 
     def build(self):
         self.setup()
-        self.buildVariants()
+        self.buildMain()
+        self.buildEnvironments()
         self.copyLicense()
         self.copyInfo()
         self.copyResources()
         self.finish()
 
-    def buildVariants(self):
-        variants = self.mainBundle.info.get('JSFrameworkVariants', [])
+    def buildMain(self):
         license = self.licenseText()
-        for variant in variants:
-            variantPath = variant
+        sourceName = self.frameworkName + '.js'
+        compilation = JSCompilation(self.includePaths, minify=not self.debug, combine=True)
+        compilation.weakIncludes = self.weakIncludes
+        compilation.includeAliases[self.frameworkName] = self.projectPath
+        compilation.writeComment(u"%s (%s)\n----\n%s" % (self.mainBundle.info.get('JSBundleIdentifier'), self.mainBundle.info.get('JSBundleVersion'), license))
+        compilation.include(sourceName)
+        self.importedPaths = compilation.importedScriptPaths()
+        if len(compilation.outfiles) == 1:
+            outfile = compilation.outfiles[0]
+            outfile.fp.flush()
+            shutil.copy(outfile.fp.name, os.path.join(self.frameworkOutputPath, sourceName))
+        else:
+            raise Exception("Expecting 1 output file, got %d" % len(compilation.outfiles))
+
+    def buildEnvironments(self):
+        environments = self.mainBundle.info.get('JSBundleEnvironments', {})
+        license = self.licenseText()
+        for environment, sourceName in environments.items():
             compilation = JSCompilation(self.includePaths, minify=not self.debug, combine=True)
             compilation.weakIncludes = self.weakIncludes
+            compilation.setImportedScriptPaths(self.importedPaths)
             compilation.includeAliases[self.frameworkName] = self.projectPath
-            compilation.writeComment(u"%s (%s)\n----\n%s" % (self.mainBundle.info.get('JSBundleIdentifier'), self.mainBundle.info.get('JSBundleVersion'), license))
-            compilation.include(variantPath)
+            compilation.writeComment(u"%s [%s] (%s)\n----\n%s" % (self.mainBundle.info.get('JSBundleIdentifier'), environment, self.mainBundle.info.get('JSBundleVersion'), license))
+            compilation.include(sourceName)
             if len(compilation.outfiles) == 1:
                 outfile = compilation.outfiles[0]
                 outfile.fp.flush()
-                shutil.copy(outfile.fp.name, os.path.join(self.frameworkOutputPath, variant))
+                shutil.copy(outfile.fp.name, os.path.join(self.frameworkOutputPath, sourceName))
             else:
                 raise Exception("Expecting 1 output file, got %d" % len(compilation.outfiles))
-
-    def licenseText(self):
-        licenseFile = os.path.join(self.projectPath, self.mainBundle.info.get('JSLicense', 'LICENSE.txt'))
-        if os.path.exists(licenseFile):
-            with open(licenseFile, 'r') as license:
-                return license.read()
 
     def copyLicense(self):
         licenseFile = os.path.join(self.projectPath, self.mainBundle.info.get('JSLicense', 'LICENSE.txt'))

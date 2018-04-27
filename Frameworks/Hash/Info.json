@@ -1,9 +1,6 @@
 {
     "JSBundleType": "framework",
     "JSBundleIdentifier": "com.owenshaw.JSKit.Hash",
-    "JSFrameworkVariants": [
-        "Hash.js"
-    ],
     "JSIncludeFrameworks": [
         "Foundation"
     ]

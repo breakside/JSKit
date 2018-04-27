@@ -1,4 +1,3 @@
-// #import "Foundation/Foundation.js"
 // #import "Foundation/JSClass.js"
 /* global JSGlobalObject, JSObject, JSClass, JSClassForName */
 'use strict';

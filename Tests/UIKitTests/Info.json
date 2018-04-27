@@ -3,6 +3,7 @@
     "JSBundleIdentifier": "com.owenshaw.JSKit.UIKitTests",
     "JSBundleDisplayName": "UIKitTests",
     "JSIncludeFrameworks": [
+        "TestKit",
         "UIKit"
     ]
 }

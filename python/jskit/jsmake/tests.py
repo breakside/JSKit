@@ -89,6 +89,10 @@ class TestsBuilder(Builder):
             bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.mainBundle.info['JSBundleIdentifier'])
             jsCompilation = JSCompilation(self.includePaths, minify=False, combine=False)
             jsCompilation.include('HTMLTestRunner.js')
+            for bundle in self.bundles.values():
+                envInclude = bundle.includeForEnvironment('html')
+                if envInclude is not None:
+                    jsCompilation.include(envInclude)
             for path in self.includes:
                 jsCompilation.include(path)
             jsCompilation.include(bundleJSFile, 'bundle.js')
@@ -127,7 +131,7 @@ class TestsBuilder(Builder):
         body = html.appendChild(document.createElement("body"))
         script = body.appendChild(document.createElement("script"))
         script.setAttribute("type", "text/javascript")
-        script.appendChild(document.createTextNode("""'use strict';function jslog_create(){ return console; }"""))
+        script.appendChild(document.createTextNode("""'use strict';function jslog_create(){ return console; };window.JSGlobalObject = window;"""))
         for includedSourcePath in self.appJS:
             relativePath = _webpath(os.path.relpath(includedSourcePath, self.outputProjectPath))
             script = body.appendChild(document.createElement("script"))
@@ -164,6 +168,10 @@ class TestsBuilder(Builder):
             bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.mainBundle.info['JSBundleIdentifier'])
             jsCompilation = JSCompilation(self.includePaths, minify=False, combine=False)
             jsCompilation.include('NodeTestRunner.js')
+            for bundle in self.bundles.values():
+                envInclude = bundle.includeForEnvironment('node')
+                if envInclude is not None:
+                    jsCompilation.include(envInclude)
             for path in self.includes:
                 jsCompilation.include(path)
             jsCompilation.include(bundleJSFile, 'bundle.js')
@@ -185,6 +193,7 @@ class TestsBuilder(Builder):
         with open(exePath, 'w') as exeJSFile:
             exeJSFile.write("#!/usr/bin/env node\n")
             exeJSFile.write("'use strict';\n\n")
+            exeJSFile.write("global.JSGlobalObject = global;\n")
             exeJSFile.write("global.jslog_create = function(){ return {info: function(){}, log: function(){}, warn: function(){}, error: function(){} }; };\n")
             for path in requires:
                 relativePath = _webpath(os.path.relpath(path, os.path.dirname(exePath)))

@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation+HTML.js"
+// #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
 /* global document, window, JSClass, JSBundle, TKTestRun, TKTestResult, HTMLTestRun, console */
 'use strict';

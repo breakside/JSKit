@@ -1,11 +1,5 @@
 {
     "JSBundleType": "framework",
     "JSBundleIdentifier": "com.owenshaw.JSKit.Zlib",
-    "JSBundleVersion": "1.0.0",
-    "JSFrameworkVariants": [
-        "Zlib.js"
-    ],
-    "JSIncludeFrameworks": [
-        "Foundation"
-    ]
+    "JSBundleVersion": "1.0.0"
 }

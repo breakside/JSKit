@@ -28,6 +28,7 @@ window.HTMLAppBootstrapper = function(preflightID, preflightSrc, appSrc, appCss,
         this.caughtErrors = [];
         this._isInstalled = false;
         window.addEventListener('error', this);
+        window.JSGlobalObject = window;
     }
 };
 

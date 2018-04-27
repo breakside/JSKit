@@ -1,5 +1,9 @@
 {
     "JSBundleType": "tests",
     "JSBundleIdentifier": "com.owenshaw.JSKit.ImageKitTests",
-    "JSBundleDisplayName": "ImageKitTests"
+    "JSBundleDisplayName": "ImageKitTests",
+    "JSIncludeFrameworks": [
+        "TestKit",
+        "ImageKit"
+    ]
 }
