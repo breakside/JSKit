@@ -62,8 +62,16 @@ JSClass("JSTextContainer", JSObject, {
             // Only notify the layout manager if we're actually change frame size
             // The frame size can be different from our size if we were sized without
             // constraints, and are now being sized to match the result
-            if (!this._textFrame || size.width != this._textFrame.size.width || size.height != this._textFrame.size.height){
+            // NOTE: If we're being sized up, and we already have all of the string in our frame,
+            // no layout is needed.
+            if (!this._textFrame){
                 this._notifyLayoutManager();
+            }else{
+                if (size.width != this._textFrame.size.width || size.height != this._textFrame.size.height){
+                    if (!(size.width >= this._textFrame.size.width && size.height >= this._textFrame.size.height && this._textFrame.range.location === 0 && this._textFrame.range.length >= this._textLayoutManager.textStorage.string.length)){
+                        this._notifyLayoutManager();
+                    }
+                }
             }
         }
     },
