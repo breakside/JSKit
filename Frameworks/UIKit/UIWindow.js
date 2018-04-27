@@ -99,6 +99,10 @@ JSClass('UIWindow', UIView, {
         this.windowServer.makeWindowKey(this);
     },
 
+    makeMain: function(){
+        this.windowServer.makeWindowMain(this);
+    },
+
     makeKeyAndVisible: function(){
         this.windowServer.makeWindowKeyAndVisible(this);
         if (this._contentViewController){
@@ -269,11 +273,10 @@ JSClass('UIWindow', UIView, {
         }
         switch (event.type){
             case UIEvent.Type.LeftMouseDown:
-                if (this.canBecomeMainWindow() && this.windowServer.mainWindow !== this){
-                    this.windowServer.mainWindow = this;
-                }
                 if (this.canBecomeKeyWindow() && this.windowServer.keyWindow !== this){
-                    this.windowServer.keyWindow = this;
+                    this.makeKey();
+                }else if (this.canBecomeMainWindow() && this.windowServer.mainWindow !== this){
+                    this.makeMain();
                 }
                 eventTarget.mouseDown(event);
                 break;

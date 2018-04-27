@@ -325,10 +325,18 @@ JSClass("UIMenuWindow", UIWindow, {
         }else if (event.keyCode == 39){
             if (this._menu.highlightedItem && this._menu.highlightedItem.submenu){
                 this.openHighlightedSubmenu(true);
+            }else{
+                if (this._menu.delegate && this._menu.delegate.menuDidNavigateRight){
+                    this._menu.delegate.menuDidNavigateRight(this._menu);
+                }
             }
         }else if (event.keyCode == 37){
             if (this._menu.supermenu && this._menu.supermenu.window){
                 this._menu.close();
+            }else{
+                if (this._menu.delegate && this._menu.delegate.menuDidNavigateRight){
+                    this._menu.delegate.menuDidNavigateLeft(this._menu);
+                }
             }
         }else if (event.keyCode == 13){
             this._performActionForHighlightedItem(true);

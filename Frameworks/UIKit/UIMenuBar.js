@@ -54,7 +54,7 @@ JSClass("UIMenuBar", UIWindow, {
     // MARK: - Window Properies
 
     canBecomeKeyWindow: function(){
-        return true;
+        return false;
     },
 
     canBecomeMainWindow: function(){
@@ -215,7 +215,13 @@ JSClass("UIMenuBar", UIWindow, {
             this._highlightedItemView.highlighted = false;
         }
         if (this.submenu !== null){
+            // removing delegate first becuase we don't want the close notification;
+            // it would disable mouse tracking that we want to keep active so the
+            // user can move back over a menu
+            this.submenu.delegate = null;
             this.submenu.close();
+            this.submenu = null;
+            this.makeKey();
         }
         this._highlightedItemView = itemView;
         if (this._highlightedItemView){
@@ -252,15 +258,39 @@ JSClass("UIMenuBar", UIWindow, {
         }
         menu.window = window;
         window.frame = JSRect(origin, size);
-        window.makeVisible();
+        window.makeKeyAndVisible();
     },
 
     menuDidClose: function(menu){
         if (menu === this.submenu){
+            this.submenu.delegate = null;
             this.submenu = null;
             this._highlightedItemView.highlighted = false;
             this._highlightedItemView = null;
+            this.receivesAllEvents = false;
             this.stopMouseTracking();
+        }
+    },
+
+    menuDidNavigateLeft: function(menu){
+        var itemView;
+        for (var i = 0, l = this._menuItemViews.length; i < l; ++i){
+            itemView = this._menuItemViews[i];
+            if (itemView === this._highlightedItemView){
+                this._selectMenuItemView(this._menuItemViews[(i + this._menuItemViews.length - 1) % this._menuItemViews.length]);
+                break;
+            }
+        }
+    },
+
+    menuDidNavigateRight: function(menu){
+        var itemView;
+        for (var i = 0, l = this._menuItemViews.length; i < l; ++i){
+            itemView = this._menuItemViews[i];
+            if (itemView === this._highlightedItemView){
+                this._selectMenuItemView(this._menuItemViews[(i + 1) % this._menuItemViews.length]);
+                break;
+            }
         }
     },
 
@@ -268,14 +298,21 @@ JSClass("UIMenuBar", UIWindow, {
 
     mouseDown: function(event){
         var location = event.locationInView(this);
+        var itemView = null;
         if (this._clipView.containsPoint(location)){
-            var itemView = this._menuItemAtLocation(location);
+            itemView = this._menuItemAtLocation(location);
             if (itemView !== null){
                 if (itemView !== this._highlightedItemView){
                     this._itemDownTimestamp = event.timestamp;
                     this._selectMenuItemView(itemView);
                 }
             }
+        }
+        // If we're not over an item view, then no submenu is open, and a down
+        // means that we should stop tracking and receiving events
+        if (itemView === null){
+            this.stopMouseTracking();
+            this.receivesAllEvents = false;
         }
     },
 
@@ -322,6 +359,12 @@ JSClass("UIMenuBar", UIWindow, {
         var location = event.locationInView(this._clipView);
         var itemView = this._menuItemAtLocation(location);
         this._selectMenuItemView(itemView);
+        // If we've moved away from a menu, its submenu will close,
+        // but we want to keep tracking active so the user can move
+        // back.  Hoever, if the user does not move back, we need to
+        // know to stop tracking.  So in this case with no submenu open,
+        // we'll take all events and stop tracking on a mouse down
+        this.receivesAllEvents = itemView === null;
     },
 
     _menuItemAtLocation: function(location){
@@ -351,7 +394,9 @@ JSClass("UIMenuBar", UIWindow, {
     },
 
     keyDown: function(event){
-        // TODO: keyboard navigation
+    },
+
+    keyUp: function(event){
     }
 
 });
