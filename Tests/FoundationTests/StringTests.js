@@ -504,6 +504,10 @@ JSClass('StringTests', TKTestSuite, {
         TKAssertEquals(range.length, 5);
 
         // TODO: end of string
+        string = "this is a test";
+        range = string.rangeForWordAtIndex(14);
+        TKAssertEquals(range.location, 10);
+        TKAssertEquals(range.length, 4);
     },
 
     testWordBeforeIndex: function(){

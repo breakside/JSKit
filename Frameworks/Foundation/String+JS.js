@@ -129,6 +129,9 @@ Object.defineProperties(String.prototype, {
     rangeForWordAtIndex: {
         enumerable: false,
         value: function String_rangeForWordAtIndex(index){
+            if (index > 0 && index >= this.length){
+                index -= 1;
+            }
             var iterator = UnicodeIterator(this, index);
             var startIndex = iterator.index;
             var endIndex = iterator.nextIndex;
