@@ -19,12 +19,12 @@ JSFont.definePropertiesFromExtensions({
         );
     },
 
-    _calculateHTMLMetrics: function(){
-        HTMLFontMetricsCalculator.shared.calculate(this);
-    }
+    // _calculateHTMLMetrics: function(){
+    //     HTMLFontMetricsCalculator.shared.calculate(this);
+    // }
 });
 
-JSFont.addCreationHook(JSFont.prototype._calculateHTMLMetrics);
+// JSFont.addCreationHook(JSFont.prototype._calculateHTMLMetrics);
 
 var HTMLFontMetricsCalculator = function(domDocument){
     this.domDocument = document;

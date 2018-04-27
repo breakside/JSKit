@@ -71,9 +71,12 @@ JSClass("JSFont", JSObject, {
     },
 
     _calculateMetrics: function(){
-        this._ascender = this._displayAscender = this._ascenderInUnits / this._unitsPerEM * this.pointSize;
-        this._descender = this._displayDescender = this._descenderInUnits / this._unitsPerEM * this.pointSize;
-        this._lineHeight = this._displayLineHeight = this._ascender - this._descender;
+        this._ascender = this._ascenderInUnits / this._unitsPerEM * this.pointSize;
+        this._descender = this._descenderInUnits / this._unitsPerEM * this.pointSize;
+        this._lineHeight = this._ascender - this._descender;
+        this._displayAscender = Math.round(this._ascender);
+        this._displayDescender = Math.round(this._descender);
+        this._displayLineHeight = this._displayAscender - this._displayDescender;
         this._leading = 0.0;
     },
 
