@@ -656,8 +656,11 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
             view._keyModifierLabel.sizeToFit();
             size.width += this._keyWidth + view._keyModifierLabel.frame.size.width + this._itemPadding.right;
         }else{
-            // double the right padding if there's nothing there
-            size.width += this._itemPadding.right;
+            // make sure the right padding is as much as the left
+            size.width += this._itemPadding.left - this._itemPadding.right;
+            if (item.menu.showStatusColumn){
+                size.width += imageSize + this._itemPadding.left;
+            }
         }
         size.height = lineHeight + this._itemPadding.top + this._itemPadding.bottom;
         size.width = Math.ceil(size.width);
@@ -690,7 +693,10 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
             view._keyModifierLabel.frame = JSRect(right - view._keyModifierLabel.frame.size.width, this._itemPadding.top, view._keyModifierLabel.frame.size.width, view._keyModifierLabel.font.displayLineHeight);
             right -= view._keyModifierLabel.frame.size.width + this._itemPadding.right;
         }else{
-            right -= this._itemPadding.right;
+            right += this._itemPadding.right - this._itemPadding.left;
+            if (item.menu.showStatusColumn){
+                right -= imageSize + this._itemPadding.left;
+            }
         }
         if (left > right){
             left = right;
