@@ -14,8 +14,12 @@ TKAssertion.LineForCurrentCaseInError = function(error){
     if (error.stack){
         var stack = error.stack.split("\n");
         var prefix = TKAssertion.CurrentTestCase + '@';
-        for (var i = 0, l = stack.length; i < l; ++i){
-            var caller = stack[i];
+        var i, l;
+        var parts;
+        var line;
+        var caller;
+        for (i = 0, l = stack.length; i < l; ++i){
+            caller = stack[i];
             if (caller.substr(0, 14) == '    at Object.'){
                 // chrome
                 caller = caller.substr(14);
@@ -26,8 +30,29 @@ TKAssertion.LineForCurrentCaseInError = function(error){
             }
             if (caller.substr(0, prefix.length) == prefix){
                 caller = caller.substr(prefix.length);
-                var parts = caller.split(':');
-                var line = parts[parts.length - 2];
+                parts = caller.split(':');
+                line = parts[parts.length - 2];
+                return line;
+            }
+        }
+        var atIndex;
+        var url;
+        var returnNext = false;
+        for (i = 0, l = stack.length; i < l; ++i){
+            atIndex = stack[i].indexOf('@');
+            if (atIndex >= 0){
+                caller = stack[i].substr(atIndex);
+            }else{
+                caller = stack[i];
+            }
+            parts = caller.split(':');
+            parts.pop();
+            line = parts.pop();
+            url = parts.join(':');
+            parts = url.split('/');
+            if (parts[parts.length - 1] == 'TKAssert.js'){
+                returnNext = true;
+            }else if (returnNext){
                 return line;
             }
         }

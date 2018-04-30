@@ -1,5 +1,9 @@
 {
     "JSBundleType": "tests",
     "JSBundleIdentifier": "com.owenshaw.JSKit.ServerKitTests",
-    "JSBundleDisplayName": "ServerKitTests"
+    "JSBundleDisplayName": "ServerKitTests",
+    "JSIncludeFrameworks": [
+        "ServerKit",
+        "TestKit"
+    ]
 }

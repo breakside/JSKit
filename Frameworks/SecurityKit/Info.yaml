@@ -1,0 +1,7 @@
+JSBundleType: framework
+JSBundleIdentifier: com.owenshaw.JSKit.SecurityKit
+JSIncludeFrameworks:
+    - Foundation
+JSBundleEnvironments:
+  html: SecurityKit+HTML.js
+  node: SecurityKit+Node.js

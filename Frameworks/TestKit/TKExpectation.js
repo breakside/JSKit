@@ -7,6 +7,7 @@ JSClass("TKExpectation", JSObject, {
     error: null,
     timeoutTimer: null,
     isDone: false,
+    _callCount: 0,
     _catchFn: null,
     _finallyFn: null,
 
@@ -25,6 +26,7 @@ JSClass("TKExpectation", JSObject, {
                 args[i] = this._wrapCallback(args[i]);
             }
         }
+        ++this._callCount;
         return fn.apply(target, args);
     },
 
@@ -34,6 +36,11 @@ JSClass("TKExpectation", JSObject, {
     /// the test won't get stuck forever, while also enforcing strict async timing requirements
     setTimeout: function(timeout){
         this.timeoutTimer = JSTimer.scheduledTimerWithInterval(timeout, function(){
+            // If a timer call got scheduled before the timer was invalidated, but it runs after
+            // a callback runs, ignore the timeout since we're already done.
+            if (this.isDone){
+                return;
+            }
             this.error = new Error("Expectation took longer than %f seconds".sprintf(timeout));
             this.timeoutTimer = null;
             this._finish();
@@ -81,6 +88,9 @@ JSClass("TKExpectation", JSObject, {
     _wrapCallback: function(fn){
         var expectation = this;
         return function(){
+            --expectation._callCount;
+            // If we have an error, it's because we already timed out and notified
+            // the test runner, so we need to ingore any further callbacks
             if (expectation.error !== null){
                 return;
             }
@@ -92,7 +102,9 @@ JSClass("TKExpectation", JSObject, {
             }catch (e){
                 expectation.error = e;
             }finally{
-                expectation._finish();
+                if (expectation._callCount === 0){
+                    expectation._finish();
+                }
             }
         };
     }

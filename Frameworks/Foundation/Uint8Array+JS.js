@@ -237,6 +237,14 @@ Object.defineProperties(Uint8Array.prototype, {
             }
             return true;
         }
+    },
+
+    copyTo: {
+        value: function(other, index){
+            for (var i = 0, l = this.length; i < l; ++i){
+                other[index + i] = this[i];
+            }
+        }
     }
 
 });

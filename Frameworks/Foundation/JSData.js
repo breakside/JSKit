@@ -22,6 +22,21 @@ JSClass("JSData", JSObject, {
         this.length = this.bytes.length;
     },
 
+    initWithChunks: function(chunks){
+        var length = 0;
+        var i, l;
+        for (i = 0, l = chunks.length; i < l; ++i){
+            length += chunks[i].length;
+        }
+        var bytes = new Uint8Array(length);
+        var offset = 0;
+        for (i = 0, l = chunks.length; i < l; ++i){
+            chunks[i].copyTo(bytes, offset);
+            offset += chunks[i].length;
+        }
+        this.initWithBytes(bytes);
+    },
+
     truncateToLength: function(length){
         this.bytes = new Uint8Array(this.bytes.buffer, this.bytes.byteOffset, length);
         this.length = length;
