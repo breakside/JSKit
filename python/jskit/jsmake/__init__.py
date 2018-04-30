@@ -30,7 +30,7 @@ def main():
     else:
         raise Exception(u"Unsupported build type: %u" % args.kind)
     builder = builderClass(projectPath=args.project, includePaths=args.include_dir, outputParentPath=args.output_dir, debug=args.debug, args=unknown)
-    builder.run(watch=args.debug and args.watch)
+    builder.run(watch=builder.debug and args.watch)
 
 def determine_kind(project):
     from .builder import Builder

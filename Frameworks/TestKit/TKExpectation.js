@@ -35,6 +35,11 @@ JSClass("TKExpectation", JSObject, {
     /// Typically called automatically by TKTestSuite.wait, a timeout ensures that
     /// the test won't get stuck forever, while also enforcing strict async timing requirements
     setTimeout: function(timeout){
+        // If we're already done, perhaps because a callback was made immediately instead of
+        // asynchronously, don't bother setting a timeout
+        if (this.isDone){
+            return;
+        }
         this.timeoutTimer = JSTimer.scheduledTimerWithInterval(timeout, function(){
             // If a timer call got scheduled before the timer was invalidated, but it runs after
             // a callback runs, ignore the timeout since we're already done.

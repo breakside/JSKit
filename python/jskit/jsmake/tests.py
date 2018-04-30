@@ -25,6 +25,7 @@ class TestsBuilder(Builder):
         self.includes = []
         self.includePaths.append(pkg_resources.resource_filename('jskit', 'jsmake/tests_resources'))
         self.includePaths.extend(self.absolutePathsRelativeToSourceRoot('.'))
+        self.includePaths.extend([os.path.realpath(x) for x in self.absolutePathsRelativeToSourceRoot('../../Frameworks')])
         self.parse_args(args)
 
     def parse_args(self, arglist):
