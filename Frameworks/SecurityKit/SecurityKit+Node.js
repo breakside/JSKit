@@ -1,2 +1,2 @@
-// #import "SecurityKit/SECCrypto+Node.js"
+// #import "SecurityKit/SECCipher+Node.js"
 // #import "SecurityKit/SECNodeKey.js"

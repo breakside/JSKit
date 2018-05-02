@@ -107,7 +107,7 @@ JSClass("TKExpectation", JSObject, {
             }catch (e){
                 expectation.error = e;
             }finally{
-                if (expectation._callCount === 0){
+                if (expectation._callCount === 0 || expectation.error !== null){
                     expectation._finish();
                 }
             }

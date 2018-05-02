@@ -41,6 +41,7 @@
 // #import "Foundation/JSTextAttachment.js"
 
 // #import "Foundation/JSTimer.js"
+// #import "Foundation/JSRunLoop.js"
 
 // #import "Foundation/JSURLRequest.js"
 // #import "Foundation/JSURLResponse.js"

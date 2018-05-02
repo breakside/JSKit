@@ -5,6 +5,7 @@
 // #import "Foundation/JSImage+HTML.js"
 // #import "Foundation/JSBundle+HTML.js"
 // #import "Foundation/JSLocale+HTML.js"
+// #import "Foundation/JSRunLoop+HTML.js"
 
 // Implementations
 // #import "Foundation/JSURLSessionDataTask+HTML.js"

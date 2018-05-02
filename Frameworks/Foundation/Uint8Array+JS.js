@@ -241,7 +241,7 @@ Object.defineProperties(Uint8Array.prototype, {
 
     copyTo: {
         value: function(other, index){
-            for (var i = 0, l = this.length; i < l; ++i){
+            for (var i = 0, l = this.length, l2 = other.length; i < l && i + index < l2; ++i){
                 other[index + i] = this[i];
             }
         }
