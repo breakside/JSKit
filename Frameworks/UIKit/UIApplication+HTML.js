@@ -1,8 +1,14 @@
 // #import "UIKit/UIApplication.js"
-/* global UIApplication, JSURL, window */
+/* global UIApplication, JSURL, window, JSDispatchQueue, JSHTMLDispatchQueue */
 'use strict';
 
 UIApplication.definePropertiesFromExtensions({
+
+    _initEnvironment: function(){
+        if (JSDispatchQueue){
+            JSDispatchQueue.background = JSHTMLDispatchQueue.init();
+        }
+    },
 
     launchOptions: function(){
         var options = {};

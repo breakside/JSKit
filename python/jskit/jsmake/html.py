@@ -45,6 +45,7 @@ class HTMLBuilder(Builder):
     dockerOwner = ""
     dockerName = ""
     bootstrapVersion = 1
+    workerJSPath = None
 
     def __init__(self, projectPath, includePaths, outputParentPath, debug=False, args=None):
         super(HTMLBuilder, self).__init__(projectPath, includePaths, outputParentPath, debug)
@@ -71,11 +72,16 @@ class HTMLBuilder(Builder):
         self.buildAppCSS()
         self.buildAppJavascript()
         self.buildPreflight()
+        if self.hasLinkedDispatchFramework():
+            self.buildWorker()
         self.buildIndex()
         self.buildNginxConf()
         if self.useDocker:
             self.buildDocker()
         self.finish()
+
+    def hasLinkedDispatchFramework(self):
+        return 'com.owenshaw.JSKit.Dispatch' in self.bundles
 
     def setup(self):
         self.includes = []
@@ -147,6 +153,9 @@ class HTMLBuilder(Builder):
         if mainSpecName is not None:
             mainSpec = self.mainBundle[mainSpecName]["value"]
             self.findSpecIncludes(mainSpec)
+        if self.hasLinkedDispatchFramework():
+            self.workerJSPath = os.path.join(self.outputCacheBustingPath, "JSDispatch-worker.js")
+            self.mainBundle.info['JSHTMLDispatchQueueWorkerScript'] = self.absoluteWebPath(self.workerJSPath)
 
     def buildAppCSS(self):
         self.updateStatus("Creating application css...")
@@ -301,6 +310,20 @@ class HTMLBuilder(Builder):
             document.documentElement.setAttribute('manifest', self.absoluteWebPath(self.manifestFile.name))
         HTML5DocumentSerializer(document).serializeToFile(self.indexFile)
         self.indexFile.close()
+
+    def buildWorker(self):
+        self.updateStatus("Creating worker.js...")
+        sys.stdout.flush()
+        workerJSFile = open(self.workerJSPath, 'w')
+        workerJSFile.write("'use strict';\n")
+        # FIXME: we should probably include logger as a script file so we're syncd with index, and so
+        # it's easier to import here
+        workerJSFile.write("self.jslog_create = function(){ return console; };\n")
+        workerJSFile.write("self.JSGlobalObject = self;\n")
+        workerJSFile.write("importScripts.apply(undefined, %s);\n" % json.dumps([self.absoluteWebPath(js) for js in self.appJS], indent=2))
+        workerJSFile.write("var queueWorker = JSHTMLDispatchQueueWorker.init();\n")
+        workerJSFile.close()
+        self.manifest.append(workerJSFile.name)
 
     def buildNginxConf(self):
         self.updateStatus("Creating nginx.conf...")

@@ -1,0 +1,7 @@
+JSBundleType: framework
+JSBundleIdentifier: com.owenshaw.JSKit.Dispatch
+JSIncludeFrameworks:
+    - Foundation
+JSBundleEnvironments:
+  html: Dispatch+HTML.js
+  node: Dispatch+Node.js

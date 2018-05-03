@@ -19,6 +19,11 @@ JSClass('UIApplication', UIResponder, {
         sharedApplication = this;
         this.windowServer = windowServer;
         this._windowsById = {};
+        this._initEnvironment();
+    },
+
+    _initEnvironment: function(){
+
     },
 
     deinit: function(){
