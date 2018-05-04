@@ -19,6 +19,7 @@ class TestsBuilder(Builder):
     includes = None
     appJS = None
     indexFile = None
+    workerJSPath = None
 
     def __init__(self, projectPath, includePaths, outputParentPath, debug=False, args=[]):
         super(TestsBuilder, self).__init__(projectPath, includePaths, outputParentPath, debug=True)
@@ -40,7 +41,12 @@ class TestsBuilder(Builder):
         self.buildHTML()
         self.buildNginx()
         self.buildNodeExecutable()
+        if self.hasLinkedDispatchFramework():
+            self.buildHTMLWorker()
         self.finish()
+
+    def hasLinkedDispatchFramework(self):
+        return 'com.owenshaw.JSKit.Dispatch' in self.bundles
 
     def setup(self):
         super(TestsBuilder, self).setup()
@@ -82,6 +88,9 @@ class TestsBuilder(Builder):
             for name in files:
                 if name[-3:] == '.js':
                     self.includes.append(os.path.relpath(os.path.join(dirname, name), self.projectPath))
+        if self.hasLinkedDispatchFramework():
+            self.workerJSPath = os.path.join(self.nginxWwwPath, "JSDispatch-worker.js")
+            self.mainBundle.info['JSHTMLDispatchQueueWorkerScript'] = "JSDispatch-worker.js"
 
     def buildHTMLJavascript(self):
         with tempfile.NamedTemporaryFile() as bundleJSFile:
@@ -151,6 +160,15 @@ class TestsBuilder(Builder):
             os.unlink(codeLinkPath)
         os.symlink(self.outputResourcePath, resourcesLinkPath)
         os.symlink(self.outputProductPath, codeLinkPath)
+
+    def buildHTMLWorker(self):
+        workerJSFile = open(self.workerJSPath, 'w')
+        workerJSFile.write("'use strict';\n")
+        workerJSFile.write("self.jslog_create = function(){ return console; };\n")
+        workerJSFile.write("self.JSGlobalObject = self;\n")
+        workerJSFile.write("importScripts.apply(undefined, %s);\n" % json.dumps([_webpath(os.path.relpath(js, self.outputProjectPath)) for js in self.appJS], indent=2))
+        workerJSFile.write("var queueWorker = JSHTMLDispatchQueueWorker.init();\n")
+        workerJSFile.close()
 
     def buildNginx(self):
         confdir = os.path.join(self.nginxPath, 'conf')

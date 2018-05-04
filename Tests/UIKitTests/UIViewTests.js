@@ -12,7 +12,7 @@ JSClass("UIViewTests", TKTestSuite, {
         this.windowServer = MockWindowServer.init();
     },
 
-    tearDown: function(){
+    teardown: function(){
         this.windowServer = null;
     }
 

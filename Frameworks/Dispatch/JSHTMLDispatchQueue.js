@@ -118,6 +118,8 @@ JSClass("JSHTMLDispatchQueueWorker", JSObject, {
 
 });
 
+JSDispatchQueue.EnvironmentImplemenationClass = JSHTMLDispatchQueue;
+
 var JSHTMLDispatchWorkerQueueScriptBundleKey = 'JSHTMLDispatchQueueWorkerScript';
 
 var MessageTypes = {

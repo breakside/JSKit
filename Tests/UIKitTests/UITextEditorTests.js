@@ -20,7 +20,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         this.windowServer.displayServer.updateDisplay();
     },
 
-    tearDown: function(){
+    teardown: function(){
         var responder = this.windowServer.textInputManager.responder;
         if (responder !== null){
             responder.resignFirstResponder();

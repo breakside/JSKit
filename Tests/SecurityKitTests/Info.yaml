@@ -1,5 +1,5 @@
 JSBundleType:         tests
-JSBundleIdentifier:   com.owenshaw.JSKit.SecurityKit
+JSBundleIdentifier:   com.owenshaw.JSKit.SecurityKitTests
 JSBundleDisplayName:  SecurityKitTests
 JSIncludeFrameworks:
   - SecurityKit

@@ -4,12 +4,6 @@
 
 UIApplication.definePropertiesFromExtensions({
 
-    _initEnvironment: function(){
-        if (JSDispatchQueue){
-            JSDispatchQueue.background = JSHTMLDispatchQueue.init();
-        }
-    },
-
     launchOptions: function(){
         var options = {};
         var url = JSURL.initWithString(window.location.href);

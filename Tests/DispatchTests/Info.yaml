@@ -1,0 +1,6 @@
+JSBundleType:         tests
+JSBundleIdentifier:   com.owenshaw.JSKit.DispatchTests
+JSBundleDisplayName:  DispatchTests
+JSIncludeFrameworks:
+  - Dispatch
+  - TestKit

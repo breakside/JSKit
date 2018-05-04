@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TKAssert.js"
-/* global JSObject, JSClass, TKAssertion, TKTestSuite, Promise */
+/* global JSObject, JSClass, TKAssertion, TKTestSuite, performance */
 'use strict';
 
 JSClass("TKTestSuite", JSObject, {
@@ -14,6 +14,10 @@ JSClass("TKTestSuite", JSObject, {
     },
 
     teardown: function(){
+    },
+
+    now: function(){
+        return performance.now();
     },
 
     wait: function(expectation, timeout){
