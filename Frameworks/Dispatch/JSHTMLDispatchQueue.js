@@ -1,26 +1,21 @@
-// #import "Dispatch/JSDispatchQueue.js"
+// #import "Dispatch/JSWorkerBasedDispatchQueue.js"
 // #feature window.Worker
-/* global self, Worker, JSClass, JSObject, JSDispatchQueue, JSHTMLDispatchQueue, JSBundle */
+/* global self, Worker, JSClass, JSObject, JSDispatchQueue, JSWorkerBasedDispatchQueue, JSWorkerBasedDispatchQueueWorker, JSHTMLDispatchQueue, JSBundle */
 'use strict';
 
 (function(){
 
-JSClass("JSHTMLDispatchQueue", JSDispatchQueue, {
+JSClass("JSHTMLDispatchQueue", JSWorkerBasedDispatchQueue, {
 
     worker: null,
-    nextJobID: 1,
-    callbacksByJobID: null,
 
-    init: function(){
-        this.callbacksByJobID = {};
-        this.worker = new Worker(JSBundle.mainBundle.info()[JSHTMLDispatchWorkerQueueScriptBundleKey]);
+    startWorker: function(){
+        this.worker = new Worker(JSBundle.mainBundle.info()[JSHTMLDispatchQueueWorkerScriptBundleKey]);
         this.worker.addEventListener('message', this);
     },
 
-    enqueue: function(jobClass, args, successCallback, errorCallback, target){
-        var jobID = this.nextJobID++;
-        this.callbacksByJobID[jobID] = {success: successCallback, error: errorCallback, target: target};
-        this.worker.postMessage([MessageTypes.enqueue, jobID, jobClass.className, args]);
+    sendWorkerMessage: function(message){
+        this.worker.postMessage(message);
     },
 
     handleEvent: function(e){
@@ -28,23 +23,7 @@ JSClass("JSHTMLDispatchQueue", JSDispatchQueue, {
     },
 
     message: function(e){
-        var type = e.data[0];
-        switch (type){
-            case MessageTypes.jobComplete:
-                var jobID = e.data[1];
-                var status = e.data[2];
-                var callbackArgs = e.data[3] || [];
-                var callback = this.callbacksByJobID[jobID];
-                if (callback){
-                    delete this.callbacksByJobID[jobID];
-                    if (status === JobStatus.success){
-                        callback.success.apply(callback.target, callbackArgs);
-                    }else{
-                        callback.error.apply(callback.target, callbackArgs);
-                    }
-                }
-                break;
-        }
+        this.receiveWorkerMessage(e.data);
     },
 
     close: function(){
@@ -54,13 +33,9 @@ JSClass("JSHTMLDispatchQueue", JSDispatchQueue, {
 
 });
 
-JSClass("JSHTMLDispatchQueueWorker", JSObject, {
+JSClass("JSHTMLDispatchQueueWorker", JSWorkerBasedDispatchQueueWorker, {
 
-    jobQueue: null,
-
-    init: function(){
-        this.jobQueue = [];
-        this.completeJobBound = this.completeJob.bind(this);
+    environmentInit: function(){
         self.addEventListener('message', this);
     },
 
@@ -69,47 +44,11 @@ JSClass("JSHTMLDispatchQueueWorker", JSObject, {
     },
 
     message: function(e){
-        var type = e.data[0];
-        switch (type){
-            case MessageTypes.enqueue:
-                this.jobQueue.push(e.data.slice(1));
-                if (this.jobQueue.length === 1){
-                    this.work();
-                }
-                break;
-        }
+        this.receiveQueueMessage(e.data);
     },
 
-    work: function(){
-        if (this.jobQueue.length === 0){
-            return;
-        }
-        this.workJob.apply(this, this.jobQueue[0]);
-    },
-
-    workJob: function(jobID, jobClassName, jobArguments){
-        try{
-            var jobClass = JSClass.FromName(jobClassName);
-            var job = jobClass.initWithArguments(jobArguments);
-            job.run(this.completeJobBound);
-        }catch (err){
-            this.errorJob(err);
-        }
-    },
-
-    errorJob: function(err){
-        this._postJobCompleteMessage(JobStatus.error, [err.message]);
-    },
-
-    completeJob: function(){
-        this._postJobCompleteMessage(JobStatus.success, Array.prototype.slice.call(arguments, 0));
-    },
-
-    _postJobCompleteMessage: function(status, args){
-        var jobID = this.jobQueue[0][0];
-        self.postMessage([MessageTypes.jobComplete, jobID, status, args]);
-        this.jobQueue.shift();
-        this.work();
+    sendQueueMessage: function(message){
+        self.postMessage(message);
     },
 
     close: function(){
@@ -120,16 +59,6 @@ JSClass("JSHTMLDispatchQueueWorker", JSObject, {
 
 JSDispatchQueue.EnvironmentImplemenationClass = JSHTMLDispatchQueue;
 
-var JSHTMLDispatchWorkerQueueScriptBundleKey = 'JSHTMLDispatchQueueWorkerScript';
-
-var MessageTypes = {
-    enqueue: 0,
-    jobComplete: 1
-};
-
-var JobStatus = {
-    success: 0,
-    error: 1
-};
+var JSHTMLDispatchQueueWorkerScriptBundleKey = 'JSHTMLDispatchQueueWorkerScript';
 
 })();

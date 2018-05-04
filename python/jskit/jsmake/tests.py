@@ -19,7 +19,8 @@ class TestsBuilder(Builder):
     includes = None
     appJS = None
     indexFile = None
-    workerJSPath = None
+    htmlWorkerJSPath = None
+    nodeWorkerJSPath = None
 
     def __init__(self, projectPath, includePaths, outputParentPath, debug=False, args=[]):
         super(TestsBuilder, self).__init__(projectPath, includePaths, outputParentPath, debug=True)
@@ -43,6 +44,7 @@ class TestsBuilder(Builder):
         self.buildNodeExecutable()
         if self.hasLinkedDispatchFramework():
             self.buildHTMLWorker()
+            self.buildNodeWorker()
         self.finish()
 
     def hasLinkedDispatchFramework(self):
@@ -89,8 +91,10 @@ class TestsBuilder(Builder):
                 if name[-3:] == '.js':
                     self.includes.append(os.path.relpath(os.path.join(dirname, name), self.projectPath))
         if self.hasLinkedDispatchFramework():
-            self.workerJSPath = os.path.join(self.nginxWwwPath, "JSDispatch-worker.js")
-            self.mainBundle.info['JSHTMLDispatchQueueWorkerScript'] = "JSDispatch-worker.js"
+            self.htmlWorkerJSPath = os.path.join(self.nginxWwwPath, "html-JSDispatch-worker.js")
+            self.mainBundle.info['JSHTMLDispatchQueueWorkerScript'] = os.path.basename(self.htmlWorkerJSPath)
+            self.nodeWorkerJSPath = os.path.join(self.outputProjectPath, "node-JSDispatch-worker.js")
+            self.mainBundle.info['JSNodeDispatchQueueWorkerModule'] = os.path.basename(self.nodeWorkerJSPath)
 
     def buildHTMLJavascript(self):
         with tempfile.NamedTemporaryFile() as bundleJSFile:
@@ -162,12 +166,23 @@ class TestsBuilder(Builder):
         os.symlink(self.outputProductPath, codeLinkPath)
 
     def buildHTMLWorker(self):
-        workerJSFile = open(self.workerJSPath, 'w')
+        workerJSFile = open(self.htmlWorkerJSPath, 'w')
         workerJSFile.write("'use strict';\n")
         workerJSFile.write("self.jslog_create = function(){ return console; };\n")
         workerJSFile.write("self.JSGlobalObject = self;\n")
         workerJSFile.write("importScripts.apply(undefined, %s);\n" % json.dumps([_webpath(os.path.relpath(js, self.outputProjectPath)) for js in self.appJS], indent=2))
         workerJSFile.write("var queueWorker = JSHTMLDispatchQueueWorker.init();\n")
+        workerJSFile.close()
+
+    def buildNodeWorker(self):
+        workerJSFile = open(self.nodeWorkerJSPath, 'w')
+        workerJSFile.write("'use strict';\n\n")
+        workerJSFile.write("global.jslog_create = function(){ return {info: function(){}, log: function(){}, warn: function(){}, error: function(){} }; };\n")
+        workerJSFile.write("global.JSGlobalObject = global;\n")
+        for path in self.nodeAppJS:
+            relativePath = _webpath(os.path.relpath(path, os.path.dirname(self.nodeWorkerJSPath)))
+            workerJSFile.write("require('./%s');\n" % relativePath)
+        workerJSFile.write("\nvar queueWorker = JSNodeDispatchQueueWorker.init();\n")
         workerJSFile.close()
 
     def buildNginx(self):
@@ -180,7 +195,7 @@ class TestsBuilder(Builder):
         shutil.copy(pkg_resources.resource_filename('jskit', 'jsmake/tests_resources/nginx.conf'), os.path.join(confdir, 'nginx.conf'))
 
     def buildNodeExecutable(self):
-        requires = []
+        self.nodeAppJS = []
         with tempfile.NamedTemporaryFile() as bundleJSFile:
             bundleJSFile.write("'use strict';\n")
             bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug, default=lambda x: x.jsonObject()))
@@ -204,7 +219,7 @@ class TestsBuilder(Builder):
                         os.symlink(outfile.fp.name, outputPath)
                     else:
                         shutil.copy(outfile.fp.name, outputPath)
-                requires.append(outputPath)
+                self.nodeAppJS.append(outputPath)
             for importedPath in jsCompilation.importedScriptPaths():
                 self.watchFile(importedPath)
         exePath = os.path.join(self.outputProjectPath, 'tests')
@@ -214,7 +229,7 @@ class TestsBuilder(Builder):
             exeJSFile.write("'use strict';\n\n")
             exeJSFile.write("global.JSGlobalObject = global;\n")
             exeJSFile.write("global.jslog_create = function(){ return {info: function(){}, log: function(){}, warn: function(){}, error: function(){} }; };\n")
-            for path in requires:
+            for path in self.nodeAppJS:
                 relativePath = _webpath(os.path.relpath(path, os.path.dirname(exePath)))
                 if relativePath == entryFile:
                     exeJSFile.write("var entry = require('./%s').run;\n" % (relativePath,))

@@ -48,6 +48,8 @@ class NodeBuilder(Builder):
         self.findIncludes()
         self.buildAppJavascript()
         self.buildExecutable()
+        if self.hasLinkedDispatchFramework():
+            self.buildWorker()
         if self.useDocker:
             self.buildDocker()
         self.finish()
@@ -67,6 +69,9 @@ class NodeBuilder(Builder):
                         os.unlink(child)
         os.makedirs(self.outputResourcePath)
         self.requires = []
+
+    def hasLinkedDispatchFramework(self):
+        return 'com.owenshaw.JSKit.Dispatch' in self.bundles
 
     def buildBinaryResource(self, bundle, nameComponents, fullPath, mime, extractors=dict()):
         resourceIndex = super(NodeBuilder, self).buildBinaryResource(bundle, nameComponents, fullPath, mime, extractors)
@@ -95,6 +100,9 @@ class NodeBuilder(Builder):
         if mainSpecName is not None:
             mainSpec = self.mainBundle[mainSpecName]["value"]
             self.findSpecIncludes(mainSpec)
+        if self.hasLinkedDispatchFramework():
+            self.workerJSPath = os.path.join(self.outputExecutablePath, "JSDispatch-worker.js")
+            self.mainBundle.info['JSNodeDispatchQueueWorkerModule'] = os.path.basename(self.workerJSPath)
 
     def buildAppJavascript(self):
         self.updateStatus("Creating application js...")
@@ -123,6 +131,18 @@ class NodeBuilder(Builder):
                 self.requires.append(outputPath)
         for importedPath in self.jsCompilation.importedScriptPaths():
             self.watchFile(importedPath)
+
+    def buildWorker(self):
+        self.updateStatus("Creating worker.js...")
+        sys.stdout.flush()
+        workerJSFile = open(self.workerJSPath, 'w')
+        workerJSFile.write("'use strict';\n")
+        workerJSFile.write("global.JSGlobalObject = global;\n\n")
+        for path in self.requires:
+            relativePath = _unixpath(os.path.relpath(path, os.path.dirname(self.workerJSFile)))
+            exeJSFile.write("require('./%s');\n" % relativePath)
+        workerJSFile.write("\nvar queueWorker = JSNodeDispatchQueueWorker.init();\n")
+        workerJSFile.close()
 
     def buildExecutable(self):
         entryFile, entryFunction = self.mainBundle.info.get('EntryPoint', 'main.js:main').split(':')

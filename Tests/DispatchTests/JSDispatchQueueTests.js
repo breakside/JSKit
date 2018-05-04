@@ -118,7 +118,6 @@ JSClass("JSDispatchQueueTestsJobAsync", JSDispatchJob, {
 
     run: function(complete){
         var t = performance.now();
-        console.log(t);
         setTimeout(function(){
             complete(t);
         }, 500);

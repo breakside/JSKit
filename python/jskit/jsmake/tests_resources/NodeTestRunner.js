@@ -1,7 +1,9 @@
 // #import "Foundation/Foundation+Node.js"
 // #import "TestKit/TestKit.js"
-/* global global, module, process, JSClass, JSBundle, TKTestRun, TKTestResult, NodeTestRun, console */
+/* global global, require, module, process, JSClass, JSBundle, TKTestRun, TKTestResult, NodeTestRun, console */
 'use strict';
+
+global.performance = require('perf_hooks').performance;
 
 JSClass('NodeTestRun', TKTestRun, {
 

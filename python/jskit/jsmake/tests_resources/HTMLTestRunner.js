@@ -177,7 +177,6 @@ function parseOptions(){
             options[key] = keyValue.join('=');
         }
     }
-    console.log(options);
     return options;
 }
 
