@@ -10,7 +10,7 @@
 
 (function(){
 
-var logger = jslog_create("com.owenshaw.UIKit.WindowServer");
+var logger = jslog_create("io.breakside.UIKit.WindowServer");
 
 JSClass("UIWindowServer", JSObject, {
 

@@ -9,7 +9,7 @@
 
 (function(){
 
-var logger = jslog_create("com.owenshaw.AlohaKit.typesetter");
+var logger = jslog_create("io.breakside.AlohaKit.typesetter");
 
 JSClass("JSTextTypesetter", JSObject, {
 

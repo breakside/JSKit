@@ -9,6 +9,10 @@ JSClass('StringTests', TKTestSuite, {
         var string = String.initWithFormat("This %s a test %d!", "is", 123);
         TKAssertNotNull(string);
         TKAssertEquals(string, "This is a test 123!");
+
+        string = String.initWithFormat("This %2$s a test %1$d!", 123, "is");
+        TKAssertNotNull(string);
+        TKAssertEquals(string, "This is a test 123!");
     },
 
     testAppend: function(){

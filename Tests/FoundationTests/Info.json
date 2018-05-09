@@ -1,6 +1,6 @@
 {
     "JSBundleType": "tests",
-    "JSBundleIdentifier": "com.owenshaw.JSKit.FoundationTests",
+    "JSBundleIdentifier": "io.breakside.JSKit.FoundationTests",
     "JSBundleDisplayName": "FoundationTests",
     "JSIncludeFrameworks": [
         "Foundation",

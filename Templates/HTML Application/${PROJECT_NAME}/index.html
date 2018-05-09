@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
   <title></title>
   <style id="bootstrap-style" type="text/css">
   * {
@@ -13,18 +14,18 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgb(250,250,250);
+    background-color: rgb(255,255,255);
   }
   #status {
     position: absolute;
-    top: 50%;
+    top: 40%;
     margin-top: -16px;
     right: 40px;
     left: 40px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font: 100 24px/32px "Helvetica Neue", "Helvetica", sans-serif;
+    font: 100 24px/32px "San Francisco", "Helvetica Neue", "Helvetica", sans-serif;
     height: 32px;
     text-align: center;
     color: rgb(204,204,204);
@@ -34,18 +35,36 @@
   }
   #details {
     position: absolute;
-    top: 50%;
-    margin-top: 0;
+    top: 40%;
+    margin-top: 16px;
     right: 40px;
     left: 40px;
     overflow: hidden;
     text-overflow: ellipsis;
-    font: 100 16px/24px "Helvetica Neue", "Helvetica", sans-serif;
+    font: 100 16px/24px "San Francisco", "Helvetica Neue", "Helvetica", sans-serif;
     text-align: center;
     color: rgb(128,128,128);
     transition: opacity linear .5s .5s;
     opacity: 0;
     -webkit-font-smoothing: subpixel-antialiased;
+  }
+  #progress {
+    display: none;
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    width: 200px;
+    margin-top: 20px;
+    margin-left: -101px;
+    border-radius: 7px;
+    border: 1px solid rgb(204,204,204);
+    height: 9px;
+    overflow: hidden;
+  }
+  #progress-bar {
+    background-color: rgb(224,224,224);
+    height: 100%;
+    width: 0%;
   }
   #splash.error #status {
     color: rgb(204,102,102);
@@ -58,34 +77,50 @@
 </head>
 <body>
   <div id="splash">
-    <span id="status"></span>
-    <span id="details"></span>
+    <div id="status"></div>
+    <div id="progress"><div id="progress-bar"></div></div>
+    <div id="details"></div>
   </div>
   <script type="text/javascript">
   // #import "HTMLAppBootstrapper.js"
   'use strict';
   var UIWindowServerInit = function(){
-    return UIHTMLWindowServer.initWithRootElement(document.body);
+      return UIHTMLWindowServer.initWithRootElement(document.body);
   };
   (function(){
     // #var preflightID
     // #var preflightSrc
     // #var appSrc
+    // #var appCss
     var splash = document.getElementById('splash');
     var statusLabel = document.getElementById('status');
     var detailsLabel = document.getElementById('details');
     var bootstrapStyle = document.getElementById('bootstrap-style');
-    var bootstrapper = HTMLAppBootstrapper(preflightID, preflightSrc, appSrc, document.body);
+    var progress = document.getElementById('progress');
+    var progressBar = document.getElementById('progress-bar');
+    var bootstrapper = HTMLAppBootstrapper(preflightID, preflightSrc, appSrc, appCss, document.body);
     var downListener = null;
     bootstrapper.onstatus = function index_boostrapper_status(){
       var S = HTMLAppBootstrapper.STATUS;
       switch (bootstrapper.status){
+        case S.checkingForUpdate:
+          statusLabel.innerHTML = 'Checking for Update...';
+          break;
+        case S.installing:
+          statusLabel.innerHTML = 'Loading...';
+          progress.style.display = 'block';
+          break;
+        case S.updating:
+          statusLabel.innerHTML = 'Updating...';
+          progress.style.display = 'block';
+          break;
         case S.preflightLoading:
         case S.preflightRunning:
           statusLabel.innerHTML = 'Checking Compatibility...';
           break;
         case S.appLoading:
-          statusLabel.innerHTML = 'Loading...';
+          statusLabel.innerHTML = '';
+          progress.style.display = 'none';
           break;
         case S.preflightFailedChecks:
           splash.className = 'error';
@@ -93,6 +128,7 @@
           detailsLabel.innerHTML = "It looks like the browser you are using needs an upgrade.  Or, you can try a different browser.<br>To learn more, please visit __________";
           break;
         case S.preflightLoadError:
+        case S.updateError:
         case S.appLoadError:
         case S.appRunError:
           splash.className = 'error';
@@ -107,6 +143,9 @@
           }
           break;
       }
+    };
+    bootstrapper.onprogress = function(loaded, total){
+      progressBar.style.width = (loaded * 100 / total) + '%';
     };
     bootstrapper.run();
     try{

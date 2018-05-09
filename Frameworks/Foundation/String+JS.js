@@ -382,6 +382,7 @@ Object.defineProperties(String.prototype, {
                         formatted += c;
                     }else{
                         if (using_numbered_args){
+                            sub = '';
                             while (c != '$'){
                                 sub += c;
                                 ++i;
@@ -389,7 +390,7 @@ Object.defineProperties(String.prototype, {
                                     throw new Error("Invalid format string, unexpected end: " + this);
                                 }
                                 c = this[i];
-                                if (c < '0' || c > '9'){
+                                if ((c < '0' || c > '9') && c != '$'){
                                     throw new Error("Invalid format string, invalid arg index char: " + c + "; " + this);
                                 }
                             }
@@ -398,6 +399,11 @@ Object.defineProperties(String.prototype, {
                                 throw new Error("Invalid format string, unknown arg index: " + index + "; " + this);
                             }
                             arg = args[index];
+                            ++i;
+                            if (i >= l){
+                                throw new Error("Invalid format string, unexpected end: " + this);
+                            }
+                            c = this[i];
                         }else{
                             if (args.length === 0){
                                 throw new Error("Invalid format string, not enough arguments: " + this);

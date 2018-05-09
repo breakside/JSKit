@@ -1,0 +1,22 @@
+File's Owner: /App Delegate
+
+App Delegate:
+    class: ApplicationDelegate
+    outlets:
+        window: /Main Window
+
+Dark Color:
+    class : JSColor
+    rgba: 204,0,0
+
+Main Window:
+    class: UIWindow
+    contentViewController: /Main View Controller
+
+Main View Controller:
+    class: MainViewController
+    view: /Main View
+
+Main View:
+    class: UIView
+    backgroundColor: /Dark Color

@@ -10,12 +10,12 @@
     [
         {
             "name": "jsmake",
-            "cmd": ["jsmake", "${PROJECT_NAME}", "--include-dir", "../../JSKit/Frameworks", "--docker-owner", "owenpshaw"],
+            "cmd": ["jsmake", "${PROJECT_NAME}"],
             "working_dir": "${project_path}",
             "variants": [
                 {
                     "name": "debug",
-                    "cmd": ["jsmake", "${PROJECT_NAME}", "--include-dir", "../../JSKit/Frameworks", "--docker-owner", "owenpshaw", "--debug"]
+                    "cmd": ["jsmake", "${PROJECT_NAME}", "--debug"]
                 }
             ]
         }

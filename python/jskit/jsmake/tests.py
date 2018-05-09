@@ -48,7 +48,7 @@ class TestsBuilder(Builder):
         self.finish()
 
     def hasLinkedDispatchFramework(self):
-        return 'com.owenshaw.JSKit.Dispatch' in self.bundles
+        return 'io.breakside.JSKit.Dispatch' in self.bundles
 
     def setup(self):
         super(TestsBuilder, self).setup()

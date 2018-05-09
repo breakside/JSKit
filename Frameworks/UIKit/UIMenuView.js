@@ -745,7 +745,7 @@ var images = Object.create({}, {
     bundle: {
         configurable: true,
         get: function(){
-            Object.defineProperty(this, 'bundle', {value: JSBundle.initWithIdentifier("com.owenshaw.JSKit.UIKit") });
+            Object.defineProperty(this, 'bundle', {value: JSBundle.initWithIdentifier("io.breakside.JSKit.UIKit") });
             return this.bundle;
         }
     },

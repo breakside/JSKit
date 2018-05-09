@@ -1,6 +1,6 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSLocale.js"
-/* global JSClass, JSObject, JSBundle, JSLocale */
+/* global JSGlobalObject, JSClass, JSObject, JSBundle, JSLocale */
 'use strict';
 
 JSClass('JSBundle', JSObject, {
@@ -192,6 +192,8 @@ JSClass('JSBundle', JSObject, {
     localizedString: function(key, table){
         if (table === undefined){
             table = "Localizable.strings";
+        }else if (table.substr(-8, 8) != ".strings"){
+            table += ".strings";
         }
         var metadata = this._localizedMetadataForLookupKey(table, function(m){
             return key in m.strings;

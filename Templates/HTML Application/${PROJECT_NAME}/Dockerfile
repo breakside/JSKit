@@ -1,6 +1,6 @@
 FROM ubuntu:16.04
 
-RUN apt-get update && apt-get install -y nginx=1.10.0-0ubuntu0.16.04.4
+RUN apt-get update && apt-get install -y nginx=1.10.3-0ubuntu0.16.04.2
 
 COPY www /jskitapp/www
 COPY conf /jskitapp/conf

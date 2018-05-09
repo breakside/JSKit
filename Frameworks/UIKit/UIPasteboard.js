@@ -64,5 +64,6 @@ Object.defineProperty(UIPasteboard, 'general', {
 UIPasteboard.ContentType = {
     plainText: 'text/plain',
     html: 'text/html',
-    files: 'Files'
+    files: 'Files',
+    folder: 'Folder'
 };

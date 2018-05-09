@@ -1,6 +1,6 @@
 {
     "JSBundleType": "tests",
-    "JSBundleIdentifier": "com.owenshaw.JSKit.PDFKitTests",
+    "JSBundleIdentifier": "io.breakside.JSKit.PDFKitTests",
     "JSBundleDisplayName": "PDFKitTests",
     "JSIncludeFrameworks": [
         "PDFKit",

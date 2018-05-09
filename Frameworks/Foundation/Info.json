@@ -1,6 +1,6 @@
 {
     "JSBundleType": "framework",
-    "JSBundleIdentifier": "com.owenshaw.JSKit.Foundation",
+    "JSBundleIdentifier": "io.breakside.JSKit.Foundation",
     "JSBundleVersion": "1.0.0",
     "JSIncludeFrameworks": [
         "Zlib"

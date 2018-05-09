@@ -1,5 +1,5 @@
 JSBundleType:         tests
-JSBundleIdentifier:   com.owenshaw.JSKit.DispatchTests
+JSBundleIdentifier:   io.breakside.JSKit.DispatchTests
 JSBundleDisplayName:  DispatchTests
 JSIncludeFrameworks:
   - Dispatch

@@ -1,6 +1,6 @@
 {
     "JSBundleType": "tests",
-    "JSBundleIdentifier": "com.owenshaw.JSKit.UIKitTests",
+    "JSBundleIdentifier": "io.breakside.JSKit.UIKitTests",
     "JSBundleDisplayName": "UIKitTests",
     "JSIncludeFrameworks": [
         "TestKit",

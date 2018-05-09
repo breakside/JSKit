@@ -1,6 +1,6 @@
 {
     "JSBundleType": "tests",
-    "JSBundleIdentifier": "com.owenshaw.JSKit.ServerKitTests",
+    "JSBundleIdentifier": "io.breakside.JSKit.ServerKitTests",
     "JSBundleDisplayName": "ServerKitTests",
     "JSIncludeFrameworks": [
         "ServerKit",

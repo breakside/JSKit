@@ -71,7 +71,7 @@ class NodeBuilder(Builder):
         self.requires = []
 
     def hasLinkedDispatchFramework(self):
-        return 'com.owenshaw.JSKit.Dispatch' in self.bundles
+        return 'io.breakside.JSKit.Dispatch' in self.bundles
 
     def buildBinaryResource(self, bundle, nameComponents, fullPath, mime, extractors=dict()):
         resourceIndex = super(NodeBuilder, self).buildBinaryResource(bundle, nameComponents, fullPath, mime, extractors)

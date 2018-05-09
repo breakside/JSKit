@@ -1,6 +1,6 @@
 {
     "JSBundleType": "tests",
-    "JSBundleIdentifier": "com.owenshaw.JSKit.ZlibTests",
+    "JSBundleIdentifier": "io.breakside.JSKit.ZlibTests",
     "JSBundleDisplayName": "ZlibTests",
     "JSIncludeFrameworks": [
         "TestKit",

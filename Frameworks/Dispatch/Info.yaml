@@ -1,5 +1,5 @@
 JSBundleType: framework
-JSBundleIdentifier: com.owenshaw.JSKit.Dispatch
+JSBundleIdentifier: io.breakside.JSKit.Dispatch
 JSIncludeFrameworks:
     - Foundation
 JSBundleEnvironments:

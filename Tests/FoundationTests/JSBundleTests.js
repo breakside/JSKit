@@ -7,7 +7,7 @@ JSClass('JSBundleTests', TKTestSuite, {
 
     setup: function(){
         this.originalPreferredLanguages = JSLocale.preferredLanguages;
-        JSBundle.bundles['com.owenshaw.Test'] = {
+        JSBundle.bundles['io.breakside.Test'] = {
             'Info': {
                 'a': 1,
                 'b': 2,
@@ -75,19 +75,19 @@ JSClass('JSBundleTests', TKTestSuite, {
     teardown: function(){
         JSLocale.preferredLanguages = this.originalPreferredLanguages;
         JSLocale.ClearCache();
-        delete JSBundle.bundles['com.owenshaw.Test'];
+        delete JSBundle.bundles['io.breakside.Test'];
     },
 
     testContructor: function(){
-        var bundle = JSBundle.initWithIdentifier('com.owenshaw.Test');
+        var bundle = JSBundle.initWithIdentifier('io.breakside.Test');
         TKAssertNotNull(bundle);
         TKAssertThrows(function(){
-            bundle = JSBundle.initWithIdentifier('com.owenshaw.DoesNotExist');
+            bundle = JSBundle.initWithIdentifier('io.breakside.DoesNotExist');
         });
     },
 
     testInfo: function(){
-        var bundle = JSBundle.initWithIdentifier('com.owenshaw.Test');
+        var bundle = JSBundle.initWithIdentifier('io.breakside.Test');
         var info = bundle.info();
         TKAssertNotNull(info);
         TKAssertEquals(info.a, 1);
@@ -95,7 +95,7 @@ JSClass('JSBundleTests', TKTestSuite, {
     },
 
     testResourcesMetadata: function(){
-        var bundle = JSBundle.initWithIdentifier('com.owenshaw.Test');
+        var bundle = JSBundle.initWithIdentifier('io.breakside.Test');
         var test1 = bundle.metadataForResourceName('test1');
         TKAssertEquals(test1.other, 123);
 
@@ -134,7 +134,7 @@ JSClass('JSBundleTests', TKTestSuite, {
     },
 
     testLocalizedString: function(){
-        var bundle = JSBundle.initWithIdentifier('com.owenshaw.Test');
+        var bundle = JSBundle.initWithIdentifier('io.breakside.Test');
 
         // Exact match in default table
         JSLocale.preferredLanguages = ['en-GB'];

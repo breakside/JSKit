@@ -1,6 +1,6 @@
 {
     "JSBundleType": "framework",
-    "JSBundleIdentifier": "com.owenshaw.JSKit.TestKit",
+    "JSBundleIdentifier": "io.breakside.JSKit.TestKit",
     "JSBundleVersion": "1.0.0",
     "JSIncludeFrameworks": [
         "Foundation"
