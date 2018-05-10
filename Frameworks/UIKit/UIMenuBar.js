@@ -1,6 +1,6 @@
 // #import "UIKit/UIWindow.js"
 // #import "UIKit/UIMenu.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSPoint, JSConstraintBox, JSBinarySearcher, JSSize, JSLazyInitProperty, UIView, UIWindow, JSDynamicProperty, UIMenuBar, JSRect, JSInsets, UIMenuBarItemCollectionView, UIMenuBarItemView, UIMenuBarItem, UILabel, UIImageView, JSFont, JSTextAlignment, JSColor, UIMenuDefaultStyler, UILayerCornerRadii */
+/* global JSClass, JSObject, JSImage, JSReadOnlyProperty, JSPoint, JSConstraintBox, JSBinarySearcher, JSSize, JSLazyInitProperty, UIView, UIWindow, JSDynamicProperty, UIMenuBar, JSRect, JSInsets, UIMenuBarItemCollectionView, UIMenuBarItemView, UIMenuBarItem, UILabel, UIImageView, JSFont, JSTextAlignment, JSColor, UIMenuDefaultStyler, UILayerCornerRadii */
 'use strict';
 
 JSClass("UIMenuBar", UIWindow, {
@@ -29,6 +29,23 @@ JSClass("UIMenuBar", UIWindow, {
         }
         if ('menu' in values){
             this.menu = spec.resolvedValue(values.menu);
+        }
+        var i, l, item;
+        if ('leftBarItems' in values){
+            var leftBarItems = [];
+            for (i = 0, l = values.leftBarItems.length; i < l; ++i){
+                item = spec.resolvedValue(values.leftBarItems[i]);
+                leftBarItems.push(item);
+            }
+            this.leftBarItems = leftBarItems;
+        }
+        if ('rightBarItems' in values){
+            var rightBarItems = [];
+            for (i = 0, l = values.rightBarItems.length; i < l; ++i){
+                item = spec.resolvedValue(values.rightBarItems[i]);
+                rightBarItems.push(item);
+            }
+            this.rightBarItems = rightBarItems;
         }
     },
 
@@ -82,20 +99,21 @@ JSClass("UIMenuBar", UIWindow, {
 
     // MARK: - Items
 
+    primaryMenuItem: null,
     leftBarItems: JSDynamicProperty('_leftBarItems', null),
-    rightItems: JSDynamicProperty('_rightBarItems', null),
+    rightBarItems: JSDynamicProperty('_rightBarItems', null),
     _menuBarItems: null,
     menu: JSDynamicProperty('_menu', null),
     _highlightedItemView: null,
 
-    setLeftItems: function(leftBarItems){
+    setLeftBarItems: function(leftBarItems){
         this._leftBarItems = leftBarItems || [];
         this._updateItemViews(this._leftItemViews, this._leftBarItems);
         this.setNeedsLayout();
     },
 
-    setRightItems: function(rightItems){
-        this._rightBarItems = rightItems || [];
+    setRightBarItems: function(rightBarItems){
+        this._rightBarItems = rightBarItems || [];
         this._updateItemViews(this._rightItemViews, this._rightBarItems);
         this.setNeedsLayout();
     },
@@ -111,6 +129,7 @@ JSClass("UIMenuBar", UIWindow, {
             barItem.menu = menuItem.submenu;
             this._menuBarItems.push(barItem);
         }
+        this.primaryMenuItem = this._menuBarItems[0];
         this._updateItemViews(this._menuItemViews, this._menuBarItems);
         this.setNeedsLayout();
     },
@@ -306,6 +325,14 @@ JSClass("UIMenuBar", UIWindow, {
                     this._itemDownTimestamp = event.timestamp;
                     this._selectMenuItemView(itemView);
                 }
+            }else{
+                for (var i = 0, l = this._rightItemViews.length && itemView === null; i < l; ++i){
+                    if (this._rightItemViews[i].hitTest(this.convertPointToView(location, this._rightItemViews[i]))){
+                        itemView = this._rightItemViews[i];
+                        itemView.highlighted = true;
+                        UIApplication.sharedApplication.sendAction(itemView._item.action, itemView._item.target, itemView);
+                    }
+                }
             }
         }
         // If we're not over an item view, then no submenu is open, and a down
@@ -407,8 +434,32 @@ JSClass("UIMenuBarItem", JSObject, {
     target: null,
     action: null,
     menu: null,
+    tooltip: null,
+    customView: null,
     state: JSReadOnlyProperty('_state', 0),
     active: JSDynamicProperty(null, null, 'isActive'),
+
+    initWithSpec: function(spec, values){
+        UIMenuBarItem.$super.initWithSpec.call(this, spec, values);
+        if ('title' in values){
+            this.title = spec.resolvedValue(values.title);
+        }
+        if ('image' in values){
+            this.image = JSImage.initWithResourceName(spec.resolvedValue(values.image), spec.bundle);
+        }
+        if ('target' in values){
+            this.target = spec.resolvedValue(values.target);
+        }
+        if ('action' in values){
+            this.action = values.action;
+        }
+        if ('customView' in values){
+            this.customView = spec.resolvedValue(values.customView);
+        }
+        if ('tooltip' in values){
+            this.tooltip = spec.resolvedValue(values.tooltip);
+        }
+    },
 
     initWithTitle: function(title, action, target){
         this.title = title;
@@ -418,6 +469,12 @@ JSClass("UIMenuBarItem", JSObject, {
 
     initWithImage: function(image, action, target){
         this.image = image;
+        this.action = action || null;
+        this.target = target || null;
+    },
+
+    initWithCustomView: function(customView, action, target){
+        this.customView = customView;
         this.action = action || null;
         this.target = target || null;
     },
@@ -457,6 +514,7 @@ JSClass("UIMenuBarItemView", UIView, {
     _menuBar: null,
     _titleLabel: null,
     _imageView: null,
+    _customView: null,
     highlighted: JSDynamicProperty('_isHighlighted', false, 'isHighlighted'),
 
     init: function(){
@@ -470,7 +528,7 @@ JSClass("UIMenuBarItemView", UIView, {
     },
 
     _createImageView: function(){
-        this._imageView = UIImageView.init();
+        this._imageView = UIImageView.initWithRenderMode(UIImageView.RenderMode.template);
         this.addSubview(this._imageView);
         return this._imageView;
     },
@@ -488,28 +546,54 @@ JSClass("UIMenuBarItemView", UIView, {
         }else{
             this.backgroundColor = null;
         }
-        if (this._titleLabel){
-            this._titleLabel.font = this._menuBar.font;
-            this._titleLabel.textColor = textColor;
-        }
-        if (this._imageView){
-            this._imageView.templateColor = textColor;
+        if (!this.customView){
+            if (this._titleLabel){
+                var font = this._menuBar.font;
+                if (this._item === this._menuBar.primaryMenuItem){
+                    font = font.fontWithWeight(JSFont.Weight.bold);
+                }
+                this._titleLabel.font = font;
+                this._titleLabel.textColor = textColor;
+            }
+            if (this._imageView){
+                this._imageView.templateColor = textColor;
+            }
         }
     },
 
     setItem: function(item){
         this._item = item;
-        if (item.title){
-            this.titleLabel.hidden = false;
-            this.titleLabel.text = item.title;
-        }else if (this._titleLabel !== null){
-            this._titleLabel.hidden = true;
-        }
-        if (item.image){
-            this.imageView.hidden = false;
-            this.imageView.image = item.image;
-        }else if (this._imageView !== null){
-            this._imageView.hidden = true;
+        this.tooltip = item.tooltip;
+        if (item.customView){
+            if (this._customView !== null && this._customView !== item.customView){
+                this._customView.removeFromSuperview();
+            }
+            this._customView = item.customView;
+            if (this._customView.superview !== this){
+                this.addSubview(this._customView);
+            }
+            if (this._titleLabel !== null){
+                this._titleLabel.hidden = true;
+            }
+            if (this._imageView !== null){
+                this._imageView.hidden = true;
+            }
+        }else{
+            if (this._customView !== null){
+                this._customView.removeFromSuperview();
+            }
+            if (item.title){
+                this.titleLabel.hidden = false;
+                this.titleLabel.text = item.title;
+            }else if (this._titleLabel !== null){
+                this._titleLabel.hidden = true;
+            }
+            if (item.image){
+                this.imageView.hidden = false;
+                this.imageView.image = item.image;
+            }else if (this._imageView !== null){
+                this._imageView.hidden = true;
+            }
         }
     },
 
@@ -517,12 +601,18 @@ JSClass("UIMenuBarItemView", UIView, {
         if (this._titleLabel){
             this._titleLabel.sizeToFit();
             this.bounds = JSRect(0, 0, this._titleLabel.frame.size.width, this._titleLabel.frame.size.height);
+        }else if (this._imageView){
+            this._imageView.frame = JSRect(0, 0, this._imageView.image.size.width, this._imageView.image.size.height);
+            this.bounds = JSRect(0, 0, this._imageView.frame.size);
         }
     },
 
     layoutSubviews: function(){
         if (this._titleLabel){
             this._titleLabel.position = JSPoint(Math.floor(this.bounds.size.width / 2.0), Math.floor(this.bounds.size.height / 2.0));
+        }
+        if (this._imageView){
+            this._imageView.position = this.bounds.center;
         }
     }
 

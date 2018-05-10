@@ -86,7 +86,7 @@ JSClass('UIView', UIResponder, {
         this.frame = JSRect(0, 0, 100, 100);
         this.constraintBox = null;
         if ("constraintBox" in values){
-            this.constraintBox = values.constraintBox;
+            this.constraintBox = JSConstraintBox(values.constraintBox);
         }else if ("constraintBox.margin" in values){
             this.constraintBox = JSConstraintBox.Margin.apply(undefined, values['constraintBox.margin'].parseNumberArray());
         }else if ("frame" in values){
@@ -94,6 +94,9 @@ JSClass('UIView', UIResponder, {
         }
         if ("backgroundColor" in values){
             this.backgroundColor = spec.resolvedValue(values.backgroundColor);
+        }
+        if ("backgroundGradient" in values){
+            this.backgroundGradient = spec.resolvedValue(values.backgroundGradient);
         }
         if ("tooltip" in values){
             this.tooltip = spec.resolvedValue(values.tooltip);

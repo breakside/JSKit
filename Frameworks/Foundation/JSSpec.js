@@ -2,14 +2,14 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSPropertyList.js"
 // #import "Foundation/JSBundle.js"
-/* global JSClass, JSObject, JSPropertyList, JSSpec, JSGlobalObject, JSResolveDottedName, JSBundle */
+/* global JSClass, JSObject, JSReadOnlyProperty, JSPropertyList, JSSpec, JSGlobalObject, JSResolveDottedName, JSBundle */
 'use strict';
 
 JSClass('JSSpec', JSObject, {
 
     _plist: null,
     _objectMap: null,
-    _bundle: null,
+    bundle: JSReadOnlyProperty('_bundle', null),
     _baseName: null,
     _keyForNextObjectInit: null,
 

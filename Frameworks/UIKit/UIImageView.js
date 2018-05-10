@@ -1,6 +1,6 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UIImageLayer.js"
-/* global JSClass, UIView, UIImageView, UIImageLayer, JSRect, UIViewLayerProperty, JSDynamicProperty, JSSize */
+/* global JSClass, UIView, UIImageView, UIImageLayer, JSImage, JSRect, UIViewLayerProperty, JSDynamicProperty, JSSize */
 'use strict';
 
 JSClass("UIImageView", UIView, {
@@ -16,6 +16,17 @@ JSClass("UIImageView", UIView, {
         UIImageView.$super._commonViewInit.call(this);
         this.backgroundColor = null;
         this._previousSize = JSSize.Zero;
+    },
+
+    initWithSpec: function(spec, values){
+        UIImageView.$super.initWithSpec.call(this, spec, values);
+        if ('renderMode' in values){
+            this.renderMode = spec.resolvedValues(values.renderMode);
+        }
+        if ('image' in values){
+            this.image = JSImage.initWithResourceName(values.image, spec.bundle);
+            this._scaleImage();
+        }
     },
 
     initWithRenderMode: function(renderMode){

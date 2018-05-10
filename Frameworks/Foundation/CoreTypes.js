@@ -140,6 +140,14 @@ JSRect.prototype = {
     }
 };
 
+Object.defineProperty(JSRect.prototype, 'center', {
+
+    get: function JSRect_getCenter(){
+        return JSPoint(this.origin.x + this.size.width / 2, this.origin.y + this.size.height / 2);
+    }
+
+});
+
 Object.defineProperty(JSRect, 'Zero', {
     get: function(){
         return new JSRect(0, 0, 0, 0);

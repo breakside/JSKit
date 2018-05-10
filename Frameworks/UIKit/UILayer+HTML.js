@@ -28,6 +28,7 @@ UILayer.definePropertiesFromExtensions({
         this.updateHTMLProperty_clipsToBounds(context);
         this.updateHTMLProperty_alpha(context);
         this.updateHTMLProperty_backgroundColor(context);
+        this.updateHTMLProperty_backgroundGradient(context);
         this.updateHTMLProperty_borderWidth(context);
         this.updateHTMLProperty_borderColor(context);
         this.updateHTMLProperty_cornerRadius(context);
@@ -65,6 +66,10 @@ UILayer.definePropertiesFromExtensions({
 
     updateHTMLProperty_backgroundColor: function(context){
         context.style.backgroundColor = this.presentation.backgroundColor ? this.presentation.backgroundColor.cssString() : '';
+    },
+
+    updateHTMLProperty_backgroundGradient: function(context){
+        context.style.backgroundImage = this.presentation.backgroundGradient ? this.presentation.backgroundGradient.cssString() : '';
     },
 
     updateHTMLProperty_borderWidth: function(context){

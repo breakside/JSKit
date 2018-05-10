@@ -236,17 +236,17 @@ HTMLAppBootstrapper.prototype = {
     },
 
     checking: function(e){
-        logger.info('checking app cache...');
+        // logger.info('checking app cache...');
         this.setStatus(HTMLAppBootstrapper.STATUS.checkingForUpdate);
     },
 
     noupdate: function(e){
-        logger.info('no update');
+        // logger.info('no update');
         this.load();
     },
 
     downloading: function(e){
-        logger.info('cache downloading...');
+        // logger.info('cache downloading...');
         this.setStatus(this._isInstalled ? HTMLAppBootstrapper.STATUS.updating : HTMLAppBootstrapper.STATUS.installing);
     },
 
@@ -254,22 +254,22 @@ HTMLAppBootstrapper.prototype = {
         if (e.lengthComputable){
             this.onprogress(e.loaded, e.total);
         }else{
-            logger.info('progress is not length computable');
+            // logger.info('progress is not length computable');
         }
     },
 
     cached: function(e){
-        logger.info('first version cached');
+        // logger.info('first version cached');
         this.load();
     },
 
     updateready: function(e){
-        logger.info('new version available...reloading page');
+        // logger.info('new version available...reloading page');
         window.location.reload();
     },
 
     obsoleted: function(e){
-        logger.info('cache obsoleted');
+        // logger.info('cache obsoleted');
         this.load();
     }
 
