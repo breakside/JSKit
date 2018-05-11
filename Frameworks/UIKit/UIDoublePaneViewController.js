@@ -270,6 +270,26 @@ JSClass("_UIDoublePaneView", UIView, {
         this._rightView.frame = JSRect(x, 0, this._rightWidth, size.height);
     },
 
+    beginDeviderResize: function(divider){
+        if (divider == this._leftDividerView){
+            this._previousLeftWidth = this._leftWidth;
+        }else{
+            this._previousRightWidth = this._rightWidth;
+        }
+    },
+
+    endDividerResize: function(divider){
+        if (divider == this._leftDividerView){
+            if (!this._leftViewOpen){
+                this.leftWidth = this._previousLeftWidth;
+            }
+        }else{
+            if (!this._rightViewOpen){
+                this.rightWidth = this._previousRightWidth;
+            }
+        }
+    },
+
     dividerDragged: function(divider, x){
         if (divider === this._leftDividerView){
             var maximumLeftWidth = this.bounds.size.width - this._minimumMainWidth;
@@ -341,10 +361,12 @@ JSClass("_UIDoublePaneDividerView", UIView, {
 
     mouseDown: function(event){
         this.cursor.push();
+        this.superview.beginDeviderResize(this);
     },
 
     mouseUp: function(event){
         this.cursor.pop();
+        this.superview.endDividerResize(this);
     },
 
     mouseDragged: function(event){

@@ -248,7 +248,6 @@ JSClass("UIMenuBar", UIWindow, {
             this.submenu = itemView._item.menu;
             this.submenu.delegate = this;
             this.openMenu(this.submenu, itemView);
-            this.startMouseTracking(UIView.MouseTracking.all);
         }
     },
 
@@ -321,35 +320,21 @@ JSClass("UIMenuBar", UIWindow, {
         if (this._clipView.containsPoint(location)){
             itemView = this._menuItemAtLocation(location);
             if (itemView !== null){
-                if (itemView !== this._highlightedItemView){
-                    this._selectMenuItemView(itemView);
-                    this._itemDownTimestamp = event.timestamp;
-                }
+                this.mouseDownOnItemView(itemView, event);
+                this.startMouseTracking(UIView.MouseTracking.all);
             }
         }
-        // If we're not over an item view, then no submenu is open, and a down
-        // means that we should stop tracking and receiving events
         if (itemView === null){
             this.stopMouseTracking();
             this.receivesAllEvents = false;
+            if (this.submenu){
+                this.submenu.closeWithAnimation();
+            }
         }
     },
 
     mouseUp: function(event){
-        if (event.timestamp - this._itemDownTimestamp < 0.3){
-            return;
-        }
-        var location = event.locationInView(this._clipView);
-        if (this._clipView.containsPoint(location)){
-            if (this.submenu){
-                this.stopMouseTracking();
-                this.submenu.closeWithAnimation();
-            }
-        }else{
-            if (this.submenu){
-                this.submenu.window.deepestMenuWindow().mouseUp(event);
-            }
-        }
+        this.mouseUpOnItemView(null, event);
     },
 
     mouseDragged: function(event){
@@ -361,6 +346,52 @@ JSClass("UIMenuBar", UIWindow, {
             this._itemDownTimestamp = 0;
             if (this.submenu){
                 this.submenu.window.deepestMenuWindow().mouseDragged(event);
+            }
+        }
+    },
+
+    mouseDownOnItemView: function(itemView, event){
+        if (!itemView._item.menu){
+            this.stopMouseTracking();
+            this.receivesAllEvents = false;
+            if (this.submenu){
+                this.submenu.close();
+            }
+            return;
+        }
+        if (itemView !== this._highlightedItemView){
+            this._selectMenuItemView(itemView);
+            this._itemDownTimestamp = event.timestamp;
+        }
+    },
+
+    mouseDraggedOnItemView: function(itemView, event){
+        if (!itemView._item.menu){
+            return;
+        }
+        this._itemDownTimestamp = 0;
+        if (this.submenu){
+            this.submenu.window.deepestMenuWindow().mouseDragged(event);
+        }
+    },
+
+    mouseUpOnItemView: function(itemView, event){
+        if (itemView && !itemView._item.menu){
+            return;
+        }
+        if (event.timestamp - this._itemDownTimestamp < 0.3){
+            return;
+        }
+        var location = event.locationInView(this._clipView);
+        if (this._clipView.containsPoint(location)){
+            this.stopMouseTracking();
+            this.receivesAllEvents = false;
+            if (this.submenu){
+                this.submenu.closeWithAnimation();
+            }
+        }else{
+            if (this.submenu){
+                this.submenu.window.deepestMenuWindow().mouseUp(event);
             }
         }
     },
@@ -619,24 +650,22 @@ JSClass("UIMenuBarItemView", UIView, {
 JSClass("UIMenuBarButton", UIMenuBarItemView, {
 
     mouseDown: function(event){
-        this.superview.mouseDown(event);
-        if (this._item.menu){
-            if (!this.highlighted){
-                this._menuBar._itemDownTimestamp = event.timestamp;
-                this._menuBar._selectMenuItemView(this);
-            }
-        }else{
+        this._menuBar.mouseDownOnItemView(this, event);
+        if (!this._item.menu){
             this.highlighted = true;
         }
     },
 
     mouseDragged: function(event){
-        var location = event.locationInView(this);
-        this.highlighted = this.containsPoint(location);
+        this._menuBar.mouseDraggedOnItemView(this, event);
+        if (!this._item.menu){
+            var location = event.locationInView(this);
+            this.highlighted = this.containsPoint(location);
+        }
     },
 
     mouseUp: function(event){
-            this.superview.mouseUp(event);
+        this._menuBar.mouseUpOnItemView(this, event);
         if (!this._item.menu){
             if (this.highlighted){
                 this.highlighted = false;

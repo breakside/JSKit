@@ -394,7 +394,7 @@ JSClass("UIMenuWindow", UIWindow, {
         --index;
         for (; index >= 0; --index){
             item = this._menu.items[index];
-            if (item.enabled && (this._isShowingAlternates || !item.alternate)){
+            if (item.enabled && !item.hidden && (this._isShowingAlternates || !item.alternate)){
                 this._highlightItem(item);
                 this._scrollItemVisible(item);
                 break;
@@ -412,7 +412,7 @@ JSClass("UIMenuWindow", UIWindow, {
         ++index;
         for (; index < this._menu.items.length; ++index){
             item = this._menu.items[index];
-            if (item.enabled && (this._isShowingAlternates || !item.alternate)){
+            if (item.enabled && !item.hidden && (this._isShowingAlternates || !item.alternate)){
                 this._highlightItem(item);
                 this._scrollItemVisible(item);
                 break;

@@ -468,6 +468,8 @@ JSClass("UIMenu", JSObject, {
 
     // MARK: - Closing
 
+    isClosing: false,
+
     close: function(){
         if (this.window.layer.animationsByKey.alpha){
             this.window.layer.removeAnimationForKey('alpha');
@@ -475,12 +477,17 @@ JSClass("UIMenu", JSObject, {
         this._contextTarget = null;
         this.window.close();
         this.window = null;
+        this.isClosing = false;
         if (this.delegate && this.delegate.menuDidClose){
             this.delegate.menuDidClose(this);
         }
     },
 
     closeWithAnimation: function(){
+        if (this.isClosing){
+            return;
+        }
+        this.isClosing = true;
         var menu = this;
         UIView.animateWithDuration(0.2, function(){
             menu.window.alpha = 0;
