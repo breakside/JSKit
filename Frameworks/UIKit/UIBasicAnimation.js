@@ -4,7 +4,7 @@
 
 JSClass('UIBasicAnimation', UIPropertyAnimation, {
     timingFunction: UIAnimation.linearTimingFunction,
-    duration: null,
+    duration: JSDynamicProperty('_duration', 0.25),
     fromValue: JSDynamicProperty('_fromValue', null),
     toValue: JSDynamicProperty('_toValue', null),
     _interpolation: null,
@@ -16,7 +16,7 @@ JSClass('UIBasicAnimation', UIPropertyAnimation, {
         if (this._t0 === null){
             this._t0 = t;
         }
-        this._timeProgress = Math.max(0, Math.min(1, (t - this._t0) / this.duration));
+        this._timeProgress = Math.max(0, Math.min(1, (t - this._t0) / this._duration));
         this._progress = this.timingFunction(this._timeProgress);
         if (this._timeProgress >= 1){
             this.isComplete = true;

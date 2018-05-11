@@ -4,7 +4,7 @@
 'use strict';
 
 JSClass('UIAnimationTransaction', JSObject, {
-    duration: 250,
+    duration: 0.25,
     delay: 0,
     completionFunction: null,
     timingFunction: null,
@@ -26,6 +26,14 @@ JSClass('UIAnimationTransaction', JSObject, {
         --this.animationCount;
         if (this.animationCount === 0 && this.completionFunction){
             this.completionFunction();
+        }
+    },
+
+    stop: function(){
+        var animation;
+        for (var i = 0, l = this.animations.length; i < l; ++i){
+            animation = this.animations[i];
+            animation.layer.removeAnimation(animation, true);
         }
     },
 

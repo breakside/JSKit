@@ -65,7 +65,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     displayFrame: function(t){
         this.displayFrameID = null;
-        this.updateDisplay(t);
+        this.updateDisplay(t / 1000.0);
     },
 
     // -------------------------------------------------------------------------

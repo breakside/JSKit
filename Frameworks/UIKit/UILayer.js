@@ -120,8 +120,7 @@ JSClass("UILayer", JSObject, {
             this._addImplicitAnimationForKey('position');
             var dx = frame.origin.x - oldFrame.origin.x;
             var dy = frame.origin.y - oldFrame.origin.y;
-            this.model.position.x += dx;
-            this.model.position.y += dy;
+            this.model.position = JSPoint(this.model.position.x + dx, this.model.position.y + dy);
         }
         this.didChangeProperty('position');
     },
@@ -477,6 +476,29 @@ JSClass("UILayer", JSObject, {
         }
     },
 
+    removeAnimation: function(animation, updatingModel){
+        var foundKey = null;
+        for (var key in this.animationsByKey){
+            if (this.animationsByKey[key] === animation){
+                foundKey = key;
+                break;
+            }
+        }
+        if (foundKey !== null){
+            if (updatingModel){
+                var parts = foundKey.split('.');
+                if (parts[0] in this.presentation){
+                    if (parts.length == 1){
+                        this.model[parts[0]] = this.presentation[parts[0]];
+                    }else{
+                        JSSetDottedName(this.model, foundKey, JSResolveDottedName(this.presentation, foundKey));
+                    }
+                }
+            }
+            this.removeAnimationForKey(foundKey);
+        }
+    },
+
     removeAnimationForKey: function(key){
         --this.animationCount;
         if (this.animationCount === 0){
@@ -534,6 +556,9 @@ JSClass("UILayer", JSObject, {
             this._displayServer.layoutLayerIfNeeded(this);
         }else if (this._needsLayout){
             this.layout();
+        }
+        for (var i = 0, l = this.sublayers.length; i < l; ++i){
+            this.sublayers[i].layoutIfNeeded();
         }
     },
 

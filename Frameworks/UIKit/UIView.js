@@ -477,12 +477,6 @@ UIView.animateWithOptions = function(options, animations, callback){
     transaction.duration = options.duration || 0.25;
     transaction.timingFunction = options.timingFunction || UIAnimation.linearTimingFunction;
     transaction.completionFunction = callback;
-    if (transaction.duration < 20){
-        transaction.duration *= 1000;
-    }
-    if (transaction.delay < 20){
-        transaction.delay *= 1000;
-    }
     animations();
     UIAnimationTransaction.commit();
 };

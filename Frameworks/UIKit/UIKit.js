@@ -6,6 +6,7 @@
 // #import "UIKit/UIBasicAnimation.js"
 // #import "UIKit/UIAnimationTransaction.js"
 // #import "UIKit/UIAnimationGroup.js"
+// #import "UIKit/UIViewPropertyAnimator.js"
 
 // Application
 // #import "UIKit/UIApplication.js"
