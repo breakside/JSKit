@@ -1,6 +1,6 @@
 // #import "UIKit/UIWindow.js"
 // #import "UIKit/UIMenu.js"
-/* global JSClass, JSObject, JSImage, JSReadOnlyProperty, JSPoint, JSConstraintBox, JSBinarySearcher, JSSize, JSLazyInitProperty, UIView, UIWindow, JSDynamicProperty, UIMenuBar, JSRect, JSInsets, UIMenuBarItemCollectionView, UIMenuBarItemView, UIMenuBarItem, UILabel, UIImageView, JSFont, JSTextAlignment, JSColor, UIMenuDefaultStyler, UILayerCornerRadii */
+/* global JSClass, JSObject, JSImage, JSReadOnlyProperty, JSPoint, JSConstraintBox, JSBinarySearcher, JSSize, JSLazyInitProperty, UIView, UIWindow, JSDynamicProperty, UIMenuBar, JSRect, JSInsets, UIMenuBarItemCollectionView, UIMenuBarItemView, UIMenuBarItem, UILabel, UIImageView, JSFont, JSTextAlignment, JSColor, UIMenuDefaultStyler, UILayerCornerRadii, UIMenuBarButton */
 'use strict';
 
 JSClass("UIMenuBar", UIWindow, {
@@ -108,13 +108,13 @@ JSClass("UIMenuBar", UIWindow, {
 
     setLeftBarItems: function(leftBarItems){
         this._leftBarItems = leftBarItems || [];
-        this._updateItemViews(this._leftItemViews, this._leftBarItems);
+        this._updateItemViews(this._leftItemViews, this._leftBarItems, UIMenuBarButton);
         this.setNeedsLayout();
     },
 
     setRightBarItems: function(rightBarItems){
         this._rightBarItems = rightBarItems || [];
-        this._updateItemViews(this._rightItemViews, this._rightBarItems);
+        this._updateItemViews(this._rightItemViews, this._rightBarItems, UIMenuBarButton);
         this.setNeedsLayout();
     },
 
@@ -130,17 +130,17 @@ JSClass("UIMenuBar", UIWindow, {
             this._menuBarItems.push(barItem);
         }
         this.primaryMenuItem = this._menuBarItems[0];
-        this._updateItemViews(this._menuItemViews, this._menuBarItems);
+        this._updateItemViews(this._menuItemViews, this._menuBarItems, UIMenuBarItemView);
         this.setNeedsLayout();
     },
 
-    _updateItemViews: function(itemViews, items){
+    _updateItemViews: function(itemViews, items, viewClass){
         var itemView;
         for (var i = 0, l = items.length; i < l; ++i){
             if (i < itemViews.length){
                 itemView = itemViews[i];
             }else{
-                itemView = UIMenuBarItemView.init();
+                itemView = viewClass.init();
                 itemView._menuBar = this;
                 itemViews.push(itemView);
                 this._clipView.addSubview(itemView);
@@ -265,7 +265,7 @@ JSClass("UIMenuBar", UIWindow, {
 
         var over = origin.x + size.width - safeFrame.origin.x - safeFrame.size.width;
         if (over > 0){
-            origin.x -= over;
+            origin.x = origin.x + itemView.frame.size.width - size.width;
         }
         if (origin.x < safeFrame.origin.x){
             origin.x = safeFrame.origin.x;
@@ -322,16 +322,8 @@ JSClass("UIMenuBar", UIWindow, {
             itemView = this._menuItemAtLocation(location);
             if (itemView !== null){
                 if (itemView !== this._highlightedItemView){
-                    this._itemDownTimestamp = event.timestamp;
                     this._selectMenuItemView(itemView);
-                }
-            }else{
-                for (var i = 0, l = this._rightItemViews.length && itemView === null; i < l; ++i){
-                    if (this._rightItemViews[i].hitTest(this.convertPointToView(location, this._rightItemViews[i]))){
-                        itemView = this._rightItemViews[i];
-                        itemView.highlighted = true;
-                        UIApplication.sharedApplication.sendAction(itemView._item.action, itemView._item.target, itemView);
-                    }
+                    this._itemDownTimestamp = event.timestamp;
                 }
             }
         }
@@ -381,6 +373,9 @@ JSClass("UIMenuBar", UIWindow, {
 
     mouseMoved: function(event){
         if (this.mouseTrackingType === UIView.MouseTracking.none){
+            return;
+        }
+        if (this._highlightedItemView && this._highlightedItemView.isKindOfClass(UIMenuBarButton)){
             return;
         }
         var location = event.locationInView(this._clipView);
@@ -458,6 +453,9 @@ JSClass("UIMenuBarItem", JSObject, {
         }
         if ('tooltip' in values){
             this.tooltip = spec.resolvedValue(values.tooltip);
+        }
+        if ('menu' in values){
+            this.menu = spec.resolvedValue(values.menu);
         }
     },
 
@@ -613,6 +611,37 @@ JSClass("UIMenuBarItemView", UIView, {
         }
         if (this._imageView){
             this._imageView.position = this.bounds.center;
+        }
+    }
+
+});
+
+JSClass("UIMenuBarButton", UIMenuBarItemView, {
+
+    mouseDown: function(event){
+        this.superview.mouseDown(event);
+        if (this._item.menu){
+            if (!this.highlighted){
+                this._menuBar._itemDownTimestamp = event.timestamp;
+                this._menuBar._selectMenuItemView(this);
+            }
+        }else{
+            this.highlighted = true;
+        }
+    },
+
+    mouseDragged: function(event){
+        var location = event.locationInView(this);
+        this.highlighted = this.containsPoint(location);
+    },
+
+    mouseUp: function(event){
+            this.superview.mouseUp(event);
+        if (!this._item.menu){
+            if (this.highlighted){
+                this.highlighted = false;
+                this.window.application.sendAction(this._item.action, this._item.target, this._item);
+            }
         }
     }
 

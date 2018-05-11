@@ -338,15 +338,15 @@ JSClass("UIWindowServer", JSObject, {
         var view = null;
         if (window !== null){
             view = window.hitTest(window.convertPointFromScreen(this.mouseLocation));
+            while (view !== null && view.tooltip === null){
+                view = view.superview;
+            }
             if (view === this._tooltipSourceView){
                 shouldHideTooltip = false;
             }
         }
         if (shouldHideTooltip){
             this.hideTooltip();
-            while (view !== null && view.tooltip === null){
-                view = view.superview;
-            }
             if (view !== null && view.tooltip !== null){
                 this.showTooltipForView(view, this.mouseLocation);
             }
@@ -456,6 +456,10 @@ JSClass("UIWindowServer", JSObject, {
         }
 
         if (isADown){
+            this._mouseIdleTimer.invalidate();
+            if (this._tooltipWindow !== null){
+                this.hideTooltip();
+            }
             if (this.mouseDownCount === 0 && this._draggingSession === null){
                 this.mouseEventWindow = this.windowForEventAtLocation(location);
             }

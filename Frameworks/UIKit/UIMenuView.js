@@ -469,9 +469,9 @@ JSClass("UIMenuWindow", UIWindow, {
                 this._isClosing = true;
                 this.stopMouseTracking();
                 this._highlightItem(null);
-                var timer = JSTimer.scheduledTimerWithInterval(0.05, function(){
+                var timer = JSTimer.scheduledTimerWithInterval(0.08, function(){
                     this._highlightItem(item);
-                    timer = JSTimer.scheduledTimerWithInterval(0.05, function(){
+                    timer = JSTimer.scheduledTimerWithInterval(0.08, function(){
                         var menu = this._menu;
                         var contextTarget = menu._contextTarget;
                         this.closeAll();

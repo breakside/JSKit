@@ -8,6 +8,9 @@ JSClass("UIDoublePaneViewController", UIViewController, {
     mainContentViewControlller: JSDynamicProperty('_mainContentViewController', null),
     rightPaneViewController: JSDynamicProperty('_rightPaneViewController', null),
 
+    leftPaneOpen: JSReadOnlyProperty(null, null, 'isLeftPaneOpen'),
+    rightPaneOpen: JSReadOnlyProperty(null, null, 'isRightPaneOpen'),
+
     _doublePaneView: null,
 
     initWithSpec: function(spec, values){
@@ -76,6 +79,14 @@ JSClass("UIDoublePaneViewController", UIViewController, {
         }
     },
 
+    isLeftPaneOpen: function(){
+        return this._doublePaneView.leftViewOpen;
+    },
+
+    isRightPaneOpen: function(){
+        return this._doublePaneView.rightViewOpen;
+    },
+
     hideRightPane: function(animated){
         if (this._doublePaneView.rightViewOpen){
             this.toggleRightPane(animated);
@@ -111,7 +122,10 @@ JSClass("UIDoublePaneViewController", UIViewController, {
             this._rightPaneAnimator = animator;
             animator.start();
         }
-    }
+    },
+
+    didTogglePane: function(){
+    },
 
 });
 
@@ -158,6 +172,7 @@ JSClass("_UIDoublePaneView", UIView, {
         if (isOpen != this._leftViewOpen){
             this._leftViewOpen = isOpen;
             this.setNeedsLayout();
+            this.viewController.didTogglePane();
         }
     },
 
@@ -165,6 +180,7 @@ JSClass("_UIDoublePaneView", UIView, {
         if (isOpen != this._rightViewOpen){
             this._rightViewOpen = isOpen;
             this.setNeedsLayout();
+            this.viewController.didTogglePane();
         }
     },
 
