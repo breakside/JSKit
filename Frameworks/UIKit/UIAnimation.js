@@ -1,10 +1,11 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject, UIAnimation, JSPoint, JSSize, JSRect, JSAffineTransform, JSColor */
+/* global JSClass, JSObject, JSReadOnlyProperty, UIAnimation, JSPoint, JSSize, JSRect, JSAffineTransform, JSColor */
 'use strict';
 
 JSClass('UIAnimation', JSObject, {
     completionFunction: null,
     isComplete: false,
+    percentComplete: JSReadOnlyProperty('_percentComplete', 0),
 
     updateForTime: function(t){
     }

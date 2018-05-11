@@ -23,7 +23,7 @@
 // #import "UIKit/UIWebView.js"
 // #import "UIKit/UIWindow.js"
 // #import "UIKit/UIViewController.js"
-// #import "UIKit/UIDoublePaneViewController.js"
+// #import "UIKit/UIDualPaneViewController.js"
 
 // Display & Window Serves
 // #import "UIKit/UIEvent.js"

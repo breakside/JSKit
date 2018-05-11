@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIDisplayServer.js"
-/* global JSClass, JSObject, UIAnimationTransaction, UIDisplayServer */
+/* global JSClass, JSObject, JSReadOnlyProperty, UIAnimationTransaction, UIDisplayServer */
 'use strict';
 
 JSClass('UIAnimationTransaction', JSObject, {
@@ -10,10 +10,18 @@ JSClass('UIAnimationTransaction', JSObject, {
     timingFunction: null,
     animationCount: 0,
     animations: null,
+    percentComplete: JSReadOnlyProperty(),
 
     initPrivate: function(){
         this._animationCompleteBound = this._animationComplete.bind(this);
         this.animations = [];
+    },
+
+    getPercentComplete: function(){
+        if (this.animations.length === 0){
+            return 0;
+        }
+        return this.animations[0].percentComplete;
     },
 
     addAnimation: function(animation){
@@ -66,6 +74,7 @@ UIAnimationTransaction.commit = function(){
             transaction = UIAnimationTransaction.committed[i];
             transaction._flush();
         }
+        UIAnimationTransaction.committed = [];
     }else{
         UIAnimationTransaction.currentTransaction = UIAnimationTransaction.stack[UIAnimationTransaction.stack.length - 1];
     }

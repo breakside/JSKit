@@ -312,6 +312,23 @@ JSClass("UIMenuBar", UIWindow, {
         }
     },
 
+    hitTest: function(location){
+        var edgeItemView = null;
+        if (this._leftItemViews.length > 0){
+            edgeItemView = this._leftItemViews[0];
+        }
+        if (edgeItemView !== null && location.x < edgeItemView.convertPointToView(JSPoint(0,0), this).x){
+            return edgeItemView;
+        }
+        if (this._rightItemViews.length > 0){
+            edgeItemView = this._rightItemViews[this._rightItemViews.length - 1];
+        }
+        if (edgeItemView !== null && location.x > edgeItemView.convertPointToView(JSPoint(edgeItemView.bounds.size.width,0), this).x){
+            return edgeItemView;
+        }
+        return UIMenuBar.$super.hitTest.call(this, location);
+    },
+
     _itemDownTimestamp: 0,
 
     mouseDown: function(event){

@@ -488,11 +488,7 @@ JSClass("UILayer", JSObject, {
             if (updatingModel){
                 var parts = foundKey.split('.');
                 if (parts[0] in this.presentation){
-                    if (parts.length == 1){
-                        this.model[parts[0]] = this.presentation[parts[0]];
-                    }else{
-                        JSSetDottedName(this.model, foundKey, JSResolveDottedName(this.presentation, foundKey));
-                    }
+                    JSSetDottedName(this, parts[0], JSResolveDottedName(this.presentation, parts[0]));
                 }
             }
             this.removeAnimationForKey(foundKey);

@@ -9,16 +9,15 @@ JSClass('UIBasicAnimation', UIPropertyAnimation, {
     toValue: JSDynamicProperty('_toValue', null),
     _interpolation: null,
     _t0: null,
-    _timeProgress: null,
     _progress: null,
 
     updateForTime: function(t){
         if (this._t0 === null){
             this._t0 = t;
         }
-        this._timeProgress = Math.max(0, Math.min(1, (t - this._t0) / this._duration));
-        this._progress = this.timingFunction(this._timeProgress);
-        if (this._timeProgress >= 1){
+        this._percentComplete = Math.max(0, Math.min(1, (t - this._t0) / this._duration));
+        this._progress = this.timingFunction(this._percentComplete);
+        if (this._percentComplete >= 1){
             this.isComplete = true;
         }else{
             this._updateLayer();

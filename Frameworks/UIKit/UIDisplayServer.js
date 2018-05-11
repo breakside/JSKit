@@ -10,6 +10,7 @@ JSClass("UIDisplayServer", JSObject, {
     layerRepositionQueue: null,
     layerAnimationQueue: null,
     _animationCount: 0,
+    _animationScale: 1,
     _isUpdating: false,
 
     init: function(){
@@ -178,6 +179,7 @@ JSClass("UIDisplayServer", JSObject, {
     },
 
     _updateAnimations: function(t){
+        t /= this._animationScale;
         var animation;
         var completedAnimations = [];
         var id, key;

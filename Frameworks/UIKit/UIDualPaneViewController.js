@@ -1,8 +1,8 @@
 // #import "UIKit/UIViewController.js"
-/* global JSClass, JSRect, JSColor, UICursor, JSReadOnlyProperty, JSDynamicProperty, UIViewController, UIDoublePaneViewController, UIView, _UIDoublePaneView, _UIDoublePaneDividerView, JSConstraintBox, UIViewPropertyAnimator */
+/* global JSClass, JSRect, JSColor, UICursor, JSReadOnlyProperty, JSDynamicProperty, UIViewController, UIDualPaneViewController, UIView, _UIDualPaneView, _UIDualPaneDividerView, JSConstraintBox, UIViewPropertyAnimator */
 'use strict';
 
-JSClass("UIDoublePaneViewController", UIViewController, {
+JSClass("UIDualPaneViewController", UIViewController, {
 
     leftPaneViewController: JSDynamicProperty('_leftPaneViewController', null),
     mainContentViewControlller: JSDynamicProperty('_mainContentViewController', null),
@@ -14,7 +14,7 @@ JSClass("UIDoublePaneViewController", UIViewController, {
     _doublePaneView: null,
 
     initWithSpec: function(spec, values){
-        UIDoublePaneViewController.$super.initWithSpec.call(this, spec, values);
+        UIDualPaneViewController.$super.initWithSpec.call(this, spec, values);
         if ('leftPaneViewController' in values){
             this._leftPaneViewController = spec.resolvedValue(values.leftPaneViewController);
         }
@@ -39,7 +39,7 @@ JSClass("UIDoublePaneViewController", UIViewController, {
         if (this._mainContentViewController){
             mainView = this._mainContentViewController.view;
         }
-        this._doublePaneView = _UIDoublePaneView.initWithViews(leftView, mainView, rightView);
+        this._doublePaneView = _UIDualPaneView.initWithViews(leftView, mainView, rightView);
         this._view = this._doublePaneView;
     },
 
@@ -58,14 +58,16 @@ JSClass("UIDoublePaneViewController", UIViewController, {
     _leftPaneAnimator: null,
 
     toggleLeftPane: function(animated){
+        var percentRemaining = 1;
         if (this._leftPaneAnimator !== null){
             this._leftPaneAnimator.stop();
+            percentRemaining = this._leftPaneAnimator.percentComplete;
             this._leftPaneAnimator = null;
         }
         if (!animated){
             this._doublePaneView.leftViewOpen = !this._doublePaneView.leftViewOpen;
         }else{
-            var animator = UIViewPropertyAnimator.initWithDuration(0.15);
+            var animator = UIViewPropertyAnimator.initWithDuration(0.15 * percentRemaining);
             var self = this;
             this._doublePaneView.leftViewOpen = !this._doublePaneView.leftViewOpen;
             animator.addAnimations(function(){
@@ -102,15 +104,17 @@ JSClass("UIDoublePaneViewController", UIViewController, {
     _rightPaneAnimator: null,
 
     toggleRightPane: function(animated){
+        var percentRemaining = 1;
         if (this._rightPaneAnimator !== null){
             this._rightPaneAnimator.stop();
+            percentRemaining = this._rightPaneAnimator.percentComplete;
             this._rightPaneAnimator = null;
         }
         if (!animated){
             this._doublePaneView.rightViewOpen = !this._doublePaneView.rightViewOpen;
             // TODO: viewWillAppear/viewDidAppear
         }else{
-            var animator = UIViewPropertyAnimator.initWithDuration(0.15);
+            var animator = UIViewPropertyAnimator.initWithDuration(0.15 * percentRemaining);
             var self = this;
             this._doublePaneView.rightViewOpen = !this._doublePaneView.rightViewOpen;
             animator.addAnimations(function(){
@@ -129,7 +133,7 @@ JSClass("UIDoublePaneViewController", UIViewController, {
 
 });
 
-JSClass("_UIDoublePaneView", UIView, {
+JSClass("_UIDualPaneView", UIView, {
 
     leftView: JSDynamicProperty('_leftView', null),
     mainView: JSDynamicProperty('_mainView', null),
@@ -155,12 +159,12 @@ JSClass("_UIDoublePaneView", UIView, {
     _rightDividerView: null,
 
     initWithViews: function(leftView, mainView, rightView){
-        _UIDoublePaneView.$super.init.call(this);
+        _UIDualPaneView.$super.init.call(this);
         this._leftView = leftView;
         this._mainView = mainView;
         this._rightView = rightView;
-        this._leftDividerView = _UIDoublePaneDividerView.initWithFrame(JSRect(0, 0, 5, this.bounds.size.height));
-        this._rightDividerView = _UIDoublePaneDividerView.initWithFrame(JSRect(0, 0, 5, this.bounds.size.height));
+        this._leftDividerView = _UIDualPaneDividerView.initWithFrame(JSRect(0, 0, 5, this.bounds.size.height));
+        this._rightDividerView = _UIDualPaneDividerView.initWithFrame(JSRect(0, 0, 5, this.bounds.size.height));
         this.addSubview(this._mainView);
         this.addSubview(this._leftView);
         this.addSubview(this._rightView);
@@ -341,14 +345,14 @@ JSClass("_UIDoublePaneView", UIView, {
 
 });
 
-JSClass("_UIDoublePaneDividerView", UIView, {
+JSClass("_UIDualPaneDividerView", UIView, {
 
     layoutWidth: 1,
     lineView: null,
     layoutAdjustment: JSReadOnlyProperty(),
 
     initWithFrame: function(frame){
-        _UIDoublePaneDividerView.$super.initWithFrame.call(this, frame);
+        _UIDualPaneDividerView.$super.initWithFrame.call(this, frame);
         this.lineView = UIView.initWithConstraintBox(JSConstraintBox({width: this.layoutWidth, top: 0, bottom: 0}));
         this.lineView.backgroundColor = JSColor.blackColor();
         this.addSubview(this.lineView);
