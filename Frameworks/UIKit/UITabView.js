@@ -1,6 +1,6 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UILabel.js"
-/* global JSClass, JSObject, JSProtocol, JSSize, JSConstraintBox, JSRect, JSInsets, JSColor, JSImage, JSPoint, JSReadOnlyProperty, JSDynamicProperty, UIView, UITabView, UILabel, JSLazyInitProperty, UILayer, UITabViewItemsView, UITabViewItemView, UITabViewStyler, UITabViewItem, UIImageView, UITabViewDefaultStyler, UITabViewContentContainer */
+/* global JSClass, JSObject, JSFont, JSCopy, JSProtocol, JSSize, JSConstraintBox, JSRect, JSInsets, JSColor, JSImage, JSPoint, JSReadOnlyProperty, JSDynamicProperty, UIView, UITabView, UILabel, JSLazyInitProperty, UILayer, UITabViewItemsView, UITabViewItemView, UITabViewStyler, UITabViewItem, UIImageView, UITabViewDefaultStyler, UITabViewContentContainer */
 'use strict';
 
 (function(){
@@ -20,25 +20,56 @@ JSClass("UITabView", UIView, {
     styler: JSReadOnlyProperty('_styler', null),
     stylerProperties: null,
     delegate: null,
+    font: null,
     _itemsView: null,
     _contentViewContainer: null,
 
     initWithFrame: function(frame){
         UITabView.$super.initWithFrame.call(this, frame);
-        this._itemsView = UITabViewItemsView.init();
-        this._itemsView.tabView = this;
-        this._contentViewContainer = UITabViewContentContainer.init();
-        this._styler = UITabView.defaultStyler;
-        this.addSubview(this._itemsView);
-        this.addSubview(this._contentViewContainer);
-        this._styler.initializeTabView(this);
-        this.setNeedsLayout();
+        this._commonTabViewInit();
+    },
+
+    initWithSpec: function(spec, values){
+        UITabView.$super.initWithSpec.call(this, spec, values);
+        if ('styler' in values){
+            this._styler = spec.resolvedValue(values.styler);
+        }else{
+            this._styler = UITabView.defaultStyler;
+        }
+        this._commonTabViewInit();
+        if ('delegate' in values){
+            this.delegate = spec.resolvedValue(values.delegate);
+        }
+        if ('items' in values){
+            var items = [];
+            for (var i = 0, l = values.items.length; i < l; ++i){
+                items.push(spec.resolvedValue(values.items[i]));
+            }
+            this.items = items;
+        }
+        if ("font" in values){
+            this.font = JSFont.initWithSpec(spec, values.font);
+        }
     },
 
     _commonViewInit: function(){
         UITabView.$super._commonViewInit.call(this);
         this._items = [];
         this.stylerProperties = {};
+        this.font = JSFont.systemFontOfSize(JSFont.systemFontSize);
+    },
+
+    _commonTabViewInit: function(){
+        this._itemsView = UITabViewItemsView.init();
+        this._itemsView.tabView = this;
+        this._contentViewContainer = UITabViewContentContainer.init();
+        this.addSubview(this._itemsView);
+        this.addSubview(this._contentViewContainer);
+        if (this._styler === null){
+            this._styler = UITabView.defaultStyler;
+        }
+        this._styler.initializeTabView(this);
+        this.setNeedsLayout();
     },
 
     addItemWithTitle: function(title){
@@ -271,6 +302,7 @@ JSClass("UITabViewItemView", UIView, {
 
     _createImageView: function(){
         var imageView = UIImageView.init();
+        this.addSubview(imageView);
         return imageView;
     },
 
@@ -281,6 +313,7 @@ JSClass("UITabViewItemView", UIView, {
 
     update: function(){
         if (this.item.title){
+            this.titleLabel.font = this.itemsView.tabView.font;
             this.titleLabel.text = this.item.title;
             this._titleLabel.hidden = false;
         }else if (this._titleLabel !== null){
@@ -516,6 +549,7 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
     cornerRadius: 3,
     itemPadding: null,
     itemsPadding: null,
+    imageSpacing: 3,
 
     init: function(){
         this.itemPadding = JSInsets(3, 10);
@@ -554,18 +588,32 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
     },
 
     sizeItemViewToFit: function(itemView){
-        var size = JSSize(this.itemPadding.left + this.itemPadding.right, this.itemPadding.top + this.itemPadding.bottom);
-        if (itemView._titleLabel !== null){
+        var font = itemView.itemsView.tabView.font;
+        var imageSize = font.displayAscender;
+        var size = JSSize(this.itemPadding.left + this.itemPadding.right, this.itemPadding.top + font.displayLineHeight + this.itemPadding.bottom);
+        if (itemView._titleLabel !== null && !itemView._titleLabel.hidden){
             itemView._titleLabel.sizeToFit();
             size.width += Math.ceil(itemView._titleLabel.frame.size.width);
-            size.height += Math.ceil(itemView._titleLabel.frame.size.height);
+        }
+        if (itemView._imageView !== null && !itemView._imageView.hidden){
+            itemView._imageView.frame = JSRect(0, 0, imageSize, imageSize);
+            size.width += imageSize;
+            if (itemView._titleLabel !== null && !itemView._titleLabel.hidden){
+                 size.width += this.imageSpacing;
+            }
         }
         itemView.bounds = JSRect(JSPoint.Zero, size);
     },
 
     layoutItemView: function(itemView){
-        if (itemView._titleLabel !== null){
-            itemView._titleLabel.position = itemView.bounds.center;
+        var center = itemView.bounds.center;
+        var imageSize = 0;
+        if (itemView._imageView !== null && !itemView._imageView.hidden){
+            imageSize = itemView._imageView.frame.size.width;
+            itemView._imageView.position = JSPoint(this.itemPadding.left + imageSize / 2, center.y);
+        }
+        if (itemView._titleLabel !== null && !itemView._titleLabel.hidden){
+            itemView._titleLabel.position = JSPoint(center.x + imageSize / 2 + this.imageSpacing, center.y);
         }
         itemView.stylerProperties.leftSeparator.frame = JSRect(0, 0, 0.5, itemView.bounds.size.height);
         itemView.stylerProperties.rightSeparator.frame = JSRect(itemView.bounds.size.width - 0.5, 0, 0.5, itemView.bounds.size.height);
@@ -577,6 +625,10 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
         itemView.borderColor = defaultStateBorderColors[item.state];
         if (itemView._titleLabel !== null){
             itemView._titleLabel.textColor = defaultStateTitleColors[item.state];
+        }
+        if (itemView._imageView !== null){
+            itemView._imageView.renderMode = UIImageView.RenderMode.template;
+            itemView._imageView.templateColor = defaultStateTitleColors[item.state];
         }
         if (itemView.isFirst()){
             itemView.maskedCorners = UILayer.Corners.minX;
@@ -631,18 +683,6 @@ var defaultStateTitleColors = [
     JSColor.initWithRGBA(255/255,255/255,255/255), // 7 selected + active + over
 ];
 
-JSClass("UITabViewTablessStyler", UITabViewStyler, {
-
-    initializeTabView: function(tabView){
-        tabView._itemsView.hidden = true;
-    },
-
-    layoutTabView: function(tabView){
-        tabView._contentViewContainer.frame = tabView.bounds;
-    }
-
-});
-
 Object.defineProperties(UITabViewDefaultStyler, {
     shared: {
         configurable: true,
@@ -666,5 +706,75 @@ Object.defineProperties(UITabView, {
         }
     }
 });
+
+JSClass("UITabViewTablessStyler", UITabViewStyler, {
+
+    initializeTabView: function(tabView){
+        tabView._itemsView.hidden = true;
+    },
+
+    layoutTabView: function(tabView){
+        tabView._contentViewContainer.frame = tabView.bounds;
+    }
+
+});
+
+JSClass("UITabViewImagesStyler", UITabViewStyler, {
+
+    itemSize: 28,
+    imageSize: 14,
+    _stateColors: null,
+
+    init: function(){
+        this._stateColors = JSCopy(defaultStateImageColors);
+    },
+
+    initWithSpec: function(spec, values){
+        this._stateColors = JSCopy(defaultStateImageColors);
+    },
+
+    setColorForState: function(color, state){
+        this._stateColors[state] = color;
+    },
+
+    initializeTabView: function(tabView){
+        tabView._contentViewContainer.borderColor = defaultStateBorderColors[0];
+        tabView._contentViewContainer.borderWidth = 1;
+        tabView._contentViewContainer.maskedBorders = UILayer.Sides.minY;
+    },
+
+    initializeItemView: function(itemView){
+        itemView.imageView.renderMode = UIImageView.RenderMode.template;
+    },
+
+    sizeItemViewToFit: function(itemView){
+        itemView.bounds = JSRect(0, 0, this.itemSize, this.itemSize);
+    },
+
+    layoutItemView: function(itemView){
+        var offset = (this.itemSize - this.imageSize) / 2;
+        itemView.imageView.frame = JSRect(offset, offset, this.imageSize, this.imageSize);
+        if (itemView._titleLabel !== null){
+            itemView._titleLabel.hidden = true;
+        }
+    },
+
+    updateItemView: function(itemView){
+        var item = itemView.item;
+        itemView.imageView.templateColor = this._stateColors[item.state];
+    },
+
+});
+
+var defaultStateImageColors = [
+    JSColor.initWithRGBA(0,0,0,0.2), // 0 normal
+    JSColor.initWithRGBA(0,0,0,0.2), // 1 over
+    JSColor.initWithRGBA(0,0,0,0.5), // 2 active
+    JSColor.initWithRGBA(0,0,0,0.5), // 3 active + over
+    JSColor.initWithRGBA(70/255,153/255,254/255),  // 4 selected
+    JSColor.initWithRGBA(70/255,153/255,254/255),  // 5 selected + over
+    JSColor.initWithRGBA(54/255,123/255,205/255),  // 6 selected + active
+    JSColor.initWithRGBA(54/255,123/255,205/255),  // 7 selected + active + over
+];
 
 })();

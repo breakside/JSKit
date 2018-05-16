@@ -8,6 +8,7 @@ JSClass("UIViewController", UIResponder, {
     isViewLoaded:   false,
     _spec:          null,
     _viewKeyInSpec: null,
+    _defaultViewClass: "UIView",
 
     // -------------------------------------------------------------------------
     // MARK: - Creating a View Controller
@@ -28,7 +29,7 @@ JSClass("UIViewController", UIResponder, {
     // MARK: - Creating the View
 
     loadView: function(){
-        this._view = UIView.init();
+        this._view = JSClass.FromName(this._defaultViewClass).init();
     },
 
     getView: function(){
@@ -82,7 +83,7 @@ JSClass("UIViewController", UIResponder, {
             // properties from the spec that the developer expects to be honored.
             // Otherwise, just call loadView
             if (this._spec !== null && this._viewKeyInSpec !== null){
-                this._view = this._spec.resolvedValue(this._viewKeyInSpec, "UIView");
+                this._view = this._spec.resolvedValue(this._viewKeyInSpec, this._defaultViewClass);
             }else{
                 this.loadView();
             }
