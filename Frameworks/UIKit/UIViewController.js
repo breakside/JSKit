@@ -18,14 +18,17 @@ JSClass("UIViewController", UIResponder, {
     initWithSpec: function(spec, values){
         UIViewController.$super.initWithSpec.call(this, spec, values);
         this._spec = spec;
-        this._viewKeyInSpec = values.view;
+        this._viewKeyInSpec = values.view || null;
+        if ('tabViewItem' in values){
+            this.tabViewItem = spec.resolvedValue(values.tabViewItem, "UITabViewItem");
+        }
     },
 
     // -------------------------------------------------------------------------
     // MARK: - Creating the View
 
     loadView: function(){
-        // subclasses can implement this for custom view loading
+        this._view = UIView.initWithFrame();
     },
 
     getView: function(){
@@ -63,28 +66,32 @@ JSClass("UIViewController", UIResponder, {
     },
 
     // -------------------------------------------------------------------------
+    // MARK: - Tab Bar
+
+    tabViewItem: null,
+
+    // -------------------------------------------------------------------------
     // MARK: - Private Helpers
 
     // MARK: View Loading
 
     _loadViewIfNeeded: function(){
         if (!this.isViewLoaded){
-            this.loadView();
-            if (this._view === null){
-                this._loadViewDefault();
+            // If we were created via initWithSpec, and the spec contained a
+            // view property for us, always load that view because it may have
+            // properties from the spec that the developer expects to be honored.
+            // Otherwise, just call loadView
+            if (this._spec !== null && this._viewKeyInSpec !== null){
+                this._view = this._spec.resolvedValue(this._viewKeyInSpec, "UIView");
+            }else{
+                this.loadView();
             }
             this._view.viewController = this;
             this.isViewLoaded = true;
             this.viewDidLoad();
         }
-    }, 
+    }
 
-    _loadViewDefault: function(){
-        if (this._spec !== null){
-            this._view = this._spec.resolvedValue(this._viewKeyInSpec);
-        }else{
-            this._view = UIView.initWithFrame();
-        }
-    },
+
 
 });

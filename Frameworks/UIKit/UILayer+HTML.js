@@ -74,7 +74,18 @@ UILayer.definePropertiesFromExtensions({
 
     updateHTMLProperty_borderWidth: function(context){
         if (this.presentation.borderWidth){
-            context.borderElement.style.borderWidth = this.presentation.borderWidth + 'px';
+            var css = '';
+            if (this.presentation.maskedBorders === UILayer.Sides.all){
+                css = '%fpx'.sprintf(this.presentation.borderWidth);
+            }else{
+                css = '%fpx %fpx %fpx %fpx'.sprintf(
+                    (this.presentation.maskedBorders & UILayer.Sides.minY) ? this.presentation.borderWidth : 0,
+                    (this.presentation.maskedBorders & UILayer.Sides.maxX) ? this.presentation.borderWidth : 0,
+                    (this.presentation.maskedBorders & UILayer.Sides.maxY) ? this.presentation.borderWidth : 0,
+                    (this.presentation.maskedBorders & UILayer.Sides.minX) ? this.presentation.borderWidth : 0
+                );
+            }
+            context.borderElement.style.borderWidth = css;
             context.borderElement.style.borderStyle = 'solid';
         }else{
             if (context.borderElement !== null){
@@ -92,10 +103,17 @@ UILayer.definePropertiesFromExtensions({
 
     updateHTMLProperty_cornerRadius: function(context){
         var css = '';
-        if (this.presentation.cornerRadii){
-            css = '%fpx %fpx %fpx %fpx'.sprintf(this.presentation.cornerRadii.topLeft, this.presentation.cornerRadii.topRight, this.presentation.cornerRadii.bottomRight, this.presentation.cornerRadii.bottomLeft);
-        }else if (this.presentation.cornerRadius){
-            css = '%fpx'.sprintf(this.presentation.cornerRadius);
+        if (this.presentation.cornerRadius){
+            if (this.presentation.maskedCorners === UILayer.Corners.all){
+                css = '%fpx'.sprintf(this.presentation.cornerRadius);
+            }else{
+                css = '%fpx %fpx %fpx %fpx'.sprintf(
+                    (this.presentation.maskedCorners & UILayer.Corners.minXminY) ? this.presentation.cornerRadius : 0,
+                    (this.presentation.maskedCorners & UILayer.Corners.maxXminY) ? this.presentation.cornerRadius : 0,
+                    (this.presentation.maskedCorners & UILayer.Corners.maxXmaxY) ? this.presentation.cornerRadius : 0,
+                    (this.presentation.maskedCorners & UILayer.Corners.minXmaxY) ? this.presentation.cornerRadius : 0
+                );
+            }
         }
         context.style.borderRadius = css;
         if (context.borderElement !== null){

@@ -1,6 +1,6 @@
 // #import "UIKit/UIWindow.js"
 // #import "UIKit/UIMenu.js"
-/* global JSClass, JSObject, JSImage, JSReadOnlyProperty, JSPoint, JSConstraintBox, JSBinarySearcher, JSSize, JSLazyInitProperty, UIView, UIWindow, JSDynamicProperty, UIMenuBar, JSRect, JSInsets, UIMenuBarItemCollectionView, UIMenuBarItemView, UIMenuBarItem, UILabel, UIImageView, JSFont, JSTextAlignment, JSColor, UIMenuDefaultStyler, UILayerCornerRadii, UIMenuBarButton */
+/* global JSClass, JSObject, JSImage, JSReadOnlyProperty, UILayer, JSPoint, JSConstraintBox, JSBinarySearcher, JSSize, JSLazyInitProperty, UIView, UIWindow, JSDynamicProperty, UIMenuBar, JSRect, JSInsets, UIMenuBarItemCollectionView, UIMenuBarItemView, UIMenuBarItem, UILabel, UIImageView, JSFont, JSTextAlignment, JSColor, UIMenuDefaultStyler, UIMenuBarButton */
 'use strict';
 
 JSClass("UIMenuBar", UIWindow, {
@@ -253,9 +253,7 @@ JSClass("UIMenuBar", UIWindow, {
 
     openMenu: function(menu, itemView){
         var window = menu._createWindow();
-        if (window.layer.cornerRadius){
-            window.layer.cornerRadii = UILayerCornerRadii(0, 0, window.layer.cornerRadius, window.layer.cornerRadius);
-        }
+        window.maskedCorners = UILayer.Corners.maxY;
         var maxWidth = Math.floor(this.screen.frame.size.width * 0.3);
         var safeFrame = this.screen.frame.rectWithInsets(0, 0);
         var origin = JSPoint(itemView.frame.origin);

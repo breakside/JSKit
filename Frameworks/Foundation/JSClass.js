@@ -81,7 +81,7 @@ JSClass.prototype = {
                     writable: false,
                     value: extensions[i]
                 });
-                if (i.length >= 4 && i.substr(0, 4) === 'init'){
+                if (i.length >= 4 && i.substr(0, 4) === 'init' && (i.length == 4 || i.substr(4,1).toUpperCase() == i.substr(4, 1))){
                     this.defineInitMethod(i);
                 }
             }else if (i.charAt(0) == '_'){
@@ -285,11 +285,12 @@ JSReadOnlyProperty.prototype.define = function(C, publicKey, extensions){
     });
 };
 
-JSGlobalObject.JSLazyInitProperty = function(propertyInitMethodName){
+JSGlobalObject.JSLazyInitProperty = function(propertyInitMethodName, privateKey){
     if (this === undefined){
-        return new JSLazyInitProperty(propertyInitMethodName);
+        return new JSLazyInitProperty(propertyInitMethodName, privateKey);
     }else{
         this.propertyInitMethodName = propertyInitMethodName;
+        this.privateKey = privateKey;
     }
 };
 
@@ -297,6 +298,10 @@ JSLazyInitProperty.prototype = Object.create(JSCustomProperty.prototype);
 
 JSLazyInitProperty.prototype.define = function(C, key, extensions){
     var propertyInitMethodName = this.propertyInitMethodName;
+    var privateKey = this.privateKey;
+    if (privateKey){
+        Object.defineProperty(C.prototype, privateKey, {configurable: true, writable: true, value: null});
+    }
     Object.defineProperty(C.prototype, key, {
         configurable: true,
         enumerable: false,
@@ -307,6 +312,9 @@ JSLazyInitProperty.prototype.define = function(C, key, extensions){
                 enumerable: false,
                 value: x
             });
+            if (privateKey){
+                this[privateKey] = x;
+            }
             return x;
         }
     });

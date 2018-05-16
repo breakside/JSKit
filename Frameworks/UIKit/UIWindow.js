@@ -1,7 +1,7 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UIApplication.js"
 // #import "UIKit/UITouch.js"
-/* global JSClass, UIView, JSColor, JSRect, JSConstraintBox, JSDynamicProperty, JSReadOnlyProperty, UIWindow, JSPoint, UIApplication, UIEvent, UITouch */
+/* global JSClass, UIView, JSColor, JSRect, JSConstraintBox, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, JSPoint, UIApplication, UIEvent, UITouch */
 'use strict';
 
 JSClass('UIWindow', UIView, {
@@ -11,6 +11,7 @@ JSClass('UIWindow', UIView, {
 
     contentViewController: JSDynamicProperty('_contentViewController', null),
     contentView: JSDynamicProperty('_contentView', null),
+    contentInsets: JSDynamicProperty('_contentInsets', null),
     application: JSReadOnlyProperty('_application', null),
     firstResponder: JSDynamicProperty('_firstResponder', null),
     windowServer: JSReadOnlyProperty(),
@@ -42,6 +43,9 @@ JSClass('UIWindow', UIView, {
         }
         this._application = UIApplication.sharedApplication;
         this._commonWindowInit();
+        if ('contentInsets' in values){
+            this._contentInsets = JSInsets.apply(undefined, values.contentInsets.parseNumberArray());
+        }
     },
 
     // -------------------------------------------------------------------------
@@ -73,7 +77,7 @@ JSClass('UIWindow', UIView, {
     // MARK: - Layout
 
     layoutSubviews: function(){
-        this.contentView.frame = this.bounds;
+        this.contentView.frame = this.bounds.rectWithInsets(this._contentInsets.top, this._contentInsets.left, this._contentInsets.bottom, this._contentInsets.right);
     },
 
     // -------------------------------------------------------------------------
@@ -381,6 +385,7 @@ JSClass('UIWindow', UIView, {
         if (this._contentView === null){
             this.contentView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));
         }
+        this._contentInsets = JSInsets.Zero;
     }
 
 });

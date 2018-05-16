@@ -35,7 +35,7 @@ JSClass('JSSpec', JSObject, {
         return this.resolvedValue(value);
     },
 
-    resolvedValue: function(value){
+    resolvedValue: function(value, defaultClassName){
         if (typeof(value) == 'string'){
             if (value.length > 0){
                 var c = value.charAt(0);
@@ -61,8 +61,12 @@ JSClass('JSSpec', JSObject, {
             return value;
         }
         if (typeof(value) == 'object'){
+            var className = defaultClassName;
             if (JSSpec.Keys.ObjectClass in value){
-                var className = value[JSSpec.Keys.ObjectClass];
+                className = value[JSSpec.Keys.ObjectClass];
+            }
+
+            if (className){
                 var obj = JSClass.FromName(className).initWithSpec(this, value);
                 return obj;
             }else{

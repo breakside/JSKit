@@ -23,7 +23,6 @@
 // #import "UIKit/UIWebView.js"
 // #import "UIKit/UIWindow.js"
 // #import "UIKit/UIViewController.js"
-// #import "UIKit/UIDualPaneViewController.js"
 
 // Display & Window Serves
 // #import "UIKit/UIEvent.js"
@@ -52,6 +51,11 @@
 // #import "UIKit/UICheckbox.js"
 // #import "UIKit/UIRadioGroup.js"
 // #import "UIKit/UIPopupButton.js"
+// #import "UIKit/UITabView.js"
+
+// Specialized View Controllers
+// #import "UIKit/UIDualPaneViewController.js"
+// #import "UIKit/UITabViewController.js"
 
 // Menus
 // #import "UIKit/UIMenu.js"

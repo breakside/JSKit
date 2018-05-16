@@ -86,9 +86,14 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
                 context.propertiesNeedingUpdate.shadow = true;
                 UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
                 break;
-            case 'cornerRadii':
+            case 'maskedCorners':
                 context = this.contextForLayer(layer);
                 context.propertiesNeedingUpdate.cornerRadius = true;
+                UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
+                break;
+            case 'maskedBorders':
+                context = this.contextForLayer(layer);
+                context.propertiesNeedingUpdate.borderWidth = true;
                 UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
                 break;
             default:

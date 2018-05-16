@@ -4,7 +4,7 @@
 // #import "UIKit/UIDisplayServer.js"
 // #feature Math.min
 // #feature Math.max
-/* global JSGlobalObject, UILayerAnimatedProperty, JSCustomProperty, JSDynamicProperty, JSClass, JSObject, UILayer, UIDisplayServer, JSRect, JSPoint, JSSize, JSConstraintBox, JSAffineTransform, UIAnimationTransaction, UIBasicAnimation, JSSetDottedName, JSResolveDottedName, JSContext, UILayerCornerRadii */
+/* global JSGlobalObject, UILayerAnimatedProperty, JSCustomProperty, JSDynamicProperty, JSClass, JSObject, UILayer, UIDisplayServer, JSRect, JSPoint, JSSize, JSConstraintBox, JSAffineTransform, UIAnimationTransaction, UIBasicAnimation, JSSetDottedName, JSResolveDottedName, JSContext */
 'use strict';
 
 JSGlobalObject.UILayerAnimatedProperty = function(){
@@ -54,8 +54,9 @@ JSClass("UILayer", JSObject, {
     backgroundGradient: UILayerAnimatedProperty(),
     borderWidth:        UILayerAnimatedProperty(),
     borderColor:        UILayerAnimatedProperty(),
+    maskedBorders:      UILayerAnimatedProperty(),
     cornerRadius:       UILayerAnimatedProperty(),
-    cornerRadii:        UILayerAnimatedProperty(),
+    maskedCorners:      UILayerAnimatedProperty(),
     shadowColor:        UILayerAnimatedProperty(),
     shadowOffset:       UILayerAnimatedProperty(),
     shadowRadius:       UILayerAnimatedProperty(),
@@ -683,6 +684,29 @@ UILayer.FrameForConstraintBoxInBounds = function(constraintBox, bounds){
     return frame;
 };
 
+UILayer.Corners = {
+    none: 0,
+    minXminY: 1 << 0,
+    minXmaxY: 1 << 1,
+    maxXminY: 1 << 2,
+    maxXmaxY: 1 << 3,
+    all: 0xF
+};
+
+UILayer.Corners.minX = UILayer.Corners.minXminY | UILayer.Corners.minXmaxY;
+UILayer.Corners.maxX = UILayer.Corners.maxXminY | UILayer.Corners.maxXmaxY;
+UILayer.Corners.minY = UILayer.Corners.minXminY | UILayer.Corners.maxXminY;
+UILayer.Corners.maxY = UILayer.Corners.minXmaxY | UILayer.Corners.maxXmaxY;
+
+UILayer.Sides = {
+    none: 0,
+    minX: 1 << 0,
+    maxX: 1 << 1,
+    minY: 1 << 2,
+    maxY: 1 << 3,
+    all: 0xF
+};
+
 UILayer.Properties = {
     frame                   : JSRect.Zero,
     bounds                  : JSRect.Zero,
@@ -696,21 +720,12 @@ UILayer.Properties = {
     backgroundGradient      : null,
     borderWidth             : null,
     borderColor             : null,
+    maskedBorders           : UILayer.Sides.all,
     cornerRadius            : null,
-    cornerRadii             : null,
+    maskedCorners           : UILayer.Corners.all,
     shadowColor             : null,
     shadowOffset            : JSPoint.Zero,
     shadowRadius            : 0.0
-};
-
-JSGlobalObject.UILayerCornerRadii = function(topLeft, topRight, bottomRight, bottomLeft){
-    if (this === undefined){
-        return new UILayerCornerRadii(topLeft, topRight, bottomRight, bottomLeft);
-    }
-    this.topLeft = topLeft;
-    this.topRight = topRight;
-    this.bottomRight = bottomRight;
-    this.bottomLeft = bottomLeft;
 };
 
 JSContext.definePropertiesFromExtensions({
@@ -746,6 +761,7 @@ JSContext.definePropertiesFromExtensions({
             fill = true;
         }
         if (cornerRadius > 0){
+            // FIXME: obey maskedCorners
             this.addRoundedRect(rect, cornerRadius);
         }else{
             this.addRect(rect);

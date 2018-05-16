@@ -52,8 +52,9 @@ JSClass('UIView', UIResponder, {
     backgroundGradient: UIViewLayerProperty(),
     borderWidth:        UIViewLayerProperty(),
     borderColor:        UIViewLayerProperty(),
+    maskedBorders:      UIViewLayerProperty(),
     cornerRadius:       UIViewLayerProperty(),
-    borderRadius:       UIViewLayerProperty(),
+    maskedCorners:      UIViewLayerProperty(),
     shadowColor:        UIViewLayerProperty(),
     shadowOffset:       UIViewLayerProperty(),
     shadowRadius:       UIViewLayerProperty(),
@@ -70,8 +71,7 @@ JSClass('UIView', UIResponder, {
     },
 
     initWithConstraintBox: function(constraintBox){
-        this._commonViewInit();
-        this.frame = JSRect(0, 0, 100, 100);
+        this.init();
         this.constraintBox = constraintBox;
     },
 
