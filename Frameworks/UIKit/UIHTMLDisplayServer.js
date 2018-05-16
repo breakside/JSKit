@@ -6,7 +6,7 @@
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
 // #feature Document.prototype.createElement
-/* global JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer, jslog_create, UITextFramesetter, UIHTMLTextFramesetter, UIView, UITextAttachmentView */
+/* global Node, Element, JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer, jslog_create, UITextFramesetter, UIHTMLTextFramesetter, UIView, UITextAttachmentView */
 'use strict';
 
 (function(){
@@ -35,6 +35,8 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         this.domWindow = this.domDocument.defaultView;
         this.windowsContext = UIHTMLDisplayServerContext.initWithElement(this.rootElement);
         this.contextsByObjectID = {};
+        this._insertedLayers = {};
+        this._removedLayers = {};
         this._displayFrameBound = this.displayFrame.bind(this);
         if (sharedInstance !== null){
             throw new Error("Only one UIHTMLDisplayServer instance is allowed");
@@ -48,6 +50,10 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             }
 
         });
+    },
+
+    deinit: function(){
+        sharedInstance = null;
     },
 
     // -------------------------------------------------------------------------
@@ -66,6 +72,11 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     displayFrame: function(t){
         this.displayFrameID = null;
         this.updateDisplay(t / 1000.0);
+    },
+
+    updateDisplay: function(t){
+        this._flushDOMInsertsAndRemovals();
+        UIHTMLDisplayServer.$super.updateDisplay.call(this, t);
     },
 
     // -------------------------------------------------------------------------
@@ -199,6 +210,9 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     // -------------------------------------------------------------------------
     // MARK: - Notifications
 
+    _insertedLayers: null,
+    _removedLayers: null,
+
     windowInserted: function(window){
         this._layerInserted(window.layer, this.windowsContext);
     },
@@ -214,14 +228,9 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     _layerInserted: function(layer, parentContext){
         var known = layer._displayServer === this;
         layer._displayServer = this;
-        var context = this.contextForLayer(layer);
-        var insertIndex = parentContext.firstSublayerNodeIndex + layer.sublayerIndex;
-        if (insertIndex < parentContext.element.childNodes.length){
-            if (context.element !== parentContext.element.childNodes[insertIndex]){
-                parentContext.element.insertBefore(context.element, parentContext.element.childNodes[insertIndex]);
-            }
-        }else{
-            parentContext.element.appendChild(context.element);
+        this._insertedLayers[layer.objectID] = {layer: layer, parentContext: parentContext};
+        if (layer.objectID in this._removedLayers){
+            delete this._removedLayers[layer.objectID];
         }
         if (!known){
             if (layer._needsLayout){
@@ -237,18 +246,66 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     },
 
     layerRemoved: function(layer){
+        this._removedLayers[layer.objectID] = layer;
+        if (layer.objectID in this._insertedLayers){
+            delete this._insertedLayers[layer.objectID];
+        }
+        layer._needsLayout = this.layerNeedsLayout(layer);
+        layer._displayServer = null;
         for (var i = 0, l = layer.sublayers.length; i < l; ++i){
             this.layerRemoved(layer.sublayers[i]);
         }
+    },
+
+    _flushDOMInsertsAndRemovals: function(){
+        var layerId;
+        var layer;
+
+        // Removals
+        for (layerId in this._removedLayers){
+            layer = this._removedLayers[layerId];
+            this._removeLayerFromDOM(layer);
+            this._removeLayerFromUpdateQueues(layer);
+        }
+        this._removedLayers = {};
+
+        // Insertions
+        // Insert layers sorted by sublayerIndex within each parent context to ensure that
+        // the inserted layers are placed in the correct spot.  For example, say we have a
+        // superlayer with three existing layers, and are inserting two more.  If we insert
+        // the higher sublayer index first, the calculation that translates sublayer index
+        // to dom child index will be off, since the lower sublayer isn't in yet.
+        var insertedLayersByParentContext = {};
+        var parentContextsById = {};
+        var info;
+        for (layerId in this._insertedLayers){
+            info = this._insertedLayers[layerId];
+            if (!(info.parentContext.objectID in insertedLayersByParentContext)){
+                insertedLayersByParentContext[info.parentContext.objectID] = [];
+                parentContextsById[info.parentContext.objectID] = info.parentContext;
+            }
+            insertedLayersByParentContext[info.parentContext.objectID].push(info.layer);
+        }
+        for (var contextId in insertedLayersByParentContext){
+            insertedLayersByParentContext[contextId].sort(function(a, b){
+                return a.sublayerIndex - b.sublayerIndex;
+            });
+            for (var i = 0, l = insertedLayersByParentContext[contextId].length; i < l; ++i){
+                this._insertLayerIntoDOM(insertedLayersByParentContext[contextId][i], parentContextsById[contextId]);
+            }
+        }
+        this._insertedLayers = {};
+    },
+
+    _removeLayerFromDOM: function(layer){
+        layer._displayServer = null;
         var context = this.contextsByObjectID[layer.objectID];
         if (context){
-            if (context.element.parentNode){
+            if (context.element.isConnected){
                 context.element.parentNode.removeChild(context.element);
             }
-            // FIXME: when a view is just moving to a new superview, we shouldn't destroy the context
             this._destroyContextForLayer(layer);
         }
-        layer._displayServer = null;
     },
 
     _destroyContextForLayer: function(layer){
@@ -260,6 +317,18 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             layer.destroyHTMLContext(context);
             context.destroy();
             delete this.contextsByObjectID[layer.objectID];
+        }
+    },
+
+    _insertLayerIntoDOM: function(layer, parentContext){
+        var context = this.contextForLayer(layer);
+        var insertIndex = parentContext.firstSublayerNodeIndex + layer.sublayerIndex;
+        if (insertIndex < parentContext.element.childNodes.length){
+            if (context.element !== parentContext.element.childNodes[insertIndex]){
+                parentContext.element.insertBefore(context.element, parentContext.element.childNodes[insertIndex]);
+            }
+        }else{
+            parentContext.element.appendChild(context.element);
         }
     },
 
@@ -346,5 +415,13 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     }
 
 });
+
+if (!('isConnected' in Node.prototype)){
+    Object.defineProperty(Element.prototype, 'isConnected', {
+        get: function Element_isConnected(){
+            return this.ownerDocument.body.contains(this);
+        }
+    });
+}
 
 })();

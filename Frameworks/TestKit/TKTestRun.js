@@ -11,31 +11,42 @@ JSClass('TKTestRun', JSObject, {
     suiteQueue: null,
     caseQueue: null,
 
-    init: function(){
+    initInEnvironment: function(environment){
         this.suiteQueue = [];
         this.caseQueue = [];
         this.results = {};
+        this.environment = environment;
+    },
+
+    canRunSuite: function(suite){
+        return suite && (!suite.prototype.requiredEnvironment || suite.prototype.requiredEnvironment == this.environment);
     },
 
     runAllRegisteredSuites: function(){
         var suite;
         for (var i = TKTestSuite.RegisteredTestSuites.length - 1; i >= 0; --i){
-            this.suiteQueue.push(TKTestSuite.RegisteredTestSuites[i]);
+            suite = TKTestSuite.RegisteredTestSuites[i];
+            if (this.canRunSuite(suite)){
+                this.suiteQueue.push(suite);
+            }
         }
         this.resume();
     },
 
     runSuiteNamed: function(suiteName){
         var suite = this.suiteForName(suiteName);
-        if (suite){
+        if (this.canRunSuite(suite)){
             this.suiteQueue.push(suite);
         }
         this.resume();
     },
 
     runCaseNamed: function(suiteName, caseName){
-        this.suite = this.suiteForName(suiteName);
-        this.caseQueue.push(caseName);
+        var suite = this.suiteForName(suiteName);
+        if (this.canRunSuite(suite)){
+            this.suite = suite;
+            this.caseQueue.push(caseName);
+        }
         this.resume();
     },
 

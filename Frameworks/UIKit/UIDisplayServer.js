@@ -167,6 +167,15 @@ JSClass("UIDisplayServer", JSObject, {
         }
     },
 
+    _removeLayerFromUpdateQueues: function(layer){
+        this.layerLayoutQueue.remove(layer);
+        this.layerDisplayQueue.remove(layer);
+        this.layerRepositionQueue.remove(layer);
+        if (layer.objectID in this.layerAnimationQueue){
+            delete this.layerAnimationQueue[layer.objectID];
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Animation
 
@@ -278,6 +287,9 @@ UIDisplayServerQueue.prototype = {
     },
 
     remove: function(value){
+        if (!this.contains(value)){
+            return;
+        }
         var link = this.map[value.objectID];
         this._removeLink(link);
     },

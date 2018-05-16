@@ -28,7 +28,7 @@ JSClass("UIViewController", UIResponder, {
     // MARK: - Creating the View
 
     loadView: function(){
-        this._view = UIView.initWithFrame();
+        this._view = UIView.init();
     },
 
     getView: function(){
