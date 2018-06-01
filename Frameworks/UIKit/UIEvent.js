@@ -14,23 +14,26 @@ JSClass('UIEvent', JSObject, {
     keyCode: JSReadOnlyProperty('_keyCode', -1),
     touches: JSReadOnlyProperty('_touches', null),
     trackingView: null,
+    modifiers: JSReadOnlyProperty('_modifiers', 0),
 
-    initMouseEventWithType: function(type, timestamp, window, location){
+    initMouseEventWithType: function(type, timestamp, window, location, modifiers){
         this._timestamp = timestamp;
         this._windows = [window];
         this._locationInWindow = location;
         this._category = UIEvent.Category.Mouse;
         this._type = type;
         this._touches = [];
+        this._modifiers = modifiers || UIEvent.Modifiers.none;
     },
 
-    initKeyEventWithType: function(type, timestamp, window, keyCode){
+    initKeyEventWithType: function(type, timestamp, window, keyCode, modifiers){
         this._timestamp = timestamp;
         this._windows = [window];
         this._keyCode = keyCode;
         this._category = UIEvent.Category.Key;
         this._type = type;
         this._touches = [];
+        this._modifiers = modifiers || UIEvent.Modifiers.none;
     },
 
     initTouchEventWithType: function(type, timestamp){
@@ -95,6 +98,10 @@ JSClass('UIEvent', JSObject, {
         return this.window.convertPointToView(this._locationInWindow, view);
     },
 
+    hasModifier: function(modifier){
+        return (this._modifiers & modifier) == modifier;
+    }
+
 });
 
 UIEvent.doubleClickInterval = 1.0;
@@ -122,3 +129,13 @@ UIEvent.Type = {
     TouchesEnded: 13,
     TouchesCanceled: 14
 };
+
+UIEvent.Modifiers = {
+    none:    0,
+    command: 1 << 0,
+    control: 1 << 1,
+    shift:   1 << 2,
+    option:  1 << 3
+};
+
+UIEvent.Modifiers.platformCommand = UIEvent.Modifiers.command;

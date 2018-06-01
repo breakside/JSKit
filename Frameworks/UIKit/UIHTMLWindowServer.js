@@ -376,7 +376,8 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
 
     _createMouseEventFromDOMEvent: function(e, type){
         var timestamp = e.timeStamp / 1000.0;
-        this.createMouseEvent(type, timestamp, this.mouseLocation);
+        var modifiers = this._modifiersFromDOMEvent(e);
+        this.createMouseEvent(type, timestamp, this.mouseLocation, modifiers);
     },
 
     _createMouseTrackingEventFromDOMEvent: function(e, type, view){
@@ -385,7 +386,8 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         if (type === UIEvent.Type.MouseMoved){
             this.mouseDidMove(timestamp);
         }
-        this.createMouseTrackingEvent(type, timestamp, this.mouseLocation, view);
+        var modifiers = this._modifiersFromDOMEvent(e);
+        this.createMouseTrackingEvent(type, timestamp, this.mouseLocation, modifiers, view);
     },
 
     _locationOfDOMTouchInScreen: function(touch){
@@ -397,7 +399,25 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         // TODO: maybe use e.key if available
         // see https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent#Key_names_and_Char_values
         var keyCode = e.keyCode;
-        this.createKeyEvent(type, timestamp, keyCode);
+        var modifiers = this._modifiersFromDOMEvent(e);
+        this.createKeyEvent(type, timestamp, keyCode, modifiers);
+    },
+
+    _modifiersFromDOMEvent: function(e){
+        var modifiers = UIEvent.Modifiers.none;
+        if (e.altKey){
+            modifiers |= UIEvent.Modifiers.option;
+        }
+        if (e.ctrlKey){
+            modifiers |= UIEvent.Modifiers.control;
+        }
+        if (e.metaKey){
+            modifiers |= UIEvent.Modifiers.command;
+        }
+        if (e.shiftKey){
+            modifiers |= UIEvent.Modifiers.shift;
+        }
+        return modifiers;
     },
 
     _createTouchEventFromDOMEvent: function(e, type){

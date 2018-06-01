@@ -374,8 +374,8 @@ JSClass("UIWindowServer", JSObject, {
     // -----------------------------------------------------------------------
     // MARK: - Keyboard Events
 
-    createKeyEvent: function(type, timestamp, keyCode){
-        var event = UIEvent.initKeyEventWithType(type, timestamp, this.keyWindow, keyCode);
+    createKeyEvent: function(type, timestamp, keyCode, modifiers){
+        var event = UIEvent.initKeyEventWithType(type, timestamp, this.keyWindow, keyCode, modifiers);
         if (this.shouldDraggingSessionHandleKey(event)){
             this.handleDraggingKeyEvent(event);
         }else{
@@ -423,7 +423,7 @@ JSClass("UIWindowServer", JSObject, {
     mouseDownCount: 0,
     mouseEventWindow: null,
 
-    createMouseEvent: function(type, timestamp, location){
+    createMouseEvent: function(type, timestamp, location, modifiers){
         var isADown = false;
         var isAnUp = false;
         var ignore = false;
@@ -482,7 +482,7 @@ JSClass("UIWindowServer", JSObject, {
             }
         }else{
             if (targetWindow !== null){
-                event = UIEvent.initMouseEventWithType(type, timestamp, targetWindow, targetWindow.convertPointFromScreen(location));
+                event = UIEvent.initMouseEventWithType(type, timestamp, targetWindow, targetWindow.convertPointFromScreen(location), modifiers);
                 this._sendEventToApplication(event, targetWindow.application);
             }
         }
@@ -544,11 +544,11 @@ JSClass("UIWindowServer", JSObject, {
         // subclasses should override
     },
 
-    createMouseTrackingEvent: function(type, timestamp, location, view, force){
+    createMouseTrackingEvent: function(type, timestamp, location, modifiers, view, force){
         if (!force && !this._shouldCreateTrackingEventForView(view)){
             return;
         }
-        var event = UIEvent.initMouseEventWithType(type, timestamp, view.window, view.window.convertPointFromScreen(location));
+        var event = UIEvent.initMouseEventWithType(type, timestamp, view.window, view.window.convertPointFromScreen(location), modifiers);
         event.trackingView = view;
         this._sendEventToApplication(event, view.window.application);
     },
@@ -573,13 +573,13 @@ JSClass("UIWindowServer", JSObject, {
         if (previousWindow !== null && (previousWindow.objectID in this._windowsById)){
             view = this._trackingViewInWindowAtLocation(previousWindow, location);
             if (view !== null){
-                this.createMouseTrackingEvent(UIEvent.Type.MouseExited, -1, location, view, true);
+                this.createMouseTrackingEvent(UIEvent.Type.MouseExited, -1, location, UIEvent.Modifiers.none, view, true);
             }
         }
         if (currentWindow !== null && (currentWindow.objectID in this._windowsById)){
             view = this._trackingViewInWindowAtLocation(currentWindow, location);
             if (view !== null){
-                this.createMouseTrackingEvent(UIEvent.Type.MouseEntered, -1, location, view, true);
+                this.createMouseTrackingEvent(UIEvent.Type.MouseEntered, -1, location, UIEvent.Modifiers.none, view, true);
             }
         }
     },

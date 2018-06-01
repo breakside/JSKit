@@ -1,7 +1,7 @@
 // #feature Math.cos
 // #feature Math.sin
 'use strict';
-/* global JSGlobalObject, JSSize, JSPoint, JSRect, JSRange, JSAffineTransform, JSConstraintBox, JSInsets, JSBinarySearcher */
+/* global JSGlobalObject, JSSize, JSPoint, JSRect, JSRange, JSAffineTransform, JSConstraintBox, JSInsets, JSBinarySearcher, JSIndexPath */
 // -----------------------------------------------------------------------------
 // Mark: Sizes
 
@@ -549,4 +549,20 @@ JSGlobalObject.JSTextAlignment = {
     center: "center",
     right: "right",
     justify: "justify"
+};
+
+JSGlobalObject.JSIndexPath = function(section, row){
+    if (this === undefined){
+        return new JSIndexPath(section, row);
+    }
+    if (section instanceof JSIndexPath){
+        this.section = section.section;
+        this.row = section.row;
+    }else{
+        this.section = section;
+        this.row = row;
+    }
+};
+
+JSIndexPath.prototype = {
 };

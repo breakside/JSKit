@@ -1,129 +1,145 @@
 // #import "UIKit/UIViewController.js"
-/* global JSClass, JSRect, JSColor, UICursor, JSReadOnlyProperty, JSDynamicProperty, UIViewController, UIDualPaneViewController, UIView, _UIDualPaneView, _UIDualPaneDividerView, JSConstraintBox, UIViewPropertyAnimator */
+/* global JSClass, JSRect, JSColor, UICursor, JSReadOnlyProperty, JSDynamicProperty, UIViewController, UIDualPaneViewController, JSPoint, UIView, _UIDualPaneView, _UIDualPaneDividerView, JSConstraintBox, UIViewPropertyAnimator */
 'use strict';
 
 JSClass("UIDualPaneViewController", UIViewController, {
 
-    leftPaneViewController: JSDynamicProperty('_leftPaneViewController', null),
+    leadingPaneViewController: JSDynamicProperty('_leadingPaneViewController', null),
     mainContentViewControlller: JSDynamicProperty('_mainContentViewController', null),
-    rightPaneViewController: JSDynamicProperty('_rightPaneViewController', null),
+    trailingPaneViewController: JSDynamicProperty('_trailingPaneViewController', null),
 
-    leftPaneOpen: JSReadOnlyProperty(null, null, 'isLeftPaneOpen'),
-    rightPaneOpen: JSReadOnlyProperty(null, null, 'isRightPaneOpen'),
+    leadingPaneOpen: JSReadOnlyProperty(null, null, 'isLeadingPaneOpen'),
+    trailingPaneOpen: JSReadOnlyProperty(null, null, 'isTrailingPaneOpen'),
 
-    _doublePaneView: null,
+    doublePaneView: JSReadOnlyProperty(),
+    _defaultViewClass: "_UIDualPaneView",
 
     initWithSpec: function(spec, values){
         UIDualPaneViewController.$super.initWithSpec.call(this, spec, values);
-        if ('leftPaneViewController' in values){
-            this._leftPaneViewController = spec.resolvedValue(values.leftPaneViewController);
+        if ('leadingPaneViewController' in values){
+            this._leadingPaneViewController = spec.resolvedValue(values.leadingPaneViewController);
         }
-        if ('rightPaneViewController' in values){
-            this._rightPaneViewController = spec.resolvedValue(values.rightPaneViewController);
+        if ('trailingPaneViewController' in values){
+            this._trailingPaneViewController = spec.resolvedValue(values.trailingPaneViewController);
         }
         if ('mainContentViewController' in values){
             this._mainContentViewController = spec.resolvedValue(values.mainContentViewController);
         }
+        if ('view' in values){
+            // Set properties that can't really be defined in the spec because
+            // we always want them to be the same thing.  This ensures they're
+            // populated and set correctly when the view is loaded from the spec
+            if (this._leadingPaneViewController !== null){
+                values.view.leadingView = this._leadingPaneViewController.view;
+            }
+            if (this._trailingPaneViewController){
+                values.view.trailingView = this._trailingPaneViewController.view;
+            }
+            values.view.mainView = this._mainContentViewController.view;
+        }
+    },
+
+    getDoublePaneView: function(){
+        return this._view;
     },
 
     loadView: function(){
-        var leftView = null;
-        var rightView = null;
+        var leadingView = null;
+        var trailingView = null;
         var mainView = null;
-        if (this._leftPaneViewController !== null){
-            leftView = this._leftPaneViewController.view;
+        if (this._leadingPaneViewController !== null){
+            leadingView = this._leadingPaneViewController.view;
         }
-        if (this._rightPaneViewController){
-            rightView = this._rightPaneViewController.view;
+        if (this._trailingPaneViewController){
+            trailingView = this._trailingPaneViewController.view;
         }
         if (this._mainContentViewController){
             mainView = this._mainContentViewController.view;
         }
-        this._doublePaneView = _UIDualPaneView.initWithViews(leftView, mainView, rightView);
-        this._view = this._doublePaneView;
+        this._view = _UIDualPaneView.initWithViews(leadingView, mainView, trailingView);
     },
 
-    hideLeftPane: function(animated){
-        if (this._doublePaneView.leftViewOpen){
-            this.toggleLeftPane(animated);
+    hideLeadingPane: function(animated){
+        if (this.doublePaneView.leadingViewOpen){
+            this.toggleLeadingPane(animated);
         }
     },
 
-    showLeftPane: function(animated){
-        if (!this._doublePaneView.leftViewOpen){
-            this.toggleLeftPane(animated);
+    showLeadingPane: function(animated){
+        if (!this.doublePaneView.leadingViewOpen){
+            this.toggleLeadingPane(animated);
         }
     },
 
-    _leftPaneAnimator: null,
+    _leadingPaneAnimator: null,
 
-    toggleLeftPane: function(animated){
+    toggleLeadingPane: function(animated){
         var percentRemaining = 1;
-        if (this._leftPaneAnimator !== null){
-            this._leftPaneAnimator.stop();
-            percentRemaining = this._leftPaneAnimator.percentComplete;
-            this._leftPaneAnimator = null;
+        if (this._leadingPaneAnimator !== null){
+            this._leadingPaneAnimator.stop();
+            percentRemaining = this._leadingPaneAnimator.percentComplete;
+            this._leadingPaneAnimator = null;
         }
         if (!animated){
-            this._doublePaneView.leftViewOpen = !this._doublePaneView.leftViewOpen;
+            this.doublePaneView.leadingViewOpen = !this.doublePaneView.leadingViewOpen;
         }else{
             var animator = UIViewPropertyAnimator.initWithDuration(0.15 * percentRemaining);
             var self = this;
-            this._doublePaneView.leftViewOpen = !this._doublePaneView.leftViewOpen;
+            this.doublePaneView.leadingViewOpen = !this.doublePaneView.leadingViewOpen;
             animator.addAnimations(function(){
-                self._doublePaneView.layoutIfNeeded();
+                self.doublePaneView.layoutIfNeeded();
             });
             animator.addCompletion(function(){
-                self._leftPaneAnimator = null;
+                self._leadingPaneAnimator = null;
             });
-            this._leftPaneAnimator = animator;
+            this._leadingPaneAnimator = animator;
             animator.start();
         }
     },
 
-    isLeftPaneOpen: function(){
-        return this._doublePaneView.leftViewOpen;
+    isLeadingPaneOpen: function(){
+        return this.doublePaneView.leadingViewOpen;
     },
 
-    isRightPaneOpen: function(){
-        return this._doublePaneView.rightViewOpen;
+    isTrailingPaneOpen: function(){
+        return this.doublePaneView.trailingViewOpen;
     },
 
-    hideRightPane: function(animated){
-        if (this._doublePaneView.rightViewOpen){
-            this.toggleRightPane(animated);
+    hideTrailingPane: function(animated){
+        if (this.doublePaneView.trailingViewOpen){
+            this.toggleTrailingPane(animated);
         }
     },
 
-    showRightPane: function(animated){
-        if (!this._doublePaneView.rightViewOpen){
-            this.toggleRightPane(animated);
+    showTrailingPane: function(animated){
+        if (!this.doublePaneView.trailingViewOpen){
+            this.toggleTrailingPane(animated);
         }
     },
 
-    _rightPaneAnimator: null,
+    _trailingPaneAnimator: null,
 
-    toggleRightPane: function(animated){
+    toggleTrailingPane: function(animated){
         var percentRemaining = 1;
-        if (this._rightPaneAnimator !== null){
-            this._rightPaneAnimator.stop();
-            percentRemaining = this._rightPaneAnimator.percentComplete;
-            this._rightPaneAnimator = null;
+        if (this._trailingPaneAnimator !== null){
+            this._trailingPaneAnimator.stop();
+            percentRemaining = this._trailingPaneAnimator.percentComplete;
+            this._trailingPaneAnimator = null;
         }
         if (!animated){
-            this._doublePaneView.rightViewOpen = !this._doublePaneView.rightViewOpen;
+            this.doublePaneView.trailingViewOpen = !this.doublePaneView.trailingViewOpen;
             // TODO: viewWillAppear/viewDidAppear
         }else{
             var animator = UIViewPropertyAnimator.initWithDuration(0.15 * percentRemaining);
             var self = this;
-            this._doublePaneView.rightViewOpen = !this._doublePaneView.rightViewOpen;
+            this.doublePaneView.trailingViewOpen = !this.doublePaneView.trailingViewOpen;
             animator.addAnimations(function(){
-                self._doublePaneView.layoutIfNeeded();
+                self.doublePaneView.layoutIfNeeded();
             });
             animator.addCompletion(function(){
-                self._rightPaneAnimator = null;
+                self._trailingPaneAnimator = null;
             });
-            this._rightPaneAnimator = animator;
+            this._trailingPaneAnimator = animator;
             animator.start();
         }
     },
@@ -135,100 +151,180 @@ JSClass("UIDualPaneViewController", UIViewController, {
 
 JSClass("_UIDualPaneView", UIView, {
 
-    leftView: JSDynamicProperty('_leftView', null),
+    leadingView: JSDynamicProperty('_leadingView', null),
     mainView: JSDynamicProperty('_mainView', null),
-    rightView: JSDynamicProperty('_rightView', null),
+    trailingView: JSDynamicProperty('_trailingView', null),
 
-    leftViewOpen: JSDynamicProperty('_leftViewOpen', true, 'isLeftViewOpen'),
-    rightViewOpen: JSDynamicProperty('_rightViewOpen', true, 'isRightViewOpen'),
+    leadingViewOpen: JSDynamicProperty('_leadingViewOpen', true, 'isLeadingViewOpen'),
+    trailingViewOpen: JSDynamicProperty('_trailingViewOpen', true, 'isTrailingViewOpen'),
 
-    _minimumLeftWidth: 150,
-    _minimumRightWidth: 150,
-    _minimumMainWidth: 400,
+    vertical: JSDynamicProperty('_isVertical', false, 'isVertical'),
 
-    _maxiumumLeftWidth: 350,
-    _maximumRightWidth: 350,
+    minimumLeadingSize: JSDynamicProperty('_minimumLeadingSize', 150),
+    minimumTrailingSize: JSDynamicProperty('_minimumTrailingSize', 150),
+    minimumMainSize: JSDynamicProperty('_minimumMainSize', 400),
+    maximumLeadingSize: JSDynamicProperty('_maximumLeadingSize', 350),
+    maximumTrailingSize: JSDynamicProperty('_maximumTrailingSize', 350),
 
-    leftFloats: JSDynamicProperty('_leftFloats', false),
-    rightFloats: JSDynamicProperty('_rightFloats', false),
+    leadingFloats: JSDynamicProperty('_leadingFloats', false),
+    trailingFloats: JSDynamicProperty('_trailingFloats', false),
 
-    leftWidth: JSDynamicProperty('_leftWidth', 200),
-    rightWidth: JSDynamicProperty('_rightWidth', 200),
+    leadingSize: JSDynamicProperty('_leadingSize', 200),
+    trailingSize: JSDynamicProperty('_trailingSize', 200),
 
-    _leftDividerView: null,
-    _rightDividerView: null,
+    _leadingDividerView: null,
+    _trailingDividerView: null,
 
-    initWithViews: function(leftView, mainView, rightView){
+    initWithViews: function(leadingView, mainView, trailingView){
         _UIDualPaneView.$super.init.call(this);
-        this._leftView = leftView;
+        this._leadingView = leadingView;
         this._mainView = mainView;
-        this._rightView = rightView;
-        this._leftDividerView = _UIDualPaneDividerView.initWithFrame(JSRect(0, 0, 5, this.bounds.size.height));
-        this._rightDividerView = _UIDualPaneDividerView.initWithFrame(JSRect(0, 0, 5, this.bounds.size.height));
+        this._trailingView = trailingView;
+        this._commonDualPaneInit();
+    },
+
+    initWithSpec: function(spec, values){
+        _UIDualPaneView.$super.initWithSpec.call(this, spec, values);
+        if ('leadingView' in values){
+            this._leadingView = spec.resolvedValue(values.leadingView);
+        }
+        if ('trailingView' in values){
+            this._trailingView = spec.resolvedValue(values.trailingView);
+        }
+        if ('mainView' in values){
+            this._mainView = spec.resolvedValue(values.mainView);
+        }
+        if ('vertical' in values){
+            this._isVertical = spec.resolvedValue(values.vertical);
+        }
+        if ('leadingFloats' in values){
+            this._leadingFloats = spec.resolvedValue(values.leadingFloats);
+        }
+        if ('trailingFloats' in values){
+            this._trailingFloats = spec.resolvedValue(values.trailingFloats);
+        }
+        if ('leadingSize' in values){
+            this._leadingSize = spec.resolvedValue(values.leadingSize);
+        }
+        if ('trailingSize' in values){
+            this._trailingSize = spec.resolvedValue(values.trailingSize);
+        }
+        if ('minimumLeadingSize' in values){
+            this._minimumLeadingSize = spec.resolvedValue(values.minimumLeadingSize);
+        }
+        if ('minimumTrailingSize' in values){
+            this._minimumTrailingSize = spec.resolvedValue(values.minimumTrailingSize);
+        }
+        if ('minimumMainSize' in values){
+            this._minimumMainSize = spec.resolvedValue(values.minimumMainSize);
+        }
+        if ('maximumLeadingSize' in values){
+            this._maximumLeadingSize = spec.resolvedValue(values.maximumLeadingSize);
+        }
+        if ('maximumTrailingSize' in values){
+            this._maximumTrailingSize = spec.resolvedValue(values.maximumTrailingSize);
+        }
+        if ('leadingViewOpen' in values){
+            this._leadingViewOpen = spec.resolvedValue(values.leadingViewOpen);
+        }
+        if ('trailingViewOpen' in values){
+            this._trailingViewOpen = spec.resolvedValue(values.trailingViewOpen);
+        }
+        this._commonDualPaneInit();
+    },
+
+    _commonDualPaneInit: function(){
+        this._leadingDividerView = _UIDualPaneDividerView.initWithSizes(1, 5, this._isVertical);
+        this._trailingDividerView = _UIDualPaneDividerView.initWithSizes(1, 5, this._isVertical);
+        this._leadingDividerView.vertical = this._isVertical;
+        this._trailingDividerView.vertical = this._isVertical;
         this.addSubview(this._mainView);
-        this.addSubview(this._leftView);
-        this.addSubview(this._rightView);
-        this.addSubview(this._leftDividerView);
-        this.addSubview(this._rightDividerView);
+        if (this._leadingView !== null){
+            this._leadingView.clipsToBounds = true;
+            this.addSubview(this._leadingView);
+        }else{
+            this._leadingViewOpen = false;
+        }
+        if (this._trailingView !== null){
+            this._trailingView.clipsToBounds = true;
+            this.addSubview(this._trailingView);
+        }else{
+            this._trailingViewOpen = false;
+        }
+        this.addSubview(this._leadingDividerView);
+        this.addSubview(this._trailingDividerView);
     },
 
-    setLeftViewOpen: function(isOpen){
-        if (isOpen != this._leftViewOpen){
-            this._leftViewOpen = isOpen;
+    setLeadingViewOpen: function(isOpen){
+        if (isOpen != this._leadingViewOpen && this._leadingView !== null){
+            this._leadingViewOpen = isOpen;
             this.setNeedsLayout();
             this.viewController.didTogglePane();
         }
     },
 
-    setRightViewOpen: function(isOpen){
-        if (isOpen != this._rightViewOpen){
-            this._rightViewOpen = isOpen;
+    setTrailingViewOpen: function(isOpen){
+        if (isOpen != this._trailingViewOpen && this._trailingView !== null){
+            this._trailingViewOpen = isOpen;
             this.setNeedsLayout();
             this.viewController.didTogglePane();
         }
     },
 
-    setLeftWidth: function(width){
-        this._leftWidth = width;
+    setVertical: function(isVertical){
+        this._isVertical = isVertical;
+        this._leadingDividerView.vertical = isVertical;
+        this._trailingDividerView.vertical = isVertical;
         this.setNeedsLayout();
     },
 
-    setRightWidth: function(width){
-        this._rightWidth = width;
+    setLeadingSize: function(size){
+        this._leadingSize = size;
         this.setNeedsLayout();
     },
 
-    setLeftFloats: function(floats){
-        this._leftFloats = floats;
+    setTrailingSize: function(size){
+        this._trailingSize = size;
         this.setNeedsLayout();
     },
 
-    setRightFloats: function(floats){
-        this._rightFloats = floats;
+    setLeadingFloats: function(floats){
+        this._leadingFloats = floats;
         this.setNeedsLayout();
     },
 
-    setLeftView: function(leftView){
-        if (leftView === this._leftView){
+    setTrailingFloats: function(floats){
+        this._trailingFloats = floats;
+        this.setNeedsLayout();
+    },
+
+    setLeadingView: function(leadingView){
+        if (leadingView === this._leadingView){
             return;
         }
-        if (this._leftView !== null){
-            this._leftView.removeFromSuperview();
+        if (this._leadingView !== null){
+            this._leadingView.removeFromSuperview();
         }
-        this.insertSubviewBeforeSibling(leftView, this._leftDividerView);
-        this._leftView = leftView;
+        if (leadingView !== null){
+            leadingView.clipsToBounds = true;
+            this.insertSubviewBeforeSibling(leadingView, this._leadingDividerView);
+        }
+        this._leadingView = leadingView;
         this.setNeedsLayout();
     },
 
-    setRightView: function(rightView){
-        if (rightView === this._rightView){
+    setTrailingView: function(trailingView){
+        if (trailingView === this._trailingView){
             return;
         }
-        if (this._rightView !== null){
-            this._rightView.removeFromSuperview();
+        if (this._trailingView !== null){
+            this._trailingView.removeFromSuperview();
         }
-        this.insertSubviewBeforeSibling(rightView, this._leftDividerView);
-        this._rightView = rightView;
+        if (trailingView !== null){
+            trailingView.clipsToBounds = true;
+            this.insertSubviewBeforeSibling(trailingView, this._leadingDividerView);
+        }
+        this._trailingView = trailingView;
         this.setNeedsLayout();
     },
 
@@ -239,103 +335,164 @@ JSClass("_UIDualPaneView", UIView, {
         if (this._mainView !== null){
             this._mainView.removeFromSuperview();
         }
-        this.insertSubviewBeforeSibling(mainView, this._leftView);
+        this.insertSubviewBeforeSibling(mainView, this._leadingView);
         this._mainView = mainView;
         this.setNeedsLayout();
     },
 
     layoutSubviews: function(){
-        var x = 0;
-        var size = this.bounds.size;
-        if (!this._leftViewOpen){
-            x -= this._leftWidth + this._leftDividerView.layoutWidth;
+        if (this._isVertical){
+            this._layoutVertical();
+        }else{
+            this._layoutHorizontal();
         }
-        this._leftView.frame = JSRect(x, 0, this._leftWidth, size.height);
-        x += this._leftWidth;
-        this._leftDividerView.frame = JSRect(x - this._leftDividerView.layoutAdjustment, 0, this._leftDividerView.frame.size.width, size.height);
-        x += this._leftDividerView.layoutWidth;
-        if (this.leftFloats){
-            x = 0;
-        }
-        var mainWidth = size.width - x;
-        if (mainWidth < this._minimumMainWidth){
-            mainWidth = this._minimumMainWidth;
-        }
-        if (this._rightViewOpen && !this.rightFloats){
-            mainWidth -= this._rightDividerView.layoutWidth + this._rightWidth;
-        }
-        this._mainView.frame = JSRect(x, 0, mainWidth, size.height);
-        x += mainWidth;
-        if (this.rightFloats && this._rightViewOpen){
-            x -= this._rightWidth + this._rightDividerView.layoutWidth;
-        }
-        this._rightDividerView.frame = JSRect(x - this._rightDividerView.layoutAdjustment, 0, this._rightDividerView.frame.size.width, size.height);
-        x += this._rightDividerView.layoutWidth;
-        this._rightView.frame = JSRect(x, 0, this._rightWidth, size.height);
     },
 
-    beginDeviderResize: function(divider){
-        if (divider == this._leftDividerView){
-            this._previousLeftWidth = this._leftWidth;
+    _layoutHorizontal: function(){
+        var x = 0;
+        var size = this.bounds.size;
+        if (!this._leadingViewOpen){
+            x -= this._leadingSize + this._leadingDividerView.layoutSize;
+        }
+        if (this._leadingView !== null){
+            this._leadingView.frame = JSRect(x, 0, this._leadingSize, size.height);
+        }
+        x += this._leadingSize;
+        this._leadingDividerView.frame = JSRect(x - this._leadingDividerView.layoutAdjustment, 0, 5, size.height);
+        x += this._leadingDividerView.layoutSize;
+        if (this.leadingFloats){
+            x = 0;
+        }
+        var mainSize = size.width - x;
+        if (mainSize < this._minimumMainSize){
+            mainSize = this._minimumMainSize;
+        }
+        if (this._trailingViewOpen && !this.trailingFloats){
+            mainSize -= this._trailingDividerView.layoutSize + this._trailingSize;
+        }
+        this._mainView.frame = JSRect(x, 0, mainSize, size.height);
+        x += mainSize;
+        if (this.trailingFloats && this._trailingViewOpen){
+            x -= this._trailingSize + this._trailingDividerView.layoutSize;
+        }
+        this._trailingDividerView.frame = JSRect(x - this._trailingDividerView.layoutAdjustment, 0, 5, size.height);
+        x += this._trailingDividerView.layoutSize;
+        if (this._trailingView !== null){
+            this._trailingView.frame = JSRect(x, 0, this._trailingSize, size.height);
+        }
+    },
+
+    _layoutVertical: function(){
+        var y = 0;
+        var size = this.bounds.size;
+        if (!this._leadingViewOpen){
+            y -= this._leadingSize + this._leadingDividerView.layoutSize;
+        }
+        if (this._leadingView !== null){
+            this._leadingView.frame = JSRect(0, y, size.width, this._leadingSize);
+        }
+        y += this._leadingSize;
+        this._leadingDividerView.frame = JSRect(0, y - this._leadingDividerView.layoutAdjustment, size.width, 5);
+        y += this._leadingDividerView.layoutSize;
+        if (this.leadingFloats){
+            y = 0;
+        }
+        var mainSize = size.height - y;
+        if (mainSize < this._minimumMainSize){
+            mainSize = this._minimumMainSize;
+        }
+        if (this._trailingViewOpen && !this.trailingFloats){
+            mainSize -= this._trailingDividerView.layoutSize + this._trailingSize;
+        }
+        this._mainView.frame = JSRect(0, y, size.width, mainSize);
+        y += mainSize;
+        if (this.trailingFloats && this._trailingViewOpen){
+            y -= this._trailingSize + this._trailingDividerView.layoutSize;
+        }
+        this._trailingDividerView.frame = JSRect(0, y - this._trailingDividerView.layoutAdjustment, size.width, 5);
+        y += this._trailingDividerView.layoutSize;
+        if (this._trailingView !== null){
+            this._trailingView.frame = JSRect(0, y, size.width, this._trailingSize);
+        }
+    },
+
+    _startingLocationInDivider: null,
+
+    beginDeviderResize: function(divider, location){
+        this._startingLocationInDivider = JSPoint(location);
+        if (divider == this._leadingDividerView){
+            this._previousLeadingSize = this._leadingSize;
         }else{
-            this._previousRightWidth = this._rightWidth;
+            this._previousTrailingSize = this._trailingSize;
         }
     },
 
     endDividerResize: function(divider){
-        if (divider == this._leftDividerView){
-            if (!this._leftViewOpen){
-                this.leftWidth = this._previousLeftWidth;
+        if (divider == this._leadingDividerView){
+            if (!this._leadingViewOpen){
+                this.leadingSize = this._previousLeadingSize;
             }
         }else{
-            if (!this._rightViewOpen){
-                this.rightWidth = this._previousRightWidth;
+            if (!this._trailingViewOpen){
+                this.trailingSize = this._previousTrailingSize;
             }
         }
     },
 
-    dividerDragged: function(divider, x){
-        if (divider === this._leftDividerView){
-            var maximumLeftWidth = this.bounds.size.width - this._minimumMainWidth;
-            if (this._rightViewOpen){
-                maximumLeftWidth -= this._rightWidth;
+    dividerDragged: function(divider, location){
+        var z, dividerSize, boundsSize, dividerZ;
+        if (this._isVertical){
+            z = location.y;
+            dividerZ = this._startingLocationInDivider.y;
+            dividerSize = divider.frame.size.height;
+            boundsSize = this.bounds.size.height;
+        }else{
+            z = location.x;
+            dividerZ = this._startingLocationInDivider.x;
+            dividerSize = divider.frame.size.width;
+            boundsSize = this.bounds.size.width;
+        }
+        if (divider === this._leadingDividerView){
+            var maximumLeadingSize = boundsSize - this._minimumMainSize;
+            if (this._trailingViewOpen){
+                maximumLeadingSize -= this._trailingSize;
             }
-            if (this._maxiumumLeftWidth < maximumLeftWidth){
-                maximumLeftWidth = this._maxiumumLeftWidth;
+            if (this._maximumLeadingSize < maximumLeadingSize){
+                maximumLeadingSize = this._maximumLeadingSize;
             }
-            var leftWidth = x - this._leftDividerView.frame.size.width;
-            if (x < this._minimumLeftWidth / 2){
-                if (this._leftViewOpen){
-                    this.leftViewOpen = false;
+            var leadingSize = z - dividerZ + divider.layoutAdjustment;
+            if (leadingSize < this._minimumLeadingSize / 2){
+                if (this._leadingViewOpen){
+                    this.leadingViewOpen = false;
                 }
             }else{
-                if (!this._leftViewOpen){
-                    this.leftViewOpen = true;
+                if (!this._leadingViewOpen){
+                    this.leadingViewOpen = true;
                 }
-                if (leftWidth >= this._minimumLeftWidth && leftWidth <= maximumLeftWidth){
-                    this._leftWidth = leftWidth;
+                if (leadingSize >= this._minimumLeadingSize && leadingSize <= maximumLeadingSize){
+                    this._leadingSize = leadingSize;
                     this.setNeedsLayout();
                 }
             }
-        }else if (divider === this._rightDividerView){
-            var maximumRightWidth = this.bounds.size.width - this._minimumMainWidth;
-            if (this._leftViewOpen){
-                maximumRightWidth -= this._leftWidth;
+        }else if (divider === this._trailingDividerView){
+            var maximumTrailingSize = boundsSize - this._minimumMainSize;
+            if (this._leadingViewOpen){
+                maximumTrailingSize -= this._leadingSize;
             }
-            if (this._maximumRightWidth < maximumRightWidth){
-                maximumRightWidth = this._maximumRightWidth;
+            if (this._maximumTrailingSize < maximumTrailingSize){
+                maximumTrailingSize = this._maximumTrailingSize;
             }
-            var rightWidth = this.bounds.size.width - x - this._leftDividerView.frame.size.width;
-            if (x > this.bounds.size.width - this._minimumRightWidth / 2){
-                if (this._rightViewOpen){
-                    this.rightViewOpen = false;
+            var trailingSize = boundsSize - z + dividerZ - divider.layoutAdjustment;
+            if (trailingSize < this._minimumTrailingSize / 2){
+                if (this._trailingViewOpen){
+                    this.trailingViewOpen = false;
                 }
             }else{
-                if (!this._rightViewOpen){
-                    this.rightViewOpen = true;
+                if (!this._trailingViewOpen){
+                    this.trailingViewOpen = true;
                 }
-                if (rightWidth >= this._minimumRightWidth && rightWidth <= maximumRightWidth){
-                    this._rightWidth = rightWidth;
+                if (trailingSize >= this._minimumTrailingSize && trailingSize <= maximumTrailingSize){
+                    this._trailingSize = trailingSize;
                     this.setNeedsLayout();
                 }
             }
@@ -347,25 +504,39 @@ JSClass("_UIDualPaneView", UIView, {
 
 JSClass("_UIDualPaneDividerView", UIView, {
 
-    layoutWidth: 1,
+    layoutSize: 1,
+    hitSize: 5,
     lineView: null,
     layoutAdjustment: JSReadOnlyProperty(),
+    vertical: JSDynamicProperty('_isVertical', false, 'isVertical'),
 
-    initWithFrame: function(frame){
-        _UIDualPaneDividerView.$super.initWithFrame.call(this, frame);
-        this.lineView = UIView.initWithConstraintBox(JSConstraintBox({width: this.layoutWidth, top: 0, bottom: 0}));
+    initWithSizes: function(layoutSize, hitSize, vertical){
+        this.init();
+        this.lineView = UIView.init();
+        this.hitSize = hitSize;
+        this.vertical = vertical;
         this.lineView.backgroundColor = JSColor.blackColor();
         this.addSubview(this.lineView);
-        this.cursor = UICursor.resizeLeftRight;
+    },
+
+    setVertical: function(isVertical){
+        this._isVertical = isVertical;
+        if (isVertical){
+            this.lineView.constraintBox = JSConstraintBox({height: this.layoutSize, left: 0, right: 0});
+            this.cursor = UICursor.resizeUpDown;
+        }else{
+            this.lineView.constraintBox = JSConstraintBox({width: this.layoutSize, top: 0, bottom: 0});
+            this.cursor = UICursor.resizeLeftRight;
+        }
     },
 
     getLayoutAdjustment: function(){
-        return (this.frame.size.width - this.layoutWidth) / 2;
+        return (this.hitSize - this.layoutSize) / 2;
     },
 
     mouseDown: function(event){
         this.cursor.push();
-        this.superview.beginDeviderResize(this);
+        this.superview.beginDeviderResize(this, event.locationInView(this));
     },
 
     mouseUp: function(event){
@@ -374,6 +545,6 @@ JSClass("_UIDualPaneDividerView", UIView, {
     },
 
     mouseDragged: function(event){
-        this.superview.dividerDragged(this, event.locationInView(this.superview).x);
+        this.superview.dividerDragged(this, event.locationInView(this.superview));
     }
 });

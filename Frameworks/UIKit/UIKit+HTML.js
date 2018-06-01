@@ -3,6 +3,7 @@
 // #import "UIKit/UILayer+HTML.js"
 // #import "UIKit/UIScrollLayer+HTML.js"
 // #import "UIKit/UIWebView+HTML.js"
+// #import "UIKit/UIEvent+HTML.js"
 
 // Specialized Subclasses
 // #import "UIKit/UIHTMLDisplayServer.js"

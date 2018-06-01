@@ -1,10 +1,17 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UIScrollLayer.js"
-/* global JSClass, UIView, UIScrollView, UIScrollLayer, UIViewLayerProperty, JSInsets */
+/* global JSClass, UIView, UIScrollView, UIScrollLayer, UIViewLayerProperty, JSInsets, JSProtocol */
 'use strict';
+
+JSProtocol("UIScrollViewDelegate", JSProtocol, {
+
+    scrollViewDidScroll: ['scrollView']
+
+});
 
 JSClass('UIScrollView', UIView, {
 
+    delegate: null,
     contentInsets: UIViewLayerProperty(),
     contentOffset: UIViewLayerProperty(),
     contentSize: UIViewLayerProperty(),
@@ -14,6 +21,16 @@ JSClass('UIScrollView', UIView, {
         UIScrollView.$super.initWithSpec.call(this, spec, values);
         if ('contentInsets' in values){
             this.contentInsets = JSInsets.apply(undefined, values.contentInsets.parseNumberArray());
+        }
+    },
+
+    scrollLayerDidScroll: function(layer){
+        this._didScroll();
+    },
+
+    _didScroll: function(){
+        if (this.delegate && this.delegate.scrollViewDidScroll){
+            this.delegate.scrollViewDidScroll(this);
         }
     },
 

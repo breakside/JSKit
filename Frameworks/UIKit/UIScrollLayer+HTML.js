@@ -8,7 +8,7 @@ UIScrollLayer.definePropertiesFromExtensions({
 
     boundsOriginDidChange: function(){
         // base class requests new positions for sublayers, but html scrolling already takes
-        // care of that for us, so skip unecessary requests
+        // care of that for us, so skip unecessary requests)
     },
 
     initializeHTMLContext: function(context){

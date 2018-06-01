@@ -10,6 +10,12 @@ JSClass("UIScrollLayer", UILayer, {
     scrollVertically: true,
     scrollHorizontally: true,
 
+    _didScroll: function(){
+        if (this.delegate && this.delegate.scrollLayerDidScroll){
+            this.delegate.scrollLayerDidScroll(this);
+        }
+    },
+
     setContentOffset: function(offset){
         this._addImplicitAnimationForKey('contentOffset');
         this.model.contentOffset = JSPoint(offset);
