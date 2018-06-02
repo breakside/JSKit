@@ -596,7 +596,7 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
             size.width += Math.ceil(itemView._titleLabel.frame.size.width);
         }
         if (itemView._imageView !== null && !itemView._imageView.hidden){
-            itemView._imageView.frame = JSRect(0, 0, imageSize, imageSize);
+            itemView._imageView.frame = JSRect(itemView._imageView.frame.origin, JSSize(imageSize, imageSize));
             size.width += imageSize;
             if (itemView._titleLabel !== null && !itemView._titleLabel.hidden){
                  size.width += this.imageSpacing;

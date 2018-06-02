@@ -1,24 +1,37 @@
 // #import "UIKit/UIViewController.js"
 // #import "UIKit/UIListView.js"
 // #import "UIKit/UIListViewCell.js"
-/* global JSClass, UIViewController, UIListView, UIListViewCell, JSReadOnlyProperty */
+/* global JSClass, UIViewController, UIListViewController, UIListView, UIListViewCell, JSReadOnlyProperty */
 'use strict';
 
 JSClass("UIListViewController", UIViewController, {
 
-    listView: JSReadOnlyProperty('_listView', null),
+    listView: JSReadOnlyProperty(),
+    _defaultViewClass: "UIListView",
 
     init: function(){
     },
 
-    initWithSpec: function(){
+    initWithSpec: function(spec, values){
+        UIListViewController.$super.initWithSpec.call(this, spec, values);
+        if ('view' in values){
+            if (!('delegate' in values)){
+                values.view.delegate = this;
+            }
+            if (!('dataSource' in values)){
+                values.view.dataSource = this;
+            }
+        }
+    },
+
+    getListView: function(){
+        return this._view;
     },
 
     loadView: function(){
-        this._listView = UIListView.init();
-        this._listView.delegate = this;
-        this._listView.dataSource = this;
-        this._view = this._listView;
+        this._view = UIListView.init();
+        this._view.delegate = this;
+        this._view.dataSource = this;
     },
 
     numberOfSectionsInListView: function(listView){

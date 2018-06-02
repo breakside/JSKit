@@ -169,6 +169,9 @@ JSClass("_UIDualPaneView", UIView, {
     leadingFloats: JSDynamicProperty('_leadingFloats', false),
     trailingFloats: JSDynamicProperty('_trailingFloats', false),
 
+    leadingCollapses: JSDynamicProperty('_leadingCollapses', false),
+    trailingCollapses: JSDynamicProperty('_trailingCollapses', false),
+
     leadingSize: JSDynamicProperty('_leadingSize', 200),
     trailingSize: JSDynamicProperty('_trailingSize', 200),
 
@@ -202,6 +205,12 @@ JSClass("_UIDualPaneView", UIView, {
         }
         if ('trailingFloats' in values){
             this._trailingFloats = spec.resolvedValue(values.trailingFloats);
+        }
+        if ('leadingCollapses' in values){
+            this._leadingCollapses = spec.resolvedValue(values.leadingCollapses);
+        }
+        if ('trailingCollapses' in values){
+            this._trailingCollapses = spec.resolvedValue(values.trailingCollapses);
         }
         if ('leadingSize' in values){
             this._leadingSize = spec.resolvedValue(values.leadingSize);
@@ -461,7 +470,7 @@ JSClass("_UIDualPaneView", UIView, {
                 maximumLeadingSize = this._maximumLeadingSize;
             }
             var leadingSize = z - dividerZ + divider.layoutAdjustment;
-            if (leadingSize < this._minimumLeadingSize / 2){
+            if (this._leadingCollapses && leadingSize < this._minimumLeadingSize / 2){
                 if (this._leadingViewOpen){
                     this.leadingViewOpen = false;
                 }
@@ -483,7 +492,7 @@ JSClass("_UIDualPaneView", UIView, {
                 maximumTrailingSize = this._maximumTrailingSize;
             }
             var trailingSize = boundsSize - z + dividerZ - divider.layoutAdjustment;
-            if (trailingSize < this._minimumTrailingSize / 2){
+            if (this._trailingCollapses && trailingSize < this._minimumTrailingSize / 2){
                 if (this._trailingViewOpen){
                     this.trailingViewOpen = false;
                 }

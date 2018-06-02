@@ -64,7 +64,7 @@ JSClass("UIListViewCell", UIView, {
         if (this._titleLabel !== null){
             if (this._detailLabel !== null){
                 size.height = this._titleLabel.font.displayLineHeight + this._detailLabel.font.displayLineHeight;
-                origin.y =  Math.floor((this.bounds.height - size.height) / 2.0);
+                origin.y =  Math.floor((this.bounds.size.height - size.height) / 2.0);
                 size.height = this._titleLabel.font.displayLineHeight;
                 this._titleLabel.frame = JSRect(origin, size);
                 origin.y += size.height;
@@ -72,12 +72,12 @@ JSClass("UIListViewCell", UIView, {
                 this._detailLabel.frame = JSRect(origin, size);
             }else{
                 size.height = this._titleLabel.font.displayLineHeight;
-                origin.y =  Math.floor((this.bounds.height - size.height) / 2.0);
+                origin.y =  Math.floor((this.bounds.size.height - size.height) / 2.0);
                 this._titleLabel.frame = JSRect(origin, size);
             }
         }else if (this._detailLabel !== null){
             size.height = this._detailLabel.font.displayLineHeight;
-            this._detailLabel.frame = JSRect(JSPoint(this._titleInsets.left, Math.floor((this.bounds.height - size.height) / 2.0)), size);
+            this._detailLabel.frame = JSRect(JSPoint(this._titleInsets.left, Math.floor((this.bounds.size.height - size.height) / 2.0)), size);
         }
     }
 

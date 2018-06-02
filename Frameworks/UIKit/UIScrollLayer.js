@@ -17,10 +17,13 @@ JSClass("UIScrollLayer", UILayer, {
     },
 
     setContentOffset: function(offset){
-        this._addImplicitAnimationForKey('contentOffset');
-        this.model.contentOffset = JSPoint(offset);
-        this._updateBoundsForContentOffset();
-        this.didChangeProperty('contentOffset');
+        if (!this.model.contentOffset.isEqual(offset)){
+            this._addImplicitAnimationForKey('contentOffset');
+            this.model.contentOffset = JSPoint(offset);
+            this._updateBoundsForContentOffset();
+            this.didChangeProperty('contentOffset');
+            this._didScroll();
+        }
     },
 
     _updateBoundsForContentOffset: function(){
@@ -50,6 +53,6 @@ JSClass("UIScrollLayer", UILayer, {
 });
 
 UIScrollLayer.Properties = Object.create(UILayer.Properties);
-UIScrollLayer.Properties.contentInsets = JSPoint.Zero;
+UIScrollLayer.Properties.contentInsets = JSInsets.Zero;
 UIScrollLayer.Properties.contentOffset = JSPoint.Zero;
 UIScrollLayer.Properties.contentSize = JSInsets.Zero;

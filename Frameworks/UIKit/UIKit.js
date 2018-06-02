@@ -56,6 +56,7 @@
 // Lists
 // #import "UIKit/UIListView.js"
 // #import "UIKit/UIListViewCell.js"
+// #import "UIKit/UIListViewController.js"
 
 // Specialized View Controllers
 // #import "UIKit/UIDualPaneViewController.js"

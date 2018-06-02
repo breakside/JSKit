@@ -255,6 +255,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         for (var i = 0, l = layer.sublayers.length; i < l; ++i){
             this.layerRemoved(layer.sublayers[i]);
         }
+        this.setUpdateNeeded();
     },
 
     _flushDOMInsertsAndRemovals: function(){

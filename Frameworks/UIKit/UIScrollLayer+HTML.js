@@ -8,7 +8,7 @@ UIScrollLayer.definePropertiesFromExtensions({
 
     boundsOriginDidChange: function(){
         // base class requests new positions for sublayers, but html scrolling already takes
-        // care of that for us, so skip unecessary requests)
+        // care of that for us, so skip unecessary requests
     },
 
     initializeHTMLContext: function(context){
@@ -89,6 +89,7 @@ UIScrollLayer.definePropertiesFromExtensions({
             var element = e.currentTarget;
             this.model.contentOffset = JSPoint(element.scrollLeft, element.scrollTop);
             this._updateBoundsForContentOffset();
+            this._didScroll();
         }
         this._ignoreNextSrollEvent = false;
     },
