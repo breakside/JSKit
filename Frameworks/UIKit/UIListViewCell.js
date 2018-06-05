@@ -7,7 +7,7 @@ JSClass("UIListViewCell", UIView, {
 
     listView: null,
     indexPath: null,
-    reuseIdentifer: null,
+    reuseIdentifier: null,
     titleInsets: JSDynamicProperty('_titleInsets', null),
     titleSpacing: JSDynamicProperty('_titleSpacing', 2.0),
     contentView: JSReadOnlyProperty('_contentView', null),
@@ -16,7 +16,7 @@ JSClass("UIListViewCell", UIView, {
 
     initWithReuseIdentifier: function(identifier){
         this.init();
-        this.reuseIdentifer = identifier;
+        this.reuseIdentifier = identifier;
     },
 
     initWithFrame: function(frame){
@@ -79,11 +79,85 @@ JSClass("UIListViewCell", UIView, {
             size.height = this._detailLabel.font.displayLineHeight;
             this._detailLabel.frame = JSRect(JSPoint(this._titleInsets.left, Math.floor((this.bounds.size.height - size.height) / 2.0)), size);
         }
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - State
+
+    state: JSReadOnlyProperty('_state', null),
+    active: JSDynamicProperty(null, null, 'isActive'),
+    selected: JSDynamicProperty(null, null, 'isSelected'),
+    contextSelected: JSDynamicProperty(null, null, 'isContextSelected'),
+
+    _updateState: function(newState){
+        if (newState != this._state){
+            this._state = newState;
+            this._didChangeState();
+        }
+    },
+
+    _didChangeState: function(){
+        if (this.contextSelected){
+            this.contentView.borderWidth = 2.0;
+            this.contentView.borderColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1);
+        }else{
+            this.contentView.borderWidth = 0;
+        }
+        if (this.selected){
+            this.contentView.borderColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1).colorDarkenedByPercentage(0.5);
+            this.contentView.backgroundColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1);
+            if (this._titleLabel !== null){
+                this._titleLabel.textColor = JSColor.initWithRGBA(255/255, 255/255, 255/255, 1);
+            }
+            if (this._detailLabel !== null){
+                this._detailLabel.textColor = JSColor.initWithRGBA(255/255, 255/255, 255/255, 1);
+            }
+        }else{
+            this.contentView.backgroundColor = null;
+            this._titleLabel.textColor = JSColor.blackColor();
+        }
+        // TODO: upate view
+    },
+
+    _toggleState: function(flag, on){
+        var newState = this._state;
+        if (on){
+            newState |= flag;
+        }else{
+            newState &= ~flag;
+        }
+        this._updateState(newState);
+    },
+
+    isActive: function(){
+        return (this._state & UIListViewCell.State.active) === UIListViewCell.State.active;
+    },
+
+    setActive: function(isActive){
+        this._toggleState(UIListViewCell.State.active, isActive);
+    },
+
+    isSelected: function(){
+        return (this._state & UIListViewCell.State.selected) === UIListViewCell.State.selected;
+    },
+
+    setSelected: function(isSelected){
+        this._toggleState(UIListViewCell.State.selected, isSelected);
+    },
+
+    isContextSelected: function(){
+        return (this._state & UIListViewCell.State.contextSelected) === UIListViewCell.State.contextSelected;
+    },
+
+    setContextSelected: function(isContextSelected){
+        this._toggleState(UIListViewCell.State.contextSelected, isContextSelected);
     }
 
 });
 
 UIListViewCell.State = {
-    normal: 0,
-    selected: 1 << 0
+    normal:   0,
+    active:   1 << 1,
+    selected: 1 << 2,
+    contextSelected: 1 << 3
 };

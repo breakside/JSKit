@@ -175,6 +175,9 @@ JSClass("_UIDualPaneView", UIView, {
     leadingSize: JSDynamicProperty('_leadingSize', 200),
     trailingSize: JSDynamicProperty('_trailingSize', 200),
 
+    leadingDividerColor: JSDynamicProperty(),
+    trailingDividerColor: JSDynamicProperty(),
+
     _leadingDividerView: null,
     _trailingDividerView: null,
 
@@ -240,6 +243,14 @@ JSClass("_UIDualPaneView", UIView, {
             this._trailingViewOpen = spec.resolvedValue(values.trailingViewOpen);
         }
         this._commonDualPaneInit();
+
+        // after common init because the setters rely on objects that common init creates
+        if ('leadingDividerColor' in values){
+            this.leadingDividerColor = spec.resolvedValue(values.leadingDividerColor, "JSColor");
+        }
+        if ('trailingDividerColor' in values){
+            this.trailingDividerColor = spec.resolvedValue(values.trailingDividerColor, "JSColor");
+        }
     },
 
     _commonDualPaneInit: function(){
@@ -305,6 +316,22 @@ JSClass("_UIDualPaneView", UIView, {
     setTrailingFloats: function(floats){
         this._trailingFloats = floats;
         this.setNeedsLayout();
+    },
+
+    setLeadingDividerColor: function(color){
+        this._leadingDividerView.color = color;
+    },
+
+    getLeadingDividerColor: function(){
+        return this._leadingDividerView.color;
+    },
+
+    setTrailingDividerColor: function(color){
+        this._trailingDividerView.color = color;
+    },
+
+    getTrailingDividerColor: function(){
+        return this._trailingDividerView.color;
     },
 
     setLeadingView: function(leadingView){
@@ -518,6 +545,7 @@ JSClass("_UIDualPaneDividerView", UIView, {
     lineView: null,
     layoutAdjustment: JSReadOnlyProperty(),
     vertical: JSDynamicProperty('_isVertical', false, 'isVertical'),
+    color: JSDynamicProperty(),
 
     initWithSizes: function(layoutSize, hitSize, vertical){
         this.init();
@@ -526,6 +554,14 @@ JSClass("_UIDualPaneDividerView", UIView, {
         this.vertical = vertical;
         this.lineView.backgroundColor = JSColor.blackColor();
         this.addSubview(this.lineView);
+    },
+
+    setColor: function(color){
+        this.lineView.backgroundColor = color;
+    },
+
+    getColor: function(){
+        return this.lineView.backgroundColor;
     },
 
     setVertical: function(isVertical){

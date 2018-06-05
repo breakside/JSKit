@@ -31,7 +31,7 @@ JSRunLoop.definePropertiesFromExtensions({
 
 });
 
-if (Promise){
+if (window.Promise){
 
     JSRunLoop.definePropertiesFromExtensions({
         _scheduleQueueFlush: function(){

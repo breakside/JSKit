@@ -51,7 +51,7 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             for (j = 0, k = line.runs.length; j < k; ++j){
                 run = line.runs[j];
                 runClientRect = run.element.getBoundingClientRect();
-                run._origin = JSPoint(runClientRect.x - lineClientRect.x, runClientRect.y - lineClientRect.y);
+                run._origin = JSPoint(runClientRect.left - lineClientRect.left, runClientRect.top - lineClientRect.top);
                 run._size = JSSize(runClientRect.width, runClientRect.height);
             }
             // measure any trailing whitespace

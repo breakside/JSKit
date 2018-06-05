@@ -59,6 +59,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     propertiesNeedingUpdate: null,
     needsFullDisplay: false,
     layerManagedNodeCount: 0,
+    layerManagedTopNodeCount: 0,
     firstSublayerNodeIndex: 0,
     _childInsertionIndex: 0,
     _canvasElements: null,

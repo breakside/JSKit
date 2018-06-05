@@ -1,7 +1,7 @@
 // #feature Math.cos
 // #feature Math.sin
 'use strict';
-/* global JSGlobalObject, JSSize, JSPoint, JSRect, JSRange, JSAffineTransform, JSConstraintBox, JSInsets, JSBinarySearcher, JSIndexPath */
+/* global JSGlobalObject, JSSize, JSPoint, JSRect, JSRange, JSAffineTransform, JSConstraintBox, JSInsets */
 // -----------------------------------------------------------------------------
 // Mark: Sizes
 
@@ -16,6 +16,9 @@ JSGlobalObject.JSSize = function JSSize(width, height){
             this.width = width.width;
             this.height = width.height;
         }else{
+            if (isNaN(width) || isNaN(height)){
+                throw new Error("Creating size with NaN");
+            }
             this.width = width;
             this.height = height;
         }
@@ -52,6 +55,9 @@ JSGlobalObject.JSPoint = function JSPoint(x, y){
             this.x = x.x;
             this.y = x.y;
         }else{
+            if (isNaN(x) || isNaN(y)){
+                throw new Error("Creating point with NaN");
+            }
             this.x = x;
             this.y = y;
         }
@@ -479,65 +485,6 @@ Object.defineProperty(JSInsets, 'Zero', {
     }
 });
 
-JSGlobalObject.JSBinarySearcher = function(sortedItems, comparator){
-    if (this === undefined){
-        if (sortedItems === null){
-            return null;
-        }
-        return new JSBinarySearcher(sortedItems, comparator);
-    }
-    if (sortedItems instanceof JSBinarySearcher){
-        this.sortedItems = sortedItems.sortedItems;
-        this.comparator = sortedItems.comparator;
-    }else{
-        this.sortedItems = sortedItems;
-        this.comparator = comparator;
-    }
-};
-
-JSBinarySearcher.prototype = {
-
-    sortedItems: null,
-    comparator: null,
-
-    _search: function(value){
-        var min = 0;
-        var max = this.sortedItems.length;
-        var mid;
-        var item;
-        var result;
-        var exact = false;
-        while (min < max){
-            mid = Math.floor(min + (max - min) / 2);
-            item = this.sortedItems[mid];
-            result = this.comparator(value, item);
-            if (result < 0){
-                max = mid;
-            }else if (result > 0){
-                min = mid + 1;
-            }else{
-                min = max = mid;
-                exact = true;
-            }
-        }
-        return {index: min, exact: exact};
-    },
-
-    insertionIndexForValue: function(value){
-        var result = this._search(value);
-        return result.index;
-    },
-
-    itemMatchingValue: function(value){
-        var result = this._search(value);
-        if (result.exact){
-            return this.sortedItems[result.index];
-        }
-        return null;
-    }
-
-};
-
 JSGlobalObject.JSLineBreakMode = {
     truncateTail: 0,
     wordWrap: 1,
@@ -549,20 +496,4 @@ JSGlobalObject.JSTextAlignment = {
     center: "center",
     right: "right",
     justify: "justify"
-};
-
-JSGlobalObject.JSIndexPath = function(section, row){
-    if (this === undefined){
-        return new JSIndexPath(section, row);
-    }
-    if (section instanceof JSIndexPath){
-        this.section = section.section;
-        this.row = section.row;
-    }else{
-        this.section = section;
-        this.row = row;
-    }
-};
-
-JSIndexPath.prototype = {
 };

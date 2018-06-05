@@ -75,6 +75,10 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     },
 
     updateDisplay: function(t){
+        if (this.displayFrameID === null){
+            this.domWindow.cancelAnimationFrame(this.displayFrameID);
+            this.displayFrameID = null;
+        }
         this._flushDOMInsertsAndRemovals();
         UIHTMLDisplayServer.$super.updateDisplay.call(this, t);
     },
@@ -141,7 +145,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         var superorigin;
         if (layer.superlayer !== null){
             var superContext = this.contextForLayer(layer.superlayer);
-            if (superContext.scrollOrigin){
+            if (false && superContext.scrollOrigin){
                 superorigin = superContext.scrollOrigin;
             }else{
                 superorigin = layer.superlayer.presentation.bounds.origin;
@@ -190,7 +194,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             throw new Error("Layer already has a context");
         }
         layer.initializeHTMLContext(context);
-        context.layerManagedNodeCount = context.element.childNodes.length;
+        context.layerManagedNodeCount = context.element.childNodes.length - context.layerManagedTopNodeCount;
         context.firstSublayerNodeIndex = context.layerManagedNodeCount;
         if (context.element.dataset){
             context.element.dataset.layerId = layer.objectID;
@@ -243,6 +247,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
                 this.layerInserted(layer.sublayers[i]);
             }
         }
+        this.setUpdateNeeded();
     },
 
     layerRemoved: function(layer){

@@ -650,7 +650,7 @@ JSClass("UILayer", JSObject, {
 });
 
 UILayer.FrameForConstraintBoxInBounds = function(constraintBox, bounds){
-    var frame = new JSRect();
+    var frame = JSRect.Zero;
     if (constraintBox.height !== undefined){
         frame.size.height = constraintBox.height;
     }else if (constraintBox.top !== undefined && constraintBox.bottom !== undefined){

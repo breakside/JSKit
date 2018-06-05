@@ -5,6 +5,8 @@
 // #import "Foundation/Number+JS.js"
 // #import "Foundation/Uint8Array+JS.js"
 // #import "Foundation/CoreTypes.js"
+// #import "Foundation/JSBinarySearcher.js"
+// #import "Foundation/JSIndexPath.js"
 // #import "Foundation/UUID.js"
 
 // #import "Foundation/JSClass.js"
