@@ -9,3 +9,5 @@
 // #import "ServerKit/SKHTTPWebSocketParserDelegate.js"
 // #import "ServerKit/SKHTTPResponder.js"
 // #import "ServerKit/SKHTTPResponderContext.js"
+// #import "ServerKit/SKHTTPHeaders.js"
+// #import "ServerKit/SKHTTPError.js"

@@ -412,7 +412,7 @@ JSClass("UIListView", UIScrollView, {
     // --------------------------------------------------------------------
     // MARK: - Selecting cells
 
-    allowsMultipleSelection: true,
+    allowsMultipleSelection: false,
     selectedIndexPaths: JSDynamicProperty('_selectedIndexPaths', null),
     contextSelectedIndexPaths: JSReadOnlyProperty('_contextSelectedIndexPaths', null),
     _handledSelectionOnDown: false,
@@ -488,6 +488,9 @@ JSClass("UIListView", UIScrollView, {
                 if (shouldSelect){
                     this._selectedIndexPaths.replace(cell.indexPath);
                     this._updateVisibleCellStates();
+                    if (this.delegate && this.delegate.listViewDidSelectCellAtIndexPath){
+                        this.delegate.listViewDidSelectCellAtIndexPath(this, cell.indexPath);
+                    }
                 }
             }
         }
@@ -544,6 +547,9 @@ JSClass("UIListView", UIScrollView, {
                             this._selectedIndexPaths.replace(cell.indexPath);
                         }
                         this._updateVisibleCellStates();
+                        if (this.delegate && this.delegate.listViewDidSelectCellAtIndexPath){
+                            this.delegate.listViewDidSelectCellAtIndexPath(this, cell.indexPath);
+                        }
                     }
                 }
             }
@@ -565,6 +571,9 @@ JSClass("UIListView", UIScrollView, {
         if (shouldSelect){
             this._selectedIndexPaths.replace(cell.indexPath);
             this._updateVisibleCellStates();
+            if (this.delegate && this.delegate.listViewDidSelectCellAtIndexPath){
+                this.delegate.listViewDidSelectCellAtIndexPath(this, cell.indexPath);
+            }
         }
     },
 

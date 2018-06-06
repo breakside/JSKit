@@ -1,10 +1,13 @@
 // #import "ServerKit/SKHTTPResponse.js"
-/* global SKHTTPResponse */
+/* global require, SKHTTPResponse */
 'use strict';
+
+var fs = require('fs');
 
 SKHTTPResponse.definePropertiesFromExtensions({
 
     _nodeResponse: null,
+    _shouldEnd: true,
 
     initWithNodeResponse: function(nodeResponse){
         this._nodeResponse = nodeResponse;
@@ -19,7 +22,34 @@ SKHTTPResponse.definePropertiesFromExtensions({
     },
 
     complete: function(){
-        this._nodeResponse.end();
+        if (this._shouldEnd){
+            this._nodeResponse.end();
+        }
+    },
+
+    setHeader: function(name, value){
+        this._nodeResponse.setHeader(name, value);
+    },
+
+    getHeader: function(name, value){
+        this._nodeResponse.setHeader(name, value);
+    },
+
+    writeString: function(str){
+        this.writeData(str.utf8());
+    },
+
+    writeData: function(data){
+        this._nodeResponse.write(data.bytes);
+    },
+
+    sendFile: function(filePath, contentType){
+        var stat = fs.statSync(filePath);
+        this.contentType = contentType;
+        this.contentLength = stat.size;
+        var fp = fs.createReadStream(filePath);
+        fp.pipe(this._nodeResponse);
+        this._shouldEnd = false;
     }
 
 });

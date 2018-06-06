@@ -1,0 +1,9 @@
+JSBundleType: node
+JSBundleIdentifier: com.yourcompany.${PROJECT_NAME_FILE_SAFE}
+JSExecutableName: ${PROJECT_NAME_FILE_SAFE}
+SKMainDefinitionResource: Main
+EntryPoint: main.js:main
+SKApplicationLaunchOptions:
+    port: {kind: integer, default: 8081}
+JSIncludeFrameworks:
+    - ServerKit

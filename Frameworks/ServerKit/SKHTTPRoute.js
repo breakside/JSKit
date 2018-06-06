@@ -35,7 +35,7 @@ JSClass("SKHTTPRoute", JSObject, {
         if (specComponent.charAt(0) == '*'){
             if (specComponent.length > 1 && specComponent.charAt(1) == '*'){
                 if (!isFinal){
-                    throw Error("Invalid route configuration with multiple greedy wildcards");
+                    throw Error("Invalid route configuration with specific path component after greedy wildcard");
                 }
                 this._componentMatchers.push(WildcardComponentMatcher(specComponent.substr(2), true));
             }else{

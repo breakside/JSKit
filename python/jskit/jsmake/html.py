@@ -237,6 +237,7 @@ class HTMLBuilder(Builder):
         self.manifestFile.write("# build %s\n" % self.buildID)
         for name in self.manifest:
             self.manifestFile.write("%s\n" % self.absoluteWebPath(name))
+        self.manifestFile.write("\nNETWORK:\n*\n")
         self.manifestFile.close()
 
     def buildIndex(self):

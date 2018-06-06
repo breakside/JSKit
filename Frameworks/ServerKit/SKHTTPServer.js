@@ -1,6 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "ServerKit/SKHTTPRoute.js"
-/* global JSClass, JSObject, JSDynamicProperty, SKHTTPResponse, SKHTTPRoute, SKHTTPServer, jslog_create */
+// #import "ServerKit/SKHTTPError.js"
+/* global JSClass, JSObject, JSDynamicProperty, SKHTTPResponse, SKHTTPRoute, SKHTTPServer, SKHTTPError, jslog_create */
 'use strict';
 
 var logger = jslog_create("http.server");
@@ -32,27 +33,41 @@ JSClass("SKHTTPServer", JSObject, {
     _handleRequest: function(request){
         logger.info("%s %s".sprintf(request.method, request.url));
         var responder = null;
-        if (this.rootRoute !== null){
-            responder = this.rootRoute.responderForRequest(request);
-        }
-        if (responder === null){
-            logger.warn("> Not found");
-            request.response.statusCode = SKHTTPResponse.StatusCode.NotFound;
-            // TODO: not found content
+        try{
+            if (this.rootRoute !== null){
+                responder = this.rootRoute.responderForRequest(request);
+            }
+            if (responder === null){
+                logger.warn("> No responder for request (404)");
+                request.response.statusCode = SKHTTPResponse.StatusCode.notFound;
+                // TODO: not found content
+            }else{
+                var method = request.method.lowercaseString();
+                if (!responder[method]){
+                    logger.warn("> Method not supported %s");
+                    request.response.statusCode = SKHTTPResponse.StatusCode.methodNotAllowed;
+                    // TODO: not found (method not supported?) content
+                }else{
+                    // TODO: access control
+                    responder[method]();
+                }
+            }
+        }catch (e){
+            if (e instanceof SKHTTPError){
+                request.response.statusCode = e.statusCode;
+            }else{
+                request.response.statusCode = SKHTTPResponse.StatusCode.internalServerError;
+                logger.error("Uncaught error handling '%s': %s".sprintf(request.url, e.message));
+                if (e.stack){
+                    var lines = e.stack.split("\n");
+                    for (var i = 0, l = lines.length; i < l; ++i){
+                        logger.error(lines[i]);
+                    }
+                }
+            }
+        }finally{
             request.response.complete();
-            return;
         }
-        var method = request.method.lowercaseString();
-        if (!responder[method]){
-            logger.warn("> Method not supported %s");
-            request.response.statusCode = SKHTTPResponse.StatusCode.MethodNotAllowed;
-            // TODO: not found (method not supported?) content
-            request.response.complete();
-            return;
-        }
-        // TODO: access control
-        responder[method]();
-        request.response.complete();
     },
 
     _handleUpgrade: function(request){
@@ -64,13 +79,13 @@ JSClass("SKHTTPServer", JSObject, {
         }
         if (responder === null){
             logger.warn("> Not found");
-            request.rejectUpgrade(SKHTTPResponse.StatusCode.NotFound);
+            request.rejectUpgrade(SKHTTPResponse.StatusCode.notFound);
             // TODO: not found content
             return;
         }
         if (!responder[product]){
             logger.warn("> Product not supported");
-            request.rejectUpgrade(SKHTTPResponse.StatusCode.NotFound);
+            request.rejectUpgrade(SKHTTPResponse.StatusCode.notFound);
             // TODO: not found content
             return;
         }
