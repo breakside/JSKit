@@ -7,9 +7,11 @@ JSClass("UITextAttachmentView", JSTextAttachment, {
 
     view: null,
     originOffset: null,
+    typesetterSuperview: null,
 
-    initWithView: function(view){
+    initWithView: function(view, typesetterSuperview){
         this.view = view;
+        this.typesetterSuperview = typesetterSuperview;
         this.originOffset = JSPoint.Zero;
     },
 

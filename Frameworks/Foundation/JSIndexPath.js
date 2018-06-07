@@ -1,5 +1,5 @@
 // #import "Foundation/JSBinarySearcher.js"
-/* global JSGlobalObject, JSIndexPath, JSIndexPathRange, JSIndexPathSet */
+/* global JSGlobalObject, JSIndexPath, JSIndexPathRange, JSIndexPathSet, JSBinarySearcher */
 'use strict';
 
 JSGlobalObject.JSIndexPath = function(section, row){
@@ -126,3 +126,25 @@ JSIndexPathSet.prototype = {
         return searcher.itemMatchingValue(indexPath);
     }
 };
+
+Object.defineProperties(JSIndexPathSet.prototype, {
+
+    start: {
+        get: function JSIndexPathSet_getStart(){
+            if (this.ranges.length === 0){
+                return null;
+            }
+            return this.ranges[0].start;
+        }
+    },
+
+    end: {
+        get: function JSIndexPathSet_getEnd(){
+            if (this.ranges.length === 0){
+                return null;
+            }
+            return this.ranges[this.ranges.length - 1].end;
+        }
+    }
+
+});

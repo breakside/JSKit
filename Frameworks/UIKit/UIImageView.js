@@ -8,7 +8,7 @@ JSClass("UIImageView", UIView, {
     scaleMode: JSDynamicProperty('_scaleMode', 0),
     renderMode: UIViewLayerProperty(),
     templateColor: UIViewLayerProperty(),
-    image: UIViewLayerProperty(),
+    image: JSDynamicProperty(),
 
     _previousSize: null,
 
@@ -16,15 +16,20 @@ JSClass("UIImageView", UIView, {
         UIImageView.$super._commonViewInit.call(this);
         this.backgroundColor = null;
         this._previousSize = JSSize.Zero;
+        this.clipsToBounds = true;
     },
 
     initWithSpec: function(spec, values){
         UIImageView.$super.initWithSpec.call(this, spec, values);
         if ('renderMode' in values){
-            this.renderMode = spec.resolvedValues(values.renderMode);
+            this.renderMode = spec.resolvedValue(values.renderMode);
         }
         if ('image' in values){
             this.image = JSImage.initWithResourceName(values.image, spec.bundle);
+        }
+        if ('scaleMode' in values){
+            this.scaleMode = spec.resolvedValue(values.scaleMode);
+        }else{
             this._scaleImage();
         }
     },
@@ -42,14 +47,50 @@ JSClass("UIImageView", UIView, {
         this._scaleImage();
     },
 
+    getImage: function(){
+        return this.layer.image;
+    },
+
+    setImage: function(image){
+        this.layer.image = image;
+        this._previousSize = JSSize.Zero;
+        this._scaleImage();
+    },
+
     _scaleImage: function(){
+        if (!this.image){
+            return null;
+        }
         var size = JSSize(this.layer.bounds.size);
+        var rw, rh, r, w, h;
         if (!this._previousSize.isEqual(size)){
             switch (this._scaleMode){
                 case UIImageView.ScaleMode.fit:
-                    this.layer.imageFrame = JSRect(0, 0, size.width, size.height);
+                    w = size.width;
+                    h = size.height;
+                    this.layer.imageFrame = JSRect((size.width - w) / 2.0, (size.height - h) / 2.0, w, h);
                     break;
-                // TODO: support other scales
+                case UIImageView.ScaleMode.aspectFit:
+                    rw = size.width / this.image.size.width;
+                    rh = size.height / this.image.size.height;
+                    r = Math.min(rw, rh);
+                    w = this.image.size.width * r;
+                    h = this.image.size.height * r;
+                    this.layer.imageFrame = JSRect((size.width - w) / 2.0, (size.height - h) / 2.0, w, h);
+                    break;
+                case UIImageView.ScaleMode.aspectFill:
+                    rw = size.width / this.image.size.width;
+                    rh = size.height / this.image.size.height;
+                    r = Math.max(rw, rh);
+                    w = this.image.size.width * r;
+                    h = this.image.size.height * r;
+                    this.layer.imageFrame = JSRect((size.width - w) / 2.0, (size.height - h) / 2.0, w, h);
+                    break;
+                case UIImageView.ScaleMode.center:
+                    w = this.image.size.width;
+                    h = this.image.size.height;
+                    this.layer.imageFrame = JSRect((size.width - w) / 2.0, (size.height - h) / 2.0, w, h);
+                    break;
             }
             this._previousSize = size;
         }

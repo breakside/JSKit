@@ -43,12 +43,15 @@ JSClass("UITextField", UIControl, {
             this.textInsets = JSInsets.apply(undefined, values.textInsets.parseNumberArray());
         }
         if ("font" in values){
-            var font = spec.resolvedValue(values.font);
-            var descriptor = spec.resolvedValue(font.descriptor);
+            var font = spec.resolvedValue(values.font, "JSFont");
+            var descriptor = spec.resolvedValue(font.descriptor, "JSFontDescriptor");
             this.font = JSFont.fontWithDescriptor(descriptor, font.pointSize);
         }
         if ("text" in values){
-            this.text = values.text;
+            this.text = spec.resolvedValue(values.text);
+        }
+        if ("multiline" in values){
+            this.multiline = values.multiline;
         }
         this._minimumHeight = this.bounds.size.height;
     },
@@ -237,7 +240,7 @@ JSClass("UITextField", UIControl, {
     },
 
     layerDidChangeSize: function(layer){
-        if (layer === this._textLayer && this._multiline){
+        if (layer === this._textLayer && this._multiline && ! this.constraintBox){
             this.layer.bounds = JSRect(this.layer.bounds.origin, JSSize(
                 this.layer.bounds.size.width,
                 Math.max(this._minimumHeight, this._textLayer.bounds.size.height + this._textInsets.top + this._textInsets.bottom)

@@ -1,6 +1,6 @@
 // #import "UIKit/UIScrollView.js"
 // #import "UIKit/UIEvent.js"
-/* global JSClass, UIView, UIScrollView, JSProtocol, JSReadOnlyProperty, JSDynamicProperty, UIListView, JSSize, JSIndexPath, JSRect, UIEvent, JSIndexPathSet, JSIndexPathRange */
+/* global JSClass, UIView, UIScrollView, JSProtocol, JSReadOnlyProperty, JSDynamicProperty, UIListView, JSSize, JSIndexPath, JSRect, UIEvent, JSIndexPathSet, JSIndexPathRange, JSBinarySearcher, JSPoint */
 'use strict';
 
 JSProtocol("UIListViewDelegate", JSProtocol, {
@@ -266,38 +266,40 @@ JSClass("UIListView", UIScrollView, {
             cell = this._visibleCellViews[0];
             indexPath = JSIndexPath(cell.indexPath);
             y = cell.frame.origin.y;
-            while (y > visibleCellsContainerRect.origin.y - extraHeight && (indexPath.section > 0 || indexPath.row > 0)){
-                if (indexPath.row > 0){
+            while (y > visibleCellsContainerRect.origin.y - extraHeight && indexPath.section >= 0){
+                while (y > visibleCellsContainerRect.origin.y - extraHeight && indexPath.row > 0){
                     indexPath.row -= 1;
-                }else{
-                    indexPath.section -= 1;
-                    indexPath.row = this._cachedData.numberOfRowsBySection[indexPath.section] - 1;
-                    // TODO: section header & footer
+                    cell = this._createCellAtIndexPath(indexPath, y, true);
+                    y = cell.frame.origin.y;
+                    this._cellsContainerView.insertSubviewBeforeSibling(cell, this._visibleCellViews[0]);
+                    this._visibleCellViews.unshift(cell);
                 }
-                cell = this._createCellAtIndexPath(indexPath, y, true);
-                y = cell.frame.origin.y;
-                this._cellsContainerView.insertSubviewBeforeSibling(cell, this._visibleCellViews[0]);
-                this._visibleCellViews.unshift(cell);
+                // TODO: section header
+                indexPath.section -= 1;
+                if (indexPath.section >= 0){
+                    // TODO: section footer
+                    indexPath.row = this._cachedData.numberOfRowsBySection[indexPath.section] - 1;
+                }
             }
 
             // New rows below the last visible cell
             cell = this._visibleCellViews[this._visibleCellViews.length - 1];
             y = cell.frame.origin.y + cell.frame.size.height;
-            var finalSectionIndex = this._cachedData.numberOfSections - 1;
-            var finalRowIndex = this._cachedData.numberOfRowsBySection[finalSectionIndex] - 1;
             indexPath = JSIndexPath(cell.indexPath);
-            while (y < bottom + extraHeight && (indexPath.section < finalSectionIndex || indexPath.row < finalRowIndex)){
-                if (indexPath.row < this._cachedData.numberOfRowsBySection[indexPath.section] - 1){
+            while (y < bottom + extraHeight && indexPath.section < this._cachedData.numberOfSections){
+                while (y < bottom + extraHeight && indexPath.row < this._cachedData.numberOfRowsBySection[indexPath.section] - 1){
                     indexPath.row += 1;
-                }else{
-                    indexPath.row = 0;
-                    indexPath.section += 1;
-                    // TODO: section footer & header
+                    cell = this._createCellAtIndexPath(indexPath, y);
+                    y += cell.frame.size.height;
+                    this._cellsContainerView.addSubview(cell);
+                    this._visibleCellViews.push(cell);
                 }
-                cell = this._createCellAtIndexPath(indexPath, y);
-                y += cell.frame.size.height;
-                this._cellsContainerView.addSubview(cell);
-                this._visibleCellViews.push(cell);
+                // TODO: section footer
+                indexPath.section += 1;
+                if (indexPath.section < this._cachedData.numberOfSections){
+                    // TODO: section header
+                }
+                indexPath.row = 0;
             }
         }else{
             // No visible rows to key off of, so loop through all rows until we get the first visible one
@@ -375,10 +377,16 @@ JSClass("UIListView", UIScrollView, {
         return true;
     },
 
-    keyDown: function(e){
+    keyDown: function(event){
+        // FIXME: find a better way of checking than using code magic numbers
+        if (event.keyCode == 38){
+            this.selectPreviousRow();
+        }else if (event.keyCode == 40){
+            this.selectNextRow();
+        }
     },
 
-    keyUp: function(e){
+    keyUp: function(event){
     },
 
     canPerformAction: function(action, sender){
@@ -389,6 +397,131 @@ JSClass("UIListView", UIScrollView, {
             return this.allowsMultipleSelection;
         }
         return UIListView.$super.canPerformAction.call(this, action, sender);
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Selecting cells
+
+    allowsMultipleSelection: false,
+    selectedIndexPaths: JSDynamicProperty('_selectedIndexPaths', null),
+    contextSelectedIndexPaths: JSReadOnlyProperty('_contextSelectedIndexPaths', null),
+    _handledSelectionOnDown: false,
+
+    setSelectedIndexPaths: function(selectedIndexPaths){
+        this._selectedIndexPaths = JSIndexPathSet(selectedIndexPaths);
+        this._updateVisibleCellStates();
+    },
+
+    _selectSingleIndexPath: function(indexPath){
+        this._selectedIndexPaths.replace(indexPath);
+        this._updateVisibleCellStates();
+        if (this.delegate && this.delegate.listViewDidSelectCellAtIndexPath){
+            this.delegate.listViewDidSelectCellAtIndexPath(this, indexPath);
+        }
+    },
+
+    addIndexPathToSelection: function(indexPath){
+    },
+
+    removeIndexPathFromSelection: function(indexPath){
+    },
+
+    indexPathBefore: function(indexPath){
+        if (indexPath === null){
+            return null;
+        }
+        var prev = JSIndexPath(indexPath);
+        prev.row -= 1;
+        while (prev !== null && prev.row < 0){
+            prev.section -= 1;
+            if (prev.section < 0){
+                prev = null;
+            }else{
+                prev.row = this._cachedData.numberOfRowsBySection[prev.section] - 1;
+            }
+        }
+        return prev;
+    },
+
+    indexPathAfter: function(indexPath){
+        if (indexPath === null){
+            return null;
+        }
+        var next = JSIndexPath(indexPath);
+        next.row += 1;
+        while (next !== null && next.row >= this._cachedData.numberOfSections[next.section]){
+            next.section += 1;
+            next.row = 0;
+            if (next.section >= this._cachedData.numberOfSections){
+                next = null;
+            }
+        }
+        return next;
+    },
+
+    selectableIndexPathAfter: function(indexPath){
+        var next = this.indexPathAfter(indexPath);
+        if (this.delegate && this.delegate.listViewShouldSelectCellAtIndexPath){
+            while (next !== null && !this.delegate.listViewShouldSelectCellAtIndexPath(this, next)){
+                next = this.indexPathAfter(next);
+            }
+        }
+        return next;
+    },
+
+    selectableIndexPathBefore: function(indexPath){
+        var prev = this.indexPathBefore(indexPath);
+        if (this.delegate && this.delegate.listViewShouldSelectCellAtIndexPath){
+            while (prev !== null && !this.delegate.listViewShouldSelectCellAtIndexPath(this, prev)){
+                prev = this.indexPathBefore(prev);
+            }
+        }
+        return prev;
+    },
+
+    _updateVisibleCellStates: function(){
+        var cell;
+        for (var i = 0, l = this._visibleCellViews.length; i < l; ++i){
+            cell = this._visibleCellViews[i];
+            // FIXME: don't select unless the cell is allowed to be selected
+            // If the selected range(s) cover both selectable and unselectable rows,
+            // as might be the case with a cheap select-all, just because an index path
+            // is contained in the range(s) doesn't mean it can be selected
+            cell.selected = this._selectedIndexPaths.contains(cell.indexPath);
+            cell.contextSelected = this._contextSelectedIndexPaths.contains(cell.indexPath);
+        }
+    },
+
+    selectNextRow: function(extendSelection){
+        var next;
+        var selectionEnd = this._selectedIndexPaths.end;
+        if (selectionEnd !== null){
+            next = this.selectableIndexPathAfter(selectionEnd);
+        }
+        if (next !== null){
+            if (extendSelection){
+                // TODO:
+            }else{
+                this._selectSingleIndexPath(next);
+                this.scrollToRowAtIndexPath(next);
+            }
+        }
+    },
+
+    selectPreviousRow: function(extendSelection){
+        var prev;
+        var selectionStart = this._selectedIndexPaths.start;
+        if (selectionStart !== null){
+            prev = this.selectableIndexPathBefore(selectionStart);
+        }
+        if (prev !== null){
+            if (extendSelection){
+                // TODO:
+            }else{
+                this._selectSingleIndexPath(prev);
+                this.scrollToRowAtIndexPath(prev);
+            }
+        }
     },
 
     selectAll: function(e){
@@ -410,42 +543,7 @@ JSClass("UIListView", UIScrollView, {
     },
 
     // --------------------------------------------------------------------
-    // MARK: - Selecting cells
-
-    allowsMultipleSelection: false,
-    selectedIndexPaths: JSDynamicProperty('_selectedIndexPaths', null),
-    contextSelectedIndexPaths: JSReadOnlyProperty('_contextSelectedIndexPaths', null),
-    _handledSelectionOnDown: false,
-
-    setSelectedIndexPaths: function(selectedIndexPaths){
-        this._selectedIndexPaths = JSIndexPathSet(selectedIndexPaths);
-        this._updateVisibleCellStates();
-    },
-
-    addIndexPathToSelection: function(indexPath){
-    },
-
-    removeIndexPathFromSelection: function(indexPath){
-    },
-
-    indexPathBefore: function(indexPath){
-    },
-
-    indexPathAfter: function(indexPath){
-    },
-
-    _updateVisibleCellStates: function(){
-        var cell;
-        for (var i = 0, l = this._visibleCellViews.length; i < l; ++i){
-            cell = this._visibleCellViews[i];
-            // FIXME: don't select unless the cell is allowed to be selected
-            // If the selected range(s) cover both selectable and unselectable rows,
-            // as might be the case with a cheap select-all, just because an index path
-            // is contained in the range(s) doesn't mean it can be selected
-            cell.selected = this._selectedIndexPaths.contains(cell.indexPath);
-            cell.contextSelected = this._contextSelectedIndexPaths.contains(cell.indexPath);
-        }
-    },
+    // MARK: - Mouse Events
 
     _activeCell: null,
     _shouldDrag: false,
@@ -460,6 +558,7 @@ JSClass("UIListView", UIScrollView, {
         if (!shouldSelect){
             return;
         }
+        this.window.firstResponder = this;
         cell.active = true;
         this._activeCell = cell;
         if (this.allowsMultipleSelection && event.hasModifier(UIEvent.Modifiers.shift)){
@@ -486,11 +585,7 @@ JSClass("UIListView", UIScrollView, {
             }else{
                 this._handledSelectionOnDown = true;
                 if (shouldSelect){
-                    this._selectedIndexPaths.replace(cell.indexPath);
-                    this._updateVisibleCellStates();
-                    if (this.delegate && this.delegate.listViewDidSelectCellAtIndexPath){
-                        this.delegate.listViewDidSelectCellAtIndexPath(this, cell.indexPath);
-                    }
+                    this._selectSingleIndexPath(cell.indexPath);
                 }
             }
         }
@@ -531,7 +626,7 @@ JSClass("UIListView", UIScrollView, {
             var location = event.locationInView(this);
             var cell = this.cellAtLocation(location);
             if (cell !== this._activeCell){
-                var shouldSelect = !this.delegate.listViewShouldSelectCellAtIndexPath || this.delegate.listViewShouldSelectCellAtIndexPath(this, cell.indexPath);
+                var shouldSelect = !cell || !this.delegate.listViewShouldSelectCellAtIndexPath || this.delegate.listViewShouldSelectCellAtIndexPath(this, cell.indexPath);
                 if (shouldSelect){
                     if (this._activeCell !== null){
                         this._activeCell.active = false;
@@ -540,15 +635,11 @@ JSClass("UIListView", UIScrollView, {
                     if (this._activeCell !== null){
                         this._activeCell.active = true;
                     }
-                    if (!cell.selected){
+                    if (cell && !cell.selected){
                         if (this.allowsMultipleSelection){
                             // TODO: add to selection
                         }else{
-                            this._selectedIndexPaths.replace(cell.indexPath);
-                        }
-                        this._updateVisibleCellStates();
-                        if (this.delegate && this.delegate.listViewDidSelectCellAtIndexPath){
-                            this.delegate.listViewDidSelectCellAtIndexPath(this, cell.indexPath);
+                            this._selectSingleIndexPath(cell.indexPath);
                         }
                     }
                 }
@@ -577,6 +668,9 @@ JSClass("UIListView", UIScrollView, {
         }
     },
 
+    // --------------------------------------------------------------------
+    // MARK: - Finding Cells by Location
+
     indexPathAtLocation: function(location){
         var cell = this.cellAtLocation(location);
         if (cell !== null){
@@ -600,8 +694,126 @@ JSClass("UIListView", UIScrollView, {
             return 0;
         });
         return searcher.itemMatchingValue(locationInContainer.y);
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Scrolling
+
+    scrollToRowAtIndexPath: function(indexPath, position){
+        if (position === undefined){
+            position = UIListView.ScrollPosition.auto;
+        }
+        var rect = this.rectForCellAtIndexPath(indexPath);
+        this._scrollToRect(rect, position);
+    },
+
+    rectForCellAtIndexPath: function(indexPath){
+        var cell = this._visibleCellViews[0];
+        if (indexPath.isLessThan(cell.indexPath)){
+            return this._rectForCellAtIndexPathBeforeVisibleCell(indexPath, cell);
+        }
+        cell = this._visibleCellViews[this._visibleCellViews.length - 1];
+        if (indexPath.isGreaterThan(cell.indexPath)){
+            return this._rectForCellAtIndexPathAfterVisibleCell(indexPath, cell);
+        }
+        return this._rectForVisibleCellAtIndexPath(indexPath);
+    },
+
+    _rectForCellAtIndexPathBeforeVisibleCell: function(targetIndexPath, cell){
+        // Start at first visible cell and iterate up to target indexPath to get new rect
+        // - Fastest when scrolling one row, like when using the up arrow key
+        var indexPath = this.indexPathBefore(cell.indexPath);
+        var rect = JSRect(cell.frame);
+        var minRow;
+        while (indexPath.section >= targetIndexPath.section){
+            minRow = indexPath.section > targetIndexPath.section ? 0 : targetIndexPath.row;
+            while (indexPath.row >= minRow){
+                rect.size.height = this._heightForCellAtIndexPath(indexPath);
+                rect.origin.y -= rect.size.height;
+                indexPath.row -= 1;
+            }
+            if (indexPath.isGreaterThan(targetIndexPath)){
+                // TODO: section header
+                indexPath.section -= 1;
+                indexPath.row = this._cachedData.numberOfRowsBySection[indexPath.section] - 1;
+                // TODO: section footer
+            }else{
+                indexPath.section -= 1;
+            }
+        }
+        return this.convertRectFromView(rect, this._cellsContainerView);
+    },
+
+    _rectForCellAtIndexPathAfterVisibleCell: function(targetIndexPath, cell){
+        // Start at last visible cell and iterate down to target indexPath to get new rect
+        // - Faster than starting all the way at the top
+        // - Fastest when scrolling one row, like when using the down arrow key
+        var indexPath = this.indexPathAfter(cell.indexPath);
+        var rect = JSRect(cell.frame);
+        var maxRow;
+        while (indexPath.section <= targetIndexPath.section){
+            maxRow = indexPath.section < targetIndexPath.section ? this._cachedData.numberOfRowsBySection[indexPath.section] - 1 : targetIndexPath.row;
+            while (indexPath.row <= maxRow){
+                rect.origin.y += rect.size.height;
+                rect.size.height = this._heightForCellAtIndexPath(indexPath);
+                indexPath.row += 1;
+            }
+            if (indexPath.isLessThan(targetIndexPath)){
+                // TODO: section footer
+                indexPath.section += 1;
+                indexPath.row = 0;
+                // TODO: section header
+            }else{
+                indexPath.section += 1;
+            }
+        }
+        return this.convertRectFromView(rect, this._cellsContainerView);
+    },
+
+    _rectForVisibleCellAtIndexPath: function(indexPath){
+        var cell = null;
+        for (var i = 0, l = this._visibleCellViews.length; i < l; ++i){
+            cell = this._visibleCellViews[i];
+            if (cell.indexPath.isEqual(indexPath)){
+                return this.convertRectFromView(cell.bounds, cell);
+            }
+        }
+        return JSRect.Zero;
+    },
+
+    _scrollToRect: function(rect, position){
+        if (position === UIListView.ScrollPosition.auto){
+            if (rect.origin.y < this.bounds.origin.y){
+                position = UIListView.ScrollPosition.top;
+            }else if (rect.origin.y + rect.size.height > this.bounds.origin.y + this.bounds.size.height){
+                position = UIListView.ScrollPosition.bottom;
+            }
+        }
+        var scrollPoint = this.contentOffset;
+        switch (position){
+            case UIListView.ScrollPosition.auto:
+                break;
+            case UIListView.ScrollPosition.top:
+                scrollPoint = JSPoint(0, rect.origin.y);
+                break;
+            case UIListView.ScrollPosition.bottom:
+                scrollPoint = JSPoint(0, rect.origin.y + rect.size.height - this.bounds.size.height);
+                break;
+            case UIListView.ScrollPosition.middle:
+                scrollPoint = JSPoint(0, rect.origin.y + rect.size.height / 2.0 - this.bounds.size.height / 2.0);
+                break;
+        }
+        this.contentOffset = scrollPoint;
     }
 
     // TODO: key navigation, select all, etc.
 
 });
+
+UIListView.ScrollPosition = {
+    auto: 0,
+    top: 1,
+    bottom: 2,
+    middle: 3
+
+};

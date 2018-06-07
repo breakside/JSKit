@@ -1,7 +1,8 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIHTMLTextLine.js"
 // #import "UIKit/UIHTMLTextRun.js"
-/* global JSClass, JSReadOnlyProperty, JSTextTypesetter, JSSize, UIHTMLTextTypesetter, UIHTMLTextLine, UIHTMLTextRun, JSRange, JSAttributedString, JSLineBreakMode, jslog_create */
+// #import "UIKit/UITextAttachmentView.js"
+/* global JSClass, JSReadOnlyProperty, JSTextTypesetter, JSSize, UIHTMLTextTypesetter, UIHTMLTextLine, UIHTMLTextRun, JSRange, JSAttributedString, JSLineBreakMode, jslog_create, UITextAttachmentView */
 'use strict';
 
 (function(){
@@ -120,10 +121,9 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                 span.appendChild(span.ownerDocument.createTextNode(utf16));
             }
             if (attachment !== null){
-                // Triggering display context creation here so an attachment view can become part
-                // of the display server and do a proper layout before its size is needed when we
-                // create the run descriptor below.
-                this._htmlDisplayServer.attachmentInserted(attachment, span);
+                if (attachment.isKindOfClass(UITextAttachmentView)){
+                    attachment.typesetterSuperview.addSubview(attachment.view);
+                }
                 if (attachment.objectID in previousAttachmentsByID){
                     delete previousAttachmentsByID[attachment.objectID];
                 }

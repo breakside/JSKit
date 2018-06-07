@@ -142,6 +142,7 @@ JSClass("UITextLayer", UILayer, {
         this._textStorage = text;
         this._textLayoutManager.replaceTextStorage(this._textStorage);
         this.setNeedsDisplay();
+        this._displayQueued = true;
     },
 
     // MARK: - Converting coordinates to Text Container
@@ -168,6 +169,7 @@ JSClass("UITextLayer", UILayer, {
         var textOrigin = JSPoint(this._textInsets.left, this._textInsets.top);
         this._textLayoutManager.layoutIfNeeded();
         this._textLayoutManager.drawContainerInContextAtPoint(this._textContainer, context, textOrigin);
+        this._displayQueued = false;
     },
 
     sizeToFit: function(){

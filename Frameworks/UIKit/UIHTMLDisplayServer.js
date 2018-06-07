@@ -338,28 +338,6 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         }
     },
 
-    attachmentInserted: function(attachment, parentElement){
-        // if (attachment.isKindOfClass(UITextAttachmentView)){
-        //     var layer = attachment.view.layer;
-        //     if (layer._displayServer === null){
-        //         var context = this.contextForLayer(layer);
-        //         layer._displayServer = this;
-        //         if (layer._needsLayout){
-        //             this.setLayerNeedsLayout(layer);
-        //             layer._needsLayout = false;
-        //         }
-        //         this.setLayerNeedsReposition(layer);
-        //         this.setLayerNeedsDisplay(layer);
-        //         for (var i = 0, l = layer.sublayers.length; i < l; ++i){
-        //             this.layerInserted(layer.sublayers[i]);
-        //         }
-        //         if (context.element.parentNode !== parentElement){
-        //             parentElement.appendChild(context.element);
-        //         }
-        //     }
-        // }
-    },
-
     attachmentRemoved: function(attachment){
         if (attachment.isKindOfClass(UITextAttachmentView)){
             // this.layerRemoved(attachment.view.layer);

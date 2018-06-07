@@ -131,7 +131,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
 
     _insertChildElement: function(element){
         // FIXME: added element should inherit current state transform
-        if (this.element.childNodes.length < this._childInsertionIndex){
+        if (this._childInsertionIndex < this.element.childNodes.length){
             if (element !== this.element.childNodes[this._childInsertionIndex]){
                 this.element.insertBefore(element, this.element.childNodes[this._childInsertionIndex]);
             }
@@ -404,7 +404,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
 
     setStrokeColor: function(strokeColor){
         UIHTMLDisplayServerContext.$super.setStrokeColor.call(this, strokeColor);
-        this.canvasContext.fillStyle = strokeColor ? strokeColor.cssString() : '';
+        this.canvasContext.strokeStyle = strokeColor ? strokeColor.cssString() : '';
     },
 
     setShadow: function(offset, blur, color){

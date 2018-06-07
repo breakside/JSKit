@@ -93,10 +93,25 @@ JSClass('UIView', UIResponder, {
             this.frame = JSRect.apply(undefined, values.frame.parseNumberArray());
         }
         if ("backgroundColor" in values){
-            this.backgroundColor = spec.resolvedValue(values.backgroundColor);
+            this.backgroundColor = spec.resolvedValue(values.backgroundColor, "JSColor");
         }
         if ("backgroundGradient" in values){
             this.backgroundGradient = spec.resolvedValue(values.backgroundGradient);
+        }
+        if ("borderColor" in values){
+            this.borderColor = spec.resolvedValue(values.borderColor, "JSColor");
+        }
+        if ("borderWidth" in values){
+            this.borderWidth = spec.resolvedValue(values.borderWidth);
+        }
+        if ("maskedBorders" in values){
+            this.maskedBorders = spec.resolvedValue(values.maskedBorders);
+        }
+        if ("cornerRadius" in values){
+            this.cornerRadius = spec.resolvedValue(values.cornerRadius);
+        }
+        if ("maskedCorners" in values){
+            this.maskedCorners = spec.resolvedValue(values.maskedCorners);
         }
         if ("tooltip" in values){
             this.tooltip = spec.resolvedValue(values.tooltip);

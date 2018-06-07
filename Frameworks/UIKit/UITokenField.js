@@ -14,11 +14,19 @@ JSClass("UITokenField", UITextField, {
     representedObjects: JSDynamicProperty(),
     tokensView: null,
 
+    initWithSpec: function(spec, values){
+        UITokenField.$super.initWithSpec.call(this, spec, values);
+        if ('tokenDelegate' in values){
+            this.tokenDelegate = spec.resolvedValue(values.tokenDelegate);
+        }
+    },
+
     commonUIControlInit: function(){
         UITokenField.$super.commonUIControlInit.call(this);
         this.tokensView = UIView.initWithFrame(JSRect.Zero);
         this._clipView.addSubview(this.tokensView);
         this.setNeedsLayout();
+        this._textLayer.lineSpacing = (this.font.displayLineHeight + 2) / this.font.displayLineHeight;
     },
 
     getRepresentedObjects: function(){
@@ -116,10 +124,9 @@ JSClass("UITokenField", UITextField, {
 
     _createAttachmentStringForRepresentedObject: function(representedObject){
         var view = this._createViewForRepresentedObject(representedObject);
-        this.tokensView.addSubview(view);
-        var attachment = UITextAttachmentView.initWithView(view);
+        var attachment = UITextAttachmentView.initWithView(view, this.tokensView);
         attachment.representedObject = representedObject;
-        attachment.baselineAdjustment = view.labelView.font.displayDescender - view.labelView.textInsets.bottom;
+        // attachment.baselineAdjustment = view.labelView.font.displayDescender - view.labelView.textInsets.bottom;
         return JSAttributedString.initWithAttachment(attachment);
     },
 
