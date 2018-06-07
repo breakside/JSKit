@@ -15,17 +15,10 @@ UIScrollLayer.definePropertiesFromExtensions({
         UIScrollLayer.$super.initializeHTMLContext.call(this, context);
         context.scrollOrigin = JSPoint.Zero;
         var element = context.element;
-        var scrollElement = element.appendChild(element.ownerDocument.createElement('div'));
-        scrollElement.dataset.scrollHelper = "scroller";
-        scrollElement.style.position = 'absolute';
-        scrollElement.style.top = '0px';
-        scrollElement.style.left = '0px';
-        scrollElement.style.bottom = '0px';
-        scrollElement.style.right = '0px';
-        scrollElement.style.overflow = 'scroll';
-        scrollElement.style.webkitOverflowScrolling = 'touch';
-        scrollElement.addEventListener('scroll', this);
-        var sizer = scrollElement.appendChild(scrollElement.ownerDocument.createElement('div'));
+        element.style.overflow = 'scroll';
+        element.style.webkitOverflowScrolling = 'touch';
+        element.addEventListener('scroll', this);
+        var sizer = element.appendChild(element.ownerDocument.createElement('div'));
         sizer.style.position = 'absolute';
         sizer.style.top = '0px';
         sizer.style.left = '0px';
@@ -33,8 +26,7 @@ UIScrollLayer.definePropertiesFromExtensions({
         sizer.style.height = '0px';
         sizer.dataset.scrollHelper = "sizer";
         context.scrollContentSizer = sizer;
-        context.scrollElement = scrollElement;
-        context.layerManagedTopNodeCount = 1;
+        context.layerManagedTopNodeCount = 0;
         // element.addEventListener('touchstart', this, true);
         // element.addEventListener('touchmove', this, true);
         // element.addEventListener('touchend', this, true);
@@ -49,7 +41,7 @@ UIScrollLayer.definePropertiesFromExtensions({
     },
 
     destroyHTMLContext: function(context){
-        var element = context.scrollElement;
+        var element = context.element;
         element.removeEventListener('scroll', this);
         // element.removeEventListener('touchstart', this, true);
         // element.removeEventListener('touchmove', this, true);
@@ -71,10 +63,10 @@ UIScrollLayer.definePropertiesFromExtensions({
     },
 
     updateHTMLProperty_contentOffset: function(context){
-        if (this.presentation.contentOffset.x != context.scrollElement.scrollLeft || this.presentation.contentOffset.y != context.scrollElement.scrollTop){
+        if (this.presentation.contentOffset.x != context.element.scrollLeft || this.presentation.contentOffset.y != context.element.scrollTop){
             this._ignoreNextSrollEvent = true;
-            context.scrollElement.scrollLeft = this.presentation.contentOffset.x;
-            context.scrollElement.scrollTop = this.presentation.contentOffset.y;
+            context.element.scrollLeft = this.presentation.contentOffset.x;
+            context.element.scrollTop = this.presentation.contentOffset.y;
         }
     },
 
