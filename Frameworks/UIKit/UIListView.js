@@ -654,6 +654,12 @@ JSClass("UIListView", UIScrollView, {
         var cell = this._activeCell;
         this._activeCell.active = false;
         this._activeCell = null;
+        var cellFrame = this.convertRectFromView(cell.bounds, cell);
+        if (cellFrame.origin.y < this.bounds.origin.y){
+            this.scrollToRowAtIndexPath(cell.indexPath, UIListView.ScrollPosition.top);
+        }else if (cellFrame.origin.y + cellFrame.size.height > this.bounds.origin.y + this.bounds.size.height){
+            this.scrollToRowAtIndexPath(cell.indexPath, UIListView.ScrollPosition.bottom);
+        }
         if (this._handledSelectionOnDown){
             this._handledSelectionOnDown = false;
             return;
@@ -694,17 +700,6 @@ JSClass("UIListView", UIScrollView, {
             return 0;
         });
         return searcher.itemMatchingValue(locationInContainer.y);
-    },
-
-    // --------------------------------------------------------------------
-    // MARK: - Scrolling
-
-    scrollToRowAtIndexPath: function(indexPath, position){
-        if (position === undefined){
-            position = UIListView.ScrollPosition.auto;
-        }
-        var rect = this.rectForCellAtIndexPath(indexPath);
-        this._scrollToRect(rect, position);
     },
 
     rectForCellAtIndexPath: function(indexPath){
@@ -771,14 +766,22 @@ JSClass("UIListView", UIScrollView, {
     },
 
     _rectForVisibleCellAtIndexPath: function(indexPath){
-        var cell = null;
-        for (var i = 0, l = this._visibleCellViews.length; i < l; ++i){
-            cell = this._visibleCellViews[i];
-            if (cell.indexPath.isEqual(indexPath)){
-                return this.convertRectFromView(cell.bounds, cell);
-            }
+        var searcher = JSBinarySearcher(this._visibleCellViews, function(_indexPath, cell){
+            return _indexPath.compare(cell.indexPath);
+        });
+        var cell = searcher.itemMatchingValue(indexPath);
+        return this.convertRectFromView(cell.bounds, cell);
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Scrolling
+
+    scrollToRowAtIndexPath: function(indexPath, position){
+        if (position === undefined){
+            position = UIListView.ScrollPosition.auto;
         }
-        return JSRect.Zero;
+        var rect = this.rectForCellAtIndexPath(indexPath);
+        this._scrollToRect(rect, position);
     },
 
     _scrollToRect: function(rect, position){

@@ -13,7 +13,6 @@ JSClass("UITextEditor", JSObject, {
     delegate: null,
     cursorColor: JSDynamicProperty('_cursorColor', null),
     cursorWidth: 2.0,
-    repeatedClickTimeout: 0.2,
     insertAttributes: null,
     _isFirstResponder: false,
     _cursorBlinkRate: 0.5,
@@ -23,9 +22,6 @@ JSClass("UITextEditor", JSObject, {
     _cursorLayers: null,
     _selectionHighlightLayers: null,
     _selectionHighlightColor: null,
-    _repeatClickLocation: null,
-    _repeatClickTimestamp: 0,
-    _repeatClickCount: 0,
     _draggingSelectionIndex: null,
 
     initWithTextLayer: function(textLayer){
@@ -106,54 +102,44 @@ JSClass("UITextEditor", JSObject, {
     },
 
     handleMouseDownAtLocation: function(location, event){
-        if (this._repeatClickLocation !== null && this._repeatClickLocation.isEqual(location) && event.timestamp  - this._repeatClickTimestamp < this.repeatedClickTimeout){
-            this._handledSelectOnMouseDown = true;
-            this._repeatClickTimestamp = event.timestamp;
-            this._handleRepeatMouseDownAtLocation(location, event);
-            return;
-        }
-        this._repeatClickLocation = location;
-        this._repeatClickTimestamp = event.timestamp;
-        this._repeatClickCount = 1;
-        // When mousing down, we behave differently depending on if the location is
-        // in an existing selection or outside of every selection.
-        // 1. Inside a selection means we may start dragging the selection, so don't update anything yet
-        // 2. Outside a selection means we should immediately create a single selection point at the location
-        //    and be ready for any subsequent drag to extend the new selection
-        //
-        var isInSelection = false;
-        // FIXME: Should we hit test selection rects intead of check index? (yes)
-        // Watch out for hits outside of a line, but inside a selection range
-        // Optimization: we really only care about selections that are visible
-        // Optimization: could binary search through selections
-        if (isInSelection){
-            // Wait for drag
-            this._handledSelectOnMouseDown = false;
+        if (event.clickCount === 1){
+            // When mousing down, we behave differently depending on if the location is
+            // in an existing selection or outside of every selection.
+            // 1. Inside a selection means we may start dragging the selection, so don't update anything yet
+            // 2. Outside a selection means we should immediately create a single selection point at the location
+            //    and be ready for any subsequent drag to extend the new selection
+            //
+            var isInSelection = false;
+            // FIXME: Should we hit test selection rects intead of check index? (yes)
+            // Watch out for hits outside of a line, but inside a selection range
+            // Optimization: we really only care about selections that are visible
+            // Optimization: could binary search through selections
+            if (isInSelection){
+                // Wait for drag
+                this._handledSelectOnMouseDown = false;
+            }else{
+                this._handledSelectOnMouseDown = true;
+                this._setSingleSelectionAtLocation(location);
+                this._draggingSelectionIndex = 0;
+            }
         }else{
             this._handledSelectOnMouseDown = true;
-            this._setSingleSelectionAtLocation(location);
-            this._draggingSelectionIndex = 0;
+            var range = null;
+            var affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+            var selection = this._createSelectionAtLocation(location);
+            var index = selection.range.location - (selection.affinity == UITextEditor.SelectionAffinity.afterPreviousCharacter ? 1 : 0);
+            if (event.clickCount === 2){
+                range = this.textLayoutManager.textStorage.string.rangeForWordAtIndex(index);
+                affinity = selection.affinity;
+            }else if (event.clickCount === 3){
+                range = this.textLayoutManager.textStorage.string.rangeForLineAtIndex(index);
+            }
+            if (range !== null){
+                selection = this._createSelection(range, UITextEditor.SelectionInsertionPoint.end, affinity);
+                this._insertSelection(selection);
+            }
+            this._cursorOn();
         }
-    },
-
-    _handleRepeatMouseDownAtLocation: function(location, event){
-        var range = null;
-        var affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
-        var selection = this._createSelectionAtLocation(location);
-        var index = selection.range.location - (selection.affinity == UITextEditor.SelectionAffinity.afterPreviousCharacter ? 1 : 0);
-        if (this._repeatClickCount === 1){
-            range = this.textLayoutManager.textStorage.string.rangeForWordAtIndex(index);
-            affinity = selection.affinity;
-            ++this._repeatClickCount;
-        }else{
-            range = this.textLayoutManager.textStorage.string.rangeForLineAtIndex(index);
-            this._repeatClickCount = 0;
-            this._repeatClickLocation = null;
-            this._repeatClickTimestamp = 0;
-        }
-        selection = this._createSelection(range, UITextEditor.SelectionInsertionPoint.end, affinity);
-        this._insertSelection(selection);
-        this._cursorOn();
     },
 
     handleMouseDraggedAtLocation: function(location, event){

@@ -424,11 +424,17 @@ JSClass("UIWindowServer", JSObject, {
     isRightMouseDown: false,
     mouseDownCount: 0,
     mouseEventWindow: null,
+    _leftClickCount: 0,
+    _rightClickCount: 0,
+    _previousLeftClickTimestamp: 0,
+    _previousRightClickTimestamp: 1,
+    _repeatClickInterval: 0.2,
 
     createMouseEvent: function(type, timestamp, location, modifiers){
         var isADown = false;
         var isAnUp = false;
         var ignore = false;
+        var clickCount = 0;
         switch (type){
             case UIEvent.Type.LeftMouseDown:
                 isADown = true;
@@ -455,6 +461,38 @@ JSClass("UIWindowServer", JSObject, {
         if (ignore){
             logger.warn("Ignoring mouse event: %d".sprintf(type));
             return;
+        }
+
+        switch (type){
+            case UIEvent.Type.LeftMouseDown:
+                if (timestamp - this._previousLeftClickTimestamp > this._repeatClickInterval){
+                    this._leftClickCount = 0;
+                }
+                ++this._leftClickCount;
+                clickCount = this._leftClickCount;
+                this._previousLeftClickTimestamp = timestamp;
+                break;
+            case UIEvent.Type.LeftMouseUp:
+                clickCount = this._leftClickCount;
+                if (timestamp - this._previousLeftClickTimestamp > this._repeatClickInterval){
+                    this._leftClickCount = 0;
+                }
+                this._previousLeftClickTimestamp = timestamp;
+                break;
+            case UIEvent.Type.RightMouseDown:
+                if (timestamp - this._previousRightClickTimestamp > this._repeatClickInterval){
+                    this._rightClickCount = 0;
+                }
+                clickCount = this._rightClickCount;
+                this._previousRightClickTimestamp = timestamp;
+                break;
+            case UIEvent.Type.RightMouseUp:
+                clickCount = this._rightClickCount;
+                if (timestamp - this._previousRightClickTimestamp > this._repeatClickInterval){
+                    this._rightClickCount = 0;
+                }
+                this._previousRightClickTimestamp = timestamp;
+                break;
         }
 
         if (isADown){
@@ -484,7 +522,7 @@ JSClass("UIWindowServer", JSObject, {
             }
         }else{
             if (targetWindow !== null){
-                event = UIEvent.initMouseEventWithType(type, timestamp, targetWindow, targetWindow.convertPointFromScreen(location), modifiers);
+                event = UIEvent.initMouseEventWithType(type, timestamp, targetWindow, targetWindow.convertPointFromScreen(location), modifiers, clickCount);
                 this._sendEventToApplication(event, targetWindow.application);
             }
         }
@@ -506,6 +544,8 @@ JSClass("UIWindowServer", JSObject, {
 
     mouseDidMove: function(timestamp){
         this._mouseIdleTimer.invalidate();
+        this._leftClickCount = 0;
+        this._rightClickCount = 0;
         if (this._draggingSession !== null){
             this.draggingSessionDidChangeLocation();
         }else{
@@ -550,7 +590,7 @@ JSClass("UIWindowServer", JSObject, {
         if (!force && !this._shouldCreateTrackingEventForView(view)){
             return;
         }
-        var event = UIEvent.initMouseEventWithType(type, timestamp, view.window, view.window.convertPointFromScreen(location), modifiers);
+        var event = UIEvent.initMouseEventWithType(type, timestamp, view.window, view.window.convertPointFromScreen(location), modifiers, 0);
         event.trackingView = view;
         this._sendEventToApplication(event, view.window.application);
     },

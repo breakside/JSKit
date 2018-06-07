@@ -15,8 +15,9 @@ JSClass('UIEvent', JSObject, {
     touches: JSReadOnlyProperty('_touches', null),
     trackingView: null,
     modifiers: JSReadOnlyProperty('_modifiers', 0),
+    clickCount: JSReadOnlyProperty('_clickCount', 0),
 
-    initMouseEventWithType: function(type, timestamp, window, location, modifiers){
+    initMouseEventWithType: function(type, timestamp, window, location, modifiers, clickCount){
         this._timestamp = timestamp;
         this._windows = [window];
         this._locationInWindow = location;
@@ -24,6 +25,7 @@ JSClass('UIEvent', JSObject, {
         this._type = type;
         this._touches = [];
         this._modifiers = modifiers || UIEvent.Modifiers.none;
+        this._clickCount = clickCount;
     },
 
     initKeyEventWithType: function(type, timestamp, window, keyCode, modifiers){
