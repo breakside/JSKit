@@ -46,7 +46,11 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         UITextFramesetter.definePropertiesFromExtensions({
 
             init: function(){
-                return UIHTMLTextFramesetter.initWithDocument(sharedInstance.domDocument, sharedInstance);
+                if (sharedInstance){
+                    return UIHTMLTextFramesetter.initWithDocument(sharedInstance.domDocument, sharedInstance);
+                }else{
+                    UITextFramesetter.$super.init.call(this);
+                }
             }
 
         });

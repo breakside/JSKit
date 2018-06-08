@@ -26,7 +26,6 @@ JSClass("UITokenField", UITextField, {
         this.tokensView = UIView.initWithFrame(JSRect.Zero);
         this._clipView.addSubview(this.tokensView);
         this.setNeedsLayout();
-        this._textLayer.lineSpacing = (this.font.displayLineHeight + 2) / this.font.displayLineHeight;
     },
 
     getRepresentedObjects: function(){

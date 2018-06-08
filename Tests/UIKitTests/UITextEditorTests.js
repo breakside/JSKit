@@ -3086,82 +3086,82 @@ JSClass("UITextEditorTests", TKTestSuite, {
         var mockWindow = {};
 
         // start of word
-        var event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 1.0, mockWindow, JSPoint(110, 25));
+        var event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 1.0, mockWindow, JSPoint(110, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 35);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 1.01, mockWindow, JSPoint(110, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 1.01, mockWindow, JSPoint(110, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 35);
         TKAssertEquals(editor.selections[0].range.length, 0);
 
         // mid word
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 2.0, mockWindow, JSPoint(150, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 2.0, mockWindow, JSPoint(150, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 37);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 2.01, mockWindow, JSPoint(150, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 2.01, mockWindow, JSPoint(150, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 37);
         TKAssertEquals(editor.selections[0].range.length, 0);
 
         // mid letter
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 3.0, mockWindow, JSPoint(159, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 3.0, mockWindow, JSPoint(159, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 37);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 3.01, mockWindow, JSPoint(159, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 3.01, mockWindow, JSPoint(159, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 37);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 4.0, mockWindow, JSPoint(160, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 4.0, mockWindow, JSPoint(160, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 38);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 4.01, mockWindow, JSPoint(160, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 4.01, mockWindow, JSPoint(160, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 38);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 5.0, mockWindow, JSPoint(161, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 5.0, mockWindow, JSPoint(161, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 38);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 5.01, mockWindow, JSPoint(161, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 5.01, mockWindow, JSPoint(161, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 38);
         TKAssertEquals(editor.selections[0].range.length, 0);
 
         // past end of line (soft break)
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 6.0, mockWindow, JSPoint(700, 5));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 6.0, mockWindow, JSPoint(700, 5), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 30);
         TKAssertEquals(editor.selections[0].range.length, 0);
         TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 6.01, mockWindow, JSPoint(700, 5));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 6.01, mockWindow, JSPoint(700, 5), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 30);
         TKAssertEquals(editor.selections[0].range.length, 0);
 
         // past end of line (hard break)
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 7.0, mockWindow, JSPoint(300, 41));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 7.0, mockWindow, JSPoint(300, 41), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 73);
         TKAssertEquals(editor.selections[0].range.length, 0);
         TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 7.01, mockWindow, JSPoint(300, 41));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 7.01, mockWindow, JSPoint(300, 41), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 73);
@@ -3189,23 +3189,23 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // select word at start
         var mockWindow = {};
-        var event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 1.0, mockWindow, JSPoint(110, 25));
+        var event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 1.0, mockWindow, JSPoint(110, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 35);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 1.03, mockWindow, JSPoint(110, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 1.03, mockWindow, JSPoint(110, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 35);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 1.05, mockWindow, JSPoint(110, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 1.05, mockWindow, JSPoint(110, 25), UIEvent.Modifiers.none, 2);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 35);
         TKAssertEquals(editor.selections[0].range.length, 5);
         TKAssertEquals(editor.selections[0].insertionLocation, 40);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 1.07, mockWindow, JSPoint(110, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 1.07, mockWindow, JSPoint(110, 25), UIEvent.Modifiers.none, 2);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 35);
@@ -3213,23 +3213,23 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 40);
 
         // select word in middle
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 3.0, mockWindow, JSPoint(160, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 3.0, mockWindow, JSPoint(160, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 38);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 3.02, mockWindow, JSPoint(160, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 3.02, mockWindow, JSPoint(160, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 38);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 3.05, mockWindow, JSPoint(160, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 3.05, mockWindow, JSPoint(160, 25), UIEvent.Modifiers.none, 2);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 35);
         TKAssertEquals(editor.selections[0].range.length, 5);
         TKAssertEquals(editor.selections[0].insertionLocation, 40);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 3.08, mockWindow, JSPoint(160, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 3.08, mockWindow, JSPoint(160, 25), UIEvent.Modifiers.none, 2);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 35);
@@ -3237,23 +3237,23 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 40);
 
         // select word at end
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 5.0, mockWindow, JSPoint(220, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 5.0, mockWindow, JSPoint(220, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 40);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 5.01, mockWindow, JSPoint(220, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 5.01, mockWindow, JSPoint(220, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 40);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 5.05, mockWindow, JSPoint(220, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 5.05, mockWindow, JSPoint(220, 25), UIEvent.Modifiers.none, 2);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 40);
         TKAssertEquals(editor.selections[0].range.length, 1);
         TKAssertEquals(editor.selections[0].insertionLocation, 41);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 5.06, mockWindow, JSPoint(220, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 5.06, mockWindow, JSPoint(220, 25), UIEvent.Modifiers.none, 2);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 40);
@@ -3261,25 +3261,25 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 41);
 
         // select after line end (soft break)
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 7.0, mockWindow, JSPoint(700, 5));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 7.0, mockWindow, JSPoint(700, 5), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 30);
         TKAssertEquals(editor.selections[0].range.length, 0);
         TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 7.03, mockWindow, JSPoint(700, 5));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 7.03, mockWindow, JSPoint(700, 5), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 30);
         TKAssertEquals(editor.selections[0].range.length, 0);
         TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 7.05, mockWindow, JSPoint(700, 5));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 7.05, mockWindow, JSPoint(700, 5), UIEvent.Modifiers.none, 2);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 29);
         TKAssertEquals(editor.selections[0].range.length, 1);
         TKAssertEquals(editor.selections[0].insertionLocation, 30);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 7.07, mockWindow, JSPoint(700, 5));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 7.07, mockWindow, JSPoint(700, 5), UIEvent.Modifiers.none, 2);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 29);
@@ -3287,23 +3287,23 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 30);
 
         // select after line end (hard break)
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 9.0, mockWindow, JSPoint(300, 41));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 9.0, mockWindow, JSPoint(300, 41), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 73);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 9.03, mockWindow, JSPoint(300, 41));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 9.03, mockWindow, JSPoint(300, 41), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 73);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 9.05, mockWindow, JSPoint(300, 41));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 9.05, mockWindow, JSPoint(300, 41), UIEvent.Modifiers.none, 2);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 73);
         TKAssertEquals(editor.selections[0].range.length, 1);
         TKAssertEquals(editor.selections[0].insertionLocation, 74);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 9.07, mockWindow, JSPoint(300, 41));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 9.07, mockWindow, JSPoint(300, 41), UIEvent.Modifiers.none, 2);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 73);
@@ -3311,64 +3311,64 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 74);
 
         // move location after first down (far)
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 11.0, mockWindow, JSPoint(220, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 11.0, mockWindow, JSPoint(220, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 40);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 11.01, mockWindow, JSPoint(220, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 11.01, mockWindow, JSPoint(220, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 40);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 11.05, mockWindow, JSPoint(400, 50));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 11.05, mockWindow, JSPoint(400, 50), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 92);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 11.055, mockWindow, JSPoint(400, 50));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 11.055, mockWindow, JSPoint(400, 50), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 92);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 11.06, mockWindow, JSPoint(220, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 11.06, mockWindow, JSPoint(220, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 40);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 11.065, mockWindow, JSPoint(220, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 11.065, mockWindow, JSPoint(220, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 40);
         TKAssertEquals(editor.selections[0].range.length, 0);
 
         // move location after first down (near)
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 13.0, mockWindow, JSPoint(220, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 13.0, mockWindow, JSPoint(220, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 40);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 13.03, mockWindow, JSPoint(220, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 13.03, mockWindow, JSPoint(220, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 40);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 13.05, mockWindow, JSPoint(221, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 13.05, mockWindow, JSPoint(221, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 40);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 13.055, mockWindow, JSPoint(221, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 13.055, mockWindow, JSPoint(221, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 40);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 13.06, mockWindow, JSPoint(220, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 13.06, mockWindow, JSPoint(220, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 40);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 13.065, mockWindow, JSPoint(220, 25));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 13.065, mockWindow, JSPoint(220, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 40);
@@ -3411,7 +3411,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         editor.didBecomeFirstResponder();
 
         var mockWindow = {};
-        var event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 1.0, mockWindow, JSPoint(110, 25));
+        var event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 1.0, mockWindow, JSPoint(110, 25), UIEvent.Modifiers.none, 1);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 35);
