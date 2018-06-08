@@ -9,6 +9,15 @@ JSClass("UIHTMLDisplayServerTests", TKTestSuite, {
     requiredEnvironment: 'html',
 
     setup: function(){
+        // defining the class withing the setup method because the superclass is only availble
+        // in the html environment.  If we tried to define the class at the top level of code like
+        // normal, it would cause an error in non-HTML environments because they don't have the superclass
+        if (!JSGlobalObject.UIHTMLDisplayServerTestsDisplayServer){
+            JSClass("UIHTMLDisplayServerTestsDisplayServer", UIHTMLDisplayServer, {
+                setUpdateNeeded: function(){
+                }
+            });
+        }
         this.rootElement = document.createElement('div');
         this.rootElement.style.position = 'absolute';
         this.rootElement.style.width = '1000px';
@@ -135,9 +144,4 @@ JSClass("UIHTMLDisplayServerTests", TKTestSuite, {
         TKAssertEquals(element.childNodes.length, 1);
     }
 
-});
-
-JSClass("UIHTMLDisplayServerTestsDisplayServer", UIHTMLDisplayServer, {
-    setUpdateNeeded: function(){
-    }
 });

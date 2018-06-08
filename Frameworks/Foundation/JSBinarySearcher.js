@@ -56,6 +56,14 @@ JSBinarySearcher.prototype = {
             return this.sortedItems[result.index];
         }
         return null;
+    },
+
+    indexMatchingValue: function(value){
+        var result = this._search(value);
+        if (result.exact){
+            return result.index;
+        }
+        return null;
     }
 
 };

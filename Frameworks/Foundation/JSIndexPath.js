@@ -10,6 +10,9 @@ JSGlobalObject.JSIndexPath = function(section, row){
         this.section = section.section;
         this.row = section.row;
     }else{
+        if (section === undefined || row === undefined){
+            throw new Error("JSIndexPath constructor requires a JSIndexPath to copy, or both section and row values");
+        }
         this.section = section;
         this.row = row;
     }
@@ -57,8 +60,14 @@ JSGlobalObject.JSIndexPathRange = function(start, end){
         this.start = JSIndexPath(start.start);
         this.end = JSIndexPath(start.end);
     }else{
+        if (start === undefined || end === undefined){
+            throw new Error("JSIndexPathRange constructor requires a JSIndexPathRange to copy, or both start and end values");
+        }
         this.start = JSIndexPath(start);
         this.end = JSIndexPath(end);
+        if (this.end.isLessThan(this.start)){
+            throw new Error("JSIndexPathRange requires start to be less than or equal to end");
+        }
     }
 };
 
@@ -91,17 +100,94 @@ JSGlobalObject.JSIndexPathSet = function(obj){
 JSIndexPathSet.prototype = {
 
     addIndexPath: function(indexPath){
+        this.addRange(JSIndexPathRange(indexPath, indexPath));
     },
 
     removeIndexPath: function(indexPath){
-        var range = this._rangeForIndexPath(indexPath);
-        if (range !== null){
-        }
+        this.removeRange(JSIndexPathRange(indexPath, indexPath));
     },
 
     addRange: function(range){
-        // TODO: merge and sort
-        this.ranges.push(range);
+        range = JSIndexPathRange(range);
+        var searcher = JSBinarySearcher(this.ranges, function(indexPath, b){
+            return indexPath.compare(b.end);
+        });
+        var startIndex = searcher.insertionIndexForValue(range.start);
+        var endIndex = searcher.insertionIndexForValue(range.end);
+        var other;
+        if (endIndex < this.ranges.length){
+            other = this.ranges[endIndex];
+            if (range.end.isGreaterThanOrEqual(other.start) || (range.end.section == other.start.section && range.end.row == other.start.row - 1)){
+                range.end = other.end;
+                endIndex += 1;
+            }
+        }
+        if (startIndex < this.ranges.length){
+            other = this.ranges[startIndex];
+            if (range.start.isGreaterThan(other.start)){
+                range.start = other.start;
+            }
+        }
+        if (startIndex > 0){
+            other = this.ranges[startIndex - 1];
+            if (range.start.isLessThanOrEqual(other.end) || (range.start.section == other.end.section && range.start.row == other.end.row + 1)){
+                range.start = other.start;
+                startIndex -= 1;
+            }
+        }
+        this.ranges.splice(startIndex, endIndex - startIndex, range);
+    },
+
+    removeRange: function(range){
+        var searcher = JSBinarySearcher(this.ranges, function(indexPath, b){
+            if (indexPath.isLessThan(b.start)){
+                return -1;
+            }
+            if (indexPath.isGreaterThan(b.end)){
+                return 1;
+            }
+            return 0;
+        });
+        var startIndex = searcher.insertionIndexForValue(range.start);
+        var endIndex = range.start.isEqual(range.end) ? startIndex : searcher.insertionIndexForValue(range.end);
+    },
+
+    toggleIndexPath: function(indexPath){
+        if (this.contains(indexPath)){
+            this.removeIndexPath(indexPath);
+        }else{
+            this.addIndexPath(indexPath);
+        }
+    },
+
+    adjustAnchoredRange: function(anchorIndexPath, toIndexPath){
+        var searcher = JSBinarySearcher(this.ranges, function(x, range){
+            if (x.isLessThan(range.start)){
+                return -1;
+            }
+            if (x.isGreaterThan(range.end)){
+                return 1;
+            }
+            return 0;
+        });
+        var index = searcher.indexMatchingValue(anchorIndexPath);
+        if (index !== null){
+            this.ranges.splice(index, 1);
+            if (toIndexPath.isLessThan(anchorIndexPath)){
+                this.addRange(JSIndexPathRange(toIndexPath, anchorIndexPath));
+            }else{
+                this.addRange(JSIndexPathRange(anchorIndexPath, toIndexPath));
+            }
+        }
+    },
+
+    adjustRangesAfterInsertion: function(insertedIndexPathSet){
+        // TODO: loop through our ranges and increment based on offsets created by inserted paths
+    },
+
+    adjustRangesAfterRemoval: function(removedIndexPathSet){
+        // TODO: loop through our ranges and decrement based on offsets created by deleted paths
+        // remove any paths that match the deleted paths
     },
 
     replace: function(indexPath){
