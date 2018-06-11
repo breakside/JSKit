@@ -149,11 +149,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         var superorigin;
         if (layer.superlayer !== null){
             var superContext = this.contextForLayer(layer.superlayer);
-            if (superContext.scrollOrigin){
-                superorigin = superContext.scrollOrigin;
-            }else{
-                superorigin = layer.superlayer.presentation.bounds.origin;
-            }
+            superorigin = layer.superlayer.presentation.bounds.origin;
         }else{
             superorigin = JSPoint.Zero;
         }

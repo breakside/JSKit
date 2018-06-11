@@ -62,6 +62,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.addEventListener('mousedown', this, false);
         this.rootElement.addEventListener('mouseup', this, false);
         this.rootElement.addEventListener('mousemove', this, false);
+        this.rootElement.addEventListener('wheel', this, false);
         this.rootElement.addEventListener('keydown', this, false);
         this.rootElement.addEventListener('keyup', this, false);
         this.rootElement.addEventListener('dragstart', this, false);
@@ -183,15 +184,15 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                 },
 
                 mouseenter: function(e){
-                    windowServer._createMouseTrackingEventFromDOMEvent(e, UIEvent.Type.MouseEntered, view);
+                    windowServer._createMouseTrackingEventFromDOMEvent(e, UIEvent.Type.mouseEntered, view);
                 },
 
                 mouseleave: function(e){
-                    windowServer._createMouseTrackingEventFromDOMEvent(e, UIEvent.Type.MouseExited, view);
+                    windowServer._createMouseTrackingEventFromDOMEvent(e, UIEvent.Type.mouseExited, view);
                 },
 
                 mousemove: function(e){
-                    windowServer._createMouseTrackingEventFromDOMEvent(e, UIEvent.Type.MouseMoved, view);
+                    windowServer._createMouseTrackingEventFromDOMEvent(e, UIEvent.Type.mouseMoved, view);
                 }
             };
             context.startMouseTracking(trackingType, listener);
@@ -202,10 +203,10 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this._updateMouseLocation(e);
         switch (e.button){
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
-                this._createMouseEventFromDOMEvent(e, UIEvent.Type.LeftMouseDown);
+                this._createMouseEventFromDOMEvent(e, UIEvent.Type.leftMouseDown);
                 break;
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT:
-                this._createMouseEventFromDOMEvent(e, UIEvent.Type.RightMouseDown);
+                this._createMouseEventFromDOMEvent(e, UIEvent.Type.rightMouseDown);
                 break;
         }
     },
@@ -221,10 +222,10 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this._updateMouseLocation(e);
         switch (e.button){
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
-                this._createMouseEventFromDOMEvent(e, UIEvent.Type.LeftMouseUp);
+                this._createMouseEventFromDOMEvent(e, UIEvent.Type.leftMouseUp);
                 break;
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT:
-                this._createMouseEventFromDOMEvent(e, UIEvent.Type.RightMouseUp);
+                this._createMouseEventFromDOMEvent(e, UIEvent.Type.rightMouseUp);
                 break;
         }
     },
@@ -248,15 +249,19 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         }
     },
 
+    wheel: function(e){
+        this._createScrollEventFromDOMEvent(e, UIEvent.Type.scrollWheel);
+    },
+
     keydown: function(e){
         if (this.keyWindow){
-            this._createKeyEventFromDOMEvent(e, UIEvent.Type.KeyDown);
+            this._createKeyEventFromDOMEvent(e, UIEvent.Type.keyDown);
         }
     },
 
     keyup: function(e){
         if (this.keyWindow){
-            this._createKeyEventFromDOMEvent(e, UIEvent.Type.KeyUp);
+            this._createKeyEventFromDOMEvent(e, UIEvent.Type.keyUp);
         }
     },
 
@@ -359,19 +364,19 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     // mobile
 
     touchstart: function(e){
-        this._createTouchEventFromDOMEvent(e, UIEvent.Type.TouchesBegan);
+        this._createTouchEventFromDOMEvent(e, UIEvent.Type.touchesBegan);
     },
 
     touchend: function(e){
-        this._createTouchEventFromDOMEvent(e, UIEvent.Type.TouchesEnded);
+        this._createTouchEventFromDOMEvent(e, UIEvent.Type.touchesEnded);
     },
 
     touchcancel: function(e){
-        this._createTouchEventFromDOMEvent(e, UIEvent.Type.TouchesCanceled);
+        this._createTouchEventFromDOMEvent(e, UIEvent.Type.touchesCanceled);
     },
 
     touchmove: function(e){
-        this._createTouchEventFromDOMEvent(e, UIEvent.Type.TouchesMoved);
+        this._createTouchEventFromDOMEvent(e, UIEvent.Type.touchesMoved);
     },
 
     _createMouseEventFromDOMEvent: function(e, type){
@@ -383,11 +388,16 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     _createMouseTrackingEventFromDOMEvent: function(e, type, view){
         this._updateMouseLocation(e);
         var timestamp = e.timeStamp / 1000.0;
-        if (type === UIEvent.Type.MouseMoved){
+        if (type === UIEvent.Type.mouseMoved){
             this.mouseDidMove(timestamp);
         }
         var modifiers = this._modifiersFromDOMEvent(e);
         this.createMouseTrackingEvent(type, timestamp, this.mouseLocation, modifiers, view);
+    },
+
+    _createScrollEventFromDOMEvent: function(e, type){
+        var timestamp = e.timeStamp / 1000.0;
+        this.createScrollEvent(type, timestamp, this.mouseLocation, e.deltaX, e.deltaY);
     },
 
     _locationOfDOMTouchInScreen: function(touch){

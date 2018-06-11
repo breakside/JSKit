@@ -53,13 +53,14 @@ JSClass("UIListView", UIScrollView, {
     },
 
     _commonListInit: function(){
+        this.scrollsHorizontally = false;
         this._visibleCellViews = [];
         this._reusableCellsByIdentifier = {};
         this._cellClassesByIdentifier = {};
         this._cellsContainerView = UIView.init();
         this._selectedIndexPaths = JSIndexPathSet();
         this._contextSelectedIndexPaths = JSIndexPathSet();
-        this.addSubview(this._cellsContainerView);
+        this.contentView.addSubview(this._cellsContainerView);
     },
 
     // --------------------------------------------------------------------

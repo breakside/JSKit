@@ -14,7 +14,6 @@
 // Layers & Views
 // #import "UIKit/UIResponder.js"
 // #import "UIKit/UILayer.js"
-// #import "UIKit/UIScrollLayer.js"
 // #import "UIKit/UITextLayer.js"
 // #import "UIKit/UIImageLayer.js"
 // #import "UIKit/UIView.js"
@@ -52,6 +51,7 @@
 // #import "UIKit/UIRadioGroup.js"
 // #import "UIKit/UIPopupButton.js"
 // #import "UIKit/UITabView.js"
+// #import "UIKit/UIScroller.js"
 
 // Lists
 // #import "UIKit/UIListView.js"

@@ -93,7 +93,7 @@ JSClass("UIApplicationTests", TKTestSuite, {
                 this.receivedEvent = event;
             }
         };
-        var event = UIEvent.initKeyEventWithType(UIEvent.Type.KeyDown, 1, mockWindow, 0x41);
+        var event = UIEvent.initKeyEventWithType(UIEvent.Type.keyDown, 1, mockWindow, 0x41);
         this.app.sendEvent(event);
         TKAssertExactEquals(mockWindow.receivedEvent, event);
     },
@@ -115,7 +115,7 @@ JSClass("UIApplicationTests", TKTestSuite, {
                 this.receivedEvent = event;
             }
         };
-        var event = UIEvent.initTouchEventWithType(UIEvent.Type.TouchesBegan, 123);
+        var event = UIEvent.initTouchEventWithType(UIEvent.Type.touchesBegan, 123);
         var touch1 = UITouch.initWithIdentifier(1, 123, mockWindow1, JSPoint(10, 15));
         var touch2 = UITouch.initWithIdentifier(1, 124, mockWindow2, JSPoint(10, 15));
         event.addTouch(touch1);
@@ -125,7 +125,7 @@ JSClass("UIApplicationTests", TKTestSuite, {
 
         mockWindow1.receivedEvent = null;
         event.addTouch(touch2);
-        event.updateTouches(UIEvent.Type.TouchesBegan, 124);
+        event.updateTouches(UIEvent.Type.touchesBegan, 124);
         this.app.sendEvent(event);
         TKAssertExactEquals(mockWindow1.receivedEvent, event);
         TKAssertExactEquals(mockWindow2.receivedEvent, event);

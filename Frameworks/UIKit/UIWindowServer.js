@@ -436,22 +436,22 @@ JSClass("UIWindowServer", JSObject, {
         var ignore = false;
         var clickCount = 0;
         switch (type){
-            case UIEvent.Type.LeftMouseDown:
+            case UIEvent.Type.leftMouseDown:
                 isADown = true;
                 ignore = this.isLeftMouseDown;
                 this.isLeftMouseDown = true;
                 break;
-            case UIEvent.Type.RightMouseDown:
+            case UIEvent.Type.rightMouseDown:
                 isADown = true;
                 ignore = this.isLeftMouseDown;
                 this.isRightMouseDown = true;
                 break;
-            case UIEvent.Type.LeftMouseUp:
+            case UIEvent.Type.leftMouseUp:
                 isAnUp = true;
                 ignore = !this.isLeftMouseDown;
                 this.isLeftMouseDown = false;
                 break;
-            case UIEvent.Type.RightMouseUp:
+            case UIEvent.Type.rightMouseUp:
                 isAnUp = true;
                 ignore = !this.isRightMouseDown;
                 this.isRightMouseDown = false;
@@ -464,7 +464,7 @@ JSClass("UIWindowServer", JSObject, {
         }
 
         switch (type){
-            case UIEvent.Type.LeftMouseDown:
+            case UIEvent.Type.leftMouseDown:
                 if (timestamp - this._previousLeftClickTimestamp > this._repeatClickInterval){
                     this._leftClickCount = 0;
                 }
@@ -472,21 +472,21 @@ JSClass("UIWindowServer", JSObject, {
                 clickCount = this._leftClickCount;
                 this._previousLeftClickTimestamp = timestamp;
                 break;
-            case UIEvent.Type.LeftMouseUp:
+            case UIEvent.Type.leftMouseUp:
                 clickCount = this._leftClickCount;
                 if (timestamp - this._previousLeftClickTimestamp > this._repeatClickInterval){
                     this._leftClickCount = 0;
                 }
                 this._previousLeftClickTimestamp = timestamp;
                 break;
-            case UIEvent.Type.RightMouseDown:
+            case UIEvent.Type.rightMouseDown:
                 if (timestamp - this._previousRightClickTimestamp > this._repeatClickInterval){
                     this._rightClickCount = 0;
                 }
                 clickCount = this._rightClickCount;
                 this._previousRightClickTimestamp = timestamp;
                 break;
-            case UIEvent.Type.RightMouseUp:
+            case UIEvent.Type.rightMouseUp:
                 clickCount = this._rightClickCount;
                 if (timestamp - this._previousRightClickTimestamp > this._repeatClickInterval){
                     this._rightClickCount = 0;
@@ -517,7 +517,7 @@ JSClass("UIWindowServer", JSObject, {
         }
 
         if (this._draggingSession !== null){
-            if (type == UIEvent.Type.LeftMouseUp){
+            if (type == UIEvent.Type.leftMouseUp){
                 this.draggingSessionDidPerformOperation();
             }
         }else{
@@ -528,6 +528,14 @@ JSClass("UIWindowServer", JSObject, {
         }
     },
 
+    createScrollEvent: function(type, timestamp, location, dx, dy){
+        var targetWindow = this.windowForEventAtLocation(location);
+        if (targetWindow !== null){
+            var event = UIEvent.initScrollEventWithType(type, timestamp, targetWindow, targetWindow.convertPointFromScreen(location), dx, dy);
+            this._sendEventToApplication(event, targetWindow.application);
+        }
+    },
+
     resetMouseState: function(timestamp){
         if (this._draggingSession !== null){
             // stop the dragging session immediately because we don't want the
@@ -535,10 +543,10 @@ JSClass("UIWindowServer", JSObject, {
             this.stopDraggingSession();
         }
         if (this.isRightMouseDown){
-            this.createMouseEvent(UIEvent.Type.RightMouseUp, timestamp, this.mouseLocation);
+            this.createMouseEvent(UIEvent.Type.rightMouseUp, timestamp, this.mouseLocation);
         }
         if (this.isLeftMouseDown){
-            this.createMouseEvent(UIEvent.Type.LeftMouseUp, timestamp, this.mouseLocation);
+            this.createMouseEvent(UIEvent.Type.leftMouseUp, timestamp, this.mouseLocation);
         }
     },
 
@@ -557,10 +565,10 @@ JSClass("UIWindowServer", JSObject, {
                 }
             }else{
                 if (this.isLeftMouseDown){
-                    this.createMouseEvent(UIEvent.Type.LeftMouseDragged, timestamp, this.mouseLocation);
+                    this.createMouseEvent(UIEvent.Type.leftMouseDragged, timestamp, this.mouseLocation);
                 }
                 if (this.isRightMouseDown){
-                    this.createMouseEvent(UIEvent.Type.RightMouseDragged, timestamp, this.mouseLocation);
+                    this.createMouseEvent(UIEvent.Type.rightMouseDragged, timestamp, this.mouseLocation);
                 }
             }
         }
@@ -615,13 +623,13 @@ JSClass("UIWindowServer", JSObject, {
         if (previousWindow !== null && (previousWindow.objectID in this._windowsById)){
             view = this._trackingViewInWindowAtLocation(previousWindow, location);
             if (view !== null){
-                this.createMouseTrackingEvent(UIEvent.Type.MouseExited, -1, location, UIEvent.Modifiers.none, view, true);
+                this.createMouseTrackingEvent(UIEvent.Type.mouseExited, -1, location, UIEvent.Modifiers.none, view, true);
             }
         }
         if (currentWindow !== null && (currentWindow.objectID in this._windowsById)){
             view = this._trackingViewInWindowAtLocation(currentWindow, location);
             if (view !== null){
-                this.createMouseTrackingEvent(UIEvent.Type.MouseEntered, -1, location, UIEvent.Modifiers.none, view, true);
+                this.createMouseTrackingEvent(UIEvent.Type.mouseEntered, -1, location, UIEvent.Modifiers.none, view, true);
             }
         }
     },
@@ -644,7 +652,7 @@ JSClass("UIWindowServer", JSObject, {
     // MARK: - Drag and Drop
 
     createDraggingSessionWithItems: function(items, event, view){
-        if (event.type != UIEvent.Type.LeftMouseDragged){
+        if (event.type != UIEvent.Type.leftMouseDragged){
             throw new Error("Cannot create drag session with event type: %d", event.type);
         }
         var session = UIDraggingSession.initWithItems(items, event, view);
@@ -708,7 +716,7 @@ JSClass("UIWindowServer", JSObject, {
 
     handleDraggingKeyEvent: function(event){
         switch (event.type){
-            case UIEvent.Type.KeyDown:
+            case UIEvent.Type.keyDown:
                 switch (event.keyCode){
                     case 27:
                         // Resetting the entire mouse state.  If we only stopped the drag
@@ -721,7 +729,7 @@ JSClass("UIWindowServer", JSObject, {
                         break;
                 }
                 break;
-            case UIEvent.Type.KeyUp:
+            case UIEvent.Type.keyUp:
                 switch (event.keyCode){
                     case 18:
                         // remove copy preference
@@ -769,7 +777,7 @@ JSClass("UIWindowServer", JSObject, {
         }
 
         // Clear the active touch memeber if all touches have ended
-        if ((type === UIEvent.Type.TouchesEnded) || (type === UIEvent.Type.TouchesCanceled)){
+        if ((type === UIEvent.Type.touchesEnded) || (type === UIEvent.Type.touchesCanceled)){
             var hasActiveTouch = false;
             for (i = 0, l = this.activeTouchEvent.touches.length; i < l && !hasActiveTouch; ++i){
                 hasActiveTouch = this.activeTouchEvent.touches[i].isActive();
@@ -782,13 +790,13 @@ JSClass("UIWindowServer", JSObject, {
 
     _touchPhaseForEventType: function(type){
         switch(type){
-            case UIEvent.Type.TouchesBegan:
+            case UIEvent.Type.touchesBegan:
                 return UITouch.Phase.began;
-            case UIEvent.Type.TouchesMoved:
+            case UIEvent.Type.touchesMoved:
                 return UITouch.Phase.moved;
-            case UIEvent.Type.TouchesEnded:
+            case UIEvent.Type.touchesEnded:
                 return UITouch.Phase.ended;
-            case UIEvent.Type.TouchesCanceled:
+            case UIEvent.Type.touchesCanceled:
                 return UITouch.Phase.canceled;
         }
     }

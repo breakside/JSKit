@@ -67,42 +67,42 @@ JSClass("UIResponderTests", TKTestSuite, {
         var responder2 = Responder2.init();
         responder1.nextResponder = responder2;
 
-        var event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDown, 1, window, JSPoint(0, 0));
+        var event = UIEvent.initMouseEventWithType(UIEvent.Type.leftMouseDown, 1, window, JSPoint(0, 0));
         TKAssertEquals(responder2.mouseDownCount, 0);
         responder1.mouseDown(event);
         TKAssertEquals(responder2.mouseDownCount, 1);
 
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseUp, 1, window, JSPoint(0, 0));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.leftMouseUp, 1, window, JSPoint(0, 0));
         TKAssertEquals(responder2.mouseUpCount, 0);
         responder1.mouseUp(event);
         TKAssertEquals(responder2.mouseUpCount, 1);
 
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.LeftMouseDragged, 1, window, JSPoint(0, 0));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.leftMouseDragged, 1, window, JSPoint(0, 0));
         TKAssertEquals(responder2.mouseDraggedCount, 0);
         responder1.mouseDragged(event);
         TKAssertEquals(responder2.mouseDraggedCount, 1);
 
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.RightMouseDown, 1, window, JSPoint(0, 0));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.rightMouseDown, 1, window, JSPoint(0, 0));
         TKAssertEquals(responder2.rightMouseDownCount, 0);
         responder1.rightMouseDown(event);
         TKAssertEquals(responder2.rightMouseDownCount, 1);
 
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.RightMouseUp, 1, window, JSPoint(0, 0));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.rightMouseUp, 1, window, JSPoint(0, 0));
         TKAssertEquals(responder2.rightMouseUpCount, 0);
         responder1.rightMouseUp(event);
         TKAssertEquals(responder2.rightMouseUpCount, 1);
 
-        event = UIEvent.initMouseEventWithType(UIEvent.Type.RightMouseDragged, 1, window, JSPoint(0, 0));
+        event = UIEvent.initMouseEventWithType(UIEvent.Type.rightMouseDragged, 1, window, JSPoint(0, 0));
         TKAssertEquals(responder2.rightMouseDraggedCount, 0);
         responder1.rightMouseDragged(event);
         TKAssertEquals(responder2.rightMouseDraggedCount, 1);
 
-        event = UIEvent.initKeyEventWithType(UIEvent.Type.KeyDown, 1, window, 5);
+        event = UIEvent.initKeyEventWithType(UIEvent.Type.keyDown, 1, window, 5);
         TKAssertEquals(responder2.keyDownCount, 0);
         responder1.keyDown(event);
         TKAssertEquals(responder2.keyDownCount, 1);
 
-        event = UIEvent.initKeyEventWithType(UIEvent.Type.KeyUp, 1, window, 5);
+        event = UIEvent.initKeyEventWithType(UIEvent.Type.keyUp, 1, window, 5);
         TKAssertEquals(responder2.keyUpCount, 0);
         responder1.keyUp(event);
         TKAssertEquals(responder2.keyUpCount, 1);

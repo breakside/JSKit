@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UITouch.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, UIEvent */
+/* global JSClass, JSObject, JSReadOnlyProperty, UIEvent, JSPoint */
 'use strict';
 
 JSClass('UIEvent', JSObject, {
@@ -16,33 +16,44 @@ JSClass('UIEvent', JSObject, {
     trackingView: null,
     modifiers: JSReadOnlyProperty('_modifiers', 0),
     clickCount: JSReadOnlyProperty('_clickCount', 0),
+    scrollingDelta: JSReadOnlyProperty('_scrollingDelta', null),
 
     initMouseEventWithType: function(type, timestamp, window, location, modifiers, clickCount){
+        this._category = UIEvent.Category.mouse;
+        this._type = type;
         this._timestamp = timestamp;
         this._windows = [window];
         this._locationInWindow = location;
-        this._category = UIEvent.Category.Mouse;
-        this._type = type;
         this._touches = [];
         this._modifiers = modifiers || UIEvent.Modifiers.none;
         this._clickCount = clickCount;
     },
 
     initKeyEventWithType: function(type, timestamp, window, keyCode, modifiers){
+        this._category = UIEvent.Category.key;
+        this._type = type;
         this._timestamp = timestamp;
         this._windows = [window];
         this._keyCode = keyCode;
-        this._category = UIEvent.Category.Key;
-        this._type = type;
         this._touches = [];
         this._modifiers = modifiers || UIEvent.Modifiers.none;
     },
 
     initTouchEventWithType: function(type, timestamp){
-        this._category = UIEvent.Category.Touches;
+        this._category = UIEvent.Category.touches;
         this._type = type;
         this._timestamp = timestamp;
         this._windows = [];
+        this._touches = [];
+    },
+
+    initScrollEventWithType: function(type, timestamp, window, location, deltaX, deltaY){
+        this._category = UIEvent.Category.scroll;
+        this._type = type;
+        this._timestamp = timestamp;
+        this._windows = [window];
+        this._locationInWindow = location;
+        this._scrollingDelta = JSPoint(deltaX, deltaY);
         this._touches = [];
     },
 
@@ -109,27 +120,29 @@ JSClass('UIEvent', JSObject, {
 UIEvent.doubleClickInterval = 1.0;
 
 UIEvent.Category = {
-    Mouse: 0,
-    Key: 1,
-    Touches: 2
+    mouse: 0,
+    key: 1,
+    touches: 2,
+    scroll: 3
 };
 
 UIEvent.Type = {
-    LeftMouseDown: 0,
-    LeftMouseUp: 1,
-    LeftMouseDragged: 2,
-    RightMouseDown: 3,
-    RightMouseUp: 4,
-    RightMouseDragged: 5,
-    MouseMoved: 6,
-    MouseEntered: 7,
-    MouseExited: 8,
-    KeyDown: 9,
-    KeyUp: 10,
-    TouchesBegan: 11,
-    TouchesMoved: 12,
-    TouchesEnded: 13,
-    TouchesCanceled: 14
+    leftMouseDown: 0,
+    leftMouseUp: 1,
+    leftMouseDragged: 2,
+    rightMouseDown: 3,
+    rightMouseUp: 4,
+    rightMouseDragged: 5,
+    mouseMoved: 6,
+    mouseEntered: 7,
+    mouseExited: 8,
+    keyDown: 9,
+    keyUp: 10,
+    touchesBegan: 11,
+    touchesMoved: 12,
+    touchesEnded: 13,
+    touchesCanceled: 14,
+    scrollWheel: 15
 };
 
 UIEvent.Modifiers = {

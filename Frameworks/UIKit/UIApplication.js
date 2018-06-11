@@ -97,25 +97,25 @@ JSClass('UIApplication', UIResponder, {
         // to re-send it as a mouse event to see if something handles that
         var touch = touches[0];
         var location = touch.window.convertPointToScreen(touch.locationInWindow);
-        this.windowServer.createMouseEvent(UIEvent.Type.LeftMouseDown, event.timestamp, location);
+        this.windowServer.createMouseEvent(UIEvent.Type.leftMouseDown, event.timestamp, location);
     },
 
     touchesMoved: function(touches, event){
         var touch = touches[0];
         var location = touch.window.convertPointToScreen(touch.locationInWindow);
-        this.windowServer.createMouseEvent(UIEvent.Type.LeftMouseDragged, event.timestamp, location);
+        this.windowServer.createMouseEvent(UIEvent.Type.leftMouseDragged, event.timestamp, location);
     },
 
     touchesEnded: function(touches, event){
         var touch = touches[0];
         var location = touch.window.convertPointToScreen(touch.locationInWindow);
-        this.windowServer.createMouseEvent(UIEvent.Type.LeftMouseUp, event.timestamp, location);
+        this.windowServer.createMouseEvent(UIEvent.Type.leftMouseUp, event.timestamp, location);
     },
 
     touchesCanceled: function(touches, event){
         var touch = touches[0];
         var location = touch.window.convertPointToScreen(touch.locationInWindow);
-        this.windowServer.createMouseEvent(UIEvent.Type.LeftMouseUp, event.timestamp, location);
+        this.windowServer.createMouseEvent(UIEvent.Type.leftMouseUp, event.timestamp, location);
     }
 
 });

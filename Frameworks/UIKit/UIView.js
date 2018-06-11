@@ -70,6 +70,11 @@ JSClass('UIView', UIResponder, {
         this.initWithFrame(JSRect(0,0,100,100));
     },
 
+    initWithLayer: function(layer){
+        this._commonViewInitWithLayer(layer);
+        this.frame = JSRect(0,0,100,100);
+    },
+
     initWithConstraintBox: function(constraintBox){
         this.init();
         this.constraintBox = constraintBox;
@@ -434,7 +439,12 @@ JSClass('UIView', UIResponder, {
     // MARK: Init helpers
 
     _commonViewInit: function(){
-        this.layer = this.$class.layerClass.init();
+        var layer = this.$class.layerClass.init();
+        this._commonViewInitWithLayer(layer);
+    },
+
+    _commonViewInitWithLayer: function(layer){
+        this.layer = layer;
         this.layer.delegate = this;
         this.subviews = [];
         this._registeredDraggedTypes = [];

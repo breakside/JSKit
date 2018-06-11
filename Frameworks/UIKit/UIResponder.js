@@ -143,6 +143,13 @@ JSClass("UIResponder", JSObject, {
             return next.targetForAction(action, sender);
         }
         return null;
+    },
+
+    scrollWheel: function(event){
+        var next = this.getNextResponder();
+        if (next !== null){
+            next.scrollWheel(event);
+        }
     }
 
 });

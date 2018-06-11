@@ -236,14 +236,17 @@ JSClass('UIWindow', UIView, {
 
     sendEvent: function(event){
         switch (event.category){
-            case UIEvent.Category.Mouse:
+            case UIEvent.Category.mouse:
                 this._sendMouseEvent(event);
                 break;
-            case UIEvent.Category.Key:
+            case UIEvent.Category.key:
                 this._sendKeyEvent(event);
                 break;
-            case UIEvent.Category.Touches:
+            case UIEvent.Category.touches:
                 this._sendTouchEvent(event);
+                break;
+            case UIEvent.Category.scroll:
+                this._sendScrollEvent(event);
                 break;
         }
     },
@@ -264,7 +267,7 @@ JSClass('UIWindow', UIView, {
     mouseDownType: null,
 
     _sendMouseEvent: function(event){
-        if (this.mouseEventView === null && event.type == UIEvent.Type.LeftMouseDown || event.type == UIEvent.Type.RightMouseDown){
+        if (this.mouseEventView === null && event.type == UIEvent.Type.leftMouseDown || event.type == UIEvent.Type.rightMouseDown){
             this.mouseEventView = this.hitTest(event.locationInWindow);
             if (this.receivesAllEvents && this.mouseEventView === null){
                 this.mouseEventView = this;
@@ -276,7 +279,7 @@ JSClass('UIWindow', UIView, {
             return;
         }
         switch (event.type){
-            case UIEvent.Type.LeftMouseDown:
+            case UIEvent.Type.leftMouseDown:
                 if (this.canBecomeKeyWindow() && this.windowServer.keyWindow !== this){
                     this.makeKey();
                 }else if (this.canBecomeMainWindow() && this.windowServer.mainWindow !== this){
@@ -284,38 +287,49 @@ JSClass('UIWindow', UIView, {
                 }
                 eventTarget.mouseDown(event);
                 break;
-            case UIEvent.Type.LeftMouseUp:
+            case UIEvent.Type.leftMouseUp:
                 eventTarget.mouseUp(event);
-                if (this.mouseDownType == UIEvent.Type.LeftMouseDown){
+                if (this.mouseDownType == UIEvent.Type.leftMouseDown){
                     this.mouseEventView = null;
                 }
                 break;
-            case UIEvent.Type.LeftMouseDragged:
+            case UIEvent.Type.leftMouseDragged:
                 eventTarget.mouseDragged(event);
                 break;
-            case UIEvent.Type.RightMouseDown:
+            case UIEvent.Type.rightMouseDown:
                 eventTarget.rightMouseDown(event);
                 break;
-            case UIEvent.Type.RightMouseUp:
+            case UIEvent.Type.rightMouseUp:
                 eventTarget.rightMouseUp(event);
-                if (this.mouseDownType == UIEvent.Type.RightMouseDown){
+                if (this.mouseDownType == UIEvent.Type.rightMouseDown){
                     this.mouseEventView = null;
                 }
                 break;
-            case UIEvent.Type.RightMouseDragged:
+            case UIEvent.Type.rightMouseDragged:
                 eventTarget.rightMouseDragged(event);
                 break;
-            case UIEvent.Type.MouseEntered:
+            case UIEvent.Type.mouseEntered:
                 eventTarget.mouseEntered(event);
                 break;
-            case UIEvent.Type.MouseExited:
+            case UIEvent.Type.mouseExited:
                 eventTarget.mouseExited(event);
                 break;
-            case UIEvent.Type.MouseMoved:
+            case UIEvent.Type.mouseMoved:
                 eventTarget.mouseMoved(event);
                 break;
         }
 
+    },
+
+    _sendScrollEvent: function(event){
+        var view = this.hitTest(event.locationInWindow);
+        if (view){
+            switch (event.type){
+                case UIEvent.Type.scrollWheel:
+                    view.scrollWheel(event);
+                    break;
+            }
+        }
     },
 
     _sendTouchEvent: function(event){
@@ -363,10 +377,10 @@ JSClass('UIWindow', UIView, {
         var view = this._firstResponder || this;
         if (view){
             switch (event.type){
-                case UIEvent.Type.KeyDown:
+                case UIEvent.Type.keyDown:
                     view.keyDown(event);
                     break;
-                case UIEvent.Type.KeyUp:
+                case UIEvent.Type.keyUp:
                     view.keyUp(event);
                     break;
             }

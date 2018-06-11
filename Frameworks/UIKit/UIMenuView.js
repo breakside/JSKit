@@ -71,7 +71,7 @@ JSClass("UIMenuWindow", UIWindow, {
 
     didBecomeVisible: function(){
         var event = this.windowServer.activeEvent;
-        if (event !== null && event.type == UIEvent.Type.LeftMouseDown){
+        if (event !== null && event.type == UIEvent.Type.leftMouseDown){
             var location = event.locationInView(this);
             this._adjustHighlightForLocation(location);
             this._itemDownTimestamp = event.timestamp;
