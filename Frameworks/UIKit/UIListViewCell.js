@@ -1,6 +1,6 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UILabel.js"
-/* global JSClass, UIView, UILabel, JSReadOnlyProperty, JSDynamicProperty, JSLazyInitProperty, UIListViewCell, JSConstraintBox, JSInsets, JSPoint, JSSize, JSRect */
+/* global JSClass, UIView, UILabel, JSReadOnlyProperty, JSDynamicProperty, JSLazyInitProperty, UIListViewCell, JSConstraintBox, JSInsets, JSPoint, JSSize, JSRect, JSColor */
 'use strict';
 
 JSClass("UIListViewCell", UIView, {

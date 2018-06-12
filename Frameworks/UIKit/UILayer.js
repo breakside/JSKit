@@ -581,6 +581,17 @@ JSClass("UILayer", JSObject, {
     sizeToFit: function(){
     },
 
+    sizeToFitConstraints: function(maxSize){
+        var size = JSSize(this.bounds.size);
+        if (size.width > maxSize.width){
+            size.width = maxSize.width;
+        }
+        if (size.height > maxSize.height){
+            size.height = maxSize.height;
+        }
+        this.bounds = JSRect(this.bounds.origin, size);
+    },
+
     _frameForConstraintBox: function(constraintBox){
         return UILayer.FrameForConstraintBoxInBounds(constraintBox, this.model.bounds);
     },

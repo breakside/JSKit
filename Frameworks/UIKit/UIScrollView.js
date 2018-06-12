@@ -207,6 +207,8 @@ JSClass('UIScrollView', UIView, {
             return;
         }
         this._updateScrollers();
+        // If we changed size, our offset may now be invalid, so re-sanitize it
+        this.contentOffset = this._sanitizedOffset(this._contentOffset);
     },
 
     _updateBoundsForContentOffset: function(){

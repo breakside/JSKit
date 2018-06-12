@@ -5,9 +5,14 @@
 
 JSProtocol("UIListViewDelegate", JSProtocol, {
 
+    // Cells
+    cellForListViewAtIndexPath: ['listView', 'indexPath'],
     heightForListViewRowAtIndexPath: ['listView', 'indexPath'],
     estimatedHeightForListViewRows: ['listView'],
-    cellForListViewAtIndexPath: ['listView', 'indexPath'],
+
+    // Headers & Footers
+
+    // Selection
     listViewShouldSelectCellAtIndexPath: ['listView', 'indexPath'],
     listViewDidSelectCellAtIndexPath: ['listView', 'indexPath'],
     listViewDidOpenCellAtIndexPath: ['listView', 'indexPath'],
@@ -175,7 +180,16 @@ JSClass("UIListView", UIScrollView, {
             }
         }
         // TODO: section headers and footers
-        // TODO: table header and footer
+
+        this._cellsContainerView.frame = JSRect(0, 0, this.contentView.bounds.size.width, y);
+
+        if (this._headerView !== null){
+            y += this._headerView.frame.size.height;
+        }
+        if (this._footerView !== null){
+            y += this._footerView.frame.size.height;
+        }
+        
         this.contentSize = JSSize(this.contentView.bounds.size.width, y);
 
         // Finally, update the visible cells
@@ -193,9 +207,26 @@ JSClass("UIListView", UIScrollView, {
 
     layoutSubviews: function(){
         UIListView.$super.layoutSubviews.call(this);
+        var origin = JSPoint.Zero;
+        var fitSize = JSSize(this.bounds.size.width, Number.MAX_VALUE);
+        if (this._headerView !== null){
+            this._headerView.sizeToFitConstraints(fitSize);
+        }
+        if (this._footerView !== null){
+            this._footerView.sizeToFitConstraints(fitSize);
+        }
+        if (this._headerView !== null){
+            this._headerView.frame = JSRect(origin, this._headerView.frame.size);
+            origin.y += this._headerView.frame.size.height;
+        }
         if (this._needsReload){
             this._reloadDuringLayout();
             this._needsReload = false;
+        }
+        this._cellsContainerView.frame = JSRect(origin, this._cellsContainerView.frame.size);
+        origin.y += this._cellsContainerView.frame.size.height;
+        if (this._footerView !== null){
+            this._footerView.frame = JSRect(origin, this._footerView.frame.size);
         }
     },
 
@@ -219,6 +250,34 @@ JSClass("UIListView", UIScrollView, {
     },
 
     // --------------------------------------------------------------------
+    // MARK: - List Header and Footer
+
+    headerView: JSDynamicProperty('_headerView', null),
+    footerView: JSDynamicProperty('_footerView', null),
+
+    setHeaderView: function(headerView){
+        if (this._headerView){
+            this._headerView.removeFromSuperview();
+        }
+        this._headerView = headerView;
+        if (this._headerView){
+            this.contentView.addSubview(this._headerView);
+        }
+        this.setNeedsLayout();
+    },
+
+    setFooterView: function(footerView){
+        if (this._footerView){
+            this._footerView.removeFromSuperview();
+        }
+        this._footerView = footerView;
+        if (this._footerView){
+            this.contentView.addSubview(this._footerView);
+        }
+        this.setNeedsLayout();
+    },
+
+    // --------------------------------------------------------------------
     // MARK: - Updating Visible Cells
 
     _updateVisibleCells: function(){
@@ -229,9 +288,6 @@ JSClass("UIListView", UIScrollView, {
         if (this._cachedData.numberOfSections === 0){
             return;
         }
-
-        // TODO: adjust for table header and footer
-        this._cellsContainerView.frame = JSRect(0, 0, this.contentView.bounds.size.width, this.contentSize.height);
 
         // 1. enqueue any visible cells that have gone offscreen
         // enqueue first so the cells can be dequeued and reused for newly visible rows
@@ -405,7 +461,7 @@ JSClass("UIListView", UIScrollView, {
     // --------------------------------------------------------------------
     // MARK: - Selecting cells
 
-    allowsMultipleSelection: true,
+    allowsMultipleSelection: false,
     selectedIndexPaths: JSDynamicProperty('_selectedIndexPaths', null),
     contextSelectedIndexPaths: JSReadOnlyProperty('_contextSelectedIndexPaths', null),
     _handledSelectionOnDown: false,

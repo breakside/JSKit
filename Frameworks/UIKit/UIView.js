@@ -258,6 +258,10 @@ JSClass('UIView', UIResponder, {
         this.layer.sizeToFit();
     },
 
+    sizeToFitConstraints: function(maxSize){
+        this.layer.sizeToFitConstraints(maxSize);
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Display
 
