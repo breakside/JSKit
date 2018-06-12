@@ -41,6 +41,13 @@ JSClass("UIScroller", UIControl, {
         }
     },
 
+    setKnobProportion: function(knobProportion){
+        if (knobProportion !== this._knobProportion){
+            this._knobProportion = knobProportion;
+            this.setNeedsLayout();
+        }
+    },
+
     _hitPart: function(location){
         if (this._direction === UIScroller.Direction.vertical){
             if (location.y < this._knob.frame.origin.y){
@@ -236,30 +243,35 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
         this.minimumKnobLength = maxKnobWidth * 2;
     },
 
-    setExpanded: function(scroller, expaneded){
-        if (expaneded === scroller.stylerProperties.expaneded){
+    setExpanded: function(scroller, expanded){
+        if (expanded === scroller.stylerProperties.expanded){
             return;
         }
-        scroller.stylerProperties.expaneded = expaneded;
-        var constraintBox = this.knobInsets.constraintBox();
-        if (expaneded){
-            scroller.backgroundColor = JSColor.initWithWhite(1, 0.8);
-            scroller.borderColor = JSColor.initWithWhite(0, 0.15);
-            scroller.borderWidth = 1.0;
-            scroller.maskedBorders = scroller.direction === UIScroller.Direction.vertical ? UILayer.Sides.minX : UILayer.Sides.minY;
+        scroller.stylerProperties.expanded = expanded;
+        if (expanded){
+            var animator = UIViewPropertyAnimator.initWithDuration(0.1);
+            var styler = this;
+            animator.addAnimations(function(){
+                styler._layoutTrackAndNobIndicator(scroller);
+                scroller.stylerProperties.trackLayer.alpha = 1;
+            });
+            animator.start();
         }else{
-            constraintBox.left += this.expandedSize - this.collapsedSize;
-            scroller.backgroundColor = null;
-            scroller.borderWidth = 0;
+            this._layoutTrackAndNobIndicator(scroller);
+            scroller.stylerProperties.trackLayer.alpha = 0;
         }
-        scroller.stylerProperties.knobIndicatorLayer.constraintBox = constraintBox;
     },
 
     initializeControl: function(scroller){
         scroller.stylerProperties.hideAnimator = null;
+        scroller.stylerProperties.trackLayer = UILayer.init();
+        scroller.layer.insertSublayerBeforeSibling(scroller.stylerProperties.trackLayer, scroller._knob.layer);
+        scroller.stylerProperties.trackLayer.backgroundColor = JSColor.initWithWhite(250/255, 0.8);
+        scroller.stylerProperties.trackLayer.borderColor = JSColor.initWithWhite(0, 0.15);
+        scroller.stylerProperties.trackLayer.borderWidth = 1.0;
+        scroller.stylerProperties.trackLayer.maskedBorders = scroller.direction === UIScroller.Direction.vertical ? UILayer.Sides.minX : UILayer.Sides.minY;
         scroller.stylerProperties.knobIndicatorLayer = UILayer.init();
         scroller.stylerProperties.knobIndicatorLayer.backgroundColor = JSColor.blackColor().colorWithAlpha(0.6);
-        scroller.stylerProperties.knobIndicatorLayer.constraintBox = JSConstraintBox({top: this.knobInsets.top, left: this.knobInsets.left, right: this.knobInsets.right, bottom: this.knobInsets.bottom});
         scroller.stylerProperties.knobIndicatorLayer.cornerRadius = this.expandedSize;
         scroller._knob.layer.addSublayer(scroller.stylerProperties.knobIndicatorLayer);
         if (scroller.direction === UIScroller.Direction.vertical){
@@ -307,14 +319,40 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
         );
     },
 
+    _layoutTrackAndNobIndicator: function(scroller){
+        if (scroller.stylerProperties.expanded){
+            scroller.stylerProperties.trackLayer.frame = scroller.bounds;
+            if (scroller.direction === UIScroller.Direction.vertical){
+                scroller.stylerProperties.knobIndicatorLayer.frame = scroller._knob.bounds.rectWithInsets(this.knobInsets);
+            }else{
+                scroller.stylerProperties.knobIndicatorLayer.frame = scroller._knob.bounds.rectWithInsets(this.knobInsets.left, this.knobInsets.top, this.knobInsets.right, this.knobInsets.bottom);
+            }
+        }else{
+            var knobInsets = JSInsets(this.knobInsets);
+            knobInsets.left += this.expandedSize - this.collapsedSize;
+            if (scroller.direction === UIScroller.Direction.vertical){
+                scroller.stylerProperties.trackLayer.frame = scroller.bounds.rectWithInsets(0, this.expandedSize - this.collapsedSize, 0, 0);
+                scroller.stylerProperties.knobIndicatorLayer.frame = scroller._knob.bounds.rectWithInsets(knobInsets);
+            }else{
+                scroller.stylerProperties.trackLayer.frame = scroller.bounds.rectWithInsets(this.expandedSize - this.collapsedSize, 0, 0, 0);
+                scroller.stylerProperties.knobIndicatorLayer.frame = scroller._knob.bounds.rectWithInsets(knobInsets.left, knobInsets.top, knobInsets.right, knobInsets.bottom);
+            }
+        }
+    },
+
     layoutControl: function(scroller){
         scroller._knob.frame = this._getKnobFrame(scroller);
         scroller._knob.cornerRadius = scroller.direction === UIScroller.Direction.vertical ? scroller._knob.frame.size.width / 2.0 : scroller._knob.frame.size.height / 2.0;
+        this._layoutTrackAndNobIndicator(scroller);
         this._cancelHide(scroller);
         if (!scroller.stylerProperties.expanded){
             if (scroller.over){
                 this.setExpanded(scroller, true);
             }else{
+                this._hideAnimated(scroller);
+            }
+        }else{
+            if (!scroller.over){
                 this._hideAnimated(scroller);
             }
         }
@@ -325,7 +363,7 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
         if (expanded){
             this._cancelHide(scroller);
             this.setExpanded(scroller, true);
-        }else if (!scroller.stylerProperties.expanded && scroller.alpha > 0){
+        }else if (scroller.stylerProperties.expanded){
             this._hideAnimated(scroller);
         }
         if (scroller.knobActive){

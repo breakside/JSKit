@@ -120,16 +120,16 @@ JSRect.prototype = {
     origin: null,
     size: null,
 
-    rectWithInsets: function(top, right, bottom, left){
+    rectWithInsets: function(top, left, bottom, right){
         if (top instanceof JSInsets){
             right = top.right;
             bottom = top.bottom;
             left = top.left;
             top = top.top;
         }
-        if (right === undefined) right = top;
+        if (left === undefined) left = top;
         if (bottom === undefined) bottom = top;
-        if (left === undefined) left = right;
+        if (right === undefined) right = left;
         return new JSRect(this.origin.x + left, this.origin.y + top, this.size.width - left - right, this.size.height - top - bottom);
     },
 
@@ -479,7 +479,20 @@ JSInsets.prototype = {
 
     constraintBox: function(){
         return new JSConstraintBox({top: this.top, left: this.left, right: this.right, bottom: this.bottom});
-    }
+    },
+
+    insetsWithInsets: function(top, left, bottom, right){
+        if (top instanceof JSInsets){
+            top = top.top;
+            left = top.left;
+            bottom = top.bottom;
+            right = top.right;
+        }
+        if (left === undefined) left = top;
+        if (bottom === undefined) bottom =  top;
+        if (right === undefined) right = left;
+        return new JSInsets(this.top + top, this.left + left, this.bottom + bottom, this.right + right);
+    },
     
 };
 

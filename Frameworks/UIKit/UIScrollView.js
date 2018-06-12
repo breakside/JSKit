@@ -19,6 +19,14 @@ JSClass('UIScrollView', UIView, {
     },
 
     initWithSpec: function(spec, values){
+        var contentSubviews = [];
+        if ('subviews' in values){
+            if ('contentView' in values){
+                values.contentView.subviews = values.subviews;
+            }else{
+                contentSubviews = values.subviews;
+            }
+        }
         UIScrollView.$super.initWithSpec.call(this, spec, values);
         if ('contentView' in values){
             this._contentView = spec.resolvedValue(values.contentView, "UIView");
@@ -30,6 +38,9 @@ JSClass('UIScrollView', UIView, {
             this._horizontalScroller = spec.resolvedValue(values.horizontalScroller, "UIScroller");
         }
         this._commonScrollViewInit();
+        for (var i = 0, l = contentSubviews.length; i < l; ++i){
+            this._contentView.addSubview(spec.resolvedValue(contentSubviews[i]));
+        }
         if ('contentInsets' in values){
             this.contentInsets = JSInsets.apply(undefined, values.contentInsets.parseNumberArray());
         }
@@ -147,8 +158,8 @@ JSClass('UIScrollView', UIView, {
     // MARK: - Layout
 
     layoutSubviews: function(){
-        this._verticalScroller.frame = JSRect(this.bounds.size.width - this._verticalScroller.frame.size.width, 0, this._verticalScroller.frame.size.width, this.bounds.size.height - (this._horizontalScroller.hidden ? 0 : this._horizontalScroller.frame.size.height));
-        this._horizontalScroller.frame = JSRect(0, this.bounds.size.height - this._horizontalScroller.frame.size.height, this.bounds.size.width - (this._verticalScroller.hidden ? 0 : this._verticalScroller.frame.size.width), this._horizontalScroller.frame.size.height);
+        this._verticalScroller.frame = JSRect(this.bounds.size.width - this._verticalScroller.frame.size.width, this.contentInsets.top, this._verticalScroller.frame.size.width, this.bounds.size.height - this.contentInsets.top - this.contentInsets.bottom - (this._horizontalScroller.hidden ? 0 : this._horizontalScroller.frame.size.height));
+        this._horizontalScroller.frame = JSRect(this.contentInsets.left, this.bounds.size.height - this._horizontalScroller.frame.size.height, this.bounds.size.width - this.contentInsets.left - this.contentInsets.right - (this._verticalScroller.hidden ? 0 : this._verticalScroller.frame.size.width), this._horizontalScroller.frame.size.height);
         this._contentView.frame = JSRect(JSPoint(this._contentInsets.left, this._contentInsets.top), this._contentFrameSize);
     },
 
