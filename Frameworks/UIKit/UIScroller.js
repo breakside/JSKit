@@ -325,7 +325,7 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
         if (expanded){
             this._cancelHide(scroller);
             this.setExpanded(scroller, true);
-        }else if (!scroller.stylerProperties.expanded){
+        }else if (!scroller.stylerProperties.expanded && scroller.alpha > 0){
             this._hideAnimated(scroller);
         }
         if (scroller.knobActive){
@@ -344,6 +344,12 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
     },
 
     _hideAnimated: function(scroller){
+        if (scroller.stylerProperties.hideAnimator !== null){
+            return;
+        }
+        if (scroller.hidden){
+            return;
+        }
         scroller.stylerProperties.hideAnimator = UIViewPropertyAnimator.initWithDuration(0.3);
         scroller.stylerProperties.hideAnimator.addAnimations(function(){
             scroller.alpha = 0.0;
