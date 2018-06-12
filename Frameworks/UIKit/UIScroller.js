@@ -366,11 +366,6 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
         }else if (scroller.stylerProperties.expanded){
             this._hideAnimated(scroller);
         }
-        if (scroller.knobActive){
-            scroller.stylerProperties.knobIndicatorLayer.backgroundColor = JSColor.redColor().colorWithAlpha(0.6);
-        }else{
-            scroller.stylerProperties.knobIndicatorLayer.backgroundColor = JSColor.blackColor().colorWithAlpha(0.6);
-        }
     },
 
     _cancelHide: function(scroller){

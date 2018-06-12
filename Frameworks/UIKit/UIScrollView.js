@@ -19,6 +19,12 @@ JSClass('UIScrollView', UIView, {
     },
 
     initWithSpec: function(spec, values){
+        // 1. To simplify spec coding, any subviews specified there for the scroll view
+        //    will be moved to the contentView instead.  The common use case by far is
+        //    to add subviews to the content view, not the scroll view itself, which typically
+        //    only contains the fixed content view and scrollers.
+        //    Make this move before calling $super.initWithSpec, otherwise $super will add the
+        //    subviews to the scroll view itself.
         var contentSubviews = [];
         if ('subviews' in values){
             if ('contentView' in values){
@@ -28,6 +34,11 @@ JSClass('UIScrollView', UIView, {
             }
         }
         UIScrollView.$super.initWithSpec.call(this, spec, values);
+
+        // 2. If the content view and scrollers are specified in the spec, create them
+        //    before doing the _commonScrollViewInit, so it won't try to create them itself.
+        //    These properties are optional in the spec, and are typically only provided if
+        //    the user wants to provide specialized customization
         if ('contentView' in values){
             this._contentView = spec.resolvedValue(values.contentView, "UIView");
         }
@@ -38,9 +49,14 @@ JSClass('UIScrollView', UIView, {
             this._horizontalScroller = spec.resolvedValue(values.horizontalScroller, "UIScroller");
         }
         this._commonScrollViewInit();
+
+        // 3. Finish the work from step #1 after _commonScrollViewInit, when we can be sure that
+        //    a contentView has been created
         for (var i = 0, l = contentSubviews.length; i < l; ++i){
             this._contentView.addSubview(spec.resolvedValue(contentSubviews[i]));
         }
+
+        // 4. Handle all the other properties
         if ('contentInsets' in values){
             this.contentInsets = JSInsets.apply(undefined, values.contentInsets.parseNumberArray());
         }
@@ -63,6 +79,9 @@ JSClass('UIScrollView', UIView, {
 
     _commonScrollViewInit: function(){
         this.clipsToBounds = true;
+
+        // Only create the content view and scrollers if the haven't already been created
+        // by a specialized init function like initWithSpec.
         if (this._contentView === null){
             this._contentView = UIView.initWithFrame(this.bounds);
         }
@@ -138,12 +157,18 @@ JSClass('UIScrollView', UIView, {
             }
         }
 
+        // 3. Save the min/max values for other methods to use
         this._minContentOffset = JSPoint(minX, minY);
         this._maxContentOffset = JSPoint(maxX, maxY);
 
+        // 4. Show/hide scrollers
         this._verticalScroller.hidden = !showsVerticalScroller;
         this._horizontalScroller.hidden = !showsHorizontalScroller;
 
+        // 5. Set scroller knob sizes and positions
+        // The calculations are are fairly straightfoward:
+        // - knob proportion is the size of the visible area divided by the total scrollable size including insets
+        // - value is the amount we've scrolled divided by the total amount we can scroll
         this._verticalScroller.knobProportion = Math.min(1, this._contentFrameSize.height / (this._contentSize.height + this._contentInsets.top + this._contentInsets.bottom));
         this._horizontalScroller.knobProportion = Math.min(1, this._contentFrameSize.width / (this._contentSize.width + this._contentInsets.left + this._contentInsets.right));
         if (minY == maxY){
@@ -162,8 +187,18 @@ JSClass('UIScrollView', UIView, {
     // MARK: - Layout
 
     layoutSubviews: function(){
-        this._verticalScroller.frame = JSRect(this.bounds.size.width - this._verticalScroller.frame.size.width, this.contentInsets.top, this._verticalScroller.frame.size.width, this.bounds.size.height - this.contentInsets.top - this.contentInsets.bottom - (this._horizontalScroller.hidden ? 0 : this._horizontalScroller.frame.size.height));
-        this._horizontalScroller.frame = JSRect(this.contentInsets.left, this.bounds.size.height - this._contentInsets.bottom - this._horizontalScroller.frame.size.height, this.bounds.size.width - this.contentInsets.left - this.contentInsets.right - (this._verticalScroller.hidden ? 0 : this._verticalScroller.frame.size.width), this._horizontalScroller.frame.size.height);
+        this._verticalScroller.frame = JSRect(
+            this.bounds.size.width - this._verticalScroller.frame.size.width,
+            this.contentInsets.top,
+            this._verticalScroller.frame.size.width,
+            this.bounds.size.height - this.contentInsets.top - this.contentInsets.bottom - (this._horizontalScroller.hidden ? 0 : this._horizontalScroller.frame.size.height)
+        );
+        this._horizontalScroller.frame = JSRect(
+            this.contentInsets.left,
+            this.bounds.size.height - this._contentInsets.bottom - this._horizontalScroller.frame.size.height,
+            this.bounds.size.width - this.contentInsets.left - this.contentInsets.right - (this._verticalScroller.hidden ? 0 : this._verticalScroller.frame.size.width),
+            this._horizontalScroller.frame.size.height
+        );
         this._contentView.frame = JSRect(JSPoint.Zero, this._contentFrameSize);
     },
 
@@ -189,6 +224,10 @@ JSClass('UIScrollView', UIView, {
     _maxContentOffset: null,
 
     setContentInsets: function(contentInsets){
+        // When adjusting the content insets, we'll attempt to adjust the content offset accordingly
+        // so the content doesn't shift.  This is especially useful when the insets are fisrt set and the
+        // offset is 0,0.  In that case we want the offset to change to -inset.left,-inset.top so it's still
+        // scroll to the very top.
         var d = JSPoint(this._contentInsets.left - contentInsets.left, this._contentInsets.top - contentInsets.top);
         this._contentInsets = JSInsets(contentInsets);
         this._updateScrollers();
@@ -216,6 +255,8 @@ JSClass('UIScrollView', UIView, {
     setContentSize: function(contentSize){
         this._contentSize = JSSize(contentSize);
         this._updateScrollers();
+        // After setting the content size, our offset may be invalid, so re-sanitize it.
+        // NOTE: this will be a no-op if the offset is still valid.
         this.contentOffset = this._sanitizedOffset(this.contentOffset);
     },
 
