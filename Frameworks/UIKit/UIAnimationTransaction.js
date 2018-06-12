@@ -51,7 +51,7 @@ JSClass('UIAnimationTransaction', JSObject, {
             animation = this.animations[i];
             animation.layer.setNeedsAnimation();
         }
-    }
+    },
 });
 
 UIAnimationTransaction.currentTransaction = null;

@@ -53,7 +53,7 @@ JSClass("UIListView", UIScrollView, {
     },
 
     _commonListInit: function(){
-        this.scrollsHorizontally = false;
+        // this.scrollsHorizontally = false;
         this._visibleCellViews = [];
         this._reusableCellsByIdentifier = {};
         this._cellClassesByIdentifier = {};
@@ -176,7 +176,7 @@ JSClass("UIListView", UIScrollView, {
         }
         // TODO: section headers and footers
         // TODO: table header and footer
-        this.contentSize = JSSize(this.bounds.size.width, y);
+        this.contentSize = JSSize(this.contentView.bounds.size.width, y);
 
         // Finally, update the visible cells
         // NOTE: setting this.contentSize *may* trigger _didScroll and/or layerDidChangeSize,
@@ -207,6 +207,7 @@ JSClass("UIListView", UIScrollView, {
     },
 
     layerDidChangeSize: function(layer){
+        UIListView.$super.layerDidChangeSize.call(this, layer);
         // FIXME: if our width changed, and the delegate uses heightForListViewRowAtIndexPath,
         // then we need to handle the possiblity that the dynamic row height depends on the width.
         // Unclear what the "correct" behavior is in this situation, but it likely requires fixing the

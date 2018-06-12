@@ -421,7 +421,7 @@ JSClass("UILayer", JSObject, {
         for (var i = this.sublayers.length - 1; i >= 0 && hit === null; --i){
             sublayer = this.sublayers[i];
             locationInSublayer = this.convertPointToLayer(locationInLayer, sublayer);
-            if (!sublayer.hidden && (!sublayer.clipsToBounds || sublayer.containsPoint(locationInSublayer))){
+            if (!sublayer.hidden && sublayer.presentation.alpha > 0 && (!sublayer.clipsToBounds || sublayer.containsPoint(locationInSublayer))){
                 hit = sublayer.hitTest(locationInSublayer);
             }
         }
@@ -526,6 +526,7 @@ JSClass("UILayer", JSObject, {
             var animation = UIBasicAnimation.initWithKeyPath(key);
             animation.fromValue = this[key];
             animation.duration = transaction.duration;
+            animation.delay = transaction.delay;
             this.addAnimationForKey(animation, key);
             transaction.addAnimation(animation);
         }

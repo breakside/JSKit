@@ -68,10 +68,15 @@ JSClass('JSColor', JSObject, {
         this._components = [r,g,b,a];
     },
 
-    initWithWhite: function(w){
-        this._colorSpace = JSColor.SpaceIdentifier.gray;
+    initWithWhite: function(w, a){
         if (w === undefined) w = 0;
-        this._components = [w];
+        if (a === undefined){
+            this._colorSpace = JSColor.SpaceIdentifier.gray;
+            this._components = [w];
+        }else{
+            this._colorSpace = JSColor.SpaceIdentifier.graya;
+            this._components = [w, a];
+        }
     },
 
     initWithSpec: function(spec, values){

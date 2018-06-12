@@ -225,6 +225,7 @@ UIControl.State = {
     over:       1 << 0,
     active:     1 << 1,
     disabled:   1 << 2,
+    firstUserState: 1 << 16
 };
 
 UIControl.Event = {

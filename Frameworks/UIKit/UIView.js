@@ -424,7 +424,7 @@ JSClass('UIView', UIResponder, {
         for (var i = this.subviews.length - 1; i >= 0 && hit === null; --i){
             subview = this.subviews[i];
             locationInSubview = this.layer.convertPointToLayer(locationInView, subview.layer);
-            if (!subview.hidden && (!subview.clipsToBounds || subview.containsPoint(locationInSubview))){
+            if (!subview.hidden && subview.layer.presentation.alpha > 0 && (!subview.clipsToBounds || subview.containsPoint(locationInSubview))){
                 hit  = subview.hitTest(locationInSubview);
             }
         }
