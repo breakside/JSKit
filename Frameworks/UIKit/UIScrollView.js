@@ -76,6 +76,7 @@ JSClass('UIScrollView', UIView, {
         this._contentOffset = JSPoint.Zero;
         this._contentSize = JSSize.Zero;
         this._contentInsets = JSInsets.Zero;
+        this._minContentOffset = JSPoint.Zero;
         this._maxContentOffset = JSPoint.Zero;
         this._horizontalScroller.addTargetedActionForEvent(this, this._horizontalScrollerValueChanged, UIControl.Event.valueChanged);
         this._verticalScroller.addTargetedActionForEvent(this, this._verticalScrollerValueChanged, UIControl.Event.valueChanged);
@@ -113,20 +114,22 @@ JSClass('UIScrollView', UIView, {
         this._contentFrameSize = JSSize(this.bounds.size);
 
         // 1. Figure out if we need to show a vertical scroller
-        var maxY = Math.max(0, this._contentInsets.top + this._contentSize.height + this._contentInsets.bottom - this._contentFrameSize.height);
+        var minY = -this._contentInsets.top;
+        var maxY = Math.max(0, this._contentSize.height + this._contentInsets.bottom - this._contentFrameSize.height);
         var showsVerticalScroller = this.scrollsVertically && maxY !== 0;
         if (showsVerticalScroller && !this._verticalScroller.floats){
             this._contentFrameSize.width -= this._verticalScroller.frame.size.width;
         }
 
         // 2. Figure out if we need to show a horizontal scroller
-        var maxX = Math.max(0, this._contentInsets.left + this._contentSize.width + this._contentInsets.right - this._contentFrameSize.width);
+        var minX = -this._contentInsets.left;
+        var maxX = Math.max(0, this._contentSize.width + this._contentInsets.right - this._contentFrameSize.width);
         var showsHorizontalScroller = this.scrollsHorizontally && maxX !== 0;
         if (showsHorizontalScroller && !this._horizontalScroller.floats){
             this._contentFrameSize.height -= this._horizontalScroller.frame.size.height;
             if (this.scrollsVertically && !showsVerticalScroller){
                 // 3. Because the content frame height has decreased, we may need to show a vertical scroller after all
-                maxY = Math.max(0, this._contentInsets.top + this._contentSize.height + this._contentInsets.bottom - this._contentFrameSize.height);
+                maxY = Math.max(0, this._contentSize.height + this._contentInsets.bottom - this._contentFrameSize.height);
                 showsVerticalScroller = this.scrollsVertically && maxY !== 0;
                 if (showsVerticalScroller && !this._verticalScroller.floats){
                     this._contentFrameSize.width -= this._verticalScroller.frame.size.width;
@@ -135,22 +138,23 @@ JSClass('UIScrollView', UIView, {
             }
         }
 
+        this._minContentOffset = JSPoint(minX, minY);
         this._maxContentOffset = JSPoint(maxX, maxY);
 
         this._verticalScroller.hidden = !showsVerticalScroller;
         this._horizontalScroller.hidden = !showsHorizontalScroller;
 
-        this._verticalScroller.knobProportion = Math.min(1, this._contentFrameSize.height / this._contentSize.height);
-        this._horizontalScroller.knobProportion = Math.min(1, this._contentFrameSize.width / this._contentSize.width);
-        if (this._maxContentOffset.y === 0){
+        this._verticalScroller.knobProportion = Math.min(1, this._contentFrameSize.height / (this._contentSize.height + this._contentInsets.top + this._contentInsets.bottom));
+        this._horizontalScroller.knobProportion = Math.min(1, this._contentFrameSize.width / (this._contentSize.width + this._contentInsets.left + this._contentInsets.right));
+        if (minY == maxY){
             this._verticalScroller.value = 0;
         }else{
-            this._verticalScroller.value = this._contentOffset.y / this._maxContentOffset.y;
+            this._verticalScroller.value = (this._contentOffset.y - minY) / (maxY - minY);
         }
-        if (this._maxContentOffset.x === 0){
+        if (minX == maxX){
             this._horizontalScroller.value = 0;
         }else{
-            this._horizontalScroller.value = this._contentOffset.x / this._maxContentOffset.x;
+            this._horizontalScroller.value = (this._contentOffset.x - minX) / (maxX - minX);
         }
     },
 
@@ -159,8 +163,8 @@ JSClass('UIScrollView', UIView, {
 
     layoutSubviews: function(){
         this._verticalScroller.frame = JSRect(this.bounds.size.width - this._verticalScroller.frame.size.width, this.contentInsets.top, this._verticalScroller.frame.size.width, this.bounds.size.height - this.contentInsets.top - this.contentInsets.bottom - (this._horizontalScroller.hidden ? 0 : this._horizontalScroller.frame.size.height));
-        this._horizontalScroller.frame = JSRect(this.contentInsets.left, this.bounds.size.height - this._horizontalScroller.frame.size.height, this.bounds.size.width - this.contentInsets.left - this.contentInsets.right - (this._verticalScroller.hidden ? 0 : this._verticalScroller.frame.size.width), this._horizontalScroller.frame.size.height);
-        this._contentView.frame = JSRect(JSPoint(this._contentInsets.left, this._contentInsets.top), this._contentFrameSize);
+        this._horizontalScroller.frame = JSRect(this.contentInsets.left, this.bounds.size.height - this._contentInsets.bottom - this._horizontalScroller.frame.size.height, this.bounds.size.width - this.contentInsets.left - this.contentInsets.right - (this._verticalScroller.hidden ? 0 : this._verticalScroller.frame.size.width), this._horizontalScroller.frame.size.height);
+        this._contentView.frame = JSRect(JSPoint.Zero, this._contentFrameSize);
     },
 
     layerDidChangeSize: function(layer){
@@ -171,7 +175,7 @@ JSClass('UIScrollView', UIView, {
     },
 
     _updateBoundsForContentOffset: function(){
-        this.contentView.bounds = JSRect(JSPoint(this._contentOffset.x - this.contentInsets.left, this._contentOffset.y - this.contentInsets.top), this.contentView.bounds.size);
+        this.contentView.bounds = JSRect(this._contentOffset, this._contentView.bounds.size);
     },
 
     // --------------------------------------------------------------------
@@ -181,11 +185,14 @@ JSClass('UIScrollView', UIView, {
     contentInsets: JSDynamicProperty('_contentInsets', null),
     contentOffset: JSDynamicProperty('_contentOffset', null),
     contentSize: JSDynamicProperty('_contentSize', null),
+    _minContentOffset: null,
     _maxContentOffset: null,
 
     setContentInsets: function(contentInsets){
+        var d = JSPoint(this._contentInsets.left - contentInsets.left, this._contentInsets.top - contentInsets.top);
         this._contentInsets = JSInsets(contentInsets);
         this._updateScrollers();
+        this.contentOffset = JSPoint(this._contentOffset.x + d.x, this._contentOffset.y + d.y);
         this.setNeedsLayout();
     },
 
@@ -209,22 +216,22 @@ JSClass('UIScrollView', UIView, {
     setContentSize: function(contentSize){
         this._contentSize = JSSize(contentSize);
         this._updateScrollers();
-        this.contentOffset = JSPoint(Math.min(this._maxContentOffset.x, this._contentOffset.x), Math.min(this._maxContentOffset.y, this._contentOffset.y));
+        this.contentOffset = this._sanitizedOffset(this.contentOffset);
     },
 
     _sanitizedOffset: function(offset){
         offset = JSPoint(offset);
         if (!this.scrollsHorizontally){
             offset.x = this._contentOffset.x;
-        }else if (offset.x < 0){
-            offset.x = 0;
+        }else if (offset.x < this._minContentOffset.x){
+            offset.x = this._minContentOffset.x;
         }else if (offset.x > this._maxContentOffset.x){
             offset.x = this._maxContentOffset.x;
         }
         if (!this.scrollsVertically){
             offset.y = this._contentOffset.y;
-        }else if (offset.y < 0){
-            offset.y = 0;
+        }else if (offset.y < this._minContentOffset.y){
+            offset.y = this._minContentOffset.y;
         }else if (offset.y > this._maxContentOffset.y){
             offset.y = this._maxContentOffset.y;
         }
@@ -259,12 +266,12 @@ JSClass('UIScrollView', UIView, {
     },
 
     _horizontalScrollerValueChanged: function(scroller){
-        var x = this._maxContentOffset.x * scroller.value;
+        var x = this._minContentOffset.x + (this._maxContentOffset.x - this._minContentOffset.x) * scroller.value;
         this.contentOffset = JSPoint(x, this._contentOffset.y);
     },
 
     _verticalScrollerValueChanged: function(scroller){
-        var y = this._maxContentOffset.y * scroller.value;
+        var y = this._minContentOffset.y + (this._maxContentOffset.y - this._minContentOffset.y) * scroller.value;
         this.contentOffset = JSPoint(this._contentOffset.x, y);
     }
 

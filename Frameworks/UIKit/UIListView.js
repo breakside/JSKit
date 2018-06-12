@@ -192,11 +192,11 @@ JSClass("UIListView", UIScrollView, {
     // MARK: - Layout
 
     layoutSubviews: function(){
+        UIListView.$super.layoutSubviews.call(this);
         if (this._needsReload){
             this._reloadDuringLayout();
             this._needsReload = false;
         }
-        UIListView.$super.layoutSubviews.call(this);
     },
 
     _didScroll: function(){
@@ -231,7 +231,7 @@ JSClass("UIListView", UIScrollView, {
         }
 
         // TODO: adjust for table header and footer
-        this._cellsContainerView.frame = JSRect(0, 0, this.bounds.size.width, this.contentSize.height);
+        this._cellsContainerView.frame = JSRect(0, 0, this.contentView.bounds.size.width, this.contentSize.height);
 
         // 1. enqueue any visible cells that have gone offscreen
         // enqueue first so the cells can be dequeued and reused for newly visible rows
@@ -239,7 +239,7 @@ JSClass("UIListView", UIScrollView, {
         var y;
         var cell;
         var indexPath;
-        var visibleCellsContainerRect = this.convertRectToView(this.bounds, this._cellsContainerView);
+        var visibleCellsContainerRect = this.contentView.convertRectToView(this.contentView.bounds, this._cellsContainerView);
         var extraHeight = 0;
         var bottom = visibleCellsContainerRect.origin.y + visibleCellsContainerRect.size.height;
         for (i = this._visibleCellViews.length - 1; i >= 0; --i){
@@ -342,7 +342,7 @@ JSClass("UIListView", UIScrollView, {
         if (yOffsetByHeight){
             y -= height;
         }
-        cell.frame = JSRect(0, y, this.bounds.size.width, height);
+        cell.frame = JSRect(0, y, this._cellsContainerView.bounds.size.width, height);
         cell.active = false;
         cell.selected = this._selectedIndexPaths.contains(indexPath);
         cell.contextSelected = this._contextSelectedIndexPaths.contains(indexPath);
@@ -664,10 +664,10 @@ JSClass("UIListView", UIScrollView, {
         this._activeCell = null;
         if (event.clickCount == 2){
         }else{
-            var cellFrame = this.convertRectFromView(cell.bounds, cell);
-            if (cellFrame.origin.y < this.bounds.origin.y){
+            var cellFrame = this.contentView.convertRectFromView(cell.bounds, cell);
+            if (cellFrame.origin.y < this.contentView.bounds.origin.y){
                 this.scrollToRowAtIndexPath(cell.indexPath, UIListView.ScrollPosition.top);
-            }else if (cellFrame.origin.y + cellFrame.size.height > this.bounds.origin.y + this.bounds.size.height){
+            }else if (cellFrame.origin.y + cellFrame.size.height > this.contentView.bounds.origin.y + this.contentView.bounds.size.height){
                 this.scrollToRowAtIndexPath(cell.indexPath, UIListView.ScrollPosition.bottom);
             }
             if (this._handledSelectionOnDown){
@@ -796,10 +796,11 @@ JSClass("UIListView", UIScrollView, {
     },
 
     _scrollToRect: function(rect, position){
+        rect = this.convertRectToView(rect, this.contentView);
         if (position === UIListView.ScrollPosition.auto){
-            if (rect.origin.y < this.bounds.origin.y){
+            if (rect.origin.y < this.contentView.bounds.origin.y){
                 position = UIListView.ScrollPosition.top;
-            }else if (rect.origin.y + rect.size.height > this.bounds.origin.y + this.bounds.size.height){
+            }else if (rect.origin.y + rect.size.height > this.contentView.bounds.origin.y + this.contentView.bounds.size.height){
                 position = UIListView.ScrollPosition.bottom;
             }
         }
@@ -811,10 +812,10 @@ JSClass("UIListView", UIScrollView, {
                 scrollPoint = JSPoint(0, rect.origin.y);
                 break;
             case UIListView.ScrollPosition.bottom:
-                scrollPoint = JSPoint(0, rect.origin.y + rect.size.height - this.bounds.size.height);
+                scrollPoint = JSPoint(0, rect.origin.y + rect.size.height - this.contentView.bounds.size.height);
                 break;
             case UIListView.ScrollPosition.middle:
-                scrollPoint = JSPoint(0, rect.origin.y + rect.size.height / 2.0 - this.bounds.size.height / 2.0);
+                scrollPoint = JSPoint(0, rect.origin.y + rect.size.height / 2.0 - this.contentView.bounds.size.height / 2.0);
                 break;
         }
         this.contentOffset = scrollPoint;

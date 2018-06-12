@@ -313,7 +313,7 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
         }
         return JSRect(
             verticalFrame.origin.y,
-            scroller.bounds.size.height,
+            verticalFrame.origin.x,
             verticalFrame.size.height,
             verticalFrame.size.width
         );
