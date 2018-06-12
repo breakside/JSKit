@@ -312,7 +312,11 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
         scroller._knob.cornerRadius = scroller.direction === UIScroller.Direction.vertical ? scroller._knob.frame.size.width / 2.0 : scroller._knob.frame.size.height / 2.0;
         this._cancelHide(scroller);
         if (!scroller.stylerProperties.expanded){
-            this._hideAnimated(scroller);
+            if (scroller.over){
+                this.setExpanded(scroller, true);
+            }else{
+                this._hideAnimated(scroller);
+            }
         }
     },
 
