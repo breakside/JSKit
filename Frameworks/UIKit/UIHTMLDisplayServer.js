@@ -231,11 +231,16 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     _layerInserted: function(layer, parentContext){
         var known = layer._displayServer === this;
+        var removeQueued = layer.objectID in this._removedLayers;
         layer._displayServer = this;
         this._insertedLayers[layer.objectID] = {layer: layer, parentContext: parentContext};
-        if (layer.objectID in this._removedLayers){
+        if (removeQueued){
             delete this._removedLayers[layer.objectID];
         }
+        // For completely new layers, a full display and position are required since this
+        // is the first opportunity to display and position the layer.  A layout may be
+        // required, but this is something the layer can do without a display server, and
+        // therefore is based on a private flag.
         if (!known){
             if (layer._needsLayout){
                 this.setLayerNeedsLayout(layer);
@@ -243,6 +248,10 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             }
             this.setLayerNeedsReposition(layer);
             this.setLayerNeedsDisplay(layer);
+        }
+        // For completely new layers, or removed layers that are re-inserted within the same
+        // display cyle, all sublayers need to be inserted (or re-inserted)
+        if (!known || removeQueued){
             for (var i = 0, l = layer.sublayers.length; i < l; ++i){
                 this.layerInserted(layer.sublayers[i]);
             }
@@ -251,12 +260,21 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     },
 
     layerRemoved: function(layer){
+        // While it might seem like setting the layer._displayServer property to
+        // null is appropirate here, we'll instead do so only in the final removal
+        // within _flushDOMInsertsAndRemovals. This allows a layer that is immediately
+        // re-inserted to not go through a full re-dsiplay unless absolutely necessary.
+        // NOTE: If this needs to change in the future, at least 3 operations need
+        // to happen in coordination:
+        // 1. layer._displayServer = null
+        // 2. layer._needsDisplay = this.layerNeedsDisplay(layer)
+        // 3. layer's context._hasRenderedOnce = false
+        // A previous bug (forgetting #3) led to the rethink that setting layer._displayServer = null
+        // wasn't really necessary.
         this._removedLayers[layer.objectID] = layer;
         if (layer.objectID in this._insertedLayers){
             delete this._insertedLayers[layer.objectID];
         }
-        layer._needsLayout = this.layerNeedsLayout(layer);
-        layer._displayServer = null;
         for (var i = 0, l = layer.sublayers.length; i < l; ++i){
             this.layerRemoved(layer.sublayers[i]);
         }
@@ -270,6 +288,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         // Removals
         for (layerId in this._removedLayers){
             layer = this._removedLayers[layerId];
+            layer._displayServer = null;
             this._removeLayerFromDOM(layer);
             this._removeLayerFromUpdateQueues(layer);
         }
@@ -329,6 +348,17 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     _insertLayerIntoDOM: function(layer, parentContext){
         var context = this.contextForLayer(layer);
         var insertIndex = parentContext.firstSublayerNodeIndex + layer.sublayerIndex;
+        // If we're moving within the same node, we need to be careful about the index
+        // calculations.  For example, if context.element is currently at index 4, and it's
+        // moving to index 7, that 7 was calculated assuming that index 4 was removed.  So it
+        // really should be 8 in the DOM since our element is still in there.  But we can't just
+        // add 1 because the same doesn't hold if we're moving down in index, like from 7 to 4.
+        // So the easiest thing to do is remove our element from the parent first.  Alternatively,
+        // we could find the current index with Array.indexOf(), and conditionally add 1 if moving up.
+        // I doubt there's a big performance difference.
+        if (context.element.parentNode === parentContext.element){
+            parentContext.element.removeChild(context.element);
+        }
         if (insertIndex < parentContext.element.childNodes.length){
             if (context.element !== parentContext.element.childNodes[insertIndex]){
                 parentContext.element.insertBefore(context.element, parentContext.element.childNodes[insertIndex]);
