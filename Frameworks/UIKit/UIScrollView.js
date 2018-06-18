@@ -282,6 +282,38 @@ JSClass('UIScrollView', UIView, {
     },
 
     // --------------------------------------------------------------------
+    // MARK: - Scrolling
+
+    scrollToRect: function(rect, position){
+        rect = this.convertRectToView(rect, this.contentView);
+        if (position === UIScrollView.ScrollPosition.auto){
+            // Auto position means choose top if the target is above the current offset,
+            // bottom if the target is below the offset, or nothing if the target is fully visible
+            if (rect.origin.y < this.contentView.bounds.origin.y){
+                position = UIScrollView.ScrollPosition.top;
+            }else if (rect.origin.y + rect.size.height > this.contentView.bounds.origin.y + this.contentView.bounds.size.height){
+                position = UIScrollView.ScrollPosition.bottom;
+            }
+        }
+        var scrollPoint = this.contentOffset;
+        switch (position){
+            case UIScrollView.ScrollPosition.auto:
+                // Only get here if the target is fully visible, in which case we don't move at all
+                break;
+            case UIScrollView.ScrollPosition.top:
+                scrollPoint = JSPoint(0, rect.origin.y);
+                break;
+            case UIScrollView.ScrollPosition.bottom:
+                scrollPoint = JSPoint(0, rect.origin.y + rect.size.height - this.contentView.bounds.size.height);
+                break;
+            case UIScrollView.ScrollPosition.middle:
+                scrollPoint = JSPoint(0, rect.origin.y + rect.size.height / 2.0 - this.contentView.bounds.size.height / 2.0);
+                break;
+        }
+        this.contentOffset = scrollPoint;
+    },
+
+    // --------------------------------------------------------------------
     // MARK: - Scroll Events
 
     hitTest: function(locationInView){
@@ -316,6 +348,25 @@ JSClass('UIScrollView', UIView, {
     _verticalScrollerValueChanged: function(scroller){
         var y = this._minContentOffset.y + (this._maxContentOffset.y - this._minContentOffset.y) * scroller.value;
         this.contentOffset = JSPoint(this._contentOffset.x, y);
+    },
+
+    touchesBegan: function(touches, event){
+    },
+
+    touchesMoved: function(touches, event){
+    },
+
+    touchesEnded: function(touches, event){
+    },
+
+    touchesCanceled: function(touches, event){
     }
 
 });
+
+UIScrollView.ScrollPosition = {
+    auto: 0,
+    top: 1,
+    bottom: 2,
+    middle: 3
+};

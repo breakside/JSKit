@@ -116,7 +116,6 @@ JSClass("UIListViewCell", UIView, {
             this.contentView.backgroundColor = null;
             this._titleLabel.textColor = JSColor.blackColor();
         }
-        // TODO: upate view
     },
 
     _toggleState: function(flag, on){
