@@ -1,6 +1,6 @@
 // #import "UIKit/UIScrollView.js"
 // #import "UIKit/UIEvent.js"
-/* global JSClass, UIView, UIScrollView, JSProtocol, JSReadOnlyProperty, JSDynamicProperty, UIListView, JSSize, JSIndexPath, JSRect, UIEvent, JSIndexPathSet, JSIndexPathRange, JSBinarySearcher, JSPoint, UIListViewHeaderFooterView */
+/* global JSClass, UIView, UIScrollView, JSProtocol, JSReadOnlyProperty, JSDynamicProperty, UIListView, JSSize, JSIndexPath, JSRect, UIEvent, JSIndexPathSet, JSIndexPathRange, JSBinarySearcher, JSPoint, UIListViewHeaderFooterView, UIListViewStyler, UIListViewDefaultStyler */
 'use strict';
 
 (function(){
@@ -46,6 +46,9 @@ JSClass("UIListView", UIScrollView, {
 
     initWithSpec: function(spec, values){
         UIListView.$super.initWithSpec.call(this, spec, values);
+        if ('styler' in values){
+            this._styler = spec.resolvedValue(values.styler);
+        }
         this._commonListInit();
         if ('rowHeight' in values){
             this._rowHeight = spec.resolvedValue(values.rowHeight);
@@ -76,9 +79,13 @@ JSClass("UIListView", UIScrollView, {
         if ('allowsMultipleSelection' in values){
             this.allowsMultipleSelection = spec.resolvedValue(values.allowsMultipleSelection);
         }
+        if ('headersStickToTop' in values){
+            this._headersStickToTop = spec.resolvedValue(values.headersStickToTop);
+        }
     },
 
     _commonListInit: function(){
+        this.stylerProperties = {};
         this._visibleCellViews = [];
         this._visibleHeaderViews = [];
         this._visibleFooterViews = [];
@@ -90,6 +97,10 @@ JSClass("UIListView", UIScrollView, {
         this._selectedIndexPaths = JSIndexPathSet();
         this._contextSelectedIndexPaths = JSIndexPathSet();
         this.contentView.addSubview(this._cellsContainerView);
+        if (this._styler === null){
+            this._styler = UIListView.defaultStyler;
+        }
+        this._styler.initializeListView(this);
     },
 
     // --------------------------------------------------------------------
@@ -97,6 +108,12 @@ JSClass("UIListView", UIScrollView, {
     
     delegate: null,
     dataSource: null,
+
+    // --------------------------------------------------------------------
+    // MARK: - Styling
+    
+    sylerProperties: null,
+    styler: JSDynamicProperty('_styler', null),
 
     // --------------------------------------------------------------------
     // MARK: - Cell Sizing
@@ -126,6 +143,7 @@ JSClass("UIListView", UIScrollView, {
             var cellClass = this._cellClassesByIdentifier[identifier];
             if (cellClass){
                 cell = cellClass.initWithReuseIdentifier(identifier);
+                this._styler.initializeCell(cell, indexPath);
             }
         }
         return cell;
@@ -177,7 +195,15 @@ JSClass("UIListView", UIScrollView, {
         this._headerFooterClassesByIdentifier[identifier] = headerFooterClass;
     },
 
-    dequeueReusableHeaderFooterWithIdentifier: function(identifier, indexPath){
+    dequeueReusableHeaderWithIdentifier: function(identifier, kind, section){
+        return this._dequeueReusableHeaderFooterWithIdentifier(identifier, UIListViewHeaderFooterView.Kind.header, section);
+    },
+
+    dequeueReusableFooterWithIdentifier: function(identifier, kind, section){
+        return this._dequeueReusableHeaderFooterWithIdentifier(identifier, UIListViewHeaderFooterView.Kind.footer, section);
+    },
+
+    _dequeueReusableHeaderFooterWithIdentifier: function(identifier, kind, section){
         var headerFooter = null;
         var queue = this._reusableHeaderFootersByIdentifier[identifier];
         if (queue && queue.length > 0){
@@ -186,6 +212,14 @@ JSClass("UIListView", UIScrollView, {
             var headerFooterClass = this._headerFooterClassesByIdentifier[identifier];
             if (headerFooterClass){
                 headerFooter = headerFooterClass.initWithReuseIdentifier(identifier);
+                switch (kind){
+                    case UIListViewHeaderFooterView.Kind.header:
+                        this._styler.initializeHeader(headerFooter, section);
+                        break;
+                    case UIListViewHeaderFooterView.Kind.footer:
+                        this._styler.initializeFooter(headerFooter, section);
+                        break;
+                }
             }
         }
         return headerFooter;
@@ -331,7 +365,7 @@ JSClass("UIListView", UIScrollView, {
     // --------------------------------------------------------------------
     // MARK: - Layout
 
-    _headersStickToTop: false,
+    headersStickToTop: JSDynamicProperty('_headersStickToTop', false),
 
     layoutSubviews: function(){
         UIListView.$super.layoutSubviews.call(this);
@@ -447,11 +481,6 @@ JSClass("UIListView", UIScrollView, {
 
     // --------------------------------------------------------------------
     // MARK: - Updating Visible Cells
-
-    _firstVisibleViewType: null,
-    _firstVisibleIndexPath: null,
-    _lastVisibleViewType: null,
-    _lastVisibleIndexPath: null,
 
     _updateVisibleCells: function(){
         if (!this._cachedData){
@@ -896,6 +925,7 @@ JSClass("UIListView", UIScrollView, {
         cell.active = false;
         cell.selected = this._selectedIndexPaths.contains(indexPath);
         cell.contextSelected = this._contextSelectedIndexPaths.contains(indexPath);
+        this._styler.updateCell(cell, indexPath);
         return cell;
     },
 
@@ -912,6 +942,7 @@ JSClass("UIListView", UIScrollView, {
         }
         this._cachedData.expectedHeaderYOrigins[section] = y;
         header.frame = JSRect(0, y, this._cellsContainerView.bounds.size.width, height);
+        this._styler.updateHeader(header, section);
         return header;
     },
 
@@ -927,6 +958,7 @@ JSClass("UIListView", UIScrollView, {
             y -= height;
         }
         footer.frame = JSRect(0, y, this._cellsContainerView.bounds.size.width, height);
+        this._styler.updateFooter(footer, section);
         return footer;
     },
 
@@ -1457,25 +1489,6 @@ JSClass("UIListView", UIScrollView, {
 
 });
 
-var UIListViewChildIterator = function(indexPath, numberOfRowsBySection){
-    if (this === undefined){
-        return new UIListViewChildIterator(indexPath);
-    }
-    this.indexPath = JSIndexPath(indexPath);
-    this.numberOfRowsBySection = numberOfRowsBySection;
-    this.viewType = UIListView.ViewType.cell;
-};
-
-UIListViewChildIterator.prototype = {
-
-    increment: function(){
-    },
-
-    decrement: function(){
-    }
-
-};
-
 var UNKNOWN_Y_ORIGIN = -1;
 
 UIListView.ViewType = {
@@ -1486,5 +1499,148 @@ UIListView.ViewType = {
 };
 
 UIListView.ScrollPosition = UIScrollView.ScrollPosition;
+
+JSClass("UIListViewStyler", JSObject, {
+
+    init: function(){
+    },
+
+    initializeListView: function(listView){
+    },
+
+    initializeCell: function(cell, indexPath){
+    },
+
+    initializeHeader: function(header, section){
+    },
+
+    initializeFooter: function(footer, section){
+    },
+
+    updateCell: function(cell, indexPath){
+    },
+
+    updateHeader: function(header, section){
+    },
+
+    updateFooter: function(footer, section){
+    }
+
+});
+
+JSClass("UIListViewDefaultStyler", UIListViewStyler, {
+
+    cellTextColor: null,
+    selectedCellTextColor: null,
+    selectedCellBackgroundColor: null,
+    contextSelectedCellBorderColor: null,
+    cellBackgroundColor: null,
+
+    headerTextColor: null,
+    headerBackgroundColor: null,
+
+    init: function(){
+        this._commonStylerInit();
+    },
+
+    initWithSpec: function(spec, values){
+        UIListViewDefaultStyler.$super.initWithSpec.call(this, spec, values);
+        if ('cellTextColor' in values){
+            this.cellTextColor = spec.resolvedValue(values.cellTextColor, "JSColor");
+        }
+        if ('selectedCellTextColor' in values){
+            this.selectedCellTextColor = spec.resolvedValue(values.selectedCellTextColor, "JSColor");
+        }
+        if ('selectedCellBackgroundColor' in values){
+            this.selectedCellBackgroundColor = spec.resolvedValue(values.selectedCellBackgroundColor, "JSColor");
+        }
+        if ('headerTextColor' in values){
+            this.headerTextColor = spec.resolvedValue(values.headerTextColor, "JSColor");
+        }
+        if ('headerBackgroundColor' in values){
+            this.headerBackgroundColor = spec.resolvedValue(values.headerBackgroundColor, "JSColor");
+        }
+        this._commonStylerInit();
+    },
+
+    _commonStylerInit: function(){
+        if (this.cellTextColor === null){
+            this.cellTextColor = JSColor.blackColor;
+        }
+        if (this.selectedCellTextColor === null){
+            this.selectedCellTextColor = JSColor.whiteColor;
+        }
+        if (this.selectedCellBackgroundColor === null){
+            this.selectedCellBackgroundColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1);
+        }
+        if (this.contextSelectedCellBorderColor === null){
+            this.contextSelectedCellBorderColor = this.selectedCellBackgroundColor.colorDarkenedByPercentage(0.5);
+        }
+        if (this.headerTextColor === null){
+            this.headerTextColor = JSColor.blackColor;
+        }
+    },
+
+    updateCell: function(cell, indexPath){
+        if (cell.contextSelected){
+            cell.contentView.borderWidth = 2.0;
+            cell.contentView.borderColor = this.selectedCellBackgroundColor;
+        }else{
+            cell.contentView.borderWidth = 0;
+        }
+        if (cell.selected){
+            cell.contentView.borderColor = this.contextSelectedCellBorderColor;
+            cell.contentView.backgroundColor = this.selectedCellBackgroundColor;
+            if (cell._titleLabel !== null){
+                cell._titleLabel.textColor = this.selectedCellTextColor;
+            }
+            if (cell._detailLabel !== null){
+                cell._detailLabel.textColor = this.selectedCellTextColor;
+            }
+        }else{
+            cell.contentView.backgroundColor = this.cellBackgroundColor;
+            if (cell._titleLabel !== null){
+                cell._titleLabel.textColor = this.cellTextColor;
+            }
+        }
+    },
+
+    updateHeader: function(header, section){
+        if (header._titleLabel !== null){
+            header._titleLabel.textColor = this.headerTextColor;
+        }
+    },
+
+    updateFooter: function(footer, section){
+        if (footer._titleLabel !== null){
+            footer._titleLabel.textColor = this.headerTextColor;
+        }
+    }
+
+});
+
+Object.defineProperties(UIListViewDefaultStyler, {
+    shared: {
+        configurable: true,
+        get: function UIListViewDefaultStyler_getShared(){
+            var shared = UIListViewDefaultStyler.init();
+            Object.defineProperty(this, 'shared', {value: shared});
+            return shared;
+        }
+    }
+});
+
+Object.defineProperties(UIListView, {
+    defaultStyler: {
+        configurable: true,
+        get: function UIListView_getDefaultStyler(){
+            Object.defineProperty(UIListView, 'defaultStyler', {writable: true, value: UIListViewDefaultStyler.shared});
+            return UIListView.defaultStyler;
+        },
+        set: function UIListView_setDefaultStyler(defaultStyler){
+            Object.defineProperty(UIListView, 'defaultStyler', {writable: true, value: defaultStyler});
+        }
+    }
+});
 
 })();

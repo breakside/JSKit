@@ -79,6 +79,15 @@ JSClass('JSColor', JSObject, {
         }
     },
 
+    initWithBlendedColor: function(base, otherColor, blendPercentage){
+        otherColor = otherColor.rgbaColor();
+        var original = base.rgbaColor();
+        var r = original.red   + (otherColor.red   - original.red)   * blendPercentage;
+        var g = original.green + (otherColor.green - original.green) * blendPercentage;
+        var b = original.blue  + (otherColor.blue  - original.blue)  * blendPercentage;
+        this.initWithRGBA(r, g, b, original.alpha);
+    },
+
     initWithSpec: function(spec, values){
         if (values.rgba){
             var components = values.rgba.parseNumberArray();
@@ -94,6 +103,11 @@ JSClass('JSColor', JSObject, {
             this.initWithRGBA.apply(this, components);
         }else if (values.white){
             this.initWithWhite(values.white);
+        }else if (values.blendBase && values.with && values.percent){
+            var base = spec.resolvedValue(values.blendBase, "JSColor");
+            var otherColor = spec.resolvedValue(values.with, "JSColor");
+            var blendPercentage = spec.resolvedValue(values.percent) / 100;
+            this.initWithBlendedColor(base, otherColor, blendPercentage);
         }
     },
 
@@ -141,12 +155,7 @@ JSClass('JSColor', JSObject, {
     },
 
     colorByBlendingColor: function(otherColor, blendPercentage){
-        otherColor = otherColor.rgbaColor();
-        var original = this.rgbaColor();
-        var r = original.red   + (otherColor.red   - original.red)   * blendPercentage;
-        var g = original.green + (otherColor.green - original.green) * blendPercentage;
-        var b = original.blue  + (otherColor.blue  - original.blue)  * blendPercentage;
-        return JSColor.initWithRGBA(r, g, b, original.alpha);
+        return JSColor.initWithBlendedColor(this, otherColor, blendPercentage);
     },
 
     rgbaColor: function(){
@@ -250,28 +259,62 @@ SpaceComponentMap[JSColor.SpaceIdentifier.hsla] = { 'hue': 0, 'saturation': 1, '
 SpaceComponentMap[JSColor.SpaceIdentifier.gray] = { 'white': 0 };
 SpaceComponentMap[JSColor.SpaceIdentifier.graya] = { 'white': 0, 'alpha': 1 };
 
-JSColor.clearColor = function(){
-    return JSColor.initWithRGBA(0, 0, 0, 0);
-};
+Object.defineProperties(JSColor, {
 
-JSColor.whiteColor = function(){
-    return JSColor.initWithWhite(1.0);
-};
+    clearColor: {
+        configurable: true,
+        get: function JSColor_getClearColor(){
+            var color = JSColor.initWithRGBA(0, 0, 0, 0);
+            Object.defineProperty(this, 'clearColor', {value: color});
+            return color;
+        }
+    },
 
-JSColor.blackColor = function(){
-    return JSColor.initWithWhite(0);
-};
+    whiteColor: {
+        configurable: true,
+        get: function JSColor_getWhiteColor(){
+            var color = JSColor.initWithWhite(1.0);
+            Object.defineProperty(this, 'whiteColor', {value: color});
+            return color;
+        }
+    },
 
-JSColor.redColor = function(){
-    return JSColor.initWithRGBA(1.0, 0, 0);
-};
+    blackColor: {
+        configurable: true,
+        get: function JSColor_getBlackColor(){
+            var color = JSColor.initWithWhite(0);
+            Object.defineProperty(this, 'blackColor', {value: color});
+            return color;
+        }
+    },
 
-JSColor.greenColor = function(){
-    return JSColor.initWithRGBA(0, 1.0, 0);
-};
+    redColor: {
+        configurable: true,
+        get: function JSColor_getBlackColor(){
+            var color = JSColor.initWithRGBA(1.0, 0, 0);
+            Object.defineProperty(this, 'redColor', {value: color});
+            return color;
+        }
+    },
 
-JSColor.blueColor = function(){
-    return JSColor.initWithRGBA(0, 0, 1.0);
-};
+    greenColor: {
+        configurable: true,
+        get: function JSColor_getBlackColor(){
+            var color = JSColor.initWithRGBA(0, 1.0, 0);
+            Object.defineProperty(this, 'greenColor', {value: color});
+            return color;
+        }
+    },
+
+    blueColor: {
+        configurable: true,
+        get: function JSColor_getBlackColor(){
+            var color = JSColor.initWithRGBA(0, 0, 1.0);
+            Object.defineProperty(this, 'blueColor', {value: color});
+            return color;
+        }
+    },
+
+});
 
 })();

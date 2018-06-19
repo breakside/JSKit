@@ -13,6 +13,7 @@ JSClass("UIListViewHeaderFooterView", UIView, {
     contentView: JSReadOnlyProperty('_contentView', null),
     titleLabel: JSLazyInitProperty('_createTitleLabel', '_titleLabel'),
     detailLabel: JSLazyInitProperty('_createDetailLabel', '_detailLabel'),
+    stylerProperties: null,
 
     initWithReuseIdentifier: function(identifier){
         this.init();
@@ -21,15 +22,16 @@ JSClass("UIListViewHeaderFooterView", UIView, {
 
     initWithFrame: function(frame){
         UIListViewHeaderFooterView.$super.initWithFrame.call(this, frame);
-        this._commonCellInit();
+        this._commonHeaderFooterInit();
     },
 
     initWithSpec: function(spec, values){
         UIListViewHeaderFooterView.$super.initWithSpec.call(this, spec, values);
-        this._commonCellInit();
+        this._commonHeaderFooterInit();
     },
 
-    _commonCellInit: function(){
+    _commonHeaderFooterInit: function(){
+        this.stylerProperties = {};
         this._titleInsets = JSInsets(0, 10);
         this._contentView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));
         this.addSubview(this._contentView);

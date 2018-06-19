@@ -13,6 +13,7 @@ JSClass("UIListViewCell", UIView, {
     contentView: JSReadOnlyProperty('_contentView', null),
     titleLabel: JSLazyInitProperty('_createTitleLabel', '_titleLabel'),
     detailLabel: JSLazyInitProperty('_createDetailLabel', '_detailLabel'),
+    stylerProperties: null,
 
     initWithReuseIdentifier: function(identifier){
         this.init();
@@ -30,6 +31,7 @@ JSClass("UIListViewCell", UIView, {
     },
 
     _commonCellInit: function(){
+        this.stylerProperties = {};
         this._titleInsets = JSInsets(0, 10);
         this._contentView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));
         this.addSubview(this._contentView);
@@ -97,25 +99,7 @@ JSClass("UIListViewCell", UIView, {
     },
 
     _didChangeState: function(){
-        if (this.contextSelected){
-            this.contentView.borderWidth = 2.0;
-            this.contentView.borderColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1);
-        }else{
-            this.contentView.borderWidth = 0;
-        }
-        if (this.selected){
-            this.contentView.borderColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1).colorDarkenedByPercentage(0.5);
-            this.contentView.backgroundColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1);
-            if (this._titleLabel !== null){
-                this._titleLabel.textColor = JSColor.initWithRGBA(255/255, 255/255, 255/255, 1);
-            }
-            if (this._detailLabel !== null){
-                this._detailLabel.textColor = JSColor.initWithRGBA(255/255, 255/255, 255/255, 1);
-            }
-        }else{
-            this.contentView.backgroundColor = null;
-            this._titleLabel.textColor = JSColor.blackColor();
-        }
+        this.listView.styler.updateCell(this, this.indexPath);
     },
 
     _toggleState: function(flag, on){

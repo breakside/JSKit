@@ -393,7 +393,7 @@ JSClass('UIWindow', UIView, {
     _commonWindowInit: function(){
         this.window = this;
         if (this.backgroundColor === null){
-            this.backgroundColor = JSColor.whiteColor();
+            this.backgroundColor = JSColor.whiteColor;
         }
         this.clipsToBounds = true;
         if (this._contentView === null){

@@ -492,14 +492,14 @@ JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
 
     initializeControl: function(textField){
         textField.stylerProperties.respondingIndicatorLayer = UILayer.init();
-        textField.stylerProperties.respondingIndicatorLayer.backgroundColor = JSColor.blackColor();
+        textField.stylerProperties.respondingIndicatorLayer.backgroundColor = JSColor.blackColor;
         textField.stylerProperties.respondingIndicatorLayer.constraintBox = JSConstraintBox({left: 0, bottom: 0, right: 0, height: 1});
         textField.layer.addSublayer(textField.stylerProperties.respondingIndicatorLayer);
     },
 
     updateControl: function(textField){
         if (textField.active){
-            textField.stylerProperties.respondingIndicatorLayer.backgroundColor = JSColor.blackColor();
+            textField.stylerProperties.respondingIndicatorLayer.backgroundColor = JSColor.blackColor;
         }else{
             textField.stylerProperties.respondingIndicatorLayer.backgroundColor = JSColor.initWithWhite(0.8);
         }

@@ -271,7 +271,7 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
         scroller.stylerProperties.trackLayer.borderWidth = 1.0;
         scroller.stylerProperties.trackLayer.maskedBorders = scroller.direction === UIScroller.Direction.vertical ? UILayer.Sides.minX : UILayer.Sides.minY;
         scroller.stylerProperties.knobIndicatorLayer = UILayer.init();
-        scroller.stylerProperties.knobIndicatorLayer.backgroundColor = JSColor.blackColor().colorWithAlpha(0.6);
+        scroller.stylerProperties.knobIndicatorLayer.backgroundColor = JSColor.blackColor.colorWithAlpha(0.6);
         scroller.stylerProperties.knobIndicatorLayer.cornerRadius = this.expandedSize;
         scroller._knob.layer.addSublayer(scroller.stylerProperties.knobIndicatorLayer);
         if (scroller.direction === UIScroller.Direction.vertical){

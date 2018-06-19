@@ -21,7 +21,7 @@ JSClass("UIButton", UIControl, {
         UIButton.$super.commonUIControlInit.call(this);
         this._titleLabel = UILabel.init();
         this._titleLabel.textAlignment = JSTextAlignment.center;
-        this._titleLabel.backgroundColor = JSColor.clearColor();
+        this._titleLabel.backgroundColor = JSColor.clearColor;
         this._titleLabel.font = JSFont.systemFontOfSize(JSFont.systemFontSize).fontWithWeight(JSFont.Weight.regular);
         this.addSubview(this._titleLabel);
         if (this._styler === null){
