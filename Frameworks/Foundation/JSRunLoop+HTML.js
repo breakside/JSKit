@@ -1,5 +1,5 @@
 // #import "Foundation/JSRunLoop.js"
-/* global JSRunLoop, window, Promise */
+/* global JSRunLoop, JSGlobalObject, Promise */
 'use strict';
 
 (function(){
@@ -31,7 +31,7 @@ JSRunLoop.definePropertiesFromExtensions({
 
 });
 
-if (window.Promise){
+if (JSGlobalObject.Promise){
 
     JSRunLoop.definePropertiesFromExtensions({
         _scheduleQueueFlush: function(){

@@ -109,11 +109,6 @@ JSClass("UIWindowServer", JSObject, {
         }
         this.displayServer.windowInserted(window);
         this._endWindowLevelChange();
-        // Force layout and display right now so all sizes are correct when viewDidAppear is called
-        // FIXME: need current time to ensure animations happen
-        // OR, need to make this call only if update isn't already queued
-        this.displayServer.updateDisplay();
-        window.didBecomeVisible();
         if (window.receivesAllEvents && this.mouseEventWindow !== null && window.layer.sublayerIndex > this.mouseEventWindow.layer.sublayerIndex){
             window.adoptMouseEvents(this.mouseEventWindow);
             this.mouseEventWindow.cancelMouseEvents();

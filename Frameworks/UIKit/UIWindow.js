@@ -111,7 +111,6 @@ JSClass('UIWindow', UIView, {
         this.windowServer.makeWindowKeyAndVisible(this);
         if (this._contentViewController){
             this._contentViewController.viewWillAppear();
-            this._contentViewController.viewDidAppear();
         }
     },
 
@@ -120,6 +119,9 @@ JSClass('UIWindow', UIView, {
     },
 
     didBecomeVisible: function(){
+        if (this._contentViewController){
+            this._contentViewController.viewDidAppear();
+        }
     },
 
     // -------------------------------------------------------------------------

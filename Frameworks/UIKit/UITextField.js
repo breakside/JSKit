@@ -47,6 +47,9 @@ JSClass("UITextField", UIControl, {
             var descriptor = spec.resolvedValue(font.descriptor, "JSFontDescriptor");
             this.font = JSFont.fontWithDescriptor(descriptor, font.pointSize);
         }
+        if ("textColor" in values){
+            this.textColor = spec.resolvedValue(values.textColor, "JSColor");
+        }
         if ("text" in values){
             this.text = spec.resolvedValue(values.text);
         }
@@ -484,6 +487,30 @@ JSClass("UITextField", UIControl, {
 
 JSClass("UITextFieldStyler", UIControlStyler, {
 
+    localCursorColor: null,
+
+    init: function(){
+        this._commonStylerInit();
+    },
+
+    initWithSpec: function(spec, values){
+        UITextFieldStyler.$super.initWithSpec.call(this, spec, values);
+        if ('localCursorColor' in values){
+            this.localCursorColor = spec.resolvedValue(values.localCursorColor, "JSColor");
+        }
+        this._commonStylerInit();
+    },
+
+    _commonStylerInit: function(){
+        if (this.localCursorColor === null){
+            this.localCursorColor = JSColor.initWithRGBA(0, 128/255.0, 255/255.0, 1.0);
+        }
+    },
+
+    initializeControl: function(textField){
+        textField._localEditor.cursorColor = this.localCursorColor;
+    }
+
 });
 
 JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
@@ -491,6 +518,7 @@ JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
     showsOverState: false,
 
     initializeControl: function(textField){
+        UITextFieldDefaultStyler.$super.initializeControl.call(this, textField);
         textField.stylerProperties.respondingIndicatorLayer = UILayer.init();
         textField.stylerProperties.respondingIndicatorLayer.backgroundColor = JSColor.blackColor;
         textField.stylerProperties.respondingIndicatorLayer.constraintBox = JSConstraintBox({left: 0, bottom: 0, right: 0, height: 1});
@@ -504,6 +532,10 @@ JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
             textField.stylerProperties.respondingIndicatorLayer.backgroundColor = JSColor.initWithWhite(0.8);
         }
     }
+
+});
+
+JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
 
 });
 

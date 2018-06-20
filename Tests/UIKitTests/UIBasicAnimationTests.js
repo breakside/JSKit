@@ -32,7 +32,7 @@ JSClass("UIBasicAnimationTests", TKTestSuite, {
         animation.layer = layer;
         animation.duration = 1;
         animation.fromValue = layer.model.backgroundColor = null;
-        layer.model.backgroundColor = JSColor.blackColor();
+        layer.model.backgroundColor = JSColor.blackColor;
         animation.updateForTime(0);
         TKAssert(!animation.isComplete);
         TKAssertExactEquals(layer.presentation.backgroundColor, null);
@@ -41,11 +41,11 @@ JSClass("UIBasicAnimationTests", TKTestSuite, {
         animation = UIBasicAnimation.initWithKeyPath('backgroundColor');
         animation.layer = layer;
         animation.duration = 1;
-        animation.fromValue = layer.model.backgroundColor = JSColor.blackColor();
+        animation.fromValue = layer.model.backgroundColor = JSColor.blackColor;
         layer.model.backgroundColor = null;
         animation.updateForTime(0);
         TKAssert(!animation.isComplete);
-        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.blackColor());
+        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.blackColor);
     },
 
     testInterpolateNumber: function(){
@@ -190,11 +190,11 @@ JSClass("UIBasicAnimationTests", TKTestSuite, {
         var animation = UIBasicAnimation.initWithKeyPath('backgroundColor');
         animation.layer = layer;
         animation.duration = 1;
-        animation.fromValue = layer.model.backgroundColor = JSColor.blackColor();
-        layer.model.backgroundColor = JSColor.whiteColor();
+        animation.fromValue = layer.model.backgroundColor = JSColor.blackColor;
+        layer.model.backgroundColor = JSColor.whiteColor;
         animation.updateForTime(0);
         TKAssert(!animation.isComplete);
-        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.blackColor());
+        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.blackColor);
         animation.updateForTime(0.100);
         TKAssert(!animation.isComplete);
         TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithWhite(0.1));

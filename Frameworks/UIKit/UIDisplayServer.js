@@ -17,6 +17,7 @@ JSClass("UIDisplayServer", JSObject, {
         this.layerDisplayQueue = UIDisplayServerQueue();
         this.layerLayoutQueue = UIDisplayServerQueue();
         this.layerRepositionQueue = UIDisplayServerQueue();
+        this.windowInsertedQueue = UIDisplayServerQueue();
         this.layerAnimationQueue = {};
     },
 
@@ -33,10 +34,12 @@ JSClass("UIDisplayServer", JSObject, {
 
     windowInserted: function(window){
         this.layerInserted(window.layer);
+        this.windowInsertedQueue.enqueue(window);
     },
 
     windowRemoved: function(window){
         this.layerRemoved(window.layer);
+        this.windowInsertedQueue.remove(window);
     },
 
     layerDidChangeProperty: function(layer, keyPath){
@@ -73,6 +76,12 @@ JSClass("UIDisplayServer", JSObject, {
         // Call any animation callbacks
         for (var i = 0, l = completedAnimations.length; i < l; ++i){
             completedAnimations[i].completionFunction(completedAnimations[i]);
+        }
+
+        // Call any window did appear callbacks
+        var window;
+        while ((window = this.windowInsertedQueue.dequeue()) !== null){
+            window.didBecomeVisible();
         }
     },
 

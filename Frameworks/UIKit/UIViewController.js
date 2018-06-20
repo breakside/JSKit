@@ -4,6 +4,7 @@
 'use strict';
 
 JSClass("UIViewController", UIResponder, {
+    parentViewController: null,
     view:           JSDynamicProperty('_view', null),
     isViewLoaded:   false,
     _spec:          null,

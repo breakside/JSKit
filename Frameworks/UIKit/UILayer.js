@@ -719,6 +719,9 @@ UILayer.Sides = {
     all: 0xF
 };
 
+UILayer.Sides.minYmaxY = UILayer.Sides.minY | UILayer.Sides.maxY;
+UILayer.Sides.minXmaxX = UILayer.Sides.minX | UILayer.Sides.maxX;
+
 UILayer.Properties = {
     frame                   : JSRect.Zero,
     bounds                  : JSRect.Zero,

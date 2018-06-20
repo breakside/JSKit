@@ -2,6 +2,8 @@
 /* global JSGlobalObject, JSIndexPath, JSIndexPathRange, JSIndexPathSet, JSBinarySearcher */
 'use strict';
 
+(function(){
+
 JSGlobalObject.JSIndexPath = function(section, row){
     if (this === undefined){
         return new JSIndexPath(section, row);
@@ -48,6 +50,33 @@ JSIndexPath.prototype = {
             return 0;
         }
         return 1;
+    },
+
+    incremented: function(numberOfRowsBySection){
+        var next = new JSIndexPath(this);
+        next.row += 1;
+        while (next !== null && next.row >= numberOfRowsBySection[next.section]){
+            next.section += 1;
+            next.row = 0;
+            if (next.section >= numberOfRowsBySection.length){
+                next = null;
+            }
+        }
+        return next;
+    },
+
+    decremented: function(numberOfRowsBySection){
+        var prev = new JSIndexPath(this);
+        prev.row -= 1;
+        while (prev !== null && prev.row < 0){
+            prev.section -= 1;
+            if (prev.section < 0){
+                prev = null;
+            }else{
+                prev.row = numberOfRowsBySection[prev.section] - 1;
+            }
+        }
+        return prev;
     }
 
 };
@@ -103,8 +132,8 @@ JSIndexPathSet.prototype = {
         this.addRange(JSIndexPathRange(indexPath, indexPath));
     },
 
-    removeIndexPath: function(indexPath){
-        this.removeRange(JSIndexPathRange(indexPath, indexPath));
+    removeIndexPath: function(indexPath, numberOfRowsBySection){
+        this.removeRange(JSIndexPathRange(indexPath, indexPath), numberOfRowsBySection);
     },
 
     addRange: function(range){
@@ -113,7 +142,7 @@ JSIndexPathSet.prototype = {
             return indexPath.compare(b.end);
         });
         var startIndex = searcher.insertionIndexForValue(range.start);
-        var endIndex = searcher.insertionIndexForValue(range.end);
+        var endIndex = range.start.isEqual(range.end) ? startIndex : searcher.insertionIndexForValue(range.end);
         var other;
         if (endIndex < this.ranges.length){
             other = this.ranges[endIndex];
@@ -138,18 +167,54 @@ JSIndexPathSet.prototype = {
         this.ranges.splice(startIndex, endIndex - startIndex, range);
     },
 
-    removeRange: function(range){
+    removeRange: function(range, numberOfRowsBySection){
         var searcher = JSBinarySearcher(this.ranges, function(indexPath, b){
-            if (indexPath.isLessThan(b.start)){
-                return -1;
-            }
-            if (indexPath.isGreaterThan(b.end)){
-                return 1;
-            }
-            return 0;
+            return indexPath.compare(b.end);
         });
         var startIndex = searcher.insertionIndexForValue(range.start);
+        if (startIndex >= this.ranges.length){
+            // If our start index is after the end of our ranges, we have nothing to remove
+            return;
+        }
         var endIndex = range.start.isEqual(range.end) ? startIndex : searcher.insertionIndexForValue(range.end);
+        if (endIndex === 0 && !this.ranges[0].contains(range.end)){
+            // If the end index path is less that our first selection, we have nothing to remove
+            return;
+        }
+        var splitsStart = this.ranges[startIndex].contains(range.start) && this.ranges[startIndex].start.isLessThan(range.start);
+        var splitsEnd = endIndex < this.ranges.length && this.ranges[endIndex].contains(range.end) && this.ranges[endIndex].end.isGreaterThan(range.end);
+        var spliceArgs = [0, 0];
+        if (startIndex === endIndex){
+            if (splitsStart && splitsEnd){
+                var newRange = JSIndexPathRange(this.ranges[startIndex]);
+                newRange.end = range.start.decremented(numberOfRowsBySection);
+                this.ranges[startIndex].start = range.end.incremented(numberOfRowsBySection);
+                spliceArgs.push(newRange);
+            }else if (splitsStart){
+                this.ranges[startIndex].end = range.start.decremented(numberOfRowsBySection);
+            }else if (splitsEnd){
+                this.ranges[endIndex].start = range.end.incremented(numberOfRowsBySection);
+            }else if (this.ranges[startIndex].start.isEqual(range.start) && this.ranges[startIndex].end.isEqual(range.end)){
+                endIndex += 1;
+            }
+        }else{
+            if (splitsStart){
+                this.ranges[startIndex].end = range.start.decremented(numberOfRowsBySection);
+                startIndex += 1;
+            }
+            if (splitsEnd){
+                this.ranges[endIndex].start = range.end.incremented(numberOfRowsBySection);
+            }else if (endIndex < this.ranges.length && this.ranges[endIndex].end.isEqual(range.end)){
+                endIndex += 1;
+            }
+        }
+        spliceArgs[0] = startIndex;
+        if (endIndex > startIndex){
+            spliceArgs[1] = endIndex - startIndex;
+        }
+        if (spliceArgs[1] > 0 || spliceArgs.length > 2){
+            this.ranges.splice.apply(this.ranges, spliceArgs);
+        }
     },
 
     toggleIndexPath: function(indexPath){
@@ -234,3 +299,5 @@ Object.defineProperties(JSIndexPathSet.prototype, {
     }
 
 });
+
+})();

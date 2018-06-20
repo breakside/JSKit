@@ -1,6 +1,6 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UILabel.js"
-/* global JSClass, JSObject, JSFont, JSCopy, JSProtocol, JSSize, JSConstraintBox, JSRect, JSInsets, JSColor, JSImage, JSPoint, JSReadOnlyProperty, JSDynamicProperty, UIView, UITabView, UILabel, JSLazyInitProperty, UILayer, UITabViewItemsView, UITabViewItemView, UITabViewStyler, UITabViewItem, UIImageView, UITabViewDefaultStyler, UITabViewContentContainer */
+/* global JSClass, JSObject, JSFont, JSCopy, JSProtocol, JSSize, JSConstraintBox, JSRect, JSInsets, JSColor, JSImage, JSPoint, JSReadOnlyProperty, JSDynamicProperty, UIView, UITabView, UILabel, JSLazyInitProperty, UILayer, UITabViewItemsView, UITabViewItemView, UITabViewStyler, UITabViewItem, UIImageView, UITabViewDefaultStyler, UITabViewContentContainer, UITabViewImagesStyler */
 'use strict';
 
 (function(){
@@ -206,8 +206,9 @@ JSClass("UITabView", UIView, {
 
 JSClass("UITabViewItem", JSObject, {
 
-    title: JSDynamicProperty("_tilte", null),
+    title: JSDynamicProperty("_title", null),
     image: JSDynamicProperty("_image", null),
+    selectedImage: JSDynamicProperty("_selectedImage", null),
     state: JSReadOnlyProperty("_state", 0),
     view: JSDynamicProperty("_view", null),
     active: JSDynamicProperty(),
@@ -221,10 +222,13 @@ JSClass("UITabViewItem", JSObject, {
         if ('image' in values){
             this.image = JSImage.initWithResourceName(spec.resolvedValue(values.image), spec.bundle);
         }
+        if ('selectedImage' in values){
+            this.selectedImage = JSImage.initWithResourceName(spec.resolvedValue(values.selectedImage), spec.bundle);
+        }
     },
 
     initWithTitle: function(title){
-        this._tilte = title;
+        this._title = title;
     },
 
     initWithImage: function(image){
@@ -320,7 +324,11 @@ JSClass("UITabViewItemView", UIView, {
             this._titleLabel.hidden = true;
         }
         if (this.item.image){
-            this.imageView.image = this.item.image;
+            if (this.item.selectedImage && (this.item.selected || this.item.active)){
+                this.imageView.image = this.item.selectedImage;
+            }else{
+                this.imageView.image = this.item.image;
+            }
             this.imageView.hidden = false;
         }else if (this._imageView !== null){
             this._imageView.hidden = true;
@@ -721,16 +729,77 @@ JSClass("UITabViewTablessStyler", UITabViewStyler, {
 
 JSClass("UITabViewImagesStyler", UITabViewStyler, {
 
-    itemSize: 28,
-    imageSize: 14,
+    itemSize: 30,
+    imageSize: 15,
+    borderColor: null,
     _stateColors: null,
 
     init: function(){
         this._stateColors = JSCopy(defaultStateImageColors);
+        this._commonStylerInit();
     },
 
     initWithSpec: function(spec, values){
-        this._stateColors = JSCopy(defaultStateImageColors);
+        UITabViewImagesStyler.$super.initWithSpec.call(this, spec, values);
+        this._stateColors = [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ];
+        if ('itemSize' in values){
+            this.itemSize = spec.resolvedValue(values.itemSize);
+        }
+        if ('imageSize' in values){
+            this.imageSize = spec.resolvedValue(values.imageSize);
+        }
+        if ('normalColor' in values){
+            this._stateColors[UITabViewItem.State.normal] = spec.resolvedValue(values.normalColor, "JSColor");
+        }
+        if ('activeColor' in values){
+            this._stateColors[UITabViewItem.State.active] = spec.resolvedValue(values.activeColor, "JSColor");
+        }
+        if ('selectedColor' in values){
+            this._stateColors[UITabViewItem.State.selected] = spec.resolvedValue(values.selectedColor, "JSColor");
+        }
+        if ('selectedActiveColor' in values){
+            this._stateColors[UITabViewItem.State.selected | UITabViewItem.State.active] = spec.resolvedValue(values.selectedActiveColor, "JSColor");
+        }
+        if ('borderColor' in values){
+            this.borderColor = spec.resolvedValue(values.borderColor, "JSColor");
+        }
+        this._commonStylerInit();
+    },
+
+    _commonStylerInit: function(){
+        if (this._stateColors[UITabViewItem.State.normal] === null){
+            this._stateColors[UITabViewItem.State.normal] = defaultStateImageColors[UITabViewItem.State.normal];
+        }
+        if (this._stateColors[UITabViewItem.State.over] === null){
+            this._stateColors[UITabViewItem.State.over] = this._stateColors[UITabViewItem.State.normal];
+        }
+        if (this._stateColors[UITabViewItem.State.active] === null){
+            this._stateColors[UITabViewItem.State.active] = this._stateColors[UITabViewItem.State.normal].colorDarkenedByPercentage(0.2);
+        }
+        if (this._stateColors[UITabViewItem.State.active | UITabViewItem.State.over] === null){
+            this._stateColors[UITabViewItem.State.active | UITabViewItem.State.over] = this._stateColors[UITabViewItem.State.active];
+        }
+        if (this._stateColors[UITabViewItem.State.selected] === null){
+            this._stateColors[UITabViewItem.State.selected] = defaultStateImageColors[UITabViewItem.State.selected];
+        }
+        if (this._stateColors[UITabViewItem.State.selected | UITabViewItem.State.over] === null){
+            this._stateColors[UITabViewItem.State.selected | UITabViewItem.State.over] = this._stateColors[UITabViewItem.State.selected];
+        }
+        if (this._stateColors[UITabViewItem.State.selected | UITabViewItem.State.active] === null){
+            this._stateColors[UITabViewItem.State.selected | UITabViewItem.State.active] = this._stateColors[UITabViewItem.State.selected].colorDarkenedByPercentage(0.2);
+        }
+        if (this._stateColors[UITabViewItem.State.selected | UITabViewItem.State.over | UITabViewItem.State.active] === null){
+            this._stateColors[UITabViewItem.State.selected | UITabViewItem.State.over | UITabViewItem.State.active] = this._stateColors[UITabViewItem.State.selected | UITabViewItem.State.active];
+        }
     },
 
     setColorForState: function(color, state){
@@ -738,7 +807,11 @@ JSClass("UITabViewImagesStyler", UITabViewStyler, {
     },
 
     initializeTabView: function(tabView){
-        tabView._contentViewContainer.borderColor = defaultStateBorderColors[0];
+        if (this.borderColor === null){
+            var backgroundColor = tabView.backgroundColor || JSColor.whiteColor;
+            this.borderColor = backgroundColor.colorDarkenedByPercentage(0.2);
+        }
+        tabView._contentViewContainer.borderColor = this.borderColor;
         tabView._contentViewContainer.borderWidth = 1;
         tabView._contentViewContainer.maskedBorders = UILayer.Sides.minY;
     },

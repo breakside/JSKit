@@ -1073,7 +1073,7 @@ JSClass("UIListView", UIScrollView, {
     },
 
     removeIndexPathFromSelection: function(indexPath){
-        this._selectedIndexPaths.removeIndexPath(indexPath);
+        this._selectedIndexPaths.removeIndexPath(indexPath, this._cachedData.numberOfRowsBySection);
         this._updateVisibleCellStates();
     },
 
@@ -1081,33 +1081,14 @@ JSClass("UIListView", UIScrollView, {
         if (indexPath === null){
             return null;
         }
-        var prev = JSIndexPath(indexPath);
-        prev.row -= 1;
-        while (prev !== null && prev.row < 0){
-            prev.section -= 1;
-            if (prev.section < 0){
-                prev = null;
-            }else{
-                prev.row = this._cachedData.numberOfRowsBySection[prev.section] - 1;
-            }
-        }
-        return prev;
+        return indexPath.decremented(this._cachedData.numberOfRowsBySection);
     },
 
     indexPathAfter: function(indexPath){
         if (indexPath === null){
             return null;
         }
-        var next = JSIndexPath(indexPath);
-        next.row += 1;
-        while (next !== null && next.row >= this._cachedData.numberOfRowsBySection[next.section]){
-            next.section += 1;
-            next.row = 0;
-            if (next.section >= this._cachedData.numberOfSections){
-                next = null;
-            }
-        }
-        return next;
+        return indexPath.incremented(this._cachedData.numberOfRowsBySection);
     },
 
     selectableIndexPathAfter: function(indexPath){
@@ -1216,15 +1197,17 @@ JSClass("UIListView", UIScrollView, {
         cell.active = true;
         this._activeCell = cell;
         // command key takes precedence over other modifies, like shift (observed behavior)
-        if (this.allowsMultipleSelection && event.hasModifier(UIEvent.Modifiers.platformCommand)){
+        if (event.hasModifier(UIEvent.Modifiers.platformCommand)){
             this._handledSelectionOnDown = true;
             if (this._selectedIndexPaths.contains(cell.indexPath)){
                 this.removeIndexPathFromSelection(cell.indexPath);
                 // TODO: set anchor to "nearest" selected cell (could be biased in one direction, even if next selected cell is far)
                 this._selectionAnchorIndexPath = null;
-            }else{
+            }else if (this._allowsMultipleSelection){
                 this.addIndexPathToSelection(cell.indexPath);
                 this._selectionAnchorIndexPath = cell.indexPath;
+            }else{
+                this._selectSingleIndexPath(cell.indexPath);
             }
         }else if (this._selectionAnchorIndexPath !== null && this.allowsMultipleSelection && event.hasModifier(UIEvent.Modifiers.shift)){
             this._handledSelectionOnDown = true;
@@ -1308,7 +1291,9 @@ JSClass("UIListView", UIScrollView, {
         this._activeCell.active = false;
         this._activeCell = null;
         if (event.clickCount == 2){
-            // TODO: double click
+            if (this.delegate && this.delegate.listViewDidOpenCellAtIndexPath){
+                this.delegate.listViewDidOpenCellAtIndexPath(this, cell.indexPath);
+            }
         }else{
             var cellFrame = this.contentView.convertRectFromView(cell.bounds, cell);
             if (cellFrame.origin.y < this.contentView.bounds.origin.y){
@@ -1538,6 +1523,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
 
     headerTextColor: null,
     headerBackgroundColor: null,
+    headerBorderColor: null,
 
     init: function(){
         this._commonStylerInit();
@@ -1559,6 +1545,9 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         }
         if ('headerBackgroundColor' in values){
             this.headerBackgroundColor = spec.resolvedValue(values.headerBackgroundColor, "JSColor");
+        }
+        if ('headerBorderColor' in values){
+            this.headerBorderColor = spec.resolvedValue(values.headerBorderColor, "JSColor");
         }
         this._commonStylerInit();
     },
@@ -1608,6 +1597,12 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     updateHeader: function(header, section){
         if (header._titleLabel !== null){
             header._titleLabel.textColor = this.headerTextColor;
+        }
+        header.backgroundColor = this.headerBackgroundColor;
+        if (this.headerBorderColor){
+            header.borderWidth = 1;
+            header.borderColor = this.headerBorderColor;
+            header.maskedBorders = UILayer.Sides.maxY;
         }
     },
 

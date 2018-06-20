@@ -134,22 +134,22 @@ JSClass('UIScrollView', UIView, {
 
         // 1. Figure out if we need to show a vertical scroller
         var minY = -this._contentInsets.top;
-        var maxY = Math.max(0, this._contentSize.height + this._contentInsets.bottom - this._contentFrameSize.height);
-        var showsVerticalScroller = this.scrollsVertically && maxY !== 0;
+        var maxY = Math.max(minY, this._contentSize.height + this._contentInsets.bottom - this._contentFrameSize.height);
+        var showsVerticalScroller = this.scrollsVertically && maxY !== minY;
         if (showsVerticalScroller && !this._verticalScroller.floats){
             this._contentFrameSize.width -= this._verticalScroller.frame.size.width;
         }
 
         // 2. Figure out if we need to show a horizontal scroller
         var minX = -this._contentInsets.left;
-        var maxX = Math.max(0, this._contentSize.width + this._contentInsets.right - this._contentFrameSize.width);
-        var showsHorizontalScroller = this.scrollsHorizontally && maxX !== 0;
+        var maxX = Math.max(minX, this._contentSize.width + this._contentInsets.right - this._contentFrameSize.width);
+        var showsHorizontalScroller = this.scrollsHorizontally && maxX !== minX;
         if (showsHorizontalScroller && !this._horizontalScroller.floats){
             this._contentFrameSize.height -= this._horizontalScroller.frame.size.height;
             if (this.scrollsVertically && !showsVerticalScroller){
                 // 3. Because the content frame height has decreased, we may need to show a vertical scroller after all
                 maxY = Math.max(0, this._contentSize.height + this._contentInsets.bottom - this._contentFrameSize.height);
-                showsVerticalScroller = this.scrollsVertically && maxY !== 0;
+                showsVerticalScroller = this.scrollsVertically && maxY !== minY;
                 if (showsVerticalScroller && !this._verticalScroller.floats){
                     this._contentFrameSize.width -= this._verticalScroller.frame.size.width;
                     maxX += this._verticalScroller.frame.size.width;

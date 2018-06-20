@@ -10,7 +10,7 @@ Most importantly, JSKit sees web applications as exactly that: applications.
 By contrast, web languages like HTML and CSS grew out of a desire to represent
 documents.  From their declariative style to their focus on text-markup (it's
 called hyper _text_ for a reason), what makes them great for desgining static
-documents isn't so great if what you really want to make is a rich interactive
+documents isn't so great when what you really want to make is a rich interactive
 application.
 
 Javascript can help turn those static documents into dynamic and interactive
@@ -21,7 +21,7 @@ expressed by standard elements.
 
 JSKit strives to hide the document-specific concepts behind a coherent
 application paradigm, similar to what's found on mobile or desktop development
-environments that never had the document-baed legacy.
+environments that never had the document-based legacy.
 
 
 Javascript Only
@@ -30,8 +30,8 @@ Javascript Only
 Think about the coding required to add a simple feature in a typical web app.
 It requires editing at least three source files: HTML, CSS, and Javscript.
 
-You end up writing Javascript that generates HTML that fits in with
-already-written HTML.  Then all the CSS styling goes into a separate file.
+Then you end up writing Javascript that generates HTML to fit in with
+already-written HTML.  Meanwhile, all the CSS styling goes into a separate file.
 Styling rich application components can be a chore when the underlying HTML 
 element structure is complicated and CSS has to refer to what are effectively
 private implementation details.
@@ -96,7 +96,7 @@ Getting close, but there's still a problem.  Try moving the downed mouse all the
 way outside the browser window, then let up.  You'll never get the document
 mouse up, and the button will be in a weird state, still listening for move and
 up events.  If you mouse back over the button, it will re-press, even though
-the mouse is up.  So, you can:
+the mouse is up.  To solve that, you can:
 
 - Watch for the mouse to leave the window, and treat it like a mouse up.
 

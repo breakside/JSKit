@@ -10,6 +10,8 @@
         "JSInsets",
         "JSBinarySearcher",
         "JSIndexPath",
+        "JSIndexPathRange",
+        "JSIndexPathSet",
         "UUID",
         "JSClass",
         "JSProtocol",

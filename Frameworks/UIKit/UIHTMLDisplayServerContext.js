@@ -504,6 +504,10 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
             this.borderElement.style.left = '0';
             this.borderElement.style.bottom = '0';
             this.borderElement.style.right = '0';
+            // the border element goes on top of all subviews, so we need to
+            // disable pointer events or else things like cursors on subviews
+            // won't work
+            this.borderElement.style.pointerEvents = 'none';
             this.borderElement.dataset.tag = "border";
         }
 

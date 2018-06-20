@@ -39,8 +39,8 @@ JSClass("UIAnimationTransactionTests", TKTestSuite, {
         animation1.layer = layer;
         transaction.addAnimation(animation1);
         var animation2 = UIBasicAnimation.initWithKeyPath('backgroundColor');
-        animation2.fromValue = JSColor.whiteColor();
-        layer.model.backgroundColor = JSColor.blackColor();
+        animation2.fromValue = JSColor.whiteColor;
+        layer.model.backgroundColor = JSColor.blackColor;
         animation2.duration = transaction.duration;
         animation2.layer = layer;
         transaction.addAnimation(animation2);

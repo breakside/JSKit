@@ -6,7 +6,7 @@
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
 // #feature Document.prototype.createElement
-/* global Node, Element, JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer, jslog_create, UITextFramesetter, UIHTMLTextFramesetter, UIView, UITextAttachmentView */
+/* global JSGlobalObject, Element, JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer, jslog_create, UITextFramesetter, UIHTMLTextFramesetter, UIView, UITextAttachmentView */
 'use strict';
 
 (function(){
@@ -219,6 +219,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     windowInserted: function(window){
         this._layerInserted(window.layer, this.windowsContext);
+        this.windowInsertedQueue.enqueue(window);
     },
 
     layerInserted: function(layer){
@@ -430,7 +431,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
 });
 
-if (!('isConnected' in Node.prototype)){
+if (JSGlobalObject.Node && !('isConnected' in Node.prototype)){
     Object.defineProperty(Element.prototype, 'isConnected', {
         get: function Element_isConnected(){
             return this.ownerDocument.body.contains(this);
