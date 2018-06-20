@@ -145,7 +145,7 @@ JSClass('UIWindow', UIView, {
     // MARK: - Events
 
     mouseDown: function(){
-        this.setFirstResponder(null);
+        // this.setFirstResponder(null);
     },
 
     getFirstResponder: function(){

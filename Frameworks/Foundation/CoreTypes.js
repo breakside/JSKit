@@ -496,6 +496,22 @@ JSInsets.prototype = {
     
 };
 
+Object.defineProperties(JSInsets.prototype, {
+
+    width: {
+        get: function JSInsets_getWidth(){
+            return this.left + this.right;
+        }
+    },
+
+    height: {
+        get: function JSInsets_getHeight(){
+            return this.top + this.bottom;
+        }
+    }
+
+});
+
 Object.defineProperty(JSInsets, 'Zero', {
     enumerable: false,
     get: function JSInsets_Zero(){

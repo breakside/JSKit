@@ -3,7 +3,8 @@
 // #import "UIKit/UITextEditor.js"
 // #import "UIKit/UICursor.js"
 // #import "UIKit/UITextAttachmentView.js"
-/* global JSClass, JSProtocol, UIControl, UIView, UICursor, JSInsets, JSRect, JSSize, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard, JSTimer, JSTextRun, JSAttributedString, UITextAttachmentView, UIControlStyler, UITextFieldStyler, UITextFieldDefaultStyler */
+// #import "UIKit/UIImageView.js"
+/* global JSClass, JSProtocol, UIControl, UIView, UICursor, JSInsets, JSRect, JSSize, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard, JSTimer, JSTextRun, JSAttributedString, UITextAttachmentView, UIControlStyler, UITextFieldStyler, UITextFieldDefaultStyler, UIImageView, JSImage */
 
 'use strict';
 
@@ -15,27 +16,14 @@ JSProtocol("UITextFieldDelegate", JSProtocol, {
 
 JSClass("UITextField", UIControl, {
 
-    text: JSDynamicProperty(),
-    attributedText: JSDynamicProperty(),
-    textColor: JSDynamicProperty(),
-    font: JSDynamicProperty(),
-    multiline: JSDynamicProperty('_multiline', false, 'isMultiline'),
-    minimumHeight: JSDynamicProperty('_minimumHeight', 0),
-    selections: JSReadOnlyProperty(),
-    textInsets: JSDynamicProperty('_textInsets', null),
-    delegate: null,
+    // TODO: placeholder
+
+    // --------------------------------------------------------------------
+    // MARK: - Creating a Text Field
+    
+    _localEditor: null,
     _clipView: null,
     _textLayer: null,
-    _localEditor: null,
-    _boundsScrollThreshold: 7,
-    _boundsScrollDistance: 0,
-    _boundsScrollInterval: 0.03,
-    _boundsScrollTimer: null,
-    _lastDragLocation: null,
-    _lastDragEvent: null,
-    _isDragging: false,
-
-    // TODO: placeholder
 
     initWithSpec: function(spec, values){
         UITextField.$super.initWithSpec.call(this, spec, values);
@@ -55,6 +43,28 @@ JSClass("UITextField", UIControl, {
         }
         if ("multiline" in values){
             this.multiline = values.multiline;
+        }
+        if ('leftImage' in values){
+            this.leftImage = JSImage.initWithResourceName(values.leftImage, spec.bundle);
+        }else if ('leftAccessoryView' in values){
+            this.leftAccessoryView = spec.resolvedValue(values.leftAccessoryView);
+        }
+        if ('leftAccessorySize' in values){
+            this.leftAccessorySize = JSSize.apply(undefined, values.leftAccessorySize.parseNumberArray());
+        }
+        if ('leftAccessoryInsets' in values){
+            this.leftAccessoryInsets = JSInsets.apply(undefined, values.leftAccessoryInsets.parseNumberArray());
+        }
+        if ('rightImage' in values){
+            this.rightImage = JSImage.initWithResourceName(values.rightImage, spec.bundle);
+        }else if ('rightAccessoryView' in values){
+            this.rightAccessoryView = spec.resolvedValue(values.rightAccessoryView);
+        }
+        if ('rightAccessorySize' in values){
+            this.rightAccessorySize = JSSize.apply(undefined, values.rightAccessorySize.parseNumberArray());
+        }
+        if ('rightAccessoryInsets' in values){
+            this.rightAccessoryInsets = JSInsets.apply(undefined, values.rightAccessoryInsets.parseNumberArray());
         }
         this._minimumHeight = this.bounds.size.height;
     },
@@ -76,19 +86,23 @@ JSClass("UITextField", UIControl, {
         this._localEditor.delegate = this;
         this._clipView.layer.addSublayer(this._textLayer);
         this.addSubview(this._clipView);
-        this.cursor = UICursor.iBeam;
+        this._clipView.cursor = UICursor.iBeam;
         if (this._styler === null){
             this._styler = UITextField.defaultStyler;
         }
         this._styler.initializeControl(this);
     },
 
-    setMultiline: function(multiline){
-        this._multiline = multiline;
-        this._textLayer.textLayoutManager.includeEmptyFinalLine = multiline;
-        this._textLayer.widthTracksText = !multiline;
-        this._textLayer.maximumNumberOfLines = multiline ? 0 : 1;
-    },
+    // --------------------------------------------------------------------
+    // MARK: - Delegate
+
+    delegate: null,
+
+    // --------------------------------------------------------------------
+    // MARK: - Text Content
+
+    text: JSDynamicProperty(),
+    attributedText: JSDynamicProperty(),
 
     setText: function(text){
         this._textLayer.text = text;
@@ -106,6 +120,12 @@ JSClass("UITextField", UIControl, {
         return this._textLayer.attributedText;
     },
 
+    // --------------------------------------------------------------------
+    // MARK: - Styling
+
+    textColor: JSDynamicProperty(),
+    font: JSDynamicProperty(),
+
     setTextColor: function(textColor){
         this._textLayer.textColor = textColor;
     },
@@ -122,6 +142,20 @@ JSClass("UITextField", UIControl, {
         return this._textLayer.font;
     },
 
+    // --------------------------------------------------------------------
+    // MARK: - Layout Configuration
+
+    multiline: JSDynamicProperty('_multiline', false, 'isMultiline'),
+    minimumHeight: JSDynamicProperty('_minimumHeight', 0),
+    textInsets: JSDynamicProperty('_textInsets', null),
+
+    setMultiline: function(multiline){
+        this._multiline = multiline;
+        this._textLayer.textLayoutManager.includeEmptyFinalLine = multiline;
+        this._textLayer.widthTracksText = !multiline;
+        this._textLayer.maximumNumberOfLines = multiline ? 0 : 1;
+    },
+
     setTextInsets: function(textInsets){
         this._textInsets = textInsets;
         this.setNeedsLayout();
@@ -130,6 +164,113 @@ JSClass("UITextField", UIControl, {
     getTextInsets: function(){
         return this._textInsets;
     },
+
+    // --------------------------------------------------------------------
+    // MARK: - Accessory Views
+
+    leftImage: JSDynamicProperty('_leftImage', null),
+    rightImage: JSDynamicProperty('_rightImage', null),
+    leftAccessoryView: JSDynamicProperty('_leftAccessoryView', null),
+    rightAccessoryView: JSDynamicProperty('_rightAccessoryView', null),
+    leftAccessorySize: JSDynamicProperty('_leftAccessorySize', null),
+    rightAccessorySize: JSDynamicProperty('_rightAccessorySize', null),
+    leftAccessoryInsets: JSDynamicProperty('_leftAccessoryInsets', null),
+    rightAccessoryInsets: JSDynamicProperty('_rightAccessoryInsets', null),
+
+    setLeftImage: function(image){
+        var templateColor = this._styler.leftAccessoryColor;
+        var imageView = UIImageView.initWithImage(image);
+        if (templateColor !== null){
+            imageView.renderMode = UIImageView.RenderMode.template;
+            imageView.templateColor = templateColor;
+        }
+        this.leftAccessoryView = imageView;
+    },
+
+    setRightImage: function(image){
+        var templateColor = this._styler.rightAccessoryColor;
+        var imageView = UIImageView.initWithImage(image);
+        if (templateColor !== null){
+            imageView.renderMode = UIImageView.RenderMode.template;
+            imageView.templateColor = templateColor;
+        }
+        this.rightAccessoryView = imageView;
+    },
+
+    setLeftAccessoryView: function(view){
+        if (view === this._leftAccessoryView){
+            return;
+        }
+        if (this._leftAccessoryView !== null){
+            this._leftAccessoryView.removeFromSuperview();
+            this._leftImage = null;
+        }
+        this._leftAccessoryView = view;
+        if (this._leftAccessoryView){
+            if (this._leftAccessorySize === null){
+                this._leftAccessorySize = JSSize(view.frame.size);
+            }
+            if (this._leftAccessoryInsets === null){
+                this._leftAccessoryInsets = JSInsets(0, 3, 0, 0);
+            }
+            if (view.isKindOfClass(UIImageView)){
+                this._leftImage = view.image;
+            }
+            this.addSubview(this._leftAccessoryView);
+        }
+        this.setNeedsLayout();
+        this._styler.updateControl(this);
+    },
+
+    setRightAccessoryView: function(view){
+        if (view === this._rightAccessoryView){
+            return;
+        }
+        if (this._rightAccessoryView !== null){
+            this._rightAccessoryView.removeFromSuperview();
+            this._rightImage = null;
+        }
+        this._rightAccessoryView = view;
+        if (this._rightAccessoryView){
+            if (this._rightAccessorySize === null){
+                this._rightAccessorySize = JSSize(view.frame.size);
+            }
+            if (this._rightAccessoryInsets === null){
+                this._rightAccessoryInsets = JSInsets(0, 0, 0, 3);
+            }
+            if (view.isKindOfClass(UIImageView)){
+                this._rightImage = view.image;
+            }
+            this.addSubview(this._rightAccessoryView);
+        }
+        this.setNeedsLayout();
+        this._styler.updateControl(this);
+    },
+
+    setLeftAcessorySize: function(size){
+        this._leftAccessorySize = JSSize(size);
+        this.setNeedsLayout();
+    },
+
+    setRightAccessorySize: function(size){
+        this._rightAccessorySize = JSSize(size);
+        this.setNeedsLayout();
+    },
+
+    setLeftAccessoryInsets: function(insets){
+        this._leftAccessoryInsets = JSInsets(insets);
+        this.setNeedsLayout();
+    },
+
+    setRightAccessoryInsets: function(insets){
+        this._rightAccessoryInsets = JSInsets(insets);
+        this.setNeedsLayout();
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Managing Slections
+
+    selections: JSReadOnlyProperty(),
 
     getSelections: function(){
         return this._localEditor.selections;
@@ -142,6 +283,9 @@ JSClass("UITextField", UIControl, {
     setSelectionRanges: function(selectionRanges, insertionPoint, affinity){
         this._localEditor.setSelectionRanges(selectionRanges, insertionPoint, affinity);
     },
+
+    // --------------------------------------------------------------------
+    // MARK: - Editing Operations
 
     cut: function(){
         this.copy();
@@ -172,6 +316,9 @@ JSClass("UITextField", UIControl, {
         }
     },
 
+    // --------------------------------------------------------------------
+    // MARK: - Layout
+
     layoutSublayersOfLayer: function(layer){
         if (layer === this.layer){
             this.layoutSubviews();
@@ -189,8 +336,40 @@ JSClass("UITextField", UIControl, {
 
     layoutSubviews: function(){
         UITextField.$super.layoutSubviews.call(this);
-        this._clipView.frame = this.bounds.rectWithInsets(this._textInsets);
+        var textInsets = JSInsets(this._textInsets);
+        if (this._leftAccessoryView !== null){
+            textInsets.left += this._leftAccessoryInsets.width + this._leftAccessorySize.width;
+            this._leftAccessoryView.frame = JSRect(
+                this._leftAccessoryInsets.left,
+                Math.floor((this.bounds.size.height - this._leftAccessorySize.height) / 2.0),
+                this._leftAccessorySize.width,
+                this._leftAccessorySize.height
+            );
+        }
+        if (this._rightAccessoryView !== null){
+            textInsets.right += this._rightAccessoryInsets.width + this._rightAccessorySize.width;
+            this._rightAccessoryView.frame = JSRect(
+                this.bounds.size.width - this._rightAccessoryInsets.right - this._rightAccessorySize.width,
+                Math.floor((this.bounds.size.height - this._rightAccessorySize.height) / 2.0),
+                this._rightAccessorySize.width,
+                this._rightAccessorySize.height
+            );
+        }
+        this._clipView.frame = this.bounds.rectWithInsets(textInsets);
     },
+
+    layerDidChangeSize: function(layer){
+        if (layer === this._textLayer && this._multiline && ! this.constraintBox){
+            this.layer.bounds = JSRect(this.layer.bounds.origin, JSSize(
+                this.layer.bounds.size.width,
+                Math.max(this._minimumHeight, this._textLayer.bounds.size.height + this._textInsets.top + this._textInsets.bottom)
+            ));
+            this.setNeedsLayout();
+        }
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Drawing
 
     drawLayerInContext: function(layer, context){
         if (layer === this.layer){
@@ -201,6 +380,17 @@ JSClass("UITextField", UIControl, {
             layer.drawInContext(context);
         }
     },
+
+    // --------------------------------------------------------------------
+    // MARK: - Cursor Layout
+
+    _boundsScrollThreshold: 7,
+    _boundsScrollDistance: 0,
+    _boundsScrollInterval: 0.03,
+    _boundsScrollTimer: null,
+    _lastDragLocation: null,
+    _lastDragEvent: null,
+    _isDragging: false,
 
     textEditorDidPositionCursors: function(textEditor){
         if (!this._isDragging){
@@ -242,15 +432,8 @@ JSClass("UITextField", UIControl, {
         }
     },
 
-    layerDidChangeSize: function(layer){
-        if (layer === this._textLayer && this._multiline && ! this.constraintBox){
-            this.layer.bounds = JSRect(this.layer.bounds.origin, JSSize(
-                this.layer.bounds.size.width,
-                Math.max(this._minimumHeight, this._textLayer.bounds.size.height + this._textInsets.top + this._textInsets.bottom)
-            ));
-            this.setNeedsLayout();
-        }
-    },
+    // --------------------------------------------------------------------
+    // MARK: - Responder
 
     canBecomeFirstResponder: function(){
         return this.enabled;
@@ -286,7 +469,7 @@ JSClass("UITextField", UIControl, {
             return UITextField.$super.mouseDragged.call(this, event);
         }
         if (!this._isDragging){
-            this.cursor.push();
+            this._clipView.cursor.push();
         }
         this._isDragging = true;
         var location = event.locationInView(this);
@@ -319,7 +502,7 @@ JSClass("UITextField", UIControl, {
 
     mouseUp: function(event){
         if (this._isDragging){
-            this.cursor.pop();
+            this._clipView.cursor.pop();
         }
         this._isDragging = false;
         this._lastDragEvent = null;
@@ -342,7 +525,8 @@ JSClass("UITextField", UIControl, {
         return text;
     },
 
-    // MARK: - UITextInput protocol
+    // --------------------------------------------------------------------
+    // MARK: - UITextInput Protocol
 
     insertText: function(text){
         text = this._sanitizedText(text);
@@ -488,6 +672,8 @@ JSClass("UITextField", UIControl, {
 JSClass("UITextFieldStyler", UIControlStyler, {
 
     localCursorColor: null,
+    leftAccessoryColor: null,
+    rightAccessoryColor: null,
 
     init: function(){
         this._commonStylerInit();
@@ -497,6 +683,12 @@ JSClass("UITextFieldStyler", UIControlStyler, {
         UITextFieldStyler.$super.initWithSpec.call(this, spec, values);
         if ('localCursorColor' in values){
             this.localCursorColor = spec.resolvedValue(values.localCursorColor, "JSColor");
+        }
+        if ('leftAccessoryColor' in values){
+            this.leftAccessoryColor = spec.resolvedValue(values.leftAccessoryColor, "JSColor");
+        }
+        if ('rightAccessoryColor' in values){
+            this.rightAccessoryColor = spec.resolvedValue(values.rightAccessoryColor, "JSColor");
         }
         this._commonStylerInit();
     },
@@ -526,6 +718,7 @@ JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
     },
 
     updateControl: function(textField){
+        UITextFieldDefaultStyler.$super.updateControl.call(this, textField);
         if (textField.active){
             textField.stylerProperties.respondingIndicatorLayer.backgroundColor = JSColor.blackColor;
         }else{

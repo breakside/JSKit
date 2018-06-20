@@ -58,11 +58,17 @@ class JSCompilation(object):
         for includePath in self.includePaths:
             possiblePath = os.path.join(includePath, sourcePath)
             if os.path.exists(possiblePath):
+                realPath = os.path.realpath(possiblePath)[-len(sourcePath):]
+                if realPath != sourcePath:
+                    raise Exception("Case mismatch for include: %s, should be: %s" % (sourcePath, realPath))
                 return possiblePath
         possibleAlias = os.path.dirname(sourcePath)
         if possibleAlias in self.includeAliases:
             possiblePath = os.path.join(self.includeAliases[possibleAlias], os.path.basename(sourcePath))
             if os.path.exists(possiblePath):
+                realPath = os.path.realpath(possiblePath)[-len(sourcePath):]
+                if realPath != sourcePath:
+                    raise Exception("Case mismatch for include: %s, should be: %s" % (sourcePath, realPath))
                 return possiblePath
         return None
 
