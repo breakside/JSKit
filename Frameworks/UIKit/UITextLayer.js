@@ -123,6 +123,10 @@ JSClass("UITextLayer", UILayer, {
 
     // MARK: - Fetching & Updating Text
 
+    hasText: function(){
+        return this._textStorage.string !== null && this._textStorage.string.length > 0;
+    },
+
     getText: function(){
         return this._textStorage.string;
     },
@@ -222,7 +226,7 @@ JSClass("UITextLayer", UILayer, {
 
     layoutManagerTextContainerForLocation: function(layoutManager, location){
         return this._textContainer;
-    }
+    },
 
 });
 

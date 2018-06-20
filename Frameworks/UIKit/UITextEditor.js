@@ -492,6 +492,9 @@ JSClass("UITextEditor", JSObject, {
             }
             this._collapseOverlappingSelections();
         }
+        if (this.delegate && this.delegate.textEditorDidReplaceCharactersInRange){
+            this.delegate.textEditorDidReplaceCharactersInRange(this, range, insertedLength);
+        }
     },
 
     // -------------------------------------------------------------------------

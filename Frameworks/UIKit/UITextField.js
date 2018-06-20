@@ -66,6 +66,12 @@ JSClass("UITextField", UIControl, {
         if ('rightAccessoryInsets' in values){
             this.rightAccessoryInsets = JSInsets.apply(undefined, values.rightAccessoryInsets.parseNumberArray());
         }
+        if ('placeholder' in values){
+            this.placeholder = spec.resolvedValue(values.placeholder);
+        }
+        if ('placeholderColor' in values){
+            this.placeholderColor = spec.resolvedValue(values.placeholderColor, "JSColor");
+        }
         this._minimumHeight = this.bounds.size.height;
     },
 
@@ -106,6 +112,7 @@ JSClass("UITextField", UIControl, {
 
     setText: function(text){
         this._textLayer.text = text;
+        this._updatePlaceholderHidden();
     },
 
     getText: function(){
@@ -114,10 +121,79 @@ JSClass("UITextField", UIControl, {
 
     setAttributedText: function(attributedText){
         this._textLayer.attributedText = attributedText;
+        this._updatePlaceholderHidden();
     },
 
     getAttributedText: function(){
         return this._textLayer.attributedText;
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Placeholder
+
+    placeholder: JSDynamicProperty('_placeholder', null),
+    placeholderColor: JSDynamicProperty('_placeholderColor', null),
+
+    setPlaceholder: function(placeholder){
+        if (this._placeholderTextLayer === null){
+            this._createPlaceholderTextLayer();
+        }
+        this._placeholderTextLayer.text = placeholder;
+        this._updatePlaceholderHidden();
+    },
+
+    getPlaceholder: function(){
+        if (!this._placeholderTextLayer){
+            return null;
+        }
+        return this._placeholderTextLayer.text;
+    },
+
+    setPlaceholderColor: function(color){
+        this._placeholderColor = color;
+        if (this._placeholderTextLayer !== null){
+            this._placeholderTextLayer.textColor = this._placeholderColor;
+        }
+    },
+
+    _createPlaceholderTextLayer: function(){
+        this._placeholderTextLayer = UITextLayer.init();
+        this._placeholderTextLayer.delegate = this;
+        this._placeholderTextLayer.textAlignment = this._textLayer.textAlignment;
+        this._placeholderTextLayer.lineBreakMode = JSLineBreakMode.truncateTail;
+        this._placeholderTextLayer.maximumNumberOfLines = 1;
+        this._placeholderTextLayer.font = this._textLayer.font;
+        if (this._placeholderColor === null){
+            this._createPlaceholderColor();
+        }
+        this._placeholderTextLayer.textColor = this._placeholderColor;
+        this._clipView.layer.insertSublayerBeforeSibling(this._placeholderTextLayer, this._textLayer);
+    },
+
+    _createPlaceholderColor: function(){
+        var backgroundColor = this.backgroundColor;
+        if (backgroundColor === null){
+            backgroundColor = JSColor.whiteColor;
+        }
+        this._placeholderColor = backgroundColor.colorByBlendingColor(this.textColor, 0.3);
+    },
+
+    _placeholderTextLayer: null,
+
+    _isShowingPlaceholder: false,
+
+    _updatePlaceholderHidden: function(){
+        if (this._isShowingPlaceholder && !this._shouldShowPlaceholder()){
+            this._placeholderTextLayer.hidden = true;
+            this._isShowingPlaceholder = false;
+        }else if (!this._isShowingPlaceholder && this._shouldShowPlaceholder()){
+            this._placeholderTextLayer.hidden = false;
+            this._isShowingPlaceholder = true;
+        }
+    },
+
+    _shouldShowPlaceholder: function(){
+        return this._placeholderTextLayer !== null && !this._textLayer.hasText();
     },
 
     // --------------------------------------------------------------------
@@ -136,6 +212,9 @@ JSClass("UITextField", UIControl, {
 
     setFont: function(font){
         this._textLayer.font = font;
+        if (this._placeholderTextLayer !== null){
+            this._placeholderTextLayer.font = font;
+        }
     },
 
     getFont: function(){
@@ -328,9 +407,17 @@ JSClass("UITextField", UIControl, {
                     this._textLayer.frame.size.height
                 ));
             }
+            if (this._placeholderTextLayer !== null){
+                this._placeholderTextLayer.frame = JSRect(this._textLayer.bounds.origin, JSSize(
+                    this._clipView.bounds.size.width,
+                    this._placeholderTextLayer.frame.size.height
+                ));
+            }
         }else if (layer === this._textLayer){
             this._textLayer.layoutSublayers();
             this._localEditor.layout();
+        }else if (layer === this._placeholderTextLayer){
+            this._placeholderTextLayer.layoutSublayers();
         }
     },
 
@@ -378,6 +465,8 @@ JSClass("UITextField", UIControl, {
             }
         }else if (layer === this._textLayer){
             layer.drawInContext(context);
+        }else if (layer === this._placeholderTextLayer){
+            layer.drawInContext(context);
         }
     },
 
@@ -395,6 +484,22 @@ JSClass("UITextField", UIControl, {
     textEditorDidPositionCursors: function(textEditor){
         if (!this._isDragging){
             this._adjustCursorPositionToCenterIfNeeded();
+        }
+    },
+
+    textEditorDidReplaceCharactersInRange: function(textEditor, range, insertedLength){
+        // This placeholder show/hide logic is a bit optimized compared to _updatePlaceholderHidden,
+        // in order to perform the quickest checks while rapidly typing.
+        // 1. Use insertedLength to tell if we have a non-empty field
+        // 2. Only query the text storage if we might be empty
+        if (this._placeholderTextLayer !== null){
+            if (this._isShowingPlaceholder && insertedLength > 0){
+                this._placeholderTextLayer.hidden = true;
+                this._isShowingPlaceholder = false;
+            }else if (!this._isShowingPlaceholder && insertedLength === 0 && !this._textLayer.hasText()){
+                this._placeholderTextLayer.hidden = false;
+                this._isShowingPlaceholder = true;
+            }
         }
     },
 
