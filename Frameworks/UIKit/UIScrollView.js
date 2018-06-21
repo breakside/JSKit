@@ -337,7 +337,14 @@ JSClass('UIScrollView', UIView, {
         }else if (abs.y > 2 * abs.x){
             d.x = 0;
         }
-        this.contentOffset = JSPoint(this._contentOffset.x + d.x, this._contentOffset.y + d.y);
+        if (this._scrollsHorizontally && d.x !== 0 || this._scrollsVertically && d.y !== 0){
+            this.contentOffset = JSPoint(this._contentOffset.x + d.x, this._contentOffset.y + d.y);
+        }else{
+            // If the requested scroll is not supported by our view, forward the event up the
+            // reponder chain, allowing for nested scroll views where one goes vertically and
+            // the other goes horizontally.  This is useful for views such as a UIBrowserView.
+            UIScrollView.$super.scrollWheel.call(this, event);
+        }
     },
 
     _horizontalScrollerValueChanged: function(scroller){

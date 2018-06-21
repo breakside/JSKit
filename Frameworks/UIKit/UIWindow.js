@@ -144,8 +144,43 @@ JSClass('UIWindow', UIView, {
     // -------------------------------------------------------------------------
     // MARK: - Events
 
-    mouseDown: function(){
+    _downLocation: null,
+    _downOrigin: null,
+    _isMoving: false,
+
+    mouseDown: function(event){
         // this.setFirstResponder(null);
+        if (this.level == UIWindow.Level.normal){
+            this._downLocation = this.convertPointToScreen(event.locationInWindow);
+            this._downOrigin = JSPoint(this.frame.origin);
+            this._isMoving = true;
+        }
+    },
+
+    mouseDragged: function(event){
+        if (!this._isMoving){
+            return;
+        }
+        var location = this.convertPointToScreen(event.locationInWindow);
+        var d = JSPoint(location.x - this._downLocation.x, location.y - this._downLocation.y);
+        var origin = JSPoint(this._downOrigin.x + d.x, this._downOrigin.y + d.y);
+        var safeArea = this.screen.availableFrame;
+        var over = JSPoint(origin.x - safeArea.origin.x - safeArea.size.width, origin.y - safeArea.origin.y - safeArea.size.height);
+        if (over.x > 0){
+            origin.x -= over.x;
+        }
+        if (over.y > 0){
+            origin.y -= over.y;
+        }
+        if (origin.y < safeArea.origin.y){
+            origin.y = safeArea.origin.y;
+        }
+        this.frame = JSRect(origin, this.frame.size);
+    },
+
+    mouseUp: function(){
+        this._downLocation = null;
+        this._downOrigin = null;
     },
 
     getFirstResponder: function(){

@@ -241,7 +241,7 @@ JSClass("UIWindowServer", JSObject, {
     updateScreenAvailableInsets: function(){
         var insets = JSInsets.Zero;
         if (this.menuBar !== null){
-            insets.top = this.menuBar.frame.size.height;
+            insets.top = this.menuBar.frame.size.height + 1;
         }
         this.screen.availableInsets = insets;
     },
