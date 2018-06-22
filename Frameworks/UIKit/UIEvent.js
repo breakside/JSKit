@@ -153,4 +153,6 @@ UIEvent.Modifiers = {
     option:  1 << 3
 };
 
+UIEvent.minimumTimestamp = -Number.MAX_VALUE;
+
 UIEvent.Modifiers.platformCommand = UIEvent.Modifiers.command;

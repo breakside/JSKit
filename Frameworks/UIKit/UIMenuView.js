@@ -359,7 +359,7 @@ JSClass("UIMenuWindow", UIWindow, {
 
     _highlightItem: function(item, openingSubmenu){
         if (this._menu.highlightedItem !== item){
-            this._itemDownTimestamp = 0;
+            this._itemDownTimestamp = UIEvent.minimumTimestamp;
             if (this._menu.highlightedItem !== null){
                 this._menu.highlightedItem.highlighted = false;
                 this.menuView.itemViews[this._itemViewIndexesByItemId[this._menu.highlightedItem.objectID]].setItem(this._menu.highlightedItem);

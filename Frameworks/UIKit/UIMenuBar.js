@@ -327,7 +327,7 @@ JSClass("UIMenuBar", UIWindow, {
         return UIMenuBar.$super.hitTest.call(this, location);
     },
 
-    _itemDownTimestamp: 0,
+    _itemDownTimestamp: UIEvent.minimumTimestamp,
 
     mouseDown: function(event){
         var location = event.locationInView(this);
@@ -358,7 +358,7 @@ JSClass("UIMenuBar", UIWindow, {
             var itemView = this._menuItemAtLocation(location);
             this._selectMenuItemView(itemView);
         }else{
-            this._itemDownTimestamp = 0;
+            this._itemDownTimestamp = UIEvent.minimumTimestamp;
             if (this.submenu){
                 this.submenu.window.deepestMenuWindow().mouseDragged(event);
             }
