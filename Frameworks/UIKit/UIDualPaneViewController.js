@@ -459,85 +459,102 @@ JSClass("_UIDualPaneView", UIView, {
         }
     },
 
-    _layoutHorizontal: function(){
-        var x = 0;
-        var size = this.bounds.size;
-        if (!this._leadingViewOpen){
-            x -= this._leadingSize + this._leadingDividerView.layoutSize;
-            if (this._leadingCollapsedSize > 0){
-                x += this._leadingCollapsedSize + this._leadingDividerView.layoutSize;
+    _getBestFitLayout: function(availableSize){
+        var leadingFlex = 0;
+        var trailingFlex = 0;
+        var leadingSize = this._leadingSize;
+        var trailingSize = this._trailingSize;
+        var mainSize = this._minimumMainSize;
+        var size = 0;
+        if (!this._leadingFloats){
+            if (this._leadingViewOpen){
+                leadingFlex = leadingSize - this._minimumLeadingSize;
+                size += this._leadingSize + this._leadingDividerView.layoutSize;
+            }else if (this._leadingCollapsedSize > 0){
+                size += this._leadingCollapsedSize + this._leadingDividerView.layoutSize;
             }
         }
-        if (this._leadingView !== null){
-            this._leadingView.frame = JSRect(x, 0, this._leadingSize, size.height);
-        }
-        x += this._leadingSize;
-        this._leadingDividerView.frame = JSRect(x - this._leadingDividerView.layoutAdjustment, 0, 5, size.height);
-        x += this._leadingDividerView.layoutSize;
-        if (this.leadingFloats){
-            x = 0;
-        }
-        var mainSize = size.width - x;
-        if (mainSize < this._minimumMainSize){
-            mainSize = this._minimumMainSize;
-        }
-        if (!this.trailingFloats){
+        if (!this._trailingFloats){
             if (this._trailingViewOpen){
-                mainSize -= this._trailingDividerView.layoutSize + this._trailingSize;
-            }else{
-                mainSize -= this._trailingCollapsedSize;
+                trailingFlex = trailingSize - this._minimumTrailingSize;
+                size += this._trailingSize + this._trailingDividerView.layoutSize;
+            }else if (this._trailingCollapsedSize > 0){
+                size += this._trailingCollapsedSize + this._trailingDividerView.layoutSize;
             }
         }
-        this._mainView.frame = JSRect(x, 0, mainSize, size.height);
-        x += mainSize;
-        if (this.trailingFloats && this._trailingViewOpen){
-            x -= this._trailingSize + this._trailingDividerView.layoutSize;
+        size += mainSize;
+        var over = size - availableSize;
+        var totalFlex = leadingFlex + trailingFlex;
+        if (over < 0){
+            mainSize -= over;
+        }else if (totalFlex > 0){
+            if (totalFlex < over){
+                over = totalFlex;
+            }
+            var cut = Math.floor(over * leadingFlex / totalFlex);
+            leadingSize -= cut;
+            over -= cut;
+            trailingSize -= over;
         }
-        this._trailingDividerView.frame = JSRect(x - this._trailingDividerView.layoutAdjustment, 0, 5, size.height);
-        x += this._trailingDividerView.layoutSize;
+
+        var offset = 0;
+        if (!this._leadingViewOpen){
+            offset -= leadingSize + this._leadingDividerView.layoutSize;
+            if (this._leadingCollapsedSize > 0){
+                offset += this._leadingCollapsedSize + this._leadingDividerView.layoutSize;
+            }
+        }
+        var leadingOffset = offset;
+        if (this.leadingFloats){
+            offset = 0;
+        }else{
+            offset += leadingSize + this._leadingDividerView.layoutSize;
+        }
+        var mainOffset = offset;
+        if (this.trailingFloats && this._trailingViewOpen){
+            offset -= this._trailingSize;
+        }else{
+            offset += mainSize + this._trailingDividerView.layoutSize;
+        }
+        var trailingOffset = offset;
+
+        return {
+            leadingOffset: leadingOffset,
+            leadingSize: leadingSize,
+            mainOffset: mainOffset,
+            mainSize: mainSize,
+            trailingOffset: trailingOffset,
+            trailingSize: trailingSize
+        };
+    },
+
+    _layoutHorizontal: function(){
+        var layout = this._getBestFitLayout(this.bounds.size.width);
+        var height = this.bounds.size.height;
+        var dividerSize = 5;
+        if (this._leadingView !== null){
+            this._leadingView.frame = JSRect(layout.leadingOffset, 0, layout.leadingSize, height);
+        }
+        this._leadingDividerView.frame = JSRect(layout.leadingOffset + layout.leadingSize - this._leadingDividerView.layoutAdjustment, 0, this._leadingDividerView.hitSize, height);
+        this._mainView.frame = JSRect(layout.mainOffset, 0, layout.mainSize, height);
+        this._trailingDividerView.frame = JSRect(layout.trailingOffset - this._trailingDividerView.layoutAdjustment - this._trailingDividerView.layoutSize, 0, this._trailingDividerView.hitSize, height);
         if (this._trailingView !== null){
-            this._trailingView.frame = JSRect(x, 0, this._trailingSize, size.height);
+            this._trailingView.frame = JSRect(layout.trailingOffset, 0, layout.trailingSize, height);
         }
     },
 
     _layoutVertical: function(){
-        var y = 0;
-        var size = this.bounds.size;
-        if (!this._leadingViewOpen){
-            y -= this._leadingSize + this._leadingDividerView.layoutSize;
-            if (this._leadingCollapsedSize > 0){
-                y += this._leadingCollapsedSize + this._leadingDividerView.layoutSize;
-            }
-        }
+        var layout = this._getBestFitLayout(this.bounds.size.height);
+        var width = this.bounds.size.width;
+        var dividerSize = 5;
         if (this._leadingView !== null){
-            this._leadingView.frame = JSRect(0, y, size.width, this._leadingSize);
+            this._leadingView.frame = JSRect(0, layout.leadingOffset, width, layout.leadingSize);
         }
-        y += this._leadingSize;
-        this._leadingDividerView.frame = JSRect(0, y - this._leadingDividerView.layoutAdjustment, size.width, 5);
-        y += this._leadingDividerView.layoutSize;
-        if (this.leadingFloats){
-            y = 0;
-        }
-        var mainSize = size.height - y;
-        if (mainSize < this._minimumMainSize){
-            mainSize = this._minimumMainSize;
-        }
-        if (!this.trailingFloats){
-            if (this._trailingViewOpen){
-                mainSize -= this._trailingDividerView.layoutSize + this._trailingSize;
-            }else{
-                mainSize -= this._trailingCollapsedSize + this._trailingDividerView.layoutSize;
-            }
-        }
-        this._mainView.frame = JSRect(0, y, size.width, mainSize);
-        y += mainSize;
-        if (this.trailingFloats && this._trailingViewOpen){
-            y -= this._trailingSize + this._trailingDividerView.layoutSize;
-        }
-        this._trailingDividerView.frame = JSRect(0, y - this._trailingDividerView.layoutAdjustment, size.width, 5);
-        y += this._trailingDividerView.layoutSize;
+        this._leadingDividerView.frame = JSRect(0, layout.leadingOffset + layout.leadingSize - this._leadingDividerView.layoutAdjustment, width, this._leadingDividerView.hitSize);
+        this._mainView.frame = JSRect(0, layout.mainOffset, width, layout.mainSize);
+        this._trailingDividerView.frame = JSRect(0, layout.trailingOffset - this._trailingDividerView.layoutAdjustment - this._trailingDividerView.layoutSize, width, this._trailingDividerView.hitSize);
         if (this._trailingView !== null){
-            this._trailingView.frame = JSRect(0, y, size.width, this._trailingSize);
+            this._trailingView.frame = JSRect(0, layout.trailingOffset, width, layout.trailingSize);
         }
     },
 
