@@ -143,6 +143,23 @@ JSClass('JSURLTests', TKTestSuite, {
         TKAssertExactEquals(url.pathComponents[0], '/');
         TKAssertExactEquals(url.pathComponents[1], 'three');
         TKAssertExactEquals(url.path, '/three');
+
+        url = JSURL.initWithString("../../testing/.//one/two");
+        TKAssert(!url.isAbsolute);
+        TKAssertEquals(url.pathComponents.length, 5);
+        TKAssertEquals(url.pathComponents[0], '..');
+        TKAssertEquals(url.pathComponents[1], '..');
+        TKAssertEquals(url.pathComponents[2], 'testing');
+        TKAssertEquals(url.pathComponents[3], 'one');
+        TKAssertEquals(url.pathComponents[4], 'two');
+
+        url = JSURL.initWithString("../../testing/.//one/../two");
+        TKAssert(!url.isAbsolute);
+        TKAssertEquals(url.pathComponents.length, 4);
+        TKAssertEquals(url.pathComponents[0], '..');
+        TKAssertEquals(url.pathComponents[1], '..');
+        TKAssertEquals(url.pathComponents[2], 'testing');
+        TKAssertEquals(url.pathComponents[3], 'two');
     },
 
     testParseQuery: function(){
@@ -215,7 +232,241 @@ JSClass('JSURLTests', TKTestSuite, {
         TKAssertExactEquals(str, url.encodedString);
     },
 
-    // TODO: test relative URLs
-    // TODO: test modifying URL
+    testSetPath: function(){
+        var str = "file:///test/path";
+        var url = JSURL.initWithString(str);
+        url.setPath("/one/two");
+        TKAssertExactEquals(url.encodedString, "file:///one/two");
+
+        url.setPath("a");
+        TKAssertExactEquals(url.encodedString, "file:///a");
+
+        url.setPath("/a");
+        TKAssertExactEquals(url.encodedString, "file:///a");
+
+        url.setPath("a/b");
+        TKAssertExactEquals(url.encodedString, "file:///a/b");
+
+        url.setPath("/a/b");
+        TKAssertExactEquals(url.encodedString, "file:///a/b");
+
+        url.setPath("/with/trailing/slash/");
+        TKAssertExactEquals(url.encodedString, "file:///with/trailing/slash/");
+
+        url.setPath("");
+        TKAssertExactEquals(url.encodedString, "file://");
+
+        url.setPath("/");
+        TKAssertExactEquals(url.encodedString, "file:///");
+
+        url.setPath("//");
+        TKAssertExactEquals(url.encodedString, "file:///");
+
+        // no such thing a relative url that has a scheme and authority, will still be absolute
+        url.setPath("relative");
+        TKAssertExactEquals(url.encodedString, "file:///relative");
+
+        url.setPath("/absolute");
+        TKAssertExactEquals(url.encodedString, "file:///absolute");
+
+        url.setPath("../../relative");
+        TKAssertExactEquals(url.encodedString, "file:///relative");
+
+        url.setPath("/../../../../../absolute");
+        TKAssertExactEquals(url.encodedString, "file:///absolute");
+
+        url.setPath("/one/../two/three/../../four");
+        TKAssertExactEquals(url.encodedString, "file:///four");
+
+        url.setPath("one/../two/../../four");
+        TKAssertExactEquals(url.encodedString, "file:///four");
+
+        // test relative url path behavior
+        url = JSURL.initWithString("test/path");
+
+        url.setPath("a/b");
+        TKAssertExactEquals(url.encodedString, "a/b");
+
+        url.setPath("/a/b");
+        TKAssertExactEquals(url.encodedString, "/a/b");
+
+        url.setPath("../../relative");
+        TKAssertExactEquals(url.encodedString, "../../relative");
+
+        url.setPath("one/../two/../../four");
+        TKAssertExactEquals(url.encodedString, "../four");
+
+        url.setPath("/one/../two/../../four");
+        TKAssertExactEquals(url.encodedString, "/four");
+    },
+
+    testSetPathComponents: function(){
+        var str = "file:///test/path";
+        var url = JSURL.initWithString(str);
+        url.setPathComponents(["/", "one", "two"]);
+        TKAssertExactEquals(url.encodedString, "file:///one/two");
+
+        url.setPathComponents(["a", "b"]);
+        TKAssertExactEquals(url.encodedString, "file:///a/b");
+
+        url.setPathComponents(["/", "other", "path"]);
+        TKAssertExactEquals(url.encodedString, "file:///other/path");
+
+        url.setPathComponents([]);
+        TKAssertExactEquals(url.encodedString, "file:///");
+
+        url.setPathComponents([""]);
+        TKAssertExactEquals(url.encodedString, "file:///");
+
+        url.setPathComponents(["", ""]);
+        TKAssertExactEquals(url.encodedString, "file:///");
+
+        url.setPathComponents(["", "/"]);
+        TKAssertExactEquals(url.encodedString, "file:///");
+
+        url.setPathComponents(["/"]);
+        TKAssertExactEquals(url.encodedString, "file:///");
+
+        url.setPathComponents(["/", "/"]);
+        TKAssertExactEquals(url.encodedString, "file:///");
+
+        url.setPathComponents(["."]);
+        TKAssertExactEquals(url.encodedString, "file:///");
+
+        url.setPathComponents([".", "."]);
+        TKAssertExactEquals(url.encodedString, "file:///");
+
+        url.setPathComponents(["/", "."]);
+        TKAssertExactEquals(url.encodedString, "file:///");
+
+        url.setPathComponents([".", "/"]);
+        TKAssertExactEquals(url.encodedString, "file:///");
+
+        url.setPathComponents(["..", "relative"]);
+        TKAssertExactEquals(url.encodedString, "file:///relative");
+
+        url.setPathComponents(["/", "..", "test"]);
+        TKAssertExactEquals(url.encodedString, "file:///test");
+
+        url.setPathComponents(["/", "..", "test", "..", ".", "", "..", "two", "..", "..", "..", "three"]);
+        TKAssertExactEquals(url.encodedString, "file:///three");
+
+        url.setPathComponents(["/","one","..","two","three","..","..","four"]);
+        TKAssertExactEquals(url.encodedString, "file:///four");
+
+        url.setPathComponents(["one","..","two","..","..","four"]);
+        TKAssertExactEquals(url.encodedString, "file:///four");
+
+        url.setPathComponents(["//testing/one/two", "three/four", "five"]);
+        TKAssertExactEquals(url.encodedString, "file:///testing/one/two/three/four/five");
+
+        url = JSURL.initWithString("test/path");
+
+        url.setPathComponents(["a/b"]);
+        TKAssertExactEquals(url.encodedString, "a/b");
+
+        url.setPathComponents([""]);
+        TKAssertExactEquals(url.encodedString, "");
+
+        url.setPathComponents(["."]);
+        TKAssertExactEquals(url.encodedString, "");
+
+        url.setPathComponents(["/"]);
+        TKAssertExactEquals(url.encodedString, "/");
+
+        url.setPathComponents(["/", "/"]);
+        TKAssertExactEquals(url.encodedString, "/");
+
+        url.setPathComponents(["", ""]);
+        TKAssertExactEquals(url.encodedString, "");
+
+        url.setPathComponents(["", "."]);
+        TKAssertExactEquals(url.encodedString, "");
+
+        url.setPathComponents([".", ""]);
+        TKAssertExactEquals(url.encodedString, "");
+
+        url.setPathComponents([".", "/"]);
+        TKAssertExactEquals(url.encodedString, "");
+
+        url.setPathComponents(["/", "."]);
+        TKAssertExactEquals(url.encodedString, "/");
+
+        url.setPathComponents(["one", "..", "two"]);
+        TKAssertExactEquals(url.encodedString, "two");
+
+        url.setPathComponents(["one", "..", "two", "three", "..", "..", "..", "four"]);
+        TKAssertExactEquals(url.encodedString, "../four");
+
+        url.setPathComponents(["/", "one", "..", "two", "three", "..", "..", "..", "four"]);
+        TKAssertExactEquals(url.encodedString, "/four");
+
+    },
+
+    testAppendPathComponents: function(){
+        var url = JSURL.initWithString("file:///test");
+        url.appendPathComponents(["a", "b"]);
+        TKAssertExactEquals(url.encodedString, "file:///test/a/b");
+
+        url = JSURL.initWithString("file:///test");
+        url.appendPathComponents(["/", "a", "", ".", "b"]);
+        TKAssertExactEquals(url.encodedString, "file:///test/a/b");
+
+        url = JSURL.initWithString("file:///test");
+        url.appendPathComponents(["a", "..", "..", "..", "b"]);
+        TKAssertExactEquals(url.encodedString, "file:///b");
+
+        url = JSURL.initWithString("test");
+        url.appendPathComponents(["a", "..", "..", "..", "b"]);
+        TKAssertExactEquals(url.encodedString, "../b");
+
+        url = JSURL.initWithString("");
+        url.appendPathComponents(["a", "b"]);
+        TKAssertExactEquals(url.encodedString, "a/b");
+
+        url = JSURL.initWithString("");
+        url.appendPathComponents(["/", "a", "b"]);
+        TKAssertExactEquals(url.encodedString, "/a/b");
+
+        url = JSURL.initWithString("");
+        url.appendPathComponents(["//a/b", "c/d", "e"]);
+        TKAssertExactEquals(url.encodedString, "/a/b/c/d/e");
+    },
+
+    testAppendPathComponent: function(){
+        var url = JSURL.initWithString("file:///test");
+        url.appendPathComponent("a");
+        TKAssertExactEquals(url.encodedString, "file:///test/a");
+
+        url = JSURL.initWithString("file:///test");
+        url.appendPathComponent("/");
+        TKAssertExactEquals(url.encodedString, "file:///test");
+
+        url = JSURL.initWithString("file:///test");
+        url.appendPathComponent(".");
+        TKAssertExactEquals(url.encodedString, "file:///test");
+
+        url = JSURL.initWithString("file:///test");
+        url.appendPathComponent("");
+        TKAssertExactEquals(url.encodedString, "file:///test");
+
+        url = JSURL.initWithString("file:///test");
+        url.appendPathComponent("..");
+        TKAssertExactEquals(url.encodedString, "file:///");
+
+        url = JSURL.initWithString("test");
+        url.appendPathComponent("..");
+        TKAssertExactEquals(url.encodedString, "");
+
+        url = JSURL.initWithString("");
+        url.appendPathComponent("..");
+        TKAssertExactEquals(url.encodedString, "..");
+
+        url = JSURL.initWithString("");
+        url.appendPathComponent("//testing/one/two");
+        TKAssertExactEquals(url.encodedString, "/testing/one/two");
+    },
+
+    // TODO: test modifying parts other than path
 
 });

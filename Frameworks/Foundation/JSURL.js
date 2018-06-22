@@ -32,6 +32,7 @@ JSClass("JSURL", JSObject, {
     isAbsolute: JSReadOnlyProperty(),
     encodedString: JSReadOnlyProperty(),
 
+    _hasAuthority: false,
     _pathHasTrailingSlash: false,
 
     initWithString: function(str){
@@ -58,25 +59,14 @@ JSClass("JSURL", JSObject, {
             path = "";
         }
         var components = path.split('/');
-        var i = 0;
-        if (components.length > 1 && components[0] === ""){
-            this._pathComponents = ["/"];
-            i = 1;
-        }else{
-            this._pathComponents = [];
+        this._pathComponents = [];
+        var minComponentCount = 1;
+        if ((this.isAbsolute && path !== "") || (path.startsWith("/"))){
+            this._pathComponents.push("/");
+            minComponentCount = 2;
         }
-        for (var l = components.length; i < l; ++i){
-            if (components[i] !== "" && components[i] !== "."){
-                if (components[i] === ".."){
-                    if (this._pathComponents.length > 0 && this._pathComponents[this._pathComponents.length - 1] !== "/"){
-                        this._pathComponents.pop();
-                    }
-                }else{
-                    this._pathComponents.push(components[i]);
-                }
-            }
-        }
-        this._pathHasTrailingSlash = components.length > 2 && components[components.length - 1] === "";
+        this._appendExpandedPathComponents(components);
+        this._pathHasTrailingSlash = this._pathComponents.length >= minComponentCount && components[components.length - 1] === "";
     },
 
     getPath: function(){
@@ -96,25 +86,35 @@ JSClass("JSURL", JSObject, {
     },
 
     setPathComponents: function(components){
-        var i, l;
         this._pathComponents = [];
-        var expandedComponents = [];
-        var subs;
-        for (i = 0, l = components.length; i < l; ++i){
-            subs = components[i].split('/');
-            for (var j = 0, k = subs.length; j < k; ++j){
-                expandedComponents.push(subs[j]);
-            }
-        }
-        if (this.isAbsolute && expandedComponents.length > 0 && expandedComponents[0] != "/"){
+        if (this.isAbsolute || (components.length > 0 && components[0].startsWith("/"))){
             this._pathComponents.push("/");
         }
+        var expandedComponents = expandComponents(components);
+        this._appendExpandedPathComponents(expandedComponents);
+        this._pathHasTrailingSlash = false;
+    },
+
+    appendPathComponents: function(components){
+        if (this._pathComponents.length === 0 && components.length > 0 && components[0].startsWith("/")){
+            this._pathComponents.push("/");
+        }
+        var expandedComponents = expandComponents(components);
+        this._appendExpandedPathComponents(expandedComponents);
+        this._pathHasTrailingSlash = false;
+    },
+
+    appendPathComponent: function(component){
+        this.appendPathComponents([component]);
+    },
+
+    _appendExpandedPathComponents: function(expandedComponents){
         var component;
-        for (i = 0, l = expandedComponents.length; i < l; ++i){
-            component = components[i];
+        for (var i = 0, l = expandedComponents.length; i < l; ++i){
+            component = expandedComponents[i];
             if (component !== "" && component !== "."){
-                if (component === ".."){
-                    if (this._pathComponents.length > 0 && this._pathComponents[this._pathComponents.length - 1] !== "/"){
+                if (component === ".." && this._pathComponents.length > 0 && this._pathComponents[this._pathComponents.length - 1] !== ".."){
+                    if (this._pathComponents[this._pathComponents.length - 1] !== "/"){
                         this._pathComponents.pop();
                     }
                 }else{
@@ -122,11 +122,10 @@ JSClass("JSURL", JSObject, {
                 }
             }
         }
-        this._pathHasTrailingSlash = false;
     },
 
     getIsAbsolute: function(){
-        return this._scheme !== null || this._host !== null;
+        return this._hasAuthority;
     },
 
     setEncodedQuery: function(encodedQuery){
@@ -156,8 +155,10 @@ JSClass("JSURL", JSObject, {
             encodedString += this._scheme;
             encodedString += ":";
         }
-        if (this._host !== null){
+        if (this._hasAuthority){
             encodedString += "//";
+        }
+        if (this._host !== null){
             if (this._encodedUserInfo !== null){
                 encodedString += String.initWithData(this._encodedUserInfo, String.Encoding.utf8);
                 encodedString += '@';
@@ -353,6 +354,7 @@ JSURLParser.prototype = {
         var offset = this.offset;
         if (offset < length - 1 && this.bytes[offset] == 0x2F && this.bytes[offset + 1] == 0x2F){
             this.offset += 2;
+            this.url._hasAuthority = true;
             this.parseHost();
         }else{
             this.parsePath();
@@ -525,5 +527,9 @@ var QueryReserved = {
 };
 
 var JSURLParserError = "JSURLParserError";
+
+function expandComponents(components){
+    return components.join("/").split("/");
+}
 
 })();
