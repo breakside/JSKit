@@ -43,7 +43,7 @@ JSClass("UIHTMLDisplayServerTests", TKTestSuite, {
         // Basic insert
         var layer = UILayer.init();
         layer.frame = JSRect(10, 20, 30, 40);
-        this.displayServer.windowInserted({layer: layer});
+        this.displayServer.windowInserted({layer: layer, didBecomeVisible: function(){ }});
         TKAssertEquals(this.rootElement.childNodes.length, 0);
         this.displayServer.updateDisplay(0);
         TKAssertEquals(this.rootElement.childNodes.length, 1);
@@ -61,7 +61,7 @@ JSClass("UIHTMLDisplayServerTests", TKTestSuite, {
         layer1.frame = JSRect(10, 20, 300, 400);
         layer2.frame = JSRect(5, 6, 7, 8);
         layer1.addSublayer(layer2);
-        this.displayServer.windowInserted({layer: layer1});
+        this.displayServer.windowInserted({layer: layer1, didBecomeVisible: function(){ }});
         TKAssertEquals(this.rootElement.childNodes.length, 0);
         this.displayServer.updateDisplay(0);
         TKAssertEquals(this.rootElement.childNodes.length, 1);
@@ -85,7 +85,7 @@ JSClass("UIHTMLDisplayServerTests", TKTestSuite, {
         layer2 = UILayer.init();
         layer1.frame = JSRect(10, 20, 300, 400);
         layer2.frame = JSRect(5, 6, 7, 8);
-        this.displayServer.windowInserted({layer: layer1});
+        this.displayServer.windowInserted({layer: layer1, didBecomeVisible: function(){ }});
         TKAssertEquals(this.rootElement.childNodes.length, 0);
         this.displayServer.updateDisplay(0);
         TKAssertEquals(this.rootElement.childNodes.length, 1);
@@ -111,7 +111,7 @@ JSClass("UIHTMLDisplayServerTests", TKTestSuite, {
     testLayerRemoved: function(){
         // Basic remove
         var layer = UILayer.init();
-        var mockWindow = {layer: layer};
+        var mockWindow = {layer: layer, didBecomeVisible: function(){ }};
         layer.frame = JSRect(10, 20, 30, 40);
         this.displayServer.windowInserted(mockWindow);
         TKAssertEquals(this.rootElement.childNodes.length, 0);
@@ -126,7 +126,7 @@ JSClass("UIHTMLDisplayServerTests", TKTestSuite, {
         this._resetDisplayServer();
         var layer1 = UILayer.init();
         var layer2 = UILayer.init();
-        mockWindow = {layer: layer1};
+        mockWindow = {layer: layer1, didBecomeVisible: function(){ }};
         layer1.frame = JSRect(10, 20, 300, 400);
         layer2.frame = JSRect(5, 6, 7, 8);
         layer1.addSublayer(layer2);

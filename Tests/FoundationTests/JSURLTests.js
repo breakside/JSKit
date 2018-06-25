@@ -127,6 +127,21 @@ JSClass('JSURLTests', TKTestSuite, {
         TKAssertExactEquals(url.path, "def");
     },
 
+    testLastPathComponent: function(){
+        var url = JSURL.initWithString("http://google.com");
+        TKAssertNull(url.lastPathComponent, "/");
+        url = JSURL.initWithString("http://google.com/");
+        TKAssertExactEquals(url.lastPathComponent, "/");
+        url = JSURL.initWithString("http://google.com/test");
+        TKAssertExactEquals(url.lastPathComponent, "test");
+        url = JSURL.initWithString("http://google.com/test/");
+        TKAssertExactEquals(url.lastPathComponent, "test");
+        url = JSURL.initWithString("http://google.com/test/two");
+        TKAssertExactEquals(url.lastPathComponent, "two");
+        url = JSURL.initWithString("abc:def");
+        TKAssertExactEquals(url.lastPathComponent, "def");
+    },
+
     testParsePathAdjustments: function(){
         var url = JSURL.initWithString("http://google.com/test//two/.././three");
         TKAssertExactEquals(url.scheme, 'http');
@@ -230,6 +245,24 @@ JSClass('JSURLTests', TKTestSuite, {
         str = "http://owen:pas%2Fs@google.com:123/pa%23th/to/here/?qu?ery=1#frag";
         url = JSURL.initWithString(str);
         TKAssertExactEquals(str, url.encodedString);
+    },
+
+    testCopy: function(){
+        var url = JSURL.initWithString("http://google.com");
+        var copy = url.copy();
+        TKAssertEquals(url.encodedString, copy.encodedString);
+
+        url = JSURL.initWithString("http://google.com/some/path");
+        copy = url.copy();
+        TKAssertEquals(url.encodedString, copy.encodedString);
+
+        url = JSURL.initWithString("http://google.com/some/path?with=query&more");
+        copy = url.copy();
+        TKAssertEquals(url.encodedString, copy.encodedString);
+
+        url = JSURL.initWithString("http://google.com/some/path?with=query&more#fragment");
+        copy = url.copy();
+        TKAssertEquals(url.encodedString, copy.encodedString);
     },
 
     testSetPath: function(){
@@ -466,6 +499,34 @@ JSClass('JSURLTests', TKTestSuite, {
         url.appendPathComponent("//testing/one/two");
         TKAssertExactEquals(url.encodedString, "/testing/one/two");
     },
+
+    testRemoveLastPathComponent: function(){
+        var url = JSURL.initWithString("file:///test/one/two/three.txt");
+        url.removeLastPathComponent();
+        TKAssertExactEquals(url.encodedString, "file:///test/one/two");
+
+        url.removeLastPathComponent();
+        TKAssertExactEquals(url.encodedString, "file:///test/one");
+
+        url.removeLastPathComponent();
+        TKAssertExactEquals(url.encodedString, "file:///test");
+
+        url.removeLastPathComponent();
+        TKAssertExactEquals(url.encodedString, "file:///");
+
+        url.removeLastPathComponent();
+        TKAssertExactEquals(url.encodedString, "file://");
+
+        url = JSURL.initWithString("../../test/one");
+        url.removeLastPathComponent();
+        TKAssertExactEquals(url.encodedString, "../../test");
+        url.removeLastPathComponent();
+        TKAssertExactEquals(url.encodedString, "../..");
+        url.removeLastPathComponent();
+        TKAssertExactEquals(url.encodedString, "..");
+        url.removeLastPathComponent();
+        TKAssertExactEquals(url.encodedString, "");
+    }
 
     // TODO: test modifying parts other than path
 

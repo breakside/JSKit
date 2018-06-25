@@ -1,0 +1,7 @@
+{
+    "predef": [
+        "SECCipher",
+        "SECKey",
+        "SECKeychain"
+    ]
+}

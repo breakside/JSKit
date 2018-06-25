@@ -197,6 +197,19 @@ JSClass("UITextField", UIControl, {
     },
 
     // --------------------------------------------------------------------
+    // MARK: - Secure Entry
+
+    secureEntry: JSDynamicProperty(),
+
+    setSecureEntry: function(secureEntry){
+        this._localEditor.secureEntry = secureEntry;
+    },
+
+    getSecureEntry: function(){
+        return this._localEditor.secureEntry;
+    },
+
+    // --------------------------------------------------------------------
     // MARK: - Styling
 
     textColor: JSDynamicProperty(),

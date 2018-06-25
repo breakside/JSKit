@@ -54,4 +54,6 @@
 // #import "Foundation/JSURLSessionDelegate.js"
 // #import "Foundation/JSURLSessionStreamTaskDelegate.js"
 
+// #import "Foundation/JSFileManager.js"
+
 'use strict';

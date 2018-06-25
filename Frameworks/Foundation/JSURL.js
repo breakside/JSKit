@@ -2,7 +2,7 @@
 // #import "Foundation/JSData.js"
 // #import "Foundation/String+JS.js"
 // #import "Foundation/JSFormFieldMap.js"
-/* global JSClass, JSObject, JSDynamicProperty, JSReadOnlyProperty, JSData, jslog_create, JSFormFieldMap */
+/* global JSClass, JSObject, JSURL, JSDynamicProperty, JSCopy, JSReadOnlyProperty, JSData, jslog_create, JSFormFieldMap */
 
 // https://tools.ietf.org/html/rfc3986
 
@@ -24,6 +24,7 @@ JSClass("JSURL", JSObject, {
     port: JSDynamicProperty('_port', null),
     path: JSDynamicProperty(),
     pathComponents: JSDynamicProperty('_pathComponents', null),
+    lastPathComponent: JSReadOnlyProperty(),
     encodedQuery: JSDynamicProperty('_encodedQuery', null),
     encodedFragment: JSDynamicProperty('_encodedFragment', null),
     query: JSDynamicProperty('_query', null),
@@ -40,6 +41,47 @@ JSClass("JSURL", JSObject, {
         return this.initWithData(data);
     },
 
+    initWithBaseURL: function(baseURL, relativeURL){
+        if (relativeURL.isAbsolute){
+            if (relativeURL._scheme === null){
+                this._scheme = baseURL._scheme;
+            }else{
+                this._scheme = relativeURL._scheme;
+            }
+            this._encodedUserInfo = relativeURL._encodedUserInfo;
+            this._host = relativeURL._host;
+            this._port = relativeURL._port;
+            this._pathComponents = JSCopy(relativeURL._pathComponents);
+            this._hasAuthority = relativeURL._hasAuthority;
+            this._pathHasTrailingSlash = relativeURL._pathHasTrailingSlash;
+        }else{
+            this._scheme = baseURL._scheme;
+            this._encodedUserInfo = baseURL._encodedUserInfo;
+            this._host = baseURL._host;
+            this._port = baseURL._port;
+            this._pathComponents = JSCopy(baseURL._pathComponents);
+            this._hasAuthority = baseURL._hasAuthority;
+            this._pathHasTrailingSlash = baseURL._pathHasTrailingSlash;
+            this.appendPathComponents(relativeURL._pathComponents);
+        }
+        this._encodedQuery = relativeURL._encodedQuery;
+        this._query = JSFormFieldMap(relativeURL._query);
+        this._encodedFragment = relativeURL._encodedFragment;
+    },
+
+    initWithURL: function(url){
+        this._scheme = url._scheme;
+        this._encodedUserInfo = url._encodedUserInfo;
+        this._host = url._host;
+        this._port = url._port;
+        this._pathComponents = JSCopy(url._pathComponents);
+        this._encodedQuery = url._encodedQuery;
+        this._query = JSFormFieldMap(url._query);
+        this._encodedFragment = url._encodedFragment;
+        this._hasAuthority = url._hasAuthority;
+        this._pathHasTrailingSlash = url._pathHasTrailingSlash;
+    },
+
     initWithData: function(data){
         this._query = JSFormFieldMap();
         var parser = JSURLParser(this);
@@ -54,20 +96,22 @@ JSClass("JSURL", JSObject, {
         }
     },
 
-    setPath: function(path){
-        if (path === null || path === undefined){
-            path = "";
+    setHost: function(host){
+        this._host = host;
+        if (host === null){
+            this._port = null;
+            this._hasAuthority = false;
+        }else{
+            this._hasAuthority = true;
         }
-        var components = path.split('/');
-        this._pathComponents = [];
-        var minComponentCount = 1;
-        if ((this.isAbsolute && path !== "") || (path.startsWith("/"))){
-            this._pathComponents.push("/");
-            minComponentCount = 2;
-        }
-        this._appendExpandedPathComponents(components);
-        this._pathHasTrailingSlash = this._pathComponents.length >= minComponentCount && components[components.length - 1] === "";
     },
+
+    // setPort: function(port){
+    //     if (this.host === null){
+    //         throw new Error("JSURL cannot set port without a host");
+    //     }
+    //     this._port = port;
+    // },
 
     getPath: function(){
         var path = "";
@@ -83,6 +127,28 @@ JSClass("JSURL", JSObject, {
             path += "/";
         }
         return path;
+    },
+
+    getLastPathComponent: function(){
+        if (this._pathComponents.length > 0){
+            return this._pathComponents[this._pathComponents.length - 1];
+        }
+        return null;
+    },
+
+    setPath: function(path){
+        if (path === null || path === undefined){
+            path = "";
+        }
+        var components = path.split('/');
+        this._pathComponents = [];
+        var minComponentCount = 1;
+        if ((this.isAbsolute && path !== "") || (path.startsWith("/"))){
+            this._pathComponents.push("/");
+            minComponentCount = 2;
+        }
+        this._appendExpandedPathComponents(components);
+        this._pathHasTrailingSlash = this._pathComponents.length >= minComponentCount && components[components.length - 1] === "";
     },
 
     setPathComponents: function(components){
@@ -106,6 +172,35 @@ JSClass("JSURL", JSObject, {
 
     appendPathComponent: function(component){
         this.appendPathComponents([component]);
+    },
+
+    appendingPathComponents: function(components){
+        var url = this.copy();
+        url.appendPathComponents(components);
+        return url;
+    },
+
+    appendingPathComponent: function(component){
+        var url = this.copy();
+        url.appendPathComponent(component);
+        return url;
+    },
+
+    removeLastPathComponent: function(){
+        if (this._pathComponents.length > 0){
+            this._pathComponents.pop();
+            this._pathHasTrailingSlash = false;
+        }
+    },
+
+    removingLastPathComponent: function(){
+        var url = this.copy();
+        url.removeLastPathComponent();
+        return url;
+    },
+
+    copy: function(){
+        return JSURL.initWithURL(this);
     },
 
     _appendExpandedPathComponents: function(expandedComponents){

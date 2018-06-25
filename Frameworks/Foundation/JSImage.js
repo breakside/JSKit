@@ -36,6 +36,9 @@ JSClass('JSImage', JSObject, {
     },
 
     _initWithPixelSize: function(size, scale){
+        if (scale === undefined){
+            scale = 1;
+        }
         this._size = JSSize(size.width / scale, size.height / scale);
         this._scale = scale;
     },

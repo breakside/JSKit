@@ -10,3 +10,4 @@
 // Implementations
 // #import "Foundation/JSURLSessionDataTask+HTML.js"
 // #import "Foundation/JSURLSessionStreamTask+HTML.js"
+// #import "Foundation/JSFileManager+HTML.js"

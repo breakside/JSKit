@@ -30,6 +30,14 @@ JSClass("TKExpectation", JSObject, {
         return fn.apply(target, args);
     },
 
+    cancel: function(){
+        this.isDone = true;
+        if (this.timeoutTimer !== null){
+            this.timeoutTimer.invalidate();
+            this.timeoutTimer = null;
+        }
+    },
+
     /// Start a timer that can interrupt the async process early
     ///
     /// Typically called automatically by TKTestSuite.wait, a timeout ensures that
@@ -94,13 +102,13 @@ JSClass("TKExpectation", JSObject, {
         var expectation = this;
         return function(){
             --expectation._callCount;
-            // If we have an error, it's because we already timed out and notified
-            // the test runner, so we need to ingore any further callbacks
-            if (expectation.error !== null){
+            // If we have an error or have been canceled, we need to ingore any further callbacks
+            if (expectation.isDone){
                 return;
             }
             if (expectation.timeoutTimer !== null){
                 expectation.timeoutTimer.invalidate();
+                expectation.timeoutTimer = null;
             }
             try{
                 return fn.apply(this, arguments);

@@ -56,7 +56,8 @@ JSClass('TKTestRun', JSObject, {
         var result = null;
         var suiteInstance = null;
         var run = this;
-        var errorCatcher = function(e){
+
+        var handleTestCaseError = function(e){
             if (e instanceof TKAssertion){
                 result = TKTestResult.initWithNamesAndResult(suite.className, testName, TKTestResult.Failed);
                 result.message = e.message;
@@ -67,7 +68,65 @@ JSClass('TKTestRun', JSObject, {
                 result.message = "Line " + line + ". " + e.toString();
             }
         };
-        var resultWriter = function(){
+
+        var setupTestCase = function(){
+            try{
+                suiteInstance = suite.init();
+                suiteInstance.setup();
+            }catch (e){
+                handleTestCaseError(e);
+            }finally{
+                if (suiteInstance.expectation){
+                    if (result !== null){
+                        suiteInstance.expectation.cancel();
+                    }
+                    suiteInstance.expectation.catch(handleTestCaseError).finally(runTestCase);
+                }else{
+                    runTestCase();
+                }
+            }
+        };
+
+        var runTestCase = function(){
+            suiteInstance.expectation = null;
+            try{
+                // Only run the case if we have a valid instanace and don't already have an error result (due to setup error)
+                if (suiteInstance !== null && result === null){
+                    suiteInstance[testName]();
+                }
+            }catch (e){
+                handleTestCaseError(e);
+            }finally{
+                if (suiteInstance.expectation){
+                    if (result !== null){
+                        suiteInstance.expectation.cancel();
+                    }
+                    suiteInstance.expectation.catch(handleTestCaseError).finally(teardownTestCase);
+                }else{
+                    teardownTestCase();
+                }
+            }
+        };
+
+        var teardownTestCase = function(){
+            suiteInstance.expectation = null;
+            try{
+                suiteInstance.teardown();
+            }catch (e){
+                handleTestCaseError(e);
+            }finally{
+                if (suiteInstance.expectation){
+                    if (result !== null){
+                        suiteInstance.expectation.cancel();
+                    }
+                    suiteInstance.expectation.catch(handleTestCaseError).finally(writeTestCaseResults);
+                }else{
+                    writeTestCaseResults();
+                }
+            }
+        };
+
+        var writeTestCaseResults = function(){
             if (result === null){
                 result = TKTestResult.initWithNamesAndResult(suite.className, testName, TKTestResult.Passed);
             }
@@ -75,26 +134,12 @@ JSClass('TKTestRun', JSObject, {
                 run.results[suite.className][TKTestResult.NotRun] -= 1;
                 run.results[suite.className][result.result] += 1;
             }
-            suiteInstance.teardown();
             run.endCase(suite, testName, result);
             run.resume();
         };
-        try{
-            suiteInstance = suite.init();
-            suiteInstance.setup();
-            suiteInstance[testName]();
-        }catch (e){
-            errorCatcher(e);
-        }finally{
-            if (suiteInstance !== null){
-                run.pause();
-                if (suiteInstance.expectation){
-                    suiteInstance.expectation.catch(errorCatcher).finally(resultWriter);
-                }else{
-                    resultWriter();
-                }
-            }
-        }
+
+        run.pause();
+        setupTestCase(); // -> runTestCase() -> teardownTestCase() -> writeTestCaseResults() -> run.resume()
     },
 
     startSuite: function(suite){

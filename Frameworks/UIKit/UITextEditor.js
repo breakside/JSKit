@@ -14,6 +14,7 @@ JSClass("UITextEditor", JSObject, {
     cursorColor: JSDynamicProperty('_cursorColor', null),
     cursorWidth: 2.0,
     insertAttributes: null,
+    secureEntry: true,
     _isFirstResponder: false,
     _cursorBlinkRate: 0.5,
     _cursorOffTimeout: null,
