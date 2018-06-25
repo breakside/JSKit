@@ -7,7 +7,6 @@ var fs = require('fs');
 SKHTTPResponse.definePropertiesFromExtensions({
 
     _nodeResponse: null,
-    _shouldEnd: true,
 
     initWithNodeResponse: function(nodeResponse){
         this._nodeResponse = nodeResponse;
@@ -22,9 +21,7 @@ SKHTTPResponse.definePropertiesFromExtensions({
     },
 
     complete: function(){
-        if (this._shouldEnd){
-            this._nodeResponse.end();
-        }
+        this._nodeResponse.end();
     },
 
     setHeader: function(name, value){
@@ -44,12 +41,13 @@ SKHTTPResponse.definePropertiesFromExtensions({
     },
 
     sendFile: function(filePath, contentType){
-        var stat = fs.statSync(filePath);
-        this.contentType = contentType;
-        this.contentLength = stat.size;
-        var fp = fs.createReadStream(filePath);
-        fp.pipe(this._nodeResponse);
-        this._shouldEnd = false;
+        var response = this;
+        fs.stat(filePath, function(error, stat){
+            response.contentType = contentType;
+            response.contentLength = stat.size;
+            var fp = fs.createReadStream(filePath);
+            fp.pipe(response._nodeResponse); // pipe will call this._nodeResponse.end(), which is the same as calling complete()
+        });
     }
 
 });

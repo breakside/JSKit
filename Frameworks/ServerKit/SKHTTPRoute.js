@@ -1,5 +1,6 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject, SKHTTPRoute, JSCopy, JSSpec */
+// #import "ServerKit/SKHTTPResponderContext.js"
+/* global JSClass, JSObject, SKHTTPRoute, JSCopy, JSSpec, SKHTTPResponderContext */
 'use strict';
 
 (function(){
@@ -78,10 +79,10 @@ JSClass("SKHTTPRoute", JSObject, {
             contextClass = cls.contextClass;
         }
         if (componentIndex == pathComponents.length){
-            var context = null;
-            if (contextClass){
-                context = contextClass.initWithPathComponentMatches(matches);
+            if (!contextClass){
+                contextClass = SKHTTPResponderContext;
             }
+            var context = contextClass.initWithPathComponentMatches(matches);
             return cls.initWithRequest(request, context);
         }
         var child;

@@ -1,5 +1,6 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject, JSReadOnlyProperty */
+// #import "ServerKit/SKHTTPResponse.js"
+/* global JSClass, JSObject, JSReadOnlyProperty, JSRunLoop, SKHTTPResponse */
 'use strict';
 
 JSClass("SKHTTPResponderContext", JSObject, {
@@ -12,6 +13,12 @@ JSClass("SKHTTPResponderContext", JSObject, {
                 this[x] = pathComponentMatches[x];
             }
         }
+    },
+
+    open: function(callback, target){
+        JSRunLoop.main.schedule(function(){
+            callback.call(target, null);
+        });
     }
 
 });

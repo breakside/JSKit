@@ -1,7 +1,8 @@
 // #import "Foundation/Foundation.js"
 // #import "ServerKit/SKHTTPRoute.js"
 // #import "ServerKit/SKHTTPError.js"
-/* global JSClass, JSObject, JSDynamicProperty, SKHTTPResponse, SKHTTPRoute, SKHTTPServer, SKHTTPError, jslog_create */
+// #import "ServerKit/SKHTTPResponder.js"
+/* global JSClass, JSObject, JSDynamicProperty, SKHTTPResponse, SKHTTPResponder, SKHTTPRoute, SKHTTPServer, SKHTTPError, jslog_create */
 'use strict';
 
 var logger = jslog_create("http.server");
@@ -39,58 +40,70 @@ JSClass("SKHTTPServer", JSObject, {
             }
             if (responder === null){
                 logger.warn("> No responder for request (404)");
-                request.response.statusCode = SKHTTPResponse.StatusCode.notFound;
-                // TODO: not found content
-            }else{
-                var method = request.method.lowercaseString();
-                if (!responder[method]){
-                    logger.warn("> Method not supported %s");
-                    request.response.statusCode = SKHTTPResponse.StatusCode.methodNotAllowed;
-                    // TODO: not found (method not supported?) content
-                }else{
-                    // TODO: access control
-                    responder[method]();
-                }
+                throw new SKHTTPError(SKHTTPResponse.StatusCode.notFound);
             }
-        }catch (e){
-            if (e instanceof SKHTTPError){
-                request.response.statusCode = e.statusCode;
-            }else{
-                request.response.statusCode = SKHTTPResponse.StatusCode.internalServerError;
-                logger.error("Uncaught error handling '%s': %s".sprintf(request.url, e.message));
-                if (e.stack){
-                    var lines = e.stack.split("\n");
-                    for (var i = 0, l = lines.length; i < l; ++i){
-                        logger.error(lines[i]);
+            var method = responder.objectMethodForRequestMethod(request.method);
+            if (method === null){
+                logger.warn("> Method not supported %s");
+                throw new SKHTTPError(SKHTTPResponse.StatusCode.methodNotAllowed);
+            }
+            responder.context.open(function(error){
+                if (error !== null){
+                    responder.fail(error);
+                }else{
+                    try{
+                        // TODO: access control here, as part of context.open, or both?
+                        method.call(responder);
+                    }catch (e){
+                        responder.fail(e);
                     }
                 }
+            }, this);
+        }catch (e){
+            if (responder !== null){
+                responder.fail(e);
+            }else{
+                SKHTTPResponder.fail(request, e);
             }
-        }finally{
-            request.response.complete();
         }
     },
 
     _handleUpgrade: function(request){
-        var product = request.headerMap.get('upgrade', '').lowercaseString();
+        var product = request.headerMap.get('upgrade', '');
         logger.info("%s %s (upgrade: %s)".sprintf(request.method, request.url, product));
         var responder = null;
-        if (this.rootRoute !== null){
-            responder = this.rootRoute.responderForRequest(request);
+        try{
+            if (this.rootRoute !== null){
+                responder = this.rootRoute.responderForRequest(request);
+            }
+            if (responder === null){
+                logger.warn("> Not found");
+                throw new SKHTTPError(SKHTTPResponse.StatusCode.notFound);
+            }
+            var method = responder.objectMethodForWebsocketProduct(product);
+            if (method === null){
+                logger.warn("> Product not supported");
+                throw new SKHTTPError(SKHTTPResponse.StatusCode.notFound);
+            }
+            responder.context.open(function(error){
+                if (error !== null){
+                    responder.fail(error);
+                }else{
+                    try{
+                        // TODO: access control here, as part of context.open, or both?
+                        method.call(responder);
+                    }catch (e){
+                        responder.fail(e);
+                    }
+                }
+            }, this);
+        }catch (e){
+            if (responder !== null){
+                responder.fail(e);
+            }else{
+                SKHTTPResponder.fail(request, e);
+            }
         }
-        if (responder === null){
-            logger.warn("> Not found");
-            request.rejectUpgrade(SKHTTPResponse.StatusCode.notFound);
-            // TODO: not found content
-            return;
-        }
-        if (!responder[product]){
-            logger.warn("> Product not supported");
-            request.rejectUpgrade(SKHTTPResponse.StatusCode.notFound);
-            // TODO: not found content
-            return;
-        }
-        // TODO: access control
-        responder[product]();
     }
 
 });

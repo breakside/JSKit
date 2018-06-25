@@ -28,7 +28,7 @@ SKHTTPRequest.definePropertiesFromExtensions({
         this._nodeRequest.socket.write(str);
     },
 
-    _close: function(){
+    close: function(){
         this._nodeRequest.socket.destroy();
     },
 

@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "ServerKit/SKHTTPHeaders.js"
-/* global JSClass, JSObject, JSCustomProperty, JSDynamicProperty, JSReadOnlyProperty, JSURLResponse, SKHTTPResponse, SKHTTPHeaders */
+/* global JSClass, JSObject, JSCustomProperty, JSDynamicProperty, JSReadOnlyProperty, JSURLResponse, SKHTTPResponse, SKHTTPHeaders*/
 'use strict';
 
 var HTTPHeaderProperty = function(headerName, valueType){
@@ -56,7 +56,7 @@ var HTTPHeaderValueType = {
 
 JSClass("SKHTTPResponse", JSObject, {
 
-    statusCode: JSDynamicProperty('_statusCode', 200),
+    statusCode: JSDynamicProperty('_statusCode', -1),
     contentType: HTTPHeaderProperty(SKHTTPHeaders.contentType),
     contentLength: HTTPHeaderProperty(SKHTTPHeaders.contentLength, HTTPHeaderValueType.integer),
 

@@ -1,20 +1,9 @@
 // #import "Foundation/Foundation.js"
-// #import "Hash/Hash.js"
-/* global JSClass, JSObject, JSData, JSReadOnlyProperty, JSURL, JSMIMEHeaderMap, JSSHA1Hash, jslog_create */
+// #import "ServerKit/SKHTTPResponse.js"
+/* global JSClass, JSObject, JSData, JSReadOnlyProperty, JSURL, JSMIMEHeaderMap, SKHTTPResponse, jslog_create */
 'use strict';
 
 var logger = jslog_create("http.server");
-
-var findFirstMatch = function(a, b){
-    for (var i = 0, l = a.length; i < l; ++i){
-        for (var j = 0, k = b.length; j < k; ++j){
-            if (a[i] == b[j].trim()){
-                return a[i];
-            }
-        }
-    }
-    return null;
-};
 
 JSClass("SKHTTPRequest", JSObject, {
 
@@ -29,44 +18,21 @@ JSClass("SKHTTPRequest", JSObject, {
         this._headerMap = JSMIMEHeaderMap();
     },
 
-    acceptWebSocketUpgrade: function(allowedProtocols){
-        var version = this._headerMap.get('Sec-WebSocket-Version');
-        if (version !== "13"){
-            logger.warn("Unexpected websocket version: %s".sprintf(version));
-            this._close();
-            return null;
+    respond: function(statusCode, statusMessage, headerMap){
+        this._write("HTTP/1.1 %d %s\r\n".sprintf(statusCode, statusMessage));
+        var header;
+        for (var i = 0, l = headerMap.headers.length; i < l; ++i){
+            header = headerMap.headers[i];
+            this._write("%s: %s\r\n".sprintf(header.name, header.value || ""));
         }
-        var requestedProtocols = this._headerMap.get('Sec-WebSocket-Protocol', '').trimmedSplit(',');
-        var protocol = findFirstMatch(allowedProtocols, requestedProtocols);
-        if (protocol === null){
-            logger.warn("No match for protocols: %s".sprintf(requestedProtocols.join(", ")));
-            this._close();
-            return null;
-        }
-        var key = this._headerMap.get('Sec-WebSocket-Key', '');
-        var accept = JSSHA1Hash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").utf8().bytes).base64StringRepresentation();
-        var handshake = [
-            "HTTP/1.1 101 Web Socket Protocol Handshake",
-            "Upgrade: websocket",
-            "Connection: Upgrade",
-            "Sec-WebSocket-Accept: %s".sprintf(accept),
-            "Sec-WebSocket-Protocol: %s".sprintf(protocol)
-        ];
-        logger.info("Accepting websocket");
-        this._writeRawHeaders(handshake);
-        return this.createWebsocket(handshake);
+        this._write("\r\n");
     },
 
-    rejectUpgrade: function(statusCode){
-        var response = [
-            "HTTP/1.1 %d".sprintf(statusCode),
-            "Content-Length: 0"
-        ];
-        this._writeRawHeaders(response);
-        this._close();
+    upgrade: function(statusMessage, headerMap){
+        this.respond(SKHTTPResponse.StatusCode.switchingProtocols, statusMessage, headerMap);
     },
 
-    _writeRawHeaders: function(headers){
+    writeRawHeaders: function(headers){
         this._write(headers.join("\r\n") + "\r\n\r\n");
     },
 
@@ -76,7 +42,7 @@ JSClass("SKHTTPRequest", JSObject, {
     _write: function(){
     },
 
-    _close: function(){
+    close: function(){
     }
 
 });
