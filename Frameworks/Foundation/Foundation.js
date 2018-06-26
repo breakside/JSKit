@@ -4,6 +4,7 @@
 // #import "Foundation/String+JS.js"
 // #import "Foundation/Number+JS.js"
 // #import "Foundation/Uint8Array+JS.js"
+// #import "Foundation/Promise+JS.js"
 // #import "Foundation/CoreTypes.js"
 // #import "Foundation/JSBinarySearcher.js"
 // #import "Foundation/JSIndexPath.js"
@@ -55,5 +56,6 @@
 // #import "Foundation/JSURLSessionStreamTaskDelegate.js"
 
 // #import "Foundation/JSFileManager.js"
+// #import "Foundation/JSUserDefaults.js"
 
 'use strict';

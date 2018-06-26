@@ -3,6 +3,7 @@
     "newcap": false,
     "predef": [
         "Uint8Array",
-        "Uint32Array"
+        "Uint32Array",
+        "Promise"
     ]
 }
