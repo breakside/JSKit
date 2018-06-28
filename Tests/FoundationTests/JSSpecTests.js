@@ -84,7 +84,7 @@ JSClass("JSSpecTests", TKTestSuite, {
             "File's Owner": "/Test One"
         });
         var spec = JSSpec.initWithPropertyList(plist);
-        var owner = spec.filesOwner();
+        var owner = spec.filesOwner;
         TKAssert(owner.isKindOfClass(JSSpecTestsObject));
         TKAssertEquals(owner.test, 12);
     },
@@ -103,7 +103,7 @@ JSClass("JSSpecTests", TKTestSuite, {
             "File's Owner": "/Test One"
         });
         var spec = JSSpec.initWithPropertyList(plist);
-        var owner = spec.filesOwner();
+        var owner = spec.filesOwner;
         TKAssertNotNull(owner);
     }
 

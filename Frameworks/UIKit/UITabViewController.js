@@ -19,10 +19,13 @@ JSClass("UITabViewController", UIViewController, {
 
     initWithSpec: function(spec, values){
         this._viewControllers = [];
+        var viewController;
         var i, l;
         if ('viewControllers' in values){
             for (i = 0, l = values.viewControllers.length; i < l; ++i){
-                this.viewControllers.push(spec.resolvedValue(values.viewControllers[i]));
+                viewController = spec.resolvedValue(values.viewControllers[i]);
+                this.viewControllers.push(viewController);
+                this.addChildViewController(viewController);
             }
         }
         if ('view' in values){
@@ -45,9 +48,11 @@ JSClass("UITabViewController", UIViewController, {
     insertViewControllerAtIndex: function(viewController, index){
         this._viewControllers.splice(index, 0, viewController);
         this.tabView.insertItemAtIndex(index, viewController.tabViewItem);
+        this.addChildViewController(viewController);
     },
 
     removeViewControllerAtIndex: function(index){
+        this._viewControllers[index].removeFromParentViewController();
         this._viewControllers.splice(index, 1);
         this.tabView.removeItemAtIndex(index);
     },

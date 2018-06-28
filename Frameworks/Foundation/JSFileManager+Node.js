@@ -5,44 +5,19 @@
 /* global window, JSClass, JSObject, JSCopy, JSLazyInitProperty, JSFileManager, JSData, JSBundle, JSURL, jslog_create */
 'use strict';
 
-(function(){
-
 var logger = jslog_create("JSFileManager");
 
+var fs = require('fs');
+var pathLib = require('path');
+
 JSFileManager.definePropertiesFromExtensions({
-
-    _db: null,
-
-    // --------------------------------------------------------------------
-    // MARK: - Working Directory
-
-    workingDirectoryURL: JSLazyInitProperty('_getWorkingDirectoryURL'),
 
     // --------------------------------------------------------------------
     // MARK: - Opening the File System
 
     open: function(completion, target){
-        var request = indexedDB.open(this._identifier, CURRENT_DATABASE_VERSION);
-        var manager = this;
-        request.onblocked = function(e){
-            completion.call(target, JSFileManager.State.conflictingVersions);
-        };
-        request.onerror = function(e){
-            completion.call(target, JSFileManager.State.genericFailure);
-        };
-        request.onupgradeneeded = function(e){
-            try{
-                manager._db = e.target.result;
-                manager.upgrade(e.oldVersion, e.newVersion);
-            }catch (err){
-                logger.error("Upgrade error: %s".sprintf(e.message));
-                completion.call(target, JSFileManager.State.genericFailure);
-            }
-        };
-        request.onsuccess = function(e){
-            manager._db = e.target.result;
-            completion.call(target, JSFileManager.State.success);
-        };
+        // TODO: how to coordinate this with destroy() for testing?
+        // Maybe keep track of created folders/files?
     },
 
     // --------------------------------------------------------------------
@@ -53,15 +28,8 @@ JSFileManager.definePropertiesFromExtensions({
     },
 
     _getPersistentContainerURL: function(){
-        return JSURL.initWithString('%s:///Containers/%s'.sprintf(JSFileManager.Scheme.jskitfile, JSBundle.mainBundleIdentifier));
-    },
-
-    _getWorkingDirectoryURL: function(completion, target){
-        return this.persistentContainerURL.appendingPathComponent("Working");
-    },
-
-    begin: function(permission, stores){
-        return new JSFileManagerTransaction(this._db, stores, permission);
+        // TODO: neeed some user-defined root folder to put containers in 
+        return JSURL.initWithString('%s:///Containers/%s'.sprintf(JSFileManager.Scheme.file, JSBundle.mainBundleIdentifier));
     },
 
     // --------------------------------------------------------------------
@@ -70,18 +38,12 @@ JSFileManager.definePropertiesFromExtensions({
     itemExistsAtURL: function(url, completion, target){
         if (!url.isAbsolute){
             logger.warn("relative URL passed to itemExistsAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
         }
-        if (url.scheme != JSFileManager.Scheme.jskitfile){
+        if (url.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.itemExistsAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
-        var exists = false;
-        var transaction = this.begin(JSFileManager.Permission.read, JSFileManager.Tables.metadata);
-        transaction.addCompletion(function(success){
-            completion.call(target, success && exists);
-        });
-        this._metadataInTransactionAtURL(transaction, url, function(metadata){
-            exists = metadata !== null;
+        fs.stat(url.path, function(error, stats){
+            completion.call(target, !error);
         });
     },
 
@@ -91,44 +53,31 @@ JSFileManager.definePropertiesFromExtensions({
     attributesOfItemAtURL: function(url, completion, target){
         if (!url.isAbsolute){
             logger.warn("relative URL passed to attributesOfItemAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
         }
-        if (url.scheme != JSFileManager.Scheme.jskitfile){
+        if (url.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.attributesOfItemAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
-        var metadata = null;
-        var transaction = this.begin(JSFileManager.Permission.read, JSFileManager.Tables.metadata);
-        transaction.addCompletion(function(success){
-            completion.call(target, metadata);
+        fs.lstat(url.path, function(error, stats){
+            var attrs = null;
+            if (!error){
+                var itemType;
+                if (stats.isSymbolicLink()){
+                    itemType = JSFileManager.ItemType.symbolicLink;
+                }else if (stats.isDirectory()){
+                    itemType = JSFileManager.ItemType.folder;
+                }else if (stats.isFile()){
+                    itemType = JSFileManager.ItemType.file;
+                }else{
+                    itemType = JSFileManager.ItemType.other;
+                }
+                attrs = {
+                    itemType: itemType,
+                    created: Math.floor(stats.ctimeMs),
+                    modified: Math.floor(stats.mtimeMs)
+                };
+            }
+            completion.call(target, attrs);
         });
-        this._metadataInTransactionAtURL(transaction, url, function(metadata_){
-            metadata = metadata_;
-        });
-    },
-
-    _metadataInTransactionAtURL: function(transaction, url, completion){
-        var parent = url.removingLastPathComponent();
-        var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
-        var lookup = [parent.path, url.lastPathComponent];
-        var request = index.get(lookup);
-        var metadata;
-        request.onsuccess = function(e){
-            completion(e.target.result || null);
-            // FIXME: url could include a symlink folder, in which case we won't
-            // get a result here even if the url is valid after resolving the symlink.
-            // While we could walk path component by path component, I was hoping to
-            // avoid that work since each lookup has to be an async query and it would
-            // take N run loops to resolve a path with N components
-            // An option is to query all metadata on open, so lookups don't have to be
-            // a synchronous, but that would be less than ideal if there are a large
-            // number of files in the database.
-            // Compromise could be to do a quick lookup for regular files/folders,
-            // and the fallback here to a step-by-step lookup.  Downside is that would
-            // make every lookup of a non-existent file slow.
-        };
-        request.onerror = function(e){
-            completion(null);
-        };
     },
 
     // --------------------------------------------------------------------
@@ -137,37 +86,24 @@ JSFileManager.definePropertiesFromExtensions({
     createFolderAtURL: function(url, completion, target){
         if (!url.isAbsolute){
             logger.warn("relative URL passed to createFolderAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
         }
-        if (url.scheme != JSFileManager.Scheme.jskitfile){
+        if (url.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.createFolderAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
         if (url.pathComponents.length === 1){
             throw new Error("JSFileManager.createFolderAtURL cannot create root path");
         }
-        var transaction = this.begin(JSFileManager.Permission.readwrite, JSFileManager.Tables.metadata);
-        transaction.addCompletion(completion, target);
-        this._createFolderInTransactionAtURL(transaction, url, function(success){
-            if (!success){
-                transaction.abort();
-            }
+        this._createFolderWithAncestorsAtURL(url, function(error){
+            completion.call(target, error === null);
         });
     },
 
-    _createFolderInTransactionAtURL: function(transaction, url, completion){
+    _createFolderWithAncestorsAtURL: function(url, completion){
         var parent = url.removingLastPathComponent();
         var manager = this;
         var create = function(parentExists){
             if (parentExists){
-                var t = manager.timestamp;
-                var metadata = {parent: parent.path, name: url.lastPathComponent, itemType: JSFileManager.ItemType.folder, created: t, updated: t, added: t};
-                var request = transaction.metadata.add(metadata);
-                request.onsuccess = function(){
-                    completion(true);
-                };
-                request.onerror = function(){
-                    completion(false);
-                };
+                fs.mkdir(url.path, completion);
             }else{
                 completion(false);
             }
@@ -175,13 +111,11 @@ JSFileManager.definePropertiesFromExtensions({
         if (parent.pathComponents.length === 0){
             completion(false);
         }else{
-            manager._metadataInTransactionAtURL(transaction, parent, function(metadata){
-                if (metadata !== null){
-                    create(metadata.itemType == JSFileManager.ItemType.folder);
-                    // TODO: follow symlink if needed, watch out for circular links
-                    // (probably better taken care of in a common method like _metadataInTransaction)
+            fs.stat(parent.path, function(error, stat){
+                if (error === null){
+                    create(stat.isDirectory());
                 }else{
-                    manager._createFolderInTransactionAtURL(transaction, parent, create);
+                    manager._createFolderAtURL(parent, completion);
                 }
             });
         }
@@ -193,52 +127,37 @@ JSFileManager.definePropertiesFromExtensions({
     createFileAtURL: function(url, data, completion, target){
         if (!url.isAbsolute){
             logger.warn("relative URL passed to createFileAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
         }
-        if (url.scheme != JSFileManager.Scheme.jskitfile){
+        if (url.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.createFileAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
         if (url.pathComponents.length === 1){
             throw new Error("JSFileManager.createFileAtURL cannot create root path");
         }
-        var transaction = this.begin(JSFileManager.Permission.readwrite, [JSFileManager.Tables.metadata, JSFileManager.Tables.data]);
-        transaction.addCompletion(completion, target);
         var parent = url.removingLastPathComponent();
         var manager = this;
         var created = false;
-        var metadata = null;
         var create = function(parentExists){
             if (parentExists){
-                var dataRequest;
-                if (metadata === null){
-                    dataRequest = transaction.data.add(data.bytes);
-                }else{
-                    dataRequest = transaction.data.put(data.bytes, metadata.dataKey);
-                }
-                dataRequest.onsuccess = function(e){
-                    var t = manager.timestamp;
-                    if (metadata === null){
-                        metadata = {parent: parent.path, name: url.lastPathComponent, itemType: JSFileManager.ItemType.file, created: t, updated: t, added: t, dataKey: e.target.result};
-                        transaction.metadata.add(metadata);
-                    }else{
-                        metadata.updated = t;
-                        transaction.metadata.put(metadata);
-                    }
-                };
+                fs.writeFile(url.path, data.bytes, function(error){
+                    completion.call(target, error === null);
+                });
             }else{
-                transaction.abort();
+                completion.call(target, false);
             }
         };
-        manager._metadataInTransactionAtURL(transaction, url, function(existingMetadata){
-            if (existingMetadata !== null){
-                metadata = existingMetadata;
-                create(true);
+        fs.stat(url.path, function(error, stat){
+            if (error === null){
+                // we don't want to overwrite a file that already exists
+                completion.call(target, false);
             }else{
-                manager._metadataInTransactionAtURL(transaction, parent, function(parentMetadata){
-                    if (parentMetadata !== null){
-                        create(parentMetadata.itemType == JSFileManager.ItemType.folder);
+                fs.stat(parent.path, function(error, stat){
+                    if (error === null){
+                        create(stat.isDirectory());
                     }else{
-                        manager._createFolderInTransactionAtURL(transaction, parent, create);
+                        manager._createFolderWithAncestorsAtURL(parent, function(error){
+                            create(error === null);
+                        });
                     }
                 });
             }
@@ -506,10 +425,6 @@ JSFileManager.definePropertiesFromExtensions({
         }
         var manager = this;
         manager._metadataInTransactionAtURL(transaction, url, function(metadata){
-            if (metadata === null){
-                callback(null);
-                return;
-            }
             switch (metadata.itemType){
                 case JSFileManager.ItemType.folder:
                     callback(null);
@@ -614,7 +529,7 @@ JSFileManager.definePropertiesFromExtensions({
     },
 
     _createCurrentVersion: function(){
-        var metadata = this._db.createObjectStore(JSFileManager.Tables.metadata, {autoIncrement: true, keyPath: "id"});
+        var metadata = this._db.createObjectStore(JSFileManager.Tables.metadata, {autoIncrement: true});
         var transaction = metadata.transaction;
         var pathIndex = metadata.createIndex(JSFileManager.Indexes.metadataPath, ["parent", "name"], {unique: true});
         var data = this._db.createObjectStore(JSFileManager.Tables.data, {autoIncrement: true});

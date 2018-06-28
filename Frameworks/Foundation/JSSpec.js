@@ -2,14 +2,15 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSPropertyList.js"
 // #import "Foundation/JSBundle.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSPropertyList, JSSpec, JSGlobalObject, JSResolveDottedName, JSBundle */
+/* global JSClass, JSObject, JSLazyInitProperty, JSReadOnlyProperty, JSPropertyList, JSSpec, JSGlobalObject, JSResolveDottedName, JSBundle */
 'use strict';
 
 JSClass('JSSpec', JSObject, {
 
+    bundle: JSReadOnlyProperty('_bundle', null),
+    filesOwner: JSLazyInitProperty('_getFilesOwner'),
     _plist: null,
     _objectMap: null,
-    bundle: JSReadOnlyProperty('_bundle', null),
     _baseName: null,
     _keyForNextObjectInit: null,
 
@@ -30,9 +31,9 @@ JSClass('JSSpec', JSObject, {
         this._objectMap = {};
     },
 
-    filesOwner: function(){
+    _getFilesOwner: function(){
         var value = this._plist[JSSpec.Keys.FilesOwner];
-        return this.resolvedValue(value);
+        return this.resolvedValue(value, "JSObject");
     },
 
     resolvedValue: function(value, defaultClassName){

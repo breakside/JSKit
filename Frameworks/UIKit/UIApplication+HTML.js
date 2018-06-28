@@ -1,5 +1,6 @@
 // #import "UIKit/UIApplication.js"
-/* global UIApplication, JSURL, window, JSDispatchQueue, JSHTMLDispatchQueue */
+// #import "UIKit/UIHTMLWindowServer.js"
+/* global JSGlobalObject, UIApplication, JSURL, window, UIHTMLWindowServer */
 'use strict';
 
 UIApplication.definePropertiesFromExtensions({
@@ -15,3 +16,13 @@ UIApplication.definePropertiesFromExtensions({
     }
 
 });
+
+JSGlobalObject.UIApplicationMain = function(rootElement, bootstrapper){
+    var windowServer = UIHTMLWindowServer.initWithRootElement(rootElement);
+    var application = UIApplication.initWithWindowServer(windowServer);
+    application.run(function(success){
+        if (bootstrapper){
+            bootstrapper.applicationLaunchResult(success);
+        }
+    });
+};

@@ -16,30 +16,46 @@ JSClass("SECCipher", JSObject, {
         return null;
     },
 
-    encrypt: function(data, key, completion){
+    encrypt: function(data, key, completion, target){
         // Implemented in subclasses
     },
 
-    decrypt: function(data, key, completion){
+    decrypt: function(data, key, completion, target){
         // Implemented in subclasses
     },
 
-    createKey: function(completion){
-        // Implemented in subclasses
+    encryptString: function(str, key, completion, target){
+        this.encrypt(str.utf8(), key, completion, target);
     },
 
-    encryptString: function(str, key, completion){
-        this.encrypt(str.utf8(), key, completion);
-    },
-
-    decryptString: function(data, key, completion){
+    decryptString: function(data, key, completion, target){
         this.decrypt(data, key, function(decrypted){
             if (decrypted === null){
-                completion(null);
+                completion.call(target, null);
             }else{
-                completion(String.initWithData(decrypted, String.Encoding.utf8));
+                completion.call(target, String.initWithData(decrypted, String.Encoding.utf8));
             }
         });
+    },
+
+    wrapKey: function(key, wrappingKey, completion, target){
+        // Implemented in subclasses
+    },
+
+    unwrapKey: function(wrappedKeyData, wrappingKey, completion, target){
+        // Implemented in subclasses
+    },
+
+    createKey: function(completion, target){
+        // Implemented in subclasses
+    },
+
+    createKeyWithData: function(data, completion, target){
+        // Implemented in subclasses
+    },
+
+    createKeyWithPassphrase: function(passphrase, salt, completion, target){
+        // Implemented in subclasses
     }
 
 });
@@ -47,18 +63,6 @@ JSClass("SECCipher", JSObject, {
 JSClass("SECCipherAESCipherBlockChaining", SECCipher, {
 
     init: function(){
-    },
-
-    encrypt: function(data, key, completion){
-        // Implemented in environment extensions
-    },
-
-    decrypt: function(data, key, completion){
-        // Implemented in environment extensions
-    },
-
-    createKey: function(completion){
-        // Implemented in environment extensions
     }
 
 });
@@ -70,24 +74,12 @@ JSClass("SECCipherAESCounter", SECCipher, {
     init: function(){
     },
 
-    ensureUniqueMessageID: function(completion){
+    ensureUniqueMessageID: function(completion, target){
         if (this.messageID == 9007199254740991){
             return false;
         }
         ++this.messageID;
         return true;
-    },
-
-    encrypt: function(data, key, completion){
-        // Implemented in environment extensions
-    },
-
-    decrypt: function(data, key, completion){
-        // Implemented in environment extensions
-    },
-
-    createKey: function(completion){
-        // Implemented in environment extensions
     }
 
 });
@@ -99,24 +91,12 @@ JSClass("SECCipherAESGaloisCounterMode", SECCipher, {
     init: function(){
     },
 
-    ensureUniqueMessageID: function(completion){
+    ensureUniqueMessageID: function(completion, target){
         if (this.messageID == 9007199254740991){
             return false;
         }
         ++this.messageID;
         return true;
-    },
-
-    encrypt: function(data, key, completion){
-        // Implemented in environment extensions
-    },
-
-    decrypt: function(data, key, completion){
-        // Implemented in environment extensions
-    },
-
-    createKey: function(completion){
-        // Implemented in environment extensions
     }
 
 });
@@ -125,6 +105,10 @@ SECCipher.Algorithm = {
     aesCipherBlockChaining: 'aes_cbc',
     aesCounter: 'aes_ctr',
     aesGaloisCounterMode: 'aes_gcm'
+};
+
+SECCipher.getRandomData = function(length){
+    // Implemented in environment extensions
 };
 
 SECCipher.Algorithm.aesCBC = SECCipher.Algorithm.aesCipherBlockChaining;

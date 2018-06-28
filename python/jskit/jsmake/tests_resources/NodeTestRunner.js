@@ -10,7 +10,7 @@ JSClass('NodeTestRun', TKTestRun, {
     name: null,
 
     init: function(){
-        var info = JSBundle.mainBundle.info();
+        var info = JSBundle.mainBundle.info;
         this.name = info.JSBundleDisplayName || info.JSBundleIdentifier;
         NodeTestRun.$super.initInEnvironment.call(this, 'node');
     },

@@ -5,15 +5,15 @@
 
 var logger = jslog_create("bootstrap");
 
-window.HTMLAppBootstrapper = function(preflightID, preflightSrc, appSrc, appCss, body){
+window.HTMLAppBootstrapper = function(preflightID, preflightSrc, appSrc, appCss, rootElement){
     if (this === undefined){
-        return new HTMLAppBootstrapper(preflightID, preflightSrc, appSrc, appCss, body);
+        return new HTMLAppBootstrapper(preflightID, preflightSrc, appSrc, appCss, rootElement);
     }else{
         if (HTMLAppBootstrapper.mainBootstrapper !== null){
             throw Error("Only one bootstrapper can be started");
         }
         HTMLAppBootstrapper.mainBootstrapper = this;
-        this.body = body;
+        this.rootElement = rootElement;
         this.preflightID = preflightID;
         this.preflightSrc = preflightSrc;
         this.appSrc = appSrc;
@@ -47,7 +47,9 @@ HTMLAppBootstrapper.STATUS = {
     appLoading: 'appLoading',
     appLoadError: 'appLoadError',
     appRunError: 'appRunError',
-    appRunning: 'appRunning'
+    appRunning: 'appRunning',
+    appLaunched: 'appLaunched',
+    appLaunchFailure: 'appLaunchFailure'
 };
 
 HTMLAppBootstrapper.prototype = {
@@ -134,7 +136,7 @@ HTMLAppBootstrapper.prototype = {
     },
 
     linkStylesheets: function(){
-        var head = this.body.ownerDocument.head;
+        var head = this.rootElement.ownerDocument.head;
         for (var i = 0, l = this.appCss.length; i < l; ++i){
             var link = head.ownerDocument.createElement('link');
             link.rel = "stylesheet";
@@ -165,8 +167,17 @@ HTMLAppBootstrapper.prototype = {
     },
 
     runApp: function(){
-        main();
+        var bootstrapper = this;
+        main(this.rootElement, this);
         this.setStatus(HTMLAppBootstrapper.STATUS.appRunning);
+    },
+
+    applicationLaunchResult: function(success){
+        if (success){
+            this.setStatus(HTMLAppBootstrapper.Status.appLaunched);
+        }else{
+            this.setStatus(HTMLAppBootstrapper.Status.appLaunchFailure);
+        }
     },
 
     include: function(src, async, callback, errorCallback){
@@ -191,7 +202,7 @@ HTMLAppBootstrapper.prototype = {
                 errorCallback(e);
             });
             script.src = src;
-            this.body.appendChild(script);
+            this.rootElement.ownerDocument.body.appendChild(script);
         }catch (e){
             this.caughtErrors.push(e);
             logger.error(e);

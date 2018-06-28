@@ -149,10 +149,17 @@ class HTMLBuilder(Builder):
             envInclude = bundle.includeForEnvironment('html')
             if envInclude is not None:
                 self.includes.append(envInclude)
-        mainSpecName = self.mainBundle.info.get('UIMainDefinitionResource', None)
+        mainSpecName = self.mainBundle.info.get('UIMainSpec', None)
         if mainSpecName is not None:
             mainSpec = self.mainBundle[mainSpecName]["value"]
             self.findSpecIncludes(mainSpec)
+        else:
+            appDelegate = self.mainBundle.info.get('UIApplicationDelegate', None)
+            if appDelegate is not None:
+                path = appDelegate + '.js'
+                for includeDir in self.includePaths:
+                    if os.path.exists(os.path.join(includeDir, path)):
+                        self.includes.append(path)
         if self.hasLinkedDispatchFramework():
             self.workerJSPath = os.path.join(self.outputCacheBustingPath, "JSDispatch-worker.js")
             self.mainBundle.info['JSHTMLDispatchQueueWorkerScript'] = self.absoluteWebPath(self.workerJSPath)

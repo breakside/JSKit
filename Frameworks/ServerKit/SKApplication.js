@@ -9,13 +9,16 @@ var sharedApplication = null;
 JSClass('SKApplication', JSObject, {
 
     launchOptions: null,
+    bundle: null,
 
     init: function(){
         if (sharedApplication){
             throw new Error("SKApplication.init: one application already initialized, and only one may exist");
         }
         sharedApplication = this;
+        this.bundle = JSBundle.mainBundle;
         this.parseLaunchOptions();
+        this.setup();
     },
 
     deinit: function(){
@@ -29,10 +32,30 @@ JSClass('SKApplication', JSObject, {
     },
 
     parseLaunchOptions: function(){
-        var info = JSBundle.mainBundle.info();
-        var optionDefinitions = info[SKApplication.InfoKeys.LaunchOptions];
+        var optionDefinitions = this.bundle.info[SKApplication.InfoKeys.LaunchOptions];
         var rawArguments = this.rawProcessArguments();
         this.launchOptions = SKApplication.ParseLaunchOptions(optionDefinitions, rawArguments);
+    },
+
+    setup: function(){
+        this.setupFonts();
+        this.setupDelegate();
+    },
+
+    setupFonts: function(){
+        JSFont.registerBundleFonts(JSBundle.mainBundle);
+    },
+
+    setupDelegate: function(){
+        if (this.bundle.info[SKApplication.InfoKeys.MainDefinitionResource]){
+            var mainUIFile = JSSpec.initWithResource(this.bundle.info[SKApplication.InfoKeys.MainDefinitionResource]);
+            this.delegate = mainUIFile.filesOwner;
+        }else if (this.bundle.info[SKApplication.InfoKeys.ApplicationDelegate]){
+            var delegateClass = JSClass.FromName(this.bundle.info[SKApplication.InfoKeys.ApplicationDelegate]);
+            this.delegate = delegateClass.init();
+        }else{
+            throw new Error("SKApplication: Info is missing required key '%s' or '%s'".sprintf(SKApplication.InfoKeys.MainDefinitionResource, SKApplication.InfoKeys.ApplicationDelegate));
+        }
     },
 
     rawProcessArguments: function(){
@@ -100,17 +123,6 @@ Object.defineProperty(SKApplication, 'sharedApplication', {
 
 JSGlobalObject.SKApplicationMain = function SKApplicationMain(){
     var application = SKApplication.init();
-    JSFont.registerBundleFonts(JSBundle.mainBundle);
-    var info = JSBundle.mainBundle.info();
-    if (info[SKApplication.InfoKeys.MainDefinitionResource]){
-        var mainUIFile = JSSpec.initWithResource(info[SKApplication.InfoKeys.MainDefinitionResource]);
-        application.delegate = mainUIFile.filesOwner();
-    }else if (info[SKApplication.InfoKeys.ApplicationDelegate]){
-        var delegateClass = JSClass.FromName(info[SKApplication.InfoKeys.ApplicationDelegate]);
-        application.delegate = delegateClass.init();
-    }else{
-        throw new Error("SKApplicationMain: Info is missing required key '%s' or '%s'".sprintf(SKApplication.InfoKeys.MainDefinitionResource, SKApplication.InfoKeys.ApplicationDelegate));
-    }
     application.run();
 };
 

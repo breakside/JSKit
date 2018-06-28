@@ -18,15 +18,15 @@ JSClass("UIDualPaneViewController", UIViewController, {
         UIDualPaneViewController.$super.initWithSpec.call(this, spec, values);
         if ('leadingPaneViewController' in values){
             this._leadingPaneViewController = spec.resolvedValue(values.leadingPaneViewController);
-            this._leadingPaneViewController.parentViewController = this;
+            this.addChildViewController(this._leadingPaneViewController);
         }
         if ('trailingPaneViewController' in values){
             this._trailingPaneViewController = spec.resolvedValue(values.trailingPaneViewController);
-            this._trailingPaneViewController.parentViewController = this;
+            this.addChildViewController(this._trailingPaneViewController);
         }
         if ('mainContentViewController' in values){
             this._mainContentViewController = spec.resolvedValue(values.mainContentViewController);
-            this._mainContentViewController.parentViewController = this;
+            this.addChildViewController(this._mainContentViewController);
         }
         if ('view' in values){
             // Set properties that can't really be defined in the spec because
@@ -44,11 +44,11 @@ JSClass("UIDualPaneViewController", UIViewController, {
 
     setLeadingPaneViewController: function(leadingPaneViewController){
         if (this._leadingPaneViewController !== null){
-            this._leadingPaneViewController.parentViewController = null;
+            this._leadingPaneViewController.removeFromParentViewController();
         }
         this._leadingPaneViewController = leadingPaneViewController;
         if (this._leadingPaneViewController){
-            this._leadingPaneViewController.parentViewController = this;
+            this.addChildViewController(this._leadingPaneViewController);
         }
         if (this._view !== null){
             var view = null;
@@ -61,11 +61,11 @@ JSClass("UIDualPaneViewController", UIViewController, {
 
     setTrailingPaneViewController: function(trailingPaneViewController){
         if (this._trailingPaneViewController !== null){
-            this._trailingPaneViewController.parentViewController = null;
+            this._trailingPaneViewController.removeFromParentViewController();
         }
         this._trailingPaneViewController = trailingPaneViewController;
         if (this._trailingPaneViewController){
-            this._trailingPaneViewController.parentViewController = this;
+            this.addChildViewController(this._trailingPaneViewController);
         }
         if (this._view !== null){
             var view = null;
@@ -78,11 +78,11 @@ JSClass("UIDualPaneViewController", UIViewController, {
 
     setMainContentViewController: function(mainContentViewController){
         if (this._mainContentViewController !== null){
-            this._mainContentViewController.parentViewController = null;
+            this._mainContentViewController.removeFromParentViewController();
         }
         this._mainContentViewController = mainContentViewController;
         if (this._mainContentViewController){
-            this._mainContentViewController.parentViewController = this;
+            this.addChildViewController(this._mainContentViewController);
         }
         if (this._view !== null){
             var view = null;

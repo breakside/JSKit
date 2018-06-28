@@ -12,8 +12,8 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         var timestamp = (new Date()).getTime();
         this.manager = JSFileManager.initWithIdentifier("io.breakside.JSKit.FoundationTests-%d".sprintf(timestamp));
         var expectation = TKExpectation.init();
-        expectation.call(this.manager.open, this.manager, function(success){
-            TKAssert(success);
+        expectation.call(this.manager.open, this.manager, function(state){
+            TKAssertExactEquals(state, JSFileManager.State.success);
         });
         this.wait(expectation, 1.0);
     },
@@ -71,6 +71,36 @@ JSClass("JSFileManagerTests", TKTestSuite, {
             TKAssert(success);
             expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
                 TKAssert(exists);
+            });
+        });
+        this.wait(expectation, 1.0);
+    },
+
+    testCreateFolderAtURL_withFileParent: function(){
+        var manager = this.manager;
+        var expectation = TKExpectation.init();
+        var url1 = manager.temporaryDirectoryURL.appendingPathComponent('test.txt');
+        var url2 = url1.appendingPathComponent('test');
+        var txt = "This is a test!";
+        expectation.call(manager.createFileAtURL, manager, url1, txt.utf8(), function(success){
+            TKAssert(success);
+            expectation.call(manager.createFolderAtURL, manager, url2, function(success){
+                TKAssert(!success);
+            });
+        });
+        this.wait(expectation, 1.0);
+    },
+
+    testCreateFileAtURL_withFileParent: function(){
+        var manager = this.manager;
+        var expectation = TKExpectation.init();
+        var url1 = manager.temporaryDirectoryURL.appendingPathComponent('test.txt');
+        var url2 = url1.appendingPathComponent('test');
+        var txt = "This is a test!";
+        expectation.call(manager.createFileAtURL, manager, url1, txt.utf8(), function(success){
+            TKAssert(success);
+            expectation.call(manager.createFileAtURL, manager, url2, txt.utf8(), function(success){
+                TKAssert(!success);
             });
         });
         this.wait(expectation, 1.0);

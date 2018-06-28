@@ -1,13 +1,21 @@
 // #import "SecurityKit/SECKey.js"
-/* global JSClass, JSObject, SECKey, JSData */
+/* global JSClass, JSObject, SECKey, JSData, JSRunLoop */
 'use strict';
 
 JSClass("SECNodeKey", SECKey, {
 
     keyData: null,
 
+    initWithData: function(data){
+        this.keyData = data;
+    },
+
     initWithBytes: function(bytes){
-        this.keyData = JSData.initWithBytes(bytes);
+        this.initWithData(JSData.initWithBytes(bytes));
+    },
+
+    getData: function(completion, target){
+        JSRunLoop.main.schedule(completion, target, this.keyData);
     }
 
 });

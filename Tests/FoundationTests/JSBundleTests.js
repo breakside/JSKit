@@ -88,7 +88,7 @@ JSClass('JSBundleTests', TKTestSuite, {
 
     testInfo: function(){
         var bundle = JSBundle.initWithIdentifier('io.breakside.Test');
-        var info = bundle.info();
+        var info = bundle.info;
         TKAssertNotNull(info);
         TKAssertEquals(info.a, 1);
         TKAssertEquals(info.b, 2);

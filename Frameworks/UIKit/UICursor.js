@@ -1,5 +1,5 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject, JSPoint, UICursor, JSImage, JSBundle, JSCopy */
+/* global JSClass, JSObject, JSPoint, UICursor, JSImage, JSBundle, JSCopy, UIApplication */
 'use strict';
 
 JSClass("UICursor", JSObject, {
@@ -75,7 +75,7 @@ JSClass("UICursor", JSObject, {
 
 UICursor.hide = function(){
     if (UICursor._hideCount === 0){
-        UICursor._windowServer.hideCursor();
+        UIApplication.sharedApplication.windowServer.hideCursor();
     }
     ++UICursor._hideCount;
 };
@@ -86,7 +86,7 @@ UICursor.unhide = function(){
     }
     --UICursor._hideCount;
     if (UICursor._hideCount === 0){
-        UICursor._windowServer.unhideCursor();
+        UIApplication.sharedApplication.windowServer.unhideCursor();
     }
 };
 
@@ -104,7 +104,7 @@ UICursor.pop = function(){
 
 UICursor.show = function(){
     if (this._hideCount === 0){
-        UICursor._windowServer.setCursor(UICursor.currentCursor);
+        UIApplication.sharedApplication.windowServer.setCursor(UICursor.currentCursor);
     }
 };
 
@@ -142,4 +142,3 @@ UICursor.dragCopy = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.
 
 UICursor._hideCount = 0;
 UICursor._stack = [UICursor.arrow];
-UICursor._windowServer = null;

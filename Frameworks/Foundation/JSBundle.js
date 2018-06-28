@@ -1,12 +1,13 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSLocale.js"
-/* global JSGlobalObject, JSClass, JSObject, JSBundle, JSLocale */
+/* global JSGlobalObject, JSClass, JSLazyInitProperty, JSObject, JSBundle, JSLocale */
 'use strict';
 
 JSClass('JSBundle', JSObject, {
 
     _dict: null,
     _supportedPreferredLanguages: null,
+    info: JSLazyInitProperty('_getInfo'),
 
     initWithIdentifier: function(identifier){
         this.identifier = identifier;
@@ -22,9 +23,13 @@ JSClass('JSBundle', JSObject, {
         this._updateSupportedUserLanguages();
     },
 
+    _getInfo: function(){
+        return this._dict.Info;
+    },
+
     _updateSupportedUserLanguages: function(){
         this._supportedPreferredLanguages = [];
-        var localizationIdentifiers = this._dict.Info.JSLocalizations || [];
+        var localizationIdentifiers = this.info[JSBundle.InfoKeys.localizations] || [];
         var locale;
         var locales = {};
         var i, l;
@@ -134,7 +139,7 @@ JSClass('JSBundle', JSObject, {
         // Add the dev language as the final fallback, because we know it exists
         // NOTE: this may be a duplicate entry, but duplicates cause no problems because
         // they'll never be reached.
-        var devlang = this._dict.Info[JSBundle.InfoKeys.developmentLanguage];
+        var devlang = this.info[JSBundle.InfoKeys.developmentLanguage];
         if (devlang !== undefined){
             this._supportedPreferredLanguages.push(devlang);
         }
@@ -177,10 +182,6 @@ JSClass('JSBundle', JSObject, {
     getResourceData: function(metadata){
     },
 
-    info: function(){
-        return this._dict.Info;
-    },
-
     fonts: function(){
         var fonts = [];
         for (var i = 0, l = this._dict.Fonts.length; i < l; ++i){
@@ -205,7 +206,7 @@ JSClass('JSBundle', JSObject, {
     },
 
     localizedStringForInfoKey: function(infoKey){
-        var infoValue = this._dict.Info[infoKey];
+        var infoValue = this.info[infoKey];
         if (infoValue && infoValue.length > 0 && infoValue.charAt(0) === '.'){
             return this.localizedString(infoValue.substr(1), "Info.strings");
         }
@@ -214,10 +215,6 @@ JSClass('JSBundle', JSObject, {
 
 });
 
-JSBundle.InfoKeys = {
-    developmentLanguage: 'JSDevelopmentLanguage'
-};
-
 JSBundle.bundles = {};
 JSBundle.mainBundleIdentifier = null;
 
@@ -225,6 +222,13 @@ JSBundle.Type = {
     object: 'object',
     image: 'image',
     font: 'font'
+};
+
+JSBundle.InfoKeys = {
+    bundleType: "JSBundleType",
+    bundleIdentifier: "JSBundleIdentifier",
+    localizations: "JSLocalizations",
+    developmentLanguage: "JSDevelopmentLanguage"
 };
 
 Object.defineProperty(JSBundle, 'mainBundle', {

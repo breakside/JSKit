@@ -106,16 +106,16 @@ JSClass("TKExpectation", JSObject, {
             if (expectation.isDone){
                 return;
             }
-            if (expectation.timeoutTimer !== null){
-                expectation.timeoutTimer.invalidate();
-                expectation.timeoutTimer = null;
-            }
             try{
                 return fn.apply(this, arguments);
             }catch (e){
                 expectation.error = e;
             }finally{
                 if (expectation._callCount === 0 || expectation.error !== null){
+                    if (expectation.timeoutTimer !== null){
+                        expectation.timeoutTimer.invalidate();
+                        expectation.timeoutTimer = null;
+                    }
                     expectation._finish();
                 }
             }

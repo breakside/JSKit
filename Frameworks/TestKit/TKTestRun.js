@@ -58,6 +58,9 @@ JSClass('TKTestRun', JSObject, {
         var run = this;
 
         var handleTestCaseError = function(e){
+            if (result !== null){
+                return;
+            }
             if (e instanceof TKAssertion){
                 result = TKTestResult.initWithNamesAndResult(suite.className, testName, TKTestResult.Failed);
                 result.message = e.message;
@@ -116,9 +119,6 @@ JSClass('TKTestRun', JSObject, {
                 handleTestCaseError(e);
             }finally{
                 if (suiteInstance.expectation){
-                    if (result !== null){
-                        suiteInstance.expectation.cancel();
-                    }
                     suiteInstance.expectation.catch(handleTestCaseError).finally(writeTestCaseResults);
                 }else{
                     writeTestCaseResults();

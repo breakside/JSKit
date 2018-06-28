@@ -40,7 +40,7 @@ if (!PromiseClass){
                 self._state = PromiseClass.State.fulfilled;
                 self._value = value;
                 for (var i = 0, l = self._listeners.length; i < l; ++i){
-                    self._callListenerSuccess(self._listeners[i]);
+                    self._callListener(self._listeners[i]);
                 }
             };
             if (executorFinished){
@@ -58,7 +58,7 @@ if (!PromiseClass){
                 self._state = PromiseClass.State.rejected;
                 self._value = reason;
                 for (var i = 0, l = self._listeners.length; i < l; ++i){
-                    self._callListenerError(self._listeners[i]);
+                    self._callListener(self._listeners[i]);
                 }
             };
             if (executorFinished){
@@ -91,13 +91,9 @@ if (!PromiseClass){
                     case PromiseClass.State.pending:
                         break;
                     case PromiseClass.State.fulfilled:
-                        setImmediate(function(){
-                            self._callListenerSuccess(listener);
-                        });
-                        break;
                     case PromiseClass.State.rejected:
                         setImmediate(function(){
-                            self._callListenerError(listener);
+                            self._callListener(listener);
                         });
                         break;
                 }
@@ -112,11 +108,19 @@ if (!PromiseClass){
         _value: undefined,
         _state: 0,
 
-        _callListenerSuccess: function(listener){
-            var result = this._value;
+        _callListener: function(listener){
+            var result;
+            var block;
+            if (this._state == PromiseClass.State.fulfilled){
+                result = this._value;
+                block = listener.successBlock;
+            }else{
+                result = PromiseClass.reject(this._value);
+                block = listener.errorBlock;
+            }
             try{
-                if (listener.successBlock){
-                    result = listener.successBlock(this._value);
+                if (block){
+                    result = block(this._value);
                 }
                 if (result instanceof PromiseClass){
                     result.then(listener.resolve, listener.reject);
@@ -126,23 +130,7 @@ if (!PromiseClass){
             }catch (e){
                 listener.reject(e);
             }
-        },
-
-        _callListenerError: function(listener){
-            var result = this._value;
-            try{
-                if (listener.errorBlock){
-                    result = listener.errorBlock(this._value);
-                }
-            }catch (e){
-                result = e;
-            }
-            if (result instanceof PromiseClass){
-                result.then(listener.resolve, listener.reject);
-            }else{
-                listener.reject(result);
-            }
-        },
+        }
 
     };
 
@@ -210,11 +198,7 @@ if (!PromiseClass){
 
     PromiseClass.reject = function(reason){
         return new PromiseClass(function(resolve, reject){
-            if (reason instanceof PromiseClass){
-                reason.then(resolve, reject);
-            }else{
-                reject(reason);
-            }
+            reject(reason);
         });
     };
 

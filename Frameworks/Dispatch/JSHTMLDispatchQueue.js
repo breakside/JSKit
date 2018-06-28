@@ -10,7 +10,7 @@ JSClass("JSHTMLDispatchQueue", JSWorkerBasedDispatchQueue, {
     worker: null,
 
     startWorker: function(){
-        this.worker = new Worker(JSBundle.mainBundle.info()[JSHTMLDispatchQueueWorkerScriptBundleKey]);
+        this.worker = new Worker(JSBundle.mainBundle.info[JSHTMLDispatchQueueWorkerScriptBundleKey]);
         this.worker.addEventListener('message', this);
     },
 

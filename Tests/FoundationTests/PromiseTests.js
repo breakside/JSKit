@@ -182,6 +182,190 @@ JSClass("PromiseTests", TKTestSuite, {
             TKAssertNull(resolved);
         }, 50);
         this.wait(expectation, 1.0);
+    },
+
+    testRejectToSuccess: function(){
+        var resolved = null;
+        var rejected = null;
+        var promise = new PromiseClass(function(resolve, reject){
+            reject(123);
+        }).then(function(value){
+            return value;
+        }, function(reason){
+            return reason;
+        }).then(function(value){
+            resolved = value;
+        }, function(reason){
+            rejected = reason;
+        });
+        TKAssertNull(resolved);
+        TKAssertNull(rejected);
+        var expectation = TKExpectation.init();
+        expectation.call(setTimeout, JSGlobalObject, function(){
+            TKAssertEquals(resolved, 123);
+            TKAssertNull(rejected);
+        }, 50);
+        this.wait(expectation, 1.0);
+    },
+
+    testRejectPassthrough: function(){
+        var resolved = null;
+        var rejected = null;
+        var promise = new PromiseClass(function(resolve, reject){
+            reject(123);
+        }).then(function(value){
+            return value;
+        }, function(reason){
+            return PromiseClass.reject(reason);
+        }).then(function(value){
+            resolved = value;
+        }, function(reason){
+            rejected = reason;
+        });
+        TKAssertNull(resolved);
+        TKAssertNull(rejected);
+        var expectation = TKExpectation.init();
+        expectation.call(setTimeout, JSGlobalObject, function(){
+            TKAssertEquals(rejected, 123);
+            TKAssertNull(resolved);
+        }, 50);
+        this.wait(expectation, 1.0);
+    },
+
+    testRejectFallthrough: function(){
+        var resolved = null;
+        var rejected = null;
+        var promise = new PromiseClass(function(resolve, reject){
+            reject(123);
+        }).then(function(value){
+            return value;
+        }).then(function(value){
+            resolved = value;
+        }, function(reason){
+            rejected = reason;
+        });
+        TKAssertNull(resolved);
+        TKAssertNull(rejected);
+        var expectation = TKExpectation.init();
+        expectation.call(setTimeout, JSGlobalObject, function(){
+            TKAssertEquals(rejected, 123);
+            TKAssertNull(resolved);
+        }, 50);
+        this.wait(expectation, 1.0);
+    },
+
+    testResolve: function(){
+        var resolved = null;
+        var rejected = null;
+        PromiseClass.resolve(123).then(function(value){
+            resolved = value;
+        }, function(reason){
+            rejected = reason;
+        });
+        TKAssertNull(resolved);
+        TKAssertNull(rejected);
+        var expectation = TKExpectation.init();
+        expectation.call(setTimeout, JSGlobalObject, function(){
+            TKAssertEquals(resolved, 123);
+            TKAssertNull(rejected);
+        }, 50);
+        this.wait(expectation, 1.0);
+    },
+
+    testResolveWithPromise: function(){
+        var resolved = null;
+        var rejected = null;
+        var promise = new PromiseClass(function(resolve, reject){
+            setTimeout(resolve, 50, 123);
+        });
+        PromiseClass.resolve(promise).then(function(value){
+            resolved = value;
+        }, function(reason){
+            rejected = reason;
+        });
+        TKAssertNull(resolved);
+        TKAssertNull(rejected);
+        var expectation = TKExpectation.init();
+        expectation.call(setTimeout, JSGlobalObject, function(){
+            TKAssertEquals(resolved, 123);
+            TKAssertNull(rejected);
+        }, 50);
+        this.wait(expectation, 1.0);
+    },
+
+    testReject: function(){
+        var resolved = null;
+        var rejected = null;
+        PromiseClass.reject(123).then(function(value){
+            resolved = value;
+        }, function(reason){
+            rejected = reason;
+        });
+        TKAssertNull(resolved);
+        TKAssertNull(rejected);
+        var expectation = TKExpectation.init();
+        expectation.call(setTimeout, JSGlobalObject, function(){
+            TKAssertEquals(rejected, 123);
+            TKAssertNull(resolved);
+        }, 50);
+        this.wait(expectation, 1.0);
+    },
+
+    testRejectWithPromise: function(){
+        var resolved = null;
+        var rejected = null;
+        var promise = PromiseClass.reject(123);
+        PromiseClass.reject(promise).then(function(value){
+            resolved = value;
+        }, function(reason){
+            rejected = reason;
+        });
+        TKAssertNull(resolved);
+        TKAssertNull(rejected);
+        var expectation = TKExpectation.init();
+        expectation.call(setTimeout, JSGlobalObject, function(){
+            TKAssertNotNull(rejected);
+            TKAssert(rejected instanceof PromiseClass);
+            TKAssertNull(resolved);
+        }, 50);
+        this.wait(expectation, 1.0);
+    },
+
+    testRejectResolved: function(){
+        var resolved = null;
+        var rejected = null;
+        PromiseClass.reject(PromiseClass.resolve(123)).then(function(value){
+            resolved = value;
+        }, function(reason){
+            rejected = reason;
+        });
+        TKAssertNull(resolved);
+        TKAssertNull(rejected);
+        var expectation = TKExpectation.init();
+        expectation.call(setTimeout, JSGlobalObject, function(){
+            TKAssertNotNull(rejected);
+            TKAssert(rejected instanceof PromiseClass);
+            TKAssertNull(resolved);
+        }, 50);
+        this.wait(expectation, 1.0);
+    },
+
+    testResolveRejected: function(){
+        var resolved = null;
+        var rejected = null;
+        PromiseClass.resolve(PromiseClass.reject(123)).then(function(value){
+            resolved = value;
+        }, function(reason){
+            rejected = reason;
+        });
+        TKAssertNull(resolved);
+        TKAssertNull(rejected);
+        var expectation = TKExpectation.init();
+        expectation.call(setTimeout, JSGlobalObject, function(){
+            TKAssertEquals(rejected, 123);
+            TKAssertNull(resolved);
+        }, 50);
+        this.wait(expectation, 1.0);
     }
 
 });

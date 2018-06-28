@@ -1,7 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIResponder.js"
 // #import "UIKit/UIWindowServer.js"
-/* global JSGlobalObject, JSClass, JSObject, UIResponder, UIApplication, UIWindowServer, JSBundle, JSFont, JSSpec, JSDynamicProperty, JSReadOnlyProperty, UIEvent  */
+/* global JSGlobalObject, JSClass, JSObject, JSFileManager, JSUserDefaults, UIResponder, UIApplication, UIWindowServer, JSBundle, JSFont, JSSpec, JSDynamicProperty, JSReadOnlyProperty, UIEvent  */
 'use strict';
 
 (function(){
@@ -19,6 +19,8 @@ JSClass('UIApplication', UIResponder, {
         sharedApplication = this;
         this.windowServer = windowServer;
         this._windowsById = {};
+        this.bundle = JSBundle.mainBundle;
+        this.setup();
     },
 
     deinit: function(){
@@ -29,11 +31,76 @@ JSClass('UIApplication', UIResponder, {
         return {};
     },
 
-    run: function(){
+    setup: function(){
+        this.setupFonts();
+        this.setupDelegate();
+    },
+
+    setupFonts: function(){
+        JSFont.registerBundleFonts(this.bundle);
+        JSFont.registerSystemFontResource(this.bundle.info[UIApplication.InfoKeys.systemFont]);
+    },
+
+    setupDelegate: function(){
+        if (this.bundle.info[UIApplication.InfoKeys.mainSpec]){
+            var mainUIFile = JSSpec.initWithResource(this.bundle.info[UIApplication.InfoKeys.mainSpec]);
+            this.delegate = mainUIFile.filesOwner;
+        }else if (this.bundle.info[UIApplication.InfoKeys.applicationDelegate]){
+            var delegateClass = JSClass.FromName(this.bundle.info[UIApplication.InfoKeys.applicationDelegate]);
+            this.delegate = delegateClass.init();
+        }else{
+            throw new Error("UIApplication: Info is missing required key '%s' or '%s'".sprintf(UIApplication.InfoKeys.mainSpec, UIApplication.InfoKeys.applicationDelegate));
+        }
+    },
+
+    run: function(callback){
+        // User Defaults are enabled by default, but can be disabled in Info
+        var needsUserDefaults = this.bundle.info[UIApplication.InfoKeys.requiresUserDefaults] !== false;
+        // File Manager is enabled by default, but can be disabled in Info; however, needing user defaults implies needing file manager
+        var needsFileManager = needsUserDefaults || (this.bundle.info[UIApplication.InfoKeys.requiresFileManager] !== false);
+
+        if (needsFileManager){
+            JSFileManager.shared.open(function(state){
+                switch (state){
+                    case JSFileManager.State.success:
+                        if (needsUserDefaults){
+                            JSUserDefaults.shared.open(function(){
+                                this._notifyDelegateOfLaunch(callback);
+                            }, this);
+                        }else{
+                            this._notifyDelegateOfLaunch(callback);
+                        }
+                        break;
+                    case JSFileManager.State.genericFailure:
+                        this._notifyDelegateOfLaunchFailure(UIApplication.LaunchFailureReason.filestyemNotAvailable, callback);
+                        break;
+                    case JSFileManager.State.conflictingVersions:
+                        this._notifyDelegateOfLaunchFailure(UIApplication.LaunchFailureReason.upgradeRequiresNoOtherInstances, callback);
+                        break;
+                }
+            }, this);
+        }else{
+            this._notifyDelegateOfLaunch(callback);
+        }
+    },
+
+    _notifyDelegateOfLaunch: function(callback){
         var launchOptions = this.launchOptions();
         if (this.delegate && this.delegate.applicationDidFinishLaunching){
             this.delegate.applicationDidFinishLaunching(this, launchOptions);
         }
+        if (this.windowServer.windowStack.length === 0){
+            throw new Error("No window initiated on application launch.  ApplicationDelegate needs to show a window during .applicationDidFinishLaunching()");
+        }
+        callback(true);
+    },
+
+    _notifyDelegateOfLaunchFailure: function(reason, callback){
+        var launchOptions = this.launchOptions();
+        if (this.delegate && this.delegate.applicationDidFailLaunching){
+            this.delegate.applicationDidFailLaunching(this, reason);
+        }
+        callback(false);
     },
 
     // MARK: - Managing Windows
@@ -121,8 +188,12 @@ JSClass('UIApplication', UIResponder, {
 });
 
 UIApplication.InfoKeys = {
-    MainDefinitionResource: "UIMainDefinitionResource",
-    ApplicationDelegate: "UIApplicationDelegate",
+    launchOptions: "UIApplicationLaunchOptions",
+    mainSpec: "UIMainSpec",
+    applicationDelegate: "UIApplicationDelegate",
+    systemFont: "UIApplicationSystemFont",
+    requiresUserDefaults: "UIApplicationRequiresUserDefaults",
+    requiresFileManager: "UIApplicationRequiresFileManager"
 };
 
 UIApplication.LaunchOptions = {
@@ -136,21 +207,9 @@ Object.defineProperty(UIApplication, 'sharedApplication', {
     }
 });
 
-JSGlobalObject.UIApplicationMain = function UIApplicationMain(){
-    var application = UIApplication.initWithWindowServer(UIWindowServer.defaultServer);
-    JSFont.registerBundleFonts(JSBundle.mainBundle);
-    var info = JSBundle.mainBundle.info();
-    JSFont.registerSystemFontResource(info.UIApplicationSystemFont);
-    if (info[UIApplication.InfoKeys.MainDefinitionResource]){
-        var mainUIFile = JSSpec.initWithResource(info[UIApplication.InfoKeys.MainDefinitionResource]);
-        application.delegate = mainUIFile.filesOwner();
-    }else if (info[UIApplication.InfoKeys.ApplicationDelegate]){
-        var delegateClass = JSClass.FromName(info[UIApplication.InfoKeys.ApplicationDelegate]);
-        application.delegate = delegateClass.init();
-    }else{
-        throw new Error("UIApplicationMain: Info is missing required key '%s' or '%s'".sprintf(UIApplication.InfoKeys.MainDefinitionResource, UIApplication.InfoKeys.ApplicationDelegate));
-    }
-    application.run();
+UIApplication.LaunchFailureReason = {
+    filestyemNotAvailable: 1,
+    upgradeRequiresNoOtherInstances: 2
 };
 
 })();

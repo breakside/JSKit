@@ -5,9 +5,10 @@
 
 JSClass("UIViewController", UIResponder, {
     parentViewController: null,
-    view:           JSDynamicProperty('_view', null),
-    isViewLoaded:   false,
-    _spec:          null,
+    view: JSDynamicProperty('_view', null),
+    scene: JSReadOnlyProperty(),
+    isViewLoaded: false,
+    _spec: null,
     _viewKeyInSpec: null,
     _defaultViewClass: "UIView",
 
@@ -61,16 +62,47 @@ JSClass("UIViewController", UIResponder, {
     },
 
     // -------------------------------------------------------------------------
+    // MARK: - Child View Controllers
+
+    addChildViewController: function(viewController){
+        viewController.willMoveToParentViewController(this);
+        viewController.parentViewController = this;
+        viewController.didMoveToParentViewController(this);
+    },
+
+    removeFromParentViewController: function(){
+        this.willMoveToParentViewController(null);
+        this.parentViewController = null;
+        this.didMoveToParentViewController(null);
+    },
+
+    willMoveToParentViewController: function(parentViewController){
+    },
+
+    didMoveToParentViewController: function(parentViewController){
+    },
+
+    // -------------------------------------------------------------------------
     // MARK: - Responder
 
     getNextResponder: function(){
-        return this.view.superview;
+        return this._view.superview;
     },
 
     // -------------------------------------------------------------------------
     // MARK: - Tab Bar
 
     tabViewItem: null,
+
+    // -------------------------------------------------------------------------
+    // MARK: - Scene
+
+    getScene: function(){
+        if (this._view !== null && this._view.window !== null){
+            return this._view.window.scene;
+        }
+        return null;
+    },
 
     // -------------------------------------------------------------------------
     // MARK: - Private Helpers

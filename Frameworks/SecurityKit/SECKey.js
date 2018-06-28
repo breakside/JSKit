@@ -4,4 +4,7 @@
 
 JSClass("SECKey", JSObject, {
 
+    getData: function(callback){
+    },
+
 });

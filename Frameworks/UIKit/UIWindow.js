@@ -15,8 +15,10 @@ JSClass('UIWindow', UIView, {
     application: JSReadOnlyProperty('_application', null),
     firstResponder: JSDynamicProperty('_firstResponder', null),
     windowServer: JSReadOnlyProperty(),
+    scene: JSReadOnlyProperty('_scene', null),
     screen: JSReadOnlyProperty('_screen', null),
     receivesAllEvents: false,
+    isUserMovable: true,
     level: 0,
 
     // -------------------------------------------------------------------------
@@ -37,14 +39,17 @@ JSClass('UIWindow', UIView, {
     initWithSpec: function(spec, values){
         UIWindow.$super.initWithSpec.call(this, spec, values);
         if ('contentViewController' in values){
-            this.contentViewController = spec.resolvedValue(values.contentViewController);
+            this.contentViewController = spec.resolvedValue(values.contentViewController, "UIViewController");
         }else if ('contentView' in values){
-            this.contentView = spec.resolvedValue(values.contentView);
+            this.contentView = spec.resolvedValue(values.contentView, "UIView");
         }
         this._application = UIApplication.sharedApplication;
         this._commonWindowInit();
         if ('contentInsets' in values){
             this._contentInsets = JSInsets.apply(undefined, values.contentInsets.parseNumberArray());
+        }
+        if ('isUserMovable' in values){
+            this.isUserMovable = values.isUserMovable;
         }
     },
 
@@ -150,7 +155,7 @@ JSClass('UIWindow', UIView, {
 
     mouseDown: function(event){
         // this.setFirstResponder(null);
-        if (this.level == UIWindow.Level.normal){
+        if (this.level == UIWindow.Level.normal && this.isUserMovable){
             this._downLocation = this.convertPointToScreen(event.locationInWindow);
             this._downOrigin = JSPoint(this.frame.origin);
             this._isMoving = true;

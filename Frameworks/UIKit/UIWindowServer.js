@@ -799,18 +799,3 @@ JSClass("UIWindowServer", JSObject, {
 });
 
 })();
-
-// Lazy init a property, so the first access is a function call, but subsequent accesses are simple values
-Object.defineProperty(UIWindowServer, 'defaultServer', {
-    configurable: true,
-    enumerable: false,
-    get: function UIWindowServer_lazyInitDefaultRenderer(){
-        Object.defineProperty(UIWindowServer, 'defaultServer', {
-            configurable: false,
-            enumerable: false,
-            value: UIWindowServerInit()
-        });
-        UICursor._windowServer = UIWindowServer.defaultServer;
-        return UIWindowServer.defaultServer;
-    }
-});

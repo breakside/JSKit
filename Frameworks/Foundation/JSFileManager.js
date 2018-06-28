@@ -77,7 +77,6 @@ JSClass("JSFileManager", JSObject, {
     // MARK: - Destorying the File Manager
 
     destroy: function(completion, target){
-
     },
 
     // --------------------------------------------------------------------
@@ -101,16 +100,14 @@ Object.defineProperty(JSFileManager, 'shared', {
 });
 
 JSFileManager.State = {
-    closed: 0,
-    opening: 1,
-    open: 2,
-    requestingPermission: 2,
-    permissionDenied: 3,
-    unavailble: 4
+    success: 0,
+    genericFailure: 1,
+    conflictingVersions: 2
 };
 
 JSFileManager.ItemType = {
     folder: 0,
     file: 1,
-    symbolicLink: 2
+    symbolicLink: 2,
+    other: 3
 };
