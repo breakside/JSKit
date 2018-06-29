@@ -102,6 +102,9 @@ JSClass('UIWindow', UIView, {
 
     makeVisible: function(){
         this.windowServer.makeWindowVisible(this);
+        if (this._contentViewController){
+            this._contentViewController.viewWillAppear();
+        }
     },
 
     makeKey: function(){
@@ -114,9 +117,6 @@ JSClass('UIWindow', UIView, {
 
     makeKeyAndVisible: function(){
         this.windowServer.makeWindowKeyAndVisible(this);
-        if (this._contentViewController){
-            this._contentViewController.viewWillAppear();
-        }
     },
 
     orderFront: function(){

@@ -12,6 +12,18 @@ var HTMLCryptoAlgorithmNames = {
     aesCTR: 'AES-CTR',
     aesGCM: 'AES-GCM',
     pbkdf2: 'PBKDF2',
+
+    fromAlgorithm: function(algorithm){
+        switch (algorithm){
+            case SECCipher.Algorithm.aesCipherBlockChaining:
+                return HTMLCryptoAlgorithmNames.aesCBC;
+            case SECCipher.Algorithm.aesCounter:
+                return HTMLCryptoAlgorithmNames.aesCTR;
+            case SECCipher.Algorithm.aesGaloisCounterMode:
+                return HTMLCryptoAlgorithmNames.aesGCM;
+        }
+        return null;
+    }
 };
 
 SECCipher.definePropertiesFromExtensions({
@@ -56,7 +68,7 @@ SECCipher.definePropertiesFromExtensions({
             var algorithm = {
                 name: HTMLCryptoAlgorithmNames.pbkdf2,
                 salt: salt.bytes,
-                iterations: 100000,
+                iterations: 1000000,
                 hash: 'SHA-512'
             };
             var derivedAlgorithm = {
@@ -125,10 +137,11 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
         });
     },
 
-    unwrapKey: function(wrappedKeyData, wrappingKey, completion, target){
+    unwrapKey: function(wrappedKeyData, unwrappedKeyAlgorithm, wrappingKey, completion, target){
         var algorithm = this._getHTMLDecryptAlgorithm(wrappedKeyData);
+        var unwrappedKeyHTMLAlgorithm = HTMLCryptoAlgorithmNames.fromAlgorithm(unwrappedKeyAlgorithm);
         wrappedKeyData = wrappedKeyData.subdataInRange(JSRange(16, wrappedKeyData.length - 16));
-        crypto.subtle.unwrapKey("raw", wrappedKeyData.bytes, wrappingKey.htmlKey, algorithm, this.htmlAlgorithmName, true, ["encrypt", "decrypt"]).then(function(key){
+        crypto.subtle.unwrapKey("raw", wrappedKeyData.bytes, wrappingKey.htmlKey, algorithm, unwrappedKeyHTMLAlgorithm, true, ["encrypt", "decrypt"]).then(function(key){
             completion.call(target, SECHTMLKey.initWithKey(key));
         }, function(e){
             completion.call(target, null);
@@ -214,10 +227,11 @@ SECCipherAESCounter.definePropertiesFromExtensions({
         });
     },
 
-    unwrapKey: function(wrappedKeyData, wrappingKey, completion, target){
+    unwrapKey: function(wrappedKeyData, unwrappedKeyAlgorithm, wrappingKey, completion, target){
         var algorithm = this._getHTMLDecryptAlgorithm(wrappedKeyData);
+        var unwrappedKeyHTMLAlgorithm = HTMLCryptoAlgorithmNames.fromAlgorithm(unwrappedKeyAlgorithm);
         wrappedKeyData = wrappedKeyData.subdataInRange(JSRange(8, wrappedKeyData.length - 8));
-        crypto.subtle.unwrapKey("raw", wrappedKeyData.bytes, wrappingKey.htmlKey, algorithm, this.htmlAlgorithmName, true, ["encrypt", "decrypt"]).then(function(key){
+        crypto.subtle.unwrapKey("raw", wrappedKeyData.bytes, wrappingKey.htmlKey, algorithm, unwrappedKeyHTMLAlgorithm, true, ["encrypt", "decrypt"]).then(function(key){
             completion.call(target, SECHTMLKey.initWithKey(key));
         }, function(e){
             completion.call(target, null);
@@ -302,10 +316,11 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         });
     },
 
-    unwrapKey: function(wrappedKeyData, wrappingKey, completion, target){
+    unwrapKey: function(wrappedKeyData, unwrappedKeyAlgorithm, wrappingKey, completion, target){
         var algorithm = this._getHTMLDecryptAlgorithm(wrappedKeyData);
+        var unwrappedKeyHTMLAlgorithm = HTMLCryptoAlgorithmNames.fromAlgorithm(unwrappedKeyAlgorithm);
         wrappedKeyData = wrappedKeyData.subdataInRange(JSRange(8, wrappedKeyData.length - 8));
-        crypto.subtle.unwrapKey("raw", wrappedKeyData.bytes, wrappingKey.htmlKey, algorithm, this.htmlAlgorithmName, true, ["encrypt", "decrypt"]).then(function(key){
+        crypto.subtle.unwrapKey("raw", wrappedKeyData.bytes, wrappingKey.htmlKey, algorithm, unwrappedKeyHTMLAlgorithm, true, ["encrypt", "decrypt"]).then(function(key){
             completion.call(target, SECHTMLKey.initWithKey(key));
         }, function(e){
             completion.call(target, null);

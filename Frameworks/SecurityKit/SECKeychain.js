@@ -43,9 +43,11 @@ JSClass("SECKeychain", JSObject, {
                 //    cases may require that a new keychain start with multiple methods
                 //    (for example, if we want to use different algorithms to encrypt different
                 //    types of items), but a single item encryption method supports our basic initial use case.
-                //    NOTE: Using AES-GCM here becuase it includes message authentication, so we don't have to
-                //    build that ourselves.
-                var methodAlgorithm = SECCipher.Algorithm.aesGaloisCounterMode;
+                //    NOTE: Using AES-CBC here so we don't have to worry about reusing nonces like in
+                //    counter mode.
+                //    TODO: Incorporate a message auth system since we're using CBC, which doesn't include
+                //    its own auth like GCM.  Need a generic SECDiget API first.
+                var methodAlgorithm = SECCipher.Algorithm.aesCipherBlockChaining;
                 var methodCipher = SECCipher.initWithAlgorithm(methodAlgorithm);
                 methodCipher.createKey(function(methodKey){
                     if (methodKey !== null){
@@ -58,7 +60,7 @@ JSClass("SECKeychain", JSObject, {
                                     masterSalt: masterSalt.bytes.base64StringRepresentation(),
                                     methods: [{algorithm: methodAlgorithm, key: wrappedMethodKeyData.bytes.base64StringRepresentation()}],
                                     preferredMethod: 0,
-                                    items: []
+                                    items: {}
                                 };
                                 // 5. Save to disk
                                 this._persist(function(success){
@@ -129,7 +131,7 @@ JSClass("SECKeychain", JSObject, {
                         var methodInfo = this._contents.methods[methodIndex];
                         try{
                             var wrappedMethodKeyData = methodInfo.key.dataByDecodingBase64();
-                            masterCipher.unwrapKey(wrappedMethodKeyData, masterKey, function(methodKey){
+                            masterCipher.unwrapKey(wrappedMethodKeyData, methodInfo.algorithm, masterKey, function(methodKey){
                                 if (methodKey !== null){
                                     unlockedMethods.push(new KeychainMethod(methodInfo.algorithm, methodKey));
                                     ++methodIndex;
@@ -260,7 +262,7 @@ JSClass("SECKeychain", JSObject, {
                 completion.call(target, item);
             }, this);
         }catch (e){
-            logger.error(e.message);
+            logger.error(e);
             JSRunLoop.main.schedule(completion, target, null);
         }
     },
@@ -292,7 +294,7 @@ JSClass("SECKeychain", JSObject, {
             var methodIndex = this._preferredMethodForItem(item, itemInfo.method);
             this._saveItem(id, item, methodIndex, completion, target);
         }catch (e){
-            logger.error(e.message);
+            logger.error(e);
             JSRunLoop.main.schedule(completion, target, null);
         }
     },
@@ -331,7 +333,7 @@ JSClass("SECKeychain", JSObject, {
                 completion.call(target, id);
             }, this);
         }catch (e){
-            logger.error(e.message);
+            logger.error(e);
             JSRunLoop.main.schedule(completion, target, null);
         }
     },
@@ -365,11 +367,14 @@ JSClass("SECKeychain", JSObject, {
             return;
         }
         this._persistScheduled = true;
+        logger.info("persistAfterDelay");
         JSRunLoop.main.schedule(function(){
+            logger.info("persistAfterDelay runLoop");
             if (this._persistScheduled){
                 if (this._persistTimer !== null){
                     this._persistTimer.invalidate();
                 }
+                logger.info("persistAfterDelay creating timer");
                 this._persistTimer = JSTimer.scheduledTimerWithInterval(1, this._persist, this);
                 this._persistScheduled = false;
             }
@@ -377,11 +382,14 @@ JSClass("SECKeychain", JSObject, {
     },
 
     _persist: function(completion, target){
+        logger.info("persisting keychain");
         this._persistTimer = null;
         var data = JSON.stringify(this._contents).utf8();
         this._fileManager.createFileAtURL(this._url, data, function(success){
             if (!success){
                 logger.error("Failed to write keychain to %s".sprintf(this._url));
+            }else{
+                logger.info("keychain saved");
             }
             if (completion){
                 completion.call(target, success);
@@ -393,7 +401,7 @@ JSClass("SECKeychain", JSObject, {
         this._fileManager.contentsAtURL(this._url, function(data){
             if (data !== null){
                 try{
-                    var json = String.initWithData(data, String.encoding.utf8);
+                    var json = String.initWithData(data, String.Encoding.utf8);
                     this._contents = JSON.parse(json);
                     try{
                         completion.call(target, true);

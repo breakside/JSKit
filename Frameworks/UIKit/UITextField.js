@@ -4,14 +4,15 @@
 // #import "UIKit/UICursor.js"
 // #import "UIKit/UITextAttachmentView.js"
 // #import "UIKit/UIImageView.js"
-/* global JSClass, JSProtocol, UIControl, UIView, UICursor, JSInsets, JSRect, JSSize, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard, JSTimer, JSTextRun, JSAttributedString, UITextAttachmentView, UIControlStyler, UITextFieldStyler, UITextFieldDefaultStyler, UIImageView, JSImage */
+/* global JSClass, JSProtocol, UIControl, UIView, UICursor, JSInsets, JSRect, JSSize, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard, JSTimer, JSTextRun, JSAttributedString, UITextAttachmentView, UIControlStyler, UITextFieldStyler, UITextFieldDefaultStyler, UIImageView, JSImage, UITextFieldCustomStyler */
 
 'use strict';
 
 (function(){
 
 JSProtocol("UITextFieldDelegate", JSProtocol, {
-    textFieldDidRecieveEnter: ['textField']
+    textFieldDidRecieveEnter: ['textField'],
+    textFieldDidChange: ['textField']
 });
 
 JSClass("UITextField", UIControl, {
@@ -72,6 +73,9 @@ JSClass("UITextField", UIControl, {
         if ('placeholderColor' in values){
             this.placeholderColor = spec.resolvedValue(values.placeholderColor, "JSColor");
         }
+        if ('delegate' in values){
+            this.delegate = spec.resolvedValue(values.delegate);
+        }
         this._minimumHeight = this.bounds.size.height;
     },
 
@@ -126,6 +130,10 @@ JSClass("UITextField", UIControl, {
 
     getAttributedText: function(){
         return this._textLayer.attributedText;
+    },
+
+    isEmpty: function(){
+        return !this._textLayer.hasText();
     },
 
     // --------------------------------------------------------------------
@@ -360,7 +368,7 @@ JSClass("UITextField", UIControl, {
     },
 
     // --------------------------------------------------------------------
-    // MARK: - Managing Slections
+    // MARK: - Managing Selections
 
     selections: JSReadOnlyProperty(),
 
@@ -513,6 +521,9 @@ JSClass("UITextField", UIControl, {
                 this._placeholderTextLayer.hidden = false;
                 this._isShowingPlaceholder = true;
             }
+        }
+        if (this.delegate && this.delegate.textFieldDidChange){
+            this.delegate.textFieldDidChange(this);
         }
     },
 
@@ -847,6 +858,61 @@ JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
 });
 
 JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
+
+    backgroundColor: null,
+    activeBackgroundColor: null,
+    textColor: null,
+    placeholderColor: null,
+    cornerRadius: 0,
+    textInsets: null,
+
+    initWithSpec: function(spec, values){
+        UITextFieldCustomStyler.$super.initWithSpec.call(this, spec, values);
+        if ('backgroundColor' in values){
+            this.backgroundColor = spec.resolvedValue(values.backgroundColor, "JSColor");
+        }
+        if ('activeBackgroundColor' in values){
+            this.activeBackgroundColor = spec.resolvedValue(values.activeBackgroundColor, "JSColor");
+        }
+        if ('textColor' in values){
+            this.textColor = spec.resolvedValue(values.textColor, "JSColor");
+        }
+        if ('placeholderColor' in values){
+            this.placeholderColor = spec.resolvedValue(values.placeholderColor, "JSColor");
+        }
+        if ('cornerRadius' in values){
+            this.cornerRadius = spec.resolvedValue(values.cornerRadius);
+        }
+        if ('textInsets' in values){
+            this.textInsets = JSInsets.apply(undefined, values.textInsets.parseNumberArray());
+        }
+    },
+
+    initializeControl: function(textField){
+        UITextFieldCustomStyler.$super.initializeControl.call(this, textField);
+        textField.cornerRadius = this.cornerRadius;
+        if (this.textColor !== null){
+            textField.textColor = this.textColor;
+        }
+        if (this.placeholderColor !== null){
+            textField.placeholderColor = this.placeholderColor;
+        }
+        if (this.textInsets !== null){
+            textField.textInsets = this.textInsets;
+        }
+        this.updateControl(textField);
+    },
+
+    updateControl: function(textField){
+        UITextFieldCustomStyler.$super.updateControl.call(this, textField);
+        if (textField.active){
+            if (this.activeBackgroundColor){
+                textField.backgroundColor = this.activeBackgroundColor;
+            }
+        }else{
+            textField.backgroundColor = this.backgroundColor;
+        }
+    }
 
 });
 

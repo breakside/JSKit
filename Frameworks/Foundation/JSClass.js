@@ -18,7 +18,11 @@ JSGlobalObject.JSClass = function(name, superclass, extensions){
 };
 
 JSClass.FromName = function(className){
-    return JSResolveDottedName(JSGlobalObject, className);
+    var cls = JSResolveDottedName(JSGlobalObject, className);
+    if (!cls){
+        throw new Error("Class not found: %s.  Missing include?  Typo?".sprintf(className));
+    }
+    return cls;
 };
 
 JSClass.prototype = {

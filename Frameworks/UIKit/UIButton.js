@@ -1,6 +1,6 @@
 // #import "UIKit/UIControl.js"
 // #import "UIKit/UILabel.js"
-/* global JSClass, JSObject, UIControl, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSConstraintBox, JSColor, UIButton, JSTextAlignment, JSPoint, UIView, JSFont, UIButtonStyler, UIButtonDefaultStyler, JSRect */
+/* global JSClass, JSObject, UIControl, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSConstraintBox, JSColor, UIButton, JSTextAlignment, JSPoint, UIView, JSFont, UIButtonStyler, UIButtonDefaultStyler, UIButtonCustomStyler, JSRect */
 'use strict';
 
 JSClass("UIButton", UIControl, {
@@ -72,7 +72,7 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
     showsOverState: false,
 
     initializeControl: function(button){
-        button.titleLabel.constraintBox = JSConstraintBox.Margin(3);
+        button.titleLabel.constraintBox = JSConstraintBox({left: 3, right: 3, height: button.titleLabel.font.displayLineHeight});
         button.layer.borderWidth = 1;
         button.layer.cornerRadius = 3;
         button.layer.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
@@ -94,6 +94,72 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
             button.layer.backgroundColor    = UIButtonDefaultStyler.NormalBackgroundColor;
             button.layer.borderColor        = UIButtonDefaultStyler.NormalBorderColor;
             button.titleLabel.textColor     = UIButtonDefaultStyler.NormalTitleColor;
+        }
+    }
+
+});
+
+JSClass("UIButtonCustomStyler", UIButtonStyler, {
+
+    normalBackgroundColor: null,
+    disabledBackgroundColor: null,
+    activeBackgroundColor: null,
+    normalTitleColor: null,
+    disabledTitleColor: null,
+    activeTitleColor: null,
+    cornerRadius: 0,
+
+    initWithBackgroundColor: function(normalBackgroundColor, normalTitleColor){
+        this.normalBackgroundColor = normalBackgroundColor;
+        this.normalTitleColor = normalTitleColor;
+        this._commonInit();
+    },
+
+    initWithSpec: function(spec, values){
+        UIButtonCustomStyler.$super.initWithSpec.call(this, spec, values);
+        if ('normalBackgroundColor' in values){
+            this.normalBackgroundColor = spec.resolvedValue(values.normalBackgroundColor, "JSColor");
+        }
+        if ('normalTitleColor' in values){
+            this.normalTitleColor = spec.resolvedValue(values.normalTitleColor, "JSColor");
+        }
+        if ('cornerRadius' in values){
+            this.cornerRadius = spec.resolvedValue(values.cornerRadius);
+        }
+        this._commonInit();
+    },
+
+    _commonInit: function(){
+        if (this.activeTitleColor === null){
+            this.activeTitleColor = this.normalTitleColor.colorDarkenedByPercentage(0.2);
+        }
+        if (this.activeBackgroundColor === null){
+            this.activeBackgroundColor = this.normalBackgroundColor.colorDarkenedByPercentage(0.2);
+        }
+        if (this.disabledBackgroundColor === null){
+            this.disabledBackgroundColor = this.normalBackgroundColor.colorWithAlpha(0.5);
+        }
+        if (this.disabledTitleColor === null){
+            this.disabledTitleColor = this.normalTitleColor.colorWithAlpha(0.5);
+        }
+    },
+
+    initializeControl: function(button){
+        button.titleLabel.constraintBox = JSConstraintBox({left: 3, right: 3, height: button.titleLabel.font.displayLineHeight});
+        button.cornerRadius = this.cornerRadius;
+        this.updateControl(button);
+    },
+
+    updateControl: function(button){
+        if (!button.enabled){
+            button.layer.backgroundColor    = this.disabledBackgroundColor;
+            button.titleLabel.textColor     = this.disabledTitleColor;
+        }else if (button.active){
+            button.layer.backgroundColor    = this.activeBackgroundColor;
+            button.titleLabel.textColor     = this.activeTitleColor;
+        }else{
+            button.layer.backgroundColor    = this.normalBackgroundColor;
+            button.titleLabel.textColor     = this.normalTitleColor;
         }
     }
 

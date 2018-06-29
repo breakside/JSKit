@@ -320,6 +320,8 @@ class Builder(object):
         metadata = dict(
             value=obj
         )
+        if "File's Owner" in obj:
+            self.findSpecIncludes(obj)
         self.watchFile(fullPath)
         return bundle.addResource(nameComponents, metadata)
 

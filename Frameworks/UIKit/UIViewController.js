@@ -6,6 +6,7 @@
 JSClass("UIViewController", UIResponder, {
     parentViewController: null,
     view: JSDynamicProperty('_view', null),
+    window: JSReadOnlyProperty(),
     scene: JSReadOnlyProperty(),
     isViewLoaded: false,
     _spec: null,
@@ -61,6 +62,9 @@ JSClass("UIViewController", UIResponder, {
     viewDidDisappear: function(){
     },
 
+    viewDidLayoutSubviews: function(){
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Child View Controllers
 
@@ -97,9 +101,17 @@ JSClass("UIViewController", UIResponder, {
     // -------------------------------------------------------------------------
     // MARK: - Scene
 
+    getWindow: function(){
+        if (this._view !== null){
+            return this._view.window;
+        }
+        return null;
+    },
+
     getScene: function(){
-        if (this._view !== null && this._view.window !== null){
-            return this._view.window.scene;
+        var window = this.window;
+        if (window !== null){
+            return window.scene;
         }
         return null;
     },

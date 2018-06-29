@@ -22,8 +22,8 @@ JSClass('JSGradient', JSObject, {
         this.end = JSPoint(0, 1);
         this.stops = {};
         if (('from' in values) && ('to' in values)){
-            this.addStop(0, spec.resolvedValue(values.from));
-            this.addStop(1, spec.resolvedValue(values.to));
+            this.addStop(0, spec.resolvedValue(values.from, "JSColor"));
+            this.addStop(1, spec.resolvedValue(values.to, "JSColor"));
         }
     },
 

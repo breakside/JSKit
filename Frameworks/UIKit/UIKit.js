@@ -31,6 +31,7 @@
 // #import "UIKit/UIScreen.js"
 // #import "UIKit/UITooltipWindow.js"
 // #import "UIKit/UIPasteboard.js"
+// #import "UIKit/UIScene.js"
 
 // Text
 // #import "UIKit/UILabel.js"

@@ -22,6 +22,12 @@ JSClass('UILabel', UIView, {
         if ("text" in values){
             this.text = spec.resolvedValue(values.text);
         }
+        if ("textColor" in values){
+            this.textColor = spec.resolvedValue(values.textColor, "JSColor");
+        }
+        if ("textAlignment" in values){
+            this.textAlignment = spec.resolvedValue(values.textAlignment);
+        }
         if ("lines" in values){
             this.maximumNumberOfLines = spec.resolvedValue(values.lines);
         }

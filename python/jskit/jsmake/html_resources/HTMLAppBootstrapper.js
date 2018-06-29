@@ -174,9 +174,9 @@ HTMLAppBootstrapper.prototype = {
 
     applicationLaunchResult: function(success){
         if (success){
-            this.setStatus(HTMLAppBootstrapper.Status.appLaunched);
+            this.setStatus(HTMLAppBootstrapper.STATUS.appLaunched);
         }else{
-            this.setStatus(HTMLAppBootstrapper.Status.appLaunchFailure);
+            this.setStatus(HTMLAppBootstrapper.STATUS.appLaunchFailure);
         }
     },
 

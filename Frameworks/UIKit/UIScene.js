@@ -25,14 +25,21 @@ JSClass("UIScene", JSObject, {
     initWithSpec: function(spec, values){
         UIScene.$super.initWithSpec.call(this, spec, values);
         this._commonInit();
-        if ('menuBar' in spec.values){
+        if ('menuBar' in values){
             this.menuBar = spec.resolvedValue(values.menuBar, "UIMenuBar");
         }
-        if ('windowStack' in spec.values){
-            for (var i = 0, l = spec.values.windowStack.length; i < l; ++i){
-                this.windowStack.push(spec.resolvedValue(spec.values.windowStack[i], "UIWindow"));
+        if ('windowStack' in values){
+            var window;
+            for (var i = 0, l = values.windowStack.length; i < l; ++i){
+                window = spec.resolvedValue(values.windowStack[i], "UIWindow");
+                this.addWindow(window);
             }
         }
+    },
+
+    addWindow: function(window){
+        window._scene = this;
+        this.windowStack.push(window);
     },
 
     _commonInit: function(){

@@ -29,6 +29,9 @@ JSClass("UIControl", UIView, {
         if (('target' in values) && ('action' in values)){
             var target = spec.resolvedValue(values.target);
             var action = target[spec.resolvedValue(values.action)];
+            if (!action){
+                throw new Error("Missing action on target: %s.%s".sprintf(values.target, values.action));
+            }
             this.addTargetedAction(target, action);
         }
     },

@@ -101,13 +101,22 @@ JSClass('UIView', UIResponder, {
             this.backgroundColor = spec.resolvedValue(values.backgroundColor, "JSColor");
         }
         if ("backgroundGradient" in values){
-            this.backgroundGradient = spec.resolvedValue(values.backgroundGradient);
+            this.backgroundGradient = spec.resolvedValue(values.backgroundGradient, "JSGradient");
         }
         if ("borderColor" in values){
             this.borderColor = spec.resolvedValue(values.borderColor, "JSColor");
         }
         if ("borderWidth" in values){
             this.borderWidth = spec.resolvedValue(values.borderWidth);
+        }
+        if ("shadowColor" in values){
+            this.shadowColor = spec.resolvedValue(values.shadowColor, "JSColor");
+        }
+        if ("shadowRadius" in values){
+            this.shadowRadius = spec.resolvedValue(values.shadowRadius);
+        }
+        if ("shadowOffset" in values){
+            this.shadowOffset = JSPoint.apply(undefined, values.shadowOffset.parseNumberArray());
         }
         if ("maskedBorders" in values){
             this.maskedBorders = spec.resolvedValue(values.maskedBorders);
@@ -121,9 +130,12 @@ JSClass('UIView', UIResponder, {
         if ("tooltip" in values){
             this.tooltip = spec.resolvedValue(values.tooltip);
         }
+        if ("nextKeyView" in values){
+            this.nextKeyView = spec.resolvedValue(values.nextKeyView);
+        }
         if ("subviews" in values){
             for (var i = 0, l = values.subviews.length; i < l; ++i){
-                var subview = spec.resolvedValue(values.subviews[i]);
+                var subview = spec.resolvedValue(values.subviews[i], "UIView");
                 this.addSubview(subview);
             }
         }
@@ -248,6 +260,9 @@ JSClass('UIView', UIResponder, {
 
     layoutSubviews: function(){
         this.layer.layoutSublayers();
+        if (this.viewController){
+            this.viewController.viewDidLayoutSubviews();
+        }
     },
 
     layoutSublayersOfLayer: function(layer){

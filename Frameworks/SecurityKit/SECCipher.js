@@ -42,7 +42,7 @@ JSClass("SECCipher", JSObject, {
         // Implemented in subclasses
     },
 
-    unwrapKey: function(wrappedKeyData, wrappingKey, completion, target){
+    unwrapKey: function(wrappedKeyData, unwrappedKeyAlgorithm, wrappingKey, completion, target){
         // Implemented in subclasses
     },
 

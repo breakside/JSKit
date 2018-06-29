@@ -1,12 +1,14 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIResponder.js"
 // #import "UIKit/UIWindowServer.js"
-/* global JSGlobalObject, JSClass, JSObject, JSFileManager, JSUserDefaults, UIResponder, UIApplication, UIWindowServer, JSBundle, JSFont, JSSpec, JSDynamicProperty, JSReadOnlyProperty, UIEvent  */
+/* global JSGlobalObject, JSClass, JSObject, JSFileManager, JSUserDefaults, UIResponder, UIApplication, UIWindowServer, JSBundle, JSFont, JSSpec, JSDynamicProperty, JSReadOnlyProperty, UIEvent, jslog_create  */
 'use strict';
 
 (function(){
 
 var sharedApplication = null;
+
+var logger = jslog_create("uikit.application");
 
 JSClass('UIApplication', UIResponder, {
 
@@ -60,11 +62,11 @@ JSClass('UIApplication', UIResponder, {
         var needsFileManager = needsUserDefaults || (this.bundle.info[UIApplication.InfoKeys.requiresFileManager] !== false);
 
         if (needsFileManager){
-            JSFileManager.shared.open(function(state){
+            JSFileManager.shared.open(function UIApplication_fileManagerDidOpen(state){
                 switch (state){
                     case JSFileManager.State.success:
                         if (needsUserDefaults){
-                            JSUserDefaults.shared.open(function(){
+                            JSUserDefaults.shared.open(function UIApplication_userDefaultsDidOpen(){
                                 this._notifyDelegateOfLaunch(callback);
                             }, this);
                         }else{
@@ -87,15 +89,21 @@ JSClass('UIApplication', UIResponder, {
     _notifyDelegateOfLaunch: function(callback){
         var launchOptions = this.launchOptions();
         if (this.delegate && this.delegate.applicationDidFinishLaunching){
-            this.delegate.applicationDidFinishLaunching(this, launchOptions);
+            try{
+                this.delegate.applicationDidFinishLaunching(this, launchOptions);
+                if (this.windowServer.windowStack.length === 0){
+                    throw new Error("No window initiated on application launch.  ApplicationDelegate needs to show a window during .applicationDidFinishLaunching()");
+                }
+                callback(true);
+            }catch (e){
+                logger.error(e);
+                this._notifyDelegateOfLaunchFailure(UIApplication.LaunchFailureReason.exception, callback);
+            }
         }
-        if (this.windowServer.windowStack.length === 0){
-            throw new Error("No window initiated on application launch.  ApplicationDelegate needs to show a window during .applicationDidFinishLaunching()");
-        }
-        callback(true);
     },
 
     _notifyDelegateOfLaunchFailure: function(reason, callback){
+        logger.error("Could not launch app: %s".sprintf(reason));
         var launchOptions = this.launchOptions();
         if (this.delegate && this.delegate.applicationDidFailLaunching){
             this.delegate.applicationDidFailLaunching(this, reason);
@@ -208,8 +216,9 @@ Object.defineProperty(UIApplication, 'sharedApplication', {
 });
 
 UIApplication.LaunchFailureReason = {
-    filestyemNotAvailable: 1,
-    upgradeRequiresNoOtherInstances: 2
+    exception: 'Exception',
+    filestyemNotAvailable: 'File System Not Available',
+    upgradeRequiresNoOtherInstances: 'Upgrade Requires No Other Instances'
 };
 
 })();

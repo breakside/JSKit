@@ -12,7 +12,7 @@ SECCipher.definePropertiesFromExtensions({
         this.encrypt(key.keyData, wrappingKey, completion, target);
     },
 
-    unwrapKey: function(wrappedKeyData, wrappingKey, completion, target){
+    unwrapKey: function(wrappedKeyData, unwrappedKeyAlgorithm, wrappingKey, completion, target){
         this.decrypt(wrappedKeyData, wrappingKey, function(decrypted){
             if (decrypted !== null){
                 completion.call(target, SECNodeKey.initWithData(decrypted));
@@ -40,7 +40,7 @@ SECCipher.definePropertiesFromExtensions({
     createKeyWithPassphrase: function(passphrase, salt, completion, target){
         var utf8Passphrase = String.fromCharCode.apply(String, passphrase.utf8().bytes);
         var saltString = String.fromCharCode.apply(String, salt.bytes);
-        crypto.pbkdf2(utf8Passphrase, saltString, 100000, 32, 'sha512', function(error, derivedBytes){
+        crypto.pbkdf2(utf8Passphrase, saltString, 1000000, 32, 'sha512', function(error, derivedBytes){
             if (error){
                 completion.call(target, null);
             }else{
