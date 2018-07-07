@@ -1,6 +1,6 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UILabel.js"
-/* global JSClass, UIView, UILabel, JSReadOnlyProperty, JSDynamicProperty, JSLazyInitProperty, UIListViewHeaderFooterView, JSConstraintBox, JSInsets, JSPoint, JSSize, JSRect, JSColor */
+/* global JSClass, UIView, UILabel, JSReadOnlyProperty, JSDynamicProperty, JSLazyInitProperty, UIListViewHeaderFooterView, JSInsets, JSPoint, JSSize, JSRect, JSColor */
 'use strict';
 
 JSClass("UIListViewHeaderFooterView", UIView, {
@@ -33,7 +33,6 @@ JSClass("UIListViewHeaderFooterView", UIView, {
     _commonHeaderFooterInit: function(){
         this.stylerProperties = {};
         this._titleInsets = JSInsets(0, 10);
-        this._contentView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));
         this.addSubview(this._contentView);
     },
 
@@ -61,6 +60,7 @@ JSClass("UIListViewHeaderFooterView", UIView, {
 
     layoutSubviews: function(){
         UIListViewHeaderFooterView.$super.layoutSubviews.call(this);
+        this._contentView.frame = this.bounds;
         var size = JSSize(this.bounds.size.width - this._titleInsets.left - this._titleInsets.right, 0);
         var origin = JSPoint(this._titleInsets.left, 0);
         if (this._titleLabel !== null){

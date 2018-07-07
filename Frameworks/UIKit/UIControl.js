@@ -36,11 +36,6 @@ JSClass("UIControl", UIView, {
         }
     },
 
-    initWithConstraintBox: function(box){
-        UIControl.$super.initWithConstraintBox.call(this, box);
-        this.commonUIControlInit();
-    },
-
     commonUIControlInit: function(){
         this._actionsByEvent = {};
         this._state = UIControl.State.normal;
@@ -63,6 +58,10 @@ JSClass("UIControl", UIView, {
         if (this._styler !== null){
             this._styler.drawControlLayerInContext(this, layer, context);
         }
+    },
+
+    getIntrinsicSize: function(){
+        return this._styler.intrinsicSizeOfControl(this);
     },
 
     // MARK: - Actions
@@ -216,6 +215,10 @@ JSClass("UIControlStyler", JSObject, {
     },
 
     layoutControl: function(control){
+    },
+
+    intrinsicSizeOfControl: function(control){
+        return control.frame.size;
     },
 
     drawControlLayerInContext: function(control, layer, context){

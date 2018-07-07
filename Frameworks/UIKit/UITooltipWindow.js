@@ -22,7 +22,7 @@ JSClass("UITooltipWindow", UIWindow, {
         }else{
             label.text = str;
         }
-        label.sizeToFitConstraints(maxSize);
+        label.sizeToFitSize(maxSize);
         this.contentView = UIView.init();
         this.contentView.addSubview(label);
         this.frame = JSRect(JSPoint.Zero, label.frame.size);

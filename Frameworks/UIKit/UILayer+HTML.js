@@ -1,7 +1,7 @@
 // #import "UIKit/UILayer.js"
 // #import "UIKit/UIView.js"
 // #import "UIKit/UIDisplayServer.js"
-/* global UILayer, JSConstraintBox, JSPoint, UIDisplayServer, UIView */
+/* global UILayer, JSPoint, UIDisplayServer, UIView */
 'use strict';
 
 UILayer.definePropertiesFromExtensions({
@@ -10,6 +10,7 @@ UILayer.definePropertiesFromExtensions({
         context.style.position = 'absolute';
         context.style.boxSizing = 'border-box';
         context.style.mozBoxSizing = 'border-box';
+        context.style.touchAction = 'none';
         if (this.delegate && this.delegate.initializeLayerHTMLContext){
             this.delegate.initializeLayerHTMLContext(this, context);
         }

@@ -3,7 +3,7 @@
 // #import "Foundation/JSData.js"
 // #import "Foundation/JSBundle.js"
 // #import "Foundation/JSURLSession.js"
-/* global JSClass, JSReadOnlyProperty, JSSize, JSObject, JSBundle, JSImage, JSData, JSConstraintBox, _JSResourceImage, _JSDataImage, _JSURLImage, JSURLSession, JSURLResponse */
+/* global JSClass, JSReadOnlyProperty, JSSize, JSObject, JSBundle, JSImage, JSData, JSInsets, _JSResourceImage, _JSDataImage, _JSURLImage, JSURLSession, JSURLResponse */
 'use strict';
 
 (function(){
@@ -12,7 +12,7 @@ JSClass('JSImage', JSObject, {
 
     size: JSReadOnlyProperty('_size', null),
     scale: JSReadOnlyProperty('_scale', 1),
-    stretchBox: JSReadOnlyProperty('_stretchBox', null),
+    capInsets: JSReadOnlyProperty('_capInsets', null),
     templateColor: JSReadOnlyProperty('_templateColor', null),
 
     init: function(){
@@ -49,14 +49,14 @@ JSClass('JSImage', JSObject, {
         }
         image._size = JSSize(this._size);
         image._scale = this._scale;
-        image._stretchBox = this._stretchBox;
+        image._capInsets = JSInsets(this._capInsets);
         image._templateColor = this._templateColor;
         return image;
     },
 
     stretchableImageWithCapSizes: function(leftCapWidth, topCapHeight, rightCapWidth, bottomCapHeight){
         var image = this.copy();
-        image._stretchBox = JSConstraintBox.Margin(topCapHeight, rightCapWidth, bottomCapHeight, leftCapWidth);
+        image._capInsets = JSInsets(topCapHeight, leftCapWidth, bottomCapHeight, rightCapWidth);
         return image;
     },
 

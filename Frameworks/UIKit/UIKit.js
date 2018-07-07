@@ -22,6 +22,8 @@
 // #import "UIKit/UIWebView.js"
 // #import "UIKit/UIWindow.js"
 // #import "UIKit/UIViewController.js"
+// #import "UIKit/UIWindowController.js"
+// #import "UIKit/UIScene.js"
 
 // Display & Window Serves
 // #import "UIKit/UIEvent.js"
@@ -31,7 +33,6 @@
 // #import "UIKit/UIScreen.js"
 // #import "UIKit/UITooltipWindow.js"
 // #import "UIKit/UIPasteboard.js"
-// #import "UIKit/UIScene.js"
 
 // Text
 // #import "UIKit/UILabel.js"

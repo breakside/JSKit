@@ -31,6 +31,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     initWithRootElement: function(rootElement){
         UIHTMLDisplayServer.$super.init.call(this);
         this.rootElement = rootElement;
+        this.rootElement.style.webkitOverflowScrolling = 'auto';
         this.domDocument = this.rootElement.ownerDocument;
         this.domWindow = this.domDocument.defaultView;
         this.windowsContext = UIHTMLDisplayServerContext.initWithElement(this.rootElement);

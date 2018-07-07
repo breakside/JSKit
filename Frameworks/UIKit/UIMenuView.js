@@ -4,7 +4,7 @@
 // #import "UIKit/UILabel.js"
 // #import "UIKit/UIImageView.js"
 // #import "UIKit/UIEvent.js"
-/* global JSClass, JSLazyInitProperty, JSReadOnlyProperty, JSDynamicProperty, UIEvent, UIWindow, UIMenu, UIView, JSColor, JSSize, JSRect, UILabel, UIImageView, UIMenuItem, JSTextAlignment, JSInsets, JSPoint, UILayer, JSConstraintBox, UIMenuWindow, UIMenuView, UIMenuItemView, JSBinarySearcher, JSTimer, JSURL, JSImage, JSBundle */
+/* global JSClass, JSLazyInitProperty, JSReadOnlyProperty, JSDynamicProperty, UIEvent, UIWindow, UIMenu, UIView, JSColor, JSSize, JSRect, UILabel, UIImageView, UIMenuItem, JSTextAlignment, JSInsets, JSPoint, UILayer, UIMenuWindow, UIMenuView, UIMenuItemView, JSBinarySearcher, JSTimer, JSURL, JSImage, JSBundle, UIMenuItemSeparatorView */
 'use strict';
 
 (function(){
@@ -39,15 +39,13 @@ JSClass("UIMenuWindow", UIWindow, {
         UIMenuWindow.$super.init.call(this);
         this._styler = menu.styler;
         this.contentView = UIView.init();
-        this.upIndicatorView = UIView.initWithConstraintBox({top: 0, left: 0, right: 0, height: 16});
+        this.upIndicatorView = UIView.init();
         this.upIndicatorImageView = UIImageView.initWithImage(images.scrollUp, UIImageView.RenderMode.template);
-        this.upIndicatorImageView.constraintBox = JSConstraintBox.Size(this.upIndicatorImageView.frame.size.width, this.upIndicatorImageView.frame.size.height);
         this.upIndicatorView.addSubview(this.upIndicatorImageView);
-        this.downIndicatorView = UIView.initWithConstraintBox({bottom: 0, left: 0, right: 0, height: 16});
+        this.downIndicatorView = UIView.init();
         this.downIndicatorImageView = UIImageView.initWithImage(images.scrollDown, UIImageView.RenderMode.template);
-        this.downIndicatorImageView.constraintBox = JSConstraintBox.Size(this.downIndicatorImageView.frame.size.width, this.downIndicatorImageView.frame.size.height);
         this.downIndicatorView.addSubview(this.downIndicatorImageView);
-        this.clipView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));
+        this.clipView = UIView.init();
         this.menuView = UIMenuView.init();
         this.contentView.addSubview(this.clipView);
         this.clipView.addSubview(this.menuView);
@@ -70,6 +68,7 @@ JSClass("UIMenuWindow", UIWindow, {
     },
 
     didBecomeVisible: function(){
+        UIMenuWindow.$super.didBecomeVisible.call(this);
         var event = this.windowServer.activeEvent;
         if (event !== null && event.type == UIEvent.Type.leftMouseDown){
             var location = event.locationInView(this);
@@ -109,7 +108,7 @@ JSClass("UIMenuWindow", UIWindow, {
         }
         this.menuView.bounds = JSRect(JSPoint.Zero, menuSize);
         this.menuView.layoutIfNeeded();
-        this.bounds = JSRect(0, 0, menuSize.width, menuSize.height + this.clipView.constraintBox.top + this.clipView.constraintBox.bottom);
+        this.bounds = JSRect(0, 0, menuSize.width, menuSize.height + this.contentView.bounds.size.height - this.clipView.frame.size.height);
         this.layoutIfNeeded();
         this.startMouseTracking(UIView.MouseTracking.all);
     },
@@ -147,6 +146,7 @@ JSClass("UIMenuWindow", UIWindow, {
 
     layoutSubviews: function(){
         UIMenuWindow.$super.layoutSubviews.call(this);
+        this._styler.layoutMenuWindow(this);
         this.contentView.layoutIfNeeded();
         this.menuView.frame = JSRect(0, 0, this.clipView.bounds.size.width, this.menuView.frame.size.height);
         var offset = this.contentOffset;
@@ -303,6 +303,9 @@ JSClass("UIMenuWindow", UIWindow, {
             }else{
                 this.closeAll();
             }
+        }else{
+            this._lastMoveLocation = event.locationInView(this);
+            this._adjustHighlightForLocation(this._lastMoveLocation);
         }
     },
 
@@ -560,8 +563,7 @@ JSClass("UIMenuView", UIView, {
         var view = item.view;
         if (view === null){
             if (item.separator){
-                view = UIView.init();
-                item.menu.styler.initializeSeparatorView(view);
+                view = UIMenuItemSeparatorView.initWithStyler(item.menu.styler);
             }else{
                 view = UIMenuItemView.initWithStyler(item.menu.styler);
                 view.setItem(item);
@@ -604,6 +606,7 @@ JSClass("UIMenuView", UIView, {
     },
 
     layoutSubviews: function(){
+        UIMenuView.$super.layoutSubviews.call(this);
         var itemView;
         var y = 0;
         var lastHeight = 0;
@@ -619,6 +622,24 @@ JSClass("UIMenuView", UIView, {
 
 });
 
+JSClass("UIMenuItemSeparatorView", UIView, {
+
+    _styler: null,
+    stylerProperties: null,
+
+    initWithStyler: function(styler){
+        this.stylerProperties = {};
+        this._styler = styler;
+        this._styler.initializeSeparatorView(this);
+    },
+
+    layoutSubviews: function(){
+        UIMenuItemSeparatorView.$super.layoutSubviews.call(this);
+        this._styler.layoutSeparatorView(this);
+    },
+
+});
+
 JSClass("UIMenuItemView", UIView, {
 
     titleLabel: null,
@@ -627,6 +648,7 @@ JSClass("UIMenuItemView", UIView, {
     submenuImageView: JSLazyInitProperty('_createSubmenuImageView'),
     keyLabel: JSLazyInitProperty('_createKeyLabel'),
     keyModifierLabel: JSLazyInitProperty('_createKeyModifierLabel'),
+    stylerProperties: null,
     _imageView: null,
     _stateImageView: null,
     _submenuImageView: null,
@@ -639,6 +661,7 @@ JSClass("UIMenuItemView", UIView, {
         UIMenuItemView.$super.init.call(this);
         this.titleLabel = UILabel.init();
         this.addSubview(this.titleLabel);
+        this.stylerProperties = {};
         this._styler = styler;
         this._styler.initializeItemView(this);
     },
@@ -726,6 +749,7 @@ JSClass("UIMenuItemView", UIView, {
     },
 
     layoutSubviews: function(){
+        UIMenuItemView.$super.layoutSubviews.call(this);
         this._styler.layoutItemView(this, this._item);
     },
 

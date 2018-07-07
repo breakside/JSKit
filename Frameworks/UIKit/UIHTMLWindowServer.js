@@ -82,10 +82,10 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.domWindow.addEventListener('languagechange', this, false);
 
         // mobile
-        this.rootElement.addEventListener('touchstart', this, false);
-        this.rootElement.addEventListener('touchend', this, false);
-        this.rootElement.addEventListener('touchcancel', this, false);
-        this.rootElement.addEventListener('touchmove', this, false);
+        this.rootElement.addEventListener('touchstart', this, {passive: false, capture: false});
+        this.rootElement.addEventListener('touchend', this, {passive: false, capture: false});
+        this.rootElement.addEventListener('touchcancel', this, {passive: false, capture: false});
+        this.rootElement.addEventListener('touchmove', this, {passive: false, capture: false});
 
         // TODO: special things like file input change
         // TODO: does stopping key events interfere with browser keyboard shortcuts? (some, yes)

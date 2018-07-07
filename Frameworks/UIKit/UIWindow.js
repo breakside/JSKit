@@ -1,25 +1,10 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UIApplication.js"
 // #import "UIKit/UITouch.js"
-/* global JSClass, UIView, JSColor, JSRect, JSConstraintBox, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, JSPoint, UIApplication, UIEvent, UITouch */
+/* global JSClass, UIView, JSColor, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, JSPoint, UIApplication, UIEvent, UITouch */
 'use strict';
 
 JSClass('UIWindow', UIView, {
-
-    // -------------------------------------------------------------------------
-    // MARK: - Properties
-
-    contentViewController: JSDynamicProperty('_contentViewController', null),
-    contentView: JSDynamicProperty('_contentView', null),
-    contentInsets: JSDynamicProperty('_contentInsets', null),
-    application: JSReadOnlyProperty('_application', null),
-    firstResponder: JSDynamicProperty('_firstResponder', null),
-    windowServer: JSReadOnlyProperty(),
-    scene: JSReadOnlyProperty('_scene', null),
-    screen: JSReadOnlyProperty('_screen', null),
-    receivesAllEvents: false,
-    isUserMovable: true,
-    level: 0,
 
     // -------------------------------------------------------------------------
     // MARK: - Creating a Window
@@ -51,12 +36,34 @@ JSClass('UIWindow', UIView, {
         if ('isUserMovable' in values){
             this.isUserMovable = values.isUserMovable;
         }
+        if ('firstResponder' in values){
+            this._initialFirstResponder = spec.resolvedValue(values.firstResponder);
+        }
+    },
+
+    _commonWindowInit: function(){
+        this.window = this;
+        if (this.backgroundColor === null){
+            this.backgroundColor = JSColor.whiteColor;
+        }
+        this.clipsToBounds = true;
+        if (this._contentView === null){
+            this._contentView = UIView.init();
+        }
+        this._contentInsets = JSInsets.Zero;
     },
 
     // -------------------------------------------------------------------------
     // MARK: - Content View
 
+    contentViewController: JSDynamicProperty('_contentViewController', null),
+    contentView: JSDynamicProperty('_contentView', null),
+    contentInsets: JSDynamicProperty('_contentInsets', null),
+
     setContentView: function(contentView){
+        if (contentView === null){
+            contentView = UIView.init();
+        }
         if (this._contentView !== null){
             this._contentView.removeFromSuperview();
         }
@@ -65,6 +72,7 @@ JSClass('UIWindow', UIView, {
         if (this._contentView !== null){
             this.addSubview(this._contentView);
         }
+        this.setNeedsLayout();
     },
 
     setContentViewController: function(contentViewController){
@@ -78,11 +86,17 @@ JSClass('UIWindow', UIView, {
         this._contentViewController = contentViewController;
     },
 
+    setContentInsets: function(contentInsets){
+        this._contentInsets = JSInsets(contentInsets);
+        this.setNeedsLayout();
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Layout
 
     layoutSubviews: function(){
-        this.contentView.frame = this.bounds.rectWithInsets(this._contentInsets.top, this._contentInsets.left, this._contentInsets.bottom, this._contentInsets.right);
+        // TODO: if this size depends on contentview size, figure out content view size
+        this._contentView.frame = this.bounds.rectWithInsets(this._contentInsets);
     },
 
     // -------------------------------------------------------------------------
@@ -102,8 +116,10 @@ JSClass('UIWindow', UIView, {
 
     makeVisible: function(){
         this.windowServer.makeWindowVisible(this);
-        if (this._contentViewController){
-            this._contentViewController.viewWillAppear();
+        if (this.viewController){
+            this.viewController.viewWillAppear(false);
+        }else if (this._contentViewController){
+            this._contentViewController.viewWillAppear(false);
         }
     },
 
@@ -124,8 +140,23 @@ JSClass('UIWindow', UIView, {
     },
 
     didBecomeVisible: function(){
-        if (this._contentViewController){
-            this._contentViewController.viewDidAppear();
+        if (this.viewController){
+            this.viewController.viewDidAppear(false);
+        }else if (this._contentViewController){
+            this._contentViewController.viewDidAppear(false);
+        }
+        if (this._initialFirstResponder !== null){
+            var responder = this._initialFirstResponder;
+            this._initialFirstResponder = null;
+            this.setFirstResponder(responder);
+        }
+    },
+
+    didClose: function(){
+        if (this.viewController){
+            this.viewController.viewDidDisappear(false);
+        }else if (this._contentViewController){
+            this._contentViewController.viewDidDisappear(false);
         }
     },
 
@@ -133,11 +164,22 @@ JSClass('UIWindow', UIView, {
     // MARK: - Closing
 
     close: function(){
+        if (this.viewController){
+            this.viewController.viewWillDisappear(false);
+        }else if (this._contentViewController){
+            this._contentViewController.viewWillDisappear(false);
+        }
         this.windowServer.windowRemoved(this);
     },
 
     // -------------------------------------------------------------------------
     // MARK: - Window Server
+
+    windowServer: JSReadOnlyProperty(),
+    application: JSReadOnlyProperty('_application', null),
+    scene: JSReadOnlyProperty('_scene', null),
+    screen: JSReadOnlyProperty('_screen', null),
+    level: 0,
 
     getWindowServer: function(){
         if (this._application !== null){
@@ -149,6 +191,7 @@ JSClass('UIWindow', UIView, {
     // -------------------------------------------------------------------------
     // MARK: - Events
 
+    isUserMovable: true,
     _downLocation: null,
     _downOrigin: null,
     _isMoving: false,
@@ -187,6 +230,12 @@ JSClass('UIWindow', UIView, {
         this._downLocation = null;
         this._downOrigin = null;
     },
+
+    // -------------------------------------------------------------------------
+    // MARK: - First Responder
+
+    firstResponder: JSDynamicProperty('_firstResponder', null),
+    _initialFirstResponder: null,
 
     getFirstResponder: function(){
         return this._firstResponder;
@@ -247,6 +296,9 @@ JSClass('UIWindow', UIView, {
         return this._application;
     },
 
+    // -------------------------------------------------------------------------
+    // MARK: - Coordinate Space Conversions
+
     convertPointFromScreen: function(point){
         if (this._screen === null){
             return null;
@@ -275,6 +327,11 @@ JSClass('UIWindow', UIView, {
         }
         return JSRect(this.convertPointToScreen(rect.origin), rect.size);
     },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Event Dispatch
+
+    receivesAllEvents: false,
 
     sendEvent: function(event){
         switch (event.category){
@@ -322,6 +379,7 @@ JSClass('UIWindow', UIView, {
         }
         switch (event.type){
             case UIEvent.Type.leftMouseDown:
+                this.orderFront();
                 if (this.canBecomeKeyWindow() && this.windowServer.keyWindow !== this){
                     this.makeKey();
                 }else if (this.canBecomeMainWindow() && this.windowServer.mainWindow !== this){
@@ -382,7 +440,7 @@ JSClass('UIWindow', UIView, {
             // We only dispatch the touches that changed in this version of the event.
             // A view can get all the touches it wants from the event.
             if (touches[i].timestamp == event.timestamp){
-                view = this.hitTest(touches[i].locationInWindow);
+                view = this.hitTest(touches[i].locationInWindow) || this;
                 if (!touchesByView[view.objectID]){
                     touchesByView[view.objectID] = {view: view, touches: []};
                 }
@@ -427,21 +485,6 @@ JSClass('UIWindow', UIView, {
                     break;
             }
         }
-    },
-
-    // -------------------------------------------------------------------------
-    // MARK: - Private methods
-
-    _commonWindowInit: function(){
-        this.window = this;
-        if (this.backgroundColor === null){
-            this.backgroundColor = JSColor.whiteColor;
-        }
-        this.clipsToBounds = true;
-        if (this._contentView === null){
-            this.contentView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));
-        }
-        this._contentInsets = JSInsets.Zero;
     }
 
 });

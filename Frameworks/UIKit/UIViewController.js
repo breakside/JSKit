@@ -4,14 +4,6 @@
 'use strict';
 
 JSClass("UIViewController", UIResponder, {
-    parentViewController: null,
-    view: JSDynamicProperty('_view', null),
-    window: JSReadOnlyProperty(),
-    scene: JSReadOnlyProperty(),
-    isViewLoaded: false,
-    _spec: null,
-    _viewKeyInSpec: null,
-    _defaultViewClass: "UIView",
 
     // -------------------------------------------------------------------------
     // MARK: - Creating a View Controller
@@ -31,17 +23,38 @@ JSClass("UIViewController", UIResponder, {
     // -------------------------------------------------------------------------
     // MARK: - Creating the View
 
-    loadView: function(){
-        this._view = JSClass.FromName(this._defaultViewClass).init();
-    },
+    view: JSReadOnlyProperty('_view', null),
+    window: JSReadOnlyProperty(),
+    scene: JSReadOnlyProperty(),
+    isViewLoaded: false,
+    _defaultViewClass: "UIView",
+    _viewKeyInSpec: null,
+    _spec: null,
 
     getView: function(){
         this._loadViewIfNeeded();
         return this._view;
     },
 
-    setView: function(view){
-        this._view = view;
+    loadView: function(){
+        this._view = JSClass.FromName(this._defaultViewClass).init();
+    },
+
+    _loadViewIfNeeded: function(){
+        if (!this.isViewLoaded){
+            // If we were created via initWithSpec, and the spec contained a
+            // view property for us, always load that view because it may have
+            // properties from the spec that the developer expects to be honored.
+            // Otherwise, just call loadView
+            if (this._spec !== null && this._viewKeyInSpec !== null){
+                this._view = this._spec.resolvedValue(this._viewKeyInSpec, this._defaultViewClass);
+            }else{
+                this.loadView();
+            }
+            this._view.viewController = this;
+            this.isViewLoaded = true;
+            this.viewDidLoad();
+        }
     },
 
     // -------------------------------------------------------------------------
@@ -67,6 +80,8 @@ JSClass("UIViewController", UIResponder, {
 
     // -------------------------------------------------------------------------
     // MARK: - Child View Controllers
+
+    parentViewController: null,
 
     addChildViewController: function(viewController){
         viewController.willMoveToParentViewController(this);
@@ -117,27 +132,9 @@ JSClass("UIViewController", UIResponder, {
     },
 
     // -------------------------------------------------------------------------
-    // MARK: - Private Helpers
+    // MARK: - State Restoration
 
-    // MARK: View Loading
-
-    _loadViewIfNeeded: function(){
-        if (!this.isViewLoaded){
-            // If we were created via initWithSpec, and the spec contained a
-            // view property for us, always load that view because it may have
-            // properties from the spec that the developer expects to be honored.
-            // Otherwise, just call loadView
-            if (this._spec !== null && this._viewKeyInSpec !== null){
-                this._view = this._spec.resolvedValue(this._viewKeyInSpec, this._defaultViewClass);
-            }else{
-                this.loadView();
-            }
-            this._view.viewController = this;
-            this.isViewLoaded = true;
-            this.viewDidLoad();
-        }
-    }
-
+    restorationIdentifier: null
 
 
 });

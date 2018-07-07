@@ -1,7 +1,7 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UILabel.js"
 // #import "UIKit/UIImageView.js"
-/* global JSClass, UIView, UILabel, JSReadOnlyProperty, JSDynamicProperty, JSLazyInitProperty, UIListViewCell, JSConstraintBox, JSInsets, JSPoint, JSSize, JSRect, JSColor, UIImageView */
+/* global JSClass, UIView, UILabel, JSReadOnlyProperty, JSDynamicProperty, JSLazyInitProperty, UIListViewCell, JSInsets, JSPoint, JSSize, JSRect, JSColor, UIImageView */
 'use strict';
 
 JSClass("UIListViewCell", UIView, {
@@ -35,7 +35,6 @@ JSClass("UIListViewCell", UIView, {
     _commonCellInit: function(){
         this.stylerProperties = {};
         this._titleInsets = JSInsets(0, 10);
-        this._contentView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));
         this.addSubview(this._contentView);
     },
 
@@ -45,7 +44,7 @@ JSClass("UIListViewCell", UIView, {
         return label;
     },
 
-    _createDetalLabel: function(){
+    _createDetailLabel: function(){
         var label = UILabel.init();
         this.contentView.addSubview(label);
         return label;
@@ -69,8 +68,14 @@ JSClass("UIListViewCell", UIView, {
 
     layoutSubviews: function(){
         UIListViewCell.$super.layoutSubviews.call(this);
+        this._contentView.frame = this.bounds;
         var size = JSSize(this.bounds.size.width - this._titleInsets.left - this._titleInsets.right, 0);
         var origin = JSPoint(this._titleInsets.left, 0);
+        if (this._imageView !== null){
+            var imageSize = this.bounds.size.height - this._titleInsets.left * 2;
+            this._imageView.frame = JSRect(origin.x, origin.x, imageSize, imageSize);
+            origin.x += origin.x + imageSize;
+        }
         if (this._titleLabel !== null){
             if (this._detailLabel !== null){
                 size.height = this._titleLabel.font.displayLineHeight + this._detailLabel.font.displayLineHeight;

@@ -357,17 +357,17 @@ JSClass('UIScrollView', UIView, {
         this.contentOffset = JSPoint(this._contentOffset.x, y);
     },
 
-    touchesBegan: function(touches, event){
-    },
+    // touchesBegan: function(touches, event){
+    // },
 
-    touchesMoved: function(touches, event){
-    },
+    // touchesMoved: function(touches, event){
+    // },
 
-    touchesEnded: function(touches, event){
-    },
+    // touchesEnded: function(touches, event){
+    // },
 
-    touchesCanceled: function(touches, event){
-    }
+    // touchesCanceled: function(touches, event){
+    // }
 
 });
 

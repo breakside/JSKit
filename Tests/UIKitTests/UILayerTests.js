@@ -1,7 +1,7 @@
 // #import "UIKit/UIKit.js"
 // #import "TestKit/TestKit.js"
 // #import "MockWindowServer.js"
-/* global JSClass, TKTestSuite, UILayer, MockWindowServer, TKAssert, TKAssertEquals, TKAssertExactEquals, TKAssertNull, TKAssertThrows, TKAssertFloatEquals, TKAssertObjectEquals, JSRect, JSPoint, JSSize, JSColor, JSAffineTransform, JSConstraintBox */
+/* global JSClass, TKTestSuite, UILayer, MockWindowServer, TKAssert, TKAssertEquals, TKAssertExactEquals, TKAssertNull, TKAssertThrows, TKAssertFloatEquals, TKAssertObjectEquals, JSRect, JSPoint, JSSize, JSColor, JSAffineTransform */
 'use strict';
 
 JSClass("UILayerTests", TKTestSuite, {
@@ -236,45 +236,6 @@ JSClass("UILayerTests", TKTestSuite, {
         TKAssertEquals(layer1.sublayers.length, 0);
         TKAssertNull(layer2.superlayer);
         TKAssertNull(layer3.superlayer);
-    },
-
-    testFrameForConstraintBoxInBounds: function(){
-        var bounds = JSRect(10, 20, 300, 400);
-
-        var box = JSConstraintBox.Size(40, 50);
-        var frame = UILayer.FrameForConstraintBoxInBounds(box, bounds);
-        TKAssertFloatEquals(frame.origin.x, 130);
-        TKAssertFloatEquals(frame.origin.y, 175);
-        TKAssertFloatEquals(frame.size.width, 40);
-        TKAssertFloatEquals(frame.size.height, 50);
-
-        box = JSConstraintBox.Margin(1,2,3,4);
-        frame = UILayer.FrameForConstraintBoxInBounds(box, bounds);
-        TKAssertFloatEquals(frame.origin.x, 4);
-        TKAssertFloatEquals(frame.origin.y, 1);
-        TKAssertFloatEquals(frame.size.width, 294);
-        TKAssertFloatEquals(frame.size.height, 396);
-
-        box = JSConstraintBox({top: 1, left: 2, width: 50});
-        frame = UILayer.FrameForConstraintBoxInBounds(box, bounds);
-        TKAssertFloatEquals(frame.origin.x, 2);
-        TKAssertFloatEquals(frame.origin.y, 1);
-        TKAssertFloatEquals(frame.size.width, 50);
-        TKAssertFloatEquals(frame.size.height, 0);
-
-        box = JSConstraintBox({top: 1, left: 2, height: 50});
-        frame = UILayer.FrameForConstraintBoxInBounds(box, bounds);
-        TKAssertFloatEquals(frame.origin.x, 2);
-        TKAssertFloatEquals(frame.origin.y, 1);
-        TKAssertFloatEquals(frame.size.width, 0);
-        TKAssertFloatEquals(frame.size.height, 50);
-
-        box = JSConstraintBox({bottom: 1, right: 2, height: 50, width: 30});
-        frame = UILayer.FrameForConstraintBoxInBounds(box, bounds);
-        TKAssertFloatEquals(frame.origin.x, 268);
-        TKAssertFloatEquals(frame.origin.y, 349);
-        TKAssertFloatEquals(frame.size.width, 30);
-        TKAssertFloatEquals(frame.size.height, 50);
     },
 
     testConvertPointToLayer: function(){

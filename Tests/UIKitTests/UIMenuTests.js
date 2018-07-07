@@ -1,7 +1,7 @@
 // #import "UIKit/UIKit.js"
 // #import "TestKit/TestKit.js"
 // #import "MockWindowServer.js"
-/* global JSClass, TKTestSuite, UIMenu, UIMenuItem, JSFont, JSFontDescriptor, UIMenuTestsFont, MockWindowServer, UIApplication, UIWindow, UIView, JSConstraintBox, JSRect, JSPoint */
+/* global JSClass, TKTestSuite, UIMenu, UIMenuItem, JSFont, JSFontDescriptor, UIMenuTestsFont, MockWindowServer, UIApplication, UIWindow, UIView, JSRect, JSPoint */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
@@ -24,7 +24,6 @@ JSClass("UIMenuTests", TKTestSuite, {
         this.windowServer = MockWindowServer.init();
         this.app = UIApplication.initWithWindowServer(this.windowServer);
         this.baseWindow = UIWindow.initWithApplication(this.app);
-        this.baseWindow.constraintBox = JSConstraintBox.Margin(0);
         this.baseWindow.contentView = UIView.init();
         this.testView = UIView.initWithFrame(JSRect(20, 30, 40, 50));
         this.baseWindow.contentView.addSubview(this.testView);

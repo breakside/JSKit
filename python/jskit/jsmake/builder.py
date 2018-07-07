@@ -13,6 +13,7 @@ from . import yml
 from .image import ImageInfoExtractor
 from .font import FontInfoExtractor
 from .bundle import Bundle
+from .constraints import compileConstraintEquality
 
 
 class Builder(object):
@@ -243,13 +244,14 @@ class Builder(object):
                 self.includeBundleFrameworks(frameworkBundle)
 
     def findSpecIncludes(self, spec):
-        for k, v in spec.items():
-            if k == 'class':
-                path = v + '.js'
+        if isinstance(obj, dict):
+            if 'class' in obj:
+                path = obj['class'] + '.js'
                 for includeDir in self.includePaths:
                     if os.path.exists(os.path.join(includeDir, path)):
                         self.includes.append(path)
-            elif k == 'include':
+            if 'include' in obj:
+                v = obj['include']
                 if isinstance(v, basestring):
                     includes = [v]
                 else:
@@ -265,8 +267,33 @@ class Builder(object):
                                         self.includes.append(u"%s/%s" % (name, file))
                     else:
                         self.includes.append(path)
-            elif isinstance(v, dict):
+            for k, v in spec.items():
+                if k not in ('class', 'include'):
+                    self.findSpecIncludes(v)
+        elif isinstance(obj, list):
+            for v in obj:
                 self.findSpecIncludes(v)
+
+    def compileSpecConstraints(self, obj):
+        if isinstance(obj, dict):
+            if 'constraints' in obj and 'equalities' in obj['constraints']: 
+                refs = dict(self='<self>')
+                if 'references' in obj['constraints']:
+                    refs.update(obj['constraints']['references'])
+                obj['constraints'] = self.compileConstraints(obj['constraints']['equalities'], refs)
+            for k, v in spec.items():
+                if k not in ('constraints',):
+                    self.compileSpecConstraints(v)
+        elif isinstance(obj, list):
+            for v in obj:
+                self.compileSpecConstraints(v)
+
+    def compileConstraints(self, equalities, refs):
+        constraints = []
+        for eq in equalities:
+            constraint = compileConstraintEquality(eq.strip(), refs)
+            constraints.append(constraint)
+        return constraints
 
     def buildResources(self):
         for identifier, bundle in self.bundles.items():
@@ -322,6 +349,7 @@ class Builder(object):
         )
         if "File's Owner" in obj:
             self.findSpecIncludes(obj)
+            self.compileSpecConstraints(obj)
         self.watchFile(fullPath)
         return bundle.addResource(nameComponents, metadata)
 
@@ -401,4 +429,3 @@ class Builder(object):
             with open(licenseFile, 'r') as license:
                 return license.read()
         return ""
-

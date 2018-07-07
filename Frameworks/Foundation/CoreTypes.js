@@ -477,10 +477,6 @@ JSGlobalObject.JSInsets = function(top, left, bottom, right){
 
 JSInsets.prototype = {
 
-    constraintBox: function(){
-        return new JSConstraintBox({top: this.top, left: this.left, right: this.right, bottom: this.bottom});
-    },
-
     insetsWithInsets: function(top, left, bottom, right){
         if (top instanceof JSInsets){
             top = top.top;

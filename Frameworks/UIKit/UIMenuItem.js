@@ -27,6 +27,10 @@ JSClass("UIMenuItem", JSObject, {
     view: null,
 
     initWithSpec: function(spec, values){
+        UIMenuItem.$super.initWithSpec.call(this, spec, values);
+        if ('tag' in values){
+            this.tag = spec.resolvedValue(values.tag);
+        }
         if ('separator' in values){
             this.initSeparator();
         }else{
@@ -42,9 +46,6 @@ JSClass("UIMenuItem", JSObject, {
             if ('submenu' in values){
                 this._submenu = UIMenu.initWithSpec(spec, values.submenu);
                 this._isEnabled = true;
-            }
-            if ('tag' in values){
-                this.tag = spec.resolvedValue(values.tag);
             }
             if ('indentationLevel' in values){
                 this._indentationLevel = spec.resolvedValue(values.indentationLevel);

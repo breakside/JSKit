@@ -18,6 +18,7 @@ JSClass("UIDisplayServer", JSObject, {
         this.layerLayoutQueue = UIDisplayServerQueue();
         this.layerRepositionQueue = UIDisplayServerQueue();
         this.windowInsertedQueue = UIDisplayServerQueue();
+        this.windowRemovalQueue = UIDisplayServerQueue();
         this.layerAnimationQueue = {};
     },
 
@@ -35,10 +36,12 @@ JSClass("UIDisplayServer", JSObject, {
     windowInserted: function(window){
         this.layerInserted(window.layer);
         this.windowInsertedQueue.enqueue(window);
+        this.windowRemovalQueue.remove(window);
     },
 
     windowRemoved: function(window){
         this.layerRemoved(window.layer);
+        this.windowRemovalQueue.enqueue(window);
         this.windowInsertedQueue.remove(window);
     },
 
@@ -78,8 +81,11 @@ JSClass("UIDisplayServer", JSObject, {
             completedAnimations[i].completionFunction(completedAnimations[i]);
         }
 
-        // Call any window did appear callbacks
+        // Call any window insert/remove callbacks
         var window;
+        while ((window = this.windowRemovalQueue.dequeue()) !== null){
+            window.didClose();
+        }
         while ((window = this.windowInsertedQueue.dequeue()) !== null){
             window.didBecomeVisible();
         }

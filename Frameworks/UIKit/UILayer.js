@@ -4,7 +4,7 @@
 // #import "UIKit/UIDisplayServer.js"
 // #feature Math.min
 // #feature Math.max
-/* global JSGlobalObject, UILayerAnimatedProperty, JSCustomProperty, JSDynamicProperty, JSClass, JSObject, UILayer, UIDisplayServer, JSRect, JSPoint, JSSize, JSConstraintBox, JSAffineTransform, UIAnimationTransaction, UIBasicAnimation, JSSetDottedName, JSResolveDottedName, JSContext */
+/* global JSGlobalObject, UILayerAnimatedProperty, JSCustomProperty, JSReadOnlyProperty, JSDynamicProperty, JSClass, JSObject, UILayer, UIDisplayServer, JSRect, JSPoint, JSSize, JSAffineTransform, UIAnimationTransaction, UIBasicAnimation, JSSetDottedName, JSResolveDottedName, JSContext */
 'use strict';
 
 JSGlobalObject.UILayerAnimatedProperty = function(){
@@ -46,7 +46,6 @@ JSClass("UILayer", JSObject, {
     bounds:             UILayerAnimatedProperty(),
     position:           UILayerAnimatedProperty(),
     anchorPoint:        UILayerAnimatedProperty(),
-    constraintBox:      UILayerAnimatedProperty(),
     transform:          UILayerAnimatedProperty(),
     hidden:             UILayerAnimatedProperty(),
     alpha:              UILayerAnimatedProperty(),
@@ -124,15 +123,6 @@ JSClass("UILayer", JSObject, {
             this.model.position = JSPoint(this.model.position.x + dx, this.model.position.y + dy);
         }
         this.didChangeProperty('position');
-    },
-
-    setConstraintBox: function(constraintBox){
-        // When the constraint box changes, the frame (and therefore position and bounds) will
-        // likely change.  superview.layoutSubviews will adjust as necessary
-        this.model.constraintBox = JSConstraintBox(constraintBox);
-        if (this.superlayer !== null){
-            this.superlayer.setNeedsLayout();
-        }
     },
 
     setBounds: function(bounds){
@@ -238,9 +228,7 @@ JSClass("UILayer", JSObject, {
             this.sublayers[i].sublayerIndex += 1;
         }
         sublayer.superlayer = this;
-        if (sublayer.model.constraintBox){
-            sublayer.frame = this._frameForConstraintBox(sublayer.model.constraintBox);
-        }
+        // TODO: set needs layout if sublayer has constraints?
         if (this._displayServer !== null){
             this._displayServer.layerInserted(sublayer);
         }
@@ -454,8 +442,6 @@ JSClass("UILayer", JSObject, {
                 this.presentation[parts[0]] = JSSize(value.width, value.height);
             }else if (value instanceof JSRect){
                 this.presentation[parts[0]] = JSRect(value.origin.x, value.origin.y, value.size.width, value.size.height);
-            }else if (value instanceof JSConstraintBox){
-                this.presentation[parts[0]] = JSConstraintBox({top: value.top, right: value.right, bottom: value.bottom, left: value.left, width: value.width, height: value.height});
             }else if (value instanceof JSAffineTransform){
                 this.presentation[parts[0]] = JSAffineTransform(value.a, value.b, value.c, value.d, value.tx, value.ty);
             }else{
@@ -569,19 +555,12 @@ JSClass("UILayer", JSObject, {
     },
 
     layoutSublayers: function(){
-        var sublayer;
-        for (var i = 0, l = this.sublayers.length; i < l; ++i){
-            sublayer = this.sublayers[i];
-            if (sublayer.model.constraintBox !== null){
-                sublayer.frame = this._frameForConstraintBox(sublayer.model.constraintBox);
-            }
-        }
     },
 
     sizeToFit: function(){
     },
 
-    sizeToFitConstraints: function(maxSize){
+    sizeToFitSize: function(maxSize){
         var size = JSSize(this.bounds.size);
         if (size.width > maxSize.width){
             size.width = maxSize.width;
@@ -590,10 +569,6 @@ JSClass("UILayer", JSObject, {
             size.height = maxSize.height;
         }
         this.bounds = JSRect(this.bounds.origin, size);
-    },
-
-    _frameForConstraintBox: function(constraintBox){
-        return UILayer.FrameForConstraintBoxInBounds(constraintBox, this.model.bounds);
     },
 
     // -------------------------------------------------------------------------
@@ -661,41 +636,6 @@ JSClass("UILayer", JSObject, {
 
 });
 
-UILayer.FrameForConstraintBoxInBounds = function(constraintBox, bounds){
-    var frame = JSRect.Zero;
-    if (constraintBox.height !== undefined){
-        frame.size.height = constraintBox.height;
-    }else if (constraintBox.top !== undefined && constraintBox.bottom !== undefined){
-        frame.size.height = bounds.size.height - constraintBox.top - constraintBox.bottom;
-    }else{
-        frame.size.height = 0;
-        // TODO: get intrinsic height
-    }
-    if (constraintBox.top !== undefined){
-        frame.origin.y = constraintBox.top;
-    }else if (constraintBox.bottom !== undefined){
-        frame.origin.y = bounds.size.height - frame.size.height - constraintBox.bottom;
-    }else{
-        frame.origin.y = (bounds.size.height - frame.size.height) / 2.0;
-    }
-    if (constraintBox.width !== undefined){
-        frame.size.width = constraintBox.width;
-    }else if (constraintBox.left !== undefined && constraintBox.right !== undefined){
-        frame.size.width = bounds.size.width - constraintBox.left - constraintBox.right;
-    }else{
-        frame.size.width = 0;
-        // TODO: get intrinsic width
-    }
-    if (constraintBox.left !== undefined){
-        frame.origin.x = constraintBox.left;
-    }else if (constraintBox.right !== undefined){
-        frame.origin.x = bounds.size.width - frame.size.width - constraintBox.right;
-    }else{
-        frame.origin.x = (bounds.size.width - frame.size.width) / 2.0;
-    }
-    return frame;
-};
-
 UILayer.Corners = {
     none: 0,
     minXminY: 1 << 0,
@@ -727,7 +667,6 @@ UILayer.Properties = {
     bounds                  : JSRect.Zero,
     position                : JSPoint.Zero,
     anchorPoint             : JSPoint.UnitCenter,
-    constraintBox           : null,
     transform               : JSAffineTransform.Identity,
     hidden                  : false,
     alpha                   : 1.0,

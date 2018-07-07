@@ -1,11 +1,12 @@
 // #import "UIKit/UIControl.js"
 // #import "UIKit/UILabel.js"
-/* global JSClass, JSObject, UIControl, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSConstraintBox, JSColor, UIButton, JSTextAlignment, JSPoint, UIView, JSFont, UIButtonStyler, UIButtonDefaultStyler, UIButtonCustomStyler, JSRect */
+/* global JSClass, JSObject, UIControl, JSSize, JSInsets, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSColor, UIButton, JSTextAlignment, JSPoint, UIView, JSFont, UIButtonStyler, UIButtonDefaultStyler, UIButtonCustomStyler, JSRect */
 'use strict';
 
 JSClass("UIButton", UIControl, {
 
     titleLabel: JSReadOnlyProperty('_titleLabel', null),
+    titleInsets: JSDynamicProperty('_titleInsets', null),
 
     initWithSpec: function(spec, values){
         UIButton.$super.initWithSpec.call(this, spec, values);
@@ -19,7 +20,9 @@ JSClass("UIButton", UIControl, {
 
     commonUIControlInit: function(){
         UIButton.$super.commonUIControlInit.call(this);
+        this._titleInsets = JSInsets(3);
         this._titleLabel = UILabel.init();
+        this._titleLabel.maximumNumberOfLines = 1;
         this._titleLabel.textAlignment = JSTextAlignment.center;
         this._titleLabel.backgroundColor = JSColor.clearColor;
         this._titleLabel.font = JSFont.systemFontOfSize(JSFont.systemFontSize).fontWithWeight(JSFont.Weight.regular);
@@ -65,6 +68,13 @@ JSClass("UIButton", UIControl, {
 
 JSClass("UIButtonStyler", UIControlStyler, {
 
+    intrinsicSizeOfControl: function(button){
+        var size = button._titleLabel.intrinsicSize;
+        size.width += button._titleInsets.left + button._titleInsets.right;
+        size.height += button._titleInsets.top + button._titleInsets.bottom;
+        return size;
+    }
+
 });
 
 JSClass("UIButtonDefaultStyler", UIButtonStyler, {
@@ -72,7 +82,6 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
     showsOverState: false,
 
     initializeControl: function(button){
-        button.titleLabel.constraintBox = JSConstraintBox({left: 3, right: 3, height: button.titleLabel.font.displayLineHeight});
         button.layer.borderWidth = 1;
         button.layer.cornerRadius = 3;
         button.layer.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
@@ -81,19 +90,23 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
         this.updateControl(button);
     },
 
+    layoutControl: function(button){
+        button._titleLabel.frame = button.bounds.rectWithInsets(button._titleInsets);
+    },
+
     updateControl: function(button){
         if (!button.enabled){
             button.layer.backgroundColor    = UIButtonDefaultStyler.DisabledBackgroundColor;
             button.layer.borderColor        = UIButtonDefaultStyler.DisabledBorderColor;
-            button.titleLabel.textColor     = UIButtonDefaultStyler.DisabledTitleColor;
+            button._titleLabel.textColor     = UIButtonDefaultStyler.DisabledTitleColor;
         }else if (button.active){
             button.layer.backgroundColor    = UIButtonDefaultStyler.ActiveBackgroundColor;
             button.layer.borderColor        = UIButtonDefaultStyler.ActiveBorderColor;
-            button.titleLabel.textColor     = UIButtonDefaultStyler.ActiveTitleColor;
+            button._titleLabel.textColor     = UIButtonDefaultStyler.ActiveTitleColor;
         }else{
             button.layer.backgroundColor    = UIButtonDefaultStyler.NormalBackgroundColor;
             button.layer.borderColor        = UIButtonDefaultStyler.NormalBorderColor;
-            button.titleLabel.textColor     = UIButtonDefaultStyler.NormalTitleColor;
+            button._titleLabel.textColor     = UIButtonDefaultStyler.NormalTitleColor;
         }
     }
 
@@ -144,8 +157,11 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
         }
     },
 
+    layoutControl: function(button){
+        button._titleLabel.frame = button.bounds.rectWithInsets(button._titleInsets);
+    },
+
     initializeControl: function(button){
-        button.titleLabel.constraintBox = JSConstraintBox({left: 3, right: 3, height: button.titleLabel.font.displayLineHeight});
         button.cornerRadius = this.cornerRadius;
         this.updateControl(button);
     },
@@ -153,13 +169,13 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
     updateControl: function(button){
         if (!button.enabled){
             button.layer.backgroundColor    = this.disabledBackgroundColor;
-            button.titleLabel.textColor     = this.disabledTitleColor;
+            button._titleLabel.textColor     = this.disabledTitleColor;
         }else if (button.active){
             button.layer.backgroundColor    = this.activeBackgroundColor;
-            button.titleLabel.textColor     = this.activeTitleColor;
+            button._titleLabel.textColor     = this.activeTitleColor;
         }else{
             button.layer.backgroundColor    = this.normalBackgroundColor;
-            button.titleLabel.textColor     = this.normalTitleColor;
+            button._titleLabel.textColor     = this.normalTitleColor;
         }
     }
 

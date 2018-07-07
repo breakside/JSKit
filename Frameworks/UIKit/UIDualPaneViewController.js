@@ -1,5 +1,5 @@
 // #import "UIKit/UIViewController.js"
-/* global JSClass, JSRect, JSColor, UICursor, JSReadOnlyProperty, JSDynamicProperty, UIViewController, UIDualPaneViewController, JSPoint, UIView, _UIDualPaneView, _UIDualPaneDividerView, JSConstraintBox, UIViewPropertyAnimator */
+/* global JSClass, JSRect, JSColor, UICursor, JSReadOnlyProperty, JSDynamicProperty, UIViewController, UIDualPaneViewController, JSPoint, UIView, _UIDualPaneView, _UIDualPaneDividerView, UIViewPropertyAnimator */
 'use strict';
 
 JSClass("UIDualPaneViewController", UIViewController, {
@@ -676,15 +676,22 @@ JSClass("_UIDualPaneDividerView", UIView, {
         return this.lineView.backgroundColor;
     },
 
+    layoutSubviews: function(){
+        if (this._isVertical){
+            this.lineView.frame = JSRect(0, this.hitSize - this.layoutSize, this.bounds.size.width, this.layoutSize);
+        }else{
+            this.lineView.frame = JSRect(this.hitSize - this.layoutSize, 0, this.layoutSize, this.bounds.size.height);
+        }
+    },
+
     setVertical: function(isVertical){
         this._isVertical = isVertical;
         if (isVertical){
-            this.lineView.constraintBox = JSConstraintBox({height: this.layoutSize, left: 0, right: 0});
             this.cursor = UICursor.resizeUpDown;
         }else{
-            this.lineView.constraintBox = JSConstraintBox({width: this.layoutSize, top: 0, bottom: 0});
             this.cursor = UICursor.resizeLeftRight;
         }
+        this.setNeedsLayout();
     },
 
     getLayoutAdjustment: function(){

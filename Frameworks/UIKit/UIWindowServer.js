@@ -5,7 +5,7 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UITooltipWindow.js"
 // #import "UIKit/UIDraggingSession.js"
-/* global JSClass, JSObject, JSDynamicProperty, JSReadOnlyProperty, UIWindowServer, UIWindow, UIEvent, JSPoint, UIWindowServerInit, UITouch, UICursor, UILayer, UIView, JSTimer, UITooltipWindow, JSSize, JSRect, UIDraggingSession, UIDragOperation, JSConstraintBox, JSInsets, JSRange, jslog_create */
+/* global JSClass, JSObject, JSDynamicProperty, JSReadOnlyProperty, UIWindowServer, UIWindow, UIEvent, JSPoint, UIWindowServerInit, UITouch, UICursor, UILayer, UIView, JSTimer, UITooltipWindow, JSSize, JSRect, UIDraggingSession, UIDragOperation, JSInsets, JSRange, jslog_create */
 'use strict';
 
 (function(){
@@ -82,7 +82,6 @@ JSClass("UIWindowServer", JSObject, {
         // We assume it's the main back window, saving the developer from having to specify
         if (this._normalLevelRange.location === 0 && window.level === UIWindow.Level.normal){
             window.level = UIWindow.Level.back;
-            window.constraintBox = JSConstraintBox.Margin(0);
         }
         this._beginWindowLevelChange();
         this._windowsById[window.objectID] = window;
@@ -100,9 +99,7 @@ JSClass("UIWindowServer", JSObject, {
                 break;
         }
         window._screen = this.screen;
-        if (window.constraintBox){
-            window.frame = UILayer.FrameForConstraintBoxInBounds(window.constraintBox, window._screen.frame);
-        }
+        this.layoutWindow(window);
         this.windowStack.splice(window.subviewIndex, 0, window);
         for (var i = window.subviewIndex + 1; i < this.windowStack.length; ++i){
             this.windowStack[i].subviewIndex = this.windowStack[i].layer.sublayerIndex = i;
@@ -197,7 +194,7 @@ JSClass("UIWindowServer", JSObject, {
                 this.windowStack.splice(i, 1);
                 window.subviewIndex = window.layer.sublayerIndex = toLevel;
                 this.windowStack.splice(toLevel, 0, window);
-                this.displayServer.layerInserted(window.layer);
+                this.displayServer.windowInserted(window);
                 break;
             }
             this.windowStack[i].subviewIndex = this.windowStack[i].layer.sublayerIndex = i - 1;
@@ -228,12 +225,20 @@ JSClass("UIWindowServer", JSObject, {
     // MARK: - Screen Coordination
 
     screenDidChangeFrame: function(){
+        if (this.menuBar){
+            this._menuBar.frame = JSRect(0, 0, this._menuBar.screen.frame.size.width, this._menuBar.frame.size.height);
+        }
         var window;
         for (var i = 0, l = this.windowStack.length; i < l; ++i){
             window = this.windowStack[i];
-            if (window.constraintBox){
-                window.frame = UILayer.FrameForConstraintBoxInBounds(window.constraintBox, window._screen.frame);
-            }
+            this.layoutWindow(window);
+        }
+    },
+
+    layoutWindow: function(window){
+        if (window.level === UIWindow.Level.back){
+            window.frame = window._screen.frame;
+        }else{
             // TODO: adjust windows so they're on the screen
         }
     },
@@ -282,7 +287,6 @@ JSClass("UIWindowServer", JSObject, {
         this._menuBar = menuBar;
         if (this._menuBar){
             this._menuBar.layoutIfNeeded();
-            this._menuBar.constraintBox = JSConstraintBox({top: 0, left: 0, right: 0, height: this._menuBar.frame.size.height});
             this._menuBar.makeVisible();
         }
         this.updateScreenAvailableInsets();

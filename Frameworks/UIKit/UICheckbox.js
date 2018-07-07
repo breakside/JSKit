@@ -1,7 +1,7 @@
 // #import "UIKit/UIControl.js"
 // #import "UIKit/UILabel.js"
 // #import "UIKit/UIImageView.js"
-/* global JSClass, JSObject, UILayer, JSSize, UIControl, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSConstraintBox, JSColor, UICheckbox, JSTextAlignment, JSPoint, UIView, JSFont, UICheckboxStyler, UICheckboxDefaultStyler, JSRect, UIImageView, JSBundle, JSImage */
+/* global JSClass, JSObject, UILayer, JSSize, UIControl, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSColor, UICheckbox, JSTextAlignment, JSPoint, UIView, JSFont, UICheckboxStyler, UICheckboxDefaultStyler, JSRect, UIImageView, JSBundle, JSImage */
 'use strict';
 
 (function(){

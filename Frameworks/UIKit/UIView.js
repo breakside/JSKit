@@ -3,7 +3,8 @@
 // #import "UIKit/UILayer.js"
 // #import "UIKit/UIAnimation.js"
 // #import "UIKit/UIDraggingDestination.js"
-/* global JSGlobalObject, JSClass, JSObject, UIViewLayerProperty, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSDynamicProperty, JSRect, JSPoint, JSConstraintBox, JSColor, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty, UIWindowServer, UIDragOperation */
+// #import "UIKit/UILayoutConstraint.js"
+/* global JSGlobalObject, JSClass, JSObject, JSCopy, JSInsets, JSSize, UIViewLayerProperty, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSDynamicProperty, JSRect, JSPoint, JSColor, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty, UIWindowServer, UIDragOperation, UILayoutConstraint, UILayoutAttribute, UILayoutRelation */
 'use strict';
 
 JSGlobalObject.UIViewLayerProperty = function(){
@@ -30,40 +31,6 @@ UIViewLayerProperty.prototype.define = function(C, key, extensions){
 JSClass('UIView', UIResponder, {
 
     // -------------------------------------------------------------------------
-    // MARK: - Properties
-
-    viewController:     null,     // UIViewController
-    window:             JSDynamicProperty('_window', null),     // UIWindow
-    superview:          null,     // UIView
-    subviewIndex:       null,     // int
-    subviews:           null,     // Array
-    layer:              null,     // UILayer
-    nextKeyView:        null,     // UIView
-    frame:              UIViewLayerProperty(),
-    bounds:             UIViewLayerProperty(),
-    position:           UIViewLayerProperty(),
-    anchorPoint:        UIViewLayerProperty(),
-    constraintBox:      UIViewLayerProperty(),
-    transform:          UIViewLayerProperty(),
-    hidden:             UIViewLayerProperty(),
-    clipsToBounds:      UIViewLayerProperty(),
-    alpha:              UIViewLayerProperty(),
-    backgroundColor:    UIViewLayerProperty(),
-    backgroundGradient: UIViewLayerProperty(),
-    borderWidth:        UIViewLayerProperty(),
-    borderColor:        UIViewLayerProperty(),
-    maskedBorders:      UIViewLayerProperty(),
-    cornerRadius:       UIViewLayerProperty(),
-    maskedCorners:      UIViewLayerProperty(),
-    shadowColor:        UIViewLayerProperty(),
-    shadowOffset:       UIViewLayerProperty(),
-    shadowRadius:       UIViewLayerProperty(),
-    cursor:             JSDynamicProperty('_cursor', null),
-    tooltip:            null,
-    mouseTrackingType:  0,
-    isMultipleTouchEnabled: false,
-
-    // -------------------------------------------------------------------------
     // MARK: - Creating a View
 
     init: function(){
@@ -75,11 +42,6 @@ JSClass('UIView', UIResponder, {
         this.frame = JSRect(0,0,100,100);
     },
 
-    initWithConstraintBox: function(constraintBox){
-        this.init();
-        this.constraintBox = constraintBox;
-    },
-
     initWithFrame: function(frame){
         this._commonViewInit();
         this.frame = frame;
@@ -88,14 +50,10 @@ JSClass('UIView', UIResponder, {
     initWithSpec: function(spec, values){
         UIView.$super.initWithSpec.call(this, spec, values);
         this._commonViewInit();
-        this.frame = JSRect(0, 0, 100, 100);
-        this.constraintBox = null;
-        if ("constraintBox" in values){
-            this.constraintBox = JSConstraintBox(values.constraintBox);
-        }else if ("constraintBox.margin" in values){
-            this.constraintBox = JSConstraintBox.Margin.apply(undefined, values['constraintBox.margin'].parseNumberArray());
-        }else if ("frame" in values){
+        if ("frame" in values){
             this.frame = JSRect.apply(undefined, values.frame.parseNumberArray());
+        }else{
+            this.frame = JSRect(0, 0, 100, 100);
         }
         if ("backgroundColor" in values){
             this.backgroundColor = spec.resolvedValue(values.backgroundColor, "JSColor");
@@ -133,16 +91,87 @@ JSClass('UIView', UIResponder, {
         if ("nextKeyView" in values){
             this.nextKeyView = spec.resolvedValue(values.nextKeyView);
         }
+        var i, l;
         if ("subviews" in values){
-            for (var i = 0, l = values.subviews.length; i < l; ++i){
+            for (i = 0, l = values.subviews.length; i < l; ++i){
                 var subview = spec.resolvedValue(values.subviews[i], "UIView");
                 this.addSubview(subview);
             }
         }
+        if ("constraints" in values){
+            for (i = 0, l = values.constraints.length; i < l; ++i){
+                if (values.constraints[i].firstItem == '<self>'){
+                    values.constraints[i].firstItem = this;
+                }
+                if (values.constraints[i].secondItem == '<self>'){
+                    values.constraints[i].secondItem = this;
+                }
+                var constraint = spec.resolvedValue(values.constraints[i], "UILayoutConstraint");
+                this.addConstraint(constraint);
+            }
+        }else{
+            if ("width" in values){
+                this.addConstraint(UILayoutConstraint.initWithOptions({
+                    firstItem: this,
+                    firstAttribute: UILayoutAttribute.width,
+                    constant: spec.resolvedValue(values.width), 
+                }));
+            }
+            if ("height" in values){
+                this.addConstraint(UILayoutConstraint.initWithOptions({
+                    firstItem: this,
+                    firstAttribute: UILayoutAttribute.height,
+                    constant: spec.resolvedValue(values.height), 
+                }));
+            }
+        }
+    },
+
+    _commonViewInit: function(){
+        var layer = this.$class.layerClass.init();
+        this._commonViewInitWithLayer(layer);
+    },
+
+    _commonViewInitWithLayer: function(layer){
+        this.layer = layer;
+        this.layer.delegate = this;
+        this.subviews = [];
+        this._registeredDraggedTypes = [];
+        this._constraints = [];
     },
 
     // -------------------------------------------------------------------------
+    // MARK: - Styling
+
+    alpha: UIViewLayerProperty(),
+    backgroundColor: UIViewLayerProperty(),
+    backgroundGradient: UIViewLayerProperty(),
+    borderWidth: UIViewLayerProperty(),
+    borderColor: UIViewLayerProperty(),
+    maskedBorders: UIViewLayerProperty(),
+    cornerRadius: UIViewLayerProperty(),
+    maskedCorners: UIViewLayerProperty(),
+    shadowColor: UIViewLayerProperty(),
+    shadowOffset: UIViewLayerProperty(),
+    shadowRadius: UIViewLayerProperty(),
+    cursor: JSDynamicProperty('_cursor', null),
+    tooltip: null,
+
+    // -------------------------------------------------------------------------
+    // MARK: - Underlying Layer
+
+    layer: null,
+
+    // -------------------------------------------------------------------------
+    // MARK: - Superview
+
+    superview: null,
+    subviewIndex: null,
+
+    // -------------------------------------------------------------------------
     // MARK: - Adding and Removing Subviews
+
+    subviews: null,
 
     addSubview: function(subview){
         return this._insertSubviewAtIndex(subview, this.subviews.length, this.layer.sublayers.length);
@@ -198,8 +227,35 @@ JSClass('UIView', UIResponder, {
         this.subviews = [];
     },
 
+    _insertSubviewAtIndex: function(subview, index, layerIndex){
+        var i, l;
+        if (subview.superview === this){
+            for (i = subview.subviewIndex + 1, l = this.subviews.length; i < l; ++i){
+                this.subviews[i].subviewIndex -= 1;
+            }
+            this.subviews.splice(subview.subviewIndex,1);
+            if (index > subview.subviewIndex){
+                --index;
+            }
+        }else if (subview.superview){
+            subview.removeFromSuperview();
+        }
+        this.subviews.splice(index, 0, subview);
+        subview.subviewIndex = index;
+        for (i = subview.subviewIndex + 1, l = this.subviews.length; i < l; ++i){
+            this.subviews[i].subviewIndex += 1;
+        }
+        subview.superview = this;
+        subview.setWindow(this.window);
+        this.layer.insertSublayerAtIndex(subview.layer, layerIndex);
+        return subview;
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Window
+
+    window: JSDynamicProperty('_window', null),
+    nextKeyView: null,
 
     setWindow: function(window){
         if (window != this._window){
@@ -248,7 +304,20 @@ JSClass('UIView', UIResponder, {
     },
 
     // -------------------------------------------------------------------------
+    // MARK: - View Controller
+
+    viewController: null,
+
+    // -------------------------------------------------------------------------
     // MARK: - Layout
+
+    frame: UIViewLayerProperty(),
+    bounds: UIViewLayerProperty(),
+    position: UIViewLayerProperty(),
+    anchorPoint: UIViewLayerProperty(),
+    transform: UIViewLayerProperty(),
+    hidden: UIViewLayerProperty(),
+    clipsToBounds: UIViewLayerProperty(),
 
     setNeedsLayout: function(){
         this.layer.setNeedsLayout();
@@ -260,21 +329,190 @@ JSClass('UIView', UIResponder, {
 
     layoutSubviews: function(){
         this.layer.layoutSublayers();
+        this._satisfyConstraints();
+    },
+
+    _layoutSubviewsAndNotify: function(){
+        this.layoutSubviews();
         if (this.viewController){
             this.viewController.viewDidLayoutSubviews();
         }
     },
 
     layoutSublayersOfLayer: function(layer){
-        this.layoutSubviews();
+        this._updateConstraints();
+        this._layoutSubviewsAndNotify();
     },
 
     sizeToFit: function(){
         this.layer.sizeToFit();
     },
 
-    sizeToFitConstraints: function(maxSize){
-        this.layer.sizeToFitConstraints(maxSize);
+    sizeToFitSize: function(maxSize){
+        this.layer.sizeToFitSize(maxSize);
+    },
+
+    firstBaselineOffsetFromTop: JSReadOnlyProperty(),
+    lastBaselineOffsetFromBottom: JSReadOnlyProperty(),
+    intrinsicSize: JSReadOnlyProperty(),
+
+    getFirstBaselineOffsetFromTop: function(){
+        return 0;
+    },
+
+    getLastBaselineOffsetFromBottom: function(){
+        return 0;
+    },
+
+    getIntrinsicSize: function(){
+        return JSSize(UIView.noIntrinsicSize, UIView.noIntrinsicSize);
+    },
+
+    invalidateIntrinsicSize: function(){
+        this._needsIntrinsicSizeConstraintUpdate = true;
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Constraints
+
+    constraints: JSReadOnlyProperty('_constraints', null),
+
+    contentHuggingPriority: UILayoutPriority.defaultLow,
+    contentCompressionResistancePriority: UILayoutPriority.defaultHigh,
+
+    addConstraint: function(constraint){
+        this._constraints.push(constraint);
+        this.setNeedsLayout();
+    },
+
+    removeConstraint: function(constraint){
+        var index = this._constraints.indexOf(constraint);
+        if (index >= 0){
+            this._constraints.splice(index, 1);
+            this.setNeedsLayout();
+        }
+    },
+
+    constrainedSize: JSReadOnlyProperty(),
+
+    layoutFittingSize: function(size){
+    },
+
+    _intrinsicWidthHuggingConstraint: null,
+    _intrinsicWidthResistConstraint: null,
+    _intrinsicHeightHuggingConstraint: null,
+    _intrinsicHeightResistConstraint: null,
+
+    _needsIntrinsicSizeConstraintUpdate: true,
+
+    _updateConstraints: function(){
+        if (this._needsIntrinsicSizeConstraintUpdate){
+            this._updateIntrinsicSizeConstraints();
+            this._needsIntrinsicSizeConstraintUpdate = false;
+        }
+    },
+
+    _updateIntrinsicSizeConstraints: function(){
+        var intrinsicSize = this.intrinsicSize;
+        if (intrinsicSize.width != UIView.noIntrinsicSize){
+            if (this._intrinsicWidthHuggingConstraint){
+                this._intrinsicWidthHuggingConstraint.constant = intrinsicSize.width;
+            }else{
+                this._intrinsicWidthHuggingConstraint = UILayoutConstraint.initWithOptions({
+                    firstItem: this,
+                    firstAttribute: UILayoutAttribute.width,
+                    relation: UILayoutRelation.lessThanOrEqual,
+                    priority: this.contentHuggingPriority,
+                    constant: intrinsicSize.width
+                });
+                this._intrinsicWidthHuggingConstraint.active = true;
+            }
+            if (this._intrinsicWidthResistConstraint){
+                this._intrinsicWidthResistConstraint.constant = intrinsicSize.width;
+            }else{
+                this._intrinsicWidthResistConstraint = UILayoutConstraint.initWithOptions({
+                    firstItem: this,
+                    firstAttribute: UILayoutAttribute.width,
+                    relation: UILayoutRelation.greaterThanOrEqual,
+                    priority: this.contentCompressionResistancePriority,
+                    constant: intrinsicSize.width
+                });
+                this._intrinsicWidthResistConstraint.active = true;
+            }
+        }else{
+            if (this._intrinsicWidthHuggingConstraint){
+                this._intrinsicWidthHuggingConstraint.active = false;
+                this._intrinsicWidthHuggingConstraint = null;
+            }
+            if (this._intrinsicWidthResistConstraint){
+                this._intrinsicWidthResistConstraint.active = false;
+                this._intrinsicWidthResistConstraint = null;
+            }
+        }
+        if (intrinsicSize.height != UIView.noIntrinsicSize){
+            if (this._intrinsicHeightHuggingConstraint){
+                this._intrinsicHeightHuggingConstraint.constant = intrinsicSize.height;
+            }else{
+                this._intrinsicHeightHuggingConstraint = UILayoutConstraint.initWithOptions({
+                    firstItem: this,
+                    firstAttribute: UILayoutAttribute.height,
+                    relation: UILayoutRelation.lessThanOrEqual,
+                    priority: this.contentHuggingPriority,
+                    constant: intrinsicSize.height
+                });
+                this._intrinsicHeightHuggingConstraint.active = true;
+            }
+            if (this._intrinsicHeightResistConstraint){
+                this._intrinsicHeightResistConstraint.constant = intrinsicSize.height;
+            }else{
+                this._intrinsicHeightResistConstraint = UILayoutConstraint.initWithOptions({
+                    firstItem: this,
+                    firstAttribute: UILayoutAttribute.height,
+                    relation: UILayoutRelation.greaterThanOrEqual,
+                    priority: this.contentCompressionResistancePriority,
+                    constant: intrinsicSize.height
+                });
+                this._intrinsicHeightResistConstraint.active = true;
+            }
+        }else{
+            if (this._intrinsicHeightHuggingConstraint){
+                this._intrinsicHeightHuggingConstraint.active = false;
+                this._intrinsicHeightHuggingConstraint = null;
+            }
+            if (this._intrinsicHeightResistConstraint){
+                this._intrinsicHeightResistConstraint.active = false;
+                this._intrinsicHeightResistConstraint = null;
+            }
+        }
+    },
+
+    _satisfyConstraints: function(){
+    },
+
+    _getValueForLayoutAttribute: function(attribute){
+        switch (attribute){
+            case UILayoutAttribute.left:
+                return this.bounds.origin.x;
+            case UILayoutAttribute.right:
+                return this.bounds.origin.x + this.bounds.size.width;
+            case UILayoutAttribute.top:
+                return this.bounds.origin.y;
+            case UILayoutAttribute.bottom:
+                return this.bounds.origin.y + this.bounds.size.height;
+            case UILayoutAttribute.width:
+                return this.bounds.size.width;
+            case UILayoutAttribute.height:
+                return this.bounds.size.height;
+            case UILayoutAttribute.centerX:
+                return this.bounds.origin.x + this.bounds.size.width / 2;
+            case UILayoutAttribute.centerY:
+                return this.bounds.origin.y + this.bounds.size.height / 2;
+            case UILayoutAttribute.lastBaseline:
+                return this.bounds.origin.y + this.bounds.size.height - this.lastBaselineOffsetFromBottom;
+            case UILayoutAttribute.firstBaseline:
+                return this.bounds.origin.y + this.firstBaselineOffsetFromTop;
+        }
+        return 0;
     },
 
     // -------------------------------------------------------------------------
@@ -285,7 +523,10 @@ JSClass('UIView', UIResponder, {
     },
 
     // -------------------------------------------------------------------------
-    // MARK: - UIResponder
+    // MARK: - Responder & Mouse Tracking
+
+    mouseTrackingType: 0,
+    isMultipleTouchEnabled: false,
 
     isFirstResponder: function(){
         return this.window !== null && this.window.firstResponder === this;
@@ -453,47 +694,10 @@ JSClass('UIView', UIResponder, {
         return hit;
     },
 
-    // MARK: - Private Methods
+    // -------------------------------------------------------------------------
+    // MARK: - Restoration
 
-    // MARK: Init helpers
-
-    _commonViewInit: function(){
-        var layer = this.$class.layerClass.init();
-        this._commonViewInitWithLayer(layer);
-    },
-
-    _commonViewInitWithLayer: function(layer){
-        this.layer = layer;
-        this.layer.delegate = this;
-        this.subviews = [];
-        this._registeredDraggedTypes = [];
-    },
-
-    // MARK: Subview management helpers
-
-    _insertSubviewAtIndex: function(subview, index, layerIndex){
-        var i, l;
-        if (subview.superview === this){
-            for (i = subview.subviewIndex + 1, l = this.subviews.length; i < l; ++i){
-                this.subviews[i].subviewIndex -= 1;
-            }
-            this.subviews.splice(subview.subviewIndex,1);
-            if (index > subview.subviewIndex){
-                --index;
-            }
-        }else if (subview.superview){
-            subview.removeFromSuperview();
-        }
-        this.subviews.splice(index, 0, subview);
-        subview.subviewIndex = index;
-        for (i = subview.subviewIndex + 1, l = this.subviews.length; i < l; ++i){
-            this.subviews[i].subviewIndex += 1;
-        }
-        subview.superview = this;
-        subview.setWindow(this.window);
-        this.layer.insertSublayerAtIndex(subview.layer, layerIndex);
-        return subview;
-    },
+    restorationIdentifier: null,
 
 });
 
@@ -524,3 +728,5 @@ UIView.animateWithOptions = function(options, animations, callback){
     animations();
     UIAnimationTransaction.commit();
 };
+
+UIView.noIntrinsicSize = -1;

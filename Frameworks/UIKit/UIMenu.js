@@ -1,7 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIMenuItem.js"
 // #import "UIKit/UIApplication.js"
-/* global JSClass, JSObject, UIView, JSDynamicProperty, JSReadOnlyProperty, UIMenu, UIMenuItem, JSSize, JSColor, JSFont, JSRect, JSPoint, UIWindow, UIMenuWindow, UIMenuView, UIMenuItemView, JSInsets, UIApplication, UIMenuStyler, UIMenuDefaultStyler, JSConstraintBox, UILayer, UIAnimationTransaction, UIBasicAnimation */
+/* global JSClass, JSObject, UIView, JSDynamicProperty, JSReadOnlyProperty, UIMenu, UIMenuItem, JSSize, JSColor, JSFont, JSRect, JSPoint, UIWindow, UIMenuWindow, UIMenuView, UIMenuItemView, JSInsets, UIApplication, UIMenuStyler, UIMenuDefaultStyler, UILayer, UIAnimationTransaction, UIBasicAnimation */
 'use strict';
 
 (function(){
@@ -156,11 +156,10 @@ JSClass("UIMenu", JSObject, {
 
     performActionForItem: function(item, contextTarget){
         var target = item.target;
-        if (target !== null){
-            target[item.action](item);
-        }else{
-            UIApplication.sharedApplication.sendAction(item.action, contextTarget, item);
+        if (target === null){
+            target = contextTarget;
         }
+        UIApplication.sharedApplication.sendAction(item.action, target, item);
     },
 
     // MARK: - Opening a Menu
@@ -510,6 +509,9 @@ JSClass("UIMenuStyler", JSObject, {
     initializeMenu: function(menu, window){
     },
 
+    layoutMenuWindow: function(window){
+    },
+
     getItemTitleOffset: function(menu){
         return JSPoint.Zero;
     },
@@ -527,6 +529,9 @@ JSClass("UIMenuStyler", JSObject, {
     },
 
     layoutItemView: function(view, item){
+    },
+
+    layoutSeparatorView: function(view){
     }
 
 });
@@ -596,8 +601,18 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
         window.shadowRadius = 14;
         window.cornerRadius = this._cornerRadius;
         window.menuView.backgroundColor = this._backgroundColor;
-        window.clipView.constraintBox = JSConstraintBox.Margin(this._capSize, 0);
         this._keyWidth = Math.ceil(menu.font.widthOfString("W"));
+    },
+
+    layoutMenuWindow: function(window){
+        var contentView = window.contentView;
+        window.clipView.frame = contentView.bounds.rectWithInsets(this._capSize, 0);
+        var imageSize = window.upIndicatorImageView.image.size;
+        window.upIndicatorView.frame = JSRect(0, 0, contentView.bounds.size.width, imageSize.height);
+        window.upIndicatorImageView.position = window.upIndicatorView.bounds.center;
+        imageSize = window.downIndicatorImageView.image.size;
+        window.downIndicatorView.frame = JSRect(0, contentView.bounds.size.height - imageSize.height, contentView.bounds.size.width, imageSize.height);
+        window.downIndicatorImageView.position = window.downIndicatorView.bounds.center;
     },
 
     getTextColorForItem: function(item){
@@ -612,10 +627,9 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
 
     initializeSeparatorView: function(view){
         view.frame = JSRect(0, 0, 1, 10);
-        var lineLayer = UILayer.init();
-        lineLayer.constraintBox = JSConstraintBox({left: 0, right: 0, height: 2});
-        lineLayer.backgroundColor = this.disabledTextColor;
-        view.layer.addSublayer(lineLayer);
+        view.stylerProperties.lineLayer = UILayer.init();
+        view.stylerProperties.lineLayer.backgroundColor = this.disabledTextColor;
+        view.layer.addSublayer(view.stylerProperties.lineLayer);
     },
 
     initializeItemView: function(view){
@@ -709,6 +723,11 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
             left = right;
         }
         view.titleLabel.frame = JSRect(left, this._itemPadding.top, right - left, lineHeight);
+    },
+
+    layoutSeparatorView: function(view){
+        var height = 2;
+        view.stylerProperties.lineLayer.frame = JSRect(0, (view.bounds.size.height - height) / 2, view.bounds.size.width, height);
     },
 
     getItemTitleOffset: function(menu){

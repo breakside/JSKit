@@ -37,6 +37,19 @@ JSClass("UIHTMLTextFramesetter", UITextFramesetter, {
             this._reusableFrameElement.style.position = 'absolute';
             this._reusableFrameElement.style.visibility = 'hidden';
             this._reusableFrameElement.style.overflow = 'hidden';
+            // Disabling pointer events for text frame elements because of issue
+            // with touch events not being fired when a text element changes out
+            // from underneath a touch.  For example, when a button's title changes
+            // color, the divs in a text frame are replaced* and a touchend event
+            // is never fired because the element that was the target
+            // of the original touchbegin is gone.  We don't need any events
+            // firing from text elements anyway, so the simple fix is to disable them.
+            //
+            // * It would be nice to not replace the text line divs in the first place, but
+            //   that is an optimzation we don't absolutely need right now.  Even when
+            //   it gets done, we should probably leave events disabled on text elements
+            //   since they're never needed.
+            this._reusableFrameElement.style.pointerEvents = 'none';
             this._domDocument.body.appendChild(this._reusableFrameElement);
         }else{
             var nodes = this._reusableFrameElement.childNodes;

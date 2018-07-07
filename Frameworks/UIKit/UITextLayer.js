@@ -188,7 +188,7 @@ JSClass("UITextLayer", UILayer, {
         }
     },
 
-    sizeToFitConstraints: function(maxSize){
+    sizeToFitSize: function(maxSize){
         this._textContainer.size = JSSize(maxSize.width - this._textInsets.left - this._textInsets.right, maxSize.height - this._textInsets.top - this._textInsets.bottom);
         this.layoutIfNeeded();
         if (this._textContainer.textFrame !== null){
@@ -215,6 +215,17 @@ JSClass("UITextLayer", UILayer, {
             }
             this.bounds = JSRect(0, 0, width, height);
         }
+    },
+
+    firstBaselineOffsetFromTop: JSReadOnlyProperty(),
+    lastBaselineOffsetFromBottom: JSReadOnlyProperty(),
+
+    getFirstBaselineOffsetFromTop: function(){
+        return 0; // TODO: use textFrame, or figure based on pre-layout info like font metrics?
+    },
+
+    getLastBaselineOffsetFromBottom: function(){
+        return 0; // TODO: use textFrame, or figure based on pre-layout info like font metrics?
     },
 
     // MARK: - Layout Manager delegate

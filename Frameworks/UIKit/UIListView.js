@@ -1,6 +1,6 @@
 // #import "UIKit/UIScrollView.js"
 // #import "UIKit/UIEvent.js"
-/* global JSClass, UIView, UIScrollView, JSProtocol, JSReadOnlyProperty, JSDynamicProperty, UIListView, JSSize, JSIndexPath, JSRect, UIEvent, JSIndexPathSet, JSIndexPathRange, JSBinarySearcher, JSPoint, UIListViewHeaderFooterView, UIListViewStyler, UIListViewDefaultStyler */
+/* global JSClass, JSObject, JSColor, UIView, UIScrollView, JSProtocol, JSReadOnlyProperty, JSDynamicProperty, UIListView, JSSize, JSIndexPath, JSRect, UIEvent, JSIndexPathSet, JSIndexPathRange, JSBinarySearcher, JSPoint, UIListViewHeaderFooterView, UIListViewStyler, UIListViewDefaultStyler */
 'use strict';
 
 (function(){
@@ -375,14 +375,14 @@ JSClass("UIListView", UIScrollView, {
         // call, if necessary, will have the proper heights for each for calculating
         // the total content size
         if (this._listHeaderView !== null){
-            this._listHeaderView.sizeToFitConstraints(fitSize);
+            this._listHeaderView.sizeToFitSize(fitSize);
             // The header can be placed right away since it doesn't depend on the
             // height of anything else
             this._listHeaderView.frame = JSRect(origin, JSSize(fitSize.width, this._listHeaderView.frame.size.height));
             origin.y += this._listHeaderView.frame.size.height;
         }
         if (this._listFooterView !== null){
-            this._listFooterView.sizeToFitConstraints(fitSize);
+            this._listFooterView.sizeToFitSize(fitSize);
         }
 
         // Reloading, if necessary, will set the proper size for this._cellsContainerView,
@@ -1515,8 +1515,12 @@ JSClass("UIListViewStyler", JSObject, {
 
 JSClass("UIListViewDefaultStyler", UIListViewStyler, {
 
+    cellFont: null,
+    cellDetailFont: null,
     cellTextColor: null,
+    cellDetailTextColor: null,
     selectedCellTextColor: null,
+    selectedCellDetailTextColor: null,
     selectedCellBackgroundColor: null,
     contextSelectedCellBorderColor: null,
     cellBackgroundColor: null,
@@ -1537,6 +1541,12 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if ('selectedCellTextColor' in values){
             this.selectedCellTextColor = spec.resolvedValue(values.selectedCellTextColor, "JSColor");
         }
+        if ('cellDetailTextColor' in values){
+            this.cellDetailTextColor = spec.resolvedValue(values.cellDetailTextColor, "JSColor");
+        }
+        if ('selectedCellDetailTextColor' in values){
+            this.selectedCellDetailTextColor = spec.resolvedValue(values.selectedCellDetailTextColor, "JSColor");
+        }
         if ('selectedCellBackgroundColor' in values){
             this.selectedCellBackgroundColor = spec.resolvedValue(values.selectedCellBackgroundColor, "JSColor");
         }
@@ -1549,6 +1559,12 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if ('headerBorderColor' in values){
             this.headerBorderColor = spec.resolvedValue(values.headerBorderColor, "JSColor");
         }
+        if ('cellFont' in values){
+            this.cellFont = spec.resolvedValue(values.cellFont, "JSFont");
+        }
+        if ('cellDetailFont' in values){
+            this.cellDetailFont = spec.resolvedValue(values.cellDetailFont, "JSFont");
+        }
         this._commonStylerInit();
     },
 
@@ -1558,6 +1574,15 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         }
         if (this.selectedCellTextColor === null){
             this.selectedCellTextColor = JSColor.whiteColor;
+        }
+        if (this.cellDetailTextColor === null){
+            this.cellDetailTextColor = this.cellTextColor;
+        }
+        if (this.selectedCellDetailTextColor === null){
+            this.selectedCellDetailTextColor = this.selectedCellTextColor;
+        }
+        if (this.cellDetailFont === null && this.cellFont !== null){
+            this.cellDetailFont = this.cellFont.fontWithSize(Math.round(this.cellFont.pointSize * 12.0 / 14.0));
         }
         if (this.selectedCellBackgroundColor === null){
             this.selectedCellBackgroundColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1);
@@ -1584,12 +1609,15 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
                 cell._titleLabel.textColor = this.selectedCellTextColor;
             }
             if (cell._detailLabel !== null){
-                cell._detailLabel.textColor = this.selectedCellTextColor;
+                cell._detailLabel.textColor = this.selectedCellDetailTextColor;
             }
         }else{
             cell.contentView.backgroundColor = this.cellBackgroundColor;
             if (cell._titleLabel !== null){
                 cell._titleLabel.textColor = this.cellTextColor;
+            }
+            if (cell._detailLabel !== null){
+                cell._detailLabel.textColor = this.cellDetailTextColor;
             }
         }
     },

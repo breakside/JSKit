@@ -300,16 +300,16 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
                 imageElement.style.width = rect.size.width + 'px';
                 imageElement.style.height = rect.size.height + 'px';
                 var cssURL = "url('" + url + "')";
-                var box = image.stretchBox;
-                if (box !== null){
+                var caps = image.capInsets;
+                if (caps !== null){
                     imageElement.style.backgroundColor = '';
                     imageElement.style.backgroundImage = '';
                     imageElement.style.maskImage = '';
                     imageElement.style.maskSize = '';
                     imageElement.style.webkitMaskImage = '';
                     imageElement.style.webkitMaskSize = '';
-                    imageElement.style.borderWidth = '%dpx %dpx %dpx %dpx'.sprintf(box.top, box.right, box.bottom, box.left);
-                    imageElement.style.borderImage = cssURL + " %d %d %d %d fill stretch".sprintf(box.top * image.scale, box.right * image.scale, box.bottom * image.scale, box.left * image.scale);
+                    imageElement.style.borderWidth = '%dpx %dpx %dpx %dpx'.sprintf(caps.top, caps.right, caps.bottom, caps.left);
+                    imageElement.style.borderImage = cssURL + " %d %d %d %d fill stretch".sprintf(caps.top * image.scale, caps.right * image.scale, caps.bottom * image.scale, caps.left * image.scale);
                 }else if (image.templateColor !== null){
                     imageElement.backgroundImage = '';
                     imageElement.style.borderWidth = '';

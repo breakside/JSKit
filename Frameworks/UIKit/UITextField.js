@@ -4,7 +4,7 @@
 // #import "UIKit/UICursor.js"
 // #import "UIKit/UITextAttachmentView.js"
 // #import "UIKit/UIImageView.js"
-/* global JSClass, JSProtocol, UIControl, UIView, UICursor, JSInsets, JSRect, JSSize, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSConstraintBox, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard, JSTimer, JSTextRun, JSAttributedString, UITextAttachmentView, UIControlStyler, UITextFieldStyler, UITextFieldDefaultStyler, UIImageView, JSImage, UITextFieldCustomStyler */
+/* global JSClass, JSProtocol, UIControl, UIView, UICursor, JSInsets, JSRect, JSSize, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard, JSTimer, JSTextRun, JSAttributedString, UITextAttachmentView, UIControlStyler, UITextFieldStyler, UITextFieldDefaultStyler, UIImageView, JSImage, UITextFieldCustomStyler */
 
 'use strict';
 
@@ -16,8 +16,6 @@ JSProtocol("UITextFieldDelegate", JSProtocol, {
 });
 
 JSClass("UITextField", UIControl, {
-
-    // TODO: placeholder
 
     // --------------------------------------------------------------------
     // MARK: - Creating a Text Field
@@ -265,6 +263,21 @@ JSClass("UITextField", UIControl, {
         return this._textInsets;
     },
 
+    getIntrinsicSize: function(){
+        if (!this._multiline){
+            return JSSize(UIView.noIntrinsicSize, this.font.displayLineHeight + this._textInsets.top + this._textInsets.bottom);
+        }
+        return JSSize(UIView.noIntrinsicSize, UIView.noIntrinsicSize);
+    },
+
+    getFirstBaselineOffsetFromTop: function(){
+        return this.layer.convertPointFromLayer(JSPoint(0, this._textLayer.firstBaselineOffsetFromTop), this._textLayer).y;
+    },
+
+    getLastBaselineOffsetFromBottom: function(){
+        return this.layer.convertPointFromLayer(JSPoint(0, this._textLayer.firstBaselineOffsetFromTop), this._textLayer).y;
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Accessory Views
 
@@ -467,7 +480,7 @@ JSClass("UITextField", UIControl, {
     },
 
     layerDidChangeSize: function(layer){
-        if (layer === this._textLayer && this._multiline && ! this.constraintBox){
+        if (layer === this._textLayer && this._multiline){
             this.layer.bounds = JSRect(this.layer.bounds.origin, JSSize(
                 this.layer.bounds.size.width,
                 Math.max(this._minimumHeight, this._textLayer.bounds.size.height + this._textInsets.top + this._textInsets.bottom)
@@ -837,21 +850,32 @@ JSClass("UITextFieldStyler", UIControlStyler, {
 JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
 
     showsOverState: false,
+    activeColor: null,
+    inactiveColor: null,
+
+    init: function(){
+        UITextFieldDefaultStyler.$super.init.call(this);
+        this.activeColor = JSColor.blackColor;
+        this.inactiveColor = JSColor.initWithWhite(0.8);
+    },
 
     initializeControl: function(textField){
         UITextFieldDefaultStyler.$super.initializeControl.call(this, textField);
         textField.stylerProperties.respondingIndicatorLayer = UILayer.init();
-        textField.stylerProperties.respondingIndicatorLayer.backgroundColor = JSColor.blackColor;
-        textField.stylerProperties.respondingIndicatorLayer.constraintBox = JSConstraintBox({left: 0, bottom: 0, right: 0, height: 1});
+        textField.stylerProperties.respondingIndicatorLayer.backgroundColor = this.inactiveColor;
         textField.layer.addSublayer(textField.stylerProperties.respondingIndicatorLayer);
+    },
+
+    layoutControl: function(textField){
+        textField.stylerProperties.respondingIndicatorLayer.frame = JSRect(0, textField.bounds.size.height - 1, textField.bounds.size.width, 1);
     },
 
     updateControl: function(textField){
         UITextFieldDefaultStyler.$super.updateControl.call(this, textField);
         if (textField.active){
-            textField.stylerProperties.respondingIndicatorLayer.backgroundColor = JSColor.blackColor;
+            textField.stylerProperties.respondingIndicatorLayer.backgroundColor = this.activeColor;
         }else{
-            textField.stylerProperties.respondingIndicatorLayer.backgroundColor = JSColor.initWithWhite(0.8);
+            textField.stylerProperties.respondingIndicatorLayer.backgroundColor = this.inactiveColor;
         }
     }
 

@@ -1,6 +1,6 @@
 // #import "UIKit/UIWindow.js"
 // #import "UIKit/UIMenu.js"
-/* global JSClass, JSObject, JSImage, JSReadOnlyProperty, UILayer, JSPoint, JSConstraintBox, JSBinarySearcher, JSSize, JSLazyInitProperty, UIView, UIWindow, JSDynamicProperty, UIMenuBar, JSRect, JSInsets, UIMenuBarItemCollectionView, UIMenuBarItemView, UIMenuBarItem, UILabel, UIImageView, JSFont, JSTextAlignment, JSColor, UIMenuDefaultStyler, UIMenuBarButton */
+/* global JSClass, JSObject, JSImage, JSReadOnlyProperty, UILayer, JSPoint, JSBinarySearcher, JSSize, JSLazyInitProperty, UIView, UIWindow, JSDynamicProperty, UIMenuBar, JSRect, JSInsets, UIMenuBarItemCollectionView, UIMenuBarItemView, UIMenuBarItem, UILabel, UIImageView, JSFont, JSTextAlignment, JSColor, UIMenuDefaultStyler, UIMenuBarButton */
 'use strict';
 
 JSClass("UIMenuBar", UIWindow, {
@@ -59,7 +59,6 @@ JSClass("UIMenuBar", UIWindow, {
         this._rightItemViews = [];
         this._menuItemViews = [];
         this.contentView = UIView.init();
-        this._clipView = UIView.initWithConstraintBox(JSConstraintBox.Margin(0));
         this.contentView.addSubview(this._clipView);
         // this.backgroundColor = JSColor.initWithRGBA(1, 1, 1, 0.95);
         this._font = JSFont.systemFontOfSize(14).fontWithWeight(JSFont.Weight.regular);
@@ -172,9 +171,7 @@ JSClass("UIMenuBar", UIWindow, {
         UIMenuBar.$super.layoutSubviews.call(this);
         var height = this._font.displayLineHeight + this._itemPadding.top + this._itemPadding.bottom;
         this.bounds = JSRect(0, 0, this.bounds.size.width, height);
-        if (this.constraintBox && this.constraintBox.height){
-            this.constraintBox.height = height;
-        }
+        this._clipView.frame = this.bounds;
 
         var leftWidth = 0;
         var rightWidth = 0;
