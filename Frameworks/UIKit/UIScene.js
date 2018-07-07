@@ -59,6 +59,7 @@ JSClass("UIScene", JSObject, {
         if (window !== null){
             window.makeKey();
         }
+        UIScene._visible = this;
     },
 
     close: function(){
@@ -72,4 +73,12 @@ JSClass("UIScene", JSObject, {
         }
     }
 
+});
+
+UIScene._visible = null;
+
+Object.defineProperty(UIScene, 'visible', {
+    get: function UIScene_getVisible(){
+        return UIScene._visible;
+    }
 });
