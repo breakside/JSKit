@@ -86,13 +86,13 @@ SECCipherAESCounter.definePropertiesFromExtensions({
         }
         var nonce = new Uint8Array([
             1,
-            ((this.messageID / 0x100000000) >> 16) & 0xFF,
-            ((this.messageID / 0x100000000) >> 8) & 0xFF,
-            (this.messageID / 0x100000000) & 0xFF,
-            (this.messageID >> 24) & 0xFF,
-            (this.messageID >> 16) & 0xFF,
-            (this.messageID >> 8) & 0xFF,
-            this.messageID & 0xF
+            ((this.encryptedMessageId / 0x100000000) >> 16) & 0xFF,
+            ((this.encryptedMessageId / 0x100000000) >> 8) & 0xFF,
+            (this.encryptedMessageId / 0x100000000) & 0xFF,
+            (this.encryptedMessageId >> 24) & 0xFF,
+            (this.encryptedMessageId >> 16) & 0xFF,
+            (this.encryptedMessageId >> 8) & 0xFF,
+            this.encryptedMessageId & 0xF
         ]);
         var iv = new Uint8Array(16);
         nonce.copyTo(iv, 0);
@@ -104,6 +104,14 @@ SECCipherAESCounter.definePropertiesFromExtensions({
     decrypt: function(data, key, completion, target){
         try{
             var nonce = data.subdataInRange(JSRange(0, 8)).bytes;
+            this.decryptedMessageId =
+                  (nonce.bytes[6] << 48)
+                | (nonce.bytes[5] << 40)
+                | (nonce.bytes[4] << 32)
+                | (nonce.bytes[3] << 24)
+                | (nonce.bytes[2] << 16)
+                | (nonce.bytes[1] << 8)
+                | (nonce.bytes[0]);
             var iv = new Uint8Array(16);
             nonce.copyTo(iv, 0);
             var cipher = crypto.createDecipheriv('AES-256-CTR', key.keyData.bytes, iv);
@@ -125,13 +133,13 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         }
         var nonce = new Uint8Array([
             1,
-            ((this.messageID / 0x100000000) >> 16) & 0xFF,
-            ((this.messageID / 0x100000000) >> 8) & 0xFF,
-            (this.messageID / 0x100000000) & 0xFF,
-            (this.messageID >> 24) & 0xFF,
-            (this.messageID >> 16) & 0xFF,
-            (this.messageID >> 8) & 0xFF,
-            this.messageID & 0xF
+            ((this.encryptedMessageId / 0x100000000) >> 16) & 0xFF,
+            ((this.encryptedMessageId / 0x100000000) >> 8) & 0xFF,
+            (this.encryptedMessageId / 0x100000000) & 0xFF,
+            (this.encryptedMessageId >> 24) & 0xFF,
+            (this.encryptedMessageId >> 16) & 0xFF,
+            (this.encryptedMessageId >> 8) & 0xFF,
+            this.encryptedMessageId & 0xF
         ]);
         var iv = new Uint8Array(16);
         nonce.copyTo(iv, 0);
@@ -146,6 +154,14 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
     decrypt: function(data, key, completion, target){
         try{
             var nonce = data.subdataInRange(JSRange(0, 8)).bytes;
+            this.decryptedMessageId =
+                  (nonce.bytes[6] << 48)
+                | (nonce.bytes[5] << 40)
+                | (nonce.bytes[4] << 32)
+                | (nonce.bytes[3] << 24)
+                | (nonce.bytes[2] << 16)
+                | (nonce.bytes[1] << 8)
+                | (nonce.bytes[0]);
             var iv = new Uint8Array(16);
             nonce.copyTo(iv, 0);
             var cipher = crypto.createDecipheriv('id-aes256-GCM', key.keyData.bytes, iv);

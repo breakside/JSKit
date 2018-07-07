@@ -69,16 +69,17 @@ JSClass("SECCipherAESCipherBlockChaining", SECCipher, {
 
 JSClass("SECCipherAESCounter", SECCipher, {
 
-    messageID: 0,
+    encryptedMessageId: 0,
+    decryptedMessageId: 0,
 
     init: function(){
     },
 
     ensureUniqueMessageID: function(completion, target){
-        if (this.messageID == 9007199254740991){
+        if (this.encryptedMessageId == 9007199254740991){
             return false;
         }
-        ++this.messageID;
+        ++this.encryptedMessageId;
         return true;
     }
 
@@ -86,16 +87,17 @@ JSClass("SECCipherAESCounter", SECCipher, {
 
 JSClass("SECCipherAESGaloisCounterMode", SECCipher, {
 
-    messageID: 0,
+    encryptedMessageId: 0,
+    decryptedMessageId: 0,
 
     init: function(){
     },
 
     ensureUniqueMessageID: function(completion, target){
-        if (this.messageID == 9007199254740991){
+        if (this.encryptedMessageId == 9007199254740991){
             return false;
         }
-        ++this.messageID;
+        ++this.encryptedMessageId;
         return true;
     }
 

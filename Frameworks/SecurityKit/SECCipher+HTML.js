@@ -157,13 +157,13 @@ SECCipherAESCounter.definePropertiesFromExtensions({
     _getHTMLEncryptAlgorithm: function(){
         var nonce = new Uint8Array([
             1,
-            ((this.messageID / 0x100000000) >> 16) & 0xFF,
-            ((this.messageID / 0x100000000) >> 8) & 0xFF,
-            (this.messageID / 0x100000000) & 0xFF,
-            (this.messageID >> 24) & 0xFF,
-            (this.messageID >> 16) & 0xFF,
-            (this.messageID >> 8) & 0xFF,
-            this.messageID & 0xF
+            ((this.encryptedMessageId / 0x100000000) >> 16) & 0xFF,
+            ((this.encryptedMessageId / 0x100000000) >> 8) & 0xFF,
+            (this.encryptedMessageId / 0x100000000) & 0xFF,
+            (this.encryptedMessageId >> 24) & 0xFF,
+            (this.encryptedMessageId >> 16) & 0xFF,
+            (this.encryptedMessageId >> 8) & 0xFF,
+            this.encryptedMessageId & 0xF
         ]);
         var algorithm = {
             name: HTMLCryptoAlgorithmNames.aesCTR,
@@ -181,6 +181,14 @@ SECCipherAESCounter.definePropertiesFromExtensions({
             counter: new Uint8Array(16),
             length: 64
         };
+        this.decryptedMessageId =
+              (nonce.bytes[6] << 48)
+            | (nonce.bytes[5] << 40)
+            | (nonce.bytes[4] << 32)
+            | (nonce.bytes[3] << 24)
+            | (nonce.bytes[2] << 16)
+            | (nonce.bytes[1] << 8)
+            | (nonce.bytes[0]);
         nonce.bytes.copyTo(algorithm.counter, 0);
         return algorithm;
     },
@@ -247,13 +255,13 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
     _getHTMLEncryptAlgorithm: function(){
         var nonce = new Uint8Array([
             1,
-            ((this.messageID / 0x100000000) >> 16) & 0xFF,
-            ((this.messageID / 0x100000000) >> 8) & 0xFF,
-            (this.messageID / 0x100000000) & 0xFF,
-            (this.messageID >> 24) & 0xFF,
-            (this.messageID >> 16) & 0xFF,
-            (this.messageID >> 8) & 0xFF,
-            this.messageID & 0xF
+            ((this.encryptedMessageId / 0x100000000) >> 16) & 0xFF,
+            ((this.encryptedMessageId / 0x100000000) >> 8) & 0xFF,
+            (this.encryptedMessageId / 0x100000000) & 0xFF,
+            (this.encryptedMessageId >> 24) & 0xFF,
+            (this.encryptedMessageId >> 16) & 0xFF,
+            (this.encryptedMessageId >> 8) & 0xFF,
+            this.encryptedMessageId & 0xF
         ]);
         var algorithm = {
             name: HTMLCryptoAlgorithmNames.aesGCM,
@@ -271,6 +279,14 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
             iv: new Uint8Array(16),
             tagLength: 128
         };
+        this.decryptedMessageId =
+              (nonce.bytes[6] << 48)
+            | (nonce.bytes[5] << 40)
+            | (nonce.bytes[4] << 32)
+            | (nonce.bytes[3] << 24)
+            | (nonce.bytes[2] << 16)
+            | (nonce.bytes[1] << 8)
+            | (nonce.bytes[0]);
         nonce.bytes.copyTo(algorithm.iv, 0);
         return algorithm;
     },
