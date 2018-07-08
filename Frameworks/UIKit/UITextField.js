@@ -54,6 +54,9 @@ JSClass("UITextField", UIControl, {
         if ('leftAccessoryInsets' in values){
             this.leftAccessoryInsets = JSInsets.apply(undefined, values.leftAccessoryInsets.parseNumberArray());
         }
+        if ('leftAccessoryVisibility' in values){
+            this.leftAccessoryVisibility = spec.resolvedValue(values.leftAccessoryVisibility);
+        }
         if ('rightImage' in values){
             this.rightImage = JSImage.initWithResourceName(values.rightImage, spec.bundle);
         }else if ('rightAccessoryView' in values){
@@ -64,6 +67,9 @@ JSClass("UITextField", UIControl, {
         }
         if ('rightAccessoryInsets' in values){
             this.rightAccessoryInsets = JSInsets.apply(undefined, values.rightAccessoryInsets.parseNumberArray());
+        }
+        if ('rightAccessoryVisibility' in values){
+            this.rightAccessoryVisibility = spec.resolvedValue(values.rightAccessoryVisibility);
         }
         if ('placeholder' in values){
             this.placeholder = spec.resolvedValue(values.placeholder);
@@ -309,6 +315,8 @@ JSClass("UITextField", UIControl, {
     rightAccessorySize: JSDynamicProperty('_rightAccessorySize', null),
     leftAccessoryInsets: JSDynamicProperty('_leftAccessoryInsets', null),
     rightAccessoryInsets: JSDynamicProperty('_rightAccessoryInsets', null),
+    leftAccessoryVisibility: JSDynamicProperty('_leftAccessoryVisibility', 0),
+    rightAccessoryVisibility: JSDynamicProperty('_rightAccessoryVisibility', 0),
 
     setLeftImage: function(image){
         var templateColor = this._styler.leftAccessoryColor;
@@ -341,7 +349,8 @@ JSClass("UITextField", UIControl, {
         this._leftAccessoryView = view;
         if (this._leftAccessoryView){
             if (this._leftAccessorySize === null){
-                this._leftAccessorySize = JSSize(view.frame.size);
+                var lineHeight = this.font.lineHeight;
+                this._leftAccessorySize = JSSize(lineHeight, lineHeight);
             }
             if (this._leftAccessoryInsets === null){
                 this._leftAccessoryInsets = JSInsets(0, 3, 0, 0);
@@ -353,6 +362,7 @@ JSClass("UITextField", UIControl, {
         }
         this.setNeedsLayout();
         this._styler.updateControl(this);
+        view.hidden = (this._leftAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive) && !this.active;
     },
 
     setRightAccessoryView: function(view){
@@ -366,7 +376,8 @@ JSClass("UITextField", UIControl, {
         this._rightAccessoryView = view;
         if (this._rightAccessoryView){
             if (this._rightAccessorySize === null){
-                this._rightAccessorySize = JSSize(view.frame.size);
+                var lineHeight = this.font.lineHeight;
+                this._rightAccessorySize = JSSize(lineHeight, lineHeight);
             }
             if (this._rightAccessoryInsets === null){
                 this._rightAccessoryInsets = JSInsets(0, 0, 0, 3);
@@ -378,6 +389,21 @@ JSClass("UITextField", UIControl, {
         }
         this.setNeedsLayout();
         this._styler.updateControl(this);
+        view.hidden = (this._rightAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive) && !this.active;
+    },
+
+    setLeftAccessoryVisibility: function(visibility){
+        this._leftAccessoryVisibility = visibility;
+        if (this._leftAccessoryView !== null){
+            this._leftAccessoryView.hidden = (this._leftAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive) && !this.active;
+        }
+    },
+
+    setRightAccessoryVisibility: function(visibility){
+        this._rightAccessoryVisibility = visibility;
+        if (this._rightAccessoryView !== null){
+            this._rightAccessoryView.hidden = (this._rightAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive) && !this.active;
+        }
     },
 
     setLeftAcessorySize: function(size){
@@ -607,11 +633,23 @@ JSClass("UITextField", UIControl, {
 
     becomeFirstResponder: function(){
         this.active = true;
+        if (this._leftAccessoryView !== null && this._leftAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive){
+            this._leftAccessoryView.hidden = false;
+        }
+        if (this._rightAccessoryView !== null && this._rightAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive){
+            this._rightAccessoryView.hidden = false;
+        }
         this._localEditor.didBecomeFirstResponder();
     },
 
     resignFirstResponder: function(){
         this.active = false;
+        if (this._leftAccessoryView !== null && this._leftAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive){
+            this._leftAccessoryView.hidden = true;
+        }
+        if (this._rightAccessoryView !== null && this._rightAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive){
+            this._rightAccessoryView.hidden = true;
+        }
         this._localEditor.didResignFirstResponder();
     },
 
@@ -960,6 +998,11 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
     }
 
 });
+
+UITextField.AccessoryVisibility = {
+    always: 0,
+    onlyWhenActive: 1
+};
 
 Object.defineProperties(UITextFieldDefaultStyler, {
     shared: {

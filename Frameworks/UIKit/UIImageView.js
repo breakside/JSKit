@@ -111,6 +111,14 @@ JSClass("UIImageView", UIView, {
     setTintColor: function(tintColor){
         this._tintColor = tintColor;
         this.setNeedsDisplay();
+    },
+
+    getIntrinsicSize: function(){
+        var image = this.layer._image;
+        if (image !== null){
+            return JSSize(image.size);
+        }
+        return JSSize(UIView.noIntrinsicSize, UIView.noIntrinsicSize);
     }
 });
 

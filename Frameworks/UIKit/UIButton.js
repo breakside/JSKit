@@ -1,35 +1,39 @@
 // #import "UIKit/UIControl.js"
 // #import "UIKit/UILabel.js"
-/* global JSClass, JSObject, UIControl, JSSize, JSInsets, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSColor, UIButton, JSTextAlignment, JSPoint, UIView, JSFont, UIButtonStyler, UIButtonDefaultStyler, UIButtonCustomStyler, JSRect */
+// #import "UIKit/UIImageView.js"
+/* global JSClass, JSObject, JSLazyInitProperty, UIControl, JSSize, JSImage, UIImageView, JSInsets, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSColor, UIButton, JSTextAlignment, JSPoint, UIView, JSFont, UIButtonStyler, UIButtonDefaultStyler, UIButtonCustomStyler, JSRect */
 'use strict';
 
 JSClass("UIButton", UIControl, {
 
-    titleLabel: JSReadOnlyProperty('_titleLabel', null),
+    image: JSDynamicProperty('_image'),
+    titleLabel: JSLazyInitProperty('_createTitleLabel', '_titleLabel'),
     titleInsets: JSDynamicProperty('_titleInsets', null),
+    imageView: JSLazyInitProperty('_createImageView', '_imageView'),
+    imageRenderMode: JSDynamicProperty(),
 
     initWithSpec: function(spec, values){
         UIButton.$super.initWithSpec.call(this, spec, values);
         if ('font' in values){
-            this._titleLabel.font = JSFont.initWithSpec(spec, values.font);
+            this.titleLabel.font = JSFont.initWithSpec(spec, values.font);
         }
         if ('title' in values){
-            this._titleLabel.text = spec.resolvedValue(values.title);
+            this.titleLabel.text = spec.resolvedValue(values.title);
         }
         if ('titleInsets' in values){
             this._titleInsets = JSInsets.apply(undefined, values.titleInsets.parseNumberArray());
+        }
+        if ('image' in values){
+            this.image = JSImage.initWithResourceName(values.image, spec.bundle);
+        }
+        if ('imageRenderMode' in values){
+            this.imageRenderMode = spec.resolvedValue(values.imageRenderMode);
         }
     },
 
     commonUIControlInit: function(){
         UIButton.$super.commonUIControlInit.call(this);
-        this._titleInsets = JSInsets(3, 7);
-        this._titleLabel = UILabel.init();
-        this._titleLabel.maximumNumberOfLines = 1;
-        this._titleLabel.textAlignment = JSTextAlignment.center;
-        this._titleLabel.backgroundColor = JSColor.clearColor;
-        this._titleLabel.font = JSFont.systemFontOfSize(JSFont.systemFontSize).fontWithWeight(JSFont.Weight.regular);
-        this.addSubview(this._titleLabel);
+        this._titleInsets = JSInsets.Zero;
         if (this._styler === null){
             this._styler = UIButton.defaultStyler;
         }
@@ -37,13 +41,53 @@ JSClass("UIButton", UIControl, {
         this._styler.initializeControl(this);
     },
 
-    getTitleLabel: function(){
-        return this._titleLabel;
+    _createTitleLabel: function(){
+        var titleLabel = UILabel.init();
+        titleLabel.maximumNumberOfLines = 1;
+        titleLabel.textAlignment = JSTextAlignment.center;
+        titleLabel.backgroundColor = JSColor.clearColor;
+        titleLabel.font = JSFont.systemFontOfSize(JSFont.systemFontSize).fontWithWeight(JSFont.Weight.regular);
+        this.addSubview(titleLabel);
+        this.setNeedsLayout();
+        this._titleLabel = titleLabel;
+        this._styler.updateControl(this);
+        return titleLabel;
     },
 
     setTitleInsets: function(titleInsets){
         this._titleInsets = JSInsets(titleInsets);
         this.setNeedsLayout();
+    },
+
+    _createImageView: function(){
+        var imageView = UIImageView.initWithRenderMode(UIImageView.RenderMode.template);
+        this.addSubview(imageView);
+        this.setNeedsLayout();
+        this._imageView = imageView;
+        this._styler.updateControl(this);
+        return imageView;
+    },
+
+    getImage: function(){
+        if (this._imageView !== null){
+            return this._imageView.image;
+        }
+        return null;
+    },
+
+    setImage: function(image){
+        this.imageView.image = image;
+    },
+
+    setImageRenderMode: function(renderMode){
+        this.imageView.renderMode = renderMode;
+    },
+
+    getImageRenderMode: function(){
+        if (this._imageView === null){
+            return UIImageView.RenderMode.template;
+        }
+        return this._imageView.renderMode;
     },
 
     mouseDown: function(event){
@@ -73,13 +117,19 @@ JSClass("UIButton", UIControl, {
     },
 
     getFirstBaselineOffsetFromTop: function(){
-        this.layoutIfNeeded();
-        return this.convertPointFromView(JSPoint(0, this._titleLabel.firstBaselineOffsetFromTop), this._titleLabel).y;
+        if (this._titleLabel !== null){
+            this.layoutIfNeeded();
+            return this.convertPointFromView(JSPoint(0, this._titleLabel.firstBaselineOffsetFromTop), this._titleLabel).y;
+        }
+        return this._titleInsets.top;
     },
 
     getLastBaselineOffsetFromBottom: function(){
-        this.layoutIfNeeded();
-        return this.convertPointFromView(JSPoint(0, this._titleLabel.lastBaselineOffsetFromBottom), this._titleLabel).y;
+        if (this._titleLabel !==  null){
+            this.layoutIfNeeded();
+            return this.convertPointFromView(JSPoint(0, this._titleLabel.lastBaselineOffsetFromBottom), this._titleLabel).y;
+        }
+        return this._titleInsets.bottom;
     }
 
 });
@@ -103,9 +153,28 @@ JSClass("UIButtonStyler", UIControlStyler, {
     },
 
     intrinsicSizeOfControl: function(button){
-        var size = JSSize(button._titleLabel.intrinsicSize);
-        size.width += button._titleInsets.left + button._titleInsets.right;
-        size.height += button._titleInsets.top + button._titleInsets.bottom;
+        var size = JSSize(button._titleInsets.left + button._titleInsets.right, button._titleInsets.top + button._titleInsets.bottom);
+        var titleSize;
+        var imageSize;
+        if (button._titleLabel !== null){
+            titleSize = button._titleLabel.intrinsicSize;
+            if (button.image !== null){
+                imageSize = button.imageView.intrinsicSize;
+                size.width += imageSize.width + button._titleInsets.left + titleSize.width;
+                size.height = Math.max(imageSize.height, titleSize.height);
+            }else{
+                size.width += titleSize.width;
+                size.height += titleSize.height;
+            }
+        }else if (button.image !== null){
+            imageSize = button.imageView.intrinsicSize;
+            if (imageSize.width != UIView.noIntrinsicSize){
+                size.width += imageSize.width;
+            }
+            if (imageSize.height != UIView.noIntrinsicSize){
+                size.height += imageSize.height;
+            }
+        }
         return size;
     },
 
@@ -114,7 +183,22 @@ JSClass("UIButtonStyler", UIControlStyler, {
     },
 
     layoutControl: function(button){
-        button._titleLabel.frame = button.bounds.rectWithInsets(button._titleInsets);
+        if (button._titleLabel !== null){
+            if (button.image !== null){
+                var contentRect = button.bounds.rectWithInsets(button._titleInsets);
+                var imageSize = Math.min(contentRect.size.width, contentRect.size.height);
+                button.imageView.frame = JSRect(contentRect.origin, JSSize(imageSize, imageSize));
+                var x = contentRect.origin.x + imageSize + button._titleInsets.left;
+                var w = Math.max(0, contentRect.size.width - x);
+                var titleSize = button._titleLabel.intrinsicSize;
+                var y = (contentRect.size.height - titleSize.height) / 2;
+                button._titleLabel.frame = JSRect(x, y, w, titleSize.height);
+            }else{
+                button._titleLabel.frame = button.bounds.rectWithInsets(button._titleInsets);
+            }
+        }else if (button.image !== null){
+            button.imageView.frame = button.bounds.rectWithInsets(button._titleInsets);
+        }
     }
 
 });
@@ -125,6 +209,7 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
 
     initializeControl: function(button){
         UIButtonDefaultStyler.$super.initializeControl.call(this, button);
+        button.titleInsets = JSInsets(3, 7);
         button.layer.borderWidth = 1;
         button.layer.cornerRadius = 3;
         button.layer.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
@@ -135,17 +220,32 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
 
     updateControl: function(button){
         if (!button.enabled){
-            button.layer.backgroundColor    = UIButtonDefaultStyler.DisabledBackgroundColor;
-            button.layer.borderColor        = UIButtonDefaultStyler.DisabledBorderColor;
-            button._titleLabel.textColor     = UIButtonDefaultStyler.DisabledTitleColor;
+            button.layer.backgroundColor = UIButtonDefaultStyler.DisabledBackgroundColor;
+            button.layer.borderColor = UIButtonDefaultStyler.DisabledBorderColor;
+            if (button._titleLabel !== null){
+                button._titleLabel.textColor = UIButtonDefaultStyler.DisabledTitleColor;
+            }
+            if (button._imageView !== null){
+                button._imageView.templateColor = UIButtonDefaultStyler.DisabledTitleColor;
+            }
         }else if (button.active){
-            button.layer.backgroundColor    = UIButtonDefaultStyler.ActiveBackgroundColor;
-            button.layer.borderColor        = UIButtonDefaultStyler.ActiveBorderColor;
-            button._titleLabel.textColor     = UIButtonDefaultStyler.ActiveTitleColor;
+            button.layer.backgroundColor = UIButtonDefaultStyler.ActiveBackgroundColor;
+            button.layer.borderColor = UIButtonDefaultStyler.ActiveBorderColor;
+            if (button._titleLabel !== null){
+                button._titleLabel.textColor = UIButtonDefaultStyler.ActiveTitleColor;
+            }
+            if (button._imageView !== null){
+                button._imageView.templateColor = UIButtonDefaultStyler.ActiveTitleColor;
+            }
         }else{
-            button.layer.backgroundColor    = UIButtonDefaultStyler.NormalBackgroundColor;
-            button.layer.borderColor        = UIButtonDefaultStyler.NormalBorderColor;
-            button._titleLabel.textColor     = UIButtonDefaultStyler.NormalTitleColor;
+            button.layer.backgroundColor = UIButtonDefaultStyler.NormalBackgroundColor;
+            button.layer.borderColor = UIButtonDefaultStyler.NormalBorderColor;
+            if (button._titleLabel !== null){
+                button._titleLabel.textColor = UIButtonDefaultStyler.NormalTitleColor;
+            }
+            if (button._imageView !== null){
+                button._imageView.templateColor = UIButtonDefaultStyler.NormalTitleColor;
+            }
         }
     }
 
@@ -167,6 +267,11 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
         this._commonInit();
     },
 
+    initWithColor: function(color){
+        this.normalTitleColor = color;
+        this._commonInit();
+    },
+
     initWithSpec: function(spec, values){
         UIButtonCustomStyler.$super.initWithSpec.call(this, spec, values);
         if ('normalBackgroundColor' in values){
@@ -185,14 +290,16 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
         if (this.activeTitleColor === null){
             this.activeTitleColor = this.normalTitleColor.colorDarkenedByPercentage(0.2);
         }
-        if (this.activeBackgroundColor === null){
-            this.activeBackgroundColor = this.normalBackgroundColor.colorDarkenedByPercentage(0.2);
-        }
-        if (this.disabledBackgroundColor === null){
-            this.disabledBackgroundColor = this.normalBackgroundColor.colorWithAlpha(0.5);
-        }
         if (this.disabledTitleColor === null){
             this.disabledTitleColor = this.normalTitleColor.colorWithAlpha(0.5);
+        }
+        if (this.normalBackgroundColor !== null){
+            if (this.activeBackgroundColor === null){
+                this.activeBackgroundColor = this.normalBackgroundColor.colorDarkenedByPercentage(0.2);
+            }
+            if (this.disabledBackgroundColor === null){
+                this.disabledBackgroundColor = this.normalBackgroundColor.colorWithAlpha(0.5);
+            }
         }
     },
 
@@ -204,14 +311,29 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
 
     updateControl: function(button){
         if (!button.enabled){
-            button.layer.backgroundColor    = this.disabledBackgroundColor;
-            button._titleLabel.textColor     = this.disabledTitleColor;
+            button.layer.backgroundColor = this.disabledBackgroundColor;
+            if (button._titleLabel !== null){
+                button._titleLabel.textColor = this.disabledTitleColor;
+            }
+            if (button._imageView !== null){
+                button._imageView.templateColor = this.disabledTitleColor;
+            }
         }else if (button.active){
-            button.layer.backgroundColor    = this.activeBackgroundColor;
-            button._titleLabel.textColor     = this.activeTitleColor;
+            button.layer.backgroundColor = this.activeBackgroundColor;
+            if (button._titleLabel !== null){
+                button._titleLabel.textColor = this.activeTitleColor;
+            }
+            if (button._imageView !== null){
+                button._imageView.templateColor = this.activeTitleColor;
+            }
         }else{
-            button.layer.backgroundColor    = this.normalBackgroundColor;
-            button._titleLabel.textColor     = this.normalTitleColor;
+            button.layer.backgroundColor = this.normalBackgroundColor;
+            if (button._titleLabel !== null){
+                button._titleLabel.textColor = this.normalTitleColor;
+            }
+            if (button._imageView !== null){
+                button._imageView.templateColor = this.normalTitleColor;
+            }
         }
     }
 
@@ -222,6 +344,18 @@ Object.defineProperties(UIButtonDefaultStyler, {
         configurable: true,
         get: function UIButtonDefaultStyler_getShared(){
             var shared = UIButtonDefaultStyler.init();
+            Object.defineProperty(this, 'shared', {value: shared});
+            return shared;
+        }
+    }
+});
+
+Object.defineProperties(UIButtonCustomStyler, {
+    shared: {
+        configurable: true,
+        get: function UIButtonCustomStyler_getShared(){
+            var color = JSColor.initWithWhite(51/255);
+            var shared = UIButtonCustomStyler.initWithColor(color);
             Object.defineProperty(this, 'shared', {value: shared});
             return shared;
         }
@@ -249,6 +383,13 @@ Object.defineProperties(UIButton, {
         },
         set: function UIButton_setDefaultStyler(defaultStyler){
             Object.defineProperty(UIButton, 'defaultStyler', {writable: true, value: defaultStyler});
+        }
+    },
+    customStyler: {
+        configurable: true,
+        get: function UIButton_getDefaultStyler(){
+            Object.defineProperty(UIButton, 'customStyler', {writable: true, value: UIButtonCustomStyler.shared});
+            return UIButton.customStyler;
         }
     }
 });
