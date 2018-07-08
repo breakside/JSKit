@@ -101,14 +101,16 @@ JSClass('UIView', UIResponder, {
         // NOTE: constraints are still and work in progress, and aren't actually
         // used yet during layout
         if ("constraints" in values){
+            var constraintValue;
             for (i = 0, l = values.constraints.length; i < l; ++i){
-                if (values.constraints[i].firstItem == '<self>'){
-                    values.constraints[i].firstItem = this;
+                constraintValue = JSCopy(values.constraints[i]);
+                if (constraintValue.firstItem == '<self>'){
+                    constraintValue.firstItem = this;
                 }
-                if (values.constraints[i].secondItem == '<self>'){
-                    values.constraints[i].secondItem = this;
+                if (constraintValue.secondItem == '<self>'){
+                    constraintValue.secondItem = this;
                 }
-                var constraint = spec.resolvedValue(values.constraints[i], "UILayoutConstraint");
+                var constraint = spec.resolvedValue(constraintValue, "UILayoutConstraint");
                 this.addConstraint(constraint);
             }
         }

@@ -26,6 +26,12 @@ JSClass("UIViewController", UIResponder, {
             delete values.bindings;
         }
         UIViewController.$super.initWithSpec.call(this, spec, values);
+        if (this._outletsInSpec){
+            values.outlets = this._outletsInSpec;
+        }
+        if (this._bindingsInSpec){
+            values.bindings = this._bindingsInSpec;
+        }
         if ('tabViewItem' in values){
             this.tabViewItem = spec.resolvedValue(values.tabViewItem, "UITabViewItem");
         }
@@ -71,10 +77,6 @@ JSClass("UIViewController", UIResponder, {
                 }else{
                     this._view = JSClass.FromName(this._defaultViewClass).init();
                 }
-                this._viewInSpec = null;
-                this._outletsInSpec = null;
-                this._bindingsInSpec = null;
-                this._spec = null;
             }else{
                 this.loadView();
             }
