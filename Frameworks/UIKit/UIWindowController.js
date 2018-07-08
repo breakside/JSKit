@@ -40,11 +40,6 @@ JSClass("UIWindowController", UIViewController, {
         }
     },
 
-    contentSizeThatFitsSize: function(size){
-        this.window.contentView.sizeToFitSize(size);
-        return this.window.contentView.frame.size;
-    },
-
     viewDidDisappear: function(animated){
         UIWindowController.$super.viewDidDisappear.call(this, animated);
         if (this.window.contentViewController){
@@ -53,6 +48,11 @@ JSClass("UIWindowController", UIViewController, {
         if (this.windowDelegate){
             this.windowDelegate.windowControllerDidClose(this);
         }
+    },
+
+    contentSizeThatFitsSize: function(size){
+        this.window.contentView.sizeToFitSize(size);
+        return this.window.contentView.frame.size;
     },
 
     getWindow: function(){

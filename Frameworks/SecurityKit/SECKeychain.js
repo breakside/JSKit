@@ -197,7 +197,7 @@ JSClass("SECKeychain", JSObject, {
                         var encryptNextMethod = function(){
                             if (methodIndex == this._methods.length){
                                 this._contents.masterAlgorithm = masterAlgorithm;
-                                this._contents.masterSalt = masterSalt;
+                                this._contents.masterSalt = masterSalt.bytes.base64StringRepresentation();
                                 this._contents.methods = lockedMethods;
                                 this._persistAfterDelay();
                                 completion.call(target, true);

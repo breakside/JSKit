@@ -32,29 +32,32 @@ JSClass("SECCipherTests", TKTestSuite, {
                     TKAssertNotNull(decrypted);
                     TKAssertEquals(decrypted, "Hello, World!");
                 });
-                expectation.setTimeout(2.0);
+                expectation.setTimeout(5.0);
             });
-            expectation.setTimeout(2.0);
+            expectation.setTimeout(5.0);
         });
-        this.wait(expectation, 2.0);
+        this.wait(expectation, 5.0);
     },
 
     testAESCipherBlockChainingWrapUnwrapKey: function(){
-        var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesCipherBlockChaining);
-        this._testWrapUnwrap(cipher);
+        var algorithm = SECCipher.Algorithm.aesCipherBlockChaining;
+        var cipher = SECCipher.initWithAlgorithm(algorithm);
+        this._testWrapUnwrap(cipher, algorithm);
     },
 
     testAESCounterWrapUnwrapKey: function(){
-        var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesCounter);
-        this._testWrapUnwrap(cipher);
+        var algorithm = SECCipher.Algorithm.aesCounter;
+        var cipher = SECCipher.initWithAlgorithm(algorithm);
+        this._testWrapUnwrap(cipher, algorithm);
     },
 
     testAESGaloisCounterModeWrapUnwrapKey: function(){
-        var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesGaloisCounterMode);
-        this._testWrapUnwrap(cipher);
+        var algorithm = SECCipher.Algorithm.aesGaloisCounterMode;
+        var cipher = SECCipher.initWithAlgorithm(algorithm);
+        this._testWrapUnwrap(cipher, algorithm);
     },
 
-    _testWrapUnwrap: function(cipher){
+    _testWrapUnwrap: function(cipher, algorithm){
         var expectation = TKExpectation.init();
         expectation.call(cipher.createKey, cipher, function(key1){
             TKAssertNotNull(key1);
@@ -67,7 +70,7 @@ JSClass("SECCipherTests", TKTestSuite, {
                         expectation.call(cipher.wrapKey, cipher, key2, key1, function(wrappedData){
                             TKAssertNotNull(wrappedData);
                             TKAssertObjectNotEquals(rawData, wrappedData);
-                            expectation.call(cipher.unwrapKey, cipher, wrappedData, key1, function(key3){
+                            expectation.call(cipher.unwrapKey, cipher, wrappedData, algorithm, key1, function(key3){
                                 TKAssertNotNull(key3);
                                 expectation.call(cipher.decryptString, cipher, encrypted, key3, function(decrypted){
                                     TKAssertNotNull(decrypted);
@@ -79,7 +82,7 @@ JSClass("SECCipherTests", TKTestSuite, {
                 });
             });
         });
-        this.wait(expectation, 2.0);
+        this.wait(expectation, 5.0);
     },
 
     testAESCipherBlockChainingCreateKeyWithPassphrase: function(){
@@ -120,7 +123,7 @@ JSClass("SECCipherTests", TKTestSuite, {
                 });
             });
         });
-        this.wait(expectation, 2.0);
+        this.wait(expectation, 5.0);
     }
 
 });

@@ -21,7 +21,7 @@ JSClass("SECKeychainTests", TKTestSuite, {
                 TKAssert(success);
             });
         });
-        this.wait(expectation, 2.0);
+        this.wait(expectation, 5.0);
     },
 
     teardown: function(){
@@ -46,7 +46,7 @@ JSClass("SECKeychainTests", TKTestSuite, {
         expectation.call(this.keychain.unlock, this.keychain, "test123", function(success){
             TKAssert(success);
         });
-        this.wait(expectation, 2.0);
+        this.wait(expectation, 5.0);
     },
 
     testUnlockFailure: function(){
@@ -55,7 +55,7 @@ JSClass("SECKeychainTests", TKTestSuite, {
         expectation.call(this.keychain.unlock, this.keychain, "Test123", function(success){
             TKAssert(!success);
         });
-        this.wait(expectation, 2.0);
+        this.wait(expectation, 5.0);
     },
 
     testAddItem: function(){
@@ -64,7 +64,7 @@ JSClass("SECKeychainTests", TKTestSuite, {
         expectation.call(this.keychain.add, this.keychain, item, function(id){
             TKAssertNotNull(id);
         });
-        this.wait(expectation, 2.0);
+        this.wait(expectation, 5.0);
     },
 
     testGetItem: function(){
@@ -91,7 +91,7 @@ JSClass("SECKeychainTests", TKTestSuite, {
                 }, this);
             }, this);
         }, this);
-        this.wait(expectation, 2.0);
+        this.wait(expectation, 5.0);
     },
 
     testUpdateItem: function(){
@@ -114,7 +114,7 @@ JSClass("SECKeychainTests", TKTestSuite, {
                 }, this);
             }, this);
         }, this);
-        this.wait(expectation, 2.0);
+        this.wait(expectation, 5.0);
     },
 
     testRemoveItem: function(){
@@ -132,7 +132,22 @@ JSClass("SECKeychainTests", TKTestSuite, {
                 }, this);
             }, this);
         }, this);
-        this.wait(expectation, 2.0);
+        this.wait(expectation, 5.0);
+    },
+
+    testChangeMasterPassword: function(){
+        var expectation = TKExpectation.init();
+        expectation.call(this.keychain.changeMasterPassword, this.keychain, "Test123", "test456", function(success){
+            TKAssert(!success);
+            expectation.call(this.keychain.changeMasterPassword, this.keychain, "test123", "test456", function(success){
+                TKAssert(success);
+                this.keychain.lock();
+                expectation.call(this.keychain.unlock, this.keychain, "test456", function(success){
+                    TKAssert(success);
+                }, this);
+            }, this);
+        }, this);
+        this.wait(expectation, 5.0);
     }
 
 });
