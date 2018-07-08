@@ -60,18 +60,21 @@ JSClass("UIViewController", UIResponder, {
             // properties from the spec that the developer expects to be honored.
             // Otherwise, just call loadView
             if (this._spec !== null){
-                if (this._viewInSpec !== null){
-                    this._view = this._spec.resolvedValue(this._viewInSpec, this._defaultViewClass);
-                }
                 if (this._outletsInSpec !== null){
                     this._initSpecOutlets(this._spec, this._outletsInSpec);
                 }
                 if (this._bindingsInSpec !== null){
                     this._initSpecBindings(this._spec, this._bindingsInSpec);
                 }
+                if (this._viewInSpec !== null){
+                    this._view = this._spec.resolvedValue(this._viewInSpec, this._defaultViewClass);
+                }else{
+                    this._view = JSClass.FromName(this._defaultViewClass).init();
+                }
                 this._viewInSpec = null;
                 this._outletsInSpec = null;
                 this._bindingsInSpec = null;
+                this._spec = null;
             }else{
                 this.loadView();
             }
