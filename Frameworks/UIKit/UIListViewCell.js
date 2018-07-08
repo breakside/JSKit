@@ -75,7 +75,8 @@ JSClass("UIListViewCell", UIView, {
         if (this._imageView !== null){
             var imageSize = this.bounds.size.height - this._titleInsets.left * 2;
             this._imageView.frame = JSRect(origin.x, origin.x, imageSize, imageSize);
-            origin.x += origin.x + imageSize;
+            origin.x += this._titleInsets.left + imageSize;
+            size.width -= imageSize + this._titleInsets.left;
         }
         if (this._titleLabel !== null){
             if (this._detailLabel !== null){

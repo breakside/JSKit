@@ -388,10 +388,24 @@ JSClass("UIListView", UIScrollView, {
         // Reloading, if necessary, will set the proper size for this._cellsContainerView,
         // but we need to at least place it in the correct origin before doing a reload,
         // so all of the offset calcuations for showing/hiding cells are correct
-        this._cellsContainerView.frame = JSRect(origin, this._cellsContainerView.frame.size);
+        this._cellsContainerView.frame = JSRect(origin.x, origin.y, this.bounds.size.width, this._contentSize.height);
+
+        // Resize the width of all visible views
+        var i, l;
+        for (i = 0, l = this._visibleCellViews.length; i < l; ++i){
+            this._visibleCellViews[i].bounds = JSRect(0, 0, this._cellsContainerView.bounds.size.width, this._visibleCellViews[i].bounds.size.height);
+        }
+        for (i = 0, l = this._visibleHeaderViews.length; i < l; ++i){
+            this._visibleHeaderViews[i].bounds = JSRect(0, 0, this._cellsContainerView.bounds.size.width, this._visibleHeaderViews[i].bounds.size.height);
+        }
+        for (i = 0, l = this._visibleFooterViews.length; i < l; ++i){
+            this._visibleFooterViews[i].bounds = JSRect(0, 0, this._cellsContainerView.bounds.size.width, this._visibleFooterViews[i].bounds.size.height);
+        }
         if (this._needsReload){
             this._reloadDuringLayout();
             this._needsReload = false;
+        }else{
+            this.contentSize = JSSize(this.bounds.size.width, this._contentSize.height);
         }
 
         // Only add the height offset from cellsContainerView after a possible reload, because
