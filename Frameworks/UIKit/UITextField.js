@@ -11,7 +11,7 @@
 (function(){
 
 JSProtocol("UITextFieldDelegate", JSProtocol, {
-    textFieldDidRecieveEnter: ['textField'],
+    textFieldDidReceiveEnter: ['textField'],
     textFieldDidChange: ['textField']
 });
 
@@ -111,6 +111,8 @@ JSClass("UITextField", UIControl, {
 
     text: JSDynamicProperty(),
     attributedText: JSDynamicProperty(),
+    _textStorage: null,
+    _displayedTextStorage: null,
 
     setText: function(text){
         this._textLayer.text = text;
@@ -683,8 +685,8 @@ JSClass("UITextField", UIControl, {
         if (this.multiline){
             this._localEditor.insertNewline();
         }else{
-            if (this.delegate && this.delegate.textFieldDidRecieveEnter){
-                this.delegate.textFieldDidRecieveEnter(this);
+            if (this.delegate && this.delegate.textFieldDidReceiveEnter){
+                this.delegate.textFieldDidReceiveEnter(this);
             }
         }
     },
