@@ -54,7 +54,7 @@ JSClass("JSTextTypesetter", JSObject, {
     _createEmptyLine: function(range){
         var attributes = this._attributedString.attributesAtIndex(range.location);
         var font = JSTextTypesetter.FontFromAttributes(attributes);
-        return JSTextLine.initWithHeight(font.lineHeight, range.location);
+        return JSTextLine.initWithHeight(font.lineHeight, -font.descender, range.location);
     },
 
     _createLineFromLayout: function(layout){

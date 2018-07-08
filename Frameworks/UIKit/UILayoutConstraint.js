@@ -224,61 +224,15 @@ JSClass("UILayoutRun", JSObject, {
     framesByItemID: null,
     superview: null,
 
-    initWithSuperview: function(superview){
+    initWithSuperview: function(superview, fixedWidth, fixedHeight){
         this.superview = superview;
         this.framesByItemID = {};
         var frame = this.framesByItemID[superview.objectID] = new UILayoutFrame();
-        frame.minX = frame.maxX = superview.bounds.origin.x;
-        frame.minY = frame.maxY = superview.bounds.origin.y;
+        frame.minX = frame.maxX = 0;
+        frame.minY = frame.maxY = 0;
+        frame.minWidth = frame.maxWidth = fixedWidth;
+        frame.minHeight = frame.maxHeight = fixedHeight;
     },
-
-    updateConstraint: function(constraint){
-        var a = constraint.firstItem;
-        var b = constraint.secondItem;
-        var aFrame = this.framesByItemID[a.objectID];
-        if (!aFrame){
-            aFrame = this.framesByItemID[a.objectID] = new UILayoutFrame();
-        }
-        if (b === null){
-            switch (constraint.relation){
-                case UILayoutRelation.equal:
-                    switch (constraint.firstAttribute){
-                        case UILayoutAttribute.width:
-                            if (aFrame.minWidth === undefined && aFrame.maxWidth === undefined){
-                                aFrame.minWidth = aFrame.maxWidth = constraint.constant;
-                            }else if (aFrame.minWidth === undefined){
-                                aFrame.minWidth = constraint.constant;
-                                if (aFrame.maxWidth > constraint.constant){
-                                    aFrame.maxWidth = constraint.constant;
-                                }else if (aFrame.maxWidth < constraint.constant){
-                                }
-                            }else if (aFrame.maxWidth === undefined){
-                            }else{
-                                if (aFrame.minWidth != constraint.constant){
-                                    if (constraint.priority === UILayoutPriority.required){
-                                        throw new Error("Cannot satisfy constraint: %s".sprintf(constraint));
-                                    }
-                                }
-                            }
-                            break;
-                        case UILayoutAttribute.height:
-                            break;
-                        default:
-                            throw new Error("Single-item constraint can only set width or height");
-                    }
-                    break;
-                case UILayoutRelation.lessThanOrEqual:
-                    break;
-                case UILayoutRelation.greaterThanOrEqual:
-                    break;
-            }
-        }else{
-            var bFrame = this.framesByItemID[b.objectID];
-            if (!bFrame){
-                bFrame = this.framesByItemID[b.objectID] = new UILayoutFrame();
-            }
-        }
-    }
 
 });
 

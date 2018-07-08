@@ -17,6 +17,7 @@
         "UIWebView",
         "UIWindow",
         "UIViewController",
+        "UIWindowController",
         "UIEvent",
         "UIDisplayServer",
         "UIWindowServer",

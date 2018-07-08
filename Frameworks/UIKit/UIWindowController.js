@@ -40,6 +40,11 @@ JSClass("UIWindowController", UIViewController, {
         }
     },
 
+    contentSizeThatFitsSize: function(size){
+        this.window.contentView.sizeToFitSize(size);
+        return this.window.contentView.frame.size;
+    },
+
     viewDidDisappear: function(animated){
         UIWindowController.$super.viewDidDisappear.call(this, animated);
         if (this.window.contentViewController){
@@ -55,11 +60,27 @@ JSClass("UIWindowController", UIViewController, {
     },
 
     makeVisible: function(){
+        this._prepareWindow();
         this.window.makeVisible();
     },
 
     makeKeyAndVisible: function(){
+        this._prepareWindow();
         this.window.makeKeyAndVisible();
+    },
+
+    _needsPrepare: true,
+
+    _prepareWindowIfNeeded: function(){
+        if (this._needsPrepare){
+            this._prepareWindow();
+            this._needsPrepare = false;
+        }
+    },
+
+    _prepareWindow: function(){
+        this.window.sizeToFit();
+        this.window.position = this.window.windowServer.screen.availableFrame.center;
     },
 
     close: function(){

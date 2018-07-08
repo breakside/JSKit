@@ -27,6 +27,7 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         if (sharedDomRange === null){
             sharedDomRange = this.element.ownerDocument.createRange();
         }
+        this.baseline = -font.displayDescender;
     },
 
     updateOrigin: function(){

@@ -43,7 +43,7 @@ JSClass("JSTextLineTests", TKTestSuite, {
 
     testInitWithHeight: function(){
         var font = JSTextLineTestsFont.init();
-        var line = JSTextLine.initWithHeight(font.lineHeight, 12);
+        var line = JSTextLine.initWithHeight(font.lineHeight, -font.descender, 12);
 
         TKAssertEquals(line.runs.length, 0);
         TKAssertEquals(line.origin.x, 0);
@@ -210,7 +210,7 @@ JSClass("JSTextLineTests", TKTestSuite, {
 
     testRectForCharacterAtIndexEmptyLine: function(){
         var font = JSTextLineTestsFont.init();
-        var line = JSTextLine.initWithHeight(font.lineHeight, 12);
+        var line = JSTextLine.initWithHeight(font.lineHeight, - font.descender, 12);
 
         // mid of run 2
         var rect = line.rectForCharacterAtIndex(0);

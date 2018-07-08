@@ -176,24 +176,12 @@ JSClass("UITextLayer", UILayer, {
         this._displayQueued = false;
     },
 
-    sizeToFit: function(){
-        this._textContainer.size = JSSize(Number.MAX_VALUE, Number.MAX_VALUE);
-        this.layoutIfNeeded();
-        if (this._textContainer.textFrame !== null){
-            var width = this._textContainer.textFrame.size.width + this._textInsets.left + this._textInsets.right;
-            var height = this._textContainer.textFrame.size.height + this._textInsets.top + this._textInsets.bottom;
-            if (width != this.bounds.width || height != this.bounds.height){
-                this.bounds = JSRect(0, 0, width, height);
-            }
-        }
-    },
-
     sizeToFitSize: function(maxSize){
         this._textContainer.size = JSSize(maxSize.width - this._textInsets.left - this._textInsets.right, maxSize.height - this._textInsets.top - this._textInsets.bottom);
         this.layoutIfNeeded();
         if (this._textContainer.textFrame !== null){
-            var width = this._textContainer.textFrame.usedSize.width + this._textInsets.left + this._textInsets.right;
-            var height = this._textContainer.textFrame.usedSize.height + this._textInsets.top + this._textInsets.bottom;
+            var width = this._textContainer.textFrame.size.width + this._textInsets.left + this._textInsets.right;
+            var height = this._textContainer.textFrame.size.height + this._textInsets.top + this._textInsets.bottom;
             if (width != this.bounds.width || height != this.bounds.height){
                 this.bounds = JSRect(0, 0, width, height);
             }
@@ -221,11 +209,19 @@ JSClass("UITextLayer", UILayer, {
     lastBaselineOffsetFromBottom: JSReadOnlyProperty(),
 
     getFirstBaselineOffsetFromTop: function(){
-        return 0; // TODO: use textFrame, or figure based on pre-layout info like font metrics?
+        if (this._textContainer.textFrame !== null && this._textContainer.textFrame.lines.length > 0){
+            var firstLine = this._textContainer.textFrame.lines[0];
+            return this._textInsets.top + firstLine.origin.y + firstLine.size.height - firstLine.baseline;
+        }
+        return this._textInsets.top + this._textLayoutManager.defaultFont.displayAscender;
     },
 
     getLastBaselineOffsetFromBottom: function(){
-        return 0; // TODO: use textFrame, or figure based on pre-layout info like font metrics?
+        if (this._textContainer.textFrame !== null && this._textContainer.textFrame.lines.length > 0){
+            var lastLine = this._textContainer.textFrame.lines[this._textContainer.textFrame.lines.length - 1];
+            return this.bounds.size.height - (this._textInsets.top + lastLine.origin.y + lastLine.size.height - lastLine.baseline);
+        }
+        return this._textInsets.bottom - this._textLayoutManager.defaultFont.displayDescender;
     },
 
     // MARK: - Layout Manager delegate

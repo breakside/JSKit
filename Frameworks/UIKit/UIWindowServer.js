@@ -224,9 +224,9 @@ JSClass("UIWindowServer", JSObject, {
     // -----------------------------------------------------------------------
     // MARK: - Screen Coordination
 
-    screenDidChangeFrame: function(){
+    screenDidChangeFrame: function(oldFrame){
         if (this.menuBar){
-            this._menuBar.frame = JSRect(0, 0, this._menuBar.screen.frame.size.width, this._menuBar.frame.size.height);
+            this._menuBar.frame = JSRect(0, 0, this.screen.frame.size.width, this._menuBar.frame.size.height);
         }
         var window;
         for (var i = 0, l = this.windowStack.length; i < l; ++i){
@@ -239,7 +239,7 @@ JSClass("UIWindowServer", JSObject, {
         if (window.level === UIWindow.Level.back){
             window.frame = window._screen.frame;
         }else{
-            // TODO: adjust windows so they're on the screen
+            // TODO: make sure nothing has moved off screen
         }
     },
 
@@ -286,6 +286,7 @@ JSClass("UIWindowServer", JSObject, {
         }
         this._menuBar = menuBar;
         if (this._menuBar){
+            this._menuBar.frame = JSRect(0, 0, this.screen.frame.size.width, this._menuBar.frame.size.height);
             this._menuBar.layoutIfNeeded();
             this._menuBar.makeVisible();
         }

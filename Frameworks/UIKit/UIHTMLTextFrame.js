@@ -91,6 +91,17 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
         // Superclass init will adjust origins according to text alignment, but
         // we must have properly set the line size and trailingWhitespaceWidth first
         UIHTMLTextFrame.$super.initWithLines.call(this, lines, size, attributes);
+        this._updateSizesAndPositions();
+    },
+
+    adjustSize: function(newSize){
+        UIHTMLTextFrame.$super.adjustSize.call(this, newSize);
+        this._updateSizesAndPositions();
+    },
+
+    _updateSizesAndPositions: function(){
+        var i, l;
+        var line;
 
         // set our size
         this.element.style.width = '%dpx'.sprintf(this.size.width);
@@ -103,7 +114,6 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             line.element.style.left = '%dpx'.sprintf(line.origin.x);
             line.element.style.top = '%dpx'.sprintf(line.origin.y);
         }
-        // element.style.textAlign = textAlignment;
     },
 
     drawInContextAtPoint: function(context, point){

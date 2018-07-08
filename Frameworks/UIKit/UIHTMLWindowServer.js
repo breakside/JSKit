@@ -351,8 +351,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
 
     resize: function(e){
         if (e.currentTarget === this.domWindow){
+            var oldFrame = JSRect(this.screen.frame);
             this.screen.frame = JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight);
-            this.screenDidChangeFrame();
+            this.screenDidChangeFrame(oldFrame);
         }
     },
 
@@ -446,8 +447,8 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.createTouchEvent(type, timestamp, touchDescriptors);
     },
 
-    screenDidChangeFrame: function(){
-        UIHTMLWindowServer.$super.screenDidChangeFrame.call(this);
+    screenDidChangeFrame: function(oldFrame){
+        UIHTMLWindowServer.$super.screenDidChangeFrame.call(this, oldFrame);
         this._updateScreenClientOrigin();
     },
 

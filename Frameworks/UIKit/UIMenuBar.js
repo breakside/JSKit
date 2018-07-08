@@ -59,6 +59,7 @@ JSClass("UIMenuBar", UIWindow, {
         this._rightItemViews = [];
         this._menuItemViews = [];
         this.contentView = UIView.init();
+        this._clipView = UIView.init();
         this.contentView.addSubview(this._clipView);
         // this.backgroundColor = JSColor.initWithRGBA(1, 1, 1, 0.95);
         this._font = JSFont.systemFontOfSize(14).fontWithWeight(JSFont.Weight.regular);
@@ -381,7 +382,7 @@ JSClass("UIMenuBar", UIWindow, {
         if (!itemView._item.menu){
             return;
         }
-        this._itemDownTimestamp = 0;
+        this._itemDownTimestamp = UIEvent.minimumTimestamp;
         if (this.submenu){
             this.submenu.window.deepestMenuWindow().mouseDragged(event);
         }

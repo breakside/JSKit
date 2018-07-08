@@ -13,6 +13,7 @@ JSClass("JSTextLine", JSObject, {
     trailingWhitespaceWidth: JSReadOnlyProperty('_trailingWhitespaceWidth', 0),
     range: JSReadOnlyProperty('_range', null),
     runs: JSReadOnlyProperty('_runs', null),
+    baseline: JSReadOnlyProperty('_baseline', 0),
 
     _init: function(range, trailingWhitespaceWidth){
         this._origin = JSPoint.Zero;
@@ -21,10 +22,11 @@ JSClass("JSTextLine", JSObject, {
         this._trailingWhitespaceWidth = trailingWhitespaceWidth;
     },
 
-    initWithHeight: function(height, location){
+    initWithHeight: function(height, baseline, location){
         this._init(JSRange(location, 0), 0);
         this._runs = [];
         this._size.height = height;
+        this._baseline = baseline;
     },
 
     initWithRuns: function(runs, trailingWhitespaceWidth){
@@ -65,6 +67,7 @@ JSClass("JSTextLine", JSObject, {
             run = this._runs[i];
             run.origin.y = height - baseline + run.baseline - run.size.height;
         }
+        this._baseline = baseline;
     },
 
     drawInContextAtPoint: function(context, point){

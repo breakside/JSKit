@@ -331,8 +331,6 @@ JSClass("_UIDualPaneView", UIView, {
     _commonDualPaneInit: function(){
         this._leadingDividerView = _UIDualPaneDividerView.initWithSizes(1, 5, this._isVertical);
         this._trailingDividerView = _UIDualPaneDividerView.initWithSizes(1, 5, this._isVertical);
-        this._leadingDividerView.vertical = this._isVertical;
-        this._trailingDividerView.vertical = this._isVertical;
         this.addSubview(this._mainView);
         if (this._leadingView !== null){
             this._leadingView.clipsToBounds = true;
@@ -452,6 +450,7 @@ JSClass("_UIDualPaneView", UIView, {
     },
 
     layoutSubviews: function(){
+        _UIDualPaneView.$super.layoutSubviews.call(this);
         if (this._isVertical){
             this._layoutVertical();
         }else{
@@ -677,10 +676,11 @@ JSClass("_UIDualPaneDividerView", UIView, {
     },
 
     layoutSubviews: function(){
+        _UIDualPaneDividerView.$super.layoutSubviews.call(this);
         if (this._isVertical){
-            this.lineView.frame = JSRect(0, this.hitSize - this.layoutSize, this.bounds.size.width, this.layoutSize);
+            this.lineView.frame = JSRect(0, (this.hitSize - this.layoutSize) / 2, this.bounds.size.width, this.layoutSize);
         }else{
-            this.lineView.frame = JSRect(this.hitSize - this.layoutSize, 0, this.layoutSize, this.bounds.size.height);
+            this.lineView.frame = JSRect((this.hitSize - this.layoutSize) / 2, 0, this.layoutSize, this.bounds.size.height);
         }
     },
 

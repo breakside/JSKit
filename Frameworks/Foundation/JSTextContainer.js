@@ -59,16 +59,23 @@ JSClass("JSTextContainer", JSObject, {
     setSize: function(size){
         if (size.width != this._size.width || size.height != this._size.height){
             this._size = JSSize(size);
-            // Only notify the layout manager if we're actually change frame size
+            // Only notify the layout manager if we're actually changing frame size.
             // The frame size can be different from our size if we were sized without
             // constraints, and are now being sized to match the result
-            // NOTE: If we're being sized up, and we already have all of the string in our frame,
-            // no layout is needed.
             if (!this._textFrame){
                 this._notifyLayoutManager();
             }else{
                 if (size.width != this._textFrame.size.width || size.height != this._textFrame.size.height){
-                    if (!(size.width >= this._textFrame.size.width && size.height >= this._textFrame.size.height && this._textFrame.range.location === 0 && this._textFrame.range.length >= this._textLayoutManager.textStorage.string.length)){
+                    var shouldNotify = true;
+                    // If we are a single line label and we have all of the string, we may not need to do a new layout
+                    if (this._maximumNumberOfLines == 1 && this.textAlignment == JSTextAlignment.left && this._textFrame.range.location === 0 && this._textFrame.range.length >= this._textLayoutManager.textStorage.string.length){
+                        // If the new size can still fit the entire layout, then no need to do a new layout manager layout
+                        if (size.width >= this._textFrame.usedSize.width && size.height >= this._textFrame.usedSize.height){
+                            // TODO: text frame can do a shortcut update
+                            shouldNotify = false;
+                        }
+                    }
+                    if (shouldNotify){
                         this._notifyLayoutManager();
                     }
                 }

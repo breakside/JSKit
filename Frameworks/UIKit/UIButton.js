@@ -16,11 +16,14 @@ JSClass("UIButton", UIControl, {
         if ('title' in values){
             this._titleLabel.text = spec.resolvedValue(values.title);
         }
+        if ('titleInsets' in values){
+            this._titleInsets = JSInsets.apply(undefined, values.titleInsets.parseNumberArray());
+        }
     },
 
     commonUIControlInit: function(){
         UIButton.$super.commonUIControlInit.call(this);
-        this._titleInsets = JSInsets(3);
+        this._titleInsets = JSInsets(3, 7);
         this._titleLabel = UILabel.init();
         this._titleLabel.maximumNumberOfLines = 1;
         this._titleLabel.textAlignment = JSTextAlignment.center;
@@ -36,6 +39,11 @@ JSClass("UIButton", UIControl, {
 
     getTitleLabel: function(){
         return this._titleLabel;
+    },
+
+    setTitleInsets: function(titleInsets){
+        this._titleInsets = JSInsets(titleInsets);
+        this.setNeedsLayout();
     },
 
     mouseDown: function(event){
@@ -62,17 +70,51 @@ JSClass("UIButton", UIControl, {
         }
         var location = event.locationInView(this);
         this.active = this.containsPoint(location);
+    },
+
+    getFirstBaselineOffsetFromTop: function(){
+        this.layoutIfNeeded();
+        return this.convertPointFromView(JSPoint(0, this._titleLabel.firstBaselineOffsetFromTop), this._titleLabel).y;
+    },
+
+    getLastBaselineOffsetFromBottom: function(){
+        this.layoutIfNeeded();
+        return this.convertPointFromView(JSPoint(0, this._titleLabel.lastBaselineOffsetFromBottom), this._titleLabel).y;
     }
 
 });
 
 JSClass("UIButtonStyler", UIControlStyler, {
 
+    titleInsets: null,
+
+    initWithSpec: function(spec, values){
+        UIButtonStyler.$super.initWithSpec.call(this, spec, values);
+        if ('titleInsets' in values){
+            this.titleInsets = JSInsets.apply(undefined, values.titleInsets.parseNumberArray());
+        }
+    },
+
+    initializeControl: function(button){
+        UIButtonStyler.$super.initializeControl.call(this, button);
+        if (this.titleInsets !== null){
+            button.titleInsets = this.titleInsets;
+        }
+    },
+
     intrinsicSizeOfControl: function(button){
-        var size = button._titleLabel.intrinsicSize;
+        var size = JSSize(button._titleLabel.intrinsicSize);
         size.width += button._titleInsets.left + button._titleInsets.right;
         size.height += button._titleInsets.top + button._titleInsets.bottom;
         return size;
+    },
+
+    sizeControlToFitSize: function(button, size){
+        button.bounds = JSRect(JSPoint.Zero, this.intrinsicSizeOfControl(button));
+    },
+
+    layoutControl: function(button){
+        button._titleLabel.frame = button.bounds.rectWithInsets(button._titleInsets);
     }
 
 });
@@ -82,16 +124,13 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
     showsOverState: false,
 
     initializeControl: function(button){
+        UIButtonDefaultStyler.$super.initializeControl.call(this, button);
         button.layer.borderWidth = 1;
         button.layer.cornerRadius = 3;
         button.layer.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
         button.layer.shadowOffset = JSPoint(0, 1);
         button.layer.shadowRadius = 1;
         this.updateControl(button);
-    },
-
-    layoutControl: function(button){
-        button._titleLabel.frame = button.bounds.rectWithInsets(button._titleInsets);
     },
 
     updateControl: function(button){
@@ -157,11 +196,8 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
         }
     },
 
-    layoutControl: function(button){
-        button._titleLabel.frame = button.bounds.rectWithInsets(button._titleInsets);
-    },
-
     initializeControl: function(button){
+        UIButtonCustomStyler.$super.initializeControl.call(this, button);
         button.cornerRadius = this.cornerRadius;
         this.updateControl(button);
     },

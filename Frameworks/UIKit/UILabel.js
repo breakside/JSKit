@@ -36,15 +36,11 @@ JSClass('UILabel', UIView, {
         }
     },
 
-    sizeToFitSize: function(maxSize){
-        this.layer.sizeToFitSize(maxSize);
-    },
-
     getIntrinsicSize: function(){
         this.sizeToFit();
         // FIXME: can we do this without sizing first?
         // (probably not a real big issue since the intrinsic size will be used to size the view)
-        return this.frame.size;
+        return this.bounds.size;
     },
 
     getFirstBaselineOffsetFromTop: function(){

@@ -13,7 +13,7 @@ JSClass("UIHTMLTextLine", JSTextLine, {
     overflowed: false,
 
     initWithElementAndFont: function(element, font, height, location){
-        UIHTMLTextLine.$super.initWithHeight.call(this, height, location);
+        UIHTMLTextLine.$super.initWithHeight.call(this, height, -font.displayDescender, location);
         this.element = element;
         element.style.font = font.cssString(height);
         this.emptyTextNode = element.appendChild(element.ownerDocument.createTextNode('\u200B'));
@@ -35,9 +35,9 @@ JSClass("UIHTMLTextLine", JSTextLine, {
         }
     },
 
-    verticallyAlignRuns: function(){
-        // HTML does this for us
-    },
+    // verticallyAlignRuns: function(){
+    //     // HTML does this for us
+    // },
 
     truncatedLine: function(width, token){
         if (!this.overflowed || width === Number.MAX_VALUE || width === 0){

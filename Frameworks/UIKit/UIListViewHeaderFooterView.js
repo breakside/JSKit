@@ -33,6 +33,7 @@ JSClass("UIListViewHeaderFooterView", UIView, {
     _commonHeaderFooterInit: function(){
         this.stylerProperties = {};
         this._titleInsets = JSInsets(0, 10);
+        this._contentView = UIView.init();
         this.addSubview(this._contentView);
     },
 

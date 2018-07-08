@@ -12,9 +12,20 @@ JSClass("UIViewController", UIResponder, {
     },
 
     initWithSpec: function(spec, values){
-        UIViewController.$super.initWithSpec.call(this, spec, values);
         this._spec = spec;
-        this._viewKeyInSpec = values.view || null;
+        this._outletsInSpec = values.outlets || null;
+        this._bindingsInSpec = values.bindings || null;
+        this._viewInSpec = values.view || null;
+        // Delaying the typical outlet and binding instantiation until we load the
+        // view because most outlets will likely be subviews, and we don't want
+        // to do any work instantiating them until a view load is requested.
+        if ('outlets' in values){
+            delete values.outlets;
+        }
+        if ('bindings' in values){
+            delete values.bindings;
+        }
+        UIViewController.$super.initWithSpec.call(this, spec, values);
         if ('tabViewItem' in values){
             this.tabViewItem = spec.resolvedValue(values.tabViewItem, "UITabViewItem");
         }
@@ -28,7 +39,9 @@ JSClass("UIViewController", UIResponder, {
     scene: JSReadOnlyProperty(),
     isViewLoaded: false,
     _defaultViewClass: "UIView",
-    _viewKeyInSpec: null,
+    _viewInSpec: null,
+    _outletsInSpec: null,
+    _bindingsInSpec: null,
     _spec: null,
 
     getView: function(){
@@ -46,8 +59,19 @@ JSClass("UIViewController", UIResponder, {
             // view property for us, always load that view because it may have
             // properties from the spec that the developer expects to be honored.
             // Otherwise, just call loadView
-            if (this._spec !== null && this._viewKeyInSpec !== null){
-                this._view = this._spec.resolvedValue(this._viewKeyInSpec, this._defaultViewClass);
+            if (this._spec !== null){
+                if (this._viewInSpec !== null){
+                    this._view = this._spec.resolvedValue(this._viewInSpec, this._defaultViewClass);
+                }
+                if (this._outletsInSpec !== null){
+                    this._initSpecOutlets(this._spec, this._outletsInSpec);
+                }
+                if (this._bindingsInSpec !== null){
+                    this._initSpecBindings(this._spec, this._bindingsInSpec);
+                }
+                this._viewInSpec = null;
+                this._outletsInSpec = null;
+                this._bindingsInSpec = null;
             }else{
                 this.loadView();
             }
@@ -76,6 +100,10 @@ JSClass("UIViewController", UIResponder, {
     },
 
     viewDidLayoutSubviews: function(){
+    },
+
+    sizeViewToFitSize: function(size){
+        this.view.sizeToFitSize(size);
     },
 
     // -------------------------------------------------------------------------

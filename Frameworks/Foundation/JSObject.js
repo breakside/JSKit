@@ -73,15 +73,23 @@ JSObject.definePropertiesFromExtensions({
 
     initWithSpec: function(spec, values){
         if ("bindings" in values){
-            for (var i = 0, l = values.bindings.length; i < l; ++i){
-                var bindingValues = values.bindings[i];
-                this.bind(bindingValues.binding, spec.resolvedValue(bindingValues.toObject), bindingValues.keyPath, bindingValues.options);
-            }
+            this._initSpecBindings(spec, values.bindings);
         }
         if ("outlets" in values){
-            for (var key in values.outlets){
-                this.setValueForKey(key, spec.resolvedValue(values.outlets[key]));
-            }
+            this._initSpecOutlets(spec, values.outlets);
+        }
+    },
+
+    _initSpecBindings: function(spec, bindings){
+        for (var i = 0, l = bindings.length; i < l; ++i){
+            var bindingValues = bindings[i];
+            this.bind(bindingValues.binding, spec.resolvedValue(bindingValues.toObject), bindingValues.keyPath, bindingValues.options);
+        }
+    },
+
+    _initSpecOutlets: function(spec, outlets){
+        for (var key in outlets){
+            this.setValueForKey(key, spec.resolvedValue(outlets[key]));
         }
     },
 

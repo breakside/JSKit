@@ -45,7 +45,7 @@ JSClass('JSSpec', JSObject, {
                     case '/':
                         if (!(_value in this._objectMap)){
                             this._keyForNextObjectInit = _value;
-                            this._objectMap[_value] = this.resolvedValue(this._plist[_value]);
+                            this._objectMap[_value] = this.resolvedValue(this._plist[_value], defaultClassName);
                         }
                         return this._objectMap[_value];
                     case '$':

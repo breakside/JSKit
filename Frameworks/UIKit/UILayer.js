@@ -136,6 +136,7 @@ JSClass("UILayer", JSObject, {
             this._recalculatePosition();
             // Frame calculation depends on the recaculated position, so it must be done second
             this._recalculateFrame();
+            this.setNeedsLayout();
             this.didChangeProperty('position');
             this.didChangeProperty('bounds.size');
             this.didChangeSize();
@@ -558,6 +559,7 @@ JSClass("UILayer", JSObject, {
     },
 
     sizeToFit: function(){
+        this.sizeToFitSize(JSSize(Number.MAX_VALUE, Number.MAX_VALUE));
     },
 
     sizeToFitSize: function(maxSize){

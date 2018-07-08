@@ -1,7 +1,7 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UIApplication.js"
 // #import "UIKit/UITouch.js"
-/* global JSClass, UIView, JSColor, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, JSPoint, UIApplication, UIEvent, UITouch */
+/* global JSClass, UIView, JSColor, JSSize, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, JSPoint, UIApplication, UIEvent, UITouch */
 'use strict';
 
 JSClass('UIWindow', UIView, {
@@ -38,6 +38,12 @@ JSClass('UIWindow', UIView, {
         }
         if ('firstResponder' in values){
             this._initialFirstResponder = spec.resolvedValue(values.firstResponder);
+        }
+        if ('heightTracksContent' in values){
+            this._heightTracksContent = values.heightTracksContent;
+        }
+        if ('widthTracksContent' in values){
+            this._widthTracksContent = values.widthTracksContent;
         }
     },
 
@@ -91,11 +97,50 @@ JSClass('UIWindow', UIView, {
         this.setNeedsLayout();
     },
 
+    heightTracksContent: JSDynamicProperty('_heightTracksContent', false),
+    widthTracksContent: JSDynamicProperty('_widthTracksContent', false),
+
+    setHeightTracksContent: function(heightTracksContent){
+        this._heightTracksContent = heightTracksContent;
+        this.setNeedsLayout();
+    },
+
+    setWidthTracksContent: function(widthTracksContent){
+        this._widthTracksContent = widthTracksContent;
+        this.setNeedsLayout();
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Layout
 
+    sizeToFit: function(){
+        if (this._widthTracksContent || this._heightTracksContent){
+            var size = JSSize(Number.MAX_VALUE, Number.MAX_VALUE);
+            if (!this._widthTracksContent){
+                size.width = this.bounds.size.width - this._contentInsets.left - this._contentInsets.right;
+            }
+            if (!this._heightTracksContent){
+                size.height = this.bounds.size.height - this._contentInsets.top - this._contentInsets.bottom;
+            }
+            var fitSize;
+            if (this.viewController){
+                fitSize = this.viewController.contentSizeThatFitsSize(size);
+            }else{
+                this._contentView.sizeToFitSize(size);
+                fitSize = this._contentView.frame.size;
+            }
+
+            this.bounds = JSRect(
+                0,
+                0,
+                fitSize.width + this._contentInsets.left + this._contentInsets.right,
+                fitSize.height + this._contentInsets.top + this._contentInsets.bottom
+            );
+        }
+    },
+
     layoutSubviews: function(){
-        // TODO: if this size depends on contentview size, figure out content view size
+        UIWindow.$super.layoutSubviews.call(this);
         this._contentView.frame = this.bounds.rectWithInsets(this._contentInsets);
     },
 

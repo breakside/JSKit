@@ -265,16 +265,20 @@ JSClass("UITextField", UIControl, {
 
     getIntrinsicSize: function(){
         if (!this._multiline){
+            // FIXME: this only works if our attributed string has only one font size
             return JSSize(UIView.noIntrinsicSize, this.font.displayLineHeight + this._textInsets.top + this._textInsets.bottom);
         }
+        // FIXME: could still get an intrinsic height if we know the width
         return JSSize(UIView.noIntrinsicSize, UIView.noIntrinsicSize);
     },
 
     getFirstBaselineOffsetFromTop: function(){
+        this.layoutIfNeeded();
         return this.layer.convertPointFromLayer(JSPoint(0, this._textLayer.firstBaselineOffsetFromTop), this._textLayer).y;
     },
 
     getLastBaselineOffsetFromBottom: function(){
+        this.layoutIfNeeded();
         return this.layer.convertPointFromLayer(JSPoint(0, this._textLayer.firstBaselineOffsetFromTop), this._textLayer).y;
     },
 
@@ -864,6 +868,7 @@ JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
         textField.stylerProperties.respondingIndicatorLayer = UILayer.init();
         textField.stylerProperties.respondingIndicatorLayer.backgroundColor = this.inactiveColor;
         textField.layer.addSublayer(textField.stylerProperties.respondingIndicatorLayer);
+        textField.textInsets = JSInsets(3, 4);
     },
 
     layoutControl: function(textField){

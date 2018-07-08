@@ -98,6 +98,8 @@ JSClass('UIView', UIResponder, {
                 this.addSubview(subview);
             }
         }
+        // NOTE: constraints are still and work in progress, and aren't actually
+        // used yet during layout
         if ("constraints" in values){
             for (i = 0, l = values.constraints.length; i < l; ++i){
                 if (values.constraints[i].firstItem == '<self>'){
@@ -108,21 +110,6 @@ JSClass('UIView', UIResponder, {
                 }
                 var constraint = spec.resolvedValue(values.constraints[i], "UILayoutConstraint");
                 this.addConstraint(constraint);
-            }
-        }else{
-            if ("width" in values){
-                this.addConstraint(UILayoutConstraint.initWithOptions({
-                    firstItem: this,
-                    firstAttribute: UILayoutAttribute.width,
-                    constant: spec.resolvedValue(values.width), 
-                }));
-            }
-            if ("height" in values){
-                this.addConstraint(UILayoutConstraint.initWithOptions({
-                    firstItem: this,
-                    firstAttribute: UILayoutAttribute.height,
-                    constant: spec.resolvedValue(values.height), 
-                }));
             }
         }
     },
@@ -329,7 +316,9 @@ JSClass('UIView', UIResponder, {
 
     layoutSubviews: function(){
         this.layer.layoutSublayers();
-        this._satisfyConstraints();
+        if (this._constraints.length > 0){
+            // TODO:
+        }
     },
 
     _layoutSubviewsAndNotify: function(){
@@ -340,7 +329,6 @@ JSClass('UIView', UIResponder, {
     },
 
     layoutSublayersOfLayer: function(layer){
-        this._updateConstraints();
         this._layoutSubviewsAndNotify();
     },
 
@@ -398,19 +386,18 @@ JSClass('UIView', UIResponder, {
     layoutFittingSize: function(size){
     },
 
-    _intrinsicWidthHuggingConstraint: null,
-    _intrinsicWidthResistConstraint: null,
-    _intrinsicHeightHuggingConstraint: null,
-    _intrinsicHeightResistConstraint: null,
-
-    _needsIntrinsicSizeConstraintUpdate: true,
-
     _updateConstraints: function(){
         if (this._needsIntrinsicSizeConstraintUpdate){
             this._updateIntrinsicSizeConstraints();
             this._needsIntrinsicSizeConstraintUpdate = false;
         }
     },
+
+    _intrinsicWidthHuggingConstraint: null,
+    _intrinsicWidthResistConstraint: null,
+    _intrinsicHeightHuggingConstraint: null,
+    _intrinsicHeightResistConstraint: null,
+    _needsIntrinsicSizeConstraintUpdate: true,
 
     _updateIntrinsicSizeConstraints: function(){
         var intrinsicSize = this.intrinsicSize;
@@ -484,35 +471,6 @@ JSClass('UIView', UIResponder, {
                 this._intrinsicHeightResistConstraint = null;
             }
         }
-    },
-
-    _satisfyConstraints: function(){
-    },
-
-    _getValueForLayoutAttribute: function(attribute){
-        switch (attribute){
-            case UILayoutAttribute.left:
-                return this.bounds.origin.x;
-            case UILayoutAttribute.right:
-                return this.bounds.origin.x + this.bounds.size.width;
-            case UILayoutAttribute.top:
-                return this.bounds.origin.y;
-            case UILayoutAttribute.bottom:
-                return this.bounds.origin.y + this.bounds.size.height;
-            case UILayoutAttribute.width:
-                return this.bounds.size.width;
-            case UILayoutAttribute.height:
-                return this.bounds.size.height;
-            case UILayoutAttribute.centerX:
-                return this.bounds.origin.x + this.bounds.size.width / 2;
-            case UILayoutAttribute.centerY:
-                return this.bounds.origin.y + this.bounds.size.height / 2;
-            case UILayoutAttribute.lastBaseline:
-                return this.bounds.origin.y + this.bounds.size.height - this.lastBaselineOffsetFromBottom;
-            case UILayoutAttribute.firstBaseline:
-                return this.bounds.origin.y + this.firstBaselineOffsetFromTop;
-        }
-        return 0;
     },
 
     // -------------------------------------------------------------------------

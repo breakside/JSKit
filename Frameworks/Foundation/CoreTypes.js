@@ -489,6 +489,10 @@ JSInsets.prototype = {
         if (right === undefined) right = left;
         return new JSInsets(this.top + top, this.left + left, this.bottom + bottom, this.right + right);
     },
+
+    negative: function(){
+        return new JSInsets(-this.top, -this.left, -this.bottom, -this.right);
+    },
     
 };
 

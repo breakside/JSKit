@@ -108,6 +108,7 @@ JSClass("UIMenuWindow", UIWindow, {
         }
         this.menuView.bounds = JSRect(JSPoint.Zero, menuSize);
         this.menuView.layoutIfNeeded();
+        this.layoutIfNeeded();
         this.bounds = JSRect(0, 0, menuSize.width, menuSize.height + this.contentView.bounds.size.height - this.clipView.frame.size.height);
         this.layoutIfNeeded();
         this.startMouseTracking(UIView.MouseTracking.all);
@@ -628,6 +629,7 @@ JSClass("UIMenuItemSeparatorView", UIView, {
     stylerProperties: null,
 
     initWithStyler: function(styler){
+        UIMenuItemSeparatorView.$super.init.call(this);
         this.stylerProperties = {};
         this._styler = styler;
         this._styler.initializeSeparatorView(this);

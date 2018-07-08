@@ -1,5 +1,5 @@
 // #import "UIKit/UIView.js"
-/* global JSClass, JSObject, UIView, UIControl, JSReadOnlyProperty, JSDynamicProperty, JSRect */
+/* global JSClass, JSObject, UIView, UIControl, JSReadOnlyProperty, JSDynamicProperty, JSRect, JSSize */
 'use strict';
 
 JSClass("UIControl", UIView, {
@@ -62,6 +62,10 @@ JSClass("UIControl", UIView, {
 
     getIntrinsicSize: function(){
         return this._styler.intrinsicSizeOfControl(this);
+    },
+
+    sizeToFitSize: function(size){
+        this._styler.sizeControlToFitSize(this, size);
     },
 
     // MARK: - Actions
@@ -218,7 +222,11 @@ JSClass("UIControlStyler", JSObject, {
     },
 
     intrinsicSizeOfControl: function(control){
-        return control.frame.size;
+        return JSSize(UIView.noIntrinsicSize, UIView.noIntrinsicSize);
+    },
+
+    sizeControlToFitSize: function(control, size){
+        control.layer.sizeToFitSize(size);
     },
 
     drawControlLayerInContext: function(control, layer, context){

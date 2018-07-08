@@ -243,7 +243,7 @@ class Builder(object):
                     frameworkBundle.resourcesPath = framewordResourcesPath
                 self.includeBundleFrameworks(frameworkBundle)
 
-    def findSpecIncludes(self, spec):
+    def findSpecIncludes(self, obj):
         if isinstance(obj, dict):
             if 'class' in obj:
                 path = obj['class'] + '.js'
@@ -267,7 +267,7 @@ class Builder(object):
                                         self.includes.append(u"%s/%s" % (name, file))
                     else:
                         self.includes.append(path)
-            for k, v in spec.items():
+            for k, v in obj.items():
                 if k not in ('class', 'include'):
                     self.findSpecIncludes(v)
         elif isinstance(obj, list):
@@ -281,7 +281,7 @@ class Builder(object):
                 if 'references' in obj['constraints']:
                     refs.update(obj['constraints']['references'])
                 obj['constraints'] = self.compileConstraints(obj['constraints']['equalities'], refs)
-            for k, v in spec.items():
+            for k, v in obj.items():
                 if k not in ('constraints',):
                     self.compileSpecConstraints(v)
         elif isinstance(obj, list):
@@ -349,6 +349,10 @@ class Builder(object):
         )
         if "File's Owner" in obj:
             self.findSpecIncludes(obj)
+            # Constraints are a work in progress still on the JS side of things
+            # This builder code is in good shape and parses easy-to-write
+            # constraint expressions into full constraint objects so the JS
+            # doesn't have to do that parsing, but devs don't have to write verbose constraints
             self.compileSpecConstraints(obj)
         self.watchFile(fullPath)
         return bundle.addResource(nameComponents, metadata)
