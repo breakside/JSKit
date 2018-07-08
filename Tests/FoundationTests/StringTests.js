@@ -802,6 +802,24 @@ JSClass('StringTests', TKTestSuite, {
         TKAssertEquals("Zm9vYmE=".dataByDecodingBase64().bytes.stringByDecodingUTF8(), "fooba");
         TKAssertEquals("Zm9vYmFy".dataByDecodingBase64().bytes.stringByDecodingUTF8(), "foobar");
         TKAssertObjectEquals("s3pPLMBiTxaQ9kYGzzhZRbK+xOo=".dataByDecodingBase64().bytes, new Uint8Array([0xb3, 0x7a, 0x4f, 0x2c, 0xc0, 0x62, 0x4f, 0x16, 0x90, 0xf6, 0x46, 0x06, 0xcf, 0x38, 0x59, 0x45, 0xb2, 0xbe, 0xc4, 0xea]));
+    },
+
+    testMasking: function(){
+        var str = "testing";
+        var masked = str.stringByMaskingWithCharacter("*");
+        TKAssertEquals(masked, "*******");
+
+        str = "u\u0308mlat";
+        masked = str.stringByMaskingWithCharacter("*");
+        TKAssertEquals(masked, "******");
+
+        str = "u\u0308mlat";
+        masked = str.stringByMaskingWithCharacter("*", true);
+        TKAssertEquals(masked, "*****");
+
+        str = "u\u0308mlat";
+        masked = str.stringByMaskingWithCharacter("😀", true);
+        TKAssertEquals(masked, "😀😀😀😀😀");
     }
 
 });

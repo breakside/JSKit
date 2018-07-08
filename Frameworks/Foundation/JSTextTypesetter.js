@@ -116,6 +116,7 @@ JSClass("JSTextTypesetter", JSObject, {
         var runIterator = this._attributedString.runIterator(range.location);
         var initialLineAttributes = runIterator.attributes;
         var codeIterator;
+        // TODO: support mask character (only important if we need to rasterize a password field, which isn't a major use case)
         // Create run descriptors that at fill the line, maybe going a bit over
         do {
 

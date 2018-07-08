@@ -10,6 +10,7 @@ JSClass("UIHTMLTextRun", JSTextRun, {
 
     element: null,
     textNode: null,
+    _maskFactor: 1,
 
     initWithElement: function(element, font, attributes, range){
         UIHTMLTextRun.$super.initWithGlyphs.call(this, [], [], font, attributes, range);
@@ -26,6 +27,19 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         }
         if (sharedDomRange === null){
             sharedDomRange = this.element.ownerDocument.createRange();
+        }
+
+        // If we're in a masked scenario like a password field, each utf16 character
+        // has been replaced by a new "mask character".  If the mask character is actually
+        // a surrogate pair, then we have a text node with two utf16 characters (the surrogate pair)
+        // for every one original character.  We need to account for this doubling factor when
+        // doing calculations involving character offsets and text node character indicies.
+        // NOTE: A non-1 mask factor is really rare, and really only useful in novelty situations
+        // such as a password field that uses an emoji as the masking character, but it's easy to
+        // handle, so here it is.
+        var mask = attributes[JSAttributedString.Attribute.maskCharacter];
+        if (mask){
+            this._maskFactor = mask.length;
         }
         this.baseline = -font.displayDescender;
     },
@@ -96,8 +110,8 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         if (this.textNode === null){
             return this.element.getBoundingClientRect().width;
         }
-        sharedDomRange.setStart(this.textNode, range.location);
-        sharedDomRange.setEnd(this.textNode, range.end);
+        sharedDomRange.setStart(this.textNode, range.location * this._maskFactor);
+        sharedDomRange.setEnd(this.textNode, range.end * this._maskFactor);
         var clientRect = this._pickCorrectClientRectFromRects(sharedDomRange.getClientRects());
         if (clientRect === undefined){
             return 0;
@@ -119,6 +133,7 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         // Create a DOM range for the character in the span because the DOM range can
         // report its size and coordinates
         var rect;
+        index *= this._maskFactor;
         if (index < this.textNode.nodeValue.length){
             var iterator = this.textNode.nodeValue.userPerceivedCharacterIterator(index);
             sharedDomRange.setStart(this.textNode, iterator.range.location);

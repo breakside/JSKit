@@ -107,6 +107,9 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         i = 0;
         while (remainingRange.length > 0){
             var utf16 = this._attributedString.string.substringInRange(runIterator.range.intersection(remainingRange));
+            if (runIterator.attributes[JSAttributedString.Attribute.maskCharacter]){
+                utf16 = utf16.stringByMaskingWithCharacter(runIterator.attributes[JSAttributedString.Attribute.maskCharacter]);
+            }
             if (runIterator.range.length === 1 && utf16 == JSAttributedString.SpecialCharacter.attachmentUTF16){
                 attachment = runIterator.attributes[JSAttributedString.Attribute.attachment];
                 utf16 = '';
@@ -177,7 +180,11 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
             fragment = fragments[i];
             var span = fragment.runDescriptor.span.cloneNode(false);
             if (!fragment.runDescriptor.attachment){
-                span.appendChild(span.ownerDocument.createTextNode(this.attributedString.string.substringInRange(fragment.range)));
+                var utf16 = this.attributedString.string.substringInRange(fragment.range);
+                if (fragment.runDescriptor.attributes[JSAttributedString.Attribute.maskCharacter]){
+                    utf16 = utf16.stringByMaskingWithCharacter(fragment.runDescriptor.attributes[JSAttributedString.Attribute.maskCharacter]);
+                }
+                span.appendChild(span.ownerDocument.createTextNode(utf16));
             }
             run = UIHTMLTextRun.initWithElement(span, fragment.runDescriptor.font, fragment.runDescriptor.attributes, fragment.range);
             runs.push(run);

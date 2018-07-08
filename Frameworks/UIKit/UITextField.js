@@ -74,6 +74,9 @@ JSClass("UITextField", UIControl, {
         if ('delegate' in values){
             this.delegate = spec.resolvedValue(values.delegate);
         }
+        if ('secureEntry' in values){
+            this.secureEntry = spec.resolvedValue(values.secureEntry);
+        }
         this._minimumHeight = this.bounds.size.height;
     },
 
@@ -111,11 +114,13 @@ JSClass("UITextField", UIControl, {
 
     text: JSDynamicProperty(),
     attributedText: JSDynamicProperty(),
-    _textStorage: null,
-    _displayedTextStorage: null,
 
     setText: function(text){
-        this._textLayer.text = text;
+        if (this._secureEntry){
+            this._textLayer.attributedText = JSAttributedString.initWithString(text, {"maskCharacter": this._secureEntryMaskCharacter});
+        }else{
+            this._textLayer.text = text;
+        }
         this._updatePlaceholderHidden();
     },
 
@@ -124,6 +129,10 @@ JSClass("UITextField", UIControl, {
     },
 
     setAttributedText: function(attributedText){
+        if (this._secureEntry){
+            this.setText(attributedText.string);
+            return;
+        }
         this._textLayer.attributedText = attributedText;
         this._updatePlaceholderHidden();
     },
@@ -207,14 +216,19 @@ JSClass("UITextField", UIControl, {
     // --------------------------------------------------------------------
     // MARK: - Secure Entry
 
-    secureEntry: JSDynamicProperty(),
+    secureEntry: JSDynamicProperty('_secureEntry', false),
+    _secureEntryMaskCharacter: "\u25CF",
 
     setSecureEntry: function(secureEntry){
-        this._localEditor.secureEntry = secureEntry;
-    },
-
-    getSecureEntry: function(){
-        return this._localEditor.secureEntry;
+        this._secureEntry = secureEntry;
+        var attributedText = this._textLayer.attributedText;
+        var range = JSRange(0, attributedText.string.length);
+        var attr = JSAttributedString.Attribute.maskCharacter;
+        if (secureEntry){
+            attributedText.addAttributeInRange(attr, this._secureEntryMaskCharacter, range);
+        }else{
+            attributedText.removeAttributeInRange(attr, range);
+        }
     },
 
     // --------------------------------------------------------------------
@@ -870,7 +884,7 @@ JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
         textField.stylerProperties.respondingIndicatorLayer = UILayer.init();
         textField.stylerProperties.respondingIndicatorLayer.backgroundColor = this.inactiveColor;
         textField.layer.addSublayer(textField.stylerProperties.respondingIndicatorLayer);
-        textField.textInsets = JSInsets(3, 4);
+        textField.textInsets = JSInsets(3, 0);
     },
 
     layoutControl: function(textField){

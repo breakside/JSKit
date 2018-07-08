@@ -534,6 +534,24 @@ Object.defineProperties(String.prototype, {
         }
     },
 
+    stringByMaskingWithCharacter: {
+        value: function String_stringByMaskingWithCharacter(mask, userPerceived){
+            var masked = "";
+            if (userPerceived){
+                var iterator = this.userPerceivedCharacterIterator();
+                while (iterator.firstCharacter !== null){
+                    masked += mask;
+                    iterator.increment();
+                }
+            }else{
+                for (var i = 0, l = this.length; i < l; ++i){
+                    masked += mask;
+                }
+            }
+            return masked;
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Private helpers for finding word and character breaks
 

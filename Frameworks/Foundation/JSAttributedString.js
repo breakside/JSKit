@@ -82,9 +82,11 @@ JSClass("JSAttributedString", JSObject, {
             }else{
                 insertAttributes = JSCopy(this.attributesAtIndex(range.location - 1));
             }
-            if (JSAttributedString.Attribute.attachment in insertAttributes){
-                delete insertAttributes[JSAttributedString.Attribute.attachment];
-            }
+        }else if (range.location === 0 && range.length == this.string.length){
+            insertAttributes = JSCopy(this.attributesAtIndex(range.location));
+        }
+        if (JSAttributedString.Attribute.attachment in insertAttributes){
+            delete insertAttributes[JSAttributedString.Attribute.attachment];
         }
         this.replaceCharactersInRangeWithAttributedString(range, JSAttributedString.initWithString(string, insertAttributes));
 
@@ -364,7 +366,8 @@ JSAttributedString.Attribute = {
     lineHeight: "lineHeight",
     lineSpacing: "lineSpacing",
     textAlignment: "textAlignment",
-    lineBreakMode: "lineBreakMode"
+    lineBreakMode: "lineBreakMode",
+    maskCharacter: "maskCharacter"
 };
 
 JSAttributedString.SpecialCharacter = {

@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, JSAttributedString, JSRange, TKAssertNotNull, TKAssertEquals, TKAssertObjectEquals, TKAssertExactEquals, TKAssertThrows, TKAssertUndefined */
+/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
 JSClass('JSAttributedStringTests', TKTestSuite, {
@@ -511,6 +511,22 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         string.deleteCharactersInRange(range);
         TKAssertExactEquals(string.string.length, 3);
         TKAssertEquals(string.string, "abd");
+        this.assertRunIteratorIsConsistent(string);
+
+        // Setup for deleting last char...deleting next to last should preserve attributes
+        string = JSAttributedString.initWithString("ab", {bold: true});
+        string.deleteCharactersInRange(JSRange(1,1));
+        TKAssertEquals(string.string.length, 1);
+        TKAssertEquals(string.string, "a");
+        attributes = string.attributesAtIndex(0);
+        TKAssert(attributes.bold);
+        this.assertRunIteratorIsConsistent(string);
+
+        // Deleting last character should preserve attributes
+        string.deleteCharactersInRange(JSRange(0,1));
+        TKAssertEquals(string.string.length, 0);
+        attributes = string.attributesAtIndex(0);
+        TKAssert(attributes.bold);
         this.assertRunIteratorIsConsistent(string);
     },
 
