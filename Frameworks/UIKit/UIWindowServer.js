@@ -83,6 +83,9 @@ JSClass("UIWindowServer", JSObject, {
         if (this._normalLevelRange.location === 0 && window.level === UIWindow.Level.normal){
             window.level = UIWindow.Level.back;
         }
+        if (this._normalLevelRange.location === 0 && window.level == UIWindow.Level.back){
+            this.updateRootWindowInsets(window);
+        }
         this._beginWindowLevelChange();
         this._windowsById[window.objectID] = window;
         switch (window.level){
@@ -225,7 +228,7 @@ JSClass("UIWindowServer", JSObject, {
     // MARK: - Screen Coordination
 
     screenDidChangeFrame: function(oldFrame){
-        if (this.menuBar){
+        if (this._menuBar){
             this._menuBar.frame = JSRect(0, 0, this.screen.frame.size.width, this._menuBar.frame.size.height);
         }
         var window;
@@ -245,10 +248,18 @@ JSClass("UIWindowServer", JSObject, {
 
     updateScreenAvailableInsets: function(){
         var insets = JSInsets.Zero;
-        if (this.menuBar !== null){
-            insets.top = this.menuBar.frame.size.height + 1;
+        if (this._menuBar !== null){
+            insets.top = this._menuBar.frame.size.height + 1;
         }
         this.screen.availableInsets = insets;
+    },
+
+    updateRootWindowInsets: function(rootWindow){
+        var insets = JSInsets.Zero;
+        if (this._menuBar !== null && this._menuBar.isOpaque){
+            insets.top = this._menuBar.frame.size.height;
+            rootWindow.contentInsets = insets;
+        }
     },
 
     // -----------------------------------------------------------------------
@@ -291,6 +302,9 @@ JSClass("UIWindowServer", JSObject, {
             this._menuBar.makeVisible();
         }
         this.updateScreenAvailableInsets();
+        if (this.windowStack.length > 0 && this._normalLevelRange.location > 0){
+            this.updateRootWindowInsets(this.windowStack[0]);
+        }
     },
 
     // -----------------------------------------------------------------------

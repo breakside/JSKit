@@ -4,7 +4,7 @@
 // #import "UIKit/UILabel.js"
 // #import "UIKit/UIImageView.js"
 // #import "UIKit/UIEvent.js"
-/* global JSClass, JSLazyInitProperty, JSReadOnlyProperty, JSDynamicProperty, UIEvent, UIWindow, UIMenu, UIView, JSColor, JSSize, JSRect, UILabel, UIImageView, UIMenuItem, JSTextAlignment, JSInsets, JSPoint, UILayer, UIMenuWindow, UIMenuView, UIMenuItemView, JSBinarySearcher, JSTimer, JSURL, JSImage, JSBundle, UIMenuItemSeparatorView */
+/* global JSClass, JSLazyInitProperty, JSReadOnlyProperty, JSDynamicProperty, UIEvent, UIWindow, UIMenu, UIView, JSColor, JSSize, JSRect, UILabel, UIImageView, UIMenuItem, JSTextAlignment, JSInsets, JSPoint, UILayer, UIMenuWindow, UIMenuView, UIMenuItemView, JSBinarySearcher, JSTimer, JSURL, JSImage, JSBundle, UIMenuItemSeparatorView, UIWindowCustomStyler */
 'use strict';
 
 (function(){
@@ -22,7 +22,7 @@ JSClass("UIMenuWindow", UIWindow, {
     responder: null,
     submenu: null,
     submenuTimer: null,
-    _styler: null,
+    _menuStyler: null,
     _menu: null,
     _itemIndexesByItemViewId: null,
     _itemViewIndexesByItemId: null,
@@ -36,8 +36,9 @@ JSClass("UIMenuWindow", UIWindow, {
     // MARK: - Creating a Menu Window
 
     initWithMenu: function(menu){
+        this._styler = UIWindowCustomStyler.shared;
         UIMenuWindow.$super.init.call(this);
-        this._styler = menu.styler;
+        this._menuStyler = menu.styler;
         this.contentView = UIView.init();
         this.upIndicatorView = UIView.init();
         this.upIndicatorImageView = UIImageView.initWithImage(images.scrollUp, UIImageView.RenderMode.template);
@@ -82,7 +83,7 @@ JSClass("UIMenuWindow", UIWindow, {
 
     setMenu: function(menu){
         this._menu = menu;
-        this._styler.initializeMenu(menu, this);
+        this._menuStyler.initializeMenu(menu, this);
         var item;
         var itemView;
         var menuSize = JSSize.Zero;
@@ -147,7 +148,7 @@ JSClass("UIMenuWindow", UIWindow, {
 
     layoutSubviews: function(){
         UIMenuWindow.$super.layoutSubviews.call(this);
-        this._styler.layoutMenuWindow(this);
+        this._menuStyler.layoutMenuWindow(this);
         this.contentView.layoutIfNeeded();
         this.menuView.frame = JSRect(0, 0, this.clipView.bounds.size.width, this.menuView.frame.size.height);
         var offset = this.contentOffset;
@@ -625,19 +626,19 @@ JSClass("UIMenuView", UIView, {
 
 JSClass("UIMenuItemSeparatorView", UIView, {
 
-    _styler: null,
+    _menuStyler: null,
     stylerProperties: null,
 
     initWithStyler: function(styler){
         UIMenuItemSeparatorView.$super.init.call(this);
         this.stylerProperties = {};
-        this._styler = styler;
-        this._styler.initializeSeparatorView(this);
+        this._menuStyler = styler;
+        this._menuStyler.initializeSeparatorView(this);
     },
 
     layoutSubviews: function(){
         UIMenuItemSeparatorView.$super.layoutSubviews.call(this);
-        this._styler.layoutSeparatorView(this);
+        this._menuStyler.layoutSeparatorView(this);
     },
 
 });
@@ -656,7 +657,7 @@ JSClass("UIMenuItemView", UIView, {
     _submenuImageView: null,
     _keyLabel: null,
     _keyModifierLabel: null,
-    _styler: null,
+    _menuStyler: null,
     _item: null,
 
     initWithStyler: function(styler){
@@ -664,8 +665,8 @@ JSClass("UIMenuItemView", UIView, {
         this.titleLabel = UILabel.init();
         this.addSubview(this.titleLabel);
         this.stylerProperties = {};
-        this._styler = styler;
-        this._styler.initializeItemView(this);
+        this._menuStyler = styler;
+        this._menuStyler.initializeItemView(this);
     },
 
     _createImageView: function(){
@@ -746,17 +747,17 @@ JSClass("UIMenuItemView", UIView, {
                 this.stateImageView.image = item.mixedImage !== null ? item.mixedImage : images.stateMixed;
                 break;
         }
-        this._styler.updateItemView(this, this._item);
+        this._menuStyler.updateItemView(this, this._item);
         this.setNeedsLayout();
     },
 
     layoutSubviews: function(){
         UIMenuItemView.$super.layoutSubviews.call(this);
-        this._styler.layoutItemView(this, this._item);
+        this._menuStyler.layoutItemView(this, this._item);
     },
 
     sizeToFit: function(){
-        this._styler.sizeItemViewToFit(this, this._item);
+        this._menuStyler.sizeItemViewToFit(this, this._item);
     }
 
 });

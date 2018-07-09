@@ -1,6 +1,6 @@
 // #import "UIKit/UIWindow.js"
 // #import "UIKit/UIMenu.js"
-/* global JSClass, JSObject, JSImage, JSReadOnlyProperty, UILayer, JSPoint, JSBinarySearcher, JSSize, JSLazyInitProperty, UIView, UIWindow, JSDynamicProperty, UIMenuBar, JSRect, JSInsets, UIMenuBarItemCollectionView, UIMenuBarItemView, UIMenuBarItem, UILabel, UIImageView, JSFont, JSTextAlignment, JSColor, UIMenuDefaultStyler, UIMenuBarButton */
+/* global JSClass, JSObject, JSImage, JSReadOnlyProperty, UIWindowCustomStyler, UILayer, JSPoint, JSBinarySearcher, JSSize, JSLazyInitProperty, UIView, UIWindow, JSDynamicProperty, UIMenuBar, JSRect, JSInsets, UIMenuBarItemCollectionView, UIMenuBarItemView, UIMenuBarItem, UILabel, UIImageView, JSFont, JSTextAlignment, JSColor, UIMenuDefaultStyler, UIMenuBarButton */
 'use strict';
 
 JSClass("UIMenuBar", UIWindow, {
@@ -8,11 +8,13 @@ JSClass("UIMenuBar", UIWindow, {
     // MARK: - Creating a Menu Bar
 
     init: function(){
+        this._styler = UIWindowCustomStyler.shared;
         UIMenuBar.$super.init.call(this);
         this._commonInit();
     },
 
     initWithSpec: function(spec, values){
+        this._styler = UIWindowCustomStyler.shared;
         UIMenuBar.$super.initWithSpec.call(this, spec, values);
         this._commonInit();
         if ('highlightColor' in values){
@@ -62,7 +64,7 @@ JSClass("UIMenuBar", UIWindow, {
         this._clipView = UIView.init();
         this.contentView.addSubview(this._clipView);
         // this.backgroundColor = JSColor.initWithRGBA(1, 1, 1, 0.95);
-        this._font = JSFont.systemFontOfSize(14).fontWithWeight(JSFont.Weight.regular);
+        this._font = JSFont.systemFontOfSize(JSFont.systemFontSize).fontWithWeight(JSFont.Weight.regular);
         this._textColor = UIMenuDefaultStyler.shared.textColor;
         this._highlightColor = UIMenuDefaultStyler.shared.highlightColor;
         this._highlightedTextColor = UIMenuDefaultStyler.shared.highlightedTextColor;
@@ -80,6 +82,7 @@ JSClass("UIMenuBar", UIWindow, {
 
     // MARK: - Style
 
+    isOpaque: true,
     highlightColor: JSDynamicProperty('_highlightColor', null),
     textColor: JSDynamicProperty('_textColor', null),
     highlightedTextColor: JSDynamicProperty('_highlightedTextColor', null),

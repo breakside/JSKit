@@ -349,7 +349,7 @@ JSClass("UITextField", UIControl, {
         this._leftAccessoryView = view;
         if (this._leftAccessoryView){
             if (this._leftAccessorySize === null){
-                var lineHeight = this.font.lineHeight;
+                var lineHeight = this.font.displayLineHeight;
                 this._leftAccessorySize = JSSize(lineHeight, lineHeight);
             }
             if (this._leftAccessoryInsets === null){
@@ -376,7 +376,7 @@ JSClass("UITextField", UIControl, {
         this._rightAccessoryView = view;
         if (this._rightAccessoryView){
             if (this._rightAccessorySize === null){
-                var lineHeight = this.font.lineHeight;
+                var lineHeight = this.font.displayLineHeight;
                 this._rightAccessorySize = JSSize(lineHeight, lineHeight);
             }
             if (this._rightAccessoryInsets === null){

@@ -6,11 +6,17 @@
 
 JSClass("UIButton", UIControl, {
 
-    image: JSDynamicProperty('_image'),
+    image: JSReadOnlyProperty(),
+    imageRenderMode: JSDynamicProperty(),
+    backgroundImage: JSReadOnlyProperty(),
     titleLabel: JSLazyInitProperty('_createTitleLabel', '_titleLabel'),
     titleInsets: JSDynamicProperty('_titleInsets', null),
-    imageView: JSLazyInitProperty('_createImageView', '_imageView'),
-    imageRenderMode: JSDynamicProperty(),
+
+    _imagesByState: null,
+    _backgroundImagesByState: null,
+
+    _imageView: null,
+    _backgroundImageView: null,
 
     initWithSpec: function(spec, values){
         UIButton.$super.initWithSpec.call(this, spec, values);
@@ -24,7 +30,28 @@ JSClass("UIButton", UIControl, {
             this._titleInsets = JSInsets.apply(undefined, values.titleInsets.parseNumberArray());
         }
         if ('image' in values){
-            this.image = JSImage.initWithResourceName(values.image, spec.bundle);
+            var image;
+            if (typeof(values.image) == "string"){
+                image = JSImage.initWithResourceName(values.image, spec.bundle);
+                this.setImageForState(image, UIControl.State.normal);
+            }else{
+                if ('normal' in values.image){
+                    image = JSImage.initWithResourceName(values.image.normal, spec.bundle);
+                    this.setImageForState(image, UIControl.State.normal);
+                }
+                if ('over' in values.image){
+                    image = JSImage.initWithResourceName(values.image.over, spec.bundle);
+                    this.setImageForState(image, UIControl.State.over);
+                }
+                if ('active' in values.image){
+                    image = JSImage.initWithResourceName(values.image.active, spec.bundle);
+                    this.setImageForState(image, UIControl.State.active);
+                }
+                if ('disabled' in values.image){
+                    image = JSImage.initWithResourceName(values.image.disabled, spec.bundle);
+                    this.setImageForState(image, UIControl.State.disabled);
+                }
+            }
         }
         if ('imageRenderMode' in values){
             this.imageRenderMode = spec.resolvedValue(values.imageRenderMode);
@@ -33,6 +60,8 @@ JSClass("UIButton", UIControl, {
 
     commonUIControlInit: function(){
         UIButton.$super.commonUIControlInit.call(this);
+        this._imagesByState = [undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined];
+        this._backgroundImagesByState = [undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined];
         this._titleInsets = JSInsets.Zero;
         if (this._styler === null){
             this._styler = UIButton.defaultStyler;
@@ -59,28 +88,71 @@ JSClass("UIButton", UIControl, {
         this.setNeedsLayout();
     },
 
-    _createImageView: function(){
-        var imageView = UIImageView.initWithRenderMode(UIImageView.RenderMode.template);
-        this.addSubview(imageView);
-        this.setNeedsLayout();
-        this._imageView = imageView;
-        this._styler.updateControl(this);
-        return imageView;
+    getImage: function(){
+        return this._getImageForState(this.state, this._imagesByState);
     },
 
-    getImage: function(){
-        if (this._imageView !== null){
-            return this._imageView.image;
+    getBackgroundImage: function(){
+        return this._getImageForState(this.state, this._backgroundImagesByState);
+    },
+
+    _getImageForState: function(state, images){
+        var image = images[state];
+        if (image !== undefined){
+            return image;
+        }
+        if (state & UIControl.State.disabled){
+            image = images[UIControl.State.disabled];
+            if (image !== undefined){
+                return image;
+            }
+        }
+        if (state & UIControl.State.active){
+            image = images[UIControl.State.active];
+            if (image !== undefined){
+                return image;
+            }
+        }
+        if (state & UIControl.State.over){
+            image = images[UIControl.State.over];
+            if (image !== undefined){
+                return image;
+            }
+        }
+        image = images[UIControl.State.normal];
+        if (image !== undefined){
+            return image;
         }
         return null;
     },
 
-    setImage: function(image){
-        this.imageView.image = image;
+    _createImageView: function(){
+        var imageView = UIImageView.initWithRenderMode(UIImageView.RenderMode.template);
+        this.addSubview(imageView);
+        this.setNeedsLayout();
+        return imageView;
+    },
+
+    getImageForState: function(state){
+        return this._imagesByState[state] || null;
+    },
+
+    setImageForState: function(image, state){
+        this._imagesByState[state] = image;
+        if (this._imageView === null){
+            this._imageView = this._createImageView();
+        }
+        this._styler.updateControl(this);
+        if (state & UIControl.State.over){
+            this.hasOverState = true;
+        }
     },
 
     setImageRenderMode: function(renderMode){
-        this.imageView.renderMode = renderMode;
+        if (this._imageView === null){
+            this._imageView = this._createImageView();
+        }
+        this._imageView.renderMode = renderMode;
     },
 
     getImageRenderMode: function(){
@@ -88,6 +160,28 @@ JSClass("UIButton", UIControl, {
             return UIImageView.RenderMode.template;
         }
         return this._imageView.renderMode;
+    },
+
+    _createBackgroundImageView: function(){
+        var imageView = UIImageView.init();
+        this.insertSubviewAtIndex(imageView, 0);
+        this.setNeedsLayout();
+        return imageView;
+    },
+
+    getBackgroundImageForState: function(state){
+        return this._backgroundImagesByState || null;
+    },
+
+    setBackgroundImageForState: function(image, state){
+        this._backgroundImagesByState[state] = image;
+        if (this._backgroundImageView === null){
+            this._backgroundImageView = this._createBackgroundImageView();
+        }
+        this._styler.updateControl(this);
+        if (state & UIControl.State.over){
+            this.hasOverState = true;
+        }
     },
 
     mouseDown: function(event){
@@ -106,6 +200,8 @@ JSClass("UIButton", UIControl, {
             this.sendActionsForEvent(UIControl.Event.primaryAction);
             this.active = false;
         }
+        var location = event.locationInView(this);
+        this.over = this.containsPoint(location);
     },
 
     mouseDragged: function(event){
@@ -156,24 +252,19 @@ JSClass("UIButtonStyler", UIControlStyler, {
         var size = JSSize(button._titleInsets.left + button._titleInsets.right, button._titleInsets.top + button._titleInsets.bottom);
         var titleSize;
         var imageSize;
+        var image = button.getImageForState(UIControl.State.normal);
         if (button._titleLabel !== null){
             titleSize = button._titleLabel.intrinsicSize;
-            if (button.image !== null){
-                imageSize = button.imageView.intrinsicSize;
-                size.width += imageSize.width + button._titleInsets.left + titleSize.width;
-                size.height = Math.max(imageSize.height, titleSize.height);
+            if (image !== null){
+                size.width += image.size.width + button._titleInsets.left + titleSize.width;
+                size.height = Math.max(image.size.height, titleSize.height);
             }else{
                 size.width += titleSize.width;
                 size.height += titleSize.height;
             }
-        }else if (button.image !== null){
-            imageSize = button.imageView.intrinsicSize;
-            if (imageSize.width != UIView.noIntrinsicSize){
-                size.width += imageSize.width;
-            }
-            if (imageSize.height != UIView.noIntrinsicSize){
-                size.height += imageSize.height;
-            }
+        }else if (image !== null){
+            size.width += image.size.width;
+            size.height += image.size.height;
         }
         return size;
     },
@@ -184,10 +275,10 @@ JSClass("UIButtonStyler", UIControlStyler, {
 
     layoutControl: function(button){
         if (button._titleLabel !== null){
-            if (button.image !== null){
+            if (button._imageView !== null){
                 var contentRect = button.bounds.rectWithInsets(button._titleInsets);
                 var imageSize = Math.min(contentRect.size.width, contentRect.size.height);
-                button.imageView.frame = JSRect(contentRect.origin, JSSize(imageSize, imageSize));
+                button._imageView.frame = JSRect(contentRect.origin, JSSize(imageSize, imageSize));
                 var x = contentRect.origin.x + imageSize + button._titleInsets.left;
                 var w = Math.max(0, contentRect.size.width - x);
                 var titleSize = button._titleLabel.intrinsicSize;
@@ -196,8 +287,21 @@ JSClass("UIButtonStyler", UIControlStyler, {
             }else{
                 button._titleLabel.frame = button.bounds.rectWithInsets(button._titleInsets);
             }
-        }else if (button.image !== null){
-            button.imageView.frame = button.bounds.rectWithInsets(button._titleInsets);
+        }else if (button._imageView !== null){
+            button._imageView.frame = button.bounds.rectWithInsets(button._titleInsets);
+        }
+        if (button._backgroundImageView !== null){
+            button._backgroundImageView.frame = button.bounds;
+        }
+    },
+
+    updateControl: function(button){
+        UIButtonStyler.$super.updateControl.call(this, button);
+        if (button._imageView !== null){
+            button._imageView.image = button.image;
+        }
+        if (button._backgroundImageView !== null){
+            button._backgroundImageView.image = button.backgroundImage;
         }
     }
 
@@ -219,6 +323,7 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
     },
 
     updateControl: function(button){
+        UIButtonDefaultStyler.$super.updateControl.call(this, button);
         if (!button.enabled){
             button.layer.backgroundColor = UIButtonDefaultStyler.DisabledBackgroundColor;
             button.layer.borderColor = UIButtonDefaultStyler.DisabledBorderColor;
@@ -310,6 +415,7 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
     },
 
     updateControl: function(button){
+        UIButtonCustomStyler.$super.updateControl.call(this, button);
         if (!button.enabled){
             button.layer.backgroundColor = this.disabledBackgroundColor;
             if (button._titleLabel !== null){
