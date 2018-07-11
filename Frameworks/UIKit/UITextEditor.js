@@ -179,16 +179,14 @@ JSClass("UITextEditor", JSObject, {
     },
 
     didBecomeFirstResponder: function(){
+        this.selectAll();
         this._isFirstResponder = true;
         this.layout();
     },
 
     didResignFirstResponder: function(){
-        this._cancelCursorTimers();
-        for (var i = 0, l = this._cursorLayers.length; i < l; ++i){
-            this._cursorLayers[i].removeFromSuperlayer();
-        }
-        this._cursorLayers = [];
+        this._hideCursors();
+        this._hideSelections();
         this._isFirstResponder = false;
     },
 
@@ -299,6 +297,14 @@ JSClass("UITextEditor", JSObject, {
         }
     },
 
+    _hideCursors: function(){
+        this._cancelCursorTimers();
+        for (var i = 0, l = this._cursorLayers.length; i < l; ++i){
+            this._cursorLayers[i].removeFromSuperlayer();
+        }
+        this._cursorLayers = [];
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Selection Highlights
 
@@ -347,6 +353,13 @@ JSClass("UITextEditor", JSObject, {
         layer.backgroundColor = this._selectionHighlightColor;
         this.layoutLayer.addSublayer(layer);
         return layer;
+    },
+
+    _hideSelections: function(){
+        for (var i = 0, l = this._selectionHighlightLayers.length; i < l; ++i){
+            this._selectionHighlightLayers[i].removeFromSuperlayer();
+        }
+        this._selectionHighlightLayers = [];
     },
 
     // -------------------------------------------------------------------------

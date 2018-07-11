@@ -244,7 +244,6 @@ JSClass('UIView', UIResponder, {
     // MARK: - Window
 
     window: JSDynamicProperty('_window', null),
-    nextKeyView: null,
 
     setWindow: function(window){
         if (window != this._window){
@@ -290,6 +289,44 @@ JSClass('UIView', UIResponder, {
         if (this.window !== null && this.window.windowServer !== null){
             this.window.windowServer.viewDidChangeCursor(this, this.cursor);
         }
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Key View Loop
+
+    nextKeyView: JSDynamicProperty('_nextKeyView', null),
+    nextValidKeyView: JSReadOnlyProperty(),
+    previousKeyView: JSReadOnlyProperty('_previousKeyView', null),
+    previousValidKeyView: JSReadOnlyProperty(),
+
+    setNextKeyView: function(nextKeyView){
+        if (this._nextKeyView !== null){
+            this._nextKeyView._previousKeyView = this.previousKeyView;
+        }
+        this._nextKeyView = nextKeyView;
+        if (nextKeyView !== null){
+            nextKeyView._previousKeyView = this;
+        }
+    },
+
+    getNextValidKeyView: function(){
+        if (this._nextKeyView !== null){
+            if (this._nextKeyView.hidden || !this._nextKeyView.canBecomeFirstResponder()){
+                return this._nextKeyView.nextValidKeyView;
+            }
+            return this._nextKeyView;
+        }
+        return null;
+    },
+
+    getPreviousValidKeyView: function(){
+        if (this._previousKeyView !== null){
+            if (this._previousKeyView.hidden || !this._previousKeyView.canBecomeFirstResponder()){
+                return this._previousKeyView.previousValidKeyView;
+            }
+            return this._previousKeyView;
+        }
+        return null;
     },
 
     // -------------------------------------------------------------------------

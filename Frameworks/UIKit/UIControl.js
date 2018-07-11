@@ -157,6 +157,9 @@ JSClass("UIControl", UIView, {
 
     setEnabled: function(isEnabled){  
         this._toggleState(UIControl.State.disabled, !isEnabled);
+        if (!isEnabled && this.window && this.window.firstResponder === this){
+            this.window.firstResponder = null;
+        }
     },
 
     isOver: function(){

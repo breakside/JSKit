@@ -658,7 +658,7 @@ JSClass("UITextField", UIControl, {
             return UITextField.$super.mouseDown.call(this, event);
         }
         if (!this.isFirstResponder()){
-            this.window.setFirstResponder(this);
+            this.window.firstResponder = this;
         }
         var location = event.locationInView(this);
         this._localEditor.handleMouseDownAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);

@@ -356,34 +356,25 @@ JSClass('UIWindow', UIView, {
         }
     },
 
+    getNextResponder: function(){
+        return this._application;
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Key View Loop
+
     setFirstResponderToKeyViewAfterView: function(view){
-        if (view === null){
-            return;
-        }
-        var haveLooped = false;
-        var next;
-        do {
-            next = view.nextKeyView;
-            if (next === null && !haveLooped){
-                next = this.nextKeyView;
-                haveLooped = true;
-            }
-        } while (next !== null && (next.hidden || !next.canBecomeFirstResponder()));
-        if (next !== null){
-            this.firstResponder = next;
+        var nextKeyView = view.nextValidKeyView;
+        if (nextKeyView !== null){
+            this.firstResponder = nextKeyView;
         }
     },
 
     setFirstResponderToKeyViewBeforeView: function(view){
-        if (view === null){
-            return;
+        var prevousKeyView = view.previousValidKeyView;
+        if (prevousKeyView !== null){
+            this.firstResponder = prevousKeyView;
         }
-        var keyView = this.nextKeyView;
-        // TODO:
-    },
-
-    getNextResponder: function(){
-        return this._application;
     },
 
     // -------------------------------------------------------------------------
