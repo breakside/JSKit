@@ -653,6 +653,10 @@ JSClass("UITextField", UIControl, {
         this._localEditor.didResignFirstResponder();
     },
 
+    windowDidChangeKeyStatus: function(){
+        this._localEditor.windowDidChangeKeyStatus(this.window);
+    },
+
     mouseDown: function(event){
         if (!this.enabled){
             return UITextField.$super.mouseDown.call(this, event);

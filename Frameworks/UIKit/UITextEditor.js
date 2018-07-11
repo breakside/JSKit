@@ -15,6 +15,7 @@ JSClass("UITextEditor", JSObject, {
     cursorWidth: 2.0,
     insertAttributes: null,
     _isFirstResponder: false,
+    _isWindowKey: false,
     _cursorBlinkRate: 0.5,
     _cursorOffTimeout: null,
     _cursorOnTimeout: null,
@@ -188,6 +189,15 @@ JSClass("UITextEditor", JSObject, {
         this._hideCursors();
         this._hideSelections();
         this._isFirstResponder = false;
+    },
+
+    windowDidChangeKeyStatus: function(window){
+        this._isWindowKey = window.isKeyWindow;
+        if (this._isWindowKey){
+            this._positionCursors();
+        }else{
+            this._hideCursors();
+        }
     },
 
     insertionRect: function(){

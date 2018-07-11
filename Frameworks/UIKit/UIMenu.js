@@ -179,7 +179,7 @@ JSClass("UIMenu", JSObject, {
             isKey = true;
         }
         this.window = window;
-        this.window.makeKeyAndVisible();
+        this.window.makeKeyAndOrderFront();
     },
 
     _screenMetrics: function(screen){

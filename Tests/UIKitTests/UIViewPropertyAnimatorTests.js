@@ -23,7 +23,7 @@ JSClass("UIViewPropertyAnimatorTests", TKTestSuite, {
         var view = UIView.init();
         view.position = JSPoint(0, 0);
         window.contentView.addSubview(view);
-        window.makeKeyAndVisible();
+        window.makeKeyAndOrderFront();
 
         var animator = UIViewPropertyAnimator.initWithDuration(0.25);
         var animationsRun = false;
@@ -63,7 +63,7 @@ JSClass("UIViewPropertyAnimatorTests", TKTestSuite, {
         var view = UIView.init();
         view.position = JSPoint(0, 0);
         window.contentView.addSubview(view);
-        window.makeKeyAndVisible();
+        window.makeKeyAndOrderFront();
 
         var animator = UIViewPropertyAnimator.initWithDuration(0.25);
         var animationsRun = false;

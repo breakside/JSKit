@@ -60,14 +60,18 @@ JSClass("UIWindowController", UIViewController, {
         return this.view;
     },
 
-    makeVisible: function(){
+    orderFront: function(){
         this._prepareWindow();
-        this.window.makeVisible();
+        this.window.orderFront();
     },
 
-    makeKeyAndVisible: function(){
+    open: function(){
+        this.orderFront();
+    },
+
+    makeKeyAndOrderFront: function(){
         this._prepareWindow();
-        this.window.makeKeyAndVisible();
+        this.window.makeKeyAndOrderFront();
     },
 
     _needsPrepare: true,
@@ -87,6 +91,11 @@ JSClass("UIWindowController", UIViewController, {
     close: function(){
         this.window.close();
         this.unloadView();
+    },
+
+    unloadView: function(){
+        UIWindowController.$super.unloadView.call(this);
+        this._needsPrepare = true;
     }
 
 });

@@ -10,7 +10,10 @@ JSClass('UITextInputManager', JSObject, {
         // If the first responder looks like it conforms to UITextInput, remember it.
         // This ensures that a mobile device will only show a keyboard for something that
         // takes text input, rather than any old responder that can respond to keyDown.
-        var responder = window.firstResponder;
+        var responder = null;
+        if (window !== null){
+            responder = window.firstResponder;
+        }
         if (responder && responder.insertText && typeof(responder.insertText) == 'function'){
             this.textInputClient = responder;
         }else{

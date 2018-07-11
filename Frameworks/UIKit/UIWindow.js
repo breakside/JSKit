@@ -190,42 +190,84 @@ JSClass('UIWindow', UIView, {
     },
 
     // -------------------------------------------------------------------------
-    // MARK: - Key Window
+    // MARK: - Main Window
 
     canBecomeMainWindow: function(){
         return true;
-    },
-
-    canBecomeKeyWindow: function(){
-        return true;
-    },
-
-    canBecomeFirstResponder: function(){
-        return true;
-    },
-
-    makeVisible: function(){
-        this.windowServer.makeWindowVisible(this);
-        if (this.viewController){
-            this.viewController.viewWillAppear(false);
-        }else if (this._contentViewController){
-            this._contentViewController.viewWillAppear(false);
-        }
-    },
-
-    makeKey: function(){
-        this.windowServer.makeWindowKey(this);
     },
 
     makeMain: function(){
         this.windowServer.makeWindowMain(this);
     },
 
-    makeKeyAndVisible: function(){
-        this.windowServer.makeWindowKeyAndVisible(this);
+    becomeMain: function(){
+        this._styler.updateWindow(this);
+    },
+
+    resignMain: function(){
+        this._styler.updateWindow(this);
+    },
+
+    isMainWindow: JSReadOnlyProperty(),
+
+    getIsMainWindow: function(){
+        return this.windowServer.mainWindow === this;
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Key Window
+
+    canBecomeKeyWindow: function(){
+        return true;
+    },
+
+    makeKey: function(){
+        this.windowServer.makeWindowKey(this);
+    },
+
+    becomeKey: function(){
+        this._styler.updateWindow(this);
+        this.contentView.windowDidChangeKeyStatus();
+    },
+
+    resignKey: function(){
+        this._styler.updateWindow(this);
+        this.contentView.windowDidChangeKeyStatus();
+    },
+
+    isKeyWindow: JSReadOnlyProperty(),
+
+    getIsKeyWindow: function(){
+        return this.windowServer.keyWindow === this;
+    },
+
+    makeKeyAndOrderFront: function(){
+        this.orderFront();
+        this.windowServer.makeWindowKey(this);
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Opening & Closing
+
+    open: function(){
+        this.orderFront();
+    },
+
+    close: function(){
+        if (this.viewController){
+            this.viewController.viewWillDisappear(false);
+        }else if (this._contentViewController){
+            this._contentViewController.viewWillDisappear(false);
+        }
+        this.windowServer.windowRemoved(this);
     },
 
     orderFront: function(){
+        if (this.viewController){
+            this.viewController.viewWillAppear(false);
+        }else if (this._contentViewController){
+            this._contentViewController.viewWillAppear(false);
+        }
         this.windowServer.orderWindowFront(this);
     },
 
@@ -248,18 +290,6 @@ JSClass('UIWindow', UIView, {
         }else if (this._contentViewController){
             this._contentViewController.viewDidDisappear(false);
         }
-    },
-
-    // -------------------------------------------------------------------------
-    // MARK: - Closing
-
-    close: function(){
-        if (this.viewController){
-            this.viewController.viewWillDisappear(false);
-        }else if (this._contentViewController){
-            this._contentViewController.viewWillDisappear(false);
-        }
-        this.windowServer.windowRemoved(this);
     },
 
     // -------------------------------------------------------------------------
@@ -326,6 +356,10 @@ JSClass('UIWindow', UIView, {
 
     firstResponder: JSDynamicProperty('_firstResponder', null),
     _initialFirstResponder: null,
+
+    canBecomeFirstResponder: function(){
+        return true;
+    },
 
     getFirstResponder: function(){
         return this._firstResponder;
@@ -460,12 +494,7 @@ JSClass('UIWindow', UIView, {
         }
         switch (event.type){
             case UIEvent.Type.leftMouseDown:
-                this.orderFront();
-                if (this.canBecomeKeyWindow() && this.windowServer.keyWindow !== this){
-                    this.makeKey();
-                }else if (this.canBecomeMainWindow() && this.windowServer.mainWindow !== this){
-                    this.makeMain();
-                }
+                this.makeKeyAndOrderFront();
                 eventTarget.mouseDown(event);
                 break;
             case UIEvent.Type.leftMouseUp:
@@ -599,6 +628,19 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
 
     _titlebarSize: 22,
     _controlButtonSize: 12,
+    activeTitleColor: null,
+    inactiveTitleColor: null,
+    shadowRadius: 40,
+    cornerRadius: 6,
+    backgroundColor: null,
+    shadowColor: null,
+
+    init: function(){
+        this.titleColor = JSColor.initWithWhite(51/255);
+        this.inactiveTitleColor = JSColor.initWithWhite(192/255);
+        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.4);
+        this.backgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255,1);
+    },
 
     initializeWindow: function(window){
         var closeButton = UIButton.initWithStyler(UIButtonCustomStyler.shared);
@@ -624,10 +666,10 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
 
         window.contentInsets = JSInsets(this._titlebarSize, 0, 0, 0);
 
-        window.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.4);
-        window.shadowRadius = 40;
-        window.cornerRadius = 6;
-        window.backgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255,1);
+        window.shadowColor = this.shadowColor;
+        window.shadowRadius = this.shadowRadius;
+        window.cornerRadius = this.cornerRadius;
+        window.backgroundColor = this.backgroundColor;
 
         this.updateWindow(window);
     },
@@ -655,8 +697,20 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
     },
 
     updateWindow: function(window){
-        window.stylerProperties.closeButton.hidden = !window.allowsClose;
-        window.stylerProperties.titleLabel.text = window.title || '';
+        var closeButton = window.stylerProperties.closeButton;
+        var titleLabel = window.stylerProperties.titleLabel;
+        closeButton.hidden = !window.allowsClose;
+        titleLabel.text = window.title || '';
+        if (window.isMainWindow || window.isKeyWindow){
+            titleLabel.textColor = this.activeTitleColor;
+        }else{
+            titleLabel.textColor = this.inactiveTitleColor;
+        }
+        if (window.isMainWindow){
+            closeButton.setImageForState(images.closeNormal, UIControl.State.normal);
+        }else{
+            closeButton.setImageForState(images.closeInactive, UIControl.State.normal);
+        }
     }
 
 });
@@ -690,6 +744,14 @@ var images = Object.create({}, {
         get: function(){
             Object.defineProperty(this, 'bundle', {value: JSBundle.initWithIdentifier("io.breakside.JSKit.UIKit") });
             return this.bundle;
+        }
+    },
+
+    closeInactive: {
+        configurable: true,
+        get: function(){
+            Object.defineProperty(this, 'closeInactive', {value: JSImage.initWithResourceName("UIWindowButtonCloseInactive", this.bundle) });
+            return this.closeInactive;
         }
     },
 

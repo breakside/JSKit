@@ -38,14 +38,14 @@ JSClass("UIScene", JSObject, {
         this.windowStack = [];
     },
 
-    makeVisible: function(){
+    show: function(){
         if (this.menuBar){
             this.application.windowServer.menuBar = this.menuBar;
         }
         var window = null;
         for (var i = 0, l = this.windowStack.length; i < l; ++i){
             window = this.windowStack[i];
-            window.makeVisible();
+            window.orderFront();
         }
         if (window !== null){
             window.makeKey();

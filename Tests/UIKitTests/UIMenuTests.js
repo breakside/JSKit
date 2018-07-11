@@ -27,7 +27,7 @@ JSClass("UIMenuTests", TKTestSuite, {
         this.baseWindow.contentView = UIView.init();
         this.testView = UIView.initWithFrame(JSRect(20, 30, 40, 50));
         this.baseWindow.contentView.addSubview(this.testView);
-        this.baseWindow.makeKeyAndVisible();
+        this.baseWindow.makeKeyAndOrderFront();
     },
 
     teardown: function(){

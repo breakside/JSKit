@@ -275,7 +275,7 @@ JSClass("UIMenuBar", UIWindow, {
         }
         menu.window = window;
         window.frame = JSRect(origin, size);
-        window.makeKeyAndVisible();
+        window.makeKeyAndOrderFront();
     },
 
     menuDidClose: function(menu){

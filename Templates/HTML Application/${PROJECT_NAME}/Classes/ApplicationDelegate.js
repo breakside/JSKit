@@ -8,7 +8,7 @@ JSClass("ApplicationDelegate", JSObject, {
     mainViewController: null,
 
     applicationDidFinishLaunching: function(application, launchOptions){
-        this.window.makeKeyAndVisible();
+        this.window.makeKeyAndOrderFront();
     }
 
 });

@@ -291,6 +291,12 @@ JSClass('UIView', UIResponder, {
         }
     },
 
+    windowDidChangeKeyStatus: function(){
+        for (var i = 0, l = this.subviews.length; i < l; ++i){
+            this.subviews[i].windowDidChangeKeyStatus();
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Key View Loop
 

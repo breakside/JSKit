@@ -41,32 +41,32 @@ JSClass("UIWindowServerTests", TKTestSuite, {
         window8.level = UIWindow.Level.front;
         window9.level = UIWindow.Level.front;
 
-        window1.makeKeyAndVisible();
+        window1.makeKeyAndOrderFront();
         TKAssertEquals(window1.subviewIndex, 0);
 
-        window2.makeKeyAndVisible();
+        window2.makeKeyAndOrderFront();
         TKAssertEquals(window1.subviewIndex, 0);
         TKAssertEquals(window2.subviewIndex, 1);
 
-        window4.makeKeyAndVisible();
+        window4.makeKeyAndOrderFront();
         TKAssertEquals(window1.subviewIndex, 0);
         TKAssertEquals(window2.subviewIndex, 1);
         TKAssertEquals(window4.subviewIndex, 2);
 
-        window7.makeKeyAndVisible();
+        window7.makeKeyAndOrderFront();
         TKAssertEquals(window1.subviewIndex, 0);
         TKAssertEquals(window2.subviewIndex, 1);
         TKAssertEquals(window4.subviewIndex, 2);
         TKAssertEquals(window7.subviewIndex, 3);
 
-        window5.makeKeyAndVisible();
+        window5.makeKeyAndOrderFront();
         TKAssertEquals(window1.subviewIndex, 0);
         TKAssertEquals(window2.subviewIndex, 1);
         TKAssertEquals(window4.subviewIndex, 2);
         TKAssertEquals(window5.subviewIndex, 3);
         TKAssertEquals(window7.subviewIndex, 4);
 
-        window8.makeKeyAndVisible();
+        window8.makeKeyAndOrderFront();
         TKAssertEquals(window1.subviewIndex, 0);
         TKAssertEquals(window2.subviewIndex, 1);
         TKAssertEquals(window4.subviewIndex, 2);
@@ -74,7 +74,7 @@ JSClass("UIWindowServerTests", TKTestSuite, {
         TKAssertEquals(window7.subviewIndex, 4);
         TKAssertEquals(window8.subviewIndex, 5);
 
-        window3.makeKeyAndVisible();
+        window3.makeKeyAndOrderFront();
         TKAssertEquals(window1.subviewIndex, 0);
         TKAssertEquals(window2.subviewIndex, 1);
         TKAssertEquals(window3.subviewIndex, 2);
@@ -83,7 +83,7 @@ JSClass("UIWindowServerTests", TKTestSuite, {
         TKAssertEquals(window7.subviewIndex, 5);
         TKAssertEquals(window8.subviewIndex, 6);
 
-        window6.makeKeyAndVisible();
+        window6.makeKeyAndOrderFront();
         TKAssertEquals(window1.subviewIndex, 0);
         TKAssertEquals(window2.subviewIndex, 1);
         TKAssertEquals(window3.subviewIndex, 2);
@@ -93,7 +93,7 @@ JSClass("UIWindowServerTests", TKTestSuite, {
         TKAssertEquals(window7.subviewIndex, 6);
         TKAssertEquals(window8.subviewIndex, 7);
 
-        window9.makeKeyAndVisible();
+        window9.makeKeyAndOrderFront();
         TKAssertEquals(window1.subviewIndex, 0);
         TKAssertEquals(window2.subviewIndex, 1);
         TKAssertEquals(window3.subviewIndex, 2);
@@ -169,7 +169,7 @@ JSClass("UIWindowServerTests", TKTestSuite, {
         TKAssertEquals(window9.subviewIndex, 6);
         TKAssertEquals(window7.subviewIndex, 7);
 
-        window2.makeKeyAndVisible();
+        window2.makeKeyAndOrderFront();
         TKAssertEquals(window1.subviewIndex, 0);
         TKAssertEquals(window3.subviewIndex, 1);
         TKAssertEquals(window2.subviewIndex, 2);
@@ -199,7 +199,7 @@ JSClass("UIWindowServerTests", TKTestSuite, {
         TKAssertEquals(window9.subviewIndex, 5);
         TKAssertEquals(window7.subviewIndex, 6);
 
-        window5.makeKeyAndVisible();
+        window5.makeKeyAndOrderFront();
         TKAssertEquals(window1.subviewIndex, 0);
         TKAssertEquals(window3.subviewIndex, 1);
         TKAssertEquals(window6.subviewIndex, 2);
@@ -248,7 +248,7 @@ JSClass("UIWindowServerTests", TKTestSuite, {
         TKAssertEquals(window1.subviewIndex, 0);
         TKAssertEquals(window7.subviewIndex, 1);
 
-        window4.makeKeyAndVisible();
+        window4.makeKeyAndOrderFront();
         TKAssertEquals(window1.subviewIndex, 0);
         TKAssertEquals(window4.subviewIndex, 1);
         TKAssertEquals(window7.subviewIndex, 2);
@@ -261,7 +261,7 @@ JSClass("UIWindowServerTests", TKTestSuite, {
         TKAssertEquals(window7.subviewIndex, 0);
 
         window7.close();
-        window4.makeKeyAndVisible();
+        window4.makeKeyAndOrderFront();
         TKAssertEquals(window4.subviewIndex, 0);
         window4.close();
     }
