@@ -1,5 +1,5 @@
 // #import "UIKit/UIViewController.js"
-/* global JSClass, JSRect, JSColor, JSDeepCopy, UICursor, JSReadOnlyProperty, JSDynamicProperty, UIViewController, UIDualPaneViewController, JSPoint, UIView, _UIDualPaneView, _UIDualPaneDividerView, UIViewPropertyAnimator */
+/* global JSClass, JSRect, JSColor, JSDeepCopy, JSUserDefaults, UICursor, JSReadOnlyProperty, JSDynamicProperty, UIViewController, UIDualPaneViewController, JSPoint, UIView, _UIDualPaneView, _UIDualPaneDividerView, UIViewPropertyAnimator */
 'use strict';
 
 JSClass("UIDualPaneViewController", UIViewController, {
@@ -333,6 +333,9 @@ JSClass("_UIDualPaneView", UIView, {
         if ('trailingDividerColor' in values){
             this.trailingDividerColor = spec.resolvedValue(values.trailingDividerColor, "JSColor");
         }
+        if ('autosaveName' in values){
+            this.autosaveName = spec.resolvedValue(values.autosaveName);
+        }
     },
 
     _commonDualPaneInit: function(){
@@ -360,6 +363,7 @@ JSClass("_UIDualPaneView", UIView, {
             this._leadingViewOpen = isOpen;
             this.setNeedsLayout();
             this.viewController.didTogglePane();
+            this._autosaveToUserDefaults();
         }
     },
 
@@ -368,6 +372,7 @@ JSClass("_UIDualPaneView", UIView, {
             this._trailingViewOpen = isOpen;
             this.setNeedsLayout();
             this.viewController.didTogglePane();
+            this._autosaveToUserDefaults();
         }
     },
 
@@ -591,6 +596,7 @@ JSClass("_UIDualPaneView", UIView, {
                 this.trailingSize = this._previousTrailingSize;
             }
         }
+        this._autosaveToUserDefaults();
     },
 
     dividerDragged: function(divider, location){
@@ -652,6 +658,41 @@ JSClass("_UIDualPaneView", UIView, {
             }
         }
         this.layoutIfNeeded();
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Autosaving
+
+    autosaveName: JSDynamicProperty('_autosaveName', null),
+
+    setAutosaveName: function(autosaveName){
+        this._autosaveName = autosaveName;
+        this._loadAutosavedFromUserDefaults();
+    },
+
+    _autosaveToUserDefaults: function(){
+        if (this.autosaveName === null){
+            return;
+        }
+        JSUserDefaults.shared.setValueForKey({
+            leadingSize: this._leadingSize,
+            trailingSize: this._trailingSize,
+            leadingOpen: this._leadingViewOpen,
+            trailingOpen: this._trailingViewOpen
+        }, this._autosaveName);
+    },
+
+    _loadAutosavedFromUserDefaults: function(){
+        if (this.autosaveName === null){
+            return;
+        }
+        var values = JSUserDefaults.shared.valueForKey(this.autosaveName);
+        if (values !== null){
+            this._leadingSize = values.leadingSize;
+            this._trailingSize = values.trailingSize;
+            this._leadingViewOpen = values.leadingOpen;
+            this._trailingViewOpen = values.trailingOpen;
+        }
     }
 
 });

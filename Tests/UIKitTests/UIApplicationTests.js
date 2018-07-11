@@ -37,11 +37,11 @@ JSClass("UIApplicationTests", TKTestSuite, {
 
     testSharedApplication: function(){
         TKAssertNotNull(this.app);
-        TKAssertExactEquals(this.app, UIApplication.sharedApplication);
+        TKAssertExactEquals(this.app, UIApplication.shared);
     },
 
     testSingleApplication: function(){
-        TKAssertExactEquals(this.app, UIApplication.sharedApplication);
+        TKAssertExactEquals(this.app, UIApplication.shared);
         TKAssertThrows(function(){
             var windowServer = MockWindowServer.init();
             this.app = UIApplication.initWithWindowServer(windowServer);

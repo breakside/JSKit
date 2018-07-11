@@ -75,7 +75,7 @@ JSClass("UICursor", JSObject, {
 
 UICursor.hide = function(){
     if (UICursor._hideCount === 0){
-        UIApplication.sharedApplication.windowServer.hideCursor();
+        UIApplication.shared.windowServer.hideCursor();
     }
     ++UICursor._hideCount;
 };
@@ -86,7 +86,7 @@ UICursor.unhide = function(){
     }
     --UICursor._hideCount;
     if (UICursor._hideCount === 0){
-        UIApplication.sharedApplication.windowServer.unhideCursor();
+        UIApplication.shared.windowServer.unhideCursor();
     }
 };
 
@@ -104,7 +104,7 @@ UICursor.pop = function(){
 
 UICursor.show = function(){
     if (this._hideCount === 0){
-        UIApplication.sharedApplication.windowServer.setCursor(UICursor.currentCursor);
+        UIApplication.shared.windowServer.setCursor(UICursor.currentCursor);
     }
 };
 

@@ -85,7 +85,9 @@ JSClass("UIWindowController", UIViewController, {
 
     _prepareWindow: function(){
         this.window.sizeToFit();
-        this.window.position = this.window.windowServer.screen.availableFrame.center;
+        if (!this.window.isUsingAutosavedFrame){
+            this.window.position = this.window.windowServer.screen.availableFrame.center;
+        }
     },
 
     close: function(){

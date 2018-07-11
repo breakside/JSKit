@@ -6,7 +6,7 @@
 
 (function(){
 
-var sharedApplication = null;
+var shared = null;
 
 var logger = jslog_create("uikit.application");
 
@@ -15,10 +15,10 @@ JSClass('UIApplication', UIResponder, {
     // MARK: - Initialization & Startup
 
     initWithWindowServer: function(windowServer){
-        if (sharedApplication){
+        if (shared){
             throw new Error("UIApplication.init: one application already initialized, and only one may exist");
         }
-        sharedApplication = this;
+        shared = this;
         this.windowServer = windowServer;
         this._windowsById = {};
         this.bundle = JSBundle.mainBundle;
@@ -26,7 +26,7 @@ JSClass('UIApplication', UIResponder, {
     },
 
     deinit: function(){
-        sharedApplication = null;
+        shared = null;
     },
 
     launchOptions: function(){
@@ -208,10 +208,10 @@ UIApplication.LaunchOptions = {
     state: "UIApplicationLaunchOptionState"
 };
 
-Object.defineProperty(UIApplication, 'sharedApplication', {
+Object.defineProperty(UIApplication, 'shared', {
     configurable: true,
     get: function UIApplication_getSharedApplication(){
-        return sharedApplication;
+        return shared;
     }
 });
 

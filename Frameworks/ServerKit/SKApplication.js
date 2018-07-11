@@ -4,7 +4,7 @@
 
 (function(){
 
-var sharedApplication = null;
+var shared = null;
 
 JSClass('SKApplication', JSObject, {
 
@@ -12,17 +12,17 @@ JSClass('SKApplication', JSObject, {
     bundle: null,
 
     init: function(){
-        if (sharedApplication){
+        if (shared){
             throw new Error("SKApplication.init: one application already initialized, and only one may exist");
         }
-        sharedApplication = this;
+        shared = this;
         this.bundle = JSBundle.mainBundle;
         this.parseLaunchOptions();
         this.setup();
     },
 
     deinit: function(){
-        sharedApplication = null;
+        shared = null;
     },
 
     run: function(){
@@ -114,10 +114,10 @@ SKApplication.InfoKeys = {
     LaunchOptions: "SKApplicationLaunchOptions",
 };
 
-Object.defineProperty(SKApplication, 'sharedApplication', {
+Object.defineProperty(SKApplication, 'shared', {
     configurable: true,
     get: function SKApplication_getSharedApplication(){
-        return sharedApplication;
+        return shared;
     }
 });
 

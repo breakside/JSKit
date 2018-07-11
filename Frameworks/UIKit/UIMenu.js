@@ -145,7 +145,7 @@ JSClass("UIMenu", JSObject, {
             if (!item.submenu){
                 target = item.target;
                 if (target === null){
-                    target = UIApplication.sharedApplication.firstTargetForAction(item.action, this._contextTarget, item);
+                    target = UIApplication.shared.firstTargetForAction(item.action, this._contextTarget, item);
                 }
                 item.enabled = target !== null && (!target.canPerformAction || target.canPerformAction(item.action, item));
             }
@@ -159,7 +159,7 @@ JSClass("UIMenu", JSObject, {
         if (target === null){
             target = contextTarget;
         }
-        UIApplication.sharedApplication.sendAction(item.action, target, item);
+        UIApplication.shared.sendAction(item.action, target, item);
     },
 
     // MARK: - Opening a Menu

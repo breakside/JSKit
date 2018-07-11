@@ -34,7 +34,7 @@ JSClass("UIScene", JSObject, {
     },
 
     _commonInit: function(){
-        this.application = UIApplication.sharedApplication;
+        this.application = UIApplication.shared;
         this.windowStack = [];
     },
 

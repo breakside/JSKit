@@ -4,7 +4,7 @@
 // #import "UIKit/UIButton.js"
 // #import "UIKit/UILabel.js"
 // #import "UIKit/UIImageView.js"
-/* global JSClass, JSObject, UIView, JSColor, JSBundle, JSImage, JSFont, UIImageView, UILabel, JSSize, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, UIWindowStyler, UIWindowDefaultStyler, UIWindowCustomStyler, UIControl, UIButton, UIButtonCustomStyler, JSPoint, UIApplication, UIEvent, UITouch */
+/* global JSClass, JSObject, UIView, JSColor, JSBundle, JSImage, JSUserDefaults, JSFont, UIImageView, UILabel, JSSize, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, UIWindowStyler, UIWindowDefaultStyler, UIWindowCustomStyler, UIControl, UIButton, UIButtonCustomStyler, JSPoint, UIApplication, UIEvent, UITouch */
 'use strict';
 
 (function(){
@@ -16,7 +16,7 @@ JSClass('UIWindow', UIView, {
 
     init: function(){
         UIWindow.$super.init.call(this);
-        this._application = UIApplication.sharedApplication;
+        this._application = UIApplication.shared;
         this._commonWindowInit();
     },
 
@@ -36,7 +36,7 @@ JSClass('UIWindow', UIView, {
         if ('styler' in values){
             this._styler = spec.resolvedValue(values.styler);
         }
-        this._application = UIApplication.sharedApplication;
+        this._application = UIApplication.shared;
         this._commonWindowInit();
         if ('contentInsets' in values){
             this._contentInsets = JSInsets.apply(undefined, values.contentInsets.parseNumberArray());
@@ -55,6 +55,9 @@ JSClass('UIWindow', UIView, {
         }
         if ('title' in values){
             this.title = spec.resolvedValue(values.title);
+        }
+        if ('autosaveName' in values){
+            this.autosaveName = spec.resolvedValue(values.autosaveName);
         }
     },
 
@@ -347,6 +350,10 @@ JSClass('UIWindow', UIView, {
     },
 
     mouseUp: function(){
+        if (this._isMoving){
+            this._isMoving = false;
+            this._autosaveToUserDefaults();
+        }
         this._downLocation = null;
         this._downOrigin = null;
     },
@@ -593,6 +600,39 @@ JSClass('UIWindow', UIView, {
                 case UIEvent.Type.keyUp:
                     view.keyUp(event);
                     break;
+            }
+        }
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Autosaving
+
+    isUsingAutosavedFrame: false,
+    autosaveName: JSDynamicProperty('_autosaveName', null),
+
+    setAutosaveName: function(autosaveName){
+        this._autosaveName = autosaveName;
+        this._loadAutosavedFromUserDefaults();
+    },
+
+    _autosaveToUserDefaults: function(){
+        if (this.autosaveName === null){
+            return;
+        }
+        JSUserDefaults.shared.setValueForKey({
+            frame: [this.frame.origin.x, this.frame.origin.y, this.frame.size.width, this.frame.size.height]
+        }, this._autosaveName);
+    },
+
+    _loadAutosavedFromUserDefaults: function(){
+        if (this.autosaveName === null){
+            return;
+        }
+        var values = JSUserDefaults.shared.valueForKey(this.autosaveName);
+        if (values !== null){
+            if ('frame' in values){
+                this.frame = JSRect.apply(undefined, values.frame);
+                this.isUsingAutosavedFrame = true;
             }
         }
     }
