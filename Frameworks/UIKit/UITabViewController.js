@@ -1,6 +1,6 @@
 // #import "UIKit/UIViewController.js"
 // #import "UIKit/UITabView.js"
-/* global JSClass, JSReadOnlyProperty, JSCopy, JSDynamicProperty, UIViewController, UITabViewController, UITabView, UITabViewItem */
+/* global JSClass, JSReadOnlyProperty, JSCopy, JSDeepCopy, JSDynamicProperty, UIViewController, UITabViewController, UITabView, UITabViewItem */
 'use strict';
 
 JSClass("UITabViewController", UIViewController, {
@@ -25,13 +25,13 @@ JSClass("UITabViewController", UIViewController, {
             for (i = 0, l = values.viewControllers.length; i < l; ++i){
                 viewController = spec.resolvedValue(values.viewControllers[i]);
                 this.viewControllers.push(viewController);
-                this.addChildViewController(viewController);
             }
         }
         if ('view' in values){
             // Set properties that can't really be defined in the spec because
             // we always want them to be the same thing.  This ensures they're
             // populated and set correctly when the view is loaded from the spec
+            values = JSDeepCopy(values);
             values.view.delegate = this;
             values.view.items = [];
             for (i = 0, l = this._viewControllers.length; i < l; ++i){
@@ -39,6 +39,9 @@ JSClass("UITabViewController", UIViewController, {
             }
         }
         UITabViewController.$super.initWithSpec.call(this, spec, values);
+        for (i = 0, l = this.viewControllers.length; i < l; ++i){
+            this.addChildViewController(this.viewControllers[i]);
+        }
     },
 
     addViewController: function(viewController){

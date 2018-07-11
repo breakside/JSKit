@@ -126,7 +126,7 @@ JSClass("UIWindowServer", JSObject, {
         for (i = this.windowStack.length - 1; i >= 0; --i){
             if (this.windowStack[i] === window){
                 this.windowStack.splice(i, 1);
-                this.displayServer.layerRemoved(window.layer);
+                this.displayServer.windowRemoved(window);
                 window._screen = null;
                 break;
             }

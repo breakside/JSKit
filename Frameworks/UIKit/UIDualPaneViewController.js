@@ -1,5 +1,5 @@
 // #import "UIKit/UIViewController.js"
-/* global JSClass, JSRect, JSColor, UICursor, JSReadOnlyProperty, JSDynamicProperty, UIViewController, UIDualPaneViewController, JSPoint, UIView, _UIDualPaneView, _UIDualPaneDividerView, UIViewPropertyAnimator */
+/* global JSClass, JSRect, JSColor, JSDeepCopy, UICursor, JSReadOnlyProperty, JSDynamicProperty, UIViewController, UIDualPaneViewController, JSPoint, UIView, _UIDualPaneView, _UIDualPaneDividerView, UIViewPropertyAnimator */
 'use strict';
 
 JSClass("UIDualPaneViewController", UIViewController, {
@@ -15,23 +15,20 @@ JSClass("UIDualPaneViewController", UIViewController, {
     _defaultViewClass: "_UIDualPaneView",
 
     initWithSpec: function(spec, values){
-        UIDualPaneViewController.$super.initWithSpec.call(this, spec, values);
         if ('leadingPaneViewController' in values){
             this._leadingPaneViewController = spec.resolvedValue(values.leadingPaneViewController);
-            this.addChildViewController(this._leadingPaneViewController);
         }
         if ('trailingPaneViewController' in values){
             this._trailingPaneViewController = spec.resolvedValue(values.trailingPaneViewController);
-            this.addChildViewController(this._trailingPaneViewController);
         }
         if ('mainContentViewController' in values){
             this._mainContentViewController = spec.resolvedValue(values.mainContentViewController);
-            this.addChildViewController(this._mainContentViewController);
         }
         if ('view' in values){
             // Set properties that can't really be defined in the spec because
             // we always want them to be the same thing.  This ensures they're
             // populated and set correctly when the view is loaded from the spec
+            values = JSDeepCopy(values);
             if (this._leadingPaneViewController !== null){
                 values.view.leadingView = this._leadingPaneViewController.view;
             }
@@ -39,6 +36,16 @@ JSClass("UIDualPaneViewController", UIViewController, {
                 values.view.trailingView = this._trailingPaneViewController.view;
             }
             values.view.mainView = this._mainContentViewController.view;
+        }
+        UIDualPaneViewController.$super.initWithSpec.call(this, spec, values);
+        if (this._leadingPaneViewController !== null){
+            this.addChildViewController(this._leadingPaneViewController);
+        }
+        if (this._trailingPaneViewController !== null){
+            this.addChildViewController(this._trailingPaneViewController);
+        }
+        if (this._mainContentViewController !== null){
+            this.addChildViewController(this._mainContentViewController);
         }
     },
 

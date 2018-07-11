@@ -13,15 +13,6 @@ JSClass("UIScene", JSObject, {
         this._commonInit();
     },
 
-    initWithSpecName: function(specName){
-        var spec = JSSpec.initWithResource(specName);
-        var owner = spec.filesOwner;
-        if (owner.isKindOfClass(UIScene)){
-            return owner;
-        }
-        return null;
-    },
-
     initWithSpec: function(spec, values){
         UIScene.$super.initWithSpec.call(this, spec, values);
         this._commonInit();
@@ -63,15 +54,16 @@ JSClass("UIScene", JSObject, {
     },
 
     close: function(){
+        var windowServer = this.application.windowServer;
+        if (this.menuBar){
+            windowServer.menuBar = null;
+        }
         var window;
-        for (var i = 0, l = this.windowStack.length; i < l; ++i){
-            window = this.windowStack[i];
+        for (var i = windowServer.windowStack.length - 1; i >= 0; --i){
+            window = windowServer.windowStack[i];
             window.close();
         }
-        if (this.menuBar){
-            this.application.windowServer.menuBar = null;
-        }
-    }
+    },
 
 });
 

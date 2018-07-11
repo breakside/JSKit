@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIResponder.js"
-/* global JSClass, JSObject, UIResponder, UIView, JSDynamicProperty, UIViewController, JSReadOnlyProperty */
+/* global JSClass, JSObject, UIResponder, JSCopy, UIView, JSDynamicProperty, UIViewController, JSReadOnlyProperty */
 'use strict';
 
 JSClass("UIViewController", UIResponder, {
@@ -19,6 +19,7 @@ JSClass("UIViewController", UIResponder, {
         // Delaying the typical outlet and binding instantiation until we load the
         // view because most outlets will likely be subviews, and we don't want
         // to do any work instantiating them until a view load is requested.
+        values = JSCopy(values);
         if ('outlets' in values){
             delete values.outlets;
         }
@@ -26,12 +27,6 @@ JSClass("UIViewController", UIResponder, {
             delete values.bindings;
         }
         UIViewController.$super.initWithSpec.call(this, spec, values);
-        if (this._outletsInSpec){
-            values.outlets = this._outletsInSpec;
-        }
-        if (this._bindingsInSpec){
-            values.bindings = this._bindingsInSpec;
-        }
         if ('tabViewItem' in values){
             this.tabViewItem = spec.resolvedValue(values.tabViewItem, "UITabViewItem");
         }
@@ -57,6 +52,15 @@ JSClass("UIViewController", UIResponder, {
 
     loadView: function(){
         this._view = JSClass.FromName(this._defaultViewClass).init();
+    },
+
+    unloadView: function(){
+        if (this._view !== null){
+            this._view.viewController = null;
+            this._view = null;
+            this.isViewLoaded = false;
+            this.viewDidUnload();
+        }
     },
 
     _loadViewIfNeeded: function(){
@@ -90,6 +94,9 @@ JSClass("UIViewController", UIResponder, {
     // MARK: - View Lifecycle
 
     viewDidLoad: function(){
+    },
+
+    viewDidUnload: function(){
     },
 
     viewWillAppear: function(){

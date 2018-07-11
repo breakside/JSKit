@@ -1,5 +1,5 @@
 // #import "UIKit/UIViewController.js"
-/* global JSClass, UIViewController, JSReadOnlyProperty, UIWindowController, JSProtocol */
+/* global JSClass, UIViewController, JSReadOnlyProperty, JSCopy, UIWindowController, JSProtocol, JSSpec */
 'use strict';
 
 JSClass("UIWindowController", UIViewController, {
@@ -8,6 +8,7 @@ JSClass("UIWindowController", UIViewController, {
     windowDelegate: null,
 
     initWithSpec: function(spec, values){
+        values = JSCopy(values);
         if ('window' in values){
             values.view = values.window;
         }else if ('view' in values){
@@ -85,6 +86,7 @@ JSClass("UIWindowController", UIViewController, {
 
     close: function(){
         this.window.close();
+        this.unloadView();
     }
 
 });

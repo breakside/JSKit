@@ -1,7 +1,7 @@
 // #import "UIKit/UIViewController.js"
 // #import "UIKit/UIListView.js"
 // #import "UIKit/UIListViewCell.js"
-/* global JSClass, UIViewController, UIListViewController, UIListView, UIListViewCell, JSReadOnlyProperty */
+/* global JSClass, UIViewController, UIListViewController, JSDeepCopy, UIListView, UIListViewCell, JSReadOnlyProperty */
 'use strict';
 
 JSClass("UIListViewController", UIViewController, {
@@ -13,8 +13,8 @@ JSClass("UIListViewController", UIViewController, {
     },
 
     initWithSpec: function(spec, values){
-        UIListViewController.$super.initWithSpec.call(this, spec, values);
         if ('view' in values){
+            values = JSDeepCopy(values);
             if (!('delegate' in values)){
                 values.view.delegate = this;
             }
@@ -22,6 +22,7 @@ JSClass("UIListViewController", UIViewController, {
                 values.view.dataSource = this;
             }
         }
+        UIListViewController.$super.initWithSpec.call(this, spec, values);
     },
 
     getListView: function(){

@@ -1,5 +1,5 @@
 // #import "UIKit/UIView.js"
-/* global JSClass, UIView, UIScrollView, JSDynamicProperty, JSInsets, JSProtocol, JSReadOnlyProperty, UIScroller, UIControl, JSPoint, JSRect, JSSize */
+/* global JSClass, UIView, UIScrollView, JSDynamicProperty, JSDeepCopy, JSInsets, JSProtocol, JSReadOnlyProperty, UIScroller, UIControl, JSPoint, JSRect, JSSize */
 'use strict';
 
 JSProtocol("UIScrollViewDelegate", JSProtocol, {
@@ -28,6 +28,7 @@ JSClass('UIScrollView', UIView, {
         var contentSubviews = [];
         if ('subviews' in values){
             if ('contentView' in values){
+                values = JSDeepCopy(values);
                 values.contentView.subviews = values.subviews;
             }else{
                 contentSubviews = values.subviews;

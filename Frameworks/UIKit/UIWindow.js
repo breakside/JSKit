@@ -633,6 +633,11 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
 
         window.contentInsets = JSInsets(this._titlebarSize, 0, 0, 0);
 
+        window.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.4);
+        window.shadowRadius = 40;
+        window.cornerRadius = 6;
+        window.backgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255,1);
+
         this.updateWindow(window);
     },
 

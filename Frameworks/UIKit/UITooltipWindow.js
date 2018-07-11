@@ -1,6 +1,6 @@
 // #import "UIKit/UIWindow.js"
 // #import "UIKit/UILabel.js"
-/* global JSClass, UIWindow, UILabel, UIView, JSFont, JSRect, JSPoint, JSSize, JSInsets, JSColor, JSAttributedString, UITooltipWindow */
+/* global JSClass, UIWindow, UILabel, UIView, JSFont, JSRect, JSPoint, JSSize, JSInsets, JSColor, JSAttributedString, UITooltipWindow, UIWindowCustomStyler */
 'use strict';
 
 JSClass("UITooltipWindow", UIWindow, {
@@ -13,6 +13,7 @@ JSClass("UITooltipWindow", UIWindow, {
     },
 
     initWithProperties: function(str, font, textColor, labelInsets, maxSize){
+        this._styler = UIWindowCustomStyler.shared;
         UITooltipWindow.$super.init.call(this);
         var label = UILabel.init();
         label.font = font;

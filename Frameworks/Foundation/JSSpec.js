@@ -32,8 +32,7 @@ JSClass('JSSpec', JSObject, {
     },
 
     _getFilesOwner: function(){
-        var value = this._plist[JSSpec.Keys.FilesOwner];
-        return this.resolvedValue(value, "JSObject");
+        return this.resolvedValue("/File's Owner", "JSObject");
     },
 
     resolvedValue: function(value, defaultClassName){

@@ -71,6 +71,15 @@ JSObject.definePropertiesFromExtensions({
         }
     },
 
+    initWithSpecName: function(specName){
+        var spec = JSSpec.initWithResource(specName);
+        var owner = spec.filesOwner;
+        if (owner.isKindOfClass(this.$class)){
+            return owner;
+        }
+        return null;
+    },
+
     initWithSpec: function(spec, values){
         if ("bindings" in values){
             this._initSpecBindings(spec, values.bindings);
