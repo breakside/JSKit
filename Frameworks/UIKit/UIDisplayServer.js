@@ -219,7 +219,10 @@ JSClass("UIDisplayServer", JSObject, {
                         completedAnimations.push(animation);
                     }
                 }
-                this.layerDidChangeProperty(layer, key);
+                var parts = key.split('.');
+                if (parts[0] in layer.presentation && !layer.presentation.hasOwnProperty(parts[0])){
+                    this.layerDidChangeProperty(layer, key);
+                }
             }
             if (layer.animationCount === 0){
                 delete this.layerAnimationQueue[id];

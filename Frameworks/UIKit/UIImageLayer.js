@@ -24,13 +24,21 @@ JSClass("UIImageLayer", UILayer, {
         this.setNeedsDisplay();
     },
 
+    boundsOriginDidChange: function(){
+        UIImageLayer.$super.boundsOriginDidChange.call(this);
+        this.setNeedsDisplay();
+    },
+
     drawInContext: function(context){
         if (this._image !== null && this.presentation.imageFrame.size.width > 0 && this.presentation.imageFrame.size.height > 0){
             var image = this._image;
             if (this._renderMode == UIImageLayer.RenderMode.template){
                 image = image.templateImageWithColor(this.templateColor);
             }
-            context.drawImage(image, this.presentation.imageFrame);
+            var imageFrame = JSRect(this.presentation.imageFrame);
+            imageFrame.origin.x -= this.bounds.origin.x;
+            imageFrame.origin.y -= this.bounds.origin.y;
+            context.drawImage(image, imageFrame);
         }
     },
 

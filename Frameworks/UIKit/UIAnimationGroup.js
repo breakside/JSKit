@@ -32,13 +32,9 @@ JSClass('UIAnimationGroup', UIAnimation, {
     updateForTime: function(t){
         var animation;
         var allComplete = true;
-        this._percentComplete = 1;
         for (var i = 0, l = this.animations.length; i < l; ++i){
             animation = this.animations[i];
             animation.updateForTime(t);
-            if (animation.percentComplete < this._percentComplete){
-                this._percentComplete = animation.percentComplete;
-            }
             if (allComplete && !animation.isComplete){
                 allComplete = false;
             }
