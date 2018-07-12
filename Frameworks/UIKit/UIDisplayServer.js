@@ -220,7 +220,7 @@ JSClass("UIDisplayServer", JSObject, {
                     }
                 }
                 var parts = key.split('.');
-                if (parts[0] in layer.presentation && !layer.presentation.hasOwnProperty(parts[0])){
+                if (parts[0] in layer.presentation){
                     this.layerDidChangeProperty(layer, key);
                 }
             }
