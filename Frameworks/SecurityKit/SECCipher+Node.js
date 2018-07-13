@@ -40,7 +40,7 @@ SECCipher.definePropertiesFromExtensions({
     createKeyWithPassphrase: function(passphrase, salt, completion, target){
         var utf8Passphrase = String.fromCharCode.apply(String, passphrase.utf8().bytes);
         var saltString = String.fromCharCode.apply(String, salt.bytes);
-        crypto.pbkdf2(utf8Passphrase, saltString, 1000000, 32, 'sha512', function(error, derivedBytes){
+        crypto.pbkdf2(utf8Passphrase, saltString, 500000, 32, 'sha512', function(error, derivedBytes){
             if (error){
                 completion.call(target, null);
             }else{
@@ -105,13 +105,13 @@ SECCipherAESCounter.definePropertiesFromExtensions({
         try{
             var nonce = data.subdataInRange(JSRange(0, 8)).bytes;
             this.decryptedMessageId =
-                  (nonce.bytes[6] << 48)
-                | (nonce.bytes[5] << 40)
-                | (nonce.bytes[4] << 32)
-                | (nonce.bytes[3] << 24)
-                | (nonce.bytes[2] << 16)
-                | (nonce.bytes[1] << 8)
-                | (nonce.bytes[0]);
+                  (nonce[6] << 48)
+                | (nonce[5] << 40)
+                | (nonce[4] << 32)
+                | (nonce[3] << 24)
+                | (nonce[2] << 16)
+                | (nonce[1] << 8)
+                | (nonce[0]);
             var iv = new Uint8Array(16);
             nonce.copyTo(iv, 0);
             var cipher = crypto.createDecipheriv('AES-256-CTR', key.keyData.bytes, iv);
@@ -155,13 +155,13 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         try{
             var nonce = data.subdataInRange(JSRange(0, 8)).bytes;
             this.decryptedMessageId =
-                  (nonce.bytes[6] << 48)
-                | (nonce.bytes[5] << 40)
-                | (nonce.bytes[4] << 32)
-                | (nonce.bytes[3] << 24)
-                | (nonce.bytes[2] << 16)
-                | (nonce.bytes[1] << 8)
-                | (nonce.bytes[0]);
+                  (nonce[6] << 48)
+                | (nonce[5] << 40)
+                | (nonce[4] << 32)
+                | (nonce[3] << 24)
+                | (nonce[2] << 16)
+                | (nonce[1] << 8)
+                | (nonce[0]);
             var iv = new Uint8Array(16);
             nonce.copyTo(iv, 0);
             var cipher = crypto.createDecipheriv('id-aes256-GCM', key.keyData.bytes, iv);

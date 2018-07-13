@@ -68,7 +68,7 @@ SECCipher.definePropertiesFromExtensions({
             var algorithm = {
                 name: HTMLCryptoAlgorithmNames.pbkdf2,
                 salt: salt.bytes,
-                iterations: 1000000,
+                iterations: 500000,
                 hash: 'SHA-512'
             };
             var derivedAlgorithm = {

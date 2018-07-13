@@ -1,9 +1,10 @@
 // #feature Uint8Array
 // #import "Foundation/Uint8Array+JS.js"
 // #import "Foundation/String+JS.js"
+/* global JSGlobalObject, UUID */
 'use strict';
 
-var UUID = function(version){
+JSGlobalObject.UUID = function(version){
   if (this === undefined){
     return (new UUID()).string;
   }
