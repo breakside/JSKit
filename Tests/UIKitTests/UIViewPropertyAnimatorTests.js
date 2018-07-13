@@ -1,7 +1,7 @@
 // #import "UIKit/UIKit.js"
 // #import "TestKit/TestKit.js"
 // #import "MockWindowServer.js"
-/* global JSClass, TKTestSuite, JSPoint, UIApplication, UIWindow, UIViewPropertyAnimator, MockWindowServer, UIView, TKExpectation */
+/* global JSClass, TKTestSuite, JSFont, JSPoint, UIApplication, UIRootWindow, UIViewPropertyAnimator, MockWindowServer, UIView, TKExpectation */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
@@ -18,7 +18,7 @@ JSClass("UIViewPropertyAnimatorTests", TKTestSuite, {
     },
 
     testStart: function(){
-        var window = UIWindow.init();
+        var window = UIRootWindow.init();
         window.contentView = UIView.init();
         var view = UIView.init();
         view.position = JSPoint(0, 0);
@@ -58,7 +58,7 @@ JSClass("UIViewPropertyAnimatorTests", TKTestSuite, {
     },
 
     testStop: function(){
-        var window = UIWindow.init();
+        var window = UIRootWindow.init();
         window.contentView = UIView.init();
         var view = UIView.init();
         view.position = JSPoint(0, 0);

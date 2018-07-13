@@ -1,6 +1,6 @@
 // #import "UIKit/UIKit.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, JSObject, UITouch, TKTestSuite, UIWindow, UIView, JSRect, JSPoint */
+/* global JSClass, JSObject, UITouch, TKTestSuite, UIRootWindow, UIView, JSRect, JSPoint */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
 'use strict';
 
@@ -9,7 +9,7 @@
 JSClass("UITouchTests", TKTestSuite, {
 
     testInit: function(){
-        var window = UIWindow.init();
+        var window = UIRootWindow.init();
         var touch = UITouch.initWithIdentifier(1, 123, window, JSPoint(5, 10));
         TKAssertEquals(touch.identifier, 1);
         TKAssertExactEquals(touch.window, window);
@@ -20,7 +20,7 @@ JSClass("UITouchTests", TKTestSuite, {
     },
 
     testUpdate: function(){
-        var window = UIWindow.init();
+        var window = UIRootWindow.init();
         var touch = UITouch.initWithIdentifier(2, 123, window, JSPoint(5, 10));
         TKAssertEquals(touch.identifier, 2);
         touch.update(UITouch.Phase.moved, 124, window, JSPoint(6, 9));
@@ -33,7 +33,7 @@ JSClass("UITouchTests", TKTestSuite, {
     },
 
     testIsActive: function(){
-        var window = UIWindow.init();
+        var window = UIRootWindow.init();
         var touch = UITouch.initWithIdentifier(2, 123, window, JSPoint(5, 10));
         TKAssertEquals(touch.isActive(), true);
         touch.update(UITouch.Phase.moved, 124, window, JSPoint(6, 9));
@@ -50,7 +50,7 @@ JSClass("UITouchTests", TKTestSuite, {
     },
 
     testLocationInView: function(){
-        var window = UIWindow.init();
+        var window = UIRootWindow.init();
         var view1 = UIView.initWithFrame(JSRect(10, 15, 20, 25));
         var view2 = UIView.initWithFrame(JSRect(2, 3, 7, 8));
         window.contentView.addSubview(view1);

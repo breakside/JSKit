@@ -22,7 +22,6 @@ JSClass('UIApplication', UIResponder, {
         this.windowServer = windowServer;
         this._windowsById = {};
         this.bundle = JSBundle.mainBundle;
-        this.setup();
     },
 
     deinit: function(){
@@ -40,7 +39,10 @@ JSClass('UIApplication', UIResponder, {
 
     setupFonts: function(){
         JSFont.registerBundleFonts(this.bundle);
-        JSFont.registerSystemFontResource(this.bundle.info[UIApplication.InfoKeys.systemFont]);
+        var systemFontName = this.bundle.info[UIApplication.InfoKeys.systemFont];
+        if (systemFontName){
+            JSFont.registerSystemFontResource(systemFontName);
+        }
     },
 
     setupDelegate: function(){

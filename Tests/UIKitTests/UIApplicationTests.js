@@ -1,7 +1,7 @@
 // #import "UIKit/UIKit.js"
 // #import "TestKit/TestKit.js"
 // #import "MockWindowServer.js"
-/* global JSClass, JSObject, TKTestSuite, UITouch, JSPoint, MockWindowServer, MockLayer, UIApplication, UIEvent, TKAssert, TKAssertNull, TKAssertEquals, TKAssertNotNull, TKAssertExactEquals, TKAssertThrows */
+/* global JSClass, JSObject, TKTestSuite, UIRootWindow, JSBundle, TKExpectation, UITouch, JSPoint, MockWindowServer, MockLayer, UIApplication, UIEvent, TKAssert, TKAssertNull, TKAssertEquals, TKAssertNotNull, TKAssertExactEquals, TKAssertThrows */
 'use strict';
 
 (function(){
@@ -50,13 +50,26 @@ JSClass("UIApplicationTests", TKTestSuite, {
 
     testDelegateDidFinishLaunching: function(){
         var launched = false;
-        this.app.delegate = {
+        var app = this.app;
+        app.delegate = {
             applicationDidFinishLaunching: function(){
                 launched = true;
+                var window = UIRootWindow.initWithApplication(app);
+                window.open();
             }
         };
-        this.app.run();
-        TKAssert(launched);
+        var expectation = TKExpectation.init();
+        app.bundle = JSBundle.initWithDictionary({
+            Info: {
+                UIApplicationRequiresUserDefaults: false,
+                UIApplicationRequiresFileManager: false
+            }
+        });
+        expectation.call(app.run, app, function(success){
+            TKAssert(success);
+            TKAssert(launched);
+        });
+        this.wait(expectation, 1.0);
     },
 
     testWindows: function(){

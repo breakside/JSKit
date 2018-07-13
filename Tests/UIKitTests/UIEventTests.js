@@ -1,6 +1,6 @@
 // #import "UIKit/UIKit.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, JSObject, UIEvent, UITouch, TKTestSuite, UIWindow, UIView, JSRect, JSPoint */
+/* global JSClass, JSObject, UIEvent, UITouch, TKTestSuite, UIRootWindow, UIView, JSRect, JSPoint */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
 'use strict';
 
@@ -9,7 +9,7 @@
 JSClass("UIEventTests", TKTestSuite, {
 
     testInitMouseEvent: function(){
-        var window = UIWindow.init();
+        var window = UIRootWindow.init();
         var event = UIEvent.initMouseEventWithType(UIEvent.Type.leftMouseDown, 1, window, JSPoint(200, 100));
         TKAssertEquals(event.category, UIEvent.Category.mouse);
         TKAssertEquals(event.type, UIEvent.Type.leftMouseDown);
@@ -19,7 +19,7 @@ JSClass("UIEventTests", TKTestSuite, {
     },
 
     testInitKeyEvent: function(){
-        var window = UIWindow.init();
+        var window = UIRootWindow.init();
         var event = UIEvent.initKeyEventWithType(UIEvent.Type.keyDown, 1, window, 5);
         TKAssertEquals(event.category, UIEvent.Category.key);
         TKAssertEquals(event.type, UIEvent.Type.keyDown);
@@ -36,7 +36,7 @@ JSClass("UIEventTests", TKTestSuite, {
     },
 
     testInitScrollEvent: function(){
-        var window = UIWindow.init();
+        var window = UIRootWindow.init();
         var event = UIEvent.initScrollEventWithType(UIEvent.Type.scrollWheel, 1, window, JSPoint(100, 200), 10, -3);
         TKAssertEquals(event.category, UIEvent.Category.scroll);
         TKAssertEquals(event.type, UIEvent.Type.scrollWheel);
@@ -47,7 +47,7 @@ JSClass("UIEventTests", TKTestSuite, {
     },
 
     testLocationInView: function(){
-        var window = UIWindow.init();
+        var window = UIRootWindow.init();
         var view1 = UIView.initWithFrame(JSRect(10, 15, 20, 25));
         var view2 = UIView.initWithFrame(JSRect(2, 3, 7, 8));
         window.contentView.addSubview(view1);
@@ -60,7 +60,7 @@ JSClass("UIEventTests", TKTestSuite, {
     },
 
     testAddTouch: function(){
-        var window = UIWindow.init();
+        var window = UIRootWindow.init();
         var event = UIEvent.initTouchEventWithType(UIEvent.Type.touchesBegan, 123);
         TKAssertEquals(event.windows.length, 0);
         TKAssertEquals(event.touches.length, 0);
@@ -81,9 +81,9 @@ JSClass("UIEventTests", TKTestSuite, {
     },
 
     testUpdateTouches: function(){
-        var window1 = UIWindow.init();
-        var window2 = UIWindow.init();
-        var window3 = UIWindow.init();
+        var window1 = UIRootWindow.init();
+        var window2 = UIRootWindow.init();
+        var window3 = UIRootWindow.init();
         var touch1 = UITouch.initWithIdentifier(1, 123, window1, JSPoint(5, 10));
         var touch2 = UITouch.initWithIdentifier(2, 123, window1, JSPoint(15, 110));
         var touch3 = UITouch.initWithIdentifier(2, 123, window2, JSPoint(15, 110));
@@ -120,7 +120,7 @@ JSClass("UIEventTests", TKTestSuite, {
     },
 
     testTouchForIdentifier: function(){
-        var window = UIWindow.init();
+        var window = UIRootWindow.init();
         var event = UIEvent.initTouchEventWithType(UIEvent.Type.touchesBegan, 123);
         var touch1 = UITouch.initWithIdentifier(1, 123, window, JSPoint(5, 10));
         var touch2 = UITouch.initWithIdentifier(2, 123, window, JSPoint(15, 110));
@@ -135,9 +135,9 @@ JSClass("UIEventTests", TKTestSuite, {
     },
 
     testTouchesForWindow: function(){
-        var window1 = UIWindow.init();
-        var window2 = UIWindow.init();
-        var window3 = UIWindow.init();
+        var window1 = UIRootWindow.init();
+        var window2 = UIRootWindow.init();
+        var window3 = UIRootWindow.init();
         var event = UIEvent.initTouchEventWithType(UIEvent.Type.touchesBegan, 123);
         var touch1 = UITouch.initWithIdentifier(1, 123, window1, JSPoint(5, 10));
         var touch2 = UITouch.initWithIdentifier(2, 123, window1, JSPoint(15, 110));

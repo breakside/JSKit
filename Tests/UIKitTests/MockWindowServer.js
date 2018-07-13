@@ -112,7 +112,11 @@ JSClass("MockTextInputManager", UITextInputManager, {
     responder: null,
 
     windowDidChangeResponder: function(window){
-        this.responder = window.firstResponder;
+        if (window){
+            this.responder = window.firstResponder;
+        }else{
+            this.responder = null;
+        }
     }
 
 });

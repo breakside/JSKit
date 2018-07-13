@@ -2,7 +2,7 @@
 // #import "Foundation/JSBundle.js"
 // #import "Foundation/JSData.js"
 // #import "Foundation/JSURL.js"
-/* global window, JSClass, JSObject, JSCopy, JSLazyInitProperty, JSFileManager, JSData, JSBundle, JSURL, jslog_create */
+/* global self, window, JSClass, JSObject, JSCopy, JSLazyInitProperty, JSFileManager, JSData, JSBundle, JSURL, jslog_create */
 'use strict';
 
 (function(){
@@ -685,7 +685,13 @@ JSFileManagerTransaction.prototype = {
 
 };
 
-var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
+var indexedDB;
+
+if (self){
+    indexedDB = self.indexedDB;
+}else if (window){
+    indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
+}
 
 var CURRENT_DATABASE_VERSION = 1;
 

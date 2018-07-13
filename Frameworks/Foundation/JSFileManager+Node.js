@@ -28,8 +28,11 @@ JSFileManager.definePropertiesFromExtensions({
     },
 
     _getPersistentContainerURL: function(){
-        // TODO: neeed some user-defined root folder to put containers in 
-        return JSURL.initWithString('%s:///Containers/%s'.sprintf(JSFileManager.Scheme.file, JSBundle.mainBundleIdentifier));
+        var rootPath = bundle.info.JSFileManagerPersistentRootPath;
+        if (rootPath){
+            return JSURL.initWithString('%s://%s/Containers/%s'.sprintf(JSFileManager.Scheme.file, rootPath, JSBundle.mainBundleIdentifier));
+        }
+        return null;
     },
 
     // --------------------------------------------------------------------

@@ -1,7 +1,7 @@
 // #import "UIKit/UIKit.js"
 // #import "TestKit/TestKit.js"
 // #import "MockWindowServer.js"
-/* global JSClass, TKTestSuite, UIWindowServer, UIWindow, MockWindowServer, UIApplication */
+/* global JSClass, TKTestSuite, UIWindowServer, UIWindow, MockWindowServer, UIApplication, JSFont */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
@@ -13,11 +13,13 @@ JSClass("UIWindowServerTests", TKTestSuite, {
     setup: function(){
         this.windowServer = MockWindowServer.init();
         this.app = UIApplication.initWithWindowServer(this.windowServer);
+        JSFont.registerDummySystemFont();
     },
 
     teardown: function(){
         this.app.deinit();
         this.app = null;
+        JSFont.unregisterDummySystemFont();
     },
 
     testWindowLevels: function(){

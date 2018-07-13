@@ -1,12 +1,12 @@
 // #import "UIKit/UIKit.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, UIResponder, UIEvent, UIWindow, TKAssert, TKAssertExactEquals, TKTestSuite, JSPoint, TKAssertEquals */
+/* global JSClass, UIResponder, UIEvent, UIRootWindow, TKAssert, TKAssertExactEquals, TKTestSuite, JSPoint, TKAssertEquals */
 'use strict';
 
 JSClass("UIResponderTests", TKTestSuite, {
 
     testEvents: function(){
-        var window = UIWindow.init();
+        var window = UIRootWindow.init();
 
         var Responder1 = UIResponder.$extend({
 

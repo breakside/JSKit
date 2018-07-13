@@ -68,7 +68,7 @@ JSClass('UIWindow', UIView, {
         }
         this.clipsToBounds = true;
         if (this._contentView === null){
-            this._contentView = UIView.init();
+            this.contentView = UIView.init();
         }
         this._contentInsets = JSInsets.Zero;
         if (this._styler === null){

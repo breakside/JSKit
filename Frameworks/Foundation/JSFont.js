@@ -316,6 +316,50 @@ JSFont.registerSystemFont = function(familyName, weight, style){
     JSFont._systemFontDescriptor = JSFontDescriptor.initWithProperties(familyName, weight || JSFont.Weight.regular, style || JSFont.Style.normal);
 };
 
+JSFont.registerDummySystemFont = function(){
+    var familyName = "Dummy";
+    var descriptor = JSFontDescriptor.initWithFamily(familyName);
+    var family = [];
+    var weights = [
+        'ultraLight',
+        'thin',
+        'light',
+        'regular',
+        'medium',
+        'semibold',
+        'bold',
+        'heavy',
+        'black',
+    ];
+    var weight;
+    var name;
+    for (var i = 0; i < weights.length; i++){
+        weight = weights[i];
+        name = familyName + "-" + weight;
+        family.push({
+            unique_identifier: name,
+            family: descriptor.family,
+            weight: JSFont.Weight[weight],
+            style: descriptor.style,
+            name: name,
+            postscript_name: name,
+            face: weight,
+            unitsPerEM: 2048,
+            ascender: 1700,
+            descender: -300
+        });
+    }
+    JSFont._systemFontDescriptor = descriptor;
+    JSFont._families[familyName] = family;
+};
+
+JSFont.unregisterDummySystemFont = function(){
+    if (this._systemFontDescriptor){
+        delete JSFont._families[this._systemFontDescriptor.family];
+        this._systemFontDescriptor = null;
+    }
+};
+
 JSFont.systemFontOfSize = function(pointSize){
     if (this._systemFontDescriptor === null){
         return null;
