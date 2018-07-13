@@ -2,7 +2,7 @@
 // #import "Foundation/JSBundle.js"
 // #import "Foundation/JSData.js"
 // #import "Foundation/JSURL.js"
-/* global window, JSClass, JSObject, JSCopy, JSLazyInitProperty, JSFileManager, JSData, JSBundle, JSURL, jslog_create */
+/* global require, process, JSClass, JSObject, JSCopy, JSLazyInitProperty, JSFileManager, JSData, JSBundle, JSURL, jslog_create */
 'use strict';
 
 var logger = jslog_create("JSFileManager");
@@ -12,12 +12,14 @@ var pathLib = require('path');
 
 JSFileManager.definePropertiesFromExtensions({
 
+    _rootPath: null,
+
     // --------------------------------------------------------------------
     // MARK: - Opening the File System
 
     open: function(completion, target){
-        // TODO: how to coordinate this with destroy() for testing?
-        // Maybe keep track of created folders/files?
+        this._rootPath = pathLib.join(process.cwd(), 'io.breakside.jskit.JSFileManager');
+        completion.call(target, JSFileManager.State.success);
     },
 
     // --------------------------------------------------------------------
@@ -28,11 +30,7 @@ JSFileManager.definePropertiesFromExtensions({
     },
 
     _getPersistentContainerURL: function(){
-        var rootPath = bundle.info.JSFileManagerPersistentRootPath;
-        if (rootPath){
-            return JSURL.initWithString('%s://%s/Containers/%s'.sprintf(JSFileManager.Scheme.file, rootPath, JSBundle.mainBundleIdentifier));
-        }
-        return null;
+        return JSURL.initWithString('%s://%s/Containers/%s'.sprintf(JSFileManager.Scheme.file, this._rootPath, JSBundle.mainBundleIdentifier));
     },
 
     // --------------------------------------------------------------------
@@ -46,7 +44,7 @@ JSFileManager.definePropertiesFromExtensions({
             throw new Error("JSFileManager.itemExistsAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
         fs.stat(url.path, function(error, stats){
-            completion.call(target, !error);
+            completion.call(target, error === null);
         });
     },
 
@@ -104,21 +102,23 @@ JSFileManager.definePropertiesFromExtensions({
     _createFolderWithAncestorsAtURL: function(url, completion){
         var parent = url.removingLastPathComponent();
         var manager = this;
-        var create = function(parentExists){
-            if (parentExists){
-                fs.mkdir(url.path, completion);
+        var create = function(parentError){
+            if (parentError === null){
+                fs.mkdir(url.path, function(error){
+                    completion(error);
+                });
             }else{
-                completion(false);
+                completion(parentError);
             }
         };
         if (parent.pathComponents.length === 0){
-            completion(false);
+            completion(new Error("Parent has no path"));
         }else{
             fs.stat(parent.path, function(error, stat){
                 if (error === null){
-                    create(stat.isDirectory());
+                    create(stat.isDirectory() ? null : new Error("Parent is not a directory"));
                 }else{
-                    manager._createFolderAtURL(parent, completion);
+                    manager._createFolderWithAncestorsAtURL(parent, create);
                 }
             });
         }
@@ -149,19 +149,12 @@ JSFileManager.definePropertiesFromExtensions({
                 completion.call(target, false);
             }
         };
-        fs.stat(url.path, function(error, stat){
+        fs.stat(parent.path, function(error, stat){
             if (error === null){
-                // we don't want to overwrite a file that already exists
-                completion.call(target, false);
+                create(stat.isDirectory());
             }else{
-                fs.stat(parent.path, function(error, stat){
-                    if (error === null){
-                        create(stat.isDirectory());
-                    }else{
-                        manager._createFolderWithAncestorsAtURL(parent, function(error){
-                            create(error === null);
-                        });
-                    }
+                manager._createFolderWithAncestorsAtURL(parent, function(error){
+                    create(error === null);
                 });
             }
         });
@@ -173,16 +166,14 @@ JSFileManager.definePropertiesFromExtensions({
     moveItemAtURL: function(url, toURL, completion, target){
         if (!url.isAbsolute){
             logger.warn("relative URL passed to moveItemAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
         }
         if (!toURL.isAbsolute){
             logger.warn("relative URL passed to moveItemAtURL");
-            toURL = JSURL.initWithBaseURL(this.workingDirectoryURL, toURL);
         }
-        if (url.scheme != JSFileManager.Scheme.jskitfile){
+        if (url.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.moveItemAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
-        if (toURL.scheme != JSFileManager.Scheme.jskitfile){
+        if (toURL.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.moveItemAtURL unsupported scheme: %s".sprintf(toURL.scheme));
         }
         if (url.pathComponents.length === 1){
@@ -194,28 +185,23 @@ JSFileManager.definePropertiesFromExtensions({
         if (url.path == toURL.path){
             throw new Error("JSFileManager.moveItemAtURL target and destination are the same");
         }
-        var transaction = this.begin(JSFileManager.Permission.readwrite, JSFileManager.Tables.metadata);
-        transaction.addCompletion(completion, target);
         var toParent = toURL.removingLastPathComponent();
         var manager = this;
-        manager._metadataInTransactionAtURL(transaction, url, function(metadata){
-            if (metadata === null){
-                transaction.abort();
+        fs.stat(url.path, function(error, stat){
+            var move = function(toParentExists){
+                if (toParentExists){
+                    fs.rename(url.path, toURL.path, function(error){
+                        completion.call(target, error === null);
+                    });
+                }else{
+                    completion.call(target, false);
+                }
+            };
+            if (error === null){
+                move(stat.isDirectory());
             }else{
-                var move = function(toParentExists){
-                    if (toParentExists){
-                        metadata.parent = toParent.path;
-                        transaction.metadata.put(metadata);
-                    }else{
-                        transaction.abort();
-                    }
-                };
-                manager._metadataInTransactionAtURL(transaction, toParent, function(toParentMetadata){
-                    if (toParentMetadata !== null){
-                        move(true);
-                    }else{
-                        manager._createFolderInTransactionAtURL(transaction, toParent, move);
-                    }
+                manager._createFolderWithAncestorsAtURL(toParent, function(error){
+                    move(error === null);
                 });
             }
         });
@@ -224,16 +210,14 @@ JSFileManager.definePropertiesFromExtensions({
     copyItemAtURL: function(url, toURL, completion, target){
         if (!url.isAbsolute){
             logger.warn("relative URL passed to copyItemAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
         }
         if (!toURL.isAbsolute){
             logger.warn("relative URL passed to copyItemAtURL");
-            toURL = JSURL.initWithBaseURL(this.workingDirectoryURL, toURL);
         }
-        if (url.scheme != JSFileManager.Scheme.jskitfile){
+        if (url.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.copyItemAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
-        if (toURL.scheme != JSFileManager.Scheme.jskitfile){
+        if (toURL.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.copyItemAtURL unsupported scheme: %s".sprintf(toURL.scheme));
         }
         if (url.pathComponents.length === 1){
@@ -245,80 +229,74 @@ JSFileManager.definePropertiesFromExtensions({
         if (url.path == toURL.path){
             throw new Error("JSFileManager.copyItemAtURL target and destination are the same");
         }
-        var transaction = this.begin(JSFileManager.Permission.readwrite, [JSFileManager.Tables.metadata, JSFileManager.Tables.data]);
-        transaction.addCompletion(completion, target);
         var toParent = toURL.removingLastPathComponent();
         var manager = this;
-        manager._metadataInTransactionAtURL(transaction, url, function(metadata){
-            if (metadata === null){
-                transaction.abort();
+        fs.stat(url.path, function(error, stat){
+            var copy = function(toParentExists){
+                if (toParentExists){
+                    manager._copyItemAtURL(url, toURL, stat, completion, target);
+                }else{
+                    completion.call(target, false);
+                }
+            };
+            if (error === null){
+                copy(stat.isDirectory());
             }else{
-                var copy = function(parentExists){
-                    if (parentExists){
-                        manager._copyItemInTransactionAtURL(transaction, url, toURL, toParent, metadata);
-                    }else{
-                        transaction.abort();
-                    }
-                };
-                var manager = this;
-                manager._metadataInTransactionAtURL(transaction, toParent, function(toParentMetadata){
-                    if (toParentMetadata !== null){
-                        copy(true);
-                    }else{
-                        manager._createFolderInTransactionAtURL(transaction, toParent, copy);
-                    }
+                manager._createFolderWithAncestorsAtURL(toParent, function(error){
+                    copy(error === null);
                 });
             }
         });
     },
 
-    _copyItemInTransactionAtURL: function(transaction, url, toURL, toParent, metadata){
-        switch (metadata.itemType){
-            case JSFileManager.ItemType.folder:
-                this._copyFolderInTransactionAtURL(transaction, url, toURL, toParent, metadata);
-                break;
-            case JSFileManager.ItemType.file:
-                this._copyFileInTransactionAtURL(transaction, url, toURL, toParent, metadata);
-                break;
-            case JSFileManager.ItemType.symbolicLink:
-                this._copyMetadataInTransactionAtURL(transaction, url, toURL, toParent, metadata);
-                break;
+    _copyItemAtURL: function(url, toURL, stat, completion, target){
+        if (stat.isDirectory()){
+            this._copyFolderAtURL(url, toURL, completion, target);
+        }else{
+            this._copyFileAtURL(url, toURL, completion, target);
         }
     },
 
-    _copyFileInTransactionAtURL: function(transaction, url, toURL, toParent, metadata){
-        var getDataRequest = transaction.data.get(metadata.dataKey);
-        getDataRequest.onsuccess = function(e){
-            var addDataRequest = transaction.data.add(e.target.result);
-            addDataRequest.onsuccess = function(e){
-                var copiedMetadata = JSCopy(metadata);
-                copiedMetadata.parent = toParent.path;
-                copiedMetadata.dataKey = e.target.result;
-                transaction.metadata.put(copiedMetadata);
-            };
-        };
+    _copyFileAtURL: function(url, toURL, completion, target){
+        fs.copy(url, toURL, function(error){
+            completion.call(target, error === null);
+        });
     },
 
-    _copyMetadataInTransactionAtURL: function(transaction, url, toURL, toParent, metadata){
-        var copiedMetadata = JSCopy(metadata);
-        copiedMetadata.parent = toParent.path;
-        transaction.metadata.put(copiedMetadata);
-    },
-
-    _copyFolderInTransactionAtURL: function(transaction, url, toURL, toParent, metadata){
-        this._copyMetadataInTransactionAtURL(transaction, url, toURL, toParent, metadata);
-        var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
-        var childRequest = index.openCursor({parent: url.path});
-        var children = [];
-        childRequest.onsuccess = function(e){
-            var cursor = e.target.result;
-            if (cursor){
-                var child = cursor.value;
-                var childURL = url.appendingPathComponent(child.name);
-                var childToURL = toURL.appendingPathComponent(child.name);
-                this._copyItemInTransactionAtURL(transaction, childURL, childToURL, toURL, child);
+    _copyFolderAtURL: function(url, toURL, completion, target){
+        var manager = this;
+        fs.mkdir(toURL.path, function(error){
+            if (error === null){
+                fs.readdir(url.path, function(error, files){
+                    var i = 0;
+                    var copyNextChild = function(){
+                        if (i === files.length){
+                            completion.call(target, true);
+                        }else{
+                            var childURL = url.appendingPathComponent(files[i]);
+                            var toChildURL = toURL.appendingPathComponent(files[i]);
+                            fs.stat(childURL.path, function(error, stat){
+                                manager._copyItemAtURL(childURL, toChildURL, stat, function(success){
+                                    if (success){
+                                        ++i;
+                                        copyNextChild();
+                                    }else{
+                                        completion.call(target, false);
+                                    }
+                                });
+                            });
+                        }
+                    };
+                    if (error === null){
+                        copyNextChild();
+                    }else{
+                        completion.call(target, false);
+                    }
+                });
+            }else{
+                completion.call(target, false);
             }
-        };
+        });
     },
 
     // --------------------------------------------------------------------
@@ -327,71 +305,66 @@ JSFileManager.definePropertiesFromExtensions({
     removeItemAtURL: function(url, completion, target){
         if (!url.isAbsolute){
             logger.warn("relative URL passed to removeItemAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
         }
-        if (url.scheme != JSFileManager.Scheme.jskitfile){
+        if (url.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.removeItemAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
         if (url.pathComponents.length === 1){
             throw new Error("JSFileManager.removeItemAtURL cannot remove root path");
         }
-        var parent = url.removingLastPathComponent();
-        var transaction = this.begin(JSFileManager.Permission.readwrite, [JSFileManager.Tables.metadata | JSFileManager.data]);
-        transaction.addCompletion(completion, target);
-        var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
-        this._metadataInTransactionAtURL(transaction, url, function(metadata){
-            if (metadata !== null){
-                this._removeItemInTransactionAtURL(transaction, url, parent, metadata);
+        var manager = this;
+        fs.lstat(url.path, function(error, stats){
+            if (error === null){
+                manager._removeItemAtURL(url, stats, completion, target);
             }else{
-                transaction.abort();
+                completion.call(target, false);
             }
         });
     },
 
-    _removeItemInTransactionAtURL: function(transaction, url, parent, metadata){
-        switch (metadata.itemType){
-            case JSFileManager.ItemType.folder:
-                this._removeFolderInTransactionAtURL(transaction, url, parent, metadata);
-                break;
-            case JSFileManager.ItemType.file:
-                this._removeFileInTransactionAtURL(transaction, url, parent, metadata);
-                break;
-            case JSFileManager.ItemType.symbolicLink:
-                this._removeMetadataInTransactionAtURL(transaction, url, parent, metadata);
-                break;
+    _removeItemAtURL: function(url, stat, completion, target){
+        if (stat.isDirectory()){
+            this._removeFolderAtURL(url, completion, target);
+        }else{
+            this._removeFileAtURL(url, completion, target);
         }
     },
 
-    _removeFileInTransactionAtURL: function(transaction, url, parent, metadata){
-        this._removeMetadataInTransactionAtURL(transaction, url, parent, metadata);
-        transaction.data.delete(metadata.dataKey);
+    _removeFileAtURL: function(url, completion, target){
+        fs.unlink(url.path, function(error){
+            completion.call(target, error === null);
+        });
     },
 
-    _removeMetadataInTransactionAtURL: function(transaction, url, parent, metadata){
-        var lookup = [parent.path, url.lastPathComponent];
-        var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
-        var keyRequest = index.getKey(lookup);
-        keyRequest.onsuccess = function(e){
-            var key = e.target.result;
-            if (key !== undefined){
-                transaction.metadata.delete(key);
+    _removeFolderAtURL: function(url, completion, target){
+        var manager = this;
+        fs.readdir(url.path, function(error, files){
+            if (error === null){
+                var i = 0;
+                var removeNextChild = function(){
+                    if (i == files.length){
+                        fs.rmdir(url.path, function(error){
+                            completion.call(target, error === null);
+                        });
+                    }else{
+                        var childURL = url.appendingPathComponent(files[i]);
+                        fs.lstat(childURL.path, function(error, stat){
+                            manager._removeItemAtURL(childURL, stat, function(success){
+                                if (success){
+                                    ++i;
+                                    removeNextChild();
+                                }else{
+                                    completion.call(target, false);
+                                }
+                            });
+                        });
+                    }
+                };
+                removeNextChild();
+            }else{
+                completion.call(target, false);
             }
-        };
-    },
-
-    _removeFolderInTransactionAtURL: function(transaction, url, parent, metadata){
-        this._removeMetadataInTransactionAtURL(transaction, url, parent, metadata);
-        var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
-        var childRequest = index.openCursor({parent: url.path});
-        var children = [];
-        childRequest.onsuccess = function(e){
-            var cursor = e.target.result;
-            if (cursor){
-                var child = cursor.value;
-                var childURL = url.appendingPathComponent(child.name);
-                this._removeItemInTransactionAtURL(transaction, childURL, url, child);
-            }
-        };
+        });
     },
 
     // --------------------------------------------------------------------
@@ -400,48 +373,15 @@ JSFileManager.definePropertiesFromExtensions({
     contentsAtURL: function(url, completion, target){
         if (!url.isAbsolute){
             logger.warn("relative URL passed to contentsAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
         }
-        if (url.scheme != JSFileManager.Scheme.jskitfile){
+        if (url.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.contentsAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
-        var transaction = this.begin(JSFileManager.Permission.readonly, [JSFileManager.Tables.metadata, JSFileManager.Tables.data]);
-        var data = null;
-        var visitedURLSet = {};
-        transaction.addCompletion(function(success){
-            completion.call(target, data);
-        }, this);
-        this._contentsInTransactionAtURL(transaction, url, visitedURLSet, function(bytes){
-            if (bytes !== null){
-                data = JSData.initWithBytes(bytes);
-            }
-        });
-    },
-
-    _contentsInTransactionAtURL: function(transaction, url, visitedURLSet, callback){
-        var uniqueURL = url.encodedString;
-        if (uniqueURL in visitedURLSet){
-            callback(null);
-            return;
-        }else{
-            visitedURLSet[uniqueURL] = true;
-        }
-        var manager = this;
-        manager._metadataInTransactionAtURL(transaction, url, function(metadata){
-            switch (metadata.itemType){
-                case JSFileManager.ItemType.folder:
-                    callback(null);
-                    break;
-                case JSFileManager.ItemType.file:
-                    var request = transaction.data.get(metadata.dataKey);
-                    request.onsuccess = function(e){
-                        callback(e.target.result);
-                    };
-                    break;
-                case JSFileManager.ItemType.symbolicLink:
-                    var link = JSURL.initWithString(metadata.link);
-                    manager._contentsInTransactionAtURL(transaction, link, visitedURLSet, callback);
-                    break;
+        fs.readFile(url.path, function(error, buffer){
+            if (error === null){
+                completion.call(target, JSData.initWithBytes(buffer));
+            }else{
+                completion.call(target, null);
             }
         });
     },
@@ -452,41 +392,24 @@ JSFileManager.definePropertiesFromExtensions({
     createSymbolicLinkAtURL: function(url, toURL, completion, target){
         if (!url.isAbsolute){
             logger.warn("relative URL passed to createSymbolicLinkAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
         }
         if (!toURL.isAbsolute){
             logger.warn("relative URL passed to createSymbolicLinkAtURL");
-            toURL = JSURL.initWithBaseURL(this.workingDirectoryURL, toURL);
         }
-        if (url.scheme != JSFileManager.Scheme.jskitfile){
+        if (url.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.createSymbolicLinkAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
-        if (toURL.scheme != JSFileManager.Scheme.jskitfile){
+        if (toURL.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.createSymbolicLinkAtURL unsupported scheme: %s".sprintf(toURL.scheme));
         }
         if (url.path == toURL.path){
             throw new Error("JSFileManager.createSymbolicLinkAtURL target and destination are the same");
         }
-        var transaction = this.begin(JSFileManager.Permission.readwrite, JSFileManager.Tables.metadata);
-        transaction.addCompletion(completion, target);
-        var parent = url.removingLastPathComponent();
-        var manager = this;
-        var created = false;
-        var create = function(parentExists){
-            if (parentExists){
-                var t = manager.timestamp;
-                var metadata = {parent: parent.path, name: url.lastPathComponent, itemType: JSFileManager.ItemType.symbolicLink, created: t, updated: t, added: t, link: toURL.encodedString};
-                transaction.metadata.add(metadata);
-            }else{
-                transaction.abort();
+        fs.symlink(toURL.path, url.path, function(error){
+            if (error !== null){
+                debugger;
             }
-        };
-        manager._metadataInTransactionAtURL(transaction, parent, function(parentMetadata){
-            if (parentMetadata !== null){
-                create(true);
-            }else{
-                manager._createFolderInTransactionAtURL(transaction, parent, create);
-            }
+            completion.call(target, error === null);
         });
     },
 
@@ -494,141 +417,16 @@ JSFileManager.definePropertiesFromExtensions({
     // MARK: - Destorying the File Manager
 
     destroy: function(completion, target){
-        if (this._db){
-            this._db.close();
-        }
-        var request = indexedDB.deleteDatabase(this._identifier);
-        request.onsuccess = function(e){
-            completion.call(target, true);
-        };
-        request.onerror = function(e){
-            completion.call(target, false);
-        };
-    },
-
-    // --------------------------------------------------------------------
-    // MARK: - Database upgrades
-
-    upgrade: function(oldVersion, newVersion){
-        var version = oldVersion;
-        if (!version){
-            // If we don't have a version number, then it's a completely empty
-            // database we should just create it from scratch instead of going
-            // through every upgrade iteration.
-            this._createCurrentVersion();
-        }else{
-            // If we have a version number, we have to do each upgrade one by one.
-            // Upgrades are implemented as methods with names that match the
-            // pattern: _upgradeVersionXToY, where Y = X + 1.
-            var next;
-            var method;
-            do {
-                next = version + 1;
-                method = '_upgradeVersion' + version + 'To' + next;
-                this[method]();
-                version = next;
-            } while (version < newVersion);
-        }
-    },
-
-    _createCurrentVersion: function(){
-        var metadata = this._db.createObjectStore(JSFileManager.Tables.metadata, {autoIncrement: true});
-        var transaction = metadata.transaction;
-        var pathIndex = metadata.createIndex(JSFileManager.Indexes.metadataPath, ["parent", "name"], {unique: true});
-        var data = this._db.createObjectStore(JSFileManager.Tables.data, {autoIncrement: true});
-        var t = this.timestamp;
-        var root = {parent: '', name: '/', itemType: JSFileManager.ItemType.folder, created: t, updated: t, added: t};
-        metadata.add(root);
-    },
-
-    _upgradeVersion1To2: function(){
+        var manager = this;
+        fs.stat(manager._rootPath, function(error, stat){
+            if (error === null){
+                manager._removeItemAtURL(JSURL.initWithString("%s://%s".sprintf(JSFileManager.Scheme.file, manager._rootPath)), stat, function(success){
+                    completion.call(target, success);
+                });
+            }else{
+                completion.call(target, true);
+            }
+        });
     },
 
 });
-
-
-var JSFileManagerTransaction = function(db, storeName, permission){
-    if (this === undefined){
-        return new JSFileManagerTransaction(db, storeName, permission);
-    }
-    this.indexedDBTransaction = db.transaction(storeName, permission);
-    this.indexedDBTransaction.addEventListener('abort', this);
-    this.indexedDBTransaction.addEventListener('error', this);
-    this.indexedDBTransaction.addEventListener('complete', this);
-    this.completion = null;
-    this.target = null;
-    if (!(storeName instanceof Array)){
-        storeName = [storeName];
-    }
-    for (var i = 0; i < storeName.length; ++i){
-        this[storeName[i]] = this.indexedDBTransaction.objectStore(storeName[i]);
-    }
-};
-
-JSFileManagerTransaction.prototype = {
-
-    addCompletion: function(completion, target){
-        this.completion = completion;
-        this.target = target;
-    },
-
-    handleEvent: function(e){
-        this.removeEventListeners();
-        this[e.type](e);
-    },
-
-    abort: function(e){
-        if (this.completion === null){
-            return;
-        }
-        this.completion.call(this.target, false);
-    },
-
-    error: function(e){
-        // error events should result in abort events, so we'll handle everything in the abort
-    },
-
-    complete: function(e){
-        if (this.completion === null){
-            return;
-        }
-        this.completion.call(this.target, true);
-    },
-
-    removeEventListeners: function(){
-        this.indexedDBTransaction.removeEventListener('abort', this);
-        this.indexedDBTransaction.removeEventListener('error', this);
-        this.indexedDBTransaction.removeEventListener('complete', this);
-    }
-
-};
-
-var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
-
-var CURRENT_DATABASE_VERSION = 1;
-
-JSFileManager.Scheme = {
-    jskitfile: 'io.breakside.jskit.file',
-    file: 'file',
-    http: 'http',
-    https: 'https',
-    blob: 'blob'
-};
-
-JSFileManager.Tables = {
-    // {parent: "/some/path", name: "filename.txt", itemType: 1, created: 1234, modified: 1234, added: 1234, dataKey: 1234}
-    metadata: "metadata",
-    // Blob
-    data: "data"
-};
-
-JSFileManager.Indexes = {
-    metadataPath: "path"
-};
-
-JSFileManager.Permission = {
-    readonly: "readonly",
-    readwrite: "readwrite"
-};
-
-})();

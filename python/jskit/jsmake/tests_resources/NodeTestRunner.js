@@ -93,7 +93,7 @@ JSClass('NodeTestRun', TKTestRun, {
 
 function parseOptions(){
     var options = {};
-    var argv = process.argv.slice(1 + process.execArgv.length);
+    var argv = process.argv.slice(1);
     var arg;
     var key = null;
     for (var i = 1; i < argv.length; ++i){

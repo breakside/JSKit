@@ -23,7 +23,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         expectation.call(this.manager.destroy, this.manager, function(success){
             TKAssert(success);
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testCreateFolderAtURL: function(){
@@ -36,7 +36,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                 TKAssert(exists);
             });
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 3.0);
     },
 
     testCreateFolderAtURL_withIntermediates: function(){
@@ -122,6 +122,48 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         this.wait(expectation, 1.0);
     },
 
+    testRemoveItemAtURL: function(){
+        var manager = this.manager;
+        var expectation = TKExpectation.init();
+        var url = manager.temporaryDirectoryURL.appendingPathComponent('test1.txt');
+        var txt = "This is a test!";
+        expectation.call(manager.createFileAtURL, manager, url, txt.utf8(), function(success){
+            TKAssert(success);
+            expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
+                TKAssert(exists);
+                expectation.call(manager.removeItemAtURL, manager, url, function(success){
+                    TKAssertNotNull(success);
+                    expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
+                        TKAssert(!exists);
+                    });
+                });
+            });
+        });
+        this.wait(expectation, 1.0);
+    },
+
+    testRemoveFolderAtURL: function(){
+        var manager = this.manager;
+        var expectation = TKExpectation.init();
+        var temp = manager.temporaryDirectoryURL;
+        var parent = temp.removingLastPathComponent();
+        var url = temp.appendingPathComponent('test1.txt');
+        var txt = "This is a test!";
+        expectation.call(manager.createFileAtURL, manager, url, txt.utf8(), function(success){
+            TKAssert(success);
+            expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
+                TKAssert(exists);
+                expectation.call(manager.removeItemAtURL, manager, parent, function(success){
+                    TKAssertNotNull(success);
+                    expectation.call(manager.itemExistsAtURL, manager, parent, function(exists){
+                        TKAssert(!exists);
+                    });
+                });
+            });
+        });
+        this.wait(expectation, 1.0);
+    },
+
     testCreateSymbolicLinkAtURL: function(){
         var manager = this.manager;
         var expectation = TKExpectation.init();
@@ -148,14 +190,21 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         var url1 = manager.temporaryDirectoryURL.appendingPathComponent('test1.txt');
         var url2 = manager.temporaryDirectoryURL.appendingPathComponent('test2.txt');
         var url3 = manager.temporaryDirectoryURL.appendingPathComponent('test3.txt');
-        expectation.call(manager.createSymbolicLinkAtURL, manager, url1, url2, function(success){
+        var txt = "This is a test!";
+        expectation.call(manager.createFileAtURL, manager, url1, txt.utf8(), function(success){
             TKAssert(success);
-            expectation.call(manager.createSymbolicLinkAtURL, manager, url2, url3, function(success){
+            expectation.call(manager.createSymbolicLinkAtURL, manager, url2, url1, function(success){
                 TKAssert(success);
-                expectation.call(manager.createSymbolicLinkAtURL, manager, url3, url1, function(success){
+                expectation.call(manager.createSymbolicLinkAtURL, manager, url3, url2, function(success){
                     TKAssert(success);
-                    expectation.call(manager.contentsAtURL, manager, url2, function(data){
-                        TKAssertNull(data);
+                    expectation.call(manager.removeItemAtURL, manager, url1, function(success){
+                        TKAssert(success);
+                        expectation.call(manager.createSymbolicLinkAtURL, manager, url1, url3, function(success){
+                            TKAssert(success);
+                            expectation.call(manager.contentsAtURL, manager, url2, function(data){
+                                TKAssertNull(data);
+                            });
+                        });
                     });
                 });
             });

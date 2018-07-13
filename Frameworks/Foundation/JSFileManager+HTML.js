@@ -414,12 +414,13 @@ JSFileManager.definePropertiesFromExtensions({
             throw new Error("JSFileManager.removeItemAtURL cannot remove root path");
         }
         var parent = url.removingLastPathComponent();
-        var transaction = this.begin(JSFileManager.Permission.readwrite, [JSFileManager.Tables.metadata | JSFileManager.data]);
+        var transaction = this.begin(JSFileManager.Permission.readwrite, [JSFileManager.Tables.metadata, JSFileManager.Tables.data]);
         transaction.addCompletion(completion, target);
         var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
+        var manager = this;
         this._metadataInTransactionAtURL(transaction, url, function(metadata){
             if (metadata !== null){
-                this._removeItemInTransactionAtURL(transaction, url, parent, metadata);
+                manager._removeItemInTransactionAtURL(transaction, url, parent, metadata);
             }else{
                 transaction.abort();
             }
@@ -460,14 +461,15 @@ JSFileManager.definePropertiesFromExtensions({
     _removeFolderInTransactionAtURL: function(transaction, url, parent, metadata){
         this._removeMetadataInTransactionAtURL(transaction, url, parent, metadata);
         var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
-        var childRequest = index.openCursor({parent: url.path});
+        var childRequest = index.openCursor([url.path]);
         var children = [];
+        var manager = this;
         childRequest.onsuccess = function(e){
             var cursor = e.target.result;
             if (cursor){
                 var child = cursor.value;
                 var childURL = url.appendingPathComponent(child.name);
-                this._removeItemInTransactionAtURL(transaction, childURL, url, child);
+                manager._removeItemInTransactionAtURL(transaction, childURL, url, child);
             }
         };
     },
@@ -694,14 +696,6 @@ if (self){
 }
 
 var CURRENT_DATABASE_VERSION = 1;
-
-JSFileManager.Scheme = {
-    jskitfile: 'io.breakside.jskit.file',
-    file: 'file',
-    http: 'http',
-    https: 'https',
-    blob: 'blob'
-};
 
 JSFileManager.Tables = {
     // {parent: "/some/path", name: "filename.txt", itemType: 1, created: 1234, modified: 1234, added: 1234, dataKey: 1234}

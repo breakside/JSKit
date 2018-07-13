@@ -111,3 +111,11 @@ JSFileManager.ItemType = {
     symbolicLink: 2,
     other: 3
 };
+
+JSFileManager.Scheme = {
+    jskitfile: 'io.breakside.jskit.file',
+    file: 'file',
+    http: 'http',
+    https: 'https',
+    blob: 'blob'
+};
