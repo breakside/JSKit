@@ -260,7 +260,19 @@ class HTMLBuilder(Builder):
         hasInsertedLogger = False
         while len(stack) > 0:
             node = stack.pop()
-            if node.tagName == 'title' and node.parentNode.tagName == 'head':
+            if node.tagName == 'head':
+                icons = self.applicationIcons()
+                for icon in icons:
+                    link = document.createElement("link")
+                    link.setAttribute("rel", icon['rel'])
+                    link.setAttribute("href", icon['href'])
+                    if icon['rel'] == 'mask-icon':
+                        link.setAttribute("color", icon['color'])
+                    else:
+                        link.setAttribute("type", icon['type'])
+                        link.setAttribute("sizes", icon['sizes'])
+                    node.appendChild(link)
+            elif node.tagName == 'title' and node.parentNode.tagName == 'head':
                 node.appendChild(document.createTextNode(self.mainBundle.developmentLoocalizedInfoString('UIApplicationTitle')))
             elif node.tagName == 'script' and node.getAttribute('type') == 'text/javascript':
                 if not hasInsertedLogger:
@@ -318,6 +330,24 @@ class HTMLBuilder(Builder):
             document.documentElement.setAttribute('manifest', self.absoluteWebPath(self.manifestFile.name))
         HTML5DocumentSerializer(document).serializeToFile(self.indexFile)
         self.indexFile.close()
+
+    def applicationIcons(self):
+        icons = []
+        imagesetName = self.mainBundle.info.get("UIApplicationIcon", None)
+        if imagesetName is not None:
+            imagesetName += '.imageset'
+            contents = self.mainBundle[imagesetName + '/Contents.json']
+            images = contents['value']['images']
+            for image in images:
+                metadata = self.mainBundle[imagesetName + '/' + image['filename']]
+                icons.append(dict(
+                    rel="icon" if not image.get('mask', False) else 'mask-icon',
+                    href=metadata['htmlURL'],
+                    type=metadata['mimetype'],
+                    sizes=('%dx%d' % (metadata['image']['width'], metadata['image']['height'])) if not metadata['image'].get('vector', False) else 'any',
+                    color=image.get('color', None)
+                ))
+        return icons
 
     def buildWorker(self):
         self.updateStatus("Creating worker.js...")

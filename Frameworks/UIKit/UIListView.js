@@ -1043,7 +1043,7 @@ JSClass("UIListView", UIScrollView, {
             this.selectPreviousRow();
         }else if (event.key == UIEvent.Key.down){
             this.selectNextRow();
-        }else if (event.key == UIEvent.key.enter){
+        }else if (event.key == UIEvent.Key.enter){
             if (this.delegate && this.delegate.listViewDidOpenCellAtIndexPath){
                 // FIXME: best way to get only index path if there is one?
                 // FIXME: which index path should we use if there are multiple?
@@ -1052,10 +1052,13 @@ JSClass("UIListView", UIScrollView, {
                     this.delegate.listViewDidOpenCellAtIndexPath(this, indexPath);
                 }
             }
+        }else{
+            UIListView.$super.keyDown.call(this, event);
         }
     },
 
     keyUp: function(event){
+        UIListView.$super.keyUp.call(this, event);
     },
 
     canPerformAction: function(action, sender){

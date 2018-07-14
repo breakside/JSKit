@@ -1,8 +1,21 @@
 /* global JSGlobalObject, JSResolveDottedName */
 'use strict';
+
 // -----------------------------------------------------------------------------
 // MARK: - Utility
 
+/// Shallow copy an object of any type
+///
+/// Make a copy of an object or array by instantiating a new top level object
+/// and populating memebers by reference to match the original object.
+///
+/// Since javascript objects are always passed by reference, a shallow copy
+/// can be useful when receiving an object/array that you need to modify without
+/// changing the original object received.
+///
+/// - Parameter obj: The object of which to make a shallow copy
+/// - Returns: A shallow copy of the given object that can be changed at the top
+///   level without modifying the original
 JSGlobalObject.JSCopy = function JSCopy(obj){
     if (obj === null || obj === undefined){
         return obj;
@@ -26,6 +39,17 @@ JSGlobalObject.JSCopy = function JSCopy(obj){
     return obj;
 };
 
+/// Deep copy an object of any type
+///
+/// Make a copy of an object or array by intantiating a new top level object
+/// and populating members by recursively making copies.
+///
+/// Deep copies are useful when you need to modify an object more than one
+/// level deep without changing the original object received.
+///
+/// - Parameter obj: The object of which ot make a deep copy
+/// - Returns: A deep copy of the given object that can be changed at any level
+///   without modifying the original
 JSGlobalObject.JSDeepCopy = function JSDeepCopy(obj){
     if (obj === null || obj === undefined){
         return obj;
