@@ -469,6 +469,10 @@ JSClass("UITextField", UIControl, {
 
     paste: function(){
         // TODO: attributed text
+        this.pasteAndMatchStyle();
+    },
+
+    pasteAndMatchStyle: function(){
         if (UIPasteboard.general.containsType(UIPasteboard.ContentType.plainText)){
             var text = UIPasteboard.general.valueForType(UIPasteboard.ContentType.plainText);
             this._localEditor.insertText(text);

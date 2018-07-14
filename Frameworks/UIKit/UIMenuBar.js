@@ -466,6 +466,14 @@ JSClass("UIMenuBar", UIWindow, {
     },
 
     keyUp: function(event){
+    },
+
+    performKeyEquivalent: function(event){
+        var item = this._menu._itemForKeyEquivalent(event);
+        if (item === null){
+            return true;
+        }
+        return false;
     }
 
 });

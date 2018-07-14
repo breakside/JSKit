@@ -1,7 +1,8 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIResponder.js"
 // #import "UIKit/UIWindowServer.js"
-/* global JSGlobalObject, JSClass, JSObject, JSFileManager, JSUserDefaults, UIResponder, UIApplication, UIWindowServer, JSBundle, JSFont, JSSpec, JSDynamicProperty, JSReadOnlyProperty, UIEvent, jslog_create  */
+// #import "UIKit/UIPlatform.js"
+/* global JSGlobalObject, JSClass, JSObject, JSFileManager, JSUserDefaults, UIPlatform, UIResponder, UIApplication, UIWindowServer, JSBundle, JSFont, JSSpec, JSDynamicProperty, JSReadOnlyProperty, UIEvent, jslog_create  */
 'use strict';
 
 (function(){
@@ -132,9 +133,29 @@ JSClass('UIApplication', UIResponder, {
         return this.windowServer.keyWindow;
     },
 
+    // MARK: - Menu
+
+    mainMenu: JSReadOnlyProperty(),
+
+    getMainMenu: function(){
+        var menuBar = this.windowServer.menuBar;
+        if (menuBar){
+            return menuBar.menu;
+        }
+        return null;
+    },
+
     // MARK: - Sending Events & Actions
 
     sendEvent: function(event){
+        if (event.category === UIEvent.Category.key){
+            var mainMenu = this.mainMenu;
+            if (mainMenu && (event.modifiers & UIPlatform.shared.commandModifier)){
+                if (mainMenu.performKeyEquivalent(event)){
+                    return;
+                }
+            }
+        }
         var windows = event.windows;
         for (var i = 0, l = windows.length; i < l; ++i){
             windows[i].sendEvent(event);

@@ -106,7 +106,7 @@ JSClass("UIApplicationTests", TKTestSuite, {
                 this.receivedEvent = event;
             }
         };
-        var event = UIEvent.initKeyEventWithType(UIEvent.Type.keyDown, 1, mockWindow, 0x41);
+        var event = UIEvent.initKeyEventWithType(UIEvent.Type.keyDown, 1, mockWindow, "a", 0x41);
         this.app.sendEvent(event);
         TKAssertExactEquals(mockWindow.receivedEvent, event);
     },

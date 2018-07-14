@@ -6,6 +6,7 @@
 // #import "UIKit/UIHTMLDisplayServer.js"
 // #import "UIKit/UIHTMLTextInputManager.js"
 // #feature Element.prototype.addEventListener
+// #feature 'key' in KeyboardEvent.prototype
 /* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor, UIView, JSRect, UIScreen, UIDraggingSession, UIHTMLDataTransferPasteboard, UIDragOperation */
 'use strict';
 
@@ -92,7 +93,6 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     handleEvent: function(e){
-        this[e.type](e);
         e.stopPropagation();
         // TODO: Don't prevent default of mousedown or mousemove, because doing so prevents drag events from firing.
         // Earlier code did prevent default of mousedown and mousemove, as a method
@@ -104,6 +104,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         if (e.cancelable && e.type != 'mousedown' && e.type != 'mousemove' && e.type != 'dragstart'){
             e.preventDefault();
         }
+        this[e.type](e);
     },
 
     _isOverridingCursor: false,
@@ -407,11 +408,25 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
 
     _createKeyEventFromDOMEvent: function(e, type){
         var timestamp = e.timeStamp / 1000.0;
-        // TODO: maybe use e.key if available
-        // see https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent#Key_names_and_Char_values
-        var keyCode = e.keyCode;
         var modifiers = this._modifiersFromDOMEvent(e);
-        this.createKeyEvent(type, timestamp, keyCode, modifiers);
+        var key = this._correctedEventKey(e.key);
+        this.createKeyEvent(type, timestamp, key, e.keyCode, modifiers);
+    },
+
+    _correctedEventKey: function(key){
+        if (key === 'Left'){
+            return 'ArrowLeft';
+        }
+        if (key === 'Right'){
+            return 'ArrowDown';
+        }
+        if (key === 'Down'){
+            return 'ArrowDown';
+        }
+        if (key === 'Up'){
+            return 'ArrowUp';
+        }
+        return key;
     },
 
     _modifiersFromDOMEvent: function(e){

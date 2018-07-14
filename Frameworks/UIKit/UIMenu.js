@@ -1,7 +1,9 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIMenuItem.js"
 // #import "UIKit/UIApplication.js"
-/* global JSClass, JSObject, UIView, JSDynamicProperty, JSReadOnlyProperty, UIMenu, UIMenuItem, JSSize, JSColor, JSFont, JSRect, JSPoint, UIWindow, UIMenuWindow, UIMenuView, UIMenuItemView, JSInsets, UIApplication, UIMenuStyler, UIMenuDefaultStyler, UILayer, UIAnimationTransaction, UIBasicAnimation */
+// #import "UIKit/UIPlatform.js"
+// #import "UIKit/UIEvent.js"
+/* global JSClass, JSObject, UIView, JSDynamicProperty, JSReadOnlyProperty, UIMenu, UIPlatform, UIEvent, UIMenuItem, JSSize, JSColor, JSFont, JSRect, JSPoint, UIWindow, UIMenuWindow, UIMenuView, UIMenuItemView, JSInsets, UIApplication, UIMenuStyler, UIMenuDefaultStyler, UILayer, UIAnimationTransaction, UIBasicAnimation */
 'use strict';
 
 (function(){
@@ -160,6 +162,63 @@ JSClass("UIMenu", JSObject, {
             target = contextTarget;
         }
         UIApplication.shared.sendAction(item.action, target, item);
+    },
+
+    performKeyEquivalent: function(event){
+        var item = this._itemForKeyEquivalent(event);
+        if (item !== null){
+            this.performActionForItem(item);
+            return true;
+        }
+        return false;
+    },
+
+    _itemForKeyEquivalent: function(event){
+        var item;
+        var modifiers;
+        if (event.keyCode === 0){
+            return null;
+        }
+        // How to determine the event key equivalent:
+        // 1. We could try to use the `event.key` value, which basically comes in
+        //    unmodified from the underlying DOM event in an HTML environment, but
+        //    the `key` property changes depending on the modifier keys currently
+        //    pressed.  If shift is pressed, a `v` becomes `V`.  Capitalization is
+        //    easy enough to work around, but the option key can put a completely
+        //    different character in the `key` property, like `√`.  And that modified
+        //    value changes depending on the keyboard layout, so we don't have a reliable
+        //    reversal algorithm.
+        // 2. We could try to use the DOM `KeyboardEvent.code` property, because it will
+        //    always return 'KeyV' regardless of modifiers.  However, it will also always
+        //    return 'KeyV' even if the user has changed their keyboard layout.  So if
+        //    they're using a dvorak layout, for example, we still want the shortcut
+        //    to be the key that prints a 'v', which is now the `KeyDot` code.
+        // 3. The only option that seems to work regardless of layout is to use the
+        //    deprecated DOM `KeyboardEvent.keyCode` property, which returnx 0x86
+        //    when the user presses the key that prints a 'v', regardless of layout.
+        //    This does not account for international layouts that lack a 'v' key,
+        //    but that use case needs more investigation to know if the shorcut itself
+        //    should change (I'm guessing it probably should)
+        var eventKeyEquivalent = String.fromCharCode(event.keyCode).toLowerCase();
+        for (var i = 0, l = this._items.length; i < l; ++i){
+            item = this._items[i];
+            if (!item.hidden){
+                if (item.submenu){
+                    item = item.submenu._itemForKeyEquivalent(event);
+                    if (item !== null){
+                        return item;
+                    }
+                }else{
+                    modifiers = item.keyModifiers | UIPlatform.shared.commandModifier;
+                    if (modifiers == event.modifiers){
+                        if (eventKeyEquivalent == item.keyEquivalent){
+                            return item;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     },
 
     // MARK: - Opening a Menu

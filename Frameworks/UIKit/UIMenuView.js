@@ -4,7 +4,8 @@
 // #import "UIKit/UILabel.js"
 // #import "UIKit/UIImageView.js"
 // #import "UIKit/UIEvent.js"
-/* global JSClass, JSLazyInitProperty, JSReadOnlyProperty, JSDynamicProperty, UIEvent, UIWindow, UIMenu, UIView, JSColor, JSSize, JSRect, UILabel, UIImageView, UIMenuItem, JSTextAlignment, JSInsets, JSPoint, UILayer, UIMenuWindow, UIMenuView, UIMenuItemView, JSBinarySearcher, JSTimer, JSURL, JSImage, JSBundle, UIMenuItemSeparatorView, UIWindowCustomStyler */
+// #import "UIKit/UIPlatform.js"
+/* global JSClass, JSLazyInitProperty, JSReadOnlyProperty, JSDynamicProperty, UIPlatform, UIEvent, UIWindow, UIMenu, UIView, JSColor, JSSize, JSRect, UILabel, UIImageView, UIMenuItem, JSTextAlignment, JSInsets, JSPoint, UILayer, UIMenuWindow, UIMenuView, UIMenuItemView, JSBinarySearcher, JSTimer, JSURL, JSImage, JSBundle, UIMenuItemSeparatorView, UIWindowCustomStyler */
 'use strict';
 
 (function(){
@@ -318,16 +319,15 @@ JSClass("UIMenuWindow", UIWindow, {
         if (this._isClosing){
             return;
         }
-        // FIXME: find a better way of checking than using code 18
-        if (event.keyCode == 18){
+        if (event.key === UIEvent.Key.option){
             this.setAlternateItemsShown(true);
-        }else if (event.keyCode == 27){
+        }else if (event.key == UIEvent.Key.escape){
             this.closeAll();
-        }else if (event.keyCode == 38){
+        }else if (event.key == UIEvent.Key.up){
             this._highlightPreviousItem();
-        }else if (event.keyCode == 40){
+        }else if (event.key == UIEvent.Key.down){
             this._highlightNextItem();
-        }else if (event.keyCode == 39){
+        }else if (event.key == UIEvent.Key.right){
             if (this._menu.highlightedItem && this._menu.highlightedItem.submenu){
                 this.openHighlightedSubmenu(true);
             }else{
@@ -335,7 +335,7 @@ JSClass("UIMenuWindow", UIWindow, {
                     this._menu.delegate.menuDidNavigateRight(this._menu);
                 }
             }
-        }else if (event.keyCode == 37){
+        }else if (event.key == UIEvent.Key.left){
             if (this._menu.supermenu && this._menu.supermenu.window){
                 this._menu.close();
             }else{
@@ -343,7 +343,7 @@ JSClass("UIMenuWindow", UIWindow, {
                     this._menu.delegate.menuDidNavigateLeft(this._menu);
                 }
             }
-        }else if (event.keyCode == 13){
+        }else if (event.key == UIEvent.Key.enter){
             this._performActionForHighlightedItem(true);
         }
         // TODO: select by typing title
@@ -353,8 +353,7 @@ JSClass("UIMenuWindow", UIWindow, {
         if (this._isClosing){
             return;
         }
-        // FIXME: find a better way of checking than using code 18
-        if (event.keyCode == 18){
+        if (event.key == UIEvent.Key.option){
             this.setAlternateItemsShown(false);
         }
     },
@@ -715,17 +714,7 @@ JSClass("UIMenuItemView", UIView, {
         if (item.keyEquivalent !== null){
             this.keyLabel.hidden = false;
             this.keyLabel.text = item.keyEquivalent.toUpperCase();
-            var modifierText = "";
-            if (item.keyModifiers & UIMenuItem.KeyModifiers.option){
-                modifierText += optionSymbol;
-            }
-            if (item.keyModifiers & UIMenuItem.KeyModifiers.control){
-                modifierText += controlSymbol;
-            }
-            if (item.keyModifiers & UIMenuItem.KeyModifiers.shift){
-                modifierText += shiftSymbol;
-            }
-            modifierText += commandSymbol;
+            var modifierText = UIPlatform.shared.stringForKeyModifiers(item.keyModifiers);
             this.keyModifierLabel.text = modifierText;
         }else if (this._keyLabel !== null){
             this._keyLabel.hidden = true;
@@ -761,11 +750,6 @@ JSClass("UIMenuItemView", UIView, {
     }
 
 });
-
-var optionSymbol = "\u2325";
-var shiftSymbol = "\u21e7";
-var commandSymbol = "\u2318";
-var controlSymbol = "";
 
 var images = Object.create({}, {
 

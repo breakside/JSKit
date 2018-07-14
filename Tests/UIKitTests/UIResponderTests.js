@@ -97,12 +97,12 @@ JSClass("UIResponderTests", TKTestSuite, {
         responder1.rightMouseDragged(event);
         TKAssertEquals(responder2.rightMouseDraggedCount, 1);
 
-        event = UIEvent.initKeyEventWithType(UIEvent.Type.keyDown, 1, window, 5);
+        event = UIEvent.initKeyEventWithType(UIEvent.Type.keyDown, 1, window, UIEvent.Key.enter, 0x13);
         TKAssertEquals(responder2.keyDownCount, 0);
         responder1.keyDown(event);
         TKAssertEquals(responder2.keyDownCount, 1);
 
-        event = UIEvent.initKeyEventWithType(UIEvent.Type.keyUp, 1, window, 5);
+        event = UIEvent.initKeyEventWithType(UIEvent.Type.keyUp, 1, window, UIEvent.Key.enter, 0x13);
         TKAssertEquals(responder2.keyUpCount, 0);
         responder1.keyUp(event);
         TKAssertEquals(responder2.keyUpCount, 1);

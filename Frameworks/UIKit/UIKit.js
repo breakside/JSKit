@@ -10,6 +10,7 @@
 
 // Application
 // #import "UIKit/UIApplication.js"
+// #import "UIKit/UIPlatform.js"
 
 // Layers & Views
 // #import "UIKit/UIResponder.js"

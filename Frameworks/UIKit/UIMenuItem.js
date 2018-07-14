@@ -88,15 +88,3 @@ UIMenuItem.State = {
     on: 1,
     mixed: 2
 };
-
-UIMenuItem.KeyModifiers = {
-    none:       0,
-    option:     1 << 0,
-    control:    1 << 1,
-    shift:      1 << 2
-};
-
-UIMenuItem.KeyModifiers.optionControl = UIMenuItem.KeyModifiers.option | UIMenuItem.KeyModifiers.control;
-UIMenuItem.KeyModifiers.optionShift = UIMenuItem.KeyModifiers.option | UIMenuItem.KeyModifiers.shift;
-UIMenuItem.KeyModifiers.optionControlShift = UIMenuItem.KeyModifiers.option | UIMenuItem.KeyModifiers.control | UIMenuItem.KeyModifiers.shift;
-UIMenuItem.KeyModifiers.controlShift = UIMenuItem.KeyModifiers.control | UIMenuItem.KeyModifiers.shift;

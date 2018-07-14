@@ -394,8 +394,8 @@ JSClass("UIWindowServer", JSObject, {
     // -----------------------------------------------------------------------
     // MARK: - Keyboard Events
 
-    createKeyEvent: function(type, timestamp, keyCode, modifiers){
-        var event = UIEvent.initKeyEventWithType(type, timestamp, this.keyWindow, keyCode, modifiers);
+    createKeyEvent: function(type, timestamp, key, keyCode, modifiers){
+        var event = UIEvent.initKeyEventWithType(type, timestamp, this.keyWindow, key, keyCode, modifiers);
         if (this.shouldDraggingSessionHandleKey(event)){
             this.handleDraggingKeyEvent(event);
         }else{
@@ -735,21 +735,21 @@ JSClass("UIWindowServer", JSObject, {
     handleDraggingKeyEvent: function(event){
         switch (event.type){
             case UIEvent.Type.keyDown:
-                switch (event.keyCode){
-                    case 27:
+                switch (event.key){
+                    case UIEvent.Key.escape:
                         // Resetting the entire mouse state.  If we only stopped the drag
                         // session, mouse move events would be directed to the view that
                         // started the drag, and it likely will just start another drag
                         this.resetMouseState();
                         break;
-                    case 18:
+                    case UIEvent.Key.option:
                         // prefer copy
                         break;
                 }
                 break;
             case UIEvent.Type.keyUp:
-                switch (event.keyCode){
-                    case 18:
+                switch (event.key){
+                    case UIEvent.Key.option:
                         // remove copy preference
                         break;
                 }

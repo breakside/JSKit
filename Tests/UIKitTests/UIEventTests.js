@@ -20,12 +20,12 @@ JSClass("UIEventTests", TKTestSuite, {
 
     testInitKeyEvent: function(){
         var window = UIRootWindow.init();
-        var event = UIEvent.initKeyEventWithType(UIEvent.Type.keyDown, 1, window, 5);
+        var event = UIEvent.initKeyEventWithType(UIEvent.Type.keyDown, 1, window, UIEvent.Key.enter, 0x13);
         TKAssertEquals(event.category, UIEvent.Category.key);
         TKAssertEquals(event.type, UIEvent.Type.keyDown);
         TKAssertEquals(event.timestamp, 1);
         TKAssertExactEquals(event.window, window);
-        TKAssertEquals(event.keyCode, 5);
+        TKAssertEquals(event.key, UIEvent.Key.enter);
     },
 
     testInitTouchEvent: function(){

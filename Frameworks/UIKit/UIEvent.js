@@ -11,6 +11,7 @@ JSClass('UIEvent', JSObject, {
     windows: JSReadOnlyProperty('_windows', null),
     category: JSReadOnlyProperty('_category', -1),
     type: JSReadOnlyProperty('_type', -1),
+    key: JSReadOnlyProperty('_key', -1),
     keyCode: JSReadOnlyProperty('_keyCode', -1),
     touches: JSReadOnlyProperty('_touches', null),
     trackingView: null,
@@ -29,11 +30,12 @@ JSClass('UIEvent', JSObject, {
         this._clickCount = clickCount;
     },
 
-    initKeyEventWithType: function(type, timestamp, window, keyCode, modifiers){
+    initKeyEventWithType: function(type, timestamp, window, key, keyCode, modifiers){
         this._category = UIEvent.Category.key;
         this._type = type;
         this._timestamp = timestamp;
         this._windows = [window];
+        this._key = key;
         this._keyCode = keyCode;
         this._touches = [];
         this._modifiers = modifiers || UIEvent.Modifiers.none;
@@ -117,7 +119,7 @@ JSClass('UIEvent', JSObject, {
 
 });
 
-UIEvent.doubleClickInterval = 1.0;
+UIEvent.minimumTimestamp = -Number.MAX_VALUE;
 
 UIEvent.Category = {
     mouse: 0,
@@ -153,6 +155,61 @@ UIEvent.Modifiers = {
     option:  1 << 3
 };
 
-UIEvent.minimumTimestamp = -Number.MAX_VALUE;
+UIEvent.Modifiers.optionControl = UIEvent.Modifiers.option | UIEvent.Modifiers.control;
+UIEvent.Modifiers.optionShift = UIEvent.Modifiers.option | UIEvent.Modifiers.shift;
+UIEvent.Modifiers.optionControlShift = UIEvent.Modifiers.option | UIEvent.Modifiers.control | UIEvent.Modifiers.shift;
+UIEvent.Modifiers.controlShift = UIEvent.Modifiers.control | UIEvent.Modifiers.shift;
 
-UIEvent.Modifiers.platformCommand = UIEvent.Modifiers.command;
+UIEvent.Key = {
+    unidentified: "Unidentified",
+
+    // Modifiers
+    option: "Alt",
+    control: "Control",
+    command: "Meta",
+    shift: "Shift",
+    function: "Fn",
+
+    // Editing
+    enter: "Enter",
+    tab: "Tab",
+    backspace: "Backspace",
+    delete: "Delete",
+
+    // Arrows
+    down: "ArrowDown",
+    left: "ArrowLeft",
+    right: "ArrowRight",
+    up: "ArrowUp",
+
+    // Actions
+    escape: "Escape",
+
+    // Undo & Redo
+    redo: "Redo",
+    undo: "Undo",
+
+    // Navigation
+    end: "End",
+    home: "Home",
+    pageDown: "PageDown",
+    pageUp: "PageUp",
+
+    // Locks
+    capsLock: "CapsLock",
+    functionLock: "FnLock",
+    numberLock: "NumLock",
+    scrollLock: "ScrollLock",
+    symbol: "Symbol",
+    symbolLock: "SymbolLock",
+
+    // Misc
+    clear: "Clear",
+    copy: "Copy",
+    cut: "Cut",
+    eraseToEndOfField: "EraseEof",
+    extendSelection: "ExSel",
+    insert: "Insert",
+    paste: "Paste",
+    cursorSelect: "CrSel"
+};

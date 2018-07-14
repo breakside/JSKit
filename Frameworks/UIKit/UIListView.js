@@ -1,6 +1,7 @@
 // #import "UIKit/UIScrollView.js"
 // #import "UIKit/UIEvent.js"
-/* global JSClass, JSObject, JSColor, UIView, UIScrollView, JSProtocol, JSReadOnlyProperty, JSDynamicProperty, UIListView, JSSize, JSIndexPath, JSRect, UIEvent, JSIndexPathSet, JSIndexPathRange, JSBinarySearcher, JSPoint, UIListViewHeaderFooterView, UIListViewStyler, UIListViewDefaultStyler */
+// #import "UIKit/UIPlatform.js"
+/* global JSClass, JSObject, JSColor, UIView, UIScrollView, UIPlatform, JSProtocol, JSReadOnlyProperty, JSDynamicProperty, UIListView, JSSize, JSIndexPath, JSRect, UIEvent, JSIndexPathSet, JSIndexPathRange, JSBinarySearcher, JSPoint, UIListViewHeaderFooterView, UIListViewStyler, UIListViewDefaultStyler */
 'use strict';
 
 (function(){
@@ -1038,10 +1039,9 @@ JSClass("UIListView", UIScrollView, {
     },
 
     keyDown: function(event){
-        // FIXME: find a better way of checking than using code magic numbers
-        if (event.keyCode == 38){
+        if (event.key == UIEvent.Key.up){
             this.selectPreviousRow();
-        }else if (event.keyCode == 40){
+        }else if (event.key == UIEvent.Key.down){
             this.selectNextRow();
         }
     },
@@ -1211,7 +1211,7 @@ JSClass("UIListView", UIScrollView, {
         cell.active = true;
         this._activeCell = cell;
         // command key takes precedence over other modifies, like shift (observed behavior)
-        if (event.hasModifier(UIEvent.Modifiers.platformCommand)){
+        if (event.hasModifier(UIPlatform.shared.commandModifier)){
             this._handledSelectionOnDown = true;
             if (this._selectedIndexPaths.contains(cell.indexPath)){
                 this.removeIndexPathFromSelection(cell.indexPath);

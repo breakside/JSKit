@@ -1,4 +1,5 @@
 // #import "UIKit/UITextInputManager.js"
+// #feature 'key' in KeyboardEvent.prototype
 /* global JSClass, UITextInputManager, jslog_create, JSRange, UIHTMLTextInputManager */
 'use strict';
 
@@ -190,7 +191,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
         // or else the browser will unfocus the hidden textarea.
         // Tab is also a special UITextInput action, so different inputs
         // can handle it special.
-        if (e.keyCode == 0x09){  // TAB
+        if (e.key == "Tab"){
             e.preventDefault();
             if (e.shiftKey){
                 if (this.textInputClient && this.textInputClient.insertBacktab){
@@ -208,7 +209,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
         // stack and repond to these presses.
         // These checks could be more specific to platform, but I don't see a problem
         // catching combinations like Ctrl+Z on a Mac.
-        if (e.keyCode == 0x5A){ // z
+        if (e.key.toLowerCase() == "z"){ // z
             // Ctrl+Z is Undo on Windows
             // Cmd+Z is Undo on Mac
             if (e.ctrlKey || e.metaKey){
@@ -219,8 +220,13 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                     // TODO: dispatch undo
                 }
             }
-        }
-        if (e.keyCode == 0x59){ // y
+        }else if (e.key == "Undo"){
+            e.preventDefault();
+            // TODO: dispatch undo
+        }else if (e.key == "Redo"){
+            e.preventDefault();
+            // TODO: dispatch redo
+        }else if (e.key == "y"){ // y
             // Ctrl+Y is Redo on Windows
             if (e.ctrlKey){
                 e.preventDefault();

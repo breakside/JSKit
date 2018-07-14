@@ -1,0 +1,14 @@
+en:
+  platform:
+    mac:
+      menu:
+        command: ⌘
+        option: ⌥
+        shift: ⇧
+        control: ⌃
+    win:
+      menu:
+        option: Alt+
+        shift: Shift+
+        control: Ctrl+
+        command: Win+
