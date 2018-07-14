@@ -139,19 +139,22 @@ JSClass("UIMenu", JSObject, {
 
     updateEnabled: function(){
         this._highlightedItem = null;
-        var target;
         var item;
         for (var i = 0, l = this._items.length; i < l; ++i){
             item = this._items[i];
             item.highlighted = false;
             if (!item.submenu){
-                target = item.target;
-                if (target === null){
-                    target = UIApplication.shared.firstTargetForAction(item.action, this._contextTarget, item);
-                }
-                item.enabled = target !== null && (!target.canPerformAction || target.canPerformAction(item.action, item));
+                item.enabled = this._isItemEnabled(item);
             }
         }
+    },
+
+    _isItemEnabled: function(item){
+        var target = item.target;
+        if (target === null){
+            target = UIApplication.shared.firstTargetForAction(item.action, this._contextTarget, item);
+        }
+        return target !== null && (!target.canPerformAction || target.canPerformAction(item.action, item));
     },
 
     // MARK: - Performing Item Actions
@@ -212,7 +215,9 @@ JSClass("UIMenu", JSObject, {
                     modifiers = item.keyModifiers | UIPlatform.shared.commandModifier;
                     if (modifiers == event.modifiers){
                         if (eventKeyEquivalent == item.keyEquivalent){
-                            return item;
+                            if (this._isItemEnabled(item)){
+                                return item;
+                            }
                         }
                     }
                 }

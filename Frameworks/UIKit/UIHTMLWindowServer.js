@@ -5,9 +5,10 @@
 // #import "UIKit/UIWindowServer.js"
 // #import "UIKit/UIHTMLDisplayServer.js"
 // #import "UIKit/UIHTMLTextInputManager.js"
+// #import "UIKit/UIPlatform.js"
 // #feature Element.prototype.addEventListener
 // #feature 'key' in KeyboardEvent.prototype
-/* global JSClass, UIWindowServer, UIWindowServer, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor, UIView, JSRect, UIScreen, UIDraggingSession, UIHTMLDataTransferPasteboard, UIDragOperation */
+/* global JSClass, UIWindowServer, UIWindowServer, UIPlatform, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor, UIView, JSRect, UIScreen, UIDraggingSession, UIHTMLDataTransferPasteboard, UIDragOperation */
 'use strict';
 
 (function(){
@@ -314,6 +315,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         if (this.keyWindow === null){
             return;
         }
+        this._keyEventHandledBySystemShortcut = true;
         this.keyWindow.application.sendAction('cut');
         var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.clipboardData);
         temporaryPasteboard.copy(UIPasteboard.general);
@@ -323,6 +325,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         if (this.keyWindow === null){
             return;
         }
+        this._keyEventHandledBySystemShortcut = true;
         this.keyWindow.application.sendAction('copy');
         var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.clipboardData);
         temporaryPasteboard.copy(UIPasteboard.general);
@@ -332,6 +335,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         if (this.keyWindow === null){
             return;
         }
+        this._keyEventHandledBySystemShortcut = true;
         var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.clipboardData);
         UIPasteboard.general.copy(temporaryPasteboard);
         this.keyWindow.application.sendAction('paste');
@@ -406,11 +410,36 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         return JSPoint(touch.clientX - this._screenClientOrigin.x, touch.clientY - this._screenClientOrigin.y);
     },
 
+    _keyEventHandledBySystemShortcut: false,
+
     _createKeyEventFromDOMEvent: function(e, type){
         var timestamp = e.timeStamp / 1000.0;
         var modifiers = this._modifiersFromDOMEvent(e);
         var key = this._correctedEventKey(e.key);
-        this.createKeyEvent(type, timestamp, key, e.keyCode, modifiers);
+        if (modifiers & UIPlatform.shared.commandModifier){
+            // For certain commands like copy/paste that can be triggered by a key
+            // shortcut sequence, the browser will give a keydown to use, and then
+            // also give a separate DOM 'copy' or 'paste' event.  If we handle the
+            // keyboard shortcut ourself, we'll end up doing two copy actions or
+            // two paste actions.  So, if we might be dealing with a command we'll
+            // delay dispatching this key event until the next run loop, by which
+            // point we'll know if another event has fired and taken care of the
+            // indended action already.
+            // Originally I figured that the copy/paste event happend either in the
+            // same or the next run loop iteration, and we could use a Promise()
+            // or two to jump ahead to the next run loop, but that didn't work.
+            // Testing seems to show that requestAnimationFrame is resolved
+            // after the copy/paste event, so we'll go with that.
+            var server = this;
+            this._keyEventHandledBySystemShortcut = false;
+            this.domWindow.requestAnimationFrame(function(){
+                if (!server._keyEventHandledBySystemShortcut){
+                    server.createKeyEvent(type, timestamp, key, e.keyCode, modifiers);
+                }
+            });
+        }else{
+            this.createKeyEvent(type, timestamp, key, e.keyCode, modifiers);
+        }
     },
 
     _correctedEventKey: function(key){
