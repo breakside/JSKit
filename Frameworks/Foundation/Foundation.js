@@ -32,6 +32,10 @@
 // #import "Foundation/JSFormFieldMap.js"
 // #import "Foundation/JSMIMEHeaderMap.js"
 
+// #import "Foundation/JSDate.js"
+// #import "Foundation/JSCalendar.js"
+// #import "Foundation/JSDateFormatter.js"
+
 // #import "Foundation/JSTextContainer.js"
 // #import "Foundation/JSTextLayoutManager.js"
 // #import "Foundation/JSTextLayoutManagerDelegate.js"
