@@ -6,6 +6,9 @@
 
 (function(){
 
+// TODO: Tests on Antarctica/Troll, with a 2hr daylight savings time jump
+// TODO: Tests on Australia/Lord_Howe, with a 1/2 hour daylight savings time jump
+
 JSClass("JSTimeZoneTests", TKTestSuite, {
 
     setup: function(){
@@ -162,7 +165,57 @@ JSClass("JSTimeZoneTests", TKTestSuite, {
         offset = zone.timeIntervalFromUTCForDate(JSDate.initWithTimeIntervalSince1970(2393485200));
         TKAssertEquals(offset, -28800);
 
-        // TODO: Sydney (with extra time change checks)
+        // ----
+        // Australia/Sydney
+        zone = JSTimeZone.initWithIdentifier('Australia/Sydney');
+        // distant past
+        offset = zone.timeIntervalFromUTCForDate(JSDate.distantPast);
+        TKAssertEquals(offset, 36292);
+        // Jul 4 1776 noon UTC
+        offset = zone.timeIntervalFromUTCForDate(JSDate.initWithTimeIntervalSince1970(-6106017600));
+        TKAssertEquals(offset, 36292);
+        // Jan 1 1970 00:00:00 UTC
+        offset = zone.timeIntervalFromUTCForDate(JSDate.initWithTimeIntervalSince1970(0));
+        TKAssertEquals(offset, 36000);
+        // Jan 15 2018 noon UTC
+        offset = zone.timeIntervalFromUTCForDate(JSDate.initWithTimeIntervalSince1970(1516017600));
+        TKAssertEquals(offset, 39600);
+        // April 1 2018 2:59am  (just before change)
+        offset = zone.timeIntervalFromUTCForDate(JSDate.initWithTimeIntervalSince1970(1522511940));
+        TKAssertEquals(offset, 39600);
+        // April 1 2018 3:00am  (moment of change)
+        offset = zone.timeIntervalFromUTCForDate(JSDate.initWithTimeIntervalSince1970(1522512000));
+        TKAssertEquals(offset, 36000);
+        // Jul 15 2018 noon UTC
+        offset = zone.timeIntervalFromUTCForDate(JSDate.initWithTimeIntervalSince1970(1531656000));
+        TKAssertEquals(offset, 36000);
+        // Oct 7 2018 1:59am  (just before change)
+        offset = zone.timeIntervalFromUTCForDate(JSDate.initWithTimeIntervalSince1970(1538841540));
+        TKAssertEquals(offset, 36000);
+        // Oct 7 2018 2:00am  (moment of change)
+        offset = zone.timeIntervalFromUTCForDate(JSDate.initWithTimeIntervalSince1970(1538841600));
+        TKAssertEquals(offset, 39600);
+        // Dec 15 2018 noon UTC
+        offset = zone.timeIntervalFromUTCForDate(JSDate.initWithTimeIntervalSince1970(1544875200));
+        TKAssertEquals(offset, 39600);
+        // Jan 15 2045 noon UTC 
+        offset = zone.timeIntervalFromUTCForDate(JSDate.initWithTimeIntervalSince1970(2368094400));
+        TKAssertEquals(offset, 39600);
+        // April 2 2045 2:59am  (just before change)
+        offset = zone.timeIntervalFromUTCForDate(JSDate.initWithTimeIntervalSince1970(2374675140));
+        TKAssertEquals(offset, 39600);
+        // April 2 2045 3:00am  (moment of change)
+        offset = zone.timeIntervalFromUTCForDate(JSDate.initWithTimeIntervalSince1970(2374675200));
+        TKAssertEquals(offset, 36000);
+        // Jul 15 2045 noon UTC 
+        offset = zone.timeIntervalFromUTCForDate(JSDate.initWithTimeIntervalSince1970(2383732800));
+        TKAssertEquals(offset, 36000);
+        // Oct 1 2045 1:59am  (just before change)
+        offset = zone.timeIntervalFromUTCForDate(JSDate.initWithTimeIntervalSince1970(2390399940));
+        TKAssertEquals(offset, 36000);
+        // Oct 1 2045 2:00am  (moment of change)
+        offset = zone.timeIntervalFromUTCForDate(JSDate.initWithTimeIntervalSince1970(2390400000));
+        TKAssertEquals(offset, 39600);
     },
 
     testAbbreviationForDate: function(){
@@ -286,7 +339,57 @@ JSClass("JSTimeZoneTests", TKTestSuite, {
         abbr = zone.abbreviationForDate(JSDate.initWithTimeIntervalSince1970(2393485200));
         TKAssertEquals(abbr, "PST");
 
-        // TODO: Sydney (with extra time change checks)
+        // ----
+        // Australia/Sydney
+        zone = JSTimeZone.initWithIdentifier('Australia/Sydney');
+        // distant past
+        abbr = zone.abbreviationForDate(JSDate.distantPast);
+        TKAssertEquals(abbr, "LMT");
+        // Jul 4 1776 noon UTC
+        abbr = zone.abbreviationForDate(JSDate.initWithTimeIntervalSince1970(-6106017600));
+        TKAssertEquals(abbr, "LMT");
+        // Jan 1 1970 00:00:00 UTC
+        abbr = zone.abbreviationForDate(JSDate.initWithTimeIntervalSince1970(0));
+        TKAssertEquals(abbr, "AEST");
+        // Jan 15 2018 noon UTC
+        abbr = zone.abbreviationForDate(JSDate.initWithTimeIntervalSince1970(1516017600));
+        TKAssertEquals(abbr, "AEDT");
+        // April 1 2018 2:59am  (just before change)
+        abbr = zone.abbreviationForDate(JSDate.initWithTimeIntervalSince1970(1522511940));
+        TKAssertEquals(abbr, "AEDT");
+        // April 1 2018 3:00am  (moment of change)
+        abbr = zone.abbreviationForDate(JSDate.initWithTimeIntervalSince1970(1522512000));
+        TKAssertEquals(abbr, "AEST");
+        // Jul 15 2018 noon UTC
+        abbr = zone.abbreviationForDate(JSDate.initWithTimeIntervalSince1970(1531656000));
+        TKAssertEquals(abbr, "AEST");
+        // Oct 7 2018 1:59am  (just before change)
+        abbr = zone.abbreviationForDate(JSDate.initWithTimeIntervalSince1970(1538841540));
+        TKAssertEquals(abbr, "AEST");
+        // Oct 7 2018 2:00am  (moment of change)
+        abbr = zone.abbreviationForDate(JSDate.initWithTimeIntervalSince1970(1538841600));
+        TKAssertEquals(abbr, "AEDT");
+        // Dec 15 2018 noon UTC
+        abbr = zone.abbreviationForDate(JSDate.initWithTimeIntervalSince1970(1544875200));
+        TKAssertEquals(abbr, "AEDT");
+        // Jan 15 2045 noon UTC 
+        abbr = zone.abbreviationForDate(JSDate.initWithTimeIntervalSince1970(2368094400));
+        TKAssertEquals(abbr, "AEDT");
+        // April 2 2045 2:59am  (just before change)
+        abbr = zone.abbreviationForDate(JSDate.initWithTimeIntervalSince1970(2374675140));
+        TKAssertEquals(abbr, "AEDT");
+        // April 2 2045 3:00am  (moment of change)
+        abbr = zone.abbreviationForDate(JSDate.initWithTimeIntervalSince1970(2374675200));
+        TKAssertEquals(abbr, "AEST");
+        // Jul 15 2045 noon UTC 
+        abbr = zone.abbreviationForDate(JSDate.initWithTimeIntervalSince1970(2383732800));
+        TKAssertEquals(abbr, "AEST");
+        // Oct 1 2045 1:59am  (just before change)
+        abbr = zone.abbreviationForDate(JSDate.initWithTimeIntervalSince1970(2390399940));
+        TKAssertEquals(abbr, "AEST");
+        // Oct 1 2045 2:00am  (moment of change)
+        abbr = zone.abbreviationForDate(JSDate.initWithTimeIntervalSince1970(2390400000));
+        TKAssertEquals(abbr, "AEDT");
     },
 
     testIsDaylightSavingsTimeForDate: function(){
@@ -410,7 +513,57 @@ JSClass("JSTimeZoneTests", TKTestSuite, {
         dst = zone.isDaylightSavingsTimeForDate(JSDate.initWithTimeIntervalSince1970(2393485200));
         TKAssertEquals(dst, false);
 
-        // TODO: Sydney (with extra time change checks)
+        // ----
+        // Australia/Sydney
+        zone = JSTimeZone.initWithIdentifier('Australia/Sydney');
+        // distant past
+        dst = zone.isDaylightSavingsTimeForDate(JSDate.distantPast);
+        TKAssertEquals(dst, false);
+        // Jul 4 1776 noon UTC
+        dst = zone.isDaylightSavingsTimeForDate(JSDate.initWithTimeIntervalSince1970(-6106017600));
+        TKAssertEquals(dst, false);
+        // Jan 1 1970 00:00:00 UTC
+        dst = zone.isDaylightSavingsTimeForDate(JSDate.initWithTimeIntervalSince1970(0));
+        TKAssertEquals(dst, false);
+        // Jan 15 2018 noon UTC
+        dst = zone.isDaylightSavingsTimeForDate(JSDate.initWithTimeIntervalSince1970(1516017600));
+        TKAssertEquals(dst, true);
+        // April 1 2018 2:59am  (just before change)
+        dst = zone.isDaylightSavingsTimeForDate(JSDate.initWithTimeIntervalSince1970(1522511940));
+        TKAssertEquals(dst, true);
+        // April 1 2018 3:00am  (moment of change)
+        dst = zone.isDaylightSavingsTimeForDate(JSDate.initWithTimeIntervalSince1970(1522512000));
+        TKAssertEquals(dst, false);
+        // Jul 15 2018 noon UTC
+        dst = zone.isDaylightSavingsTimeForDate(JSDate.initWithTimeIntervalSince1970(1531656000));
+        TKAssertEquals(dst, false);
+        // Oct 7 2018 1:59am  (just before change)
+        dst = zone.isDaylightSavingsTimeForDate(JSDate.initWithTimeIntervalSince1970(1538841540));
+        TKAssertEquals(dst, false);
+        // Oct 7 2018 2:00am  (moment of change)
+        dst = zone.isDaylightSavingsTimeForDate(JSDate.initWithTimeIntervalSince1970(1538841600));
+        TKAssertEquals(dst, true);
+        // Dec 15 2018 noon UTC
+        dst = zone.isDaylightSavingsTimeForDate(JSDate.initWithTimeIntervalSince1970(1544875200));
+        TKAssertEquals(dst, true);
+        // Jan 15 2045 noon UTC 
+        dst = zone.isDaylightSavingsTimeForDate(JSDate.initWithTimeIntervalSince1970(2368094400));
+        TKAssertEquals(dst, true);
+        // April 2 2045 2:59am  (just before change)
+        dst = zone.isDaylightSavingsTimeForDate(JSDate.initWithTimeIntervalSince1970(2374675140));
+        TKAssertEquals(dst, true);
+        // April 2 2045 3:00am  (moment of change)
+        dst = zone.isDaylightSavingsTimeForDate(JSDate.initWithTimeIntervalSince1970(2374675200));
+        TKAssertEquals(dst, false);
+        // Jul 15 2045 noon UTC 
+        dst = zone.isDaylightSavingsTimeForDate(JSDate.initWithTimeIntervalSince1970(2383732800));
+        TKAssertEquals(dst, false);
+        // Oct 1 2045 1:59am  (just before change)
+        dst = zone.isDaylightSavingsTimeForDate(JSDate.initWithTimeIntervalSince1970(2390399940));
+        TKAssertEquals(dst, false);
+        // Oct 1 2045 2:00am  (moment of change)
+        dst = zone.isDaylightSavingsTimeForDate(JSDate.initWithTimeIntervalSince1970(2390400000));
+        TKAssertEquals(dst, true);
     },
 
     testNextDaylightSavingsTransitionAfterDate: function(){
@@ -534,7 +687,57 @@ JSClass("JSTimeZoneTests", TKTestSuite, {
         date = zone.nextDaylightSavingsTransitionAfterDate(JSDate.initWithTimeIntervalSince1970(2393485200));
         TKAssertEquals(date.timeIntervalSince1970, 2404375200);
 
-        // TODO: Sydney (with extra time change checks)
+        // ----
+        // Australia/Sydney
+        zone = JSTimeZone.initWithIdentifier('Australia/Sydney');
+        // distant past
+        date = zone.nextDaylightSavingsTransitionAfterDate(JSDate.distantPast);
+        TKAssertEquals(date.timeIntervalSince1970, -2364113092);
+        // Jul 4 1776 noon UTC
+        date = zone.nextDaylightSavingsTransitionAfterDate(JSDate.initWithTimeIntervalSince1970(-6106017600));
+        TKAssertEquals(date.timeIntervalSince1970, -2364113092);
+        // Jan 1 1970 00:00:00 UTC
+        date = zone.nextDaylightSavingsTransitionAfterDate(JSDate.initWithTimeIntervalSince1970(0));
+        TKAssertEquals(date.timeIntervalSince1970, 57686400);
+        // Jan 15 2018 noon UTC
+        date = zone.nextDaylightSavingsTransitionAfterDate(JSDate.initWithTimeIntervalSince1970(1516017600));
+        TKAssertEquals(date.timeIntervalSince1970, 1522512000);
+        // April 1 2018 2:59am  (just before change)
+        date = zone.nextDaylightSavingsTransitionAfterDate(JSDate.initWithTimeIntervalSince1970(1522511940));
+        TKAssertEquals(date.timeIntervalSince1970, 1522512000);
+        // April 1 2018 3:00am  (moment of change)
+        date = zone.nextDaylightSavingsTransitionAfterDate(JSDate.initWithTimeIntervalSince1970(1522512000));
+        TKAssertEquals(date.timeIntervalSince1970, 1538841600);
+        // Jul 15 2018 noon UTC
+        date = zone.nextDaylightSavingsTransitionAfterDate(JSDate.initWithTimeIntervalSince1970(1531656000));
+        TKAssertEquals(date.timeIntervalSince1970, 1538841600);
+        // Oct 7 2018 1:59am  (just before change)
+        date = zone.nextDaylightSavingsTransitionAfterDate(JSDate.initWithTimeIntervalSince1970(1538841540));
+        TKAssertEquals(date.timeIntervalSince1970, 1538841600);
+        // Oct 7 2018 2:00am  (moment of change)
+        date = zone.nextDaylightSavingsTransitionAfterDate(JSDate.initWithTimeIntervalSince1970(1538841600));
+        TKAssertEquals(date.timeIntervalSince1970, 1554566400);
+        // Dec 15 2018 noon UTC
+        date = zone.nextDaylightSavingsTransitionAfterDate(JSDate.initWithTimeIntervalSince1970(1544875200));
+        TKAssertEquals(date.timeIntervalSince1970, 1554566400);
+        // Jan 15 2045 noon UTC 
+        date = zone.nextDaylightSavingsTransitionAfterDate(JSDate.initWithTimeIntervalSince1970(2368094400));
+        TKAssertEquals(date.timeIntervalSince1970, 2374675200);
+        // April 2 2045 2:59am  (just before change)
+        date = zone.nextDaylightSavingsTransitionAfterDate(JSDate.initWithTimeIntervalSince1970(2374675140));
+        TKAssertEquals(date.timeIntervalSince1970, 2374675200);
+        // April 2 2045 3:00am  (moment of change)
+        date = zone.nextDaylightSavingsTransitionAfterDate(JSDate.initWithTimeIntervalSince1970(2374675200));
+        TKAssertEquals(date.timeIntervalSince1970, 2390400000);
+        // Jul 15 2045 noon UTC 
+        date = zone.nextDaylightSavingsTransitionAfterDate(JSDate.initWithTimeIntervalSince1970(2383732800));
+        TKAssertEquals(date.timeIntervalSince1970, 2390400000);
+        // Oct 1 2045 1:59am  (just before change)
+        date = zone.nextDaylightSavingsTransitionAfterDate(JSDate.initWithTimeIntervalSince1970(2390399940));
+        TKAssertEquals(date.timeIntervalSince1970, 2390400000);
+        // Oct 1 2045 2:00am  (moment of change)
+        date = zone.nextDaylightSavingsTransitionAfterDate(JSDate.initWithTimeIntervalSince1970(2390400000));
+        TKAssertEquals(date.timeIntervalSince1970, 2406124800);
     },
 
     testTimeIntervalFromUTC: function(){

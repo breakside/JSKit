@@ -11,7 +11,6 @@ JSClass("JSLocale", JSObject, {
     regionCode: JSReadOnlyProperty('_regionCode', null),
     scriptCode: JSReadOnlyProperty('_scriptCode', null),
     extensions: JSReadOnlyProperty('_extensions', null),
-    calendar: JSReadOnlyProperty(),
 
     initWithIdentifier: function(identifier){
         if (identifier === null){
@@ -86,10 +85,6 @@ JSClass("JSLocale", JSObject, {
             return true;
         }
         return false;
-    },
-
-    getCalendar: function(){
-        return JSCalendar.gregorian;
     }
 
 });

@@ -6,37 +6,80 @@
 
 (function(){
 
+// TODO: Tests on Antarctica/Troll, with a 2hr daylight savings time jump
+// TODO: Tests on Australia/Lord_Howe, with a 1/2 hour daylight savings time jump
+
 JSClass("JSCalendarTests", TKTestSuite, {
 
     setup: function(){
         JSTimeZone.importZoneInfo(zoneinfo);
-        JSTimeZone.local = JSTimeZone.initWithIdentifier("America/Los_Angeles");
+        JSTimeZone.changeLocalTimeZone("America/Los_Angeles");
     },
 
     teardown: function(){
         JSTimeZone.clearZoneInfo();
-        JSTimeZone.local = null;
     },
 
     testGregorian: function(){
         var cal = JSCalendar.gregorian;
         TKAssertNotNull(cal);
         TKAssertObjectEquals(cal.timezone, JSTimeZone.local);
+        var cal2 = JSCalendar.gregorian;
+        TKAssertObjectNotEquals(cal, cal2);
+    },
+
+    testGregorianLeapYear: function(){
+        var leap = JSGregorianCalendar.isLeapYear(1900);
+        TKAssert(!leap);
+        leap = JSGregorianCalendar.isLeapYear(1901);
+        TKAssert(!leap);
+        leap = JSGregorianCalendar.isLeapYear(1902);
+        TKAssert(!leap);
+        leap = JSGregorianCalendar.isLeapYear(1903);
+        TKAssert(!leap);
+        leap = JSGregorianCalendar.isLeapYear(1904);
+        TKAssert(leap);
+        leap = JSGregorianCalendar.isLeapYear(1905);
+        TKAssert(!leap);
+        leap = JSGregorianCalendar.isLeapYear(1908);
+        TKAssert(leap);
+        leap = JSGregorianCalendar.isLeapYear(2000);
+        TKAssert(leap);
+        leap = JSGregorianCalendar.isLeapYear(2100);
+        TKAssert(!leap);
+        leap = JSGregorianCalendar.isLeapYear(1800);
+        TKAssert(!leap);
+        leap = JSGregorianCalendar.isLeapYear(1600);
+        TKAssert(leap);
+        leap = JSGregorianCalendar.isLeapYear(0);
+        TKAssert(leap);
+        leap = JSGregorianCalendar.isLeapYear(1);
+        TKAssert(!leap);
+        leap = JSGregorianCalendar.isLeapYear(4);
+        TKAssert(leap);
+        leap = JSGregorianCalendar.isLeapYear(-3);
+        TKAssert(!leap);
+        leap = JSGregorianCalendar.isLeapYear(-4);
+        TKAssert(leap);
+        leap = JSGregorianCalendar.isLeapYear(-100);
+        TKAssert(!leap);
+        leap = JSGregorianCalendar.isLeapYear(-400);
+        TKAssert(leap);
     },
 
     testComponentsFromDate: function(){
         var cal = JSCalendar.gregorian;
 
         // Jan 1 1970 in UTC
-        var date = JSDate.initWithIntervalSince1970(0);
+        var date = JSDate.initWithTimeIntervalSince1970(0);
 
         // Check timezone fallback to local if none specified
         var components = cal.componentsFromDate(JSCalendar.Unit.all, date);
         TKAssertObjectEquals(components.timezone, JSTimeZone.local);
 
         // Check fallback to timezone member
-        var tz = JSTimeZone.initWithIntervalFromUTC(3600);
-        cal = JSGregorianCalendar.init();
+        var tz = JSTimeZone.initWithTimeIntervalFromUTC(3600);
+        cal = JSCalendar.gregorian;
         cal.timezone = tz;
         components = cal.componentsFromDate(JSCalendar.Unit.all, date);
         TKAssertObjectEquals(components.timezone, tz);
@@ -57,11 +100,11 @@ JSClass("JSCalendarTests", TKTestSuite, {
         TKAssertExactEquals(components.weekday, 5);
 
         // Check custom tz
-        tz = JSTimeZone.initWithIntervalFromUTC(3600);
-        cal = JSGregorianCalendar.init();
+        tz = JSTimeZone.initWithTimeIntervalFromUTC(3600);
+        cal = JSCalendar.gregorian;
         cal.timezone = tz;
-        var units = JSCalendar.Unit.all & ~JSCalendar.Unit.calendar;
-        components = cal.componentsFromDate(JSCalendar.Unit.all, date);
+        var units = ~JSCalendar.Unit.calendar;
+        components = cal.componentsFromDate(units, date);
         TKAssertObjectEquals(components.timezone, tz);
         TKAssertUndefined(components.calendar);
         TKAssertEquals(components.era, 1);
@@ -75,11 +118,11 @@ JSClass("JSCalendarTests", TKTestSuite, {
         TKAssertExactEquals(components.weekday, 5);
 
         // Check custom tz (negative)
-        tz = JSTimeZone.initWithIntervalFromUTC(-3600);
-        cal = JSGregorianCalendar.init();
+        tz = JSTimeZone.initWithTimeIntervalFromUTC(-3600);
+        cal = JSCalendar.gregorian;
         cal.timezone = tz;
-        units = JSCalendar.Unit.all & ~(JSCalendar.Unit.calendar & JSCalendar.Unit.timezone);
-        components = cal.componentsFromDate(JSCalendar.Unit.all, date);
+        units = ~(JSCalendar.Unit.calendar | JSCalendar.Unit.timezone);
+        components = cal.componentsFromDate(units, date);
         TKAssertUndefined(components.timezone);
         TKAssertUndefined(components.calendar);
         TKAssertEquals(components.era, 1);
@@ -94,46 +137,47 @@ JSClass("JSCalendarTests", TKTestSuite, {
 
         // each unit on/off
         cal = JSCalendar.gregorian;
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.unit.era);
+        date = JSDate.initWithTimeIntervalSince1970(0);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.Unit.era, date);
         TKAssertNotUndefined(components.era);
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar, date);
         TKAssertUndefined(components.era);
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.unit.year);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.Unit.year, date);
         TKAssertNotUndefined(components.year);
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar, date);
         TKAssertUndefined(components.year);
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.unit.month);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.Unit.month, date);
         TKAssertNotUndefined(components.month);
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar, date);
         TKAssertUndefined(components.month);
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.unit.day);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.Unit.day, date);
         TKAssertNotUndefined(components.day);
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar, date);
         TKAssertUndefined(components.day);
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.unit.hour);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.Unit.hour, date);
         TKAssertNotUndefined(components.hour);
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar, date);
         TKAssertUndefined(components.hour);
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.unit.minute);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.Unit.minute, date);
         TKAssertNotUndefined(components.minute);
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar, date);
         TKAssertUndefined(components.minute);
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.unit.second);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.Unit.second, date);
         TKAssertNotUndefined(components.second);
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar, date);
         TKAssertUndefined(components.second);
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.unit.millisecond);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.Unit.millisecond, date);
         TKAssertNotUndefined(components.millisecond);
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar, date);
         TKAssertUndefined(components.millisecond);
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.unit.weekday);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar | JSCalendar.Unit.weekday, date);
         TKAssertNotUndefined(components.weekday);
-        components = cal.componentsFromDate(JSCalendar.Unit.calendar);
+        components = cal.componentsFromDate(JSCalendar.Unit.calendar, date);
         TKAssertUndefined(components.weekday);
 
         // BC vs CE
         // Jan 1 500 BC 12:30 PM UTC
-        date = JSDate.initWithIntervalSince1970(-77914092600);
+        date = JSDate.initWithTimeIntervalSince1970(-77914092600);
         cal = JSCalendar.gregorian;
         components = cal.componentsFromDate(JSCalendar.Unit.all, date, JSTimeZone.utc);
         TKAssertEquals(components.era, 0);
@@ -146,7 +190,7 @@ JSClass("JSCalendarTests", TKTestSuite, {
         // Daylight savings edges
         tz = JSTimeZone.initWithIdentifier("America/Los_Angeles");
         // March 11 2018 1am PST (1 hr before switch to PDT)
-        date = JSDate.initWithIntervalSince1970(1520758800);
+        date = JSDate.initWithTimeIntervalSince1970(1520758800);
         components = cal.componentsFromDate(JSCalendar.Unit.all, date, tz);
         TKAssertEquals(components.year, 2018);
         TKAssertEquals(components.month, 3);
@@ -163,7 +207,7 @@ JSClass("JSCalendarTests", TKTestSuite, {
         TKAssertEquals(components.minute, 0);
 
         // Nov 4 2018 1am PDT (1 hr before switch to PST)
-        date = JSDate.initWithIntervalSince1970(1541318400);
+        date = JSDate.initWithTimeIntervalSince1970(1541318400);
         components = cal.componentsFromDate(JSCalendar.Unit.all, date, tz);
         TKAssertEquals(components.year, 2018);
         TKAssertEquals(components.month, 11);
@@ -245,7 +289,7 @@ JSClass("JSCalendarTests", TKTestSuite, {
             hour: 17,
             minute: 7,
             second: 30,
-            timezone: JSTimeZone.initWithIntervalFromUTC(3600)
+            timezone: JSTimeZone.initWithTimeIntervalFromUTC(3600)
         };
         date = cal.dateFromComponents(components);
         TKAssertEquals(date.timeIntervalSince1970, 1531674450 - 3600);
@@ -258,14 +302,14 @@ JSClass("JSCalendarTests", TKTestSuite, {
             hour: 17,
             minute: 7,
             second: 30,
-            timezone: JSTimeZone.initWithIntervalFromUTC(-3600)
+            timezone: JSTimeZone.initWithTimeIntervalFromUTC(-3600)
         };
         date = cal.dateFromComponents(components);
         TKAssertEquals(date.timeIntervalSince1970, 1531674450 + 3600);
 
         // Timezone fallback
-        var tz = JSTimeZone.initWithIntervalFromUTC(3600);
-        cal = JSGregorianCalendar.init();
+        var tz = JSTimeZone.initWithTimeIntervalFromUTC(3600);
+        cal = JSCalendar.gregorian;
         cal.timezone = tz;
         components = {
             year: 2018,
@@ -335,12 +379,12 @@ JSClass("JSCalendarTests", TKTestSuite, {
         TKAssertEquals(date.timeIntervalSince1970, 1541318400);
 
         // 1 am PST, requires a special timezone to create
-        components = {year: 2018, month: 11, day: 4, hour: 1, timezone: JSTimeZone.initWithIntervalFromUTC(-8 * 3600)};
+        components = {year: 2018, month: 11, day: 4, hour: 1, timezone: JSTimeZone.initWithTimeIntervalFromUTC(-8 * 3600)};
         date = cal.dateFromComponents(components);
         TKAssertEquals(date.timeIntervalSince1970, 1541318400 + 3600);
 
         // 2 am PST, after switch to PST and really 2 hours after 1 am PDT
-        components = {year: 2018, month: 3, day: 11, hour: 2, timezone: tz};
+        components = {year: 2018, month: 11, day: 4, hour: 2, timezone: tz};
         date = cal.dateFromComponents(components);
         TKAssertEquals(date.timeIntervalSince1970, 1541318400 + 3600 + 3600);
 
@@ -375,9 +419,9 @@ JSClass("JSCalendarTests", TKTestSuite, {
         TKAssertEquals(date.timeIntervalSince1970, 1522508400);
 
         // 1 am AEST, requires a special timezone to create
-        components = {year: 2018, month: 4, day: 1, hour: 2, timezone: JSTimeZone.initWithIntervalFromUTC(10 * 3600)};
+        components = {year: 2018, month: 4, day: 1, hour: 2, timezone: JSTimeZone.initWithTimeIntervalFromUTC(10 * 3600)};
         date = cal.dateFromComponents(components);
-        TKAssertEquals(date.timeIntervalSince1970, 1522504800 + 3600);
+        TKAssertEquals(date.timeIntervalSince1970, 1522508400 + 3600);
 
         // 3 am AEST, after switch to AEST and really 2 hours after 2 am AEDT
         components = {year: 2018, month: 4, day: 1, hour: 3, timezone: tz};
@@ -386,6 +430,684 @@ JSClass("JSCalendarTests", TKTestSuite, {
     },
 
     testDateByAddingComponents: function(){
+        var cal = JSCalendar.gregorian;
+        var date1 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+
+        // Year subtraction
+        var date2 = cal.dateByAddingComponents({year: -1}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1485770400); // 2017-01-30T02:00:00
+
+        // Year addition
+        date2 = cal.dateByAddingComponents({year: 2}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1580378400); // 2020-01-30T02:00:00
+
+        // Month addition (with end of month correction)
+        date2 = cal.dateByAddingComponents({month: 1}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1519812000); // 2018-02-28T02:00:00
+
+        // Month subtraction (across year boundary)
+        date2 = cal.dateByAddingComponents({month: -1}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1514628000); // 2017-12-30T02:00:00
+
+        // Day addition (across month boundary)
+        date2 = cal.dateByAddingComponents({day: 2}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1517479200); // 2018-02-01T02:00:00
+
+        // Day subraction
+        date2 = cal.dateByAddingComponents({day: -20}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1515578400); // 2018-01-10T02:00:00
+
+        // Hour addition
+        date2 = cal.dateByAddingComponents({hour: 10}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1517342400); // 2018-01-30T12:00:00
+
+        // Hour subtraction (across day boundary)
+        date2 = cal.dateByAddingComponents({hour: -3}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1517295600); // 2018-01-29T23:00:00
+
+        // Minute addition
+        date2 = cal.dateByAddingComponents({minute: 45}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1517309100); // 2018-01-30T02:45:00
+
+        // Minute subtraction (across hour boundary)
+        date2 = cal.dateByAddingComponents({minute: -75}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1517301900); // 2018-01-30T00:45:00
+
+        // Second addition
+        date2 = cal.dateByAddingComponents({second: 30}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1517306430); // 2018-01-30T02:00:30
+
+        // Second subtraction (across hour boundary)
+        date2 = cal.dateByAddingComponents({second: -20}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1517306380); // 2018-01-30T01:59:40
+
+        // Millisecond addition
+        date2 = cal.dateByAddingComponents({millisecond: 123}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1517306400.123); // 2018-01-30T02:00:00.123
+
+        // Millisecond subtraction (across hour boundary)
+        date2 = cal.dateByAddingComponents({millisecond: -456}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1517306399.544); // 2018-01-30T01:59:59.544
+
+        // BC to CE
+        // 5 BC + 10 = 6 CE
+        date1 = cal.dateFromComponents({era: 0, year: 5, month: 3, day: 15, hour: 12});
+        date2 = cal.dateByAddingComponents({year: 10}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, -61971451622);
+
+        // CE to BC
+        // 7 CE - 10 = 4 BC
+        date1 = cal.dateFromComponents({era: 1, year: 7, month: 3, day: 15, hour: 12});
+        date2 = cal.dateByAddingComponents({year: -10}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, -62255448422);
+
+        // Daylight savings boundaries
+
+        // Adding an hour to get to moment of daylight saving transition
+        date1 = cal.dateFromComponents({year: 2018, month: 3, day: 11, hour: 1});
+        date2 = cal.dateByAddingComponents({hour: 1}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1520762400); // 2018-03-11T03:00:00
+
+        // Adding two hours across moment of daylight saving transition
+        date1 = cal.dateFromComponents({year: 2018, month: 3, day: 11, hour: 1});
+        date2 = cal.dateByAddingComponents({hour: 2}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1520766000); // 2018-03-11T04:00:00
+
+        // Adding a day to get to non-existent 2am
+        date1 = cal.dateFromComponents({year: 2018, month: 3, day: 10, hour: 2});
+        date2 = cal.dateByAddingComponents({day: 1}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1520762400); // 2018-03-11T03:00:00
+
+        // Adding a day across spring-forward  (should add 23hrs, not 24)
+        date1 = cal.dateFromComponents({year: 2018, month: 3, day: 10, hour: 5});
+        date2 = cal.dateByAddingComponents({day: 1}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1520769600); // 2018-03-11T05:00:00
+
+        // Adding an hour to get to momment of fall-back
+        date1 = cal.dateFromComponents({year: 2018, month: 11, day: 4, hour: 1});
+        date2 = cal.dateByAddingComponents({hour: 1}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1541318400 + 3600); // 2018-11-04T01:00:00 (second 1am)
+
+        // Adding two hours across a momment of fall-back
+        date1 = cal.dateFromComponents({year: 2018, month: 11, day: 4, hour: 1});
+        date2 = cal.dateByAddingComponents({hour: 2}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1541325600); // 2018-11-04T02:00:00
+
+        // Adding a day across a fall-back (should add 25hrs, not 24)
+        date1 = cal.dateFromComponents({year: 2018, month: 11, day: 3, hour: 5});
+        date2 = cal.dateByAddingComponents({day: 1}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1541336400); // 2018-11-05T05:00:00
+
+        // Leap Day
+
+        // Adding a year from Feb 29
+        date1 = cal.dateFromComponents({year: 2016, month: 2, day: 29, hour: 5});
+        date2 = cal.dateByAddingComponents({year: 1}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1488286800); // 2017-02-28T05:00:00
+
+        // Multiple components
+
+        // Adding a month and a day with end-of-month correction
+        date1 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+        date2 = cal.dateByAddingComponents({month: 1, day: 1}, date1);
+        TKAssertEquals(date2.timeIntervalSince1970, 1519898400); // 2018-03-01T02:00:00
+
+    },
+
+    testComponentsBetweenDates: function(){
+        var cal = JSCalendar.gregorian;
+
+        // Inverse of Year subtraction
+        var date1 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+        var date2 = cal.dateFromComponents({year: 2017, month: 1, day: 30, hour: 2});
+        var components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, -1);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Year addition
+        date1 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2020, month: 1, day: 30, hour: 2});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 2);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Month addition (with end of month correction)
+        date1 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2018, month: 2, day: 28, hour: 2});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 29);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Month subtraction (with end of month correction)
+        date1 = cal.dateFromComponents({year: 2018, month: 2, day: 28, hour: 2});
+        date2 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month,0);
+        TKAssertExactEquals(components.day, -29);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Reversal of Month subtraction (across year boundary)
+        date1 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2017, month: 12, day: 30, hour: 2});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, -1);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Day addition (across month boundary)
+        date1 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2018, month: 2, day: 1, hour: 2});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month,0);
+        TKAssertExactEquals(components.day, 2);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Day subraction
+        date1 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2018, month: 1, day: 10, hour: 2});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month,0);
+        TKAssertExactEquals(components.day, -20);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Hour addition
+        date1 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 12});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month,0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, 10);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Hour subtraction (across day boundary)
+        date1 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2018, month: 1, day: 29, hour: 23});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month,0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, -3);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Minute addition
+        date1 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2, minute: 45});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month,0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 45);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Minute subtraction (across hour boundary)
+        date1 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 0, minute: 45});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month,0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, -1);
+        TKAssertExactEquals(components.minute, -15);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Second addition
+        date1 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2, second: 30});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month,0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 30);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Second subtraction (across hour boundary)
+        date1 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 1, minute: 59, second: 40});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month,0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, -20);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Millisecond addition
+        date1 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2, millisecond: 123});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month,0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 123);
+
+        // Inverse of Millisecond subtraction (across hour boundary)
+        date1 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 1, minute: 59, second: 59, millisecond: 544});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month,0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, -456);
+
+        // Inverse of BC to CE
+        // 5 BC + 10 = 6 CE
+        date1 = cal.dateFromComponents({era: 0, year: 5, month: 3, day: 15, hour: 12});
+        date2 = cal.dateFromComponents({era: 1, year: 6, month: 3, day: 15, hour: 12});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 10);
+        TKAssertExactEquals(components.month,0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of CE to BC
+        // 7 CE - 10 = 4 BC
+        date1 = cal.dateFromComponents({era: 1, year: 7, month: 3, day: 15, hour: 12});
+        date2 = cal.dateFromComponents({era: 0, year: 4, month: 3, day: 15, hour: 12});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, -10);
+        TKAssertExactEquals(components.month,0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Daylight savings boundaries
+
+        // Inverse of Adding an hour to get to moment of daylight saving transition
+        date1 = cal.dateFromComponents({year: 2018, month: 3, day: 11, hour: 1});
+        date2 = cal.dateFromComponents({year: 2018, month: 3, day: 11, hour: 3});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, 1);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Adding two hours across moment of daylight saving transition
+        date1 = cal.dateFromComponents({year: 2018, month: 3, day: 11, hour: 1});
+        date2 = cal.dateFromComponents({year: 2018, month: 3, day: 11, hour: 4});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, 2);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Adding a day to get to non-existent 2am
+        date1 = cal.dateFromComponents({year: 2018, month: 3, day: 10, hour: 2});
+        date2 = cal.dateFromComponents({year: 2018, month: 3, day: 11, hour: 3});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 1);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Adding a day across spring-forward
+        date1 = cal.dateFromComponents({year: 2018, month: 3, day: 10, hour: 5});
+        date2 = cal.dateFromComponents({year: 2018, month: 3, day: 11, hour: 5});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 1);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Adding an hour to get to momment of fall-back
+        date1 = cal.dateFromComponents({year: 2018, month: 11, day: 4, hour: 1});
+        date2 = JSDate.initWithTimeIntervalSince1970(1541318400 + 3600);
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, 1);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Adding two hours across a momment of fall-back
+        date1 = cal.dateFromComponents({year: 2018, month: 11, day: 4, hour: 1});
+        date2 = cal.dateFromComponents({year: 2018, month: 11, day: 4, hour: 2});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, 2);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Inverse of Adding a day across a fall-back (should add 25hrs, not 24)
+        date1 = cal.dateFromComponents({year: 2018, month: 11, day: 3, hour: 5});
+        date2 = cal.dateFromComponents({year: 2018, month: 11, day: 4, hour: 5});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 1);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        var hmsUnits  = JSCalendar.Unit.hour | JSCalendar.Unit.minute | JSCalendar.Unit.second | JSCalendar.Unit.millisecond;
+
+        // 2018,3,11,6 - 2018,3,10,5 = 1d+1h/24h
+        date1 = cal.dateFromComponents({year: 2018, month: 3, day: 10, hour: 5});
+        date2 = cal.dateFromComponents({year: 2018, month: 3, day: 11, hour: 6});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 1);
+        TKAssertExactEquals(components.hour, 1);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+        components = cal.componentsBetweenDates(hmsUnits, date1, date2);
+        TKAssertExactEquals(components.hour, 24);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // 2018,3,11,5 - 2018,3,10,5 = 1d/23h
+        date1 = cal.dateFromComponents({year: 2018, month: 3, day: 10, hour: 5});
+        date2 = cal.dateFromComponents({year: 2018, month: 3, day: 11, hour: 5});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 1);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+        components = cal.componentsBetweenDates(hmsUnits, date1, date2);
+        TKAssertExactEquals(components.hour, 23);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // 2018,3,11,4 - 2018,3,10,5 = 22h
+        date1 = cal.dateFromComponents({year: 2018, month: 3, day: 10, hour: 5});
+        date2 = cal.dateFromComponents({year: 2018, month: 3, day: 11, hour: 4});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, 22);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+        components = cal.componentsBetweenDates(hmsUnits, date1, date2);
+        TKAssertExactEquals(components.hour, 22);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // 2018,3,11,3 - 2018,3,10,3 = 1d/23h
+        date1 = cal.dateFromComponents({year: 2018, month: 3, day: 10, hour: 3});
+        date2 = cal.dateFromComponents({year: 2018, month: 3, day: 11, hour: 3});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 1);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+        components = cal.componentsBetweenDates(hmsUnits, date1, date2);
+        TKAssertExactEquals(components.hour, 23);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // 2018,3,11,3 - 2018,3,10,2 = 1d+1h/24h
+        date1 = cal.dateFromComponents({year: 2018, month: 3, day: 10, hour: 2});
+        date2 = cal.dateFromComponents({year: 2018, month: 3, day: 11, hour: 3});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 1);
+        TKAssertExactEquals(components.hour, 0);  // FIXME?
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+        components = cal.componentsBetweenDates(hmsUnits, date1, date2);
+        TKAssertExactEquals(components.hour, 24);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // 2018,3,11,1 - 2018,3,10,1 = 1d/24h
+        date1 = cal.dateFromComponents({year: 2018, month: 3, day: 10, hour: 1});
+        date2 = cal.dateFromComponents({year: 2018, month: 3, day: 11, hour: 1});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 1);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+        components = cal.componentsBetweenDates(hmsUnits, date1, date2);
+        TKAssertExactEquals(components.hour, 24);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // 2018,11,4,6 - 2018,11,3,5 = 1d+1h/26h
+        date1 = cal.dateFromComponents({year: 2018, month: 11, day: 3, hour: 5});
+        date2 = cal.dateFromComponents({year: 2018, month: 11, day: 4, hour: 6});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 1);
+        TKAssertExactEquals(components.hour, 1);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+        components = cal.componentsBetweenDates(hmsUnits, date1, date2);
+        TKAssertExactEquals(components.hour, 26);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // 2018,11,4,5 - 2018,11,3,5 = 1d/25h
+        date1 = cal.dateFromComponents({year: 2018, month: 11, day: 3, hour: 5});
+        date2 = cal.dateFromComponents({year: 2018, month: 11, day: 4, hour: 5});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 1);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+        components = cal.componentsBetweenDates(hmsUnits, date1, date2);
+        TKAssertExactEquals(components.hour, 25);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // 2018,11,4,4 - 2018,11,3,5 = 24hr
+        date1 = cal.dateFromComponents({year: 2018, month: 11, day: 3, hour: 5});
+        date2 = cal.dateFromComponents({year: 2018, month: 11, day: 4, hour: 4});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 0);
+        TKAssertExactEquals(components.hour, 24);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+        components = cal.componentsBetweenDates(hmsUnits, date1, date2);
+        TKAssertExactEquals(components.hour, 24);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // 2018,11,4,2 - 2018,11,3,2 = 1d/25h
+        date1 = cal.dateFromComponents({year: 2018, month: 11, day: 3, hour: 2});
+        date2 = cal.dateFromComponents({year: 2018, month: 11, day: 4, hour: 2});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 1);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+        components = cal.componentsBetweenDates(hmsUnits, date1, date2);
+        TKAssertExactEquals(components.hour, 25);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // 2018,11,4,1 - 2018,11,3,1 = 1d?/25h *second 1am
+        date1 = cal.dateFromComponents({year: 2018, month: 11, day: 3, hour: 1});
+        date2 = JSDate.initWithTimeIntervalSince1970(1541318400 + 3600);
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 1);
+        TKAssertExactEquals(components.hour, 1);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+        components = cal.componentsBetweenDates(hmsUnits, date1, date2);
+        TKAssertExactEquals(components.hour, 25);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // 2018,11,4,1 - 2018,11,3,1 = 1d/24h
+        date1 = cal.dateFromComponents({year: 2018, month: 11, day: 3, hour: 1});
+        date2 = cal.dateFromComponents({year: 2018, month: 11, day: 4, hour: 1});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 0);
+        TKAssertExactEquals(components.day, 1);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+        components = cal.componentsBetweenDates(hmsUnits, date1, date2);
+        TKAssertExactEquals(components.hour, 24);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // Multiple components
+
+        // Inverse of Adding a month and a day with end-of-month correction
+        date1 = cal.dateFromComponents({year: 2018, month: 1, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2018, month: 3, day: 1, hour: 2});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.difference, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.month, 1);
+        TKAssertExactEquals(components.day, 1);
+        TKAssertExactEquals(components.hour, 0);
+        TKAssertExactEquals(components.minute, 0);
+        TKAssertExactEquals(components.second, 0);
+        TKAssertExactEquals(components.millisecond, 0);
+
+        // One year, in days, ending in leap year before leap day
+        date1 = cal.dateFromComponents({year: 2015, month: 1, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2016, month: 1, day: 30, hour: 2});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.day, date1, date2);
+        TKAssertExactEquals(components.day, 365);
+
+        // One year in days, ending in leap year after leap day
+        date1 = cal.dateFromComponents({year: 2015, month: 3, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2016, month: 3, day: 30, hour: 2});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.day, date1, date2);
+        TKAssertExactEquals(components.day, 366);
+
+        // One year in days, starting in leap year before leap day
+        date1 = cal.dateFromComponents({year: 2016, month: 1, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2017, month: 1, day: 30, hour: 2});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.day, date1, date2);
+        TKAssertExactEquals(components.day, 366);
+
+        // One year in days, starting in leap year after leap day
+        date1 = cal.dateFromComponents({year: 2016, month: 3, day: 30, hour: 2});
+        date2 = cal.dateFromComponents({year: 2017, month: 3, day: 30, hour: 2});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.day, date1, date2);
+        TKAssertExactEquals(components.day, 365);
+
+        // From non leap day to leap day
+        date1 = cal.dateFromComponents({year: 2015, month: 2, day: 28, hour: 2});
+        date2 = cal.dateFromComponents({year: 2016, month: 2, day: 29, hour: 2});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.year | JSCalendar.Unit.day, date1, date2);
+        TKAssertExactEquals(components.year, 1);
+        TKAssertExactEquals(components.day, 1);
+
+        // From leap day to non leap day
+        date1 = cal.dateFromComponents({year: 2016, month: 2, day: 29, hour: 2});
+        date2 = cal.dateFromComponents({year: 2017, month: 2, day: 28, hour: 2});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.year | JSCalendar.Unit.day, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.day, 364);
+
+        // TODO: rounding when requesting partial units
     }
 
 });
@@ -769,6 +1491,31 @@ var zoneinfo = {
     2120119200, 
     2140678800
    ], 
+   "tz": "PST8PDT,M3.2.0,M11.1.0", 
+   "rule": {
+    "daylight": {
+     "dst": true, 
+     "off": -25200, 
+     "abbr": "PDT"
+    }, 
+    "fromStandard": {
+     "week": 2, 
+     "time": 7200, 
+     "dow": 0, 
+     "month": 3
+    }, 
+    "toStandard": {
+     "week": 1, 
+     "time": 7200, 
+     "dow": 0, 
+     "month": 11
+    }, 
+    "standard": {
+     "dst": false, 
+     "off": -28800, 
+     "abbr": "PST"
+    }
+   }, 
    "types": [
     {
      "dst": false, 
@@ -1086,6 +1833,31 @@ var zoneinfo = {
     2122473600, 
     2138198400
    ], 
+   "tz": "AEST-10AEDT,M10.1.0,M4.1.0/3", 
+   "rule": {
+    "daylight": {
+     "dst": true, 
+     "off": 39600, 
+     "abbr": "AEDT"
+    }, 
+    "fromStandard": {
+     "week": 1, 
+     "time": 7200, 
+     "dow": 0, 
+     "month": 10
+    }, 
+    "toStandard": {
+     "week": 1, 
+     "time": 10800, 
+     "dow": 0, 
+     "month": 4
+    }, 
+    "standard": {
+     "dst": false, 
+     "off": 36000, 
+     "abbr": "AEST"
+    }
+   }, 
    "types": [
     {
      "dst": false, 
@@ -1113,6 +1885,25 @@ var zoneinfo = {
      "abbr": "AEST"
     }
    ]
+  }, 
+  {
+   "map": [], 
+   "transitions": [], 
+   "tz": "GMT0", 
+   "rule": {
+    "standard": {
+     "dst": false, 
+     "off": 0, 
+     "abbr": "GMT"
+    }
+   }, 
+   "types": [
+    {
+     "dst": false, 
+     "off": 0, 
+     "abbr": "GMT"
+    }
+   ]
   }
  ], 
  "map": {
@@ -1121,6 +1912,9 @@ var zoneinfo = {
   }, 
   "Australia/Sydney": {
    "index": 1
+  }, 
+  "GMT": {
+   "index": 2
   }
  }
 };

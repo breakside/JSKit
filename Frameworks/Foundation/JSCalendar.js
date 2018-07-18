@@ -1,14 +1,14 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSDate.js"
 // #import "Foundation/JSTimeZone.js"
-/* global JSClass, JSObject, JSCalendar, JSGregorianCalendar, JSReadOnlyProperty, JSDate, JSTimeZone */
+/* global JSClass, JSObject, JSCalendar, JSGregorianCalendar, JSDynamicProperty, JSReadOnlyProperty, JSDate, JSTimeZone */
 'use strict';
 
 (function(){
 
 JSClass("JSCalendar", JSObject, {
 
-    timezone: JSReadOnlyProperty('_timezone', null),
+    timezone: JSDynamicProperty('_timezone', null),
 
     getTimezone: function(){
         if (this._timezone !== null){
@@ -20,7 +20,7 @@ JSClass("JSCalendar", JSObject, {
     componentsFromDate: function(units, date, timezone){
     },
 
-    componentsBetweenDates: function(units, date1, date2){
+    componentsBetweenDates: function(units, date1, date2, timezone){
     },
 
     dateFromComponents: function(components){
@@ -50,7 +50,7 @@ JSClass("JSGregorianCalendar", JSCalendar, {
         //    want for the target timezone.
         timezone = timezone || this.timezone;
         var offset = timezone.timeIntervalFromUTCForDate(date);
-        var adjustedInterval = date._timeIntervalSince1970 + offset;
+        var adjustedInterval = date.timeIntervalSince1970 + offset;
         var components = {};
         var nativeDate = new Date(adjustedInterval * 1000);
 
@@ -113,72 +113,15 @@ JSClass("JSGregorianCalendar", JSCalendar, {
         return components;
     },
 
-    componentsBetweenDates: function(units, date1, date2, timezone){
-        var negative = date1.compare(date2) > 0;
-        if (negative){
-            var temp = date1;
-            date1 = date2;
-            date2 = temp;
-        }
-        var components1 = this.componentsFromDate(JSCalendar.Unit.adjustable | JSCalendar.Unit.timezone, date1, timezone);
-        var components2 = this.componentsFromDate(JSCalendar.Unit.adjustable | JSCalendar.Unit.timezone, date2, timezone);
-        var diff = {
-            year: 0,
-            month: 0,
-            day: 0,
-            hour: 0,
-            minute: 0,
-            second: 0,
-            millisecond: 0,
-            timezone: components1.timezone
-        };
-        // TODO: figure out diffs
-        if (diff.year !== 0 && (units & JSCalendar.Unit.year) === 0){
-            diff.month += monthsPerYear * diff.year;
-            delete diff.year;
-        }
-        if (diff.month !== 0 && (units & JSCalendar.Unit.month) === 0){
-            // FIXME: get real day count based on actual dates
-            diff.day += 30 * diff.month;
-            delete diff.month;
-        }
-        if (diff.day !== 0 && (units & JSCalendar.Unit.day) === 0){
-            // FIXME: get real hour count after considering daylight savings
-            diff.hour += hoursPerDay * diff.day;
-            delete diff.day;
-        }
-        if (diff.hour !== 0 && (units & JSCalendar.Unit.hour) === 0){
-            diff.minute += minutesPerHour * diff.hour;
-            delete diff.hour;
-        }
-        if (diff.minute !== 0 && (units & JSCalendar.Unit.minute) === 0){
-            diff.second += secondsPerMinute * diff.minute;
-            delete diff.minute;
-        }
-        if (diff.second !== 0 && (units & JSCalendar.Unit.second) === 0){
-            diff.millisecond += diff.second * 1000;
-            delete diff.second;
-        }
-        if (diff.millisecond !== 0 && (units & JSCalendar.Unit.millisecond) === 0){
-            delete diff.millisecond;
-        }
-        if (negative){
-            for (var name in diff){
-                diff[name] = -diff[name];
-            }
-        }
-        return diff;
-    },
-
     dateFromComponents: function(components){
         var era = components.era !== undefined ? components.era : 1;
-        var year = components.year || 0;
-        var month = components.month || 1;
-        var day = components.day || 1;
-        var hour = components.hour || 0;
-        var minute = components.minute || 0;
-        var second = components.second || 0;
-        var millisecond = components.millisecond || 0;
+        var year = components.year !== undefined ? components.year : 1;
+        var month = components.month !== undefined ? components.month : 1;
+        var day = components.day !== undefined ? components.day : 1;
+        var hour = components.hour !== undefined ? components.hour : 0;
+        var minute = components.minute !== undefined ? components.minute : 0;
+        var second = components.second !== undefined ? components.second : 0;
+        var millisecond = components.millisecond !== undefined ? components.millisecond : 0;
 
         // Adjust year to astronomical year if needed for BC dates
         var astronomicalYear = year;
@@ -188,66 +131,78 @@ JSClass("JSGregorianCalendar", JSCalendar, {
 
         // 1. First we'll create a UTC date, which gets us close, but not quite there if our
         //    timezone has an offset from UTC.
-        var millisecondsSince1970 = Date.UTC(astronomicalYear, month, day, hour, minute, second, millisecond);
-        var utcDate = JSDate.initWithTimeIntervalSince1970(millisecondsSince1970 / 1000);
+        var millisecondsSince1970 = Date.UTC(astronomicalYear, month - 1, day, hour, minute, second, millisecond);
+        // Javascript thinks that years between 0 and 99 are for the 1900s, so if that's what we have,
+        // we need to do a little more work to correct the timestamp
+        if (astronomicalYear >= 0 && astronomicalYear <= 99){
+            var d = new Date(millisecondsSince1970);
+            d.setUTCFullYear(astronomicalYear);
+            millisecondsSince1970 = d.getTime();   
+        }
+        var date = JSDate.initWithTimeIntervalSince1970(millisecondsSince1970 / 1000);
 
         // 2. Next, we'll adjust the date according to our timezone offset.  But, the adjustment
         //    may cross a daylight savings transition, which means the offset wasn't quite correct.
         //    So we'll try again.
-
         var timezone = components.timezone || this.timezone;
-        var offset = timezone.timeIntervalFromUTCForDate(utcDate);
-        var date = utcDate;
-        if (offset !== 0){
-            // Lets say our components are for 3am PST on a "fall back" day and our UTC offset just
-            // changed from -7h to -8h.  That means 3am should really be 11am UTC time.
-            // We create date0 with the 3am component, but that's 3am in the UTC timezone, which in
-            // actuality corresponds to 8pm PDT on the previous day (-7h).
-            // So when we ask the timezone for its offset at that point in time, it tells us that
-            // the offset is -7h.  We add 7h to date0 and now have 10am UTC, which isn't quite right.
-            // But now if we ask for the offset again using the new date, we'll be told -8h.
-            //
-            // What about if we ask for 1am on a "fall back"?  There are actually two of those, so
-            // which one will we get?
-            // 1am UTC goes -7 to 6pm PDT on the previous day.  Offset then is -7h, so we add 7 in UTC
-            // land and get 8am UTC.  Asking for the offset again at 8am UTC still tells us -7h, so
-            // that's where we'll leave things, at 8am UTC, which is the first 1am (1am PDT rather than 1am PST)
-            //
-            // How about the other direction, on a "spring forward" day from PST to PDT?
-            // Lets say our components are for 4am PDT.  date0 is 4am UTC, which translates
-            // to 8pm PST.  We are told the offset is -8, so we add 8 hours to 4am UTC and
-            // get 12pm UTC.  Asking again for the offset, we're now told -7h, so we add
-            // 7 to 4am UTC and get 11am UTC, which corresponds with 4am PDT.
-            //
-            // What if we ask for 2am on a spring forward day?  It doesn't exist, so what do we
-            // end up with?  2am UTC corresponds to 6pm PST the previous day.  We're told the offset
-            // is -8h, so we add 8 to 2am UTC and get 10am UTC.  We ask for the offset there and are
-            // told -7h, so we add 7 to 2am and get 9am UTC, which corresponds to 1am PST.  WRONG!
-            // If we keep asking, we'll be told -7 and -8 alternating.  So if we see some ping
-            // ponging of offsets, we'll pick the first one.
-            date = utcDate.addingTimeInterval(-offset);
-            var nextTransitionDate;
-            if (offset < 0){
-                nextTransitionDate = timezone.nextDaylightSavingsTransitionFromDate(utcDate);
-                if (date.compare(nextTransitionDate) > 0){
-                    offset = timezone.timeIntervalFromUTCForDate(nextTransitionDate);
-                    date = utcDate.addingTimeInterval(-offset);
+        var offset = timezone.timeIntervalFromUTCForDate(date);
+        var cutoff;
+        if (offset < 0){
+            // A negative offset means the UTC date we created is behind the
+            // true UTC date we're looking for, and adding the offset may
+            // take us across a time change boundary.
+            var next = timezone.nextDaylightSavingsTransitionAfterDate(date);
+            if (next !== null){
+                var nextOffset = timezone.timeIntervalFromUTCForDate(next);
+                if (nextOffset > offset){
+                    // The next transition is a spring forward
+                    cutoff = next.addingTimeInterval(nextOffset);
+                }else{
+                    // The next transition is a fall back
+                    cutoff = next.addingTimeInterval(offset);
+                }
+                if (date.compare(cutoff) < 0){
+                    // If we haven't made it past the cutoff, then just use
+                    // the original offset we queried
+                    date = date.addingTimeInterval(-offset);
+                }else{
+                    // If we are at or past the cutoff, then we are after
+                    // the next time change boundary, and should use its offset instead
+                    date = date.addingTimeInterval(-nextOffset);
                 }
             }else{
-                nextTransitionDate = timezone.nextDaylightSavingsTransitionFromDate(date);
-                if (utcDate.compare(nextTransitionDate) > 0){
-                    offset = timezone.timeIntervalFromUTCForDate(nexttr)
-                }
+                // If there is no next time change boundary, we can only use the offset we have
+                date = date.addingTimeInterval(-offset);
             }
-
-            date = date0.addingTimeInterval(-offset1);
-            var offset2 = timezone.timeIntervalFromUTCForDate(date);
-            if (offset1 != offset2){
-                date = date0.addingTimeInterval(-offset2);
-                var offset3 = timezone.timeIntervalFromUTCForDate(date);
-                if (offset3 != offset2){
-                    date = date0.addingTimeInterval(-offset3);
+        }else if (offset > 0){
+            // A positive offset means the UTC date we created is ahead of the
+            // true UTC date we're looking for, and subtracting the offset may
+            // take us across a time change boundary.  We'll look for a nearby
+            // previous boundary by asking for the next boundary after a day ago.
+            // If that next boundary isn't before our date, then we're not close
+            // enough to a time change to matter.
+            var dayAgo = date.addingTimeInterval(-secondsPerHour * 24);
+            var prev = timezone.nextDaylightSavingsTransitionAfterDate(dayAgo);
+            if (prev !== null && prev.compare(date) <= 0){
+                var prevOffset = timezone.timeIntervalFromUTCForDate(dayAgo);
+                if (prevOffset < offset){
+                    // The previous transition was a spring forward
+                    cutoff = prev.addingTimeInterval(offset);
+                }else{
+                    // The previous transition was a fall back
+                    cutoff = prev.addingTimeInterval(prevOffset);
                 }
+                if (date.compare(cutoff) < 0){
+                    // If we haven't made it past the cutoff, then use the previous offset
+                    date = date.addingTimeInterval(-prevOffset);
+                }else{
+                    // If we are at or past the cutoff, use or offset
+                    date = date.addingTimeInterval(-offset);
+                }
+            }else{
+                // If there is no previous time change boundary, or if the previous
+                // boundary is more than a day ago, use the offset we have.
+                date = date.addingTimeInterval(-offset);
             }
         }
         return date;
@@ -256,7 +211,7 @@ JSClass("JSGregorianCalendar", JSCalendar, {
     dateByAddingComponents: function(addedComponents, toDate){
         var addedYears = addedComponents.year || 0;
         var addedMonths = addedComponents.month || 0;
-        var addedDays = addedComponents.days || 0;
+        var addedDays = addedComponents.day || 0;
 
         var baseDate = toDate;
         if (addedYears !== 0 || addedMonths !== 0 || addedDays !== 0){
@@ -295,8 +250,12 @@ JSClass("JSGregorianCalendar", JSCalendar, {
             // and from UTC to avoid timezone issues, what looks like Jan 31 in our
             // timezone may be Feb 1 in UTC, and after adding a month we wouldn't
             // catch this end of month issue.
+            // NOTE: This end of month adjustment happens regardless of how may extra
+            // days we're adding via addedComponents.day.  Say we wanted to add
+            // 1 month and 1 day from Jan 31.  The natural interpretation is to end up
+            // with March 1 (+1 month = last day of Feb, +1 day = first day of March).
             components.month += addedMonths;
-            var lastDayOfMonth = JSGregorianCalendar.lastDayOfMonthInYear(components.month, components.year);
+            var lastDayOfMonth = JSGregorianCalendar.lastDayOfMonthInYear(components.month, astronomicalYear);
             if (components.day > lastDayOfMonth){
                 components.day = lastDayOfMonth;
             }
@@ -324,8 +283,273 @@ JSClass("JSGregorianCalendar", JSCalendar, {
             (addedComponents.hour || 0) * secondsPerHour +
             (addedComponents.minute || 0) * secondsPerMinute +
             (addedComponents.second || 0) +
-            (addedComponents.millisecond || 0) + secondsPerMillisecond;
+            (addedComponents.millisecond || 0) * secondsPerMillisecond;
         return baseDate.addingTimeInterval(timezoneIndifferentTimeInterval);
+    },
+
+    componentsBetweenDates: function(units, date1, date2, timezone){
+        timezone = timezone || this.timezone;
+        var diff = {
+            year: 0,
+            month: 0,
+            day: 0,
+            hour: 0,
+            minute: 0,
+            second: 0,
+            millisecond: 0,
+            calendar: this,
+            timezone: timezone
+        };
+        var compare = date1.compare(date2) > 0;
+        var negative = compare > 0;
+        if (compare !== 0){
+            // Swap things around so date1 is always less that date2
+            // Remember if we sapped so we can add negative signs to the final result
+            if (negative){
+                var temp = date1;
+                date1 = date2;
+                date2 = temp;
+            }
+            var components1 = this.componentsFromDate(JSCalendar.Unit.adjustable | JSCalendar.Unit.timezone, date1, timezone);
+            var components2 = this.componentsFromDate(JSCalendar.Unit.adjustable | JSCalendar.Unit.timezone, date2, timezone);
+
+            var astronomicalYear1;
+            var astronomicalYear2;
+            var y, m;
+            if (components1.era === 0){
+                astronomicalYear1 = -components1.year + 1;
+            }else{
+                astronomicalYear1 = components1.year;
+            }
+            if (components2.era === 0){
+                astronomicalYear2 = -components2.year + 1;
+            }else{
+                astronomicalYear2 = components2.year;
+            }
+
+            // First lets collect years, months, down-filling to days
+            // if years and/or months are not requested.
+            diff.year = astronomicalYear2 - astronomicalYear1;
+            if (components2.month < components1.month){
+                // NOTE: with the way we swap date1 and date2 so date1 is always < date2,
+                // if components2.month is < components1.month, then we must have at least
+                // one year between them, so doing a -1 keeps diff.year >= 0
+                diff.year -= 1;
+                diff.month = 12 - (components1.month - components2.month);
+            }else{
+                diff.month = components2.month - components1.month;
+            }
+            if (diff.year > 0 && (units & JSCalendar.Unit.year) === 0){
+                // no year requested.  Down-fill to months or days
+                if ((units & JSCalendar.Unit.month) !== 0){
+                    // easy to down-fill into months if the user has requested those
+                    diff.month += diff.year * 12;
+                }else{
+                    // down-fill actual count of days whether the user want them or not
+                    // (we'll further down-convert later if needed)
+                    for (y = astronomicalYear1; y < astronomicalYear2; ++y){
+                        diff.day += JSGregorianCalendar.isLeapYear(components1.month < 3 ? y : y + 1) ? 366 : 365;
+                    }
+                }
+                diff.year = 0;
+            }
+
+            if (components2.day < components1.day){
+                if (diff.month === 0){
+                    diff.month = 12;
+                    diff.year -= 1;
+                }
+                diff.month -= 1;
+                var daysInMonth;
+                if (components2.month > 1){
+                    daysInMonth = JSGregorianCalendar.lastDayOfMonthInYear(components2.month - 1, astronomicalYear2);
+                }else{
+                    daysInMonth = JSGregorianCalendar.lastDayOfMonthInYear(12, astronomicalYear2 - 1);
+                }
+                diff.day += daysInMonth - (Math.min(daysInMonth, components1.day) - components2.day);
+            }else{
+                diff.day += components2.day - components1.day;
+            }
+            if (diff.month > 0 && (units & JSCalendar.Unit.month) === 0){
+                // If the user didn't request months, down-fill to days.  Since years have already
+                // been down-filled if needed, we only need to worry about the remaining < 12 months
+                // Count days from month1 to month2, crossing astronomicalYear2 boundary if needed 
+                m = components1.month;
+                diff.day -= components1.day;
+                if (components2.month <= components1.month){
+                    for (; m <= 12; ++m){
+                        diff.day += JSGregorianCalendar.lastDayOfMonthInYear(m, astronomicalYear2 - 1);
+                    }
+                    m = 1;
+                }
+                for (; m < components2.month - 1; ++m){
+                    diff.day += JSGregorianCalendar.lastDayOfMonthInYear(m, astronomicalYear2);
+                }
+                diff.day += components2.day;
+                diff.month = 0;
+            }
+
+            // Thing can get tricky around daylight saving time changes
+            // Our goals:
+            // 1) Return values that work in the inverse with .dateByAddingComponents
+            // 2) Return values that seem natural and sensical to a human
+            // 3) For situations where 1d != 24h, return the exact hours if days are not requested and are down-filled to hours
+            // 2018,3,11,6 - 2018,3,10,5 = 1d+1h/24h
+            // 2018,3,11,5 - 2018,3,10,5 = 1d/23h
+            // 2018,3,11,4 - 2018,3,10,5 = 22h
+            // 2018,3,11,3 - 2018,3,10,3 = 1d/23h
+            // 2018,3,11,3 - 2018,3,10,2 = 1d+1h/24h
+            // 2018,3,11,1 - 2018,3,10,1 = 1d/24h
+            // 2018,11,4,6 - 2018,11,3,5 = 1d+1h/26h
+            // 2018,11,4,5 - 2018,11,3,5 = 1d/25h
+            // 2018,11,4,4 - 2018,11,3,5 = 24hr
+            // 2018,11,4,2 - 2018,11,3,2 = 1d/25h
+            // 2018,11,4,1 - 2018,11,3,1 = 1d?/25h *second 1am
+            // 2018,11,4,1 - 2018,11,3,1 = 1d/24h
+
+            // We've taken care of years and months, now we can fill in the rest of
+            // the components, but we'll need to be careful about daylight saving transition
+            if (components2.hour < components1.hour){
+                diff.day -= 1;
+            }
+
+            var date3 = this.dateByAddingComponents({year: diff.year, month: diff.month, day: diff.day}, date1);
+            var running = Math.round((date2.timeIntervalSince1970 - date3.timeIntervalSince1970) * 1000);
+            diff.millisecond = running % 1000;
+            running = (running - diff.millisecond) / 1000;
+            diff.second = running % 60;
+            running = (running - diff.second) / 60;
+            diff.minute = running % 60;
+            running = (running - diff.minute) / 60;
+            diff.hour = running;
+            var seconds;
+            // Now we can down- or up-fill as needed
+            if (diff.day > 0 && (units & JSCalendar.Unit.day) === 0){
+                if (units & (JSCalendar.Unit.hour | JSCalendar.Unit.minute | JSCalendar.Unit.second | JSCalendar.Unit.millisecond)){
+                    // If we have something below, down-fill to hours by recalulating the number of hours/minutes/seconds/ms
+                    // based on the number of seconds remaining between the two dates after accouting for years/momths
+                    date3 = this.dateByAddingComponents({year: diff.year, month: diff.month}, date1);
+                    running = Math.round((date2.timeIntervalSince1970 - date3.timeIntervalSince1970) * 1000);
+                    diff.millisecond = running % 1000;
+                    running = (running - diff.millisecond) / 1000;
+                    diff.second = running % 60;
+                    running = (running - diff.second) / 60;
+                    diff.minute = running % 60;
+                    running = (running - diff.minute) / 60;
+                    diff.hour = running;
+                }else if (units & JSCalendar.Unit.month){
+                    // fill up to months...we'll do a rounding approximation based on a 30 day month
+                    seconds = units.hour * secondsPerHour + units.minute * secondsPerMinute + units.second + units.millisecond * millisecondsPerSecond;
+                    if (seconds >= secondsPerHour * 12){
+                        units.day += 1;
+                    }
+                    if (units.day >= 15){
+                        units.month += 1;
+                    }
+                }else if (units & JSCalendar.Unit.year){
+                    // fill up to years...we'll do a rounding approximation based on a 365 day year
+                    seconds = units.hour * secondsPerHour + units.minute * secondsPerMinute + units.second + units.millisecond * millisecondsPerSecond;
+                    if (seconds >= secondsPerHour * 12){
+                        units.day += 1;
+                    }
+                    if (units.day > 182){
+                        units.year += 1;
+                    }
+                }
+                // else, no units are set and it doesn't matter what we do because nothing will be returned
+            }
+
+            if (diff.hour > 0 && (units & JSCalendar.Unit.hour) === 0){
+                if (units & (JSCalendar.Unit.minute | JSCalendar.Unit.second | JSCalendar.Unit.millisecond)){
+                    // if we have something below, down-fill to minutes
+                    units.minute += units.hour * minutesPerHour;
+                }else if (units & JSCalendar.Unit.day){
+                    // If we can up-fill to days, do a rounding approximation
+                    seconds = units.hour * secondsPerHour + units.minute * secondsPerMinute + units.second + units.millisecond * millisecondsPerSecond;
+                    if (seconds >= secondsPerHour * 12){
+                        units.day += 1;
+                    }
+                }
+                // else, we have already taken care of the case where there is no day unit requested
+            }
+
+            if (diff.minute > 0 && (units & JSCalendar.Unit.minute) === 0){
+                if (units & (JSCalendar.Unit.second | JSCalendar.Unit.millisecond)){
+                    // if we have something below, down-fill to minutes
+                    units.second += units.minute * secondsPerMinute;
+                }else if (units & JSCalendar.Unit.hour){
+                    // If we can up-fill to hours, do a rounding approximation
+                    seconds = units.minute * secondsPerMinute + units.second + units.millisecond * millisecondsPerSecond;
+                    if (seconds >= secondsPerHour / 2){
+                        units.hour += 1;
+                    }
+                }
+                // else, we have already taken care of the case where there is no hour unit requested
+            }
+
+            if (diff.second > 0 && (units & JSCalendar.Unit.second) === 0){
+                if (units & JSCalendar.Unit.millisecond){
+                    // if we have something below, down-fill to milliseconds
+                    units.millisecond += units.second * millisecondsPerSecond;
+                }else if (units & JSCalendar.Unit.minute){
+                    // If we can up-fill to minutes, do a rounding approximation
+                    seconds = units.second + units.millisecond * millisecondsPerSecond;
+                    if (seconds >= secondsPerMinute / 2){
+                        units.minute += 1;
+                    }
+                }
+                // else, we have already taken care of the case where there is no minute unit requested
+            }
+
+            if (diff.millisecond > 0 && (units & JSCalendar.Unit.millisecond) === 0){
+                if (units & JSCalendar.Unit.second){
+                    // If we can up-fill to seconds, do a rounding approximation
+                    if (units.millisecond >= millisecondsPerSecond / 2){
+                        units.second += 1;
+                    }
+                }
+                // else, we have already taken care of the case where there is no second unit requested
+            }
+
+        }
+
+        
+        // Remove components that weren't requested
+        if ((units & JSCalendar.Unit.year) === 0){
+            delete diff.year;
+        }
+        if ((units & JSCalendar.Unit.month) === 0){
+            delete diff.month;
+        }
+        if ((units & JSCalendar.Unit.day) === 0){
+            delete diff.day;
+        }
+        if ((units & JSCalendar.Unit.hour) === 0){
+            delete diff.hour;
+        }
+        if ((units & JSCalendar.Unit.minute) === 0){
+            delete diff.minute;
+        }
+        if ((units & JSCalendar.Unit.second) === 0){
+            delete diff.second;
+        }
+        if ((units & JSCalendar.Unit.millisecond) === 0){
+            delete diff.millisecond;
+        }
+        if ((units & JSCalendar.Unit.timezone) === 0){
+            delete diff.timezone;
+        }
+        if ((units & JSCalendar.Unit.calendar) === 0){
+            delete diff.calendar;
+        }
+        if (negative){
+            for (var name in diff){
+                if (diff[name] !== 0){
+                    diff[name] = -diff[name];
+                }
+            }
+        }
+        return diff;
     }
 
 });
@@ -351,16 +575,18 @@ JSGregorianCalendar.lastDayOfMonthInYear = function(month, year){
 };
 
 JSGregorianCalendar.isLeapYear = function(year){
-    return (year % 4) === 0 && ((year % 100) !== 0 || (year % 1000) === 0);
+    // - Every year that is exactly divisible by four is a leap year
+    // - except for years that are exactly divisible by 100
+    // - but these centurial years are leap years if they are exactly divisible by 400.
+    // - For example, the years 1700, 1800, and 1900 are not leap years, but the year 2000 is.
+    return (year % 4) === 0 && ((year % 100) !== 0 || (year % 400) === 0);
 };
 
 Object.defineProperties(JSCalendar, {
     gregorian: {
         configurable: true,
         get: function JSCalendar_getGregorian(){
-            var gregorian = JSGregorianCalendar.init();
-            Object.defineProperty(JSCalendar, 'gregorian', {value: gregorian});
-            return gregorian;
+            return JSGregorianCalendar.init();
         }
     }
 });
@@ -378,7 +604,7 @@ JSCalendar.Unit = {
     millisecond:    1 << 8,
     weekday:        1 << 9,
     timezone:       1 << 10,
-    all:            0xFF
+    all:            0xFFFFFFFF
 };
 
 JSCalendar.Unit.adjustable =
@@ -391,11 +617,21 @@ JSCalendar.Unit.adjustable =
     JSCalendar.Unit.second |
     JSCalendar.Unit.millisecond;
 
+JSCalendar.Unit.difference =
+    JSCalendar.Unit.year |
+    JSCalendar.Unit.month |
+    JSCalendar.Unit.day |
+    JSCalendar.Unit.hour |
+    JSCalendar.Unit.minute |
+    JSCalendar.Unit.second |
+    JSCalendar.Unit.millisecond;
+
 
 var monthsPerYear = 12;
 var minutesPerHour = 60;
 var hoursPerDay = 24;
-var secondsPerMillisecond = 1 / 1000;
+var millisecondsPerSecond = 1000;
+var secondsPerMillisecond = 1 / millisecondsPerSecond;
 var secondsPerMinute = 60;
 var secondsPerHour = secondsPerMinute * minutesPerHour;
 

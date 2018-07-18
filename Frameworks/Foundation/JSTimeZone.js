@@ -106,7 +106,7 @@ JSClass("JSTimeZone", JSObject, {
         var searcher = JSBinarySearcher(this._transitionTimes, function(t_, transition){
             return t_ - transition;
         });
-        var t = date._timeIntervalSince1970;
+        var t = date.timeIntervalSince1970;
         var i = searcher.insertionIndexForValue(t);
         if (i < this._transitionTimes.length && t < this._transitionTimes[i]){
             --i;
@@ -116,7 +116,7 @@ JSClass("JSTimeZone", JSObject, {
 
     _getLocalTimeTypeForDate: function(date){
         if (this._transitionTimes.length > 0){
-            var t = date._timeIntervalSince1970;
+            var t = date.timeIntervalSince1970;
             if (t >= this._transitionTimes[0]){
                 if (t < this._transitionTimes[this._transitionTimes.length - 1]){
                     var i = this._getTransitionIndexForDate(date);
@@ -144,7 +144,7 @@ JSClass("JSTimeZone", JSObject, {
             return null;
         }
         if (this._transitionTimes.length > 0){
-            var t = date._timeIntervalSince1970;
+            var t = date.timeIntervalSince1970;
             if (t >= this._transitionTimes[0]){
                 if (t < this._transitionTimes[this._transitionTimes.length - 1]){
                     var i = this._getTransitionIndexForDate(date) + 1;
@@ -252,6 +252,12 @@ JSClass("JSTimeZone", JSObject, {
     },
 
     _getTransitionForRuleInFutureYear: function(rule, year, offset){
+        // NOTE: Date.UTC behaves differently for years 0-99, making turning them
+        // into 1900s.  Since this function is only called for future dates, we
+        // shouldn't have to worry about it here.
+        // NOTE: JSGregorianCalendar.isLeapYear and .lastDayOfMonthInYear expect
+        // to be passed an astronomical year, which means 0 or negative integers for BC years.
+        // Since this function is only called for future date, we can assume we're always given an astronomical year.
         var t = Math.floor(Date.UTC(year, 0) / 1000);
         var days = 0;
         if (rule.day0 !== undefined){
@@ -313,7 +319,7 @@ JSClass("JSTimeZone", JSObject, {
         var year = new Date(t * 1000).getUTCFullYear();
         var transitions = this._getTransitionsForFutureYear(year);
         var a = transitions.fromStandard;
-        var b=  transitions.toStandard;
+        var b = transitions.toStandard;
 
         // If the transition times are equal, then we must be in standard all year
         if (a == b){
@@ -345,17 +351,42 @@ JSClass("JSTimeZone", JSObject, {
 
 });
 
+JSTimeZone.changeLocalTimeZone = function(identifer){
+    localIdentifier = localIdentifier;
+    Object.defineProperty(JSTimeZone, 'local', defaultLocalProperty);
+};
+
+var defaultLocalProperty = {
+    configurable: true,
+    get: function JSTimeZone_getLocal(){
+        var timezone = null;
+        if (localIdentifier !== null){
+            timezone = JSTimeZone.initWithIdentifier(localIdentifier);
+        }
+        Object.defineProperty(JSTimeZone, 'local', {configurable: true, value: timezone});
+        return timezone;
+    }
+};
+
+var defaultKnownIdentifiersProperty = {
+    configurable: true,
+    get: function JSTimeZone_getKnownTimeZoneIdentifiers(){
+        var identifiers = Object.keys(zoneinfo.map);
+        Object.defineProperty(JSTimeZone, 'knownTimeZoneIdentifiers', {value: identifiers});
+        return identifiers;
+    }
+};
+
 Object.defineProperties(JSTimeZone, {
-    local: {
-        configurable: true,
-        get: function JSTimeZone_getLocal(){
-            var identifier = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Los_Angeles';
-            // FIXME: if no identifier, try to guess based on offset
-            var timezone = JSTimeZone.initWithIdentifier(identifier);
-            Object.defineProperty(JSTimeZone, 'local', {configurable: true, writable: true, value: timezone});
-            return timezone;
+
+    systemTimeZoneIdentifier: {
+        get: function JSTimeZone_getSystemTimeZoneIdentifier(){
+            // FIXME: if no identifier, try to guess based on offset?
+            return Intl.DateTimeFormat().resolvedOptions().timeZone || null;
         }
     },
+
+    local: defaultLocalProperty,
 
     utc: {
         configurable: true,
@@ -366,15 +397,10 @@ Object.defineProperties(JSTimeZone, {
         }
     },
 
-    knownTimeZoneIdentifiers: {
-        configurable: true,
-        get: function JSTimeZone_getKnownTimeZoneIdentifiers(){
-            var identifiers = Object.keys(zoneinfo.map);
-            Object.defineProperty(JSTimeZone, 'knownTimeZoneIdentifiers', {value: identifiers});
-            return identifiers;
-        }
-    }
+    knownTimeZoneIdentifiers: defaultKnownIdentifiersProperty
 });
+
+var localIdentifier = JSTimeZone.systemTimeZoneIdentifier;
 
 var secondsPerMinute = 60;
 var minutesPerHour = 60;
@@ -388,6 +414,8 @@ JSTimeZone.importZoneInfo = function(info){
 
 JSTimeZone.clearZoneInfo = function(info){
     zoneinfo = emptyZoneInfo;
+    Object.defineProperty(JSTimeZone, 'knownTimeZoneIdentifiers', defaultKnownIdentifiersProperty);
+    JSTimeZone.changeLocalTimeZone(JSTimeZone.systemTimeZoneIdentifier);
 };
 
 var emptyZoneInfo = {

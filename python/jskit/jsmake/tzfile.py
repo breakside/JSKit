@@ -35,11 +35,10 @@ class ZoneInfo(object):
 
     def parseTzif(self, components):
         identifier = '/'.join(components)
-        if identifier not in ("GMT", "America/Los_Angeles", "Australia/Sydney"):
-            return
+        # if identifier not in ("GMT", "America/Los_Angeles", "Australia/Sydney"):
+        #     return
         path = os.path.join(self.root, *components)
-        sys.stderr.write("Parsing %s\n" % identifier)
-        sys.stderr.flush()
+        sys.stderr.write("\nParsing %s: " % identifier);sys.stderr.flush()
         with Tzif(path) as tzif:
             tzif.parse()
             self.zones.append(dict(
@@ -165,7 +164,6 @@ class Tzif(object):
 
 
 def parseRuleFromString(tzstr):
-    print "parsing: %s" % tzstr
     try:
         # Assuming we are dealing with well-formed strings from tzif files, so not 
         # much checking for incorrect formatting
@@ -175,7 +173,7 @@ def parseRuleFromString(tzstr):
             abbr = ''
             if tzstr[offset[0]] == '<':
                 offset[0] += 1 
-                while offset[0] < l and tz[offset[0]] != '>':
+                while offset[0] < l and tzstr[offset[0]] != '>':
                     abbr += tzstr[offset[0]]
                     offset[0] += 1
                 if offset[0] < l:
@@ -197,8 +195,10 @@ def parseRuleFromString(tzstr):
                 offset[0] += 1
             h = parseInteger()
             if offset[0] < l and tzstr[offset[0]] == ':':
+                offset[0] += 1
                 m = parseInteger()
                 if offset[0] < l and tzstr[offset[0]] == ':':
+                    offset[0] += 1
                     s = parseInteger()
             return factor * h * 3600 + m * 60 + s
         def parseInteger():
@@ -236,6 +236,8 @@ def parseRuleFromString(tzstr):
                 daylightOffset = parseOffset()
             else:
                 daylightOffset = standardOffset + 3600
+            if daylightOffset - standardOffset != 3600:
+                sys.stderr.write("TZ daylight - standard = %d..." % (daylightOffset - standardOffset,));sys.stderr.flush()
             fromStandard = None
             toStandard = None
             if offset[0] < l and tzstr[offset[0]] == ',':
@@ -259,7 +261,7 @@ def parseRuleFromString(tzstr):
             standard=dict(abbr=standardAbbr, off=standardOffset, dst=False)
         )
     except Exception as e:
-        print "Exception at offset %d" % offset[0]
+        print "Exception in '%s' at offset %d" % (self.tzString, offset[0])
         raise
 
 
