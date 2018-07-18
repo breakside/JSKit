@@ -390,6 +390,8 @@ class Builder(object):
             for x in node:
                 if isinstance(node[x], basestring):
                     strings[prefix + x] = node[x]
+                elif isinstance(node[x], list) or isinstance(node[x], tuple):
+                    strings[prefix + x] = node[x]
                 else:
                     walk(node[x], prefix + x + '.')
 

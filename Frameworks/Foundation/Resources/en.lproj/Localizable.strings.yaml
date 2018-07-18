@@ -1,0 +1,161 @@
+en:
+  dateFormatter:
+    am: AM
+    pm: PM
+    eras:
+      narrow:
+        - B
+        - A
+      abbreviated:
+        - BC
+        - AD
+      full:
+        - Before Christ
+        - Anno Domini
+    months:
+      narrow:
+        - J
+        - F
+        - M
+        - A
+        - M
+        - J
+        - J
+        - A
+        - S
+        - O
+        - "N"
+        - D
+      abbreviated:
+        - Jan
+        - Feb
+        - Mar
+        - Apr
+        - May
+        - Jun
+        - Jul
+        - Aug
+        - Sep
+        - Oct
+        - Nov
+        - Dec
+      full:
+        - January
+        - February
+        - March
+        - April
+        - May
+        - June
+        - July
+        - August
+        - September
+        - October
+        - November
+        - December
+    standaloneMonths:
+      narrow:
+        - J
+        - F
+        - M
+        - A
+        - M
+        - J
+        - J
+        - A
+        - S
+        - O
+        - "N"
+        - D
+      abbreviated:
+        - Jan
+        - Feb
+        - Mar
+        - Apr
+        - May
+        - Jun
+        - Jul
+        - Aug
+        - Sep
+        - Oct
+        - Nov
+        - Dec
+      full:
+        - January
+        - February
+        - March
+        - April
+        - May
+        - June
+        - July
+        - August
+        - September
+        - October
+        - November
+        - December
+    weekdays:
+      narrow:
+        - S
+        - M
+        - T
+        - W
+        - T
+        - F
+        - S
+      short:
+        - Su
+        - Mo
+        - Tu
+        - We
+        - Th
+        - Fr
+        - Sa
+      abbreviated:
+        - Sun
+        - Mon
+        - Tues
+        - Wed
+        - Thur
+        - Fri
+        - Sat
+      full:
+        - Sunday
+        - Monday
+        - Tuesday
+        - Wednesday
+        - Thursday
+        - Friday
+        - Saturday
+    standaloneWeekdays:
+      narrow:
+        - S
+        - M
+        - T
+        - W
+        - T
+        - F
+        - S
+      short:
+        - Su
+        - Mo
+        - Tu
+        - We
+        - Th
+        - Fr
+        - Sa
+      abbreviated:
+        - Sun
+        - Mon
+        - Tues
+        - Wed
+        - Thur
+        - Fri
+        - Sat
+      full:
+        - Sunday
+        - Monday
+        - Tuesday
+        - Wednesday
+        - Thursday
+        - Friday
+        - Saturday
+      

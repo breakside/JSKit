@@ -11,6 +11,9 @@ JSClass("JSLocale", JSObject, {
     regionCode: JSReadOnlyProperty('_regionCode', null),
     scriptCode: JSReadOnlyProperty('_scriptCode', null),
     extensions: JSReadOnlyProperty('_extensions', null),
+    decimalSeparator: JSReadOnlyProperty('_decimalSeparator', '.'),
+    groupingSeparator: JSReadOnlyProperty('_decimalSeparator', ','),
+    calendarIdentifier: JSReadOnlyProperty('_calendarIdentifier', JSCalendar.Identifier.gregorian),
 
     initWithIdentifier: function(identifier){
         if (identifier === null){
@@ -105,6 +108,15 @@ Object.defineProperties(JSLocale, {
         },
         set: function JSLocale_setPreferredLanguages(preferredLanguages){
             JSLocale._preferredLanguages = preferredLanguages;
+        }
+    },
+
+    current: {
+        configurable: true,
+        get: function JSLocale_getCurrent(){
+            var locale = JSLocale.initWithIdentifier(JSLocale._preferredLanguages[0]);
+            Object.defineProperty(JSLocale, 'current', locale);
+            return locale;
         }
     }
 

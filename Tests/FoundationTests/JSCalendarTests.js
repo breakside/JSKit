@@ -20,6 +20,13 @@ JSClass("JSCalendarTests", TKTestSuite, {
         JSTimeZone.clearZoneInfo();
     },
 
+    testInitWithIdentifier: function(){
+        var cal = JSCalendar.initWithIdentifier(JSCalendar.Identifier.gregorian);
+        TKAssertNotNull(cal);
+        cal = JSCalendar.initWithIdentifier('notvalid');
+        TKAssertNull(cal);
+    },
+
     testGregorian: function(){
         var cal = JSCalendar.gregorian;
         TKAssertNotNull(cal);

@@ -8,6 +8,14 @@
 
 JSClass("JSCalendar", JSObject, {
 
+    initWithIdentifier: function(identifier){
+        switch (identifier){
+            case JSCalendar.Identifier.gregorian:
+                return JSCalendar.gregorian;
+        }
+        return null;
+    },
+
     timezone: JSDynamicProperty('_timezone', null),
 
     getTimezone: function(){
@@ -590,6 +598,10 @@ Object.defineProperties(JSCalendar, {
         }
     }
 });
+
+JSCalendar.Identifier = {
+    gregorian: 'gregorian',
+};
 
 JSCalendar.Unit = {
     none:           0,

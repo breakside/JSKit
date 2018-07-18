@@ -34,6 +34,7 @@
 
 // #import "Foundation/JSDate.js"
 // #import "Foundation/JSCalendar.js"
+// #import "Foundation/JSTimeZone.js"
 // #import "Foundation/JSDateFormatter.js"
 
 // #import "Foundation/JSTextContainer.js"

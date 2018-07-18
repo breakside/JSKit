@@ -28,12 +28,16 @@ JSClass('JSBundle', JSObject, {
     },
 
     _updateSupportedUserLanguages: function(){
-        this._supportedPreferredLanguages = [];
+        this._supportedPreferredLanguages = this._getSupportedLanguagesForLocaleIdentifiers(JSLocale.preferredLanguages);
+    },
+
+    _getSupportedLanguagesForLocaleIdentifiers: function(preferredLanguages){
         var localizationIdentifiers = this.info[JSBundle.InfoKeys.localizations] || [];
         var locale;
         var locales = {};
         var i, l;
         var localeKey;
+        var supportedPreferredLanguages = [];
         // Make a map of supported locales
         //
         // Fill in missing generic language codes and language+script codes
@@ -79,7 +83,6 @@ JSClass('JSBundle', JSObject, {
         }
 
         // Make a sorted list of uer preferred languages (or fallbacks) that we have in the bundle
-        var preferredLanguages = JSLocale.preferredLanguages;
         for (i = 0, l = preferredLanguages.length; i < l; ++i){
             locale = JSLocale.initWithIdentifier(preferredLanguages[i]);
             localeKey = locale.identifierWithoutExtensions;
@@ -95,7 +98,7 @@ JSClass('JSBundle', JSObject, {
                 // user: ('en', 'de-DE')
                 // Will match en to en-US even though it is not exact.
                 // This kind of ambiguity is removed if the user preferences always include a region
-                this._supportedPreferredLanguages.push(locales[localeKey].identifier);
+                supportedPreferredLanguages.push(locales[localeKey].identifier);
             }else if (locale.regionCode !== null){
                 // If we don't have an exact match, the user preference may be specific to a script
                 // or region we don't support, but there may be an alternative script or region we
@@ -107,17 +110,17 @@ JSClass('JSBundle', JSObject, {
                     // We have langauge + script + region, but no exact match, so try just language + script
                     localeKey = locale.languageCode + '-' + locale.scriptCode;
                     if (localeKey in locales){
-                        this._supportedPreferredLanguages.push(locales[localeKey].identifier);
+                        supportedPreferredLanguages.push(locales[localeKey].identifier);
                     }else{
                         // language + script didn't find a match, so try language + region
                         localeKey = locale.languageCode + '-' + locale.region;
                         if (localeKey in locales){
-                            this._supportedPreferredLanguages.push(locales[localeKey].identifier);
+                            supportedPreferredLanguages.push(locales[localeKey].identifier);
                         }else{
                             // language + region didn't find a match, so try just language
                             localeKey = locale.languageCode;
                             if (localeKey in locales){
-                                this._supportedPreferredLanguages.push(locales[localeKey].identifier);
+                                supportedPreferredLanguages.push(locales[localeKey].identifier);
                             }
                         }
                     }
@@ -125,14 +128,14 @@ JSClass('JSBundle', JSObject, {
                     // We have langauge + region, but no exact match, so try just language
                     localeKey = locale.languageCode;
                     if (localeKey in locales){
-                        this._supportedPreferredLanguages.push(locales[localeKey].identifier);
+                        supportedPreferredLanguages.push(locales[localeKey].identifier);
                     }
                 }
             }else if (locale.scriptCode !== null){
                 // we have language + script, but no exact match, so try just language
                 localeKey = locale.languageCode;
                 if (localeKey in locales){
-                    this._supportedPreferredLanguages.push(locales[localeKey].identifier);
+                    supportedPreferredLanguages.push(locales[localeKey].identifier);
                 }
             }
         }
@@ -141,8 +144,9 @@ JSClass('JSBundle', JSObject, {
         // they'll never be reached.
         var devlang = this.info[JSBundle.InfoKeys.developmentLanguage];
         if (devlang !== undefined){
-            this._supportedPreferredLanguages.push(devlang);
+            supportedPreferredLanguages.push(devlang);
         }
+        return supportedPreferredLanguages;
     },
 
     metadataForResourceName: function(name, ext, subdirectory){
@@ -161,10 +165,15 @@ JSClass('JSBundle', JSObject, {
         return this._localizedMetadataForLookupKey(lookupKey);
     },
 
-    _localizedMetadataForLookupKey: function(lookupKey, filter){
+    _localizedMetadataForLookupKey: function(lookupKey, locale, filter){
         var lookup;
         var hits;
-        var langs = this._supportedPreferredLanguages;
+        var langs;
+        if (locale){
+            langs = this._getSupportedLanguagesForLocaleIdentifiers([locale.identifier]);
+        }else{
+            langs = this._supportedPreferredLanguages;
+        }
         var metadata;
         for (var i = 0, l = langs.length; i < l; ++i){
             lookup = this._dict.ResourceLookup[langs[i]];
@@ -190,13 +199,13 @@ JSClass('JSBundle', JSObject, {
         return fonts;
     },
 
-    localizedString: function(key, table){
+    localizedString: function(key, table, locale){
         if (table === undefined){
             table = "Localizable.strings";
         }else if (table.substr(-8, 8) != ".strings"){
             table += ".strings";
         }
-        var metadata = this._localizedMetadataForLookupKey(table, function(m){
+        var metadata = this._localizedMetadataForLookupKey(table, locale, function(m){
             return key in m.strings;
         });
         if (metadata !== null){
