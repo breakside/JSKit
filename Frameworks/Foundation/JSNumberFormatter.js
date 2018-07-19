@@ -4,6 +4,12 @@
 /* global JSClass, JSObject, JSNumberFormatter, JSRange, JSLocale, JSCustomProperty, JSDynamicProperty, JSBundle */
 'use strict';
 
+// http://www.unicode.org/reports/tr35/tr35-numbers.html#Number_Format_Patterns
+// Currently partially implemented:
+// - Missing support for scientific/exponental representations
+// - Missing support for padding
+// - Missing support for significant digits
+
 (function(){
 
 JSClass("JSNumberFormatter", JSObject, {
@@ -70,13 +76,13 @@ JSClass("JSNumberFormatter", JSObject, {
                 // TODO:
                 break;
             case JSNumberFormatter.Style.currency:
-                this.format = "\u1234#,##0.00";
+                this.format = "¤#,##0.00";
                 break;
             case JSNumberFormatter.Style.currencyAccounting:
-                this.format = "\u1234#,##0.00;(\u1234#)";
+                this.format = "¤#,##0.00;(¤#)";
                 break;
             case JSNumberFormatter.Style.currencyISOCode:
-                this.format = "\u1234\u1234#,##0.00";
+                this.format = "¤¤ #,##0.00;¤¤ -#";
                 break;
         }
         this._style = style;
@@ -113,9 +119,9 @@ JSClass("JSNumberFormatter", JSObject, {
     },
 
     getPositiveFormat: function(){
-        var prefix = this._positivePrefix.replace("\uFFFC", "");
+        var prefix = this._positivePrefix.replace(/\uFFFC/g, "");
         var base = this._getBaseFormat();
-        var suffix = this._positiveSuffix.replace("\uFFFC", "");
+        var suffix = this._positiveSuffix.replace(/\uFFFC/g, "");
         return prefix + base + suffix;
     },
 
@@ -128,9 +134,9 @@ JSClass("JSNumberFormatter", JSObject, {
     },
 
     getNegativeFormat: function(){
-        var prefix = this._negativePrefix.replace("\uFFFC", "");
+        var prefix = this._negativePrefix.replace(/\uFFFC/g, "");
         var base = this._getBaseFormat();
-        var suffix = this._negativeSuffix.replace("\uFFFC", "");
+        var suffix = this._negativeSuffix.replace(/\uFFFC/g, "");
         return prefix + base + suffix;
     },
 
@@ -214,36 +220,36 @@ JSClass("JSNumberFormatter", JSObject, {
                     prefixSuffix = "\uFFFC" + format[i];
                     i += 1;
                     break;
-                case '\u2030':
+                case '‰':
                     info.perMille = true;
                     prefixSuffix = "\uFFFC" + format[i];
                     i += 1;
                     break;
-                case '\u00a4':
+                case '¤':
                     info.currency = true;
-                    if (i < l - 1 && format[i + 1] == '\u00a4'){
+                    if (i < l - 1 && format[i + 1] == '¤'){
                         ++i;
                         info.currencyISO = true;
-                        prefixSuffix = "\uFFFC\u00a4\u00a4";
+                        prefixSuffix = "\uFFFC¤¤";
                     }else{
-                        prefixSuffix = "\uFFFC\u00a4";
+                        prefixSuffix = "\uFFFC¤";
                     }
                     i += 1;
                     break;
-                case '\'':
+                case "'":
                     ++i;
-                    if (i < l && format[i] == '\''){
-                        prefixSuffix += '\'';
+                    if (i < l && format[i] == "'"){
+                        prefixSuffix += "'";
                         ++i;
                     }else{
                         while (i < l){
-                            while (i < l && format[i] != '\''){
+                            while (i < l && format[i] != "'"){
                                 prefixSuffix += format[i];
                                 ++i;
                             }
                             ++i;
-                            if (i < l && format[i] == '\''){
-                                prefixSuffix += '\'';
+                            if (i < l && format[i] == "'"){
+                                prefixSuffix += "'";
                                 ++i;   
                             }else{
                                 break;
@@ -351,7 +357,7 @@ JSClass("JSNumberFormatter", JSObject, {
             if (i > 0){
                 replaced += prefixSuffix.substr(offset, i - offset);
             }
-            ++offset;
+            offset = i + 1;
             switch (prefixSuffix[offset]){
                 case '+':
                     replaced += this.plusSign;
@@ -362,20 +368,25 @@ JSClass("JSNumberFormatter", JSObject, {
                 case '%':
                     replaced += this.percentSymbol;
                     break;
-                case '\u2030':
+                case '‰':
                     replaced += this.perMilleSymbol;
                     break;
-                case '\u00a4':
+                case '¤':
                     ++offset;
-                    if (offset < prefixSuffix.length && prefixSuffix[offset] == '\u00a4'){
-                        replaced += this.currencyISOCode;
+                    // TODO: might need spacing
+                    if (offset < prefixSuffix.length && prefixSuffix[offset] == '¤'){
+                        replaced += this.currencyCode;
                     }else{
+                        // TODO: internationalCurrencySymbol when appropriate (how is it triggered?)
                         replaced += this.currencySymbol;
                     }
                     break;
             }
             ++offset;
             i = prefixSuffix.indexOf("\uFFFC", offset);
+        }
+        if (offset < prefixSuffix.length){
+            replaced += prefixSuffix.substr(offset);
         }
         return replaced;
     },
@@ -400,7 +411,7 @@ JSClass("JSNumberFormatter", JSObject, {
 
     multiplier: 1,
     percentSymbol: '%',
-    perMilleSymbol: '\u2030',
+    perMilleSymbol: '‰',
     minusSign: '-',
     plusSign: '+',
     zeroSymbol: null,
@@ -495,7 +506,11 @@ JSClass("JSNumberFormatter", JSObject, {
                 }
                 if (this._minimumFractionDigits > 0 || fraction !== 0){
                     str += ".";
-                    str += fraction.toString();
+                    var fractionString = fraction.toString();
+                    while (fractionString.length < this._minimumFractionDigits){
+                        fractionString += "0";
+                    }
+                    str += fractionString;
                 }
             }
         }
@@ -514,11 +529,5 @@ JSNumberFormatter.Style = {
     currencyISOCode: 6,
     custom: 0xFF
 };
-
-var plusReplacement = "\uFFFC+";
-var minusReplacement = "\uFFFC-";
-var currencyReplacement = "\uFFFC\u00a4";
-var percentReplacement = "\uFFFC%";
-var perMilleReplacement = "\uFFFC\u2030";
 
 })();

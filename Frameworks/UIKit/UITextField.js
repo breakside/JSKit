@@ -728,7 +728,7 @@ JSClass("UITextField", UIControl, {
 
     _sanitizedText: function(text){
         if (this._multiline){
-            return text.replace('\r\n', ' ').replace(/[\t\r\n\u000B\u000C\u0085\u2028\u2029]/, ' ');
+            return text.replace(/\r\n/g, ' ').replace(/[\t\r\n\u000B\u000C\u0085\u2028\u2029]/g, ' ');
         }
         return text;
     },

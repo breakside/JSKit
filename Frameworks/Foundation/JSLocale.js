@@ -22,7 +22,7 @@ JSClass("JSLocale", JSObject, {
         if (identifier in JSLocale._localesByIdentifier){
             return JSLocale._localesByIdentifier[identifier];
         }
-        identifier = identifier.replace('_', '-');
+        identifier = identifier.replace(/_/g, '-');
         var parts = identifier.split('-');
         this._languageCode = parts[0].toLowerCase();
         this._extensions = [];

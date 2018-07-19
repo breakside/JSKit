@@ -163,6 +163,108 @@ JSClass("JSNumberFormatterTests", TKTestSuite, {
 
         str = formatter.stringFromNumber(12345.6789);
         TKAssertEquals(str, "1,234,567.9%");
+    },
+
+    testCurrency: function(){
+        var formatter = JSNumberFormatter.init();
+        formatter.style = JSNumberFormatter.Style.currency;
+        TKAssertEquals(formatter.format, "¤#,##0.00;$0.00;-¤#,##0.00");
+
+        var str = formatter.stringFromNumber(0.5);
+        TKAssertEquals(str, "$0.50");
+
+        str = formatter.stringFromNumber(0);
+        TKAssertEquals(str, "$0.00");
+
+        str = formatter.stringFromNumber(-1);
+        TKAssertEquals(str, "-$1.00");
+        
+        str = formatter.stringFromNumber(1.23);
+        TKAssertEquals(str, "$1.23");
+
+        str = formatter.stringFromNumber(1234567.89);
+        TKAssertEquals(str, "$1,234,567.89");
+
+        str = formatter.stringFromNumber(-1234567.89);
+        TKAssertEquals(str, "-$1,234,567.89");
+
+        str = formatter.stringFromNumber(-1.2346);
+        TKAssertEquals(str, "-$1.23");
+        
+        str = formatter.stringFromNumber(0.0001);
+        TKAssertEquals(str, "$0.00");
+
+        str = formatter.stringFromNumber(0.767);
+        TKAssertEquals(str, "$0.77");
+
+        str = formatter.stringFromNumber(12345.67);
+        TKAssertEquals(str, "$12,345.67");
+
+        formatter.style = JSNumberFormatter.Style.currencyISOCode;
+        TKAssertEquals(formatter.format, "¤¤ #,##0.00;USD 0.00;¤¤ -#,##0.00");
+
+        str = formatter.stringFromNumber(0.5);
+        TKAssertEquals(str, "USD 0.50");
+
+        str = formatter.stringFromNumber(0);
+        TKAssertEquals(str, "USD 0.00");
+
+        str = formatter.stringFromNumber(-1);
+        TKAssertEquals(str, "USD -1.00");
+        
+        str = formatter.stringFromNumber(1.23);
+        TKAssertEquals(str, "USD 1.23");
+
+        str = formatter.stringFromNumber(1234567.89);
+        TKAssertEquals(str, "USD 1,234,567.89");
+
+        str = formatter.stringFromNumber(-1234567.89);
+        TKAssertEquals(str, "USD -1,234,567.89");
+
+        str = formatter.stringFromNumber(-1.2346);
+        TKAssertEquals(str, "USD -1.23");
+        
+        str = formatter.stringFromNumber(0.0001);
+        TKAssertEquals(str, "USD 0.00");
+
+        str = formatter.stringFromNumber(0.767);
+        TKAssertEquals(str, "USD 0.77");
+
+        str = formatter.stringFromNumber(12345.67);
+        TKAssertEquals(str, "USD 12,345.67");
+
+        formatter.style = JSNumberFormatter.Style.currencyAccounting;
+        TKAssertEquals(formatter.format, "¤#,##0.00;$0.00;(¤#,##0.00)");
+
+        str = formatter.stringFromNumber(0.5);
+        TKAssertEquals(str, "$0.50");
+
+        str = formatter.stringFromNumber(0);
+        TKAssertEquals(str, "$0.00");
+
+        str = formatter.stringFromNumber(-1);
+        TKAssertEquals(str, "($1.00)");
+        
+        str = formatter.stringFromNumber(1.23);
+        TKAssertEquals(str, "$1.23");
+
+        str = formatter.stringFromNumber(1234567.89);
+        TKAssertEquals(str, "$1,234,567.89");
+
+        str = formatter.stringFromNumber(-1234567.89);
+        TKAssertEquals(str, "($1,234,567.89)");
+
+        str = formatter.stringFromNumber(-1.2346);
+        TKAssertEquals(str, "($1.23)");
+        
+        str = formatter.stringFromNumber(0.0001);
+        TKAssertEquals(str, "$0.00");
+
+        str = formatter.stringFromNumber(0.767);
+        TKAssertEquals(str, "$0.77");
+
+        str = formatter.stringFromNumber(12345.67);
+        TKAssertEquals(str, "$12,345.67");
     }
 });
 

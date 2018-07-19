@@ -5,6 +5,22 @@
 /* global JSClass, JSObject, JSDateFormatter, JSLocale, JSCustomProperty, JSCalendar, JSDynamicProperty, JSBundle */
 'use strict';
 
+// http://www.unicode.org/reports/tr35/tr35-31/tr35-dates.html#Date_Format_Patterns
+// Currently partially implemented
+// - Missing Y - Year in "Week of Year"
+// - Missing u - Extended Year
+// - Missing U - Cylic Year Name
+// - Missing Q - Quarter
+// - Missing q - Standalone Quarter
+// - Missing w - Week of Year
+// - Missing W - Week of Month
+// - Missing F - Day of Week in Month
+// - Missing g - Modified Julian day
+// - Missing j - template hour
+// - Missing A - milliseconds in day
+// - Missing Z.4 - Full Timezone name
+// - Missing v, V, x, and X - Various timezone labels
+
 (function(){
 
 var OverridableLocaleProperty = function(stringKey){
@@ -95,22 +111,21 @@ JSClass("JSDateFormatter", JSObject, {
         var symbol;
         var n;
         while (i < l){
-            // 'Testin'' 'y-MM-dd,hh:mm:ss.SSS a' qu' 'otes'''
             switch (format[i]){
-                case '\'':
+                case "'":
                     ++i;
-                    if (i < l && format[i] == '\''){
-                        out += '\'';
+                    if (i < l && format[i] == "'"){
+                        out += "'";
                         ++i;
                     }else{
                         while (i < l){
-                            while (i < l && format[i] != '\''){
+                            while (i < l && format[i] != "'"){
                                 out += format[i];
                                 ++i;
                             }
                             ++i;
-                            if (i < l && format[i] == '\''){
-                                out += '\'';
+                            if (i < l && format[i] == "'"){
+                                out += "'";
                                 ++i;   
                             }else{
                                 break;
