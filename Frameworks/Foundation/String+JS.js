@@ -281,6 +281,13 @@ Object.defineProperties(String.prototype, {
         }
     },
 
+    splitAtIndex: {
+        enumerable: false,
+        value: function String_splitAtIndex(index){
+            return [this.substr(0, index), this.substr(index)];
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Encoding
 

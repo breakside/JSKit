@@ -820,6 +820,29 @@ JSClass('StringTests', TKTestSuite, {
         str = "u\u0308mlat";
         masked = str.stringByMaskingWithCharacter("😀", true);
         TKAssertEquals(masked, "😀😀😀😀😀");
+    },
+
+    testSplitAtIndex: function(){
+        var str = "testing";
+        var parts = str.splitAtIndex(3);
+        TKAssertEquals(parts.length, 2);
+        TKAssertEquals(parts[0], "tes");
+        TKAssertEquals(parts[1], "ting");
+
+        parts = str.splitAtIndex(0);
+        TKAssertEquals(parts.length, 2);
+        TKAssertEquals(parts[0], "");
+        TKAssertEquals(parts[1], "testing");
+
+        parts = str.splitAtIndex(7);
+        TKAssertEquals(parts.length, 2);
+        TKAssertEquals(parts[0], "testing");
+        TKAssertEquals(parts[1], "");
+
+        parts = str.splitAtIndex(8);
+        TKAssertEquals(parts.length, 2);
+        TKAssertEquals(parts[0], "testing");
+        TKAssertEquals(parts[1], "");
     }
 
 });
