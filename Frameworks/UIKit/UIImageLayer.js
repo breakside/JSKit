@@ -1,5 +1,5 @@
 // #import "UIKit/UILayer.js"
-/* global JSClass, UILayer, UIImageLayer, UILayerAnimatedProperty, JSRect, JSSize, JSDynamicProperty */
+/* global JSClass, UILayer, UIImageLayer, UILayerAnimatedProperty, JSPoint, JSRect, JSSize, JSDynamicProperty */
 'use strict';
 
 JSClass("UIImageLayer", UILayer, {
@@ -50,6 +50,12 @@ JSClass("UIImageLayer", UILayer, {
     setTemplateColor: function(templateColor){
         this._templateColor = templateColor;
         this.setNeedsDisplay();
+    },
+
+    sizeToFit: function(){
+        if (this._image !== null){
+            this.bounds = JSRect(JSPoint.Zero, this._image.size);
+        }
     }
 
 });

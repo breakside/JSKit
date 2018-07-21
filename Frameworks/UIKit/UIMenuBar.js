@@ -568,6 +568,8 @@ JSClass("UIMenuBarItemView", UIView, {
     _titleLabel: null,
     _imageView: null,
     _customView: null,
+    _imagePosition: 1,
+    _titleImageSpacing: 3,
     highlighted: JSDynamicProperty('_isHighlighted', false, 'isHighlighted'),
 
     init: function(){
@@ -651,25 +653,55 @@ JSClass("UIMenuBarItemView", UIView, {
     },
 
     sizeToFit: function(){
-        if (this._titleLabel){
-            this._titleLabel.sizeToFit();
-            this.bounds = JSRect(0, 0, this._titleLabel.frame.size.width, this._titleLabel.frame.size.height);
-        }else if (this._imageView){
-            this._imageView.frame = JSRect(0, 0, this._imageView.image.size.width, this._imageView.image.size.height);
-            this.bounds = JSRect(0, 0, this._imageView.frame.size);
+        var size;
+        if (this._customView !== null){
+            this._customView.sizeToFit();
+            size = this._customView.frame.size;
+        }else{
+            if (this._titleLabel){
+                this._titleLabel.sizeToFit();
+                size = JSSize(this._titleLabel.frame.size);
+                if (this._imageView){
+                    this._imageView.sizeToFit();
+                    size.width += this._titleImageSpacing + this._imageView.frame.size.width;
+                }
+            }else if (this._imageView){
+                this._imageView.sizeToFit();
+                size = this._imageView.frame.size;
+            }
         }
+        this.bounds = JSRect(JSPoint.Zero, size);
     },
 
     layoutSubviews: function(){
-        if (this._titleLabel){
-            this._titleLabel.position = JSPoint(Math.floor(this.bounds.size.width / 2.0), Math.floor(this.bounds.size.height / 2.0));
-        }
-        if (this._imageView){
-            this._imageView.position = this.bounds.center;
+        if (this._customView){
+            this._customView.position = this.bounds.center;
+        }else{
+            if (this._titleLabel){
+                if (this._imageView){
+                    var x0 = (this.bounds.size.width - this._titleLabel.frame.size.width - this._titleImageSpacing - this._imageView.frame.size.width) / 2;
+                    if (this._imagePosition == UIMenuBarItemView.ImagePosition.right){
+                        this._titleLabel.position = JSPoint(x0 + this._titleLabel.frame.size.width / 2, this.bounds.size.height / 2);
+                        this._imageView.position = JSPoint(x0 + this._titleLabel.frame.size.width + this._titleImageSpacing + this._imageView.frame.size.width / 2, this.bounds.size.height / 2);
+                    }else{
+                        this._titleLabel.position = JSPoint(x0 + this._imageView.frame.size.width + this._titleImageSpacing + this._titleLabel.frame.size.width / 2, this.bounds.size.height / 2);
+                        this._imageView.position = JSPoint(x0 + this._imageView.frame.size.width / 2, this.bounds.size.height / 2);
+                    }
+                }else{
+                    this._titleLabel.position = this.bounds.center;
+                }
+            }else if (this._imageView){
+                this._imageView.position = this.bounds.center;
+            }
         }
     }
 
 });
+
+UIMenuBarItemView.ImagePosition = {
+    right: 0,
+    left: 1
+};
 
 JSClass("UIMenuBarButton", UIMenuBarItemView, {
 
