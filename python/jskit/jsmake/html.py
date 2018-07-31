@@ -50,6 +50,7 @@ class HTMLBuilder(Builder):
     def __init__(self, projectPath, includePaths, outputParentPath, debug=False, args=None):
         super(HTMLBuilder, self).__init__(projectPath, includePaths, outputParentPath, debug)
         self.includePaths.extend(self.absolutePathsRelativeToSourceRoot('Frameworks', 'Classes', '.'))
+        self.addRecursiveIncludePaths(os.path.join(self.projectPath, 'Classes'))
         self.parse_args(args)
 
     def parse_args(self, arglist):
@@ -82,6 +83,13 @@ class HTMLBuilder(Builder):
 
     def hasLinkedDispatchFramework(self):
         return 'io.breakside.JSKit.Dispatch' in self.bundles
+
+    def addRecursiveIncludePaths(self, parent):
+        for name in os.listdir(parent):
+            child = os.path.join(parent, name)
+            if os.path.isdir(child):
+                self.includePaths.append(child)
+                self.addRecursiveIncludePaths(child)
 
     def setup(self):
         self.includes = []
