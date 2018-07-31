@@ -147,11 +147,11 @@ JSClass('JSColor', JSObject, {
     },
 
     colorDarkenedByPercentage: function(darkenPercentage){
-        return this.rgbaColor().colorByBlendingColor(JSColor.initWithRGBA(0, 0, 0, 1), darkenPercentage);
+        return this.rgbaColor().colorByBlendingColor(JSColor.blackColor, darkenPercentage);
     },
 
     colorLightenedByPercentage: function(lightenPercentage){
-        return this.rgbaColor().colorByBlendingColor(JSColor.initWithRGBA(1, 1, 1, 1), lightenPercentage);
+        return this.rgbaColor().colorByBlendingColor(JSColor.whiteColor, lightenPercentage);
     },
 
     colorByBlendingColor: function(otherColor, blendPercentage){

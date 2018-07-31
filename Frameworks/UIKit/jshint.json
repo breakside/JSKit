@@ -47,6 +47,7 @@
         "UIListViewController",
         "UIDualPaneViewController",
         "UITabViewController",
+        "UIActivityIndicatorView",
         "UIMenu",
         "UIMenuItem",
         "UIMenuView",

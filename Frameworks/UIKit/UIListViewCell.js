@@ -15,6 +15,7 @@ JSClass("UIListViewCell", UIView, {
     titleLabel: JSLazyInitProperty('_createTitleLabel', '_titleLabel'),
     detailLabel: JSLazyInitProperty('_createDetailLabel', '_detailLabel'),
     imageView: JSLazyInitProperty('_createImageView', '_imageView'),
+    separatorInsets: JSDynamicProperty('_separatorInsets', null),
     stylerProperties: null,
 
     initWithReuseIdentifier: function(identifier){
@@ -69,33 +70,7 @@ JSClass("UIListViewCell", UIView, {
 
     layoutSubviews: function(){
         UIListViewCell.$super.layoutSubviews.call(this);
-        this._contentView.frame = this.bounds;
-        var size = JSSize(this.bounds.size.width - this._titleInsets.left - this._titleInsets.right, 0);
-        var origin = JSPoint(this._titleInsets.left, 0);
-        if (this._imageView !== null){
-            var imageSize = this.bounds.size.height - this._titleInsets.left * 2;
-            this._imageView.frame = JSRect(origin.x, origin.x, imageSize, imageSize);
-            origin.x += this._titleInsets.left + imageSize;
-            size.width -= imageSize + this._titleInsets.left;
-        }
-        if (this._titleLabel !== null){
-            if (this._detailLabel !== null){
-                size.height = this._titleLabel.font.displayLineHeight + this._detailLabel.font.displayLineHeight;
-                origin.y =  Math.floor((this.bounds.size.height - size.height) / 2.0);
-                size.height = this._titleLabel.font.displayLineHeight;
-                this._titleLabel.frame = JSRect(origin, size);
-                origin.y += size.height;
-                size.height = this._detailLabel.font.displayLineHeight;
-                this._detailLabel.frame = JSRect(origin, size);
-            }else{
-                size.height = this._titleLabel.font.displayLineHeight;
-                origin.y =  Math.floor((this.bounds.size.height - size.height) / 2.0);
-                this._titleLabel.frame = JSRect(origin, size);
-            }
-        }else if (this._detailLabel !== null){
-            size.height = this._detailLabel.font.displayLineHeight;
-            this._detailLabel.frame = JSRect(JSPoint(this._titleInsets.left, Math.floor((this.bounds.size.height - size.height) / 2.0)), size);
-        }
+        this.listView.styler.layoutCell(this);
     },
 
     // --------------------------------------------------------------------

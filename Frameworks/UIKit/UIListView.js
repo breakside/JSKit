@@ -1,7 +1,7 @@
 // #import "UIKit/UIScrollView.js"
 // #import "UIKit/UIEvent.js"
 // #import "UIKit/UIPlatform.js"
-/* global JSClass, JSObject, JSColor, UIView, UIScrollView, UIPlatform, JSProtocol, JSReadOnlyProperty, JSDynamicProperty, UIListView, JSSize, JSIndexPath, JSRect, UIEvent, JSIndexPathSet, JSIndexPathRange, JSBinarySearcher, JSPoint, UIListViewHeaderFooterView, UIListViewStyler, UIListViewDefaultStyler */
+/* global JSClass, JSObject, JSInsets, JSColor, UILayer, UIView, UIScrollView, UIPlatform, JSProtocol, JSReadOnlyProperty, JSDynamicProperty, UIListView, JSSize, JSIndexPath, JSRect, UIEvent, JSIndexPathSet, JSIndexPathRange, JSBinarySearcher, JSPoint, UIListViewHeaderFooterView, UIListViewStyler, UIListViewDefaultStyler */
 'use strict';
 
 (function(){
@@ -361,6 +361,9 @@ JSClass("UIListView", UIScrollView, {
         this._updateVisibleCells();
 
         this._hasLoadedOnce = true;
+    },
+
+    reloadRowAtIndexPath: function(indexPath){
     },
 
     // --------------------------------------------------------------------
@@ -1531,6 +1534,9 @@ JSClass("UIListViewStyler", JSObject, {
     updateCell: function(cell, indexPath){
     },
 
+    layoutCell: function(cell){
+    },
+
     updateHeader: function(header, section){
     },
 
@@ -1545,11 +1551,14 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     cellDetailFont: null,
     cellTextColor: null,
     cellDetailTextColor: null,
+    cellSeparatorColor: null,
     selectedCellTextColor: null,
     selectedCellDetailTextColor: null,
     selectedCellBackgroundColor: null,
+    selectedCellSeparatorColor: null,
     contextSelectedCellBorderColor: null,
     cellBackgroundColor: null,
+    separatorInsets: null,
 
     headerTextColor: null,
     headerBackgroundColor: null,
@@ -1570,11 +1579,17 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if ('cellDetailTextColor' in values){
             this.cellDetailTextColor = spec.resolvedValue(values.cellDetailTextColor, "JSColor");
         }
+        if ('cellSeparatorColor' in values){
+            this.cellSeparatorColor = spec.resolvedValue(values.cellSeparatorColor, "JSColor");
+        }
         if ('selectedCellDetailTextColor' in values){
             this.selectedCellDetailTextColor = spec.resolvedValue(values.selectedCellDetailTextColor, "JSColor");
         }
         if ('selectedCellBackgroundColor' in values){
             this.selectedCellBackgroundColor = spec.resolvedValue(values.selectedCellBackgroundColor, "JSColor");
+        }
+        if ('selectedCellSeparatorColor' in values){
+            this.selectedCellSeparatorColor = spec.resolvedValue(values.selectedCellSeparatorColor, "JSColor");
         }
         if ('headerTextColor' in values){
             this.headerTextColor = spec.resolvedValue(values.headerTextColor, "JSColor");
@@ -1590,6 +1605,9 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         }
         if ('cellDetailFont' in values){
             this.cellDetailFont = spec.resolvedValue(values.cellDetailFont, "JSFont");
+        }
+        if ('separatorInsets' in values){
+            this.separatorInsets = JSInsets.apply(undefined, values.separatorInsets.parseNumberArray());
         }
         this._commonStylerInit();
     },
@@ -1619,6 +1637,17 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if (this.headerTextColor === null){
             this.headerTextColor = JSColor.blackColor;
         }
+        if (this.cellSeparatorColor === null){
+            this.cellSeparatorColor = this.cellTextColor.colorWithAlpha(0.2);
+        }
+        if (this.selectedCellSeparatorColor === null){
+            this.selectedCellSeparatorColor = this.selectedCellBackgroundColor.colorLightenedByPercentage(0.2);
+        }
+    },
+
+    initializeCell: function(cell, indexPath){
+        cell.stylerProperties.separatorLayer = UILayer.init();
+        cell.layer.addSublayer(cell.stylerProperties.separatorLayer);
     },
 
     updateCell: function(cell, indexPath){
@@ -1637,6 +1666,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             if (cell._detailLabel !== null){
                 cell._detailLabel.textColor = this.selectedCellDetailTextColor;
             }
+            cell.stylerProperties.separatorLayer.backgroundColor = this.selectedCellSeparatorColor;
         }else{
             cell.contentView.backgroundColor = this.cellBackgroundColor;
             if (cell._titleLabel !== null){
@@ -1645,7 +1675,49 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             if (cell._detailLabel !== null){
                 cell._detailLabel.textColor = this.cellDetailTextColor;
             }
+            cell.stylerProperties.separatorLayer.backgroundColor = this.cellSeparatorColor;
         }
+        cell.stylerProperties.separatorLayer.hidden = indexPath.row === 0;
+    },
+
+    layoutCell: function(cell){
+        cell._contentView.frame = cell.bounds;
+        var size = JSSize(cell.bounds.size.width - cell._titleInsets.left - cell._titleInsets.right, 0);
+        var origin = JSPoint(cell._titleInsets.left, 0);
+        if (cell._imageView !== null){
+            var imageSize = cell.bounds.size.height - cell._titleInsets.left * 2;
+            cell._imageView.frame = JSRect(origin.x, origin.x, imageSize, imageSize);
+            origin.x += cell._titleInsets.left + imageSize;
+            size.width -= imageSize + cell._titleInsets.left;
+        }
+        if (cell._titleLabel !== null){
+            if (cell._detailLabel !== null){
+                size.height = cell._titleLabel.font.displayLineHeight + cell._detailLabel.font.displayLineHeight;
+                origin.y =  Math.floor((cell.bounds.size.height - size.height) / 2.0);
+                size.height = cell._titleLabel.font.displayLineHeight;
+                cell._titleLabel.frame = JSRect(origin, size);
+                origin.y += size.height;
+                size.height = cell._detailLabel.font.displayLineHeight;
+                cell._detailLabel.frame = JSRect(origin, size);
+            }else{
+                size.height = cell._titleLabel.font.displayLineHeight;
+                origin.y =  Math.floor((cell.bounds.size.height - size.height) / 2.0);
+                cell._titleLabel.frame = JSRect(origin, size);
+            }
+        }else if (cell._detailLabel !== null){
+            size.height = cell._detailLabel.font.displayLineHeight;
+            cell._detailLabel.frame = JSRect(JSPoint(cell._titleInsets.left, Math.floor((cell.bounds.size.height - size.height) / 2.0)), size);
+        }
+
+        var separatorInsets = cell._separatorInsets;
+        if (separatorInsets === null){
+            separatorInsets = this.separatorInsets;
+        }
+        if (separatorInsets === null){
+            separatorInsets = cell._titleInsets;
+        }
+        var separatorSize = 1;
+        cell.stylerProperties.separatorLayer.frame = JSRect(separatorInsets.left, 0, cell.bounds.size.width - separatorInsets.left, separatorSize);
     },
 
     updateHeader: function(header, section){
