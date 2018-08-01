@@ -265,7 +265,7 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
     initializeControl: function(scroller){
         scroller.stylerProperties.hideAnimator = null;
         scroller.stylerProperties.trackLayer = UILayer.init();
-        scroller.layer.insertSublayerBeforeSibling(scroller.stylerProperties.trackLayer, scroller._knob.layer);
+        scroller.layer.insertSublayerBelowSibling(scroller.stylerProperties.trackLayer, scroller._knob.layer);
         scroller.stylerProperties.trackLayer.backgroundColor = JSColor.initWithWhite(250/255, 0.8);
         scroller.stylerProperties.trackLayer.borderColor = JSColor.initWithWhite(0, 0.15);
         scroller.stylerProperties.trackLayer.borderWidth = 1.0;

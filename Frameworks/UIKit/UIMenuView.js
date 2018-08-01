@@ -670,31 +670,31 @@ JSClass("UIMenuItemView", UIView, {
 
     _createImageView: function(){
         this._imageView = UIImageView.initWithRenderMode(UIImageView.RenderMode.template);
-        this.insertSubviewBeforeSibling(this._imageView, this.titleLabel);
+        this.insertSubviewBelowSibling(this._imageView, this.titleLabel);
         return this._imageView;
     },
 
     _createStateImageView: function(){
         this._stateImageView = UIImageView.initWithRenderMode(UIImageView.RenderMode.template);
-        this.insertSubviewBeforeSibling(this._stateImageView, this.titleLabel);
+        this.insertSubviewBelowSibling(this._stateImageView, this.titleLabel);
         return this._stateImageView;
     },
 
     _createSubmenuImageView: function(){
         this._submenuImageView = UIImageView.initWithImage(images.submenu, UIImageView.RenderMode.template);
-        this.insertSubviewAfterSibling(this._submenuImageView, this.titleLabel);
+        this.insertSubviewAboveSibling(this._submenuImageView, this.titleLabel);
         return this._submenuImageView;
     },
 
     _createKeyLabel: function(){
         this._keyLabel = UILabel.init();
-        this.insertSubviewAfterSibling(this._keyLabel, this.titleLabel);
+        this.insertSubviewAboveSibling(this._keyLabel, this.titleLabel);
         return this._keyLabel;
     },
 
     _createKeyModifierLabel: function(){
         this._keyModifierLabel = UILabel.init();
-        this.insertSubviewAfterSibling(this._keyModifierLabel, this.titleLabel);
+        this.insertSubviewAboveSibling(this._keyModifierLabel, this.titleLabel);
         return this._keyModifierLabel;
     },
 

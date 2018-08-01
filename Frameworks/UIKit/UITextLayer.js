@@ -61,7 +61,7 @@ JSClass("UITextLayer", UILayer, {
         this._textStorage = JSTextStorage.init();
         this._textStorage.addLayoutManager(this._textLayoutManager);
         this._textLayoutManager.addTextContainer(this._textContainer);
-        this.font = JSFont.systemFontOfSize(JSFont.systemFontSize);
+        this.font = JSFont.systemFontOfSize(JSFont.Size.normal);
         this.setNeedsLayout();
     },
 

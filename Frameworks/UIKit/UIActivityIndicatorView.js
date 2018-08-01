@@ -19,8 +19,9 @@ JSClass("UIActivityIndicatorView", UIView, {
             case UIActivityIndicatorView.Style.light:
                 this.initWithColor(lightColor);
                 break;
+            default:
+                return null;
         }
-        return null;
     },
 
     initWithColor: function(color){

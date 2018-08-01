@@ -35,7 +35,7 @@ JSClass("UIPopupButton", UIControl, {
         this._menu = UIMenu.init();
         this._titleLabel = UILabel.init();
         this._titleLabel.backgroundColor = JSColor.clearColor;
-        this._titleLabel.font = JSFont.systemFontOfSize(JSFont.systemFontSize).fontWithWeight(JSFont.Weight.regular);
+        this._titleLabel.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
         this._indicatorView = UIImageView.initWithImage(images.popupIndicator);
         this.addSubview(this._indicatorView);
         this.addSubview(this._titleLabel);

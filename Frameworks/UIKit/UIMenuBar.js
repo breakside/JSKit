@@ -1,10 +1,11 @@
 // #import "UIKit/UIWindow.js"
 // #import "UIKit/UIMenu.js"
-/* global JSClass, JSObject, JSImage, JSReadOnlyProperty, UIWindowCustomStyler, UILayer, JSPoint, JSBinarySearcher, JSSize, JSLazyInitProperty, UIView, UIWindow, JSDynamicProperty, UIMenuBar, JSRect, JSInsets, UIMenuBarItemCollectionView, UIMenuBarItemView, UIMenuBarItem, UILabel, UIImageView, JSFont, JSTextAlignment, JSColor, UIMenuDefaultStyler, UIMenuBarButton */
+/* global JSClass, JSObject, JSImage, JSReadOnlyProperty, UIWindowCustomStyler, UIEvent, UILayer, JSPoint, JSBinarySearcher, JSSize, JSLazyInitProperty, UIView, UIWindow, JSDynamicProperty, UIMenuBar, JSRect, JSInsets, UIMenuBarItemCollectionView, UIMenuBarItemView, UIMenuBarItem, UILabel, UIImageView, JSFont, JSTextAlignment, JSColor, UIMenuDefaultStyler, UIMenuBarButton */
 'use strict';
 
 JSClass("UIMenuBar", UIWindow, {
 
+    // --------------------------------------------------------------------
     // MARK: - Creating a Menu Bar
 
     init: function(){
@@ -64,12 +65,13 @@ JSClass("UIMenuBar", UIWindow, {
         this._clipView = UIView.init();
         this.contentView.addSubview(this._clipView);
         // this.backgroundColor = JSColor.initWithRGBA(1, 1, 1, 0.95);
-        this._font = JSFont.systemFontOfSize(JSFont.systemFontSize).fontWithWeight(JSFont.Weight.regular);
+        this._font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
         this._textColor = UIMenuDefaultStyler.shared.textColor;
         this._highlightColor = UIMenuDefaultStyler.shared.highlightColor;
         this._highlightedTextColor = UIMenuDefaultStyler.shared.highlightedTextColor;
     },
 
+    // --------------------------------------------------------------------
     // MARK: - Window Properies
 
     canBecomeKeyWindow: function(){
@@ -80,6 +82,7 @@ JSClass("UIMenuBar", UIWindow, {
         return false;
     },
 
+    // --------------------------------------------------------------------
     // MARK: - Style
 
     isOpaque: true,
@@ -100,6 +103,7 @@ JSClass("UIMenuBar", UIWindow, {
         this.setNeedsLayout();
     },
 
+    // --------------------------------------------------------------------
     // MARK: - Items
 
     primaryMenuItem: null,
@@ -164,12 +168,18 @@ JSClass("UIMenuBar", UIWindow, {
         }
     },
 
+    // --------------------------------------------------------------------
     // MARK: - Views & Layout
 
     _leftItemViews: null,
     _menuItemViews: null,
     _rightItemViews: null,
     submenu: null,
+    windowController: null,
+
+    reload: function(){
+        this.setNeedsLayout();
+    },
 
     layoutSubviews: function(){
         UIMenuBar.$super.layoutSubviews.call(this);
@@ -225,6 +235,7 @@ JSClass("UIMenuBar", UIWindow, {
         this.setNeedsLayout();
     },
 
+    // --------------------------------------------------------------------
     // MARK: - Actions
 
     _selectMenuItemView: function(itemView){
@@ -243,20 +254,45 @@ JSClass("UIMenuBar", UIWindow, {
             this.submenu = null;
             this.makeKey();
         }
+        if (this.windowController){
+            this.windowController.windowDelegate = null;
+            this.windowController.close();
+            this.windowController = null;
+            this.makeKey();
+        }
         this._highlightedItemView = itemView;
         if (this._highlightedItemView){
             this._highlightedItemView.highlighted = true;
-            this.submenu = itemView._item.menu;
-            this.submenu.delegate = this;
-            this.openMenu(this.submenu, itemView);
+            if (itemView._item.menu){
+                this.submenu = itemView._item.menu;
+                this.submenu.delegate = this;
+                this.openMenu(this.submenu, itemView);
+            }else if (itemView._item.windowControllerClass){
+                this.windowController = itemView._item.windowControllerClass.init();
+                this.windowController.windowDelegate = this;
+                var window = this.windowController.window;
+                var maxWidth = Math.floor(this.screen.frame.size.width * 0.3);
+                window.frame = JSRect(0, 0, maxWidth, 0);
+                window.sizeToFit();
+                this.menu.styler.initializeWindow(window);
+                window.maskedCorners = UILayer.Corners.maxY;
+                this.positionWindowUnderItemView(window, itemView);
+                this.windowController.autoPositionWindow = false;
+                this.windowController.makeKeyAndOrderFront();
+            }
         }
     },
 
     openMenu: function(menu, itemView){
         var window = menu._createWindow();
         window.maskedCorners = UILayer.Corners.maxY;
-        var maxWidth = Math.floor(this.screen.frame.size.width * 0.3);
-        var safeFrame = this.screen.frame.rectWithInsets(0, 0);
+        menu.window = window;
+        this.positionWindowUnderItemView(window, itemView);
+        window.makeKeyAndOrderFront();
+    },
+
+    positionWindowUnderItemView: function(window, itemView){
+        var safeFrame = this.screen.frame.rectWithInsets(0, 0, 4, 0);
         var origin = JSPoint(itemView.frame.origin);
         var size = JSSize(window.frame.size);
         origin.y += itemView.frame.size.height;
@@ -273,9 +309,16 @@ JSClass("UIMenuBar", UIWindow, {
         if (over > 0){
             size.height -= over;
         }
-        menu.window = window;
         window.frame = JSRect(origin, size);
-        window.makeKeyAndOrderFront();
+    },
+
+    windowControllerDidClose: function(windowController){
+        this.windowController.windowDelegate = null;
+        this.windowController = null;
+        this._highlightedItemView.highlighted = false;
+        this._highlightedItemView = null;
+        this.receivesAllEvents = false;
+        this.stopMouseTracking();
     },
 
     menuDidClose: function(menu){
@@ -367,17 +410,19 @@ JSClass("UIMenuBar", UIWindow, {
     },
 
     mouseDownOnItemView: function(itemView, event){
-        if (!itemView._item.menu){
+        if (itemView._item.menu || itemView._item.windowControllerClass){
+            if (itemView !== this._highlightedItemView){
+                this._selectMenuItemView(itemView);
+                this._itemDownTimestamp = event.timestamp;
+            }else if (this.windowController){
+                this.windowController.close();
+            }
+        }else{
             this.stopMouseTracking();
             this.receivesAllEvents = false;
             if (this.submenu){
                 this.submenu.close();
             }
-            return;
-        }
-        if (itemView !== this._highlightedItemView){
-            this._selectMenuItemView(itemView);
-            this._itemDownTimestamp = event.timestamp;
         }
     },
 
@@ -385,7 +430,10 @@ JSClass("UIMenuBar", UIWindow, {
         if (!itemView._item.menu){
             return;
         }
-        this._itemDownTimestamp = UIEvent.minimumTimestamp;
+        var location = event.locationInView(this._clipView);
+        if (!this._clipView.containsPoint(location)){
+            this._itemDownTimestamp = UIEvent.minimumTimestamp;
+        }
         if (this.submenu){
             this.submenu.window.deepestMenuWindow().mouseDragged(event);
         }
@@ -481,9 +529,11 @@ JSClass("UIMenuBar", UIWindow, {
 JSClass("UIMenuBarItem", JSObject, {
     title: null,
     image: null,
+    imagePosition: 1,
     target: null,
     action: null,
     menu: null,
+    windowControllerClass: null,
     tooltip: null,
     customView: null,
     state: JSReadOnlyProperty('_state', 0),
@@ -497,6 +547,9 @@ JSClass("UIMenuBarItem", JSObject, {
         if ('image' in values){
             this.image = JSImage.initWithResourceName(spec.resolvedValue(values.image), spec.bundle);
         }
+        if ('imagePosition' in values){
+            this.imagePosition = spec.resolvedValue(values.imagePosition);
+        }
         if ('target' in values){
             this.target = spec.resolvedValue(values.target);
         }
@@ -504,13 +557,16 @@ JSClass("UIMenuBarItem", JSObject, {
             this.action = values.action;
         }
         if ('customView' in values){
-            this.customView = spec.resolvedValue(values.customView);
+            this.customView = spec.resolvedValue(values.customView, "UIView");
         }
         if ('tooltip' in values){
             this.tooltip = spec.resolvedValue(values.tooltip);
         }
         if ('menu' in values){
-            this.menu = spec.resolvedValue(values.menu);
+            this.menu = spec.resolvedValue(values.menu, "UIMenu");
+        }
+        if ('windowControllerClass' in values){
+            this.windowControllerClass = spec.resolvedValue(values.windowControllerClass);
         }
     },
 
@@ -532,10 +588,6 @@ JSClass("UIMenuBarItem", JSObject, {
         this.target = target || null;
     },
 
-    performAction: function(){
-        this.action.call(this.target, this);
-    },
-
     _toggleState: function(flag, on){
         if (on){
             this._state |= flag;
@@ -554,6 +606,11 @@ JSClass("UIMenuBarItem", JSObject, {
 
 });
 
+UIMenuBarItem.ImagePosition = {
+    left: 0,
+    right: 1
+};
+
 UIMenuBarItem.State = {
     normal: 0,
     active: 1 << 0
@@ -568,7 +625,7 @@ JSClass("UIMenuBarItemView", UIView, {
     _titleLabel: null,
     _imageView: null,
     _customView: null,
-    _imagePosition: 1,
+    _imagePosition: 0,
     _titleImageSpacing: 3,
     highlighted: JSDynamicProperty('_isHighlighted', false, 'isHighlighted'),
 
@@ -601,7 +658,7 @@ JSClass("UIMenuBarItemView", UIView, {
         }else{
             this.backgroundColor = null;
         }
-        if (!this.customView){
+        if (!this._customView){
             if (this._titleLabel){
                 var font = this._menuBar.font;
                 if (this._item === this._menuBar.primaryMenuItem){
@@ -618,6 +675,7 @@ JSClass("UIMenuBarItemView", UIView, {
 
     setItem: function(item){
         this._item = item;
+        this._imagePosition = item.imagePosition;
         this.tooltip = item.tooltip;
         if (item.customView){
             if (this._customView !== null && this._customView !== item.customView){
@@ -680,7 +738,7 @@ JSClass("UIMenuBarItemView", UIView, {
             if (this._titleLabel){
                 if (this._imageView){
                     var x0 = (this.bounds.size.width - this._titleLabel.frame.size.width - this._titleImageSpacing - this._imageView.frame.size.width) / 2;
-                    if (this._imagePosition == UIMenuBarItemView.ImagePosition.right){
+                    if (this._imagePosition == UIMenuBarItem.ImagePosition.right){
                         this._titleLabel.position = JSPoint(x0 + this._titleLabel.frame.size.width / 2, this.bounds.size.height / 2);
                         this._imageView.position = JSPoint(x0 + this._titleLabel.frame.size.width + this._titleImageSpacing + this._imageView.frame.size.width / 2, this.bounds.size.height / 2);
                     }else{
@@ -698,23 +756,18 @@ JSClass("UIMenuBarItemView", UIView, {
 
 });
 
-UIMenuBarItemView.ImagePosition = {
-    right: 0,
-    left: 1
-};
-
 JSClass("UIMenuBarButton", UIMenuBarItemView, {
 
     mouseDown: function(event){
         this._menuBar.mouseDownOnItemView(this, event);
-        if (!this._item.menu){
+        if (!this._item.menu && !this._item.windowControllerClass){
             this.highlighted = true;
         }
     },
 
     mouseDragged: function(event){
         this._menuBar.mouseDraggedOnItemView(this, event);
-        if (!this._item.menu){
+        if (!this._item.menu && !this._item.windowControllerClass){
             var location = event.locationInView(this);
             this.highlighted = this.containsPoint(location);
         }
@@ -722,7 +775,7 @@ JSClass("UIMenuBarButton", UIMenuBarItemView, {
 
     mouseUp: function(event){
         this._menuBar.mouseUpOnItemView(this, event);
-        if (!this._item.menu){
+        if (!this._item.menu && !this._item.windowControllerClass){
             if (this.highlighted){
                 this.highlighted = false;
                 this.window.application.sendAction(this._item.action, this._item.target, this._item);

@@ -26,6 +26,11 @@ JSClass('UIWindow', UIView, {
         this._commonWindowInit();
     },
 
+    initWithStyler: function(styler){
+        this._styler = styler;
+        this.init();
+    },
+
     initWithSpec: function(spec, values){
         UIWindow.$super.initWithSpec.call(this, spec, values);
         if ('contentViewController' in values){
@@ -172,6 +177,8 @@ JSClass('UIWindow', UIView, {
             var fitSize;
             if (this.viewController){
                 fitSize = this.viewController.contentSizeThatFitsSize(size);
+            }else if (this._contentViewController){
+                fitSize = this._contentViewController.contentSizeThatFitsSize(size);
             }else{
                 this._contentView.sizeToFitSize(size);
                 fitSize = this._contentView.frame.size;
@@ -322,9 +329,15 @@ JSClass('UIWindow', UIView, {
     mouseDown: function(event){
         // this.setFirstResponder(null);
         if (this.level == UIWindow.Level.normal && this.isUserMovable){
-            this._downLocation = this.convertPointToScreen(event.locationInWindow);
-            this._downOrigin = JSPoint(this.frame.origin);
-            this._isMoving = true;
+            if (this.containsPoint(event.locationInWindow)){
+                this._downLocation = this.convertPointToScreen(event.locationInWindow);
+                this._downOrigin = JSPoint(this.frame.origin);
+                this._isMoving = true;
+            }else{
+                UIWindow.$super.mouseDown.call(this, event);
+            }
+        }else{
+            UIWindow.$super.mouseDown.call(this, event);
         }
     },
 
@@ -398,6 +411,9 @@ JSClass('UIWindow', UIView, {
     },
 
     getNextResponder: function(){
+        if (this.viewController !== null){
+            return this.viewController;
+        }
         return this._application;
     },
 

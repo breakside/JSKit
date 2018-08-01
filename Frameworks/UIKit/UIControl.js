@@ -64,6 +64,10 @@ JSClass("UIControl", UIView, {
         return this._styler.intrinsicSizeOfControl(this);
     },
 
+    sizeToFit: function(){
+        this.sizeToFitSize(JSSize(Number.MAX_VALUE, Number.MAX_VALUE));
+    },
+
     sizeToFitSize: function(size){
         this._styler.sizeControlToFitSize(this, size);
     },

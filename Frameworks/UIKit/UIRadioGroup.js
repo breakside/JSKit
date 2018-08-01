@@ -97,7 +97,7 @@ JSClass("UIRadioButton", UIControl, {
         this._titleLabel = UILabel.init();
         this._titleLabel.textAlignment = JSTextAlignment.left;
         this._titleLabel.backgroundColor = JSColor.clearColor;
-        this._titleLabel.font = JSFont.systemFontOfSize(JSFont.systemFontSize).fontWithWeight(JSFont.Weight.regular);
+        this._titleLabel.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
         this.addSubview(this._titleLabel);
         if (this._styler === null){
             this._styler = UIRadioButton.defaultStyler;

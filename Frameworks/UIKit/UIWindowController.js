@@ -1,11 +1,12 @@
 // #import "UIKit/UIViewController.js"
-/* global JSClass, UIViewController, JSReadOnlyProperty, JSCopy, UIWindowController, JSProtocol, JSSpec */
+/* global JSClass, UIViewController, JSSize, JSReadOnlyProperty, JSCopy, UIWindowController, JSProtocol, JSSpec */
 'use strict';
 
 JSClass("UIWindowController", UIViewController, {
 
     _defaultViewClass: "UIWindow",
     windowDelegate: null,
+    autoPositionWindow: true,
 
     initWithSpec: function(spec, values){
         values = JSCopy(values);
@@ -49,15 +50,26 @@ JSClass("UIWindowController", UIViewController, {
         if (this.windowDelegate){
             this.windowDelegate.windowControllerDidClose(this);
         }
+        this.unloadView();
     },
 
     contentSizeThatFitsSize: function(size){
-        this.window.contentView.sizeToFitSize(size);
-        return this.window.contentView.frame.size;
+        var contentSize;
+        if (this.window.contentViewController){
+            contentSize = this.window.contentViewController.contentSizeThatFitsSize(size);
+        }else{
+            this.window.contentView.sizeToFitSize(size);
+            contentSize = JSSize(this.window.contentView.frame.size);
+        }
+        return contentSize;
     },
 
     getWindow: function(){
         return this.view;
+    },
+
+    getNextResponder: function(){
+        return this._view._application;
     },
 
     orderFront: function(){
@@ -84,15 +96,16 @@ JSClass("UIWindowController", UIViewController, {
     },
 
     _prepareWindow: function(){
-        this.window.sizeToFit();
-        if (!this.window.isUsingAutosavedFrame){
-            this.window.position = this.window.windowServer.screen.availableFrame.center;
+        if (this.autoPositionWindow){
+            this.window.sizeToFit();
+            if (!this.window.isUsingAutosavedFrame){
+                this.window.position = this.window.windowServer.screen.availableFrame.center;
+            }
         }
     },
 
     close: function(){
         this.window.close();
-        this.unloadView();
     },
 
     unloadView: function(){

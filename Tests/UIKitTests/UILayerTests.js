@@ -144,10 +144,10 @@ JSClass("UILayerTests", TKTestSuite, {
         var layer2 = UILayer.init();
         var layer3 = UILayer.init();
         TKAssertThrows(function(){
-            layer1.insertSublayerBeforeSibling(layer3, layer2);
+            layer1.insertSublayerBelowSibling(layer3, layer2);
         });
         layer1.addSublayer(layer2);
-        var inserted = layer1.insertSublayerBeforeSibling(layer3, layer2);
+        var inserted = layer1.insertSublayerBelowSibling(layer3, layer2);
         TKAssertExactEquals(inserted, layer3);
         TKAssertEquals(layer1.sublayers.length, 2);
         TKAssertExactEquals(layer1.sublayers[0], layer3);
@@ -163,10 +163,10 @@ JSClass("UILayerTests", TKTestSuite, {
         var layer2 = UILayer.init();
         var layer3 = UILayer.init();
         TKAssertThrows(function(){
-            layer1.insertSublayerAfterSibling(layer3, layer2);
+            layer1.insertSublayerAboveSibling(layer3, layer2);
         });
         layer1.addSublayer(layer2);
-        var inserted = layer1.insertSublayerAfterSibling(layer3, layer2);
+        var inserted = layer1.insertSublayerAboveSibling(layer3, layer2);
         TKAssertExactEquals(inserted, layer3);
         TKAssertEquals(layer1.sublayers.length, 2);
         TKAssertExactEquals(layer1.sublayers[0], layer2);

@@ -236,14 +236,14 @@ JSClass("UILayer", JSObject, {
         return sublayer;
     },
 
-    insertSublayerBeforeSibling: function(sublayer, sibling){
+    insertSublayerBelowSibling: function(sublayer, sibling){
         if (sibling.superlayer !== this){
             throw Error('Cannot insert sublayer [%s] in view [%s] because sibling view [%s] is not a valid sublayer.');
         }
         return this.insertSublayerAtIndex(sublayer, sibling.sublayerIndex);
     },
 
-    insertSublayerAfterSibling: function(sublayer, sibling){
+    insertSublayerAboveSibling: function(sublayer, sibling){
         if (sibling.superlayer !== this){
             throw Error('Cannot insert sublayer [%s] in view [%s] because sibling view [%s] is not a valid sublayer.');
         }

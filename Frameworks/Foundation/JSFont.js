@@ -29,7 +29,7 @@ JSClass("JSFont", JSObject, {
 
     initWithSpec: function(spec, values){
         var descriptor = JSFont._systemFontDescriptor;
-        var pointSize = JSFont.systemFontSize;
+        var pointSize = JSFont.Size.normal;
         if ('descriptor' in values){
             descriptor = spec.resolvedValue(values.descriptor);
         }else if ('family' in values){
@@ -56,16 +56,25 @@ JSClass("JSFont", JSObject, {
     },
 
     fontWithWeight: function(weight){
+        if (weight == this.descriptor.weight){
+            return this;
+        }
         var descriptor = this.descriptor.descriptorWithWeight(weight);
         return JSFont.fontWithDescriptor(descriptor, this.pointSize);
     },
 
     fontWithStyle: function(style){
+        if (style == this.descriptor.style){
+            return this;
+        }
         var descriptor = this.descriptor.descriptorWithStyle(style);
         return JSFont.fontWithDescriptor(descriptor, this.pointSize);
     },
 
     fontWithPointSize: function(pointSize){
+        if (pointSize == this.descriptor.pointSize){
+            return this;
+        }
         var descriptor = this.descriptor;
         return JSFont.fontWithDescriptor(descriptor, pointSize);
     },
@@ -308,7 +317,7 @@ JSFont.registerFontResource = function(metadata){
 JSFont._systemFontDescriptor = null;
 
 JSFont.registerSystemFontResource = function(resourceName){
-    var font = JSFont.fontWithResourceName(resourceName, JSFont.systemFontSize);
+    var font = JSFont.fontWithResourceName(resourceName, JSFont.Size.normal);
     JSFont._systemFontDescriptor = font.descriptor;
 };
 
@@ -367,7 +376,10 @@ JSFont.systemFontOfSize = function(pointSize){
     return JSFont.fontWithDescriptor(this._systemFontDescriptor, pointSize);
 };
 
-JSFont.systemFontSize = 14.0;
+JSFont.Size = {
+    detail: 12.0,
+    normal: 14.0
+};
 
 JSFont.Weight = {
     ultraLight: 100,

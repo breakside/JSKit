@@ -56,7 +56,7 @@ JSClass("UITabView", UIView, {
         UITabView.$super._commonViewInit.call(this);
         this._items = [];
         this.stylerProperties = {};
-        this.font = JSFont.systemFontOfSize(JSFont.systemFontSize);
+        this.font = JSFont.systemFontOfSize(JSFont.Size.normal);
     },
 
     _commonTabViewInit: function(){
@@ -571,7 +571,7 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
         tabView._itemsView.cornerRadius = this.cornerRadius;
         tabView.stylerProperties.divider = UIView.init();
         tabView.stylerProperties.divider.backgroundColor = defaultStateBorderColors[0];
-        tabView.insertSubviewBeforeSibling(tabView.stylerProperties.divider, tabView._itemsView);
+        tabView.insertSubviewBelowSibling(tabView.stylerProperties.divider, tabView._itemsView);
     },
 
     layoutTabView: function(tabView){

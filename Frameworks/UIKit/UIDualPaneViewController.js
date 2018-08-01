@@ -428,7 +428,7 @@ JSClass("_UIDualPaneView", UIView, {
         }
         if (leadingView !== null){
             leadingView.clipsToBounds = true;
-            this.insertSubviewBeforeSibling(leadingView, this._leadingDividerView);
+            this.insertSubviewBelowSibling(leadingView, this._leadingDividerView);
         }
         this._leadingView = leadingView;
         this.setNeedsLayout();
@@ -443,7 +443,7 @@ JSClass("_UIDualPaneView", UIView, {
         }
         if (trailingView !== null){
             trailingView.clipsToBounds = true;
-            this.insertSubviewBeforeSibling(trailingView, this._leadingDividerView);
+            this.insertSubviewBelowSibling(trailingView, this._leadingDividerView);
         }
         this._trailingView = trailingView;
         this.setNeedsLayout();
@@ -456,7 +456,7 @@ JSClass("_UIDualPaneView", UIView, {
         if (this._mainView !== null){
             this._mainView.removeFromSuperview();
         }
-        this.insertSubviewBeforeSibling(mainView, this._leadingView);
+        this.insertSubviewBelowSibling(mainView, this._leadingView);
         this._mainView = mainView;
         this.setNeedsLayout();
     },

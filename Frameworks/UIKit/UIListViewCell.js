@@ -1,7 +1,7 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UILabel.js"
 // #import "UIKit/UIImageView.js"
-/* global JSClass, UIView, UILabel, JSReadOnlyProperty, JSDynamicProperty, JSLazyInitProperty, UIListViewCell, JSInsets, JSPoint, JSSize, JSRect, JSColor, UIImageView */
+/* global JSClass, UIView, UILabel, JSFont, JSReadOnlyProperty, JSDynamicProperty, JSLazyInitProperty, UIListViewCell, JSInsets, JSPoint, JSSize, JSRect, JSColor, UIImageView */
 'use strict';
 
 JSClass("UIListViewCell", UIView, {
@@ -16,6 +16,7 @@ JSClass("UIListViewCell", UIView, {
     detailLabel: JSLazyInitProperty('_createDetailLabel', '_detailLabel'),
     imageView: JSLazyInitProperty('_createImageView', '_imageView'),
     separatorInsets: JSDynamicProperty('_separatorInsets', null),
+    numberOfDetailLines: JSDynamicProperty('_numberOfDetailLines', 1),
     stylerProperties: null,
 
     initWithReuseIdentifier: function(identifier){
@@ -42,12 +43,15 @@ JSClass("UIListViewCell", UIView, {
 
     _createTitleLabel: function(){
         var label = UILabel.init();
+        label.maximumNumberOfLines = 1;
         this.contentView.addSubview(label);
         return label;
     },
 
     _createDetailLabel: function(){
         var label = UILabel.init();
+        label.maximumNumberOfLines = this._numberOfDetailLines;
+        label.font = label.font.fontWithPointSize(JSFont.Size.detail);
         this.contentView.addSubview(label);
         return label;
     },
@@ -71,6 +75,13 @@ JSClass("UIListViewCell", UIView, {
     layoutSubviews: function(){
         UIListViewCell.$super.layoutSubviews.call(this);
         this.listView.styler.layoutCell(this);
+    },
+
+    setNumberOfDetailLines: function(lines){
+        if (lines != this._numberOfDetailLines){
+            this._numberOfDetailLines = lines;
+            this.setNeedsLayout();
+        }
     },
 
     // --------------------------------------------------------------------

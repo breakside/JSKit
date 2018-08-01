@@ -15,7 +15,7 @@ JSClass("UIMenu", JSObject, {
     _commonInit: function(){
         this._items = [];
         this._itemsByTag = {};
-        this._font = JSFont.systemFontOfSize(JSFont.systemFontSize);
+        this._font = JSFont.systemFontOfSize(JSFont.Size.normal);
         if (this._font !== null){
             this._font = this._font.fontWithWeight(JSFont.Weight.regular);
         }
@@ -568,7 +568,7 @@ UIMenu.Placement = {
     left: 3
 };
 
-JSClass("UIMenuStyler", JSObject, {
+JSClass("UIMenuStyler", UIWindowStyler, {
 
     initializeMenu: function(menu, window){
     },
@@ -653,17 +653,21 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
         }
     },
 
-    initializeMenu: function(menu, window){
+    initializeWindow: function(window){
         window.borderColor = this._borderColor;
         window.borderWidth = this._borderWidth;
+        window.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.2);
+        window.shadowRadius = 14;
+        window.cornerRadius = this._cornerRadius;
         window.contentView.backgroundColor = this._backgroundColor;
+    },
+
+    initializeMenu: function(menu, window){
+        this.initializeWindow(window);
         window.upIndicatorView.backgroundColor = this._backgroundColor;
         window.downIndicatorView.backgroundColor = this._backgroundColor;
         window.upIndicatorImageView.templateColor = this._textColor;
         window.downIndicatorImageView.templateColor = this._textColor;
-        window.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.2);
-        window.shadowRadius = 14;
-        window.cornerRadius = this._cornerRadius;
         window.menuView.backgroundColor = this._backgroundColor;
         this._keyWidth = Math.ceil(menu.font.widthOfString("W"));
     },

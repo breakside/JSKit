@@ -248,6 +248,9 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
                 this.setLayerNeedsLayout(layer);
                 layer._needsLayout = false;
             }
+            if (layer.animationCount > 0){
+                this.setLayerNeedsAnimation(layer);
+            }
             this.setLayerNeedsReposition(layer);
             this.setLayerNeedsDisplay(layer);
         }

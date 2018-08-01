@@ -176,14 +176,14 @@ JSClass('UIView', UIResponder, {
         this._insertSubviewAtIndex(subview, index, layerIndex);
     },
 
-    insertSubviewBeforeSibling: function(subview, sibling){
+    insertSubviewBelowSibling: function(subview, sibling){
         if (sibling.superview !== this){
             throw Error('Cannot insert subview [%s] in view [%s] because sibling view [%s] is not a valid subview.');
         }
         return this._insertSubviewAtIndex(subview, sibling.subviewIndex, sibling.layer.sublayerIndex);
     },
 
-    insertSubviewAfterSibling: function(subview, sibling){
+    insertSubviewAboveSibling: function(subview, sibling){
         if (sibling.superview !== this){
             throw Error('Cannot insert subview [%s] in view [%s] because sibling view [%s] is not a valid subview.');
         }
@@ -733,3 +733,6 @@ UIView.animateWithOptions = function(options, animations, callback){
 };
 
 UIView.noIntrinsicSize = -1;
+
+UIView.Corners = UILayer.Corners;
+UIView.Sides = UILayer.Sides;

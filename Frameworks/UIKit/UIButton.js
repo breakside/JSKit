@@ -75,7 +75,7 @@ JSClass("UIButton", UIControl, {
         titleLabel.maximumNumberOfLines = 1;
         titleLabel.textAlignment = JSTextAlignment.center;
         titleLabel.backgroundColor = JSColor.clearColor;
-        titleLabel.font = JSFont.systemFontOfSize(JSFont.systemFontSize).fontWithWeight(JSFont.Weight.regular);
+        titleLabel.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
         this.addSubview(titleLabel);
         this.setNeedsLayout();
         this._titleLabel = titleLabel;

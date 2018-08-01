@@ -408,6 +408,8 @@ JSClass("UIListView", UIScrollView, {
         if (this._needsReload){
             this._reloadDuringLayout();
             this._needsReload = false;
+        }else if (this._needsUpdate){
+            this._updateVisibleCells();
         }else{
             this.contentSize = JSSize(this.bounds.size.width, this._contentSize.height);
         }
@@ -461,7 +463,7 @@ JSClass("UIListView", UIScrollView, {
         // scroll position to a relative y-offset of the top-most visible cell.  Problem is we don't
         // know what the correct new offset is until doing a new layout.
         if (!this._needsReload){
-            this._updateVisibleCells();
+            this._needsUpdate = true;
         }
     },
 
@@ -500,7 +502,11 @@ JSClass("UIListView", UIScrollView, {
     // --------------------------------------------------------------------
     // MARK: - Updating Visible Cells
 
+    _needsUpdate: false,
+
     _updateVisibleCells: function(){
+        this._needsUpdate = false;
+
         if (!this._cachedData){
             return;
         }
@@ -657,11 +663,11 @@ JSClass("UIListView", UIScrollView, {
                 cell = this._createCellAtIndexPath(indexPath, y, true);
                 y = cell.frame.origin.y;
                 if (this._visibleCellViews.length > 0){
-                    this._cellsContainerView.insertSubviewBeforeSibling(cell, this._visibleCellViews[0]);
+                    this._cellsContainerView.insertSubviewBelowSibling(cell, this._visibleCellViews[0]);
                 }else if (this._visibleFooterViews.length > 0){
-                    this._cellsContainerView.insertSubviewBeforeSibling(cell, this._visibleFooterViews[0]);
+                    this._cellsContainerView.insertSubviewBelowSibling(cell, this._visibleFooterViews[0]);
                 }else if (this._visibleHeaderViews.length > 0){
-                    this._cellsContainerView.insertSubviewBeforeSibling(cell, this._visibleHeaderViews[0]);
+                    this._cellsContainerView.insertSubviewBelowSibling(cell, this._visibleHeaderViews[0]);
                 }else{
                     this._cellsContainerView.addSubview(cell);
                 }
@@ -678,7 +684,7 @@ JSClass("UIListView", UIScrollView, {
                     header = this._createHeaderAtSection(indexPath.section, y, true);
                     visibleHeadersBySection[indexPath.section] = header;
                     if (this._visibleHeaderViews.length > 0){
-                        this._cellsContainerView.insertSubviewBeforeSibling(header, this._visibleHeaderViews[0]);
+                        this._cellsContainerView.insertSubviewBelowSibling(header, this._visibleHeaderViews[0]);
                     }else{
                         this._cellsContainerView.addSubview(header);
                     }
@@ -695,9 +701,9 @@ JSClass("UIListView", UIScrollView, {
                     footer = this._createFooterAtSection(indexPath.section, y, true);
                     visibleFootersBySection[indexPath.section] = footer;
                     if (this._visibleFooterViews.length > 0){
-                        this._cellsContainerView.insertSubviewBeforeSibling(footer, this._visibleFooterViews[0]);
+                        this._cellsContainerView.insertSubviewBelowSibling(footer, this._visibleFooterViews[0]);
                     }else if (this._visibleHeaderViews.length > 0){
-                        this._cellsContainerView.insertSubviewBeforeSibling(footer, this._visibleHeaderViews[0]);
+                        this._cellsContainerView.insertSubviewBelowSibling(footer, this._visibleHeaderViews[0]);
                     }else{
                         this._cellsContainerView.addSubview(footer);
                     }
@@ -713,7 +719,7 @@ JSClass("UIListView", UIScrollView, {
                         header = this._createHeaderAtSection(indexPath.section, UNKNOWN_Y_ORIGIN);
                         visibleHeadersBySection[indexPath.section] = header;
                         if (this._visibleHeaderViews.length > 0){
-                            this._cellsContainerView.insertSubviewBeforeSibling(header, this._visibleHeaderViews[0]);
+                            this._cellsContainerView.insertSubviewBelowSibling(header, this._visibleHeaderViews[0]);
                         }else{
                             this._cellsContainerView.addSubview(header);
                         }
@@ -808,11 +814,11 @@ JSClass("UIListView", UIScrollView, {
                 cell = this._createCellAtIndexPath(indexPath, y);
                 y = cell.frame.origin.y + cell.frame.size.height;
                 if (this._visibleCellViews.length > 0){
-                    this._cellsContainerView.insertSubviewAfterSibling(cell, this._visibleCellViews[this._visibleCellViews.length - 1]);
+                    this._cellsContainerView.insertSubviewAboveSibling(cell, this._visibleCellViews[this._visibleCellViews.length - 1]);
                 }else if (this._visibleFooterViews.length > 0){
-                    this._cellsContainerView.insertSubviewBeforeSibling(cell, this._visibleFooterViews[0]);
+                    this._cellsContainerView.insertSubviewBelowSibling(cell, this._visibleFooterViews[0]);
                 }else if (this._visibleHeaderViews.length > 0){
-                    this._cellsContainerView.insertSubviewBeforeSibling(cell, this._visibleHeaderViews[0]);
+                    this._cellsContainerView.insertSubviewBelowSibling(cell, this._visibleHeaderViews[0]);
                 }else{
                     this._cellsContainerView.addSubview(cell);
                 }
@@ -828,9 +834,9 @@ JSClass("UIListView", UIScrollView, {
                     footer = this._createFooterAtSection(indexPath.section, y);
                     visibleFootersBySection[indexPath.section] = footer;
                     if (this._visibleFooterViews.length > 0){
-                        this._cellsContainerView.insertSubviewAfterSibling(footer, this._visibleFooterViews[this._visibleFooterViews.length - 1]);
+                        this._cellsContainerView.insertSubviewAboveSibling(footer, this._visibleFooterViews[this._visibleFooterViews.length - 1]);
                     }else if (this._visibleHeaderViews.length > 0){
-                        this._cellsContainerView.insertSubviewBeforeSibling(footer, this._visibleHeaderViews[0]);
+                        this._cellsContainerView.insertSubviewBelowSibling(footer, this._visibleHeaderViews[0]);
                     }else{
                         this._cellsContainerView.addSubview(footer);
                     }
@@ -1559,6 +1565,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     contextSelectedCellBorderColor: null,
     cellBackgroundColor: null,
     separatorInsets: null,
+    imageSize: null,
 
     headerTextColor: null,
     headerBackgroundColor: null,
@@ -1609,6 +1616,9 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if ('separatorInsets' in values){
             this.separatorInsets = JSInsets.apply(undefined, values.separatorInsets.parseNumberArray());
         }
+        if ('imageSize' in values){
+            this.imageSize = JSSize.apply(undefined, values.imageSize.parseNumberArray());
+        }
         this._commonStylerInit();
     },
 
@@ -1620,7 +1630,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             this.selectedCellTextColor = JSColor.whiteColor;
         }
         if (this.cellDetailTextColor === null){
-            this.cellDetailTextColor = this.cellTextColor;
+            this.cellDetailTextColor = this.cellTextColor.colorLightenedByPercentage(0.6);
         }
         if (this.selectedCellDetailTextColor === null){
             this.selectedCellDetailTextColor = this.selectedCellTextColor;
@@ -1685,27 +1695,31 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         var size = JSSize(cell.bounds.size.width - cell._titleInsets.left - cell._titleInsets.right, 0);
         var origin = JSPoint(cell._titleInsets.left, 0);
         if (cell._imageView !== null){
-            var imageSize = cell.bounds.size.height - cell._titleInsets.left * 2;
-            cell._imageView.frame = JSRect(origin.x, origin.x, imageSize, imageSize);
-            origin.x += cell._titleInsets.left + imageSize;
-            size.width -= imageSize + cell._titleInsets.left;
+            var imageSize = this.imageSize;
+            if (imageSize === null){
+                var imageHeight = cell._contentView.bounds.size.height - cell._titleInsets.left * 2;
+                imageSize = JSSize(imageHeight, imageHeight);
+            }
+            cell._imageView.frame = JSRect(origin.x, (cell._contentView.bounds.size.height - imageSize.height) / 2, imageSize.width, imageSize.height);
+            origin.x += cell._titleInsets.left + imageSize.width;
+            size.width -= imageSize.width + cell._titleInsets.left;
         }
         if (cell._titleLabel !== null){
             if (cell._detailLabel !== null){
-                size.height = cell._titleLabel.font.displayLineHeight + cell._detailLabel.font.displayLineHeight;
+                size.height = cell._titleLabel.font.displayLineHeight * (cell._titleLabel.maximumNumberOfLines || 1) + cell._detailLabel.font.displayLineHeight * (cell._detailLabel.maximumNumberOfLines || 1);
                 origin.y =  Math.floor((cell.bounds.size.height - size.height) / 2.0);
-                size.height = cell._titleLabel.font.displayLineHeight;
+                size.height = cell._titleLabel.font.displayLineHeight * (cell._titleLabel.maximumNumberOfLines || 1);
                 cell._titleLabel.frame = JSRect(origin, size);
                 origin.y += size.height;
-                size.height = cell._detailLabel.font.displayLineHeight;
+                size.height = cell._detailLabel.font.displayLineHeight * (cell._detailLabel.maximumNumberOfLines || 1);
                 cell._detailLabel.frame = JSRect(origin, size);
             }else{
-                size.height = cell._titleLabel.font.displayLineHeight;
+                size.height = cell._titleLabel.font.displayLineHeight * (cell._titleLabel.maximumNumberOfLines || 1);
                 origin.y =  Math.floor((cell.bounds.size.height - size.height) / 2.0);
                 cell._titleLabel.frame = JSRect(origin, size);
             }
         }else if (cell._detailLabel !== null){
-            size.height = cell._detailLabel.font.displayLineHeight;
+            size.height = cell._detailLabel.font.displayLineHeight * (cell._detailLabel.maximumNumberOfLines || 1);
             cell._detailLabel.frame = JSRect(JSPoint(cell._titleInsets.left, Math.floor((cell.bounds.size.height - size.height) / 2.0)), size);
         }
 

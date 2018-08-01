@@ -190,7 +190,7 @@ JSClass("UITextField", UIControl, {
             this._createPlaceholderColor();
         }
         this._placeholderTextLayer.textColor = this._placeholderColor;
-        this._clipView.layer.insertSublayerBeforeSibling(this._placeholderTextLayer, this._textLayer);
+        this._clipView.layer.insertSublayerBelowSibling(this._placeholderTextLayer, this._textLayer);
     },
 
     _createPlaceholderColor: function(){
