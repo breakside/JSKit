@@ -708,7 +708,6 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
 
         var titleLabel = UILabel.init();
         titleLabel.font = titleLabel.font.fontWithWeight(JSFont.Weight.regular);
-        titleLabel.maximumNumberOfLines = 1;
 
         var titleBar = UIView.init();
 

@@ -43,7 +43,6 @@ JSClass("UIListViewCell", UIView, {
 
     _createTitleLabel: function(){
         var label = UILabel.init();
-        label.maximumNumberOfLines = 1;
         this.contentView.addSubview(label);
         return label;
     },

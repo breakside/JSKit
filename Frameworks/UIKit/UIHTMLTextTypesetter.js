@@ -51,7 +51,16 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
             layoutElement.style.right = '0';
             layoutElement.style.backgroundColor = 'rgb(255,240,240)';
             layoutElement.style.lineHeight = '0';
-            layoutElement.style.visibility = 'hidden';
+            // Browsers are a bit particular here:
+            // - We want to use caretRangeFromPoint if available, because it's
+            //   super fast at finding line breaks
+            // - Most browsers can't use caretRangeFromPoint for elements offscreen,
+            //   so we need an invisible element onscreen
+            // - display=none is out because browsers don't even bother rendering those elements
+            // - visibility=hidden works for some, but Chrome will return a caretRangeFromPoint of 0,0
+            // - opacity=0 seems to work best across all browsers 
+            // layoutElement.style.visibility = 'hidden';
+            layoutElement.style.opacity = '0';
             this._domDocument.body.appendChild(layoutElement);
             layoutElementStack.push(layoutElement);
         }

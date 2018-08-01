@@ -14,6 +14,11 @@ JSClass('UILabel', UIView, {
     maximumNumberOfLines: UIViewLayerProperty(),
     textInsets: UIViewLayerProperty(),
 
+    initWithFrame: function(frame){
+        UILabel.$super.initWithFrame.call(this, frame);
+        this.maximumNumberOfLines = 1;
+    },
+
     initWithSpec: function(spec, values){
         UILabel.$super.initWithSpec.call(this, spec, values);
         if ("font" in values){
@@ -30,6 +35,8 @@ JSClass('UILabel', UIView, {
         }
         if ("lines" in values){
             this.maximumNumberOfLines = spec.resolvedValue(values.lines);
+        }else{
+            this.maximumNumberOfLines = 1;
         }
         if ("lineBreakMode" in values){
             this.lineBreakMode = spec.resolvedValue(values.lineBreakMode);

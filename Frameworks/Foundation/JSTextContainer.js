@@ -59,20 +59,20 @@ JSClass("JSTextContainer", JSObject, {
     setSize: function(size){
         if (size.width != this._size.width || size.height != this._size.height){
             this._size = JSSize(size);
-            // Only notify the layout manager if we're actually changing frame size.
-            // The frame size can be different from our size if we were sized without
-            // constraints, and are now being sized to match the result
             if (!this._textFrame){
+                // If we don't have a frame yet, then we need to do a full layout
                 this._notifyLayoutManager();
             }else{
+                // If we have a frame and its size is changing, we *may* need to do a new layout
                 if (size.width != this._textFrame.size.width || size.height != this._textFrame.size.height){
                     var shouldNotify = true;
-                    // If we are a single line label and we have all of the string, we may not need to do a new layout
-                    if (this._maximumNumberOfLines == 1 && this.textAlignment == JSTextAlignment.left && this._textFrame.range.location === 0 && this._textFrame.range.length >= this._textLayoutManager.textStorage.string.length){
+                    // If we are a single line label and we have all of the string, we *may not* need to do a new layout
+                    if (this._maximumNumberOfLines == 1 && this._textFrame.range.location === 0 && this._textFrame.range.length >= this._textLayoutManager.textStorage.string.length){
                         // If the new size can still fit the entire layout, then no need to do a new layout manager layout
                         if (size.width >= this._textFrame.usedSize.width && size.height >= this._textFrame.usedSize.height){
-                            // TODO: text frame can do a shortcut update
+                            // Text frame can do a shortcut update by trimming excess size without affecting truncation
                             shouldNotify = false;
+                            this._textFrame.adjustSize(size);
                         }
                     }
                     if (shouldNotify){

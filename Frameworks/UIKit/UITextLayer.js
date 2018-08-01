@@ -182,9 +182,9 @@ JSClass("UITextLayer", UILayer, {
         if (this._textContainer.textFrame !== null){
             var width = this._textContainer.textFrame.usedSize.width + this._textInsets.left + this._textInsets.right;
             var height = this._textContainer.textFrame.usedSize.height + this._textInsets.top + this._textInsets.bottom;
-            if (width != this.bounds.width || height != this.bounds.height){
-                this.bounds = JSRect(0, 0, width, height);
-            }
+            var size = JSSize(width, height);
+            this.bounds = JSRect(JSPoint.Zero, size);
+            this._textContainer.size = size;
         }
     },
 

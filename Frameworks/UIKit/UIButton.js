@@ -72,7 +72,6 @@ JSClass("UIButton", UIControl, {
 
     _createTitleLabel: function(){
         var titleLabel = UILabel.init();
-        titleLabel.maximumNumberOfLines = 1;
         titleLabel.textAlignment = JSTextAlignment.center;
         titleLabel.backgroundColor = JSColor.clearColor;
         titleLabel.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);

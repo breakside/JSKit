@@ -155,7 +155,6 @@ JSClass("UITokenFieldTokenView", UIView, {
         UITokenFieldTokenView.$super.init.call(this);
         this.labelView = UILabel.initWithFrame(this.bounds);
         this.labelView.textInsets = JSInsets(1, 5);
-        this.labelView.maximumNumberOfLines = 1;
         this.labelView.lineBreakMode = JSLineBreakMode.truncateTail;
         this.textField = textField;
         this.labelView.font = this.textField.font;
