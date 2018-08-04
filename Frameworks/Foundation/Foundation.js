@@ -7,6 +7,7 @@
 // #import "Foundation/Promise+JS.js"
 // #import "Foundation/CoreTypes.js"
 // #import "Foundation/JSBinarySearcher.js"
+// #import "Foundation/JSIndexSet.js"
 // #import "Foundation/JSIndexPath.js"
 // #import "Foundation/UUID.js"
 

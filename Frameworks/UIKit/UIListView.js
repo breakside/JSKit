@@ -23,15 +23,21 @@ JSProtocol("UIListViewDelegate", JSProtocol, {
     listViewShouldSelectCellAtIndexPath: ['listView', 'indexPath'],
     listViewDidSelectCellAtIndexPath: ['listView', 'indexPath'],
     listViewDidOpenCellAtIndexPath: ['listView', 'indexPath'],
-    listViewWillBeginDraggingCellAtIndexPath: ['listView', 'indexPath'],
-    menuForListViewCellAtIndexPath: ['listView', 'indexPath']
+
+    // Context menu
+    menuForListViewCellAtIndexPath: ['listView', 'indexPath'],
+
+    // Dragging cells
+    listViewShouldDragCellAtIndexPath: ['listView', 'indexPath'],
+    pasteboardItemsForListViewAtIndexPath: ['listView', 'indexPath'],
+    listViewWillBeginDraggingSession: ['listView', 'session']
 
 });
 
 JSProtocol("UIListViewDataSource", JSProtocol, {
 
     numberOfSectionsInListView: ['listView'],
-    numberOfRowsInListViewSection: ['listView', 'sectionIndex'],
+    numberOfRowsInListViewSection: ['listView', 'sectionIndex']
 
 });
 
@@ -249,6 +255,36 @@ JSClass("UIListView", UIScrollView, {
         this.setNeedsLayout();
     },
 
+    reloadRowAtIndexPath: function(indexPath){
+        this.reloadRowsAtIndexPaths([indexPath]);
+    },
+
+    reloadRowsAtIndexPaths: function(indexPaths){
+        var visibleCells = this._visibleCellViews;
+        if (visibleCells.length === 0){
+            return;
+        }
+        var firstVisibleCell = visibleCells[0];
+        var lastVisibleCell = visibleCells[visibleCells.length - 1];
+        var indexPath;
+        var cell;
+        var y;
+        var searcher = JSBinarySearcher(visibleCells, function(indexPath_, visibleCell){
+            return indexPath_.compare(visibleCell.indexPath);
+        });
+        for (var i = 0, l = indexPaths.length; i < l; ++i){
+            indexPath = indexPaths[i];
+            if (indexPath.isGreaterThanOrEqual(firstVisibleCell.indexPath) && indexPath.isLessThanOrEqual(lastVisibleCell.indexPath)){
+                cell = searcher.itemMatchingValue(indexPath);
+                if (cell !== null){
+                    y = cell.frame.origin.y;
+                    this._enqueueReusableCell(cell);
+                    this._createCellAtIndexPath(indexPath, y);
+                }
+            }
+        }
+    },
+
     _hasLoadedOnce: false,
     _cachedData: null,
     _needsReload: false,
@@ -361,9 +397,6 @@ JSClass("UIListView", UIScrollView, {
         this._updateVisibleCells();
 
         this._hasLoadedOnce = true;
-    },
-
-    reloadRowAtIndexPath: function(indexPath){
     },
 
     // --------------------------------------------------------------------
@@ -508,10 +541,6 @@ JSClass("UIListView", UIScrollView, {
         this._needsUpdate = false;
 
         if (!this._cachedData){
-            return;
-        }
-
-        if (this._cachedData.numberOfSections === 0){
             return;
         }
 
@@ -1216,6 +1245,7 @@ JSClass("UIListView", UIScrollView, {
 
     _activeCell: null,
     _shouldDrag: false,
+    _didDrag: false,
     _selectionAnchorIndexPath: null,
 
     mouseDown: function(event){
@@ -1231,6 +1261,7 @@ JSClass("UIListView", UIScrollView, {
         this.window.firstResponder = this;
         cell.active = true;
         this._activeCell = cell;
+        this._didDrag = false;
         // command key takes precedence over other modifies, like shift (observed behavior)
         if (event.hasModifier(UIPlatform.shared.commandModifier)){
             this._handledSelectionOnDown = true;
@@ -1244,12 +1275,12 @@ JSClass("UIListView", UIScrollView, {
             }else{
                 this._selectSingleIndexPath(cell.indexPath);
             }
-        }else if (this._selectionAnchorIndexPath !== null && this.allowsMultipleSelection && event.hasModifier(UIEvent.Modifiers.shift)){
+        }else if (this._selectionAnchorIndexPath !== null && this.allowsMultipleSelection && event.hasModifier(UIEvent.Modifier.shift)){
             this._handledSelectionOnDown = true;
             this._selectedIndexPaths.adjustAnchoredRange(this._selectionAnchorIndexPath, cell.indexPath);
             this._updateVisibleCellStates();
         }else{
-            this._shouldDrag = this.delegate && this.delegate.listViewWillBeginDraggingCellAtIndexPath && this.delegate.listViewWillBeginDraggingCellAtIndexPath(this, cell.indexPath);
+            this._shouldDrag = this.delegate && this.delegate.listViewShouldDragCellAtIndexPath && this.delegate.listViewShouldDragCellAtIndexPath(this, cell.indexPath);
             if (this._shouldDrag){
                 this._handledSelectionOnDown = false;
             }else{
@@ -1287,12 +1318,30 @@ JSClass("UIListView", UIScrollView, {
     },
 
     mouseDragged: function(event){
-        if (this._shouldDrag){
-
+        var location = event.locationInView(this);
+        var cell = this._cellHitTest(location);
+        var dragItems = [];
+        if (this._shouldDrag && cell !== null){
+            var cellItems = [];
+            if (this._allowsMultipleSelection && !this._selectedIndexPaths.contains(cell.indexPath)){
+                // TODO: add items for all the selected cells
+            }else{
+                if (this.delegate && this.delegate.pasteboardItemsForListViewAtIndexPath){
+                    cellItems = this.delegate.pasteboardItemsForListViewAtIndexPath(this, cell.indexPath);
+                    if (cellItems !== null){
+                        dragItems = cellItems;
+                    }
+                }
+            }
+        }
+        if (dragItems.length > 0){
+            this._didDrag = true;
+            var session = this.beginDraggingSessionWithItems(dragItems, event);
+            if (this.delegate && this.delegate.listViewWillBeginDraggingSession){
+                this.delegate.listViewWillBeginDraggingSession(this, session);
+            }
         }else{
             // TODO: scrolling (see UITextEditor for similar use case)
-            var location = event.locationInView(this);
-            var cell = this._cellHitTest(location);
             if (cell !== this._activeCell){
                 var shouldSelect = !cell || !this.delegate.listViewShouldSelectCellAtIndexPath || this.delegate.listViewShouldSelectCellAtIndexPath(this, cell.indexPath);
                 if (shouldSelect){
@@ -1319,6 +1368,10 @@ JSClass("UIListView", UIScrollView, {
     },
 
     mouseUp: function(event){
+        if (this._didDrag){
+            this._didDrag = false;
+            return;
+        }
         if (this._activeCell === null){
             return;
         }

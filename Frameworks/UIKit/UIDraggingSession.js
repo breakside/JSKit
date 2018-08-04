@@ -14,6 +14,8 @@ JSClass("UIDraggingSession", JSObject, {
     allowedOperations: UIDragOperation.all,
     operation: UIDragOperation.none,
     isActive: true,
+    image: null,
+    imageOffset: JSPoint.Zero,
 
     initWithItems: function(items, event, view){
         this._screenLocation = JSPoint(event.window.convertPointToScreen(event.locationInWindow));
@@ -47,5 +49,21 @@ JSClass("UIDraggingSession", JSObject, {
     isValidDestination: function(destination){
         return this._pasteboard.containsAnyType(destination.registeredDraggedTypes);
     },
+
+    setImage: function(image, offset){
+        this.image = image;
+        this.imageOffset = JSPoint(offset);
+    },
+
+    centerImageScreenLocation: JSReadOnlyProperty(),
+
+    getCenterImageScreenLocation: function(){
+        var location = JSPoint(this.screenLocation);
+        if (this.image !== null){
+            location.x = location.x - this.imageOffset.x + this.image.size.width / 2;
+            location.y = location.y - this.imageOffset.y + this.image.size.height / 2;
+        }
+        return location;
+    }
 
 });

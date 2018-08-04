@@ -51,6 +51,9 @@
         "UIMenu",
         "UIMenuItem",
         "UIMenuView",
-        "UIMenuBar"
+        "UIMenuBar",
+        "UIScene",
+        "UIDragOperation",
+        "UIPlatform"
     ]
 }

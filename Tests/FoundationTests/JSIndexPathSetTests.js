@@ -30,7 +30,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
     },
 
     testCopyConstructor: function(){
-        var a = JSIndexPathSet();
+        var a = JSIndexPathSet(JSIndexPathRange(JSIndexPath(1,2), JSIndexPath(3,4)));
         var b = JSIndexPathSet(a);
 
         TKAssertEquals(a.ranges.length, b.ranges.length);

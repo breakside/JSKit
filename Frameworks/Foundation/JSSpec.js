@@ -2,7 +2,7 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSPropertyList.js"
 // #import "Foundation/JSBundle.js"
-/* global JSClass, JSObject, JSLazyInitProperty, JSReadOnlyProperty, JSPropertyList, JSSpec, JSGlobalObject, JSResolveDottedName, JSBundle */
+/* global JSClass, JSObject, JSLazyInitProperty, JSCopy, JSReadOnlyProperty, JSPropertyList, JSSpec, JSGlobalObject, JSResolveDottedName, JSBundle */
 'use strict';
 
 JSClass('JSSpec', JSObject, {
@@ -35,7 +35,10 @@ JSClass('JSSpec', JSObject, {
         return this.resolvedValue("/File's Owner", "JSObject");
     },
 
-    resolvedValue: function(value, defaultClassName){
+    resolvedValue: function(value, defaultClassName, overrides){
+        if (value === null || value === undefined){
+            return value;
+        }
         if (typeof(value) == 'string'){
             if (value.length > 0){
                 var c = value.charAt(0);
@@ -44,7 +47,7 @@ JSClass('JSSpec', JSObject, {
                     case '/':
                         if (!(_value in this._objectMap)){
                             this._keyForNextObjectInit = _value;
-                            this._objectMap[_value] = this.resolvedValue(this._plist[_value], defaultClassName);
+                            this._objectMap[_value] = this.resolvedValue(this._plist[_value], defaultClassName, overrides);
                         }
                         return this._objectMap[_value];
                     case '$':
@@ -64,6 +67,12 @@ JSClass('JSSpec', JSObject, {
             var className = defaultClassName;
             if (JSSpec.Keys.ObjectClass in value){
                 className = value[JSSpec.Keys.ObjectClass];
+            }
+            if (overrides !== null && overrides !== undefined){
+                value = JSCopy(value);
+                for (var k in overrides){
+                    value[k] = overrides[k];
+                }
             }
 
             if (className){

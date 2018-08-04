@@ -509,6 +509,10 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
             // won't work
             this.borderElement.style.pointerEvents = 'none';
             this.borderElement.dataset.tag = "border";
+            // Force update of properties that might have been set, but not drawn,
+            // because the border element wasn't created yet
+            this.propertiesNeedingUpdate.borderWidth = true;
+            this.propertiesNeedingUpdate.borderColor = true;
         }
 
         if (!this._hasRenderedOnce){

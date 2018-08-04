@@ -26,7 +26,7 @@ JSClass('UIEvent', JSObject, {
         this._windows = [window];
         this._locationInWindow = location;
         this._touches = [];
-        this._modifiers = modifiers || UIEvent.Modifiers.none;
+        this._modifiers = modifiers || UIEvent.Modifier.none;
         this._clickCount = clickCount;
     },
 
@@ -38,7 +38,7 @@ JSClass('UIEvent', JSObject, {
         this._key = key;
         this._keyCode = keyCode;
         this._touches = [];
-        this._modifiers = modifiers || UIEvent.Modifiers.none;
+        this._modifiers = modifiers || UIEvent.Modifier.none;
     },
 
     initTouchEventWithType: function(type, timestamp){
@@ -147,7 +147,7 @@ UIEvent.Type = {
     scrollWheel: 15
 };
 
-UIEvent.Modifiers = {
+UIEvent.Modifier = {
     none:    0,
     command: 1 << 0,
     control: 1 << 1,
@@ -155,10 +155,10 @@ UIEvent.Modifiers = {
     option:  1 << 3
 };
 
-UIEvent.Modifiers.optionControl = UIEvent.Modifiers.option | UIEvent.Modifiers.control;
-UIEvent.Modifiers.optionShift = UIEvent.Modifiers.option | UIEvent.Modifiers.shift;
-UIEvent.Modifiers.optionControlShift = UIEvent.Modifiers.option | UIEvent.Modifiers.control | UIEvent.Modifiers.shift;
-UIEvent.Modifiers.controlShift = UIEvent.Modifiers.control | UIEvent.Modifiers.shift;
+UIEvent.Modifier.optionControl = UIEvent.Modifier.option | UIEvent.Modifier.control;
+UIEvent.Modifier.optionShift = UIEvent.Modifier.option | UIEvent.Modifier.shift;
+UIEvent.Modifier.optionControlShift = UIEvent.Modifier.option | UIEvent.Modifier.control | UIEvent.Modifier.shift;
+UIEvent.Modifier.controlShift = UIEvent.Modifier.control | UIEvent.Modifier.shift;
 
 UIEvent.Key = {
     unidentified: "Unidentified",

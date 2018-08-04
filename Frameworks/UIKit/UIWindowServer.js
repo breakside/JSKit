@@ -641,13 +641,13 @@ JSClass("UIWindowServer", JSObject, {
         if (previousWindow !== null && (previousWindow.objectID in this._windowsById)){
             view = this._trackingViewInWindowAtLocation(previousWindow, location);
             if (view !== null){
-                this.createMouseTrackingEvent(UIEvent.Type.mouseExited, -1, location, UIEvent.Modifiers.none, view, true);
+                this.createMouseTrackingEvent(UIEvent.Type.mouseExited, -1, location, UIEvent.Modifier.none, view, true);
             }
         }
         if (currentWindow !== null && (currentWindow.objectID in this._windowsById)){
             view = this._trackingViewInWindowAtLocation(currentWindow, location);
             if (view !== null){
-                this.createMouseTrackingEvent(UIEvent.Type.mouseEntered, -1, location, UIEvent.Modifiers.none, view, true);
+                this.createMouseTrackingEvent(UIEvent.Type.mouseEntered, -1, location, UIEvent.Modifier.none, view, true);
             }
         }
     },
@@ -698,6 +698,7 @@ JSClass("UIWindowServer", JSObject, {
         if (!this._draggingSession.isActive){
             return;
         }
+        this._draggingSession._screenLocation = JSPoint(this.mouseLocation);
         var window = this.windowForEventAtLocation(this.mouseLocation);
         var operation = UIDragOperation.none;
         if (window !== null){

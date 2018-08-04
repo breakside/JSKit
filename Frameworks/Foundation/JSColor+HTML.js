@@ -22,7 +22,7 @@ JSColor.definePropertiesFromExtensions({
                 if (this.colorSpace === JSColor.SpaceIdentifier.graya){
                     a = this.alpha;
                 }
-                this._cachedCSSString = 'rgba(' + [w, w, w, a].join(',') + ')';
+                this._cachedCSSString = 'rgba(%d, %d, %d, %f)'.sprintf(w, w, w, a);
             }else{
                 throw Error("Unsupported color space.  Cannot generate css string for '%s'".sprintf(this.colorSpace));
             }

@@ -9,6 +9,8 @@
         "JSConstraintBox",
         "JSInsets",
         "JSBinarySearcher",
+        "JSIndexRange",
+        "JSIndexSet",
         "JSIndexPath",
         "JSIndexPathRange",
         "JSIndexPathSet",

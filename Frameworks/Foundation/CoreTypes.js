@@ -80,6 +80,14 @@ JSPoint.prototype = {
         var dx = other.x - this.x;
         var dy = other.y - this.y;
         return Math.sqrt(dx * dx + dy * dy);
+    },
+
+    add: function(other){
+        return JSPoint(this.x + other.x, this.y + other.y);
+    },
+
+    subtract: function(other){
+        return JSPoint(this.x - other.x, this.y - other.y);
     }
 };
 

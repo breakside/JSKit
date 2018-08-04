@@ -114,13 +114,27 @@ JSClass("UIMenuBar", UIWindow, {
     _highlightedItemView: null,
 
     setLeftBarItems: function(leftBarItems){
+        var i, l;
+        for (i = 0, l = this._leftBarItems.length; i < l; ++i){
+            this._leftBarItems[i]._menuBar = null;
+        }
         this._leftBarItems = leftBarItems || [];
+        for (i = 0, l = this._leftBarItems.length; i < l; ++i){
+            this._leftBarItems[i]._menuBar = this;
+        }
         this._updateItemViews(this._leftItemViews, this._leftBarItems, UIMenuBarButton);
         this.setNeedsLayout();
     },
 
     setRightBarItems: function(rightBarItems){
+        var i, l;
+        for (i = 0, l = this._rightBarItems.length; i < l; ++i){
+            this._rightBarItems[i]._menuBar = null;
+        }
         this._rightBarItems = rightBarItems || [];
+        for (i = 0, l = this._rightBarItems.length; i < l; ++i){
+            this._rightBarItems[i]._menuBar = this;
+        }
         this._updateItemViews(this._rightItemViews, this._rightBarItems, UIMenuBarButton);
         this.setNeedsLayout();
     },
@@ -178,6 +192,9 @@ JSClass("UIMenuBar", UIWindow, {
     windowController: null,
 
     reload: function(){
+        this._updateItemViews(this._leftItemViews, this._leftBarItems, UIMenuBarButton);
+        this._updateItemViews(this._menuItemViews, this._menuBarItems, UIMenuBarItemView);
+        this._updateItemViews(this._rightItemViews, this._rightBarItems, UIMenuBarButton);
         this.setNeedsLayout();
     },
 
@@ -200,7 +217,9 @@ JSClass("UIMenuBar", UIWindow, {
             itemView.sizeToFit();
             itemWidth = itemView.frame.size.width + this._itemPadding.left + this._itemPadding.right;
             itemView.frame = JSRect(x, 0, itemWidth, height);
-            x += itemWidth;
+            if (!itemView.hidden){
+                x += itemWidth;
+            }
         }
         leftWidth = x;
         for (i = 0, l = this._menuItemViews.length; i < l; ++i){
@@ -208,7 +227,9 @@ JSClass("UIMenuBar", UIWindow, {
             itemView.sizeToFit();
             itemWidth = itemView.frame.size.width + this._itemPadding.left + this._itemPadding.right;
             itemView.frame = JSRect(x, 0, itemWidth, height);
-            x += itemWidth;
+            if (!itemView.hidden){
+                x += itemWidth;
+            }
         }
         menuWidth = x - leftWidth;
         for (i = 0, l = this._rightItemViews.length; i < l; ++i){
@@ -216,7 +237,9 @@ JSClass("UIMenuBar", UIWindow, {
             itemView.sizeToFit();
             itemWidth = itemView.frame.size.width + this._itemPadding.left + this._itemPadding.right;
             itemView.frame = JSRect(x, 0, itemWidth, height);
-            x += itemWidth;
+            if (!itemView.hidden){
+                x += itemWidth;
+            }
         }
         rightWidth = x - menuWidth - leftWidth;
         var spacing = this.bounds.size.width - this._edgeInsets.right - x;
@@ -355,15 +378,27 @@ JSClass("UIMenuBar", UIWindow, {
     },
 
     hitTest: function(location){
+        // The menu bar has special consideration for the left and right edges in order
+        // to make it easier for users to hit the items even if there is visible padding.
+        // - a hit to the left of the leftmost item is still considered to hit the item
+        // - a hit to the right of the rightmost item is still considered to hit the item
         var edgeItemView = null;
-        if (this._leftItemViews.length > 0){
-            edgeItemView = this._leftItemViews[0];
+        var i = 0;
+        while (i < this._leftItemViews.length && this._leftItemViews[i].hidden){
+            ++i;
+        }
+        if (i < this._leftItemViews.length){
+            edgeItemView = this._leftItemViews[i];
         }
         if (edgeItemView !== null && location.x < edgeItemView.convertPointToView(JSPoint(0,0), this).x){
             return edgeItemView;
         }
-        if (this._rightItemViews.length > 0){
-            edgeItemView = this._rightItemViews[this._rightItemViews.length - 1];
+        i = this._rightItemViews.length - 1;
+        while (i >= 0 && this._rightItemViews[i].hidden){
+            --i;
+        }
+        if (i >= 0){
+            edgeItemView = this._rightItemViews[i];
         }
         if (edgeItemView !== null && location.x > edgeItemView.convertPointToView(JSPoint(edgeItemView.bounds.size.width,0), this).x){
             return edgeItemView;
@@ -527,7 +562,7 @@ JSClass("UIMenuBar", UIWindow, {
 });
 
 JSClass("UIMenuBarItem", JSObject, {
-    title: null,
+    title: JSDynamicProperty('_title', null),
     image: null,
     imagePosition: 1,
     target: null,
@@ -536,13 +571,15 @@ JSClass("UIMenuBarItem", JSObject, {
     windowControllerClass: null,
     tooltip: null,
     customView: null,
+    hidden: JSDynamicProperty('_hidden', null),
     state: JSReadOnlyProperty('_state', 0),
     active: JSDynamicProperty(null, null, 'isActive'),
+    _menuBar: null,
 
     initWithSpec: function(spec, values){
         UIMenuBarItem.$super.initWithSpec.call(this, spec, values);
         if ('title' in values){
-            this.title = spec.resolvedValue(values.title);
+            this._title = spec.resolvedValue(values.title);
         }
         if ('image' in values){
             this.image = JSImage.initWithResourceName(spec.resolvedValue(values.image), spec.bundle);
@@ -571,9 +608,23 @@ JSClass("UIMenuBarItem", JSObject, {
     },
 
     initWithTitle: function(title, action, target){
-        this.title = title;
+        this._title = title;
         this.action = action || null;
         this.target = target || null;
+    },
+
+    setTitle: function(title){
+        this._title = title;
+        if (this._menuBar !== null){
+            this._menuBar.reload();
+        }
+    },
+
+    setHidden: function(hidden){
+        this._hidden = hidden;
+        if (this._menuBar !== null){
+            this._menuBar.reload();
+        }
     },
 
     initWithImage: function(image, action, target){
@@ -676,6 +727,7 @@ JSClass("UIMenuBarItemView", UIView, {
     setItem: function(item){
         this._item = item;
         this._imagePosition = item.imagePosition;
+        this.hidden = item.hidden;
         this.tooltip = item.tooltip;
         if (item.customView){
             if (this._customView !== null && this._customView !== item.customView){

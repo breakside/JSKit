@@ -5,9 +5,14 @@
 JSClass("UIImageLayer", UILayer, {
 
     image: JSDynamicProperty('_image', null),
-    imageFrame: UILayerAnimatedProperty(),
+    imageFrame: JSDynamicProperty('_imageFrame', null),
     renderMode: JSDynamicProperty('_renderMode', 0),
     templateColor: JSDynamicProperty('_templateColor', null),
+
+    init: function(){
+        UIImageLayer.$super.init.call(this);
+        this._imageFrame = JSRect.Zero;
+    },
 
     getImage: function(){
         return this._image;
@@ -19,8 +24,7 @@ JSClass("UIImageLayer", UILayer, {
     },
 
     setImageFrame: function(imageFrame){
-        this._addImplicitAnimationForKey('imageFrame');
-        this.model.imageFrame = imageFrame;
+        this._imageFrame = imageFrame;
         this.setNeedsDisplay();
     },
 
@@ -30,12 +34,12 @@ JSClass("UIImageLayer", UILayer, {
     },
 
     drawInContext: function(context){
-        if (this._image !== null && this.presentation.imageFrame.size.width > 0 && this.presentation.imageFrame.size.height > 0){
+        if (this._image !== null && this._imageFrame.size.width > 0 && this._imageFrame.size.height > 0){
             var image = this._image;
             if (this._renderMode == UIImageLayer.RenderMode.template){
                 image = image.templateImageWithColor(this.templateColor);
             }
-            var imageFrame = JSRect(this.presentation.imageFrame);
+            var imageFrame = JSRect(this._imageFrame);
             imageFrame.origin.x -= this.bounds.origin.x;
             imageFrame.origin.y -= this.bounds.origin.y;
             context.drawImage(image, imageFrame);
@@ -59,9 +63,6 @@ JSClass("UIImageLayer", UILayer, {
     }
 
 });
-
-UIImageLayer.Properties = Object.create(UILayer.Properties);
-UIImageLayer.Properties.imageFrame = JSRect.Zero;
 
 UIImageLayer.RenderMode = {
     original: 0,

@@ -8,7 +8,7 @@
 JSClass("UIPlatform", JSObject, {
 
     identifier: null,
-    commandModifier: UIEvent.Modifiers.command,
+    commandModifier: UIEvent.Modifier.command,
 
     initWithIdentifier: function(identifier){
         this.identifier = identifier;
@@ -48,20 +48,20 @@ UIPlatform.Identifier = {
 };
 
 var CommandModifiers = {
-    win: UIEvent.Modifiers.control,
-    mac: UIEvent.Modifiers.command
+    win: UIEvent.Modifier.control,
+    mac: UIEvent.Modifier.command
 };
 
 var OrderedModifiers = {
-    win: [UIEvent.Modifiers.option, UIEvent.Modifiers.shift, UIEvent.Modifiers.command, UIEvent.Modifiers.control],
-    mac: [UIEvent.Modifiers.option, UIEvent.Modifiers.control, UIEvent.Modifiers.shift, UIEvent.Modifiers.command]
+    win: [UIEvent.Modifier.option, UIEvent.Modifier.shift, UIEvent.Modifier.command, UIEvent.Modifier.control],
+    mac: [UIEvent.Modifier.option, UIEvent.Modifier.control, UIEvent.Modifier.shift, UIEvent.Modifier.command]
 };
 
 var ModifierNames = {};
-ModifierNames[UIEvent.Modifiers.option] = "option";
-ModifierNames[UIEvent.Modifiers.control] = "control";
-ModifierNames[UIEvent.Modifiers.command] = "command";
-ModifierNames[UIEvent.Modifiers.shift] = "shift";
+ModifierNames[UIEvent.Modifier.option] = "option";
+ModifierNames[UIEvent.Modifier.control] = "control";
+ModifierNames[UIEvent.Modifier.command] = "command";
+ModifierNames[UIEvent.Modifier.shift] = "shift";
 
 var lazy = Object.create({}, {
 

@@ -5,7 +5,7 @@
 JSClass("UIDualPaneViewController", UIViewController, {
 
     leadingPaneViewController: JSDynamicProperty('_leadingPaneViewController', null),
-    mainContentViewControlller: JSDynamicProperty('_mainContentViewController', null),
+    mainContentViewController: JSDynamicProperty('_mainContentViewController', null),
     trailingPaneViewController: JSDynamicProperty('_trailingPaneViewController', null),
 
     leadingPaneOpen: JSReadOnlyProperty(null, null, 'isLeadingPaneOpen'),
@@ -24,19 +24,6 @@ JSClass("UIDualPaneViewController", UIViewController, {
         if ('mainContentViewController' in values){
             this._mainContentViewController = spec.resolvedValue(values.mainContentViewController);
         }
-        if ('view' in values){
-            // Set properties that can't really be defined in the spec because
-            // we always want them to be the same thing.  This ensures they're
-            // populated and set correctly when the view is loaded from the spec
-            values = JSDeepCopy(values);
-            if (this._leadingPaneViewController !== null){
-                values.view.leadingView = this._leadingPaneViewController.view;
-            }
-            if (this._trailingPaneViewController){
-                values.view.trailingView = this._trailingPaneViewController.view;
-            }
-            values.view.mainView = this._mainContentViewController.view;
-        }
         UIDualPaneViewController.$super.initWithSpec.call(this, spec, values);
         if (this._leadingPaneViewController !== null){
             this.addChildViewController(this._leadingPaneViewController);
@@ -47,6 +34,23 @@ JSClass("UIDualPaneViewController", UIViewController, {
         if (this._mainContentViewController !== null){
             this.addChildViewController(this._mainContentViewController);
         }
+    },
+
+    _loadViewFromSpec: function(spec, viewValue){
+        var leadingView = null;
+        var trailingView = null;
+        var mainView = null;
+        if (this._leadingPaneViewController !== null){
+            leadingView = this._leadingPaneViewController.view;
+        }
+        if (this._trailingPaneViewController){
+            trailingView = this._trailingPaneViewController.view;
+        }
+        if (this._mainContentViewController){
+            mainView = this._mainContentViewController.view;
+        }
+        var overrides = {leadingView: leadingView, trailingView: trailingView, mainView: mainView};
+        this._view = spec.resolvedValue(viewValue, this._defaultViewClass, overrides);
     },
 
     setLeadingPaneViewController: function(leadingPaneViewController){
@@ -151,6 +155,9 @@ JSClass("UIDualPaneViewController", UIViewController, {
             this.doublePaneView.leadingViewOpen = !this.doublePaneView.leadingViewOpen;
             // TODO: view did appear/disappear, but only after the next display frame
         }else{
+            // make sure to apply any pending layouts before doing the animation,
+            // otherwise the pending layouts will get caught up in the animation
+            this.doublePaneView.layoutIfNeeded();
             var animator = UIViewPropertyAnimator.initWithDuration(0.15 * percentRemaining);
             var self = this;
             this.doublePaneView.leadingViewOpen = !this.doublePaneView.leadingViewOpen;
@@ -203,6 +210,9 @@ JSClass("UIDualPaneViewController", UIViewController, {
             this.doublePaneView.trailingViewOpen = !this.doublePaneView.trailingViewOpen;
             // TODO: viewWillAppear/viewDidAppear
         }else{
+            // make sure to apply any pending layouts before doing the animation,
+            // otherwise the pending layouts will get caught up in the animation
+            this.doublePaneView.layoutIfNeeded();
             var animator = UIViewPropertyAnimator.initWithDuration(0.15 * percentRemaining);
             var self = this;
             this.doublePaneView.trailingViewOpen = !this.doublePaneView.trailingViewOpen;
@@ -341,7 +351,9 @@ JSClass("_UIDualPaneView", UIView, {
     _commonDualPaneInit: function(){
         this._leadingDividerView = _UIDualPaneDividerView.initWithSizes(1, 5, this._isVertical);
         this._trailingDividerView = _UIDualPaneDividerView.initWithSizes(1, 5, this._isVertical);
-        this.addSubview(this._mainView);
+        if (this._mainView !== null){
+            this.addSubview(this._mainView);
+        }
         if (this._leadingView !== null){
             this._leadingView.clipsToBounds = true;
             this.addSubview(this._leadingView);
@@ -547,7 +559,9 @@ JSClass("_UIDualPaneView", UIView, {
             this._leadingView.frame = JSRect(layout.leadingOffset, 0, layout.leadingSize, height);
         }
         this._leadingDividerView.frame = JSRect(layout.leadingOffset + layout.leadingSize - this._leadingDividerView.layoutAdjustment, 0, this._leadingDividerView.hitSize, height);
-        this._mainView.frame = JSRect(layout.mainOffset, 0, layout.mainSize, height);
+        if (this._mainView !== null){
+            this._mainView.frame = JSRect(layout.mainOffset, 0, layout.mainSize, height);
+        }
         this._trailingDividerView.frame = JSRect(layout.trailingOffset - this._trailingDividerView.layoutAdjustment - this._trailingDividerView.layoutSize, 0, this._trailingDividerView.hitSize, height);
         if (this._trailingView !== null){
             this._trailingView.frame = JSRect(layout.trailingOffset, 0, layout.trailingSize, height);
@@ -562,7 +576,9 @@ JSClass("_UIDualPaneView", UIView, {
             this._leadingView.frame = JSRect(0, layout.leadingOffset, width, layout.leadingSize);
         }
         this._leadingDividerView.frame = JSRect(0, layout.leadingOffset + layout.leadingSize - this._leadingDividerView.layoutAdjustment, width, this._leadingDividerView.hitSize);
-        this._mainView.frame = JSRect(0, layout.mainOffset, width, layout.mainSize);
+        if (this._mainView !== null){
+            this._mainView.frame = JSRect(0, layout.mainOffset, width, layout.mainSize);
+        }
         this._trailingDividerView.frame = JSRect(0, layout.trailingOffset - this._trailingDividerView.layoutAdjustment - this._trailingDividerView.layoutSize, width, this._trailingDividerView.hitSize);
         if (this._trailingView !== null){
             this._trailingView.frame = JSRect(0, layout.trailingOffset, width, layout.trailingSize);

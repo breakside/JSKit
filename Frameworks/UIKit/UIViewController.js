@@ -19,6 +19,9 @@ JSClass("UIViewController", UIResponder, {
         // Delaying the typical outlet and binding instantiation until we load the
         // view because most outlets will likely be subviews, and we don't want
         // to do any work instantiating them until a view load is requested.
+        // FIXME: this isn't ideal, because what if we want to access a non-view
+        // outlet before the view is loaded?  Can we just delay those outlets/bindings
+        // that are part of the view hierarchy?  Or somehow make the outlet resolution lazy?
         values = JSCopy(values);
         if ('outlets' in values){
             delete values.outlets;
@@ -54,6 +57,10 @@ JSClass("UIViewController", UIResponder, {
         this._view = JSClass.FromName(this._defaultViewClass).init();
     },
 
+    _loadViewFromSpec: function(spec, viewValue){
+        this._view = spec.resolvedValue(viewValue, this._defaultViewClass);
+    },
+
     unloadView: function(){
         if (this._view !== null){
             this._view.viewController = null;
@@ -70,16 +77,20 @@ JSClass("UIViewController", UIResponder, {
             // properties from the spec that the developer expects to be honored.
             // Otherwise, just call loadView
             if (this._spec !== null){
+                // Load view first because we might be using overrides when resolving its value,
+                // and therefore want to be the first to do the resolve
+                // FIXME: this ordering requirement isn't ideal because what if some other
+                // part of the spec has a reference to the view and resolves it before us?
+                if (this._viewInSpec !== null){
+                    this._loadViewFromSpec(this._spec, this._viewInSpec);
+                }else{
+                    this.loadView();
+                }
                 if (this._outletsInSpec !== null){
                     this._initSpecOutlets(this._spec, this._outletsInSpec);
                 }
                 if (this._bindingsInSpec !== null){
                     this._initSpecBindings(this._spec, this._bindingsInSpec);
-                }
-                if (this._viewInSpec !== null){
-                    this._view = this._spec.resolvedValue(this._viewInSpec, this._defaultViewClass);
-                }else{
-                    this._view = JSClass.FromName(this._defaultViewClass).init();
                 }
             }else{
                 this.loadView();

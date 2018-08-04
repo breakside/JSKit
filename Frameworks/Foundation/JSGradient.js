@@ -29,7 +29,7 @@ JSClass('JSGradient', JSObject, {
 
     initWithStops: function(position1, color1 /* , ... */){
         this.init();
-        var args = arguments.slice(0);
+        var args = Array.prototype.slice.call(arguments, 0);
         for (var i = 0, l = args.length; i + 1 < l; i += 2){
             this.addStop(args[i], args[i + 1]);
         }

@@ -271,16 +271,38 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         // do nothing (all dom events are prevented by default), we have our our context menus
     },
 
+    _dragImageElement: null,
+
     dragstart: function(e){
         this._draggingSession.isActive = true;
         var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
         temporaryPasteboard.copy(this._draggingSession.pasteboard);
         e.dataTransfer.effectAllowed = DragOperationToEffectAllowed[this._draggingSession.allowedOperations] || 'none';
-        // TODO: set dragImage
+        if (this._draggingSession.image !== null){
+            this._dragImageElement = this.domDocument.createElement('img');
+            this._dragImageElement.src = this._draggingSession.image.htmlURLString();
+            // Safari is picky here and requires that the image element be in the document.
+            // Firefox and Chrome are perfectly fine showing the image without it being added,
+            // But Safari just breaks and the drag doesn't happen at all.
+            this._dragImageElement.style.position = 'absolute';
+            this._dragImageElement.style.zIndex = -1;
+            this.domDocument.body.appendChild(this._dragImageElement);
+            e.dataTransfer.setDragImage(this._dragImageElement, this._draggingSession.imageOffset.x, this._draggingSession.imageOffset.y);
+        }
     },
 
     dragend: function(e){
-        e.target.draggable = false;
+        if (this._dragImageElement !== null){
+            if (this._dragImageElement.parentNode !== null){
+                this._dragImageElement.parentNode.removeChild(this._dragImageElement);
+            }
+            this._dragImageElement = null;
+        }
+        var element = e.target;
+        while (element.parentNode !== null && !e.target.draggable){
+            element = element.parentNode;
+        }
+        element.draggable = false;
         this.resetMouseState(e.timeStamp / 1000.0);
     },
 
@@ -305,9 +327,13 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
 
     drop: function(e){
         this._updateMouseLocation(e);
-        // The original dataTransfer object from dragenter doesn't have readable files for security reasons
-        // so we need to update the pasteboard with the new dataTransfer object, which has readable files
-        this._draggingSession._pasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
+        if (this._draggingSession.pasteboard.isKindOfClass(UIHTMLDataTransferPasteboard)){
+            // The original dataTransfer object from dragenter doesn't have readable files for security reasons
+            // so we need to update the pasteboard with the new dataTransfer object, which has readable files
+            // NOTE: It's safe to overwrite the entire pasteboard if we started with an HTMLDataTransferPasteboard,
+            // which must have originated from outside the browser, because it cannot contain custom data.
+            this._draggingSession._pasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
+        }
         this.draggingSessionDidPerformOperation();
     },
 
@@ -459,18 +485,18 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     _modifiersFromDOMEvent: function(e){
-        var modifiers = UIEvent.Modifiers.none;
+        var modifiers = UIEvent.Modifier.none;
         if (e.altKey){
-            modifiers |= UIEvent.Modifiers.option;
+            modifiers |= UIEvent.Modifier.option;
         }
         if (e.ctrlKey){
-            modifiers |= UIEvent.Modifiers.control;
+            modifiers |= UIEvent.Modifier.control;
         }
         if (e.metaKey){
-            modifiers |= UIEvent.Modifiers.command;
+            modifiers |= UIEvent.Modifier.command;
         }
         if (e.shiftKey){
-            modifiers |= UIEvent.Modifiers.shift;
+            modifiers |= UIEvent.Modifier.shift;
         }
         return modifiers;
     },
@@ -531,8 +557,10 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
     _typeMap: null,
 
     initWithDataTransfer: function(dataTransfer){
+        UIHTMLDataTransferPasteboard.$super.init.call(this);
         this._dataTransfer = dataTransfer;
         this._typeMap = {};
+        this._values = [];
         var i, l;
         var type;
         var alias;
@@ -543,16 +571,25 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
         }
     },
 
+    _isStandardType: function(type){
+        return (type == UIPasteboard.ContentType.plainText || type == UIPasteboard.ContentType.html);
+    },
+
     getTypes: function(){
         return Object.keys(this._typeMap);
     },
 
     setValueForType: function(value, type){
+        UIHTMLDataTransferPasteboard.$super.setValueForType.call(this, value, type);
+        var lowerType = type.toLowerCase();
+        if (!this._isStandardType(type)){
+            value = JSON.stringify(value);
+        }
         try{
             this._dataTransfer.setData(type, value);
             this._typeMap[type] = type;
         }catch(e){
-            var reverseAlias = DataTransferTypeAliasesReveresed[type.toLowerCase()];
+            var reverseAlias = DataTransferTypeAliasesReveresed[lowerType];
             if (reverseAlias){
                 this._dataTransfer.setData(reverseAlias, value);
                 this._typeMap[type] = reverseAlias;
@@ -561,6 +598,9 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
     },
 
     valueForType: function(type){
+        if (UIHTMLDataTransferPasteboard.$super.containsType.call(this, type)){
+            return UIHTMLDataTransferPasteboard.$super.valueForType.call(this, type);
+        }
         if (type === UIPasteboard.ContentType.files){
             return this._dataTransfer.files;
         }
@@ -568,11 +608,15 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
         if (dataTransferType === undefined){
             return null;
         }
-        return this._dataTransfer.getData(dataTransferType);
+        var str = this._dataTransfer.getData(dataTransferType);
+        if (!this._isStandardType(type)){
+            return JSON.parse(str);
+        }
+        return str;
     },
 
     containsType: function(type){
-        return type in this._typeMap;
+        return UIHTMLDataTransferPasteboard.$super.containsType.call(this, type) || (type in this._typeMap);
     },
 
 });
