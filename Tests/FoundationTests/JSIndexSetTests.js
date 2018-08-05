@@ -14,6 +14,9 @@ JSClass("JSIndexSetTests", TKTestSuite, {
         TKAssertEquals(a.ranges.length, 1);
         TKAssertEquals(a.ranges[0].start, 1);
         TKAssertEquals(a.ranges[0].end, 2);
+
+        a = JSIndexSet(null);
+        TKAssert(a.isEmpty);
     },
 
     testCopyConstructor: function(){

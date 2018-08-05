@@ -55,7 +55,7 @@ JSGlobalObject.JSIndexSet = function(obj){
         this.ranges = JSDeepCopy(obj.ranges);
     }else if (obj instanceof JSIndexRange){
         this.ranges = [JSCopy(obj)];
-    }else if (obj !== undefined){
+    }else if (obj !== undefined && obj !== null){
         this.ranges = [JSIndexRange(obj, obj)];
     }else{
         this.ranges = [];
@@ -222,6 +222,18 @@ JSIndexSet.prototype = {
         });
         var range = searcher.itemMatchingValue(index);
         return range;
+    },
+
+    isEqual: function(other){
+        if (this.ranges.length !== other.ranges.length){
+            return false;
+        }
+        for (var i = 0, l = this.ranges.length; i < l; ++i){
+            if (!this.ranges[i].isEqual(other.ranges[i])){
+                return false;
+            }
+        }
+        return true;
     }
 };
 
