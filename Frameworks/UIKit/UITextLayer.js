@@ -132,6 +132,9 @@ JSClass("UITextLayer", UILayer, {
     },
 
     setText: function(text){
+        if (text === null || text === undefined){
+            text = "";
+        }
         this.setAttributedText(JSAttributedString.initWithString(text));
     },
 
@@ -184,7 +187,7 @@ JSClass("UITextLayer", UILayer, {
             var height = this._textContainer.textFrame.usedSize.height + this._textInsets.top + this._textInsets.bottom;
             var size = JSSize(width, height);
             this.bounds = JSRect(JSPoint.Zero, size);
-            this._textContainer.size = size;
+            this._textContainer.size = this._textContainer.textFrame.usedSize;
         }
     },
 
