@@ -19,6 +19,22 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
         var i, l;
         var j, k;
 
+        // If our element is not in the document, we need to add it so calls
+        // to getBoundingClientRect() will work.
+        // The HTML framesetter always adds a newly created frame to the document,
+        // but it's possible to be removed from the document if we're reusing a
+        // frame that's in a view that itself has been removed from the document.
+        // After we're done making calls, we'll add it back to the original parent
+        // in its original location.
+        var originalParent = null;
+        var originalSibling = null;
+        if (!this.element.isConnected){
+            originalParent = this.element.parentNode;
+            originalSibling = this.element.nextSibling;
+            this.element.ownerDocument.body.appendChild(this.element);
+            this.element.style.visibility = 'hidden';
+        }
+
         // add all the lines to our element
         for (i = 0, l = lines.length; i < l; ++i){
             line = lines[i];
@@ -86,6 +102,10 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
                 }
                 this.attachments.push(attachmentInfo);
             }
+        }
+
+        if (originalParent !== null){
+            originalParent.insertBefore(this.element, originalSibling);
         }
 
         // Superclass init will adjust origins according to text alignment, but
