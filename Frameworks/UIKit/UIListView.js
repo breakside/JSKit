@@ -1729,6 +1729,9 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             if (cell._detailLabel !== null){
                 cell._detailLabel.textColor = this.selectedCellDetailTextColor;
             }
+            if (cell._imageView !== null){
+                cell._imageView.templateColor = this.selectedCellTextColor;
+            }
             cell.stylerProperties.separatorLayer.backgroundColor = this.selectedCellSeparatorColor;
         }else{
             cell.contentView.backgroundColor = this.cellBackgroundColor;
@@ -1737,6 +1740,9 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             }
             if (cell._detailLabel !== null){
                 cell._detailLabel.textColor = this.cellDetailTextColor;
+            }
+            if (cell._imageView !== null){
+                cell._imageView.templateColor = this.cellTextColor;
             }
             cell.stylerProperties.separatorLayer.backgroundColor = this.cellSeparatorColor;
         }
