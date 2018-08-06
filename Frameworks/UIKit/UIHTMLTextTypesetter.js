@@ -236,8 +236,16 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         if (range.length === 0){
             return JSRange(range);
         }
-        if (this._cachedLayout === null || this._cachedLayout.lineBreakMode != lineBreakMode || !this._cachedLayout.range.containsRange(range)){
+        if (this._cachedLayout === null || !this._cachedLayout.range.containsRange(range)){
             logger.warn("Calling suggestLineBreak on unprepared range, re-calculating layout");
+            this.layoutRange(range, JSSize(width, 0), lineBreakMode);
+        }else if (this._cachedLayout.lineBreakMode != lineBreakMode){
+            // When truncating a multi-line string, we have to do two layouts:
+            // 1. layout first with word-wrap so we know where the line breaks are
+            // 2. layout the final line again with truncate tail
+            // The result is the same as the condition above, a new layoutRange call, but
+            // in this case we don't want to bother logging a warning since it's an expected
+            // use case
             this.layoutRange(range, JSSize(width, 0), lineBreakMode);
         }
 
