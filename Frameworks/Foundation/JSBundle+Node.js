@@ -7,17 +7,17 @@ var path = require('path');
 
 JSBundle.definePropertiesFromExtensions({
 
-    getResourceData: function(metadata, callback){
+    getResourceData: function(metadata, callback, target){
         var resourcePath = metadata.nodeBundlePath;
         if (!path.isAbsolute(resourcePath)){
             resourcePath = path.join(this._dict.nodeRootPath, metadata.nodeBundlePath);
         }
         fs.readFile(resourcePath, function(error, data){
             if (error){
-                callback(null);
+                callback.call(target, null);
                 return;
             }
-            callback(JSData.initWithBytes(data));
+            callback.call(target, JSData.initWithBytes(data));
         });
     }
 

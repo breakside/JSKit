@@ -5,14 +5,14 @@
 'use strict';
 
 JSBundle.definePropertiesFromExtensions({
-    getResourceData: function(metadata, callback){
+    getResourceData: function(metadata, callback, target){
         var session = JSURLSession.sharedSession;
         var url = JSURL.initWithString(metadata.htmlURL);
         var task = session.dataTaskWithURL(url, function(error){
             if (error !== null || task.response.statusClass != JSURLResponse.StatusClass.success){
-                callback(null);
+                callback.call(target, null);
             }
-            callback(task.response.data);
+            callback.call(target, task.response.data);
         });
         task.resume();
     }
