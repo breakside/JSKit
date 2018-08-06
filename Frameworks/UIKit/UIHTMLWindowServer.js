@@ -273,20 +273,25 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
 
     _dragImageElement: null,
 
+    prerenderDragImage: function(image){
+        // Safari is picky here and requires that the image element be in the document and
+        // rendered before 'dragstart' references the element.
+        // Firefox and Chrome are perfectly fine showing the image element without it being added,
+        // But Safari ends the drag immedately after start if the image isn't ready.
+        var imageElement = this.domDocument.createElement('img');
+        imageElement.style.position = 'absolute';
+        imageElement.style.zIndex = -1;
+        imageElement.src = image.htmlURLString();
+        this.rootElement.appendChild(imageElement);
+        this._dragImageElement = imageElement;
+    },
+
     dragstart: function(e){
         this._draggingSession.isActive = true;
         var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
         temporaryPasteboard.copy(this._draggingSession.pasteboard);
         e.dataTransfer.effectAllowed = DragOperationToEffectAllowed[this._draggingSession.allowedOperations] || 'none';
-        if (this._draggingSession.image !== null){
-            this._dragImageElement = this.domDocument.createElement('img');
-            this._dragImageElement.src = this._draggingSession.image.htmlURLString();
-            // Safari is picky here and requires that the image element be in the document.
-            // Firefox and Chrome are perfectly fine showing the image without it being added,
-            // But Safari just breaks and the drag doesn't happen at all.
-            this._dragImageElement.style.position = 'absolute';
-            this._dragImageElement.style.zIndex = -1;
-            this.domDocument.body.appendChild(this._dragImageElement);
+        if (this._dragImageElement !== null){
             e.dataTransfer.setDragImage(this._dragImageElement, this._draggingSession.imageOffset.x, this._draggingSession.imageOffset.y);
         }
     },
@@ -537,6 +542,20 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         session.isActive = false;
         var context = this.displayServer.contextForLayer(view.layer);
         context.element.draggable = true;
+
+        // Could use a subclass here, but this seems to work too
+        var originalSetImage = session.setImage;
+        var windowServer = this;
+        Object.defineProperties(session, {
+            setImage: {
+                configurable: true,
+                value: function UIHTMLWindowServer_UIDragSession_setImage(image, imageOffset){
+                    originalSetImage.call(this, image, imageOffset);
+                    windowServer.prerenderDragImage(image);
+                }
+            }
+        });
+        
         return session;
     }
 

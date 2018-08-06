@@ -57,6 +57,7 @@ JSClass("UIListViewCell", UIView, {
 
     _createImageView: function(){
         var imageView = UIImageView.init();
+        imageView.scaleMode = UIImageView.ScaleMode.aspectFit;
         this.contentView.addSubview(imageView);
         return imageView;
     },
