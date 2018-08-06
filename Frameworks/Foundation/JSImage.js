@@ -135,8 +135,13 @@ JSClass("_JSResourceImage", JSImage, {
                     this.metadata = this.bundle.metadataForResourceName(set.images[match].filename, null, name + '.imageset');
                 }
             }else{
-                // If an imageset wasn't found, assume png for the extension
-                ext = 'png';
+                // If an imageset wasn't found, first assume svg for the extension
+                this.metadata = this.bundle.metadataForResourceName(name, 'svg');
+
+                // If we there's no matching svg, assume png for the extension
+                if (this.metadata === null){
+                    ext = 'png';
+                }
             }
         }
 
