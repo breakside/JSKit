@@ -52,6 +52,12 @@ JSClass("UIImageLayer", UILayer, {
     },
 
     setTemplateColor: function(templateColor){
+        if (templateColor === null && this._templateColor === null){
+            return;
+        }
+        if (templateColor !== null && this._templateColor !== null && templateColor.isEqual(this._templateColor)){
+            return;
+        }
         this._templateColor = templateColor;
         this.setNeedsDisplay();
     },

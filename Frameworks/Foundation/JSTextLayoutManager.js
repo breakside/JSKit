@@ -74,6 +74,12 @@ JSClass("JSTextLayoutManager", JSObject, {
     },
 
     setDefaultTextColor: function(color){
+        if (color === null && this._defaultTextColor === null){
+            return;
+        }
+        if (color !== null && this._defaultTextColor !== null && color.isEqual(this._defaultTextColor)){
+            return;
+        }
         this._defaultTextColor = color;
         this.setNeedsLayout();
     },
