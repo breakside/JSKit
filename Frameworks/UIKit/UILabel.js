@@ -1,6 +1,6 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UITextLayer.js"
-/* global JSClass, UIView, UIViewLayerProperty, UITextLayer, UILabel, JSFont */
+/* global JSClass, UIView, UIViewLayerProperty, JSInsets, UITextLayer, UILabel, JSFont */
 'use strict';
 
 JSClass('UILabel', UIView, {
@@ -40,6 +40,9 @@ JSClass('UILabel', UIView, {
         }
         if ("lineBreakMode" in values){
             this.lineBreakMode = spec.resolvedValue(values.lineBreakMode);
+        }
+        if ("textInsets" in values){
+            this.textInsets = JSInsets.apply(undefined, values.textInsets.parseNumberArray());
         }
     },
 
