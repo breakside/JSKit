@@ -279,6 +279,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         // Firefox and Chrome are perfectly fine showing the image element without it being added,
         // But Safari ends the drag immedately after start if the image isn't ready.
         var imageElement = this.domDocument.createElement('img');
+        imageElement.setAttribute("decoding", "sync");
         imageElement.style.position = 'absolute';
         imageElement.style.zIndex = -1;
         imageElement.src = image.htmlURLString();
@@ -555,7 +556,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                 }
             }
         });
-        
+
         return session;
     }
 
