@@ -94,7 +94,7 @@ JSClass("UICheckbox", UIControl, {
             return this.convertPointFromView(JSPoint(0, this._titleLabel.lastBaselineOffsetFromBottom), this._titleLabel).y;
         }
         return 0;
-    }
+    },
 
 });
 
@@ -106,6 +106,27 @@ JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
 
     showsOverState: false,
     labelPadding: 3,
+    normalBackgroundColor: null,
+    disabledBackgroundColor: null,
+    activeBackgroundColor: null,
+    normalBorderColor: null,
+    disabledBorderColor: null,
+    activeBorderColor: null,
+    normalTitleColor: null,
+    disabledTitleColor: null,
+    activeTitleColor: null,
+
+    init: function(){
+        this.normalBackgroundColor = UICheckboxDefaultStyler.NormalBackgroundColor;
+        this.disabledBackgroundColor = UICheckboxDefaultStyler.DisabledBackgroundColor;
+        this.activeBackgroundColor = UICheckboxDefaultStyler.ActiveBackgroundColor;
+        this.normalBorderColor = UICheckboxDefaultStyler.NormalBorderColor;
+        this.disabledBorderColor = UICheckboxDefaultStyler.DisabledBorderColor;
+        this.activeBorderColor = UICheckboxDefaultStyler.ActiveBorderColor;
+        this.normalTitleColor = UICheckboxDefaultStyler.NormalTitleColor;
+        this.disabledTitleColor = UICheckboxDefaultStyler.DisabledTitleColor;
+        this.activeTitleColor = UICheckboxDefaultStyler.ActiveTitleColor;
+    },
 
     initializeControl: function(checkbox){
         checkbox.stylerProperties.boxLayer = UILayer.init();
@@ -115,6 +136,7 @@ JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
         checkbox.stylerProperties.boxLayer.shadowOffset = JSPoint(0, 1);
         checkbox.stylerProperties.boxLayer.shadowRadius = 1;
         checkbox.stylerProperties.indicatorView = UIImageView.init();
+        checkbox.stylerProperties.indicatorView.renderMode = UIImageView.RenderMode.template;
         checkbox.insertSubviewAtIndex(checkbox.stylerProperties.indicatorView, 0);
         checkbox.layer.insertSublayerAtIndex(checkbox.stylerProperties.boxLayer, 0);
         checkbox.setNeedsLayout();
@@ -123,17 +145,17 @@ JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
 
     updateControl: function(checkbox){
         if (!checkbox.enabled){
-            checkbox.stylerProperties.boxLayer.backgroundColor    = UICheckboxDefaultStyler.DisabledBackgroundColor;
-            checkbox.stylerProperties.boxLayer.borderColor        = UICheckboxDefaultStyler.DisabledBorderColor;
-            checkbox.titleLabel.textColor                         = UICheckboxDefaultStyler.DisabledTitleColor;
+            checkbox.stylerProperties.boxLayer.backgroundColor    = this.disabledBackgroundColor;
+            checkbox.stylerProperties.boxLayer.borderColor        = this.disabledBorderColor;
+            checkbox.titleLabel.textColor                         = this.disabledTitleColor;
         }else if (checkbox.active){
-            checkbox.stylerProperties.boxLayer.backgroundColor    = UICheckboxDefaultStyler.ActiveBackgroundColor;
-            checkbox.stylerProperties.boxLayer.borderColor        = UICheckboxDefaultStyler.ActiveBorderColor;
-            checkbox.titleLabel.textColor                         = UICheckboxDefaultStyler.ActiveTitleColor;
+            checkbox.stylerProperties.boxLayer.backgroundColor    = this.activeBackgroundColor;
+            checkbox.stylerProperties.boxLayer.borderColor        = this.activeBorderColor;
+            checkbox.titleLabel.textColor                         = this.activeTitleColor;
         }else{
-            checkbox.stylerProperties.boxLayer.backgroundColor    = UICheckboxDefaultStyler.NormalBackgroundColor;
-            checkbox.stylerProperties.boxLayer.borderColor        = UICheckboxDefaultStyler.NormalBorderColor;
-            checkbox.titleLabel.textColor                         = UICheckboxDefaultStyler.NormalTitleColor;
+            checkbox.stylerProperties.boxLayer.backgroundColor    = this.normalBackgroundColor;
+            checkbox.stylerProperties.boxLayer.borderColor        = this.normalBorderColor;
+            checkbox.titleLabel.textColor                         = this.normalTitleColor;
         }
         checkbox.stylerProperties.indicatorView.templateColor = checkbox.titleLabel.textColor;
         if (checkbox.on){
@@ -148,12 +170,27 @@ JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
     },
 
     layoutControl: function(checkbox){
-        var height = checkbox.titleLabel.font.displayLineHeight;
+        var height = checkbox._titleLabel.font.displayLineHeight;
         var boxSize = JSSize(height, height);
         checkbox.stylerProperties.boxLayer.frame = JSRect(JSPoint.Zero, boxSize);
         checkbox.stylerProperties.indicatorView.frame = checkbox.stylerProperties.boxLayer.frame;
         var x = boxSize.width + this.labelPadding;
-        checkbox.titleLabel.frame = JSRect(x, 0, checkbox.bounds.size.width - x, height);
+        checkbox._titleLabel.frame = JSRect(x, 0, checkbox.bounds.size.width - x, height);
+    },
+
+    sizeControlToFitSize: function(checkbox, maxSize){
+        var height = checkbox._titleLabel.font.displayLineHeight;
+        var maxTitleSize = JSSize(maxSize);
+        var boxWidth = height + this.labelPadding;
+        maxTitleSize.width -= boxWidth;
+        checkbox._titleLabel.sizeToFitSize(maxTitleSize);
+        checkbox.bounds = JSRect(0, 0, boxWidth + checkbox._titleLabel.frame.size.width, height);
+    },
+
+    intrinsicSizeOfControl: function(checkbox){
+        var size = JSSize(checkbox._titleLabel.intrinsicSize);
+        size.width += size.height + this.labelPadding;
+        return size;
     }
 
 });

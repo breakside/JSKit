@@ -243,6 +243,9 @@ JSClass('UIView', UIResponder, {
 
     setWindow: function(window){
         if (window != this._window){
+            if (this._window && this._window.firstResponder === this){
+                this._window.firstResponder = null;
+            }
             var lastWindowServer = null;
             var newWindowServer = null;
             if (this._window !== null){

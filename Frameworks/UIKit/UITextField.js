@@ -758,6 +758,11 @@ JSClass("UITextField", UIControl, {
             if (this.delegate && this.delegate.textFieldDidReceiveEnter){
                 this.delegate.textFieldDidReceiveEnter(this);
             }
+            if (this._didChange){
+                this.sendActionsForEvent(UIControl.Event.primaryAction);
+                this.sendActionsForEvent(UIControl.Event.valueChanged);
+                this._didChange = false;
+            }
         }
     },
 
@@ -919,6 +924,19 @@ JSClass("UITextFieldStyler", UIControlStyler, {
 
     initializeControl: function(textField){
         textField._localEditor.cursorColor = this.localCursorColor;
+    },
+
+    sizeControlToFitSize: function(textField, maxSize){
+        if (!textField.multiline){
+            var size = JSSize(textField.bounds.size);
+            if (maxSize.width < Number.MAX_VALUE){
+                size.width = maxSize.width;
+            }
+            size.height = textField.intrinsicSize.height;
+            textField.bounds = JSRect(JSPoint.Zero, size);
+        }else{
+            UITextFieldStyler.$super.sizeControlToFitSize(textField, maxSize);
+        }
     }
 
 });

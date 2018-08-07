@@ -27,6 +27,8 @@
         "UIPasteboard",
         "UILabel",
         "UITextField",
+        "UITextFieldDefaultStyler",
+        "UITextFieldCustomStyler",
         "UITextInputManager",
         "UITextInput",
         "UITextFramesetter",

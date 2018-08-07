@@ -229,6 +229,26 @@ JSClass("UIButton", UIControl, {
 
 });
 
+Object.defineProperties(UIButton, {
+    defaultStyler: {
+        configurable: true,
+        get: function UIButton_getDefaultStyler(){
+            Object.defineProperty(UIButton, 'defaultStyler', {writable: true, value: UIButtonDefaultStyler.shared});
+            return UIButton.defaultStyler;
+        },
+        set: function UIButton_setDefaultStyler(defaultStyler){
+            Object.defineProperty(UIButton, 'defaultStyler', {writable: true, value: defaultStyler});
+        }
+    },
+    customStyler: {
+        configurable: true,
+        get: function UIButton_getDefaultStyler(){
+            Object.defineProperty(UIButton, 'customStyler', {writable: true, value: UIButtonCustomStyler.shared});
+            return UIButton.customStyler;
+        }
+    }
+});
+
 JSClass("UIButtonStyler", UIControlStyler, {
 
     titleInsets: null,
@@ -309,6 +329,27 @@ JSClass("UIButtonStyler", UIControlStyler, {
 JSClass("UIButtonDefaultStyler", UIButtonStyler, {
 
     showsOverState: false,
+    normalBackgroundColor: null,
+    disabledBackgroundColor: null,
+    activeBackgroundColor: null,
+    normalBorderColor: null,
+    disabledBorderColor: null,
+    activeBorderColor: null,
+    normalTitleColor: null,
+    disabledTitleColor: null,
+    activeTitleColor: null,
+
+    init: function(){
+        this.normalBackgroundColor = UIButtonDefaultStyler.NormalBackgroundColor;
+        this.disabledBackgroundColor = UIButtonDefaultStyler.DisabledBackgroundColor;
+        this.activeBackgroundColor = UIButtonDefaultStyler.ActiveBackgroundColor;
+        this.normalBorderColor = UIButtonDefaultStyler.NormalBorderColor;
+        this.disabledBorderColor = UIButtonDefaultStyler.DisabledBorderColor;
+        this.activeBorderColor = UIButtonDefaultStyler.ActiveBorderColor;
+        this.normalTitleColor = UIButtonDefaultStyler.NormalTitleColor;
+        this.disabledTitleColor = UIButtonDefaultStyler.DisabledTitleColor;
+        this.activeTitleColor = UIButtonDefaultStyler.ActiveTitleColor;
+    },
 
     initializeControl: function(button){
         UIButtonDefaultStyler.$super.initializeControl.call(this, button);
@@ -324,36 +365,59 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
     updateControl: function(button){
         UIButtonDefaultStyler.$super.updateControl.call(this, button);
         if (!button.enabled){
-            button.layer.backgroundColor = UIButtonDefaultStyler.DisabledBackgroundColor;
-            button.layer.borderColor = UIButtonDefaultStyler.DisabledBorderColor;
+            button.layer.backgroundColor = this.disabledBackgroundColor;
+            button.layer.borderColor = this.disabledBorderColor;
             if (button._titleLabel !== null){
-                button._titleLabel.textColor = UIButtonDefaultStyler.DisabledTitleColor;
+                button._titleLabel.textColor = this.disabledTitleColor;
             }
             if (button._imageView !== null){
-                button._imageView.templateColor = UIButtonDefaultStyler.DisabledTitleColor;
+                button._imageView.templateColor = this.disabledTitleColor;
             }
         }else if (button.active){
-            button.layer.backgroundColor = UIButtonDefaultStyler.ActiveBackgroundColor;
-            button.layer.borderColor = UIButtonDefaultStyler.ActiveBorderColor;
+            button.layer.backgroundColor = this.activeBackgroundColor;
+            button.layer.borderColor = this.activeBorderColor;
             if (button._titleLabel !== null){
-                button._titleLabel.textColor = UIButtonDefaultStyler.ActiveTitleColor;
+                button._titleLabel.textColor = this.activeTitleColor;
             }
             if (button._imageView !== null){
-                button._imageView.templateColor = UIButtonDefaultStyler.ActiveTitleColor;
+                button._imageView.templateColor = this.activeTitleColor;
             }
         }else{
-            button.layer.backgroundColor = UIButtonDefaultStyler.NormalBackgroundColor;
-            button.layer.borderColor = UIButtonDefaultStyler.NormalBorderColor;
+            button.layer.backgroundColor = this.normalBackgroundColor;
+            button.layer.borderColor = this.normalBorderColor;
             if (button._titleLabel !== null){
-                button._titleLabel.textColor = UIButtonDefaultStyler.NormalTitleColor;
+                button._titleLabel.textColor = this.normalTitleColor;
             }
             if (button._imageView !== null){
-                button._imageView.templateColor = UIButtonDefaultStyler.NormalTitleColor;
+                button._imageView.templateColor = this.normalTitleColor;
             }
         }
     }
 
 });
+
+Object.defineProperties(UIButtonDefaultStyler, {
+    shared: {
+        configurable: true,
+        get: function UIButtonDefaultStyler_getShared(){
+            var shared = UIButtonDefaultStyler.init();
+            Object.defineProperty(this, 'shared', {value: shared});
+            return shared;
+        }
+    }
+});
+
+UIButtonDefaultStyler.NormalBackgroundColor = JSColor.initWithRGBA(250/255,250/255,250/255);
+UIButtonDefaultStyler.ActiveBackgroundColor = JSColor.initWithRGBA(224/255,224/255,224/255);
+UIButtonDefaultStyler.DisabledBackgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255);
+
+UIButtonDefaultStyler.NormalBorderColor = JSColor.initWithRGBA(204/255,204/255,204/255);
+UIButtonDefaultStyler.ActiveBorderColor = JSColor.initWithRGBA(192/255,192/255,192/255);
+UIButtonDefaultStyler.DisabledBorderColor = JSColor.initWithRGBA(224/255,224/255,224/255);
+
+UIButtonDefaultStyler.NormalTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
+UIButtonDefaultStyler.ActiveTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
+UIButtonDefaultStyler.DisabledTitleColor = JSColor.initWithRGBA(152/255,152/255,152/255);
 
 JSClass("UIButtonCustomStyler", UIButtonStyler, {
 
@@ -444,17 +508,6 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
 
 });
 
-Object.defineProperties(UIButtonDefaultStyler, {
-    shared: {
-        configurable: true,
-        get: function UIButtonDefaultStyler_getShared(){
-            var shared = UIButtonDefaultStyler.init();
-            Object.defineProperty(this, 'shared', {value: shared});
-            return shared;
-        }
-    }
-});
-
 Object.defineProperties(UIButtonCustomStyler, {
     shared: {
         configurable: true,
@@ -463,38 +516,6 @@ Object.defineProperties(UIButtonCustomStyler, {
             var shared = UIButtonCustomStyler.initWithColor(color);
             Object.defineProperty(this, 'shared', {value: shared});
             return shared;
-        }
-    }
-});
-
-UIButtonDefaultStyler.NormalBackgroundColor = JSColor.initWithRGBA(250/255,250/255,250/255);
-UIButtonDefaultStyler.ActiveBackgroundColor = JSColor.initWithRGBA(224/255,224/255,224/255);
-UIButtonDefaultStyler.DisabledBackgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255);
-
-UIButtonDefaultStyler.NormalBorderColor = JSColor.initWithRGBA(204/255,204/255,204/255);
-UIButtonDefaultStyler.ActiveBorderColor = JSColor.initWithRGBA(192/255,192/255,192/255);
-UIButtonDefaultStyler.DisabledBorderColor = JSColor.initWithRGBA(224/255,224/255,224/255);
-
-UIButtonDefaultStyler.NormalTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
-UIButtonDefaultStyler.ActiveTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
-UIButtonDefaultStyler.DisabledTitleColor = JSColor.initWithRGBA(152/255,152/255,152/255);
-
-Object.defineProperties(UIButton, {
-    defaultStyler: {
-        configurable: true,
-        get: function UIButton_getDefaultStyler(){
-            Object.defineProperty(UIButton, 'defaultStyler', {writable: true, value: UIButtonDefaultStyler.shared});
-            return UIButton.defaultStyler;
-        },
-        set: function UIButton_setDefaultStyler(defaultStyler){
-            Object.defineProperty(UIButton, 'defaultStyler', {writable: true, value: defaultStyler});
-        }
-    },
-    customStyler: {
-        configurable: true,
-        get: function UIButton_getDefaultStyler(){
-            Object.defineProperty(UIButton, 'customStyler', {writable: true, value: UIButtonCustomStyler.shared});
-            return UIButton.customStyler;
         }
     }
 });
