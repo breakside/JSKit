@@ -554,8 +554,8 @@ JSClass("UIMenuView", UIView, {
 
     itemViews: null,
 
-    _commonViewInit: function(){
-        UIMenuView.$super._commonViewInit.call(this);
+    initWithFrame: function(frame){
+        UIMenuView.$super.initWithFrame.call(this, frame);
         this.backgroundColor = JSColor.initWithRGBA(255/255, 255/255, 255/255, 1.0);
         this.itemViews = [];
     },

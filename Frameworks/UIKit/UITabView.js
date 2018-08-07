@@ -52,14 +52,10 @@ JSClass("UITabView", UIView, {
         }
     },
 
-    _commonViewInit: function(){
-        UITabView.$super._commonViewInit.call(this);
+    _commonTabViewInit: function(){
         this._items = [];
         this.stylerProperties = {};
         this.font = JSFont.systemFontOfSize(JSFont.Size.normal);
-    },
-
-    _commonTabViewInit: function(){
         this._itemsView = UITabViewItemsView.init();
         this._itemsView.tabView = this;
         this._contentViewContainer = UITabViewContentContainer.init();
@@ -293,8 +289,8 @@ JSClass("UITabViewItemView", UIView, {
     item: null,
     stylerProperties:  null,
 
-    _commonViewInit: function(){
-        UITabViewItemView.$super._commonViewInit.call(this);
+    initWithFrame: function(frame){
+        UITabViewItemView.$super.initWithFrame.call(this, frame);
         this.stylerProperties = {};
     },
 
@@ -362,8 +358,8 @@ JSClass("UITabViewItemsView", UIView, {
     _selectedItemView: null,
     _activeItemView: null,
 
-    _commonViewInit: function(){
-        UITabViewItemsView.$super._commonViewInit.call(this);
+    initWithFrame: function(frame){
+        UITabViewItemsView.$super.initWithFrame.call(this, frame);
         this.itemViews = [];
     },
 

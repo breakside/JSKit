@@ -120,6 +120,7 @@ JSClass("UITextField", UIControl, {
 
     text: JSDynamicProperty(),
     attributedText: JSDynamicProperty(),
+    _didChange: false,
 
     setText: function(text){
         if (this._secureEntry){
@@ -588,6 +589,8 @@ JSClass("UITextField", UIControl, {
         if (this.delegate && this.delegate.textFieldDidChange){
             this.delegate.textFieldDidChange(this);
         }
+        this._didChange = true;
+        this.sendActionsForEvent(UIControl.Event.editingChanged);
     },
 
     _adjustCursorPositionToCenterIfNeeded: function(){
@@ -644,6 +647,8 @@ JSClass("UITextField", UIControl, {
             this._rightAccessoryView.hidden = false;
         }
         this._localEditor.didBecomeFirstResponder();
+        this._didChange = false;
+        this.sendActionsForEvent(UIControl.Event.editingDidBegin);
     },
 
     resignFirstResponder: function(){
@@ -655,6 +660,11 @@ JSClass("UITextField", UIControl, {
             this._rightAccessoryView.hidden = true;
         }
         this._localEditor.didResignFirstResponder();
+        if (this._didChange){
+            this.sendActionsForEvent(UIControl.Event.primaryAction);
+            this.sendActionsForEvent(UIControl.Event.valueChanged);
+        }
+        this.sendActionsForEvent(UIControl.Event.editingDidEnd);
     },
 
     windowDidChangeKeyStatus: function(){

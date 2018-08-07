@@ -12,11 +12,9 @@ JSClass("UIImageView", UIView, {
 
     _previousSize: null,
 
-    _commonViewInit: function(){
-        UIImageView.$super._commonViewInit.call(this);
-        this.backgroundColor = null;
-        this._previousSize = JSSize.Zero;
-        this.clipsToBounds = true;
+    initWithFrame: function(frame){
+        UIImageView.$super.initWithFrame.call(this, frame);
+        this._commonImageViewInit();
     },
 
     initWithSpec: function(spec, values){
@@ -32,6 +30,13 @@ JSClass("UIImageView", UIView, {
         }else{
             this._scaleImage();
         }
+        this._commonImageViewInit();
+    },
+
+    _commonImageViewInit: function(){
+        this.backgroundColor = null;
+        this._previousSize = JSSize.Zero;
+        this.clipsToBounds = true;
     },
 
     initWithRenderMode: function(renderMode){
@@ -106,11 +111,6 @@ JSClass("UIImageView", UIView, {
         this._scaleMode = scaleMode;
         this._previousSize = JSSize.Zero;
         this._scaleImage();
-    },
-
-    setTintColor: function(tintColor){
-        this._tintColor = tintColor;
-        this.setNeedsDisplay();
     },
 
     getIntrinsicSize: function(){

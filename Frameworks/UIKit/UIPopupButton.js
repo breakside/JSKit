@@ -81,6 +81,7 @@ JSClass("UIPopupButton", UIControl, {
         this.titleLabel.text = item.title;
         if (this._selectedIndex != item.index){
             this.selectedIndex = item.index;
+            this.sendActionsForEvent(UIControl.Event.primaryAction);
             this.sendActionsForEvent(UIControl.Event.valueChanged);
         }
         this.active = false;

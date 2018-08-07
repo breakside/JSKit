@@ -54,6 +54,7 @@ JSClass("UICheckbox", UIControl, {
         }
         if (this.active){
             this.on = !this.on;
+            this.sendActionsForEvent(UIControl.Event.primaryAction);
             this.sendActionsForEvent(UIControl.Event.valueChanged);
             this.active = false;
         }
@@ -77,6 +78,22 @@ JSClass("UICheckbox", UIControl, {
         this._isMixed = isMixed;
         this._isOn = false;
         this._styler.updateControl(this);
+    },
+
+    getFirstBaselineOffsetFromTop: function(){
+        if (this._titleLabel !== null){
+            this.layoutIfNeeded();
+            return this.convertPointFromView(JSPoint(0, this._titleLabel.firstBaselineOffsetFromTop), this._titleLabel).y;
+        }
+        return this.bounds.size.height;
+    },
+
+    getLastBaselineOffsetFromBottom: function(){
+        if (this._titleLabel !== null){
+            this.layoutIfNeeded();
+            return this.convertPointFromView(JSPoint(0, this._titleLabel.lastBaselineOffsetFromBottom), this._titleLabel).y;
+        }
+        return 0;
     }
 
 });

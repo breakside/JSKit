@@ -44,6 +44,7 @@ JSClass("UIRadioGroup", UIControl, {
             if (this._selectedIndex >= 0){
                 this.buttons[this._selectedIndex].on = true;
             }
+            this.sendActionsForEvent(UIControl.Event.primaryAction);
             this.sendActionsForEvent(UIControl.Event.valueChanged);
         }
     },

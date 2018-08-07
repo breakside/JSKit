@@ -37,19 +37,14 @@ JSClass('UIView', UIResponder, {
         this.initWithFrame(JSRect(0,0,100,100));
     },
 
-    initWithLayer: function(layer){
-        this._commonViewInitWithLayer(layer);
-        this.frame = JSRect(0,0,100,100);
-    },
-
     initWithFrame: function(frame){
-        this._commonViewInit();
+        this._commonLayerInit();
         this.frame = frame;
     },
 
     initWithSpec: function(spec, values){
         UIView.$super.initWithSpec.call(this, spec, values);
-        this._commonViewInit();
+        this._commonLayerInit();
         if ("frame" in values){
             this.frame = JSRect.apply(undefined, values.frame.parseNumberArray());
         }else{
@@ -116,13 +111,8 @@ JSClass('UIView', UIResponder, {
         }
     },
 
-    _commonViewInit: function(){
-        var layer = this.$class.layerClass.init();
-        this._commonViewInitWithLayer(layer);
-    },
-
-    _commonViewInitWithLayer: function(layer){
-        this.layer = layer;
+    _commonLayerInit: function(){
+        this.layer = this.$class.layerClass.init();
         this.layer.delegate = this;
         this.subviews = [];
         this._registeredDraggedTypes = [];
@@ -200,6 +190,7 @@ JSClass('UIView', UIResponder, {
             subview.superview = null;
             subview.setWindow(null);
             subview.subviewIndex = null;
+            this.subviewsDidChange();
         }
     },
 
@@ -214,6 +205,7 @@ JSClass('UIView', UIResponder, {
             this.subview.removeFromSuperview();
         }
         this.subviews = [];
+        this.subviewsDidChange();
     },
 
     _insertSubviewAtIndex: function(subview, index, layerIndex){
@@ -237,7 +229,11 @@ JSClass('UIView', UIResponder, {
         subview.superview = this;
         subview.setWindow(this.window);
         this.layer.insertSublayerAtIndex(subview.layer, layerIndex);
+        this.subviewsDidChange();
         return subview;
+    },
+
+    subviewsDidChange: function(){
     },
 
     // -------------------------------------------------------------------------

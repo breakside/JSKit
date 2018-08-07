@@ -67,6 +67,8 @@
 // #import "UIKit/UIDualPaneViewController.js"
 // #import "UIKit/UITabViewController.js"
 
+// #import "UIKit/UIStackView.js"
+
 // Menus
 // #import "UIKit/UIMenu.js"
 // #import "UIKit/UIMenuItem.js"

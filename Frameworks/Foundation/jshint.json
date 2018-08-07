@@ -1,6 +1,7 @@
 {
     "predef": [
         "JSGlobalObject",
+        "JSTextAlignment",
         "JSSize",
         "JSPoint",
         "JSRect",
@@ -58,6 +59,8 @@
         "JSURLSessionDataTask",
         "JSURLSessionUploadTask",
         "JSURLSessionDelegate",
-        "JSURLSessionStreamTaskDelegate"
+        "JSURLSessionStreamTaskDelegate",
+        "JSNumberFormatter",
+        "JSDateFormatter"
     ]
 }
