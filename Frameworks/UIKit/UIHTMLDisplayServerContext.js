@@ -95,6 +95,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     resetForDisplay: function(){
         this._canvasElementIndex = 0;
         this._imageElementIndex = 0;
+        this._canvasContext = null;
         this._childInsertionIndex = this.layerManagedNodeCount;
         var i, l;
         for (i = 0, l = this._canvasElements.length; i < l; ++i){
