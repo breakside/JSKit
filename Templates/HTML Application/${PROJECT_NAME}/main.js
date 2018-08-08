@@ -2,6 +2,6 @@
 /* global UIApplicationMain */
 'use strict';
 
-function main(rootElement){
-    UIApplicationMain(rootElement);
+function main(rootElement, bootstrapper){
+    UIApplicationMain(rootElement, bootstrapper);
 }
