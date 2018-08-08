@@ -57,6 +57,7 @@
         "UIScene",
         "UIDragOperation",
         "UIPlatform",
-        "UIStackView"
+        "UIStackView",
+        "UIOpenPanel"
     ]
 }

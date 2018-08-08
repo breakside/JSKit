@@ -5,7 +5,7 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UITooltipWindow.js"
 // #import "UIKit/UIDraggingSession.js"
-/* global JSClass, JSObject, JSDynamicProperty, JSReadOnlyProperty, UIWindowServer, UIWindow, UIEvent, JSPoint, UIWindowServerInit, UITouch, UICursor, UILayer, UIView, JSTimer, UITooltipWindow, JSSize, JSRect, UIDraggingSession, UIDragOperation, JSInsets, JSRange, jslog_create */
+/* global JSClass, JSObject, JSRunLoop, JSDynamicProperty, JSReadOnlyProperty, UIWindowServer, UIWindow, UIEvent, JSPoint, UIWindowServerInit, UITouch, UICursor, UILayer, UIView, JSTimer, UITooltipWindow, JSSize, JSRect, UIDraggingSession, UIDragOperation, JSInsets, JSRange, jslog_create */
 'use strict';
 
 (function(){

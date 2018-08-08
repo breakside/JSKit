@@ -6,6 +6,7 @@
 // #import "UIKit/UIHTMLDisplayServer.js"
 // #import "UIKit/UIHTMLTextInputManager.js"
 // #import "UIKit/UIPlatform.js"
+// #import "UIKit/UIOpenPanel.js"
 // #feature Element.prototype.addEventListener
 // #feature 'key' in KeyboardEvent.prototype
 /* global JSClass, UIWindowServer, UIWindowServer, UIPlatform, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor, UIView, JSRect, UIScreen, UIDraggingSession, UIHTMLDataTransferPasteboard, UIDragOperation */
@@ -57,7 +58,19 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.style.userSelect = 'none';
         this.rootElement.style.mozUserSelect = 'none';
         this.rootElement.style.webkitUserSelect = 'none';
+        this.fileInput = this.domDocument.createElement('input');
+        this.fileInput.type = 'file';
+        this.fileInput.style.position = 'absolute';
+        this.fileInput.style.zIndex = -1;
+        this.rootElement.appendChild(this.fileInput);
         this.setCursor(UICursor.currentCursor);
+    },
+
+    openFileBrowser: function(action, target){
+        this.fileInput.onchange = function(e){
+            action.call(target, e.currentTarget.files);
+        };
+        this.fileInput.click();
     },
 
     setupEventListeners: function(){
