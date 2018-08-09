@@ -77,7 +77,8 @@ class JSCompilation(object):
         if includedSourcePath:
             if includedSourcePath not in self.importedScriptsByPath:
                 self.importedScriptsByPath[includedSourcePath] = True
-                self.includeFilePointer(open(includedSourcePath, 'r'), sourceName=sourcePath, weak=weak)
+                with open(includedSourcePath, 'r') as jsfile:
+                    self.includeFilePointer(jsfile, sourceName=sourcePath, weak=weak)
         else:
             raise IncludeNotFoundException("Include not found: %s; include paths: %s" % (sourcePath, ", ".join(self.includePaths)))
 
@@ -176,6 +177,7 @@ class JSCompilationOutfile(object):
     def __init__(self, fp=None, name=None, locked=False):
         self.fp = fp
         self.name = name
+        filename = fp.name
 
     def write(self, data):
         if self.currentLineLength > 0 and self.currentLineLength + len(data) > self.maxLineLength:

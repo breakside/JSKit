@@ -200,7 +200,8 @@ class Builder(object):
         infoPath = os.path.join(projectPath, infoName)
         if os.path.exists(infoPath):
             try:
-                return infoPath, json.load(open(infoPath), object_pairs_hook=collections.OrderedDict)
+                with open(infoPath) as infofile:
+                    return infoPath, json.load(infofile, object_pairs_hook=collections.OrderedDict)
             except Exception as e:
                 raise Exception("Error parsing Info.json: %s" % e.message)
         raise Exception("An Info.(json|plist|yaml) file is required to build")
@@ -318,7 +319,8 @@ class Builder(object):
                 self.scanResourceFolder(bundle, resourcesPath, nameComponents)
             elif ext == '.json':
                 try:
-                    obj = json.load(open(fullPath), object_pairs_hook=collections.OrderedDict)
+                    with open(fullPath) as jsonfile:
+                        obj = json.load(jsonfile, object_pairs_hook=collections.OrderedDict)
                 except Exception as e:
                     raise Exception("Error parsing %s: %s" % (fullPath, e.message))
                 self.buildJSONLikeResource(bundle, nameComponents, fullPath, obj)
@@ -405,15 +407,14 @@ class Builder(object):
     @staticmethod
     def hashOfPath(fullPath):
         h = hashlib.sha1()
-        f = open(fullPath)
-        chunk = f.read(h.block_size)
-        while chunk != '':
-            h.update(chunk)
+        with open(fullPath) as f:
             chunk = f.read(h.block_size)
-        byte_size = f.tell()
-        f.close()
-        h = h.hexdigest()
-        return h, byte_size
+            while chunk != '':
+                h.update(chunk)
+                chunk = f.read(h.block_size)
+            byte_size = f.tell()
+            h = h.hexdigest()
+            return h, byte_size
 
     def absolutePathsRelativeToSourceRoot(self, *paths):
         return [os.path.join(self.projectPath, path) for path in paths]

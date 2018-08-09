@@ -176,18 +176,17 @@ class HTMLBuilder(Builder):
         self.updateStatus("Creating application css...")
         sys.stdout.flush()
         outputPath = os.path.join(self.outputCacheBustingPath, 'app.css')
-        fp = open(outputPath, 'w')
-        for font in self.fonts:
-            fp.write('@font-face {\n')
-            fp.write('  font-family: "%s";\n' % font['info']['family'])
-            fp.write('  font-style: %s;\n' % font['info']['style'])
-            # TTF weights can be 1 to 1000, CSS weights can on be multiples of 100
-            fp.write('  font-weight: %s;\n' % ((font['info']['weight'] / 100) * 100))
-            fp.write('  src: %s;\n' % ', '.join([self.font_src(variant) for variant in font['variants']]))
-            fp.write('}\n\n')
-        fp.close()
-        self.appCSS.append(outputPath)
-        self.manifest.append(outputPath)
+        with open(outputPath, 'w') as fp:
+            for font in self.fonts:
+                fp.write('@font-face {\n')
+                fp.write('  font-family: "%s";\n' % font['info']['family'])
+                fp.write('  font-style: %s;\n' % font['info']['style'])
+                # TTF weights can be 1 to 1000, CSS weights can on be multiples of 100
+                fp.write('  font-weight: %s;\n' % ((font['info']['weight'] / 100) * 100))
+                fp.write('  src: %s;\n' % ', '.join([self.font_src(variant) for variant in font['variants']]))
+                fp.write('}\n\n')
+            self.appCSS.append(outputPath)
+            self.manifest.append(outputPath)
 
     def font_src(self, variant):
         if variant[1]:
@@ -210,7 +209,8 @@ class HTMLBuilder(Builder):
             self.jsCompilation.include(bundleJSFile, 'bundle.js')
             appJSNumber = 0
             for outfile in self.jsCompilation.outfiles:
-                outfile.fp.flush()
+                if not outfile.fp.closed:
+                    outfile.fp.flush()
                 if outfile.name:
                     outputPath = os.path.join(self.outputCacheBustingPath, outfile.name)
                 elif appJSNumber == 0:
@@ -228,6 +228,8 @@ class HTMLBuilder(Builder):
                 os.chmod(outputPath, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
                 self.manifest.append(outputPath)
                 self.appJS.append(outputPath)
+                if not outfile.fp.closed:
+                    outfile.fp.close()
         for importedPath in self.jsCompilation.importedScriptPaths():
             self.watchFile(importedPath)
 
@@ -311,7 +313,8 @@ class HTMLBuilder(Builder):
                     compilation = JSCompilation(includePaths, minify=not self.debug, combine=not self.debug)
                     compilation.include(inscript)
                     for outfile in compilation.outfiles:
-                        outfile.fp.flush()
+                        if not outfile.fp.closed:
+                            outfile.fp.flush()
                         script = document.createElement('script')
                         script.setAttribute('type', 'text/javascript')
                         if outfile.name is None:
@@ -329,6 +332,8 @@ class HTMLBuilder(Builder):
                             webpath = self.absoluteWebPath(outputPath)
                             script.setAttribute('src', webpath)
                         node.parentNode.insertBefore(script, node)
+                        if not outfile.fp.closed:
+                            outfile.fp.close()
                 node.parentNode.removeChild(node)
             for child in node.childNodes:
                 if child.nodeType == xml.dom.Node.ELEMENT_NODE:
@@ -387,25 +392,24 @@ class HTMLBuilder(Builder):
             confName = "nginx-release.conf"
         templateFile = os.path.join(self.projectPath, confName);
         self.watchFile(templateFile)
-        fp = open(templateFile, 'r')
-        template = fp.read()
-        fp.close()
-        args = dict(
-            HTTP_PORT=self.debugPort,
-            WORKER_PROCESSES=self.workerProcesses,
-            WORKER_CONNECTIONS=self.workerConnections
-        )
-        template = template.replace("{{", "__TEMPLATE_OPEN__")
-        template = template.replace("}}", "__TEMPLATE_CLOSE__")
-        template = template.replace("{", "{{")
-        template = template.replace("}", "}}")
-        template = template.replace("__TEMPLATE_OPEN__", "{")
-        template = template.replace("__TEMPLATE_CLOSE__", "}")
-        conf = template.format(**args)
-        self.confFile = os.path.join(self.outputConfPath, "nginx.conf")
-        fp = open(self.confFile, 'w')
-        fp.write(conf)
-        fp.close()
+        with open(templateFile, 'r') as fp:
+            template = fp.read()
+            fp.close()
+            args = dict(
+                HTTP_PORT=self.debugPort,
+                WORKER_PROCESSES=self.workerProcesses,
+                WORKER_CONNECTIONS=self.workerConnections
+            )
+            template = template.replace("{{", "__TEMPLATE_OPEN__")
+            template = template.replace("}}", "__TEMPLATE_CLOSE__")
+            template = template.replace("{", "{{")
+            template = template.replace("}", "}}")
+            template = template.replace("__TEMPLATE_OPEN__", "{")
+            template = template.replace("__TEMPLATE_CLOSE__", "}")
+            conf = template.format(**args)
+            self.confFile = os.path.join(self.outputConfPath, "nginx.conf")
+            fp = open(self.confFile, 'w')
+            fp.write(conf)
 
     def buildDocker(self):
         ownerPrefix = ('%s/' % self.dockerOwner) if self.dockerOwner else ''
@@ -487,9 +491,9 @@ class HTML5Document(object, HTMLParser):
         dom = xml.dom.minidom.getDOMImplementation()
         doctype = dom.createDocumentType("html", None, None)
         self.domDocument = dom.createDocument(None, "html", doctype)
-        fp = open(path, 'r')
-        for line in fp:
-            self.feed(line.decode('utf-8'))
+        with open(path, 'r') as fp:
+            for line in fp:
+                self.feed(line.decode('utf-8'))
         self.close()
 
     def handle_starttag(self, name, attrs):
