@@ -187,6 +187,7 @@ JSClass("UITextField", UIControl, {
         this._placeholderTextLayer.lineBreakMode = JSLineBreakMode.truncateTail;
         this._placeholderTextLayer.maximumNumberOfLines = 1;
         this._placeholderTextLayer.font = this._textLayer.font;
+        this._placeholderTextLayer.hidden = true;
         if (this._placeholderColor === null){
             this._createPlaceholderColor();
         }

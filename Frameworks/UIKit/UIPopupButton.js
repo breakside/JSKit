@@ -10,6 +10,7 @@
 JSClass("UIPopupButton", UIControl, {
 
     titleLabel: JSReadOnlyProperty('_titleLabel', null),
+    titleInsets: JSDynamicProperty('_titleInsets', null),
     indicatorView: JSReadOnlyProperty('_indicatorView', null),
     menu: JSReadOnlyProperty('_menu', null),
     selectedIndex: JSDynamicProperty('_selectedIndex', 0),
@@ -37,6 +38,8 @@ JSClass("UIPopupButton", UIControl, {
         this._titleLabel.backgroundColor = JSColor.clearColor;
         this._titleLabel.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
         this._indicatorView = UIImageView.initWithImage(images.popupIndicator);
+        this._indicatorView.renderMode = UIImageView.RenderMode.template;
+        this._titleInsets = JSInsets.Zero;
         this.addSubview(this._indicatorView);
         this.addSubview(this._titleLabel);
         if (this._styler === null){
@@ -104,10 +107,33 @@ JSClass("UIPopupButton", UIControl, {
             this._selectedIndex = index;
             this._selectedItem = this.menu.items[index];
             this._selectedItem.state = UIMenuItem.State.on;
+            this._titleLabel.text = this._selectedItem.title;
         }else{
             this._selectedItem = null;
             this._selectedIndex = -1;
+            this._titleLabel.text = "";
         }
+    },
+
+    getFirstBaselineOffsetFromTop: function(){
+        if (this._titleLabel !== null){
+            this.layoutIfNeeded();
+            return this.convertPointFromView(JSPoint(0, this._titleLabel.firstBaselineOffsetFromTop), this._titleLabel).y;
+        }
+        return this._titleInsets.top;
+    },
+
+    getLastBaselineOffsetFromBottom: function(){
+        if (this._titleLabel !==  null){
+            this.layoutIfNeeded();
+            return this.convertPointFromView(JSPoint(0, this._titleLabel.lastBaselineOffsetFromBottom), this._titleLabel).y;
+        }
+        return this._titleInsets.bottom;
+    },
+
+    setTitleInsets: function(insets){
+        this._titleInsets = JSInsets(insets);
+        this.setNeedsLayout();
     }
 
 });
@@ -119,8 +145,32 @@ JSClass("UIPopupButtonStyler", UIControlStyler, {
 JSClass("UIPopupButtonDefaultStyler", UIPopupButtonStyler, {
 
     showsOverState: false,
+    titleInsets: null,
+    normalBackgroundColor: null,
+    disabledBackgroundColor: null,
+    activeBackgroundColor: null,
+    normalBorderColor: null,
+    disabledBorderColor: null,
+    activeBorderColor: null,
+    normalTitleColor: null,
+    disabledTitleColor: null,
+    activeTitleColor: null,
+
+    init: function(){
+        this.titleInsets = JSInsets(3, 7, 3, 4);
+        this.normalBackgroundColor = UIPopupButtonDefaultStyler.NormalBackgroundColor;
+        this.disabledBackgroundColor = UIPopupButtonDefaultStyler.DisabledBackgroundColor;
+        this.activeBackgroundColor = UIPopupButtonDefaultStyler.ActiveBackgroundColor;
+        this.normalBorderColor = UIPopupButtonDefaultStyler.NormalBorderColor;
+        this.disabledBorderColor = UIPopupButtonDefaultStyler.DisabledBorderColor;
+        this.activeBorderColor = UIPopupButtonDefaultStyler.ActiveBorderColor;
+        this.normalTitleColor = UIPopupButtonDefaultStyler.NormalTitleColor;
+        this.disabledTitleColor = UIPopupButtonDefaultStyler.DisabledTitleColor;
+        this.activeTitleColor = UIPopupButtonDefaultStyler.ActiveTitleColor;
+    },
 
     initializeControl: function(button){
+        button.titleInsets = this.titleInsets;
         button.layer.borderWidth = 1;
         button.layer.cornerRadius = 3;
         button.layer.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
@@ -131,26 +181,43 @@ JSClass("UIPopupButtonDefaultStyler", UIPopupButtonStyler, {
 
     updateControl: function(button){
         if (!button.enabled){
-            button.layer.backgroundColor    = UIPopupButtonDefaultStyler.DisabledBackgroundColor;
-            button.layer.borderColor        = UIPopupButtonDefaultStyler.DisabledBorderColor;
-            button.titleLabel.textColor     = UIPopupButtonDefaultStyler.DisabledTitleColor;
+            button.layer.backgroundColor = this.disabledBackgroundColor;
+            button.layer.borderColor = this.disabledBorderColor;
+            button._titleLabel.textColor = this.disabledTitleColor;
+            button._indicatorView.templateColor = this.disabledTitleColor;
         }else if (button.active){
-            button.layer.backgroundColor    = UIPopupButtonDefaultStyler.ActiveBackgroundColor;
-            button.layer.borderColor        = UIPopupButtonDefaultStyler.ActiveBorderColor;
-            button.titleLabel.textColor     = UIPopupButtonDefaultStyler.ActiveTitleColor;
+            button.layer.backgroundColor = this.activeBackgroundColor;
+            button.layer.borderColor = this.activeBorderColor;
+            button._titleLabel.textColor = this.activeTitleColor;
+            button._indicatorView.templateColor = this.activeTitleColor;
         }else{
-            button.layer.backgroundColor    = UIPopupButtonDefaultStyler.NormalBackgroundColor;
-            button.layer.borderColor        = UIPopupButtonDefaultStyler.NormalBorderColor;
-            button.titleLabel.textColor     = UIPopupButtonDefaultStyler.NormalTitleColor;
+            button.layer.backgroundColor = this.normalBackgroundColor;
+            button.layer.borderColor = this.normalBorderColor;
+            button._titleLabel.textColor = this.normalTitleColor;
+            button._indicatorView.templateColor = this.normalTitleColor;
         }
     },
 
     layoutControl: function(button){
         var height = button.titleLabel.font.displayLineHeight;
-        var insets = JSInsets(3, 7, 3, 4);
+        var insets = button._titleInsets;
         var indicatorSize = JSSize(height, height);
         button.indicatorView.frame = JSRect(button.bounds.size.width - insets.right - indicatorSize.width, insets.top, indicatorSize.width, indicatorSize.height);
         button.titleLabel.frame = JSRect(insets.left, insets.top, button.indicatorView.frame.origin.x - insets.left, height);
+    },
+
+    intrinsicSizeOfControl: function(button){
+        var size = JSSize(button._titleInsets.left + button._titleInsets.right, button._titleInsets.top + button._titleInsets.bottom);
+        var titleSize = button._titleLabel.intrinsicSize;
+        size.width += titleSize.width;
+        size.height += titleSize.height;
+        var indicatorSize = JSSize(titleSize.height, titleSize.height);
+        size.width += indicatorSize.width;
+        return size;
+    },
+
+    sizeControlToFitSize: function(button, size){
+        button.bounds = JSRect(JSPoint.Zero, this.intrinsicSizeOfControl(button));
     },
 
 });
