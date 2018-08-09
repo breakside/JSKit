@@ -82,6 +82,17 @@ JSPoint.prototype = {
         return Math.sqrt(dx * dx + dy * dy);
     },
 
+    angleToPoint: function(other){
+        var a = Math.atan((other.y - this.y) / (other.x - this.x));
+        if (other.x < this.x){
+            a += Math.PI;
+        }
+        if (a < 0){
+            a += Math.PI + Math.PI;
+        }
+        return a;
+    },
+
     add: function(other){
         return JSPoint(this.x + other.x, this.y + other.y);
     },

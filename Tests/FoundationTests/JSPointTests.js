@@ -1,6 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, TKAssert, TKAssertNull, TKAssertNotNull, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSPoint */
+/* global JSClass, TKTestSuite, JSPoint */
+/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
 JSClass('JSPointTests', TKTestSuite, {
@@ -59,6 +60,60 @@ JSClass('JSPointTests', TKTestSuite, {
         // make sure .UnitCenter returns a copy each time, and isn't a reference that can be modified
         var point2 = JSPoint.UnitCenter;
         TKAssertEquals(point2.x, 0.5);
+    },
+
+    testDistanceToPoint: function(){
+        var a = JSPoint(3, 4);
+        var b = JSPoint(3, 7);
+        var d = a.distanceToPoint(b);
+        TKAssertEquals(d, 3);
+        d = b.distanceToPoint(a);
+        TKAssertEquals(d, 3);
+
+        b = JSPoint(-3, 13);
+        d = a.distanceToPoint(b);
+        TKAssertFloatEquals(d, 10.8166538264);
+        d = b.distanceToPoint(a);
+        TKAssertFloatEquals(d, 10.8166538264);
+    },
+
+    testAngleToPoint: function(){
+        var a = JSPoint(1, 2);
+        var b = JSPoint(3, 2);
+        var angle = a.angleToPoint(b);
+        TKAssertFloatEquals(angle, 0);
+        angle = b.angleToPoint(a);
+        TKAssertFloatEquals(angle, Math.PI);
+
+        b = JSPoint(2, 3);
+        angle = a.angleToPoint(b);
+        TKAssertFloatEquals(angle, Math.PI / 4);
+        angle = b.angleToPoint(a);
+        TKAssertFloatEquals(angle, Math.PI * 5 / 4);
+
+        b = JSPoint(1, 3);
+        angle = a.angleToPoint(b);
+        TKAssertFloatEquals(angle, Math.PI / 2);
+        angle = b.angleToPoint(a);
+        TKAssertFloatEquals(angle, Math.PI * 3 / 2);
+
+        b = JSPoint(0, 3);
+        angle = a.angleToPoint(b);
+        TKAssertFloatEquals(angle, Math.PI * 3 / 4);
+        angle = b.angleToPoint(a);
+        TKAssertFloatEquals(angle, Math.PI * 7 / 4);
+
+        b = JSPoint(1, 1);
+        angle = a.angleToPoint(b);
+        TKAssertFloatEquals(angle, Math.PI * 3 / 2);
+        angle = b.angleToPoint(a);
+        TKAssertFloatEquals(angle, Math.PI / 2);
+
+        b = JSPoint(2, 1);
+        angle = a.angleToPoint(b);
+        TKAssertFloatEquals(angle, Math.PI * 7 / 4);
+        angle = b.angleToPoint(a);
+        TKAssertFloatEquals(angle, Math.PI * 3 / 4);
     }
 
 });
