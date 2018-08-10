@@ -14,7 +14,9 @@ JSClass("UIPopupButton", UIControl, {
     indicatorView: JSReadOnlyProperty('_indicatorView', null),
     menu: JSReadOnlyProperty('_menu', null),
     selectedIndex: JSDynamicProperty('_selectedIndex', 0),
+    selectedTag: JSDynamicProperty(),
     _selectedItem: null,
+    maxTitleWidth: JSDynamicProperty('_maxTitleWidth', null),
 
     initWithSpec: function(spec, values){
         UIPopupButton.$super.initWithSpec.call(this, spec, values);
@@ -51,8 +53,11 @@ JSClass("UIPopupButton", UIControl, {
 
     // MARK: - Adding Items
 
-    addItemWithTitle: function(title){
+    addItemWithTitle: function(title, tag){
         var item = this.menu.addItemWithTitle(title, 'menuDidSelectItem', this);
+        if (tag){
+            item.tag = tag;
+        }
         if (this.menu.items.length === 1){
             this.titleLabel.text = title;
             this._selectedItem = item;
@@ -60,8 +65,32 @@ JSClass("UIPopupButton", UIControl, {
         }
     },
 
+    removeAllItems: function(){
+        if (this.menu.items.length > 0){
+            this.menu.removeAllItems();
+            this._selectedItem = null;
+            this.titleLabel.text = "";
+        }
+    },
+
     getTitleLabel: function(){
         return this._titleLabel;
+    },
+
+    getMaxTitleWidth: function(){
+        if (this._maxTitleWidth === null){
+            this._maxTitleWidth = 0;
+            var width;
+            var item;
+            for (var i = 0, l = this.menu.items.length; i < l; ++i){
+                item = this.menu.items[i];
+                width = this._titleLabel.font.widthOfString(item.title);
+                if (width > this._maxTitleWidth){
+                    this._maxTitleWidth = Math.ceil(width);
+                }
+            }
+        }
+        return this._maxTitleWidth;
     },
 
     mouseDown: function(event){
@@ -112,6 +141,21 @@ JSClass("UIPopupButton", UIControl, {
             this._selectedItem = null;
             this._selectedIndex = -1;
             this._titleLabel.text = "";
+        }
+    },
+
+    getSelectedTag: function(){
+        var item = this.menu.items[this._selectedIndex];
+        if (item){
+            return item.tag;
+        }
+        return null;
+    },
+
+    setSelectedTag: function(tag){
+        var item = this.menu.itemWithTag(tag);
+        if (item){
+            this.selectedIndex = item.index;
         }
     },
 
@@ -208,7 +252,7 @@ JSClass("UIPopupButtonDefaultStyler", UIPopupButtonStyler, {
 
     intrinsicSizeOfControl: function(button){
         var size = JSSize(button._titleInsets.left + button._titleInsets.right, button._titleInsets.top + button._titleInsets.bottom);
-        var titleSize = button._titleLabel.intrinsicSize;
+        var titleSize = JSSize(button.maxTitleWidth, button._titleLabel.font.displayLineHeight);
         size.width += titleSize.width;
         size.height += titleSize.height;
         var indicatorSize = JSSize(titleSize.height, titleSize.height);

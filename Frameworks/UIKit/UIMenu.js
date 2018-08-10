@@ -131,6 +131,19 @@ JSClass("UIMenu", JSObject, {
         }
     },
 
+    removeAllItems: function(){
+        var item;
+        for (var i = 0, l = this._items.length; i < l; ++i){
+            item = this._items[i];
+            item.menu = null;
+            if (item.submenu !== null){
+                item.submenu.menu = null;
+            }
+        }
+        this._itemsByTag = {};
+        this._items = [];
+    },
+
     // MARK: - Supermenu
 
     supermenu: null,

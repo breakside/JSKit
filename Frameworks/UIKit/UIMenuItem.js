@@ -79,6 +79,20 @@ JSClass("UIMenuItem", JSObject, {
             return;
         }
         this._isEnabled = isEnabled;
+    },
+
+    setTag: function(tag){
+        if (this.menu){
+            if (this._tag){
+                delete this.menu._itemsByTag[this._tag];
+            }
+            this._tag = tag;
+            if (this._tag){
+                this.menu._itemsByTag[this._tag] = this;
+            }
+        }else{
+            this._tag = tag;
+        }
     }
 
 });
