@@ -58,6 +58,7 @@ JSClass("UIMenuWindow", UIWindow, {
         this._itemIndexesByItemViewId = {};
         this._itemViewIndexesByItemId = {};
         this.setMenu(menu);
+        this._openEvent = this.windowServer.activeEvent;
     },
 
     // -----------------------------------------------------------------------
@@ -69,10 +70,13 @@ JSClass("UIMenuWindow", UIWindow, {
         return false;
     },
 
+    _openEvent: null,
+
     didBecomeVisible: function(){
         UIMenuWindow.$super.didBecomeVisible.call(this);
-        var event = this.windowServer.activeEvent;
+        var event = this._openEvent;
         if (event !== null && event.type == UIEvent.Type.leftMouseDown){
+            this._openEvent = null;
             var location = event.locationInView(this);
             this._adjustHighlightForLocation(location);
             this._itemDownTimestamp = event.timestamp;
@@ -274,7 +278,7 @@ JSClass("UIMenuWindow", UIWindow, {
     // -----------------------------------------------------------------------
     // MARK: - Mouse Events
 
-    _itemDownTimestamp: 0,
+    _itemDownTimestamp: UIEvent.minimumTimestamp,
 
     mouseUp: function(event){
         if (event.timestamp - this._itemDownTimestamp < 0.2){
