@@ -153,6 +153,23 @@ JSClass("UITextField", UIControl, {
     },
 
     // --------------------------------------------------------------------
+    // MARK: - Number Content
+
+    integerValue: JSDynamicProperty(),
+
+    getIntegerValue: function(){
+        var value = parseInt(this.text);
+        if (!isNaN(value)){
+            return value;
+        }
+        return null;
+    },
+
+    setIntegerValue: function(value){
+        this.text = "%d".sprintf(value);
+    },
+
+    // --------------------------------------------------------------------
     // MARK: - Placeholder
 
     placeholder: JSDynamicProperty('_placeholder', null),
