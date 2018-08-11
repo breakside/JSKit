@@ -232,7 +232,7 @@ JSClass("_JSURLImage", JSImage, {
     },
 
     getData: function(callback){
-        var session = JSURLSession.sharedSession;
+        var session = JSURLSession.shared;
         var task = session.dataTaskWithURL(this.url, function(error){
             if (error !== null || task.response.statusClass != JSURLResponse.StatusClass.success){
                 callback(null);

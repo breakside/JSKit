@@ -251,5 +251,20 @@ Object.defineProperties(JSIndexSet.prototype, {
             }
             return this.range.length > 0;
         }
+    },
+
+    isSingle: {
+        get: function JSIndexSet_getIsSingle(){
+            return this.ranges.length == 1 && this.ranges[0].start == this.ranges[0].end;
+        }
+
+    },
+
+    singleIndex: {
+        get: function JSIndexSet_getSingleIndex(){
+            if (this.isSingle){
+                return this.ranges[0].start;
+            }
+        }
     }
 });

@@ -104,16 +104,16 @@ JSClass("JSURLSession", JSObject, {
 
 });
 
-Object.defineProperty(JSURLSession, 'sharedSession', {
+Object.defineProperty(JSURLSession, 'shared', {
     configurable: true,
     enumerable: false,
-    get: function JSURLSession_sharedSession(){
-        var sharedSession = JSURLSession.init();
-        Object.defineProperty(JSURLSession, 'sharedSession', {
+    get: function JSURLSession_shared(){
+        var shared = JSURLSession.init();
+        Object.defineProperty(JSURLSession, 'shared', {
             configurable: false,
             enumerable: false,
-            value: sharedSession
+            value: shared
         });
-        return sharedSession;
+        return shared;
     }
 });

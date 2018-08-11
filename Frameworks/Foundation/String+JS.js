@@ -1114,6 +1114,10 @@ var printf_formatter = {
             arg = 0;
         }
         return (arg !== null && arg !== undefined && arg.toString) ? arg.toString() : arg;
+    },
+
+    b: function(arg, options){
+        return arg ? 'true' : 'false';
     }
 };
 

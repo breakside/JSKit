@@ -23,6 +23,7 @@ JSClass("UITooltipWindow", UIWindow, {
         }else{
             label.text = str;
         }
+        label.maximumNumberOfLines = 0;
         label.sizeToFitSize(maxSize);
         this.contentView = UIView.init();
         this.contentView.addSubview(label);

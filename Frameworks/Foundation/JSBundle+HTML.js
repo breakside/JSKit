@@ -6,7 +6,7 @@
 
 JSBundle.definePropertiesFromExtensions({
     getResourceData: function(metadata, callback, target){
-        var session = JSURLSession.sharedSession;
+        var session = JSURLSession.shared;
         var url = JSURL.initWithString(metadata.htmlURL);
         var task = session.dataTaskWithURL(url, function(error){
             if (error !== null || task.response.statusClass != JSURLResponse.StatusClass.success){

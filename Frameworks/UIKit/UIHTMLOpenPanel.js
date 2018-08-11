@@ -1,9 +1,11 @@
 // #import "UIKit/UIOpenPanel.js"
-/* global Input, JSClass, JSObject, UIOpenPanel, UIHTMLOpenPanel */
+/* global document, JSClass, UIOpenPanel, UIHTMLOpenPanel */
 'use strict';
 
 JSClass("UIHTMLOpenPanel", UIOpenPanel, {
 
+    // Explicitly define our own init becuase below we re-define UIOpenPanel.init
+    // to call UIHTMLOpenPanel.init.  Without this declaration here, we'd get an infinite loop.
     init: function(){
     },
 
@@ -20,7 +22,7 @@ JSClass("UIHTMLOpenPanel", UIOpenPanel, {
             action.call(target, fileInput.files);
         };
         fileInput.click();
-    },
+    }
 
 });
 

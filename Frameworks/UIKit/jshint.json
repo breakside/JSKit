@@ -61,6 +61,7 @@
         "UIDragOperation",
         "UIPlatform",
         "UIStackView",
-        "UIOpenPanel"
+        "UIOpenPanel",
+        "UISavePanel"
     ]
 }

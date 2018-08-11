@@ -15,6 +15,7 @@
         "JSIndexPath",
         "JSIndexPathRange",
         "JSIndexPathSet",
+        "JSFileManager",
         "UUID",
         "JSClass",
         "JSCustomProperty",
