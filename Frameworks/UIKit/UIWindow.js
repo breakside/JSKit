@@ -485,6 +485,9 @@ JSClass('UIWindow', UIView, {
             case UIEvent.Category.scroll:
                 this._sendScrollEvent(event);
                 break;
+            case UIEvent.Category.gesture:
+                this._sendGestureEvent(event);
+                break;
         }
     },
 
@@ -560,6 +563,20 @@ JSClass('UIWindow', UIView, {
             switch (event.type){
                 case UIEvent.Type.scrollWheel:
                     view.scrollWheel(event);
+                    break;
+            }
+        }
+    },
+
+    _sendGestureEvent: function(event){
+        var view = this.hitTest(event.locationInWindow);
+        if (view){
+            switch (event.type){
+                case UIEvent.Type.magnify:
+                    view.magnify(event);
+                    break;
+                case UIEvent.Type.rotate:
+                    view.rotate(event);
                     break;
             }
         }

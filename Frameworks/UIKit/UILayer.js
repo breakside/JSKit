@@ -94,11 +94,13 @@ JSClass("UILayer", JSObject, {
     },
 
     setAnchorPoint: function(anchorPoint){
-        // When the anchor point changes, the position remains constant and we have to recalculate the frame
-        this._addImplicitAnimationForKey('anchorPoint');
-        this.model.anchorPoint = anchorPoint;
-        this._recalculateFrame();
-        this.didChangeProperty('anchorPoint');
+        if (!anchorPoint.isEqual(this.model.anchorPoint)){
+            // When the anchor point changes, the position remains constant and we have to recalculate the frame
+            this._addImplicitAnimationForKey('anchorPoint');
+            this.model.anchorPoint = anchorPoint;
+            this._recalculateFrame();
+            this.didChangeProperty('anchorPoint');
+        }
     },
 
     setFrame: function(frame){

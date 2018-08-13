@@ -1,5 +1,6 @@
 // #import "UIKit/UIView.js"
-/* global JSClass, UIView, UIScrollView, JSDynamicProperty, JSDeepCopy, JSInsets, JSProtocol, JSReadOnlyProperty, UIScroller, UIControl, JSPoint, JSRect, JSSize */
+// #import "UIKit/UIEvent.js"
+/* global JSClass, UIView, UIEvent, UIScrollView, JSDynamicProperty, JSDeepCopy, JSAffineTransform, JSInsets, JSProtocol, JSReadOnlyProperty, UIScroller, UIControl, JSPoint, JSRect, JSSize */
 'use strict';
 
 JSProtocol("UIScrollViewDelegate", JSProtocol, {
@@ -223,6 +224,7 @@ JSClass('UIScrollView', UIView, {
     contentInsets: JSDynamicProperty('_contentInsets', null),
     contentOffset: JSDynamicProperty('_contentOffset', null),
     contentSize: JSDynamicProperty('_contentSize', null),
+    naturalContentSize: JSReadOnlyProperty(),
     _minContentOffset: null,
     _maxContentOffset: null,
 
@@ -282,6 +284,13 @@ JSClass('UIScrollView', UIView, {
         return offset;
     },
 
+    getNaturalContentSize: function(){
+        return JSSize(
+            this.contentView.bounds.size.width - this.contentInsets.left - this.contentInsets.right,
+            this.contentView.bounds.size.height - this.contentInsets.top - this.contentInsets.bottom
+        );
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Scrolling
 
@@ -315,6 +324,68 @@ JSClass('UIScrollView', UIView, {
     },
 
     // --------------------------------------------------------------------
+    // MARK: - Zooming
+
+    minimumZoomScale: JSDynamicProperty('_minimumZoomScale', 1),
+    maximumZoomScale: JSDynamicProperty('_maximumZoomScale', 1),
+    _minimumZoomIncrement: 0.01,
+    zoomScale: JSDynamicProperty('_zoomScale', 1),
+
+    setZoomScale: function(scale){
+        this.setZoomScaleAtLocation(scale, JSPoint.Zero);
+    },
+
+    setZoomScaleAtLocation: function(scale, location){
+        var view = this._viewForZooming();
+        scale = Math.min(Math.max(scale, this._minimumZoomScale), this._maximumZoomScale);
+        if (view !== null && Math.abs(scale - this._zoomScale) >= this._minimumZoomIncrement){
+            var p0 = view.convertPointFromView(location, this);
+            var offsetDelta = this.contentOffset.subtract(location);
+            if (Math.abs(scale - 1) < this._minimumZoomIncrement){
+                scale = 1;
+            }
+            this._zoomScale = scale;
+            view.transform = JSAffineTransform.Scaled(this._zoomScale, this._zoomScale);
+            this.contentSize = this.convertRectFromView(view.bounds, view).size;
+            var newLocation = this.convertPointFromView(p0, view);
+            var newOffset = newLocation.add(offsetDelta);
+            this.contentOffset = newOffset;
+            // TODO: redraw connection views at new scale
+        }
+    },
+
+    _viewForZooming: function(){
+        return this._contentView.subviews[0] || null;
+    },
+
+    zoomIn: function(sender){
+        var location = this.contentView.frame.center;
+        var scale;
+        if (this._zoomScale < 1){
+            scale = Math.min(1, this._zoomScale + 0.1);
+        }else{
+            scale = this._zoomScale + 0.2;
+        }
+        this.setZoomScaleAtLocation(scale, location);
+    },
+
+    zoomOut: function(sender){
+        var location = this.contentView.frame.center;
+        var scale;
+        if (this._zoomScale > 1){
+            scale = Math.max(1, this._zoomScale - 0.2);
+        }else{
+            scale = this._zoomScale - 0.1;
+        }
+        this.setZoomScaleAtLocation(scale, location);
+    },
+
+    zoomDefault: function(sender){
+        var location = this.contentView.frame.center;
+        this.setZoomScaleAtLocation(1, location);
+    },
+
+    // --------------------------------------------------------------------
     // MARK: - Scroll Events
 
     hitTest: function(locationInView){
@@ -330,21 +401,41 @@ JSClass('UIScrollView', UIView, {
         }
     },
 
-    scrollWheel: function(event){
-        var d = JSPoint(event.scrollingDelta);
-        var abs = JSPoint(Math.abs(d.x), Math.abs(d.y));
-        if (abs.x > 2 * abs.y){
-            d.y = 0;
-        }else if (abs.y > 2 * abs.x){
-            d.x = 0;
+    _zoomScaleWhenMangificationBegan: 1,
+
+    magnify: function(event){
+        if (event.phase === UIEvent.Phase.began){
+            this._zoomScaleWhenMangificationBegan = this.zoomScale;
         }
-        if (this._scrollsHorizontally && d.x !== 0 || this._scrollsVertically && d.y !== 0){
-            this.contentOffset = JSPoint(this._contentOffset.x + d.x, this._contentOffset.y + d.y);
+        this.setZoomScaleAtLocation(this._zoomScaleWhenMangificationBegan * event.magnification, event.locationInView(this));
+    },
+
+    _scrollDistanceZoomFactor: 0.003,
+    _accumulatedScrollZoom: 0,
+
+    scrollWheel: function(event){
+        if (event.hasModifier(UIEvent.Modifier.control)){
+            this._accumulatedScrollZoom -= event.scrollingDelta.y;
+            var scaleDelta = this._accumulatedScrollZoom * this._scrollDistanceZoomFactor;
+            var scale0 = this.zoomScale;
+            this.setZoomScaleAtLocation(scale0 + scaleDelta, event.locationInView(this));
+            this._accumulatedScrollZoom -= (this.zoomScale - scale0) / this._scrollDistanceZoomFactor;
         }else{
-            // If the requested scroll is not supported by our view, forward the event up the
-            // reponder chain, allowing for nested scroll views where one goes vertically and
-            // the other goes horizontally.  This is useful for views such as a UIBrowserView.
-            UIScrollView.$super.scrollWheel.call(this, event);
+            var d = JSPoint(event.scrollingDelta);
+            var abs = JSPoint(Math.abs(d.x), Math.abs(d.y));
+            if (abs.x > 2 * abs.y){
+                d.y = 0;
+            }else if (abs.y > 2 * abs.x){
+                d.x = 0;
+            }
+            if (this._scrollsHorizontally && d.x !== 0 || this._scrollsVertically && d.y !== 0){
+                this.contentOffset = JSPoint(this._contentOffset.x + d.x, this._contentOffset.y + d.y);
+            }else{
+                // If the requested scroll is not supported by our view, forward the event up the
+                // reponder chain, allowing for nested scroll views where one goes vertically and
+                // the other goes horizontally.  This is useful for views such as a UIBrowserView.
+                UIScrollView.$super.scrollWheel.call(this, event);
+            }
         }
     },
 

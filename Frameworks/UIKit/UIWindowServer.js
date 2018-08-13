@@ -546,10 +546,18 @@ JSClass("UIWindowServer", JSObject, {
         }
     },
 
-    createScrollEvent: function(type, timestamp, location, dx, dy){
+    createScrollEvent: function(type, timestamp, location, dx, dy, modifiers){
         var targetWindow = this.windowForEventAtLocation(location);
         if (targetWindow !== null){
-            var event = UIEvent.initScrollEventWithType(type, timestamp, targetWindow, targetWindow.convertPointFromScreen(location), dx, dy);
+            var event = UIEvent.initScrollEventWithType(type, timestamp, targetWindow, targetWindow.convertPointFromScreen(location), dx, dy, modifiers);
+            this._sendEventToApplication(event, targetWindow.application);
+        }
+    },
+
+    createGestureEvent: function(type, timestamp, location, phase, value, modifiers){
+        var targetWindow = this.windowForEventAtLocation(location);
+        if (targetWindow !== null){
+            var event = UIEvent.initGestureEventWithType(type, timestamp, targetWindow, targetWindow.convertPointFromScreen(location), phase, value, modifiers);
             this._sendEventToApplication(event, targetWindow.application);
         }
     },

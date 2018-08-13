@@ -215,21 +215,23 @@ JSClass("UIMenu", JSObject, {
         //    This does not account for international layouts that lack a 'v' key,
         //    but that use case needs more investigation to know if the shorcut itself
         //    should change (I'm guessing it probably should)
-        var eventKeyEquivalent = String.fromCharCode(event.keyCode).toLowerCase();
-        for (var i = 0, l = this._items.length; i < l; ++i){
-            item = this._items[i];
-            if (!item.hidden){
-                if (item.submenu){
-                    item = item.submenu._itemForKeyEquivalent(event);
-                    if (item !== null){
-                        return item;
-                    }
-                }else{
-                    modifiers = item.keyModifiers | UIPlatform.shared.commandModifier;
-                    if (modifiers == event.modifiers){
-                        if (eventKeyEquivalent == item.keyEquivalent){
-                            if (this._isItemEnabled(item)){
-                                return item;
+        var keyEquivalentCode = UIMenu.keyEquivalentCodeForKeyCode(event.keyCode);
+        if (keyEquivalentCode !== 0){
+            for (var i = 0, l = this._items.length; i < l; ++i){
+                item = this._items[i];
+                if (!item.hidden){
+                    if (item.submenu){
+                        item = item.submenu._itemForKeyEquivalent(event);
+                        if (item !== null){
+                            return item;
+                        }
+                    }else{
+                        modifiers = item.keyModifiers | UIPlatform.shared.commandModifier;
+                        if (modifiers == event.modifiers){
+                            if (keyEquivalentCode == item._keyEquivalentCode){
+                                if (this._isItemEnabled(item)){
+                                    return item;
+                                }
                             }
                         }
                     }
@@ -847,5 +849,54 @@ Object.defineProperties(UIMenu, {
         }
     }
 });
+
+UIMenu.keyEquivalentCodeForKeyCode = function(keyCode){
+    var characterCode = 0;
+    // Key code is fairly reliable for ascii letters and numbers
+    // 1. First, convert any uppercase ascii letter to its lowercase variant
+    if (keyCode >= 0x41 && keyCode <= 0x5A){ // uppercase A-Z
+        keyCode += 0x20; // convert to lowercase
+    }
+    // 2. Next, go ahead and use the number or letter if that's what we have
+    if ((keyCode >= 0x30 && keyCode <= 0x39) || (keyCode >= 0x61 && keyCode <= 0x7A)){ // 0-9, a-z
+        characterCode = keyCode;
+    }else{
+        // 3. Look for some special punctuation-based key codes that correspond to common keyboard shortcuts
+        // NOTE: punctuation based shortcuts typically don't care if the shift key is pressed or not, meaning
+        // that for a key like +/=, the menu should only have a shortcut for either + or =, not both.  This
+        // is similar to how a menu cannot have a shortcut for A and a.
+        switch (keyCode){
+            // equals key or shift+equals (at least for english)
+            // Typically used for zooming because of the shared + symbol
+            case 0xBB:
+                characterCode = 0x3D; // =
+                break;
+            // minus key or shift+minus (at least for english)
+            // Typically used for zooming
+            case 0xBD:
+                characterCode = 0x2D; // -
+                break;
+        }
+    }
+    return UIMenu.keyEquivalentCodeForCharacterCode(characterCode);
+};
+
+UIMenu.keyEquivalentCodeForCharacterCode = function(characterCode){
+    if (characterCode >= 0x41 && characterCode <= 0x5A){
+        characterCode += 0x20;
+    }else{
+        switch (characterCode){
+            // + is Shift+equals, so convert any + to =
+            case 0x2B:
+                characterCode = 0x3D;
+                break;
+            // _ is Shift+minu, so convert any _ to -
+            case 0x5F:
+                characterCode = 0x2D;
+                break;
+        }
+    }
+    return characterCode;
+};
 
 })();

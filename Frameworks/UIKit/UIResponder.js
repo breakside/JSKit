@@ -150,6 +150,20 @@ JSClass("UIResponder", JSObject, {
         if (next !== null){
             next.scrollWheel(event);
         }
+    },
+
+    magnify: function(event){
+        var next = this.getNextResponder();
+        if (next !== null){
+            next.magnify(event);
+        }
+    },
+
+    rotate: function(event){
+        var next = this.getNextResponder();
+        if (next !== null){
+            next.rotate(event);
+        }
     }
 
 });

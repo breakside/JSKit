@@ -162,6 +162,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
         // FIXME: needs to respect state of any prior canvas
         if (!this._canvasContext){
             var scale = this.element.ownerDocument.defaultView.devicePixelRatio || 1;
+            // FIXME: scale should account for any transform on our layer or its ancestor layers
             var canvas = this._dequeueReusableCanvasElement();
             canvas.width = this.size.width * scale;
             canvas.height = this.size.height * scale;

@@ -111,7 +111,8 @@ class TestsBuilder(Builder):
                 jsCompilation.include(path)
             jsCompilation.include(bundleJSFile, 'bundle.js')
             for outfile in jsCompilation.outfiles:
-                outfile.fp.flush()
+                if not outfile.fp.closed:
+                    outfile.fp.flush()
                 outputPath = os.path.join(self.outputProductPath, outfile.name)
                 if not os.path.exists(os.path.dirname(outputPath)):
                     os.makedirs(os.path.dirname(outputPath))
@@ -119,6 +120,8 @@ class TestsBuilder(Builder):
                     os.symlink(outfile.fp.name, outputPath)
                 else:
                     shutil.copy(outfile.fp.name, outputPath)
+                if not outfile.fp.closed:
+                    outfile.fp.close()
                 self.appJS.append(outputPath)
             for importedPath in jsCompilation.importedScriptPaths():
                 self.watchFile(importedPath)
@@ -210,7 +213,8 @@ class TestsBuilder(Builder):
                 jsCompilation.include(path)
             jsCompilation.include(bundleJSFile, 'bundle.js')
             for outfile in jsCompilation.outfiles:
-                outfile.fp.flush()
+                if not outfile.fp.closed:
+                    outfile.fp.flush()
                 outputPath = os.path.join(self.outputProductPath, outfile.name)
                 if not os.path.exists(os.path.dirname(outputPath)):
                     os.makedirs(os.path.dirname(outputPath))
@@ -220,6 +224,8 @@ class TestsBuilder(Builder):
                     else:
                         shutil.copy(outfile.fp.name, outputPath)
                 self.nodeAppJS.append(outputPath)
+                if not outfile.fp.closed:
+                    outfile.fp.close()
             for importedPath in jsCompilation.importedScriptPaths():
                 self.watchFile(importedPath)
         exePath = os.path.join(self.outputProjectPath, 'tests')

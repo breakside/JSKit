@@ -8,6 +8,7 @@ JSClass("UIMenuItem", JSObject, {
     index: 0,
     title: JSDynamicProperty('_title', null),
     keyEquivalent: JSDynamicProperty('_keyEquivalent', null),
+    _keyEquivalentCode: 0,
     keyModifiers: JSDynamicProperty('_keyModifiers', 0),
     image: JSDynamicProperty('_image', null),
     onImage: JSDynamicProperty('_onImage', null),
@@ -51,7 +52,7 @@ JSClass("UIMenuItem", JSObject, {
                 this._indentationLevel = spec.resolvedValue(values.indentationLevel);
             }
             if ('keyEquivalent' in values){
-                this._keyEquivalent = spec.resolvedValue(values.keyEquivalent);
+                this.keyEquivalent = spec.resolvedValue(values.keyEquivalent);
             }
             if ('keyModifiers' in values){
                 this._keyModifiers = spec.resolvedValue(values.keyModifiers);
@@ -72,6 +73,15 @@ JSClass("UIMenuItem", JSObject, {
     initSeparator: function(){
         this._isSeparator = true;
         this._isEnabled = false;
+    },
+
+    setKeyEquivalent: function(keyEquivalent){
+        this._keyEquivalent = keyEquivalent;
+        if (keyEquivalent !== null){
+            this._keyEquivalentCode = UIMenu.keyEquivalentCodeForCharacterCode(keyEquivalent.charCodeAt(0));
+        }else{
+            this._keyEquivalentCode = 0;
+        }
     },
 
     setEnabled: function(isEnabled){

@@ -18,6 +18,9 @@ JSClass('UIEvent', JSObject, {
     modifiers: JSReadOnlyProperty('_modifiers', 0),
     clickCount: JSReadOnlyProperty('_clickCount', 0),
     scrollingDelta: JSReadOnlyProperty('_scrollingDelta', null),
+    phase: JSReadOnlyProperty('_phase', 0),
+    magnification: JSReadOnlyProperty('_magnification', 1),
+    rotation: JSReadOnlyProperty('_rotation', 1),
 
     initMouseEventWithType: function(type, timestamp, window, location, modifiers, clickCount){
         this._category = UIEvent.Category.mouse;
@@ -49,7 +52,7 @@ JSClass('UIEvent', JSObject, {
         this._touches = [];
     },
 
-    initScrollEventWithType: function(type, timestamp, window, location, deltaX, deltaY){
+    initScrollEventWithType: function(type, timestamp, window, location, deltaX, deltaY, modifiers){
         this._category = UIEvent.Category.scroll;
         this._type = type;
         this._timestamp = timestamp;
@@ -57,6 +60,26 @@ JSClass('UIEvent', JSObject, {
         this._locationInWindow = location;
         this._scrollingDelta = JSPoint(deltaX, deltaY);
         this._touches = [];
+        this._modifiers = modifiers || UIEvent.Modifier.none;
+    },
+
+    initGestureEventWithType: function(type, timestamp, window, location, phase, value, modifiers){
+        this._category = UIEvent.Category.gesture;
+        this._type = type;
+        this._timestamp = timestamp;
+        this._windows = [window];
+        this._locationInWindow = location;
+        this._phase = phase;
+        switch (type){
+            case UIEvent.Type.magnify:
+                this._magnification = value;
+                break;
+            case UIEvent.Type.rotate:
+                this._rotation = value;
+                break;
+        }
+        this._touches = [];
+        this._modifiers = modifiers || UIEvent.Modifier.none;
     },
 
     getWindow: function(){
@@ -125,7 +148,8 @@ UIEvent.Category = {
     mouse: 0,
     key: 1,
     touches: 2,
-    scroll: 3
+    scroll: 3,
+    gesture: 4
 };
 
 UIEvent.Type = {
@@ -144,7 +168,16 @@ UIEvent.Type = {
     touchesMoved: 12,
     touchesEnded: 13,
     touchesCanceled: 14,
-    scrollWheel: 15
+    scrollWheel: 15,
+    magnify: 16,
+    rotate: 17
+};
+
+UIEvent.Phase = {
+    none: 0,
+    began: 1,
+    changed: 2,
+    ended: 3
 };
 
 UIEvent.Modifier = {

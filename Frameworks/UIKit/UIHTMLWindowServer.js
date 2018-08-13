@@ -66,6 +66,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.addEventListener('mouseup', this, false);
         this.rootElement.addEventListener('mousemove', this, false);
         this.rootElement.addEventListener('wheel', this, false);
+        this.rootElement.addEventListener('gesturestart', this, false);
+        this.rootElement.addEventListener('gesturechange', this, false);
+        this.rootElement.addEventListener('gestureend', this, false);
         this.rootElement.addEventListener('keydown', this, false);
         this.rootElement.addEventListener('keyup', this, false);
         this.rootElement.addEventListener('dragstart', this, false);
@@ -256,6 +259,21 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this._createScrollEventFromDOMEvent(e, UIEvent.Type.scrollWheel);
     },
 
+    gesturestart: function(e){
+        this._createGestureEventFromDOMEvent(e, UIEvent.Type.magnify, UIEvent.Phase.began, e.scale);
+        this._createGestureEventFromDOMEvent(e, UIEvent.Type.rotate, UIEvent.Phase.began, e.rotation);
+    },
+
+    gesturechange: function(e){
+        this._createGestureEventFromDOMEvent(e, UIEvent.Type.magnify, UIEvent.Phase.changed, e.scale);
+        this._createGestureEventFromDOMEvent(e, UIEvent.Type.rotate, UIEvent.Phase.changed, e.rotation);
+    },
+
+    gestureend: function(e){
+        this._createGestureEventFromDOMEvent(e, UIEvent.Type.magnify, UIEvent.Phase.ended, e.scale);
+        this._createGestureEventFromDOMEvent(e, UIEvent.Type.rotate, UIEvent.Phase.ended, e.rotation);
+    },
+
     keydown: function(e){
         if (this.keyWindow){
             this._createKeyEventFromDOMEvent(e, UIEvent.Type.keyDown);
@@ -436,7 +454,14 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
 
     _createScrollEventFromDOMEvent: function(e, type){
         var timestamp = e.timeStamp / 1000.0;
-        this.createScrollEvent(type, timestamp, this.mouseLocation, e.deltaX, e.deltaY);
+        var modifiers = this._modifiersFromDOMEvent(e);
+        this.createScrollEvent(type, timestamp, this.mouseLocation, e.deltaX, e.deltaY, modifiers);
+    },
+
+    _createGestureEventFromDOMEvent: function(e, type, phase, value){
+        var timestamp = e.timeStamp / 1000.0;
+        var modifiers = this._modifiersFromDOMEvent(e);
+        this.createGestureEvent(type, timestamp, this.mouseLocation, phase, value, modifiers);
     },
 
     _locationOfDOMTouchInScreen: function(touch){

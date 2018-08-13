@@ -37,13 +37,34 @@ JSClass("UIEventTests", TKTestSuite, {
 
     testInitScrollEvent: function(){
         var window = UIRootWindow.init();
-        var event = UIEvent.initScrollEventWithType(UIEvent.Type.scrollWheel, 1, window, JSPoint(100, 200), 10, -3);
+        var event = UIEvent.initScrollEventWithType(UIEvent.Type.scrollWheel, 1, window, JSPoint(100, 200), 10, -3, 1);
         TKAssertEquals(event.category, UIEvent.Category.scroll);
         TKAssertEquals(event.type, UIEvent.Type.scrollWheel);
         TKAssertEquals(event.timestamp, 1);
         TKAssertExactEquals(event.window, window);
         TKAssertObjectEquals(event.locationInWindow, JSPoint(100, 200));
         TKAssertObjectEquals(event.scrollingDelta, JSPoint(10, -3));
+    },
+
+    testInitGestureEvent: function(){
+        var window = UIRootWindow.init();
+        var event = UIEvent.initGestureEventWithType(UIEvent.Type.magnify, 1, window, JSPoint(100, 200), UIEvent.Phase.began, 1.1);
+        TKAssertEquals(event.category, UIEvent.Category.gesture);
+        TKAssertEquals(event.type, UIEvent.Type.magnify);
+        TKAssertEquals(event.timestamp, 1);
+        TKAssertExactEquals(event.window, window);
+        TKAssertObjectEquals(event.locationInWindow, JSPoint(100, 200));
+        TKAssertExactEquals(event.phase, UIEvent.Phase.began);
+        TKAssertFloatEquals(event.magnification, 1.1);
+
+        event = UIEvent.initGestureEventWithType(UIEvent.Type.rotate, 1, window, JSPoint(100, 200), UIEvent.Phase.changed, Math.PI);
+        TKAssertEquals(event.category, UIEvent.Category.gesture);
+        TKAssertEquals(event.type, UIEvent.Type.rotate);
+        TKAssertEquals(event.timestamp, 1);
+        TKAssertExactEquals(event.window, window);
+        TKAssertObjectEquals(event.locationInWindow, JSPoint(100, 200));
+        TKAssertExactEquals(event.phase, UIEvent.Phase.changed);
+        TKAssertFloatEquals(event.rotation, Math.PI);
     },
 
     testLocationInView: function(){
