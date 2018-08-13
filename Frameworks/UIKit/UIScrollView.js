@@ -136,6 +136,9 @@ JSClass('UIScrollView', UIView, {
 
         // 1. Figure out if we need to show a vertical scroller
         var minY = -this._contentInsets.top;
+        if (this._zoomSpecifiedOffset !== null && this._zoomSpecifiedOffset.y < minY){
+            minY = this._zoomSpecifiedOffset.y;
+        }
         var maxY = Math.max(minY, this._contentSize.height + this._contentInsets.bottom - this._contentFrameSize.height);
         var showsVerticalScroller = this.scrollsVertically && maxY !== minY;
         if (showsVerticalScroller && !this._verticalScroller.floats){
@@ -144,6 +147,9 @@ JSClass('UIScrollView', UIView, {
 
         // 2. Figure out if we need to show a horizontal scroller
         var minX = -this._contentInsets.left;
+        if (this._zoomSpecifiedOffset !== null && this._zoomSpecifiedOffset.x < minX){
+            minX = this._zoomSpecifiedOffset.x;
+        }
         var maxX = Math.max(minX, this._contentSize.width + this._contentInsets.right - this._contentFrameSize.width);
         var showsHorizontalScroller = this.scrollsHorizontally && maxX !== minX;
         if (showsHorizontalScroller && !this._horizontalScroller.floats){
@@ -159,15 +165,15 @@ JSClass('UIScrollView', UIView, {
             }
         }
 
-        // 3. Save the min/max values for other methods to use
+        // 4. Save the min/max values for other methods to use
         this._minContentOffset = JSPoint(minX, minY);
         this._maxContentOffset = JSPoint(maxX, maxY);
 
-        // 4. Show/hide scrollers
+        // 5. Show/hide scrollers
         this._verticalScroller.hidden = !showsVerticalScroller;
         this._horizontalScroller.hidden = !showsHorizontalScroller;
 
-        // 5. Set scroller knob sizes and positions
+        // 6. Set scroller knob sizes and positions
         // The calculations are are fairly straightfoward:
         // - knob proportion is the size of the visible area divided by the total scrollable size including insets
         // - value is the amount we've scrolled divided by the total amount we can scroll
@@ -329,6 +335,7 @@ JSClass('UIScrollView', UIView, {
     minimumZoomScale: JSDynamicProperty('_minimumZoomScale', 1),
     maximumZoomScale: JSDynamicProperty('_maximumZoomScale', 1),
     _minimumZoomIncrement: 0.01,
+    _zoomSpecifiedOffset: null,
     zoomScale: JSDynamicProperty('_zoomScale', 1),
 
     setZoomScale: function(scale){
@@ -346,9 +353,14 @@ JSClass('UIScrollView', UIView, {
             }
             this._zoomScale = scale;
             view.transform = JSAffineTransform.Scaled(this._zoomScale, this._zoomScale);
-            this.contentSize = this.convertRectFromView(view.bounds, view).size;
             var newLocation = this.convertPointFromView(p0, view);
             var newOffset = newLocation.add(offsetDelta);
+            if (scale >= 1){
+                this._zoomSpecifiedOffset = null;
+            }else{
+                this._zoomSpecifiedOffset = newOffset;
+            }
+            this.contentSize = this.convertRectFromView(view.bounds, view).size;
             this.contentOffset = newOffset;
             // TODO: redraw connection views at new scale
         }
