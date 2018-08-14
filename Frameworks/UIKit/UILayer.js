@@ -612,6 +612,7 @@ JSClass("UILayer", JSObject, {
         if (this._displayServer !== null){
             var displayContext = this._displayServer.contextForLayer(this);
             if (context === displayContext){
+                this.setNeedsDisplay();
                 return;
             }
         }

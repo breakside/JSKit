@@ -95,10 +95,10 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             for (j = 0, k = line.attachments.length; j < k; ++j){
                 attachmentInfo = line.attachments[j];
                 if (attachmentInfo.attachment.isKindOfClass(UITextAttachmentView)){
-                    attachmentInfo.attachment.view.frame = JSRect(
-                        JSPoint(line.origin.x + attachmentInfo.run.origin.x, line.origin.y + attachmentInfo.run.origin.y),
-                        attachmentInfo.attachment.view.frame.size
-                    );
+                    // attachmentInfo.attachment.view.frame = JSRect(
+                    //     JSPoint(line.origin.x + attachmentInfo.run.origin.x, line.origin.y + attachmentInfo.run.origin.y),
+                    //     attachmentInfo.attachment.view.frame.size
+                    // );
                 }
                 this.attachments.push(attachmentInfo);
             }
@@ -147,9 +147,7 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             var attachmentInfo;
             for (var i = 0, l = this.attachments.length; i < l; ++i){
                 attachmentInfo = this.attachments[i];
-                if (!attachmentInfo.attachment.isKindOfClass(UITextAttachmentView)){
-                    attachmentInfo.attachment.drawInContextAtPoint(attachmentInfo.context, JSPoint.Zero);
-                }
+                attachmentInfo.attachment.drawInContextAtPoint(attachmentInfo.context, JSPoint.Zero);
             }
         }else{
             UIHTMLTextFrame.$super.drawInContextAtPoint.call(this, context, point);

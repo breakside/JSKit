@@ -183,9 +183,9 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
                 context = UIHTMLDisplayServerContext.initWithElement(element);
                 this.contextsByObjectID[attachment.objectID] = context;
             }
-            if (context.element.parentNode !== parentElement){
-                parentElement.appendChild(context.element);
-            }
+        }
+        if (context.element.parentNode !== parentElement){
+            parentElement.appendChild(context.element);
         }
         return context;
     },
@@ -235,7 +235,9 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         var known = layer._displayServer === this;
         var removeQueued = layer.objectID in this._removedLayers;
         layer._displayServer = this;
-        this._insertedLayers[layer.objectID] = {layer: layer, parentContext: parentContext};
+        if (parentContext !== null){
+            this._insertedLayers[layer.objectID] = {layer: layer, parentContext: parentContext};
+        }
         if (removeQueued){
             delete this._removedLayers[layer.objectID];
         }
@@ -373,10 +375,17 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         }
     },
 
+    attachmentInserted: function(attachment){
+        if (attachment.isKindOfClass(UITextAttachmentView)){
+            var layer = attachment.view.layer;
+            this._layerInserted(layer, null);
+        }
+    },
+
     attachmentRemoved: function(attachment){
         if (attachment.isKindOfClass(UITextAttachmentView)){
-            // this.layerRemoved(attachment.view.layer);
-            attachment.view.removeFromSuperview();
+            var layer = attachment.view.layer;
+            this.layerRemoved(layer);
         }else{
             var context = this.contextsByObjectID[attachment.objectID];
             if (context !== null){

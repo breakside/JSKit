@@ -19,6 +19,7 @@ JSClass('UILabel', UIView, {
     initWithFrame: function(frame){
         UILabel.$super.initWithFrame.call(this, frame);
         this.maximumNumberOfLines = 1;
+        this.layer.textContainer.framesetter.typesetter.attachmentSuperview = this;
     },
 
     initWithSpec: function(spec, values){

@@ -62,12 +62,21 @@ JSClass("JSAttributedString", JSObject, {
         this.replaceCharactersInRangeWithAttributedString(JSRange(this._string.length, 0), attributedString);
     },
 
+    appendAttachment: function(attachment){
+        this.insertAttachment(attachment, this.string.length);
+    },
+
     insertString: function(string, index){
         this.replaceCharactersInRangeWithString(JSRange(index, 0), string);
     },
 
     insertAttributedString: function(attributedString, index){
         this.replaceCharactersInRangeWithAttributedString(JSRange(index, 0), attributedString);
+    },
+
+    insertAttachment: function(attachment, index){
+        var attachmentString = JSAttributedString.initWithAttachment(attachment);
+        this.insertAttributedString(attachmentString, index);
     },
 
     deleteCharactersInRange: function(range){

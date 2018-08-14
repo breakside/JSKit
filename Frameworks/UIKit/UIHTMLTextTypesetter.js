@@ -16,6 +16,7 @@ var layoutElementIndex = 0;
 JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
 
     domDocument: JSReadOnlyProperty('_domDocument'),
+    attachmentSuperview: null,
     _cachedLayout: null,
     _suggestionCache: null,
     _htmlDisplayServer: null,
@@ -108,6 +109,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         var attachment;
         var attachments = [];
         var previousAttachmentsByID = {};
+        var superview;
         if (this._cachedLayout !== null){
             for (i = 0; i < this._cachedLayout.attachments.length; ++i){
                 previousAttachmentsByID[this._cachedLayout.attachments[i].objectID] = this._cachedLayout.attachments[i];
@@ -133,9 +135,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                 span.appendChild(span.ownerDocument.createTextNode(utf16));
             }
             if (attachment !== null){
-                if (attachment.isKindOfClass(UITextAttachmentView)){
-                    attachment.typesetterSuperview.addSubview(attachment.view);
-                }
+                this._htmlDisplayServer.attachmentInserted(attachment);
                 if (attachment.objectID in previousAttachmentsByID){
                     delete previousAttachmentsByID[attachment.objectID];
                 }

@@ -11,13 +11,13 @@ JSClass("UIStackView", UIView, {
 
     initWithSpec: function(spec, values){
         UIStackView.$super.initWithSpec.call(this, spec, values);
+        this._commonStackViewInit();
         if ('contentInsets' in values){
             this._contentInsets = JSInsets.apply(undefined, values.contentInsets.parseNumberArray());
         }
         if ('viewSpacing' in values){
             this._viewSpacing = spec.resolvedValue(values.viewSpacing);
         }
-        this._commonStackViewInit();
     },
 
     _commonStackViewInit: function(){
@@ -49,6 +49,9 @@ JSClass("UIStackView", UIView, {
             if (!view.hidden){
                 h += view.frame.size.height + this._viewSpacing;
             }
+        }
+        if (i > 0){
+            h -= this._viewSpacing;
         }
         this.bounds = JSRect(0, 0, size.width, h);
     },

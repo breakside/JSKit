@@ -6,13 +6,9 @@
 JSClass("UITextAttachmentView", JSTextAttachment, {
 
     view: null,
-    originOffset: null,
-    typesetterSuperview: null,
 
-    initWithView: function(view, typesetterSuperview){
+    initWithView: function(view){
         this.view = view;
-        this.typesetterSuperview = typesetterSuperview;
-        this.originOffset = JSPoint.Zero;
     },
 
     getSize: function(){
@@ -23,10 +19,8 @@ JSClass("UITextAttachmentView", JSTextAttachment, {
     layout: function(font, lineWidth){
     },
 
-    drawInContext: function(context){
-        if (!this.view.superview){
-            this.view.layer.renderInContext(context);
-        }
+    drawInContextAtPoint: function(context, point){
+        this.view.layer.renderInContext(context);
     }
 
 });
