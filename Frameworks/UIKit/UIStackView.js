@@ -1,5 +1,5 @@
 // #import "UIKit/UIView.js"
-/* global JSClass, UIView, UIStackView, JSRect, JSDynamicProperty, JSInsets */
+/* global JSClass, UIView, UIStackView, JSSize, JSRect, JSDynamicProperty, JSInsets */
 'use strict';
 
 JSClass("UIStackView", UIView, {
@@ -41,9 +41,11 @@ JSClass("UIStackView", UIView, {
     sizeToFitSize: function(size){
         var view;
         var h = this._contentInsets.top + this._contentInsets.bottom;
+        var w = this._contentInsets.left + this._contentInsets.right;
+        var subviewSize = JSSize(size.width - w, size.height);
         for (var i = 0, l = this.subviews.length; i < l; ++i){
             view = this.subviews[i];
-            view.sizeToFitSize(size);
+            view.sizeToFitSize(subviewSize);
             if (!view.hidden){
                 h += view.frame.size.height + this._viewSpacing;
             }
@@ -53,11 +55,12 @@ JSClass("UIStackView", UIView, {
 
     layoutSubviews: function(){
         var y = this._contentInsets.top;
-        var w = this.bounds.size.width;
+        var x = this._contentInsets.left;
+        var w = this.bounds.size.width - this._contentInsets.left - this._contentInsets.right;
         var view;
         for (var i = 0, l = this.subviews.length; i < l; ++i){
             view = this.subviews[i];
-            view.frame = JSRect(0, y, w, view.frame.size.height);
+            view.frame = JSRect(x, y, w, view.frame.size.height);
             if (!view.hidden){
                 y += view.frame.size.height + this._viewSpacing;
             }

@@ -1,6 +1,7 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UITextLayer.js"
-/* global JSClass, UIView, UIViewLayerProperty, JSInsets, UITextLayer, UILabel, JSFont */
+// #import "UIKit/UIPasteboard.js"
+/* global JSClass, UIView, UILayer, JSColor, JSDynamicProperty, UIViewLayerProperty, JSInsets, JSRange, UITextLayer, UILabel, JSFont, UIPasteboard, UICursor */
 'use strict';
 
 JSClass('UILabel', UIView, {
@@ -13,6 +14,7 @@ JSClass('UILabel', UIView, {
     textAlignment: UIViewLayerProperty(),
     maximumNumberOfLines: UIViewLayerProperty(),
     textInsets: UIViewLayerProperty(),
+    allowsSelection: JSDynamicProperty('_allowsSelection', false),
 
     initWithFrame: function(frame){
         UILabel.$super.initWithFrame.call(this, frame);
@@ -59,6 +61,117 @@ JSClass('UILabel', UIView, {
 
     getLastBaselineOffsetFromBottom: function(){
         return this.layer.lastBaselineOffsetFromBottom;
+    },
+
+    setAllowsSelection: function(allowsSelection){
+        this._allowsSelection = allowsSelection;
+        if (this._allowsSelection){
+            this.cursor = UICursor.iBeam;
+        }else{
+            this.cursor = null;
+        }
+    },
+
+    canBecomeFirstResponder: function(){
+        return this._allowsSelection;
+    },
+
+    canPerformAction: function(action, sender){
+        if (action === 'copy'){
+            return this._selectionRange !== null && this._selectionRange.length > 0;
+        }
+        return UILabel.$super.canPerformAction.call(this, action, sender);
+    },
+
+    _selectionAnchorIndex: 0,
+    _selectionRange: null,
+
+    mouseDown: function(event){
+        if (!this._allowsSelection){
+            UILabel.$super.mouseDown.call(this, event);
+            return;
+        }
+        var location = event.locationInView(this);
+        var index = this.layer.textLayoutManager.characterIndexAtPoint(location);
+        if (event.clickCount == 1){
+            this.window.firstResponder = this;
+            this._selectionRange = null;
+            this._selectionAnchorIndex = index;
+        }else if (event.clickCount == 2){
+            this._selectionRange = this.layer.textLayoutManager.textStorage.string.rangeForWordAtIndex(index);
+        }else if (event.clickCount == 3){
+            this._selectionRange = JSRange(0, this.text.length);
+        }
+        this._updateSelectionHighlightLayers();
+    },
+
+    mouseDragged: function(event){
+        if (!this._allowsSelection){
+            UILabel.$super.mouseDragged.call(this, event);
+            return;
+        }
+        var location = event.locationInView(this);
+        var index = this.layer.textLayoutManager.characterIndexAtPoint(location);
+        if (index < this._selectionAnchorIndex){
+            this._selectionRange = JSRange(index, this._selectionAnchorIndex - index);
+        }else if (index > this._selectionAnchorIndex){
+            this._selectionRange = JSRange(this._selectionAnchorIndex, index - this._selectionAnchorIndex);
+        }else{
+            this._selectionRange = null;
+        }
+        this._updateSelectionHighlightLayers();
+    },
+
+    mouseUp: function(event){
+        if (!this._allowsSelection){
+            UILabel.$super.mouseUp.call(this, event);
+            return;
+        }
+    },
+
+    copy: function(){
+        var text = this.attributedText.string.substringInRange(this._selectionRange);
+        UIPasteboard.general.setValueForType(text, UIPasteboard.ContentType.plainText);
+        // TODO: attributed text
+    },
+
+    _selectionHighlightLayers: null,
+
+    _updateSelectionHighlightLayers: function(){
+        if (this._selectionHighlightLayers === null){
+            this._selectionHighlightLayers = [];
+        }
+        var rects;
+        if (this._selectionRange !== null && this._selectionRange.length > 0){
+            rects = this.layer.textLayoutManager.rectsForCharacterRange(this._selectionRange);
+        }else{
+            rects = [];
+        }
+        var rect;
+        var layer;
+        for (var i = 0, l = rects.length; i < l; ++i){
+            rect = rects[i];
+            if (i == this._selectionHighlightLayers.length){
+                this._selectionHighlightLayers.push(this._createSelectionHighlightLayer());
+            }
+            this._selectionHighlightLayers[i].frame = rect;
+        }
+        for (var j = this._selectionHighlightLayers.length - 1; j >= i; --j){
+            this._selectionHighlightLayers[j].removeFromSuperlayer();
+            this._selectionHighlightLayers.pop();
+        }
+    },
+
+    _createSelectionHighlightLayer: function(){
+        var layer = UILayer.init();
+        layer.backgroundColor = JSColor.whiteColor.colorWithAlpha(0.2);
+        this.layer.addSublayer(layer);
+        return layer;
+    },
+
+    resignFirstResponder: function(){
+        this._selectionRange = null;
+        this._updateSelectionHighlightLayers();
     }
 
 });

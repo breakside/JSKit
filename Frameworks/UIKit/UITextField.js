@@ -465,6 +465,21 @@ JSClass("UITextField", UIControl, {
     // --------------------------------------------------------------------
     // MARK: - Editing Operations
 
+    canPerformAction: function(action, sender){
+        if (action == 'copy' || action == 'cut'){
+            if (this.secureEntry){
+                return false;
+            }
+            for (var i = 0, l = this._localEditor.selections.length; i < l; ++i){
+                if (this._localEditor.selections[i].range.length > 0){
+                    return true;
+                }
+            }
+            return false;
+        }
+        return UITextField.$super.canPerformAction.call(this, action, sender);
+    },
+
     cut: function(){
         this.copy();
         this._localEditor.deleteSelections();

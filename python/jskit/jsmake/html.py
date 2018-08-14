@@ -184,6 +184,7 @@ class HTMLBuilder(Builder):
                 # TTF weights can be 1 to 1000, CSS weights can on be multiples of 100
                 fp.write('  font-weight: %s;\n' % ((font['info']['weight'] / 100) * 100))
                 fp.write('  src: %s;\n' % ', '.join([self.font_src(variant) for variant in font['variants']]))
+                fp.write('  font-display: block;\n')
                 fp.write('}\n\n')
             self.appCSS.append(outputPath)
             self.manifest.append(outputPath)

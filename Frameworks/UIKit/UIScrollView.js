@@ -370,6 +370,25 @@ JSClass('UIScrollView', UIView, {
         return this._contentView.subviews[0] || null;
     },
 
+    canPerformAction: function(action, sender){
+        if (action == 'zoomIn' || action == 'zoomOut' || action == 'zoomDefault'){
+            if (this._minimumZoomScale == this._maximumZoomScale){
+                return false;
+            }
+            if (action == 'zoomDefault' && this._zoomScale == 1){
+                return false;
+            }
+            if (action == 'zoomIn' &&  this._maximumZoomScale - this._zoomScale < this._minimumZoomIncrement){
+                return false;
+            }
+            if (action == 'zoomOut' && this._zoomScale - this._minimumZoomScale < this._minimumZoomIncrement){
+                return false;
+            }
+            return true;
+        }
+        return UIScrollView.$super.canPerformAction.call(this, action, sender);
+    },
+
     zoomIn: function(sender){
         var location = this.contentView.frame.center;
         var scale;

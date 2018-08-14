@@ -49,6 +49,12 @@ JSClass('UIWindow', UIView, {
         if ('isUserMovable' in values){
             this.isUserMovable = values.isUserMovable;
         }
+        if ('isMovableByContent' in values){
+            this.isMovableByContent = values.isMovableByContent;
+        }
+        if ('escapeClosesWindow' in values){
+            this.escapeClosesWindow = values.escapeClosesWindow;
+        }
         if ('firstResponder' in values){
             this._initialFirstResponder = spec.resolvedValue(values.firstResponder);
         }
@@ -259,6 +265,8 @@ JSClass('UIWindow', UIView, {
     // -------------------------------------------------------------------------
     // MARK: - Opening & Closing
 
+    escapeClosesWindow: false,
+
     open: function(){
         this.orderFront();
     },
@@ -322,14 +330,17 @@ JSClass('UIWindow', UIView, {
     // MARK: - Events
 
     isUserMovable: true,
+    isMovableByContent: true,
     _downLocation: null,
     _downOrigin: null,
     _isMoving: false,
+    _didMove: false,
 
     mouseDown: function(event){
         // this.setFirstResponder(null);
         if (this.level == UIWindow.Level.normal && this.isUserMovable){
-            if (this.containsPoint(event.locationInWindow)){
+            var contentLocation = event.locationInView(this.contentView);
+            if (this.containsPoint(event.locationInWindow) && (this.isMovableByContent || !this.contentView.containsPoint(contentLocation))){
                 this._downLocation = this.convertPointToScreen(event.locationInWindow);
                 this._downOrigin = JSPoint(this.frame.origin);
                 this._isMoving = true;
@@ -345,6 +356,7 @@ JSClass('UIWindow', UIView, {
         if (!this._isMoving){
             return;
         }
+        this._didMove = true;
         var location = this.convertPointToScreen(event.locationInWindow);
         var d = JSPoint(location.x - this._downLocation.x, location.y - this._downLocation.y);
         var origin = JSPoint(this._downOrigin.x + d.x, this._downOrigin.y + d.y);
@@ -365,10 +377,19 @@ JSClass('UIWindow', UIView, {
     mouseUp: function(){
         if (this._isMoving){
             this._isMoving = false;
-            this._autosaveToUserDefaults();
+            if (this._didMove){
+                this._didMove = false;
+                this._autosaveToUserDefaults();
+            }
         }
         this._downLocation = null;
         this._downOrigin = null;
+    },
+
+    keyDown: function(event){
+        if (this.escapeClosesWindow && event.key == UIEvent.Key.escape){
+            this.close();
+        }
     },
 
     // -------------------------------------------------------------------------
