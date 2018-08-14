@@ -19,7 +19,6 @@ JSClass('UILabel', UIView, {
     initWithFrame: function(frame){
         UILabel.$super.initWithFrame.call(this, frame);
         this.maximumNumberOfLines = 1;
-        this.layer.textContainer.framesetter.typesetter.attachmentSuperview = this;
     },
 
     initWithSpec: function(spec, values){
@@ -86,6 +85,24 @@ JSClass('UILabel', UIView, {
 
     _selectionAnchorIndex: 0,
     _selectionRange: null,
+
+    hitTest: function(location){
+        var hit = UILabel.$super.hitTest.call(this, location);
+        if (hit === this){
+            var index = this.layer.textLayoutManager.characterIndexAtPoint;
+            var attributes = this.attributedText.attributesAtIndex(index);
+            var attachment = attributes[JSAttributedString.Attribute.attachment];
+            if (attachment && attachment.isKindOfClass(UITextAttachmentView)){
+                var rect = this.layer.textLayoutManager.rectForCharacterAtIndex(index);
+                var attachmentLocation = location.subtract(rect.origin);
+                var attachmentHit = attachment.view.hitTest(attachmentLocation);
+                if (attachmentHit !== null){
+                    return attachmentHit;
+                }
+            }
+        }
+        return hit;
+    },
 
     mouseDown: function(event){
         if (!this._allowsSelection){
