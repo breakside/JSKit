@@ -22,6 +22,7 @@ JSProtocol("UIListViewDelegate", JSProtocol, {
     // Selection
     listViewShouldSelectCellAtIndexPath: ['listView', 'indexPath'],
     listViewDidSelectCellAtIndexPath: ['listView', 'indexPath'],
+    listViewDidFinishSelectingCellAtIndexPath: ['listView', 'indexPath'],
     listViewDidOpenCellAtIndexPath: ['listView', 'indexPath'],
 
     // Context menu
@@ -1391,6 +1392,9 @@ JSClass("UIListView", UIScrollView, {
             }
             if (this._handledSelectionOnDown){
                 this._handledSelectionOnDown = false;
+                if (this.delegate && this.delegate.listViewDidFinishSelectingCellAtIndexPath){
+                    this.delegate.listViewDidFinishSelectingCellAtIndexPath(this, cell.indexPath);
+                }
                 return;
             }
             var shouldSelect = !this.delegate.listViewShouldSelectCellAtIndexPath || this.delegate.listViewShouldSelectCellAtIndexPath(this, cell.indexPath);
@@ -1399,6 +1403,9 @@ JSClass("UIListView", UIScrollView, {
                 this._updateVisibleCellStates();
                 if (this.delegate && this.delegate.listViewDidSelectCellAtIndexPath){
                     this.delegate.listViewDidSelectCellAtIndexPath(this, cell.indexPath);
+                }
+                if (this.delegate && this.delegate.listViewDidFinishSelectingCellAtIndexPath){
+                    this.delegate.listViewDidFinishSelectingCellAtIndexPath(this, cell.indexPath);
                 }
             }
         }
