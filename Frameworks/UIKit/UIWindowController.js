@@ -5,7 +5,7 @@
 JSClass("UIWindowController", UIViewController, {
 
     _defaultViewClass: "UIWindow",
-    windowDelegate: null,
+    delegate: null,
     autoPositionWindow: true,
 
     initWithSpec: function(spec, values){
@@ -16,8 +16,8 @@ JSClass("UIWindowController", UIViewController, {
             values.view = {contentView: values.view};
         }
         UIWindowController.$super.initWithSpec.call(this, spec, values);
-        if ('windowDelegate' in values){
-            this.windowDelegate = spec.resolvedValue(values.windowDelegate);
+        if ('delegate' in values){
+            this.delegate = spec.resolvedValue(values.delegate);
         }
     },
 
@@ -47,8 +47,8 @@ JSClass("UIWindowController", UIViewController, {
         if (this.window.contentViewController){
             this.window.contentViewController.viewDidDisappear(animated);
         }
-        if (this.windowDelegate){
-            this.windowDelegate.windowControllerDidClose(this);
+        if (this.delegate){
+            this.delegate.windowControllerDidClose(this);
         }
         this.unloadView();
     },

@@ -278,7 +278,7 @@ JSClass("UIMenuBar", UIWindow, {
             this.makeKey();
         }
         if (this.windowController){
-            this.windowController.windowDelegate = null;
+            this.windowController.delegate = null;
             this.windowController.close();
             this.windowController = null;
             this.makeKey();
@@ -292,7 +292,7 @@ JSClass("UIMenuBar", UIWindow, {
                 this.openMenu(this.submenu, itemView);
             }else if (itemView._item.windowControllerClass){
                 this.windowController = itemView._item.windowControllerClass.init();
-                this.windowController.windowDelegate = this;
+                this.windowController.delegate = this;
                 var window = this.windowController.window;
                 var maxWidth = Math.floor(this.screen.frame.size.width * 0.3);
                 window.frame = JSRect(0, 0, maxWidth, 0);
@@ -336,7 +336,7 @@ JSClass("UIMenuBar", UIWindow, {
     },
 
     windowControllerDidClose: function(windowController){
-        this.windowController.windowDelegate = null;
+        this.windowController.delegate = null;
         this.windowController = null;
         this._highlightedItemView.highlighted = false;
         this._highlightedItemView = null;

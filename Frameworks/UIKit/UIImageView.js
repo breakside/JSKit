@@ -1,6 +1,6 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UIImageLayer.js"
-/* global JSClass, UIView, UIImageView, UIImageLayer, JSImage, JSRect, UIViewLayerProperty, JSDynamicProperty, JSSize */
+/* global JSClass, UIView, UIImageView, UIImageLayer, JSImage, JSRect, JSColor, UIViewLayerProperty, JSDynamicProperty, JSSize */
 'use strict';
 
 JSClass("UIImageView", UIView, {
@@ -21,6 +21,9 @@ JSClass("UIImageView", UIView, {
         UIImageView.$super.initWithSpec.call(this, spec, values);
         if ('renderMode' in values){
             this.renderMode = spec.resolvedValue(values.renderMode);
+        }
+        if ('templateColor' in values){
+            this.templateColor = spec.resolvedValue(values.templateColor, "JSColor");
         }
         if ('image' in values){
             this.image = JSImage.initWithResourceName(values.image, spec.bundle);

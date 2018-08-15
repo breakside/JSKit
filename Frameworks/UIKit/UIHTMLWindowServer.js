@@ -84,6 +84,8 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.addEventListener('beforecut', this, false);
         this.rootElement.addEventListener('beforecopy', this, false);
         this.rootElement.addEventListener('beforepaste', this, false);
+        this.domWindow.addEventListener('focus', this, false);
+        this.domWindow.addEventListener('blur', this, false);
         this.domWindow.addEventListener('resize', this, false);
         this.domWindow.addEventListener('languagechange', this, false);
 
@@ -411,6 +413,31 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             this.screen.frame = JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight);
             this.screenDidChangeFrame(oldFrame);
         }
+    },
+
+    _queuedKeyWindow: null,
+    _hasFocus: true,
+
+    makeWindowKey: function(window){
+        if (this._hasFocus){
+            UIHTMLWindowServer.$super.makeWindowKey.call(this, window);
+        }else{
+            this._queuedKeyWindow = window;
+        }
+    },
+
+    focus: function(e){
+        this._hasFocus = true;
+        if (this._queuedKeyWindow !== null){
+            this.makeWindowKey(this._queuedKeyWindow);
+            this._queuedKeyWindow = null;
+        }
+    },
+
+    blur: function(e){
+        this._queuedKeyWindow = this.keyWindow;
+        this.makeWindowKey(null);
+        this._hasFocus = false;
     },
 
     languagechange: function(e){

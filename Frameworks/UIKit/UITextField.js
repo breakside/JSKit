@@ -679,7 +679,7 @@ JSClass("UITextField", UIControl, {
         if (this._rightAccessoryView !== null && this._rightAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive){
             this._rightAccessoryView.hidden = false;
         }
-        this._localEditor.didBecomeFirstResponder();
+        this._localEditor.didBecomeFirstResponder(this.window && this.window.isKeyWindow);
         this._didChange = false;
         this.sendActionsForEvent(UIControl.Event.editingDidBegin);
     },

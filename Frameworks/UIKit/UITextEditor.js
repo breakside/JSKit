@@ -179,7 +179,8 @@ JSClass("UITextEditor", JSObject, {
         this._draggingSelection = null;
     },
 
-    didBecomeFirstResponder: function(){
+    didBecomeFirstResponder: function(isWindowKey){
+        this._isWindowKey = isWindowKey;
         this.selectAll();
         this._isFirstResponder = true;
         this.layout();
@@ -229,7 +230,7 @@ JSClass("UITextEditor", JSObject, {
     },
 
     _positionCursors: function(){
-        if (!this._isFirstResponder){
+        if (!this._isFirstResponder || !this._isWindowKey){
             return;
         }
         var i, l;

@@ -86,6 +86,9 @@ JSClass('UIView', UIResponder, {
         if ("nextKeyView" in values){
             this.nextKeyView = spec.resolvedValue(values.nextKeyView);
         }
+        if ("hidden" in values){
+            this.hidden = values.hidden;
+        }
         var i, l;
         if ("subviews" in values){
             for (i = 0, l = values.subviews.length; i < l; ++i){

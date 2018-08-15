@@ -1,0 +1,32 @@
+Required tables:
+
+'cmap'  character to glyph mapping
+'glyf'  glyph data
+'head'  font header
+'hhea'  horizontal header
+'hmtx'  horizontal metrics
+'loca'  index to location
+'maxp'  maximum profile
+'name'  naming
+'post'  PostScript
+
+Other tables
+
+'GPOS' glyph positioning
+'GSUB'
+'GDEF'
+'OS/2'
+
+
+
+
+table checksum
+
+uint32 CalcTableChecksum(uint32 *table, uint32 numberOfBytesInTable){
+    uint32 sum = 0;
+    uint32 nLongs = (numberOfBytesInTable + 3) / 4;
+    while (nLongs-- > 0){
+        sum += *table++;
+    }
+    return sum;
+}
