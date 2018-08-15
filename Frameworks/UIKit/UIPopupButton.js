@@ -84,9 +84,11 @@ JSClass("UIPopupButton", UIControl, {
             var item;
             for (var i = 0, l = this.menu.items.length; i < l; ++i){
                 item = this.menu.items[i];
-                width = this._titleLabel.font.widthOfString(item.title);
-                if (width > this._maxTitleWidth){
-                    this._maxTitleWidth = Math.ceil(width);
+                if (item.title){
+                    width = this._titleLabel.font.widthOfString(item.title);
+                    if (width > this._maxTitleWidth){
+                        this._maxTitleWidth = Math.ceil(width);
+                    }
                 }
             }
         }
