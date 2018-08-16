@@ -16,7 +16,8 @@ JSClass("JSTextAttachment", JSObject, {
 
     initWithImageForFont: function(image, font){
         this._image = image;
-        this._size = JSSize(font.displayLineHeight, font.displayLineHeight);
+        var ratio = image.size.width / image.size.height;
+        this._size = JSSize(ratio * font.displayLineHeight, font.displayLineHeight);
         this.baselineAdjustment = font.displayDescender;
     },
 
