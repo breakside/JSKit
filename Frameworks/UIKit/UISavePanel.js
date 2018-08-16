@@ -4,9 +4,8 @@
 
 JSClass("UISavePanel", JSObject, {
 
-    suggestedFilename: null,
-    contentType: null,
-    data: null,
+    
+    file: null,
 
     init: function(){
     },

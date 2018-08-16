@@ -11,3 +11,7 @@
 // #import "Foundation/JSURLSessionDataTask+HTML.js"
 // #import "Foundation/JSURLSessionStreamTask+HTML.js"
 // #import "Foundation/JSFileManager+HTML.js"
+// #import "Foundation/JSFile+HTML.js"
+
+// Subclasses
+// #import "Foundation/JSHTMLFile.js"

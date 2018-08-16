@@ -205,16 +205,24 @@ JSClass("JSURL", JSObject, {
 
     _appendExpandedPathComponents: function(expandedComponents){
         var component;
-        for (var i = 0, l = expandedComponents.length; i < l; ++i){
-            component = expandedComponents[i];
-            if (component !== "" && component !== "."){
-                if (component === ".." && this._pathComponents.length > 0 && this._pathComponents[this._pathComponents.length - 1] !== ".."){
-                    if (this._pathComponents[this._pathComponents.length - 1] !== "/"){
-                        this._pathComponents.pop();
+        var i, l;
+        if (this.scheme === null || this.scheme === 'http' || this.scheme === 'https' || this.scheme === 'file' || this.scheme === 'ftp' || this.scheme === 'io.breakside.jskit.file'){
+            for (i = 0, l = expandedComponents.length; i < l; ++i){
+                component = expandedComponents[i];
+                if (component !== "" && component !== "."){
+                    if (component === ".." && this._pathComponents.length > 0 && this._pathComponents[this._pathComponents.length - 1] !== ".."){
+                        if (this._pathComponents[this._pathComponents.length - 1] !== "/"){
+                            this._pathComponents.pop();
+                        }
+                    }else{
+                        this._pathComponents.push(component);
                     }
-                }else{
-                    this._pathComponents.push(component);
                 }
+            }
+        }else{
+            for (i = 0, l = expandedComponents.length; i < l; ++i){
+                component = expandedComponents[i];
+                this._pathComponents.push(component);
             }
         }
     },

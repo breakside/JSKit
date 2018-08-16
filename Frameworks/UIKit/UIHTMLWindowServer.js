@@ -675,6 +675,8 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
             return UIHTMLDataTransferPasteboard.$super.valueForType.call(this, type);
         }
         if (type === UIPasteboard.ContentType.files){
+            // FIXME: somehow use JSHTMLFile here, but only when an individual file
+            // is accessed
             return this._dataTransfer.files;
         }
         var dataTransferType = this._typeMap[type];

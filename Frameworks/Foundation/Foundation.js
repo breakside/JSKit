@@ -63,6 +63,7 @@
 // #import "Foundation/JSURLSessionStreamTaskDelegate.js"
 
 // #import "Foundation/JSFileManager.js"
+// #import "Foundation/JSFile.js"
 // #import "Foundation/JSUserDefaults.js"
 
 'use strict';

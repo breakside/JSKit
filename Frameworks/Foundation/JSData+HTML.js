@@ -8,7 +8,7 @@ JSData.definePropertiesFromExtensions({
 
     htmlURLString: function(){
         if (!this._blob){
-            this._blob = Blob([this.bytes]);
+            this._blob = new Blob([this.bytes]);
             this._blobURL = URL.createObjectURL(this._blob);
             // FIXME: should try to revokeObjectURL when no longer needed
         }

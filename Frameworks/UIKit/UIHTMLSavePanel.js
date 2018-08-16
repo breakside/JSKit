@@ -9,14 +9,12 @@ JSClass("UIHTMLSavePanel", UISavePanel, {
     init: function(){
     },
 
-    show: function(){
-        var blob = new Blob([this.data.bytes], {type: this.contentType});
-        var url = URL.createObjectURL(blob);
+    show: function(action, target){
         var a = document.createElement('a');
-        a.download = this.suggestedFilename;
-        a.href = url;
+        a.download = this.file.name;
+        a.href = this.file.url.encodedString;
         a.click();
-        URL.revokeObjectURL(url);
+        action.call(target);
     }
 
 });

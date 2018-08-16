@@ -1,5 +1,5 @@
 // #import "UIKit/UIOpenPanel.js"
-/* global document, JSClass, UIOpenPanel, UIHTMLOpenPanel */
+/* global document, JSClass, UIOpenPanel, UIHTMLOpenPanel, JSHTMLFile */
 'use strict';
 
 JSClass("UIHTMLOpenPanel", UIOpenPanel, {
@@ -18,11 +18,23 @@ JSClass("UIHTMLOpenPanel", UIOpenPanel, {
         if (this.allowedContentTypes !== null){
             fileInput.accept = this.allowedContentTypes.join(', ');
         }
+        var panel = this;
         fileInput.onchange = function(){
-            action.call(target, fileInput.files);
+            panel.htmlFiles = fileInput.files;
+            panel.fileCount = fileInput.files.length;
+            action.call(target);
         };
         fileInput.click();
-    }
+    },
+
+    htmlFiles: null,
+
+    getFileAtIndex: function(index){
+        if (index < this.htmlFiles.length){
+            return JSHTMLFile.initWithFile(this.htmlFiles[index]);
+        }
+        return null;
+    },
 
 });
 

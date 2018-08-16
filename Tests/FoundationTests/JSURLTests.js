@@ -175,6 +175,10 @@ JSClass('JSURLTests', TKTestSuite, {
         TKAssertEquals(url.pathComponents[1], '..');
         TKAssertEquals(url.pathComponents[2], 'testing');
         TKAssertEquals(url.pathComponents[3], 'two');
+
+        url = JSURL.initWithString("blob:http://localhost/id");
+        TKAssert(!url.isAbsolute);
+        TKAssertEquals(url.path, "http://localhost/id");
     },
 
     testParseQuery: function(){
