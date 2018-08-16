@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIView.js"
-/* global JSClass, JSTextAttachment, UIView, JSPoint */
+/* global JSClass, JSTextAttachment, UIView, JSPoint, JSSize */
 'use strict';
 
 JSClass("UITextAttachmentView", JSTextAttachment, {
@@ -12,11 +12,11 @@ JSClass("UITextAttachmentView", JSTextAttachment, {
     },
 
     getSize: function(){
-        this.view.layoutIfNeeded();
         return this.view.frame.size;
     },
 
     layout: function(font, lineWidth){
+        this.view.sizeToFitSize(JSSize(lineWidth, Number.MAX_VALUE));
     },
 
     drawInContextAtPoint: function(context, point){

@@ -67,7 +67,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         }
         ++layoutElementIndex;
         this._styleElement(layoutElement, size, lineBreakMode);
-        this._updateElement(layoutElement, range);
+        this._updateElement(layoutElement, size, range);
         this._cachedLayout.lineBreakMode = lineBreakMode;
         --layoutElementIndex;
     },
@@ -99,7 +99,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         }
     },
 
-    _updateElement: function(element, range){
+    _updateElement: function(element, size, range){
         var remainingRange = JSRange(range);
         var runIterator = this.attributedString.runIterator(range.location);
         var i = 0;
@@ -140,6 +140,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                     delete previousAttachmentsByID[attachment.objectID];
                 }
                 attachments.push(attachment);
+                attachment.layout(JSTextTypesetter.FontFromAttributes(runIterator.attributes), size.width);
             }
             runDescriptor = UIHTMLTextTypesetterRunDescriptor(span, runIterator.attributes, runIterator.range.intersection(remainingRange), attachment);
             runDescriptors.push(runDescriptor);

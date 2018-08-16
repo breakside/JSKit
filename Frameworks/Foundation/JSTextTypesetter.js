@@ -116,6 +116,7 @@ JSClass("JSTextTypesetter", JSObject, {
         var runIterator = this._attributedString.runIterator(range.location);
         var initialLineAttributes = runIterator.attributes;
         var codeIterator;
+        var attachment;
         // TODO: support mask character (only important if we need to rasterize a password field, which isn't a major use case)
         // Create run descriptors that at fill the line, maybe going a bit over
         do {
@@ -140,7 +141,9 @@ JSClass("JSTextTypesetter", JSObject, {
                 // here is actually a specially drawn attachment.  The attachment font has a single glyph
                 // that corresponds to the 0xFFFC attachment character code, whose width matches the
                 // attachment's width
-                runDescriptor.font = JSAttachmentFont.initWithAttachment(runIterator.attributes[JSAttributedString.Attribute.attachment]);
+                attachment = runIterator.attributes[JSAttributedString.Attribute.attachment];
+                attachment.layout(preferredFont, width);
+                runDescriptor.font = JSAttachmentFont.initWithAttachment(attachment);
             }else{
                 // 2. Fallback fonts:
                 // If the character is not found in the run's font, switch to a fallback, creating
