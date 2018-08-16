@@ -61,7 +61,10 @@ JSClass("UIControl", UIView, {
     },
 
     getIntrinsicSize: function(){
-        return this._styler.intrinsicSizeOfControl(this);
+        if (this._styler !== null){
+            return this._styler.intrinsicSizeOfControl(this);
+        }
+        return UIControl.$super.getIntrinsicSize.call(this);
     },
 
     sizeToFit: function(){
@@ -69,7 +72,11 @@ JSClass("UIControl", UIView, {
     },
 
     sizeToFitSize: function(size){
-        this._styler.sizeControlToFitSize(this, size);
+        if (this._styler !== null){
+            this._styler.sizeControlToFitSize(this, size);
+        }else{
+            UIControl.$super.sizeToFitSize.call(this, size);
+        }
     },
 
     // MARK: - Actions
@@ -142,7 +149,9 @@ JSClass("UIControl", UIView, {
     },
 
     _didChangeState: function(){
-        this._styler.updateControl(this);
+        if (this._styler !== null){
+            this._styler.updateControl(this);
+        }
     },
 
     _toggleState: function(flag, on){
@@ -254,5 +263,6 @@ UIControl.Event = {
     valueChanged:       1 << 1,
     editingDidBegin:    1 << 2,
     editingChanged:     1 << 3,
-    editingDidEnd:      1 << 4
+    editingDidEnd:      1 << 4,
+    firstUserEvent:     1 << 16
 };
