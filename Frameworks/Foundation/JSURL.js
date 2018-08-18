@@ -266,8 +266,7 @@ JSClass("JSURL", JSObject, {
                 encodedString += String.initWithData(this._encodedUserInfo, String.Encoding.utf8);
                 encodedString += '@';
             }
-            // TODO: encode (punycode)
-            encodedString += this._host;
+            encodedString += JSURL.encodeDomainName(this._host);
             if (this._port !== null){
                 encodedString += ":%d".sprintf(this._port);
             }
@@ -350,6 +349,16 @@ JSClass("JSURL", JSObject, {
     }
 
 });
+
+JSURL.encodeDomainName = function(host){
+    // TODO: implement punycode encoding
+    return host;
+};
+
+JSURL.decodeDomainName = function(encodedHost){
+    // TODO: implement punycode decoding
+    return encodedHost;
+};
 
 var JSURLParser = function(url){
     if (this === undefined){
@@ -492,8 +501,8 @@ JSURLParser.prototype = {
         }
         if (offset > this.offset){
             var hostData = JSData.initWithBytes(this.bytes.subarray(this.offset, offset));
-            this.url._host = String.initWithData(hostData, String.Encoding.utf8);
-            // TODO: decode (punycode)
+            var encodedHost = String.initWithData(hostData, String.Encoding.utf8);
+            this.url._host = JSURL.decodeDomainName(encodedHost);
         }
         this.offset = offset;
         if (b == 0x3A){
