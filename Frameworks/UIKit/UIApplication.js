@@ -148,9 +148,9 @@ JSClass('UIApplication', UIResponder, {
     // MARK: - Sending Events & Actions
 
     sendEvent: function(event){
-        if (event.category === UIEvent.Category.key){
+        if (event.category === UIEvent.Category.key && event.type === UIEvent.Type.keyDown && event.hasModifier(UIPlatform.shared.commandModifier)){
             var mainMenu = this.mainMenu;
-            if (mainMenu && (event.modifiers & UIPlatform.shared.commandModifier)){
+            if (mainMenu){
                 if (mainMenu.performKeyEquivalent(event)){
                     return;
                 }

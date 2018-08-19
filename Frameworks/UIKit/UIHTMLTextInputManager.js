@@ -187,12 +187,13 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
             }
         }
         e.stopPropagation();
+        var shouldPreventDefault = false;
         // We have to capture tab specially in order to prevent default,
         // or else the browser will unfocus the hidden textarea.
         // Tab is also a special UITextInput action, so different inputs
         // can handle it special.
         if (e.key == "Tab"){
-            e.preventDefault();
+            shouldPreventDefault = true;
             if (e.shiftKey){
                 if (this.textInputClient && this.textInputClient.insertBacktab){
                     this.textInputClient.insertBacktab();
@@ -203,37 +204,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                 }
             }
         }
-        // We have to capture undo/redo specially because the browser's
-        // sense of text edits is completely wrong and will be very
-        // confusing to the user.  Longer term, we'll use our own undo
-        // stack and repond to these presses.
-        // These checks could be more specific to platform, but I don't see a problem
-        // catching combinations like Ctrl+Z on a Mac.
-        if (e.key.toLowerCase() == "z"){ // z
-            // Ctrl+Z is Undo on Windows
-            // Cmd+Z is Undo on Mac
-            if (e.ctrlKey || e.metaKey){
-                e.preventDefault();
-                if (e.shiftKey){
-                    // TODO: dispatch redo
-                }else{
-                    // TODO: dispatch undo
-                }
-            }
-        }else if (e.key == "Undo"){
-            e.preventDefault();
-            // TODO: dispatch undo
-        }else if (e.key == "Redo"){
-            e.preventDefault();
-            // TODO: dispatch redo
-        }else if (e.key == "y"){ // y
-            // Ctrl+Y is Redo on Windows
-            if (e.ctrlKey){
-                e.preventDefault();
-                // TODO: dispatch redo
-            }
-        }
-        this.windowServer.keydown(e);
+        this.windowServer.keydown(e, shouldPreventDefault);
         // Bit of a trick here to watch for cursor movement...
         // 1. The cursor position won't be updated until after the event fully propagates
         //    and is processed by the browser, so we need to wait until that happens

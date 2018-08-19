@@ -389,6 +389,8 @@ JSClass('UIWindow', UIView, {
     keyDown: function(event){
         if (this.escapeClosesWindow && event.key == UIEvent.Key.escape){
             this.close();
+        }else{
+            UIWindow.$super.keyDown.call(this, event);
         }
     },
 

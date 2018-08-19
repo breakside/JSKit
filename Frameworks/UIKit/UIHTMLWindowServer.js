@@ -16,11 +16,8 @@
 
 JSClass("UIHTMLWindowServer", UIWindowServer, {
 
-    rootElement: null,
-    domDocument: null,
-    domWindow: null,
-    _cursorViewsById: null,
-    _screenClientOrigin: null,
+    // --------------------------------------------------------------------
+    // MARK: - Creating an HTML Window Server
 
     initWithRootElement: function(rootElement){
         UIHTMLWindowServer.$super.init.call(this);
@@ -36,6 +33,14 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.screen = UIScreen.initWithFrame(JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight), this.domDocument.defaultView.devicePixelRatio || 1);
         this._updateScreenClientOrigin();
     },
+
+    // --------------------------------------------------------------------
+    // MARK: - HMTL Rendering Environment
+
+    rootElement: null,
+    domDocument: null,
+    domWindow: null,
+    _screenClientOrigin: null,
 
     setupRenderingEnvironment: function(){
         if (this.rootElement === this.domDocument.body){
@@ -61,59 +66,10 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.setCursor(UICursor.currentCursor);
     },
 
-    setupEventListeners: function(){
-        this.rootElement.addEventListener('mousedown', this, false);
-        this.rootElement.addEventListener('mouseup', this, false);
-        this.rootElement.addEventListener('mousemove', this, false);
-        this.rootElement.addEventListener('wheel', this, false);
-        this.rootElement.addEventListener('gesturestart', this, false);
-        this.rootElement.addEventListener('gesturechange', this, false);
-        this.rootElement.addEventListener('gestureend', this, false);
-        this.rootElement.addEventListener('keydown', this, false);
-        this.rootElement.addEventListener('keyup', this, false);
-        this.rootElement.addEventListener('dragstart', this, false);
-        this.rootElement.addEventListener('dragend', this, false);
-        this.rootElement.addEventListener('dragover', this, false);
-        this.rootElement.addEventListener('dragenter', this, false);
-        this.rootElement.addEventListener('drop', this, false);
-        this.rootElement.addEventListener('mouseleave', this, false);
-        this.rootElement.addEventListener('contextmenu', this, false);
-        this.rootElement.addEventListener('cut', this, false);
-        this.rootElement.addEventListener('copy', this, false);
-        this.rootElement.addEventListener('paste', this, false);
-        this.rootElement.addEventListener('beforecut', this, false);
-        this.rootElement.addEventListener('beforecopy', this, false);
-        this.rootElement.addEventListener('beforepaste', this, false);
-        this.domWindow.addEventListener('focus', this, false);
-        this.domWindow.addEventListener('blur', this, false);
-        this.domWindow.addEventListener('resize', this, false);
-        this.domWindow.addEventListener('languagechange', this, false);
-
-        // mobile
-        this.rootElement.addEventListener('touchstart', this, {passive: false, capture: false});
-        this.rootElement.addEventListener('touchend', this, {passive: false, capture: false});
-        this.rootElement.addEventListener('touchcancel', this, {passive: false, capture: false});
-        this.rootElement.addEventListener('touchmove', this, {passive: false, capture: false});
-
-        // TODO: special things like file input change
-        // TODO: does stopping key events interfere with browser keyboard shortcuts? (some, yes)
-    },
-
-    handleEvent: function(e){
-        e.stopPropagation();
-        // TODO: Don't prevent default of mousedown or mousemove, because doing so prevents drag events from firing.
-        // Earlier code did prevent default of mousedown and mousemove, as a method
-        // of preventing text selection on the page for things that should not be selectable
-        // (most labels, in a typical app are not selectable).  However, it's possible to
-        // use CSS user-select: none to prevent text selection, and all modern browsers support that,
-        // so there's no side-effect of keeping the default down and move behaviors.
-        // FIXME: there actually is a side-effect: the text input textarea is blurred on mousedown
-        if (e.cancelable && e.type != 'mousedown' && e.type != 'mousemove' && e.type != 'dragstart'){
-            e.preventDefault();
-        }
-        this[e.type](e);
-    },
-
+    // --------------------------------------------------------------------
+    // MARK: - Cursor Management
+    
+    _cursorViewsById: null,
     _isOverridingCursor: false,
 
     viewDidChangeCursor: function(view, cursor){
@@ -207,7 +163,64 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         }
     },
 
+    // --------------------------------------------------------------------
+    // MARK: - HMTL Events
+
+    setupEventListeners: function(){
+        this.rootElement.addEventListener('mousedown', this, false);
+        this.rootElement.addEventListener('mouseup', this, false);
+        this.rootElement.addEventListener('mousemove', this, false);
+        this.rootElement.addEventListener('wheel', this, false);
+        this.rootElement.addEventListener('gesturestart', this, false);
+        this.rootElement.addEventListener('gesturechange', this, false);
+        this.rootElement.addEventListener('gestureend', this, false);
+        this.rootElement.addEventListener('keydown', this, false);
+        this.rootElement.addEventListener('keyup', this, false);
+        this.rootElement.addEventListener('dragstart', this, false);
+        this.rootElement.addEventListener('dragend', this, false);
+        this.rootElement.addEventListener('dragover', this, false);
+        this.rootElement.addEventListener('dragenter', this, false);
+        this.rootElement.addEventListener('drop', this, false);
+        this.rootElement.addEventListener('mouseleave', this, false);
+        this.rootElement.addEventListener('contextmenu', this, false);
+        this.rootElement.addEventListener('cut', this, false);
+        this.rootElement.addEventListener('copy', this, false);
+        this.rootElement.addEventListener('paste', this, false);
+        this.rootElement.addEventListener('beforecut', this, false);
+        this.rootElement.addEventListener('beforecopy', this, false);
+        this.rootElement.addEventListener('beforepaste', this, false);
+        this.domWindow.addEventListener('focus', this, false);
+        this.domWindow.addEventListener('blur', this, false);
+        this.domWindow.addEventListener('resize', this, false);
+        this.domWindow.addEventListener('languagechange', this, false);
+
+        // mobile
+        this.rootElement.addEventListener('touchstart', this, {passive: false, capture: false});
+        this.rootElement.addEventListener('touchend', this, {passive: false, capture: false});
+        this.rootElement.addEventListener('touchcancel', this, {passive: false, capture: false});
+        this.rootElement.addEventListener('touchmove', this, {passive: false, capture: false});
+
+        // TODO: special things like file input change
+        // TODO: does stopping key events interfere with browser keyboard shortcuts? (some, yes)
+    },
+
+    handleEvent: function(e){
+        e.stopPropagation();
+        this[e.type](e);
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Mouse Events
+
     mousedown: function(e){
+        // Don't preventDefault of mousedown, because doing so prevents drag events from firing.
+        // Earlier code did prevent default of mousedown as a method
+        // of preventing text selection on the page for things that should not be selectable
+        // (e.g., most labels in a typical app are not selectable).  However, it's possible to
+        // use CSS user-select: none to prevent text selection, and all modern browsers support that,
+        // so there's no side-effect of keeping the default down behavior.
+        // UPDATE: there actually is a side-effect: the text input textarea is blurred on mousedown,
+        // see mouseup for details.
         this._updateMouseLocation(e);
         switch (e.button){
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
@@ -226,6 +239,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         // accomodate drag and drop, we can't prevent default on mousedown.  Now,
         // each mousedown causes a blur on the text input.  So, we need to restore
         // the focus on mouse up
+        e.preventDefault();
         this.textInputManager._ensureCorrectFocus();
         this._updateMouseLocation(e);
         switch (e.button){
@@ -239,11 +253,18 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     mousemove: function(e){
+        // Don't preventDefault of mousemove, because doing so prevents drag events from firing.
+        // Earlier code did prevent default of mousemove as a method
+        // of preventing text selection on the page for things that should not be selectable
+        // (e.g., most labels in a typical app are not selectable).  However, it's possible to
+        // use CSS user-select: none to prevent text selection, and all modern browsers support that,
+        // so there's no side-effect of keeping the default move behavior.
         this._updateMouseLocation(e);
         this.mouseDidMove(e.timeStamp / 1000.0);
     },
 
     mouseleave: function(e){
+        // mouseleave is not cancelable, so no need for preventDefault
         this._updateMouseLocation(e);
         // When the mouse leaves the root element, we won't get further events.
         // For example, if a mouse button is down, we won't hear about an up outside
@@ -258,209 +279,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     wheel: function(e){
+        // prevent the default wheel behavior so we can do our own
+        e.preventDefault();
         this._createScrollEventFromDOMEvent(e, UIEvent.Type.scrollWheel);
-    },
-
-    gesturestart: function(e){
-        this._createGestureEventFromDOMEvent(e, UIEvent.Type.magnify, UIEvent.Phase.began, e.scale);
-        this._createGestureEventFromDOMEvent(e, UIEvent.Type.rotate, UIEvent.Phase.began, e.rotation);
-    },
-
-    gesturechange: function(e){
-        this._createGestureEventFromDOMEvent(e, UIEvent.Type.magnify, UIEvent.Phase.changed, e.scale);
-        this._createGestureEventFromDOMEvent(e, UIEvent.Type.rotate, UIEvent.Phase.changed, e.rotation);
-    },
-
-    gestureend: function(e){
-        this._createGestureEventFromDOMEvent(e, UIEvent.Type.magnify, UIEvent.Phase.ended, e.scale);
-        this._createGestureEventFromDOMEvent(e, UIEvent.Type.rotate, UIEvent.Phase.ended, e.rotation);
-    },
-
-    keydown: function(e){
-        if (this.keyWindow){
-            this._createKeyEventFromDOMEvent(e, UIEvent.Type.keyDown);
-        }
-    },
-
-    keyup: function(e){
-        if (this.keyWindow){
-            this._createKeyEventFromDOMEvent(e, UIEvent.Type.keyUp);
-        }
-    },
-
-    contextmenu: function(e){
-        // do nothing (all dom events are prevented by default), we have our our context menus
-    },
-
-    _dragImageElement: null,
-
-    prerenderDragImage: function(image){
-        // Safari is picky here and requires that the image element be in the document and
-        // rendered before 'dragstart' references the element.
-        // Firefox and Chrome are perfectly fine showing the image element without it being added,
-        // But Safari ends the drag immedately after start if the image isn't ready.
-        var imageElement = this.domDocument.createElement('img');
-        imageElement.setAttribute("decoding", "sync");
-        imageElement.style.position = 'absolute';
-        imageElement.style.zIndex = -1;
-        imageElement.src = image.htmlURLString();
-        this.rootElement.appendChild(imageElement);
-        this._dragImageElement = imageElement;
-    },
-
-    dragstart: function(e){
-        this._draggingSession.isActive = true;
-        var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
-        temporaryPasteboard.copy(this._draggingSession.pasteboard);
-        e.dataTransfer.effectAllowed = DragOperationToEffectAllowed[this._draggingSession.allowedOperations] || 'none';
-        if (this._dragImageElement !== null){
-            e.dataTransfer.setDragImage(this._dragImageElement, this._draggingSession.imageOffset.x, this._draggingSession.imageOffset.y);
-        }
-    },
-
-    dragend: function(e){
-        if (this._dragImageElement !== null){
-            if (this._dragImageElement.parentNode !== null){
-                this._dragImageElement.parentNode.removeChild(this._dragImageElement);
-            }
-            this._dragImageElement = null;
-        }
-        var element = e.target;
-        while (element.parentNode !== null && !e.target.draggable){
-            element = element.parentNode;
-        }
-        element.draggable = false;
-        this.resetMouseState(e.timeStamp / 1000.0);
-    },
-
-    dragenter: function(e){
-        // If we haven't yet started a dragging session, then the drag must
-        // have originated outside the browser, and this is the first update
-        // we've heard.  Make a new session from the dataTransfer.
-        if (!this._draggingSession){
-            this._updateMouseLocation(e);
-            var pasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
-            var session = UIDraggingSession.initWithPasteboard(pasteboard, this.mouseLocation);
-            session.allowedOperations = EffectAllowedToDragOperation[e.dataTransfer.effectAllowed] || UIDragOperation.none;
-            this.startDraggingSession(session);
-        }
-    },
-
-    dragover: function(e){
-        this._updateMouseLocation(e);
-        this.mouseDidMove(e.timeStamp / 1000.0);
-        e.dataTransfer.dropEffect = DragOperationToDropEffect[this._draggingSession.operation] || 'none';
-    },
-
-    drop: function(e){
-        this._updateMouseLocation(e);
-        if (this._draggingSession.pasteboard.isKindOfClass(UIHTMLDataTransferPasteboard)){
-            // The original dataTransfer object from dragenter doesn't have readable files for security reasons
-            // so we need to update the pasteboard with the new dataTransfer object, which has readable files
-            // NOTE: It's safe to overwrite the entire pasteboard if we started with an HTMLDataTransferPasteboard,
-            // which must have originated from outside the browser, because it cannot contain custom data.
-            this._draggingSession._pasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
-        }
-        this.draggingSessionDidPerformOperation();
-    },
-
-    cut: function(e){
-        if (this.keyWindow === null){
-            return;
-        }
-        this._keyEventHandledBySystemShortcut = true;
-        this.keyWindow.application.sendAction('cut');
-        var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.clipboardData);
-        temporaryPasteboard.copy(UIPasteboard.general);
-    },
-
-    copy: function(e){
-        if (this.keyWindow === null){
-            return;
-        }
-        this._keyEventHandledBySystemShortcut = true;
-        this.keyWindow.application.sendAction('copy');
-        var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.clipboardData);
-        temporaryPasteboard.copy(UIPasteboard.general);
-    },
-
-    paste: function(e){
-        if (this.keyWindow === null){
-            return;
-        }
-        this._keyEventHandledBySystemShortcut = true;
-        var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.clipboardData);
-        UIPasteboard.general.copy(temporaryPasteboard);
-        this.keyWindow.application.sendAction('paste');
-    },
-
-    beforecut: function(e){
-        // Just having a listener seems to always keep Edit > Cut enabled in Safari
-    },
-
-    beforecopy: function(e){
-        // Just having a listener seems to always keep Edit > Copy enabled in Safari
-    },
-
-    beforepaste: function(e){
-        // Not sure if this is really needed like beforecopy seems to be
-        // Safari is only enabling paste when focused in a textarea
-    },
-
-    resize: function(e){
-        if (e.currentTarget === this.domWindow){
-            var oldFrame = JSRect(this.screen.frame);
-            this.screen.frame = JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight);
-            this.screenDidChangeFrame(oldFrame);
-        }
-    },
-
-    _queuedKeyWindow: null,
-    _hasFocus: true,
-
-    makeWindowKey: function(window){
-        if (this._hasFocus){
-            UIHTMLWindowServer.$super.makeWindowKey.call(this, window);
-        }else{
-            this._queuedKeyWindow = window;
-        }
-    },
-
-    focus: function(e){
-        this._hasFocus = true;
-        if (this._queuedKeyWindow !== null){
-            this.makeWindowKey(this._queuedKeyWindow);
-            this._queuedKeyWindow = null;
-        }
-    },
-
-    blur: function(e){
-        this._queuedKeyWindow = this.keyWindow;
-        this.makeWindowKey(null);
-        this._hasFocus = false;
-    },
-
-    languagechange: function(e){
-        // TODO: could reload the page, but what about unsaved work?
-        // Notify JSLocale and have it handle things?
-    },
-
-    // mobile
-
-    touchstart: function(e){
-        this._createTouchEventFromDOMEvent(e, UIEvent.Type.touchesBegan);
-    },
-
-    touchend: function(e){
-        this._createTouchEventFromDOMEvent(e, UIEvent.Type.touchesEnded);
-    },
-
-    touchcancel: function(e){
-        this._createTouchEventFromDOMEvent(e, UIEvent.Type.touchesCanceled);
-    },
-
-    touchmove: function(e){
-        this._createTouchEventFromDOMEvent(e, UIEvent.Type.touchesMoved);
     },
 
     _createMouseEventFromDOMEvent: function(e, type){
@@ -485,42 +306,98 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.createScrollEvent(type, timestamp, this.mouseLocation, e.deltaX, e.deltaY, modifiers);
     },
 
-    _createGestureEventFromDOMEvent: function(e, type, phase, value){
-        var timestamp = e.timeStamp / 1000.0;
-        var modifiers = this._modifiersFromDOMEvent(e);
-        this.createGestureEvent(type, timestamp, this.mouseLocation, phase, value, modifiers);
+    // --------------------------------------------------------------------
+    // MARK: - Key Events
+
+    keydown: function(e, preventDefault){
+        // prevent the default key behavior so we can do our own key processing without
+        // invoking default browser behaviors like tabbing or keyboard shortcuts.
+        // FIXME: However, we want to keep browser shortcuts for cut/copy/paste
+        if (this.keyWindow){
+            this._createKeyEventFromDOMEvent(e, UIEvent.Type.keyDown, preventDefault);
+        }
     },
 
-    _locationOfDOMTouchInScreen: function(touch){
-        return JSPoint(touch.clientX - this._screenClientOrigin.x, touch.clientY - this._screenClientOrigin.y);
+    keyup: function(e){
+        // prevent the default key behavior so we can use our own shortcuts without
+        // invoking default browser behaviors.
+        e.preventDefault();
+        if (this.keyWindow){
+            this._createKeyEventFromDOMEvent(e, UIEvent.Type.keyUp);
+        }
     },
 
-    _keyEventHandledBySystemShortcut: false,
-
-    _createKeyEventFromDOMEvent: function(e, type){
+    _createKeyEventFromDOMEvent: function(e, type, preventDefault){
         var timestamp = e.timeStamp / 1000.0;
         var modifiers = this._modifiersFromDOMEvent(e);
         var key = this._correctedEventKey(e.key);
-        if (modifiers & UIPlatform.shared.commandModifier){
-            // For certain commands like copy/paste that can be triggered by a key
-            // shortcut sequence, the browser will give a keydown to use, and then
-            // also give a separate DOM 'copy' or 'paste' event.  If we handle the
-            // keyboard shortcut ourself, we'll end up doing two copy actions or
-            // two paste actions.  So, if we might be dealing with a command we'll
-            // delay dispatching this key event until the next run loop, by which
-            // point we'll know if another event has fired and taken care of the
-            // indended action already.
-            // Originally I figured that the copy/paste event happend either in the
-            // same or the next run loop iteration, and we could use a Promise()
-            // or two to jump ahead to the next run loop, but that didn't work.
-            // Testing seems to show that requestAnimationFrame is resolved
-            // after the copy/paste event, so we'll go with that.
+        if (preventDefault === undefined){
+            preventDefault = true;
+        }
+        var isCommand = type == UIEvent.Type.keyDown && (modifiers & UIPlatform.shared.commandModifier);
+        if (isCommand){
+            switch (e.keyCode){
+                case 67: // c
+                    if (modifiers === UIPlatform.shared.commandModifier){
+                        // We want to let the copy keyboard shortcut go through, so it can be
+                        // handled by the system.
+                        preventDefault = false;
+                    }
+                    break;
+                case 88: // x
+                    if (modifiers === UIPlatform.shared.commandModifier){
+                        // We want to let the cut keyboard shortcut go through, so it can be
+                        // handled by the system.
+                        preventDefault = false;
+                    }
+                    break;
+                case 86: // v
+                    if (modifiers === UIPlatform.shared.commandModifier){
+                        // We want to let the paste keyboard shortcut go through, so it can be
+                        // handled by the system.
+                        preventDefault = false;
+                    }
+                    break;
+                case 90: // z
+                    if (modifiers === UIPlatform.shared.commandModifier){
+                        // We want to prevent the default undo shortcut, so we can do our own
+                        // undo operation instead of the browser default, which would likely
+                        // mess up our text input manager.
+                        preventDefault = true;
+                        // TODO: Undo
+                    }else if (UIPlatform.shared.identifier === UIPlatform.Identifier.mac && modifiers === (UIPlatform.shared.commandModifier | UIEvent.Modifier.shift)){
+                        // We want to prevent the default redo shortcut, so we can do our own
+                        // undo operation instead of the browser default, which would likely
+                        // mess up our text input manager.
+                        preventDefault = true;
+                        // TODO: Redo (mac)
+                    }
+                    break;
+                case 89: // y
+                    if (modifiers === UIPlatform.shared.commandModifier && UIPlatform.shared.identifier === UIPlatform.Identifier.win){
+                        // We want to prevent the default redo shortcut, so we can do our own
+                        // undo operation instead of the browser default, which would likely
+                        // mess up our text input manager.
+                        preventDefault = true;
+                        // TODO: Redo (win)
+                    }
+                    break;
+            }
+        }
+        if (preventDefault){
+            e.preventDefault();
+        }
+        if (isCommand && !preventDefault){
             var server = this;
-            this._keyEventHandledBySystemShortcut = false;
+            this._wasKeyEventHandledBySystemEvent = false;
             this.domWindow.requestAnimationFrame(function(){
-                if (!server._keyEventHandledBySystemShortcut){
-                    server.createKeyEvent(type, timestamp, key, e.keyCode, modifiers);
+                if (!server.keyWindow){
+                    return;
                 }
+                if (server._wasKeyEventHandledBySystemEvent){
+                    return;
+                }
+                server.createKeyEvent(type, timestamp, key, e.keyCode, modifiers);
             });
         }else{
             this.createKeyEvent(type, timestamp, key, e.keyCode, modifiers);
@@ -543,21 +420,126 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         return key;
     },
 
-    _modifiersFromDOMEvent: function(e){
-        var modifiers = UIEvent.Modifier.none;
-        if (e.altKey){
-            modifiers |= UIEvent.Modifier.option;
+    _wasKeyEventHandledBySystemEvent: false,
+
+    // --------------------------------------------------------------------
+    // MARK: - Drag Events
+
+    dragstart: function(e){
+        // Do not preventDefault of dragstart, or else the drag won't start
+        this._draggingSession.isActive = true;
+        var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
+        temporaryPasteboard.copy(this._draggingSession.pasteboard);
+        e.dataTransfer.effectAllowed = DragOperationToEffectAllowed[this._draggingSession.allowedOperations] || 'none';
+        if (this._dragImageElement !== null){
+            e.dataTransfer.setDragImage(this._dragImageElement, this._draggingSession.imageOffset.x, this._draggingSession.imageOffset.y);
         }
-        if (e.ctrlKey){
-            modifiers |= UIEvent.Modifier.control;
+    },
+
+    dragend: function(e){
+        // dragend is not cancelable, so no need for preventDefault()
+        if (this._dragImageElement !== null){
+            if (this._dragImageElement.parentNode !== null){
+                this._dragImageElement.parentNode.removeChild(this._dragImageElement);
+            }
+            this._dragImageElement = null;
         }
-        if (e.metaKey){
-            modifiers |= UIEvent.Modifier.command;
+        var element = e.target;
+        while (element.parentNode !== null && !e.target.draggable){
+            element = element.parentNode;
         }
-        if (e.shiftKey){
-            modifiers |= UIEvent.Modifier.shift;
+        element.draggable = false;
+        this.resetMouseState(e.timeStamp / 1000.0);
+    },
+
+    dragenter: function(e){
+        // prevent the default dragenter behavior so our custom drag and drop can work
+        e.preventDefault();
+        if (!this._draggingSession){
+            // If we haven't yet started a dragging session, then the drag must
+            // have originated outside the browser, and this is the first update
+            // we've heard.  Make a new session from the dataTransfer.
+            this._updateMouseLocation(e);
+            var pasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
+            var session = UIDraggingSession.initWithPasteboard(pasteboard, this.mouseLocation);
+            session.allowedOperations = EffectAllowedToDragOperation[e.dataTransfer.effectAllowed] || UIDragOperation.none;
+            this.startDraggingSession(session);
         }
-        return modifiers;
+    },
+
+    dragover: function(e){
+        // prevent the default dragover behavior so our custom drag and drop can work
+        e.preventDefault();
+        this._updateMouseLocation(e);
+        this.mouseDidMove(e.timeStamp / 1000.0);
+        e.dataTransfer.dropEffect = DragOperationToDropEffect[this._draggingSession.operation] || 'none';
+    },
+
+    drop: function(e){
+        // prevent the default drop behavior so our custom drag and drop can work
+        e.preventDefault();
+        this._updateMouseLocation(e);
+        if (this._draggingSession.pasteboard.isKindOfClass(UIHTMLDataTransferPasteboard)){
+            // The original dataTransfer object from dragenter doesn't have readable files for security reasons
+            // so we need to update the pasteboard with the new dataTransfer object, which has readable files
+            // NOTE: It's safe to overwrite the entire pasteboard if we started with an HTMLDataTransferPasteboard,
+            // which must have originated from outside the browser, because it cannot contain custom data.
+            this._draggingSession._pasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
+        }
+        this.draggingSessionDidPerformOperation();
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Gesture Events
+
+    gesturestart: function(e){
+        // prevent the default gesture behavior so we can do our own
+        e.preventDefault();
+        this._createGestureEventFromDOMEvent(e, UIEvent.Type.magnify, UIEvent.Phase.began, e.scale);
+        this._createGestureEventFromDOMEvent(e, UIEvent.Type.rotate, UIEvent.Phase.began, e.rotation);
+    },
+
+    gesturechange: function(e){
+        // prevent the default gesture behavior so we can do our own
+        e.preventDefault();
+        this._createGestureEventFromDOMEvent(e, UIEvent.Type.magnify, UIEvent.Phase.changed, e.scale);
+        this._createGestureEventFromDOMEvent(e, UIEvent.Type.rotate, UIEvent.Phase.changed, e.rotation);
+    },
+
+    gestureend: function(e){
+        // prevent the default gesture behavior so we can do our own
+        e.preventDefault();
+        this._createGestureEventFromDOMEvent(e, UIEvent.Type.magnify, UIEvent.Phase.ended, e.scale);
+        this._createGestureEventFromDOMEvent(e, UIEvent.Type.rotate, UIEvent.Phase.ended, e.rotation);
+    },
+
+    _createGestureEventFromDOMEvent: function(e, type, phase, value){
+        var timestamp = e.timeStamp / 1000.0;
+        var modifiers = this._modifiersFromDOMEvent(e);
+        this.createGestureEvent(type, timestamp, this.mouseLocation, phase, value, modifiers);
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Touch Events
+
+    touchstart: function(e){
+        e.preventDefault();
+        this._createTouchEventFromDOMEvent(e, UIEvent.Type.touchesBegan);
+    },
+
+    touchend: function(e){
+        e.preventDefault();
+        this._createTouchEventFromDOMEvent(e, UIEvent.Type.touchesEnded);
+    },
+
+    touchcancel: function(e){
+        e.preventDefault();
+        this._createTouchEventFromDOMEvent(e, UIEvent.Type.touchesCanceled);
+    },
+
+    touchmove: function(e){
+        e.preventDefault();
+        this._createTouchEventFromDOMEvent(e, UIEvent.Type.touchesMoved);
     },
 
     _createTouchEventFromDOMEvent: function(e, type){
@@ -576,19 +558,158 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.createTouchEvent(type, timestamp, touchDescriptors);
     },
 
-    screenDidChangeFrame: function(oldFrame){
-        UIHTMLWindowServer.$super.screenDidChangeFrame.call(this, oldFrame);
-        this._updateScreenClientOrigin();
+    // --------------------------------------------------------------------
+    // MARK: - Clipboard Events
+
+    cut: function(e){
+        // prevent the default cut behavior so our custom data is added to the pasteboard
+        e.preventDefault();
+        this._wasKeyEventHandledBySystemEvent = true;
+        if (this.keyWindow === null){
+            return;
+        }
+        this.keyWindow.application.sendAction('cut');
+        var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.clipboardData);
+        temporaryPasteboard.copy(UIPasteboard.general);
     },
 
-    _updateScreenClientOrigin: function(){
-        var clientRect = this.rootElement.getBoundingClientRect();
-        this._screenClientOrigin = JSPoint(clientRect.left, clientRect.top);
+    copy: function(e){
+        // prevent the default copy behavior so our custom data is added to the pasteboard
+        e.preventDefault();
+        this._wasKeyEventHandledBySystemEvent = true;
+        if (this.keyWindow === null){
+            return;
+        }
+        this.keyWindow.application.sendAction('copy');
+        var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.clipboardData);
+        temporaryPasteboard.copy(UIPasteboard.general);
+    },
+
+    paste: function(e){
+        // prevent the default paste behavior so our custom data is read from the pasteboard
+        e.preventDefault();
+        this._wasKeyEventHandledBySystemEvent = true;
+        if (this.keyWindow === null){
+            return;
+        }
+        var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.clipboardData);
+        UIPasteboard.general.copy(temporaryPasteboard);
+        this.keyWindow.application.sendAction('paste');
+    },
+
+    beforecut: function(e){
+        // Just having a listener seems to always keep Edit > Cut enabled in Safari
+        e.preventDefault();
+    },
+
+    beforecopy: function(e){
+        // Just having a listener seems to always keep Edit > Copy enabled in Safari
+        e.preventDefault();
+    },
+
+    beforepaste: function(e){
+        // Not sure if this is really needed like beforecopy seems to be
+        // Safari is only enabling paste when focused in a textarea
+        e.preventDefault();
+    },
+
+    _dispatchCopy: function(){
+        this.domDocument.execCommand('copy');
+    },
+
+    _dispatchCut: function(){
+        this.domDocument.execCommand('cut');
+    },
+
+    _dispatchPaste: function(){
+        this.domDocument.execCommand('paste');
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Window Events
+
+    resize: function(e){
+        // resize event is not cancelable, so no need for preventDefault
+        if (e.currentTarget === this.domWindow){
+            var oldFrame = JSRect(this.screen.frame);
+            this.screen.frame = JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight);
+            this.screenDidChangeFrame(oldFrame);
+        }
+    },
+
+    contextmenu: function(e){
+        // prevent the default context menu
+        e.preventDefault();
+    },
+
+    focus: function(e){
+        // focus is not cancelable, so no need for preventDefault
+        this._hasFocus = true;
+        if (this._queuedKeyWindow !== null){
+            this.makeWindowKey(this._queuedKeyWindow);
+            this._queuedKeyWindow = null;
+        }
+    },
+
+    blur: function(e){
+        // blur is not cancelable, so no need for preventDefault
+        this._queuedKeyWindow = this.keyWindow;
+        this.makeWindowKey(null);
+        this._hasFocus = false;
+    },
+
+    languagechange: function(e){
+        // blur is not cancelable, so no need for preventDefault
+        // TODO: could reload the page, but what about unsaved work?
+        // Notify JSLocale and have it handle things?
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Common Event Helpers
+
+    _locationOfDOMTouchInScreen: function(touch){
+        return JSPoint(touch.clientX - this._screenClientOrigin.x, touch.clientY - this._screenClientOrigin.y);
+    },
+
+    _modifiersFromDOMEvent: function(e){
+        var modifiers = UIEvent.Modifier.none;
+        if (e.altKey){
+            modifiers |= UIEvent.Modifier.option;
+        }
+        if (e.ctrlKey){
+            modifiers |= UIEvent.Modifier.control;
+        }
+        if (e.metaKey){
+            modifiers |= UIEvent.Modifier.command;
+        }
+        if (e.shiftKey){
+            modifiers |= UIEvent.Modifier.shift;
+        }
+        return modifiers;
     },
 
     _updateMouseLocation: function(e){
         this.mouseLocation.x = e.clientX - this._screenClientOrigin.x;
         this.mouseLocation.y = e.clientY - this._screenClientOrigin.y;
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Drag & Drop Support
+
+    _dragImageElement: null,
+
+    prerenderDragImage: function(image){
+        // Safari is picky here and requires that the image element be in the document and
+        // rendered before 'dragstart' references the element.
+        // Firefox and Chrome are perfectly fine showing the image element without it being added,
+        // But Safari ends the drag immedately after start if the image isn't ready.
+        var imageElement = this.domDocument.createElement('img');
+        imageElement.setAttribute("decoding", "sync");
+        imageElement.style.position = 'absolute';
+        imageElement.style.zIndex = -1;
+        imageElement.src = image.htmlURLString();
+        this.rootElement.appendChild(imageElement);
+        this._dragImageElement = imageElement;
     },
 
     createDraggingSessionWithItems: function(items, event, view){
@@ -611,6 +732,33 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         });
 
         return session;
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Key Window Management
+
+    _queuedKeyWindow: null,
+    _hasFocus: true,
+
+    makeWindowKey: function(window){
+        if (this._hasFocus){
+            UIHTMLWindowServer.$super.makeWindowKey.call(this, window);
+        }else{
+            this._queuedKeyWindow = window;
+        }
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Screen Updates
+
+    screenDidChangeFrame: function(oldFrame){
+        UIHTMLWindowServer.$super.screenDidChangeFrame.call(this, oldFrame);
+        this._updateScreenClientOrigin();
+    },
+
+    _updateScreenClientOrigin: function(){
+        var clientRect = this.rootElement.getBoundingClientRect();
+        this._screenClientOrigin = JSPoint(clientRect.left, clientRect.top);
     }
 
 });

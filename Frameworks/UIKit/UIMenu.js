@@ -181,7 +181,7 @@ JSClass("UIMenu", JSObject, {
     },
 
     performKeyEquivalent: function(event){
-        var item = this._itemForKeyEquivalent(event);
+        var item = this.itemForKeyEquivalent(event);
         if (item !== null){
             this.performActionForItem(item);
             return true;
@@ -189,7 +189,7 @@ JSClass("UIMenu", JSObject, {
         return false;
     },
 
-    _itemForKeyEquivalent: function(event){
+    itemForKeyEquivalent: function(event){
         var item;
         var modifiers;
         if (event.keyCode === 0){
@@ -221,7 +221,7 @@ JSClass("UIMenu", JSObject, {
                 item = this._items[i];
                 if (!item.hidden){
                     if (item.submenu){
-                        item = item.submenu._itemForKeyEquivalent(event);
+                        item = item.submenu.itemForKeyEquivalent(event);
                         if (item !== null){
                             return item;
                         }
