@@ -203,11 +203,11 @@ JSClass("UIListView", UIScrollView, {
         this._headerFooterClassesByIdentifier[identifier] = headerFooterClass;
     },
 
-    dequeueReusableHeaderWithIdentifier: function(identifier, kind, section){
+    dequeueReusableHeaderWithIdentifier: function(identifier, section){
         return this._dequeueReusableHeaderFooterWithIdentifier(identifier, UIListViewHeaderFooterView.Kind.header, section);
     },
 
-    dequeueReusableFooterWithIdentifier: function(identifier, kind, section){
+    dequeueReusableFooterWithIdentifier: function(identifier, section){
         return this._dequeueReusableHeaderFooterWithIdentifier(identifier, UIListViewHeaderFooterView.Kind.footer, section);
     },
 
@@ -354,7 +354,7 @@ JSClass("UIListView", UIScrollView, {
         var section;
         if (this.delegate && (this.delegate.heightForListViewHeaderInSection && !this.delegate.estimatedHeightForListViewHeaders)){
             for (section = 0; section < numberOfSections; ++section){
-                y += this.delegate.heightForListViewHeaderInSection(section);
+                y += this.delegate.heightForListViewHeaderInSection(this, section);
             }
         }else{
             var headerHeight = this._headerHeight;
@@ -1019,7 +1019,7 @@ JSClass("UIListView", UIScrollView, {
     _heightForHeaderInSection: function(section){
         var height = this._headerHeight;
         if (this.delegate.heightForListViewHeaderInSection){
-            height = this.delegate.heightForListViewHeaderInSection(section);
+            height = this.delegate.heightForListViewHeaderInSection(this, section);
         }
         return height;
     },
