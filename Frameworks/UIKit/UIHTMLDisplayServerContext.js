@@ -515,6 +515,9 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
             // because the border element wasn't created yet
             this.propertiesNeedingUpdate.borderWidth = true;
             this.propertiesNeedingUpdate.borderColor = true;
+            if (layer.cornerRadius > 0){
+                this.propertiesNeedingUpdate.cornerRadius = true;
+            }
         }
 
         if (!this._hasRenderedOnce){
