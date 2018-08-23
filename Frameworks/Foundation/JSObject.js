@@ -34,7 +34,7 @@ JSObject.defineInitMethod = function(methodName){
         value: function JSObject_createAndInit(){
             var obj = Object.create(this.prototype);
             obj.objectID = ++JSObject.ID;
-            obj._observers = [];
+            obj._observers = {};
             obj._bindings = {};
             obj._observableKeys = {};
             if (isSpec && arguments.length > 0 && arguments[0] !== null && arguments[0].willInitObject){
@@ -129,12 +129,12 @@ JSObject.definePropertiesFromExtensions({
     },
 
     _observeValueForKeyPath: function(keyPath, ofObject, change, context){
-        if (this.automaticallyManagesBindings && context && context.type == JSObservingContext.Binding){
+        if (this.automaticallyManagesBindings && context && context.type == JSObject.ObservingContext.Binding){
             var bindingInfo = context;
             var key;
             var i, l;
             var index;
-            if (change.type == JSKeyValueChange.Setting){
+            if (change.type == JSObject.KeyValueChange.Setting){
                 key = bindingInfo.binding;
                 if (bindingInfo.options.valueTransformer){
                     var valueTransformer = JSClassForName(bindingInfo.options.valueTransformer).init();
@@ -142,21 +142,21 @@ JSObject.definePropertiesFromExtensions({
                 }else{
                     this.silentlySetValueForKey(key, change.newValue);
                 }
-            }else if (change.type == JSKeyValueChange.Insertion){
+            }else if (change.type == JSObject.KeyValueChange.Insertion){
                 key = bindingInfo.binding;
                 change.indexes.sort();
                 for (i = 0, l = change.indexes.length; i < l; ++i){
                     index = change.indexes[i];
                     this.silentlyInsertObjectInKeyAtIndex(change.sourceObject.objectInKeyAtIndex(change.sourceKey, index), key, index);
                 }
-            }else if (change.type == JSKeyValueChange.Removal){
+            }else if (change.type == JSObject.KeyValueChange.Removal){
                 key = bindingInfo.binding;
                 change.indexes.sort();
                 for (i = change.indexes.length - 1; i >= 0; --i){
                     index = change.indexes[i];
                     this.silentlyRemoveObjectFromKeyAtIndex(key, index);
                 }
-            }else if (change.type == JSKeyValueChange.Replacement){
+            }else if (change.type == JSObject.KeyValueChange.Replacement){
                 key = bindingInfo.binding;
                 change.indexes.sort();
                 for (i = 0, l = change.indexes.length; i < l; ++i){
@@ -164,7 +164,7 @@ JSObject.definePropertiesFromExtensions({
                     this.silentlyReplaceObjectInKeyAtIndexWithObject(key, index, change.sourceObject.objectInKeyAtIndex(change.sourceKey, index));
                 }
             }
-        }else if (context && context.type == JSObservingContext.Chained){
+        }else if (context && context.type == JSObject.ObservingContext.Chained){
             var observerInfo = context;
             observerInfo.observingObject._observeValueForKeyPath(observerInfo.observingKeyPath, this, change, observerInfo.context);
         }
@@ -173,10 +173,10 @@ JSObject.definePropertiesFromExtensions({
 
     addObserverForKeyPath: function(observer, keyPath, options, context){
         var observerInfo = {
-            type                : JSObservingContext.Chained,
+            type                : JSObject.ObservingContext.Chained,
             observingObject     : observer,
             observingKeyPath    : keyPath,
-            options             : options,
+            options             : options || {},
             context             : context
         };
         var keyParts = keyPath.split('.');
@@ -201,11 +201,11 @@ JSObject.definePropertiesFromExtensions({
         if (key in this._observers){
             for (var i = this._observers[key].length - 1; i >=0; --i){
                 var observerInfo = this._observers[key][i];
-                if (observerInfo.observingObject._id == observer._id && observerInfo.observingKeyPath == keyPath){
+                if (observerInfo.observingObject === observer && observerInfo.observingKeyPath == keyPath){
                     if (context === undefined || context === observerInfo.context){
                         this._observers[key].splice(i,1);
                         if (keyParts.length && value){
-                            value.removeObserverForKeyPath(this, keyParts.join('.'), context);
+                            value.removeObserverForKeyPath(this, keyParts.join('.'), observerInfo);
                         }
                     }
                 }
@@ -222,21 +222,29 @@ JSObject.definePropertiesFromExtensions({
                 this.unbind(binding);
             }
             var bindingInfo = {
-                type            : JSObservingContext.Binding,
+                type            : JSObject.ObservingContext.Binding,
                 binding         : binding,
-                observedObject  : toObject._id,
+                observedObject  : toObject,
                 observedKeyPath : keyPath,
-                options         : options
+                options         : options || {}
             };
             this._bindings[binding] = bindingInfo;
             toObject.addObserverForKeyPath(this, keyPath, options, bindingInfo);
+            var key = bindingInfo.binding;
+            var value = toObject.valueForKeyPath(keyPath);
+            if (bindingInfo.options.valueTransformer){
+                var valueTransformer = JSClassForName(bindingInfo.options.valueTransformer).init();
+                this.silentlySetValueForKey(key, valueTransformer.transformValue(value));
+            }else{
+                this.silentlySetValueForKey(key, value);
+            }
         }
     },
 
     unbind: function(binding){
         if (binding in this._bindings){
             var bindingInfo = this._bindings[binding];
-            bindingInfo.observedObject.removeObserverForKeyPath(bindingInfo.observedKeyPath, bindingInfo);
+            bindingInfo.observedObject.removeObserverForKeyPath(this, bindingInfo.observedKeyPath, bindingInfo);
         }
     },
 
@@ -350,9 +358,9 @@ JSObject.definePropertiesFromExtensions({
         }
         var value = this.valueForKey(key);
         if (value !== null && value !== undefined){
-            this.willChangeValuesAtIndexesForKey(key, JSKeyValueChange.Insertion, [index]);
+            this.willChangeValuesAtIndexesForKey(key, JSObject.KeyValueChange.Insertion, [index]);
             value.splice(index, 0, obj);
-            this.didChangeValuesAtIndexesForKey(key, JSKeyValueChange.Insertion, [index]);
+            this.didChangeValuesAtIndexesForKey(key, JSObject.KeyValueChange.Insertion, [index]);
         }
     },
 
@@ -363,9 +371,9 @@ JSObject.definePropertiesFromExtensions({
         }
         var value = this.valueForKey(key);
         if (value !== null && value !== undefined){
-            this.willChangeValuesAtIndexesForKey(key, JSKeyValueChange.Removal, [index]);
+            this.willChangeValuesAtIndexesForKey(key, JSObject.KeyValueChange.Removal, [index]);
             value.splice(index, 1);
-            this.didChangeValuesAtIndexesForKey(key, JSKeyValueChange.Removal, [index]);
+            this.didChangeValuesAtIndexesForKey(key, JSObject.KeyValueChange.Removal, [index]);
         }
     },
 
@@ -376,9 +384,9 @@ JSObject.definePropertiesFromExtensions({
         }
         var value = this.valueForKey(key);
         if (value !== null && value !== undefined){
-            this.willChangeValuesAtIndexesForKey(key, JSKeyValueChange.Replacement, [index]);
+            this.willChangeValuesAtIndexesForKey(key, JSObject.KeyValueChange.Replacement, [index]);
             value[index] = obj;
-            this.didChangeValuesAtIndexesForKey(key, JSKeyValueChange.Replacement, [index]);
+            this.didChangeValuesAtIndexesForKey(key, JSObject.KeyValueChange.Replacement, [index]);
         }
     },
 
@@ -433,7 +441,7 @@ JSObject.definePropertiesFromExtensions({
     willChangeValueForKey: function(key){
         var value = this.valueForKey(key);
         if (value && key in this._observers){
-            for (var i = 0, l = this._observers[key]; i < l; ++i){
+            for (var i = 0, l = this._observers[key].length; i < l; ++i){
                 var observerInfo = this._observers[key][i];
                 var keyParts = observerInfo.observingKeyPath.split('.');
                 keyParts.shift();
@@ -446,15 +454,21 @@ JSObject.definePropertiesFromExtensions({
 
     didChangeValueForKey: function(key){
         var value = this.valueForKey(key);
+        var observedValue;
+        var keyPath;
         if (key in this._observers){
             for (var i = 0, l = this._observers[key].length; i < l; ++i){
                 var observerInfo = this._observers[key][i];
-                observerInfo.observingObject._observeValueForKeyPath(observerInfo.observingKeyPath, this, {type: JSKeyValueChange.Setting, newValue: value}, observerInfo.context);
                 var keyParts = observerInfo.observingKeyPath.split('.');
                 keyParts.shift();
                 if (keyParts.length && value){
-                    value.addObserverForKeyPath(this, keyParts.join('.'), observerInfo.options, observerInfo);
+                    keyPath = keyParts.join('.');
+                    value.addObserverForKeyPath(this, keyPath, observerInfo.options, observerInfo);
+                    observedValue = value.valueForKeyPath(keyPath);
+                }else{
+                    observedValue = value;
                 }
+                observerInfo.observingObject._observeValueForKeyPath(observerInfo.observingKeyPath, this, {type: JSObject.KeyValueChange.Setting, newValue: observedValue}, observerInfo.context);
             }
         }
         if (this.automaticallyManagesBindings && key in this._bindings){
@@ -494,18 +508,18 @@ JSObject.definePropertiesFromExtensions({
                 }
                 if (targetObject){
                     indexes.sort();
-                    if (change == JSKeyValueChange.Insertion){
+                    if (change == JSObject.KeyValueChange.Insertion){
                         for (i = 0, l = indexes.length; i < l; ++i){
                             index = indexes[i];
                             obj = this.objectInKeyAtIndex(key, index);
                             targetObject.insertObjectInKeyPathAtIndex(obj, finalKey, index);
                         }
-                    }else if (change == JSKeyValueChange.Removal){
+                    }else if (change == JSObject.KeyValueChange.Removal){
                         for (i = indexes.length - 1; i >=0; --i){
                             index = indexes[i];
                             targetObject.removeObjectFromKeyPathAtIndex(finalKey, index);
                         }
-                    }else if (change == JSKeyValueChange.Replacement){
+                    }else if (change == JSObject.KeyValueChange.Replacement){
                         for (i = 0, l = indexes.length; i < l; ++i){
                             index = indexes[i];
                             obj = this.objectInKeyAtIndex(key, index);
@@ -553,9 +567,9 @@ JSObject.definePropertiesFromExtensions({
                 configurable: false,
                 enumerable: false,
                 value: function JSObject_observableInsert(obj, index){
-                    this.willChangeValuesAtIndexesForKey(key, JSKeyValueChange.Insertion, [index]);
+                    this.willChangeValuesAtIndexesForKey(key, JSObject.KeyValueChange.Insertion, [index]);
                     originalMethod.call(this, obj, index);
-                    this.didChangeValueForKey(key, JSKeyValueChange.Insertion, [index]);
+                    this.didChangeValueForKey(key, JSObject.KeyValueChange.Insertion, [index]);
                 }
             });
         }
@@ -575,9 +589,9 @@ JSObject.definePropertiesFromExtensions({
                 configurable: false,
                 enumerable: false,
                 value: function JSObject_observableRemove(obj, index){
-                    this.willChangeValuesAtIndexesForKey(key, JSKeyValueChange.Removal, [index]);
+                    this.willChangeValuesAtIndexesForKey(key, JSObject.KeyValueChange.Removal, [index]);
                     originalMethod.call(this, obj, index);
-                    this.didChangeValueForKey(key, JSKeyValueChange.Removal, [index]);
+                    this.didChangeValueForKey(key, JSObject.KeyValueChange.Removal, [index]);
                 }
             });
         }
@@ -597,9 +611,9 @@ JSObject.definePropertiesFromExtensions({
                 configurable: false,
                 enumerable: false,
                 value: function JSObject_observableReplace(obj, index){
-                    this.willChangeValuesAtIndexesForKey(key, JSKeyValueChange.Replacement, [index]);
+                    this.willChangeValuesAtIndexesForKey(key, JSObject.KeyValueChange.Replacement, [index]);
                     originalMethod.call(this, obj, index);
-                    this.didChangeValueForKey(key, JSKeyValueChange.Replacement, [index]);
+                    this.didChangeValueForKey(key, JSObject.KeyValueChange.Replacement, [index]);
                 }
             });
         }
@@ -663,12 +677,12 @@ JSObject.definePropertiesFromExtensions({
 
 });
 
-var JSObservingContext = {
-    Binding: "JSObservingContextBinding",
-    Chained: "JSObservingContextChained"
+JSObject.ObservingContext = {
+    Binding: "Binding",
+    Chained: "Chained"
 };
 
-var JSKeyValueChange = {
+JSObject.KeyValueChange = {
     Setting: 1,
     Insertion: 2,
     Removal: 3,
