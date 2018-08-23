@@ -905,6 +905,9 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
             }else if (file.isKindOfClass(JSDataFile)){
                 htmlFile = new File(file._data.bytes, file.name, {type: file.contentType});
             }
+            // This allows files to be dragged out of Chrome to the Desktop.
+            // Disabling for now because there's not a good hook for revoking the file url when the pasteboard is done with it
+            // this._dataTransfer.setData("DownloadUrl", "%s:%s:%s".sprintf(file.contentType, file.name, file.url));
         }
         if (htmlFile !== null){
             this._dataTransfer.items.add(htmlFile);
