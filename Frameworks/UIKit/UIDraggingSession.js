@@ -62,7 +62,8 @@ JSClass("UIDraggingSession", JSObject, {
     },
 
     isValidDestination: function(destination){
-        return this._pasteboard.containsAnyType(destination.registeredDraggedTypes);
+        var registeredTypes = destination.registeredDraggedTypes;
+        return registeredTypes !== null && registeredTypes.length > 0 && this._pasteboard.containsAnyType(registeredTypes);
     },
 
     setImage: function(image, offset){
