@@ -17,6 +17,9 @@ JSClass("JSFile", JSObject, {
     readData: function(completion, target){
     },
 
+    readDataRange: function(range, completion, target){
+    },
+
     getURL: function(){
         return null;
     },
@@ -50,6 +53,10 @@ JSClass("JSDataFile", JSFile, {
 
     readData: function(completion, target){
         completion.call(target, this._data);
+    },
+
+    readDataRange: function(range, completion, target){
+        completion.call(target, this._data.subdataInRange(range));
     }
 
 });

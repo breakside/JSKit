@@ -9,7 +9,8 @@
 // #import "UIKit/UIOpenPanel.js"
 // #feature Element.prototype.addEventListener
 // #feature 'key' in KeyboardEvent.prototype
-/* global JSClass, UIWindowServer, UIWindowServer, UIPlatform, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor, UIView, JSRect, UIScreen, UIDraggingSession, UIHTMLDataTransferPasteboard, UIDragOperation */
+// #feature File
+/* global File, JSClass, UIWindowServer, JSDynamicProperty, UIWindowServer, UIPlatform, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor, UIView, JSRect, UIScreen, UIDraggingSession, UIHTMLDataTransferPasteboard, UIDragOperation, JSHTMLFile, JSDataFile */
 'use strict';
 
 (function(){
@@ -32,6 +33,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.textInputManager.windowServer = this;
         this.screen = UIScreen.initWithFrame(JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight), this.domDocument.defaultView.devicePixelRatio || 1);
         this._updateScreenClientOrigin();
+        UIPasteboard.general = UIHTMLDataTransferPasteboard.init();
     },
 
     // --------------------------------------------------------------------
@@ -421,6 +423,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     _wasKeyEventHandledBySystemEvent: false,
+    _dragingSessionStartedOutsideBrowser: false,
 
     // --------------------------------------------------------------------
     // MARK: - Drag Events
@@ -428,8 +431,10 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     dragstart: function(e){
         // Do not preventDefault of dragstart, or else the drag won't start
         this._draggingSession.isActive = true;
-        var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
-        temporaryPasteboard.copy(this._draggingSession.pasteboard);
+        this._dragingSessionStartedOutsideBrowser = false;
+        // create dummy html pasteboard and re-write our items there so they're availble outside the browser
+        var htmlPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
+        this._draggingSession.writeItemsToPasteboard(htmlPasteboard);
         e.dataTransfer.effectAllowed = DragOperationToEffectAllowed[this._draggingSession.allowedOperations] || 'none';
         if (this._dragImageElement !== null){
             e.dataTransfer.setDragImage(this._dragImageElement, this._draggingSession.imageOffset.x, this._draggingSession.imageOffset.y);
@@ -459,6 +464,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             // If we haven't yet started a dragging session, then the drag must
             // have originated outside the browser, and this is the first update
             // we've heard.  Make a new session from the dataTransfer.
+            this._dragingSessionStartedOutsideBrowser = true;
             this._updateMouseLocation(e);
             var pasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
             var session = UIDraggingSession.initWithPasteboard(pasteboard, this.mouseLocation);
@@ -470,6 +476,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     dragover: function(e){
         // prevent the default dragover behavior so our custom drag and drop can work
         e.preventDefault();
+        if (this._dragingSessionStartedOutsideBrowser){
+            this._draggingSession.pasteboard.dataTransfer = e.dataTransfer;
+        }
         this._updateMouseLocation(e);
         this.mouseDidMove(e.timeStamp / 1000.0);
         e.dataTransfer.dropEffect = DragOperationToDropEffect[this._draggingSession.operation] || 'none';
@@ -479,12 +488,12 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         // prevent the default drop behavior so our custom drag and drop can work
         e.preventDefault();
         this._updateMouseLocation(e);
-        if (this._draggingSession.pasteboard.isKindOfClass(UIHTMLDataTransferPasteboard)){
+        if (this._dragingSessionStartedOutsideBrowser){
             // The original dataTransfer object from dragenter doesn't have readable files for security reasons
             // so we need to update the pasteboard with the new dataTransfer object, which has readable files
             // NOTE: It's safe to overwrite the entire pasteboard if we started with an HTMLDataTransferPasteboard,
             // which must have originated from outside the browser, because it cannot contain custom data.
-            this._draggingSession._pasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
+            this._draggingSession.pasteboard.dataTransfer = e.dataTransfer;
         }
         this.draggingSessionDidPerformOperation();
     },
@@ -568,9 +577,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         if (this.keyWindow === null){
             return;
         }
+        UIPasteboard.general.dataTransfer = e.clipboardData;
         this.keyWindow.application.sendAction('cut');
-        var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.clipboardData);
-        temporaryPasteboard.copy(UIPasteboard.general);
+        UIPasteboard.general.dataTransfer = null;
     },
 
     copy: function(e){
@@ -580,9 +589,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         if (this.keyWindow === null){
             return;
         }
+        UIPasteboard.general.dataTransfer = e.clipboardData;
         this.keyWindow.application.sendAction('copy');
-        var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.clipboardData);
-        temporaryPasteboard.copy(UIPasteboard.general);
+        UIPasteboard.general.dataTransfer = null;
     },
 
     paste: function(e){
@@ -592,9 +601,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         if (this.keyWindow === null){
             return;
         }
-        var temporaryPasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.clipboardData);
-        UIPasteboard.general.copy(temporaryPasteboard);
+        UIPasteboard.general.dataTransfer = e.clipboardData;
         this.keyWindow.application.sendAction('paste');
+        UIPasteboard.general.dataTransfer = null;
     },
 
     beforecut: function(e){
@@ -774,85 +783,183 @@ UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT = 2;
 
 JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
 
-    _dataTransfer: null,
-    _typeMap: null,
+    dataTransfer: JSDynamicProperty('_dataTransfer', null),
+    _dataTransferTypeSet: null,
+    _extraFiles: null,
 
     initWithDataTransfer: function(dataTransfer){
         UIHTMLDataTransferPasteboard.$super.init.call(this);
         this._dataTransfer = dataTransfer;
-        this._typeMap = {};
-        this._values = [];
-        var i, l;
-        var type;
-        var alias;
-        for (i = 0, l = dataTransfer.types.length; i < l; ++i){
-            type = dataTransfer.types[i];
-            alias = DataTransferTypeAliases[type.toLowerCase()] || type;
-            this._typeMap[alias] = type;
-        }
+        this._extraFiles = [];
     },
 
-    _isStandardType: function(type){
-        return (type == UIPasteboard.ContentType.plainText || type == UIPasteboard.ContentType.html);
+    init: function(){
+        UIHTMLDataTransferPasteboard.$super.init.call(this);
+        this._extraFiles = [];
     },
 
-    getTypes: function(){
-        return Object.keys(this._typeMap);
+    setDataTransfer: function(dataTransfer){
+        this._dataTransfer = dataTransfer;
+        this._dataTransferTypeSet = null;
     },
 
-    setValueForType: function(value, type){
-        UIHTMLDataTransferPasteboard.$super.setValueForType.call(this, value, type);
-        var lowerType = type.toLowerCase();
-        if (!this._isStandardType(type)){
-            value = JSON.stringify(value);
-        }
-        try{
-            this._dataTransfer.setData(type, value);
-            this._typeMap[type] = type;
-        }catch(e){
-            var reverseAlias = DataTransferTypeAliasesReveresed[lowerType];
-            if (reverseAlias){
-                this._dataTransfer.setData(reverseAlias, value);
-                this._typeMap[type] = reverseAlias;
+    _updateDataTransferTypeSet: function(){
+        if (this._dataTransferTypeSet === null){
+            this._dataTransferTypeSet = {};
+            var type;
+            for (var i = 0, l = this._dataTransfer.types.length; i < l; ++i){
+                type = this._dataTransfer.types[i];
+                if (type == 'text' || type == 'Text'){
+                    type = 'text/plain';
+                }else if (type == 'url' || type == 'Url'){
+                    type = 'text/uri-list';
+                }
+                this._dataTransferTypeSet[type] = true;
             }
         }
     },
 
-    valueForType: function(type){
-        if (UIHTMLDataTransferPasteboard.$super.containsType.call(this, type)){
-            return UIHTMLDataTransferPasteboard.$super.valueForType.call(this, type);
+    setStringForType: function(str, type){
+        UIHTMLDataTransferPasteboard.$super.setStringForType.call(this, str, type);
+        if (this._dataTransfer !== null){
+            try{
+                this._dataTransfer.setData(type, str);
+            }catch (e){
+                if (type == 'text/plain'){
+                    this._dataTransfer.setData('Text', str);
+                }else if (type == 'text/uri-list'){
+                    this._dataTransfer.setData('Url', str);
+                }else{
+                    throw e;
+                }
+            }
         }
-        if (type === UIPasteboard.ContentType.files){
-            // FIXME: somehow use JSHTMLFile here, but only when an individual file
-            // is accessed
-            return this._dataTransfer.files;
+    },
+
+    stringForType: function(type){
+        if (this._dataTransfer !== null){
+            this._updateDataTransferTypeSet();
+            if (type in this._dataTransferTypeSet){
+                try {
+                    return this._dataTransfer.getData(type);
+                }catch (e){
+                    if (type == 'text/plain'){
+                        return this._dataTransfer.getData('Text');
+                    }
+                    if (type == 'uri-list'){
+                        return this._dataTransfer.getData('Url');
+                    }
+                    throw e;
+                }
+            }
         }
-        var dataTransferType = this._typeMap[type];
-        if (dataTransferType === undefined){
-            return null;
+        return UIHTMLDataTransferPasteboard.$super.stringForType.call(this, type);
+    },
+
+    setDataForType: function(data, type){
+        UIHTMLDataTransferPasteboard.$super.setDataForType.call(this, data, type);
+        if (this._dataTransfer !== null){
+            var base64 = data.bytes.base64StringRepresentation();
+            this._dataTransfer.setData(type, base64);
         }
-        var str = this._dataTransfer.getData(dataTransferType);
-        if (!this._isStandardType(type)){
-            return JSON.parse(str);
+    },
+
+    dataForType: function(type){
+        if (this._dataTransfer !== null){
+            this._updateDataTransferTypeSet();
+            if (type in this._dataTransferTypeSet){
+                var base64 = this._dataTransfer.getData(type);
+                return base64.dataByDecodingBase64();
+            }
         }
-        return str;
+        return UIHTMLDataTransferPasteboard.$super.dataForType.call(this, type);
+    },
+
+    setObjectForType: function(obj, type){
+        UIHTMLDataTransferPasteboard.$super.setObjectForType.call(this, obj, type);
+        if (this._dataTransfer !== null){
+            var json = JSON.stringify(obj);
+            this._dataTransfer.setData(type, json);
+        }
+    },
+
+    objectForType: function(type){
+        if (this._dataTransfer !== null){
+            this._updateDataTransferTypeSet();
+            if (type in this._dataTransferTypeSet){
+                var json = this._dataTransfer.getData(type);
+                if (json){
+                    return JSON.parse(json);
+                }
+                return null;
+            }
+        }
+        return UIHTMLDataTransferPasteboard.$super.objectForType.call(this, type);
+    },
+
+    addFile: function(file){
+        var htmlFile = null;
+        if (this._dataTransfer !== null && this._dataTransfer.items){
+            if (file.isKindOfClass(JSHTMLFile)){
+                htmlFile = file._blob;
+            }else if (file.isKindOfClass(JSDataFile)){
+                htmlFile = new File(file._data.bytes, file.name, {type: file.contentType});
+            }
+        }
+        if (htmlFile !== null){
+            this._dataTransfer.items.add(htmlFile);
+        }else{
+            this._extraFiles.push(file);
+        }
+    },
+
+    numberOfFiles: function(){
+        var n = 0;
+        if (this._dataTransfer !== null){
+            n = this._dataTransfer.files.length;
+        }
+        return n + this._extraFiles.length;
+    },
+
+    fileAtIndex: function(index){
+        if (this._dataTransfer !== null){
+            if (index < this._dataTransfer.files.length){
+                return JSHTMLFile.initWithFile(this._dataTransfer.files[index]);
+            }
+            index -= this._dataTransfer.files.length;
+        }
+        if (index < this._extraFiles.length){
+            return this._extraFiles[index];
+        }
+        return null;
+    },
+
+    getTypes: function(){
+        var superTypes = UIHTMLDataTransferPasteboard.$super.getTypes.call(this);
+        if (this._dataTransferTypeSet !== null){
+            this._updateDataTransferTypeSet();
+            var types = Object.keys(this._dataTransferTypeSet);
+            for (var i = 0, l = superTypes.length; i < l; ++i){
+                if (!(superTypes[i] in this._dataTransferTypeSet)){
+                    types.push(superTypes[i]);
+                }
+            }
+            return types;
+        }
+        return superTypes;
     },
 
     containsType: function(type){
-        return UIHTMLDataTransferPasteboard.$super.containsType.call(this, type) || (type in this._typeMap);
-    },
+        if (this._dataTransfer !== null){
+            this._updateDataTransferTypeSet();
+            if (type in this._dataTransferTypeSet){
+                return true;
+            }
+        }
+        return UIHTMLDataTransferPasteboard.$super.containsType.call(this, type);
+    }
 
 });
-
-var DataTransferTypeAliases = {
-    'text': 'text/plain',
-    'url':  'text/uri-list'
-};
-
-var DataTransferTypeAliasesReveresed = {
-    'text/plain': 'Text',
-    'text/uri-list': 'Url'
-};
 
 var DragOperationToDropEffect = [
     'none',

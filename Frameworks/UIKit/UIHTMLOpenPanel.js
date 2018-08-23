@@ -18,18 +18,21 @@ JSClass("UIHTMLOpenPanel", UIOpenPanel, {
         if (this.allowedContentTypes !== null){
             fileInput.accept = this.allowedContentTypes.join(', ');
         }
+        if (this.allowsFolderSelection){
+            fileInput.webkitdirectory = true;
+        }
         var panel = this;
         fileInput.onchange = function(){
             panel.htmlFiles = fileInput.files;
-            panel.fileCount = fileInput.files.length;
-            action.call(target);
+            panel._fileCount = fileInput.files.length;
+            action.call(target, panel);
         };
         fileInput.click();
     },
 
     htmlFiles: null,
 
-    getFileAtIndex: function(index){
+    fileAtIndex: function(index){
         if (index < this.htmlFiles.length){
             return JSHTMLFile.initWithFile(this.htmlFiles[index]);
         }

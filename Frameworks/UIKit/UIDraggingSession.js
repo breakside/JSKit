@@ -2,7 +2,7 @@
 // #import "UIKit/UIPasteboard.js"
 // #import "UIKit/UIDraggingSource.js"
 // #import "UIKit/UIDraggingDestination.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSPoint, UIPasteboard, UIDragOperation */
+/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSPoint, UIPasteboard, UIDragOperation */
 'use strict';
 
 JSClass("UIDraggingSession", JSObject, {
@@ -16,15 +16,35 @@ JSClass("UIDraggingSession", JSObject, {
     isActive: true,
     image: null,
     imageOffset: JSPoint.Zero,
+    _items: null,
 
     initWithItems: function(items, event, view){
+        this._items = items;
         this._screenLocation = JSPoint(event.window.convertPointToScreen(event.locationInWindow));
         this._pasteboard = UIPasteboard.init();
         this.source = view;
+        this.writeItemsToPasteboard(this._pasteboard);
+    },
+
+    initWithPasteboard: function(pasteboard, screenLocation){
+        this._items = [];
+        this._screenLocation = JSPoint(screenLocation);
+        this._pasteboard = pasteboard;
+    },
+
+    writeItemsToPasteboard: function(pasteboard){
         var item;
-        for (var i = 0, l = items.length; i < l; ++i){
-            item = items[i];
-            this._pasteboard.setValueForType(item.value, item.type);
+        for (var i = 0, l = this._items.length; i < l; ++i){
+            item = this._items[i];
+            if ('stringValue' in item){
+                pasteboard.setStringForType(item.stringValue, item.type);
+            }else if ('dataValue' in item){
+                pasteboard.setDataForType(item.dataValue, item.type);
+            }else if ('objectValue' in item){
+                pasteboard.setObjectForType(item.objectValue, item.type);
+            }else if ('file' in item){
+                pasteboard.addFile(item.file);
+            }
         }
     },
 
@@ -39,11 +59,6 @@ JSClass("UIDraggingSession", JSObject, {
                 this.destination.performDragOperation(this, this.operation);
             }
         }
-    },
-
-    initWithPasteboard: function(pasteboard, screenLocation){
-        this._screenLocation = JSPoint(screenLocation);
-        this._pasteboard = pasteboard;
     },
 
     isValidDestination: function(destination){

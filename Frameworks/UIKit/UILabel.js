@@ -149,7 +149,7 @@ JSClass('UILabel', UIView, {
 
     copy: function(){
         var text = this.attributedText.string.substringInRange(this._selectionRange);
-        UIPasteboard.general.setValueForType(text, UIPasteboard.ContentType.plainText);
+        UIPasteboard.general.setStringForType(text, UIPasteboard.ContentType.plainText);
         // TODO: attributed text
     },
 

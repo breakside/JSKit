@@ -25,6 +25,15 @@ JSClass("JSHTMLFile", JSFile, {
     },
 
     readData: function(completion, target){
+        this._readBlob(this._blob, completion, target);
+    },
+
+    readDataRange: function(range, completion, target){
+        var slice = this._blob.slice(range.location, range.end);
+        this._readBlob(slice, completion, target);
+    },
+
+    _readBlob: function(blob, completion, target){
         var reader = new FileReader();
         var listener = {
             handleEvent: function(e){
@@ -46,7 +55,7 @@ JSClass("JSHTMLFile", JSFile, {
             }
         };
         reader.addEventListener('loadend', listener);
-        reader.readAsArrayBuffer(this._blob);
+        reader.readAsArrayBuffer(blob);
     },
 
     _blobURL: null,

@@ -6,6 +6,7 @@ JSClass("UIOpenPanel", JSObject, {
 
     allowsMultipleSelction: false,
     allowedContentTypes: null,
+    allowsFolderSelection: false,
 
     init: function(){
     },
@@ -15,7 +16,7 @@ JSClass("UIOpenPanel", JSObject, {
 
     fileCount: JSReadOnlyProperty('_fileCount', 0),
 
-    getFileAtIndex: function(index){
+    fileAtIndex: function(index){
         return null;
     },
 

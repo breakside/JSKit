@@ -131,6 +131,7 @@ JSClass("UIControl", UIView, {
     enabled: JSDynamicProperty(null, null, 'isEnabled'),
     over: JSDynamicProperty(null, null, 'isOver'),
     active: JSDynamicProperty(null, null, 'isActive'),
+    dropTarget: JSDynamicProperty(null, null, 'isDropTarget'),
 
     _updateState: function(newState){
         if (newState != this._state){
@@ -144,11 +145,11 @@ JSClass("UIControl", UIView, {
                     this.stopMouseTracking();
                 }
             }
-            this._didChangeState();
+            this.update();
         }
     },
 
-    _didChangeState: function(){
+    update: function(){
         if (this._styler !== null){
             this._styler.updateControl(this);
         }
@@ -189,6 +190,14 @@ JSClass("UIControl", UIView, {
 
     setActive: function(isActive){
         this._toggleState(UIControl.State.active, isActive);
+    },
+
+    isDropTarget: function(){
+        return (this._state & UIControl.State.dropTarget) === UIControl.State.dropTarget;
+    },
+
+    setDropTarget: function(isDropTarget){
+        this._toggleState(UIControl.State.dropTarget, isDropTarget);
     },
 
     // MARK: - Mouse Tracking
@@ -255,6 +264,7 @@ UIControl.State = {
     over:       1 << 0,
     active:     1 << 1,
     disabled:   1 << 2,
+    dropTarget: 1 << 3,
     firstUserState: 1 << 16
 };
 

@@ -496,7 +496,7 @@ JSClass("UITextField", UIControl, {
         }
         if (lines.length > 0){
             var text = lines.join('\n');
-            UIPasteboard.general.setValueForType(text, UIPasteboard.ContentType.plainText);
+            UIPasteboard.general.setStringForType(text, UIPasteboard.ContentType.plainText);
         }
         // TODO: attributed text
     },
@@ -508,7 +508,7 @@ JSClass("UITextField", UIControl, {
 
     pasteAndMatchStyle: function(){
         if (UIPasteboard.general.containsType(UIPasteboard.ContentType.plainText)){
-            var text = UIPasteboard.general.valueForType(UIPasteboard.ContentType.plainText);
+            var text = UIPasteboard.general.stringForType(UIPasteboard.ContentType.plainText);
             this._localEditor.insertText(text);
         }
     },

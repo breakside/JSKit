@@ -192,23 +192,25 @@ JSClass("UIButton", UIControl, {
     },
 
     mouseUp: function(event){
-        if (!this.enabled){
-            return;
+        if (this.enabled){
+            if (this.active){
+                this.sendActionsForEvent(UIControl.Event.primaryAction);
+                this.active = false;
+            }
+            var location = event.locationInView(this);
+            this.over = this.containsPoint(location);
+        }else{
+            UIButton.$super.mouseUp.call(this, event);
         }
-        if (this.active){
-            this.sendActionsForEvent(UIControl.Event.primaryAction);
-            this.active = false;
-        }
-        var location = event.locationInView(this);
-        this.over = this.containsPoint(location);
     },
 
     mouseDragged: function(event){
-        if (!this.enabled){
-            return;
+        if (this.enabled){
+            var location = event.locationInView(this);
+            this.active = this.containsPoint(location);
+        }else{
+            UIButton.$super.mouseDragged.call(this, event);
         }
-        var location = event.locationInView(this);
-        this.active = this.containsPoint(location);
     },
 
     getFirstBaselineOffsetFromTop: function(){

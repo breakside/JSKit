@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global File, JSClass, TKTestSuite, JSData, JSFile, JSHTMLFile, TKExpectation */
+/* global File, JSClass, TKTestSuite, JSData, JSFile, JSRange, JSHTMLFile, TKExpectation */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
@@ -26,6 +26,21 @@ JSClass("JSHTMLFileTests", TKTestSuite, {
         expectation.call(file.readData, file, function(readData){
             TKAssertNotNull(readData);
             TKAssertObjectEquals(bytes, readData.bytes);
+        });
+        this.wait(expectation, 1.0);
+    },
+
+    testReadHTMLFileRange: function(){
+        var bytes = new Uint8Array([0x01, 0x02, 0x03, 0x04]);
+        var blob = new File([bytes], "test.dat", {type: "application/octet-stream"});
+        var file = JSHTMLFile.initWithFile(blob);
+        var expectation = TKExpectation.init();
+        var range = JSRange(1, 2);
+        expectation.call(file.readDataRange, file, range, function(readData){
+            TKAssertNotNull(readData);
+            TKAssertEquals(readData.length, 2);
+            TKAssertEquals(readData.bytes[0], 0x02);
+            TKAssertEquals(readData.bytes[1], 0x03);
         });
         this.wait(expectation, 1.0);
     },
