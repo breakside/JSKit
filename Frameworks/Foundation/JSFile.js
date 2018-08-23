@@ -14,6 +14,11 @@ JSClass("JSFile", JSObject, {
         return JSDataFile.initWithData(data, name, contentType);
     },
 
+    initWithPlaceholder: function(name, contentType){
+        this._name = name;
+        this._contentType = contentType;
+    },
+
     readData: function(completion, target){
     },
 
