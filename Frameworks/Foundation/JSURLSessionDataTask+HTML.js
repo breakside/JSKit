@@ -2,9 +2,9 @@
 // #import "Foundation/JSURLSessionDataTask.js"
 // #import "Foundation/JSURLRequest.js"
 // #import "Foundation/JSURLResponse.js"
+// #import "Foundation/JSRunLoop.js"
 // #feature XMLHttpRequest
-// #feature setTimeout
-/* global JSClass, JSURLSessionDataTask, JSLazyInitProperty, XMLHttpRequest, jslog_create, JSURLResponse, JSURLRequest, JSURL, setTimeout, JSData */
+/* global JSClass, JSURLSessionDataTask, JSRunLoop, JSLazyInitProperty, XMLHttpRequest, jslog_create, JSURLResponse, JSURLRequest, JSURL, setTimeout, JSData */
 'use strict';
 
 (function(){
@@ -33,10 +33,7 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
         if (this._xmlRequest.readyState !== XMLHttpRequest.UNSENT){
             this._xmlRequest.send(data);
         }else{
-            var self = this;
-            setTimeout(function(){
-                self._complete();
-            }, 10);
+            JSRunLoop.main.schedule(this._complete, this);
         }
     },
 
