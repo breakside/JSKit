@@ -324,9 +324,12 @@ JSClass("JSObjectTests", TKTestSuite, {
         a.name = "test1";
         TKAssertExactEquals(b.value, "test1");
 
-        // b.value = "test2";
-        // TKAssertExactEquals(b.value, "test2");
-        // TKAssertExactEquals(a.name, "test2");
+        b.value = "test2";
+        TKAssertExactEquals(b.value, "test2");
+        TKAssertExactEquals(a.name, "test1");
+        b.didChangeValueForBinding("value");
+        TKAssertExactEquals(b.value, "test2");
+        TKAssertExactEquals(a.name, "test2");
     },
 
     testBindDynamicKeyPath: function(){
@@ -359,11 +362,16 @@ JSClass("JSObjectTests", TKTestSuite, {
         TKAssertEquals(b.setCount, 2);
         TKAssertExactEquals(b.value, "test1");
 
-        // b.value = "test2";
-        // TKAssertEquals(a.setCount, 2);
-        // TKAssertEquals(b.setCount, 3);
-        // TKAssertExactEquals(b.value, "test2");
-        // TKAssertExactEquals(a.name, "test2");
+        b.value = "test2";
+        TKAssertEquals(a.setCount, 1);
+        TKAssertEquals(b.setCount, 3);
+        TKAssertExactEquals(b.value, "test2");
+        TKAssertExactEquals(a.name, "test1");
+        b.didChangeValueForBinding("value");
+        TKAssertEquals(a.setCount, 2);
+        TKAssertEquals(b.setCount, 3);
+        TKAssertExactEquals(b.value, "test2");
+        TKAssertExactEquals(a.name, "test2");
     },
 
     testBindCompoundKeyPath: function(){
@@ -389,9 +397,12 @@ JSClass("JSObjectTests", TKTestSuite, {
         b.name = "test1";
         TKAssertExactEquals(c.value, "test1");
 
-        // c.value = "test2";
-        // TKAssertExactEquals(c.value, "test2");
-        // TKAssertExactEquals(b.name, "test2");
+        c.value = "test2";
+        TKAssertExactEquals(c.value, "test2");
+        TKAssertExactEquals(b.name, "test1");
+        c.didChangeValueForBinding("value");
+        TKAssertExactEquals(c.value, "test2");
+        TKAssertExactEquals(b.name, "test2");
     },
 
     testBindDoubleCompoundKeyPath: function(){
@@ -424,9 +435,12 @@ JSClass("JSObjectTests", TKTestSuite, {
         c.first = "test1";
         TKAssertExactEquals(d.value, "test1");
 
-        // d.value = "test2";
-        // TKAssertExactEquals(d.value, "test2");
-        // TKAssertExactEquals(c.first, "test2");
+        d.value = "test2";
+        TKAssertExactEquals(d.value, "test2");
+        TKAssertExactEquals(c.first, "test1");
+        d.didChangeValueForBinding("value");
+        TKAssertExactEquals(d.value, "test2");
+        TKAssertExactEquals(c.first, "test2");
     },
 
     testUnbind: function(){
@@ -509,9 +523,16 @@ JSClass("JSObjectTests", TKTestSuite, {
         a.first = true;
         TKAssertExactEquals(b.value, false);
 
-        // b.value = "test2";
-        // TKAssertExactEquals(b.value, "test2");
-        // TKAssertExactEquals(a.name, "test2");
+        a.second = false;
+        a.first = false;
+        b.value = true;
+        TKAssertExactEquals(b.value, true);
+        TKAssertExactEquals(a.first, false);
+        TKAssertExactEquals(a.second, false);
+        b.didChangeValueForBinding("value");
+        TKAssertExactEquals(b.value, true);
+        TKAssertExactEquals(a.first, false);
+        TKAssertExactEquals(a.second, false);
     },
 
     _testReadOnlyBind: function(){

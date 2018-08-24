@@ -57,6 +57,7 @@ JSClass("UICheckbox", UIControl, {
             this.sendActionsForEvent(UIControl.Event.primaryAction);
             this.sendActionsForEvent(UIControl.Event.valueChanged);
             this.active = false;
+            this.didChangeValueForBinding('on');
         }
     },
 

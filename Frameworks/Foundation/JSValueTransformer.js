@@ -1,24 +1,13 @@
 // #import "Foundation/JSObject.js"
-/* global JSClass, JSObject, JSValueTransformer */
+/* global JSGlobalObject */
 'use strict';
-
-// -----------------------------------------------------------------------------
-// MARK: - Base Class
-
-JSClass('JSValueTransformer', JSObject, {
-
-    transformValue: function(value){
-    },
-
-    reverseTransformValue: function(value){
-    }
-
-});
 
 // -----------------------------------------------------------------------------
 // MARK: - Dealing with null
 
-JSClass('JSIsNullValueTransformer', JSValueTransformer, {
+JSGlobalObject.JSIsNullValueTransformer = {
+
+    canReverseTransform: false,
 
     transformValue: function(value){
         return value === null;
@@ -28,9 +17,11 @@ JSClass('JSIsNullValueTransformer', JSValueTransformer, {
         throw new Error("JSIsNullValueTranformer cannot reverseTranform value");
     }
 
-});
+};
 
-JSClass('JSIsNotNullValueTransformer', JSValueTransformer, {
+JSGlobalObject.JSIsNotNullValueTransformer = {
+
+    canReverseTransform: false,
 
     transformValue: function(value){
         return value !== null;
@@ -40,40 +31,61 @@ JSClass('JSIsNotNullValueTransformer', JSValueTransformer, {
         throw new Error("JSIsNullValueTranformer cannot reverseTranform value");
     }
 
-});
-
+};
 
 // -----------------------------------------------------------------------------
 // MARK: - Dealing with empty
 
-JSClass('JSIsEmptyValueTransformer', JSValueTransformer, {
+JSGlobalObject.JSIsEmptyValueTransformer = {
+
+    canReverseTransform: false,
 
     transformValue: function(value){
-        return !value || !value.length;
+        if (value === null || value === undefined){
+            return true;
+        }
+        if (typeof(value) === 'object'){
+            if (value instanceof Array){
+                return value.length === 0;
+            }
+        }
+        return !value;
     },
 
     reverseTransformValue: function(value){
         throw new Error("JSIsEmptyValueTranformer cannot reverseTranform value");
     }
 
-});
+};
 
-JSClass('JSIsNotEmptyValueTransformer', JSValueTransformer, {
+JSGlobalObject.JSIsNotEmptyValueTransformer = {
+
+    canReverseTransform: false,
 
     transformValue: function(value){
-        return value && value.length;
+        if (value === null || value === undefined){
+            return false;
+        }
+        if (typeof(value) === 'object'){
+            if (value instanceof Array){
+                return value.length > 0;
+            }
+        }
+        return !!value;
     },
 
     reverseTransformValue: function(value){
         throw new Error("JSIsEmptyValueTranformer cannot reverseTranform value");
     }
 
-});
+};
 
 // -----------------------------------------------------------------------------
 // MARK: - Booleans
 
-JSClass("JSNegateBooleanValueTransformer", JSValueTransformer, {
+JSGlobalObject.JSNegateBooleanValueTransformer = {
+
+    canReverseTransform: true,
 
     transformValue: function(value){
         return !value;
@@ -83,4 +95,4 @@ JSClass("JSNegateBooleanValueTransformer", JSValueTransformer, {
         return !value;
     }
 
-});
+};

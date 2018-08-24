@@ -43,7 +43,11 @@ JSClass("JSFont", JSObject, {
             }
         }
         if ('pointSize' in values){
-            pointSize = spec.resolvedValue(values.pointSize);
+            if (values.pointSize in JSFont.Size){
+                pointSize = JSFont.Size[values.pointSize];
+            }else{
+                pointSize = spec.resolvedValue(values.pointSize);
+            }
         }
         if (descriptor !== null){
             return JSFont.fontWithDescriptor(descriptor, pointSize);

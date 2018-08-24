@@ -9,7 +9,6 @@
 JSClass("UIRadioGroup", UIControl, {
 
     buttons: null,
-    selectedButton: null,
     selectedIndex: JSDynamicProperty('_selectedIndex', -1),
 
     initWithSpec: function(spec, values){
@@ -125,6 +124,7 @@ JSClass("UIRadioButton", UIControl, {
         }
         if (this.active){
             this._group.selectedIndex = this._index;
+            this._group.didChangeValueForBinding('selectedIndex');
             this.active = false;
         }
     },

@@ -624,6 +624,8 @@ JSClass("UITextField", UIControl, {
         }
         this._didChange = true;
         this.sendActionsForEvent(UIControl.Event.editingChanged);
+        this.didChangeValueForBinding('text');
+        this.didChangeValueForBinding('attributedText');
     },
 
     _adjustCursorPositionToCenterIfNeeded: function(){

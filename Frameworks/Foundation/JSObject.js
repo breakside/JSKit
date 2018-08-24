@@ -1,5 +1,6 @@
 // #import "Foundation/JSClass.js"
-/* global JSGlobalObject, JSObject, JSClass, JSClassForName */
+// #import "Foundation/JSValueTransformer.js"
+/* global JSGlobalObject, JSObject, JSClass, JSClassForName, JSIsNullValueTransformer, JSIsNotNullValueTransformer, JSIsEmptyValueTransformer, JSIsNotEmptyValueTransformer, JSNegateBooleanValueTransformer */
 'use strict';
 
 JSGlobalObject.JSObject = Object.create(JSClass.prototype, {
@@ -81,18 +82,30 @@ JSObject.definePropertiesFromExtensions({
     },
 
     initWithSpec: function(spec, values){
-        if ("bindings" in values){
-            this._initSpecBindings(spec, values.bindings);
-        }
+        // if ("bindings" in values){
+        //     this._initSpecBindings(spec, values.bindings);
+        // }
         if ("outlets" in values){
             this._initSpecOutlets(spec, values.outlets);
         }
     },
 
     _initSpecBindings: function(spec, bindings){
-        for (var i = 0, l = bindings.length; i < l; ++i){
-            var bindingValues = bindings[i];
-            this.bind(bindingValues.binding, spec.resolvedValue(bindingValues.toObject), bindingValues.keyPath, bindingValues.options);
+        var descriptors;
+        var descriptor;
+        for (var binding in bindings){
+            descriptors = bindings[binding];
+            if (!(descriptors instanceof Array)){
+                descriptors = [descriptors];
+            }
+            for (var i = 0, l = descriptors.length; i < l; ++i){
+                descriptor = descriptors[i];
+                var options = {};
+                if (descriptor.transformer){
+                    options.valueTransformer = spec.resolvedValue(descriptor.transformer);
+                }
+                this.bind(binding, spec.resolvedValue(descriptor.to), descriptor.value, options);
+            }
         }
     },
 
@@ -129,6 +142,9 @@ JSObject.definePropertiesFromExtensions({
     },
 
     _observeValueForKeyPath: function(keyPath, ofObject, change, context){
+        if (context !== null && context === this._ignoreObserationContext){
+            return;
+        }
         if (this.automaticallyManagesBindings && context && context.type == JSObject.ObservingContext.Binding){
             var bindingInfo = context;
             var key;
@@ -207,6 +223,8 @@ JSObject.definePropertiesFromExtensions({
         }
     },
 
+    _ignoreObserationContext: null,
+
     // -------------------------------------------------------------------------
     // MARK: - Binding
 
@@ -226,26 +244,29 @@ JSObject.definePropertiesFromExtensions({
             keyPath = keyPath.replace(/\s+/g, '');
             if (keyPath.startsWith("!")){
                 keyPath = keyPath.substr(1);
-                options.valueTransformer = "JSNegateBooleanValueTransformer";
+                options.valueTransformer = JSNegateBooleanValueTransformer;
             }else if (keyPath.endsWith("!=null")){
                 keyPath = keyPath.substr(0, keyPath.length - 6);
-                options.valueTransformer = "JSIsNotNullValueTransformer";
+                options.valueTransformer = JSIsNotNullValueTransformer;
             }else if (keyPath.endsWith("==null")){
                 keyPath = keyPath.substr(0, keyPath.length - 6);
-                options.valueTransformer = "JSIsNullValueTransformer";
+                options.valueTransformer = JSIsNullValueTransformer;
             }else if (keyPath.endsWith(".length>0")){
                 keyPath = keyPath.substr(0, keyPath.length - 9);
-                options.valueTransformer = "JSIsNotEmptyValueTransformer";
+                options.valueTransformer = JSIsNotEmptyValueTransformer;
             }else if (keyPath.endsWith(".length==0")){
                 keyPath = keyPath.substr(0, keyPath.length - 10);
-                options.valueTransformer = "JSIsEmptyValueTransformer";
+                options.valueTransformer = JSIsEmptyValueTransformer;
+            }
+            if (options.valueTransformer && !options.valueTransformer.canReverseTransform){
+                options.readOnly = true;
             }
             var bindingInfo = {
                 type            : JSObject.ObservingContext.Binding,
                 binding         : binding,
                 observedObject  : toObject,
                 observedKeyPath : keyPath,
-                options         : options || {},
+                options         : options,
                 isBoolean       : isBoolean,
                 next            : null,
                 tail            : null,
@@ -254,6 +275,12 @@ JSObject.definePropertiesFromExtensions({
             if (isBoolean && (binding in this._bindings)){
                 this._bindings[binding].tail.next = bindingInfo;
                 this._bindings[binding].tail = bindingInfo;
+                // Once there is more than one boolean input, we can't reverse
+                // the final value to the multiple sources because any one of them
+                // could be false while the others are true.  We could reverse
+                // a `true` value, because all would have to be true, but this
+                // isn't a common use case.
+                this._bindings[binding].options.readOnly = true;
             }else{
                 this._bindings[binding] = bindingInfo;
             }
@@ -269,7 +296,7 @@ JSObject.definePropertiesFromExtensions({
         }
     },
 
-    _valueForBinding: function(binding){
+    _modelValueForBinding: function(binding){
         if (!(binding in this._bindings)){
             return null;
         }
@@ -293,8 +320,26 @@ JSObject.definePropertiesFromExtensions({
     },
 
     _updateValueForBinding: function(binding){
-        var value = this._valueForBinding(binding);
+        var value = this._modelValueForBinding(binding);
         this.silentlySetValueForKey(binding, value);
+    },
+
+    didChangeValueForBinding: function(binding){
+        var ourKey = binding;
+        var bindingInfo = this._bindings[binding];
+        if (!bindingInfo){
+            return;
+        }
+        if (bindingInfo.options.readOnly){
+            return;
+        }
+        var value = this.valueForKey(ourKey);
+        if (bindingInfo.valueTransformer){
+            value = bindingInfo.valueTransformer.reverseTransformValue(value);
+        }
+        this._ignoreObserationContext = bindingInfo;
+        bindingInfo.observedObject.setValueForKeyPath(bindingInfo.observedKeyPath, value);
+        this._ignoreObserationContext = null;
     },
 
     // -------------------------------------------------------------------------
@@ -357,9 +402,13 @@ JSObject.definePropertiesFromExtensions({
     setValueForKeyPath: function(keyPath, value){
         var keyParts = keyPath.split('.');
         var key = keyParts.shift();
-        var intermediateValue = this.valueForKey(key);
-        if (keyParts.length && (value !== null && value !== undefined)){
-            intermediateValue.setValueForKeyPath(keyParts.join('.'), value);
+        if (keyParts.length === 0){
+            this.setValueForKey(key, value);
+        }else{
+            var intermediateValue = this.valueForKey(key);
+            if (intermediateValue !== null && intermediateValue !== undefined){
+                intermediateValue.setValueForKeyPath(keyParts.join('.'), value);
+            }
         }
     },
 
@@ -518,17 +567,6 @@ JSObject.definePropertiesFromExtensions({
                     observedValue = value;
                 }
                 observerInfo.observingObject._observeValueForKeyPath(observerInfo.observingKeyPath, this, {type: JSObject.KeyValueChange.Setting, newValue: observedValue}, observerInfo.context);
-            }
-        }
-        if (this.automaticallyManagesBindings && key in this._bindings){
-            var bindingInfo = this._bindings[key];
-            if (!bindingInfo.options.readOnly){
-                var transformedValue = value;
-                if (bindingInfo.options.valueTransformer){
-                    var valueTransformer = JSClassForName(bindingInfo.options.valueTransformer).init();
-                    transformedValue = valueTransformer.reverseTransformValue(value);
-                }
-                bindingInfo.observedObject.setValueForKeyPath(bindingInfo.observedKeyPath, transformedValue);
             }
         }
     },
