@@ -34,19 +34,19 @@ JSClass.prototype = {
 
     $extend: function(extensions, className){
         var superclass = this;
-        var C = Object.create(superclass, {
-            '$super': {
-                configurable: false,
-                enumerable: false,
-                writable: false,
-                value: superclass.prototype
-            }
-        });
         if (!className){
             throw new Error('Classes must have names');
         }
-        var constructor = new Function("return function " + className + "(){}")();
-        C.className = className;
+        var C = new Function("return function " + className + "(){ 'use strict'; if (this === undefined){ throw new Error('Cannot use " + className + " as a function'); } throw new Error('Cannot use " + className + " as a constructor.  Use an init method instead.') }")();
+        Object.setPrototypeOf(C, superclass);
+        Object.defineProperties(C, {
+            '$super': {
+                value: superclass.prototype
+            },
+            className: {
+                value: className
+            }
+        });
         C.prototype = Object.create(superclass.prototype, {
             '$class': {
                 configurable: false,
@@ -54,9 +54,10 @@ JSClass.prototype = {
                 writable: false,
                 value: C
             },
-            constructor: {value: constructor}
+            constructor: {value: C}
         });
         C.definePropertiesFromExtensions(extensions);
+        C.initialize();
         return C;
     },
 
@@ -69,6 +70,17 @@ JSClass.prototype = {
             cls = cls.$super ? cls.$super.$class : null;
         } while (cls);
         return false;
+    },
+
+    initialize: function(){
+        var properties = Object.getOwnPropertyNames(this.prototype);
+        var name;
+        for (var i = 0, l = properties.length; i < l; ++i){
+            name = properties[i];
+            if (name.length >= 4 && name.substr(0, 4) === 'init' && (name.length == 4 || name.substr(4,1).toUpperCase() == name.substr(4, 1))){
+                this.defineInitMethod(name);
+            }
+        }
     },
 
     definePropertiesFromExtensions: function(extensions){
@@ -91,9 +103,6 @@ JSClass.prototype = {
                     writable: false,
                     value: extensions[i]
                 });
-                if (i.length >= 4 && i.substr(0, 4) === 'init' && (i.length == 4 || i.substr(4,1).toUpperCase() == i.substr(4, 1))){
-                    this.defineInitMethod(i);
-                }
             }else if (i.charAt(0) == '_'){
                 if (extensions[i] instanceof JSCustomProperty){
                     extensions[i].define(this, i, extensions);

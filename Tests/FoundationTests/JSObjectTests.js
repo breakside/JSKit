@@ -6,6 +6,12 @@
 
 JSClass("JSObjectTests", TKTestSuite, {
 
+    testObjectID: function(){
+        var x = JSObject.init();
+        TKAssertNotUndefined(x.objectID);
+        TKAssertNotNull(x.objectID);
+    },
+
     testAddObserverForKeyPathSimpleKey: function(){
         var A = JSObject.$extend({
             name: null,
@@ -554,6 +560,28 @@ JSClass("JSObjectTests", TKTestSuite, {
     },
 
     _testIsNotEmptyKeyValueShortcut: function(){
+    },
+
+    testClassSyntaxExtend: function(){
+        var test1 = class Test1 extends JSObject{
+            initWithNumber(number){
+                this.number = number;
+            }
+        };
+        TKAssertThrows(function(){
+            new test1();
+        });
+        TKAssertNotUndefined(test1.init);
+        TKAssertUndefined(test1.initWithNumber);
+        test1.initialize();
+        TKAssertNotUndefined(test1.initWithNumber);
+        var a = test1.init();
+        TKAssertNotUndefined(a.objectID);
+        TKAssertNotNull(a.objectID);
+        var b = test1.initWithNumber(2);
+        TKAssertNotUndefined(b.objectID);
+        TKAssertNotNull(b.objectID);
+        TKAssertEquals(b.number, 2);
     }
 
 });

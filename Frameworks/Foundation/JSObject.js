@@ -3,7 +3,16 @@
 /* global JSGlobalObject, JSObject, JSClass, JSClassForName, JSIsNullValueTransformer, JSIsNotNullValueTransformer, JSIsEmptyValueTransformer, JSIsNotEmptyValueTransformer, JSNegateBooleanValueTransformer */
 'use strict';
 
-JSGlobalObject.JSObject = Object.create(JSClass.prototype, {
+JSGlobalObject.JSObject = function JSObject(){
+    if (this === undefined){
+        throw new Error("JSObject cannot be used as a function");
+    }
+    throw new Error("JSObject cannot be used a constructor, use an init method instead");
+};
+
+Object.setPrototypeOf(JSGlobalObject.JSObject, JSClass.prototype);
+
+Object.defineProperties(JSGlobalObject.JSObject, {
     ID: {
         configurable: false,
         enumerable: false,
@@ -26,7 +35,7 @@ JSObject.prototype = Object.create(Object.prototype, {
         value: JSObject
     },
     constructor: {
-        value: function JSObject(){}
+        value: JSGlobalObject.JSObject
     }
 });
 
@@ -730,6 +739,8 @@ JSObject.definePropertiesFromExtensions({
     }
 
 });
+
+JSObject.initialize();
 
 JSObject.ObservingContext = {
     Binding: "Binding",

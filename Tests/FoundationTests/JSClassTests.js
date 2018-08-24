@@ -1,11 +1,18 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSGlobalObject, JSClass, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, TKTestSuite, TKAssertNotNull, TKAssert, TKAssertEquals, TKAssertExactEquals, TKAssertThrows */
+/* global JSGlobalObject, JSClass, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, TKTestSuite */
+/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
 (function(){
 
-var BaseObjectClass = Object.create(JSClass.prototype, {
+var BaseObjectClass = function BaseObjectClass(){
+    throw new Error("Cannot be used as a construtor or function");
+};
+
+Object.setPrototypeOf(BaseObjectClass, JSClass.prototype);
+
+Object.defineProperties(BaseObjectClass, {
     ID: {
         configurable: false,
         enumerable: false,
@@ -17,8 +24,13 @@ var BaseObjectClass = Object.create(JSClass.prototype, {
         enumerable: false,
         writable: true,
         value: 'BaseObjectClass'
-    }
+    },
+    constructor: BaseObjectClass
 });
+
+BaseObjectClass.staticMethod = function(){
+
+};
 
 BaseObjectClass.prototype = Object.create(Object.prototype, {
     '$class': {
@@ -37,10 +49,17 @@ JSClass('JSClassTests', TKTestSuite, {
         TKAssertEquals(cls.className, 'Test1');
         TKAssertExactEquals(cls.$super, BaseObjectClass.prototype);
         TKAssertExactEquals(cls.prototype.$class, cls);
+        TKAssertNotUndefined(cls.staticMethod);
 
         TKAssertThrows(function(){
             var cls = BaseObjectClass.$extend({});
         });
+    },
+
+    testClassDebuggerName: function(){
+        var cls = BaseObjectClass.$extend({}, "Test1");
+        TKAssertNotUndefined(cls.prototype.constructor);
+        TKAssertEquals(cls.prototype.constructor.name, "Test1");
     },
 
     testDeclaration: function(){
