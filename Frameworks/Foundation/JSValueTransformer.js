@@ -69,3 +69,18 @@ JSClass('JSIsNotEmptyValueTransformer', JSValueTransformer, {
     }
 
 });
+
+// -----------------------------------------------------------------------------
+// MARK: - Booleans
+
+JSClass("JSNegateBooleanValueTransformer", JSValueTransformer, {
+
+    transformValue: function(value){
+        return !value;
+    },
+
+    reverseTransformValue: function(value){
+        return !value;
+    }
+
+});

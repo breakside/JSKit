@@ -323,6 +323,10 @@ JSClass("JSObjectTests", TKTestSuite, {
         TKAssertExactEquals(b.value, "");
         a.name = "test1";
         TKAssertExactEquals(b.value, "test1");
+
+        // b.value = "test2";
+        // TKAssertExactEquals(b.value, "test2");
+        // TKAssertExactEquals(a.name, "test2");
     },
 
     testBindDynamicKeyPath: function(){
@@ -336,17 +340,30 @@ JSClass("JSObjectTests", TKTestSuite, {
         }, "A");
 
         var B = JSObject.$extend({
-            value: null
+            value: JSDynamicProperty("_value", null),
+            setCount: 0,
+            setValue: function(value){
+                this._value = value;
+                ++this.setCount;
+            }
         }, "B");
 
         var a = A.init();
         var b = B.init();
         b.bind('value', a, 'name');
         TKAssertEquals(a.setCount, 0);
+        TKAssertEquals(b.setCount, 1);
         TKAssertExactEquals(b.value, "");
         a.name = "test1";
         TKAssertEquals(a.setCount, 1);
+        TKAssertEquals(b.setCount, 2);
         TKAssertExactEquals(b.value, "test1");
+
+        // b.value = "test2";
+        // TKAssertEquals(a.setCount, 2);
+        // TKAssertEquals(b.setCount, 3);
+        // TKAssertExactEquals(b.value, "test2");
+        // TKAssertExactEquals(a.name, "test2");
     },
 
     testBindCompoundKeyPath: function(){
@@ -371,6 +388,10 @@ JSClass("JSObjectTests", TKTestSuite, {
         TKAssertExactEquals(c.value, "");
         b.name = "test1";
         TKAssertExactEquals(c.value, "test1");
+
+        // c.value = "test2";
+        // TKAssertExactEquals(c.value, "test2");
+        // TKAssertExactEquals(b.name, "test2");
     },
 
     testBindDoubleCompoundKeyPath: function(){
@@ -402,6 +423,10 @@ JSClass("JSObjectTests", TKTestSuite, {
         TKAssertExactEquals(d.value, "");
         c.first = "test1";
         TKAssertExactEquals(d.value, "test1");
+
+        // d.value = "test2";
+        // TKAssertExactEquals(d.value, "test2");
+        // TKAssertExactEquals(c.first, "test2");
     },
 
     testUnbind: function(){
@@ -456,6 +481,58 @@ JSClass("JSObjectTests", TKTestSuite, {
         TKAssertExactEquals(a.name, "test2");
         TKAssertExactEquals(b.name, "test3");
         TKAssertExactEquals(c.value, "test3");
+    },
+
+    testBooleanBind: function(){
+        var A = JSObject.$extend({
+            first: false,
+            second: false
+        }, "A");
+
+        var B = JSObject.$extend({
+            value: false
+        }, "B");
+
+        var a = A.init();
+        var b = B.init();
+        b.bind('value', a, 'first');
+        b.bind('value', a, 'second');
+        TKAssertExactEquals(b.value, false);
+        a.first = true;
+        TKAssertExactEquals(b.value, false);
+        a.second = true;
+        TKAssertExactEquals(b.value, true);
+        a.first = false;
+        TKAssertExactEquals(b.value, false);
+        b.unbind('value');
+        TKAssertExactEquals(b.value, false);
+        a.first = true;
+        TKAssertExactEquals(b.value, false);
+
+        // b.value = "test2";
+        // TKAssertExactEquals(b.value, "test2");
+        // TKAssertExactEquals(a.name, "test2");
+    },
+
+    _testReadOnlyBind: function(){
+    },
+
+    _testValueTransformerBind: function(){
+    },
+
+    _testNegateBooleanKeyValueShortcut: function(){
+    },
+
+    _testIsNullKeyValueShortcut: function(){
+    },
+
+    _testIsNotNullKeyValueShortcut: function(){
+    },
+
+    _testIsEmptyKeyValueShortcut: function(){
+    },
+
+    _testIsNotEmptyKeyValueShortcut: function(){
     }
 
 });

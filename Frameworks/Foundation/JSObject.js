@@ -135,13 +135,7 @@ JSObject.definePropertiesFromExtensions({
             var i, l;
             var index;
             if (change.type == JSObject.KeyValueChange.Setting){
-                key = bindingInfo.binding;
-                if (bindingInfo.options.valueTransformer){
-                    var valueTransformer = JSClassForName(bindingInfo.options.valueTransformer).init();
-                    this.silentlySetValueForKey(key, valueTransformer.transformValue(change.newValue));
-                }else{
-                    this.silentlySetValueForKey(key, change.newValue);
-                }
+                this._updateValueForBinding(context.binding);
             }else if (change.type == JSObject.KeyValueChange.Insertion){
                 key = bindingInfo.binding;
                 change.indexes.sort();
@@ -218,26 +212,53 @@ JSObject.definePropertiesFromExtensions({
 
     bind: function(binding, toObject, keyPath, options){
         if (this.automaticallyManagesBindings){
-            if (binding in this._bindings){
+            var ourKey = binding;
+            var isBoolean = typeof(this.valueForKeyPath(ourKey)) == "boolean";
+            if (!isBoolean && (binding in this._bindings)){
                 this.unbind(binding);
+            }
+            if (options === undefined){
+                options = {};
+            }
+            // We allow some shortcuts in the keyPath string that specify
+            // common value transformers.  These make it easier to type out
+            // bindings in code or specs
+            keyPath = keyPath.replace(/\s+/g, '');
+            if (keyPath.startsWith("!")){
+                keyPath = keyPath.substr(1);
+                options.valueTransformer = "JSNegateBooleanValueTransformer";
+            }else if (keyPath.endsWith("!=null")){
+                keyPath = keyPath.substr(0, keyPath.length - 6);
+                options.valueTransformer = "JSIsNotNullValueTransformer";
+            }else if (keyPath.endsWith("==null")){
+                keyPath = keyPath.substr(0, keyPath.length - 6);
+                options.valueTransformer = "JSIsNullValueTransformer";
+            }else if (keyPath.endsWith(".length>0")){
+                keyPath = keyPath.substr(0, keyPath.length - 9);
+                options.valueTransformer = "JSIsNotEmptyValueTransformer";
+            }else if (keyPath.endsWith(".length==0")){
+                keyPath = keyPath.substr(0, keyPath.length - 10);
+                options.valueTransformer = "JSIsEmptyValueTransformer";
             }
             var bindingInfo = {
                 type            : JSObject.ObservingContext.Binding,
                 binding         : binding,
                 observedObject  : toObject,
                 observedKeyPath : keyPath,
-                options         : options || {}
+                options         : options || {},
+                isBoolean       : isBoolean,
+                next            : null,
+                tail            : null,
             };
-            this._bindings[binding] = bindingInfo;
-            toObject.addObserverForKeyPath(this, keyPath, options, bindingInfo);
-            var key = bindingInfo.binding;
-            var value = toObject.valueForKeyPath(keyPath);
-            if (bindingInfo.options.valueTransformer){
-                var valueTransformer = JSClassForName(bindingInfo.options.valueTransformer).init();
-                this.silentlySetValueForKey(key, valueTransformer.transformValue(value));
+            bindingInfo.tail = bindingInfo;
+            if (isBoolean && (binding in this._bindings)){
+                this._bindings[binding].tail.next = bindingInfo;
+                this._bindings[binding].tail = bindingInfo;
             }else{
-                this.silentlySetValueForKey(key, value);
+                this._bindings[binding] = bindingInfo;
             }
+            toObject.addObserverForKeyPath(this, keyPath, options, bindingInfo);
+            this._updateValueForBinding(binding);
         }
     },
 
@@ -246,6 +267,34 @@ JSObject.definePropertiesFromExtensions({
             var bindingInfo = this._bindings[binding];
             bindingInfo.observedObject.removeObserverForKeyPath(this, bindingInfo.observedKeyPath, bindingInfo);
         }
+    },
+
+    _valueForBinding: function(binding){
+        if (!(binding in this._bindings)){
+            return null;
+        }
+        var bindingInfo = this._bindings[binding];
+        var value = bindingInfo.observedObject.valueForKeyPath(bindingInfo.observedKeyPath);
+        if (bindingInfo.options.valueTransformer){
+            value = bindingInfo.options.valueTransformer.transformValue(value);
+        }
+        if (bindingInfo.isBoolean){
+            var nextValue;
+            while (value === true && bindingInfo.next !== null){
+                bindingInfo = bindingInfo.next;
+                nextValue = bindingInfo.observedObject.valueForKeyPath(bindingInfo.observedKeyPath);
+                if (bindingInfo.options.valueTransformer){
+                    nextValue = bindingInfo.options.valueTransformer.transformValue(nextValue);
+                }
+                value = value === true && nextValue === true;
+            }
+        }
+        return value;
+    },
+
+    _updateValueForBinding: function(binding){
+        var value = this._valueForBinding(binding);
+        this.silentlySetValueForKey(binding, value);
     },
 
     // -------------------------------------------------------------------------
@@ -268,7 +317,7 @@ JSObject.definePropertiesFromExtensions({
         var key = keyParts.shift();
         var value = this.valueForKey(key);
         if ((value !== null && value !== undefined) && keyParts.length){
-            return value.valueForKeyPath(keyParts.length);
+            return value.valueForKeyPath(keyParts.join('.'));
         }
         return value;
     },
@@ -581,12 +630,12 @@ JSObject.definePropertiesFromExtensions({
             var silentMethodName = this.$class.nameOfSilentRemoveMethodForKey(key);
             var originalMethod = this[removeMethodName];
             Object.defineProperty(this, silentMethodName, {
-                configurable: false,
+                configurable: true,
                 enumerable: false,
                 value: originalMethod
             });
             Object.defineProperty(this, removeMethodName, {
-                configurable: false,
+                configurable: true,
                 enumerable: false,
                 value: function JSObject_observableRemove(obj, index){
                     this.willChangeValuesAtIndexesForKey(key, JSObject.KeyValueChange.Removal, [index]);
@@ -603,12 +652,12 @@ JSObject.definePropertiesFromExtensions({
             var silentMethodName = this.$class.nameOfSilentReplaceMethodForKey(key);
             var originalMethod = this[replaceMethodName];
             Object.defineProperty(this, silentMethodName, {
-                configurable: false,
+                configurable: true,
                 enumerable: false,
                 value: originalMethod
             });
             Object.defineProperty(this, replaceMethodName, {
-                configurable: false,
+                configurable: true,
                 enumerable: false,
                 value: function JSObject_observableReplace(obj, index){
                     this.willChangeValuesAtIndexesForKey(key, JSObject.KeyValueChange.Replacement, [index]);
@@ -629,18 +678,18 @@ JSObject.definePropertiesFromExtensions({
             this.didChangeValueForKey(key);
         };
         Object.defineProperty(this, replacedSetterName, {
-            configurable: false,
+            configurable: true,
             enumerable: false,
             writable: false,
             value: originalSetter
         });
         Object.defineProperty(this, setterName, {
-            configurable: false,
+            configurable: true,
             enumerable: false,
             value: observableSetter
         });
         Object.defineProperty(this, key, {
-            configurable: false,
+            configurable: true,
             enumerable: false,
             get: function JSObject_observableGet(){
                 return this[silentKey];
@@ -652,13 +701,13 @@ JSObject.definePropertiesFromExtensions({
     defineObservablePropertyForKey: function(key, value){
         var silentKey = this.$class.nameOfSilentPropertyForKey(key);
         Object.defineProperty(this, silentKey, {
-            configurable: false,
+            configurable: true,
             enumerable: false,
             writable: true,
             value: value
         });
         Object.defineProperty(this, key, {
-            configurable: false,
+            configurable: true,
             enumerable: false,
             get: function JSObject_observableGet(){
                 return this[silentKey];
