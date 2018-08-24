@@ -27,27 +27,13 @@ JSObject.prototype = Object.create(Object.prototype, {
     }
 });
 
-JSObject.defineInitMethod = function(methodName){
-    var isSpec = methodName === 'initWithSpec';
-    Object.defineProperty(this, methodName, {
-        configurable: true,
-        enumerable: false,
-        value: function JSObject_createAndInit(){
-            var obj = Object.create(this.prototype);
-            obj.objectID = ++JSObject.ID;
-            obj._observers = {};
-            obj._bindings = {};
-            obj._observableKeys = {};
-            if (isSpec && arguments.length > 0 && arguments[0] !== null && arguments[0].willInitObject){
-                arguments[0].willInitObject(obj);
-            }
-            var result = obj[methodName].apply(obj, Array.prototype.slice.call(arguments, 0));
-            if (result === undefined){
-                return obj;
-            }
-            return result;
-        }
-    });
+JSObject.allocate = function(){
+    var obj = Object.create(this.prototype);
+    obj.objectID = ++JSObject.ID;
+    obj._observers = {};
+    obj._bindings = {};
+    obj._observableKeys = {};
+    return obj;
 };
 
 JSObject.definePropertiesFromExtensions({
@@ -82,30 +68,8 @@ JSObject.definePropertiesFromExtensions({
     },
 
     initWithSpec: function(spec, values){
-        // if ("bindings" in values){
-        //     this._initSpecBindings(spec, values.bindings);
-        // }
         if ("outlets" in values){
             this._initSpecOutlets(spec, values.outlets);
-        }
-    },
-
-    _initSpecBindings: function(spec, bindings){
-        var descriptors;
-        var descriptor;
-        for (var binding in bindings){
-            descriptors = bindings[binding];
-            if (!(descriptors instanceof Array)){
-                descriptors = [descriptors];
-            }
-            for (var i = 0, l = descriptors.length; i < l; ++i){
-                descriptor = descriptors[i];
-                var options = {};
-                if (descriptor.transformer){
-                    options.valueTransformer = spec.resolvedValue(descriptor.transformer);
-                }
-                this.bind(binding, spec.resolvedValue(descriptor.to), descriptor.value, options);
-            }
         }
     },
 

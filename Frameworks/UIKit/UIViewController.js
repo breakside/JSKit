@@ -14,9 +14,8 @@ JSClass("UIViewController", UIResponder, {
     initWithSpec: function(spec, values){
         this._spec = spec;
         this._outletsInSpec = values.outlets || null;
-        this._bindingsInSpec = values.bindings || null;
         this._viewInSpec = values.view || null;
-        // Delaying the typical outlet and binding instantiation until we load the
+        // Delaying the typical outlet instantiation until we load the
         // view because most outlets will likely be subviews, and we don't want
         // to do any work instantiating them until a view load is requested.
         // FIXME: this isn't ideal, because what if we want to access a non-view
@@ -45,7 +44,6 @@ JSClass("UIViewController", UIResponder, {
     _defaultViewClass: "UIView",
     _viewInSpec: null,
     _outletsInSpec: null,
-    _bindingsInSpec: null,
     _spec: null,
 
     getView: function(){
@@ -88,9 +86,6 @@ JSClass("UIViewController", UIResponder, {
                 }
                 if (this._outletsInSpec !== null){
                     this._initSpecOutlets(this._spec, this._outletsInSpec);
-                }
-                if (this._bindingsInSpec !== null){
-                    this._initSpecBindings(this._spec, this._bindingsInSpec);
                 }
             }else{
                 this.loadView();

@@ -12,7 +12,7 @@ JSClass('JSSpec', JSObject, {
     _plist: null,
     _objectMap: null,
     _baseName: null,
-    _keyForNextObjectInit: null,
+    _keysForNextObjectInit: null,
 
     initWithResource: function(resource, bundle){
         var extIndex = resource.lastIndexOf('.');
@@ -36,62 +36,92 @@ JSClass('JSSpec', JSObject, {
     },
 
     resolvedValue: function(value, defaultClassName, overrides){
-        if (value === null || value === undefined){
-            return value;
-        }
-        if (typeof(value) == 'string'){
-            if (value.length > 0){
-                var c = value.charAt(0);
-                var _value = value.substr(1);
-                switch (c) {
-                    case '/':
-                        if (!(_value in this._objectMap)){
-                            this._keyForNextObjectInit = _value;
-                            this._objectMap[_value] = this.resolvedValue(this._plist[_value], defaultClassName, overrides);
-                        }
-                        return this._objectMap[_value];
-                    case '$':
-                        return JSResolveDottedName(JSGlobalObject, _value);
-                    case '.':
-                        if (this._bundle !== null && this._baseName !== null){
-                            return this._bundle.localizedString(_value, this._baseName + '.strings');
-                        }
-                        return value;
-                    case '\\':
-                        return _value;
+        var i, l;
+        if (value !== null && value !== undefined){
+            if (typeof(value) == 'string'){
+                if (value.length > 0){
+                    var c = value.charAt(0);
+                    var key = value.substr(1);
+                    switch (c) {
+                        case '/':
+                            if (!(key in this._objectMap)){
+                                if (this._keysForNextObjectInit === null){
+                                    this._keysForNextObjectInit = [];
+                                }
+                                this._keysForNextObjectInit.push(key);
+                                this._objectMap[key] = this.resolvedValue(this._plist[key], defaultClassName, overrides);
+                            }
+                            value = this._objectMap[key];
+                            break;
+                        case '$':
+                            value = JSResolveDottedName(JSGlobalObject, key);
+                            break;
+                        case '.':
+                            if (this._bundle !== null && this._baseName !== null){
+                                value = this._bundle.localizedString(key, this._baseName + '.strings');
+                            }
+                            break;
+                        case '\\':
+                            value = key;
+                            break;
+                    }
                 }
-            }
-            return value;
-        }
-        if (typeof(value) == 'object'){
-            var className = defaultClassName;
-            if (JSSpec.Keys.ObjectClass in value){
-                className = value[JSSpec.Keys.ObjectClass];
-            }
-            if (overrides !== null && overrides !== undefined){
-                value = JSCopy(value);
-                for (var k in overrides){
-                    value[k] = overrides[k];
+            }else if (typeof(value) == 'object'){
+                var className = defaultClassName;
+                if (JSSpec.Keys.ObjectClass in value){
+                    className = value[JSSpec.Keys.ObjectClass];
                 }
-            }
-
-            if (className){
-                var obj = JSClass.FromName(className).initWithSpec(this, value);
-                return obj;
-            }else{
-                return value;
+                if (className){
+                    if (overrides !== null && overrides !== undefined){
+                        value = JSCopy(value);
+                        for (var k in overrides){
+                            value[k] = overrides[k];
+                        }
+                    }
+                    var cls = JSClass.FromName(className);
+                    var obj = cls.allocate();
+                    // Since initWithSpec may resolve objects that reference back
+                    // to us, we need to set our entry in the object map before
+                    // calling init.
+                    // NOTE: If there's a double-refeference like /File's Owner: /SomeObject,
+                    // we'll add this newly allocated object under both names.
+                    if (this._keysForNextObjectInit !== null){
+                        for (i = 0, l = this._keysForNextObjectInit.length; i < l; ++i){
+                            this._objectMap[this._keysForNextObjectInit[i]] = obj;
+                        }
+                        this._keysForNextObjectInit = null;
+                    }
+                    obj.initWithSpec(this, value);
+                    // Set the bindings after the object has been initialized
+                    if ('bindings' in value){
+                        this._setObjectBindings(obj, value.bindings);
+                    }
+                    value = obj;
+                }
             }
         }
         return value;
     },
 
-    willInitObject: function(obj){
-        if (this._keyForNextObjectInit === null){
-            return;
+    _setObjectBindings: function(obj, bindings){
+        var descriptors;
+        var descriptor;
+        for (var binding in bindings){
+            descriptors = bindings[binding];
+            if (!(descriptors instanceof Array)){
+                descriptors = [descriptors];
+            }
+            for (var i = 0, l = descriptors.length; i < l; ++i){
+                descriptor = descriptors[i];
+                var options = {};
+                if (descriptor.transformer){
+                    options.valueTransformer = this.resolvedValue(descriptor.transformer);
+                }
+                var to = this.resolvedValue(descriptor.to);
+                obj.bind(binding, to, descriptor.value, options);
+            }
         }
-        this._objectMap[this._keyForNextObjectInit] = obj;
-        this._keyForNextObjectInit = null;
-    }
+    },
 
 });
 

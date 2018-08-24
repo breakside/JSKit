@@ -114,13 +114,17 @@ JSClass.prototype = {
         }
     },
 
+    allocate: function(){
+        return Object.create(this.prototype);
+    },
+
     defineInitMethod: function(methodName){
         Object.defineProperty(this, methodName, {
             configurable: true,
             enumerable: false,
             value: function JSClass_createAndInit(){
+                var obj = this.allocate();
                 var args = Array.prototype.slice.call(arguments, 0);
-                var obj = Object.create(this.prototype);
                 var result = obj[methodName].apply(obj, args);
                 if (result === undefined){
                     return obj;   

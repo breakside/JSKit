@@ -30,9 +30,7 @@ JSClass("UITextField", UIControl, {
             this.textInsets = JSInsets.apply(undefined, values.textInsets.parseNumberArray());
         }
         if ("font" in values){
-            var font = spec.resolvedValue(values.font, "JSFont");
-            var descriptor = spec.resolvedValue(font.descriptor, "JSFontDescriptor");
-            this.font = JSFont.fontWithDescriptor(descriptor, font.pointSize);
+            this.font = JSFont.initWithSpec(spec, values.font);
         }
         if ("textColor" in values){
             this.textColor = spec.resolvedValue(values.textColor, "JSColor");

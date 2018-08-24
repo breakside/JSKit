@@ -105,13 +105,35 @@ JSClass("JSSpecTests", TKTestSuite, {
         var spec = JSSpec.initWithPropertyList(plist);
         var owner = spec.filesOwner;
         TKAssertNotNull(owner);
-    }
+    },
+
+    testBindings: function(){
+        var plist = JSPropertyList.initWithObject({
+            "Test One": {
+                "class": "JSSpecTestsObject",
+                "testKey": 12,
+                "bindings": {
+                    "value": {"to": "/Test Two", "value": "test"}
+                }
+            },
+            "Test Two": {
+                "class": "JSSpecTestsObject"
+            },
+            "File's Owner": "/Test One"
+        });
+        var spec = JSSpec.initWithPropertyList(plist);
+        var one = spec.resolvedValue("/Test One");
+        var two = spec.resolvedValue("/Test Two");
+        two.test = 12;
+        TKAssertEquals(one.value, 12);
+    },
 
 });
 
 JSClass("JSSpecTestsObject", JSObject, {
     test: 0,
     target: null,
+    value: null,
 
     initWithSpec: function(spec, values){
         JSSpecTestsObject.$super.initWithSpec.call(this, spec, values);

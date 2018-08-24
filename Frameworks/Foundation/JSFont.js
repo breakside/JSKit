@@ -42,11 +42,11 @@ JSClass("JSFont", JSObject, {
                 descriptor = descriptor.descriptorWithStyle(spec.resolvedValue(values.style));
             }
         }
-        if ('pointSize' in values){
-            if (values.pointSize in JSFont.Size){
-                pointSize = JSFont.Size[values.pointSize];
+        if ('size' in values){
+            if (values.size in JSFont.Size){
+                pointSize = JSFont.Size[values.size];
             }else{
-                pointSize = spec.resolvedValue(values.pointSize);
+                pointSize = spec.resolvedValue(values.size);
             }
         }
         if (descriptor !== null){
