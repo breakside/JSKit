@@ -24,6 +24,9 @@ JSObject.prototype = Object.create(Object.prototype, {
         enumerable: false,
         writable: false,
         value: JSObject
+    },
+    constructor: {
+        value: function JSObject(){}
     }
 });
 

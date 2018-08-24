@@ -26,6 +26,10 @@ JSClass.FromName = function(className){
 };
 
 JSClass.prototype = {
+
+    constructor: function JSClass(){
+    },
+
     className: '',
 
     $extend: function(extensions, className){
@@ -41,6 +45,7 @@ JSClass.prototype = {
         if (!className){
             throw new Error('Classes must have names');
         }
+        var constructor = new Function("return function " + className + "(){}")();
         C.className = className;
         C.prototype = Object.create(superclass.prototype, {
             '$class': {
@@ -48,7 +53,8 @@ JSClass.prototype = {
                 enumerable: false,
                 writable: false,
                 value: C
-            }
+            },
+            constructor: {value: constructor}
         });
         C.definePropertiesFromExtensions(extensions);
         return C;
