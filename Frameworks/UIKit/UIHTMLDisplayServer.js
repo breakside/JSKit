@@ -1,12 +1,12 @@
 // #import "UIKit/UIDisplayServer.js"
-// #import "UIKit/UIHTMLDisplayServerContext.js"
+// #import "UIKit/UIHTMLDisplayServerCanvasContext.js"
 // #import "UIKit/UIHTMLTextFramesetter.js"
 // #import "UIKit/UITextAttachmentView.js"
 // #feature Window.prototype.addEventListener
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
 // #feature Document.prototype.createElement
-/* global JSGlobalObject, Element, JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, JSSize, JSRect, JSPoint, UILayer, jslog_create, UITextFramesetter, UIHTMLTextFramesetter, UIView, UITextAttachmentView */
+/* global JSGlobalObject, Element, JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, UIHTMLDisplayServerCanvasContext, JSSize, JSRect, JSPoint, UILayer, jslog_create, UITextFramesetter, UIHTMLTextFramesetter, UIView, UITextAttachmentView */
 'use strict';
 
 (function(){
@@ -24,17 +24,19 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     displayFrameID: null,
     _displayFrameBound: null,
     contextsByObjectID: null,
+    contextClass: null,
 
     // -------------------------------------------------------------------------
     // MARK: - HTML Display Setup
 
     initWithRootElement: function(rootElement){
         UIHTMLDisplayServer.$super.init.call(this);
+        this.contextClass = UIHTMLDisplayServerCanvasContext;
         this.rootElement = rootElement;
         this.rootElement.style.webkitOverflowScrolling = 'auto';
         this.domDocument = this.rootElement.ownerDocument;
         this.domWindow = this.domDocument.defaultView;
-        this.windowsContext = UIHTMLDisplayServerContext.initWithElementUnmodified(this.rootElement);
+        this.windowsContext = this.contextClass.initWithElementUnmodified(this.rootElement);
         this.contextsByObjectID = {};
         this._insertedLayers = {};
         this._removedLayers = {};
@@ -99,26 +101,9 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             case 'anchorPoint':
                 this.setLayerNeedsReposition(layer);
                 break;
-            case 'shadowColor':
-            case 'shadowOffset':
-            case 'shadowRadius':
-                context = this.contextForLayer(layer);
-                context.propertiesNeedingUpdate.shadow = true;
-                UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
-                break;
-            case 'maskedCorners':
-                context = this.contextForLayer(layer);
-                context.propertiesNeedingUpdate.cornerRadius = true;
-                UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
-                break;
-            case 'maskedBorders':
-                context = this.contextForLayer(layer);
-                context.propertiesNeedingUpdate.borderWidth = true;
-                UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
-                break;
             default:
                 context = this.contextForLayer(layer);
-                context.propertiesNeedingUpdate[parts[0]] = true;
+                context.layerDidChangeProperty(layer, parts[0]);
                 UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
                 break;
         }
@@ -154,7 +139,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         var context = this.contextsByObjectID[layer.objectID];
         if (context === undefined){
             var element = this.domDocument.createElement('div');
-            context = UIHTMLDisplayServerContext.initWithElement(element);
+            context = this.contextClass.initWithElement(element);
             this.associateContextWithLayer(context, layer);
         }
         return context;
@@ -169,7 +154,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             context = this.contextsByObjectID[attachment.objectID];
             if (context === undefined){
                 var element = this.domDocument.createElement('div');
-                context = UIHTMLDisplayServerContext.initWithElement(element);
+                context = this.contextClass.initWithElement(element);
                 this.contextsByObjectID[attachment.objectID] = context;
             }
         }
@@ -186,7 +171,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         if (layer.delegate && layer.delegate.initializeLayerHTMLContext){
             layer.delegate.initializeLayerHTMLContext(layer, context);
         }
-        context.layerManagedNodeCount = context.element.childNodes.length - context.layerManagedTopNodeCount;
+        context.layerManagedNodeCount = context.element.childNodes.length;
         context.firstSublayerNodeIndex = context.layerManagedNodeCount;
         if (context.element.dataset){
             context.element.dataset.layerId = layer.objectID;
