@@ -1,7 +1,6 @@
 // Extensions
 // #import "UIKit/UIApplication+HTML.js"
 // #import "UIKit/UIPlatform+HTML.js"
-// #import "UIKit/UILayer+HTML.js"
 // #import "UIKit/UIWebView+HTML.js"
 
 // Specialized Subclasses

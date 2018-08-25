@@ -34,7 +34,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         this.rootElement.style.webkitOverflowScrolling = 'auto';
         this.domDocument = this.rootElement.ownerDocument;
         this.domWindow = this.domDocument.defaultView;
-        this.windowsContext = UIHTMLDisplayServerContext.initWithElement(this.rootElement);
+        this.windowsContext = UIHTMLDisplayServerContext.initWithElementUnmodified(this.rootElement);
         this.contextsByObjectID = {};
         this._insertedLayers = {};
         this._removedLayers = {};
@@ -194,7 +194,9 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         if (layer.objectID in this.contextsByObjectID){
             throw new Error("Layer already has a context");
         }
-        layer.initializeHTMLContext(context);
+        if (layer.delegate && layer.delegate.initializeLayerHTMLContext){
+            layer.delegate.initializeLayerHTMLContext(layer, context);
+        }
         context.layerManagedNodeCount = context.element.childNodes.length - context.layerManagedTopNodeCount;
         context.firstSublayerNodeIndex = context.layerManagedNodeCount;
         if (context.element.dataset){
@@ -346,7 +348,9 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         }
         var context = this.contextsByObjectID[layer.objectID];
         if (context){
-            layer.destroyHTMLContext(context);
+            if (layer.delegate && layer.delegate.destroyLayerHTMLContext){
+                layer.delegate.destroyLayerHTMLContext(layer, context);
+            }
             context.destroy();
             delete this.contextsByObjectID[layer.objectID];
         }

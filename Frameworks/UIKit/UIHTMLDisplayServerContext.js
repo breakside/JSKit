@@ -85,6 +85,10 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
 
     initWithElement: function(element){
         this.initWithElementUnmodified(element);
+        this.style.position = 'absolute';
+        this.style.boxSizing = 'border-box';
+        this.style.mozBoxSizing = 'border-box';
+        this.style.touchAction = 'none';
     },
 
     destroy: function(){
@@ -521,19 +525,127 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
         }
 
         if (!this._hasRenderedOnce){
-            layer.updateAllHTMLProperties(this);
+            this.updateAllHTMLProperties(layer);
             this._hasRenderedOnce = true;
         }else{
             var methodName;
             for (var keyPath in this.propertiesNeedingUpdate){
                 methodName = 'updateHTMLProperty_' + keyPath;
-                if (layer[methodName]){
-                    layer[methodName](this);
+                if (this[methodName]){
+                    this[methodName](layer);
                 }else{
                     throw new Error("UIHTMLDisplayServerContext could not find html display method for keyPath '%s'".sprintf(keyPath));
                 }
             }
             this.propertiesNeedingUpdate = {};
+        }
+    },
+
+    updateAllHTMLProperties: function(layer){
+        this.updateHTMLProperty_bounds(layer);
+        this.updateHTMLProperty_transform(layer);
+        this.updateHTMLProperty_hidden(layer);
+        this.updateHTMLProperty_clipsToBounds(layer);
+        this.updateHTMLProperty_alpha(layer);
+        this.updateHTMLProperty_backgroundColor(layer);
+        this.updateHTMLProperty_backgroundGradient(layer);
+        this.updateHTMLProperty_borderWidth(layer);
+        this.updateHTMLProperty_borderColor(layer);
+        this.updateHTMLProperty_cornerRadius(layer);
+        this.updateHTMLProperty_shadow(layer);
+    },
+
+    updateHTMLProperty_bounds: function(layer){
+        this.updateSize(layer.presentation.bounds.size);
+    },
+
+    updateHTMLProperty_transform: function(layer){
+        var transform = layer.presentation.transform;
+        var anchorPoint = layer.presentation.anchorPoint;
+        if (!transform.isIdentity){
+            var cssTransform = 'matrix(%f, %f, %f, %f, %f, %f)'.sprintf(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
+            this.style.transform = cssTransform;
+            this.style.transformOrigin = '%f%% %f%% 0'.sprintf(anchorPoint.x * 100, anchorPoint.y * 100);
+        }else{
+            this.style.transform = '';
+            this.style.transformOrigin = '';
+        }
+    },
+
+    updateHTMLProperty_hidden: function(layer){
+        this.style.visibility = layer.presentation.hidden ? 'hidden' : '';
+    },
+
+    updateHTMLProperty_clipsToBounds: function(layer){
+        this.style.overflow = layer._clipsToBounds ? 'hidden' : '';
+    },
+
+    updateHTMLProperty_alpha: function(layer){
+        this.style.opacity = layer.presentation.alpha != 1.0 ? layer.presentation.alpha : '';
+    },
+
+    updateHTMLProperty_backgroundColor: function(layer){
+        this.style.backgroundColor = layer.presentation.backgroundColor ? layer.presentation.backgroundColor.cssString() : '';
+    },
+
+    updateHTMLProperty_backgroundGradient: function(layer){
+        this.style.backgroundImage = layer.presentation.backgroundGradient ? layer.presentation.backgroundGradient.cssString() : '';
+    },
+
+    updateHTMLProperty_borderWidth: function(layer){
+        if (layer.presentation.borderWidth){
+            var css = '';
+            if (layer.presentation.maskedBorders === UILayer.Sides.all){
+                css = '%fpx'.sprintf(layer.presentation.borderWidth);
+            }else{
+                css = '%fpx %fpx %fpx %fpx'.sprintf(
+                    (layer.presentation.maskedBorders & UILayer.Sides.minY) ? layer.presentation.borderWidth : 0,
+                    (layer.presentation.maskedBorders & UILayer.Sides.maxX) ? layer.presentation.borderWidth : 0,
+                    (layer.presentation.maskedBorders & UILayer.Sides.maxY) ? layer.presentation.borderWidth : 0,
+                    (layer.presentation.maskedBorders & UILayer.Sides.minX) ? layer.presentation.borderWidth : 0
+                );
+            }
+            this.borderElement.style.borderWidth = css;
+            this.borderElement.style.borderStyle = 'solid';
+        }else{
+            if (this.borderElement !== null){
+                this.borderElement.parentNode.removeChild(this.borderElement);
+                this.borderElement = null;
+            }
+        }
+    },
+
+    updateHTMLProperty_borderColor: function(layer){
+        if (this.borderElement !== null){
+            this.borderElement.style.borderColor = layer.presentation.borderColor ? layer.presentation.borderColor.cssString() : '';
+        }
+    },
+
+    updateHTMLProperty_cornerRadius: function(layer){
+        var css = '';
+        if (layer.presentation.cornerRadius){
+            if (layer.presentation.maskedCorners === UILayer.Corners.all){
+                css = '%fpx'.sprintf(layer.presentation.cornerRadius);
+            }else{
+                css = '%fpx %fpx %fpx %fpx'.sprintf(
+                    (layer.presentation.maskedCorners & UILayer.Corners.minXminY) ? layer.presentation.cornerRadius : 0,
+                    (layer.presentation.maskedCorners & UILayer.Corners.maxXminY) ? layer.presentation.cornerRadius : 0,
+                    (layer.presentation.maskedCorners & UILayer.Corners.maxXmaxY) ? layer.presentation.cornerRadius : 0,
+                    (layer.presentation.maskedCorners & UILayer.Corners.minXmaxY) ? layer.presentation.cornerRadius : 0
+                );
+            }
+        }
+        this.style.borderRadius = css;
+        if (this.borderElement !== null){
+            this.borderElement.style.borderRadius = css;
+        }
+    },
+
+    updateHTMLProperty_shadow: function(layer){
+        if (layer.presentation.shadowColor){
+            this.style.boxShadow = '%fpx %fpx %fpx %s'.sprintf(layer.shadowOffset.x, layer.shadowOffset.y, layer.shadowRadius, layer.presentation.shadowColor.cssString());
+        }else{
+            this.style.boxShadow = '';
         }
     }
 
