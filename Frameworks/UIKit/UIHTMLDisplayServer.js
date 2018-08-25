@@ -130,17 +130,6 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
     },
 
-    displayLayer: function(layer){
-        var context = this.contextForLayer(layer);
-        if (context.needsFullDisplay){
-            context.resetForDisplay();
-            layer.display();
-            context.cleanupAfterDisplay();
-        }else{
-            context.drawLayerProperties(layer);
-        }
-    },
-
     positionLayer: function(layer){
         // Layers need to be positioned in the coordinates of their superlayer
         // Position and anchor point get us most of the way there, but there's still

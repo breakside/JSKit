@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIView.js"
-/* global JSClass, JSContext, JSObject, UIHTMLDisplayServerContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
+/* global JSClass, JSContext, JSObject, UILayer, UIHTMLDisplayServerContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
 'use strict';
 
 function HTMLCanvasProperty(name){
@@ -69,6 +69,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     _externalElements: null,
     _previousExternalElements: null,
     _hasRenderedOnce: false,
+    drawsHiddenLayers: true,
 
     initWithElementUnmodified: function(element){
         UIHTMLDisplayServerContext.$super.init.call(this);
@@ -494,7 +495,10 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     // ----------------------------------------------------------------------
     // MARK: - HTML Shortcuts
 
-    drawLayerProperties: function(layer){
+    drawLayer: function(layer){
+        if (this.needsFullDisplay){
+            this.resetForDisplay();
+        }
         var needsBorderElement = this.borderElement === null && layer.presentation.borderWidth > 0;
         if (needsBorderElement){
             // TODO: could possibly use outline with a negative outline-offset value
@@ -537,7 +541,13 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
                     throw new Error("UIHTMLDisplayServerContext could not find html display method for keyPath '%s'".sprintf(keyPath));
                 }
             }
-            this.propertiesNeedingUpdate = {};
+        }
+        this.propertiesNeedingUpdate = {};
+
+        if (this.needsFullDisplay){
+            layer._drawInContext(this);
+            this.cleanupAfterDisplay();
+            this.needsFullDisplay = false;
         }
     },
 

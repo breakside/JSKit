@@ -4,7 +4,7 @@
 // #import "UIKit/UIDisplayServer.js"
 // #feature Math.min
 // #feature Math.max
-/* global JSGlobalObject, UILayerAnimatedProperty, JSCustomProperty, JSReadOnlyProperty, JSDynamicProperty, JSClass, JSObject, UILayer, UIDisplayServer, JSRect, JSPoint, JSSize, JSAffineTransform, UIAnimationTransaction, UIBasicAnimation, JSSetDottedName, JSResolveDottedName, JSContext */
+/* global JSGlobalObject, UILayerAnimatedProperty, JSCustomProperty, JSReadOnlyProperty, JSDynamicProperty, JSClass, JSObject, JSInsets, UILayer, UIDisplayServer, JSRect, JSPoint, JSSize, JSAffineTransform, UIAnimationTransaction, UIBasicAnimation, JSSetDottedName, JSResolveDottedName, JSContext */
 'use strict';
 
 JSGlobalObject.UILayerAnimatedProperty = function(){
@@ -361,10 +361,18 @@ JSClass("UILayer", JSObject, {
     },
 
     _transformFromSuperlayer: function(){
-        var anchorX = this.bounds.size.width * this.anchorPoint.x;
-        var anchorY = this.bounds.size.height * this.anchorPoint.y;
-        var positionTransform = JSAffineTransform.Translated(this.model.position.x, this.model.position.y);
-        var transform = this.model.transform.concatenatedWith(positionTransform).translatedBy(-anchorX, -anchorY);
+        return this._transformFromSuperlayerUsingProperties(this.model);
+    },
+
+    _presentationTransformFromSuperlayer: function(){
+        return this._transformFromSuperlayerUsingProperties(this.presentation);
+    },
+
+    _transformFromSuperlayerUsingProperties: function(properties){
+        var anchorX = properties.bounds.size.width * properties.anchorPoint.x;
+        var anchorY = properties.bounds.size.height * properties.anchorPoint.y;
+        var positionTransform = JSAffineTransform.Translated(properties.position.x, properties.position.y);
+        var transform = properties.transform.concatenatedWith(positionTransform).translatedBy(-anchorX, -anchorY);
         return transform;
     },
 
@@ -593,7 +601,7 @@ JSClass("UILayer", JSObject, {
     display: function(){
         if (this._displayServer !== null){
             var context = this._displayServer.contextForLayer(this);
-            this._renderInContext(context, false);
+            this._renderInContextImmediately(context, false);
         }
     },
 
@@ -616,21 +624,22 @@ JSClass("UILayer", JSObject, {
                 return;
             }
         }
-        this._renderInContext(context, true);
+        this._renderInContextImmediately(context, true);
     },
 
-    _renderInContext: function(context, includeSublayers){
-        // if (this.presentation.hidden) return;
-        context.drawLayerProperties(this);
-        this._drawInContext(context);
-        if (includeSublayers){
+    _renderInContextImmediately: function(context, includeSublayers){
+        var hidden = this.presentation.hidden;
+        if (!hidden || context.drawsHiddenLayers){
+            context.drawLayer(this);
+        }
+        if (includeSublayers && !hidden){
             var sublayer;
             var transform;
             for (var i = 0, l = this.sublayers.length; i < l; ++i){
                 sublayer = this.sublayers[i];
                 if (!sublayer.hidden){
                     context.save();
-                    transform = sublayer._transformFromSuperlayer();
+                    transform = sublayer._presentationTransformFromSuperlayer();
                     context.concatCTM(transform);
                     sublayer.renderInContext(context);
                     context.restore();
@@ -688,60 +697,202 @@ UILayer.Properties = {
 };
 
 JSContext.definePropertiesFromExtensions({
-    drawLayerProperties: function(layer){
+
+    drawsHiddenLayers: false,
+
+    drawLayer: function(layer){
         var properties = layer.presentation;
-        if (properties.hidden){
-            return;
-        }
-        var bounds = JSRect(0, 0, properties.bounds.size.width, properties.bounds.size.height);
+
         this.save();
+
+        // Global drawing options
         this.setAlpha(properties.alpha);
-        this.concatenate(properties.transform);
-        if (properties.transform.isEqual(JSAffineTransform.Identity)){
-            this.concatenate(properties.transform);
-        }
         if (properties.shadowColor){
             this.setShadow(properties.shadowOffet, properties.shadowBlur, properties.shadowColor);
         }
+
+        // Background
+        this.drawBackgroundForLayerProperties(properties);
+
+        // Custom Drawing
+        this.save();
+        if (layer._clipsToBounds){
+            this.clip();
+        }
+        layer._drawInContext(this);
+        this.restore();
+
+        // Border
+        this.drawBorderForLayerProperties(properties);
+
+        this.restore();
+    },
+
+    drawBackgroundForLayerProperties: function(properties){
+        if (properties.backgroundColor === null && properties.backgroundGradient === null){
+            return;
+        }
         this.beginPath();
-        var rect = properties.bounds;
-        var cornerRadius = properties.cornerRadius;
-        var fill = false;
-        var stroke = false;
-        if (properties.borderWidth && properties.borderColor){
-            rect = rect.rectWithInsets(properties.borderWidth / 2.0);
-            cornerRadius -= properties.borderWidth / 2.0;
-            this.setLineWidth(properties.borderWidth);
-            this.setStrokeColor(properties.borderColor);
-            stroke = true;
-        }
+        this.addBorderPathForLayerProperties(properties, JSContext.DrawingMode.fill);
         if (properties.backgroundColor){
+            this.save();
             this.setFillColor(properties.backgroundColor);
-            fill = true;
-        }
-        if (cornerRadius > 0){
-            // FIXME: obey maskedCorners
-            this.addRoundedRect(rect, cornerRadius);
-        }else{
-            this.addRect(rect);
-        }
-        if (fill || stroke){
-            var drawingMode;
-            if (fill && stroke){
-                drawingMode = JSContext.DrawingMode.fillStroke;
-            }else if (stroke){
-                drawingMode = JSContext.DrawingMode.stroke;
-            }else{
-                drawingMode = JSContext.DrawingMode.fill;
-            }
-            this.drawPath(drawingMode);
+            this.fillPath();
+            this.restore();
         }
         if (properties.backgroundGradient){
             this.save();
             this.clip();
-            this.drawLinearGradient(properties.backgroundGradient, properties.bounds.origin.y, properties.bounds.origin.y + properties.bounds.size.height);
+            this.drawLinearGradient(properties.backgroundGradient, 0, properties.bounds.size.height);
             this.restore();
         }
-        this.restore();
+    },
+
+    drawBorderForLayerProperties: function(properties){
+        if (properties.borderWidth > 0 && properties.borderColor !== null){
+            this.beginPath();
+            this.addBorderPathForLayerProperties(properties, JSContext.DrawingMode.stroke);
+            this.save();
+            this.setStrokeColor(properties.borderColor);
+            this.setLineWidth(properties.borderWidth);
+            this.strokePath();
+            this.restore();
+        }
+    },
+
+    addBorderPathForLayerProperties: function(properties, drawingMode){
+        var maskedBorders = properties.maskedBorders;
+        var insetHalfBorderWidth = properties.borderWidth > 0;
+        if (drawingMode == JSContext.DrawingMode.fill){
+            maskedBorders = UILayer.Sides.all;
+            insetHalfBorderWidth = insetHalfBorderWidth && properties.borderColor.alpha === 1;
+        }
+        var rect = JSRect(0, 0, properties.bounds.size.width, properties.bounds.size.height);
+        var cornerRadius = properties.cornerRadius;
+        if (insetHalfBorderWidth){
+            var halfBorderWidth = properties.borderWidth / 2;
+            cornerRadius -= halfBorderWidth;
+            var insets = JSInsets(halfBorderWidth);
+            if ((maskedBorders & UILayer.Sides.minX) === 0){
+                insets.left = 0;
+            }
+            if ((maskedBorders & UILayer.Sides.minY) === 0){
+                insets.top = 0;
+            }
+            if ((maskedBorders & UILayer.Sides.maxX) === 0){
+                insets.right = 0;
+            }
+            if ((maskedBorders & UILayer.Sides.maxY) === 0){
+                insets.bottom = 0;
+            }
+            rect = rect.rectWithInsets(insets);
+        }
+        if (cornerRadius <= 0 || properties.maskedCorners == UILayer.Corners.none){
+            cornerRadius = 0;
+        }
+
+        if (maskedBorders == UILayer.Sides.all && properties.maskedCorners == UILayer.Corners.all){
+            this.addRoundedRect(rect, cornerRadius);
+        }else{
+            var halfWidth = rect.size.width / 2;
+            var halfHeight = rect.size.height / 2;
+            if (cornerRadius > halfWidth){
+                cornerRadius = halfWidth;
+            }
+            if (cornerRadius > halfHeight){
+                cornerRadius = halfHeight;
+            }
+            var magicRadius = JSContext.ellipseCurveMagic * cornerRadius;
+
+            var p1, p2, cp1, cp2;
+
+            if ((properties.maskedCorners & UILayer.Corners.minXminY) == UILayer.Corners.minXminY){
+                p1 = JSPoint(rect.origin.x, rect.origin.y + cornerRadius);
+                p2 = JSPoint(rect.origin.x + cornerRadius, rect.origin.y);
+                cp1 = JSPoint(p1.x, p1.y - magicRadius);
+                cp2 = JSPoint(p2.x - magicRadius, p2.y);
+                this.moveToPoint(p1.x, p1.y);
+                if ((maskedBorders & (UILayer.Sides.minX | UILayer.Sides.minY)) == (UILayer.Sides.minX | UILayer.Sides.minY)){
+                    this.addCurveToPoint(p2, cp1, cp2);
+                }else{
+                    this.moveToPoint(p2.x, p2.y);
+                }
+            }else{
+                this.moveToPoint(rect.origin.x, rect.origin.y);
+            }
+
+            if ((properties.maskedCorners & UILayer.Corners.maxXminY) == UILayer.Corners.maxXminY){
+                p1 = JSPoint(rect.origin.x + rect.size.width - cornerRadius, rect.origin.y);
+                p2 = JSPoint(rect.origin.x + rect.size.width, rect.origin.y + cornerRadius);
+                cp1 = JSPoint(p1.x + magicRadius, p1.y);
+                cp2 = JSPoint(p2.x, p2.y - magicRadius);
+                if (maskedBorders & UILayer.Sides.minY){
+                    this.addLineToPoint(p1.x, p1.y);
+                }else{
+                    this.moveToPoint(p1.x, p1.y);
+                }
+                if ((maskedBorders & (UILayer.Sides.maxX | UILayer.Sides.minY)) == (UILayer.Sides.maxX | UILayer.Sides.minY)){
+                    this.addCurveToPoint(p2, cp1, cp2);
+                }else{
+                    this.moveToPoint(p2.x, p2.y);
+                }
+            }else{
+                if (maskedBorders & UILayer.Sides.minY){
+                    this.addLineToPoint(rect.origin.x + rect.size.width, rect.origin.y);
+                }else{
+                    this.moveToPoint(rect.origin.x + rect.size.width, rect.origin.y);
+                }
+            }
+
+            if ((properties.maskedCorners & UILayer.Corners.maxXmaxY) == UILayer.Corners.maxXmaxY){
+                p1 = JSPoint(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height - cornerRadius);
+                p2 = JSPoint(rect.origin.x + rect.size.width - cornerRadius, rect.origin.y + rect.size.height);
+                cp1 = JSPoint(p1.x, p1.y + magicRadius);
+                cp2 = JSPoint(p2.x + magicRadius, p2.y);
+                if (maskedBorders & UILayer.Sides.maxX){
+                    this.addLineToPoint(p1.x, p1.y);
+                }else{
+                    this.moveToPoint(p1.x, p1.y);
+                }
+                if ((maskedBorders & (UILayer.Sides.maxX | UILayer.Sides.maxY)) == (UILayer.Sides.maxX | UILayer.Sides.maxY)){
+                    this.addCurveToPoint(p2, cp1, cp2);
+                }else{
+                    this.moveToPoint(p2.x, p2.y);
+                }
+            }else{
+                if (maskedBorders & UILayer.Sides.maxX){
+                    this.addLineToPoint(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height);
+                }else{
+                    this.moveToPoint(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height);
+                }
+            }
+
+            if ((properties.maskedCorners & UILayer.Corners.minXmaxY) == UILayer.Corners.minXmaxY){
+                p1 = JSPoint(rect.origin.x + cornerRadius, rect.origin.y + rect.size.height);
+                p2 = JSPoint(rect.origin.x, rect.origin.y + rect.size.height - cornerRadius);
+                cp1 = JSPoint(p1.x - magicRadius, p1.y);
+                cp2 = JSPoint(p2.x, p2.y + magicRadius);
+                if (maskedBorders & UILayer.Sides.maxY){
+                    this.addLineToPoint(p1.x, p1.y);
+                }else{
+                    this.moveToPoint(p1.x, p1.y);
+                }
+                if ((maskedBorders & (UILayer.Sides.minX | UILayer.Sides.maxY)) == (UILayer.Sides.minX | UILayer.Sides.maxY)){
+                    this.addCurveToPoint(p2, cp1, cp2);
+                }else{
+                    this.moveToPoint(p2.x, p2.y);
+                }
+            }else{
+                if (maskedBorders & UILayer.Sides.maxY){
+                    this.addLineToPoint(rect.origin.x, rect.origin.y + rect.size.height);
+                }else{
+                    this.moveToPoint(rect.origin.x, rect.origin.y + rect.size.height);
+                }
+            }
+
+            if (this.maskedBorders & UILayer.Sides.minX){
+                this.closePath();
+            }
+        }
     }
 });

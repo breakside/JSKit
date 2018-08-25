@@ -49,7 +49,7 @@ JSClass("JSContext", JSObject, {
         if (cornerRadius > halfHeight){
             cornerRadius = halfHeight;
         }
-        var magicRadius = ELLIPSE_CURVE_MAGIC * cornerRadius;
+        var magicRadius = JSContext.ellipseCurveMagic * cornerRadius;
 
         var p1 = JSPoint(rect.origin.x, rect.origin.y + cornerRadius);
         var p2 = JSPoint(rect.origin.x + cornerRadius, rect.origin.y);
@@ -136,8 +136,8 @@ JSClass("JSContext", JSObject, {
         // the ellipse magic number until we're left with only a sweep less than 90.
         while (sweep >= HALF_PI){
             p2 = JSPoint(0, direction);
-            c1 = JSPoint(1, direction * ELLIPSE_CURVE_MAGIC);
-            c2 = JSPoint(ELLIPSE_CURVE_MAGIC, direction);
+            c1 = JSPoint(1, direction * JSContext.ellipseCurveMagic);
+            c2 = JSPoint(JSContext.ellipseCurveMagic, direction);
             this.addCurveToPoint(transform.convertPointFromTransform(p2), transform.convertPointFromTransform(c1), transform.convertPointFromTransform(c2));
             transform = transform.rotatedBy(direction * HALF_PI);
             sweep -= HALF_PI;
@@ -620,6 +620,6 @@ var HALF_PI = Math.PI / 2;
 // percentage between two points where a bezier control point should be placed
 // in order to best approximate an ellipse, or circle in the ideal case.
 // Derivation at https://www.tinaja.com/glib/ellipse4.pdf
-var ELLIPSE_CURVE_MAGIC = 0.551784;
+JSContext.ellipseCurveMagic = 0.551784;
 
 })();
