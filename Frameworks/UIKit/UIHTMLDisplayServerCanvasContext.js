@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIHTMLDisplayServerContext.js"
-/* global JSClass, JSContext, UIHTMLDisplayServerContext, JSObject, UILayer, UIHTMLDisplayServerCanvasContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
+/* global JSClass, JSContext, UIHTMLDisplayServerContext, JSRect, JSObject, UILayer, UIHTMLDisplayServerCanvasContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
 'use strict';
 
 JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
@@ -30,6 +30,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this._externalElements = [];
         this._previousExternalElements = [];
         this._fontStack = [];
+        this.bounds = JSRect.Zero;
     },
 
     // --------------------------------------------------------------------
@@ -122,7 +123,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     },
 
     cleanupAfterDisplay: function(){
-        var i;
+        var i, l;
         for (i = this._canvasElements.length - 1; i >= this._canvasElementIndex; --i){
             this._canvasElements[i].parentNode.removeChild(this._canvasElements[i]);
             this._canvasElements.splice(i, 1);
@@ -136,6 +137,9 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
                 this._previousExternalElements[i].parentNode.removeChild(this._previousExternalElements[i]);
                 this._previousExternalElements.splice(i, 1);
             }
+        }
+        for (i = 0, l = this._canvasElements.length; i < l; ++i){
+            this._canvasElements[i].getContext('2d').restore();
         }
         this._previousExternalElements = [];
         this.firstSublayerNodeIndex = this._childInsertionIndex;
@@ -173,25 +177,29 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     propertiesNeedingUpdate: null,
     borderElement: null,
 
-    updateAllHTMLProperties: function(layer){
-        this.updateHTMLProperty_bounds(layer);
-        this.updateHTMLProperty_transform(layer);
-        this.updateHTMLProperty_hidden(layer);
-        this.updateHTMLProperty_clipsToBounds(layer);
-        this.updateHTMLProperty_alpha(layer);
-        this.updateHTMLProperty_backgroundColor(layer);
-        this.updateHTMLProperty_backgroundGradient(layer);
-        this.updateHTMLProperty_borderWidth(layer);
-        this.updateHTMLProperty_borderColor(layer);
-        this.updateHTMLProperty_cornerRadius(layer);
-        this.updateHTMLProperty_shadow(layer);
+    updateHTMLProperty_origin: function(layer){
+        this.bounds = layer.presentation.bounds;
+        var element;
+        var i, l;
+        var cssTransform = '';
+        if (this.bounds.origin.x !== 0 || this.bounds.origin.y !== 0){
+            cssTransform = 'translate(%fpx,%fpx)'.sprintf(-this.bounds.origin.x, -this.bounds.origin.y);
+        }
+        for (i = 0, l = this._imageElements.length; i < l; ++i){
+            element = this._imageElements[i];
+            element.style.transform = cssTransform;
+        }
+        for (i = 0, l = this._externalElements.length; i < l; ++i){
+            element = this._externalElements[i];
+            element.style.transform = cssTransform;
+        }
     },
 
     updateHTMLProperty_bounds: function(layer){
+        this.bounds = layer.presentation.bounds;
         var size = layer.presentation.bounds.size;
         this.style.width = size.width + 'px';
         this.style.height = size.height + 'px';
-        this.size = size;
     },
 
     updateHTMLProperty_transform: function(layer){
@@ -310,13 +318,15 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             var scale = this.element.ownerDocument.defaultView.devicePixelRatio || 1;
             // FIXME: scale should account for any transform on our layer or its ancestor layers
             var canvas = this._dequeueReusableCanvasElement();
-            canvas.width = this.size.width * scale;
-            canvas.height = this.size.height * scale;
+            canvas.width = this.bounds.size.width * scale;
+            canvas.height = this.bounds.size.height * scale;
             this._insertChildElement(canvas);
             this._canvasContext = canvas.getContext('2d');
             if (scale != 1){
                 this._canvasContext.scale(scale, scale);
             }
+            this._canvasContext.save();
+            this._canvasContext.translate(-this.bounds.origin.x, -this.bounds.origin.y);
         }
         return this._canvasContext;
     },
@@ -517,6 +527,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             this._imageElements.push(imageElement);
         }
         var element = this._imageElements[this._imageElementIndex];
+        element.style.transform = 'translate(%fpx,%fpx)'.sprintf(-this.bounds.origin.x, -this.bounds.origin.y);
         ++this._imageElementIndex;
         return element;
     },

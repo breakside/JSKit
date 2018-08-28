@@ -97,6 +97,10 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     layerDidChangeProperty: function(layer, keyPath){
         var parts = keyPath.split('.');
         var context;
+        if (parts.length > 1 && parts[0] == 'bounds' && parts[1] == 'origin'){
+            this._layerDidChangeBoundsOrigin(layer);
+            return;
+        }
         switch (parts[0]){
             case 'position':
             case 'anchorPoint':
@@ -134,6 +138,15 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         origin.y -= size.height * layer.presentation.anchorPoint.y + superorigin.y;
         context.style.top = origin.y + 'px';
         context.style.left = origin.x + 'px';
+    },
+
+    _layerDidChangeBoundsOrigin: function(layer){
+        var context = this.contextForLayer(layer);
+        context.layerDidChangeProperty(layer, 'origin');
+        UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
+        for (var i = 0, l = layer.sublayers.length; i < l; ++i){
+            this.setLayerNeedsReposition(layer.sublayers[i]);
+        }
     },
 
     contextForLayer: function(layer){

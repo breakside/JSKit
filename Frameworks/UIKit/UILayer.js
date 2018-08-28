@@ -158,11 +158,7 @@ JSClass("UILayer", JSObject, {
     },
 
     boundsOriginDidChange: function(){
-        if (this._displayServer !== null){
-            for (var i = 0, l = this.sublayers.length; i < l; ++i){
-                this._displayServer.setLayerNeedsReposition(this.sublayers[i]);
-            }
-        }
+        this.didChangeProperty('bounds.origin');
     },
 
     setTransform: function(transform){
