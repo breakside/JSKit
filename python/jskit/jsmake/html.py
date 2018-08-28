@@ -99,8 +99,9 @@ class HTMLBuilder(Builder):
         self.outputCacheBustingPath = os.path.join(self.outputWebRootPath, self.buildID if not self.debug else "debug")
         self.outputResourcePath = os.path.join(self.outputWebRootPath, "Resources")
         if self.debug:
-            for child in (self.outputWebRootPath,):
-                if os.path.exists(child):
+            for root in (self.outputWebRootPath,):
+                for name in os.listdir(root):
+                    child = os.path.join(root, name)
                     if os.path.isdir(child):
                         shutil.rmtree(child)
                     else:
