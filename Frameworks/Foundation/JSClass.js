@@ -39,21 +39,7 @@ JSClass.prototype = {
         }
         var C = new Function("return function " + className + "(){ 'use strict'; if (this === undefined){ throw new Error('Cannot use " + className + " as a function'); } throw new Error('Cannot use " + className + " as a constructor.  Use an init method instead.') }")();
         Object.setPrototypeOf(C, superclass);
-        Object.defineProperties(C, {
-            '$super': {
-                value: superclass.prototype
-            },
-            className: {
-                value: className
-            }
-        });
         C.prototype = Object.create(superclass.prototype, {
-            '$class': {
-                configurable: false,
-                enumerable: false,
-                writable: false,
-                value: C
-            },
             constructor: {value: C}
         });
         C.definePropertiesFromExtensions(extensions);
@@ -73,6 +59,23 @@ JSClass.prototype = {
     },
 
     initialize: function(){
+        Object.defineProperties(this, {
+            '$super': {
+                configurable: true,
+                value: Object.getPrototypeOf(this.prototype)
+            },
+            className: {
+                value: this.name
+            }
+        });
+        Object.defineProperties(this.prototype, {
+            '$class': {
+                configurable: false,
+                enumerable: false,
+                writable: false,
+                value: this
+            }
+        });
         var properties = Object.getOwnPropertyNames(this.prototype);
         var name;
         for (var i = 0, l = properties.length; i < l; ++i){

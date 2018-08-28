@@ -742,6 +742,8 @@ JSObject.definePropertiesFromExtensions({
 
 JSObject.initialize();
 
+delete JSObject.$super;
+
 JSObject.ObservingContext = {
     Binding: "Binding",
     Chained: "Chained"

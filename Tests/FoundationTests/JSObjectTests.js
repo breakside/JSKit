@@ -573,15 +573,22 @@ JSClass("JSObjectTests", TKTestSuite, {
         });
         TKAssertNotUndefined(test1.init);
         TKAssertUndefined(test1.initWithNumber);
+        TKAssertUndefined(test1.$super);
+        TKAssertEquals(test1.className, "JSObject");
         test1.initialize();
         TKAssertNotUndefined(test1.initWithNumber);
+        TKAssertExactEquals(test1.$super, JSObject.prototype);
         var a = test1.init();
         TKAssertNotUndefined(a.objectID);
         TKAssertNotNull(a.objectID);
+        TKAssertExactEquals(a.$class, test1);
+        TKAssertExactEquals(test1.className, 'Test1');
         var b = test1.initWithNumber(2);
         TKAssertNotUndefined(b.objectID);
         TKAssertNotNull(b.objectID);
         TKAssertEquals(b.number, 2);
+        TKAssert(a.isKindOfClass(test1));
+        TKAssert(a.isKindOfClass(JSObject));
     }
 
 });
