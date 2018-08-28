@@ -1,6 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIView.js"
 // #import "UIKit/UIHTMLDisplayServerContext.js"
+// #import "UIKit/SVGPathSegList.js"
 /* global SVGLength, JSClass, UILayer, JSContext, JSAffineTransform, JSColor, JSObject, UIHTMLDisplayServerContext, UIHTMLDisplayServerSVGContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
 'use strict';
 
@@ -205,7 +206,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
             this._shadowOffsetElement.dy.baseVal = 0;
 
             this._shadowBlurElement = this.createElement("feGaussianBlur");
-            this._shadowBlurElement.setStdDeviation(0);
+            this._shadowBlurElement.setStdDeviation(0, 0);
 
             this._shadowColorElement = this.createElement("feColorMatrix");
             this._shadowColorElement.setAttribute("values", "0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0 0");
@@ -254,7 +255,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     updateSVG_clipsToBounds: function(layer){
         // FIXME: this clips the SVG shadow
         // FIXME: this doesn't properly clip subviews under rounded corners
-        this.style.overflow = layer._clipsToBounds ? 'hidden' : '';
+        // this.style.overflow = layer._clipsToBounds ? 'hidden' : '';
     },
 
     updateSVG_alpha: function(layer){
@@ -369,7 +370,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         }
         if (this._shadowBlurElement !== null){
             var radius = layer.presentation.shadowRadius;
-            this._shadowBlurElement.setStdDeviation(radius / 2);
+            this._shadowBlurElement.setStdDeviation(radius / 2, radius / 2);
             this._updateShadowFilterSize(layer);
         }
     },
@@ -470,16 +471,6 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         }
         UIHTMLDisplayServerSVGContext.$super.addLineToPoint.call(this, x, y);
         var seg = this._currentPath.createSVGPathSegLinetoAbs(x, y);
-        this._currentPath.pathSegList.appendItem(seg);
-    },
-
-    addArc: function(center, radius, startAngle, endAngle, clockwise){
-        if (!this._currentPath){
-            this.beginPath();
-        }
-        // FIXME: super remember points
-        var seg = this._currentPath.createSVGPathSegArcAbs(center.x, center.y, radius, radius);
-        // FIXME: figure out remaining arguments
         this._currentPath.pathSegList.appendItem(seg);
     },
 
