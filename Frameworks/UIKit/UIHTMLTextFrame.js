@@ -141,9 +141,7 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             if (this.element.style.visibility == 'hidden'){
                 this.element.style.visibility = '';
             }
-            this.element.style.left = '%dpx'.sprintf(point.x);
-            this.element.style.top = '%dpx'.sprintf(point.y);
-            context.addExternalElement(this.element);
+            context.addExternalElementInRect(this.element, JSRect(point, this.size));
             var attachmentInfo;
             for (var i = 0, l = this.attachments.length; i < l; ++i){
                 attachmentInfo = this.attachments[i];

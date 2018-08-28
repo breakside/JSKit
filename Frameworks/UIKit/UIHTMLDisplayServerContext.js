@@ -8,7 +8,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
 
     element: null,
     style: null,
-    needsFullDisplay: false,
+    needsCustomDisplay: false,
     firstSublayerNodeIndex: 0,
     layerManagedNodeCount: 0,
 
@@ -27,6 +27,15 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     },
 
     layerDidChangeProperty: function(layer, property){
+    },
+
+    startMouseTracking: function(trackingType, listener){
+    },
+
+    stopMouseTracking: function(){
+    },
+
+    addExternalElementInRect: function(element, rect){
     },
 
     destroy: function(){

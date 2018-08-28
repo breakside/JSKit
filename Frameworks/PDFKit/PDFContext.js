@@ -280,13 +280,13 @@ JSClass("PDFContext", JSContext, {
     drawPath: function(drawingMode){
         switch (drawingMode){
             case JSContext.DrawingMode.fill:
-                this.fillPath(JSContext.FillRule.winding);
+                this._writeStreamData("f ");
                 break;
             case JSContext.DrawingMode.evenOddFill:
-                this.fillPath(JSContext.FillRule.evenOdd);
+                this._writeStreamData("f* ");
                 break;
             case JSContext.DrawingMode.stroke:
-                this.strokePath();
+                this._writeStreamData("S ");
                 break;
             case JSContext.DrawingMode.fillStroke:
                 this._writeStreamData("B ");
@@ -295,6 +295,7 @@ JSClass("PDFContext", JSContext, {
                 this._writeStreamData("B* ");
                 break;
         }
+        this._discardPath();
     },
 
     fillPath: function(fillRule){
@@ -303,10 +304,12 @@ JSClass("PDFContext", JSContext, {
         }else{
             this._writeStreamData("f ");
         }
+        this._discardPath();
     },
 
     strokePath: function(){
         this._writeStreamData("S ");
+        this._discardPath();
     },
 
     // ----------------------------------------------------------------------
@@ -442,18 +445,6 @@ JSClass("PDFContext", JSContext, {
 
     // ----------------------------------------------------------------------
     // MARK: - Transformations
-
-    scaleBy: function(sx, sy){
-        this.concatenate(JSAffineTransform.Scaled(sx, sy));
-    },
-
-    rotateBy: function(angle){
-        this.concatenate(JSAffineTransform.Rotated(angle));
-    },
-
-    translateBy: function(tx, ty){
-        this.concatenate(JSAffineTransform.Translated(tx, ty));
-    },
 
     concatenate: function(tm){
         this._writeStreamData("%n %n %n %n %n %n cm ", tm.a, tm.b, tm.c, tm.d, tm.tx, tm.ty);

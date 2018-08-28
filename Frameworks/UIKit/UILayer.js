@@ -586,9 +586,13 @@ JSClass("UILayer", JSObject, {
     // -------------------------------------------------------------------------
     // MARK: - Display
 
+    _needsDisplay: false,
+
     setNeedsDisplay: function(){
         if (this._displayServer !== null){
             this._displayServer.setLayerNeedsDisplay(this);
+        }else{
+            this._needsDisplay = true;
         }
     },
 
@@ -696,6 +700,12 @@ UILayer.Properties = {
     shadowRadius            : 0.0
 };
 
+UILayer.Path = {
+    background: 0,
+    border: 1,
+    shadow: 2
+};
+
 JSContext.definePropertiesFromExtensions({
 
     drawsHiddenLayers: false,
@@ -733,7 +743,7 @@ JSContext.definePropertiesFromExtensions({
             return;
         }
         this.beginPath();
-        this.addBorderPathForLayerProperties(properties, JSContext.DrawingMode.fill);
+        this.addBorderPathForLayerProperties(properties, UILayer.Path.background);
         if (properties.backgroundColor){
             this.save();
             this.setFillColor(properties.backgroundColor);
@@ -751,7 +761,7 @@ JSContext.definePropertiesFromExtensions({
     drawBorderForLayerProperties: function(properties){
         if (properties.borderWidth > 0 && properties.borderColor !== null){
             this.beginPath();
-            this.addBorderPathForLayerProperties(properties, JSContext.DrawingMode.stroke);
+            this.addBorderPathForLayerProperties(properties, UILayer.Path.border);
             this.save();
             this.setStrokeColor(properties.borderColor);
             this.setLineWidth(properties.borderWidth);
@@ -760,12 +770,20 @@ JSContext.definePropertiesFromExtensions({
         }
     },
 
-    addBorderPathForLayerProperties: function(properties, drawingMode){
+    addBorderPathForLayerProperties: function(properties, path){
         var maskedBorders = properties.maskedBorders;
         var insetHalfBorderWidth = properties.borderWidth > 0;
-        if (drawingMode == JSContext.DrawingMode.fill){
-            maskedBorders = UILayer.Sides.all;
-            insetHalfBorderWidth = insetHalfBorderWidth && properties.borderColor.alpha === 1;
+        switch (path){
+            case UILayer.Path.background:
+                maskedBorders = UILayer.Sides.all;
+                insetHalfBorderWidth = insetHalfBorderWidth && properties.borderColor.alpha === 1;
+                break;
+            case UILayer.Path.border:
+                break;
+            case UILayer.Path.shadow:
+                maskedBorders = UILayer.Sides.all;
+                insetHalfBorderWidth = false;
+                break;
         }
         var rect = JSRect(0, 0, properties.bounds.size.width, properties.bounds.size.height);
         var cornerRadius = properties.cornerRadius;

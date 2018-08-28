@@ -16,7 +16,12 @@ JSClass("JSContext", JSObject, {
     // ----------------------------------------------------------------------
     // MARK: - Constructing Paths
 
+    /// Starts a new path, discarding any previous path
     beginPath: function(){
+        this._discardPath();
+    },
+
+    _discardPath: function(){
         this._clearPoints();
     },
 
@@ -345,7 +350,7 @@ JSClass("JSContext", JSObject, {
     addEllipseInRect: function(rect){
         var halfWidth = rect.size.width / 2.0;
         var halfHeight = rect.size.height / 2.0;
-        var magic = 0.551784;
+        var magic = JSContext.ellipseCurveMagic;
         var magicWidth = magic * halfWidth;
         var magicHeight = magic * halfHeight;
         var p1 = JSPoint(rect.origin.x + halfWidth, rect.origin.y);
@@ -520,9 +525,11 @@ JSClass("JSContext", JSObject, {
     // MARK: - Transformations
 
     scaleBy: function(sx, sy){
+        this.concatenate(JSAffineTransform.Scaled(sx, sy));
     },
 
     rotateBy: function(angle){
+        this.concatenate(JSAffineTransform.Rotated(angle));
     },
 
     rotateByDegrees: function(degrees){
@@ -530,6 +537,7 @@ JSClass("JSContext", JSObject, {
     },
 
     translateBy: function(tx, ty){
+        this.concatenate(JSAffineTransform.Translated(tx, ty));
     },
 
     concatenate: function(transform){

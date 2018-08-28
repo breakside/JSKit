@@ -1,12 +1,13 @@
 // #import "UIKit/UIDisplayServer.js"
 // #import "UIKit/UIHTMLDisplayServerCanvasContext.js"
+/// #import "UIKit/UIHTMLDisplayServerSVGContext.js"
 // #import "UIKit/UIHTMLTextFramesetter.js"
 // #import "UIKit/UITextAttachmentView.js"
 // #feature Window.prototype.addEventListener
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
 // #feature Document.prototype.createElement
-/* global JSGlobalObject, Element, JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, UIHTMLDisplayServerCanvasContext, JSSize, JSRect, JSPoint, UILayer, jslog_create, UITextFramesetter, UIHTMLTextFramesetter, UIView, UITextAttachmentView */
+/* global JSGlobalObject, Element, JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, UIHTMLDisplayServerCanvasContext, UIHTMLDisplayServerSVGContext, JSSize, JSRect, JSPoint, UILayer, jslog_create, UITextFramesetter, UIHTMLTextFramesetter, UIView, UITextAttachmentView */
 'use strict';
 
 (function(){
@@ -111,7 +112,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     setLayerNeedsDisplay: function(layer){
         var context = this.contextForLayer(layer);
-        context.needsFullDisplay = true;
+        context.needsCustomDisplay = true;
         UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
     },
 
@@ -203,7 +204,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         if (!layer.superlayer){
             throw new Error("Cannot insert layer without a superlayer");
         }
-        var parentContext = this.contextsByObjectID[layer.superlayer.objectID];
+        var parentContext = this.contextForLayer(layer.superlayer);
         this._layerInserted(layer, parentContext);
     },
 
@@ -230,7 +231,12 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
                 this.setLayerNeedsAnimation(layer);
             }
             this.setLayerNeedsReposition(layer);
-            this.setLayerNeedsDisplay(layer);
+            if (layer._needsDisplay){
+                this.setLayerNeedsDisplay(layer);
+                layer._needsDisplay = false;
+            }else{
+                UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
+            }
         }
         // For completely new layers, or removed layers that are re-inserted within the same
         // display cyle, all sublayers need to be inserted (or re-inserted)

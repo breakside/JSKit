@@ -12,7 +12,19 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     initWithElementUnmodified: function(element){
         UIHTMLDisplayServerCanvasContext.$super.initWithElementUnmodified.call(this, element);
-        this.propertiesNeedingUpdate = {};
+        this.propertiesNeedingUpdate = {
+            bounds: true,
+            transform: true,
+            hidden: true,
+            clipsToBounds: true,
+            alpha: true,
+            backgroundColor: true,
+            backgroundGradient: true,
+            borderWidth: true,
+            borderColor: true,
+            cornerRadius: true,
+            shadow: true
+        };
         this._imageElements = [];
         this._canvasElements = [];
         this._externalElements = [];
@@ -51,7 +63,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     },
 
     drawLayer: function(layer){
-        if (this.needsFullDisplay){
+        if (this.needsCustomDisplay){
             this.resetForDisplay();
         }
         var needsBorderElement = this.borderElement === null && layer.presentation.borderWidth > 0;
@@ -82,27 +94,17 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
                 this.propertiesNeedingUpdate.cornerRadius = true;
             }
         }
-
-        if (!this._hasRenderedOnce){
-            this.updateAllHTMLProperties(layer);
-            this._hasRenderedOnce = true;
-        }else{
-            var methodName;
-            for (var keyPath in this.propertiesNeedingUpdate){
-                methodName = 'updateHTMLProperty_' + keyPath;
-                if (this[methodName]){
-                    this[methodName](layer);
-                }else{
-                    throw new Error("UIHTMLDisplayServerCanvasContext could not find html display method for keyPath '%s'".sprintf(keyPath));
-                }
-            }
+        var methodName;
+        for (var property in this.propertiesNeedingUpdate){
+            methodName = 'updateHTMLProperty_' + property;
+            this[methodName](layer);
         }
         this.propertiesNeedingUpdate = {};
 
-        if (this.needsFullDisplay){
+        if (this.needsCustomDisplay){
             layer._drawInContext(this);
             this.cleanupAfterDisplay();
-            this.needsFullDisplay = false;
+            this.needsCustomDisplay = false;
         }
     },
 
@@ -139,7 +141,9 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this.firstSublayerNodeIndex = this._childInsertionIndex;
     },
 
-    addExternalElement: function(element){
+    addExternalElementInRect: function(element, rect){
+        element.style.left = '%dpx'.sprintf(rect.origin.x);
+        element.style.top = '%dpx'.sprintf(rect.origin.y);
         this._externalElements.push(element);
         this._insertChildElement(element);
     },
@@ -159,7 +163,6 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this._canvasContext = null;
     },
 
-    _hasRenderedOnce: false,
     _childInsertionIndex: 0,
     _externalElements: null,
     _previousExternalElements: null,
@@ -185,7 +188,10 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     },
 
     updateHTMLProperty_bounds: function(layer){
-        this.updateSize(layer.presentation.bounds.size);
+        var size = layer.presentation.bounds.size;
+        this.style.width = size.width + 'px';
+        this.style.height = size.height + 'px';
+        this.size = size;
     },
 
     updateHTMLProperty_transform: function(layer){
@@ -315,19 +321,11 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         return this._canvasContext;
     },
 
-    // --------------------------------------------------------------------
-    // MARK: - Adjusting Size
-
-    updateSize: function(size){
-        this.style.width = size.width + 'px';
-        this.style.height = size.height + 'px';
-        this.size = size;
-    },
-
     // ----------------------------------------------------------------------
     // MARK: - Tracking
-    
+
     trackingElement: null,
+    trackingListener: null,
 
     startMouseTracking: function(trackingType, listener){
         if (this.trackingElement === null){
@@ -408,15 +406,37 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     // ----------------------------------------------------------------------
     // MARK: - Drawing the Current Path
 
+    drawPath: function(drawingMode){
+        switch (drawingMode){
+            case JSContext.DrawingMode.fill:
+                this.canvasContext.fill();
+                break;
+            case JSContext.DrawingMode.evenOddFill:
+                throw new Error("UIHTMLDisplayServerCanvasContext.eoFillPath not implemented");
+            case JSContext.DrawingMode.stroke:
+                this.canvasContext.stroke();
+                break;
+            case JSContext.DrawingMode.fillStroke:
+                this.canvasContext.fill();
+                this.canvasContext.stroke();
+                break;
+            case JSContext.DrawingMode.evenOddFillStroke:
+                throw new Error("UIHTMLDisplayServerCanvasContext.eoFillPath not implemented");
+        }
+        this.canvasContext.beginPath();
+    },
+
     fillPath: function(fillRule){
         if (fillRule == JSContext.FillRule.evenOdd){
             throw new Error("UIHTMLDisplayServerCanvasContext.eoFillPath not implemented");
         }
         this.canvasContext.fill();
+        this.canvasContext.beginPath();
     },
 
     strokePath: function(){
         this.canvasContext.stroke();
+        this.canvasContext.beginPath();
     },
 
     // ----------------------------------------------------------------------
