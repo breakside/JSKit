@@ -1013,6 +1013,7 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
 
     backgroundColor: null,
     activeBackgroundColor: null,
+    disabledBackgroundColor: null,
     textColor: null,
     placeholderColor: null,
     cornerRadius: 0,
@@ -1025,6 +1026,9 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
         }
         if ('activeBackgroundColor' in values){
             this.activeBackgroundColor = spec.resolvedValue(values.activeBackgroundColor, "JSColor");
+        }
+        if ('disabledBackgroundColor' in values){
+            this.disabledBackgroundColor = spec.resolvedValue(values.disabledBackgroundColor, "JSColor");
         }
         if ('textColor' in values){
             this.textColor = spec.resolvedValue(values.textColor, "JSColor");
@@ -1061,6 +1065,8 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
             if (this.activeBackgroundColor){
                 textField.backgroundColor = this.activeBackgroundColor;
             }
+        }else if (!textField.enabled && this.disabledBackgroundColor !== null){
+            textField.backgroundColor = this.disabledBackgroundColor;
         }else{
             textField.backgroundColor = this.backgroundColor;
         }
