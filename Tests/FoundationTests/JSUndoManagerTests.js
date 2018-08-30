@@ -160,6 +160,76 @@ JSClass("JSUndoManagerTests", TKTestSuite, {
         TKAssertEquals(changes.length, 27);
         TKAssertEquals(changes[26], 1);
         TKAssertEquals(x, 1);
+    },
+
+    testActionName: function(){
+        var manager = JSUndoManager.init();
+        var x = 0;
+        var y = 0;
+        var z = 0;
+        var changeX = function(value){
+            manager.registerUndo(undefined, changeX, x);
+            manager.setActionName("Change X");
+            x = value;
+        };
+        var changeY = function(value){
+            manager.registerUndo(undefined, changeY, y);
+            manager.setActionName("Change Y");
+            y = value;
+        };
+        var changeZ = function(value){
+            manager.registerUndo(undefined, changeZ, z);
+            z = value;
+        };
+
+        TKAssertEquals(manager.titleForUndoMenuItem, "Undo");
+        TKAssertEquals(manager.titleForRedoMenuItem, "Redo");
+        changeX(1);
+        TKAssertEquals(manager.titleForUndoMenuItem, "Undo Change X");
+        TKAssertEquals(manager.titleForRedoMenuItem, "Redo");
+        manager.undo();
+        TKAssertEquals(manager.titleForUndoMenuItem, "Undo");
+        TKAssertEquals(manager.titleForRedoMenuItem, "Redo Change X");
+        manager.redo();
+        TKAssertEquals(manager.titleForUndoMenuItem, "Undo Change X");
+        TKAssertEquals(manager.titleForRedoMenuItem, "Redo");
+        changeY(1);
+        TKAssertEquals(manager.titleForUndoMenuItem, "Undo Change Y");
+        TKAssertEquals(manager.titleForRedoMenuItem, "Redo");
+        manager.undo();
+        TKAssertEquals(manager.titleForUndoMenuItem, "Undo Change X");
+        TKAssertEquals(manager.titleForRedoMenuItem, "Redo Change Y");
+        manager.undo();
+        TKAssertEquals(manager.titleForUndoMenuItem, "Undo");
+        TKAssertEquals(manager.titleForRedoMenuItem, "Redo Change X");
+        manager.redo();
+        TKAssertEquals(manager.titleForUndoMenuItem, "Undo Change X");
+        TKAssertEquals(manager.titleForRedoMenuItem, "Redo Change Y");
+        manager.redo();
+        TKAssertEquals(manager.titleForUndoMenuItem, "Undo Change Y");
+        TKAssertEquals(manager.titleForRedoMenuItem, "Redo");
+        changeZ(1);
+        TKAssertEquals(manager.titleForUndoMenuItem, "Undo");
+        TKAssertEquals(manager.titleForRedoMenuItem, "Redo");
+        manager.undo();
+        TKAssertEquals(manager.titleForUndoMenuItem, "Undo Change Y");
+        TKAssertEquals(manager.titleForRedoMenuItem, "Redo");
+        manager.beginUndoGrouping();
+        changeX(2);
+        changeY(2);
+        manager.endUndoGrouping();
+        TKAssertEquals(manager.titleForUndoMenuItem, "Undo");
+        TKAssertEquals(manager.titleForRedoMenuItem, "Redo");
+        manager.beginUndoGrouping();
+        changeX(3);
+        changeY(3);
+        manager.endUndoGrouping();
+        manager.setActionName("Change XY");
+        TKAssertEquals(manager.titleForUndoMenuItem, "Undo Change XY");
+        TKAssertEquals(manager.titleForRedoMenuItem, "Redo");
+        manager.undo();
+        TKAssertEquals(manager.titleForUndoMenuItem, "Undo");
+        TKAssertEquals(manager.titleForRedoMenuItem, "Redo Change XY");
     }
 
 });

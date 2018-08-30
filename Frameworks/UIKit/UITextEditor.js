@@ -470,6 +470,7 @@ JSClass("UITextEditor", JSObject, {
             this.selections.splice(j, 1);
         }
         this.undoManager.endUndoGrouping();
+        this.undoManager.setActionName("Typing");
         this._collapseOverlappingSelections();
         this._resetSelectionAffinity();
     },
@@ -484,7 +485,6 @@ JSClass("UITextEditor", JSObject, {
             insertedLength = attributedString.string.length;
         }
         this.undoManager.registerUndo(this, this._replaceTextStorageRangeAllowingUndo, textStorage, JSRange(range.location, insertedLength), replacedString);
-        this.undoManager.setActionName("Typing");
         textStorage.replaceCharactersInRangeWithAttributedString(range, attributedString);
     },
 
@@ -563,6 +563,7 @@ JSClass("UITextEditor", JSObject, {
             locationAdjustment += textLength - adjustedRange.length;
         }
         this.undoManager.endUndoGrouping();
+        this.undoManager.setActionName("Typing");
         this._isHandlingSelectionAdjustments = false;
         this._resetSelectionAffinity();
     },

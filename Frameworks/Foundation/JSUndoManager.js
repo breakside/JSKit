@@ -64,23 +64,24 @@ JSClass("JSUndoManager", JSObject, {
     },
 
     _registerItem: function(item){
-        var stack;
-        if (this._activeGroup === null){
-            if (this._isUndoing){
-                stack = this._redoStack;
-            }else{
-                if (!this._isRedoing){
-                    this._redoStack = [];
-                }
-                stack = this._undoStack;
-            }
-            if (this._maximumNumberOfUndos > 0 && stack.length > this._maximumNumberOfUndos){
-                stack.shift();
-            }
-        }else{
-            stack = this._activeGroup.children;
+        if (!this._isUndoing && !this._isRedoing){
+            this._redoStack = [];
         }
+        var stack = this._getCurrentStack();
         stack.push(item);
+        if (this._maximumNumberOfUndos > 0 && stack.length > this._maximumNumberOfUndos){
+            stack.shift();
+        }
+    },
+
+    _getCurrentStack: function(){
+        if (this._activeGroup !== null){
+            return this._activeGroup.children;
+        }
+        if (this._isUndoing){
+            return this._redoStack;
+        }
+        return this._undoStack;
     },
 
     maximumNumberOfUndos: JSDynamicProperty('_maximumNumberOfUndos', 0),
@@ -134,23 +135,42 @@ JSClass("JSUndoManager", JSObject, {
     // MARK: - Managing the Undo and Redo Menu Items
 
     setActionName: function(actionName){
-        // set name on top of stack
+        var stack = this._getCurrentStack();
+        if (stack.length > 0){
+            stack[stack.length - 1].actionName = actionName;
+        }
     },
 
+    undoActionName: JSReadOnlyProperty(),
+    redoActionName: JSReadOnlyProperty(),
     titleForUndoMenuItem: JSReadOnlyProperty(),
+    titleForRedoMenuItem: JSReadOnlyProperty(),
+
+    getUndoActionName: function(){
+        return this._getActionNameFromStack(this._undoStack);
+    },
+
+    getRedoActionName: function(){
+        return this._getActionNameFromStack(this._redoStack);
+    },
+
+    _getActionNameFromStack: function(stack){
+        if (stack.length > 0){
+            return stack[stack.length - 1].actionName;
+        }
+        return null;
+    },
 
     getTitleForUndoMenuItem: function(){
-        var name = null;
+        var name = this.undoActionName;
         if (name !== null){
             return "Undo %s".sprintf(name);
         }
         return "Undo";
     },
 
-    titleForRedoMenuItem: JSReadOnlyProperty(),
-
     getTitleForRedoMenuItem: function(){
-        var name = null;
+        var name = this.redoActionName;
         if (name !== null){
             return "Redo %s".sprintf(name);
         }
@@ -169,6 +189,9 @@ var JSUndoRegistration = function(target, action, args){
 };
 
 JSUndoRegistration.prototype = {
+
+    actionName: null,
+
     invoke: function(manager){
         this.action.apply(this.target, this.args);
     }
@@ -183,6 +206,8 @@ var JSUndoGroup = function(){
 
 JSUndoGroup.prototype = {
 
+    actionName: null,
+
     invoke: function(manager){
         manager.beginUndoGrouping();
         var child;
@@ -191,6 +216,7 @@ JSUndoGroup.prototype = {
             child.invoke(manager);
         }
         manager.endUndoGrouping();
+        manager.setActionName(this.actionName);
     }
 
 };

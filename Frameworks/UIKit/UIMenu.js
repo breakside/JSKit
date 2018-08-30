@@ -157,17 +157,36 @@ JSClass("UIMenu", JSObject, {
             item = this._items[i];
             item.highlighted = false;
             if (!item.submenu){
-                item.enabled = this._isItemEnabled(item);
+                this._udpateItemEnabled(item);
             }
         }
     },
 
-    _isItemEnabled: function(item){
+    _udpateItemEnabled: function(item){
         var target = item.target;
         if (target === null){
             target = UIApplication.shared.firstTargetForAction(item.action, this._contextTarget, item);
         }
-        return target !== null && (!target.canPerformAction || target.canPerformAction(item.action, item));
+        if (item.action == 'undo' || item.action == 'redo'){
+            if (target !== null && target.getUndoManager){
+                var manager = target.getUndoManager();
+                if (manager){
+                    if  (!item._originalTitle){
+                        item._originalTitle = item.title;
+                    }
+                    if (item.action == 'undo'){
+                        item.title = manager.titleForUndoMenuItem;
+                    }else{
+                        item.title = manager.titleForRedoMenuItem;
+                    }
+                }else if (item._originalTitle){
+                    item.title = item._originalTitle;
+                }
+            }else if (item._originalTitle){
+                item.title = item._originalTitle;
+            }
+        }
+        item.enabled = target !== null && (!target.canPerformAction || target.canPerformAction(item.action, item));
     },
 
     // MARK: - Performing Item Actions
@@ -229,7 +248,8 @@ JSClass("UIMenu", JSObject, {
                         modifiers = item.keyModifiers | UIPlatform.shared.commandModifier;
                         if (modifiers == event.modifiers){
                             if (keyEquivalentCode == item._keyEquivalentCode){
-                                if (this._isItemEnabled(item)){
+                                this._udpateItemEnabled(item);
+                                if (item.enabled){
                                     return item;
                                 }
                             }
