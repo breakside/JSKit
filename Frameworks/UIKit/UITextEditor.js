@@ -192,6 +192,7 @@ JSClass("UITextEditor", JSObject, {
         this._hideCursors();
         this._hideSelections();
         this._isFirstResponder = false;
+        this.undoManager.clear();
     },
 
     windowDidChangeKeyStatus: function(window){

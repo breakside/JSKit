@@ -63,6 +63,13 @@ JSClass("JSUndoManager", JSObject, {
         }
     },
 
+    clear: function(){
+        this._undoStack = [];
+        this._redoStack = [];
+        this._groupStack = [];
+        this._activeGroup = null;
+    },
+
     _registerItem: function(item){
         if (!this._isUndoing && !this._isRedoing){
             this._redoStack = [];
