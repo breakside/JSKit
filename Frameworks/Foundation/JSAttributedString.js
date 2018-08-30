@@ -52,6 +52,21 @@ JSClass("JSAttributedString", JSObject, {
         return this._string;
     },
 
+    // MARK: - Substrings
+
+    attributedSubstringInRange: function(range){
+        var other = JSAttributedString.initWithAttributedString(this);
+        var end = range.end;
+        var trailing = other.string.length - end;
+        if (trailing > 0){
+            other.deleteCharactersInRange(JSRange(end, trailing));
+        }
+        if (range.location > 0){
+            other.deleteCharactersInRange(JSRange(0, range.location));
+        }
+        return other;
+    },
+
     // MARK: - String mutations
 
     appendString: function(string){
@@ -153,6 +168,10 @@ JSClass("JSAttributedString", JSObject, {
     },
 
     replaceCharactersInRangeWithAttributedString: function(range, attributedString){
+        if (attributedString === null){
+            this.replaceCharactersInRangeWithString(range, "");
+            return;
+        }
         var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
         if (range.length > 0 || this._string.length === 0){
             this._runs.splice(runRange.location, runRange.length);

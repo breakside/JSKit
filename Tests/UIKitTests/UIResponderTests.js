@@ -1,6 +1,7 @@
 // #import "UIKit/UIKit.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, UIResponder, UIEvent, UIRootWindow, TKAssert, TKAssertExactEquals, TKTestSuite, JSPoint, TKAssertEquals */
+/* global JSClass, TKTestSuite, UIResponder, JSUndoManager */
+/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
 JSClass("UIResponderTests", TKTestSuite, {
@@ -198,6 +199,68 @@ JSClass("UIResponderTests", TKTestSuite, {
         target = responder2.targetForAction('test2', null);
         TKAssertExactEquals(target, responder2);
 
-    }
+    },
+
+    testUndoManager: function(){
+
+        var Responder1 = UIResponder.$extend({
+
+            nextResponder: null,
+
+            test1: function(sender){
+
+            },
+
+            getNextResponder: function(){
+                return this.nextResponder;
+            }
+
+        }, "Responder1");
+
+        var Responder2 = UIResponder.$extend({
+
+            undoManager: null,
+
+            test1: function(sender){
+            },
+
+            test2: function(sender){
+            },
+
+            getUndoManager: function(){
+                return this.undoManager;
+            }
+
+        }, "Responder2");
+
+        var responder1 = Responder1.init();
+        var responder2 = Responder2.init();
+        responder1.nextResponder = responder2;
+
+        TKAssertNull(responder1.getUndoManager());
+        TKAssertNull(responder2.getUndoManager());
+        TKAssert(!responder1.canPerformAction('undo'));
+        TKAssert(!responder1.canPerformAction('redo'));
+
+        var undoManager = JSUndoManager.init();
+
+        responder2.undoManager = undoManager;
+        TKAssertExactEquals(responder1.getUndoManager(), undoManager);
+        TKAssertExactEquals(responder2.getUndoManager(), undoManager);
+
+        TKAssert(!responder1.canPerformAction('undo'));
+        TKAssert(!responder1.canPerformAction('redo'));
+
+        var undo = function(){
+            undoManager.registerUndo(this, undo);
+        };
+
+        undoManager.registerUndo(this, undo);
+        TKAssert(responder1.canPerformAction('undo'));
+        TKAssert(!responder1.canPerformAction('redo'));
+        undoManager.undo();
+        TKAssert(!responder1.canPerformAction('undo'));
+        TKAssert(responder1.canPerformAction('redo'));
+    },
 
 });

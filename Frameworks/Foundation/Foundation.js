@@ -65,5 +65,6 @@
 // #import "Foundation/JSFileManager.js"
 // #import "Foundation/JSFile.js"
 // #import "Foundation/JSUserDefaults.js"
+// #import "Foundation/JSUndoManager.js"
 
 'use strict';

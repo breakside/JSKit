@@ -129,6 +129,15 @@ JSClass("UIResponder", JSObject, {
 
     canPerformAction: function(action, sender){
         if (this[action] !== undefined && this[action] !== null && typeof(this[action]) == 'function'){
+            var manager;
+            if (action === 'undo'){
+                manager = this.getUndoManager();
+                return manager && manager.canUndo;
+            }
+            if (action === 'redo'){
+                manager = this.getUndoManager();
+                return manager && manager.canRedo;
+            }
             return true;
         }
         return false;
@@ -164,6 +173,28 @@ JSClass("UIResponder", JSObject, {
         if (next !== null){
             next.rotate(event);
         }
-    }
+    },
+
+    getUndoManager: function(){
+        var next = this.getNextResponder();
+        if (next !== null){
+            return next.getUndoManager();
+        }
+        return null;
+    },
+
+    undo: function(){
+        var manager = this.getUndoManager();
+        if (manager !== null){
+            manager.undo();
+        }
+    },
+
+    redo: function(){
+        var manager = this.getUndoManager();
+        if (manager !== null){
+            manager.redo();
+        }
+    },
 
 });

@@ -280,6 +280,13 @@ JSClass("UITextField", UIControl, {
     },
 
     // --------------------------------------------------------------------
+    // MARK: - Undo Manager
+
+    getUndoManager: function(){
+        return this._localEditor.undoManager;
+    },
+
+    // --------------------------------------------------------------------
     // MARK: - Layout Configuration
 
     multiline: JSDynamicProperty('_multiline', false, 'isMultiline'),

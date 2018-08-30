@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UILayer.js"
-/* global JSClass, JSDynamicProperty, JSAttributedString, JSCopy, JSObject, JSRange, UITextEditor, JSRect, JSPoint, JSColor, UILayer, JSTimer, JSBinarySearcher */
+/* global JSClass, JSDynamicProperty, JSUndoManager, JSAttributedString, JSCopy, JSObject, JSRange, UITextEditor, JSRect, JSPoint, JSColor, UILayer, JSTimer, JSBinarySearcher */
 'use strict';
 
 (function(){
@@ -9,6 +9,7 @@ JSClass("UITextEditor", JSObject, {
 
     layoutLayer: null,
     textLayoutManager: null,
+    undoManager: null,
     selections: null,
     delegate: null,
     cursorColor: JSDynamicProperty('_cursorColor', null),
@@ -27,6 +28,7 @@ JSClass("UITextEditor", JSObject, {
 
     initWithTextLayer: function(textLayer){
         this.layoutLayer = textLayer;
+        this.undoManager = JSUndoManager.init();
         this._cursorLayers = [];
         this._selectionHighlightLayers = [];
         this.textLayoutManager = textLayer.textLayoutManager;
@@ -450,11 +452,12 @@ JSClass("UITextEditor", JSObject, {
         var locationAdjustment = 0;
         var textStorage = this.textLayoutManager.textStorage;
         this._isHandlingSelectionAdjustments = true;
+        this.undoManager.beginUndoGrouping();
         for (i = 0, l = ranges.length; i < l; ++i){
             range = ranges[i];
             adjustedRange = JSRange(range.location + locationAdjustment, range.length);
             if (adjustedRange.length > 0){
-                textStorage.deleteCharactersInRange(adjustedRange);
+                this._replaceTextStorageRangeAllowingUndo(textStorage, adjustedRange, null);
             }
             locationAdjustment -= range.length;
             if (i == this.selections.length){
@@ -466,8 +469,23 @@ JSClass("UITextEditor", JSObject, {
         for (var j = this.selections.length - 1; j >= i; --j){
             this.selections.splice(j, 1);
         }
+        this.undoManager.endUndoGrouping();
         this._collapseOverlappingSelections();
         this._resetSelectionAffinity();
+    },
+
+    _replaceTextStorageRangeAllowingUndo: function(textStorage, range, attributedString){
+        var replacedString = null;
+        var insertedLength = 0;
+        if (range.length > 0){
+            replacedString = textStorage.attributedSubstringInRange(range);
+        }
+        if (attributedString !== null){
+            insertedLength = attributedString.string.length;
+        }
+        this.undoManager.registerUndo(this, this._replaceTextStorageRangeAllowingUndo, textStorage, JSRange(range.location, insertedLength), replacedString);
+        this.undoManager.setActionName("Typing");
+        textStorage.replaceCharactersInRangeWithAttributedString(range, attributedString);
     },
 
     _collapseOverlappingSelections: function(){
@@ -532,6 +550,7 @@ JSClass("UITextEditor", JSObject, {
         var adjustedRange;
         var insertAttributes;
         this._isHandlingSelectionAdjustments = true;
+        this.undoManager.beginUndoGrouping();
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
             insertAttributes = this.insertAttributes;
@@ -539,10 +558,11 @@ JSClass("UITextEditor", JSObject, {
                 insertAttributes = this._insertAttributesForSelection(selection);
             }
             adjustedRange = JSRange(selection.range.location + locationAdjustment, selection.range.length);
-            textStorage.replaceCharactersInRangeWithAttributedString(adjustedRange, JSAttributedString.initWithString(text, insertAttributes));
+            this._replaceTextStorageRangeAllowingUndo(textStorage, adjustedRange, JSAttributedString.initWithString(text, insertAttributes));
             selection.range = JSRange(adjustedRange.location + textLength, 0);
             locationAdjustment += textLength - adjustedRange.length;
         }
+        this.undoManager.endUndoGrouping();
         this._isHandlingSelectionAdjustments = false;
         this._resetSelectionAffinity();
     },

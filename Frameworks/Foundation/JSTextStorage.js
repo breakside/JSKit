@@ -45,6 +45,10 @@ JSClass("JSTextStorage", JSAttributedString, {
     },
 
     replaceCharactersInRangeWithAttributedString: function(range, attributedString){
+        if (attributedString === null){
+            this.replaceCharactersInRangeWithString(range, "");
+            return;
+        }
         JSTextStorage.$super.replaceCharactersInRangeWithAttributedString.call(this, range, attributedString);
         for (var i = 0, l = this._layoutManagers.length; i < l; ++i){
             this._layoutManagers[i].textStorageDidReplaceCharactersInRange(range, attributedString.string.length);
