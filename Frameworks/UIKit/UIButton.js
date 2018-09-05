@@ -198,7 +198,7 @@ JSClass("UIButton", UIControl, {
                 this.active = false;
             }
             var location = event.locationInView(this);
-            this.over = this.containsPoint(location);
+            this.over = this.window !== null && this.containsPoint(location);
         }else{
             UIButton.$super.mouseUp.call(this, event);
         }

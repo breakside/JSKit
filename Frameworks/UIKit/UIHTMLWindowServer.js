@@ -201,9 +201,6 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.addEventListener('touchend', this, {passive: false, capture: false});
         this.rootElement.addEventListener('touchcancel', this, {passive: false, capture: false});
         this.rootElement.addEventListener('touchmove', this, {passive: false, capture: false});
-
-        // TODO: special things like file input change
-        // TODO: does stopping key events interfere with browser keyboard shortcuts? (some, yes)
     },
 
     handleEvent: function(e){
@@ -366,13 +363,11 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                         // undo operation instead of the browser default, which would likely
                         // mess up our text input manager.
                         preventDefault = true;
-                        // TODO: Undo
                     }else if (UIPlatform.shared.identifier === UIPlatform.Identifier.mac && modifiers === (UIPlatform.shared.commandModifier | UIEvent.Modifier.shift)){
                         // We want to prevent the default redo shortcut, so we can do our own
                         // undo operation instead of the browser default, which would likely
                         // mess up our text input manager.
                         preventDefault = true;
-                        // TODO: Redo (mac)
                     }
                     break;
                 case 89: // y
@@ -381,7 +376,6 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                         // undo operation instead of the browser default, which would likely
                         // mess up our text input manager.
                         preventDefault = true;
-                        // TODO: Redo (win)
                     }
                     break;
             }

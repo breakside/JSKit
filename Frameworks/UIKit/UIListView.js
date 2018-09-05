@@ -38,7 +38,10 @@ JSProtocol("UIListViewDelegate", JSProtocol, {
 JSProtocol("UIListViewDataSource", JSProtocol, {
 
     numberOfSectionsInListView: ['listView'],
-    numberOfRowsInListViewSection: ['listView', 'sectionIndex']
+    numberOfRowsInListViewSection: ['listView', 'sectionIndex'],
+
+    // Editing
+    listViewCommitDeletionOfRowAtIndexPath: ['listView', 'indexPath']
 
 });
 
@@ -398,6 +401,70 @@ JSClass("UIListView", UIScrollView, {
         this._updateVisibleCells();
 
         this._hasLoadedOnce = true;
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Inserting and Deleting Rows
+
+    deleteRowAtIndexPath: function(indexPath){
+        this.deleteRowsAtIndexPaths([indexPath]);
+    },
+
+    deleteRowsAtIndexPaths: function(indexPaths){
+        var firstVisibleIndexPath = JSIndexPath(0, 0);
+        var lastVisibleIndexPath = JSIndexPath(0, 0);
+        if (this._visibleCellViews.length > 0){
+            firstVisibleIndexPath = this._visibleCellViews[0].indexPath;
+            lastVisibleIndexPath = this._visibleCellViews[this._visibleCellViews.length - 1].indexPath;
+        }
+        var indexPath;
+        var needsUpdate = false;
+        var contentOffset = JSPoint(this._contentOffset);
+        var contentSize = JSSize(this._contentSize);
+        var height;
+        var accumulatedHeight = 0;
+        var cell;
+        for (var i = 0, l = indexPaths.length; i < l; ++i){
+            indexPath = indexPaths[i];
+            height = this._heightForCellAtIndexPath(indexPath);
+            accumulatedHeight += height;
+            contentSize.height -= height;
+            this._cachedData.numberOfRowsBySection[indexPath.section] -= 1;
+            // TODO: adjust expectedHeaderYOrigins
+            if (indexPath.isLessThan(firstVisibleIndexPath)){
+                contentOffset.y -= height;
+            }else if (indexPath.isLessThanOrEqual(lastVisibleIndexPath)){
+                needsUpdate = true;
+                this._deleteVisibleCellAtIndexPath(indexPath, height);
+            }
+        }
+        var frame = JSRect(this._cellsContainerView.frame);
+        frame.size.height -= accumulatedHeight;
+        this._cellsContainerView.frame = frame;
+        this.contentOffset = contentOffset;
+        this.contentSize = contentSize;
+        if (needsUpdate){
+            this._needsUpdate = true;
+            this.setNeedsLayout();
+        }
+    },
+
+    _deleteVisibleCellAtIndexPath: function(indexPath, height){
+        var searcher = JSBinarySearcher(this._visibleCellViews, function(_indexPath, cell){
+            return _indexPath.compare(cell.indexPath);
+        });
+        var i = searcher.indexMatchingValue(indexPath);
+        var cell = this._visibleCellViews[i];
+        this._visibleCellViews.splice(i, 1);
+        this._enqueueReusableCell(cell);
+        var other;
+        for (var l = this._visibleCellViews.length; i < l; ++i){
+            other = this._visibleCellViews[i];
+            if (other.indexPath.section == indexPath.section){
+                other.indexPath.row -= 1;
+            }
+            other.position = JSPoint(other.position.x, other.position.y - height);
+        }
     },
 
     // --------------------------------------------------------------------
@@ -1461,6 +1528,13 @@ JSClass("UIListView", UIScrollView, {
         return searcher.itemMatchingValue(locationInContainer.y);
     },
 
+    cellAtIndexPath: function(indexPath){
+        var searcher = JSBinarySearcher(this._visibleCellViews, function(_indexPath, cell){
+            return _indexPath.compare(cell.indexPath);
+        });
+        return searcher.itemMatchingValue(indexPath);
+    },
+
     _cellHitTest: function(location){
         // If we don't have sticky headers, then the cell hit test is identical
         // to the cellAtLocation function because there are no overlaping views.
@@ -1549,10 +1623,7 @@ JSClass("UIListView", UIScrollView, {
     },
 
     _rectForVisibleCellAtIndexPath: function(indexPath){
-        var searcher = JSBinarySearcher(this._visibleCellViews, function(_indexPath, cell){
-            return _indexPath.compare(cell.indexPath);
-        });
-        var cell = searcher.itemMatchingValue(indexPath);
+        var cell = this.cellAtIndexPath(indexPath);
         return this.convertRectFromView(cell.bounds, cell);
     },
 
