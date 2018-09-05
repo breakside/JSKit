@@ -313,9 +313,12 @@ JSObject.definePropertiesFromExtensions({
         if (bindingInfo.valueTransformer){
             value = bindingInfo.valueTransformer.reverseTransformValue(value);
         }
-        this._ignoreObserationContext = bindingInfo;
-        bindingInfo.observedObject.setValueForKeyPath(bindingInfo.observedKeyPath, value);
-        this._ignoreObserationContext = null;
+        try{
+            this._ignoreObserationContext = bindingInfo;
+            bindingInfo.observedObject.setValueForKeyPath(bindingInfo.observedKeyPath, value);
+        }finally{
+            this._ignoreObserationContext = null;
+        }
     },
 
     // -------------------------------------------------------------------------
