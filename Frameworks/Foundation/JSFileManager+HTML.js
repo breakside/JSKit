@@ -2,12 +2,13 @@
 // #import "Foundation/JSBundle.js"
 // #import "Foundation/JSData.js"
 // #import "Foundation/JSURL.js"
-/* global self, window, JSClass, JSObject, JSCopy, JSLazyInitProperty, JSFileManager, JSData, JSBundle, JSURL, jslog_create */
+// #import "Foundation/JSLog.js"
+/* global self, window, JSClass, JSObject, JSCopy, JSLazyInitProperty, JSFileManager, JSData, JSBundle, JSURL, JSLog */
 'use strict';
 
 (function(){
 
-var logger = jslog_create("JSFileManager");
+var logger = JSLog("foundation", "files");
 
 JSFileManager.definePropertiesFromExtensions({
 

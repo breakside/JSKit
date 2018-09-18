@@ -1,4 +1,4 @@
-// #import "Zlib/Zlib.js"
+// #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
 /* global JSClass, TKTestSuite, Adler32, TKAssertNotNull, TKAssert, TKAssertEquals */
 'use strict';

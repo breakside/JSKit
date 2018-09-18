@@ -2,14 +2,14 @@
 // #import "UIKit/UIResponder.js"
 // #import "UIKit/UIWindowServer.js"
 // #import "UIKit/UIPlatform.js"
-/* global JSGlobalObject, JSClass, JSObject, JSFileManager, JSUserDefaults, UIPlatform, UIResponder, UIApplication, UIWindowServer, JSBundle, JSFont, JSSpec, JSDynamicProperty, JSReadOnlyProperty, UIEvent, jslog_create  */
+/* global JSGlobalObject, JSClass, JSObject, JSFileManager, JSUserDefaults, UIPlatform, UIResponder, UIApplication, UIWindowServer, JSBundle, JSFont, JSSpec, JSDynamicProperty, JSReadOnlyProperty, UIEvent, JSLog  */
 'use strict';
 
 (function(){
 
 var shared = null;
 
-var logger = jslog_create("uikit.application");
+var logger = JSLog("ui", "application");
 
 JSClass('UIApplication', UIResponder, {
 

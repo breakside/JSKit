@@ -1,11 +1,11 @@
 // #import "UIKit/UITextInputManager.js"
 // #feature 'key' in KeyboardEvent.prototype
-/* global JSClass, UITextInputManager, jslog_create, JSRange, UIHTMLTextInputManager */
+/* global JSClass, UITextInputManager, JSLog, JSRange, UIHTMLTextInputManager */
 'use strict';
 
 (function(){
 
-var logger = jslog_create("uikit.text-input");
+var logger = JSLog("ui", "text");
 
 JSClass('UIHTMLTextInputManager', UITextInputManager, {
 

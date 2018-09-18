@@ -3,12 +3,12 @@
 // #import "ServerKit/SKHTTPError.js"
 // #import "ServerKit/SKHTTPResponse.js"
 // #import "Hash/Hash.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSMIMEHeaderMap, JSSHA1Hash, SKHTTPResponder, SKHTTPResponse, SKHTTPResponderContext, SKHTTPError, jslog_create */
+/* global JSClass, JSObject, JSReadOnlyProperty, JSMIMEHeaderMap, JSSHA1Hash, SKHTTPResponder, SKHTTPResponse, SKHTTPResponderContext, SKHTTPError, JSLog */
 'use strict';
 
 (function(){
 
-var logger = jslog_create("http.server");
+var logger = JSLog("server", "http");
 
 JSClass("SKHTTPResponder", JSObject, {
 

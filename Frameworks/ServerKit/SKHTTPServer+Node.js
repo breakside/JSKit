@@ -1,10 +1,10 @@
 // #import "ServerKit/SKHTTPServer.js"
 // #import "ServerKit/SKHTTPRequest+Node.js"
-/* global SKHTTPServer, require, SKHTTPRequest, jslog_create */
+/* global SKHTTPServer, require, SKHTTPRequest, JSLog */
 'use strict';
 
 var http = require('http');
-var logger = jslog_create("http.server");
+var logger = JSLog("server", "http");
 
 SKHTTPServer.definePropertiesFromExtensions({
 

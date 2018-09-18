@@ -13,7 +13,7 @@ JSClass('StringTests', TKTestSuite, {
         string = String.initWithFormat("This %2$s a test %1$d!", 123, "is");
         TKAssertNotNull(string);
         TKAssertEquals(string, "This is a test 123!");
-    },
+    }
 
     testAppend: function(){
         var string = "Hello";
@@ -843,6 +843,31 @@ JSClass('StringTests', TKTestSuite, {
         TKAssertEquals(parts.length, 2);
         TKAssertEquals(parts[0], "testing");
         TKAssertEquals(parts[1], "");
-    }
+    },
+
+    testFormat: function(){
+        var formatter = {
+            a: function(arg, options){
+                return "A:" + arg;
+            },
+
+            b: function(arg, options){
+                return "B:" + arg;
+            },
+
+            test: function(arg, options){
+                return "HELLO:" + arg;
+            }
+        };
+        var str = "Testing %a".format(formatter, 1);
+        TKAssertEquals(str, "Testing A:1");
+
+        var str = "Testing %b".format(formatter, "hi");
+        TKAssertEquals(str, "Testing B:hi");
+
+        var str = "Testing %{test}".format(formatter, 2);
+        TKAssertEquals(str, "Testing HELLO:2");
+
+    },
 
 });

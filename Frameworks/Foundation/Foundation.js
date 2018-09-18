@@ -1,5 +1,3 @@
-// #import "Zlib/Zlib.js"
-
 // #import "Foundation/Javascript.js"
 // #import "Foundation/String+JS.js"
 // #import "Foundation/Number+JS.js"
@@ -66,5 +64,8 @@
 // #import "Foundation/JSFile.js"
 // #import "Foundation/JSUserDefaults.js"
 // #import "Foundation/JSUndoManager.js"
+
+// #import "Foundation/JSLog.js"
+// #import "Foundation/Zlib.js"
 
 'use strict';

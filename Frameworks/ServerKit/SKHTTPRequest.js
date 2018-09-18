@@ -1,9 +1,9 @@
 // #import "Foundation/Foundation.js"
 // #import "ServerKit/SKHTTPResponse.js"
-/* global JSClass, JSObject, JSData, JSReadOnlyProperty, JSURL, JSMIMEHeaderMap, SKHTTPResponse, jslog_create */
+/* global JSClass, JSObject, JSData, JSReadOnlyProperty, JSURL, JSMIMEHeaderMap, SKHTTPResponse, JSLog */
 'use strict';
 
-var logger = jslog_create("http.server");
+var logger = JSLog("server", "http");
 
 JSClass("SKHTTPRequest", JSObject, {
 

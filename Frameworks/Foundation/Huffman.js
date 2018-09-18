@@ -1,9 +1,10 @@
-/* global jslog_create, JSGlobalObject */
+// #import "Foundation/JSLog.js"
+/* global JSLog, JSGlobalObject */
 'use strict';
 
 (function(){
 
-var logger = jslog_create("huffman");
+var logger = JSLog("foundation", "zlib");
 
 JSGlobalObject.HuffmanTree = function(code_lengths){
     if (this !== undefined){

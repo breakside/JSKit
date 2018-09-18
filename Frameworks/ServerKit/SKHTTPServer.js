@@ -2,10 +2,10 @@
 // #import "ServerKit/SKHTTPRoute.js"
 // #import "ServerKit/SKHTTPError.js"
 // #import "ServerKit/SKHTTPResponder.js"
-/* global JSClass, JSObject, JSDynamicProperty, SKHTTPResponse, SKHTTPResponder, SKHTTPRoute, SKHTTPServer, SKHTTPError, jslog_create */
+/* global JSClass, JSObject, JSDynamicProperty, SKHTTPResponse, SKHTTPResponder, SKHTTPRoute, SKHTTPServer, SKHTTPError, JSLog */
 'use strict';
 
-var logger = jslog_create("http.server");
+var logger = JSLog("server", "http");
 
 JSClass("SKHTTPServer", JSObject, {
 

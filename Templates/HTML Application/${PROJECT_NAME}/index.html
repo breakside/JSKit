@@ -7,6 +7,8 @@
   <style id="bootstrap-style" type="text/css">
   * {
     cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
   }
   #splash {
     position: fixed;
@@ -139,9 +141,6 @@
           window.requestAnimationFrame(function(){
             splash.parentNode.removeChild(splash);
             bootstrapStyle.parentNode.removeChild(bootstrapStyle);
-            if (downListener !== null){
-              document.body.removeEventListener('mousedown', downListener, downListener.usesCapture);
-            }
           });
           break;
       }
@@ -150,17 +149,6 @@
       progressBar.style.width = (loaded * 100 / total) + '%';
     };
     bootstrapper.run();
-    try{
-      downListener = {
-        usesCapture: true,
-        handleEvent: function(e){
-          e.preventDefault();
-        }
-      };
-      document.body.addEventListener('mousedown', downListener, downListener.usesCapture);
-    }catch (e){
-      downListener = null;
-    }
   })();
   </script>
 </body>

@@ -1,7 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "PDFKit/PDFPredictorFilter.js"
 // #feature Uint8Array
-/* global JSClass, PDFPredictorFilter, JSData, PDFLZWFilter, jslog_create, LZW, PDFLZWStream, JSGlobalObject */
+/* global JSClass, PDFPredictorFilter, JSData, PDFLZWFilter, JSLog, LZW, PDFLZWStream, JSGlobalObject */
 'use strict';
 
 (function(){
@@ -30,7 +30,7 @@ JSClass("PDFLZWFilter", PDFPredictorFilter, {
     }
 });
 
-var logger = jslog_create("lzw");
+var logger = JSLog("pdfkit", "lzw");
 
 // TODO: testing with external sources.  So far only verified that .uncompress() can properly handle
 // what .compress() does, but they may each be doing the wrong thing when it comes to upping the code bit count

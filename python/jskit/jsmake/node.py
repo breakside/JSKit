@@ -87,10 +87,6 @@ class NodeBuilder(Builder):
 
     def findIncludes(self):
         loggerResource = None
-        if self.debug:
-            self.includes.append('jslog-debug.js')
-        else:
-            self.includes.append('jslog-release.js')
         self.includes.append('main.js')
         for bundle in self.bundles.values():
             envInclude = bundle.includeForEnvironment('node')

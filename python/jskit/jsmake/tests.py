@@ -148,7 +148,7 @@ class TestsBuilder(Builder):
         body = html.appendChild(document.createElement("body"))
         script = body.appendChild(document.createElement("script"))
         script.setAttribute("type", "text/javascript")
-        script.appendChild(document.createTextNode("""'use strict';function jslog_create(){ return console; };window.JSGlobalObject = window;"""))
+        script.appendChild(document.createTextNode("""'use strict';window.JSGlobalObject = window;"""))
         for includedSourcePath in self.appJS:
             relativePath = _webpath(os.path.relpath(includedSourcePath, self.outputProjectPath))
             script = body.appendChild(document.createElement("script"))
@@ -171,7 +171,6 @@ class TestsBuilder(Builder):
     def buildHTMLWorker(self):
         workerJSFile = open(self.htmlWorkerJSPath, 'w')
         workerJSFile.write("'use strict';\n")
-        workerJSFile.write("self.jslog_create = function(){ return console; };\n")
         workerJSFile.write("self.JSGlobalObject = self;\n")
         workerJSFile.write("importScripts.apply(undefined, %s);\n" % json.dumps([_webpath(os.path.relpath(js, self.outputProjectPath)) for js in self.appJS], indent=2))
         workerJSFile.write("var queueWorker = JSHTMLDispatchQueueWorker.init();\n")
@@ -180,7 +179,6 @@ class TestsBuilder(Builder):
     def buildNodeWorker(self):
         workerJSFile = open(self.nodeWorkerJSPath, 'w')
         workerJSFile.write("'use strict';\n\n")
-        workerJSFile.write("global.jslog_create = function(){ return {info: function(){}, log: function(){}, warn: function(){}, error: function(){} }; };\n")
         workerJSFile.write("global.JSGlobalObject = global;\n")
         for path in self.nodeAppJS:
             relativePath = _webpath(os.path.relpath(path, os.path.dirname(self.nodeWorkerJSPath)))
@@ -234,7 +232,6 @@ class TestsBuilder(Builder):
             exeJSFile.write("#!/usr/bin/env node\n")
             exeJSFile.write("'use strict';\n\n")
             exeJSFile.write("global.JSGlobalObject = global;\n")
-            exeJSFile.write("global.jslog_create = function(){ return {info: function(){}, log: function(){}, warn: function(){}, error: function(){} }; };\n")
             for path in self.nodeAppJS:
                 relativePath = _webpath(os.path.relpath(path, os.path.dirname(exePath)))
                 if relativePath == entryFile:

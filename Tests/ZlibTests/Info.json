@@ -1,9 +1,0 @@
-{
-    "JSBundleType": "tests",
-    "JSBundleIdentifier": "io.breakside.JSKit.ZlibTests",
-    "JSBundleDisplayName": "ZlibTests",
-    "JSIncludeFrameworks": [
-        "TestKit",
-        "Zlib"
-    ]
-}

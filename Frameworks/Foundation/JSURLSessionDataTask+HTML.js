@@ -3,13 +3,14 @@
 // #import "Foundation/JSURLRequest.js"
 // #import "Foundation/JSURLResponse.js"
 // #import "Foundation/JSRunLoop.js"
+// #import "Foundation/JSLog.js"
 // #feature XMLHttpRequest
-/* global JSClass, JSURLSessionDataTask, JSRunLoop, JSLazyInitProperty, XMLHttpRequest, jslog_create, JSURLResponse, JSURLRequest, JSURL, setTimeout, JSData */
+/* global JSClass, JSURLSessionDataTask, JSRunLoop, JSLazyInitProperty, XMLHttpRequest, JSLog, JSURLResponse, JSURLRequest, JSURL, setTimeout, JSData */
 'use strict';
 
 (function(){
 
-var logger = jslog_create("foundation.url-session");
+var logger = JSLog("foundation", "url-session");
 
 JSURLSessionDataTask.definePropertiesFromExtensions({
 

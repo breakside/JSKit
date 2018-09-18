@@ -2,12 +2,12 @@
 // #import "Foundation/JSFileManager.js"
 // #import "SecurityKit/SECCipher.js"
 // #import "SecurityKit/SECKey.js"
-/* global JSClass, JSObject, UUID, JSCopy, JSReadOnlyProperty, JSFileManager, JSRunLoop, JSTimer, SECCipher, SECKey, jslog_create */
+/* global JSClass, JSObject, UUID, JSCopy, JSReadOnlyProperty, JSFileManager, JSRunLoop, JSTimer, SECCipher, SECKey, JSLog */
 'use strict';
 
 (function(){
 
-var logger = jslog_create("security.keychain");
+var logger = JSLog("security", "keychain");
 
 JSClass("SECKeychain", JSObject, {
 

@@ -1,7 +1,7 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSFontDescriptor.js"
 // #import "Foundation/CoreTypes.js"
-// #import "Zlib/Zlib.js"
+// #import "Foundation/Zlib.js"
 // #feature DataView
 /* global JSClass, JSObject, JSBundle, JSReadOnlyProperty, JSPoint, JSFont, JSFontDescriptor, DataView, Zlib, JSRange, UnicodeChar */
 'use strict';

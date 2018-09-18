@@ -269,37 +269,25 @@ class HTMLBuilder(Builder):
         self.indexFile = open(os.path.join(self.outputWebRootPath, indexName), 'w')
         stack = [document.documentElement]
         includePaths = (pkg_resources.resource_filename('jskit', 'jsmake/html_resources'),)
-        hasInsertedLogger = False
         while len(stack) > 0:
             node = stack.pop()
             if node.tagName == 'head':
                 icons = self.applicationIcons()
                 for icon in icons:
+                    if icon['rel'] == 'mask-icon':
+                        continue
                     link = document.createElement("link")
                     link.setAttribute("rel", icon['rel'])
                     link.setAttribute("href", icon['href'])
-                    if icon['rel'] == 'mask-icon':
-                        link.setAttribute("color", icon['color'])
-                    else:
-                        link.setAttribute("type", icon['type'])
-                        link.setAttribute("sizes", icon['sizes'])
+                    # if icon['rel'] == 'mask-icon':
+                    #     link.setAttribute("color", icon['color'])
+                    # else:
+                    link.setAttribute("type", icon['type'])
+                    link.setAttribute("sizes", icon['sizes'])
                     node.appendChild(link)
             elif node.tagName == 'title' and node.parentNode.tagName == 'head':
                 node.appendChild(document.createTextNode(self.mainBundle.developmentLoocalizedInfoString('UIApplicationTitle')))
             elif node.tagName == 'script' and node.getAttribute('type') == 'text/javascript':
-                if not hasInsertedLogger:
-                    loggerResource = None
-                    if self.debug:
-                        loggerResource = 'jslog-debug.js'
-                    else:
-                        loggerResource = 'jslog-release.js'
-                    script = document.createElement('script')
-                    script.setAttribute('type', 'text/javascript')
-                    fp = open(pkg_resources.resource_filename('jskit', 'jsmake/html_resources/' + loggerResource), 'r')
-                    script.appendChild(document.createTextNode(fp.read()))
-                    fp.close()
-                    node.parentNode.insertBefore(script, node)
-                    hasInsertedLogger = True
                 oldScriptText = u''
                 for child in node.childNodes:
                     if child.nodeType == xml.dom.Node.TEXT_NODE:
@@ -369,9 +357,8 @@ class HTMLBuilder(Builder):
         sys.stdout.flush()
         workerJSFile = open(self.workerJSPath, 'w')
         workerJSFile.write("'use strict';\n")
-        # FIXME: we should probably include logger as a script file so we're syncd with index, and so
+        # FIXME: we should probably include logger config as a script file so we're syncd with index, and so
         # it's easier to import here
-        workerJSFile.write("self.jslog_create = function(){ return console; };\n")
         workerJSFile.write("self.JSGlobalObject = self;\n")
         workerJSFile.write("importScripts.apply(undefined, %s);\n" % json.dumps([self.absoluteWebPath(js) for js in self.appJS], indent=2))
         workerJSFile.write("var queueWorker = JSHTMLDispatchQueueWorker.init();\n")

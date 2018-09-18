@@ -2,10 +2,11 @@
 // #import "Foundation/JSBundle.js"
 // #import "Foundation/JSData.js"
 // #import "Foundation/JSURL.js"
-/* global require, process, JSClass, JSObject, JSCopy, JSLazyInitProperty, JSFileManager, JSData, JSBundle, JSURL, jslog_create */
+// #imoprt "Foundation/JSLog.js"
+/* global require, process, JSClass, JSObject, JSCopy, JSLazyInitProperty, JSFileManager, JSData, JSBundle, JSURL, JSLog */
 'use strict';
 
-var logger = jslog_create("JSFileManager");
+var logger = JSLog("foundation", "files");
 
 var fs = require('fs');
 var pathLib = require('path');

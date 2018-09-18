@@ -4,12 +4,13 @@
 // #import "Foundation/JSFont.js"
 // #import "Foundation/JSTextLine.js"
 // #import "Foundation/JSTextRun.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSTextTypesetter, JSAttachmentFont, JSSize, JSRange, JSTextAlignment, JSTextLine, JSTextRun, JSPoint, JSAttributedString, JSFont, jslog_create, JSLineBreakMode */
+// #import "Foundation/JSLog.js"
+/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSTextTypesetter, JSAttachmentFont, JSSize, JSRange, JSTextAlignment, JSTextLine, JSTextRun, JSPoint, JSAttributedString, JSFont, JSLog, JSLineBreakMode */
 'use strict';
 
 (function(){
 
-var logger = jslog_create("io.breakside.AlohaKit.typesetter");
+var logger = JSLog("foundation", "text");
 
 JSClass("JSTextTypesetter", JSObject, {
 

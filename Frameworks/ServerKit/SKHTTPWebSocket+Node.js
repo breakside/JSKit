@@ -1,8 +1,8 @@
 // #import "ServerKit/SKHTTPWebSocket.js"
-/* global SKHTTPWebSocket, JSData, jslog_create */
+/* global SKHTTPWebSocket, JSData, JSLog */
 'use strict';
 
-var logger = jslog_create('http.server');
+var logger = JSLog("server", "websocket");
 
 SKHTTPWebSocket.definePropertiesFromExtensions({
 

@@ -2,12 +2,12 @@
 // #import "UIKit/UIHTMLTextLine.js"
 // #import "UIKit/UIHTMLTextRun.js"
 // #import "UIKit/UITextAttachmentView.js"
-/* global JSClass, JSReadOnlyProperty, JSTextTypesetter, JSSize, UIHTMLTextTypesetter, UIHTMLTextLine, UIHTMLTextRun, JSRange, JSAttributedString, JSLineBreakMode, jslog_create, UITextAttachmentView */
+/* global JSClass, JSReadOnlyProperty, JSTextTypesetter, JSSize, UIHTMLTextTypesetter, UIHTMLTextLine, UIHTMLTextRun, JSRange, JSAttributedString, JSLineBreakMode, JSLog, UITextAttachmentView */
 'use strict';
 
 (function(){
 
-var logger = jslog_create("html-typesetter");
+var logger = JSLog("ui", "text");
 
 var sharedDomRange = null;
 var layoutElementStack = [];

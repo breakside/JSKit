@@ -1,10 +1,10 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject, JSData, SKHTTPWebSocketParser, jslog_create */
+/* global JSClass, JSObject, JSData, SKHTTPWebSocketParser, JSLog */
 'use strict';
 
 (function(){
 
-var logger = jslog_create('http.server');
+var logger = JSLog("server", "websocket");
 
 var WebSocketFrame = function(){
     if (this === undefined){

@@ -1,10 +1,10 @@
 // #import "ServerKit/SKHTTPResponder.js"
-/* global JSClass, SKHTTPResponder, jslog_create */
+/* global JSClass, SKHTTPResponder, JSLog */
 'use strict';
 
 (function(){
 
-var logger = jslog_create("http.server");
+var logger = JSLog("server", "websocket");
 
 JSClass('SKHTTPWebsocketResponder', SKHTTPResponder, {
 

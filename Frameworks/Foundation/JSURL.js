@@ -2,7 +2,8 @@
 // #import "Foundation/JSData.js"
 // #import "Foundation/String+JS.js"
 // #import "Foundation/JSFormFieldMap.js"
-/* global JSClass, JSObject, JSURL, JSDynamicProperty, JSCopy, JSReadOnlyProperty, JSData, jslog_create, JSFormFieldMap */
+// #import "Foundation/JSLog.js"
+/* global JSClass, JSObject, JSURL, JSDynamicProperty, JSCopy, JSReadOnlyProperty, JSData, JSLog, JSFormFieldMap */
 
 // https://tools.ietf.org/html/rfc3986
 
@@ -10,7 +11,7 @@
 
 (function(){
 
-var logger = jslog_create("foundation.url");
+var logger = JSLog("foundation", "url");
 
 /// Represents a URL and each of its components
 ///

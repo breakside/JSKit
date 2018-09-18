@@ -1,13 +1,14 @@
 // #import "Foundation/JSURL.js"
 // #import "Foundation/JSURLSessionStreamTask.js"
+// #import "Foundation/JSLog.js"
 // #feature WebSocket
 // #feature Uint8Array
-/* global JSClass, JSURLSessionStreamTask, JSLazyInitProperty, WebSocket, jslog_create, JSURLResponse, JSURLRequest, JSURL, JSData, Uint8Array */
+/* global JSClass, JSURLSessionStreamTask, JSLazyInitProperty, WebSocket, JSLog, JSURLResponse, JSURLRequest, JSURL, JSData, Uint8Array */
 'use strict';
 
 (function(){
 
-var logger = jslog_create("foundation.url-session");
+var logger = JSLog("Foundation", "url-session");
 
 JSURLSessionStreamTask.definePropertiesFromExtensions({
 

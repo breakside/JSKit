@@ -1,4 +1,4 @@
-// #import "Zlib/Zlib.js"
+// #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
 /* global JSClass, TKTestSuite, Zlib, ZlibStream, ArrayBuffer */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */

@@ -2,7 +2,6 @@
 // #import "ImageKit/IKDecoder.js"
 // #import "ImageKit/IKBitmap.js"
 // #import "ImageKit/IKColorSpace.js"
-// #import "Zlib/Zlib.js"
 /* feature DataView, ArrayBuffer */
 /* global IKDecoder, IKBitmap, JSClass, JSSize, DataView, JSPoint, IKDecoderPNG, ZlibStream, ArrayBuffer, JSData, IKColorSpace */
 'use strict';

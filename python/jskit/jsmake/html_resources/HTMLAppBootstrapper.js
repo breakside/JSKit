@@ -1,9 +1,9 @@
-/* global HTMLAppBootstrapper, window, navigator, localStorage, document, setTimeout, main, jslog_create, console */
+/* global HTMLAppBootstrapper, window, navigator, localStorage, document, setTimeout, main, JSLog, console */
 'use strict';
 
 (function(){
 
-var logger = jslog_create("bootstrap");
+var logger = console;//JSLog("bootstrap", "html");
 
 window.HTMLAppBootstrapper = function(preflightID, preflightSrc, appSrc, appCss, rootElement){
     if (this === undefined){
@@ -211,6 +211,7 @@ HTMLAppBootstrapper.prototype = {
     },
 
     setStatus: function(status){
+        // console.log(this.status + ' -> ' + status);
         this.status = status;
         var bootstrapper = this;
         if (this.statusDispatchTimeoutID === null){

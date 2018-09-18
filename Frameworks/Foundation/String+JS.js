@@ -464,8 +464,25 @@ Object.defineProperties(String.prototype, {
                                 options.precision = parseInt(sub, 10);
                             }
                         }
-                        if (c in formatter){
-                            formatted += formatter[c](arg, options);
+                        var format = c;
+                        if (c == '{'){
+                            ++i;
+                            if (i >= l){
+                                throw new Error("Invalid format string, unexpected end: " + this);
+                            }
+                            c = this[i];
+                            format = '';
+                            while (c != '}' && i < l){
+                                format += c;
+                                ++i;
+                                c = this[i];
+                            }
+                            if (c !== '}'){
+                                throw new Error("Invalid format string, unexpected end: " + this);
+                            }
+                        }
+                        if (format in formatter){
+                            formatted += formatter[format](arg, options);
                         }else{
                             throw new Error("Invalid format string, unknown conversion specifier: " + c + "; " + this);
                         }
@@ -496,7 +513,7 @@ Object.defineProperties(String.prototype, {
     sprintf: {
         enumerable: false,
         value: function String_sprintf(){
-            return this.format.call(this, printf_formatter, Array.prototype.slice.call(arguments));
+            return this.format.call(this, String.printf_formatter, Array.prototype.slice.call(arguments));
         }
     },
 
@@ -1063,13 +1080,12 @@ Object.defineProperties(UserPerceivedCharacterIterator.prototype, {
 
 });
 
-var printf_formatter = {
+String.printf_formatter = {
 
     flag_map: {
         "'": 'thousands',
         '-': 'left_justified',
         '+': 'signed',
-        ' ': 'space',
         '#': 'alternate',
         '0': 'zero'
     },
@@ -1104,8 +1120,11 @@ var printf_formatter = {
     },
 
     s: function(arg, options){
-        // TODO: obey any other options
-        return (arg !== null && arg !== undefined && arg.toString) ? arg.toString() : arg;
+        var str = (arg !== null && arg !== undefined && arg.toString) ? arg.toString() : arg;
+        if (options.width){
+            str = str.leftPaddedString(' ', options.width);
+        }
+        return str;
     },
 
     f: function(arg, options){

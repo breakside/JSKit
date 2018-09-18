@@ -3,12 +3,13 @@
 // #import "Foundation/JSRunLoop.js"
 // #import "Foundation/JSTimer.js"
 // #import "Foundation/JSFileManager.js"
-/* global Promise, JSClass, JSObject, JSReadOnlyProperty, JSUserDefaults, JSBundle, JSRunLoop, JSTimer, JSFileManager, jslog_create */
+// #import "Foundation/JSLog.js"
+/* global Promise, JSClass, JSObject, JSReadOnlyProperty, JSUserDefaults, JSBundle, JSRunLoop, JSTimer, JSFileManager, JSLog */
 'use strict';
 
 (function(){
 
-var logger = jslog_create("jskit.defaults");
+var logger = JSLog("foundation", "user-defaults");
 
 JSClass("JSUserDefaults", JSObject, {
 

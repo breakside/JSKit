@@ -1,14 +1,15 @@
 // https://tools.ietf.org/html/rfc1950
 // #feature Uint8Array
 // #feature Uint32Array
-// #import "Zlib/Deflate.js"
-// #import "Zlib/Adler32.js"
-/* global JSGlobalObject, Deflate, DeflateStream, jslog_create, Adler32, Zlib, ZlibStream, ArrayBuffer */
+// #import "Foundation/Deflate.js"
+// #import "Foundation/Adler32.js"
+// #import "Foundation/JSLog.js"
+/* global JSGlobalObject, Deflate, DeflateStream, JSLog, Adler32, Zlib, ZlibStream, ArrayBuffer */
 'use strict';
 
 (function(){
 
-var logger = jslog_create("zlib");
+var logger = JSLog("foundation", "zlib");
 
 JSGlobalObject.Zlib = {
 

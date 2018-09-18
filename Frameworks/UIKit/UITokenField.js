@@ -1,12 +1,12 @@
 // #import "UIKit/UITextField.js"
 // #import "UIKit/UITextAttachmentView.js"
 // #import "UIKit/UICursor.js"
-/* global JSClass, UITextField, UITokenField, JSSize, UICursor, JSAttributedString, JSLineBreakMode, UITextAttachmentView, UIView, UITokenFieldTokenView, UILabel, JSRange, JSRect, JSPoint, JSDynamicProperty, JSInsets, JSColor, jslog_create */
+/* global JSClass, UITextField, UITokenField, JSSize, UICursor, JSAttributedString, JSLineBreakMode, UITextAttachmentView, UIView, UITokenFieldTokenView, UILabel, JSRange, JSRect, JSPoint, JSDynamicProperty, JSInsets, JSColor, JSLog */
 'use strict';
 
 (function(){
 
-var logger = jslog_create("uikit.tokenfield");
+var logger = JSLog("ui", "token");
 
 JSClass("UITokenField", UITextField, {
 
@@ -208,7 +208,7 @@ JSClass("UITokenFieldTokenView", UIView, {
     },
 
     mouseDown: function(event){
-        logger.log("mouseDown on %s".sprintf(this.labelView.text));
+        logger.info("mouseDown on %s".sprintf(this.labelView.text));
     }
 
 });

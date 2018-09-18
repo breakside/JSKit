@@ -1,12 +1,13 @@
 // https://tools.ietf.org/html/rfc1951
 // #feature Uint8Array
-// #import "Zlib/Huffman.js"
-/* global jslog_create, HuffmanTree, JSGlobalObject, Deflate, DeflateStream */
+// #import "Foundation/Huffman.js"
+// #import "Foundation/JSLog.js"
+/* global JSLog, HuffmanTree, JSGlobalObject, Deflate, DeflateStream */
 'use strict';
 
 (function(){
 
-var logger = jslog_create("zlib");
+var logger = JSLog("foundation", "zlib");
 
 JSGlobalObject.DeflateStream = function(level, info){
     if (this === undefined){
