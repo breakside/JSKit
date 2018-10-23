@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "ServerKit/SKHTTPResponderContext.js"
-/* global JSClass, JSObject, SKHTTPRoute, JSCopy, JSSpec, SKHTTPResponderContext */
+/* global JSClass, JSObject, JSDeepCopy, SKHTTPRoute, SKHTTPResourceRoute, JSCopy, JSSpec, SKHTTPResponderContext */
 'use strict';
 
 (function(){
@@ -74,28 +74,60 @@ JSClass("SKHTTPRoute", JSObject, {
         if (matcher && matcher.isGreedy && this.children.length > 0){
             // FIXME: unwind components
         }
-        var cls = JSClass.FromName(this._responderClassName);
-        if (cls.contextClass){
-            contextClass = cls.contextClass;
+        var responderClass = JSClass.FromName(this._responderClassName);
+        if (responderClass.contextClass){
+            contextClass = responderClass.contextClass;
         }
+        var responder = null;
         if (componentIndex == pathComponents.length){
             if (!contextClass){
                 contextClass = SKHTTPResponderContext;
             }
             var context = contextClass.initWithPathComponentMatches(matches);
-            return cls.initWithRequest(request, context);
-        }
-        var child;
-        var responder = null;
-        for (var i = 0, l = this.children.length; i < l && responder === null; ++i){
-            child = this.children[i];
-            responder = child.responderForRequest(request, pathComponents.slice(componentIndex), JSCopy(matches), contextClass);
+            responder = responderClass.initWithRequest(request, context);
+        }else{
+            var child;
+            for (var i = 0, l = this.children.length; i < l && responder === null; ++i){
+                child = this.children[i];
+                responder = child.responderForRequest(request, pathComponents.slice(componentIndex), JSCopy(matches), contextClass);
+            }
         }
         return responder;
     },
 
     addChild: function(route){
         this.children.push(route);
+    }
+
+});
+
+JSClass("SKHTTPResourceRoute", SKHTTPRoute, {
+
+    _resourceMetadata: null,
+    _bundle: null,
+
+    initWithSpec: function(spec, values){
+        if (!values.responder){
+            values = JSDeepCopy(values);
+            values.responder = "SKHTTPResourceResponder";
+        }
+        SKHTTPResourceRoute.$super.initWithSpec.call(this, spec, values);
+        this._bundle = spec.bundle;
+        this._resourceMetadata = this._bundle.metadataForResourceName(values.resource, values.type);
+    },
+
+    responderForRequest: function(request, pathComponents, matches, contextClass){
+        var responderClass = JSClass.FromName(this._responderClassName);
+        if (!contextClass){
+            contextClass = SKHTTPResponderContext;
+        }
+        var context = contextClass.initWithPathComponentMatches(matches);
+        var responder = responderClass.initWithResourceMetadata(this._bundle, this._resourceMetadata, request, context);
+        return responder;
+    },
+
+    addChild: function(route){
+        throw new Error("SKHTTPResourceRoute cannot contain child routes");
     }
 
 });
@@ -138,7 +170,11 @@ SKHTTPRoute.CreateFromMap = function(routes, spec){
         route = routeMap[path];
         route.specValue.components = [];
         if (!(JSSpec.Keys.ObjectClass in route.specValue)){
-            route.specValue[JSSpec.Keys.ObjectClass] = "SKHTTPRoute";
+            if (route.specValue.resource){
+                route.specValue[JSSpec.Keys.ObjectClass] = "SKHTTPResourceRoute";
+            }else{
+                route.specValue[JSSpec.Keys.ObjectClass] = "SKHTTPRoute";
+            }
         }
         if (path === '/'){
             route.specValue.components.push("/");

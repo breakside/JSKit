@@ -41,6 +41,7 @@ SKHTTPResponse.definePropertiesFromExtensions({
         fs.stat(filePath, function(error, stat){
             response.contentType = contentType;
             response.contentLength = stat.size;
+            response.setHeader("Last-Modified", stat.mtime.toString());
             var fp = fs.createReadStream(filePath);
             fp.pipe(response._nodeResponse); // pipe will call this._nodeResponse.end(), which is the same as calling complete()
         });

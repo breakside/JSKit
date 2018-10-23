@@ -137,7 +137,7 @@ var jslog_formatter = {
     error: function(e, options){
         if (e.stack){
             var stack = e.stack.split("\n");
-            var info = parseStackLine(stack[1]);
+            var info = parseStackLine(stack[0]);
             return e.toString() + ' \u2014 ' + info.function + ' \u2014 ' + info.file + ':' + info.line;
         }
         return e.toString();
