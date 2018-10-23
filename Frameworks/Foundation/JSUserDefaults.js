@@ -112,7 +112,7 @@ JSClass("JSUserDefaults", JSObject, {
         var data = JSON.stringify(this._values).utf8();
         JSFileManager.shared.createFileAtURL(this._url, data, function(success){
             if (!success){
-                logger.error("Failed to write preferences to %s".sprintf(this._url));
+                logger.error("Failed to write preferences to %{public}", this._url);
             }
         }, this);
     }

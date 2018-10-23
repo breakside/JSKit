@@ -530,6 +530,18 @@ Object.defineProperties(String.prototype, {
         }
     },
 
+    rightPaddedString: {
+        enumerable: false,
+        value: function String_rightPaddedString(pad_char, width){
+            var padded = this;
+            var chars = Math.max(0, width - this.length);
+            for (var i = 0; i < chars; ++i){
+                padded += pad_char;
+            }
+            return padded;
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Utilities
 
@@ -1094,7 +1106,13 @@ String.printf_formatter = {
         var str = Math.floor(arg).toString(10);
         // TODO: obey any other options
         if (options.width){
-            str = str.leftPaddedString(options.zero ? '0' : ' ', options.width);
+            if (options.zero){
+                str = str.leftPaddedString('0', options.width);
+            }else if (options.left_justified){
+                str = str.rightPaddedString(' ', options.width);
+            }else{
+                str = str.leftPaddedString(' ', options.width);
+            }
         }
         return str;
     },
@@ -1103,7 +1121,13 @@ String.printf_formatter = {
         // TODO: obey any other options
         var str = arg.toString(16);
         if (options.width){
-            str = str.leftPaddedString(options.zero ? '0' : ' ', options.width);
+            if (options.zero){
+                str = str.leftPaddedString('0', options.width);
+            }else if (options.left_justified){
+                str = str.rightPaddedString(' ', options.width);
+            }else{
+                str = str.leftPaddedString(' ', options.width);
+            }
         }
         if (options.uppercase){
             str = str.toUpperCase();
@@ -1122,7 +1146,11 @@ String.printf_formatter = {
     s: function(arg, options){
         var str = (arg !== null && arg !== undefined && arg.toString) ? arg.toString() : arg;
         if (options.width){
-            str = str.leftPaddedString(' ', options.width);
+            if (options.left_justified){
+                str = str.rightPaddedString(' ', options.width);
+            }else{
+                str = str.leftPaddedString(' ', options.width);
+            }
         }
         return str;
     },

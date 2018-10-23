@@ -69,6 +69,39 @@ JSClass("SKHTTPResponse", JSObject, {
     complete: function(){
     },
 
+    writeString: function(str){
+        this.writeData(str.utf8());
+    },
+
+    writeData: function(data){
+    },
+
+    sendData: function(data, contentType, status){
+        if (status === undefined){
+            status = SKHTTPResponse.StatusCode.ok;
+        }
+        this.statusCode = status;
+        this.contentType = contentType;
+        this.contentLength = data.length;
+        this.writeData(data);
+        this.complete();
+    },
+
+    sendString: function(str, contentType, status){
+        this.sendData(str.utf8(), contentType, status);
+    },
+
+    sendObject: function(obj, status){
+        var json = JSON.stringify(obj);
+        this.sendString(json, "application/json", status);
+    },
+
+    sendStatus: function(status){
+        this.contentLength = 0;
+        this.statusCode = status;
+        this.complete();
+    },
+
     sendFile: function(filePath){
     }
 

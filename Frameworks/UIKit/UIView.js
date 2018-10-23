@@ -4,7 +4,7 @@
 // #import "UIKit/UIAnimation.js"
 // #import "UIKit/UIDraggingDestination.js"
 // #import "UIKit/UILayoutConstraint.js"
-/* global JSGlobalObject, JSClass, JSObject, JSCopy, JSInsets, JSSize, UIViewLayerProperty, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSDynamicProperty, JSRect, JSPoint, JSColor, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty, UIWindowServer, UIDragOperation, UILayoutConstraint, UILayoutAttribute, UILayoutRelation */
+/* global JSGlobalObject, JSClass, JSObject, JSCopy, JSInsets, JSSize, UIViewLayerProperty, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSDynamicProperty, JSRect, JSPoint, JSColor, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty, UIWindowServer, UIDragOperation, UILayoutConstraint, UILayoutAttribute, UILayoutRelation, UILayoutPriority */
 'use strict';
 
 JSGlobalObject.UIViewLayerProperty = function(){
@@ -416,6 +416,13 @@ JSClass('UIView', UIResponder, {
     contentCompressionResistancePriority: UILayoutPriority.defaultHigh,
 
     addConstraint: function(constraint){
+        if (constraint._targetItem !== this){
+            throw new Error("Cannot add constrat to view because the constraint belongs to another view");
+        }
+        if (constraint._isActive){
+            return;
+        }
+        constraint._isActive = true;
         this._constraints.push(constraint);
         this.setNeedsLayout();
     },
@@ -424,6 +431,7 @@ JSClass('UIView', UIResponder, {
         var index = this._constraints.indexOf(constraint);
         if (index >= 0){
             this._constraints.splice(index, 1);
+            constraint._isActive = false;
             this.setNeedsLayout();
         }
     },

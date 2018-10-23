@@ -68,10 +68,10 @@ JSClass("SKHTTPRoute", JSObject, {
                 ++matcherIndex;
             }
         }
-        if (!matcher.isGreedy && matcherIndex < this._componentMatchers.length){
+        if (matcher && !matcher.isGreedy && matcherIndex < this._componentMatchers.length){
             return null;
         }
-        if (matcher.isGreedy && this.children.length > 0){
+        if (matcher && matcher.isGreedy && this.children.length > 0){
             // FIXME: unwind components
         }
         var cls = JSClass.FromName(this._responderClassName);

@@ -2,7 +2,7 @@
 // #import "Foundation/JSBundle.js"
 // #import "Foundation/JSData.js"
 // #import "Foundation/JSURL.js"
-// #imoprt "Foundation/JSLog.js"
+// #import "Foundation/JSLog.js"
 /* global require, process, JSClass, JSObject, JSCopy, JSLazyInitProperty, JSFileManager, JSData, JSBundle, JSURL, JSLog */
 'use strict';
 

@@ -125,6 +125,20 @@ JSClass('JSURLTests', TKTestSuite, {
         TKAssertExactEquals(url.pathComponents.length, 1);
         TKAssertExactEquals(url.pathComponents[0], 'def');
         TKAssertExactEquals(url.path, "def");
+
+        url = JSURL.initWithString("/test");
+        TKAssertNull(url.scheme);
+        TKAssertNull(url.host);
+        TKAssertExactEquals(url.pathComponents.length, 2);
+        TKAssertExactEquals(url.pathComponents[0], '/');
+        TKAssertExactEquals(url.pathComponents[1], 'test');
+        TKAssertExactEquals(url.path, "/test");
+
+        url = JSURL.initWithString("//test");
+        TKAssertNull(url.scheme);
+        TKAssertExactEquals(url.host, 'test');
+        TKAssertExactEquals(url.pathComponents.length, 0);
+        TKAssertExactEquals(url.path, "");
     },
 
     testLastPathComponent: function(){

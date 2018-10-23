@@ -36,7 +36,7 @@ JSFileManager.definePropertiesFromExtensions({
                 manager._db = e.target.result;
                 manager.upgrade(e.oldVersion, e.newVersion);
             }catch (err){
-                logger.error("Upgrade error: %s".sprintf(e.message));
+                logger.error("Upgrade error: %{public}", e.message);
                 completion.call(target, JSFileManager.State.genericFailure);
             }
         };

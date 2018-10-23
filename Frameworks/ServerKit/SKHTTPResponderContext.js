@@ -16,9 +16,7 @@ JSClass("SKHTTPResponderContext", JSObject, {
     },
 
     open: function(callback, target){
-        JSRunLoop.main.schedule(function(){
-            callback.call(target, null);
-        });
+        callback.call(target, null);
     }
 
 });

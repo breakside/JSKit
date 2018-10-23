@@ -208,7 +208,7 @@ JSClass("UITokenFieldTokenView", UIView, {
     },
 
     mouseDown: function(event){
-        logger.info("mouseDown on %s".sprintf(this.labelView.text));
+        logger.info("mouseDown on %{public}", this.labelView.text);
     }
 
 });

@@ -3,7 +3,7 @@
 
 (function(){
 
-var logger = console;//JSLog("bootstrap", "html");
+var logger = console;
 
 window.HTMLAppBootstrapper = function(preflightID, preflightSrc, appSrc, appCss, rootElement){
     if (this === undefined){
@@ -27,7 +27,6 @@ window.HTMLAppBootstrapper = function(preflightID, preflightSrc, appSrc, appCss,
         this.preflightStorageValue = navigator.userAgent;
         this.caughtErrors = [];
         this._isInstalled = false;
-        window.addEventListener('error', this);
         window.JSGlobalObject = window;
     }
 };
@@ -132,6 +131,7 @@ HTMLAppBootstrapper.prototype = {
     loadApp: function(){
         this.setStatus(HTMLAppBootstrapper.STATUS.appLoading);
         this.linkStylesheets();
+        window.addEventListener('error', this);
         this.includeAppSrc(this.appSrc.shift());
     },
 
@@ -152,6 +152,7 @@ HTMLAppBootstrapper.prototype = {
             if (bootstrapper.appSrc.length){
                 bootstrapper.includeAppSrc(bootstrapper.appSrc.shift());
             }else{
+                window.removeEventListener('error', this);
                 try {
                     bootstrapper.runApp();
                 }catch (e){
@@ -159,7 +160,6 @@ HTMLAppBootstrapper.prototype = {
                     bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.appRunError);
                     logger.error(e);
                 }
-                window.removeEventListener('error', this);
             }
         }, function HTMLAppBootstrapper_appScriptLoadError(){
             bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.appLoadError);

@@ -15,8 +15,11 @@ JSClass('SKHTTPWebsocketResponder', SKHTTPResponder, {
         logger.info("calling websocket responder");
         this._socket = this.acceptWebSocketUpgrade(this._protocols);
         if (this._socket !== null){
+            logger.info("got a socket");
             this._socket.delegate = this;
             this.websocketEstablished(this._socket);
+        }else{
+            logger.error("socket is null!");
         }
     },
 

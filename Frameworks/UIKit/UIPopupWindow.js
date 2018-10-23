@@ -7,6 +7,11 @@ JSClass("UIPopupWindow", UIWindow, {
     sourceView: null,
     preferredPlacement: null,
 
+    openAdjacentToView: function(view, preferredPlacement){
+        // TODO: set frame
+        this.makeKeyAndOrderFront();
+    },
+
 });
 
 JSClass("UIPopupWindowStyler", UIWindowStyler, {

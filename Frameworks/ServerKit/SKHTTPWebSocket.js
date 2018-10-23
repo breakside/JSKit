@@ -1,7 +1,11 @@
 // #import "Foundation/Foundation.js"
 // #import "ServerKit/SKHTTPWebSocketParser.js"
-/* global JSClass, JSObject, JSData, SKHTTPWebSocketParser, SKHTTPWebSocket */
+/* global JSClass, JSObject, JSData, SKHTTPWebSocketParser, SKHTTPWebSocket, JSLog */
 'use strict';
+
+(function(){
+
+var logger = JSLog("server", "websocket");
 
 JSClass("SKHTTPWebSocket", JSObject, {
 
@@ -60,6 +64,7 @@ JSClass("SKHTTPWebSocket", JSObject, {
         if (this._sentClose){
             this.cleanup();
         }else{
+            logger.info("received close from client");
             this._sentClose = true;
             this._write(SKHTTPWebSocketParser.UnmaskedHeaderForData(chunks), SKHTTPWebSocketParser.FrameCode.close);
             for (var i = 0, l = chunks.length; i < l; ++i){
@@ -112,3 +117,5 @@ SKHTTPWebSocket.Status = {
     generic: 1008,
     messageTooLarge: 1009
 };
+
+})();

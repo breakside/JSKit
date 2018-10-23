@@ -106,7 +106,7 @@ JSClass('UIApplication', UIResponder, {
     },
 
     _notifyDelegateOfLaunchFailure: function(reason, callback){
-        logger.error("Could not launch app: %s".sprintf(reason));
+        logger.error("Could not launch app: %{public}", reason);
         var launchOptions = this.launchOptions();
         if (this.delegate && this.delegate.applicationDidFailLaunching){
             this.delegate.applicationDidFailLaunching(this, reason);

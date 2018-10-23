@@ -14,11 +14,13 @@ JSClass("SKHTTPResponder", JSObject, {
 
     request: JSReadOnlyProperty('_request', null),
     context: JSReadOnlyProperty('_context', null),
+    response: JSReadOnlyProperty('_response', null),
     _isWebsocket: false,
 
     initWithRequest: function(request, context){
         this._request = request;
         this._context = context;
+        this._response = request ? request.response : null;
     },
 
     fail: function(error){
@@ -56,13 +58,13 @@ JSClass("SKHTTPResponder", JSObject, {
         var requestHeaders = this._request.headerMap;
         var version = requestHeaders.get('Sec-WebSocket-Version');
         if (version !== "13"){
-            logger.warn("Unexpected websocket version: %s".sprintf(version));
+            logger.warn("Unexpected websocket version: %{public}". version);
             throw new SKHTTPError(SKHTTPResponse.StatusCode.badRequest);
         }
         var requestedProtocols = requestHeaders.get('Sec-WebSocket-Protocol', '').trimmedSplit(',');
         var protocol = findFirstMatch(allowedProtocols, requestedProtocols);
         if (protocol === null){
-            logger.warn("No match for protocols: %s".sprintf(requestedProtocols.join(", ")));
+            logger.warn("No match for protocols: %{public}". requestedProtocols.join(", "));
             throw new SKHTTPError(SKHTTPResponse.StatusCode.badRequest);
         }
 
@@ -76,6 +78,7 @@ JSClass("SKHTTPResponder", JSObject, {
         upgradeHeaders.add("Sec-WebSocket-Protocol", protocol);
         this._request.upgrade("Web Socket Protocol Handshake", upgradeHeaders);
         this._isWebsocket = true;
+        logger.info("Creating websocket");
         return this._request.createWebsocket();
     }
 
@@ -88,7 +91,7 @@ SKHTTPResponder.fail = function(request, error){
     }else{
         statusCode = SKHTTPResponse.StatusCode.internalServerError;
         try {
-            logger.error("Uncaught error handling '%s': %s".sprintf(request.url, error.message));
+            logger.error("Uncaught error handling '%{public}': %{public}". request.url, error.message);
             if (error.stack){
                 var lines = error.stack.split("\n");
                 for (var i = 0, l = lines.length; i < l; ++i){

@@ -387,7 +387,7 @@ JSClass("SECKeychain", JSObject, {
         var data = JSON.stringify(this._contents).utf8();
         this._fileManager.createFileAtURL(this._url, data, function(success){
             if (!success){
-                logger.error("Failed to write keychain to %s".sprintf(this._url));
+                logger.error("Failed to write keychain to %{public}", this._url);
             }else{
                 logger.info("keychain saved");
             }

@@ -315,7 +315,7 @@ JSObject.definePropertiesFromExtensions({
         }
         try{
             this._ignoreObserationContext = bindingInfo;
-            bindingInfo.observedObject.setValueForKeyPath(bindingInfo.observedKeyPath, value);
+            bindingInfo.observedObject.setValueForKeyPath(value, bindingInfo.observedKeyPath);
         }finally{
             this._ignoreObserationContext = null;
         }
@@ -378,7 +378,7 @@ JSObject.definePropertiesFromExtensions({
         }
     },
 
-    setValueForKeyPath: function(keyPath, value){
+    setValueForKeyPath: function(value, keyPath){
         var keyParts = keyPath.split('.');
         var key = keyParts.shift();
         if (keyParts.length === 0){
@@ -386,7 +386,7 @@ JSObject.definePropertiesFromExtensions({
         }else{
             var intermediateValue = this.valueForKey(key);
             if (intermediateValue !== null && intermediateValue !== undefined){
-                intermediateValue.setValueForKeyPath(keyParts.join('.'), value);
+                intermediateValue.setValueForKeyPath(value, keyParts.join('.'));
             }
         }
     },

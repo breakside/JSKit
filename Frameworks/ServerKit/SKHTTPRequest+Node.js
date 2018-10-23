@@ -17,7 +17,9 @@ SKHTTPRequest.definePropertiesFromExtensions({
         if (nodeResponse){
             this._response = SKHTTPResponse.initWithNodeResponse(nodeResponse);
         }
-        this._url = JSURL.initWithString(nodeRequest.url);
+        var host = nodeRequest.headers.host || '';
+        var url = 'http://' + host + nodeRequest.url;
+        this._url = JSURL.initWithString(url);
     },
 
     createWebsocket: function(){
@@ -37,3 +39,5 @@ SKHTTPRequest.definePropertiesFromExtensions({
     }
 
 });
+
+SKHTTPRequest.defineInitMethod('initWithNodeRequest');

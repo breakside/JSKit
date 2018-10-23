@@ -32,12 +32,8 @@ SKHTTPResponse.definePropertiesFromExtensions({
         this._nodeResponse.setHeader(name, value);
     },
 
-    writeString: function(str){
-        this.writeData(str.utf8());
-    },
-
     writeData: function(data){
-        this._nodeResponse.write(data.bytes);
+        this._nodeResponse.write(data.bytes.nodeBuffer());
     },
 
     sendFile: function(filePath, contentType){
@@ -51,3 +47,5 @@ SKHTTPResponse.definePropertiesFromExtensions({
     }
 
 });
+
+SKHTTPResponse.defineInitMethod('initWithNodeResponse');

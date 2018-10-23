@@ -115,7 +115,8 @@ class NodeBuilder(Builder):
                 self.jsCompilation.include(path)
             self.jsCompilation.include(bundleJSFile, 'bundle.js')
             for outfile in self.jsCompilation.outfiles:
-                outfile.fp.flush()
+                if not outfile.fp.closed:
+                    outfile.fp.flush()
                 outputPath = os.path.join(self.outputExecutablePath, outfile.name)
                 if not os.path.exists(os.path.dirname(outputPath)):
                     os.makedirs(os.path.dirname(outputPath))

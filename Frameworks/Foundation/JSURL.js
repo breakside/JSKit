@@ -147,6 +147,9 @@ JSClass("JSURL", JSObject, {
         if ((this.isAbsolute && path !== "") || (path.startsWith("/"))){
             this._pathComponents.push("/");
             minComponentCount = 2;
+            if (components.length > 0 && components[0] == ''){
+                components.shift();
+            }
         }
         this._appendExpandedPathComponents(components);
         this._pathHasTrailingSlash = this._pathComponents.length >= minComponentCount && components[components.length - 1] === "";
@@ -207,7 +210,7 @@ JSClass("JSURL", JSObject, {
     _appendExpandedPathComponents: function(expandedComponents){
         var component;
         var i, l;
-        if (this.scheme === null || this.scheme === 'http' || this.scheme === 'https' || this.scheme === 'file' || this.scheme === 'ftp' || this.scheme === 'io.breakside.jskit.file'){
+        if (this.scheme === null || this.scheme === 'http' || this.scheme === 'https' || this.scheme === 'ws' || this.scheme === 'wss' || this.scheme === 'file' || this.scheme === 'ftp' || this.scheme === 'io.breakside.jskit.file'){
             for (i = 0, l = expandedComponents.length; i < l; ++i){
                 component = expandedComponents[i];
                 if (component !== "" && component !== "."){

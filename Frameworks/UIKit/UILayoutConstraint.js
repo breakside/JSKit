@@ -67,7 +67,7 @@ JSClass("UILayoutConstraint", JSObject, {
     priority: UILayoutPriority.required,
 
     _targetItem: null,
-    active: JSDynamicProperty(null, 'isActive'),
+    active: JSDynamicProperty('_isActive', false, 'isActive'),
 
     initWithOptions: function(options){
         if (options.firstItem !== undefined){
@@ -164,11 +164,10 @@ JSClass("UILayoutConstraint", JSObject, {
         this._targetItem.setNeedsLayout();
     },
 
-    isActive: function(){
-        return this._targetItem.constraints.indexOf(this) >= 0;
-    },
-
     setActive: function(active){
+        if (this._isActive == active){
+            return;
+        }
         if (active){
             this._targetItem.addConstraint(this);
         }else{

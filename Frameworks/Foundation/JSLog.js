@@ -5,7 +5,7 @@
 
 var performance = JSGlobalObject.performance;
 
-if (!performance && JSGlobalObject.require){
+if (!performance){
     performance = require('perf_hooks').performance;
 }
 
@@ -70,10 +70,10 @@ JSLog.format = function(record){
     var args = [
         record.timestamp,
         record.level,
-        record.subsystem,
-        record.category
+        record.subsystem.length <= 16 ? record.subsystem : (record.subsystem.substr(0, 13) + '...'),
+        record.category.length <= 16 ? record.category : (record.category.substr(0, 13) + '...')
     ];
-    var format = "%t %5{public} - %16{public} %16{public} - " + record.message;
+    var format = "%t %-5{public} %-16{public} %-16{public}" + record.message;
     return format.format(jslog_formatter, args.concat(record.args));
 };
 
@@ -137,7 +137,7 @@ var jslog_formatter = {
     error: function(e, options){
         if (e.stack){
             var stack = e.stack.split("\n");
-            var info = parseStackLine(stack[0]);
+            var info = parseStackLine(stack[1]);
             return e.toString() + ' \u2014 ' + info.function + ' \u2014 ' + info.file + ':' + info.line;
         }
         return e.toString();

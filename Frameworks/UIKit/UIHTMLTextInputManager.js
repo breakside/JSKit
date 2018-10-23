@@ -333,7 +333,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                     }
                     break;
                 default:
-                    logger.warn("Unexpected selection point: %d".sprintf(this._selectedRange.location));
+                    logger.warn("Unexpected selection point: %d", this._selectedRange.location);
                     break;
             }
         }else{
@@ -377,7 +377,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                         }
                         break;
                     default:
-                        logger.warn("Unexpected selection: %d,%d".sprintf(this._selectedRange.location, this._selectedRange.length));
+                        logger.warn("Unexpected selection: %d,%d", this._selectedRange.location, this._selectedRange.length);
                         break;
                 }
             }else if (this._selectedRange.end == this._config.resetSelection.location){
@@ -414,7 +414,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                         }
                         break;
                     default:
-                        logger.warn("Unexpected selection: %d,%d".sprintf(this._selectedRange.location, this._selectedRange.length));
+                        logger.warn("Unexpected selection: %d,%d", this._selectedRange.location, this._selectedRange.length);
                         break;
                 }
             // }else if (this._selectedRange.location == this._config.resetSelection.location - this._config.prevWord && this._selectedRange.length == this._config.prevWord + this._config.nextWord){
@@ -424,7 +424,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
             //     // select current line (is this even possible with the keyboard?)
             //     logger.info("select current line");
             }else{
-                logger.warn("Unexpected selection: %d,%d".sprintf(this._selectedRange.location, this._selectedRange.length));
+                logger.warn("Unexpected selection: %d,%d", this._selectedRange.location, this._selectedRange.length);
             }
         }
     },
@@ -442,7 +442,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
             if (start + end == original){
                 var text = value.substr(this._config.resetSelection.location, addedLength);
                 if (this._isComposing){
-                    logger.info("compose: %s".sprintf(text));
+                    logger.info("compose: %{public}", text);
                     // TODO: dispatch compose update action
                 }else{
                     if (text == "\n" || text == "\r" || text == "\r\n"){
@@ -456,7 +456,7 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                     }
                 }
             }else{
-                logger.warn("Unexpected input:\n%s".sprintf(value));
+                logger.warn("Unexpected input:\n%{public}", value);
             }
         }else if (addedLength < 0){
             // something has been removed
@@ -502,10 +502,10 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
                         this.textInputClient.deleteAll();
                     }
                 }else{
-                    logger.warn("Unexpected delete:\n%s".sprintf(value));
+                    logger.warn("Unexpected delete:\n%{public}", value);
                 }
             }else{
-                logger.warn("Unexpected delete during composition:\n%s".sprintf(value));
+                logger.warn("Unexpected delete during composition:\n%{public}", value);
             }
         }
     }

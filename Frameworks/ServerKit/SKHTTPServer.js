@@ -32,19 +32,19 @@ JSClass("SKHTTPServer", JSObject, {
     },
 
     _handleRequest: function(request){
-        logger.info("%s %s".sprintf(request.method, request.url));
+        logger.info("%{public} %{public}", request.method, request.url.path);
         var responder = null;
         try{
             if (this.rootRoute !== null){
                 responder = this.rootRoute.responderForRequest(request);
             }
             if (responder === null){
-                logger.warn("> No responder for request (404)");
+                logger.warn("No responder for request (404)");
                 throw new SKHTTPError(SKHTTPResponse.StatusCode.notFound);
             }
             var method = responder.objectMethodForRequestMethod(request.method);
             if (method === null){
-                logger.warn("> Method not supported %s");
+                logger.warn("Method not supported %{public}", request.method);
                 throw new SKHTTPError(SKHTTPResponse.StatusCode.methodNotAllowed);
             }
             responder.context.open(function(error){
@@ -55,11 +55,17 @@ JSClass("SKHTTPServer", JSObject, {
                         // TODO: access control here, as part of context.open, or both?
                         method.call(responder);
                     }catch (e){
+                        if (!(e instanceof SKHTTPError)){
+                            logger.error(e);
+                        }
                         responder.fail(e);
                     }
                 }
             }, this);
         }catch (e){
+            if (!(e instanceof SKHTTPError)){
+                logger.error(e);
+            }
             if (responder !== null){
                 responder.fail(e);
             }else{
@@ -70,19 +76,19 @@ JSClass("SKHTTPServer", JSObject, {
 
     _handleUpgrade: function(request){
         var product = request.headerMap.get('upgrade', '');
-        logger.info("%s %s (upgrade: %s)".sprintf(request.method, request.url, product));
+        logger.info("%{public} %{public} (upgrade: %{public})", request.method, request.url.path, product);
         var responder = null;
         try{
             if (this.rootRoute !== null){
                 responder = this.rootRoute.responderForRequest(request);
             }
             if (responder === null){
-                logger.warn("> Not found");
+                logger.warn("Not found");
                 throw new SKHTTPError(SKHTTPResponse.StatusCode.notFound);
             }
             var method = responder.objectMethodForWebsocketProduct(product);
             if (method === null){
-                logger.warn("> Product not supported");
+                logger.warn("Product not supported");
                 throw new SKHTTPError(SKHTTPResponse.StatusCode.notFound);
             }
             responder.context.open(function(error){

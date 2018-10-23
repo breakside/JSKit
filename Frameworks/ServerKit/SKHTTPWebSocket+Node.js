@@ -15,7 +15,7 @@ SKHTTPWebSocket.definePropertiesFromExtensions({
     },
 
     _write: function(bytes){
-        logger.info("Sending: %s", bytes.hexStringRepresentation());
+        logger.info("Sending: %{public}", bytes.hexStringRepresentation());
         this._nodeSocket.write(bytes);
     },
 
@@ -25,12 +25,14 @@ SKHTTPWebSocket.definePropertiesFromExtensions({
     },
 
     _setupEventListeners: function(){
+        logger.info("listening for data");
         this._dataListener = this._handleDataEvent.bind(this);
         this._nodeSocket.addListener('data', this._dataListener);
     },
 
     _cleanupEventListeners: function(){
         if (this._dataListener !== null){
+            logger.info("un-listening for data");
             this._nodeSocket.removeListener('data', this._dataListener);
         }
     },
@@ -40,3 +42,5 @@ SKHTTPWebSocket.definePropertiesFromExtensions({
     }
 
 });
+
+SKHTTPWebSocket.defineInitMethod("initWithNodeSocket");

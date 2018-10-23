@@ -121,6 +121,9 @@ JSClass("SKHTTPRouteTests", TKTestSuite, {
         TKAssertEquals(responder.context.file.length, 2);
         TKAssertEquals(responder.context.file[0], "hello");
         TKAssertEquals(responder.context.file[1], "there.txt");
+
+        responder = rootRoute.responderForRequest(null, ['/', '', 'hello', 'there.txt']);
+        TKAssertNull(responder);
     }
 
 });
