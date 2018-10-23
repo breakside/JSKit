@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "ServerKit/SKHTTPWebSocketParser.js"
-/* global JSClass, JSObject, JSData, SKHTTPWebSocketParser, SKHTTPWebSocket, JSLog */
+/* global JSClass, JSObject, JSTimer, JSData, SKHTTPWebSocketParser, SKHTTPWebSocket, JSLog */
 'use strict';
 
 (function(){
@@ -14,11 +14,13 @@ JSClass("SKHTTPWebSocket", JSObject, {
     _frameParser: null,
     _sentClose: false,
     _messageChunks: null,
+    _pingTimer: null,
 
     init: function(){
         this._frameParser = SKHTTPWebSocketParser.init();
         this._frameParser.delegate = this;
         this._messageChunks = [];
+        this._pingTimer = JSTimer.scheduledRepeatingTimerWithInterval(45, this.sendPing, this);
     },
 
     startMessage: function(data){
@@ -39,6 +41,11 @@ JSClass("SKHTTPWebSocket", JSObject, {
         this._write(data.nodeBuffer());
     },
 
+    sendPing: function(){
+        var header = SKHTTPWebSocketParser.UnmaskedHeaderForData([], SKHTTPWebSocketParser.FrameCode.ping);
+        this._write(header.nodeBuffer());
+    },
+
     _receive: function(data){
         this._frameParser.receive(data);
     },
@@ -47,6 +54,14 @@ JSClass("SKHTTPWebSocket", JSObject, {
     },
 
     cleanup: function(){
+        if (this._pingTimer !== null){
+            this._pingTimer.invalidate();
+            this._pingTimer = null;
+        }
+        this._cleanup();
+    },
+
+    _cleanup: function(){
     },
 
     frameParserDidReceivePing: function(parser, chunks){

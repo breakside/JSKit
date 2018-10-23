@@ -19,15 +19,21 @@ SKHTTPWebSocket.definePropertiesFromExtensions({
         this._nodeSocket.write(bytes);
     },
 
-    cleanup: function(){
+    _cleanup: function(){
         this._cleanupEventListeners();
-        this._nodeSocket.destroy();
+        if (this._nodeSocket !== null){
+            var socket = this._nodeSocket;
+            this._nodeSocket = null;
+            socket.destroy();
+        }
     },
 
     _setupEventListeners: function(){
         logger.info("listening for data");
         this._dataListener = this._handleDataEvent.bind(this);
+        this._closeListener = this._handleCloseEvent.bind(this);
         this._nodeSocket.addListener('data', this._dataListener);
+        this._nodeSocket.addListener('close', this._closeListener);
     },
 
     _cleanupEventListeners: function(){
@@ -35,10 +41,17 @@ SKHTTPWebSocket.definePropertiesFromExtensions({
             logger.info("un-listening for data");
             this._nodeSocket.removeListener('data', this._dataListener);
         }
+        if (this._closeListener !== null){
+            this._nodeSocket.removeListener('close', this._closeListener);
+        }
     },
 
     _handleDataEvent: function(bytes){
         this._receive(JSData.initWithBytes(bytes));
+    },
+
+    _handleCloseEvent: function(){
+        this.cleanup();
     }
 
 });
