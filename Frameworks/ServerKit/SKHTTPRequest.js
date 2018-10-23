@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "ServerKit/SKHTTPResponse.js"
-/* global JSClass, JSObject, JSData, JSReadOnlyProperty, JSURL, JSMIMEHeaderMap, SKHTTPResponse, JSLog */
+/* global JSClass, JSDate, JSObject, JSData, JSReadOnlyProperty, JSURL, JSMIMEHeaderMap, SKHTTPResponse, JSLog */
 'use strict';
 
 var logger = JSLog("server", "http");
@@ -43,6 +43,49 @@ JSClass("SKHTTPRequest", JSObject, {
     },
 
     close: function(){
+    },
+
+    needsEntityWithTag: function(etag){
+        if (!etag){
+            return true;
+        }
+        var tags = this.headerMap.get('If-None-Match', '').split(',');
+        var tag;
+        for (var i = 0, l = tags.length; i < l; ++i){
+            tag = tags[i].trim();
+            if (tag === '*'){
+                return false;
+            }
+            if (tag.startsWith('"') && tag.endsWith('"')){
+                tag = tag.substr(1, tag.length - 2).replace('\\"', '"');
+            }
+            if (tag == etag){
+                return false;
+            }
+        }
+        return true;
+    },
+
+    needsEntityModifiedAt: function(lastModified){
+        var ifModifiedSince = this.headerMap.get('If-Modified-Since', null);
+        if (ifModifiedSince){
+            var cutoffNative = new Date(ifModifiedSince);
+            var cutoffNativeTimestamp = cutoffNative.getTime();
+            if (!isNaN(cutoffNativeTimestamp)){
+                var cutoff = JSDate.initWithTimeIntervalSince1970(cutoffNativeTimestamp / 1000);
+                if (cutoff.compare(lastModified) >= 0){
+                    return false;
+                }
+            }
+        }
+        return true;
+    },
+
+    needsEntity: function(lastModified, etag){
+        if (etag){
+            return this.needsEntityWithTag(etag) && this.needsEntityModifiedAt(lastModified);
+        }
+        return this.needsEntityModifiedAt(lastModified);
     }
 
 });

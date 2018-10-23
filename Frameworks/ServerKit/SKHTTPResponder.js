@@ -80,6 +80,37 @@ JSClass("SKHTTPResponder", JSObject, {
         this._isWebsocket = true;
         logger.info("Creating websocket");
         return this._request.createWebsocket();
+    },
+
+    sendData: function(data, contentType, status){
+        if (status === undefined){
+            status = SKHTTPResponse.StatusCode.ok;
+        }
+        this.response.statusCode = status;
+        this.response.contentType = contentType;
+        this.response.contentLength = data.length;
+        this.response.writeData(data);
+        this.response.complete();
+    },
+
+    sendString: function(str, contentType, status){
+        this.sendData(str.utf8(), contentType, status);
+    },
+
+    sendObject: function(obj, status){
+        var json = JSON.stringify(obj);
+        this.response.setHeader("Cache-Control", "no-cache");
+        this.response.setHeader("Expires", "Thu, 01 Jan 1970 00:00:01 GMT");
+        this.sendString(json, "application/json", status);
+    },
+
+    sendStatus: function(status){
+        this.response.contentLength = 0;
+        this.response.statusCode = status;
+        this.response.complete();
+    },
+
+    sendFile: function(filePath, contentType, hash){
     }
 
 });

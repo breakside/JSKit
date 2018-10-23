@@ -28,23 +28,17 @@ SKHTTPResponse.definePropertiesFromExtensions({
         this._nodeResponse.setHeader(name, value);
     },
 
-    getHeader: function(name, value){
-        this._nodeResponse.setHeader(name, value);
+    getHeader: function(name){
+        return this._nodeResponse.getHeader(name);
     },
 
     writeData: function(data){
         this._nodeResponse.write(data.bytes.nodeBuffer());
     },
 
-    sendFile: function(filePath, contentType){
-        var response = this;
-        fs.stat(filePath, function(error, stat){
-            response.contentType = contentType;
-            response.contentLength = stat.size;
-            response.setHeader("Last-Modified", stat.mtime.toString());
-            var fp = fs.createReadStream(filePath);
-            fp.pipe(response._nodeResponse); // pipe will call this._nodeResponse.end(), which is the same as calling complete()
-        });
+    writeFile: function(filePath){
+        var fp = fs.createReadStream(filePath);
+        fp.pipe(this._nodeResponse); // pipe will call this._nodeResponse.end(), which is the same as calling complete()
     }
 
 });

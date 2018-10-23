@@ -3,5 +3,7 @@
 
 JSGlobalObject.SKHTTPHeaders = {
     contentType: 'Content-Type',
-    contentLength: 'Content-Length'
+    contentLength: 'Content-Length',
+    etag: 'ETag',
+    lastModified: 'Last-Modified'
 };

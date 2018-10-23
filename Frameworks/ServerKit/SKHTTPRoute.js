@@ -51,6 +51,9 @@ JSClass("SKHTTPRoute", JSObject, {
         if (pathComponents === undefined){
             pathComponents = request.url.pathComponents;
         }
+        if (pathComponents.length === 0){
+            return null;
+        }
         if (matches === undefined){
             matches = {};
         }
@@ -68,10 +71,10 @@ JSClass("SKHTTPRoute", JSObject, {
                 ++matcherIndex;
             }
         }
-        if (matcher && !matcher.isGreedy && matcherIndex < this._componentMatchers.length){
+        if (!matcher.isGreedy && matcherIndex < this._componentMatchers.length){
             return null;
         }
-        if (matcher && matcher.isGreedy && this.children.length > 0){
+        if (matcher.isGreedy && this.children.length > 0){
             // FIXME: unwind components
         }
         var responderClass = JSClass.FromName(this._responderClassName);
@@ -84,7 +87,7 @@ JSClass("SKHTTPRoute", JSObject, {
                 contextClass = SKHTTPResponderContext;
             }
             var context = contextClass.initWithPathComponentMatches(matches);
-            responder = responderClass.initWithRequest(request, context);
+            responder = this._createResponder(responderClass, request, context);
         }else{
             var child;
             for (var i = 0, l = this.children.length; i < l && responder === null; ++i){
@@ -93,6 +96,10 @@ JSClass("SKHTTPRoute", JSObject, {
             }
         }
         return responder;
+    },
+
+    _createResponder: function(responderClass, request, context){
+        return responderClass.initWithRequest(request, context);
     },
 
     addChild: function(route){
@@ -116,14 +123,8 @@ JSClass("SKHTTPResourceRoute", SKHTTPRoute, {
         this._resourceMetadata = this._bundle.metadataForResourceName(values.resource, values.type);
     },
 
-    responderForRequest: function(request, pathComponents, matches, contextClass){
-        var responderClass = JSClass.FromName(this._responderClassName);
-        if (!contextClass){
-            contextClass = SKHTTPResponderContext;
-        }
-        var context = contextClass.initWithPathComponentMatches(matches);
-        var responder = responderClass.initWithResourceMetadata(this._bundle, this._resourceMetadata, request, context);
-        return responder;
+    _createResponder: function(responderClass, request, context){
+        return responderClass.initWithResourceMetadata(this._bundle, this._resourceMetadata, request, context);
     },
 
     addChild: function(route){

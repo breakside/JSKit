@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "ServerKit/SKHTTPHeaders.js"
-/* global JSClass, JSObject, JSCustomProperty, JSDynamicProperty, JSReadOnlyProperty, JSURLResponse, SKHTTPResponse, SKHTTPHeaders*/
+/* global JSClass, JSObject, JSDate, JSCustomProperty, JSDynamicProperty, JSReadOnlyProperty, JSURLResponse, SKHTTPResponse, SKHTTPHeaders*/
 'use strict';
 
 var HTTPHeaderProperty = function(headerName, valueType){
@@ -27,6 +27,15 @@ HTTPHeaderProperty.prototype.define = function(C, publicKey, extensions){
                 switch (valueType){
                     case HTTPHeaderValueType.integer:
                         value = parseInt(value);
+                        break;
+                    case HTTPHeaderValueType.date:
+                        value = JSDate.initWithTimeIntervalSince1970(new Date(value).getTime() / 1000);
+                        break;
+                    case HTTPHeaderValueType.quoted:
+                        if (value && value.startsWith('"') && value.endsWith('"')){
+                            value = value.substr(1, value.length - 2).replace('\\"', '"');
+                        }
+                        break;
                 }
             }
             return value;
@@ -36,6 +45,17 @@ HTTPHeaderProperty.prototype.define = function(C, publicKey, extensions){
         configurable: true,
         enumerable: false,
         value: function HTTPHeaderProperty_set(value){
+            switch (valueType){
+                case HTTPHeaderValueType.integer:
+                    value = value.toString();
+                    break;
+                case HTTPHeaderValueType.date:
+                    value = new Date(value.timeIntervalSince1970 * 1000).toUTCString();
+                    break;
+                case HTTPHeaderValueType.quoted:
+                    value = '"' + value.replace('"', '\\"') + '"';
+                    break;
+            }
             this.setHeader(headerName, value);
         }
     });
@@ -51,7 +71,9 @@ HTTPHeaderProperty.prototype.define = function(C, publicKey, extensions){
 
 var HTTPHeaderValueType = {
     text: 0,
-    integer: 1
+    integer: 1,
+    date: 2,
+    quoted: 3
 };
 
 JSClass("SKHTTPResponse", JSObject, {
@@ -59,6 +81,8 @@ JSClass("SKHTTPResponse", JSObject, {
     statusCode: JSDynamicProperty('_statusCode', -1),
     contentType: HTTPHeaderProperty(SKHTTPHeaders.contentType),
     contentLength: HTTPHeaderProperty(SKHTTPHeaders.contentLength, HTTPHeaderValueType.integer),
+    etag: HTTPHeaderProperty(SKHTTPHeaders.etag, HTTPHeaderValueType.quoted),
+    lastModified: HTTPHeaderProperty(SKHTTPHeaders.lastModified, HTTPHeaderValueType.date),
 
     setHeader: function(name, value){
     },
@@ -76,33 +100,7 @@ JSClass("SKHTTPResponse", JSObject, {
     writeData: function(data){
     },
 
-    sendData: function(data, contentType, status){
-        if (status === undefined){
-            status = SKHTTPResponse.StatusCode.ok;
-        }
-        this.statusCode = status;
-        this.contentType = contentType;
-        this.contentLength = data.length;
-        this.writeData(data);
-        this.complete();
-    },
-
-    sendString: function(str, contentType, status){
-        this.sendData(str.utf8(), contentType, status);
-    },
-
-    sendObject: function(obj, status){
-        var json = JSON.stringify(obj);
-        this.sendString(json, "application/json", status);
-    },
-
-    sendStatus: function(status){
-        this.contentLength = 0;
-        this.statusCode = status;
-        this.complete();
-    },
-
-    sendFile: function(filePath){
+    writeFile: function(filePath){
     }
 
 });
