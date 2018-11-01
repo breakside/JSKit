@@ -8,7 +8,7 @@ JSProtocol("UIDraggingDestination", JSProtocol, {
     draggingUpdated: ["session"],
     draggingExited: ["session"],
 
-    performDragOperation: ["session", "operation"]    
+    performDragOperation: ["session", "operation"]
 
 });
 

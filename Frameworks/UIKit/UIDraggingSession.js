@@ -80,6 +80,10 @@ JSClass("UIDraggingSession", JSObject, {
             location.y = location.y - this.imageOffset.y + this.image.size.height / 2;
         }
         return location;
+    },
+
+    allowsOperation: function(operation){
+        return (this.allowedOperations & operation) == operation;
     }
 
 });
