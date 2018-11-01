@@ -36,18 +36,14 @@ JSClass("JSFont", JSObject, {
             descriptor = JSFontDescriptor.initWithSpec(spec, values);
         }else{
             if ('weight' in values){
-                descriptor = descriptor.descriptorWithWeight(spec.resolvedValue(values.weight));
+                descriptor = descriptor.descriptorWithWeight(spec.resolvedEnum(values.weight, JSFont.Weight));
             }
             if ('style' in values){
-                descriptor = descriptor.descriptorWithStyle(spec.resolvedValue(values.style));
+                descriptor = descriptor.descriptorWithStyle(spec.resolvedEnum(values.style, JSFont.Style));
             }
         }
         if ('size' in values){
-            if (values.size in JSFont.Size){
-                pointSize = JSFont.Size[values.size];
-            }else{
-                pointSize = spec.resolvedValue(values.size);
-            }
+            pointSize = spec.resolvedEnum(values.size, JSFont.Size);
         }
         if (descriptor !== null){
             return JSFont.fontWithDescriptor(descriptor, pointSize);
