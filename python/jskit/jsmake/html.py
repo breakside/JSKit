@@ -36,6 +36,7 @@ class HTMLBuilder(Builder):
     includes = None
     fonts = None
     nginxConf = None
+    httpPort = 8080
     debugPort = 8080
     workerProcesses = 1
     workerConnections = 1024
@@ -56,11 +57,16 @@ class HTMLBuilder(Builder):
     def parse_args(self, arglist):
         parser = argparse.ArgumentParser()
         parser.add_argument(u'--http-port', default=u'8080')
+        parser.add_argument(u'--debug-port', default=u'http')
         parser.add_argument(u'--worker-processes', default=u'1')
         parser.add_argument(u'--worker-connections', default=u'1024')
         parser.add_argument(u'--docker-owner', default=u'')
         args = parser.parse_args(arglist)
-        self.debugPort = int(args.http_port)
+        self.httpPort = int(args.http_port)
+        if args.debug_port == u'http':
+            self.debugPort = self.httpPort
+        else:
+            self.debugPort = int(args.debug_port)
         self.workerProcesses = int(args.worker_processes)
         self.workerConnections = int(args.worker_connections)
         self.dockerOwner = args.docker_owner
@@ -385,7 +391,7 @@ class HTMLBuilder(Builder):
             template = fp.read()
             fp.close()
             args = dict(
-                HTTP_PORT=self.debugPort,
+                HTTP_PORT=self.httpPort,
                 WORKER_PROCESSES=self.workerProcesses,
                 WORKER_CONNECTIONS=self.workerConnections
             )
@@ -422,7 +428,7 @@ class HTMLBuilder(Builder):
         if self.debug:
             if self.useDocker:
                 wwwPath = os.path.join(os.path.realpath(self.outputProjectPath), 'www')
-                return "docker run \\\n    --rm \\\n    --name %s \\\n    -p%d:%d \\\n    --mount type=bind,source=%s,target=/jskitapp/www \\\n    %s" % (self.dockerName, self.debugPort, self.debugPort, wwwPath, self.dockerIdentifier)
+                return "docker run \\\n    --rm \\\n    --name %s \\\n    -p%d:%d \\\n    --mount type=bind,source=%s,target=/jskitapp/www \\\n    %s" % (self.dockerName, self.debugPort, self.httpPort, wwwPath, self.dockerIdentifier)
             else:
                 return "nginx -p %s" % os.path.relpath(self.outputProjectPath)
 
