@@ -13,6 +13,10 @@ UIApplication.definePropertiesFromExtensions({
             options[UIApplication.LaunchOptions.state] = fragment;
         }
         return options;
+    },
+
+    openURL: function(url){
+        window.open(url.encodedString);
     }
 
 });

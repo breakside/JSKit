@@ -214,6 +214,9 @@ JSClass('UIApplication', UIResponder, {
         var touch = touches[0];
         var location = touch.window.convertPointToScreen(touch.locationInWindow);
         this.windowServer.createMouseEvent(UIEvent.Type.leftMouseUp, event.timestamp, location);
+    },
+
+    openURL: function(url){
     }
 
 });
