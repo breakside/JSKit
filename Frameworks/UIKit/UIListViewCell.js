@@ -15,6 +15,7 @@ JSClass("UIListViewCell", UIView, {
     titleLabel: JSLazyInitProperty('_createTitleLabel', '_titleLabel'),
     detailLabel: JSLazyInitProperty('_createDetailLabel', '_detailLabel'),
     imageView: JSLazyInitProperty('_createImageView', '_imageView'),
+    accessoryView: JSDynamicProperty('_accessoryView', null),
     separatorInsets: JSDynamicProperty('_separatorInsets', null),
     numberOfDetailLines: JSDynamicProperty('_numberOfDetailLines', 1),
     stylerProperties: null,
@@ -82,6 +83,34 @@ JSClass("UIListViewCell", UIView, {
             this._numberOfDetailLines = lines;
             this.setNeedsLayout();
         }
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Accessory
+
+    setAccessoryImage: function(accessoryImage, renderMode){
+        if (accessoryImage !== null){
+            if (!this._accessoryView || !this._accessoryView.isKindOfClass(UIImageView)){
+                this.accessoryView = UIImageView.init();
+            }
+            if (renderMode !== undefined){
+                this._accessoryView.renderMode = renderMode;
+            }
+            this._accessoryView.image = accessoryImage;
+        }else{
+            this.accessoryView = null;
+        }
+    },
+
+    setAccessoryView: function(accessoryView){
+        if (this._accessoryView && this._accessoryView !== accessoryView){
+            this._accessoryView.removeFromSuperview();
+        }
+        this._accessoryView = accessoryView;
+        if (this._accessoryView && this._accessoryView.superview !== this._contentView){
+            this._contentView.addSubview(this._accessoryView);
+        }
+        this.setNeedsLayout();
     },
 
     // --------------------------------------------------------------------

@@ -1,7 +1,8 @@
 // #import "UIKit/UIScrollView.js"
 // #import "UIKit/UIEvent.js"
 // #import "UIKit/UIPlatform.js"
-/* global JSClass, JSObject, JSInsets, JSColor, UILayer, UIView, UIScrollView, UIPlatform, JSProtocol, JSReadOnlyProperty, JSDynamicProperty, UIListView, JSSize, JSIndexPath, JSRect, UIEvent, JSIndexPathSet, JSIndexPathRange, JSBinarySearcher, JSPoint, UIListViewHeaderFooterView, UIListViewStyler, UIListViewDefaultStyler */
+// #import "UIKit/UIImageView.js"
+/* global JSClass, JSObject, JSInsets, JSFont, JSColor, UILayer, UIView, UIImageView, UIScrollView, UIPlatform, JSProtocol, JSReadOnlyProperty, JSDynamicProperty, UIListView, JSSize, JSIndexPath, JSRect, UIEvent, JSIndexPathSet, JSIndexPathRange, JSBinarySearcher, JSPoint, UIListViewHeaderFooterView, UIListViewStyler, UIListViewDefaultStyler */
 'use strict';
 
 (function(){
@@ -1697,6 +1698,9 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     cellBackgroundColor: null,
     separatorInsets: null,
     imageSize: null,
+    accessorySize: null,
+    accessoryColor: null,
+    showSeparators: true,
 
     headerTextColor: null,
     headerBackgroundColor: null,
@@ -1750,10 +1754,22 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if ('imageSize' in values){
             this.imageSize = JSSize.apply(undefined, values.imageSize.parseNumberArray());
         }
+        if ('accessorySize' in values){
+            this.accessorySize = JSSize.apply(undefined, values.accessorySize.parseNumberArray());
+        }
+        if ('accessoryColor' in values){
+            this.accessoryColor = spec.resolvedValue(values.accessoryColor, "JSColor");
+        }
+        if ('showSeparators' in values){
+            this.showSeparators = spec.resolvedValue(values.showSeparators);
+        }
         this._commonStylerInit();
     },
 
     _commonStylerInit: function(){
+        if (this.cellFont === null){
+            this.cellFont = JSFont.systemFontOfSize(JSFont.Size.normal);
+        }
         if (this.cellTextColor === null){
             this.cellTextColor = JSColor.blackColor;
         }
@@ -1767,7 +1783,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             this.selectedCellDetailTextColor = this.selectedCellTextColor;
         }
         if (this.cellDetailFont === null && this.cellFont !== null){
-            this.cellDetailFont = this.cellFont.fontWithSize(Math.round(this.cellFont.pointSize * 12.0 / 14.0));
+            this.cellDetailFont = this.cellFont.fontWithPointSize(Math.round(this.cellFont.pointSize * 12.0 / 14.0));
         }
         if (this.selectedCellBackgroundColor === null){
             this.selectedCellBackgroundColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1);
@@ -1784,11 +1800,16 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if (this.selectedCellSeparatorColor === null){
             this.selectedCellSeparatorColor = this.selectedCellBackgroundColor.colorLightenedByPercentage(0.2);
         }
+        if (this.accessoryColor === null){
+            this.accessoryColor = this.cellTextColor;
+        }
     },
 
     initializeCell: function(cell, indexPath){
-        cell.stylerProperties.separatorLayer = UILayer.init();
-        cell.layer.addSublayer(cell.stylerProperties.separatorLayer);
+        if (this.showSeparators){
+            cell.stylerProperties.separatorLayer = UILayer.init();
+            cell.layer.addSublayer(cell.stylerProperties.separatorLayer);
+        }
     },
 
     updateCell: function(cell, indexPath){
@@ -1797,6 +1818,12 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             cell.contentView.borderColor = this.selectedCellBackgroundColor;
         }else{
             cell.contentView.borderWidth = 0;
+        }
+        if (cell._titleLabel !== null){
+            cell._titleLabel.font = this.cellFont;
+        }
+        if (cell._detailLabel !== null){
+            cell._detailLabel.font = this.cellDetailFont;
         }
         if (cell.selected){
             cell.contentView.borderColor = this.contextSelectedCellBorderColor;
@@ -1810,7 +1837,12 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             if (cell._imageView !== null){
                 cell._imageView.templateColor = this.selectedCellTextColor;
             }
-            cell.stylerProperties.separatorLayer.backgroundColor = this.selectedCellSeparatorColor;
+            if (cell._accessoryView !== null && cell._accessoryView.isKindOfClass(UIImageView)){
+                cell._accessoryView.templateColor = this.selectedCellTextColor;
+            }
+            if (cell.stylerProperties.separatorLayer){
+                cell.stylerProperties.separatorLayer.backgroundColor = this.selectedCellSeparatorColor;
+            }
         }else{
             cell.contentView.backgroundColor = this.cellBackgroundColor;
             if (cell._titleLabel !== null){
@@ -1822,9 +1854,16 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             if (cell._imageView !== null){
                 cell._imageView.templateColor = this.cellTextColor;
             }
-            cell.stylerProperties.separatorLayer.backgroundColor = this.cellSeparatorColor;
+            if (cell._accessoryView !== null && cell._accessoryView.isKindOfClass(UIImageView)){
+                cell._accessoryView.templateColor = this.accessoryColor;
+            }
+            if (cell.stylerProperties.separatorLayer){
+                cell.stylerProperties.separatorLayer.backgroundColor = this.cellSeparatorColor;
+            }
         }
-        cell.stylerProperties.separatorLayer.hidden = indexPath.row === 0;
+        if (cell.stylerProperties.separatorLayer){
+            cell.stylerProperties.separatorLayer.hidden = indexPath.row === 0;
+        }
     },
 
     layoutCell: function(cell){
@@ -1840,6 +1879,14 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             cell._imageView.frame = JSRect(origin.x, (cell._contentView.bounds.size.height - imageSize.height) / 2, imageSize.width, imageSize.height);
             origin.x += cell._titleInsets.left + imageSize.width;
             size.width -= imageSize.width + cell._titleInsets.left;
+        }
+        if (cell._accessoryView !== null){
+            var accessorySize = this.accessorySize;
+            if (accessorySize === null){
+                accessorySize = cell._accessoryView.intrinsicSize;
+            }
+            cell._accessoryView.frame = JSRect(cell.bounds.size.width - accessorySize.width, (cell._contentView.bounds.size.height - accessorySize.height) / 2, accessorySize.width, accessorySize.height);
+            size.width -= accessorySize.width;
         }
         if (cell._titleLabel !== null){
             if (cell._detailLabel !== null){
@@ -1868,7 +1915,9 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             separatorInsets = cell._titleInsets;
         }
         var separatorSize = 1;
-        cell.stylerProperties.separatorLayer.frame = JSRect(separatorInsets.left, 0, cell.bounds.size.width - separatorInsets.left, separatorSize);
+        if (cell.stylerProperties.separatorLayer){
+            cell.stylerProperties.separatorLayer.frame = JSRect(separatorInsets.left, 0, cell.bounds.size.width - separatorInsets.left, separatorSize);
+        }
     },
 
     updateHeader: function(header, section){
