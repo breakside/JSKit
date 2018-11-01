@@ -4,7 +4,8 @@
 // #import "UIKit/UIButton.js"
 // #import "UIKit/UILabel.js"
 // #import "UIKit/UIImageView.js"
-/* global JSClass, JSObject, UIView, JSColor, JSBundle, JSImage, JSUserDefaults, JSFont, UIImageView, UILabel, JSSize, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, UIWindowStyler, UIWindowDefaultStyler, UIWindowCustomStyler, UIControl, UIButton, UIButtonCustomStyler, JSPoint, UIApplication, UIEvent, UITouch */
+// #import "UIKit/UIToolbar.js"
+/* global JSClass, JSObject, UIView, JSColor, JSBundle, JSImage, JSUserDefaults, JSFont, UIImageView, UILabel, JSSize, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, UIWindowStyler, UIWindowDefaultStyler, UIWindowCustomStyler, UIControl, UIButton, UIButtonCustomStyler, JSPoint, UIApplication, UIEvent, UITouch, UIToolbar, UIToolbarView */
 'use strict';
 
 (function(){
@@ -46,6 +47,9 @@ JSClass('UIWindow', UIView, {
         if ('contentInsets' in values){
             this._contentInsets = JSInsets.apply(undefined, values.contentInsets.parseNumberArray());
         }
+        if ('showsContentSeparator' in values){
+            this.showsContentSeparator = values.showsContentSeparator;
+        }
         if ('isUserMovable' in values){
             this.isUserMovable = values.isUserMovable;
         }
@@ -67,8 +71,14 @@ JSClass('UIWindow', UIView, {
         if ('title' in values){
             this.title = spec.resolvedValue(values.title);
         }
+        if ('icon' in values){
+            this.icon = JSImage.initWithResourceName(spec.resolvedValue(values.icon));
+        }
         if ('autosaveName' in values){
             this.autosaveName = spec.resolvedValue(values.autosaveName);
+        }
+        if ('toolbar' in values){
+            this._toolbar = spec.resolvedValue(values.toolbar, "UIToolbar");
         }
     },
 
@@ -103,10 +113,17 @@ JSClass('UIWindow', UIView, {
     // MARK: - Controls
 
     title: JSDynamicProperty('_title', null),
+    icon: JSDynamicProperty('_icon', null),
     allowsClose: JSDynamicProperty('_allowsClose', true),
 
     setTitle: function(title){
         this._title = title;
+        this.setNeedsLayout();
+        this._styler.updateWindow(this);
+    },
+
+    setIcon: function(icon){
+        this._icon = icon;
         this.setNeedsLayout();
         this._styler.updateWindow(this);
     },
@@ -118,8 +135,20 @@ JSClass('UIWindow', UIView, {
     },
 
     // -------------------------------------------------------------------------
+    // MARK: - Toolbar
+
+    toolbar: JSDynamicProperty('_toolbar', null),
+
+    setToolbar: function(toolbar){
+        this._toolbar = toolbar;
+        this._styler.updateWindow();
+        this.seetNeedsLayout();
+    },
+
+    // -------------------------------------------------------------------------
     // MARK: - Content View
 
+    showsContentSeparator: JSDynamicProperty('_showsContentSeparator', false),
     contentViewController: JSDynamicProperty('_contentViewController', null),
     contentView: JSDynamicProperty('_contentView', null),
     contentInsets: JSDynamicProperty('_contentInsets', null),
@@ -153,6 +182,12 @@ JSClass('UIWindow', UIView, {
     setContentInsets: function(contentInsets){
         this._contentInsets = JSInsets(contentInsets);
         this.setNeedsLayout();
+    },
+
+    setShowsContentSeparator: function(showsContentSeparator){
+        this._showsContentSeparator = showsContentSeparator;
+        this.setNeedsLayout();
+        this._styler.updateWindow(this);
     },
 
     heightTracksContent: JSDynamicProperty('_heightTracksContent', false),
@@ -266,6 +301,9 @@ JSClass('UIWindow', UIView, {
     // MARK: - Opening & Closing
 
     escapeClosesWindow: false,
+    openAnimator: null,
+    closeAnimator: null,
+    _isOpen: false,
 
     open: function(){
         this.orderFront();
@@ -277,7 +315,15 @@ JSClass('UIWindow', UIView, {
         }else if (this._contentViewController){
             this._contentViewController.viewWillDisappear(false);
         }
-        this.windowServer.windowRemoved(this);
+        if (this.closeAnimator !== null){
+            var self = this;
+            this.closeAnimator.addCompletion(function(){
+                self.windowServer.windowRemoved(self);
+            });
+            this.closeAnimator.start();
+        }else{
+            this.windowServer.windowRemoved(this);
+        }
     },
 
     orderFront: function(){
@@ -287,6 +333,12 @@ JSClass('UIWindow', UIView, {
             this._contentViewController.viewWillAppear(false);
         }
         this.windowServer.orderWindowFront(this);
+        if (!this._isOpen){
+            this._isOpen = true;
+            if (this.openAnimator !== null){
+                this.openAnimator.start();
+            }
+        }
     },
 
     didBecomeVisible: function(){
@@ -676,7 +728,7 @@ JSClass('UIWindow', UIView, {
             return;
         }
         JSUserDefaults.shared.setValueForKey({
-            frame: [this.frame.origin.x, this.frame.origin.y, this.frame.size.width, this.frame.size.height]
+            frame: [this.position.x - this.bounds.size.width * this.anchorPoint.x, this.position.y - this.bounds.size.height * this.anchorPoint.y, this.bounds.size.width, this.bounds.size.height]
         }, this._autosaveName);
     },
 
@@ -723,19 +775,25 @@ JSClass("UIWindowStyler", JSObject, {
 JSClass("UIWindowDefaultStyler", UIWindowStyler, {
 
     _titlebarSize: 22,
+    _toolbarSize: 33,
     _controlButtonSize: 12,
+    _iconSize: 16,
+    _iconTitleSpacing: 5,
     activeTitleColor: null,
     inactiveTitleColor: null,
     shadowRadius: 40,
     cornerRadius: 6,
     backgroundColor: null,
     shadowColor: null,
+    contentSeparatorColor: null,
+    contentSeparatorSize: 1,
 
     init: function(){
-        this.titleColor = JSColor.initWithWhite(51/255);
+        this.activeTitleColor = JSColor.initWithWhite(51/255);
         this.inactiveTitleColor = JSColor.initWithWhite(192/255);
         this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.4);
         this.backgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255,1);
+        this.contentSeparatorColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
     },
 
     initializeWindow: function(window){
@@ -758,8 +816,9 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
         window.stylerProperties.closeButton = closeButton;
         window.stylerProperties.titleBar = titleBar;
         window.stylerProperties.titleLabel = titleLabel;
-
-        window.contentInsets = JSInsets(this._titlebarSize, 0, 0, 0);
+        window.stylerProperties.iconView = null;
+        window.stylerProperties.toolbarView = null;
+        window.stylerProperties.contentSeparatorView = null;
 
         window.shadowColor = this.shadowColor;
         window.shadowRadius = this.shadowRadius;
@@ -771,34 +830,84 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
 
     layoutWindow: function(window){
         var controlPadding = (this._titlebarSize - this._controlButtonSize) / 2;
+        var iconPadding = (this._titlebarSize - this._iconSize) / 2;
         var titleBar = window.stylerProperties.titleBar;
         var closeButton = window.stylerProperties.closeButton;
         var titleLabel = window.stylerProperties.titleLabel;
-        titleBar.frame = JSRect(0, 0, window.bounds.size.width, this._titlebarSize);
+        var iconView = window.stylerProperties.iconView;
+        var toolbarView = window.stylerProperties.toolbarView;
+        var contentSeparatorView = window.stylerProperties.contentSeparatorView;
+        var bounds = window.bounds;
+
+        // Title bar
+        var y = 0;
+        titleBar.frame = JSRect(0, y, bounds.size.width, this._titlebarSize);
+        y += this._titlebarSize;
         closeButton.frame = JSRect(controlPadding, controlPadding, this._controlButtonSize, this._controlButtonSize);
         titleLabel.sizeToFit();
         var minX = closeButton.frame.origin.x + closeButton.frame.size.width + controlPadding;
         var maxX = titleBar.bounds.size.width - controlPadding;
         var available = maxX - minX;
-        if (titleLabel.frame.size.width > available){
-            titleLabel.bounds.size = JSSize(available, titleLabel.bounds.size.height);
+        var titleWidth = titleLabel.frame.size.width;
+        var iconWidth = 0;
+        if (iconView && !iconView.hidden){
+            iconWidth = this._iconSize + this._iconTitleSpacing;
+        }
+        if (titleWidth + iconWidth > available){
+            titleLabel.bounds.size = JSSize(Math.max(0, available - iconWidth), titleLabel.bounds.size.height);
         }
         var centerX = titleBar.bounds.size.width / 2;
-        var shiftX = minX - (centerX - titleLabel.frame.size.width / 2);
+        var shiftX = minX - (centerX - (titleWidth + iconWidth) / 2);
         if (shiftX > 0){
             centerX += shiftX;
         }
-        titleLabel.position = JSPoint(centerX, titleBar.bounds.size.height / 2);
+        if (iconView){
+            iconView.frame = JSRect(centerX - (titleWidth + iconWidth) / 2, iconPadding, this._iconSize, this._iconSize);
+        }
+        titleLabel.position = JSPoint(centerX + iconWidth / 2, titleBar.bounds.size.height / 2);
+
+        // Toolbar
+        if (toolbarView){
+            toolbarView.frame = JSRect(0, y, bounds.size.width, this._toolbarSize);
+            y += this._toolbarSize;
+        }
+
+        if (contentSeparatorView){
+            contentSeparatorView.frame = JSRect(0, y - this.contentSeparatorSize, bounds.size.width, this.contentSeparatorSize);
+        }
     },
 
     updateWindow: function(window){
         var closeButton = window.stylerProperties.closeButton;
+        var iconView = window.stylerProperties.iconView;
         var titleLabel = window.stylerProperties.titleLabel;
+        var titleBar = window.stylerProperties.titleBar;
         closeButton.hidden = !window.allowsClose;
+        
         titleLabel.text = window.title || '';
+
+        if (window.icon){
+            if (!iconView){
+                iconView = UIImageView.initWithRenderMode(UIImageView.RenderMode.template);
+                titleBar.insertSubviewBelowSibling(iconView, titleLabel);
+                window.stylerProperties.iconView = iconView;
+            }
+            iconView.image = window.icon;
+            iconView.hidden = false;
+        }else if (iconView){
+            iconView.icon = null;
+            iconView.hidden = true;
+        }
+
         if (window.isMainWindow || window.isKeyWindow){
+            if (iconView){
+                iconView.templateColor = this.activeTitleColor;
+            }
             titleLabel.textColor = this.activeTitleColor;
         }else{
+            if (iconView){
+                iconView.templateColor = this.inactiveTitleColor;
+            }
             titleLabel.textColor = this.inactiveTitleColor;
         }
         if (window.isMainWindow){
@@ -806,6 +915,38 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
         }else{
             closeButton.setImageForState(images.closeInactive, UIControl.State.normal);
         }
+
+        if (window.toolbar){
+            if (!window.stylerProperties.toolbarView){
+                window.stylerProperties.toolbarView = UIToolbarView.init();
+                window.insertSubviewAboveSibling(window.stylerProperties.toolbarView, titleBar);
+            }
+        }else{
+            if (window.stylerProperties.toolbarView){
+                window.stylerProperties.toolbarView.removeFromSuperview();
+                window.stylerProperties.toolbarView = null;
+            }
+        }
+
+
+        if (window.showsContentSeparator){
+            if (!window.stylerProperties.contentSeparatorView){
+                window.stylerProperties.contentSeparatorView = UIView.init();
+                window.stylerProperties.contentSeparatorView.backgroundColor = this.contentSeparatorColor;
+                window.addSubview(window.stylerProperties.contentSeparatorView);
+            }
+        }else{
+            if (window.stylerProperties.contentSeparatorView){
+                window.stylerProperties.contentSeparatorView.removeFromSuperview();
+                window.stylerProperties.contentSeparatorView = null;
+            }
+        }
+
+        var topSize = this._titlebarSize;
+        if (window.toolbar){
+            topSize += this._toolbarSize;
+        }
+        window.contentInsets = JSInsets(topSize, 0, 0, 0);
     }
 
 });

@@ -22,10 +22,13 @@
 // #import "UIKit/UIImageView.js"
 // #import "UIKit/UIWebView.js"
 // #import "UIKit/UIWindow.js"
+// #import "UIKit/UIToolbar.js"
+// #import "UIKit/UIToolbarItem.js"
 // #import "UIKit/UIViewController.js"
 // #import "UIKit/UIWindowController.js"
 // #import "UIKit/UIScene.js"
 // #import "UIKit/UIActivityIndicatorView.js"
+// #import "UIKit/UIProgressIndicatorView.js"
 
 // Display & Window Serves
 // #import "UIKit/UIEvent.js"

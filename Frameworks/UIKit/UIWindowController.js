@@ -40,6 +40,9 @@ JSClass("UIWindowController", UIViewController, {
         if (this.window.contentViewController){
             this.window.contentViewController.viewWillDisappear(animated);
         }
+        if (this.delegate && this.delegate.windowControllerWillClose){
+            this.delegate.windowControllerWillClose(this);
+        }
     },
 
     viewDidDisappear: function(animated){
@@ -47,7 +50,7 @@ JSClass("UIWindowController", UIViewController, {
         if (this.window.contentViewController){
             this.window.contentViewController.viewDidDisappear(animated);
         }
-        if (this.delegate){
+        if (this.delegate && this.delegate.windowControllerDidClose){
             this.delegate.windowControllerDidClose(this);
         }
         this.unloadView();
@@ -73,7 +76,7 @@ JSClass("UIWindowController", UIViewController, {
     },
 
     orderFront: function(){
-        this._prepareWindow();
+        this.prepareWindowIfNeeded();
         this.window.orderFront();
     },
 
@@ -82,13 +85,13 @@ JSClass("UIWindowController", UIViewController, {
     },
 
     makeKeyAndOrderFront: function(){
-        this._prepareWindow();
+        this.prepareWindowIfNeeded();
         this.window.makeKeyAndOrderFront();
     },
 
     _needsPrepare: true,
 
-    _prepareWindowIfNeeded: function(){
+    prepareWindowIfNeeded: function(){
         if (this._needsPrepare){
             this._prepareWindow();
             this._needsPrepare = false;
