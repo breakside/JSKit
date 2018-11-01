@@ -74,8 +74,8 @@ JSClass('UIScrollView', UIView, {
         if ('delaysContentTouches' in values){
             this._delaysContentTouches = spec.resolvedValue(values.delaysContentTouches);
         }
-        if ('styler' in values){
-            this.styler = spec.resolvedValue(values.styler);
+        if ('scrollStyler' in values){
+            this.scrollStyler = spec.resolvedValue(values.scrollStyler);
         }
     },
 
@@ -115,11 +115,11 @@ JSClass('UIScrollView', UIView, {
     // --------------------------------------------------------------------
     // MARK: - Styler
 
-    styler: JSDynamicProperty('_styler', null),
+    scrollStyler: JSDynamicProperty('_scrollStyler', null),
 
-    setStyler: function(styler){
-        this._horizontalScroller.styler = styler;
-        this._verticalScroller.styler = styler;
+    setStyler: function(scrollStyler){
+        this._horizontalScroller.styler = scrollStyler;
+        this._verticalScroller.styler = scrollStyler;
     },
 
     // --------------------------------------------------------------------
