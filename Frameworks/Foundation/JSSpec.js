@@ -35,6 +35,13 @@ JSClass('JSSpec', JSObject, {
         return this.resolvedValue("/File's Owner", "JSObject");
     },
 
+    resolvedEnum: function(value, map){
+        if (value in map){
+            return map[value];
+        }
+        return this.resolvedValue(value);
+    },
+
     resolvedValue: function(value, defaultClassName, overrides){
         var i, l;
         if (value !== null && value !== undefined){
@@ -91,7 +98,10 @@ JSClass('JSSpec', JSObject, {
                         }
                         this._keysForNextObjectInit = null;
                     }
-                    obj.initWithSpec(this, value);
+                    var result = obj.initWithSpec(this, value);
+                    if (result !== undefined){
+                        obj = result;
+                    }
                     // Set the bindings after the object has been initialized
                     if ('bindings' in value){
                         this._setObjectBindings(obj, value.bindings);
