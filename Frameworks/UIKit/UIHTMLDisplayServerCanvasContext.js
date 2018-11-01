@@ -491,7 +491,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
                     imageElement.style.borderWidth = '%dpx %dpx %dpx %dpx'.sprintf(caps.top, caps.right, caps.bottom, caps.left);
                     imageElement.style.borderImage = cssURL + " %d %d %d %d fill stretch".sprintf(caps.top * image.scale, caps.right * image.scale, caps.bottom * image.scale, caps.left * image.scale);
                 }else if (image.templateColor !== null){
-                    imageElement.backgroundImage = '';
+                    imageElement.style.backgroundImage = '';
                     imageElement.style.borderWidth = '';
                     imageElement.style.borderImage = '';
                     imageElement.style.maskImage = cssURL;

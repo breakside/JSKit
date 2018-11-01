@@ -19,6 +19,9 @@ JSClass("UIImageLayer", UILayer, {
     },
 
     setImage: function(image){
+        if (image === this._image){
+            return;
+        }
         this._image = image;
         this.setNeedsDisplay();
     },
@@ -39,6 +42,9 @@ JSClass("UIImageLayer", UILayer, {
     },
 
     setRenderMode: function(renderMode){
+        if (renderMode === this._renderMode){
+            return;
+        }
         this._renderMode = renderMode;
         this.setNeedsDisplay();
     },
