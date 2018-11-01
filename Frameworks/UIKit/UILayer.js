@@ -279,6 +279,9 @@ JSClass("UILayer", JSObject, {
     // MARK: - Coordinate conversion
 
     convertPointToLayer: function(point, layer){
+        if (layer === this){
+            return point;
+        }
         if (layer.superlayer === this){
             return layer._convertPointFromSuperlayer(point);
         }
@@ -293,6 +296,9 @@ JSClass("UILayer", JSObject, {
     },
 
     convertRectToLayer: function(rect, layer){
+        if (layer === this){
+            return rect;
+        }
         var p0 = this.convertPointToLayer(rect.origin, layer);
         if (p0 !== null){
             var p1 = this.convertPointToLayer(JSPoint(rect.origin.x + rect.size.width, rect.origin.y), layer);
