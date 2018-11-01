@@ -77,6 +77,9 @@ JSClass("UITextLayer", UILayer, {
     },
 
     setFont: function(font){
+        if (font === this._textLayoutManager.defaultFont){
+            return;
+        }
         this._textLayoutManager.defaultFont = font;
     },
 
