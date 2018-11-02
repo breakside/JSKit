@@ -1,6 +1,6 @@
 // #import "UIKit/UIWindow.js"
 // #import "UIKit/UIMenu.js"
-/* global JSClass, JSObject, JSImage, JSReadOnlyProperty, UIWindowCustomStyler, UIEvent, UILayer, JSPoint, JSBinarySearcher, JSSize, JSLazyInitProperty, UIView, UIWindow, JSDynamicProperty, UIMenuBar, JSRect, JSInsets, UIMenuBarItemCollectionView, UIMenuBarItemView, UIMenuBarItem, UILabel, UIImageView, JSFont, JSTextAlignment, JSColor, UIMenuDefaultStyler, UIMenuBarButton */
+/* global JSClass, JSObject, UIMenu, JSImage, JSReadOnlyProperty, UIWindowCustomStyler, UIEvent, UILayer, JSPoint, JSBinarySearcher, JSSize, JSLazyInitProperty, UIView, UIWindow, JSDynamicProperty, UIMenuBar, JSRect, JSInsets, UIMenuBarItemCollectionView, UIMenuBarItemView, UIMenuBarItem, UILabel, UIImageView, JSFont, JSTextAlignment, JSColor, UIMenuDefaultStyler, UIMenuBarButton */
 'use strict';
 
 JSClass("UIMenuBar", UIWindow, {
@@ -9,13 +9,13 @@ JSClass("UIMenuBar", UIWindow, {
     // MARK: - Creating a Menu Bar
 
     init: function(){
-        this._styler = UIWindowCustomStyler.shared;
+        this._styler = UIWindow.Styler.custom;
         UIMenuBar.$super.init.call(this);
         this._commonInit();
     },
 
     initWithSpec: function(spec, values){
-        this._styler = UIWindowCustomStyler.shared;
+        this._styler = UIWindow.Styler.custom;
         UIMenuBar.$super.initWithSpec.call(this, spec, values);
         this._commonInit();
         if ('highlightColor' in values){
@@ -66,9 +66,9 @@ JSClass("UIMenuBar", UIWindow, {
         this.contentView.addSubview(this._clipView);
         // this.backgroundColor = JSColor.initWithRGBA(1, 1, 1, 0.95);
         this._font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
-        this._textColor = UIMenuDefaultStyler.shared.textColor;
-        this._highlightColor = UIMenuDefaultStyler.shared.highlightColor;
-        this._highlightedTextColor = UIMenuDefaultStyler.shared.highlightedTextColor;
+        this._textColor = UIMenu.Styler.default.textColor;
+        this._highlightColor = UIMenu.Styler.default.highlightColor;
+        this._highlightedTextColor = UIMenu.Styler.default.highlightedTextColor;
     },
 
     // --------------------------------------------------------------------

@@ -45,7 +45,7 @@ JSClass("UIPopupButton", UIControl, {
         this.addSubview(this._indicatorView);
         this.addSubview(this._titleLabel);
         if (this._styler === null){
-            this._styler = UIPopupButton.defaultStyler;
+            this._styler = UIPopupButton.Styler.default;
         }
         this.hasOverState = this._styler.showsOverState;
         this._styler.initializeControl(this);
@@ -184,6 +184,21 @@ JSClass("UIPopupButton", UIControl, {
 
 });
 
+UIPopupButton.Styler = Object.create({}, {
+    default: {
+        configurable: true,
+        get: function UIPopupButton_getDefaultStyler(){
+            var styler = UIPopupButtonDefaultStyler.init();
+            Object.defineProperty(this, 'default', {writable: true, value: styler});
+            return styler;
+        },
+        set: function UIPopupButton_setDefaultStyler(styler){
+            Object.defineProperty(this, 'default', {writable: true, value: styler});
+        }
+    }
+});
+
+
 JSClass("UIPopupButtonStyler", UIControlStyler, {
 
 });
@@ -310,18 +325,4 @@ var images = Object.create({}, {
     },
 
 });
-
-Object.defineProperties(UIPopupButton, {
-    defaultStyler: {
-        configurable: true,
-        get: function UIPopupButton_getDefaultStyler(){
-            Object.defineProperty(UIPopupButton, 'defaultStyler', {writable: true, value: UIPopupButtonDefaultStyler.shared});
-            return UIPopupButton.defaultStyler;
-        },
-        set: function UIPopupButton_setDefaultStyler(defaultStyler){
-            Object.defineProperty(UIPopupButton, 'defaultStyler', {writable: true, value: defaultStyler});
-        }
-    }
-});
-
 })();

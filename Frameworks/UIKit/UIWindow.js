@@ -5,7 +5,7 @@
 // #import "UIKit/UILabel.js"
 // #import "UIKit/UIImageView.js"
 // #import "UIKit/UIToolbar.js"
-/* global JSClass, JSObject, UIView, JSColor, JSBundle, JSImage, JSUserDefaults, JSFont, UIImageView, UILabel, JSSize, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, UIWindowStyler, UIWindowDefaultStyler, UIWindowCustomStyler, UIControl, UIButton, UIButtonCustomStyler, JSPoint, UIApplication, UIEvent, UITouch, UIToolbar, UIToolbarView */
+/* global JSClass, JSObject, JSGradient, UIView, JSColor, JSBundle, JSImage, JSUserDefaults, JSFont, UIImageView, UILabel, JSSize, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, UIWindowStyler, UIWindowDefaultStyler, UIWindowCustomStyler, UIControl, UIButton, UIButtonCustomStyler, JSPoint, UIApplication, UIEvent, UITouch, UIToolbar, UIToolbarView */
 'use strict';
 
 (function(){
@@ -94,9 +94,9 @@ JSClass('UIWindow', UIView, {
         this._contentInsets = JSInsets.Zero;
         if (this._styler === null){
             if (this.level == UIWindow.Level.back){
-                this._styler = UIWindowCustomStyler.shared;
+                this._styler = UIWindow.Styler.custom;
             }else{
-                this._styler = UIWindow.defaultStyler;
+                this._styler = UIWindow.Styler.default;
             }
         }
         this.stylerProperties = {};
@@ -753,6 +753,31 @@ UIWindow.Level = {
     front: 1,
 };
 
+UIWindow.Styler = Object.create({}, {
+
+    default: {
+        configurable: true,
+        get: function UIWindow_getDefaultStyler(){
+            var styler = UIWindowDefaultStyler.init();
+            Object.defineProperty(this, 'default', {configurable: true, value: styler});
+            return styler;
+        },
+        set: function UIWindow_setDefaultStyler(styler){
+            Object.defineProperty(this, 'default', {configurable: true, value: styler});
+        }
+    },
+
+    custom: {
+        configurable: true,
+        get: function UIWindow_getDefaultStyler(){
+            var styler = UIWindowCustomStyler.init();
+            Object.defineProperty(this, 'custom', {configurable: true, value: styler});
+            return styler;
+        },
+    }
+
+});
+
 JSClass("UIRootWindow", UIWindow, {
 
     level: UIWindow.Level.back
@@ -785,24 +810,43 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
     cornerRadius: 6,
     backgroundColor: null,
     shadowColor: null,
+    titleBackgroundColor: null,
+    titleBackgroundGradient: null,
     contentSeparatorColor: null,
     contentSeparatorSize: 1,
+    closeButtonImages: null,
 
     init: function(){
         this.activeTitleColor = JSColor.initWithWhite(51/255);
         this.inactiveTitleColor = JSColor.initWithWhite(192/255);
         this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.4);
         this.backgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255,1);
+        this.titleBackgroundColor = null;
+        this.titleBackgroundGradient = JSGradient.initWithStops(
+            0, JSColor.initWithRGBA(230/255,230/255,230/255,1),
+            1, JSColor.initWithRGBA(204/255,204/255,204/255,1)
+        );
         this.contentSeparatorColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
+        this.closeButtonImages = {
+            inactive: images.closeInactive,
+            normal: images.closeNormal,
+            over: images.closeOver,
+            active: images.closeActive
+        };
     },
 
     initializeWindow: function(window){
-        var closeButton = UIButton.initWithStyler(UIButtonCustomStyler.shared);
+        var closeButton = UIButton.initWithStyler(UIButton.Styler.custom);
         closeButton.imageRenderMode = UIImageView.RenderMode.original;
-        closeButton.setImageForState(images.closeNormal, UIControl.State.normal);
-        closeButton.setImageForState(images.closeOver, UIControl.State.over);
-        closeButton.setImageForState(images.closeActive, UIControl.State.active);
+        closeButton.setImageForState(this.closeButtonImages.normal, UIControl.State.normal);
+        closeButton.setImageForState(this.closeButtonImages.over, UIControl.State.over);
+        closeButton.setImageForState(this.closeButtonImages.active, UIControl.State.active);
         closeButton.addTargetedAction(window, window.close);
+
+        var titleBacking = UIView.init();
+        titleBacking.borderWidth = 1;
+        titleBacking.maskedBorders = UIView.Sides.minY;
+        titleBacking.borderColor = JSColor.initWithWhite(1, 0.05);
 
         var titleLabel = UILabel.init();
         titleLabel.font = titleLabel.font.fontWithWeight(JSFont.Weight.regular);
@@ -811,8 +855,10 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
 
         titleBar.addSubview(closeButton);
         titleBar.addSubview(titleLabel);
-        window.addSubview(titleBar);
+        window.addSubview(titleBacking);
+        titleBacking.addSubview(titleBar);
 
+        window.stylerProperties.titleBacking = titleBacking;
         window.stylerProperties.closeButton = closeButton;
         window.stylerProperties.titleBar = titleBar;
         window.stylerProperties.titleLabel = titleLabel;
@@ -831,6 +877,7 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
     layoutWindow: function(window){
         var controlPadding = (this._titlebarSize - this._controlButtonSize) / 2;
         var iconPadding = (this._titlebarSize - this._iconSize) / 2;
+        var titleBacking = window.stylerProperties.titleBacking;
         var titleBar = window.stylerProperties.titleBar;
         var closeButton = window.stylerProperties.closeButton;
         var titleLabel = window.stylerProperties.titleLabel;
@@ -875,9 +922,12 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
         if (contentSeparatorView){
             contentSeparatorView.frame = JSRect(0, y - this.contentSeparatorSize, bounds.size.width, this.contentSeparatorSize);
         }
+
+        titleBacking.frame = JSRect(0, 0, bounds.size.width, y);
     },
 
     updateWindow: function(window){
+        var titleBacking = window.stylerProperties.titleBacking;
         var closeButton = window.stylerProperties.closeButton;
         var iconView = window.stylerProperties.iconView;
         var titleLabel = window.stylerProperties.titleLabel;
@@ -911,15 +961,15 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
             titleLabel.textColor = this.inactiveTitleColor;
         }
         if (window.isMainWindow){
-            closeButton.setImageForState(images.closeNormal, UIControl.State.normal);
+            closeButton.setImageForState(this.closeButtonImages.normal, UIControl.State.normal);
         }else{
-            closeButton.setImageForState(images.closeInactive, UIControl.State.normal);
+            closeButton.setImageForState(this.closeButtonImages.inactive, UIControl.State.normal);
         }
 
         if (window.toolbar){
             if (!window.stylerProperties.toolbarView){
                 window.stylerProperties.toolbarView = UIToolbarView.init();
-                window.insertSubviewAboveSibling(window.stylerProperties.toolbarView, titleBar);
+                titleBacking.insertSubviewAboveSibling(window.stylerProperties.toolbarView, titleBar);
             }
         }else{
             if (window.stylerProperties.toolbarView){
@@ -928,18 +978,21 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
             }
         }
 
-
         if (window.showsContentSeparator){
             if (!window.stylerProperties.contentSeparatorView){
                 window.stylerProperties.contentSeparatorView = UIView.init();
                 window.stylerProperties.contentSeparatorView.backgroundColor = this.contentSeparatorColor;
-                window.addSubview(window.stylerProperties.contentSeparatorView);
+                titleBacking.addSubview(window.stylerProperties.contentSeparatorView);
             }
+            titleBacking.backgroundColor = this.titleBackgroundColor;
+            titleBacking.backgroundGradient = this.titleBackgroundGradient;
         }else{
             if (window.stylerProperties.contentSeparatorView){
                 window.stylerProperties.contentSeparatorView.removeFromSuperview();
                 window.stylerProperties.contentSeparatorView = null;
             }
+            titleBacking.backgroundColor = null;
+            titleBacking.backgroundGradient = null;
         }
 
         var topSize = this._titlebarSize;
@@ -951,26 +1004,8 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
 
 });
 
-Object.defineProperty(UIWindowDefaultStyler, "shared", {
-    configurable: true,
-    get: function UIWindowDefaultStyler_getShared(){
-        var shared = UIWindowDefaultStyler.init();
-        Object.defineProperty(UIWindowDefaultStyler, "shared", {value: shared});
-        return shared;
-    }
-});
-
 JSClass("UIWindowCustomStyler", UIWindowStyler, {
 
-});
-
-Object.defineProperty(UIWindowCustomStyler, "shared", {
-    configurable: true,
-    get: function UIWindowCustomStyler_getShared(){
-        var shared = UIWindowCustomStyler.init();
-        Object.defineProperty(UIWindowCustomStyler, "shared", {value: shared});
-        return shared;
-    }
 });
 
 var images = Object.create({}, {
@@ -1013,31 +1048,6 @@ var images = Object.create({}, {
             Object.defineProperty(this, 'closeActive', {value: JSImage.initWithResourceName("UIWindowButtonCloseActive", this.bundle) });
             return this.closeActive;
         }
-    }
-
-});
-
-Object.defineProperties(UIWindow, {
-
-    defaultStyler: {
-        configurable: true,
-        get: function UIWindow_getDefaultStyler(){
-            var styler = UIWindowDefaultStyler.shared;
-            Object.defineProperty(UIWindow, 'defaultStyler', {configurable: true, value: styler});
-            return styler;
-        },
-        set: function UIWindow_setDefaultStyler(styler){
-            Object.defineProperty(UIWindow, 'defaultStyler', {configurable: true, value: styler});
-        }
-    },
-
-    customStyler: {
-        configurable: true,
-        get: function UIWindow_getDefaultStyler(){
-            var styler = UIWindowDefaultStyler.shared;
-            Object.defineProperty(UIWindow, 'customStyler', {configurable: true, value: styler});
-            return styler;
-        },
     }
 
 });

@@ -34,7 +34,7 @@ JSClass("UITabView", UIView, {
         if ('styler' in values){
             this._styler = spec.resolvedValue(values.styler);
         }else{
-            this._styler = UITabView.defaultStyler;
+            this._styler = UITabView.Styler.default;
         }
         this._commonTabViewInit();
         if ('delegate' in values){
@@ -62,7 +62,7 @@ JSClass("UITabView", UIView, {
         this.addSubview(this._itemsView);
         this.addSubview(this._contentViewContainer);
         if (this._styler === null){
-            this._styler = UITabView.defaultStyler;
+            this._styler = UITabView.Styler.default;
         }
         this._styler.initializeTabView(this);
         this.setNeedsLayout();
@@ -687,26 +687,16 @@ var defaultStateTitleColors = [
     JSColor.initWithRGBA(255/255,255/255,255/255), // 7 selected + active + over
 ];
 
-Object.defineProperties(UITabViewDefaultStyler, {
-    shared: {
-        configurable: true,
-        get: function UITabViewDefaultStyler_getShared(){
-            var shared = UITabViewDefaultStyler.init();
-            Object.defineProperty(this, 'shared', {value: shared});
-            return shared;
-        }
-    }
-});
-
-Object.defineProperties(UITabView, {
-    defaultStyler: {
+UITabView.Styler = Object.defineProperties({}, {
+    default: {
         configurable: true,
         get: function UITabView_getDefaultStyler(){
-            Object.defineProperty(UITabView, 'defaultStyler', {writable: true, value: UITabViewDefaultStyler.shared});
-            return UITabView.defaultStyler;
+            var styler = UITabViewDefaultStyler.init();
+            Object.defineProperty(this, 'default', {writable: true, value: styler});
+            return styler;
         },
-        set: function UITabView_setDefaultStyler(defaultStyler){
-            Object.defineProperty(UITabView, 'defaultStyler', {writable: true, value: defaultStyler});
+        set: function UITabView_setDefaultStyler(styler){
+            Object.defineProperty(this, 'default', {writable: true, value: styler});
         }
     }
 });

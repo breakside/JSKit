@@ -37,7 +37,7 @@ JSClass("UIMenuWindow", UIWindow, {
     // MARK: - Creating a Menu Window
 
     initWithMenu: function(menu){
-        this._styler = UIWindowCustomStyler.shared;
+        this._styler = UIWindow.Styler.custom;
         UIMenuWindow.$super.init.call(this);
         this._menuStyler = menu.styler;
         this.contentView = UIView.init();

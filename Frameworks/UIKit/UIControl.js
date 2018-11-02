@@ -23,7 +23,7 @@ JSClass("UIControl", UIView, {
     initWithSpec: function(spec, values){
         UIControl.$super.initWithSpec.call(this, spec, values);
         if ('styler' in values){
-            this._styler = spec.resolvedValue(values.styler);
+            this._styler = spec.resolvedEnum(values.styler, this.$class.Styler || {});
         }
         this.commonUIControlInit();
         if (('target' in values) && ('action' in values)){

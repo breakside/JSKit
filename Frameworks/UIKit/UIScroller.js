@@ -11,9 +11,13 @@ JSClass("UIScroller", UIControl, {
     direction: JSReadOnlyProperty('_direction', 0),
     floats: JSReadOnlyProperty(),
 
-    initWithDirection: function(direction){
+    initWithDirection: function(direction, styler){
         this._direction = direction;
-        this.init();
+        if (styler){
+            this.initWithStyler(styler);
+        }else{
+            this.init();
+        }
     },
 
     initWithSpec: function(spec, values){
@@ -28,7 +32,7 @@ JSClass("UIScroller", UIControl, {
         this._knob = UIView.init();
         this.addSubview(this._knob);
         if (this._styler === null){
-            this._styler = UIScroller.defaultStyler;
+            this._styler = UIScroller.Styler.lightContent;
         }
         this.hasOverState = this._styler.showsOverState;
         this._styler.initializeControl(this);
@@ -239,11 +243,17 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
     // NOTE: insets and cap sizes are always specified as if the styler is operating on a vertical scroller
     knobInsets: null,
     minimumKnobLength: null,
+    knobColor: null,
+    trackColor: null,
+    trackBorderColor: null,
 
     init: function(){
         this.knobInsets = JSInsets(2, 3, 2, 2);
         var maxKnobWidth = this.expandedSize - this.knobInsets.left - this.knobInsets.right;
         this.minimumKnobLength = maxKnobWidth * 2;
+        this.trackColor = JSColor.initWithWhite(0, 0.1);
+        this.trackBorderColor = JSColor.initWithWhite(0, 0.15);
+        this.knobColor = JSColor.initWithWhite(0, 0.6);
     },
 
     setExpanded: function(scroller, expanded){
@@ -269,12 +279,12 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
         scroller.stylerProperties.hideAnimator = null;
         scroller.stylerProperties.trackLayer = UILayer.init();
         scroller.layer.insertSublayerBelowSibling(scroller.stylerProperties.trackLayer, scroller._knob.layer);
-        scroller.stylerProperties.trackLayer.backgroundColor = JSColor.initWithWhite(250/255, 0.8);
-        scroller.stylerProperties.trackLayer.borderColor = JSColor.initWithWhite(0, 0.15);
+        scroller.stylerProperties.trackLayer.backgroundColor = this.trackColor;
+        scroller.stylerProperties.trackLayer.borderColor = this.trackBorderColor;
         scroller.stylerProperties.trackLayer.borderWidth = 1.0;
         scroller.stylerProperties.trackLayer.maskedBorders = scroller.direction === UIScroller.Direction.vertical ? UILayer.Sides.minX : UILayer.Sides.minY;
         scroller.stylerProperties.knobIndicatorLayer = UILayer.init();
-        scroller.stylerProperties.knobIndicatorLayer.backgroundColor = JSColor.blackColor.colorWithAlpha(0.6);
+        scroller.stylerProperties.knobIndicatorLayer.backgroundColor = this.knobColor;
         scroller.stylerProperties.knobIndicatorLayer.cornerRadius = this.expandedSize;
         scroller._knob.layer.addSublayer(scroller.stylerProperties.knobIndicatorLayer);
         if (scroller.direction === UIScroller.Direction.vertical){
@@ -402,26 +412,30 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
 
 });
 
-Object.defineProperties(UIScrollerDefaultStyler, {
-    shared: {
+UIScroller.Styler = Object.defineProperties({}, {
+    lightContent: {
         configurable: true,
-        get: function UIScrollerDefaultStyler_getShared(){
-            var shared = UIScrollerDefaultStyler.init();
-            Object.defineProperty(this, 'shared', {value: shared});
-            return shared;
-        }
-    }
-});
-
-Object.defineProperties(UIScroller, {
-    defaultStyler: {
-        configurable: true,
-        get: function UIScroller_getDefaultStyler(){
-            Object.defineProperty(UIScroller, 'defaultStyler', {writable: true, value: UIScrollerDefaultStyler.shared});
-            return UIScroller.defaultStyler;
+        get: function UIScroller_getLightContentStyler(){
+            var styler = UIScrollerDefaultStyler.init();
+            Object.defineProperty(this, 'lightContent', {writable: true, value: styler});
+            return styler;
         },
-        set: function UIScroller_setDefaultStyler(defaultStyler){
-            Object.defineProperty(UIScroller, 'defaultStyler', {writable: true, value: defaultStyler});
+        set: function UIScroller_setLightContentStyler(styler){
+            Object.defineProperty(this, 'lightContent', {writable: true, value: styler});
+        }
+    },
+    darkContent: {
+        configurable: true,
+        get: function UIScroller_getDarkContentStyler(){
+            var styler = UIScrollerDefaultStyler.init();
+            styler.trackColor = JSColor.initWithWhite(1, 0.05);
+            styler.trackBorderColor = JSColor.initWithWhite(1, 0.15);
+            styler.knobColor = JSColor.initWithWhite(1, 0.6);
+            Object.defineProperty(this, 'darkContent', {writable: true, value: styler});
+            return styler;
+        },
+        set: function UIScroller_setDarkContentStyler(styler){
+            Object.defineProperty(this, 'darkContent', {writable: true, value: styler});
         }
     }
 });

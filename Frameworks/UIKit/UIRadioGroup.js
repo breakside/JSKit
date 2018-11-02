@@ -100,7 +100,7 @@ JSClass("UIRadioButton", UIControl, {
         this._titleLabel.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
         this.addSubview(this._titleLabel);
         if (this._styler === null){
-            this._styler = UIRadioButton.defaultStyler;
+            this._styler = UIRadioButton.Styler.default;
         }
         this.hasOverState = this._styler.showsOverState;
         this._styler.initializeControl(this);
@@ -142,6 +142,20 @@ JSClass("UIRadioButton", UIControl, {
         this._styler.updateControl(this);
     }
 
+});
+
+UIRadioButton.Styler = Object.create({}, {
+    default: {
+        configurable: true,
+        get: function UIRadioButton_getDefaultStyler(){
+            var styler = UIRadioButtonDefaultStyler.init();
+            Object.defineProperty(this, 'default', {writable: true, value: styler});
+            return styler;
+        },
+        set: function UIRadioButton_setDefaultStyler(styler){
+            Object.defineProperty(this, 'default', {writable: true, value: styler});
+        }
+    }
 });
 
 JSClass("UIRadioButtonStyler", UIControlStyler, {
@@ -196,17 +210,6 @@ JSClass("UIRadioButtonDefaultStyler", UIRadioButtonStyler, {
 
 });
 
-Object.defineProperties(UIRadioButtonDefaultStyler, {
-    shared: {
-        configurable: true,
-        get: function UIRadioButtonDefaultStyler_getShared(){
-            var shared = UIRadioButtonDefaultStyler.init();
-            Object.defineProperty(this, 'shared', {value: shared});
-            return shared;
-        }
-    }
-});
-
 UIRadioButtonDefaultStyler.NormalBackgroundColor = JSColor.initWithRGBA(250/255,250/255,250/255);
 UIRadioButtonDefaultStyler.ActiveBackgroundColor = JSColor.initWithRGBA(224/255,224/255,224/255);
 UIRadioButtonDefaultStyler.DisabledBackgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255);
@@ -237,19 +240,6 @@ var images = Object.create({}, {
         }
     },
 
-});
-
-Object.defineProperties(UIRadioButton, {
-    defaultStyler: {
-        configurable: true,
-        get: function UIRadioButton_getDefaultStyler(){
-            Object.defineProperty(UIRadioButton, 'defaultStyler', {writable: true, value: UIRadioButtonDefaultStyler.shared});
-            return UIRadioButton.defaultStyler;
-        },
-        set: function UIRadioButton_setDefaultStyler(defaultStyler){
-            Object.defineProperty(UIRadioButton, 'defaultStyler', {writable: true, value: defaultStyler});
-        }
-    }
 });
 
 })();

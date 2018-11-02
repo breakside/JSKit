@@ -60,7 +60,7 @@ JSClass("UIListView", UIScrollView, {
     initWithSpec: function(spec, values){
         UIListView.$super.initWithSpec.call(this, spec, values);
         if ('styler' in values){
-            this._styler = spec.resolvedValue(values.styler);
+            this._styler = spec.resolvedEnum(values.styler, UIListView.Styler);
         }
         this._commonListInit();
         if ('rowHeight' in values){
@@ -111,7 +111,7 @@ JSClass("UIListView", UIScrollView, {
         this._contextSelectedIndexPaths = JSIndexPathSet();
         this.contentView.addSubview(this._cellsContainerView);
         if (this._styler === null){
-            this._styler = UIListView.defaultStyler;
+            this._styler = UIListView.Styler.default;
         }
         this._styler.initializeListView(this);
     },
@@ -1159,16 +1159,21 @@ JSClass("UIListView", UIScrollView, {
     },
 
     keyDown: function(event){
-        if (event.key == UIEvent.Key.up){
-            this.selectPreviousRow();
-        }else if (event.key == UIEvent.Key.down){
-            this.selectNextRow();
-        }else if (event.key == UIEvent.Key.enter){
-            if (this.delegate && this.delegate.listViewDidOpenCellAtIndexPath){
-                var indexPath = this._selectedIndexPaths.singleIndexPath;
-                if (indexPath !== null){
-                    this.delegate.listViewDidOpenCellAtIndexPath(this, indexPath);
+        var hasSelection = this._selectedIndexPaths.start !== null;
+        if (hasSelection){
+            if (event.key == UIEvent.Key.up){
+                this.selectPreviousRow();
+            }else if (event.key == UIEvent.Key.down){
+                this.selectNextRow();
+            }else if (event.key == UIEvent.Key.enter){
+                if (this.delegate && this.delegate.listViewDidOpenCellAtIndexPath){
+                    var indexPath = this._selectedIndexPaths.singleIndexPath;
+                    if (indexPath !== null){
+                        this.delegate.listViewDidOpenCellAtIndexPath(this, indexPath);
+                    }
                 }
+            }else{
+                UIListView.$super.keyDown.call(this, event);
             }
         }else{
             UIListView.$super.keyDown.call(this, event);
@@ -1698,6 +1703,20 @@ UIListView.ViewType = {
     footer: 3
 };
 
+UIListView.Styler = Object.create({}, {
+    default: {
+        configurable: true,
+        get: function UIListView_getDefaultStyler(){
+            var styler = UIListViewDefaultStyler.init();
+            Object.defineProperty(this, 'default', {writable: true, value: styler});
+            return styler;
+        },
+        set: function UIListView_setDefaultStyler(defaultStyler){
+            Object.defineProperty(this, 'default', {writable: true, value: defaultStyler});
+        }
+    }
+});
+
 UIListView.ScrollPosition = UIScrollView.ScrollPosition;
 
 JSClass("UIListViewStyler", JSObject, {
@@ -2031,30 +2050,6 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         }
     }
 
-});
-
-Object.defineProperties(UIListViewDefaultStyler, {
-    shared: {
-        configurable: true,
-        get: function UIListViewDefaultStyler_getShared(){
-            var shared = UIListViewDefaultStyler.init();
-            Object.defineProperty(this, 'shared', {value: shared});
-            return shared;
-        }
-    }
-});
-
-Object.defineProperties(UIListView, {
-    defaultStyler: {
-        configurable: true,
-        get: function UIListView_getDefaultStyler(){
-            Object.defineProperty(UIListView, 'defaultStyler', {writable: true, value: UIListViewDefaultStyler.shared});
-            return UIListView.defaultStyler;
-        },
-        set: function UIListView_setDefaultStyler(defaultStyler){
-            Object.defineProperty(UIListView, 'defaultStyler', {writable: true, value: defaultStyler});
-        }
-    }
 });
 
 })();

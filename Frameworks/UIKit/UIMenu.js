@@ -20,7 +20,7 @@ JSClass("UIMenu", JSObject, {
             this._font = this._font.fontWithWeight(JSFont.Weight.regular);
         }
         if (this._styler === null){
-            this._styler = UIMenu.defaultStyler;
+            this._styler = UIMenu.Styler.default;
         }
     },
 
@@ -846,26 +846,16 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
 
 });
 
-Object.defineProperties(UIMenuDefaultStyler, {
-    shared: {
-        configurable: true,
-        get: function UIMenuDefaultStyler_getShared(){
-            var shared = UIMenuDefaultStyler.init();
-            Object.defineProperty(this, 'shared', {value: shared});
-            return shared;
-        }
-    }
-});
-
-Object.defineProperties(UIMenu, {
-    defaultStyler: {
+UIMenu.Styler = Object.create({}, {
+    default: {
         configurable: true,
         get: function UIMenu_getDefaultStyler(){
-            Object.defineProperty(UIMenu, 'defaultStyler', {writable: true, value: UIMenuDefaultStyler.shared});
-            return UIMenu.defaultStyler;
+            var styler = UIMenuDefaultStyler.init();
+            Object.defineProperty(this, 'default', {writable: true, value: styler});
+            return styler;
         },
-        set: function UIMenu_setDefaultStyler(defaultStyler){
-            Object.defineProperty(UIMenu, 'defaultStyler', {writable: true, value: defaultStyler});
+        set: function UIMenu_setDefaultStyler(styler){
+            Object.defineProperty(this, 'default', {writable: true, value: styler});
         }
     }
 });

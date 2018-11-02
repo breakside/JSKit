@@ -50,6 +50,9 @@ JSClass('UIScrollView', UIView, {
         if ('horizontalScroller' in values){
             this._horizontalScroller = spec.resolvedValue(values.horizontalScroller, "UIScroller");
         }
+        if ('scrollStyler' in values){
+            this._scrollStyler = spec.resolvedEnum(values.scrollStyler, UIScroller.Styler);
+        }
         this._commonScrollViewInit();
 
         // 3. Finish the work from step #1 after _commonScrollViewInit, when we can be sure that
@@ -74,9 +77,6 @@ JSClass('UIScrollView', UIView, {
         if ('delaysContentTouches' in values){
             this._delaysContentTouches = spec.resolvedValue(values.delaysContentTouches);
         }
-        if ('scrollStyler' in values){
-            this.scrollStyler = spec.resolvedValue(values.scrollStyler);
-        }
     },
 
     _commonScrollViewInit: function(){
@@ -88,10 +88,10 @@ JSClass('UIScrollView', UIView, {
             this._contentView = UIView.initWithFrame(this.bounds);
         }
         if (this._horizontalScroller === null){
-            this._horizontalScroller = UIScroller.initWithDirection(UIScroller.Direction.horizontal);
+            this._horizontalScroller = UIScroller.initWithDirection(UIScroller.Direction.horizontal, this._scrollStyler);
         }
         if (this._verticalScroller === null){
-            this._verticalScroller = UIScroller.initWithDirection(UIScroller.Direction.vertical);
+            this._verticalScroller = UIScroller.initWithDirection(UIScroller.Direction.vertical, this._scrollStyler);
         }
         this._contentView.clipsToBounds = true;
         this._contentOffset = JSPoint.Zero;
@@ -115,12 +115,7 @@ JSClass('UIScrollView', UIView, {
     // --------------------------------------------------------------------
     // MARK: - Styler
 
-    scrollStyler: JSDynamicProperty('_scrollStyler', null),
-
-    setStyler: function(scrollStyler){
-        this._horizontalScroller.styler = scrollStyler;
-        this._verticalScroller.styler = scrollStyler;
-    },
+    _scrollStyler: null,
 
     // --------------------------------------------------------------------
     // MARK: - Scrollers

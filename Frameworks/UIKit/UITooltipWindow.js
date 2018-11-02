@@ -13,7 +13,7 @@ JSClass("UITooltipWindow", UIWindow, {
     },
 
     initWithProperties: function(str, font, textColor, labelInsets, maxSize){
-        this._styler = UIWindowCustomStyler.shared;
+        this._styler = UIWindow.Styler.custom;
         UITooltipWindow.$super.init.call(this);
         var label = UILabel.init();
         label.font = font;

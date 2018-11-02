@@ -30,7 +30,7 @@ JSClass("UICheckbox", UIControl, {
         this._titleLabel.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
         this.addSubview(this._titleLabel);
         if (this._styler === null){
-            this._styler = UICheckbox.defaultStyler;
+            this._styler = UICheckbox.Styler.default;
         }
         this.hasOverState = this._styler.showsOverState;
         this._styler.initializeControl(this);
@@ -97,6 +97,20 @@ JSClass("UICheckbox", UIControl, {
         return 0;
     },
 
+});
+
+UICheckbox.Styler = Object.create({}, {
+    default: {
+        configurable: true,
+        get: function UICheckbox_getDefaultStyler(){
+            var styler = UICheckboxDefaultStyler.init();
+            Object.defineProperty(this, 'default', {writable: true, value: styler});
+            return styler;
+        },
+        set: function UICheckbox_setDefaultStyler(styler){
+            Object.defineProperty(this, 'default', {writable: true, value: styler});
+        }
+    }
 });
 
 JSClass("UICheckboxStyler", UIControlStyler, {
@@ -196,17 +210,6 @@ JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
 
 });
 
-Object.defineProperties(UICheckboxDefaultStyler, {
-    shared: {
-        configurable: true,
-        get: function UICheckboxDefaultStyler_getShared(){
-            var shared = UICheckboxDefaultStyler.init();
-            Object.defineProperty(this, 'shared', {value: shared});
-            return shared;
-        }
-    }
-});
-
 UICheckboxDefaultStyler.NormalBackgroundColor = JSColor.initWithRGBA(250/255,250/255,250/255);
 UICheckboxDefaultStyler.ActiveBackgroundColor = JSColor.initWithRGBA(224/255,224/255,224/255);
 UICheckboxDefaultStyler.DisabledBackgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255);
@@ -245,19 +248,6 @@ var images = Object.create({}, {
         }
     },
 
-});
-
-Object.defineProperties(UICheckbox, {
-    defaultStyler: {
-        configurable: true,
-        get: function UICheckbox_getDefaultStyler(){
-            Object.defineProperty(UICheckbox, 'defaultStyler', {writable: true, value: UICheckboxDefaultStyler.shared});
-            return UICheckbox.defaultStyler;
-        },
-        set: function UICheckbox_setDefaultStyler(defaultStyler){
-            Object.defineProperty(UICheckbox, 'defaultStyler', {writable: true, value: defaultStyler});
-        }
-    }
 });
 
 })();

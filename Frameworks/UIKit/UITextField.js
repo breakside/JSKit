@@ -103,7 +103,7 @@ JSClass("UITextField", UIControl, {
         this.addSubview(this._clipView);
         this._clipView.cursor = UICursor.iBeam;
         if (this._styler === null){
-            this._styler = UITextField.defaultStyler;
+            this._styler = UITextField.Styler.default;
         }
         this._styler.initializeControl(this);
     },
@@ -932,6 +932,25 @@ JSClass("UITextField", UIControl, {
 
 });
 
+UITextField.AccessoryVisibility = {
+    always: 0,
+    onlyWhenActive: 1
+};
+
+UITextField.Styler = Object.defineProperties({}, {
+    default: {
+        configurable: true,
+        get: function UITextField_getDefaultStyler(){
+            var styler = UITextFieldDefaultStyler.init();
+            Object.defineProperty(this, 'default', {writable: true, value: styler});
+            return UITextField.Styler.default;
+        },
+        set: function UITextField_setDefaultStyler(styler){
+            Object.defineProperty(this, 'default', {writable: true, value: styler});
+        }
+    }
+});
+
 JSClass("UITextFieldStyler", UIControlStyler, {
 
     localCursorColor: null,
@@ -1079,35 +1098,6 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
         }
     }
 
-});
-
-UITextField.AccessoryVisibility = {
-    always: 0,
-    onlyWhenActive: 1
-};
-
-Object.defineProperties(UITextFieldDefaultStyler, {
-    shared: {
-        configurable: true,
-        get: function UITextFieldDefaultStyler_getShared(){
-            var shared = UITextFieldDefaultStyler.init();
-            Object.defineProperty(this, 'shared', {value: shared});
-            return shared;
-        }
-    }
-});
-
-Object.defineProperties(UITextField, {
-    defaultStyler: {
-        configurable: true,
-        get: function UITextField_getDefaultStyler(){
-            Object.defineProperty(UITextField, 'defaultStyler', {writable: true, value: UITextFieldDefaultStyler.shared});
-            return UITextField.defaultStyler;
-        },
-        set: function UITextField_setDefaultStyler(defaultStyler){
-            Object.defineProperty(UITextField, 'defaultStyler', {writable: true, value: defaultStyler});
-        }
-    }
 });
 
 })();
