@@ -1152,9 +1152,7 @@ JSClass("UIListView", UIScrollView, {
             this.selectNextRow();
         }else if (event.key == UIEvent.Key.enter){
             if (this.delegate && this.delegate.listViewDidOpenCellAtIndexPath){
-                // FIXME: best way to get only index path if there is one?
-                // FIXME: which index path should we use if there are multiple?
-                var indexPath = null;
+                var indexPath = this._selectedIndexPaths.singleIndexPath;
                 if (indexPath !== null){
                     this.delegate.listViewDidOpenCellAtIndexPath(this, indexPath);
                 }
@@ -1309,6 +1307,10 @@ JSClass("UIListView", UIScrollView, {
         this._updateVisibleCellStates();
     },
 
+    selectNone: function(){
+        this.setSelectedIndexPaths(JSIndexPathSet());
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Mouse Events
 
@@ -1321,6 +1323,7 @@ JSClass("UIListView", UIScrollView, {
         var location = event.locationInView(this);
         var cell = this._cellHitTest(location);
         if (cell === null){
+            this.selectNone();
             return;
         }
         var shouldSelect = !this.delegate || !this.delegate.listViewShouldSelectCellAtIndexPath || this.delegate.listViewShouldSelectCellAtIndexPath(this, cell.indexPath);
