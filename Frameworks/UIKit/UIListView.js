@@ -25,6 +25,7 @@ JSProtocol("UIListViewDelegate", JSProtocol, {
     listViewDidSelectCellAtIndexPath: ['listView', 'indexPath'],
     listViewDidFinishSelectingCellAtIndexPath: ['listView', 'indexPath'],
     listViewDidOpenCellAtIndexPath: ['listView', 'indexPath'],
+    listViewSelectionDidChange: ['listView', 'selectedIndexPaths'],
 
     // Context menu
     menuForListViewCellAtIndexPath: ['listView', 'indexPath'],
@@ -1145,6 +1146,18 @@ JSClass("UIListView", UIScrollView, {
         return true;
     },
 
+    becomeFirstResponder: function(){
+        this._updateVisibleCellStyles();
+    },
+
+    resignFirstResponder: function(){
+        this._updateVisibleCellStyles();
+    },
+
+    windowDidChangeKeyStatus: function(){
+        this._updateVisibleCellStyles();
+    },
+
     keyDown: function(event){
         if (event.key == UIEvent.Key.up){
             this.selectPreviousRow();
@@ -1187,6 +1200,9 @@ JSClass("UIListView", UIScrollView, {
     setSelectedIndexPaths: function(selectedIndexPaths){
         this._selectedIndexPaths = JSIndexPathSet(selectedIndexPaths);
         this._updateVisibleCellStates();
+        if (this.delegate && this.delegate.listViewSelectionDidChange){
+            this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
+        }
     },
 
     _selectSingleIndexPath: function(indexPath){
@@ -1196,16 +1212,25 @@ JSClass("UIListView", UIScrollView, {
         if (this.delegate && this.delegate.listViewDidSelectCellAtIndexPath){
             this.delegate.listViewDidSelectCellAtIndexPath(this, indexPath);
         }
+        if (this.delegate && this.delegate.listViewSelectionDidChange){
+            this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
+        }
     },
 
     addIndexPathToSelection: function(indexPath){
         this._selectedIndexPaths.addIndexPath(indexPath);
         this._updateVisibleCellStates();
+        if (this.delegate && this.delegate.listViewSelectionDidChange){
+            this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
+        }
     },
 
     removeIndexPathFromSelection: function(indexPath){
         this._selectedIndexPaths.removeIndexPath(indexPath, this._cachedData.numberOfRowsBySection);
         this._updateVisibleCellStates();
+        if (this.delegate && this.delegate.listViewSelectionDidChange){
+            this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
+        }
     },
 
     indexPathBefore: function(indexPath){
@@ -1252,6 +1277,14 @@ JSClass("UIListView", UIScrollView, {
             // is contained in the range(s) doesn't mean it can be selected
             cell.selected = this._selectedIndexPaths.contains(cell.indexPath);
             cell.contextSelected = this._contextSelectedIndexPaths.contains(cell.indexPath);
+        }
+    },
+
+    _updateVisibleCellStyles: function(){
+        var cell;
+        for (var i = 0, l = this._visibleCellViews.length; i < l; ++i){
+            cell = this._visibleCellViews[i];
+            this._styler.updateCell(cell, cell.indexPath);
         }
     },
 
@@ -1305,6 +1338,9 @@ JSClass("UIListView", UIScrollView, {
         var allIndexes = JSIndexPathSet(allRange);
         this._selectedIndexPaths = allIndexes;
         this._updateVisibleCellStates();
+        if (this.delegate && this.delegate.listViewSelectionDidChange){
+            this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
+        }
     },
 
     selectNone: function(){
@@ -1351,6 +1387,9 @@ JSClass("UIListView", UIScrollView, {
             this._handledSelectionOnDown = true;
             this._selectedIndexPaths.adjustAnchoredRange(this._selectionAnchorIndexPath, cell.indexPath);
             this._updateVisibleCellStates();
+            if (this.delegate && this.delegate.listViewSelectionDidChange){
+                this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
+            }
         }else{
             this._shouldDrag = this.delegate && this.delegate.listViewShouldDragCellAtIndexPath && this.delegate.listViewShouldDragCellAtIndexPath(this, cell.indexPath);
             if (this._shouldDrag){
@@ -1428,6 +1467,9 @@ JSClass("UIListView", UIScrollView, {
                         if (this.allowsMultipleSelection){
                             this._selectedIndexPaths.adjustAnchoredRange(this._selectionAnchorIndexPath, cell.indexPath);
                             this._updateVisibleCellStates();
+                            if (this.delegate && this.delegate.listViewSelectionDidChange){
+                                this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
+                            }
                         }else{
                             if (!cell.selected){
                                 this._selectSingleIndexPath(cell.indexPath);
@@ -1477,6 +1519,9 @@ JSClass("UIListView", UIScrollView, {
                 }
                 if (this.delegate && this.delegate.listViewDidFinishSelectingCellAtIndexPath){
                     this.delegate.listViewDidFinishSelectingCellAtIndexPath(this, cell.indexPath);
+                }
+                if (this.delegate && this.delegate.listViewSelectionDidChange){
+                    this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
                 }
             }
         }
@@ -1697,6 +1742,10 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     selectedCellDetailTextColor: null,
     selectedCellBackgroundColor: null,
     selectedCellSeparatorColor: null,
+    mutedSelectedCellTextColor: null,
+    mutedSelectedCellDetailTextColor: null,
+    mutedSelectedCellBackgroundColor: null,
+    mutedSelectedCellSeparatorColor: null,
     contextSelectedCellBorderColor: null,
     cellBackgroundColor: null,
     separatorInsets: null,
@@ -1718,14 +1767,14 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if ('cellTextColor' in values){
             this.cellTextColor = spec.resolvedValue(values.cellTextColor, "JSColor");
         }
-        if ('selectedCellTextColor' in values){
-            this.selectedCellTextColor = spec.resolvedValue(values.selectedCellTextColor, "JSColor");
-        }
         if ('cellDetailTextColor' in values){
             this.cellDetailTextColor = spec.resolvedValue(values.cellDetailTextColor, "JSColor");
         }
         if ('cellSeparatorColor' in values){
             this.cellSeparatorColor = spec.resolvedValue(values.cellSeparatorColor, "JSColor");
+        }
+        if ('selectedCellTextColor' in values){
+            this.selectedCellTextColor = spec.resolvedValue(values.selectedCellTextColor, "JSColor");
         }
         if ('selectedCellDetailTextColor' in values){
             this.selectedCellDetailTextColor = spec.resolvedValue(values.selectedCellDetailTextColor, "JSColor");
@@ -1733,8 +1782,17 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if ('selectedCellBackgroundColor' in values){
             this.selectedCellBackgroundColor = spec.resolvedValue(values.selectedCellBackgroundColor, "JSColor");
         }
-        if ('selectedCellSeparatorColor' in values){
-            this.selectedCellSeparatorColor = spec.resolvedValue(values.selectedCellSeparatorColor, "JSColor");
+        if ('mutedSelectedCellTextColor' in values){
+            this.mutedSelectedCellTextColor = spec.resolvedValue(values.mutedSelectedCellTextColor, "JSColor");
+        }
+        if ('mutedSelectedCellDetailTextColor' in values){
+            this.mutedSelectedCellDetailTextColor = spec.resolvedValue(values.mutedSelectedCellDetailTextColor, "JSColor");
+        }
+        if ('mutedSelectedCellBackgroundColor' in values){
+            this.mutedSelectedCellBackgroundColor = spec.resolvedValue(values.mutedSelectedCellBackgroundColor, "JSColor");
+        }
+        if ('mutedSelectedCellSeparatorColor' in values){
+            this.mutedSelectedCellSeparatorColor = spec.resolvedValue(values.mutedSelectedCellSeparatorColor, "JSColor");
         }
         if ('headerTextColor' in values){
             this.headerTextColor = spec.resolvedValue(values.headerTextColor, "JSColor");
@@ -1776,20 +1834,11 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if (this.cellTextColor === null){
             this.cellTextColor = JSColor.blackColor;
         }
-        if (this.selectedCellTextColor === null){
-            this.selectedCellTextColor = JSColor.whiteColor;
-        }
         if (this.cellDetailTextColor === null){
             this.cellDetailTextColor = this.cellTextColor.colorLightenedByPercentage(0.6);
         }
-        if (this.selectedCellDetailTextColor === null){
-            this.selectedCellDetailTextColor = this.selectedCellTextColor;
-        }
         if (this.cellDetailFont === null && this.cellFont !== null){
             this.cellDetailFont = this.cellFont.fontWithPointSize(Math.round(this.cellFont.pointSize * 12.0 / 14.0));
-        }
-        if (this.selectedCellBackgroundColor === null){
-            this.selectedCellBackgroundColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1);
         }
         if (this.contextSelectedCellBorderColor === null){
             this.contextSelectedCellBorderColor = this.selectedCellBackgroundColor.colorDarkenedByPercentage(0.5);
@@ -1800,11 +1849,32 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if (this.cellSeparatorColor === null){
             this.cellSeparatorColor = this.cellTextColor.colorWithAlpha(0.2);
         }
+        if (this.accessoryColor === null){
+            this.accessoryColor = this.cellTextColor;
+        }
+        if (this.selectedCellTextColor === null){
+            this.selectedCellTextColor = JSColor.whiteColor;
+        }
+        if (this.selectedCellDetailTextColor === null){
+            this.selectedCellDetailTextColor = this.selectedCellTextColor;
+        }
+        if (this.selectedCellBackgroundColor === null){
+            this.selectedCellBackgroundColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1);
+        }
         if (this.selectedCellSeparatorColor === null){
             this.selectedCellSeparatorColor = this.selectedCellBackgroundColor.colorLightenedByPercentage(0.2);
         }
-        if (this.accessoryColor === null){
-            this.accessoryColor = this.cellTextColor;
+        if (this.mutedSelectedCellTextColor === null){
+            this.mutedSelectedCellTextColor = this.cellTextColor;
+        }
+        if (this.mutedSelectedCellDetailTextColor === null){
+            this.mutedSelectedCellDetailTextColor = this.cellDetailTextColor;
+        }
+        if (this.mutedSelectedCellBackgroundColor === null){
+            this.mutedSelectedCellBackgroundColor = this.cellSeparatorColor;
+        }
+        if (this.mutedSelectedCellSeparatorColor === null){
+            this.mutedSelectedCellSeparatorColor = this.mutedSelectedCellBackgroundColor.colorLightenedByPercentage(0.2);
         }
     },
 
@@ -1829,22 +1899,42 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             cell._detailLabel.font = this.cellDetailFont;
         }
         if (cell.selected){
+            var muted = !cell.listView.window.isKeyWindow || cell.listView.window.firstResponder !== cell.listView;
             cell.contentView.borderColor = this.contextSelectedCellBorderColor;
-            cell.contentView.backgroundColor = this.selectedCellBackgroundColor;
-            if (cell._titleLabel !== null){
-                cell._titleLabel.textColor = this.selectedCellTextColor;
-            }
-            if (cell._detailLabel !== null){
-                cell._detailLabel.textColor = this.selectedCellDetailTextColor;
-            }
-            if (cell._imageView !== null){
-                cell._imageView.templateColor = this.selectedCellTextColor;
-            }
-            if (cell._accessoryView !== null && cell._accessoryView.isKindOfClass(UIImageView)){
-                cell._accessoryView.templateColor = this.selectedCellTextColor;
-            }
-            if (cell.stylerProperties.separatorLayer){
-                cell.stylerProperties.separatorLayer.backgroundColor = this.selectedCellSeparatorColor;
+            if (muted){
+                cell.contentView.backgroundColor = this.mutedSelectedCellBackgroundColor;
+                if (cell._titleLabel !== null){
+                    cell._titleLabel.textColor = this.mutedSelectedCellTextColor;
+                }
+                if (cell._detailLabel !== null){
+                    cell._detailLabel.textColor = this.mutedSelectedCellDetailTextColor;
+                }
+                if (cell._imageView !== null){
+                    cell._imageView.templateColor = this.mutedSelectedCellTextColor;
+                }
+                if (cell._accessoryView !== null && cell._accessoryView.isKindOfClass(UIImageView)){
+                    cell._accessoryView.templateColor = this.accessoryColor;
+                }
+                if (cell.stylerProperties.separatorLayer){
+                    cell.stylerProperties.separatorLayer.backgroundColor = this.mutedSelectedCellSeparatorColor;
+                }
+            }else{
+                cell.contentView.backgroundColor = this.selectedCellBackgroundColor;
+                if (cell._titleLabel !== null){
+                    cell._titleLabel.textColor = this.selectedCellTextColor;
+                }
+                if (cell._detailLabel !== null){
+                    cell._detailLabel.textColor = this.selectedCellDetailTextColor;
+                }
+                if (cell._imageView !== null){
+                    cell._imageView.templateColor = this.selectedCellTextColor;
+                }
+                if (cell._accessoryView !== null && cell._accessoryView.isKindOfClass(UIImageView)){
+                    cell._accessoryView.templateColor = this.selectedCellTextColor;
+                }
+                if (cell.stylerProperties.separatorLayer){
+                    cell.stylerProperties.separatorLayer.backgroundColor = this.selectedCellSeparatorColor;
+                }
             }
         }else{
             cell.contentView.backgroundColor = this.cellBackgroundColor;
