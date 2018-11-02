@@ -69,6 +69,8 @@
 // Specialized View Controllers
 // #import "UIKit/UIDualPaneViewController.js"
 // #import "UIKit/UITabViewController.js"
+// #import "UIKit/UIBrowserViewController.js"
+// #import "UIKit/UIBrowserView.js"
 
 // #import "UIKit/UIStackView.js"
 // #import "UIKit/UIOpenPanel.js"
