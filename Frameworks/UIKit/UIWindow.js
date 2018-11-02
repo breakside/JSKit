@@ -464,10 +464,10 @@ JSClass('UIWindow', UIView, {
         if (responder !== this._firstResponder){
             var previousResponder = this._firstResponder;
             var didResignResponder = true;
-            if (this._firstResponder !== null){
-                if (this._firstResponder.canResignFirstResponder()){
-                    this._firstResponder.resignFirstResponder();
+            if (previousResponder !== null){
+                if (previousResponder.canResignFirstResponder()){
                     this._firstResponder = null;
+                    previousResponder.resignFirstResponder();
                     didResignResponder = true;
                 }else{
                     didResignResponder = false;
@@ -475,8 +475,8 @@ JSClass('UIWindow', UIView, {
             }
             if (didResignResponder && responder !== null){
                 if (responder.canBecomeFirstResponder()){
-                    responder.becomeFirstResponder();
                     this._firstResponder = responder;
+                    responder.becomeFirstResponder();
                 }
             }
             if (this._firstResponder !== previousResponder){
