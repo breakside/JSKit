@@ -107,8 +107,18 @@ JSIndexPathRange.prototype = {
 
     isEqual: function(other){
         return this.start.isEqual(other.start) && this.end.isEqual(other.end);
-    }
+    },
 };
+
+Object.defineProperties(JSIndexPathRange.prototype, {
+
+    isSingle: {
+        get: function JSIndexPathRange_isSingle(){
+            return this.start.isEqual(this.end);
+        }
+    }
+
+});
 
 JSGlobalObject.JSIndexPathSet = function(obj){
     if (this === undefined){
@@ -295,6 +305,15 @@ Object.defineProperties(JSIndexPathSet.prototype, {
                 return null;
             }
             return this.ranges[this.ranges.length - 1].end;
+        }
+    },
+
+    singleIndexPath: {
+        get: function JSIndexPathSet_getSingleIndexPath(){
+            if (this.ranges.length === 1 && this.ranges[0].isSingle){
+                return this.ranges[0].start;
+            }
+            return null;
         }
     }
 
