@@ -301,32 +301,71 @@ JSClass('UIScrollView', UIView, {
     // MARK: - Scrolling
 
     scrollToRect: function(rect, position){
-        rect = this.convertRectToView(rect, this.contentView);
-        if (position === UIScrollView.ScrollPosition.auto){
-            // Auto position means choose top if the target is above the current offset,
-            // bottom if the target is below the offset, or nothing if the target is fully visible
-            if (rect.origin.y < this.contentView.bounds.origin.y){
-                position = UIScrollView.ScrollPosition.top;
-            }else if (rect.origin.y + rect.size.height > this.contentView.bounds.origin.y + this.contentView.bounds.size.height){
-                position = UIScrollView.ScrollPosition.bottom;
+        var scrollsVertically = this.scrollsVertically && this.contentSize.height > this.contentView.bounds.size.height;
+        var scrollsHorizontally = this.scrollsHorizontally && this.contentSize.width > this.contentView.bounds.size.width;
+        var scrollPoint = this.contentOffset;
+        if (position === undefined){
+            position = UIScrollView.ScrollPosition.auto;
+        }
+        if (scrollsVertically && scrollsHorizontally){
+            // TODO:
+        }else if (scrollsVertically){
+            rect = this.convertRectToView(rect, this.contentView);
+            if (position === UIScrollView.ScrollPosition.auto){
+                // Auto position means choose top if the target is above the current offset,
+                // bottom if the target is below the offset, or nothing if the target is fully visible
+                if (rect.origin.y < this.contentView.bounds.origin.y){
+                    position = UIScrollView.ScrollPosition.top;
+                }else if (rect.origin.y + rect.size.height > this.contentView.bounds.origin.y + this.contentView.bounds.size.height){
+                    position = UIScrollView.ScrollPosition.bottom;
+                }
+            }
+            switch (position){
+                case UIScrollView.ScrollPosition.auto:
+                    // Only get here if the target is fully visible, in which case we don't move at all
+                    break;
+                case UIScrollView.ScrollPosition.top:
+                    scrollPoint = JSPoint(scrollPoint.x, rect.origin.y);
+                    break;
+                case UIScrollView.ScrollPosition.bottom:
+                    scrollPoint = JSPoint(scrollPoint.x, rect.origin.y + rect.size.height - this.contentView.bounds.size.height);
+                    break;
+                case UIScrollView.ScrollPosition.middle:
+                    scrollPoint = JSPoint(scrollPoint.x, rect.origin.y + rect.size.height / 2.0 - this.contentView.bounds.size.height / 2.0);
+                    break;
+            }
+        }else if (scrollsHorizontally){
+            rect = this.convertRectToView(rect, this.contentView);
+            if (position === UIScrollView.ScrollPosition.auto){
+                // Auto position means choose top if the target is above the current offset,
+                // bottom if the target is below the offset, or nothing if the target is fully visible
+                if (rect.origin.x < this.contentView.bounds.origin.x){
+                    position = UIScrollView.ScrollPosition.top;
+                }else if (rect.origin.x + rect.size.width > this.contentView.bounds.origin.x + this.contentView.bounds.size.width){
+                    position = UIScrollView.ScrollPosition.bottom;
+                }
+            }
+            switch (position){
+                case UIScrollView.ScrollPosition.auto:
+                    // Only get here if the target is fully visible, in which case we don't move at all
+                    break;
+                case UIScrollView.ScrollPosition.top:
+                    scrollPoint = JSPoint(rect.origin.x, scrollPoint.y);
+                    break;
+                case UIScrollView.ScrollPosition.bottom:
+                    scrollPoint = JSPoint(rect.origin.x + rect.size.width - this.contentView.bounds.size.width, scrollPoint.y);
+                    break;
+                case UIScrollView.ScrollPosition.middle:
+                    scrollPoint = JSPoint(rect.origin.x + rect.size.width / 2.0 - this.contentView.bounds.size.width / 2.0, scrollPoint.y);
+                    break;
             }
         }
-        var scrollPoint = this.contentOffset;
-        switch (position){
-            case UIScrollView.ScrollPosition.auto:
-                // Only get here if the target is fully visible, in which case we don't move at all
-                break;
-            case UIScrollView.ScrollPosition.top:
-                scrollPoint = JSPoint(0, rect.origin.y);
-                break;
-            case UIScrollView.ScrollPosition.bottom:
-                scrollPoint = JSPoint(0, rect.origin.y + rect.size.height - this.contentView.bounds.size.height);
-                break;
-            case UIScrollView.ScrollPosition.middle:
-                scrollPoint = JSPoint(0, rect.origin.y + rect.size.height / 2.0 - this.contentView.bounds.size.height / 2.0);
-                break;
-        }
         this.contentOffset = scrollPoint;
+    },
+
+    scrollToView: function(view, position){
+        var rect = this.convertRectFromView(view.bounds, view);
+        this.scrollToRect(rect, position);
     },
 
     // --------------------------------------------------------------------
