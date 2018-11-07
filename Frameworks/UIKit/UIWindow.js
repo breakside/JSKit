@@ -5,7 +5,8 @@
 // #import "UIKit/UILabel.js"
 // #import "UIKit/UIImageView.js"
 // #import "UIKit/UIToolbar.js"
-/* global JSClass, JSObject, JSGradient, UIView, JSColor, JSBundle, JSImage, JSUserDefaults, JSFont, UIImageView, UILabel, JSSize, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, UIWindowStyler, UIWindowDefaultStyler, UIWindowCustomStyler, UIControl, UIButton, UIButtonCustomStyler, JSPoint, UIApplication, UIEvent, UITouch, UIToolbar, UIToolbarView */
+// #import "UIKit/UIToolbarItem.js"
+/* global JSClass, JSObject, JSGradient, UIView, JSColor, JSBundle, JSImage, JSUserDefaults, JSFont, UIImageView, UILabel, JSSize, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, UIWindowStyler, UIWindowDefaultStyler, UIWindowCustomStyler, UIControl, UIButton, UIButtonCustomStyler, JSPoint, UIApplication, UIEvent, UITouch, UIToolbar, UIToolbarView, UIToolbarItem */
 'use strict';
 
 (function(){
@@ -79,6 +80,7 @@ JSClass('UIWindow', UIView, {
         }
         if ('toolbar' in values){
             this._toolbar = spec.resolvedValue(values.toolbar, "UIToolbar");
+            this._toolbar.window = this;
         }
     },
 
@@ -140,9 +142,23 @@ JSClass('UIWindow', UIView, {
     toolbar: JSDynamicProperty('_toolbar', null),
 
     setToolbar: function(toolbar){
+        if (this._toolbar !== null){
+            this._toolbar.window = null;
+        }
         this._toolbar = toolbar;
+        if (this._toolbar !== null){
+            this._toolbar.window = this;
+        }
         this._styler.updateWindow();
         this.seetNeedsLayout();
+    },
+
+    _validateToolbar: function(){
+        if (this._toolbar === null){
+            return;
+        }
+        this._toolbar.validateItems();
+        // TODO: update items, if needed
     },
 
     // -------------------------------------------------------------------------
@@ -786,6 +802,19 @@ JSClass("UIRootWindow", UIWindow, {
 
 JSClass("UIWindowStyler", JSObject, {
 
+    toolbarTitleFont: null,
+    toolbarTitleColor: null,
+    toolbarDisabledTitleColor: null,
+    toolbarInsets: null,
+    toolbarItemSpacing: 7,
+
+    init: function(){
+        this.toolbarTitleFont = JSFont.systemFontOfSize(JSFont.Size.detail).fontWithWeight(JSFont.Weight.normal);
+        this.toolbarInsets = JSInsets(5);
+        this.toolbarTitleColor = JSColor.blackColor;
+        this.toolbarDisabledTitleColor = JSColor.initWithWhite(0.5);
+    },
+
     initializeWindow: function(window){
     },
 
@@ -793,6 +822,120 @@ JSClass("UIWindowStyler", JSObject, {
     },
 
     layoutWindow: function(window){
+    },
+
+    layoutToolbarView: function(toolbarView){
+        var toolbar = toolbarView.toolbar;
+        var availableWidth = toolbarView.bounds.width - this.toolbarInsets.left - this.toolbarInsets.right;
+        var x = this.toolbarInsets.left;
+        var y = this.toolbarInsets.top;
+        var maxHeight = toolbarView.bounds.size.height - this.toolbarInsets.top - this.toolbarInsets.bottom;
+
+        // Get the minimum sizes of all items
+        var itemSizes = [];
+        var itemsWidth = 0;
+        var itemViews = toolbarView.itemViews;
+        var itemView;
+        var size;
+        var i, l;
+        var item;
+        for (i = 0, l = itemViews.length; i < l; ++i){
+            itemView = itemViews[i];
+            size = itemView.intrinsicSize;
+            itemSizes.push(size);
+            itemsWidth += size.width;
+        }
+        itemsWidth += (itemViews.length - 1) * this.toolbarItemSpacing;
+
+        // Back up if we've overflowed the available width
+        var lastVisibleIndex = itemViews.length - 1;
+        if (itemsWidth > availableWidth){
+            // position the overflow button
+            toolbarView.overflowButton.hidden = false;
+            size = toolbarView.overflowButton.intrinsicSize;
+            toolbarView.overflowButton.frame = JSRect(toolbarView.bounds.width - this.toolbarInsets.right - size.width, y + (maxHeight - size.height) / 2.0, size.width, size.height);
+            // reduce available width by overflow button width
+            availableWidth -= toolbarView.overflowButton.frame.width;
+            // Back up over any overflowing items
+            for (; lastVisibleIndex >= 0 && itemsWidth > availableWidth; --lastVisibleIndex){
+                size = itemSizes[lastVisibleIndex];
+                itemsWidth -= size.width;
+                if (lastVisibleIndex > 0){
+                    itemsWidth -= this.toolbarItemSpacing;
+                }
+            }
+        }else{
+            if (toolbarView._overflowButton !== null){
+                toolbarView._overflowButton.hidden = true;
+            }
+        }
+
+        toolbarView.createOverflowMenuAtItemIndex(lastVisibleIndex + 1);
+
+        // TODO: distribute extra space across flexible items
+        var extraSpace = availableWidth - itemsWidth;
+
+        // Position each item, centered vertically in the middle
+        for (i = 0, l = itemViews.length; i <= lastVisibleIndex; ++i){
+            itemView = itemViews[i];
+            itemView.hidden = false;
+            item = itemView.item;
+            size = itemSizes[i];
+            if (item.view !== null){
+                size.height = item.minimumSize.height;
+            }else{
+                size.height = toolbar.imageSize;
+            }
+            itemView.frame = JSRect(x, y + (maxHeight - size.height) / 2.0, size.width, size.height);
+            x += size.width + this.toolbarItemSpacing;
+        }
+        for (i = lastVisibleIndex + 1; i < itemView.length; ++i){
+            itemView = itemViews[i];
+            itemView.hidden = true;
+        }
+    },
+
+    layoutToolbarItemView: function(itemView){
+        var item = itemView.item;
+        var toolbar = item.toolbar;
+        var toolbarView = itemView.superview;
+        if (item.identifier == UIToolbarItem.Identifier.custom && toolbar.showsTitles){
+            var titleHeight = this.toolbarTitleFont.displayLineHeight;
+            var width;
+            if (item.view !== null){
+                width = item.minimumSize.width;
+            }else{
+                width = item.image.size.width * toolbar.imageSize / item.image.size.height;
+            }
+            itemView.contentView.frame = JSRect((itemView.bounds.size.width - width) / 2.0, 0, width, itemView.bounds.size.height - titleHeight);
+            itemView.titleLabel.frame = JSRect(0, itemView.bounds.size.height - titleHeight, itemView.bounds.size.width, titleHeight);
+        }else{
+            itemView.contentView.frame = itemView.bounds;
+        }
+    },
+
+    updateToolbarItemView: function(itemView){
+        var item = itemView.item;
+        var toolbar = item.toolbar;
+        if (item.view === null){
+            if (item.enabled){
+                itemView.contentView.alpha = 1.0;
+            }else{
+                itemView.contentView.alpha = 0.4;
+            }
+        }
+        if (toolbar.showsTitles){
+            item.titleLabel.text = item.title;
+        }
+    },
+
+    heightOfToolbarView: function(toolbarView){
+        var h = toolbarView._minimumItemsSize.height; 
+        h += this.toolbarInsets.top + this.toolbarInsets.bottom;
+        if (toolbarView.toolbar.showsTitles){
+            h += this.toolbarTitleFont.displayLineHeight;
+        }
+        return h;
     }
 
 });
@@ -800,7 +943,6 @@ JSClass("UIWindowStyler", JSObject, {
 JSClass("UIWindowDefaultStyler", UIWindowStyler, {
 
     _titlebarSize: 22,
-    _toolbarSize: 33,
     _controlButtonSize: 12,
     _iconSize: 16,
     _iconTitleSpacing: 5,
@@ -817,6 +959,7 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
     closeButtonImages: null,
 
     init: function(){
+        UIWindowDefaultStyler.$super.init.call(this);
         this.activeTitleColor = JSColor.initWithWhite(51/255);
         this.inactiveTitleColor = JSColor.initWithWhite(192/255);
         this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.4);
@@ -833,6 +976,8 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
             over: images.closeOver,
             active: images.closeActive
         };
+        this.toolbarTitleColor = JSColor.initWithWhite(102/255);
+        this.toolbarDisabledTitleColor = JSColor.initWithWhite(204/255);
     },
 
     initializeWindow: function(window){
@@ -915,8 +1060,8 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
 
         // Toolbar
         if (toolbarView){
-            toolbarView.frame = JSRect(0, y, bounds.size.width, this._toolbarSize);
-            y += this._toolbarSize;
+            toolbarView.frame = JSRect(0, y, bounds.size.width, this.heightOfToolbarView(toolbarView));
+            y += toolbarView.frame.size.height;
         }
 
         if (contentSeparatorView){
@@ -968,7 +1113,7 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
 
         if (window.toolbar){
             if (!window.stylerProperties.toolbarView){
-                window.stylerProperties.toolbarView = UIToolbarView.init();
+                window.stylerProperties.toolbarView = UIToolbarView.initWithToolbar(window.toolbar);
                 titleBacking.insertSubviewAboveSibling(window.stylerProperties.toolbarView, titleBar);
             }
         }else{
@@ -997,7 +1142,7 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
 
         var topSize = this._titlebarSize;
         if (window.toolbar){
-            topSize += this._toolbarSize;
+            topSize += this.heightOfToolbarView(window.stylerProperties.toolbarView);
         }
         window.contentInsets = JSInsets(topSize, 0, 0, 0);
     }

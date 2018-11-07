@@ -336,12 +336,17 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
     normalBackgroundColor: null,
     disabledBackgroundColor: null,
     activeBackgroundColor: null,
+    normalBackgroundGradient: null,
+    disabledBackgroundGradient: null,
+    activeBackgroundGradient: null,
     normalBorderColor: null,
     disabledBorderColor: null,
     activeBorderColor: null,
     normalTitleColor: null,
     disabledTitleColor: null,
     activeTitleColor: null,
+    shadowColor: null,
+    borderWidth: 1,
 
     init: function(){
         this.normalBackgroundColor = UIButtonDefaultStyler.NormalBackgroundColor;
@@ -353,16 +358,18 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
         this.normalTitleColor = UIButtonDefaultStyler.NormalTitleColor;
         this.disabledTitleColor = UIButtonDefaultStyler.DisabledTitleColor;
         this.activeTitleColor = UIButtonDefaultStyler.ActiveTitleColor;
+        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
+        this.titleInsets = JSInsets(3, 7);
     },
 
     initializeControl: function(button){
         UIButtonDefaultStyler.$super.initializeControl.call(this, button);
-        button.titleInsets = JSInsets(3, 7);
         button.layer.borderWidth = 1;
         button.layer.cornerRadius = 3;
-        button.layer.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
+        button.layer.shadowColor = this.shadowColor;
         button.layer.shadowOffset = JSPoint(0, 1);
         button.layer.shadowRadius = 1;
+        button.layer.borderWidth = this.borderWidth;
         this.updateControl(button);
     },
 
@@ -370,6 +377,7 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
         UIButtonDefaultStyler.$super.updateControl.call(this, button);
         if (!button.enabled){
             button.layer.backgroundColor = this.disabledBackgroundColor;
+            button.layer.backgroundGradient = this.disabledBackgroundGradient;
             button.layer.borderColor = this.disabledBorderColor;
             if (button._titleLabel !== null){
                 button._titleLabel.textColor = this.disabledTitleColor;
@@ -379,6 +387,7 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
             }
         }else if (button.active){
             button.layer.backgroundColor = this.activeBackgroundColor;
+            button.layer.backgroundGradient = this.activeBackgroundGradient;
             button.layer.borderColor = this.activeBorderColor;
             if (button._titleLabel !== null){
                 button._titleLabel.textColor = this.activeTitleColor;
@@ -388,6 +397,7 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
             }
         }else{
             button.layer.backgroundColor = this.normalBackgroundColor;
+            button.layer.backgroundGradient = this.normalBackgroundGradient;
             button.layer.borderColor = this.normalBorderColor;
             if (button._titleLabel !== null){
                 button._titleLabel.textColor = this.normalTitleColor;

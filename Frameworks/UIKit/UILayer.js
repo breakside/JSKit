@@ -23,6 +23,9 @@ UILayerAnimatedProperty.prototype.define = function(C, key, extensions){
     };
     if (!setter){
         setter = function UILayer_setAnimatableProperty(value){
+            if (value === this.model[key]){
+                return;
+            }
             this._addImplicitAnimationForKey(key);
             this.model[key] = value;
             this.didChangeProperty(key);
