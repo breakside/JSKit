@@ -183,7 +183,9 @@ JSClass("UITextEditor", JSObject, {
 
     didBecomeFirstResponder: function(isWindowKey){
         this._isWindowKey = isWindowKey;
-        this.selectAll();
+        if (this.selections.length === 1 && this.selections[0].range.location === 0 && this.selections[0].range.length === 0){
+            this.selectAll();
+        }
         this._isFirstResponder = true;
         this.layout();
     },

@@ -6,7 +6,7 @@
 // #import "UIKit/UIImageView.js"
 // #import "UIKit/UIToolbar.js"
 // #import "UIKit/UIToolbarItem.js"
-/* global JSClass, JSObject, JSGradient, UIView, JSColor, JSBundle, JSImage, JSUserDefaults, JSFont, UIImageView, UILabel, JSSize, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, UIWindowStyler, UIWindowDefaultStyler, UIWindowCustomStyler, UIControl, UIButton, UIButtonCustomStyler, JSPoint, UIApplication, UIEvent, UITouch, UIToolbar, UIToolbarView, UIToolbarItem */
+/* global JSClass, JSObject, JSGradient, JSTimer, UIView, JSColor, JSBundle, JSImage, JSUserDefaults, JSFont, UIImageView, UILabel, JSSize, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, UIWindowStyler, UIWindowDefaultStyler, UIWindowCustomStyler, UIControl, UIButton, UIButtonCustomStyler, JSPoint, UIApplication, UIEvent, UITouch, UIToolbar, UIToolbarView, UIToolbarItem */
 'use strict';
 
 (function(){
@@ -269,6 +269,7 @@ JSClass('UIWindow', UIView, {
 
     becomeMain: function(){
         this._styler.updateWindow(this);
+        this._validateToolbar();
     },
 
     resignMain: function(){
@@ -295,6 +296,7 @@ JSClass('UIWindow', UIView, {
     becomeKey: function(){
         this._styler.updateWindow(this);
         this.contentView.windowDidChangeKeyStatus();
+        this._validateToolbar();
     },
 
     resignKey: function(){
@@ -496,6 +498,7 @@ JSClass('UIWindow', UIView, {
                 }
             }
             if (this._firstResponder !== previousResponder){
+                this._validateToolbar();
                 this.windowServer.windowDidChangeResponder(this);
             }
         }
@@ -613,24 +616,28 @@ JSClass('UIWindow', UIView, {
             case UIEvent.Type.leftMouseDown:
                 this.makeKeyAndOrderFront();
                 eventTarget.mouseDown(event);
+                this._validateToolbar();
                 break;
             case UIEvent.Type.leftMouseUp:
                 eventTarget.mouseUp(event);
                 if (this.mouseDownType == UIEvent.Type.leftMouseDown){
                     this.mouseEventView = null;
                 }
+                this._validateToolbar();
                 break;
             case UIEvent.Type.leftMouseDragged:
                 eventTarget.mouseDragged(event);
                 break;
             case UIEvent.Type.rightMouseDown:
                 eventTarget.rightMouseDown(event);
+                this._validateToolbar();
                 break;
             case UIEvent.Type.rightMouseUp:
                 eventTarget.rightMouseUp(event);
                 if (this.mouseDownType == UIEvent.Type.rightMouseDown){
                     this.mouseEventView = null;
                 }
+                this._validateToolbar();
                 break;
             case UIEvent.Type.rightMouseDragged:
                 eventTarget.rightMouseDragged(event);
@@ -723,9 +730,24 @@ JSClass('UIWindow', UIView, {
                     break;
                 case UIEvent.Type.keyUp:
                     view.keyUp(event);
+                    if (this._toolbar !== null){
+                        this._queueKeyEventToolbarUpdate();
+                    }
                     break;
             }
         }
+    },
+
+    _keyEventToolbarValidationTimer: null,
+
+    _queueKeyEventToolbarUpdate: function(){
+        if (this._keyEventToolbarValidationTimer !== null){
+            this._keyEventToolbarValidationTimer.invalidate();
+        }
+        this._keyEventToolbarValidationTimer = JSTimer.scheduledTimerWithInterval(0.5, function(){
+            this._keyEventToolbarValidationTimer = null;
+            this._validateToolbar();
+        }, this);
     },
 
     // -------------------------------------------------------------------------

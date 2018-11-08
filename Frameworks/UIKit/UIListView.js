@@ -1363,6 +1363,8 @@ JSClass("UIListView", UIScrollView, {
     mouseDown: function(event){
         var location = event.locationInView(this);
         var cell = this._cellHitTest(location);
+        this.window.firstResponder = this;
+        this._activeCell = null;
         if (cell === null){
             this.selectNone();
             return;
@@ -1371,7 +1373,6 @@ JSClass("UIListView", UIScrollView, {
         if (!shouldSelect){
             return;
         }
-        this.window.firstResponder = this;
         cell.active = true;
         this._activeCell = cell;
         this._didDrag = false;

@@ -258,6 +258,7 @@ JSClass("UITextField", UIControl, {
     // MARK: - Styling
 
     textColor: JSDynamicProperty(),
+    localCursorColor: JSDynamicProperty(),
     font: JSDynamicProperty(),
 
     setTextColor: function(textColor){
@@ -277,6 +278,14 @@ JSClass("UITextField", UIControl, {
 
     getFont: function(){
         return this._textLayer.font;
+    },
+
+    setLocalCursorColor: function(color){
+        this._localEditor.cursorColor = color;
+    },
+
+    getLocalCursorColor: function(){
+        return this._localEditor.cursorColor;
     },
 
     // --------------------------------------------------------------------
@@ -943,10 +952,19 @@ UITextField.Styler = Object.defineProperties({}, {
         get: function UITextField_getDefaultStyler(){
             var styler = UITextFieldDefaultStyler.init();
             Object.defineProperty(this, 'default', {writable: true, value: styler});
-            return UITextField.Styler.default;
+            return styler;
         },
         set: function UITextField_setDefaultStyler(styler){
             Object.defineProperty(this, 'default', {writable: true, value: styler});
+        }
+    },
+
+    custom: {
+        configurable: true,
+        get: function UITextField_getCustomStyler(){
+            var styler = UITextFieldCustomStyler.init();
+            Object.defineProperty(this, 'custom', {writable: true, value: styler});
+            return styler;
         }
     }
 });
@@ -982,7 +1000,7 @@ JSClass("UITextFieldStyler", UIControlStyler, {
     },
 
     initializeControl: function(textField){
-        textField._localEditor.cursorColor = this.localCursorColor;
+        textField.localCursorColor = this.localCursorColor;
     },
 
     sizeControlToFitSize: function(textField, maxSize){
@@ -1005,11 +1023,13 @@ JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
     showsOverState: false,
     activeColor: null,
     inactiveColor: null,
+    textInsets: null,
 
     init: function(){
         UITextFieldDefaultStyler.$super.init.call(this);
         this.activeColor = JSColor.blackColor;
         this.inactiveColor = JSColor.initWithWhite(0.8);
+        this.textInsets = JSInsets(3, 0);
     },
 
     initializeControl: function(textField){
@@ -1017,7 +1037,7 @@ JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
         textField.stylerProperties.respondingIndicatorLayer = UILayer.init();
         textField.stylerProperties.respondingIndicatorLayer.backgroundColor = this.inactiveColor;
         textField.layer.addSublayer(textField.stylerProperties.respondingIndicatorLayer);
-        textField.textInsets = JSInsets(3, 0);
+        textField.textInsets = this.textInsets;
     },
 
     layoutControl: function(textField){
