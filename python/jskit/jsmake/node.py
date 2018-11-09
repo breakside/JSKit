@@ -24,6 +24,7 @@ class NodeBuilder(Builder):
     requires = None
     fonts = None
     debugPort = 8080
+    httpPort = 8080
     dockerOwner = None
     dockerBuilt = False
 
@@ -36,9 +37,14 @@ class NodeBuilder(Builder):
     def parse_args(self, arglist):
         parser = argparse.ArgumentParser()
         parser.add_argument(u'--http-port', default=u'8081')
+        parser.add_argument(u'--debug-port', default=u'http')
         parser.add_argument(u'--docker-owner', default=u'')
         args = parser.parse_args(arglist)
-        self.debugPort = int(args.http_port)
+        self.httpPort = int(args.http_port)
+        if args.debug_port == u'http':
+            self.debugPort = self.httpPort
+        else:
+            self.debugPort = int(args.debug_port)
         self.dockerOwner = args.docker_owner
         self.useDocker = self.dockerOwner != u''
 
@@ -159,7 +165,7 @@ class NodeBuilder(Builder):
 
     def buildDocker(self):
         ownerPrefix = ('%s/' % self.dockerOwner) if self.dockerOwner else ''
-        self.dockerIdentifier = "%s%s:%s" % (ownerPrefix, self.mainBundle.identifier, self.buildLabel if not self.debug else 'debug')
+        self.dockerIdentifier = "%s%s:%s" % (ownerPrefix, self.mainBundle.identifier.split('.')[-1], self.buildLabel if not self.debug else 'debug')
         self.dockerIdentifier = self.dockerIdentifier.lower()
         self.dockerName = self.mainBundle.identifier.lower().replace('.', '_')
         if not self.dockerBuilt:
@@ -179,7 +185,7 @@ class NodeBuilder(Builder):
         if self.debug:
             if self.useDocker:
                 bundlePath = os.path.realpath(self.outputBundlePath)
-                return "docker run \\\n    --rm \\\n    --name %s \\\n    -p%d:%d \\\n    --mount type=bind,source=%s,target=/jskitapp \\\n    %s" % (self.dockerName, self.debugPort, self.debugPort, bundlePath, self.dockerIdentifier)
+                return "docker run \\\n    --rm \\\n    --name %s \\\n    -p%d:%d \\\n    --mount type=bind,source=%s,target=/jskitapp \\\n    %s" % (self.dockerName, self.debugPort, self.httpPort, bundlePath, self.dockerIdentifier)
             else:
                 return "node --inspect %s" % os.path.relpath(os.path.join(self.outputExecutablePath, self.exePath))
 

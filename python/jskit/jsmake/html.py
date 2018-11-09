@@ -408,7 +408,7 @@ class HTMLBuilder(Builder):
 
     def buildDocker(self):
         ownerPrefix = ('%s/' % self.dockerOwner) if self.dockerOwner else ''
-        self.dockerIdentifier = "%s%s:%s" % (ownerPrefix, self.mainBundle.identifier, self.buildLabel if not self.debug else 'debug')
+        self.dockerIdentifier = "%s%s:%s" % (ownerPrefix, self.mainBundle.identifier.split('.')[-1], self.buildLabel if not self.debug else 'debug')
         self.dockerIdentifier = self.dockerIdentifier.lower()
         self.dockerName = self.mainBundle.identifier.lower().replace('.', '_')
         if not self.dockerBuilt:
