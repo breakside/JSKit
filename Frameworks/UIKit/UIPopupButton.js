@@ -95,20 +95,39 @@ JSClass("UIPopupButton", UIControl, {
         return this._maxTitleWidth;
     },
 
+    _isMenuOpen: false,
+
     mouseDown: function(event){
         if (this.enabled){
             this.active = true;
-            var popup = this;
-            var font = this.titleLabel.font;
-            var itemTitleOffset = this.menu.itemTitleOffset;
-            var itemOrigin = JSPoint(this.titleLabel.frame.origin.x - itemTitleOffset.x, this.titleLabel.frame.origin.y - itemTitleOffset.y);
-            this.menu.minimumWidth = this.indicatorView.frame.origin.x - itemOrigin.x;
-            this.menu.font = font;
-            this.menu.delegate = this;
-            this.menu.openWithItemAtLocationInView(this._selectedItem, itemOrigin, this);
+            if (this.menu.items.length > 0){
+                var font = this.titleLabel.font;
+                var itemTitleOffset = this.menu.itemTitleOffset;
+                var itemOrigin = JSPoint(this.titleLabel.frame.origin.x - itemTitleOffset.x, this.titleLabel.frame.origin.y - itemTitleOffset.y);
+                this.menu.minimumWidth = this.indicatorView.frame.origin.x - itemOrigin.x;
+                this.menu.font = font;
+                this.menu.delegate = this;
+                this.menu.openWithItemAtLocationInView(this._selectedItem, itemOrigin, this);
+                this._isMenuOpen = true;
+            }
         }else{
             UIPopupButton.$super.mouseDown.call(this, event);
         }
+    },
+
+    mouseUp: function(event){
+        if (!this.enabled || this._isMenuOpen){
+            return UIPopupButton.$super.mouseUp.call(this, event);
+        }
+        this.active = false;
+    },
+
+    mouseDragged: function(event){
+        if (!this.enabled || this._isMenuOpen){
+            return UIPopupButton.$super.mouseDragged.call(this, event);
+        }
+        var location = event.locationInView(this);
+        this.active = this.containsPoint(location);
     },
 
     menuDidSelectItem: function(item){
@@ -125,6 +144,7 @@ JSClass("UIPopupButton", UIControl, {
     menuDidClose: function(menu){
         this.active = false;
         this.menu.delegate = null;
+        this._isMenuOpen = false;
     },
 
     setSelectedIndex: function(index){
@@ -155,9 +175,15 @@ JSClass("UIPopupButton", UIControl, {
     },
 
     setSelectedTag: function(tag){
-        var item = this.menu.itemWithTag(tag);
-        if (item){
-            this.selectedIndex = item.index;
+        if (tag === null){
+            this.selectedIndex = -1;
+        }else{
+            var item = this.menu.itemWithTag(tag);
+            if (item){
+                this.selectedIndex = item.index;
+            }else{
+                this.selectedIndex = -1;
+            }
         }
     },
 
