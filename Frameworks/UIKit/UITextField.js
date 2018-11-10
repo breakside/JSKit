@@ -164,7 +164,11 @@ JSClass("UITextField", UIControl, {
     },
 
     setIntegerValue: function(value){
-        this.text = "%d".sprintf(value);
+        if (value === null){
+            this.text = "";
+        }else{
+            this.text = "%d".sprintf(value);
+        }
     },
 
     // --------------------------------------------------------------------
