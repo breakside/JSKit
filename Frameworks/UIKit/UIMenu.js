@@ -742,6 +742,9 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
         var textColor = this.getTextColorForItem(item);
         view.titleLabel.font = item.menu.font;
         view.titleLabel.textColor = textColor;
+        if (view._imageView !== null){
+            view._imageView.templateColor = textColor;
+        }
         if (view._submenuImageView !== null){
             view.submenuImageView.templateColor = textColor;
         }
