@@ -96,3 +96,32 @@ JSGlobalObject.JSNegateBooleanValueTransformer = {
     }
 
 };
+
+// -----------------------------------------------------------------------------
+// MARK: - Lists
+
+JSGlobalObject.JSCommaSeparatedListValueTransformer = {
+
+    canReverseTransform: true,
+
+    transformValue: function(value){
+        if (value === null || value === undefined){
+            return '';
+        }
+        if (!(value instanceof Array)){
+            throw new Error("JSCommaSeparatedListValueTransformer expects an array, got a: " + typeof(value));
+        }
+        return value.join(', ');
+    },
+
+    reverseTransformValue: function(value){
+        if (value === null || value === undefined){
+            return [];
+        }
+        if (typeof(value) !== 'string'){
+            throw new Error("JSCommaSeparatedListValueTransformer expects an string, got a: " + typeof(value));
+        }
+        return value.split(/\s*,\s*/g);
+    }
+
+};

@@ -1,7 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
 /* global JSClass, TKTestSuite, JSValueTransformer */
-/* global JSIsNullValueTransformer, JSIsNotNullValueTransformer, JSIsEmptyValueTransformer, JSIsNotEmptyValueTransformer, JSNegateBooleanValueTransformer */
+/* global JSIsNullValueTransformer, JSIsNotNullValueTransformer, JSIsEmptyValueTransformer, JSIsNotEmptyValueTransformer, JSNegateBooleanValueTransformer, JSCommaSeparatedListValueTransformer */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
@@ -226,6 +226,109 @@ JSClass("JSValueTransformerTests", TKTestSuite, {
         TKAssertExactEquals(value, true);
         value = transformer.reverseTransformValue(Infinity);
         TKAssertExactEquals(value, false);
+    },
+
+    testCommaSeparatedListValueTransformer: function(){
+        var transformer = JSCommaSeparatedListValueTransformer;
+        var value = transformer.transformValue(null);
+        TKAssertExactEquals(value, '');
+        value = transformer.transformValue(undefined);
+        TKAssertExactEquals(value, '');
+        value = transformer.transformValue(['one', 'two']);
+        TKAssertExactEquals(value, 'one, two');
+        TKAssertThrows(function(){
+            value = transformer.transformValue("");
+        });
+        TKAssertThrows(function(){
+            value = transformer.transformValue('abc');
+        });
+        TKAssertThrows(function(){
+            TKAssertExactEquals(value, 1);
+        });
+        TKAssertThrows(function(){
+            value = transformer.transformValue(0);
+        });
+        TKAssertThrows(function(){
+            value = transformer.transformValue(true);
+        });
+        TKAssertThrows(function(){
+            value = transformer.transformValue(false);
+        });
+        value = transformer.transformValue([1]);
+        TKAssertExactEquals(value, '1');
+        value = transformer.transformValue([]);
+        TKAssertExactEquals(value, '');
+        TKAssertThrows(function(){
+            value = transformer.transformValue({a: 1});
+        });
+        TKAssertThrows(function(){
+            value = transformer.transformValue({});
+        });
+        TKAssertThrows(function(){
+            value = transformer.transformValue(NaN);
+        });
+        TKAssertThrows(function(){
+            value = transformer.transformValue(Infinity);
+        });
+
+        value = transformer.reverseTransformValue(null);
+        TKAssertExactEquals(value.length, 0);
+        value = transformer.reverseTransformValue(undefined);
+        TKAssertExactEquals(value.length, 0);
+        value = transformer.reverseTransformValue("asdf");
+        TKAssertExactEquals(value.length, 1);
+        TKAssertExactEquals(value[0], 'asdf');
+        value = transformer.reverseTransformValue("one,two");
+        TKAssertExactEquals(value.length, 2);
+        TKAssertExactEquals(value[0], 'one');
+        TKAssertExactEquals(value[1], 'two');
+        value = transformer.reverseTransformValue("one,two,three");
+        TKAssertExactEquals(value.length, 3);
+        TKAssertExactEquals(value[0], 'one');
+        TKAssertExactEquals(value[1], 'two');
+        TKAssertExactEquals(value[2], 'three');
+        value = transformer.reverseTransformValue("one, two, three");
+        TKAssertExactEquals(value.length, 3);
+        TKAssertExactEquals(value[0], 'one');
+        TKAssertExactEquals(value[1], 'two');
+        TKAssertExactEquals(value[2], 'three');
+        value = transformer.reverseTransformValue(" one  , two ,  three ");
+        TKAssertExactEquals(value.length, 3);
+        TKAssertExactEquals(value[0], ' one');
+        TKAssertExactEquals(value[1], 'two');
+        TKAssertExactEquals(value[2], 'three ');
+        value = transformer.reverseTransformValue("");
+        TKAssertExactEquals(value.length, 1);
+        TKAssertThrows(function(){
+            value = transformer.reverseTransformValue(1);
+        });
+        TKAssertThrows(function(){
+            value = transformer.reverseTransformValue(0);
+        });
+        TKAssertThrows(function(){
+            value = transformer.reverseTransformValue(true);
+        });
+        TKAssertThrows(function(){
+            value = transformer.reverseTransformValue(false);
+        });
+        TKAssertThrows(function(){
+            value = transformer.reverseTransformValue([1]);
+        });
+        TKAssertThrows(function(){
+            value = transformer.reverseTransformValue([]);
+        });
+        TKAssertThrows(function(){
+            value = transformer.reverseTransformValue({a: 1});
+        });
+        TKAssertThrows(function(){
+            value = transformer.reverseTransformValue({});
+        });
+        TKAssertThrows(function(){
+            value = transformer.reverseTransformValue(NaN);
+        });
+        TKAssertThrows(function(){
+            value = transformer.reverseTransformValue(Infinity);
+        });
     },
 
 });

@@ -310,8 +310,8 @@ JSObject.definePropertiesFromExtensions({
             return;
         }
         var value = this.valueForKey(ourKey);
-        if (bindingInfo.valueTransformer){
-            value = bindingInfo.valueTransformer.reverseTransformValue(value);
+        if (bindingInfo.options.valueTransformer){
+            value = bindingInfo.options.valueTransformer.reverseTransformValue(value);
         }
         try{
             this._ignoreObserationContext = bindingInfo;
