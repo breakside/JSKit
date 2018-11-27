@@ -699,7 +699,7 @@ JSClass("UITextField", UIControl, {
         if (this._rightAccessoryView !== null && this._rightAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive){
             this._rightAccessoryView.hidden = false;
         }
-        this._localEditor.didBecomeFirstResponder(this.window && this.window.isKeyWindow);
+        this._localEditor.didBecomeFirstResponder(this.window && this.window.isKeyWindow, !this._isHandlingMouseDown);
         this._didChange = false;
         this.sendActionsForEvent(UIControl.Event.editingDidBegin);
     },
@@ -724,13 +724,17 @@ JSClass("UITextField", UIControl, {
         this._localEditor.windowDidChangeKeyStatus(this.window);
     },
 
+    _isHandlingMouseDown: false,
+
     mouseDown: function(event){
         if (!this.enabled){
             return UITextField.$super.mouseDown.call(this, event);
         }
+        this._isHandlingMouseDown = true;
         if (!this.isFirstResponder()){
             this.window.firstResponder = this;
         }
+        this._isHandlingMouseDown = false;
         var location = event.locationInView(this);
         this._localEditor.handleMouseDownAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);
     },

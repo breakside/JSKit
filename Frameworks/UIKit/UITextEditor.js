@@ -181,9 +181,9 @@ JSClass("UITextEditor", JSObject, {
         this._draggingSelection = null;
     },
 
-    didBecomeFirstResponder: function(isWindowKey){
+    didBecomeFirstResponder: function(isWindowKey, shouldSelect){
         this._isWindowKey = isWindowKey;
-        if (this.selections.length === 1 && this.selections[0].range.location === 0 && this.selections[0].range.length === 0){
+        if (shouldSelect){
             this.selectAll();
         }
         this._isFirstResponder = true;
