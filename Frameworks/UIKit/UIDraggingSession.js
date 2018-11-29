@@ -37,11 +37,11 @@ JSClass("UIDraggingSession", JSObject, {
         for (var i = 0, l = this._items.length; i < l; ++i){
             item = this._items[i];
             if ('stringValue' in item){
-                pasteboard.setStringForType(item.stringValue, item.type);
+                pasteboard.addStringForType(item.stringValue, item.type);
             }else if ('dataValue' in item){
-                pasteboard.setDataForType(item.dataValue, item.type);
+                pasteboard.addDataForType(item.dataValue, item.type);
             }else if ('objectValue' in item){
-                pasteboard.setObjectForType(item.objectValue, item.type);
+                pasteboard.addObjectForType(item.objectValue, item.type);
             }else if ('file' in item){
                 pasteboard.addFile(item.file);
             }

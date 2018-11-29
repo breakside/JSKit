@@ -8,11 +8,26 @@ var valueSetter = function(value, type){
     this._valuesByType[type] = [value];
 };
 
+var valueAppender = function(value, type){
+    if (!(type in this._valuesByType)){
+        this._valuesByType[type] = [];
+    }
+    this._valuesByType[type].push(value);
+};
+
 var valueGetter = function(type){
-    if (this.containsType(type)){
-        return this._valuesByType[type][0];
+    var values = multiValueGetter.call(this, type);
+    if (values.length > 0){
+        return values[0];
     }
     return null;
+};
+
+var multiValueGetter = function(type){
+    if (this.containsType(type)){
+        return this._valuesByType[type];
+    }
+    return [];
 };
 
 JSClass("UIPasteboard", JSObject, {
@@ -27,13 +42,43 @@ JSClass("UIPasteboard", JSObject, {
     },
 
     setStringForType: valueSetter,
-    stringForType: valueGetter,
+
+    stringForType: function(type){
+        var strings = this.stringsForType(type);
+        if (strings.length > 0){
+            return strings[0];
+        }
+        return null;
+    },
+
+    stringsForType: multiValueGetter,
+    addStringForType: valueAppender,
 
     setDataForType: valueSetter,
-    dataForType: valueGetter,
+
+    dataForType: function(type){
+        var dataList = this.dataListForType(type);
+        if (dataList.length > 0){
+            return dataList[0];
+        }
+        return null;
+    },
+
+    dataListForType: multiValueGetter,
+    addDataForType: valueAppender,
 
     setObjectForType: valueSetter,
-    objectForType: valueGetter,
+
+    objectForType: function(type){
+        var objects = this.objectsForType(type);
+        if (objects.length > 0){
+            return objects[0];
+        }
+        return null;
+    },
+
+    objectsForType: multiValueGetter,
+    addObjectForType: valueAppender,
 
     addFile: function(file){
         this._files.push(file);

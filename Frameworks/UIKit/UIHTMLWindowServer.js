@@ -780,16 +780,19 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
     dataTransfer: JSDynamicProperty('_dataTransfer', null),
     _dataTransferTypeSet: null,
     _extraFiles: null,
+    _locallySetTypes: null,
 
     initWithDataTransfer: function(dataTransfer){
         UIHTMLDataTransferPasteboard.$super.init.call(this);
         this._dataTransfer = dataTransfer;
         this._extraFiles = [];
+        this._locallySetTypes = {};
     },
 
     init: function(){
         UIHTMLDataTransferPasteboard.$super.init.call(this);
         this._extraFiles = [];
+        this._locallySetTypes = {};
     },
 
     setDataTransfer: function(dataTransfer){
@@ -815,14 +818,26 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
 
     setStringForType: function(str, type){
         UIHTMLDataTransferPasteboard.$super.setStringForType.call(this, str, type);
+        this._locallySetTypes[type] = true;
+        this._updateDataTransferStringForType(type);
+    },
+
+    addStringForType: function(str, type){
+        UIHTMLDataTransferPasteboard.$super.addStringForType.call(this, str, type);
+        this._locallySetTypes[type] = true;
+        this._updateDataTransferStringForType(type);
+    },
+
+    _updateDataTransferStringForType: function(type){
+        var combinedString = this.stringsForType(type).join('\n');
         if (this._dataTransfer !== null){
             try{
-                this._dataTransfer.setData(type, str);
+                this._dataTransfer.setData(type, combinedString);
             }catch (e){
                 if (type == 'text/plain'){
-                    this._dataTransfer.setData('Text', str);
+                    this._dataTransfer.setData('Text', combinedString);
                 }else if (type == 'text/uri-list'){
-                    this._dataTransfer.setData('Url', str);
+                    this._dataTransfer.setData('Url', combinedString);
                 }else{
                     throw e;
                 }
@@ -830,54 +845,98 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
         }
     },
 
-    stringForType: function(type){
+    stringsForType: function(type){
+        if (type in this._locallySetTypes){
+            return UIHTMLDataTransferPasteboard.$super.stringsForType.call(this, type);
+        }
         if (this._dataTransfer !== null){
             this._updateDataTransferTypeSet();
             if (type in this._dataTransferTypeSet){
+                var combinedString = null;
                 try {
-                    return this._dataTransfer.getData(type);
+                    combinedString = this._dataTransfer.getData(type);
                 }catch (e){
                     if (type == 'text/plain'){
-                        return this._dataTransfer.getData('Text');
+                        combinedString = this._dataTransfer.getData('Text');
+                    }else if (type == 'uri-list'){
+                        combinedString = this._dataTransfer.getData('Url');
+                    }else{
+                        throw e;
                     }
-                    if (type == 'uri-list'){
-                        return this._dataTransfer.getData('Url');
-                    }
-                    throw e;
+                }
+                if (combinedString !== null){
+                    return [combinedString];
                 }
             }
         }
-        return UIHTMLDataTransferPasteboard.$super.stringForType.call(this, type);
+        return [];
     },
 
     setDataForType: function(data, type){
         UIHTMLDataTransferPasteboard.$super.setDataForType.call(this, data, type);
+        this._locallySetTypes[type] = true;
+        this._updateDataTransferDataForType(type);
+    },
+
+    addDataForType: function(data, type){
+        UIHTMLDataTransferPasteboard.$super.addDataForType.call(this, data, type);
+        this._locallySetTypes[type] = true;
+        this._updateDataTransferDataForType(type);
+    },
+
+    _updateDataTransferDataForType: function(type){
         if (this._dataTransfer !== null){
-            var base64 = data.bytes.base64StringRepresentation();
-            this._dataTransfer.setData(type, base64);
+            var dataList = this.dataListForType(type);
+            var base64List = [];
+            for (var i = 0, l = dataList.length; i < l; ++i){
+                base64List.push(dataList[i].bytes.base64StringRepresentation());
+            }
+            this._dataTransfer.setData(type, base64List);
         }
     },
 
-    dataForType: function(type){
+    dataListForType: function(type){
+        if (type in this._locallySetTypes){
+            return UIHTMLDataTransferPasteboard.$super.dataListForType.call(this, type);
+        }
         if (this._dataTransfer !== null){
             this._updateDataTransferTypeSet();
             if (type in this._dataTransferTypeSet){
-                var base64 = this._dataTransfer.getData(type);
-                return base64.dataByDecodingBase64();
+                var base64List = this._dataTransfer.getData(type);
+                var dataList = [];
+                for (var i = 0, l = base64List.length; i < l; ++i){
+                    dataList.push(base64List[i].dataByDecodingBase64());
+                }
+                return dataList;
             }
         }
-        return UIHTMLDataTransferPasteboard.$super.dataForType.call(this, type);
+        return [];
     },
 
     setObjectForType: function(obj, type){
         UIHTMLDataTransferPasteboard.$super.setObjectForType.call(this, obj, type);
+        this._locallySetTypes[type] = true;
+        this._updateDataTranserObjectForType(type);
+    },
+
+    addObjectForType: function(obj, type){
+        UIHTMLDataTransferPasteboard.$super.addObjectForType.call(this, obj, type);
+        this._locallySetTypes[type] = true;
+        this._updateDataTranserObjectForType(type);
+    },
+
+    _updateDataTranserObjectForType: function(type){
         if (this._dataTransfer !== null){
-            var json = JSON.stringify(obj);
+            var objects = this.objectsForType(type);
+            var json = JSON.stringify(objects);
             this._dataTransfer.setData(type, json);
         }
     },
 
-    objectForType: function(type){
+    objectsForType: function(type){
+        if (type in this._locallySetTypes){
+            return UIHTMLDataTransferPasteboard.$super.objectsForType.call(this, type);
+        }
         if (this._dataTransfer !== null){
             this._updateDataTransferTypeSet();
             if (type in this._dataTransferTypeSet){
@@ -885,10 +944,9 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
                 if (json){
                     return JSON.parse(json);
                 }
-                return null;
             }
         }
-        return UIHTMLDataTransferPasteboard.$super.objectForType.call(this, type);
+        return [];
     },
 
     addFile: function(file){

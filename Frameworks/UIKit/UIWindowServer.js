@@ -718,6 +718,7 @@ JSClass("UIWindowServer", JSObject, {
                 if (this._draggingSession.destination !== null){
                     this._draggingSession.destination.draggingExited(this._draggingSession);
                 }
+
                 this._draggingSession.destination = view;
                 if (this._draggingSession.destination !== null){
                     operation = this._draggingSession.destination.draggingEntered(this._draggingSession);
