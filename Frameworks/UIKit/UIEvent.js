@@ -193,6 +193,8 @@ UIEvent.Modifier.optionShift = UIEvent.Modifier.option | UIEvent.Modifier.shift;
 UIEvent.Modifier.optionControlShift = UIEvent.Modifier.option | UIEvent.Modifier.control | UIEvent.Modifier.shift;
 UIEvent.Modifier.controlShift = UIEvent.Modifier.control | UIEvent.Modifier.shift;
 
+UIEvent.doubleClickInterval = 0.2;
+
 UIEvent.Key = {
     unidentified: "Unidentified",
 

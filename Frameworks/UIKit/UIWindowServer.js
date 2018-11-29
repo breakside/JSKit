@@ -446,7 +446,6 @@ JSClass("UIWindowServer", JSObject, {
     _rightClickCount: 0,
     _previousLeftClickTimestamp: 0,
     _previousRightClickTimestamp: 1,
-    _repeatClickInterval: 0.2,
 
     createMouseEvent: function(type, timestamp, location, modifiers){
         var isADown = false;
@@ -483,7 +482,7 @@ JSClass("UIWindowServer", JSObject, {
 
         switch (type){
             case UIEvent.Type.leftMouseDown:
-                if (timestamp - this._previousLeftClickTimestamp > this._repeatClickInterval){
+                if (timestamp - this._previousLeftClickTimestamp > UIEvent.doubleClickInterval){
                     this._leftClickCount = 0;
                 }
                 ++this._leftClickCount;
@@ -492,13 +491,13 @@ JSClass("UIWindowServer", JSObject, {
                 break;
             case UIEvent.Type.leftMouseUp:
                 clickCount = this._leftClickCount;
-                if (timestamp - this._previousLeftClickTimestamp > this._repeatClickInterval){
+                if (timestamp - this._previousLeftClickTimestamp > UIEvent.doubleClickInterval){
                     this._leftClickCount = 0;
                 }
                 this._previousLeftClickTimestamp = timestamp;
                 break;
             case UIEvent.Type.rightMouseDown:
-                if (timestamp - this._previousRightClickTimestamp > this._repeatClickInterval){
+                if (timestamp - this._previousRightClickTimestamp > UIEvent.doubleClickInterval){
                     this._rightClickCount = 0;
                 }
                 clickCount = this._rightClickCount;
@@ -506,7 +505,7 @@ JSClass("UIWindowServer", JSObject, {
                 break;
             case UIEvent.Type.rightMouseUp:
                 clickCount = this._rightClickCount;
-                if (timestamp - this._previousRightClickTimestamp > this._repeatClickInterval){
+                if (timestamp - this._previousRightClickTimestamp > UIEvent.doubleClickInterval){
                     this._rightClickCount = 0;
                 }
                 this._previousRightClickTimestamp = timestamp;
