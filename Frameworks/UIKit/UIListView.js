@@ -426,6 +426,7 @@ JSClass("UIListView", UIScrollView, {
         var height;
         var accumulatedHeight = 0;
         var cell;
+        var changedSelection = false;
         for (var i = 0, l = indexPaths.length; i < l; ++i){
             indexPath = indexPaths[i];
             height = this._heightForCellAtIndexPath(indexPath);
@@ -439,6 +440,10 @@ JSClass("UIListView", UIScrollView, {
                 needsUpdate = true;
                 this._deleteVisibleCellAtIndexPath(indexPath, height);
             }
+            if (this._selectedIndexPaths.contains(indexPath)){
+                this._selectedIndexPaths.removeIndexPath(indexPath, this._cachedData.numberOfRowsBySection);
+                changedSelection = true;
+            }
         }
         var frame = JSRect(this._cellsContainerView.frame);
         frame.size.height -= accumulatedHeight;
@@ -448,6 +453,11 @@ JSClass("UIListView", UIScrollView, {
         if (needsUpdate){
             this._needsUpdate = true;
             this.setNeedsLayout();
+        }
+        if (changedSelection){
+            if (this.delegate && this.delegate.listViewSelectionDidChange){
+                this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
+            }
         }
     },
 
