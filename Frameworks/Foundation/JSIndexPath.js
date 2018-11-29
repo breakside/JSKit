@@ -285,7 +285,38 @@ JSIndexPathSet.prototype = {
             return 0;
         });
         return searcher.itemMatchingValue(indexPath);
-    }
+    },
+
+    enumerate: function(rowCountCallback, callback, target){
+        var range;
+        var indexPath;
+        var section, row;
+        var rowCount;
+        for (var i = 0, l = this.ranges.length; i < l; ++i){
+            range = this.ranges[i];
+            section = range.start.section;
+            if (range.start.section == range.end.section){
+                for (row = range.start.row; row <= range.end.row; ++row){
+                    callback.call(target, JSIndexPath(section, row));
+                }
+            }else{
+                rowCount = rowCountCallback(section);
+                for (row = range.start.row; row < rowCount; ++row){
+                    callback.call(target, JSIndexPath(section, row));
+                }
+                for (section = section + 1; section < range.end.section; ++section){
+                    rowCount = rowCountCallback(section);
+                    for (row = 0; row < rowCount; ++row){
+                        callback.call(target, JSIndexPath(section, row));
+                    }
+                }
+                rowCount = rowCountCallback(section);
+                for (row = 0; row <= range.end.row; ++row){
+                    callback.call(target, JSIndexPath(section, row));
+                }
+            }
+        }
+    },
 };
 
 Object.defineProperties(JSIndexPathSet.prototype, {
