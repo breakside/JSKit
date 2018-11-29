@@ -10,7 +10,7 @@
 // #feature Element.prototype.addEventListener
 // #feature 'key' in KeyboardEvent.prototype
 // #feature File
-/* global File, JSClass, UIWindowServer, JSDynamicProperty, UIWindowServer, UIPlatform, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor, UIView, JSRect, UIScreen, UIDraggingSession, UIHTMLDataTransferPasteboard, UIDragOperation, JSHTMLFile, JSDataFile */
+/* global File, JSClass, UIWindowServer, JSDynamicProperty, UIWindowServer, UIPlatform, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor, UIView, JSRect, UIScreen, UIDraggingSession, UIHTMLDataTransferPasteboard, UIDragOperation, JSHTMLFile, JSDataFile, UIHTMLDataTransferFileEnumerator, JSFileEnumerator, JSHTMLFileSystemEntryFileEnumerator */
 'use strict';
 
 (function(){
@@ -910,25 +910,8 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
         }
     },
 
-    numberOfFiles: function(){
-        var n = 0;
-        if (this._dataTransfer !== null){
-            n = this._dataTransfer.files.length;
-        }
-        return n + this._extraFiles.length;
-    },
-
-    fileAtIndex: function(index){
-        if (this._dataTransfer !== null){
-            if (index < this._dataTransfer.files.length){
-                return JSHTMLFile.initWithFile(this._dataTransfer.files[index]);
-            }
-            index -= this._dataTransfer.files.length;
-        }
-        if (index < this._extraFiles.length){
-            return this._extraFiles[index];
-        }
-        return null;
+    getFileEnumerator: function(){
+        return UIHTMLDataTransferFileEnumerator.initWithDataTransfer(this.dataTransfer, this._extraFiles);
     },
 
     getTypes: function(){
@@ -954,6 +937,102 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
             }
         }
         return UIHTMLDataTransferPasteboard.$super.containsType.call(this, type);
+    }
+
+});
+
+
+JSClass("UIHTMLDataTransferFileEnumerator", JSFileEnumerator, {
+
+    dataTransfer: null,
+    extraFiles: null,
+    itemIndex: null,
+    fileIndex: null,
+    extraIndex: null,
+    _childEnumerator: null,
+
+    initWithDataTransfer: function(dataTransfer, extraFiles){
+        this.dataTransfer = dataTransfer;
+        this.extraFiles = extraFiles;
+        if (this.dataTransfer.items && (this.dataTransfer.items.length === 0 || this.dataTransfer.items[0].getAsFile)){
+            Object.defineProperty(this, 'next', {configurable: true, value: this.nextItem});
+            this.itemIndex = 0;
+        }else{
+            Object.defineProperty(this, 'next', {configurable: true, value: this.nextFile});
+            this.fileIndex = 0;
+        }
+        this.extraIndex = 0;
+    },
+
+    nextFile: function(callback, target){
+        var file;
+        if (this.fileIndex < this.dataTransfer.files.length){
+            var htmlFile = this.dataTransfer.files[this.fileIndex];
+            ++this.fileIndex;
+            file = JSHTMLFile.initWithFile(htmlFile);
+            callback.call(target, '', file);
+        }else if (this.extraIndex < this.extraFiles.length){
+            file = this.extraFiles[this.extraIndex];
+            ++this.extraIndex;
+            callback.call(target, '', file);
+        }else{
+            callback.call(target, null, null);
+        }
+    },
+
+    nextItem: function(callback, target){
+        var file;
+        if (this._childEnumerator !== null){
+            this._childEnumerator.next(function(directory, file){
+                if (file === null){
+                    this._childEnumerator = null;
+                    this.next(callback, target);
+                }else{
+                    callback.call(target, directory, file);
+                }
+            }, this);
+        }else if (this.itemIndex < this.dataTransfer.items.length){
+            var item = this.dataTransfer.items[this.itemIndex];
+            ++this.itemIndex;
+            var htmlEntry = null;
+            var htmlFile = null;
+            var self = this;
+            if (item.getAsEntry){
+                htmlEntry = item.getAsEntry();
+            }else if (item.webkitGetAsEntry){
+                htmlEntry = item.webkitGetAsEntry();
+            }
+            if (item.getAsFile){
+                htmlFile = item.getAsFile();
+            }
+            if (htmlEntry && htmlEntry.isDirectory){
+                var reader = htmlEntry.createReader();
+                reader.readEntries(function UIHTMLDataTransferFileEnumerater_nextItem_readEntries_success(htmlEntries){
+                    self._childEnumerator = JSHTMLFileSystemEntryFileEnumerator.initWithHTMLEntries(htmlEntries, htmlEntry.fullPath.substr(1));
+                    self.next(callback, target);
+                }, function UIHTMLDataTransferFileEnumerater_nextItem_readEntries_error(error){
+                    self.next(callback, target);
+                });
+            }else if (htmlEntry && htmlEntry.isFile && !htmlFile){
+                htmlEntry.file(function UIHTMLDataTransferFileEnumerater_nextItem_file_success(htmlFile){
+                    var file = JSHTMLFile.initWithFile(htmlFile);
+                    callback.call(target, '', file);
+                }, function UIHTMLDataTransferFileEnumerater_nextItem_file_error(error){
+                    self.next(callback, target);
+                });
+            }else if (htmlFile){
+                file = JSHTMLFile.initWithFile(htmlFile);
+                callback.call(target, '', file);
+            }else{
+                this.next(callback, target);
+            }
+        }else if (this.extraIndex < this.extraFiles.length){
+            file = this.extraFiles[this.extraIndex];
+            ++this.extraIndex;
+            callback.call(target, '', file);
+        }else{
+            callback.call(target, null, null);
+        }
     }
 
 });

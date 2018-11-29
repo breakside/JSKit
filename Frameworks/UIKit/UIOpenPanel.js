@@ -6,18 +6,14 @@ JSClass("UIOpenPanel", JSObject, {
 
     allowsMultipleSelction: false,
     allowedContentTypes: null,
-    allowsFolderSelection: false,
+    chooseDirectories: false,
+    file: JSReadOnlyProperty('_file', null),
+    fileEnumerator: JSReadOnlyProperty('_fileEnumerator', null),
 
     init: function(){
     },
 
     show: function(action, target){
-    },
-
-    fileCount: JSReadOnlyProperty('_fileCount', 0),
-
-    fileAtIndex: function(index){
-        return null;
     },
 
 });

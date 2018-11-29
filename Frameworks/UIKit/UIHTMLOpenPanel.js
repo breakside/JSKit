@@ -1,5 +1,5 @@
 // #import "UIKit/UIOpenPanel.js"
-/* global document, JSClass, UIOpenPanel, UIHTMLOpenPanel, JSHTMLFile */
+/* global document, JSClass, UIOpenPanel, UIHTMLOpenPanel, JSHTMLFile, JSHTMLFileSystemEntryFileEnumerator, JSHTMLFileListFileEnumerator */
 'use strict';
 
 JSClass("UIHTMLOpenPanel", UIOpenPanel, {
@@ -15,29 +15,30 @@ JSClass("UIHTMLOpenPanel", UIOpenPanel, {
         if (this.allowsMultipleSelection){
             fileInput.multiple = true;
         }
-        if (this.allowedContentTypes !== null){
-            fileInput.accept = this.allowedContentTypes.join(', ');
-        }
-        if (this.allowsFolderSelection){
+        if (this.chooseDirectories){
             fileInput.webkitdirectory = true;
+        }else{
+            if (this.allowedContentTypes !== null){
+                fileInput.accept = this.allowedContentTypes.join(', ');
+            }
         }
         var panel = this;
         fileInput.onchange = function(){
-            panel.htmlFiles = fileInput.files;
-            panel._fileCount = fileInput.files.length;
+            if (panel.allowsMultipleSelection || panel.chooseDirectories){
+                if (fileInput.webkitEntries && fileInput.webkitEntries.length > 0){
+                    panel._fileEnumerator = JSHTMLFileSystemEntryFileEnumerator.initWithHTMLEntries(fileInput.webkitEntries);
+                }else{
+                    panel._fileEnumerator = JSHTMLFileListFileEnumerator.initWithHTMLFiles(fileInput.files);
+                }
+            }else{
+                if (fileInput.files.length > 0){
+                    panel._file = JSHTMLFile.initWithFile(fileInput.files[0]);
+                }
+            }
             action.call(target, panel);
         };
         fileInput.click();
-    },
-
-    htmlFiles: null,
-
-    fileAtIndex: function(index){
-        if (index < this.htmlFiles.length){
-            return JSHTMLFile.initWithFile(this.htmlFiles[index]);
-        }
-        return null;
-    },
+    }
 
 });
 

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+  <input id="f" type="file" webkitdirectory="true">
+  <div id="d" style="width: 100px; height: 100px; background: red"></div>
+  <script type="text/javascript">
+    (function(){
+      'use strict';
+      var f = document.getElementById('f');
+      var d = document.getElementById('d');
+      var listener = {
+        handleEvent: function(e){
+          this[e.type](e);
+        },
+
+        change: function(e){
+          debugger;
+        },
+
+        dragover: function(e){
+          e.preventDefault();
+        },
+
+        dragenter: function(e){
+          d.style.outline = '2px solid black';
+        },
+
+        dragleave: function(e){
+          d.style.outline = '';
+        },
+
+        drop: function(e){
+          e.preventDefault();
+          d.style.outline = '';
+          var dt = e.dataTransfer;
+          debugger;
+        }
+      };
+      f.addEventListener('change', listener);
+      d.addEventListener('dragover', listener);
+      d.addEventListener('dragenter', listener);
+      d.addEventListener('dragleave', listener);
+      d.addEventListener('drop', listener);
+    })();
+  </script>
+</body>
+</html>

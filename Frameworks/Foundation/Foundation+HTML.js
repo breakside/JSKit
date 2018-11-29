@@ -15,3 +15,4 @@
 
 // Subclasses
 // #import "Foundation/JSHTMLFile.js"
+// #import "Foundation/JSHTMLFileEnumerator.js"

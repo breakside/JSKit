@@ -1,5 +1,5 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, UIPasteboard */
+/* global JSClass, JSObject, JSReadOnlyProperty, UIPasteboard, JSFileEnumerator */
 'use strict';
 
 (function(){
@@ -39,15 +39,10 @@ JSClass("UIPasteboard", JSObject, {
         this._files.push(file);
     },
 
-    numberOfFiles: function(){
-        return this._files.length;
-    },
+    fileEnumerator: JSReadOnlyProperty('_fileEnumerator', null),
 
-    fileAtIndex: function(index){
-        if (index < this._files.length){
-            return this._files[index];
-        }
-        return null;
+    getFileEnumerator: function(){
+        return JSFileEnumerator.initWithFiles(this._files);
     },
 
     getTypes: function(){
