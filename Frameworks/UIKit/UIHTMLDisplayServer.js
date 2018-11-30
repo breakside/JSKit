@@ -258,10 +258,16 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
                 this.layerInserted(layer.sublayers[i]);
             }
         }
-        this.setUpdateNeeded();
+        if (this._isUpdating){
+            if (parentContext !== null){
+                this._flushDOMInsertsAndRemovals();
+            }
+        }else{
+            this.setUpdateNeeded();
+        }
     },
 
-    layerRemoved: function(layer){
+    layerRemoved: function(layer, isRecursive){
         // While it might seem like setting the layer._displayServer property to
         // null is appropirate here, we'll instead do so only in the final removal
         // within _flushDOMInsertsAndRemovals. This allows a layer that is immediately
@@ -278,9 +284,15 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             delete this._insertedLayers[layer.objectID];
         }
         for (var i = 0, l = layer.sublayers.length; i < l; ++i){
-            this.layerRemoved(layer.sublayers[i]);
+            this.layerRemoved(layer.sublayers[i], true);
         }
-        this.setUpdateNeeded();
+        if (this._isUpdating){
+            if (!isRecursive){
+                this._flushDOMInsertsAndRemovals();
+            }
+        }else{
+            this.setUpdateNeeded();
+        }
     },
 
     _flushDOMInsertsAndRemovals: function(){
