@@ -1066,7 +1066,7 @@ JSClass("UIHTMLDataTransferFileEnumerator", JSFileEnumerator, {
             if (htmlEntry && htmlEntry.isDirectory){
                 var reader = htmlEntry.createReader();
                 reader.readEntries(function UIHTMLDataTransferFileEnumerater_nextItem_readEntries_success(htmlEntries){
-                    self._childEnumerator = JSHTMLFileSystemEntryFileEnumerator.initWithHTMLEntries(htmlEntries, htmlEntry.fullPath.substr(1));
+                    self._childEnumerator = JSHTMLFileSystemEntryFileEnumerator.initWithHTMLEntries(htmlEntries, htmlEntry.fullPath.substr(1) + '/');
                     self.next(callback, target);
                 }, function UIHTMLDataTransferFileEnumerater_nextItem_readEntries_error(error){
                     self.next(callback, target);

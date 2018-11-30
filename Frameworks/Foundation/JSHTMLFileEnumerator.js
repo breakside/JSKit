@@ -20,7 +20,7 @@ JSClass("JSHTMLFileListFileEnumerator", JSFileEnumerator, {
             var file = JSHTMLFile.initWithFile(htmlFile);
             var directory = '';
             if (htmlFile.webkitRelativePath){
-                directory = htmlFile.webkitRelativePath.substr(0, htmlFile.webkitRelativePath.length - file.name.length - 1);
+                directory = htmlFile.webkitRelativePath.substr(0, htmlFile.webkitRelativePath.length - file.name.length);
             }
             callback.call(target, directory, file);
         }else{
@@ -70,7 +70,7 @@ JSClass("JSHTMLFileSystemEntryFileEnumerator", JSFileEnumerator, {
             }else if (htmlEntry.isDirectory){
                 var reader = htmlEntry.createReader();
                 reader.readEntries(function JSHTMLFileSystemEntryFileEnumerator_next_readEntries_success(htmlEntries){
-                    self._childEnumerator = JSHTMLFileSystemEntryFileEnumerator.initWithHTMLEntries(htmlEntries, htmlEntry.fullPath.substr(1));
+                    self._childEnumerator = JSHTMLFileSystemEntryFileEnumerator.initWithHTMLEntries(htmlEntries, htmlEntry.fullPath.substr(1) + '/');
                     self.next(callback, target);
                 }, function JSHTMLFileSystemEntryFileEnumerator_next_readEntries_error(error){
                     self.next(callback, target);

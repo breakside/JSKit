@@ -29,7 +29,7 @@ JSClass("JSFileEnumerator", JSObject, {
             if (file === null){
                 callback.call(target, files);
             }else{
-                files.push(file);
+                files.push({directory: directory, file: file});
                 if (files.length < size){
                     this.next(handleFile, this);
                 }else{
