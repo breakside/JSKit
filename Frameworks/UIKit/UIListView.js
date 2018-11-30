@@ -299,15 +299,15 @@ JSClass("UIListView", UIScrollView, {
         // First, remove all visible views so _updateVisibleCells will be forced to load all new cells
         var cell, view;
         var i, l;
-        for (i = 0, l = this._visibleCellViews.length; i < l; ++i){
+        for (i = this._visibleCellViews.length - 1; i >= 0; --i){
             cell = this._visibleCellViews[i];
             this._enqueueReusableCell(cell);
         }
-        for (i = 0, l = this._visibleHeaderViews.length; i < l; ++i){
+        for (i = this._visibleHeaderViews.length - 1; i >= 0; --i){
             view = this._visibleHeaderViews[i];
             this._enqueueReusableHeaderFooter(view);
         }
-        for (i = 0, l = this._visibleFooterViews.length; i < l; ++i){
+        for (i = this._visibleFooterViews.length - 1; i >= 0; --i){
             view = this._visibleFooterViews[i];
             this._enqueueReusableHeaderFooter(view);
         }
