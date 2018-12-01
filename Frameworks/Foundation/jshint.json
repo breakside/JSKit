@@ -64,6 +64,7 @@
         "JSURLSessionStreamTaskDelegate",
         "JSNumberFormatter",
         "JSDateFormatter",
-        "JSUndoManager"
+        "JSUndoManager",
+        "JSFileEnumerator"
     ]
 }
