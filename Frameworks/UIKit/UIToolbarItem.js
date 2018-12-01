@@ -135,9 +135,11 @@ JSClass("UIToolbarItemView", UIView, {
             switch (item.identifier){
                 case UIToolbarItem.Identifier.space:
                     this.contentView = UIToolbarItemSpaceView.initWithWidth(item.minimumWidth ? item.minimumWidth.width : item.toolbar.imageSize);
+                    this._handlesEvents = false;
                     break;
                 case UIToolbarItem.Identifier.flexibleSpace:
                     this.contentView = UIToolbarItemSpaceView.initWithWidth(0);
+                    this._handlesEvents = false;
                     break;
                 default:
                     this.contentView = UIImageView.initWithImage(item.image);
@@ -175,6 +177,7 @@ JSClass("UIToolbarItemView", UIView, {
 
     mouseDown: function(event){
         if (!this._handlesEvents){
+            UIToolbarItemView.$super.mouseDown.call(this, event);
             return;
         }
         if (!this._item.enabled){
@@ -186,6 +189,7 @@ JSClass("UIToolbarItemView", UIView, {
 
     mouseDragged: function(event){
         if (!this._handlesEvents){
+            UIToolbarItemView.$super.mouseDragged.call(this, event);
             return;
         }
         if (!this._item.enabled){
@@ -201,6 +205,7 @@ JSClass("UIToolbarItemView", UIView, {
 
     mouseUp: function(event){
         if (!this._handlesEvents){
+            UIToolbarItemView.$super.mouseUp.call(this, event);
             return;
         }
         if (!this._item.enabled){
