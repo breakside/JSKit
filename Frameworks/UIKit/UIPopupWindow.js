@@ -336,7 +336,7 @@ JSClass("UIPopupWindowStyler", UIWindowStyler, {
                 }
             }
             if (popupArrow){
-                popupArrow.bounds = JSRect(0, 0, arrowSize + arrowSize, arrowSize);
+                popupArrow.bounds = JSRect(0, 0, arrowSize + arrowSize + this.borderWidth + this.borderWidth, arrowSize + this.borderWidth);
                 popupArrow.position = anchorPosition;
                 popupArrow.anchorPoint = JSPoint(0.5, 0);
             }
@@ -389,9 +389,12 @@ JSClass("_UIPopupWindowArrowView", UIView, {
         var bounds = this.bounds;
         var miter = Math.sqrt(2) * this._lineWidth / 2;
         context.beginPath();
-        context.moveToPoint(miter * 1.5, bounds.size.height - miter / 2);
+        context.addRect(bounds);
+        context.clip();
+        context.beginPath();
+        context.moveToPoint(miter, bounds.size.height);
         context.addLineToPoint(bounds.size.width / 2, miter);
-        context.addLineToPoint(bounds.size.width - miter * 1.5, bounds.size.height - miter / 2);
+        context.addLineToPoint(bounds.size.width - miter, bounds.size.height);
         context.drawPath(drawingMode);
     }
 
