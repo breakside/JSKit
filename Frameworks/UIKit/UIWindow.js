@@ -93,7 +93,9 @@ JSClass('UIWindow', UIView, {
         if (this._contentView === null){
             this.contentView = UIView.init();
         }
-        this._contentInsets = JSInsets.Zero;
+        if (this._contentInsets === null){
+            this._contentInsets = JSInsets.Zero;
+        }
         if (this._styler === null){
             if (this.level == UIWindow.Level.back){
                 this._styler = UIWindow.Styler.custom;
@@ -253,7 +255,6 @@ JSClass('UIWindow', UIView, {
     layoutSubviews: function(){
         UIWindow.$super.layoutSubviews.call(this);
         this._styler.layoutWindow(this);
-        this._contentView.frame = this.bounds.rectWithInsets(this._contentInsets);
     },
 
     // -------------------------------------------------------------------------
@@ -345,10 +346,15 @@ JSClass('UIWindow', UIView, {
     },
 
     orderFront: function(){
-        if (this.viewController){
-            this.viewController.viewWillAppear(false);
-        }else if (this._contentViewController){
-            this._contentViewController.viewWillAppear(false);
+        if (this._parent && this._parent.modal === this){
+            this._parent.orderFront();
+        }
+        if (!this._isOpen){
+            if (this.viewController){
+                this.viewController.viewWillAppear(false);
+            }else if (this._contentViewController){
+                this._contentViewController.viewWillAppear(false);
+            }
         }
         this.windowServer.orderWindowFront(this);
         if (!this._isOpen){
@@ -378,6 +384,9 @@ JSClass('UIWindow', UIView, {
         }else if (this._contentViewController){
             this._contentViewController.viewDidDisappear(false);
         }
+        if (this._parent){
+            this._parent._modal = null;
+        }
     },
 
     // -------------------------------------------------------------------------
@@ -394,6 +403,21 @@ JSClass('UIWindow', UIView, {
             return this._application.windowServer;
         }
         return null;
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Modal
+
+    modal: JSDynamicProperty('_modal', null),
+    parent: JSReadOnlyProperty('_parent'),
+
+    setModal: function(modal){
+        if (this._modal !== null){
+            this._modal.modal = modal;
+        }else{
+            this._modal = modal;
+            this._modal._parent = this;
+        }
     },
 
     // -------------------------------------------------------------------------
@@ -424,6 +448,7 @@ JSClass('UIWindow', UIView, {
 
     mouseDragged: function(event){
         if (!this._isMoving){
+            UIWindow.$super.mouseDragged.call(this, event);
             return;
         }
         this._didMove = true;
@@ -601,6 +626,14 @@ JSClass('UIWindow', UIView, {
     mouseDownType: null,
 
     _sendMouseEvent: function(event){
+        var modal = this._modal;
+        while (modal !== null && modal._modal !== null){
+            modal = modal._modal;
+        }
+        if (modal !== null){
+            modal.makeKeyAndOrderFront();
+            return;
+        }
         if (this.mouseEventView === null && event.type == UIEvent.Type.leftMouseDown || event.type == UIEvent.Type.rightMouseDown){
             this.mouseEventView = this.hitTest(event.locationInWindow);
             if (this.receivesAllEvents && this.mouseEventView === null){
@@ -667,6 +700,9 @@ JSClass('UIWindow', UIView, {
     },
 
     _sendGestureEvent: function(event){
+        if (this._modal !== null){
+            return;
+        }
         var view = this.hitTest(event.locationInWindow);
         if (view){
             switch (event.type){
@@ -681,6 +717,9 @@ JSClass('UIWindow', UIView, {
     },
 
     _sendTouchEvent: function(event){
+        if (this._modal !== null){
+            return;
+        }
         var touches = event.touchesInWindow(this);
         var touchesByView = {};
         var view;
@@ -844,6 +883,7 @@ JSClass("UIWindowStyler", JSObject, {
     },
 
     layoutWindow: function(window){
+        window._contentView.frame = window.bounds.rectWithInsets(window._contentInsets);
     },
 
     layoutToolbarView: function(toolbarView){
@@ -1042,6 +1082,7 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
     },
 
     layoutWindow: function(window){
+        UIWindowDefaultStyler.$super.layoutWindow.call(this, window);
         var controlPadding = (this._titlebarSize - this._controlButtonSize) / 2;
         var iconPadding = (this._titlebarSize - this._iconSize) / 2;
         var titleBacking = window.stylerProperties.titleBacking;

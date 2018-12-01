@@ -22,6 +22,7 @@
 // #import "UIKit/UIImageView.js"
 // #import "UIKit/UIWebView.js"
 // #import "UIKit/UIWindow.js"
+// #import "UIKit/UIPopupWindow.js"
 // #import "UIKit/UIToolbar.js"
 // #import "UIKit/UIToolbarItem.js"
 // #import "UIKit/UIViewController.js"
