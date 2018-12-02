@@ -6,7 +6,8 @@
 // #import "UIKit/UIImageView.js"
 // #import "UIKit/UIToolbar.js"
 // #import "UIKit/UIToolbarItem.js"
-/* global JSClass, JSObject, JSGradient, JSTimer, UIView, JSColor, JSBundle, JSImage, JSUserDefaults, JSFont, UIImageView, UILabel, JSSize, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, UIWindowStyler, UIWindowDefaultStyler, UIWindowCustomStyler, UIControl, UIButton, UIButtonCustomStyler, JSPoint, UIApplication, UIEvent, UITouch, UIToolbar, UIToolbarView, UIToolbarItem */
+// #import "UIKit/UIViewPropertyAnimator.js"
+/* global JSClass, JSObject, JSGradient, JSTimer, UIView, JSColor, JSBundle, JSImage, JSUserDefaults, JSFont, UIImageView, UILabel, JSSize, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, UIWindowStyler, UIWindowDefaultStyler, UIWindowCustomStyler, UIControl, UIButton, UIButtonCustomStyler, JSPoint, UIApplication, UIEvent, UITouch, UIToolbar, UIToolbarView, UIToolbarItem, UIViewPropertyAnimator */
 'use strict';
 
 (function(){
@@ -420,6 +421,45 @@ JSClass('UIWindow', UIView, {
         }
     },
 
+    _modalAnimator: null,
+
+    indicateModalStatus: function(){
+        if (this._modalAnimator !== null){
+            return;
+        }
+        var window = this;
+        var alpha = this.alpha;
+        window._modalAnimator = UIViewPropertyAnimator.initWithDuration(0.05);
+        window._modalAnimator.addAnimations(function(){
+            window.alpha = alpha * 0.8;
+        });
+        window._modalAnimator.addCompletion(function(){
+            window._modalAnimator = UIViewPropertyAnimator.initWithDuration(0.05);
+            window._modalAnimator.addAnimations(function(){
+                window.alpha = alpha;
+            });
+            window._modalAnimator.addCompletion(function(){
+                window._modalAnimator = UIViewPropertyAnimator.initWithDuration(0.05);
+                window._modalAnimator.addAnimations(function(){
+                    window.alpha = alpha * 0.8;
+                });
+                window._modalAnimator.addCompletion(function(){
+                    window._modalAnimator = UIViewPropertyAnimator.initWithDuration(0.05);
+                    window._modalAnimator.addAnimations(function(){
+                        window.alpha = alpha;
+                    });
+                    window._modalAnimator.addCompletion(function(){
+                        window._modalAnimator = null;
+                    });
+                    window._modalAnimator.start();
+                });
+                window._modalAnimator.start();
+            });
+            window._modalAnimator.start();
+        });
+        window._modalAnimator.start();
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Events
 
@@ -632,6 +672,7 @@ JSClass('UIWindow', UIView, {
         }
         if (modal !== null){
             modal.makeKeyAndOrderFront();
+            modal.indicateModalStatus();
             return;
         }
         if (this.mouseEventView === null && event.type == UIEvent.Type.leftMouseDown || event.type == UIEvent.Type.rightMouseDown){
