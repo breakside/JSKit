@@ -1,6 +1,6 @@
 // #import "UIKit/UIWindow.js"
 // #import "UIKit/UIViewPropertyAnimator.js"
-/* global JSClass, JSDynamicProperty, UIWindow, UIPopupWindow, UIWindowStyler, UIView, UIViewPropertyAnimator, UIWindowDefaultStyler, JSInsets, JSPoint, JSRect, JSAffineTransform, JSColor, JSContext, UIPopupWindowStyler */
+/* global JSClass, JSDynamicProperty, UIWindow, UIAnimation, UIPopupWindow, UIWindowStyler, UIView, UIViewPropertyAnimator, UIWindowDefaultStyler, JSInsets, JSPoint, JSRect, JSAffineTransform, JSColor, JSContext, UIPopupWindowStyler */
 'use strict';
 
 JSClass("UIPopupWindow", UIWindow, {
@@ -201,7 +201,7 @@ JSClass("UIPopupWindow", UIWindow, {
             var scale = 10 / frame.size.width;
             var window = this;
             if (this.openAnimator === null){
-                var openAnimator = UIViewPropertyAnimator.initWithDuration(0.1);
+                var openAnimator = UIViewPropertyAnimator.initWithDuration(0.15, UIAnimation.Timing.bounce);
                 openAnimator.addAnimations(function(){
                     window.transform = JSAffineTransform.Identity;
                 });

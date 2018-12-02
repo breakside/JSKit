@@ -1,5 +1,5 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, UIAnimation, JSPoint, JSSize, JSRect, JSAffineTransform, JSColor */
+/* global JSClass, JSObject, JSReadOnlyProperty, JSCubicBezier, UIAnimation, JSPoint, JSSize, JSRect, JSAffineTransform, JSColor */
 'use strict';
 
 JSClass('UIAnimation', JSObject, {
@@ -11,9 +11,46 @@ JSClass('UIAnimation', JSObject, {
     }
 });
 
-UIAnimation.linearTimingFunction = function(t){
-    return t;
-};
+UIAnimation.Timing = Object.create({}, {
+    linear: {
+        value: function(t){
+            return t;
+        }
+    },
+
+    cubicBezier: {
+        value: function(controlPoint1, controlPoint2){
+            var curve = JSCubicBezier(JSPoint.Zero, controlPoint1, controlPoint2, JSPoint(1, 1));
+            return function UIAnimation_Timing_cubicBezier(t){
+                var y = curve.yForX(t);
+                if (y.length > 0){
+                    return y[0];
+                }
+                return 0;
+            };
+        }
+    }
+});
+
+Object.defineProperties(UIAnimation.Timing, {
+
+    easeIn: {
+        value: UIAnimation.Timing.cubicBezier(JSPoint(0.4, 0), JSPoint(1, 1))
+    },
+
+    easeOut: {
+        value: UIAnimation.Timing.cubicBezier(JSPoint(0, 0), JSPoint(0.6, 1))
+    },
+
+    easeInOut: {
+        value: UIAnimation.Timing.cubicBezier(JSPoint(0.4, 0), JSPoint(0.6, 1))
+    },
+
+    bounce: {
+        value: UIAnimation.Timing.cubicBezier(JSPoint(0.4, 0.5), JSPoint(0.6, 1.45))
+    }
+
+});
 
 UIAnimation.interpolateNull = function(from, to, progress){
     return from;

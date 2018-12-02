@@ -870,7 +870,13 @@ JSClass("UIWindowStyler", JSObject, {
     toolbarItemSpacing: 7,
 
     init: function(){
-        this.toolbarTitleFont = JSFont.systemFontOfSize(JSFont.Size.detail).fontWithWeight(JSFont.Weight.normal);
+        // Tests that use UIWindow, but don't set a system font, will have null for 
+        // this.toolbarTitleFont.  We should probably fix this by always having
+        // some kind of system font for test applications
+        this.toolbarTitleFont = JSFont.systemFontOfSize(JSFont.Size.detail);
+        if (this.toolbarTitleFont){
+            this.toolbarTitleFont = this.toolbarTitleFont.fontWithWeight(JSFont.Weight.normal);
+        }
         this.toolbarInsets = JSInsets(5);
         this.toolbarTitleColor = JSColor.blackColor;
         this.toolbarDisabledTitleColor = JSColor.initWithWhite(0.5);

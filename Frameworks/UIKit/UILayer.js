@@ -529,6 +529,7 @@ JSClass("UILayer", JSObject, {
             animation.fromValue = this[key];
             animation.duration = transaction.duration;
             animation.delay = transaction.delay;
+            animation.timingFunction = transaction.timingFunction;
             this.addAnimationForKey(animation, key);
             transaction.addAnimation(animation);
         }

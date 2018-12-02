@@ -1,9 +1,9 @@
 // #import "UIKit/UIPropertyAnimation.js"
-/* global JSClass, UIPropertyAnimation, UIAnimation, JSDynamicProperty, JSResolveDottedName, JSPoint, JSSize, JSRect, JSAffineTransform, JSColor */
+/* global JSClass, UIPropertyAnimation, UIBasicAnimation, UIAnimation, JSDynamicProperty, JSResolveDottedName, JSPoint, JSSize, JSRect, JSAffineTransform, JSColor */
 'use strict';
 
 JSClass('UIBasicAnimation', UIPropertyAnimation, {
-    timingFunction: UIAnimation.linearTimingFunction,
+    timingFunction: null,
     duration: JSDynamicProperty('_duration', 0.25),
     delay: JSDynamicProperty('_delay', 0),
     fromValue: JSDynamicProperty('_fromValue', null),
@@ -11,6 +11,11 @@ JSClass('UIBasicAnimation', UIPropertyAnimation, {
     _interpolation: null,
     _t0: null,
     _progress: null,
+
+    initWithKeyPath: function(keyPath){
+        UIBasicAnimation.$super.initWithKeyPath.call(this, keyPath);
+        this.timingFunction = UIAnimation.Timing.linear;
+    },
 
     updateForTime: function(t){
         if (this._t0 === null){

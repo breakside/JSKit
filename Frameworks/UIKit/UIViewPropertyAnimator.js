@@ -15,7 +15,7 @@ JSClass("UIViewPropertyAnimator", JSObject, {
 
     initWithDuration: function(duration, timingFunction){
         this._duration = duration;
-        this._timingFunction = timingFunction || UIAnimation.linearTimingFunction;
+        this._timingFunction = timingFunction || UIAnimation.Timing.linear;
         this.animationBlocks = [];
         this.completionBlocks = [];
         this._completeAnimationsBound = this._completeAnimations.bind(this);

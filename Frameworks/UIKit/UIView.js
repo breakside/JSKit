@@ -727,7 +727,7 @@ UIView.animateWithDuration = function(duration, animations, callback){
     var options = {
         delay: 0,
         duration: duration,
-        timingFunction: UIAnimation.linearTimingFunction
+        timingFunction: UIAnimation.Timing.linear
     };
     UIView.animateWithOptions(options, animations, callback);
 };
@@ -736,7 +736,7 @@ UIView.animateWithOptions = function(options, animations, callback){
     var transaction = UIAnimationTransaction.begin();
     transaction.delay = options.delay || 0;
     transaction.duration = options.duration || 0.25;
-    transaction.timingFunction = options.timingFunction || UIAnimation.linearTimingFunction;
+    transaction.timingFunction = options.timingFunction || UIAnimation.Timing.linear;
     transaction.completionFunction = callback;
     animations();
     UIAnimationTransaction.commit();

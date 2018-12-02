@@ -6,12 +6,28 @@
 JSClass("UIAnimationTests", TKTestSuite, {
 
     testLinearTimingFunction: function(){
-        var x = UIAnimation.linearTimingFunction(10);
-        TKAssertEquals(x, 10);
-        x = UIAnimation.linearTimingFunction(45);
-        TKAssertEquals(x, 45);
-        x = UIAnimation.linearTimingFunction(-10);
-        TKAssertEquals(x, -10);
+        var y = UIAnimation.Timing.linear(10);
+        TKAssertEquals(y, 10);
+        y = UIAnimation.Timing.linear(45);
+        TKAssertEquals(y, 45);
+        y = UIAnimation.Timing.linear(-10);
+        TKAssertEquals(y, -10);
+    },
+
+    testCubicBezierTimingFunction: function(){
+        var cp1 = JSPoint(0.5, 0);
+        var cp2 = JSPoint(0.5, 1);
+        var timing = UIAnimation.Timing.cubicBezier(cp1, cp2);
+        var y = timing(0);
+        TKAssertFloatEquals(y, 0);
+        y = timing(1);
+        TKAssertFloatEquals(y, 1);
+        y = timing(0.5);
+        TKAssertFloatEquals(y, 0.5);
+        y = timing(0.1);
+        TKAssertFloatEquals(y, 0.0146, 0.0001);
+        y = timing(0.9);
+        TKAssertFloatEquals(y, 0.9853, 0.0001);
     },
 
     testInterpolateNull: function(){
@@ -54,6 +70,16 @@ JSClass("UIAnimationTests", TKTestSuite, {
         TKAssertFloatEquals(x, 80);
         x = UIAnimation.interpolateNumber(-4, -4, 0.3);
         TKAssertFloatEquals(x, -4);
+
+
+        x = UIAnimation.interpolateNumber(5, 15, -1);
+        TKAssertFloatEquals(x, -5);
+        x = UIAnimation.interpolateNumber(5, 15, -0.2);
+        TKAssertFloatEquals(x, 3);
+        x = UIAnimation.interpolateNumber(5, 15, 1.3);
+        TKAssertFloatEquals(x, 18);
+        x = UIAnimation.interpolateNumber(5, 15, 2);
+        TKAssertFloatEquals(x, 25);
     },
 
     testInterpolatePoint: function(){
