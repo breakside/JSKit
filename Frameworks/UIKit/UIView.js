@@ -89,6 +89,9 @@ JSClass('UIView', UIResponder, {
         if ("hidden" in values){
             this.hidden = values.hidden;
         }
+        if ("userInteractionEnabled" in values){
+            this.userInteractionEnabled = values.userInteractionEnabled;
+        }
         var i, l;
         if ("subviews" in values){
             for (i = 0, l = values.subviews.length; i < l; ++i){
@@ -686,6 +689,8 @@ JSClass('UIView', UIResponder, {
     // -------------------------------------------------------------------------
     // MARK: - Hit Testing
 
+    userInteractionEnabled: true,
+
     containsPoint: function(point){
         return this.layer.containsPoint(point);
     },
@@ -701,7 +706,7 @@ JSClass('UIView', UIResponder, {
                 hit  = subview.hitTest(locationInSubview);
             }
         }
-        if (hit === null && this.containsPoint(locationInView)){
+        if (hit === null && this.userInteractionEnabled && this.containsPoint(locationInView)){
             hit = this;
         }
         return hit;
