@@ -12,7 +12,7 @@ JSClass("UIPopupWindow", UIWindow, {
     sourceSpacing: JSDynamicProperty('_sourceSpacing', 0),
     isUserMovable: false,
     placement: 0,
-    canBecomeKey: false,
+    canBecomeKey: true,
     _widthTracksContent: true,
     _heightTracksContent: true,
     _actualArrowSize: 0,
