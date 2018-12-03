@@ -47,22 +47,20 @@ JSClass("JSTextFramesetter", JSObject, {
         var widthLimit = size.width || Number.MAX_VALUE;
         var heightLimit = size.height || Number.MAX_VALUE;
         var lineLimit = maximumLines || Number.MAX_VALUE;
-        var spacing;
+        var spacing = 0;
         do{
             lineRange = this._typesetter.suggestLineBreak(widthLimit, remianingRange, this.effectiveLineBreakMode(this.attributes.lineBreakMode, lines.length + 1, lineLimit));
             line = this._typesetter.createLine(lineRange);
             line.origin.y = y;
             y += line.size.height;
             if (y <= heightLimit){
-                spacing = (this.attributes.lineSpacing - 1.0) * line.size.height;
-                if (y + spacing > heightLimit){
-                    line.size.height += heightLimit - y;
-                }else if (spacing > 0){
-                    line.size.height += spacing;
-                }
+                spacing = Math.min(heightLimit - y, (this.attributes.lineSpacing - 1.0) * line.size.height);
+                line.size.height += spacing;
                 y += spacing;
                 lines.push(line);
                 remianingRange.advance(line.range.length);
+            }else{
+                spacing = 0;
             }
         } while (lineRange.length > 0 && remianingRange.length > 0 && y < heightLimit && lines.length < lineLimit);
 

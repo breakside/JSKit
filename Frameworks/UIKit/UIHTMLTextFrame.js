@@ -62,7 +62,7 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             // However, the width may be a non-integer.  We round up because if we don't,
             // the browser may round down when we ask for a line to be X.y pixels wide, and
             // that wouldn't leave enough space for the final character.
-            line._size = JSSize(Math.ceil(lineClientRect.width), lineClientRect.height);
+            line._size = JSSize(Math.ceil(lineClientRect.width), line.size.height);
             y += line._size.height;
             for (j = 0, k = line.runs.length; j < k; ++j){
                 run = line.runs[j];

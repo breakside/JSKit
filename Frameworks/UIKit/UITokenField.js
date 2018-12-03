@@ -25,6 +25,8 @@ JSClass("UITokenField", UITextField, {
         UITokenField.$super.commonUIControlInit.call(this);
         this.tokensView = UIView.initWithFrame(JSRect.Zero);
         this._clipView.addSubview(this.tokensView);
+        var lineHeight = this.font.displayLineHeight;
+        this._textLayer.lineSpacing = (lineHeight + 4) / lineHeight;
         this.setNeedsLayout();
     },
 
