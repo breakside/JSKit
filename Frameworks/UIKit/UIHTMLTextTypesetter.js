@@ -358,6 +358,7 @@ UIHTMLTextTypesetterRunDescriptor.prototype = {
             this.span.style.textDecoration = '';
             this.span.style.color = '';
             this.span.style.backgroundColor = '';
+            this.span.style.pointerEvents = 'all';
         }else{
             this.span.style.display = '';
             this.span.style.width = '';

@@ -252,32 +252,7 @@ JSClass('UIView', UIResponder, {
             if (this._window && this._window.firstResponder === this){
                 this._window.firstResponder = null;
             }
-            var lastWindowServer = null;
-            var newWindowServer = null;
-            if (this._window !== null){
-                lastWindowServer = this._window.windowServer;
-            }
-            if (window !== null){
-                newWindowServer = window.windowServer;
-            }
-            if (lastWindowServer !== newWindowServer){
-                if (this.cursor !== null){
-                    if (lastWindowServer !== null){
-                        lastWindowServer.viewDidChangeCursor(this, null);
-                    }
-                    if (newWindowServer !== null){
-                        newWindowServer.viewDidChangeCursor(this, this.cursor);
-                    }
-                }
-                if (this.mouseTrackingType !== UIView.MouseTracking.none){
-                    if (lastWindowServer !== null){
-                        lastWindowServer.viewDidChangeMouseTracking(this, UIView.MouseTracking.none);
-                    }
-                    if (newWindowServer !== null){
-                        newWindowServer.viewDidChangeMouseTracking(this, this.mouseTrackingType);
-                    }
-                }
-            }
+            this._setWindowServer(window ? window.windowServer : null);
             this._window = window;
             for (var i = 0, l = this.subviews.length; i < l; ++i){
                 this.subviews[i].window = window;
@@ -289,10 +264,39 @@ JSClass('UIView', UIResponder, {
         return this._window;
     },
 
+    _windowServer: null,
+
+    _setWindowServer: function(windowServer, includeSubviews){
+        if (this._windowServer !== windowServer){
+            if (this.cursor !== null){
+                if (this._windowServer !== null){
+                    this._windowServer.viewDidChangeCursor(this, null);
+                }
+                if (windowServer !== null){
+                    windowServer.viewDidChangeCursor(this, this.cursor);
+                }
+            }
+            if (this.mouseTrackingType !== UIView.MouseTracking.none){
+                if (this._windowServer !== null){
+                    this._windowServer.viewDidChangeMouseTracking(this, UIView.MouseTracking.none);
+                }
+                if (windowServer !== null){
+                    windowServer.viewDidChangeMouseTracking(this, this.mouseTrackingType);
+                }
+            }
+            this._windowServer = windowServer;
+            if (includeSubviews){
+                for (var i = 0, l = this.subviews.length; i < l; ++i){
+                    this.subviews[i]._setWindowServer(windowServer, true);
+                }
+            }
+        }
+    },
+
     setCursor: function(cursor){
         this._cursor = cursor;
-        if (this.window !== null && this.window.windowServer !== null){
-            this.window.windowServer.viewDidChangeCursor(this, this.cursor);
+        if (this._windowServer !== null){
+            this._windowServer.viewDidChangeCursor(this, this.cursor);
         }
     },
 
@@ -557,17 +561,15 @@ JSClass('UIView', UIResponder, {
 
     startMouseTracking: function(trackingType){
         this.mouseTrackingType = trackingType;
-        if (this.window !== null){
-            var windowServer = this.window.windowServer;
-            windowServer.viewDidChangeMouseTracking(this, this.mouseTrackingType);
+        if (this._windowServer !== null){
+            this._windowServer.viewDidChangeMouseTracking(this, this.mouseTrackingType);
         }
     },
 
     stopMouseTracking: function(){
         this.mouseTrackingType = UIView.MouseTracking.none;
-        if (this.window !== null){
-            var windowServer = this.window.windowServer;
-            windowServer.viewDidChangeMouseTracking(this, this.mouseTrackingType);
+        if (this._windowServer !== null){
+            this._windowServer.viewDidChangeMouseTracking(this, this.mouseTrackingType);
         }
     },
 
@@ -575,10 +577,10 @@ JSClass('UIView', UIResponder, {
     // MARK: - Drag & Drop Source
 
     beginDraggingSessionWithItems: function(items, event){
-        if (this.window === null){
+        if (this._windowServer === null){
             return;
         }
-        return this.window.windowServer.createDraggingSessionWithItems(items, event, this);
+        return this._windowServer.createDraggingSessionWithItems(items, event, this);
     },
 
     draggingSessionEnded: function(session, operation){

@@ -29,6 +29,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.setupRenderingEnvironment();
         this.setupEventListeners();
         this.displayServer = UIHTMLDisplayServer.initWithRootElement(rootElement);
+        this.displayServer._windowServer = this;
         this.textInputManager = UIHTMLTextInputManager.initWithRootElement(rootElement);
         this.textInputManager.windowServer = this;
         this.screen = UIScreen.initWithFrame(JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight), this.domDocument.defaultView.devicePixelRatio || 1);

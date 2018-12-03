@@ -26,6 +26,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     _displayFrameBound: null,
     contextsByObjectID: null,
     contextClass: null,
+    _windowServer: null,
 
     // -------------------------------------------------------------------------
     // MARK: - HTML Display Setup
@@ -386,6 +387,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     attachmentInserted: function(attachment){
         if (attachment.isKindOfClass(UITextAttachmentView)){
+            attachment.view._setWindowServer(this._windowServer, true);
             var layer = attachment.view.layer;
             this._layerInserted(layer, null);
         }
@@ -393,6 +395,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     attachmentRemoved: function(attachment){
         if (attachment.isKindOfClass(UITextAttachmentView)){
+            attachment.view._setWindowServer(null, true);
             var layer = attachment.view.layer;
             this.layerRemoved(layer);
         }else{
