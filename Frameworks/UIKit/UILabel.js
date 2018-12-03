@@ -88,14 +88,31 @@ JSClass('UILabel', UIView, {
 
     hitTest: function(location){
         var hit = UILabel.$super.hitTest.call(this, location);
+        var index, attachment, attributes, rect, attachmentLocation;
+        var attachmentHit = null;
         if (hit === this){
-            var index = this.layer.textLayoutManager.characterIndexAtPoint;
-            var attributes = this.attributedText.attributesAtIndex(index);
-            var attachment = attributes[JSAttributedString.Attribute.attachment];
+            index = this.layer.textLayoutManager.characterIndexAtPoint(location);
+            if (index < this.attributedText.string.length){
+                attributes = this.attributedText.attributesAtIndex(index);
+                attachment = attributes[JSAttributedString.Attribute.attachment];
+                if (attachment && attachment.isKindOfClass(UITextAttachmentView)){
+                    rect = this.layer.textLayoutManager.rectForCharacterAtIndex(index);
+                    attachmentLocation = location.subtract(rect.origin);
+                    attachmentHit = attachment.view.hitTest(attachmentLocation);
+                    if (attachmentHit !== null){
+                        return attachmentHit;
+                    }
+                }
+            }
+            if (index > 0){
+                index -= 1;
+            }
+            attributes = this.attributedText.attributesAtIndex(index);
+            attachment = attributes[JSAttributedString.Attribute.attachment];
             if (attachment && attachment.isKindOfClass(UITextAttachmentView)){
-                var rect = this.layer.textLayoutManager.rectForCharacterAtIndex(index);
-                var attachmentLocation = location.subtract(rect.origin);
-                var attachmentHit = attachment.view.hitTest(attachmentLocation);
+                rect = this.layer.textLayoutManager.rectForCharacterAtIndex(index);
+                attachmentLocation = location.subtract(rect.origin);
+                attachmentHit = attachment.view.hitTest(attachmentLocation);
                 if (attachmentHit !== null){
                     return attachmentHit;
                 }

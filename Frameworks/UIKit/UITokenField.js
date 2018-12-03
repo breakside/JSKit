@@ -125,7 +125,7 @@ JSClass("UITokenField", UITextField, {
         var view = this._createViewForRepresentedObject(representedObject);
         var attachment = UITextAttachmentView.initWithView(view, this.tokensView);
         attachment.representedObject = representedObject;
-        // attachment.baselineAdjustment = view.labelView.font.displayDescender - view.labelView.textInsets.bottom;
+        // attachment.baselineAdjustment = view.tokenLabel.font.displayDescender - view.tokenLabel.textInsets.bottom;
         return JSAttributedString.initWithAttachment(attachment);
     },
 
@@ -139,13 +139,13 @@ JSClass("UITokenField", UITextField, {
         }
         str = representedObject.toString();
         return UITokenFieldTokenView.initWithString(str, this);
-    }
+    },
 
 });
 
 JSClass("UITokenFieldTokenView", UIView, {
 
-    labelView: null,
+    tokenLabel: null,
     textColor: JSDynamicProperty(),
     font: JSDynamicProperty(),
     tokenInsets: JSDynamicProperty('_tokenInsets', null),
@@ -153,63 +153,71 @@ JSClass("UITokenFieldTokenView", UIView, {
 
     initWithString: function(str, textField){
         UITokenFieldTokenView.$super.init.call(this);
-        this.labelView = UILabel.initWithFrame(this.bounds);
-        this.labelView.textInsets = JSInsets(1, 5);
-        this.labelView.lineBreakMode = JSLineBreakMode.truncateTail;
+        this.tokenLabel = UILabel.initWithFrame(this.bounds);
+        this.tokenLabel.textInsets = JSInsets(1, 5);
+        this.tokenLabel.lineBreakMode = JSLineBreakMode.truncateTail;
+        this.tokenLabel.maximumNumberOfLines = 1;
         this.textField = textField;
-        this.labelView.font = this.textField.font;
-        this.labelView.text = str;
-        this.labelView.backgroundColor = JSColor.initWithRGBA(210/255, 231/255, 251/255, 1.0);
-        this.labelView.borderColor = JSColor.initWithRGBA(116/255, 181/255, 243/255, 1.0);
+        this.tokenLabel.font = this.textField.font;
+        this.tokenLabel.text = str;
+        this.tokenLabel.backgroundColor = JSColor.initWithRGBA(210/255, 231/255, 251/255, 1.0);
+        this.tokenLabel.borderColor = JSColor.initWithRGBA(116/255, 181/255, 243/255, 1.0);
         this.backgroundColor = null;
-        this.labelView.borderWidth = 0.5;
-        this.labelView.cornerRadius = 3.0;
-        this.addSubview(this.labelView);
-        this._tokenInsets = JSInsets(0, 1.5, 0, 1.5);
-        this.labelView.cursor = UICursor.arrow;
+        this.tokenLabel.borderWidth = 0.5;
+        this.tokenLabel.cornerRadius = 3.0;
+        this.addSubview(this.tokenLabel);
+        this._tokenInsets = JSInsets(0, 1.5);
+        this.tokenLabel.cursor = UICursor.arrow;
         this.setNeedsLayout();
     },
 
     getFont: function(){
-        return this.labelView.font;
+        return this.tokenLabel.font;
     },
 
     setFont: function(font){
-        this.labelView.font = font;
+        this.tokenLabel.font = font;
         this.setNeedsLayout();
     },
 
     getTextColor: function(){
-        return this.labelView.textColor;
+        return this.tokenLabel.textColor;
     },
 
     setTextColor: function(textColor){
-        this.labelView.textColor = textColor;
+        this.tokenLabel.textColor = textColor;
+    },
+
+    sizeToFitSize: function(maxSize){
+        var availableWidth = maxSize.width - this._tokenInsets.left - this.tokenInsets.right;
+        this.tokenLabel.sizeToFitSize(JSSize(availableWidth, Number.MAX_VALUE));
+        this.bounds = JSRect(JSPoint.Zero, JSSize(this.tokenLabel.frame.size.width + this._tokenInsets.left + this._tokenInsets.right, this.tokenLabel.frame.size.height));
     },
 
     layoutSubviews: function(){
-        var availableWidth = this.textField.bounds.size.width - this.textField.textInsets.left - this.textField.textInsets.right - this._tokenInsets.left - this._tokenInsets.right;
-        this.labelView.sizeToFit();
-        if (this.labelView.frame.size.width > availableWidth){
-            this.labelView.frame = JSRect(0, 0, availableWidth, this.labelView.frame.size.height);
-        }
-        var ourSize = JSSize(this.labelView.frame.size);
-        ourSize.width += this._tokenInsets.left + this._tokenInsets.right;
-        this.labelView.position = JSPoint(this._tokenInsets.left + this.labelView.frame.size.width / 2.0, ourSize.height / 2.0);
-        this.bounds = JSRect(JSPoint.Zero, ourSize);
+        this.tokenLabel.frame = this.bounds.rectWithInsets(this._tokenInsets);
     },
 
     containsPoint: function(locationInView){
-        return this.labelView.containsPoint(this.layer.convertPointToLayer(locationInView, this.labelView.layer));
+        return this.tokenLabel.containsPoint(this.convertPointToView(locationInView, this.tokenLabel));
     },
 
     hitTest: function(locationInView){
-        return UITokenFieldTokenView.$super.hitTest.call(this, locationInView);
+        return this.tokenLabel.hitTest(this.convertPointToView(locationInView, this.tokenLabel));
     },
 
     mouseDown: function(event){
-        logger.info("mouseDown on %{public}", this.labelView.text);
-    }
+        logger.info("mouseDown on %{public}", this.tokenLabel.text);
+    },
+
+    getFirstBaselineOffsetFromTop: function(){
+        return this.tokenLabel.firstBaselineOffsetFromTop;
+    },
+
+    getLastBaselineOffsetFromBottom: function(){
+        return this.tokenLabel.lastBaselineOffsetFromBottom;
+    },
+
 
 });
 

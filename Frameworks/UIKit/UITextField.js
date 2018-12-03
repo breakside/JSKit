@@ -88,6 +88,7 @@ JSClass("UITextField", UIControl, {
         UITextField.$super.commonUIControlInit.call(this);
         this._textInsets = JSInsets.Zero;
         this._clipView = UIView.init(this.bounds);
+        this._clipView.userInteractionEnabled = false;
         this._clipView.backgroundColor = null;
         this._clipView.clipsToBounds = true;
         this._textLayer = UITextLayer.init();
@@ -339,6 +340,42 @@ JSClass("UITextField", UIControl, {
     getLastBaselineOffsetFromBottom: function(){
         this.layoutIfNeeded();
         return this.layer.convertPointFromLayer(JSPoint(0, this._textLayer.firstBaselineOffsetFromTop), this._textLayer).y;
+    },
+
+    hitTest: function(location){
+        var hit = UITextField.$super.hitTest.call(this, location);
+        var index, attachment, attributes, rect, attachmentLocation;
+        var attachmentHit = null;
+        if (hit === this){
+            var locationInText = this.layer.convertPointToLayer(location, this._textLayer);
+            index = this._textLayer.textLayoutManager.characterIndexAtPoint(locationInText);
+            if (index < this.attributedText.string.length){
+                attributes = this.attributedText.attributesAtIndex(index);
+                attachment = attributes[JSAttributedString.Attribute.attachment];
+                if (attachment && attachment.isKindOfClass(UITextAttachmentView)){
+                    rect = this._textLayer.textLayoutManager.rectForCharacterAtIndex(index);
+                    attachmentLocation = locationInText.subtract(rect.origin);
+                    attachmentHit = attachment.view.hitTest(attachmentLocation);
+                    if (attachmentHit !== null){
+                        return attachmentHit;
+                    }
+                }
+            }
+            if (index > 0){
+                index -= 1;
+            }
+            attributes = this.attributedText.attributesAtIndex(index);
+            attachment = attributes[JSAttributedString.Attribute.attachment];
+            if (attachment && attachment.isKindOfClass(UITextAttachmentView)){
+                rect = this._textLayer.textLayoutManager.rectForCharacterAtIndex(index);
+                attachmentLocation = locationInText.subtract(rect.origin);
+                attachmentHit = attachment.view.hitTest(attachmentLocation);
+                if (attachmentHit !== null){
+                    return attachmentHit;
+                }
+            }
+        }
+        return hit;
     },
 
     // --------------------------------------------------------------------

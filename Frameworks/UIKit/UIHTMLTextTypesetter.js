@@ -16,7 +16,6 @@ var layoutElementIndex = 0;
 JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
 
     domDocument: JSReadOnlyProperty('_domDocument'),
-    attachmentSuperview: null,
     _cachedLayout: null,
     _suggestionCache: null,
     _htmlDisplayServer: null,
