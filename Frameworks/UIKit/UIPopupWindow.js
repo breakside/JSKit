@@ -220,6 +220,51 @@ JSClass("UIPopupWindow", UIWindow, {
         this.makeKeyAndOrderFront();
     },
 
+    openCenteredInView: function(view, animated){
+        if (animated === undefined){
+            animated = true;
+        }
+        var sourceFrame = view.convertRectToScreen(view.bounds);
+        var safeFrame = view.window.screen.availableFrame;
+
+        this.sizeToFit();
+        var frame = JSRect(this.frame);
+        if (frame.size.width > safeFrame.size.width){
+            frame.size.width = safeFrame.size.width;
+        }
+        if (frame.size.height > safeFrame.size.height){
+            frame.size.height = safeFrame.size.height;
+        }
+        this.showsSourceArrow = false;
+        this.frame = frame;
+        this.anchorPoint = JSPoint(0.5, 0.5);
+        this.position = sourceFrame.center;
+
+        // Create animated opening, closing
+        if (animated){
+            var scale = 10 / frame.size.width;
+            var window = this;
+            if (this.openAnimator === null){
+                var openAnimator = UIViewPropertyAnimator.initWithDuration(0.15, UIAnimation.Timing.bounce);
+                openAnimator.addAnimations(function(){
+                    window.transform = JSAffineTransform.Identity;
+                });
+                this.openAnimator = openAnimator;
+                this.transform = JSAffineTransform.Scaled(scale, scale);
+            }
+            if (this.closeAnimator === null){
+                var closeAnimator = UIViewPropertyAnimator.initWithDuration(0.1);
+                closeAnimator.addAnimations(function(){
+                    window.transform = JSAffineTransform.Scaled(scale, scale);
+                });
+                this.closeAnimator = closeAnimator;
+            }
+        }
+
+        this.makeKeyAndOrderFront();
+
+    },
+
     _modalAnimator: null,
 
     indicateModalStatus: function(){
