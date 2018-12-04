@@ -60,6 +60,7 @@
 // #import "UIKit/UIPopupButton.js"
 // #import "UIKit/UITabView.js"
 // #import "UIKit/UIScroller.js"
+// #import "UIKit/UISegmentedControl.js"
 
 // Lists
 // #import "UIKit/UIListView.js"

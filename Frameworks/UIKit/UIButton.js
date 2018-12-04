@@ -364,7 +364,6 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
 
     initializeControl: function(button){
         UIButtonDefaultStyler.$super.initializeControl.call(this, button);
-        button.layer.borderWidth = 1;
         button.layer.cornerRadius = 3;
         button.layer.shadowColor = this.shadowColor;
         button.layer.shadowOffset = JSPoint(0, 1);

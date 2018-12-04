@@ -1,6 +1,6 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UILabel.js"
-/* global JSClass, JSObject, JSFont, JSCopy, JSProtocol, JSSize, JSRect, JSInsets, JSColor, JSImage, JSPoint, JSReadOnlyProperty, JSDynamicProperty, UIView, UITabView, UILabel, JSLazyInitProperty, UILayer, UITabViewItemsView, UITabViewItemView, UITabViewStyler, UITabViewItem, UIImageView, UITabViewDefaultStyler, UITabViewContentContainer, UITabViewImagesStyler */
+/* global JSClass, JSObject, JSFont, JSCopy, JSProtocol, JSSize, JSRect, JSInsets, JSColor, JSImage, JSPoint, JSReadOnlyProperty, JSDynamicProperty, UIView, UITabView, UILabel, JSLazyInitProperty, UILayer, UITabViewItemsView, UITabViewItemView, UITabViewStyler, UITabViewItem, UIImageView, UITabViewDefaultStyler, UITabViewContentContainer, UITabViewImagesStyler, UITabViewTablessStyler */
 'use strict';
 
 (function(){
@@ -697,6 +697,14 @@ UITabView.Styler = Object.defineProperties({}, {
         },
         set: function UITabView_setDefaultStyler(styler){
             Object.defineProperty(this, 'default', {writable: true, value: styler});
+        }
+    },
+
+    tabless: {
+        get: function UITabView_getTablessStyler(){
+            var styler = UITabViewTablessStyler.init();
+            Object.defineProperty(this, 'tabless', {writable: true, value: styler});
+            return styler;
         }
     }
 });
