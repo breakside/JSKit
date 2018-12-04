@@ -19,14 +19,21 @@ JSClass("UIPopupButton", UIControl, {
     _selectedItem: null,
     maxTitleWidth: JSDynamicProperty('_maxTitleWidth', null),
     _imageTitleSpacing: 3,
+    pullsDown: JSDynamicProperty('_pullsDown', false),
 
     initWithSpec: function(spec, values){
+        if ('pullsDown' in values){
+            this._pullsDown = values.pullsDown;
+        }
         UIPopupButton.$super.initWithSpec.call(this, spec, values);
         if ('font' in values){
             this._titleLabel.font = JSFont.initWithSpec(spec, values.font);
         }
         if ('title' in values){
             this._titleLabel.text = spec.resolvedValue(values.title);
+        }
+        if ('image' in values){
+            this._imageView.image = JSImage.initWithResourceName(values.image, spec.bundle);
         }
         if ('options' in values){
             for (var i = 0, l = values.options.length; i < l; ++i){
@@ -43,8 +50,9 @@ JSClass("UIPopupButton", UIControl, {
         this._titleLabel = UILabel.init();
         this._titleLabel.backgroundColor = JSColor.clearColor;
         this._titleLabel.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
-        this._indicatorView = UIImageView.initWithImage(images.popupIndicator);
+        this._indicatorView = UIImageView.init();
         this._indicatorView.renderMode = UIImageView.RenderMode.template;
+        this._updateIndicatorView();
         this._titleInsets = JSInsets.Zero;
         this.addSubview(this._indicatorView);
         this.addSubview(this._imageView);
@@ -54,6 +62,19 @@ JSClass("UIPopupButton", UIControl, {
         }
         this.hasOverState = this._styler.showsOverState;
         this._styler.initializeControl(this);
+    },
+
+    setPullsDown: function(pullsDown){
+        this._pullsDown = pullsDown;
+        this._updateIndicatorView();
+    },
+
+    _updateIndicatorView: function(){
+        if (this._pullsDown){
+            this._indicatorView.image = images.pulldownIndicator;
+        }else{
+            this._indicatorView.image = images.popupIndicator;
+        }
     },
 
     // MARK: - Adding Items
@@ -117,12 +138,17 @@ JSClass("UIPopupButton", UIControl, {
             this.active = true;
             if (this.menu.items.length > 0){
                 this.menu.font = this.titleLabel.font;
-                var itemTitleOffset = this.menu.itemTitleOffset;
-                var targetView = this._imageView.hidden ? this._titleLabel : this._imageView;
-                var itemOrigin = JSPoint(targetView.frame.origin.x - itemTitleOffset.x, targetView.frame.origin.y - itemTitleOffset.y);
-                this.menu.minimumWidth = this.indicatorView.frame.origin.x - itemOrigin.x;
                 this.menu.delegate = this;
-                this.menu.openWithItemAtLocationInView(this._selectedItem, itemOrigin, this);
+                if (this._pullsDown){
+                    this.menu.minimumWidth = this.frame.size.width;
+                    this.menu.openAdjacentToView(this, UIMenu.Placement.below, 1);
+                }else{
+                    var itemTitleOffset = this.menu.itemTitleOffset;
+                    var targetView = this._imageView.hidden ? this._titleLabel : this._imageView;
+                    var itemOrigin = JSPoint(targetView.frame.origin.x - itemTitleOffset.x, targetView.frame.origin.y - itemTitleOffset.y);
+                    this.menu.minimumWidth = this.indicatorView.frame.origin.x - itemOrigin.x;
+                    this.menu.openWithItemAtLocationInView(this._selectedItem, itemOrigin, this);
+                }
                 this._isMenuOpen = true;
             }
         }else{
@@ -180,6 +206,9 @@ JSClass("UIPopupButton", UIControl, {
     },
 
     _updateTitleForItem: function(item){
+        if (this._pullsDown){
+            return;
+        }
         if (item === null){
             this._titleLabel.text = "";
             this._imageView.image = null;
@@ -270,6 +299,10 @@ JSClass("UIPopupButtonDefaultStyler", UIPopupButtonStyler, {
     normalTitleColor: null,
     disabledTitleColor: null,
     activeTitleColor: null,
+    borderWidth: 1,
+    cornerRadius: 3,
+    shadowRadius: 1,
+    indicatorSpacing: 0,
 
     init: function(){
         this.titleInsets = JSInsets(3, 7, 3, 4);
@@ -286,11 +319,11 @@ JSClass("UIPopupButtonDefaultStyler", UIPopupButtonStyler, {
 
     initializeControl: function(button){
         button.titleInsets = this.titleInsets;
-        button.layer.borderWidth = 1;
-        button.layer.cornerRadius = 3;
+        button.layer.borderWidth = this.borderWidth;
+        button.layer.cornerRadius = this.cornerRadius;
         button.layer.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
         button.layer.shadowOffset = JSPoint(0, 1);
-        button.layer.shadowRadius = 1;
+        button.layer.shadowRadius = this.shadowRadius;
         this.updateControl(button);
     },
 
@@ -328,15 +361,24 @@ JSClass("UIPopupButtonDefaultStyler", UIPopupButtonStyler, {
             button._imageView.frame = JSRect(x, insets.top, imageSize, imageSize);
             x += imageSize + button._imageTitleSpacing;
         }
-        button.titleLabel.frame = JSRect(x, insets.top, button.indicatorView.frame.origin.x - x, height);
+        button.titleLabel.frame = JSRect(x, insets.top, button.indicatorView.frame.origin.x - x - this.indicatorSpacing, height);
     },
 
     intrinsicSizeOfControl: function(button){
         var size = JSSize(button._titleInsets.left + button._titleInsets.right, button._titleInsets.top + button._titleInsets.bottom);
-        var titleSize = JSSize(button.maxTitleWidth, button._titleLabel.font.displayLineHeight);
+        var titleSize;
+        if (button._pullsDown){
+            titleSize = button._titleLabel.intrinsicSize;
+        }else{
+            titleSize = JSSize(button.maxTitleWidth, button._titleLabel.font.displayLineHeight);
+        }
         var imageSize = button._titleLabel.font.displayLineHeight;
+        if (button._imageView.image !== null){
+            size.width += imageSize + button._imageTitleSpacing;
+        }
         size.width += titleSize.width;
         size.height += titleSize.height;
+        size.width += this.indicatorSpacing;
         var indicatorSize = JSSize(titleSize.height, titleSize.height);
         size.width += indicatorSize.width;
         return size;
@@ -388,6 +430,14 @@ var images = Object.create({}, {
             return this.popupIndicator;
         }
     },
+
+    pulldownIndicator: {
+        configurable: true,
+        get: function(){
+            Object.defineProperty(this, 'pulldownIndicator', {value: JSImage.initWithResourceName("UIPopupButtonPullsDownIndicator", this.bundle) });
+            return this.pulldownIndicator;
+        }
+    }
 
 });
 })();

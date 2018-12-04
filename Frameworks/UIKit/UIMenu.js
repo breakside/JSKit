@@ -289,9 +289,12 @@ JSClass("UIMenu", JSObject, {
         };
     },
 
-    openAdjacentToView: function(view, preferredPlacement){
+    openAdjacentToView: function(view, preferredPlacement, spacing){
         if (preferredPlacement === undefined){
             preferredPlacement = UIMenu.Placement.below;
+        }
+        if (spacing === undefined){
+            spacing = 0;
         }
         var window = this._createWindow(view.window.screen);
         var screen = this._screenMetrics(view.window.screen);
@@ -314,28 +317,28 @@ JSClass("UIMenu", JSObject, {
         var viewFrame = view.convertRectToScreen(view.bounds);
         var over;
         var spaces = {
-            above: viewFrame.origin.y - screen.safeFrame.origin.y,
-            below: screen.safeFrame.origin.y + screen.safeFrame.size.height - viewFrame.origin.y - viewFrame.size.height,
-            left: viewFrame.origin.x - screen.safeFrame.origin.x,
-            right: screen.safeFrame.origin.x + screen.safeFrame.size.width - viewFrame.origin.x - viewFrame.size.width
+            above: viewFrame.origin.y - screen.safeFrame.origin.y - spacing,
+            below: screen.safeFrame.origin.y + screen.safeFrame.size.height - viewFrame.origin.y - viewFrame.size.height - spacing,
+            left: viewFrame.origin.x - screen.safeFrame.origin.x - spacing,
+            right: screen.safeFrame.origin.x + screen.safeFrame.size.width - viewFrame.origin.x - viewFrame.size.width - spacing
         };
 
         if (preferredPlacement == UIMenu.Placement.above){
             if (spaces.above >= size.height){
                 // Place above if there's room
-                origin.y = viewFrame.origin.y - size.height;
+                origin.y = viewFrame.origin.y - size.height - spacing;
             }else if (spaces.above * 2 > spaces.below){
                 // Place above and adjust height if there's not enough room,
                 // but the room that is availble is still preferable to below
                 origin.y = screen.safeFrame.origin.y;
-                size.height = viewFrame.origin.y - origin.y;
+                size.height = viewFrame.origin.y - origin.y - spacing;
             }else if (spaces.below >= size.height){
                 // Place below if there's room
-                origin.y = viewFrame.origin.y + viewFrame.size.height;
+                origin.y = viewFrame.origin.y + viewFrame.size.height + spacing;
             }else{
                 // Place below and adjust height if there's not enough room
-                origin.y = viewFrame.origin.y + viewFrame.size.height;
-                size.height = screen.safeFrame.origin.y + screen.safeFrame.size.height - origin.y;
+                origin.y = viewFrame.origin.y + viewFrame.size.height + spacing;
+                size.height = screen.safeFrame.origin.y + screen.safeFrame.size.height - origin.y - spacing;
             }
             // Prefer to line up with the left edge
             origin.x = viewFrame.origin.x;
@@ -343,10 +346,10 @@ JSClass("UIMenu", JSObject, {
             if (spaces.left >= size.width || spaces.left > spaces.right){
                 // Place to the left if there's enough room, or if there's
                 // more room than on the right
-                origin.x = viewFrame.origin.x - size.width;
+                origin.x = viewFrame.origin.x - size.width - spacing;
             }else{
                 // Place to the right otherwise
-                origin.x = viewFrame.origin.x + viewFrame.size.width;
+                origin.x = viewFrame.origin.x + viewFrame.size.width + spacing;
             }
             // Prefer to line up with the top edge
             origin.y = viewFrame.origin.y;
@@ -354,29 +357,29 @@ JSClass("UIMenu", JSObject, {
             if (spaces.right >= size.width || spaces.right > spaces.left){
                 // Place to the right if there's enough room, or if there's more
                 // room than on the left
-                origin.x = viewFrame.origin.x + viewFrame.size.width;
+                origin.x = viewFrame.origin.x + viewFrame.size.width + spacing;
             }else{
                 // Place to the left otherwise
-                origin.x = viewFrame.origin.x - size.width;
+                origin.x = viewFrame.origin.x - size.width - spacing;
             }
             // Prefer to line up with the top edge
             origin.y = viewFrame.origin.y;
         }else{
             if (spaces.below >= size.height){
                 // Place below if there's enough room
-                origin.y = viewFrame.origin.y + viewFrame.size.height;
+                origin.y = viewFrame.origin.y + viewFrame.size.height + spacing;
             }else if (spaces.below * 2 > spaces.above){
                 // Place below and adjust height if there's not enough room,
                 // but the available room is still preferable to above
-                origin.y = viewFrame.origin.y + viewFrame.size.height;
-                size.height = screen.safeFrame.origin.y + screen.safeFrame.size.height - origin.y;
+                origin.y = viewFrame.origin.y + viewFrame.size.height + spacing;
+                size.height = screen.safeFrame.origin.y + screen.safeFrame.size.height - origin.y - spacing;
             }else if (spaces.above >= size.height){
                 // Place above if there's enough room
-                origin.y = viewFrame.origin.y - size.height;
+                origin.y = viewFrame.origin.y - size.height - spacing;
             }else{
                 // Place above and adjust height if there's not enough room
                 origin.y = screen.safeFrame.origin.y;
-                size.height = viewFrame.origin.y - origin.y;
+                size.height = viewFrame.origin.y - origin.y - spacing;
             }
             // Prefer to line up iwth the left edge
             origin.x = viewFrame.origin.x;
