@@ -66,6 +66,10 @@
         "UIPopupWindow",
         "UISegmentedControl",
         "UISegmentedControlStyler",
-        "UISegmentedControlDefaultStyler"
+        "UISegmentedControlDefaultStyler",
+        "UIAlertController",
+        "UIAlertAction",
+        "UIToolbar",
+        "UIToolbarItem"
     ]
 }

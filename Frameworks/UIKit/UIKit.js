@@ -84,4 +84,9 @@
 // #import "UIKit/UIMenuView.js"
 // #import "UIKit/UIMenuBar.js"
 
+
+// Alerts
+// #import "UIKit/UIAlertController.js"
+// #import "UIKit/UIAlertAction.js"
+
 'use strict';
