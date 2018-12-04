@@ -280,7 +280,7 @@ JSClass("UIButtonStyler", UIControlStyler, {
             titleSize = button._titleLabel.intrinsicSize;
             if (image !== null){
                 size.width += image.size.width + button._titleInsets.left + titleSize.width;
-                size.height = Math.max(image.size.height, titleSize.height);
+                size.height += Math.max(image.size.height, titleSize.height);
             }else{
                 size.width += titleSize.width;
                 size.height += titleSize.height;
@@ -303,10 +303,10 @@ JSClass("UIButtonStyler", UIControlStyler, {
                 var imageSize = Math.min(contentRect.size.width, contentRect.size.height);
                 button._imageView.frame = JSRect(contentRect.origin, JSSize(imageSize, imageSize));
                 var x = contentRect.origin.x + imageSize + button._titleInsets.left;
-                var w = Math.max(0, contentRect.size.width - x);
+                var w = Math.max(0, contentRect.origin.x + contentRect.size.width - x);
                 var titleSize = button._titleLabel.intrinsicSize;
                 var y = (contentRect.size.height - titleSize.height) / 2;
-                button._titleLabel.frame = JSRect(x, y, w, titleSize.height);
+                button._titleLabel.frame = JSRect(x, contentRect.origin.y + y, w, titleSize.height);
             }else{
                 button._titleLabel.frame = button.bounds.rectWithInsets(button._titleInsets);
             }

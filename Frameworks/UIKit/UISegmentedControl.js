@@ -1,7 +1,7 @@
 // #import "UIKit/UIControl.js"
 // #import "UIKit/UILabel.js"
 // #import "UIKit/UIImageView.js"
-/* global JSClass, JSObject, JSImage, JSFont, JSColor, JSInsets, JSPoint, JSSize, JSRect, JSLazyInitProperty, JSReadOnlyProperty, JSDynamicProperty, UILayer, UIView, UIControl, UILabel, UIImageView, UIControlStyler, UISegmentedControl, UISegmentedControlStyler, UISegmentedControlDefaultStyler, UISegmentedControlCustomStyler, UISegmentedControlItemView, UISegmentedControlItem */
+/* global JSClass, JSObject, JSTextAlignment, JSImage, JSFont, JSColor, JSInsets, JSPoint, JSSize, JSRect, JSLazyInitProperty, JSReadOnlyProperty, JSDynamicProperty, UILayer, UIView, UIControl, UILabel, UIImageView, UIControlStyler, UISegmentedControl, UISegmentedControlStyler, UISegmentedControlDefaultStyler, UISegmentedControlCustomStyler, UISegmentedControlItemView, UISegmentedControlItem */
 'use strict';
 
 JSClass("UISegmentedControl", UIControl, {
@@ -29,10 +29,10 @@ JSClass("UISegmentedControl", UIControl, {
                     item.title = spec.resolvedValue(specItem.title);
                 }
                 if (specItem.image){
-                    item.image = JSImage.initWithResouceName(specItem.image, spec.bundle);
+                    item.image = JSImage.initWithResourceName(specItem.image, spec.bundle);
                 }
                 if (specItem.selectedImage){
-                    item.selectedImage = JSImage.initWithResouceName(specItem.selectedImage, spec.bundle);
+                    item.selectedImage = JSImage.initWithResourceName(specItem.selectedImage, spec.bundle);
                 }
                 if (specItem.tooltip){
                     item.tooltip = spec.resolvedValue(specItem.tooltip);
@@ -293,6 +293,7 @@ JSClass("UISegmentedControlItemView", UIView, {
 
     _createTitleLabel: function(){
         var label = UILabel.init();
+        label.textAlignment = JSTextAlignment.center;
         this.addSubview(label);
         return label;
     },
@@ -537,7 +538,7 @@ JSClass("UISegmentedControlDefaultStyler", UISegmentedControlStyler, {
 
     intrinsicSizeOfControl: function(control){
         var itemView;
-        var size = JSSize();
+        var size = JSSize.Zero;
         var itemSize;
         for (var i = 0, l = control._itemViews.length; i < l; ++i){
             itemView = control._itemViews[i];
@@ -551,17 +552,23 @@ JSClass("UISegmentedControlDefaultStyler", UISegmentedControlStyler, {
     },
 
     intrinsicSizeOfItemView: function(itemView){
-        var font = itemView.segmentControl.font;
-        var imageSize = font.displayAscender;
-        var size = JSSize(this.titleInsets.left + itemView.segmentControl.titleInsets.right, itemView.segmentControl.titleInsets.top + font.displayLineHeight + itemView.segmentControl.titleInsets.bottom);
+        var size = JSSize(itemView.segmentControl.titleInsets.left + itemView.segmentControl.titleInsets.right, itemView.segmentControl.titleInsets.top + itemView.segmentControl.titleInsets.bottom);
+        var titleSize;
+        var imageSize;
+        var image = itemView.item.image;
         if (itemView._titleLabel !== null && !itemView._titleLabel.hidden){
-            size.width += Math.ceil(itemView._titleLabel.intrinsicSize.width);
-        }
-        if (itemView._imageView !== null && !itemView._imageView.hidden){
-            size.width += imageSize;
-            if (itemView._titleLabel !== null && !itemView._titleLabel.hidden){
-                 size.width += this.imageSpacing;
+            titleSize = itemView._titleLabel.intrinsicSize;
+            titleSize.width = Math.ceil(titleSize.width);
+            if (image !== null){
+                size.width += image.size.width + this.imageSpacing + titleSize.width;
+                size.height += Math.max(image.size.height, titleSize.height);
+            }else{
+                size.width += titleSize.width;
+                size.height += titleSize.height;
             }
+        }else if (image !== null){
+            size.width += image.size.width;
+            size.height += image.size.height;
         }
         return size;
     },
@@ -604,15 +611,23 @@ JSClass("UISegmentedControlDefaultStyler", UISegmentedControlStyler, {
     },
 
     layoutItemView: function(itemView){
-        var center = itemView.bounds.center;
-        var imageSize = 0;
-        if (itemView._imageView !== null && !itemView._imageView.hidden){
-            imageSize = itemView._imageView.frame.size.width;
-            itemView._imageView.position = JSPoint(itemView.segmentControl.titleInsets.left + imageSize / 2, center.y);
-        }
         if (itemView._titleLabel !== null && !itemView._titleLabel.hidden){
-            itemView._titleLabel.position = JSPoint(center.x + imageSize / 2 + this.imageSpacing, center.y);
+            if (itemView._imageView !== null && !itemView._imageView.hidden){
+                var contentRect = itemView.bounds.rectWithInsets(itemView.segmentControl.titleInsets);
+                var imageSize = Math.min(contentRect.size.width, contentRect.size.height);
+                itemView._imageView.frame = JSRect(contentRect.origin, JSSize(imageSize, imageSize));
+                var x = contentRect.origin.x + imageSize + this.imageSpacing;
+                var w = Math.max(0, contentRect.origin.x + contentRect.size.width - x);
+                var titleSize = itemView._titleLabel.intrinsicSize;
+                var y = (contentRect.size.height - titleSize.height) / 2;
+                itemView._titleLabel.frame = JSRect(x, contentRect.origin.y + y, w, titleSize.height);
+            }else{
+                itemView._titleLabel.frame = itemView.bounds.rectWithInsets(itemView.segmentControl.titleInsets);
+            }
+        }else if (itemView._imageView !== null && !itemView._imageView.hidden){
+            itemView._imageView.frame = itemView.bounds.rectWithInsets(itemView.segmentControl.titleInsets);
         }
+
         itemView.stylerProperties.leftSeparator.frame = JSRect(0, 0, 0.5, itemView.bounds.size.height);
         itemView.stylerProperties.rightSeparator.frame = JSRect(itemView.bounds.size.width - 0.5, 0, 0.5, itemView.bounds.size.height);
     }

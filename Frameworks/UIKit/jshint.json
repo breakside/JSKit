@@ -63,6 +63,9 @@
         "UIStackView",
         "UIOpenPanel",
         "UISavePanel",
-        "UIPopupWindow"
+        "UIPopupWindow",
+        "UISegmentedControl",
+        "UISegmentedControlStyler",
+        "UISegmentedControlDefaultStyler"
     ]
 }
