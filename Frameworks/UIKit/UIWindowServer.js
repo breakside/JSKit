@@ -446,6 +446,7 @@ JSClass("UIWindowServer", JSObject, {
     _rightClickCount: 0,
     _previousLeftClickTimestamp: 0,
     _previousRightClickTimestamp: 1,
+    _previousMouseEventWindow: null,
 
     createMouseEvent: function(type, timestamp, location, modifiers){
         var isADown = false;
@@ -480,6 +481,22 @@ JSClass("UIWindowServer", JSObject, {
             return;
         }
 
+        if (isADown){
+            this._mouseIdleTimer.invalidate();
+            if (this._tooltipWindow !== null){
+                this.hideTooltip();
+            }
+            if (this.mouseDownCount === 0 && this._draggingSession === null){
+                this.mouseEventWindow = this.windowForEventAtLocation(location);
+                if (this.mouseEventWindow !== this._previousMouseEventWindow){
+                    this._leftClickCount = 0;
+                    this._rightClickCount = 0;
+                }
+                this._previousMouseEventWindow = null;
+            }
+            ++this.mouseDownCount;
+        }
+
         switch (type){
             case UIEvent.Type.leftMouseDown:
                 if (timestamp - this._previousLeftClickTimestamp > UIEvent.doubleClickInterval){
@@ -512,23 +529,13 @@ JSClass("UIWindowServer", JSObject, {
                 break;
         }
 
-        if (isADown){
-            this._mouseIdleTimer.invalidate();
-            if (this._tooltipWindow !== null){
-                this.hideTooltip();
-            }
-            if (this.mouseDownCount === 0 && this._draggingSession === null){
-                this.mouseEventWindow = this.windowForEventAtLocation(location);
-            }
-            ++this.mouseDownCount;
-        }
-
         var event;
         var targetWindow = this.mouseEventWindow;
 
         if (isAnUp){
             --this.mouseDownCount;
             if (this.mouseDownCount === 0){
+                this._previousMouseEventWindow = this.mouseEventWindow;
                 this.mouseEventWindow = null;
             }
         }
