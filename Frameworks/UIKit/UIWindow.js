@@ -672,7 +672,9 @@ JSClass('UIWindow', UIView, {
         }
         if (modal !== null){
             modal.makeKeyAndOrderFront();
-            modal.indicateModalStatus();
+            if (event.type == UIEvent.Type.leftMouseDown || event.type == UIEvent.Type.leftMouseDragged || event.type == UIEvent.Type.rightMouseDown){
+                modal.indicateModalStatus();
+            }
             return;
         }
         if (this.mouseEventView === null && event.type == UIEvent.Type.leftMouseDown || event.type == UIEvent.Type.rightMouseDown){
