@@ -1,99 +1,419 @@
 // #import "Foundation/Foundation.js"
 // #import "PDFKit/PDFTypes.js"
-/* global JSClass, JSObject, PDFReader, JSData, PDFIndirectObject, PDFNameObject */
+// #import "PDFKit/PDFFilter.js"
+/* global JSClass, JSObject, JSReadOnlyProperty, PDFReader, PDFReaderStream, PDFReaderDataStream, JSData, PDFFilter */
+/* global PDFIndirectObject, PDFNameObject, PDFObject, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFStreamObject, PDFTrailerObject, PDFFontObject, PDFType1FontObject, PDFTrueTypeFontObject, PDFImageObject, PDFColorSpaceObject */
 'use strict';
+
+(function(){
 
 JSClass("PDFReader", JSObject, {
 
-    offest: 0,
-    length: 0,
-    data: null,
+    // MARK: - Creating a reader
+
+    initWithStream: function(stream){
+        this._stream = stream;
+    },
 
     initWithData: function(data){
-        this.data = data;
-        this.length = data.length;
-        this.offset = 0;
+        var stream = PDFReaderDataStream.initWithData(data);
+        this.initWithStream(stream);
     },
 
-    _readByte: function(){
-        return this.data[this.offset++];
-    },
+    // MARK: - Reading
 
-    _backByte: function(){
-        --this.offset;
-    },
-
-    _readObject: function(){
-        var byte = this._readByte();
-        if (byte === undefined){
-            return undefined;
+    getDocument: function(){
+        if (this._document === null){
+            this._readVersion();
+            this._readEndOfFile();
+            this._crossReferenceTable = [];
+            this._readCrossReferenceTable(this._crossReferenceTableOffet);
+            this._document = this._trailer.Root;
         }
-        if (byte == PDFReader.Delimiters.solidus){
-            return this._readNameObject();
+        return this._document;
+    },
+
+    // MARK: - Internal data structures
+
+    _stream: null,
+    _crossReferenceTableOffet: null,
+    _crossReferenceTable: null,
+    _trailer: null,
+    _document: null,
+
+    // MARK: - File Structure
+
+    _readVersion: function(){
+        var data = this._stream.readLine();
+        if (data.length < 8){
+            throw new Error("Expecting %PDF-1.x at start");
+        }
+        if (data.bytes[0] != 0x25){  // %
+            throw new Error("Expecting %PDF-1.x at start");
+        }
+        if (data.bytes[1] != 0x50){  // P
+            throw new Error("Expecting %PDF-1.x at start");
+        }
+        if (data.bytes[2] != 0x44){  // D
+            throw new Error("Expecting %PDF-1.x at start");
+        }
+        if (data.bytes[3] != 0x46){  // F
+            throw new Error("Expecting %PDF-1.x at start");
+        }
+        if (data.bytes[4] != 0x2D){  // -
+            throw new Error("Expecting %PDF-1.x at start");
+        }
+        if (data.bytes[5] != 0x31){  // 1
+            throw new Error("Expecting %PDF-1.x at start");
+        }
+        if (data.bytes[6] != 0x2E){  // .
+            throw new Error("Expecting %PDF-1.x at start");
+        }
+        var minorVersion = data.bytes[7] - PDFReader.Numeric.zero;
+        if (minorVersion < 0){
+            throw new Error("Invalid minor version number: %d".sprintf(minorVersion));
+        }
+    },
+
+    _readEndOfFile: function(){
+        // Go to the end of the file and read the final line, expecting %%EOF
+        this._stream.seek(this._stream.length);
+        this._stream.seekToStartOfLine();
+        var backwardsOffset = this._stream.offset;
+
+        this._readToken(Token.endOfFileComment);
+        this._readToken(Token.endOfData, Token.endOfLine);
+
+        // Read the previous token, which should be an integer represeting the
+        // cross reference table offset.  (Be sure to skip comment lines)
+        this._stream.seek(backwardsOffset);
+        this._stream.seekToStartOfLine();
+        backwardsOffset = this._stream.offset;
+        var token = this._readToken(Token.integer, Token.commentStart);
+        while (token == Token.commentStart){
+            this._stream.seek(backwardsOffset);
+            this._stream.seekToStartOfLine();
+            backwardsOffset = this._stream.offset;
+            token = this._readToken(Token.integer, Token.commentStart);
+        }
+        this._readToken(Token.endOfLine, Token.commentStart);
+        this._crossReferenceTableOffet = token.pdfObject;
+
+        // Read the previous token, verifying that it is startxref.
+        // (Be sure to skip comment lines)
+        this._stream.seek(backwardsOffset);
+        this._stream.seekToStartOfLine();
+        backwardsOffset = this._stream.offset;
+        token = this._readToken(Token.startxref, Token.commentStart);
+        while (token == Token.commentStart){
+            this._stream.seek(backwardsOffset);
+            this._stream.seekToStartOfLine();
+            backwardsOffset = this._stream.offset;
+            token = this._readToken(Token.startxref, Token.commentStart);
+        }
+        this._readToken(Token.endOfLine, Token.commentStart);
+    },
+
+    _readCrossReferenceTable: function(offset){
+        var maxSections = 1024;
+        var sectionCount = 0;
+        while (offset !== null && sectionCount < maxSections){
+            this._stream.seek(offset);
+            var token = this._readToken(Token.xref, Token.integer);
+            var objectID;
+            var generation;
+            if (token == Token.integer){
+                objectID = token.pdfObject;
+                token = this._readToken(Token.integer);
+                generation = token.pdfObject;
+                token = this._readToken(Token.indirect);
+                var indirect = PDFIndirectObject(objectID, generation);
+                this._readCrossReferenceStream(indirect);
+                return;
+            }
+            token = this._readMeaningfulToken(Token.integer);
+            var count;
+            var objectOffset;
+            var status;
+            while (token == Token.integer){
+                objectID = token.pdfObject;
+                token = this._readToken(Token.integer);
+                count = token.pdfObject;
+                this._readToken(Token.commentStart, Token.endOfLine);
+                for (var i = 0; i < count; ++i, ++objectID){
+                    if (this._crossReferenceTable[objectID] !== undefined){
+                        continue;
+                    }
+                    offset = this._stream.offset;
+                    var entryLine = String.initWithData(this._stream.read(20), String.Encoding.utf8);
+                    if (entryLine.length != 20){
+                        throw new Error("Not enough space for cross reference line @ %08X".sprintf(offset));
+                    }
+                    if ((entryLine.charAt(18) != "\r" && entryLine.charAt(18) != " ") || entryLine.charAt(19) != "\n"){
+                        throw new Error("Invalid cross reference entry, missing CRLF @ %08X".sprintf(offset + 18));
+                    }
+                    if (entryLine.charAt(10) != " " || entryLine.charAt(16) != " "){
+                        throw new Error("Invalid cross reference entry, missing spaces @ %08X".sprintf(offset));
+                    }
+                    status = entryLine.charAt(17);
+                    if (status != CrossReferenceTableEntry.Status.free && status != CrossReferenceTableEntry.Status.used){
+                        throw new Error("Invalid cross reference entry, invalid status @ %08X".sprintf(offset + 17));
+                    }
+                    for (var j = 0; j < 16; ++j){
+                        if (j == 10){
+                            continue;
+                        }
+                        if (!PDFReader.Numeric.isDigit(entryLine.charCodeAt(j))){
+                            throw new Error("Invalid cross reference entry, invalid integer @ %08X".sprintf(offset + j)); 
+                        }
+                    }
+                    objectOffset = parseInt(entryLine.substr(0, 10));
+                    generation = parseInt(entryLine.substr(11, 5));
+                    this._crossReferenceTable[objectID] = CrossReferenceTableEntry(objectOffset, generation, status);
+                }
+                token = this._readMeaningfulToken(Token.integer, Token.trailer);
+            }
+            token = this._readMeaningfulToken(Token.dictionaryStart);
+            var trailer = this._finishReadingDictionary(PDFTrailerObject);
+            offset = trailer.Prev;
+            if (this._trailer === null){
+                this._trailer = trailer;
+            }
+            ++sectionCount;
+        }
+        if (this._crossReferenceTable.length > this._trailer.Size){
+            this._crossReferenceTable.splice(this._trailer.Size);
+        }
+    },
+
+    _readCrossReferenceStream: function(indirect){
+        // TODO:
+    },
+
+    // MARK: - Tokens
+
+    _readAnyToken: function(){
+        var byte = this._stream.byte();
+        var _token;
+        while (byte !== null && PDFReader.Whitespace.isNonbreakingWhitespace(byte)){
+            byte = this._stream.byte();
+        }
+        if (byte === null){
+            return Token.endOfData;
+        }
+        if (byte == PDFReader.Delimiters.percentSign){
+            byte = this._stream.byte();
+            if (byte == PDFReader.Delimiters.percentSign){
+                byte = this._stream.byte();
+                if (byte == 0x45){
+                    byte = this._stream.byte();
+                    if (byte == 0x4F){
+                        byte = this._stream.byte();
+                        if (byte == 0x46){
+                            return Token.endOfFileComment;
+                        }
+                        if (byte !== null){
+                            this._stream.seekRelative(-1);
+                        }
+                    }
+                    if (byte !== null){
+                        this._stream.seekRelative(-1);
+                    }
+                }
+                if (byte !== null){
+                    this._stream.seekRelative(-1);
+                }
+            }
+            if (byte !== null){
+                this._stream.seekRelative(-1);
+            }
+            return Token.commentStart;
         }
         if (byte == PDFReader.Delimiters.leftParenthesis){
-            return this._readStringObject();
+            return Token.stringStart;
         }
         if (byte == PDFReader.Delimiters.lessThanSign){
-            byte = this._readByte();
+            byte = this._stream.byte();
             if (byte == PDFReader.Delimiters.lessThanSign){
-                return this._readDictionaryObject();
+                return Token.dictionaryStart;
             }
-            this.__backByte();
-            return this._readHexadecimalStringObject();
+            if (byte !== null){
+                this._stream.seekRelative(-1);
+            }
+            return Token.hexStringStart;
+        }
+        if (byte == PDFReader.Delimiters.greaterThanSign){
+            byte = this._stream.byte();
+            if (byte == PDFReader.Delimiters.greaterThanSign){
+                return Token.dictionaryEnd;
+            }
+            if (byte !== null){
+                this._stream.seekRelative(-1);
+            }
+            return Token.hexStringEnd;
+        }
+        if (byte == PDFReader.Delimiters.solidus){
+            _token = new String("name");
+            _token.pdfObject = this._finishReadingName();
+            return _token;
         }
         if (byte == PDFReader.Delimiters.leftBracket){
-            return this._readArrayObject();
+            return Token.arrayStart;
         }
-        if (byte == 't'){
-            return this._readTrueObject();
+        if (byte == 0x52){  // R
+            return Token.indirect;
         }
-        if (byte == 'f'){
-            return this._readFalseObject();
+        if (byte == PDFReader.Whitespace.carriageReturn){
+            byte = this._stream.byte();
+            if (byte != PDFReader.Whitespace.lineFeed && byte !== null){
+                this._stream.seekRelative(-1);
+            }
+            return Token.endOfLine;
         }
-        if (byte == 'n'){
-            return this._readNullObject();
+        if (byte == PDFReader.Whitespace.lineFeed){
+            return Token.endOfLine;
         }
         if (PDFReader.Numeric.isNumeric(byte)){
-            return this._readNumberObject();
+            var isReal = byte == PDFReader.Numeric.dot;
+            var isNegative = byte == PDFReader.Numeric.minus;
+            var numberString = String.fromCharCode(byte);
+            byte = this._stream.byte();
+            if (!isReal){
+                while (PDFReader.Numeric.isDigit(byte)){
+                    numberString += String.fromCharCode(byte);
+                    byte = this._stream.byte();
+                }
+                if (byte == PDFReader.Numeric.dot){
+                    isReal = true;
+                    numberString += ".";
+                    byte = this._stream.byte();
+                }
+            }
+            if (isReal){
+                while (PDFReader.Numeric.isDigit(byte)){
+                    numberString += String.fromCharCode(byte);
+                    byte = this._stream.byte();
+                }
+            }
+            if (byte !== null && !PDFReader.Whitespace.isWhitespace(byte) && !PDFReader.Delimiters.isDelimiter(byte)){
+                throw new Error("Expecting whitespace or delimter after number, got %02X @ %08X".sprintf(byte, this._stream.offset - 1));
+            }
+            if (byte !== null){
+                this._stream.seekRelative(-1);
+            }
+            if (isReal){
+                _token = new String("real");
+                _token.pdfObject = parseFloat(numberString);
+            }else{
+                _token = new String("integer");
+                _token.pdfObject = parseInt(numberString);
+            }
+            return _token;
         }
-        // TODO: stream objects
-        // TODO: indirect objects
-        // TODO: skip comments
+        var bytes = new Uint8Array(128);
+        var length = 0;
+        while (!PDFReader.Whitespace.isWhitespace(byte) && !PDFReader.Delimiters.isDelimiter(byte)){
+            bytes[length++] = byte;
+            byte = this._stream.byte();
+        }
+        if (byte !== null){
+            this._stream.seekRelative(-1);
+        }
+        bytes = new Uint8Array(bytes.buffer, bytes.byteOffset, length);
+        var token = bytes.stringByDecodingUTF8();
+        return token;
     },
 
-    _readNameObject: function(){
+    _readToken: function(){
+        var offset = this._stream.offset;
+        var token = this._readAnyToken();
+        if (arguments.length === 0){
+            return token;
+        }
+        var expecting = Array.prototype.slice.call(arguments, 0);
+        for (var i = 0, l = expecting.length; i < l; ++i){
+            if (token == expecting[i]){
+                return token;
+            }
+        }
+        throw new Error("Expecting %s, got %s @ %08X".sprintf(expecting.join('|'), token, offset));
+    },
+
+    _readMeaningfulToken: function(){
+        var offset = this._stream.offset;
+        var token = this._readToken();
+        while (token == Token.commentStart || token == Token.endOfLine){
+            if (token == Token.commentStart){
+                this._stream.readLine();
+            }
+            token = this._readToken();
+        }
+        if (arguments.length === 0){
+            return token;
+        }
+        var expecting = Array.prototype.slice.call(arguments, 0);
+        for (var i = 0, l = expecting.length; i < l; ++i){
+            if (token == expecting[i]){
+                return token;
+            }
+        }
+        throw new Error("Expecting %s, got %s @ %08X".sprintf(expecting.join('|'), token, offset));
+    },
+
+    // MARK: - Objects
+
+    _finishReadingName: function(){
         // empty name is valid
-        var byte = this._readByte();
-        var data;
+        var byte = this._stream.byte();
+        var bytes = new Uint8Array(128);
+        var length = 0;
         var a, b;
         while (!PDFReader.Whitespace.isWhitespace(byte) && !PDFReader.Delimiters.isDelimiter(byte)){
             if (byte == PDFReader.NameEscape.numberSign){
-                a = this._readByte();
+                a = this._stream.byte();
                 if (!PDFReader.Hexadecimal.isHexadecimal(a)){
-                    throw this._newParseError("Expecting hex char", a);
+                    throw new Error("Expecting hex char @ %08X".sprintf(this._stream.offset - 1));
                 }
-                b = this._readByte();
+                b = this._stream.byte();
                 if (!PDFReader.Hexadecimal.isHexadecimal(b)){
-                    throw this._newParseError("Expecting hex char", b);
+                    throw new Error("Expecting hex char @ %08X".sprintf(this._stream.offset - 1));
                 }
-                byte = PDFReader.Hexadecimal.ouputHexadecimal(a, b);
+                byte = PDFReader.Hexadecimal.outputHexadecimal(a, b);
             }
-            // TODO: add byte to data
+            bytes[length++] = byte;
+            byte = this._stream.byte();
         }
-        this._backByte();
-        // TODO: return name object
+        if (byte !== null){
+            this._stream.seekRelative(-1);
+        }
+        bytes = new Uint8Array(bytes.buffer, bytes.byteOffset, length);
+        // Getting the unescaped bytes is straightforward, but we're left with
+        // a problem.
+        //
+        // - Names are used for things like dictionary keys, so we need them to be javascript strings
+        // - The names have no particular string encoding, so we need to be careful turning the bytes into a string
+        //
+        // iso8859-1 encoding simply turns each byte into a character, making it nice and
+        // reversable should we need to write exactly the same bytes we read.
+        //
+        // The strings may not print nicely, but they'll still represent the exact data read.
+        // Most keys are plain ascii, so iso8859-1 gives us what we want even for printing.
+        // Certain names are required to be encoded in utf8.  If we encounter one of those names,
+        // code can call use the `.valueDecodingUTF8()` function instead of the `.value`
+        // property on the `PDFNameObject` instance, which will reinterpret the bytes as utf8.
+        var value = bytes.stringByDecodingISO8859_1();
+        return PDFNameObject(value);
     },
 
-    _readStringObject: function(){
+    _finishReadingString: function(){
         var openParenthesisCount = 0;
-        var byte = this._readByte();
+        var byte = this._stream.byte();
+        var bytes = [];
         var b, c;
-        // TODO: convert CRLF to LF
-        // TODO: ignore line endings immediately after \
+        var carriageReturn = false;
         while (byte != PDFReader.Delimiters.rightParenthesis || openParenthesisCount > 0) {
-            if (byte === undefined){
-                throw this._newParseError("Expecting )");
+            if (byte === null){
+                throw new Error("Expecting ), got EOD");
             }
             if (byte == PDFReader.Delimiters.leftParenthesis){
                 // balanced parenthesis do not need to be escaped, so track
@@ -104,142 +424,422 @@ JSClass("PDFReader", JSObject, {
                 --openParenthesisCount;
             }else if (byte == PDFReader.StringEscape.reverseSolidus){
                 // Escape characters
-                byte = this._readByte();
-                if (byte === undefined){
-                    throw this._newParseError("Expecting escape char");
+                byte = this._stream.byte();
+                if (byte === null){
+                    throw new Error("Expecting escaped char, got EOD");
                 }
                 if (PDFReader.StringEscape.isOctal(byte)){
-                    // Octal escapes are always three bytes long
-                    b = this._readByte();
-                    if (!PDFReader.StringEscape.isOctal(b)){
-                        throw this._newParseError("Expecting octal char", b);
-                    }
-                    c = this._readByte();
-                    if (!PDFReader.StringEscape.isOctal(c)){
-                        throw this._newParseError("Expecting octal char", c);
+                    // Octal escapes are 1-3 bytes long
+                    b = this._stream.byte();
+                    if (PDFReader.StringEscape.isOctal(b)){
+                        c = this._stream.byte();
+                        if (!PDFReader.StringEscape.isOctal(c)){
+                            c = b;
+                            b = byte;
+                            byte = 0;
+                        }
+                    }else{
+                        c = byte;
+                        byte = 0;
+                        b = 0;
                     }
                     byte = PDFReader.StringEscape.outputOctal(byte, b, c);
+                }else if (byte == PDFReader.Whitespace.carriageReturn){
+                    byte = this._stream.byte();
+                    if (byte != PDFReader.Whitespace.lineFeed && byte !== null){
+                        this._stream.seekRelative(-1);
+                    }
+                    carriageReturn = false;
+                    continue;
+                }else if (byte == PDFReader.Whitespace.lineFeed){
+                    carriageReturn = false;
+                    continue;
                 }else{
                     byte = PDFReader.StringEscape.outputByte(byte);
                 }
             }
-            // TODO: add to string
-            byte = this._readByte();
+            if (byte == PDFReader.Whitespace.lineFeed && carriageReturn){
+                bytes[bytes.length - 1] = byte;
+                carriageReturn = false;
+            }else{
+                carriageReturn = byte == PDFReader.Whitespace.carriageReturn;
+                if (carriageReturn){
+                    byte = PDFReader.Whitespace.lineFeed;
+                }
+                bytes.push(byte);
+            }
+            byte = this._stream.byte();
         }
+        bytes = Uint8Array.from(bytes);
+        return this._decodedStringFromBytes(bytes);
+    },
+
+    _finishReadingHexadecimalString: function(){
+        var byte = this._stream.byte();
+        var bytes = [];
+        var a = null;
+        while (byte != PDFReader.Delimiters.greaterThanSign){
+            if (PDFReader.isHexadecimal(byte)){
+                if (a === null){
+                    a = byte;
+                }else{
+                    bytes.push(PDFReader.Hexadecimal.outputHexadecimal(a, byte));
+                    a = null;
+                }
+            }else if (!PDFReader.Whitespace.isWhitespace(byte)){
+                throw new Error("Expecting hexadecimal byte @ %08X".sprintf(this._stream.offset - 1));
+            }
+            byte = this._stream.byte();
+        }
+        if (a !== null){
+            bytes.push(PDFReader.Hexadecimal.outputHexadecimal(a, 0));
+        }
+        bytes = Uint8Array.from(bytes);
+        return this._decodedStringFromBytes(bytes);
+    },
+
+    _decodedStringFromBytes: function(bytes){
         // TODO: decode data to string using proper encoding
-        return string;
+        return bytes.stringByDecodingUTF8();
     },
 
-    _readHexadecimalStringObject: function(){
-        var byte = this._readByte();
-        // ignore whitespace
-        // treat missing trailing digit as 0
-        // TODO:
+    _readObject: function(){
+        var token = this._readMeaningfulToken(Token.true, Token.false, Token.null, Token.integer, Token.real, Token.name, Token.stringStart, Token.hexStringStart, Token.arrayStart, Token.dictionaryStart);
+        return this._finishReadingObject(token);
     },
 
-    _readNumberObject: function(){
-        // TODO:
-    },
-
-    _readTrueObject: function(){
-        this._readLiteral(['r', 'u', 'e']);
-        return true;
-    },
-
-    _readFalseObject: function(){
-        this._readLiteral(['a', 'l', 's', 'e']);
-        return false;
-    },
-
-    _readNullObject: function(){
-        this._readLiteral(['u', 'l', 'l']);
-        return null;
-    },
-
-    _readLiteral: function(expected){
-        var x;
-        var byte;
-        for (var i = 0, l = expected.length; i < l; ++i){
-            byte = this._readByte();
-            x = expected[i].charCodeAt(0);
-            if (byte !== x){
-                throw this._newParseError("Expecting '%s'".sprintf(expected[i]), byte);
-            }
+    _finishReadingObject: function(token){
+        var offset = this._stream.offset;
+        switch (token.toString()){
+            case Token.true:
+                return true;
+            case Token.false:
+                return false;
+            case Token.null:
+                return null;
+            case Token.integer:
+                // might be an indirect reference, so we'll read ahead to see
+                // if another integer and an R follows.  If not, we need to back up.
+                try{
+                    var token2 = this._readMeaningfulToken(Token.integer);
+                    this._readMeaningfulToken(Token.indirect);
+                    return PDFIndirectObject(token.pdfObject, token2.pdfObject);
+                }catch (e){
+                    this._stream.seek(offset);
+                }
+                return token.pdfObject;
+            case Token.real:
+                return token.pdfObject;
+            case Token.name:
+                return token.pdfObject;
+            case Token.stringStart:
+                return this._finishReadingString();
+            case Token.hexStringStart:
+                return this._finishReadingHexadecimalString();
+            case Token.arrayStart:
+                return this._finishReadingArray();
+            case Token.dictionaryStart:
+                return this._finishReadingDictionary();
         }
     },
 
-    _readArrayObject: function(){
-        var array = [];
-        var byte = this._readByte();
-        while (byte != PDFReader.Delimiters.rightBracket) {
-            if (byte === undefined){
-                throw this._newParseError("Expecting object or ]");
-            }
-            if (!PDFReader.isWhitespace(byte)){
-                this._backByte();
-                array.push(this._readObject());
-            }
-            byte = this._readByte();
+    _finishReadingArray: function(){
+        // Note this is not a true array, but can function like one with the added
+        // benefit of automatically resolving indirect references.
+        var array = {};
+        array.length = 0;
+        var token = this._readMeaningfulToken(Token.true, Token.false, Token.null, Token.integer, Token.real, Token.name, Token.stringStart, Token.hexStringStart, Token.arrayStart, Token.dictionaryStart, Token.arrayEnd);
+        var obj;
+        while (token != Token.arrayEnd){
+            obj = this._finishReadingObject(token);
+            this._defineProperty(array, array.length, obj);
+            ++array.length;
         }
         return array;
     },
 
-    _readDictionaryObject: function(cls){
-        if (cls === undefined){
-            cls = {};
+    _finishReadingDictionary: function(cls){
+        var dict = {};
+        var token = this._readMeaningfulToken(Token.name, Token.dictionaryEnd);
+        var key;
+        var value;
+        var property;
+        while (token == Token.name){
+            key = token.pdfObject;
+            value = this._readObject();
+            dict[key] = value;
+            token = this._readMeaningfulToken(Token.name, Token.dictionaryEnd);
+        }
+        if (!cls){
+            cls = PDFObjectClassForDictionary(dict);
+        }
+        var instance = cls();
+        for (key in dict){
+            this._defineProperty(instance, key, dict[key]);
+        }
+        return instance;
+    },
+
+    // MARK: - Indirect objects
+
+    _getObject: function(indirect){
+        var object = indirect;
+        var maxLevels = 10;
+        var levels = 0;
+        var offset;
+        var token;
+        var tmp;
+        var entry;
+        while (levels < maxLevels && (object instanceof PDFIndirectObject)){
+            entry = this._crossReferenceTable[object.objectID];
+            if (!entry || entry.generation != object.generation || entry.status != CrossReferenceTableEntry.Status.used){
+                return null;
+            }
+            offset = entry.offset;
+            this._stream.seek(offset);
+            token = this._readToken(Token.integer);
+            if (token.pdfObject != object.objectID){
+                throw new Error("Incorrect object id for %d %d R @ %08X".sprintf(object.objectID, object.generation, offset));
+            }
+            token = this._readToken(Token.integer);
+            if (token.pdfObject != object.generation){
+                throw new Error("Incorrect generation for %d %d R @ %08X".sprintf(object.objectID, object.generation, offset));
+            }
+            token = this._readToken(Token.obj);
+            tmp = object;
+            object = this._readObject();
+            object.indirect = tmp;
+            token = this._readMeaningfulToken(Token.endobj, Token.stream);
+            if (token == Token.stream){
+                this._readToken(Token.endOfLine);
+                this._defineStreamProperty(object, this._stream.offset);
+            }
+            ++levels;
+        }
+        if (object instanceof PDFIndirectObject){
+            throw new Error("Too many levels of indirection for %d %d R".sprintf(indirect.objectID, indirect.generation));
+        }
+        return object;
+    },
+
+    _defineProperty: function(obj, property, value){
+        var reader = this;
+        if (value instanceof PDFIndirectObject){
+            Object.defineProperty(obj, property, {
+                configurable: true,
+                get: function PDFReader_getIndirectValue(){
+                    var obj = reader._getObject(value);
+                    Object.defineProperty(this, property, {configurable: true, writable: true, value: obj});
+                    return obj;
+                },
+                set: function(value){
+                    reader._defineProperty(this, property, value);
+                }
+            });
         }else{
-            cls = cls.prototype;
-        }
-        var byte = this._readByte();
-        var key = null;
-        var obj = null;
-        var dict = Object.create(cls);
-        while (byte != PDFReader.Delimiters.greaterThanSign){
-            if (byte === undefined){
-                throw this._newParseError("Expecting object or >>");
-            }
-            if (!PDFReader.isWhitespace(byte)){
-                this._backByte();
-                obj = this._readObject();
-                if (obj === undefined){
-                    throw this._newParseError("Expecting object");
-                }
-                if (key === null){
-                    // TODO: verify that obj is a name object
-                    key = obj;
-                }else{
-                    if (obj !== null){
-                        dict[key.value] = obj;
-                    }
-                    key = null;
-                }
-            }
-        }
-        byte = this._readByte();
-        if (byte != PDFReader.Delimiters.greaterThanSign){
-            throw this._newParseError("Expecting >", byte);
-        }
-        if (key !== null){
-            throw this._newParseError("Expecting object, got >>");
-        }
-        return dict;
-    },
-
-    _readWhitespace: function(){
-        var byte = this._readByte();
-        while (PDFReader.Whitespace.isWhitespace(byte)){
-            byte = this._readByte();
-        }
-        if (byte !== undefined){
-            this._backByte();
+            Object.defineProperty(obj, property, {
+                configurable: true,
+                writable: true,
+                value: value
+            });
         }
     },
 
-    _newParseError: function(message, byte){
-        if (byte === undefined){
-            return new Error("%s, got EOD: offset %08x".sprintf(this.offset));
+    _getStreamData: function(stream, offset){
+        // Bail if the stream has an external file reference
+        if (stream.F){
+            return null;
         }
-        return new Error("%s, got %02x: offset %08x".sprintf(this.offset, byte));
+
+        var length = stream.Length;
+        this._stream.seek(offset);
+        var data = this._stream.read(length);
+        if (data.length != length){
+            return null;
+        }
+
+        var filters = PDFFilter.CreateChain(stream.Filter, stream.DecodeParams);
+        for (var i = 0, l = filters.length; data !== null && i < l; ++i){
+            try{
+                data = filters[i].decode(data);
+            }catch (e){
+                data = null;
+            }
+        }
+        return data;
+    },
+
+    _defineStreamProperty: function(obj, offset){
+        var reader = this;
+        Object.defineProperty(obj, 'data', {
+            configurable: true,
+            writable: true,
+            get: function PDFReader_getStreamData(){
+                var data = reader._getStreamData(this, offset);
+                Object.defineProperty(obj, 'data', {configurable: true, writable: true, value: data});
+                return data;
+            }
+        });
+    }
+
+});
+
+var Token = {
+
+    true: "true",
+    false: "false",
+    integer: "integer",
+    real: "real",
+    stringStart: "(",
+    stringEnd: ")",
+    hexStringStart: "<",
+    hexStringEnd: ">",
+    dictionaryStart: "<<",
+    dictionaryEnd: ">>",
+    arrayStart: "[",
+    arrayEnd: "]",
+    commentStart: "%",
+    name: "name",
+    stream: "stream",
+    endstream: "endstream",
+    null: "null",
+    indirect: "R",
+    obj: "obj",
+    endobj: "endobj",
+    xref: "xref",
+    trailer: "trailer",
+    startxref: "startxref",
+    endOfLine: "\\n",
+    endOfFileComment: "%%EOF",
+    endOfData: "<eod>"
+
+};
+
+var CrossReferenceTableEntry = function(offset, generation, status){
+    if (this === undefined){
+        return new CrossReferenceTableEntry(offset, generation, status);
+    }
+    if (status === undefined){
+        status = CrossReferenceTableEntry.Status.used;
+    }
+    this.offset = offset;
+    this.generation = generation;
+    this.status = status;
+};
+
+CrossReferenceTableEntry.Status = {
+    free: 'f',
+    used: 'n'
+};
+
+JSClass("PDFReaderStream", JSObject, {
+
+    length: JSReadOnlyProperty(),
+    offset: JSReadOnlyProperty(),
+
+    byte: function(){
+    },
+
+    seek: function(offset){
+    },
+
+    byteBackwards: function(){
+        this.back();
+        var byte = this.byte();
+        this.back();
+        return byte;
+    },
+
+    seekRelative: function(offset){
+        this.seek(this.offset + offset);
+    },
+
+    seekToStartOfLine: function(offset){
+        var length = 0;
+        var byte = this.byteBackwards();
+        if (byte == PDFReader.Whitespace.lineFeed){
+            byte = this.byteBackwards();
+        }
+        if (byte == PDFReader.Whitespace.carriageReturn){
+            byte = this.byteBackwards();
+        }
+        while (byte !== null && byte != PDFReader.Whitespace.carriageReturn && byte != PDFReader.Whitespace.lineFeed && length < 256){
+            byte = this.byteBackwards();
+        }
+        if (byte == PDFReader.Whitespace.carriageReturn || byte == PDFReader.Whitespace.lineFeed){
+            byte = this.byte();
+        }
+    },
+
+    readLine: function(){
+        var bytes = new Uint8Array(256);
+        var length = 0;
+        var byte = this.byte();
+        while (byte !== null && byte != PDFReader.Whitespace.carriageReturn && byte != PDFReader.Whitespace.lineFeed && length < 256){
+            bytes[length++] = byte;
+            byte = this.byte();
+        }
+        if (byte == PDFReader.Whitespace.carriageReturn){
+            byte = this.byte();
+            if (byte != PDFReader.Whitespace.lineFeed && byte !== null){
+                this.seekRelative(-1);
+            }
+        }
+        bytes = new Uint8Array(bytes.buffer, bytes.byteOffset, length);
+        return JSData.initWithBytes(bytes);
+    },
+
+    read: function(count){
+        var bytes = new Uint8Array(count);
+        var length = 0;
+        var byte;
+        while (length < count){
+            byte = this.byte();
+            if (byte === null){
+                break;
+            }
+            bytes[length++] = byte;
+        }
+        bytes = new Uint8Array(bytes.buffer, bytes.byteOffset, length);
+        return JSData.initWithBytes(bytes);
+    },
+
+});
+
+JSClass("PDFReaderDataStream", PDFReaderStream, {
+
+    _data: null,
+    _offset: null,
+
+    initWithData: function(data){
+        this._data = data;
+        this._offset = 0;
+    },
+
+    byte: function(){
+        if (this._offset >= this._data.length){
+            return null;
+        }
+        return this._data.bytes[this._offset++];
+    },
+
+    byteBackwards: function(){
+        if (this._offset === 0){
+            return null;
+        }
+        return this._data.bytes[--this._offset];
+    },
+
+    seek: function(offset){
+        this._offset = offset;
+    },
+
+    getOffset: function(){
+        return this._offset;
+    },
+
+    getLength: function(){
+        return this._data.length;
     }
 
 });
@@ -253,12 +853,21 @@ PDFReader.Whitespace = {
     space: 0x20,
 
     isWhitespace: function(byte){
-        return byte !== undefined && (
+        return byte !== null && (
             byte == PDFReader.Whitespace.null || 
             byte == PDFReader.Whitespace.horizontalTab || 
             byte == PDFReader.Whitespace.lineFeed || 
             byte == PDFReader.Whitespace.formFeed || 
             byte == PDFReader.Whitespace.carriageReturn || 
+            byte == PDFReader.Whitespace.space
+        );
+    },
+
+    isNonbreakingWhitespace: function(byte){
+        return byte !== null && (
+            byte == PDFReader.Whitespace.null || 
+            byte == PDFReader.Whitespace.horizontalTab || 
+            byte == PDFReader.Whitespace.formFeed || 
             byte == PDFReader.Whitespace.space
         );
     }
@@ -277,7 +886,7 @@ PDFReader.Delimiters = {
     percentSign: 0x25,
 
     isDelimiter: function(byte){
-        return byte !== undefined && (
+        return byte !== null && (
             byte == PDFReader.Delimiters.leftParenthesis ||
             byte == PDFReader.Delimiters.rightParenthesis ||
             byte == PDFReader.Delimiters.lessThanSign ||
@@ -309,12 +918,18 @@ PDFReader.Numeric = {
 
 
     isNumeric: function(byte){
-        return byte !== undefined && (
+        return byte !== null && (
             (byte >= PDFReader.Numeric.zero && byte <= PDFReader.Numeric.nine) ||
             byte == PDFReader.Numeric.plus ||
             byte == PDFReader.Numeric.minus ||
             byte == PDFReader.Numeric.dot
         );
+    },
+
+    isDigit: function(byte){
+        return byte !== null && (
+            (byte >= PDFReader.Numeric.zero && byte <= PDFReader.Numeric.nine)
+        );   
     }
 };
 
@@ -329,7 +944,7 @@ PDFReader.StringEscape = {
     rightParenthesis: 0x29,
 
     isOctal: function(byte){
-        return byte !== undefined && byte >= PDFReader.Numeric.zero && byte <= PDFReader.Numeric.seven;
+        return byte !== null && byte >= PDFReader.Numeric.zero && byte <= PDFReader.Numeric.seven;
     },
 
     outputOctal: function(a, b, c){
@@ -370,14 +985,14 @@ PDFReader.Hexadecimal = {
     f: 0x66,
 
     isHexadecimal: function(byte){
-        return byte !== undefined && (
+        return byte !== null && (
             (byte >= PDFReader.Numeric.zero && byte <= PDFReader.Numeric.nine) ||
             (byte >= PDFReader.Hexadecimal.A && byte <= PDFReader.Hexadecimal.F) ||
             (byte >= PDFReader.Hexadecimal.a && byte <= PDFReader.Hexadecimal.f)
         );
     },
 
-    ouputHexadecimal: function(a, b){
+    outputHexadecimal: function(a, b){
         return PDFReader.Hexadecimal._factor(a) * 16 + PDFReader.Hexadecimal._factor(b);
     },
 
@@ -395,3 +1010,52 @@ PDFReader.Hexadecimal = {
 PDFReader.NameEscape = {
     numberSign: 0x23
 };
+
+var PDFObjectClassesByType = {};
+var PDFObjectClassesBySubtype = {};
+
+var PDFObjectClassForDictionary = function(dict){
+    var type = dict.Type;
+    if (!(type instanceof PDFNameObject)){
+        return PDFObject;
+    }
+    if (type in PDFObjectClassesByType){
+        return PDFObjectClassesByType[type];
+    }
+    if (!(type in PDFObjectClassesBySubtype)){
+        return PDFObject;
+    }
+    var subtype = dict.Subtype;
+    if (!(subtype instanceof PDFNameObject)){
+        return PDFObject;
+    }
+    if (subtype in PDFObjectClassesBySubtype[type]){
+        return PDFObjectClassesBySubtype[type][subtype];
+    }
+    return PDFObject;
+};
+
+
+var types = [
+    PDFDocumentObject,
+    PDFPageTreeNodeObject,
+    PDFPageObject,
+    PDFGraphicsStateParametersObject
+];
+var typesWithSubtypes = [
+    PDFType1FontObject,
+    PDFTrueTypeFontObject,
+    PDFImageObject,
+];
+var i, l;
+for (i = 0, l = types.length; i < l; ++i){
+    PDFObjectClassesByType[types[i].prototype.Type] = types[i];
+}
+for (i = 0, l = typesWithSubtypes.length; i < l; ++i){
+    if (!(types[i].prototype.Type in PDFObjectClassesBySubtype)){
+        PDFObjectClassesBySubtype[types[i].prototype.Type] = {};
+    }
+    PDFObjectClassesBySubtype[types[i].prototype.Type][[types[i].prototype.Subtype]] = types[i];
+}
+
+})();

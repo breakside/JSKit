@@ -1,6 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, JSRange, TKAssertNotNull, TKAssertObjectEquals, TKAssertEquals, TKAssertEquals, TKAssertExactEquals */
+/* global JSClass, TKTestSuite, JSRange */
+/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
 JSClass('StringTests', TKTestSuite, {
@@ -761,6 +762,31 @@ JSClass('StringTests', TKTestSuite, {
         TKAssertEquals(utf8.bytes[1], 0x9f);
         TKAssertEquals(utf8.bytes[2], 0x98);
         TKAssertEquals(utf8.bytes[3], 0x80);
+    },
+
+    testISO8859_1: function(){
+        var str = "Hello";
+        var data = str.dataUsingEncoding(String.Encoding.iso8859_1);
+        TKAssertEquals(data.length, 5);
+        TKAssertEquals(data.bytes[0], 0x48);
+        TKAssertEquals(data.bytes[1], 0x65);
+        TKAssertEquals(data.bytes[2], 0x6c);
+        TKAssertEquals(data.bytes[3], 0x6c);
+        TKAssertEquals(data.bytes[4], 0x6f);
+
+        str = "Hèllo";
+        data = str.dataUsingEncoding(String.Encoding.iso8859_1);
+        TKAssertEquals(data.length, 5);
+        TKAssertEquals(data.bytes[0], 0x48);
+        TKAssertEquals(data.bytes[1], 0xe8);
+        TKAssertEquals(data.bytes[2], 0x6c);
+        TKAssertEquals(data.bytes[3], 0x6c);
+        TKAssertEquals(data.bytes[4], 0x6f);
+
+        TKAssertThrows(function(){
+            var str = "😀";
+            var data = str.dataUsingEncoding(String.Encoding.iso8859_1);
+        });
     },
 
     testUCFirst: function(){

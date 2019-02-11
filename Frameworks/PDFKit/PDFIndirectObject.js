@@ -19,4 +19,5 @@ JSGlobalObject.PDFIndirectObject.prototype = {
     objectID: null,
     generation: null,
     resolvedValue: null,
+    instanceClass: null
 };

@@ -177,7 +177,7 @@ JSClass("PDFContext", JSContext, {
             writer.endStreamObject();
             pdfimage.Length.resolvedValue = length;
             writer.writeObject(pdfimage.Length);
-            xobjects[info.resourceName.value] = pdfimage.indirect;
+            xobjects[info.resourceName] = pdfimage.indirect;
             job.complete();
         });
     },
@@ -207,7 +207,7 @@ JSClass("PDFContext", JSContext, {
         var font = PDFType1FontObject();
         font.BaseFont = PDFNameObject("Helvetica");
         this._writer.writeObject(font);
-        fonts[info.resourceName.value] = font.indirect;
+        fonts[info.resourceName] = font.indirect;
         job.complete();
     },
 

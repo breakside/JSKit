@@ -1,7 +1,10 @@
-/* global JSGlobalObject */
+/* global JSGlobalObject, PDFObject */
 'use strict';
 
 JSGlobalObject.PDFObject = function(){
+    if (this === undefined){
+        return new PDFObject();
+    }
 };
 
 JSGlobalObject.PDFObject.prototype = Object.create({}, {
@@ -26,7 +29,7 @@ JSGlobalObject.PDFObject.prototype = Object.create({}, {
         get: function(){
             return this._indirect;
         }
-    }
+    },
 
 });
 

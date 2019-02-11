@@ -117,7 +117,7 @@ JSClass("PDFWriter", JSObject, {
     },
 
     _writeNameObject: function(name){
-        this._write(pdf_formatter.N(name));
+        this._write(pdf_formatter.N(name.value));
     },
 
     _writeStringObject: function(str){
@@ -181,7 +181,7 @@ JSClass("PDFWriter", JSObject, {
         var xref;
         for (var i = 0, l = this._crossReferenceTable.length; i < l; ++i){
             xref = this._crossReferenceTable[i];
-            this._write("%010d %05d %s \n", xref.offset, xref.generation, xref.status === CrossReferenceTableEntry.Status.free ? "f" : "n");
+            this._write("%010d %05d %s\r\n", xref.offset, xref.generation, xref.status === CrossReferenceTableEntry.Status.free ? "f" : "n");
         }
     },
 
@@ -204,7 +204,7 @@ JSClass("PDFWriterStream", JSObject, {
 
 });
 
-function CrossReferenceTableEntry(offset, generation, status){
+var CrossReferenceTableEntry = function(offset, generation, status){
     if (this === undefined){
         return new CrossReferenceTableEntry(offset, generation, status);
     }
@@ -214,7 +214,7 @@ function CrossReferenceTableEntry(offset, generation, status){
     this.offset = offset;
     this.generation = generation;
     this.status = status;
-}
+};
 
 CrossReferenceTableEntry.Status = {
     free: 'f',
@@ -287,9 +287,23 @@ var pdf_formatter = {
     },
 
     // name
-    N: function(name, options){
-        // TODO: escape special characters
-        var str = "/" + name.value;
+    N: function(value, options){
+        var data = value.dataUsingEncoding(String.Encoding.iso8859_1);
+        var str = "/";
+        var byte;
+        var hex;
+        for (var i = 0, l = data.length; i < l; ++i){
+            byte = data.bytes[i];
+            if (byte >= 0x21 && byte <= 0x7E){
+                str += String.fromCharCode(byte);
+            }else{
+                hex = byte.toString(16).toUpperCase();
+                if (hex.length == 1){
+                    hex = "0" + hex;
+                }
+                str += "#" + hex;
+            }
+        }
         return str;
     },
 

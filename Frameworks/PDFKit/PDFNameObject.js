@@ -12,6 +12,21 @@ JSGlobalObject.PDFNameObject = function(value){
     }
 };
 
-JSGlobalObject.PDFNameObject.prototype = {
-    value: null,
-};
+JSGlobalObject.PDFNameObject.prototype = Object.create({}, {
+    valueDecodingUTF8: {
+        configurable: true,
+        enumerable: false,
+        value: function(){
+            var data = this.value.dataUsingEncoding(String.Encoding.iso8859_1);
+            return data.bytes.stringByDecodingUTF8();
+        }
+    },
+
+    toString: {
+        configurable: true,
+        enumerable: false,
+        value: function(){
+            return this.value;
+        }
+    }
+});

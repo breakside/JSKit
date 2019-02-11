@@ -173,6 +173,17 @@ Object.defineProperties(Uint8Array.prototype, {
         }
     },
 
+    stringByDecodingISO8859_1: {
+        enumerable: false,
+        value: function Uint8Array_stringByDecodingISO8859_1(){
+            var str = "";
+            for (var i = 0, l = this.length; i < l; ++i){
+                str += String.fromUnicode(this[i]);
+            }
+            return str;
+        }
+    },
+
     arrayByDecodingPercentEscapes: {
         enumerable: false,
         value: function Uint8Array_arrayByDecodingPercentEscapes(decodePlusAsSpace){

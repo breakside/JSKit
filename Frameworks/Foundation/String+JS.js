@@ -7,7 +7,7 @@
 (function(){
 
 var base64DecodingMap = [
-//     0     1     2     3     4     5     6     7     8     9     A     B     C     D     E     C
+//     0     1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
     0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC1, 0xC1, 0xC1, 0xC1, 0xC1, 0xC0, 0xC0,
     0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0,
     0xC1, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0x3E, 0xC0, 0xC0, 0xC0, 0x3F,
@@ -73,7 +73,8 @@ Object.defineProperties(String, {
         enumerable: false,
         configurable: false,
         value: {
-            utf8: "utf8"
+            utf8: "utf8",
+            iso8859_1: "iso8859-1"
         }
     }
 
@@ -324,6 +325,32 @@ Object.defineProperties(String.prototype, {
             }
             var bytes = new Uint8Array(utf8.buffer, utf8.byteOffset, j);
             return JSData.initWithBytes(bytes);
+        }
+    },
+
+    dataUsingEncoding: {
+        enumerable: false,
+        value: function String_dataUsingEncoding(encoding){
+            if (encoding == String.Encoding.utf8){
+                return this.utf8();
+            }
+            if (encoding == String.Encoding.iso8859_1){
+                var bytes = new Uint8Array(this.length);
+                var c;
+                var iterator = UnicodeIterator(this, 0);
+                var i = 0;
+                while (iterator.index < this.length){
+                    c = iterator.character.code;
+                    if (c > 0xFF){
+                        throw new Error("Cannot encode byte %d at index %d to iso-8859-1".sprintf(c, iterator.index));
+                    }
+                    bytes[i++] = c;
+                    iterator.increment();
+                }
+                bytes = new Uint8Array(bytes.buffer, bytes.byteOffset, i);
+                return JSData.initWithBytes(bytes);
+            }
+            return null;
         }
     },
 
