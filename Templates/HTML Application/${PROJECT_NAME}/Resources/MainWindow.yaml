@@ -20,3 +20,14 @@ Main View Controller:
 Main View:
   class: UIView
   backgroundColor: /Dark Color
+  subviews:
+    - /Label
+
+Label:
+  class: UILabel
+  frame: 10,10,100,20
+  text: Hello, world!
+  font:
+    size: detail
+  textColor:
+    rgba: 204,0,0
