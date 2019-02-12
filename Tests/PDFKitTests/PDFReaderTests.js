@@ -30,34 +30,12 @@ JSClass("PDFReaderTests", TKTestSuite, {
         var doc = reader.getDocument();
         TKAssert(doc instanceof PDFDocumentObject);
         TKAssertEquals(doc.Type, "Catalog");
+        TKAssertNull(doc.Pages);
     },
 
-    _testEmptyPage: function(){
-        var stream = PDFWriterTestsStringStream.init();
-        var writer = PDFWriter.initWithStream(stream);
-        var isClosed = false;
+    testEmptyPage: function(){
 
-        var doc = PDFDocumentObject();
-        var pages = PDFPageTreeNodeObject();
-        var page = PDFPageObject();
-
-        writer.indirect(pages, page);
-
-        doc.Pages = pages;
-        page.Parent = pages;
-        pages.Kids = [page];
-        pages.Count = 1;
-
-        writer.writeObject(page);
-        writer.writeObject(pages);
-        writer.writeObject(doc);
-        writer.close(function(){
-            isClosed = true;
-        });
-
-        TKAssert(isClosed);
-
-        var expected = [
+        var data = [
             "%PDF-1.7",
             "2 0 obj",
             "<< /Contents [ ] /Parent 1 0 R /Type /Page >>",
@@ -79,45 +57,23 @@ JSClass("PDFReaderTests", TKTestSuite, {
             "startxref",
             "178",
             "%%EOF"
-        ];
+        ].join("\n").utf8();
 
-        TKAssertEquals(stream.string, expected.join("\n"));
+        var reader = PDFReader.initWithData(data);
+        var doc = reader.getDocument();
+        TKAssert(doc instanceof PDFDocumentObject);
+        TKAssertEquals(doc.Type, "Catalog");
+        TKAssert(doc.Pages instanceof PDFPageTreeNodeObject);
+        TKAssertNull(doc.Pages.Parent);
+        TKAssertEquals(doc.Pages.Count, 1);
+        TKAssertEquals(doc.Pages.Kids.length, 1);
+        var page = doc.Pages.Kids[0];
+        TKAssert(page instanceof PDFPageObject);
+        TKAssertExactEquals(page.Contents.length, 0);
     },
 
-    _testStreamObject: function(){
-        var stream = PDFWriterTestsStringStream.init();
-        var writer = PDFWriter.initWithStream(stream);
-        var isClosed = false;
-
-        var doc = PDFDocumentObject();
-        var pages = PDFPageTreeNodeObject();
-        var page = PDFPageObject();
-        var content = PDFStreamObject();
-
-        writer.indirect(pages, page, content);
-
-        page.Parent = pages;
-        page.Contents = content;
-        pages.Kids = [page];
-        pages.Count = 1;
-        doc.Pages = pages;
-        content.Length = writer.createIndirect();
-
-        writer.writeObject(doc);
-        writer.writeObject(pages);
-        writer.beginStreamObject(content);
-        writer.writeStreamData("q 100 200 300 400 re f Q".utf8());
-        writer.endStreamObject();
-        content.Length.resolvedValue = 24;
-        writer.writeObject(content.Length);
-        writer.writeObject(page);
-        writer.close(function(){
-            isClosed = true;
-        });
-
-        TKAssert(isClosed);
-
-        var expected = [
+    testStreamObject: function(){
+        var data = [
             "%PDF-1.7",                                             //  9        9 (5)
             "5 0 obj",                                              //  8       17
             "<< /Pages 1 0 R /Type /Catalog >>",                    // 34       51
@@ -150,167 +106,19 @@ JSClass("PDFReaderTests", TKTestSuite, {
             "startxref",
             "275",
             "%%EOF"
-        ];
+        ].join("\n").utf8();
 
-        TKAssertEquals(stream.string, expected.join("\n"));
-    },
-
-    _testNumber: function(){
-        // zero
-        var stream = PDFWriterTestsStringStream.init();
-        var writer = PDFWriter.initWithStream(stream);
-        var isClosed = false;
-        var doc = PDFDocumentObject();
-        doc.XNumber = 0;
-        writer.writeObject(doc);
-        writer.close(function(){ isClosed = true; });
-        TKAssert(isClosed);
-        var expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber 0 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f\r", "0000000009 00000 n\r", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "56", "%%EOF"];
-        TKAssertEquals(stream.string, expected.join("\n"));
-
-        // Positive Integer
-        stream = PDFWriterTestsStringStream.init();
-        writer = PDFWriter.initWithStream(stream);
-        isClosed = false;
-        doc = PDFDocumentObject();
-        doc.XNumber = 12;
-        writer.writeObject(doc);
-        writer.close(function(){ isClosed = true; });
-        TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber 12 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f\r", "0000000009 00000 n\r", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "57", "%%EOF"];
-        TKAssertEquals(stream.string, expected.join("\n"));
-
-        // Negative Integer
-        stream = PDFWriterTestsStringStream.init();
-        writer = PDFWriter.initWithStream(stream);
-        isClosed = false;
-        doc = PDFDocumentObject();
-        doc.XNumber = -12;
-        writer.writeObject(doc);
-        writer.close(function(){ isClosed = true; });
-        TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber -12 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f\r", "0000000009 00000 n\r", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "58", "%%EOF"];
-        TKAssertEquals(stream.string, expected.join("\n"));
-
-        // Positive Real
-        stream = PDFWriterTestsStringStream.init();
-        writer = PDFWriter.initWithStream(stream);
-        isClosed = false;
-        doc = PDFDocumentObject();
-        doc.XNumber = 12.34;
-        writer.writeObject(doc);
-        writer.close(function(){ isClosed = true; });
-        TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber 12.34 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f\r", "0000000009 00000 n\r", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "60", "%%EOF"];
-        TKAssertEquals(stream.string, expected.join("\n"));
-
-        // Negative Real
-        stream = PDFWriterTestsStringStream.init();
-        writer = PDFWriter.initWithStream(stream);
-        isClosed = false;
-        doc = PDFDocumentObject();
-        doc.XNumber = -12.34;
-        writer.writeObject(doc);
-        writer.close(function(){ isClosed = true; });
-        TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber -12.34 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f\r", "0000000009 00000 n\r", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "61", "%%EOF"];
-        TKAssertEquals(stream.string, expected.join("\n"));
-
-        // Decimal Rounding (Positive, Up)
-        stream = PDFWriterTestsStringStream.init();
-        writer = PDFWriter.initWithStream(stream);
-        isClosed = false;
-        doc = PDFDocumentObject();
-        doc.XNumber = 12.345678987654;
-        writer.writeObject(doc);
-        writer.close(function(){ isClosed = true; });
-        TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber 12.3456789877 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f\r", "0000000009 00000 n\r", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "68", "%%EOF"];
-        TKAssertEquals(stream.string, expected.join("\n"));
-
-        // Decimal Rounding (Positive, Down)
-        stream = PDFWriterTestsStringStream.init();
-        writer = PDFWriter.initWithStream(stream);
-        isClosed = false;
-        doc = PDFDocumentObject();
-        doc.XNumber = 12.345678912345;
-        writer.writeObject(doc);
-        writer.close(function(){ isClosed = true; });
-        TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber 12.3456789123 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f\r", "0000000009 00000 n\r", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "68", "%%EOF"];
-        TKAssertEquals(stream.string, expected.join("\n"));
-
-        // Decimal Rounding (Negative, Up)
-        stream = PDFWriterTestsStringStream.init();
-        writer = PDFWriter.initWithStream(stream);
-        isClosed = false;
-        doc = PDFDocumentObject();
-        doc.XNumber = -12.345678987654;
-        writer.writeObject(doc);
-        writer.close(function(){ isClosed = true; });
-        TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber -12.3456789877 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f\r", "0000000009 00000 n\r", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "69", "%%EOF"];
-        TKAssertEquals(stream.string, expected.join("\n"));
-
-        // Decimal Rounding (Negative, Down)
-        stream = PDFWriterTestsStringStream.init();
-        writer = PDFWriter.initWithStream(stream);
-        isClosed = false;
-        doc = PDFDocumentObject();
-        doc.XNumber = -12.345678912345;
-        writer.writeObject(doc);
-        writer.close(function(){ isClosed = true; });
-        TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber -12.3456789123 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f\r", "0000000009 00000 n\r", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "69", "%%EOF"];
-        TKAssertEquals(stream.string, expected.join("\n"));
-
-        // Decimal Rounding (To Zero)
-        stream = PDFWriterTestsStringStream.init();
-        writer = PDFWriter.initWithStream(stream);
-        isClosed = false;
-        doc = PDFDocumentObject();
-        doc.XNumber = 12.000000000001234;
-        writer.writeObject(doc);
-        writer.close(function(){ isClosed = true; });
-        TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber 12 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f\r", "0000000009 00000 n\r", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "57", "%%EOF"];
-        TKAssertEquals(stream.string, expected.join("\n"));
-
-        // NaN
-        stream = PDFWriterTestsStringStream.init();
-        writer = PDFWriter.initWithStream(stream);
-        isClosed = false;
-        doc = PDFDocumentObject();
-        doc.XNumber = null / null;
-        writer.writeObject(doc);
-        writer.close(function(){ isClosed = true; });
-        TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber 0 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f\r", "0000000009 00000 n\r", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "56", "%%EOF"];
-        TKAssertEquals(stream.string, expected.join("\n"));
-
-        // Infinity
-        stream = PDFWriterTestsStringStream.init();
-        writer = PDFWriter.initWithStream(stream);
-        isClosed = false;
-        doc = PDFDocumentObject();
-        doc.XNumber = 1 / 0;
-        writer.writeObject(doc);
-        writer.close(function(){ isClosed = true; });
-        TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber 9999999999.9999999999 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f\r", "0000000009 00000 n\r", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "76", "%%EOF"];
-        TKAssertEquals(stream.string, expected.join("\n"));
-
-        // Max
-        stream = PDFWriterTestsStringStream.init();
-        writer = PDFWriter.initWithStream(stream);
-        isClosed = false;
-        doc = PDFDocumentObject();
-        doc.XNumber = 1000000000000;
-        writer.writeObject(doc);
-        writer.close(function(){ isClosed = true; });
-        TKAssert(isClosed);
-        expected = ["%PDF-1.7", "1 0 obj", "<< /XNumber 9999999999.9999999999 /Type /Catalog >>", "endobj", "xref", "0 2", "0000000000 65535 f\r", "0000000009 00000 n\r", "trailer", "<< /Root 1 0 R /Size 2 >>", "startxref", "76", "%%EOF"];
-        TKAssertEquals(stream.string, expected.join("\n"));
+        var reader = PDFReader.initWithData(data);
+        var doc = reader.getDocument();
+        TKAssertEquals(doc.Pages.Count, 1);
+        TKAssertEquals(doc.Pages.Kids.length, 1);
+        var page = doc.Pages.Kids[0];
+        TKAssert(page instanceof PDFPageObject);
+        var stream = page.Contents;
+        TKAssert(stream instanceof PDFObject);
+        TKAssertEquals(stream.Length, 24);
+        var expected = "q 100 200 300 400 re f Q".utf8();
+        TKAssertObjectEquals(stream.data, expected);
     }
 
 });

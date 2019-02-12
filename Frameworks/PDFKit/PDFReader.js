@@ -232,6 +232,9 @@ JSClass("PDFReader", JSObject, {
         if (byte == PDFReader.Delimiters.leftParenthesis){
             return Token.stringStart;
         }
+        if (byte == PDFReader.Delimiters.rightParenthesis){
+            return Token.stringEnd;
+        }
         if (byte == PDFReader.Delimiters.lessThanSign){
             byte = this._stream.byte();
             if (byte == PDFReader.Delimiters.lessThanSign){
@@ -259,6 +262,15 @@ JSClass("PDFReader", JSObject, {
         }
         if (byte == PDFReader.Delimiters.leftBracket){
             return Token.arrayStart;
+        }
+        if (byte == PDFReader.Delimiters.rightBracket){
+            return Token.arrayEnd;
+        }
+        if (byte == PDFReader.Delimiters.leftBrace){
+            return Token.functionStart;
+        }
+        if (byte == PDFReader.Delimiters.rightBrace){
+            return Token.functionEnd;
         }
         if (byte == 0x52){  // R
             return Token.indirect;
@@ -554,6 +566,7 @@ JSClass("PDFReader", JSObject, {
             obj = this._finishReadingObject(token);
             this._defineProperty(array, array.length, obj);
             ++array.length;
+            token = this._readMeaningfulToken(Token.true, Token.false, Token.null, Token.integer, Token.real, Token.name, Token.stringStart, Token.hexStringStart, Token.arrayStart, Token.dictionaryStart, Token.arrayEnd);
         }
         return array;
     },
@@ -608,7 +621,9 @@ JSClass("PDFReader", JSObject, {
             token = this._readToken(Token.obj);
             tmp = object;
             object = this._readObject();
-            object.indirect = tmp;
+            if (object instanceof PDFObject){
+                object.indirect = tmp;
+            }
             token = this._readMeaningfulToken(Token.endobj, Token.stream);
             if (token == Token.stream){
                 this._readToken(Token.endOfLine);
@@ -629,11 +644,11 @@ JSClass("PDFReader", JSObject, {
                 configurable: true,
                 get: function PDFReader_getIndirectValue(){
                     var obj = reader._getObject(value);
-                    Object.defineProperty(this, property, {configurable: true, writable: true, value: obj});
+                    Object.defineProperty(this, property, {configurable: true, writable: true, enumerable: true, value: obj});
                     return obj;
                 },
                 set: function(value){
-                    reader._defineProperty(this, property, value);
+                    reader._defineProperty(this, property, {configurable: true, writable: true, enumerable: true, value: value});
                 }
             });
         }else{
@@ -673,11 +688,13 @@ JSClass("PDFReader", JSObject, {
         var reader = this;
         Object.defineProperty(obj, 'data', {
             configurable: true,
-            writable: true,
             get: function PDFReader_getStreamData(){
                 var data = reader._getStreamData(this, offset);
-                Object.defineProperty(obj, 'data', {configurable: true, writable: true, value: data});
+                Object.defineProperty(this, 'data', {configurable: true, writable: true, enumerable: false, value: data});
                 return data;
+            },
+            set: function(value){
+                Object.defineProperty(this, 'data', {configurable: true, writable: true, enumerable: true, value: value});
             }
         });
     }
@@ -698,6 +715,8 @@ var Token = {
     dictionaryEnd: ">>",
     arrayStart: "[",
     arrayEnd: "]",
+    functionStart: "{",
+    functionEnd: "}",
     commentStart: "%",
     name: "name",
     stream: "stream",

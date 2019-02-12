@@ -29,7 +29,7 @@ JSGlobalObject.PDFObject.prototype = Object.create({}, {
         get: function(){
             return this._indirect;
         }
-    },
+    }
 
 });
 
