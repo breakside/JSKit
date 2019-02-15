@@ -3,11 +3,13 @@
 'use strict';
 
 JSClass("PDFDeflateFilter", PDFPredictorFilter, {
-    decode: function(data){
-        return JSData.initWithBytes(Zlib.uncompress(data.bytes));
+    decodePrimaryData: function(data){
+        var uncompressed = Zlib.uncompress(data.bytes);
+        return JSData.initWithBytes(uncompressed);
     },
 
-    encode: function(data){
-        return JSData.initWithBytes(Zlib.compress(data.bytes));
+    encodePrimaryData: function(data){
+        var compressed = Zlib.compress(data.bytes);
+        return JSData.initWithBytes(compressed);
     }
 });

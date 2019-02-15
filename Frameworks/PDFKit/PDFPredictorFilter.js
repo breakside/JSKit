@@ -10,6 +10,7 @@ JSClass("PDFPredictorFilter", PDFFilter, {
     columns: 1,
 
     initWithParametersDictionary: function(params){
+        PDFPredictorFilter.$super.initWithParametersDictionary.call(this, params);
         if (params.Predictor){
             this.predictor = params.Predictor;
         }

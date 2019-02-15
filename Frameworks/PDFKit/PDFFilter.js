@@ -8,7 +8,7 @@ JSClass("PDFFilter", JSObject, {
 
     decodeParameters: null,
 
-    initWithParameters: function(decodeParameters){
+    initWithParametersDictionary: function(decodeParameters){
         this.decodeParameters = decodeParameters;
     },
 
@@ -30,32 +30,33 @@ PDFFilter.CreateChain = function(filters, decodeParameters){
     }
     var chain = [];
     for (var i = 0, l = filters.length; i < l; ++i){
-        chain.push(PDFFilter.create(filters[i], decodeParameters[i]));
+        chain.push(PDFFilter.Create(filters[i], decodeParameters ? decodeParameters[i] : {}));
     }
     return chain;
 };
 
 PDFFilter.Create = function(name, decodeParameters){
-    switch (name){
+    switch (name.toString()){
         case "ASCIIHexDecode":
             return PDFASCIIHexFilter.init();
         case "ASCII85Decode":
             return PDFASCII85Filter.init();
         case "LZWDecode":
-            return PDFLZWFilter.initWithParameters(decodeParameters);
+            return PDFLZWFilter.initWithParametersDictionary(decodeParameters);
         case "FlateDecode":
-            return PDFDeflateFilter.initWithParameters(decodeParameters);
+            return PDFDeflateFilter.initWithParametersDictionary(decodeParameters);
         case "RunLengthDecode":
             return PDFRunLengthFilter.init();
         case "CCITTFaxDecode":
-            return PDFCCITTFaxFilter.initWithParameters(decodeParameters);
+            return PDFCCITTFaxFilter.initWithParametersDictionary(decodeParameters);
         case "JBIG2Decode":
-            return PDFJBIG2Filter.initWithParameters(decodeParameters);
+            return PDFJBIG2Filter.initWithParametersDictionary(decodeParameters);
         case "DCTDecode":
-            return PDFDCTFilter.initWithParameters(decodeParameters);
+            return PDFDCTFilter.initWithParametersDictionary(decodeParameters);
         case "JPXDecode":
-            return PDFJPXFilter.initWithParameters(decodeParameters);
+            return PDFJPXFilter.initWithParametersDictionary(decodeParameters);
         case "Crypt":
-            return PDFCryptFilter.initWithParameters(decodeParameters);
+            return PDFCryptFilter.initWithParametersDictionary(decodeParameters);
     }
+    throw new Error("Unknown filter: %s".sprintf(name.toString));
 };
