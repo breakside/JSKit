@@ -52,22 +52,44 @@ SECCipher.definePropertiesFromExtensions({
 
 SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
 
+    _cipherNameForKey: function(key){
+        switch (key.keyData.length){
+            case 16:
+                return 'AES-128-CBC';
+            case 24:
+                return 'AES-192-CBC';
+            case 32:
+                return 'AES-256-CBC';
+        }
+        return null;
+    },
+
     encrypt: function(data, key, completion, target){
+        var name = this._cipherNameForKey(key);
         crypto.randomBytes(16, function(error, iv){
             if (error){
                 completion.call(target, null);
-            }else{
-                var cipher = crypto.createCipheriv('AES-256-CBC', key.keyData.bytes, iv);
-                var chunks = [iv, cipher.update(data.bytes), cipher.final()];
-                completion.call(target, JSData.initWithChunks(chunks));
+                return;
             }
+            if (name === null){
+                completion.call(target, null);
+                return;
+            }
+            var cipher = crypto.createCipheriv(name, key.keyData.bytes, iv);
+            var chunks = [iv, cipher.update(data.bytes), cipher.final()];
+            completion.call(target, JSData.initWithChunks(chunks));
         });
     },
 
     decrypt: function(data, key, completion, target){
         try{
+            var name = this._cipherNameForKey(key);
+            if (name === null){
+                JSRunLoop.main.schedule(completion, target, null);
+                return;
+            }
             var iv = data.subdataInRange(JSRange(0, 16)).bytes;
-            var cipher = crypto.createDecipheriv('AES-256-CBC', key.keyData.bytes, iv);
+            var cipher = crypto.createDecipheriv(name, key.keyData.bytes, iv);
             var chunks = [cipher.update(data.subdataInRange(JSRange(16, data.length - 16)).bytes), cipher.final()];
             JSRunLoop.main.schedule(completion, target, JSData.initWithChunks(chunks));
         }catch (e){
@@ -79,8 +101,25 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
 
 SECCipherAESCounter.definePropertiesFromExtensions({
 
+    _cipherNameForKey: function(key){
+        switch (key.keyData.length){
+            case 16:
+                return 'AES-128-CTR';
+            case 24:
+                return 'AES-192-CTR';
+            case 32:
+                return 'AES-256-CTR';
+        }
+        return null;
+    },
+
     encrypt: function(data, key, completion, target){
         if (!this.ensureUniqueMessageID()){
+            JSRunLoop.main.schedule(completion, target, null);
+            return;
+        }
+        var name = this._cipherNameForKey(key);
+        if (name === null){
             JSRunLoop.main.schedule(completion, target, null);
             return;
         }
@@ -96,13 +135,18 @@ SECCipherAESCounter.definePropertiesFromExtensions({
         ]);
         var iv = new Uint8Array(16);
         nonce.copyTo(iv, 0);
-        var cipher = crypto.createCipheriv('AES-256-CTR', key.keyData.bytes, iv);
+        var cipher = crypto.createCipheriv(name, key.keyData.bytes, iv);
         var chunks = [nonce, cipher.update(data.bytes), cipher.final()];
         JSRunLoop.main.schedule(completion, target, JSData.initWithChunks(chunks));
     },
 
     decrypt: function(data, key, completion, target){
         try{
+            var name = this._cipherNameForKey(key);
+            if (name === null){
+                JSRunLoop.main.schedule(completion, target, null);
+                return;
+            }
             var nonce = data.subdataInRange(JSRange(0, 8)).bytes;
             this.decryptedMessageId =
                   (nonce[6] << 48)
@@ -114,7 +158,7 @@ SECCipherAESCounter.definePropertiesFromExtensions({
                 | (nonce[0]);
             var iv = new Uint8Array(16);
             nonce.copyTo(iv, 0);
-            var cipher = crypto.createDecipheriv('AES-256-CTR', key.keyData.bytes, iv);
+            var cipher = crypto.createDecipheriv(name, key.keyData.bytes, iv);
             var chunks = [cipher.update(data.subdataInRange(JSRange(8, data.length - 8)).bytes), cipher.final()];
             JSRunLoop.main.schedule(completion, target, JSData.initWithChunks(chunks));
         }catch (e){
@@ -126,8 +170,25 @@ SECCipherAESCounter.definePropertiesFromExtensions({
 
 SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
 
+    _cipherNameForKey: function(key){
+        switch (key.keyData.length){
+            case 16:
+                return 'id-aes128-GCM';
+            case 24:
+                return 'id-aes192-GCM';
+            case 32:
+                return 'id-aes256-GCM';
+        }
+        return null;
+    },
+
     encrypt: function(data, key, completion, target){
         if (!this.ensureUniqueMessageID()){
+            JSRunLoop.main.schedule(completion, target, null);
+            return;
+        }
+        var name = this._cipherNameForKey(key);
+        if (name === null){
             JSRunLoop.main.schedule(completion, target, null);
             return;
         }
@@ -143,7 +204,7 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         ]);
         var iv = new Uint8Array(16);
         nonce.copyTo(iv, 0);
-        var cipher = crypto.createCipheriv('id-aes256-GCM', key.keyData.bytes, iv);
+        var cipher = crypto.createCipheriv(name, key.keyData.bytes, iv);
         var chunks = [nonce, cipher.update(data.bytes), cipher.final()];
         var tag = new Uint8Array(16);
         cipher.getAuthTag().copyTo(tag, 0);
@@ -153,6 +214,11 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
 
     decrypt: function(data, key, completion, target){
         try{
+            var name = this._cipherNameForKey(key);
+            if (name === null){
+                JSRunLoop.main.schedule(completion, target, null);
+                return;
+            }
             var nonce = data.subdataInRange(JSRange(0, 8)).bytes;
             this.decryptedMessageId =
                   (nonce[6] << 48)
@@ -164,7 +230,7 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
                 | (nonce[0]);
             var iv = new Uint8Array(16);
             nonce.copyTo(iv, 0);
-            var cipher = crypto.createDecipheriv('id-aes256-GCM', key.keyData.bytes, iv);
+            var cipher = crypto.createDecipheriv(name, key.keyData.bytes, iv);
             var tag = data.subdataInRange(JSRange(data.length - 16, 16)).bytes;
             cipher.setAuthTag(tag);
             var chunks = [cipher.update(data.subdataInRange(JSRange(8, data.length - 8 - 16)).bytes), cipher.final()];
