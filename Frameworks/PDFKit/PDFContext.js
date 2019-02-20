@@ -106,7 +106,6 @@ JSClass("PDFContext", JSContext, {
 
         this.restore();
         this._endContentStream();
-        this._page.normalizeContent();
         this._writer.writeObject(this._page.Resources);
         this._writer.writeObject(this._page);
 
@@ -223,7 +222,7 @@ JSClass("PDFContext", JSContext, {
         this._content = PDFStreamObject();
         this._content.Length = this._writer.createIndirect();
         this._writer.beginStreamObject(this._content);
-        this._page.Contents.push(this._content.indirect);
+        this._page.Contents = this._content.indirect;
         this._content.Length.resolvedValue = 0;
     },
 

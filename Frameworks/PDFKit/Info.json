@@ -4,6 +4,8 @@
     "JSBundleVersion": "1.0.0",
     "JSIncludeFrameworks": [
         "Foundation",
-        "ImageKit"
+        "ImageKit",
+        "Hash",
+        "SecurityKit"
     ]
 }

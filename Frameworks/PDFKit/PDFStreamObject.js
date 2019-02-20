@@ -16,7 +16,12 @@ JSGlobalObject.PDFStreamObject.prototype = Object.create(PDFObject.prototype, {
     F:              PDFObjectProperty,
     FFilter:        PDFObjectProperty,
     FDecodeParams:  PDFObjectProperty,
-    DL:             PDFObjectProperty
+    DL:             PDFObjectProperty,
+    getData: {
+        value: function(completion, target){
+            return completion.call(target, null);
+        }
+    }
 });
 
 PDFStreamObject.Filters = {

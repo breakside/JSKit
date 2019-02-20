@@ -1,6 +1,6 @@
 // #import "PDFKit/PDFObject.js"
 // #import "PDFKit/PDFNameObject.js"
-/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFDocumentObject, PDFNameObject */
+/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFDocumentObject, PDFPageIterator, PDFNameObject */
 'use strict';
 
 JSGlobalObject.PDFDocumentObject = function(){
@@ -38,5 +38,20 @@ JSGlobalObject.PDFDocumentObject.prototype = Object.create(PDFObject.prototype, 
     Legal:              PDFObjectProperty,
     Requirements:       PDFObjectProperty,
     Collection:         PDFObjectProperty,
-    NeedsRendering:     PDFObjectProperty
+    NeedsRendering:     PDFObjectProperty,
+
+    pageCount: {
+        get: function PDFDocumentObject_getPageCount(){
+            if (this.Pages === null){
+                return 0;
+            }
+            return this.Pages.Count;
+        }
+    },
+
+    page: {
+        value: function PDFDocumentObject_getPage(index){
+            return this.Pages.page(index);
+        }
+    }
 });

@@ -1,5 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "ImageKit/ImageKit.js"
+// #import "SecurityKit/SecurityKit.js"
+// #import "Hash/Hash.js"
 
 // #import "PDFKit/PDFTypes.js"
 // #import "PDFKit/PDFWriter.js"
@@ -18,4 +20,5 @@
 // #import "PDFKit/PDFJPXFilter.js"
 // #import "PDFKit/PDFCryptFilter.js"
 // #import "PDFKit/JSColor+PDF.js"
+// #import "PDFKit/PDFEncryption.js"
 'use strict';

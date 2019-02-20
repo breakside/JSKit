@@ -1,7 +1,8 @@
 // #import "Foundation/Foundation.js"
 // #import "PDFKit/PDFTypes.js"
 // #import "PDFKit/PDFFilter.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, PDFReader, PDFReaderStream, PDFReaderDataStream, JSData, PDFFilter */
+// #import "PDFKit/PDFEncryption.js"
+/* global JSClass, JSObject, JSReadOnlyProperty, PDFReader, PDFReaderStream, PDFReaderDataStream, JSData, PDFFilter, PDFEncryption */
 /* global PDFIndirectObject, PDFNameObject, PDFObject, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFStreamObject, PDFTrailerObject, PDFFontObject, PDFType1FontObject, PDFTrueTypeFontObject, PDFImageObject, PDFColorSpaceObject */
 'use strict';
 
@@ -22,21 +23,51 @@ JSClass("PDFReader", JSObject, {
 
     // MARK: - Reading
 
-    getDocument: function(){
-        if (this._document === null){
-            this._readVersion();
-            this._readEndOfFile();
-            this._crossReferenceTable = [];
-            this._readCrossReferenceTable(this._crossReferenceTableOffet);
-            this._document = this._trailer.Root;
+    open: function(completion, target){
+        this._crossReferenceTable = [];
+        this._readVersion();
+        var offset = this._readEndOfFile();
+        this._readCrossReferenceTable(offset);
+        var encrypt = this._trailer.Encrypt;
+        if (!encrypt){
+            completion.call(target, PDFReader.Status.open, this._trailer.Root);
+            return;
         }
-        return this._document;
+        var ids = this._trailer.ID;
+        if (!ids){
+            completion.call(target, PDFReader.Status.unsupportedEncryption, null);
+            return;
+        }
+        var id = ids[0];
+        if (!id){
+            completion.call(target, PDFReader.Status.unsupportedEncryption, null);
+            return;
+        }
+        this._encryption = PDFEncryption.initWithDocumentId(id.latin1(), encrypt);
+        if (!this._encryption.isSupported){
+            completion.call(target, PDFReader.Status.unsupportedEncryption, null);
+            return;
+        }
+        this.authenticate("", completion, target);
+    },
+
+    // MARK: - Encryption
+
+    _encryption: null,
+
+    authenticate: function(userPassword, completion, target){
+        this._encryption.authenticateUser(userPassword, function PDFReader_authenticate_result(success){
+            if (success){
+                completion.call(target, PDFReader.Status.open, this._trailer.Root);
+                return;
+            }
+            completion.call(target, PDFReader.Status.passwordRequired, null);
+        }, this);
     },
 
     // MARK: - Internal data structures
 
     _stream: null,
-    _crossReferenceTableOffet: null,
     _crossReferenceTable: null,
     _trailer: null,
     _document: null,
@@ -97,7 +128,7 @@ JSClass("PDFReader", JSObject, {
             token = this._readToken(Token.integer, Token.commentStart);
         }
         this._readToken(Token.endOfLine, Token.commentStart);
-        this._crossReferenceTableOffet = token.pdfObject;
+        var crossReferenceTableOffset = token.pdfObject;
 
         // Read the previous token, verifying that it is startxref.
         // (Be sure to skip comment lines)
@@ -112,6 +143,7 @@ JSClass("PDFReader", JSObject, {
             token = this._readToken(Token.startxref, Token.commentStart);
         }
         this._readToken(Token.endOfLine, Token.commentStart);
+        return crossReferenceTableOffset;
     },
 
     _readCrossReferenceTable: function(offset){
@@ -413,7 +445,7 @@ JSClass("PDFReader", JSObject, {
         // Certain names are required to be encoded in utf8.  If we encounter one of those names,
         // code can call use the `.valueDecodingUTF8()` function instead of the `.value`
         // property on the `PDFNameObject` instance, which will reinterpret the bytes as utf8.
-        var value = bytes.stringByDecodingISO8859_1();
+        var value = bytes.stringByDecodingLatin1();
         return PDFNameObject(value);
     },
 
@@ -491,7 +523,7 @@ JSClass("PDFReader", JSObject, {
         var bytes = [];
         var a = null;
         while (byte != PDFReader.Delimiters.greaterThanSign){
-            if (PDFReader.isHexadecimal(byte)){
+            if (PDFReader.Hexadecimal.isHexadecimal(byte)){
                 if (a === null){
                     a = byte;
                 }else{
@@ -512,7 +544,7 @@ JSClass("PDFReader", JSObject, {
 
     _decodedStringFromBytes: function(bytes){
         // TODO: decode data to string using proper encoding
-        return bytes.stringByDecodingUTF8();
+        return bytes.stringByDecodingLatin1();
     },
 
     _readObject: function(){
@@ -660,7 +692,7 @@ JSClass("PDFReader", JSObject, {
         }
     },
 
-    _getStreamData: function(stream, offset){
+    _getStreamData: function(stream, offset, completion, target){
         // Bail if the stream has an external file reference
         if (stream.F){
             return null;
@@ -673,33 +705,44 @@ JSClass("PDFReader", JSObject, {
             return null;
         }
 
-        var filters = PDFFilter.CreateChain(stream.Filter, stream.DecodeParams);
-        for (var i = 0, l = filters.length; data !== null && i < l; ++i){
-            try{
-                data = filters[i].decode(data);
-            }catch (e){
-                data = null;
+        var decode = function PDFReader_getStreamData_decode(data){
+            var filters = PDFFilter.CreateChain(stream.Filter, stream.DecodeParams);
+            for (var i = 0, l = filters.length; data !== null && i < l; ++i){
+                try{
+                    data = filters[i].decode(data);
+                }catch (e){
+                    data = null;
+                }
             }
+            completion.call(target, data);
+        };
+
+        if (this._encryption){
+            this._encryption.decryptStream(stream, data, decode, this);
+        }else{
+            decode.call(this, data);
         }
-        return data;
     },
 
     _defineStreamProperty: function(obj, offset){
         var reader = this;
-        Object.defineProperty(obj, 'data', {
+        Object.defineProperty(obj, 'getData', {
             configurable: true,
-            get: function PDFReader_getStreamData(){
-                var data = reader._getStreamData(this, offset);
-                Object.defineProperty(this, 'data', {configurable: true, writable: true, enumerable: false, value: data});
-                return data;
-            },
-            set: function(value){
-                Object.defineProperty(this, 'data', {configurable: true, writable: true, enumerable: true, value: value});
+            value: function PDFReader_getStreamData(completion, target){
+                reader._getStreamData(this, offset, completion, target);
             }
         });
     }
 
 });
+
+PDFReader.Status = {
+    open: 0,
+    error: 1,
+    passwordRequired: 2,
+    unsupportedVersion: 3,
+    unsupportedEncryption: 4
+};
 
 var Token = {
 
@@ -1035,21 +1078,40 @@ var PDFObjectClassesBySubtype = {};
 
 var PDFObjectClassForDictionary = function(dict){
     var type = dict.Type;
-    if (!(type instanceof PDFNameObject)){
-        return PDFObject;
+    if (type instanceof PDFNameObject){
+        if (type in PDFObjectClassesByType){
+            return PDFObjectClassesByType[type];
+        }
+        if (type in PDFObjectClassesBySubtype){
+            var subtype = dict.Subtype;
+            if (subtype instanceof PDFNameObject){
+                if (subtype in PDFObjectClassesBySubtype[type]){
+                    return PDFObjectClassesBySubtype[type][subtype];
+                }
+            }
+        }
     }
-    if (type in PDFObjectClassesByType){
-        return PDFObjectClassesByType[type];
-    }
-    if (!(type in PDFObjectClassesBySubtype)){
-        return PDFObject;
-    }
-    var subtype = dict.Subtype;
-    if (!(subtype instanceof PDFNameObject)){
-        return PDFObject;
-    }
-    if (subtype in PDFObjectClassesBySubtype[type]){
-        return PDFObjectClassesBySubtype[type][subtype];
+    // We want stream objects to be instantiated as PDFStreamObject instances,
+    // which have special properties for accessing the stream data.
+    //
+    // Unfortunately, plain streams don't have a Type field that allows them to be easily
+    // identified without any other context.
+    //
+    // - The `Length` property, however, is required and doesn't appear to be used by other types.
+    //
+    // - Another way to solve it would be for PDFReader to use contextual information
+    //   to know if it's reading a stream or not.  For exmample, after reading a dictionary,
+    //   PDFReader already checks for the `stream` keyword.  However, we've already
+    //   parsed the dictionary and assigned a type by then.  The objet would have to
+    //   be re-instantiated as a PDFStreamObject, which is tricky becasue of the lazy
+    //   reader properties for indirect objects.
+    //
+    // - Objects themeselves could hold information about the expected type of their properties,
+    //   but this is problematic because PDF allows certain properties to have multiple types.
+    //   For example, Page.Contents can be a stream or an array of streams.  This complicates
+    //   specifiying types for each property because the type isn't known until the property is read.
+    if ('Length' in dict){
+        return PDFStreamObject;
     }
     return PDFObject;
 };

@@ -113,7 +113,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         var expected = [
             "%PDF-1.7",
             "2 0 obj",
-            "<< /Contents [ ] /Parent 1 0 R /Type /Page >>",
+            "<< /Parent 1 0 R /Type /Page >>",
             "endobj",
             "1 0 obj",
             "<< /Kids [ 2 0 R ] /Count 1 /Type /Pages >>",
@@ -124,13 +124,13 @@ JSClass("PDFWriterTests", TKTestSuite, {
             "xref",
             "0 4",
             "0000000000 65535 f\r",
-            "0000000070 00000 n\r",
+            "0000000056 00000 n\r",
             "0000000009 00000 n\r",
-            "0000000129 00000 n\r",
+            "0000000115 00000 n\r",
             "trailer",
             "<< /Root 3 0 R /Size 4 >>",
             "startxref",
-            "178",
+            "164",
             "%%EOF"
         ];
 
@@ -188,7 +188,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
             "24",                                                   //  3      205
             "endobj",                                               //  7      212 (2)
             "2 0 obj",                                              //  8      220
-            "<< /Contents 3 0 R /Parent 1 0 R /Type /Page >>",      // 48      268
+            "<< /Parent 1 0 R /Contents 3 0 R /Type /Page >>",      // 48      268
             "endobj",                                               //  7      275 (xref)
             "xref",
             "0 6",

@@ -288,7 +288,7 @@ var pdf_formatter = {
 
     // name
     N: function(value, options){
-        var data = value.dataUsingEncoding(String.Encoding.iso8859_1);
+        var data = value.latin1();
         var str = "/";
         var byte;
         var hex;

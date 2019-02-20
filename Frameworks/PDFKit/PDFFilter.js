@@ -30,7 +30,9 @@ PDFFilter.CreateChain = function(filters, decodeParameters){
     }
     var chain = [];
     for (var i = 0, l = filters.length; i < l; ++i){
-        chain.push(PDFFilter.Create(filters[i], decodeParameters ? decodeParameters[i] : {}));
+        if (filters[i] !== null){
+            chain.push(PDFFilter.Create(filters[i], decodeParameters ? decodeParameters[i] : {}));
+        }
     }
     return chain;
 };
@@ -56,7 +58,7 @@ PDFFilter.Create = function(name, decodeParameters){
         case "JPXDecode":
             return PDFJPXFilter.initWithParametersDictionary(decodeParameters);
         case "Crypt":
-            return PDFCryptFilter.initWithParametersDictionary(decodeParameters);
+            return null;
     }
-    throw new Error("Unknown filter: %s".sprintf(name.toString));
+    return null;
 };

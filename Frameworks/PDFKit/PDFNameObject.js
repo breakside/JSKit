@@ -17,7 +17,7 @@ JSGlobalObject.PDFNameObject.prototype = Object.create({}, {
         configurable: true,
         enumerable: false,
         value: function(){
-            var data = this.value.dataUsingEncoding(String.Encoding.iso8859_1);
+            var data = this.value.latin1();
             return data.bytes.stringByDecodingUTF8();
         }
     },

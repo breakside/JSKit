@@ -81,7 +81,7 @@ JSClass("PDFContextTests", TKTestSuite, {
             "<< >>",
             "endobj",
             "5 0 obj",
-            "<< /Contents 4 0 R /Parent 1 0 R /Resources 6 0 R /Type /Page >>",
+            "<< /Parent 1 0 R /Resources 6 0 R /Contents 4 0 R /Type /Page >>",
             "endobj",
             "2 0 obj",
             "<< >>",

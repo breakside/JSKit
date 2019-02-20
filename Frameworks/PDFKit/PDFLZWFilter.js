@@ -69,7 +69,7 @@ PDFLZWStream.prototype = {
         var x;
         var i = 0;
         var L = this.input.length;
-        this.writeCode(256);
+        // this.writeCode(256);
         while (i < L){
             x = this.input[i];
             if (node[x]){
@@ -130,7 +130,7 @@ PDFLZWStream.prototype = {
                 }
                 sequence = [code];
             }else if (code == 256){
-                logger.info("reset table %d".sprintf(this.nextCode));
+                // logger.info("reset table %d".sprintf(this.nextCode));
                 this.resetTable();
                 sequence = [];
             }else if (code > 257){
@@ -155,17 +155,17 @@ PDFLZWStream.prototype = {
                 }
             }
             if (this.nextCode == 512 - this.bitIncreaseOffset){
-                logger.info("increasing to 10 bit");
+                // logger.info("increasing to 10 bit at %d.%d".sprintf(this.byteOffset, this.bitOffset));
                 this.bitLength = 10;
             }else if (this.nextCode == 1024 - this.bitIncreaseOffset){
-                logger.info("increasing to 11 bit");
+                // logger.info("increasing to 11 bit at %d.%d".sprintf(this.byteOffset, this.bitOffset));
                 this.bitLength = 11;
             }else if (this.nextCode == 2048 - this.bitIncreaseOffset){
-                logger.info("increasing to 12 bit");
+                // logger.info("increasing to 12 bit at %d.%d".sprintf(this.byteOffset, this.bitOffset));
                 this.bitLength = 12;
             }
         } while (code != 257);
-        logger.info("ended at %d.%d".sprintf(this.byteOffset, this.bitOffset));
+        // logger.info("ended at %d.%d".sprintf(this.byteOffset, this.bitOffset));
         this.output = new Uint8Array(this.output.buffer, this.output.byteOffset, this.outputLength);
     },
 

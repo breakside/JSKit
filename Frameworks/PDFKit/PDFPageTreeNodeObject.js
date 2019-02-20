@@ -20,4 +20,26 @@ JSGlobalObject.PDFPageTreeNodeObject.prototype = Object.create(PDFObject.prototy
     MediaBox:   PDFObjectProperty,
     CropBox:    PDFObjectProperty,
     Rotate:     PDFObjectProperty,
+
+    page: {
+        value: function PDFPageTreeNodeObject_getPage(index){
+            var kid;
+            var number = 0;
+            for (var i = 0, l = this.Kids.length; i < l; ++i){
+                kid = this.Kids[i];
+                if (kid.type == "Pages"){
+                    if (index - number < kid.Count){
+                        return kid.page(index - number);
+                    }
+                    number += kid.Count;
+                }else{
+                    if (number == index){
+                        return kid;
+                    }
+                    number += 1;
+                }
+            }
+            return null;
+        }
+    }
 });
