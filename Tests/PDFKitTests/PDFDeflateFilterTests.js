@@ -8,7 +8,6 @@
 JSClass("PDFDeflateFilterTests", TKTestSuite, {
 
     testDecode: function(){
-        // First page of `TIFF 6.pdf` specification (PDF is drm encrypted; decrypted object 1039 0 using 18a30f1983febc0bd627 as rc4 key)
         var data = "eAF9kM9OxCAQxu99is+be+kCdmF79V9ivOwmJJ6xpVtW2rVA1viyPotAqwc1ZkiYDPPN/D4m7DGBxOCUQdQMTuMJI9Y3nqLxoDl8EzvS6/DdZ3NGYLPaFj26PItvS1FzJiAYKlGVFREb8A0tGbkSP6enxQRx+hTXpJQmmaC0aAZcS9ClOl9ywFrKRCQ7XMreeMSjELQP2N3e48NqHPSonQq6xfM7duqgfbkq5DEp2aK8WCEW7mTkjTZZsvkbgtc1ZoivxvQfxd/EfCuW5v+IH0LiNWPQYxv5wglnZU0bYRF6nRw8moCjOivfOPMa0Dk16LeTe5ktZJD9J9vPbN0=".dataByDecodingBase64();
         var filter = PDFDeflateFilter.init();
         var decoded = filter.decode(data);

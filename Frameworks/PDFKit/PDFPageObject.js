@@ -60,7 +60,7 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
             var chunks = [];
             var contentIndex = 0;
             var handleChunk = function(chunk){
-                chunks.push(chunk);
+                chunks.push(chunk.bytes);
                 ++contentIndex;
                 if (contentIndex < contents.length){
                     contents[contentIndex].getData(handleChunk);

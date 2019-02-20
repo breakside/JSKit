@@ -26,12 +26,12 @@ PDFFilter.CreateChain = function(filters, decodeParameters){
         return [];
     }
     if (filters instanceof PDFNameObject){
-        return [PDFFilter.Create(filters, decodeParameters)];
+        return [PDFFilter.Create(filters, decodeParameters || {})];
     }
     var chain = [];
     for (var i = 0, l = filters.length; i < l; ++i){
         if (filters[i] !== null){
-            chain.push(PDFFilter.Create(filters[i], decodeParameters ? decodeParameters[i] : {}));
+            chain.push(PDFFilter.Create(filters[i], decodeParameters ? (decodeParameters[i] || {}) : {}));
         }
     }
     return chain;

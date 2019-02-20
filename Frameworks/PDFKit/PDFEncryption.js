@@ -47,7 +47,7 @@ JSClass("PDFEncryption", JSObject, {
         this.revision = encrypt.R;
 
         this.isSupported = (this.algorithm === PDFEncryption.Algorithm.rc4_40 || this.algorithm == PDFEncryption.Algorithm.rc4 || this.algorithm == PDFEncryption.Algorithm.crypt);
-        if (this.algorithm == PDFEncryption.Algorithm.rc4){
+        if (this.algorithm == PDFEncryption.Algorithm.rc4 || this.algorithm == PDFEncryption.Algorithm.crypt){
             if (encrypt.Length){
                 if (encrypt.Length % 8 !== 0){
                     this.isSupported = false;
@@ -55,7 +55,8 @@ JSClass("PDFEncryption", JSObject, {
                     this.keyLengthInBytes = encrypt.Length / 8;
                 }
             }
-        }else if (this.algorithm == PDFEncryption.Algorithm.crypt){
+        }
+        if (this.algorithm == PDFEncryption.Algorithm.crypt){
             if (encrypt.EncryptMetadata === false){
                 this.encryptMetadata = false;
             }
@@ -93,19 +94,7 @@ JSClass("PDFEncryption", JSObject, {
 
     authenticateUser: function(password, completion, target){
         // a) Create an encryption key based on the user password string
-        var paddedPasswordBytes = Uint8Array.from(passwordPadding);
-        try{
-            var passwordData = password.latin1();
-            for (var i = 0, l = passwordData.legth && i < paddedPasswordBytes.length; i < l; ++i){
-                paddedPasswordBytes[i] = passwordData.bytes[i];
-            }
-        }catch (e){
-            // password can't be encoded in latin1, so it must be an invalid password and
-            // we can just continue with an empty password that will fail
-            // NOTE: PDF 1.7 extensions allow for unicode passwords
-        }
-        var paddedPasswordData = JSData.initWithBytes(paddedPasswordBytes);
-        var keyData = this._generateDocumentKeyData(paddedPasswordData);
+        var keyData = this._generateDocumentKeyData(password);
         var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.rc4);
         cipher.createKeyWithData(keyData, function(key){
             if (key === null){
@@ -121,7 +110,7 @@ JSClass("PDFEncryption", JSObject, {
                 // c) Pass the first element of the file's file identifier array
                 md5.add(this.documentId.bytes);
                 md5.finish();
-                var iteration = 1;
+                var iteration = 0;
 
                 var handleEncryption = function(encrypted){
                     if (encrypted === null){
@@ -138,14 +127,14 @@ JSClass("PDFEncryption", JSObject, {
                     if (iteration < 20){
                         var newKeyData = JSData.initWithLength(keyData.length);
                         for (i = 0, l = keyData.length; i < l; ++i){
-                            newKeyData.bytes[i] = keyData.byte[i] ^ iteration;
+                            newKeyData.bytes[i] = keyData.bytes[i] ^ iteration;
                         }
                         cipher.createKeyWithData(newKeyData, function(newKey){
                             if (newKey === null){
                                 completion.call(target, false);
                                 return;
                             }
-                            cipher.encrypt(encrypted, newKey, handleEncryption);
+                            cipher.encrypt(encrypted, newKey, handleEncryption, this);
                         }, this);
                     }else{
                         // ... If the first 16 bytes of result are equal to the value of the encryption dictionary’s U entry, password is valid
@@ -182,18 +171,18 @@ JSClass("PDFEncryption", JSObject, {
 
     decryptStream: function(stream, data, completion, target){
         var cipherAlgorithm = null;
-        var objectId;
-        var generation;
         if (this.algorithm == PDFEncryption.Algorithm.crypt){
-            var filters = stream.Filters;
+            var filters = stream.Filter;
             var firstFilter = null;
             var firstParams = null;
             if (filters instanceof PDFNameObject){
                 firstFilter = filters;
                 firstParams = stream.DecodeParams;
-            }else{
+            }else if (filters){
                 firstFilter = filters[0];
-                firstParams = stream.DecodeParams[0];
+                if (stream.DecodeParams){
+                    firstParams = stream.DecodeParams[0];
+                }
             }
             var filterDictionary = null;
             if (firstFilter == "Crypt"){
@@ -204,6 +193,8 @@ JSClass("PDFEncryption", JSObject, {
                 filterDictionary = this.defaultStreamFilter;
             }
 
+            // If we couldn't find a matching filter, behave as if the stream
+            // specified the /Identity filter, which just returns the data unchanged.
             if (!filterDictionary){
                 completion.call(target, data);
                 return;
@@ -211,6 +202,8 @@ JSClass("PDFEncryption", JSObject, {
 
             var method = filterDictionary.CFM;
 
+            // Unclear what we're supposed to do with the /None method.
+            // For now, return data unchanged.
             if (!method || method == "None"){
                 completion.call(target, data);
                 return;
@@ -221,16 +214,16 @@ JSClass("PDFEncryption", JSObject, {
             }else if (method == "AESV2"){
                 cipherAlgorithm = SECCipher.Algorithm.aesCBC;
             }else{
+                // Unclear what we're supposed to do with an unknown method.
+                // For now, return data unchanged.
                 completion.call(target, data);
                 return;
             }
         }else{
             cipherAlgorithm = SECCipher.Algorithm.rc4;
-            objectId = stream.indirect.objectID;
-            generation = stream.indirect.generation;
         }
 
-        var keyData = this._generateObjectKeyData(objectId, generation, cipherAlgorithm);
+        var keyData = this._generateObjectKeyData(stream.indirect.objectID, stream.indirect.generation, cipherAlgorithm);
         var cipher = SECCipher.initWithAlgorithm(cipherAlgorithm);
         cipher.createKeyWithData(keyData, function(key){
             if (key === null){
@@ -243,12 +236,27 @@ JSClass("PDFEncryption", JSObject, {
         }, this);
     },
 
-    _generateDocumentKeyData: function(passwordData){
+    _dataForPassword: function(password){
+        try{
+            return password.latin1();
+        }catch (e){
+            // password can't be encoded in latin1, so it must be an invalid password and
+            // we can just continue with an empty password that will fail
+            // NOTE: PDF 1.7 extensions allow for unicode passwords
+        }
+        return JSData.initWithLength(0);
+    },
+
+    _generateDocumentKeyData: function(password){
         // a) Pad or truncate the password string to exactly 32 bytes.
+        var passwordData = this._dataForPassword(password);
+        var paddedPasswordData = JSData.initWithChunks([passwordData.bytes, Uint8Array.from(passwordPadding)]);
+        paddedPasswordData.truncateToLength(32);
+
         // b) Initialize the MD5 hash function and pass the result of step (a) as input to this function.
         var md5 = new JSMD5Hash();
         md5.start();
-        md5.add(passwordData.bytes);
+        md5.add(paddedPasswordData.bytes);
 
         // c) Pass the value of the encryption dictionary's O entry to the MD5 hash function
         md5.add(this.ownerCheck.bytes);
@@ -286,6 +294,7 @@ JSClass("PDFEncryption", JSObject, {
 
     _generateObjectKeyData: function(objectId, generation, algorithm){
         // a) Obtain the object number and generation number from the object identifier
+
         var md5 = new JSMD5Hash();
         md5.start();
         md5.add(this.documentKeyData.bytes);
