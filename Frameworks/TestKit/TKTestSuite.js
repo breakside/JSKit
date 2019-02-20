@@ -21,13 +21,13 @@ JSClass("TKTestSuite", JSObject, {
     },
 
     wait: function(expectation, timeout){
+        this.expectation = expectation;
         // The expectation may be done already if its callback was called immediately
         // instead of asynchronously
         if (expectation.isDone){
             return;
         }
         expectation.setTimeout(timeout);
-        this.expectation = expectation;
     }
 
 });
