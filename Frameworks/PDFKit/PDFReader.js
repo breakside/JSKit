@@ -680,7 +680,7 @@ JSClass("PDFReader", JSObject, {
                     return obj;
                 },
                 set: function(value){
-                    reader._defineProperty(this, property, {configurable: true, writable: true, enumerable: true, value: value});
+                    reader._defineProperty(this, property, value);
                 }
             });
         }else{

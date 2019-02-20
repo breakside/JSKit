@@ -1,8 +1,10 @@
 // #import "PDFKit/PDFObject.js"
 // #import "PDFKit/PDFNameObject.js"
 // #import "PDFKit/PDFStreamObject.js"
-/* global JSGlobalObject, JSData, PDFObject, PDFObjectProperty, PDFPageObject, PDFNameObject, PDFStreamObject */
+/* global JSGlobalObject, JSData, JSSize, JSRect, PDFObject, PDFObjectProperty, PDFPageObject, PDFNameObject, PDFStreamObject */
 'use strict';
+
+(function(){
 
 JSGlobalObject.PDFPageObject = function(){
     if (this === undefined){
@@ -42,6 +44,75 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
     UserUnit:               PDFObjectProperty,
     VP:                     PDFObjectProperty,
 
+    effectiveMediaBox: {
+        enumerable: false,
+        get: function PDFPageObject_getEffectiveMediaBox(){
+            if (this.MediaBox){
+                return this.MediaBox;
+            }
+            if (this.Parent){
+                return this.Parent.effectiveMediaBox;
+            }
+            return [0, 0, 100, 100];
+        }
+    },
+
+    inheritedCropBox: {
+        enumerable: false,
+        get: function PDFPageObject_getInheritedCropBox(){
+            if (this.CropBox){
+                return this.CropBox;
+            }
+            if (this.Parent){
+                return this.Parent.inheritedCropBox;
+            }
+            return null;
+        }
+    },
+
+    effectiveCropBox: {
+        enumerable: false,
+        get: function PDFPageObject_getEffectiveCropBox(){
+            var box = this.inheritedCropBox;
+            if (box){
+                return box;
+            }
+            return this.effectiveMediaBox;
+        }
+    },
+
+    effectiveRotation: {
+        enumerable: false,
+        get: function PDFPageObject_getEffectiveCropBox(){
+            if (this.Rotate){
+                return this.Rotate;
+            }
+            if (this.Parent){
+                return this.Parent.effectiveRotation;
+            }
+            return 0;
+        }
+    },
+
+    bounds: {
+        configurable: true,
+        get: function PDFPageObject_getBounds(){
+            var mediaBox = normalizedBox(this.effectiveMediaBox);
+            var cropBox = normalizedBox(this.effectiveCropBox, mediaBox);
+            var contentBox;
+            if (this.ArtBox){
+                contentBox = normalizedBox(this.ArtBox, cropBox);
+            }else if (this.TrimBox){
+                contentBox = normalizedBox(this.TrimBox, cropBox);
+            }else{
+                contentBox = cropBox;
+            }
+            var bounds = JSRect(contentBox[0], contentBox[1], contentBox[2] - contentBox[0], contentBox[3] - contentBox[1]);
+            Object.defineProperty(this, 'bounds', { value: bounds });
+            return bounds;
+        }
+    },
+
     getContentsData: {
         value: function PDFPageObject_getContentsData(completion, target){
             var contents = this.Contents;
@@ -73,3 +144,35 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
         }
     }
 });
+
+var normalizedBox = function(box, intersectingBox){
+    var tmp;
+    var normalized = [box[0], box[1], box[2], box[3]];
+    if (normalized[2] < normalized[0]){
+        tmp = normalized[0];
+        normalized[0] = normalized[2];
+        normalized[2] = tmp;
+    }
+    if (normalized[3] < normalized[1]){
+        tmp = normalized[1];
+        normalized[1] = normalized[3];
+        normalized[3] = tmp;
+    }
+    if (intersectingBox){
+        if (normalized[0] < intersectingBox[0]){
+            normalized[0] = intersectingBox[0];
+        }
+        if (normalized[1] < intersectingBox[1]){
+            normalized[1] = intersectingBox[1];
+        }
+        if (normalized[2] > intersectingBox[2]){
+            normalized[2] = intersectingBox[2];
+        }
+        if (normalized[3] > intersectingBox[3]){
+            normalized[3] = intersectingBox[3];
+        }
+    }
+    return normalized;
+};
+
+})();

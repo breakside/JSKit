@@ -82,6 +82,212 @@ JSClass("PDFReaderTests", TKTestSuite, {
         this.wait(expectation, 2);
     },
 
+    testPageBounds: function(){
+        var data = this._pdfForObjects([
+            "<< /Pages 2 0 R /Type /Catalog >>",
+            "<< /Kids [ 3 0 R ] /Count 1 /Type /Pages /MediaBox [0 0 234 567] >>",
+            "<< /Parent 3 0 R /Type /Page >>"
+        ], "<< /Root 1 0 R /Size 4 >>");
+
+        var reader = PDFReader.initWithData(data);
+        var expectation = TKExpectation.init();
+        expectation.call(reader.open, reader, function(status, document){
+            TKAssertExactEquals(status, PDFReader.Status.open);
+            TKAssertNotNull(document);
+            TKAssertNotNull(document.Pages.MediaBox);
+            TKAssertEquals(document.Pages.MediaBox.length, 4);
+            TKAssertEquals(document.Pages.MediaBox[0], 0);
+            TKAssertEquals(document.Pages.MediaBox[1], 0);
+            TKAssertEquals(document.Pages.MediaBox[2], 234);
+            TKAssertEquals(document.Pages.MediaBox[3], 567);
+            var page = document.page(0);
+            TKAssertExactEquals(page.Parent, document.Pages);
+            TKAssertNull(page.MediaBox);
+            var bounds = page.bounds;
+            TKAssertEquals(bounds.origin.x, 0);
+            TKAssertEquals(bounds.origin.y, 0);
+            TKAssertEquals(bounds.size.width, 234);
+            TKAssertEquals(bounds.size.height, 567);
+        }, this);
+        this.wait(expectation, 2);
+    },
+
+    testPageBoundsOverride: function(){
+        var data = this._pdfForObjects([
+            "<< /Pages 2 0 R /Type /Catalog >>",
+            "<< /Kids [ 3 0 R ] /Count 1 /Type /Pages /MediaBox [0 0 234 567] >>",
+            "<< /Parent 3 0 R /Type /Page /MediaBox [0 0 123 456] >>"
+        ], "<< /Root 1 0 R /Size 4 >>");
+
+        var reader = PDFReader.initWithData(data);
+        var expectation = TKExpectation.init();
+        expectation.call(reader.open, reader, function(status, document){
+            TKAssertExactEquals(status, PDFReader.Status.open);
+            TKAssertNotNull(document);
+            var page = document.page(0);
+            var bounds = page.bounds;
+            TKAssertEquals(bounds.origin.x, 0);
+            TKAssertEquals(bounds.origin.y, 0);
+            TKAssertEquals(bounds.size.width, 123);
+            TKAssertEquals(bounds.size.height, 456);
+        }, this);
+        this.wait(expectation, 2);
+    },
+
+    testPageBoundsCropBox: function(){
+        var data = this._pdfForObjects([
+            "<< /Pages 2 0 R /Type /Catalog >>",
+            "<< /Kids [ 3 0 R ] /Count 1 /Type /Pages /MediaBox [0 0 234 567] /CropBox [ 12 34 56 79 ] >>",
+            "<< /Parent 3 0 R /Type /Page >>"
+        ], "<< /Root 1 0 R /Size 4 >>");
+
+        var reader = PDFReader.initWithData(data);
+        var expectation = TKExpectation.init();
+        expectation.call(reader.open, reader, function(status, document){
+            TKAssertExactEquals(status, PDFReader.Status.open);
+            TKAssertNotNull(document);
+            var page = document.page(0);
+            var bounds = page.bounds;
+            TKAssertEquals(bounds.origin.x, 12);
+            TKAssertEquals(bounds.origin.y, 34);
+            TKAssertEquals(bounds.size.width, 44);
+            TKAssertEquals(bounds.size.height, 45);
+        }, this);
+        this.wait(expectation, 2);
+    },
+
+    testPageBoundsCropBoxOverride: function(){
+        var data = this._pdfForObjects([
+            "<< /Pages 2 0 R /Type /Catalog >>",
+            "<< /Kids [ 3 0 R ] /Count 1 /Type /Pages /MediaBox [0 0 234 567] >>",
+            "<< /Parent 3 0 R /Type /Page /CropBox [ 12 34 56 79 ] >>"
+        ], "<< /Root 1 0 R /Size 4 >>");
+
+        var reader = PDFReader.initWithData(data);
+        var expectation = TKExpectation.init();
+        expectation.call(reader.open, reader, function(status, document){
+            TKAssertExactEquals(status, PDFReader.Status.open);
+            TKAssertNotNull(document);
+            var page = document.page(0);
+            var bounds = page.bounds;
+            TKAssertEquals(bounds.origin.x, 12);
+            TKAssertEquals(bounds.origin.y, 34);
+            TKAssertEquals(bounds.size.width, 44);
+            TKAssertEquals(bounds.size.height, 45);
+        }, this);
+        this.wait(expectation, 2);
+    },
+
+    testPageBoundsCropBoxClip: function(){
+        var data = this._pdfForObjects([
+            "<< /Pages 2 0 R /Type /Catalog >>",
+            "<< /Kids [ 3 0 R ] /Count 1 /Type /Pages /MediaBox [0 0 234 567] /CropBox [ -10 -20 500 600 ] >>",
+            "<< /Parent 3 0 R /Type /Page >>"
+        ], "<< /Root 1 0 R /Size 4 >>");
+
+        var reader = PDFReader.initWithData(data);
+        var expectation = TKExpectation.init();
+        expectation.call(reader.open, reader, function(status, document){
+            TKAssertExactEquals(status, PDFReader.Status.open);
+            TKAssertNotNull(document);
+            var page = document.page(0);
+            var bounds = page.bounds;
+            TKAssertEquals(bounds.origin.x, 0);
+            TKAssertEquals(bounds.origin.y, 0);
+            TKAssertEquals(bounds.size.width, 234);
+            TKAssertEquals(bounds.size.height, 567);
+        }, this);
+        this.wait(expectation, 2);
+    },
+
+    testPageBoundsTrimBox: function(){
+        var data = this._pdfForObjects([
+            "<< /Pages 2 0 R /Type /Catalog >>",
+            "<< /Kids [ 3 0 R ] /Count 1 /Type /Pages /MediaBox [0 0 234 567] /CropBox [ 12 34 56 79 ] >>",
+            "<< /Parent 3 0 R /Type /Page /TrimBox [ 13 35 55 78 ] >>"
+        ], "<< /Root 1 0 R /Size 4 >>");
+
+        var reader = PDFReader.initWithData(data);
+        var expectation = TKExpectation.init();
+        expectation.call(reader.open, reader, function(status, document){
+            TKAssertExactEquals(status, PDFReader.Status.open);
+            TKAssertNotNull(document);
+            var page = document.page(0);
+            var bounds = page.bounds;
+            TKAssertEquals(bounds.origin.x, 13);
+            TKAssertEquals(bounds.origin.y, 35);
+            TKAssertEquals(bounds.size.width, 42);
+            TKAssertEquals(bounds.size.height, 43);
+        }, this);
+        this.wait(expectation, 2);
+    },
+
+    testPageBoundsTrimBoxClip: function(){
+        var data = this._pdfForObjects([
+            "<< /Pages 2 0 R /Type /Catalog >>",
+            "<< /Kids [ 3 0 R ] /Count 1 /Type /Pages /MediaBox [0 0 234 567] /CropBox [ 12 34 56 79 ] >>",
+            "<< /Parent 3 0 R /Type /Page /TrimBox [ 0 35 500 80 ] >>"
+        ], "<< /Root 1 0 R /Size 4 >>");
+
+        var reader = PDFReader.initWithData(data);
+        var expectation = TKExpectation.init();
+        expectation.call(reader.open, reader, function(status, document){
+            TKAssertExactEquals(status, PDFReader.Status.open);
+            TKAssertNotNull(document);
+            var page = document.page(0);
+            var bounds = page.bounds;
+            TKAssertEquals(bounds.origin.x, 12);
+            TKAssertEquals(bounds.origin.y, 35);
+            TKAssertEquals(bounds.size.width, 44);
+            TKAssertEquals(bounds.size.height, 44);
+        }, this);
+        this.wait(expectation, 2);
+    },
+
+    testPageBoundsArtBox: function(){
+        var data = this._pdfForObjects([
+            "<< /Pages 2 0 R /Type /Catalog >>",
+            "<< /Kids [ 3 0 R ] /Count 1 /Type /Pages /MediaBox [0 0 234 567] /CropBox [ 12 34 56 79 ] >>",
+            "<< /Parent 3 0 R /Type /Page /ArtBox [ 13 35 55 78 ] >>"
+        ], "<< /Root 1 0 R /Size 4 >>");
+
+        var reader = PDFReader.initWithData(data);
+        var expectation = TKExpectation.init();
+        expectation.call(reader.open, reader, function(status, document){
+            TKAssertExactEquals(status, PDFReader.Status.open);
+            TKAssertNotNull(document);
+            var page = document.page(0);
+            var bounds = page.bounds;
+            TKAssertEquals(bounds.origin.x, 13);
+            TKAssertEquals(bounds.origin.y, 35);
+            TKAssertEquals(bounds.size.width, 42);
+            TKAssertEquals(bounds.size.height, 43);
+        }, this);
+        this.wait(expectation, 2);
+    },
+
+    testPageBoundsArtBoxAndTrimBox: function(){
+        var data = this._pdfForObjects([
+            "<< /Pages 2 0 R /Type /Catalog >>",
+            "<< /Kids [ 3 0 R ] /Count 1 /Type /Pages /MediaBox [0 0 234 567] /CropBox [ 12 34 56 79 ] >>",
+            "<< /Parent 3 0 R /Type /Page /ArtBox [ 13 35 55 78 ] /TrimBox [ 14 36 54 77 ] >>"
+        ], "<< /Root 1 0 R /Size 4 >>");
+
+        var reader = PDFReader.initWithData(data);
+        var expectation = TKExpectation.init();
+        expectation.call(reader.open, reader, function(status, document){
+            TKAssertExactEquals(status, PDFReader.Status.open);
+            TKAssertNotNull(document);
+            var page = document.page(0);
+            var bounds = page.bounds;
+            TKAssertEquals(bounds.origin.x, 13);
+            TKAssertEquals(bounds.origin.y, 35);
+            TKAssertEquals(bounds.size.width, 42);
+            TKAssertEquals(bounds.size.height, 43);
+        }, this);
+        this.wait(expectation, 2);
+    },
+
     testStreamObject: function(){
         var data = [
             "%PDF-1.7",                                             //  9        9 (5)
