@@ -21,6 +21,7 @@ var HTMLCryptoAlgorithmNames = {
                 return HTMLCryptoAlgorithmNames.aesCTR;
             case SECCipher.Algorithm.aesGaloisCounterMode:
                 return HTMLCryptoAlgorithmNames.aesGCM;
+            case SECCipher.Algorithm.rc4:
         }
         return null;
     }

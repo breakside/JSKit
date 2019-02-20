@@ -1,6 +1,6 @@
 // #import "SecurityKit/SecurityKit.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, TKExpectation, SECCipher */
+/* global JSClass, JSData, TKTestSuite, TKExpectation, SECCipher */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
@@ -19,6 +19,54 @@ JSClass("SECCipherTests", TKTestSuite, {
     testAESGaloisCounterModeEncryptDecrypt: function(){
         var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesGaloisCounterMode);
         this._testEncryptDecrypt(cipher);
+    },
+
+    testRC4_1: function(){
+        var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.rc4);
+        var expectation = TKExpectation.init();
+        expectation.call(cipher.createKeyWithData, cipher, "Key".utf8(), function(key){
+            TKAssertNotNull(key);
+            expectation.call(cipher.encrypt, cipher, "Plaintext".utf8(), key, function(encrypted){
+                var expected = JSData.initWithBytes(Uint8Array.from([0xBB,0xF3,0x16,0xE8,0xD9,0x40,0xAF,0x0A,0xD3]));
+                TKAssertObjectEquals(encrypted, expected);
+                expectation.call(cipher.decrypt, cipher, encrypted, key, function(decrypted){
+                    TKAssertObjectEquals(decrypted, "Plaintext".utf8());
+                });
+            });
+        }, this);
+        this.wait(expectation);
+    },
+
+    testRC4_2: function(){
+        var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.rc4);
+        var expectation = TKExpectation.init();
+        expectation.call(cipher.createKeyWithData, cipher, "Wiki".utf8(), function(key){
+            TKAssertNotNull(key);
+            expectation.call(cipher.encrypt, cipher, "pedia".utf8(), key, function(encrypted){
+                var expected = JSData.initWithBytes(Uint8Array.from([0x10,0x21,0xBF,0x04,0x20]));
+                TKAssertObjectEquals(encrypted, expected);
+                expectation.call(cipher.decrypt, cipher, encrypted, key, function(decrypted){
+                    TKAssertObjectEquals(decrypted, "pedia".utf8());
+                });
+            });
+        }, this);
+        this.wait(expectation);
+    },
+
+    testRC4_3: function(){
+        var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.rc4);
+        var expectation = TKExpectation.init();
+        expectation.call(cipher.createKeyWithData, cipher, "Secret".utf8(), function(key){
+            TKAssertNotNull(key);
+            expectation.call(cipher.encrypt, cipher, "Attack at dawn".utf8(), key, function(encrypted){
+                var expected = JSData.initWithBytes(Uint8Array.from([0x45,0xA0,0x1F,0x64,0x5F,0xC3,0x5B,0x38,0x35,0x52,0x54,0x4B,0x9B,0xF5]));
+                TKAssertObjectEquals(encrypted, expected);
+                expectation.call(cipher.decrypt, cipher, encrypted, key, function(decrypted){
+                    TKAssertObjectEquals(decrypted, "Attack at dawn".utf8());
+                });
+            });
+        }, this);
+        this.wait(expectation);
     },
 
     _testEncryptDecrypt: function(cipher){
