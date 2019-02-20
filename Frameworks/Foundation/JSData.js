@@ -14,12 +14,17 @@ JSClass("JSData", JSObject, {
         this.length = length;
     },
 
-    initWithBytes: function(bytes){
+    initWithBytes: function(bytes, length){
         if (bytes === null){
             return null;
         }
-        this.bytes = bytes;
-        this.length = this.bytes.length;
+        if (length === undefined){
+            this.bytes = bytes;
+            this.length = this.bytes.length;
+        }else{
+            this.bytes = new Uint8Array(bytes.buffer, bytes.byteOffset, length);
+            this.length = length;
+        }
     },
 
     initWithChunks: function(chunks){

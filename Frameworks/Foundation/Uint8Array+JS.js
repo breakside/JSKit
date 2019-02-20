@@ -173,9 +173,9 @@ Object.defineProperties(Uint8Array.prototype, {
         }
     },
 
-    stringByDecodingISO8859_1: {
+    stringByDecodingLatin1: {
         enumerable: false,
-        value: function Uint8Array_stringByDecodingISO8859_1(){
+        value: function Uint8Array_stringByDecodingLatin1(){
             var str = "";
             for (var i = 0, l = this.length; i < l; ++i){
                 str += String.fromUnicode(this[i]);

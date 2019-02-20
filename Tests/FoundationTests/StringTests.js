@@ -764,9 +764,9 @@ JSClass('StringTests', TKTestSuite, {
         TKAssertEquals(utf8.bytes[3], 0x80);
     },
 
-    testISO8859_1: function(){
+    testLatin1: function(){
         var str = "Hello";
-        var data = str.dataUsingEncoding(String.Encoding.iso8859_1);
+        var data = str.latin1();
         TKAssertEquals(data.length, 5);
         TKAssertEquals(data.bytes[0], 0x48);
         TKAssertEquals(data.bytes[1], 0x65);
@@ -775,7 +775,7 @@ JSClass('StringTests', TKTestSuite, {
         TKAssertEquals(data.bytes[4], 0x6f);
 
         str = "Hèllo";
-        data = str.dataUsingEncoding(String.Encoding.iso8859_1);
+        data = str.latin1();
         TKAssertEquals(data.length, 5);
         TKAssertEquals(data.bytes[0], 0x48);
         TKAssertEquals(data.bytes[1], 0xe8);
@@ -785,7 +785,7 @@ JSClass('StringTests', TKTestSuite, {
 
         TKAssertThrows(function(){
             var str = "😀";
-            var data = str.dataUsingEncoding(String.Encoding.iso8859_1);
+            var data = str.latin1();
         });
     },
 

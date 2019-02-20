@@ -74,7 +74,8 @@ Object.defineProperties(String, {
         configurable: false,
         value: {
             utf8: "utf8",
-            iso8859_1: "iso8859-1"
+            iso8859_1: "iso8859-1",
+            latin1: "iso8859-1"
         }
     }
 
@@ -328,27 +329,34 @@ Object.defineProperties(String.prototype, {
         }
     },
 
+    latin1: {
+        enumerable: false,
+        value: function String_latin1(){
+            var bytes = new Uint8Array(this.length);
+            var c;
+            var iterator = UnicodeIterator(this, 0);
+            var i = 0;
+            while (iterator.index < this.length){
+                c = iterator.character.code;
+                if (c > 0xFF){
+                    throw new Error("Cannot encode byte %d at index %d to iso-8859-1".sprintf(c, iterator.index));
+                }
+                bytes[i++] = c;
+                iterator.increment();
+            }
+            bytes = new Uint8Array(bytes.buffer, bytes.byteOffset, i);
+            return JSData.initWithBytes(bytes);
+        }
+    },
+
     dataUsingEncoding: {
         enumerable: false,
         value: function String_dataUsingEncoding(encoding){
             if (encoding == String.Encoding.utf8){
                 return this.utf8();
             }
-            if (encoding == String.Encoding.iso8859_1){
-                var bytes = new Uint8Array(this.length);
-                var c;
-                var iterator = UnicodeIterator(this, 0);
-                var i = 0;
-                while (iterator.index < this.length){
-                    c = iterator.character.code;
-                    if (c > 0xFF){
-                        throw new Error("Cannot encode byte %d at index %d to iso-8859-1".sprintf(c, iterator.index));
-                    }
-                    bytes[i++] = c;
-                    iterator.increment();
-                }
-                bytes = new Uint8Array(bytes.buffer, bytes.byteOffset, i);
-                return JSData.initWithBytes(bytes);
+            if (encoding == String.Encoding.latin1){
+                return this.latin1();
             }
             return null;
         }
