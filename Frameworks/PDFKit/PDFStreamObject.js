@@ -17,8 +17,17 @@ JSGlobalObject.PDFStreamObject.prototype = Object.create(PDFObject.prototype, {
     FFilter:        PDFObjectProperty,
     FDecodeParams:  PDFObjectProperty,
     DL:             PDFObjectProperty,
+
+    // PDFReader will redefine this property so it reads data from the pdf file
     getData: {
-        value: function(completion, target){
+        value: function PDFStreamObject_getData(completion, target){
+            return completion.call(target, null);
+        }
+    },
+
+    // PDFReader will redefine this property using an internal class to provide the operation
+    getOperationIterator: {
+        value: function PDFStreamObject_getOperationIterator(completion, target){
             return completion.call(target, null);
         }
     }

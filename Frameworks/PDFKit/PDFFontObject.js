@@ -2,6 +2,8 @@
 /* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFFontObject, PDFNameObject, PDFType1FontObject, PDFTrueTypeFontObject */
 'use strict';
 
+(function(){
+
 JSGlobalObject.PDFFontObject = function(){
     if (this === undefined){
         return new PDFFontObject();
@@ -23,12 +25,20 @@ JSGlobalObject.PDFType1FontObject.prototype = Object.create(PDFFontObject.protot
     Subtype:        { enumerable: true, value: PDFNameObject("Type1") },
     Name:           PDFObjectProperty,
     BaseFont:       PDFObjectProperty,
-    FisrtChar:      PDFObjectProperty,
+    FirstChar:      PDFObjectProperty,
     LastChar:       PDFObjectProperty,
     Widths:         PDFObjectProperty,
     FontDescriptor: PDFObjectProperty,
     Encoding:       PDFObjectProperty,
-    ToUnicode:      PDFObjectProperty
+    ToUnicode:      PDFObjectProperty,
+
+    stringFromData: {
+        value: function PDFType1FontObject_stringFromData(data){
+            // FIXME: use Encoding/ToUnicode to decode data
+            // TODO: expand combined chars like fi
+            return String.initWithData(data, String.Encoding.latin1);
+        }
+    },
 });
 
 JSGlobalObject.PDFTrueTypeFontObject = function(){
@@ -40,3 +50,22 @@ JSGlobalObject.PDFTrueTypeFontObject = function(){
 JSGlobalObject.PDFTrueTypeFontObject.prototype = Object.create(PDFType1FontObject.prototype, {
     Subtype:    { enumerable: true, value: PDFNameObject("TrueType") },
 });
+
+var StandardFonts = [
+    "Times-Roman",
+    "Times-Bold",
+    "Times-Italic",
+    "Times-BoldItalic",
+    "Helvetica",
+    "Helvetica-Bold",
+    "Helvetica-Oblique",
+    "Helvetica-BoldOblique",
+    "Courier",
+    "Courier-Bold",
+    "Courier-Oblique",
+    "Courier-BoldOblique",
+    "Symbol",
+    "ZapfDingbats"
+];
+
+})();

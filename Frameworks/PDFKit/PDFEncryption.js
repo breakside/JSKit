@@ -40,8 +40,8 @@ JSClass("PDFEncryption", JSObject, {
             this.isSupported = false;
             return;
         }
-        this.ownerCheck = encrypt.O.latin1();
-        this.userCheck = encrypt.U.latin1();
+        this.ownerCheck = encrypt.O;
+        this.userCheck = encrypt.U;
         this.permissions = encrypt.P;
         this.algorithm = encrypt.V;
         this.revision = encrypt.R;

@@ -1,5 +1,6 @@
 // #import "PDFKit/PDFFilter.js"
-/* global JSClass, PDFFilter, JSData, PDFReader */
+// #import "PDFKit/PDFTokenizer.js"
+/* global JSClass, PDFFilter, JSData, PDFTokenizer */
 'use strict';
 
 JSClass("PDFASCIIHexFilter", PDFFilter, {
@@ -17,7 +18,7 @@ JSClass("PDFASCIIHexFilter", PDFFilter, {
         var foundEnd = false;
         while (i < l){
             h = data.bytes[i];
-            if (PDFReader.Hexadecimal.isHexadecimal(h)){
+            if (PDFTokenizer.Hexadecimal.isHexadecimal(h)){
                 pair[slot++] = h;
                 if (slot == 2){
                     output.bytes[o++] = parseInt(String.fromCharCode(pair[0], pair[1]), 16);
@@ -29,7 +30,7 @@ JSClass("PDFASCIIHexFilter", PDFFilter, {
                     output.bytes[o++] = parseInt(String.fromCharCode(pair[0]) + '0', 16);
                 }
                 break;
-            }else if (!PDFReader.Whitespace.isWhitespace(h)){
+            }else if (!PDFTokenizer.Whitespace.isWhitespace(h)){
                 throw new Error("PDFASCIIHexFilter found invalid byte %#02x at index %d".sprintf(h, i));
             }
             ++i;

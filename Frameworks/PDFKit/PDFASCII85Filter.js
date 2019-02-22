@@ -1,5 +1,6 @@
 // #import "PDFKit/PDFFilter.js"
-/* global JSClass, PDFFilter, JSData, PDFASCII85Filter, PDFReader */
+// #import "PDFKit/PDFTokenizer.js"
+/* global JSClass, PDFFilter, JSData, PDFASCII85Filter, PDFTokenizer */
 'use strict';
 
 JSClass("PDFASCII85Filter", PDFFilter, {
@@ -20,7 +21,7 @@ JSClass("PDFASCII85Filter", PDFFilter, {
         while (i < l){
             x = data.bytes[i];
             if (expectingEnd){
-                if (!PDFReader.Whitespace.isWhitespace(x)){
+                if (!PDFTokenizer.Whitespace.isWhitespace(x)){
                     if (x == 0x3E){
                         expectingEnd = false;
                         foundEnd = true;
@@ -54,7 +55,7 @@ JSClass("PDFASCII85Filter", PDFFilter, {
                     output.bytes[o++] = 0;
                 }else if (x == 0x7E){
                     expectingEnd = true;
-                }else if (!PDFReader.Whitespace.isWhitespace(x)){
+                }else if (!PDFTokenizer.Whitespace.isWhitespace(x)){
                     throw new Error("PDFASCII85Filter found invalid byte %#02x at index %d".sprintf(x, i));
                 }
             }

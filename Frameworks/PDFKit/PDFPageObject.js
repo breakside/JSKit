@@ -1,7 +1,9 @@
 // #import "PDFKit/PDFObject.js"
 // #import "PDFKit/PDFNameObject.js"
 // #import "PDFKit/PDFStreamObject.js"
-/* global JSGlobalObject, JSData, JSSize, JSRect, PDFObject, PDFObjectProperty, PDFPageObject, PDFNameObject, PDFStreamObject */
+// #import "PDFKit/PDFStreamOperation.js"
+// #import "PDFKit/PDFGraphicsState.js"
+/* global JSGlobalObject, JSData, JSPoint, JSSize, JSRect, PDFObject, PDFObjectProperty, PDFPageObject, PDFNameObject, PDFStreamObject, PDFStreamOperation, PDFGraphicsState */
 'use strict';
 
 (function(){
@@ -83,12 +85,26 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
 
     effectiveRotation: {
         enumerable: false,
-        get: function PDFPageObject_getEffectiveCropBox(){
+        get: function PDFPageObject_getEffectiveRotation(){
             if (this.Rotate){
                 return this.Rotate;
             }
             if (this.Parent){
                 return this.Parent.effectiveRotation;
+            }
+            return 0;
+        }
+    },
+
+
+    effectiveResources: {
+        enumerable: false,
+        get: function PDFPageObject_getEffectiveResources(){
+            if (this.Resources){
+                return this.Resources;
+            }
+            if (this.Parent){
+                return this.Parent.effectiveResources;
             }
             return 0;
         }
@@ -140,7 +156,79 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
                     completion.call(target, data);
                 }
             };
-            contents[contentIndex].getData(handleChunk);
+            contents[contentIndex].getData(handleChunk, this);
+        }
+    },
+
+    getText: {
+        value: function PDFPageObject_getText(completion, target){
+            var streams;
+            var contents = this.Contents;
+            if (!contents){
+                completion.call(target, "");
+            }
+            if (contents instanceof PDFStreamObject){
+                streams = [contents];
+            }else{
+                streams = contents;
+            }
+            if (streams.length === 0){
+                completion.call(target, "");
+            }
+            var streamIndex = 0;
+            var placedStrings = [];
+            var handleIterator = function(iterator){
+                var Op = PDFStreamOperation.Operator;
+                var operation = iterator.next();
+                var text;
+                var stack = PDFGraphicsState.stack();
+                var transform;
+                var placed;
+                while (operation !== null){
+                    switch (operation.operator){
+                        case Op.text:
+                            transform = stack.state.textTransform.concatenatedWith(stack.state.transform);
+                            text = stack.state.font.stringFromData(operation.operands[0]);
+                            placed = {
+                                origin: transform.convertPointFromTransform(JSPoint.Zero),
+                                width: 0,
+                                text: text
+                            };
+                            stack.handleOperation(operation, this.effectiveResources);
+                            transform = stack.state.textTransform.concatenatedWith(stack.state.transform);
+                            placed.width = transform.convertPointFromTransform(JSPoint.Zero).x - placed.origin.x;
+                            // TODO: save space width so we can use it to compare later?
+                            // TODO: save font or font size so we can use it to compare later?
+                            placedStrings.push(placed);
+                            break;
+                        default:
+                            stack.handleOperation(operation, this.effectiveResources);
+                            break;
+                    }
+                    operation = iterator.next();
+                }
+                ++streamIndex;
+                if (streamIndex < streams.length){
+                    streams[streamIndex].getOperationIterator(handleIterator, this);
+                }else{
+                    consolidateText();
+                }
+            };
+            var consolidateText = function(){
+                var text = "";
+                // TODO: analyze placedStrings and combine adjacent runs
+                // - combine horizontally anything less than a space distance
+                // - combine vertically anything that looks like a soft line break
+                // - watch out for columns...
+                // - remember that y gets decreases from the top of the page to the bottom (0)
+                var placed;
+                for (var i = 0, l = placedStrings.length; i < l; ++i){
+                    placed = placedStrings[i];
+                    text += placed.text;
+                }
+                completion.call(target, text);
+            };
+            streams[streamIndex].getOperationIterator(handleIterator, this);
         }
     }
 });
