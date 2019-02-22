@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TKAssert.js"
-/* global JSObject, JSClass, TKAssertion, TKTestSuite, performance */
+/* global JSObject, JSClass, JSBundle, TKAssertion, TKTestSuite, performance */
 'use strict';
 
 JSClass("TKTestSuite", JSObject, {
@@ -28,6 +28,12 @@ JSClass("TKTestSuite", JSObject, {
             return;
         }
         expectation.setTimeout(timeout);
+    },
+
+    getResourceData: function(resourceName, completion, target){
+        var bundle = JSBundle.mainBundle;
+        var metadata = bundle.metadataForResourceName(resourceName);
+        bundle.getResourceData(metadata, completion, target);
     }
 
 });
