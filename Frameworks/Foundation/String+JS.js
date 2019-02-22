@@ -44,6 +44,8 @@ Object.defineProperties(String, {
         value: function String_initWithData(data, encoding){
             if (encoding == String.Encoding.utf8){
                 return data.bytes.stringByDecodingUTF8();
+            }else if (encoding == String.Encoding.latin1){
+                return data.bytes.stringByDecodingLatin1();
             }else{
                 throw new Error("Unsupported encoding: %s".sprintf(encoding));
             }
