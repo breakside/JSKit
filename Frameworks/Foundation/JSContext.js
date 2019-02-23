@@ -344,6 +344,7 @@ JSClass("JSContext", JSObject, {
     },
 
     addQuadraticCurveToPoint: function(point, control){
+        // FIXME: not exactly a quadradic
         this.addCurveToPoint(point, control, point);
     },
 

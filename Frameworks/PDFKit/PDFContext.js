@@ -4,7 +4,7 @@
 // #import "PDFKit/JSColor+PDF.js"
 // #import "PDFKit/JSRect+PDF.js"
 // #import "ImageKit/ImageKit.js"
-/* global JSClass, JSContext, PDFContext, PDFWriter, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFNameObject, PDFStreamObject, JSAffineTransform, JSRect, PDFType1FontObject, PDFImageObject, JSData, JSImage, IKBitmap, PDFColorSpaceObject */
+/* global JSClass, JSContext, PDFContext, PDFWriter, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFNameObject, PDFStreamObject, JSAffineTransform, JSRect, PDFType1FontObject, PDFImageObject, JSData, JSImage, IKBitmap */
 'use strict';
 
 (function(){
@@ -159,7 +159,7 @@ JSClass("PDFContext", JSContext, {
             pdfimage.Width = bitmap.size.width;
             pdfimage.Height = bitmap.size.height;
             // TODO: embed icc profile from bitmap, if present
-            pdfimage.ColorSpace = PDFColorSpaceObject.Builtin.deviceRGB;
+            pdfimage.ColorSpace = PDFNameObject("DeviceRGB");
             pdfimage.BitsPerComponent = 8;
             writer.beginStreamObject(pdfimage);
             // TODO: compress the stream
@@ -261,11 +261,6 @@ JSClass("PDFContext", JSContext, {
     addCurveToPoint: function(point, control1, control2){
         PDFContext.$super.addCurveToPoint.call(this, point, control1, control2);
         this._writeStreamData("%n %n %n %n %n %n c ", control1.x, control1.y, control2.x, control2.y, point.x, point.y);
-    },
-
-    addQuadraticCurveToPoint: function(point, control){
-        this._rememberPoint(point);
-        this._writeStreamData("%n %n %n %n y ", control.x, control.y, point.x, point.y);
     },
 
     closePath: function(){

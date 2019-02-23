@@ -6,7 +6,7 @@
 // #import "PDFKit/PDFReaderStream.js"
 // #import "PDFKit/PDFStreamOperation.js"
 /* global JSClass, JSObject, JSReadOnlyProperty, PDFReader, PDFTokenizer, PDFReaderStream, PDFReaderDataStream, PDFStreamOperationIterator, JSData, PDFFilter, PDFEncryption, PDFStreamOperation */
-/* global PDFIndirectObject, PDFNameObject, PDFObject, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFStreamObject, PDFTrailerObject, PDFFontObject, PDFType1FontObject, PDFTrueTypeFontObject, PDFImageObject, PDFColorSpaceObject */
+/* global PDFIndirectObject, PDFNameObject, PDFObject, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFStreamObject, PDFTrailerObject, PDFFontObject, PDFType1FontObject, PDFTrueTypeFontObject, PDFImageObject */
 'use strict';
 
 (function(){
@@ -529,6 +529,13 @@ JSClass('PDFStreamOperationIterator', JSObject, {
                     }
                     break;
 
+                // Aliases
+                // (operators that are really just aliases for others)
+
+                case Token.fillPathAlias:
+                    this.queue.push(PDFStreamOperation(Op.fillPath));
+                    break;
+
                 // Functions
                 // (currently unused and ingored by treating them like compatibility markers)
 
@@ -542,6 +549,8 @@ JSClass('PDFStreamOperationIterator', JSObject, {
                     --compatibilityLevel;
                     break;
 
+                // TODO: Marked Content
+
                 // Operators
                 // (allowing any operator, even unknown, to be read by caller)
 
@@ -552,6 +561,7 @@ JSClass('PDFStreamOperationIterator', JSObject, {
                     break;
             }
         }
+        // TODO: validate known operations (argument lengths and types)
         return this.queue.shift();
     },
 

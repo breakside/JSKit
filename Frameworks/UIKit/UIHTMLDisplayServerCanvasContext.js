@@ -422,7 +422,8 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
                 this.canvasContext.fill();
                 break;
             case JSContext.DrawingMode.evenOddFill:
-                throw new Error("UIHTMLDisplayServerCanvasContext.eoFillPath not implemented");
+                this.canvasContext.fill('evenodd');
+                break;
             case JSContext.DrawingMode.stroke:
                 this.canvasContext.stroke();
                 break;
@@ -431,16 +432,19 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
                 this.canvasContext.stroke();
                 break;
             case JSContext.DrawingMode.evenOddFillStroke:
-                throw new Error("UIHTMLDisplayServerCanvasContext.eoFillPath not implemented");
+                this.canvasContext.fill('evenodd');
+                this.canvasContext.stroke();
+                break;
         }
         this.canvasContext.beginPath();
     },
 
     fillPath: function(fillRule){
         if (fillRule == JSContext.FillRule.evenOdd){
-            throw new Error("UIHTMLDisplayServerCanvasContext.eoFillPath not implemented");
+            this.canvasContext.fill('evenodd');
+        }else{
+            this.canvasContext.fill();
         }
-        this.canvasContext.fill();
         this.canvasContext.beginPath();
     },
 
@@ -600,9 +604,10 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     clip: function(fillRule){
         if (fillRule == JSContext.FillRule.evenOdd){
-            throw new Error("UIHTMLDisplayServerCanvasContext does not support even-odd clipping");
+            this.canvasContext.clip('evenodd');
+        }else{
+            this.canvasContext.clip();
         }
-        this.canvasContext.clip();
     },
 
     // ----------------------------------------------------------------------

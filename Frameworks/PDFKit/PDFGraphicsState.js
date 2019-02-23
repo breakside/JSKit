@@ -1,7 +1,8 @@
 // #import "Foundation/Foundation.js"
 // #import "PDFKit/PDFTypes.js"
+// #import "PDFKit/PDFColorSpace.js"
 // #import "PDFKit/PDFStreamOperation.js"
-/* global JSGlobalObject, PDFGraphicsState, JSAffineTransform, PDFNameObject, PDFStreamOperation */
+/* global JSGlobalObject, JSPoint, JSColor, PDFColorSpace, PDFGraphicsState, JSAffineTransform, PDFNameObject, PDFStreamOperation */
 'use strict';
 
 (function(){
@@ -34,9 +35,8 @@ PDFGraphicsState.TextRenderingMode = {
 
 PDFGraphicsState.Properties = {
     transform: JSAffineTransform.Identity,
-    clippingPath: null,
-    colorSpace: PDFNameObject("DeviceGray"),
-    color: 0,
+    firstPoint: null,
+    lastPoint: null,
     lineWidth: 1.0,
     lineCap: PDFGraphicsState.LineCap.butt,
     lineJoin: PDFGraphicsState.LineJoin.miter,
@@ -47,8 +47,8 @@ PDFGraphicsState.Properties = {
     strokeAdjustment: false,
     blendMode: PDFNameObject("Normal"),
     softMask: null,
-    alphaStroke: 1.0,
-    alphaNonStroke: 1.0,
+    strokeAlpha: 1.0,
+    fillAlpha: 1.0,
     alphaSource: false,
     flatness: 1.0,
 
@@ -79,160 +79,353 @@ PDFGraphicsStateStack.prototype = {
 
     state: null,
     stack: null,
+    resources: null,
 
-    handleOperation: function(operation, resources){
-        var Op = PDFStreamOperation.Operator;
-        var params;
-        var transform;
-        switch (operation.operator){
-            case Op.pushState:
-                this.push();
-                break;
-            case Op.popState:
-                this.pop();
-                break;
-            case Op.updateState:
-                params = resources.graphicsState(operation.operands[0]);
-                this.update(params);
-                break;
-            case Op.concatenateCTM:
-                transform = JSAffineTransform.apply(undefined, operation.operands);
-                // TODO: verify this operation is the correct one to use
-                this.state.transform = this.state.transform.concatenatedWith(transform);
-                break;
-            case Op.lineWidth:
-                this.state.lineWidth = operation.operands[0];
-                break;
-            case Op.lineCap:
-                this.state.lineCap = operation.operands[0];
-                break;
-            case Op.lineJoin:
-                this.state.lineJoin = operation.operands[0];
-                break;
-            case Op.miterLimit:
-                this.state.miterLimit = operation.operands[0];
-                break;
-            case Op.dashPattern:
-                this.state.dashArray = operation.operands[0];
-                this.state.dashPhase = operation.operands[1];
-                break;
-            case Op.renderingIntent:
-                this.state.renderingIntent = operation.operands[0];
-                break;
-            case Op.flatness:
-                this.state.flatness = operation.operands[0];
-                break;
-            case Op.beginText:
-                this.state.textTransform = JSAffineTransform.Identity;
-                this.state.textLineTransform = JSAffineTransform.Identity;
-                break;
-            case Op.endText:
-                this.state.textTransform = null;
-                this.state.textLineTransform = null;
-                break;
-            case Op.textMatrix:
-                this.textTransform = JSAffineTransform.apply(undefined, operation.operands);
-                this.textLineTransform = JSAffineTransform.apply(undefined, operation.operands);
-                break;
-            case Op.xTextAdvance:
-                this.textTransform = this.textTransform.translatedBy(operation.operands[0] / 1000.0 * this.state.fontSize * this.state.textHorizontalScaling / 100.0, operation.operands[1] / 1000.0 * this.state.fontSize);
-                break;
-            case Op.characterSpacing:
-                this.state.characterSpacing = operation.operands[0];
-                break;
-            case Op.wordSpacing:
-                this.state.wordSpacing = operation.operands[0];
-                break;
-            case Op.textHorizontalScaling:
-                this.state.textHorizontalScaling = operation.operands[0];
-                break;
-            case Op.textLeading:
-                this.state.textLeading = operation.operands[0];
-                break;
-            case Op.textRise:
-                this.state.textRise = operation.operands[0];
-                break;
-            case Op.textRenderingMode:
-                this.state.textRenderingMode = operation.operands[0];
-                break;
-            case Op.font:
-                this.state.font = resources.font(operation.operands[0]);
-                this.state.fontSize = operation.operands[1];
-                break;
-            case Op.nextLineManual:
-                this.textLineTransform = this.textLineTransform.translatedBy(operation.operands[0], operation.operands[1]);
-                this.textTransform = JSAffineTransform(this.textLineTransform);
-                break;
-            case Op.nextLineLeading:
-                this.textLineTransform = this.textLineTransform.translatedBy(operation.operands[0], operation.operands[1]);
-                this.textTransform = JSAffineTransform(this.textLineTransform);
-                this.textLeading = -operation.operands[1];
-                break;
-            case Op.nextLine:
-                this.textLineTransform = this.textLineTransform.translatedBy(0, -this.state.textLeading);
-                this.textTransform = JSAffineTransform(this.textLineTransform);
-                break;
-            case Op.text:
-                // TODO: advance text matrix
-                break;
+    handleOperation: function(operation){
+        var handler = operationHandler[operation.operator];
+        if (handler){
+            handler.apply(this, operation.operands);
         }
     },
 
-    update: function(params){
-        if ('LW' in params){
-            this.state.lineWidth = params.LW;
+    _rememberPoint: function(x, y){
+        if (this.firstPoint === null){
+            this.firstPoint = JSPoint(x, y);
         }
-        if ('LC' in params){
-            this.state.lineCap = params.LC;
-        }
-        if ('LJ' in params){
-            this.state.lineJoin = params.LJ;
-        }
-        if ('ML' in params){
-            this.state.miterLimit = params.ML;
-        }
-        if ('D' in params){
-            this.state.dashArray = params.D[0];
-            this.state.dashPhase = params.D[1];
-        }
-        if ('RI' in params){
-            this.state.renderingIntent = params.RI;
-        }
-        if ('Font' in params){
-            this.state.font = params[0];
-            this.state.fontSize = params[1];
-        }
-        if ('FL' in params){
-            this.state.flatness = params.FL;
-        }
-        if ('SA' in params){
-            this.state.strokeAdjustment = params.SA;
-        }
-        if ('BM' in params){
-            this.state.blendMode = params.BM;
-        }
-        if ('CA' in params){
-            this.state.alphaStroke = params.CA;
-        }
-        if ('ca' in params){
-            this.state.alphaNonStroke = params.ca;
-        }
-        if ('AIS' in params){
-            this.state.alphaSource = params.AIS;
-        }
+        this.lastPoint = JSPoint(x, y);
     },
 
-    push: function(){
+    _clearPoints: function(){
+        this.firstPoint = null;
+        this.lastPoint = null;
+    }
+
+};
+
+var operationHandler = {
+
+    // push
+    q: function(){
         this.stack.push(this.state);
         this.state = Object.create(this.state);
     },
 
-    pop: function(){
+    // pop
+    Q: function(){
         if (this.stack.length > 0){
             this.state = this.stack.pop();
         }
     },
 
+    // update state
+    gs: function(name){
+        if (!this.resources){
+            return;
+        }
+        var params = this.resources.graphicsState(name);
+        if (!params){
+            return;
+        }
+        var updater;
+        for (var key in params){
+            updater = stateUpdater[key];
+            if (updater){
+                updater.call(this.state, params[key]);
+            }
+        }
+    },
+
+    // concatenate matrix
+    cm: function(a, b, c, d, e, f){
+        var transform = JSAffineTransform(a, b, c, d, e, f);
+        // TODO: verify this operation is the correct one to use
+        this.state.transform = this.state.transform.concatenatedWith(transform);
+    },
+
+    w: function(lineWidth){
+        this.state.lineWidth = lineWidth;
+    },
+
+    J: function(lineCap){
+        this.state.lineCap = lineCap;
+    },
+
+    j: function(lineJoin){
+        this.state.lineJoin = lineJoin;
+    },
+
+    M: function(miterLimit){
+        this.state.miterLimit = miterLimit;
+    },
+
+    d: function(array, phase){
+        this.state.dashArray = array;
+        this.state.dashPhase = phase;
+    },
+
+    ri: function(renderingIntent){
+        this.state.renderingIntent = renderingIntent;
+    },
+
+    i: function(flatness){
+        this.state.flatness = flatness;
+    },
+
+    m: function(x, y){
+        this._clearPoints();
+        this._rememberPoint(x, y);
+    },
+
+    l: function(x, y){
+        this._rememberPoint(x, y);
+    },
+
+    c: function(c1x, c1y, c2x, c2y, x, y){
+        this._rememberPoint(x, y);
+    },
+
+    v: function(c2x, c2y, x, y){
+        this._rememberPoint(x, y);
+    },
+
+    y: function(c1x, c1y, x, y){
+        this._rememberPoint(x, y);
+    },
+
+    h: function(){
+        if (this.firstPoint){
+            this._rememberPoint(this.firstPoint.x, this.firstPoint.y);
+        }
+    },
+
+    re: function(x, y, w, h){
+        this._rememberPoint(x, y);
+    },
+
+    n: function(){
+        this._clearPoints();
+    },
+
+    W: function(){
+        this._clearPoints();
+    },
+
+    'W*': function(){
+        this._clearPoints();
+    },
+
+    S: function(){
+        this._clearPoints();
+    },
+
+    s: function(){
+        this._clearPoints();
+    },
+
+    f: function(){
+        this._clearPoints();
+    },
+
+    'f*': function(){
+        this._clearPoints();
+    },
+
+    B: function(){
+        this._clearPoints();
+    },
+
+    'B*': function(){
+        this._clearPoints();
+    },
+
+    b: function(){
+        this._clearPoints();
+    },
+
+    'b*': function(){
+        this._clearPoints();
+    },
+
+    CS: function(name){
+        this.state.strokeColorSpace = PDFColorSpace(this.resources.colorSpace(name) || name);
+        this.state.strokeColorComponents = this.state.strokeColorSpace.defaultComponents();
+    },
+
+    cs: function(name){
+        this.state.fillColorSpace = PDFColorSpace(this.resources.colorSpace(name) || name);
+        this.state.fillColorComponents = this.state.fillColorSpace.defaultComponents();
+    },
+
+    SC: function(){
+        var components = Array.prototype.slice.call(arguments, 0);
+        this.state.strokeColorComponents = components;
+    },
+
+    sc: function(){
+        var components = Array.prototype.slice.call(arguments, 0);
+        this.state.fillColorComponents = components;
+    },
+
+    SCN: function(){
+        var components = Array.prototype.slice.call(arguments, 0);
+        this.state.strokeColorComponents = components;
+    },
+
+    scn: function(){
+        var components = Array.prototype.slice.call(arguments, 0);
+        this.state.fillColorComponents = components;
+    },
+
+    G: function(w){
+        this.state.strokeColorSpace = PDFNameObject("DeviceGray");
+        this.state.strokeColorComponents = [w];
+    },
+
+    g: function(w){
+        this.state.fillColorSpace = PDFNameObject("DeviceGray");
+        this.state.fillColorComponents = [w];
+    },
+
+    RG: function(r, g, b){
+        this.state.strokeColorSpace = PDFNameObject("DeviceRGB");
+        this.state.strokeColorComponents = [r, g, b];
+    },
+
+    rg: function(r, g, b){
+        this.state.fillColorSpace = PDFNameObject("DeviceRGB");
+        this.state.fillColorComponents = [r, g, b];
+    },
+
+    K: function(c, m, y, k){
+        this.state.fillColorSpace = PDFNameObject("DeviceCMYK");
+        this.state.fillColorComponents = [c, m, y, k];
+    },
+
+    k: function(c, m, y, k){
+        this.state.fillColorSpace = PDFNameObject("DeviceCMYK");
+        this.state.fillColorComponents = [c, m, y, k];
+    },
+
+    // begin text
+    BT: function(){
+        this.state.textTransform = JSAffineTransform.Identity;
+        this.state.textLineTransform = JSAffineTransform.Identity;
+    },
+
+    // end text
+    ET: function(){
+        this.state.textTransform = null;
+        this.state.textLineTransform = null;
+    },
+
+    Tm: function(a, b, c, d, e, f){
+        this.textTransform = JSAffineTransform(a, b, c, d, e, e, f);
+        this.textLineTransform = JSAffineTransform(a, b, c, d, e, e, f);
+    },
+
+    __PDFKit_xTextAdvance__: function(x, y){
+        this.textTransform = this.textTransform.translatedBy(x / 1000.0 * this.state.fontSize * this.state.textHorizontalScaling / 100.0, y / 1000.0 * this.state.fontSize);
+    },
+
+    Tc: function(spacing){
+        this.state.characterSpacing = spacing;
+    },
+
+    Tw: function(spacing){
+        this.state.wordSpacing = spacing;
+    },
+
+    Tz: function(scaling){
+        this.state.textHorizontalScaling = scaling;
+    },
+
+    TL: function(leading){
+        this.state.textLeading = leading;
+    },
+
+    Ts: function(rise){
+        this.state.textRise = rise;
+    },
+
+    Tr: function(renderingMode){
+        this.state.textRenderingMode = renderingMode;
+    },
+
+    // Font
+    Tf: function(name, size){
+        this.state.font = this.resources.font(name);
+        this.state.fontSize = size;
+    },
+
+    // next line using custom offset
+    Td: function(x, y){
+        this.textLineTransform = this.textLineTransform.translatedBy(x, y);
+        this.textTransform = JSAffineTransform(this.textLineTransform);
+    },
+
+    // next line using custom offset and set leading
+    TD: function(x, y){
+        this.textLineTransform = this.textLineTransform.translatedBy(x, y);
+        this.textTransform = JSAffineTransform(this.textLineTransform);
+        this.textLeading = -y;
+    },
+
+    // next line using leading
+    'T*': function(){
+        this.textLineTransform = this.textLineTransform.translatedBy(0, -this.state.textLeading);
+        this.textTransform = JSAffineTransform(this.textLineTransform);
+    },
+
+    // show string
+    Tj: function(binaryString){
+        // TODO: advance text matrix
+    },
+
+
+};
+
+var stateUpdater = {
+    LW: function(value){
+        this.lineWidth = value;
+    },
+    LC: function(value){
+        this.lineCap = value;
+    },
+    LJ: function(value){
+        this.lineJoin = value;
+    },
+    ML: function(value){
+        this.miterLimit = value;
+    },
+    D: function(value){
+        this.dashArray = value[0];
+        this.dashPhase = value[1];
+    },
+    RI: function(value){
+        this.renderingIntent = value;
+    },
+    Font: function(value){
+        this.font = value[0];
+        this.fontSize = value[1];
+    },
+    FL: function(value){
+        this.flatness = value;
+    },
+    SA: function(value){
+        this.strokeAdjustment = value;
+    },
+    BM: function(value){
+        this.blendMode = value;
+    },
+    CA: function(value){
+        this.strokeAlpha = value;
+    },
+    ca: function(value){
+        this.fillAlpha = value;
+    },
+    AIS: function(value){
+        this.alphaSource = value;
+    }
 };
 
 })();

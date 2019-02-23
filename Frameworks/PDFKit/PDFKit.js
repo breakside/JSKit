@@ -25,4 +25,5 @@
 // #import "PDFKit/PDFCryptFilter.js"
 // #import "PDFKit/JSColor+PDF.js"
 // #import "PDFKit/PDFEncryption.js"
+// #import "PDFKit/PDFColorSpace.js"
 'use strict';

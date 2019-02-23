@@ -1,6 +1,9 @@
 // #import "PDFKit/PDFObject.js"
-/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFResourcesObject, PDFNameObject */
+// #import "PDFKit/PDFColorSpace.js"
+/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFResourcesObject, PDFNameObject, PDFColorSpace */
 'use strict';
+
+(function(){
 
 JSGlobalObject.PDFResourcesObject = function(){
     if (this === undefined){
@@ -17,6 +20,16 @@ JSGlobalObject.PDFResourcesObject.prototype = Object.create(PDFObject.prototype,
     Font:       PDFObjectProperty,
     ProcSet:    PDFObjectProperty,
     Properties: PDFObjectProperty,
+
+    graphicsState: {
+        value: function PDFResourcesObject_getGraphicsState(name){
+            var states = this.ExtGState;
+            if (name in states){
+                return states[name];
+            }
+            return null;
+        }
+    },
 
     colorSpace: {
         value: function PDFResourcesObject_getColorSpace(name){
@@ -38,16 +51,6 @@ JSGlobalObject.PDFResourcesObject.prototype = Object.create(PDFObject.prototype,
         }
     },
 
-    graphicsState: {
-        value: function PDFResourcesObject_getGraphicsState(name){
-            var states = this.ExtGState;
-            if (name in states){
-                return states[name];
-            }
-            return null;
-        }
-    },
-
     font: {
         value: function PDFResourcesObject_getFont(name){
             var fonts = this.Font;
@@ -56,5 +59,41 @@ JSGlobalObject.PDFResourcesObject.prototype = Object.create(PDFObject.prototype,
             }
             return null;
         }
+    },
+
+    _loaded: {
+        value: {
+            ExtGState: {},
+            ColorSpace: {},
+            XObject: {},
+            Font: {}
+        }
+    },
+
+    load: {
+        value: function PDFResourcesObject_load(completion, target){
+            var name;
+            var fonts = [];
+            var colorSpaces = [];
+            var xObjects = [];
+            if (this.Font){
+                for (name in this.Font){
+                    fonts.push({name: name, font: this.Font[name]});
+                }
+            }
+            completion.call(target);
+        }
+    },
+
+    unload: {
+        value: function PDFResourcesObject_unload(){
+            this._loaded.ExtGState = {};
+            this._loaded.ColorSpace = {};
+            this._loaded.XObject = {};
+            this._loaded.Font = {};
+        }
     }
+
 });
+
+})();

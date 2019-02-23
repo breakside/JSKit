@@ -1,6 +1,7 @@
 {
     "globalstrict": true,
     "newcap": false,
+    "multistr": true,
     "predef": [
         "Uint8Array",
         "Uint32Array",
