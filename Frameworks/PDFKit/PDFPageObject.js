@@ -111,6 +111,16 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
         }
     },
 
+    uncroppedBounds: {
+        configurable: true,
+        get: function PDFPageObject_uncroppedBounds(){
+            var mediaBox = normalizedBox(this.effectiveMediaBox);
+            var bounds = JSRect(mediaBox[0], mediaBox[1], mediaBox[2] - mediaBox[0], mediaBox[3] - mediaBox[1]);
+            Object.defineProperty(this, 'uncroppedBounds', {value: bounds});
+            return bounds;
+        }
+    },
+
     bounds: {
         configurable: true,
         get: function PDFPageObject_getBounds(){
@@ -255,16 +265,26 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
             var resources = this.effectiveResources;
             // TODO: annotations
 
+            // Scale to given rect (flipping coordinates in the process)
             context.save();
             var bounds = this.bounds;
-            context.translateBy(rect.origin.x, rect.origin.y);
+            context.translateBy(rect.origin.x, rect.origin.y + rect.size.height);
             var sx = rect.size.width / bounds.size.width;
             var sy = rect.size.height / bounds.size.height;
-            context.scaleBy(sx, sy);
+            context.scaleBy(sx, -sy);
             context.translateBy(-bounds.origin.x, -bounds.origin.y);
+
+            // Clip to bounds
             context.addRect(bounds);
             context.clip();
+            context.beginPath();
             context.save();
+
+            // Make page background white
+            context.save();
+            context.setFillColor(JSColor.whiteColor);
+            context.fillRect(bounds);
+            context.restore();
 
             var handleOperationIterator = function PDFPageObject_drawInContext_handleOperationIterator(iterator){
                 var handler;
@@ -372,7 +392,7 @@ var contextOperationHandler = {
     },
 
     d: function(array, phase){
-        this.context.setLineDash(phase, array);
+        this.context.setLineDash(phase, Array.prototype.slice.call(array, 0));
     },
 
     ri: function(renderingIntent){
@@ -410,7 +430,7 @@ var contextOperationHandler = {
     c: function(c1x, c1y, c2x, c2y, x, y){
         var point = JSPoint(x, y);
         var control1 = JSPoint(c1x, c1y);
-        var control2 = JSPoint(c2x, c2x);
+        var control2 = JSPoint(c2x, c2y);
         this.context.addCurveToPoint(point, control1, control2);
     },
 
@@ -445,7 +465,7 @@ var contextOperationHandler = {
     },
 
     W: function(){
-        this.context.clip(JSContext.fillRule.winding);
+        this.context.clip(JSContext.FillRule.winding);
     },
 
     'W*': function(){
@@ -625,7 +645,7 @@ var contextOperationHandler = {
         }
         // TODO: figure out canvas API
         var glyphs = [];
-        this.canvas.showGlyphs(glyphs);
+        // this.canvas.showGlyphs(glyphs);
         if (this.stack.state.textRenderingMode >= PDFGraphicsState.TextRenderingMode.fillAddPath && this.stack.state.textRenderingMode <= PDFGraphicsState.TextRenderingMode.addPath){
             // TODO: add glyphs to clipping path
         }
@@ -647,7 +667,7 @@ var contextStateUpdater = {
         this.context.setMiterLimit(value);
     },
     D: function(value){
-        this.context.setLineDash(value[1], value[0]);
+        this.context.setLineDash(value[1], Array.prototype.slice.call(value[0], 0));
     },
     RI: function(value){
         // TODO: ?

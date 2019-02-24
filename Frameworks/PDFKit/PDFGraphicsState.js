@@ -89,15 +89,15 @@ PDFGraphicsStateStack.prototype = {
     },
 
     _rememberPoint: function(x, y){
-        if (this.firstPoint === null){
-            this.firstPoint = JSPoint(x, y);
+        if (this.state.firstPoint === null){
+            this.state.firstPoint = JSPoint(x, y);
         }
-        this.lastPoint = JSPoint(x, y);
+        this.state.lastPoint = JSPoint(x, y);
     },
 
     _clearPoints: function(){
-        this.firstPoint = null;
-        this.lastPoint = null;
+        this.state.firstPoint = null;
+        this.state.lastPoint = null;
     }
 
 };
@@ -193,8 +193,8 @@ var operationHandler = {
     },
 
     h: function(){
-        if (this.firstPoint){
-            this._rememberPoint(this.firstPoint.x, this.firstPoint.y);
+        if (this.state.firstPoint){
+            this._rememberPoint(this.state.firstPoint.x, this.state.firstPoint.y);
         }
     },
 
@@ -319,12 +319,12 @@ var operationHandler = {
     },
 
     Tm: function(a, b, c, d, e, f){
-        this.textTransform = JSAffineTransform(a, b, c, d, e, e, f);
-        this.textLineTransform = JSAffineTransform(a, b, c, d, e, e, f);
+        this.state.textTransform = JSAffineTransform(a, b, c, d, e, e, f);
+        this.state.textLineTransform = JSAffineTransform(a, b, c, d, e, e, f);
     },
 
     __PDFKit_xTextAdvance__: function(x, y){
-        this.textTransform = this.textTransform.translatedBy(x / 1000.0 * this.state.fontSize * this.state.textHorizontalScaling / 100.0, y / 1000.0 * this.state.fontSize);
+        this.state.textTransform = this.state.textTransform.translatedBy(x / 1000.0 * this.state.fontSize * this.state.textHorizontalScaling / 100.0, y / 1000.0 * this.state.fontSize);
     },
 
     Tc: function(spacing){
@@ -359,21 +359,21 @@ var operationHandler = {
 
     // next line using custom offset
     Td: function(x, y){
-        this.textLineTransform = this.textLineTransform.translatedBy(x, y);
-        this.textTransform = JSAffineTransform(this.textLineTransform);
+        this.state.textLineTransform = this.state.textLineTransform.translatedBy(x, y);
+        this.state.textTransform = JSAffineTransform(this.state.textLineTransform);
     },
 
     // next line using custom offset and set leading
     TD: function(x, y){
-        this.textLineTransform = this.textLineTransform.translatedBy(x, y);
-        this.textTransform = JSAffineTransform(this.textLineTransform);
+        this.state.textLineTransform = this.state.textLineTransform.translatedBy(x, y);
+        this.state.textTransform = JSAffineTransform(this.state.textLineTransform);
         this.textLeading = -y;
     },
 
     // next line using leading
     'T*': function(){
-        this.textLineTransform = this.textLineTransform.translatedBy(0, -this.state.textLeading);
-        this.textTransform = JSAffineTransform(this.textLineTransform);
+        this.state.textLineTransform = this.state.textLineTransform.translatedBy(0, -this.state.textLeading);
+        this.state.textTransform = JSAffineTransform(this.state.textLineTransform);
     },
 
     // show string
