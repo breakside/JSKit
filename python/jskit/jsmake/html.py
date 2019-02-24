@@ -106,12 +106,13 @@ class HTMLBuilder(Builder):
         self.outputResourcePath = os.path.join(self.outputWebRootPath, "Resources")
         if self.debug:
             for root in (self.outputWebRootPath,):
-                for name in os.listdir(root):
-                    child = os.path.join(root, name)
-                    if os.path.isdir(child):
-                        shutil.rmtree(child)
-                    else:
-                        os.unlink(child)
+                if os.path.exists(root):
+                    for name in os.listdir(root):
+                        child = os.path.join(root, name)
+                        if os.path.isdir(child):
+                            shutil.rmtree(child)
+                        else:
+                            os.unlink(child)
         if not os.path.exists(self.outputConfPath):
             os.makedirs(self.outputConfPath)
         logsPath = os.path.join(self.outputProjectPath, "logs")
