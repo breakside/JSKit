@@ -85,6 +85,9 @@ JSObject.definePropertiesFromExtensions({
         }
     },
 
+    awakeFromSpec: function(){
+    },
+
     _initSpecOutlets: function(spec, outlets){
         for (var key in outlets){
             this.setValueForKey(key, spec.resolvedValue(outlets[key]));

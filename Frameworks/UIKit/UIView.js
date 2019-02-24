@@ -51,19 +51,19 @@ JSClass('UIView', UIResponder, {
             this.frame = JSRect(0, 0, 100, 100);
         }
         if ("backgroundColor" in values){
-            this.backgroundColor = spec.resolvedValue(values.backgroundColor, "JSColor");
+            this.backgroundColor = spec.resolvedEnum(values.backgroundColor, JSColor, "JSColor");
         }
         if ("backgroundGradient" in values){
             this.backgroundGradient = spec.resolvedValue(values.backgroundGradient, "JSGradient");
         }
         if ("borderColor" in values){
-            this.borderColor = spec.resolvedValue(values.borderColor, "JSColor");
+            this.borderColor = spec.resolvedEnum(values.borderColor, JSColor, "JSColor");
         }
         if ("borderWidth" in values){
             this.borderWidth = spec.resolvedValue(values.borderWidth);
         }
         if ("shadowColor" in values){
-            this.shadowColor = spec.resolvedValue(values.shadowColor, "JSColor");
+            this.shadowColor = spec.resolvedEnum(values.shadowColor, JSColor, "JSColor");
         }
         if ("shadowRadius" in values){
             this.shadowRadius = spec.resolvedValue(values.shadowRadius);

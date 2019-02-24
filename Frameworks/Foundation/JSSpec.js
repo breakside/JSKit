@@ -35,11 +35,11 @@ JSClass('JSSpec', JSObject, {
         return this.resolvedValue("/File's Owner", "JSObject");
     },
 
-    resolvedEnum: function(value, map){
+    resolvedEnum: function(value, map, defaultClassName){
         if (value in map){
             return map[value];
         }
-        return this.resolvedValue(value);
+        return this.resolvedValue(value, defaultClassName);
     },
 
     resolvedValue: function(value, defaultClassName, overrides){
@@ -106,6 +106,7 @@ JSClass('JSSpec', JSObject, {
                     if ('bindings' in value){
                         this._setObjectBindings(obj, value.bindings);
                     }
+                    obj.awakeFromSpec();
                     value = obj;
                 }
             }
