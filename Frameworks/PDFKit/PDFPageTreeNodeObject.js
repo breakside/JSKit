@@ -67,7 +67,7 @@ JSGlobalObject.PDFPageTreeNodeObject.prototype = Object.create(PDFObject.prototy
             for (var i = 0, l = this.Kids.length; i < l; ++i){
                 kid = this.Kids[i];
                 kid.Parent = this;
-                if (kid.type == "Pages"){
+                if (kid.Type == "Pages"){
                     if (index - number < kid.Count){
                         return kid.page(index - number);
                     }

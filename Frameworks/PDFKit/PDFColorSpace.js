@@ -5,6 +5,8 @@
 
 (function(){
 
+var logger = JSLog("PDFKit", "ColorSpace");
+
 JSGlobalObject.PDFColorSpace = function(params){
     if (params instanceof PDFNameObject){
         switch (params.toString()){
@@ -15,6 +17,7 @@ JSGlobalObject.PDFColorSpace = function(params){
             case "DeviceCMYK":
                 return PDFColorSpace.deviceCMYK;
             case "Pattern":
+                logger.warn("No support for Patterns, using black");
                 // TODO: support patterns
                 return new PDFColorSpacePattern();
         }
@@ -34,8 +37,10 @@ JSGlobalObject.PDFColorSpace = function(params){
             // Will need to load stream data when implented
             // (using Alternate for now instead)
             if (params[1].Alternate){
+                logger.info("Using Alernate color space for ICCBased");
                 return PDFColorSpace(params[1].Alternate);
             }
+            logger.info("Using device color space for ICCBased with %d components", params[1].N);
             switch (params[1].N){
                 case 1:
                     return PDFColorSpace.deviceGray;
@@ -49,12 +54,14 @@ JSGlobalObject.PDFColorSpace = function(params){
             // Might need to load stream data (params[3] could be hex string or a stream)
             // (for now, will always return black if params[3] is a stream)
             var base = PDFColorSpace(params[1]);
-            return PDFColorSpaceIndexed(base, params[2], params[3]);
+            return new PDFColorSpaceIndexed(base, params[2], params[3]);
         case "Separation":
+            logger.warn("No support for Separation, using alternate");
             // TOO: fullly support Separation
             // Using alternate space
             return PDFColorSpace(params[2]);
         case "DeviceN":
+            logger.warn("No support for DeviceN, using black");
             // TODO: fully support DeviceN
             return new PDFColorSpaceDeviceN(params[1], params[2], params[3], params[4]);
     }
@@ -318,6 +325,7 @@ var PDFColorSpaceIndexed = function(base, max, lookup){
     this.base = base;
     this.max = max;
     if (lookup instanceof PDFStreamObject){
+        logger.warn("Not fetching Indexed stream data, using black");
         // FIXME: need to get data synchronously
         this.lookup = null;
     }else{

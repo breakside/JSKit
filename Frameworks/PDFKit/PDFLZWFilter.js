@@ -12,7 +12,9 @@ JSClass("PDFLZWFilter", PDFPredictorFilter, {
 
     initWithParametersDictionary: function(params){
         PDFLZWFilter.$super.initWithParametersDictionary.call(this, params);
-        this.bitIncreaseOffset = params.EarlyChange;
+        if ('EarlyChange' in params){
+            this.bitIncreaseOffset = params.EarlyChange;
+        }
     },
 
     decodePrimaryData: function(data){

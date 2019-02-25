@@ -5,11 +5,13 @@
 // #import "PDFKit/PDFTokenizer.js"
 // #import "PDFKit/PDFReaderStream.js"
 // #import "PDFKit/PDFStreamOperation.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, PDFReader, PDFTokenizer, PDFReaderStream, PDFReaderDataStream, PDFStreamOperationIterator, JSData, PDFFilter, PDFEncryption, PDFStreamOperation */
+/* global JSClass, JSObject, JSLog, JSReadOnlyProperty, PDFReader, PDFTokenizer, PDFReaderStream, PDFReaderDataStream, PDFStreamOperationIterator, JSData, PDFFilter, PDFEncryption, PDFStreamOperation */
 /* global PDFIndirectObject, PDFNameObject, PDFObject, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFStreamObject, PDFTrailerObject, PDFFontObject, PDFType1FontObject, PDFTrueTypeFontObject, PDFImageObject */
 'use strict';
 
 (function(){
+
+var logger = JSLog("PDFKit", "Reader");
 
 JSClass("PDFReader", JSObject, {
 
@@ -163,9 +165,8 @@ JSClass("PDFReader", JSObject, {
                 objectID = token.pdfObject;
                 token = this._tokenizer.readToken(Token.integer);
                 generation = token.pdfObject;
-                token = this._tokenizer.readToken(Token.indirect);
-                var indirect = PDFIndirectObject(objectID, generation);
-                this._readCrossReferenceStream(indirect);
+                token = this._tokenizer.readToken(Token.obj);
+                logger.warn("Cross reference stream not supported");
                 return;
             }
             token = this._tokenizer.readMeaningfulToken(Token.integer);
@@ -176,17 +177,19 @@ JSClass("PDFReader", JSObject, {
                 objectID = token.pdfObject;
                 token = this._tokenizer.readToken(Token.integer);
                 count = token.pdfObject;
-                this._tokenizer.readToken(Token.commentStart, Token.endOfLine);
+                token = this._tokenizer.readToken(Token.commentStart, Token.endOfLine);
+                if (token == Token.commentStart){
+                    this._tokenizer.finishReadingComment();
+                }
                 for (var i = 0; i < count; ++i, ++objectID){
-                    if (this._crossReferenceTable[objectID] !== undefined){
-                        continue;
-                    }
                     offset = this._tokenizer.stream.offset;
                     var entryLine = String.initWithData(this._tokenizer.stream.read(20), String.Encoding.utf8);
                     if (entryLine.length != 20){
                         throw new Error("Not enough space for cross reference line @ %08X".sprintf(offset));
                     }
-                    if ((entryLine.charAt(18) != "\r" && entryLine.charAt(18) != " ") || entryLine.charAt(19) != "\n"){
+                    // Spec says lines should end with \r\n
+                    // reality seems to be any two whitespace bytes
+                    if (!PDFTokenizer.Whitespace.isWhitespace(entryLine.charCodeAt(18)) || !PDFTokenizer.Whitespace.isWhitespace(entryLine.charCodeAt(19))){
                         throw new Error("Invalid cross reference entry, missing CRLF @ %08X".sprintf(offset + 18));
                     }
                     if (entryLine.charAt(10) != " " || entryLine.charAt(16) != " "){
@@ -206,7 +209,9 @@ JSClass("PDFReader", JSObject, {
                     }
                     objectOffset = parseInt(entryLine.substr(0, 10));
                     generation = parseInt(entryLine.substr(11, 5));
-                    this._crossReferenceTable[objectID] = CrossReferenceTableEntry(objectOffset, generation, status);
+                    if (this._crossReferenceTable[objectID] === undefined){
+                        this._crossReferenceTable[objectID] = CrossReferenceTableEntry(objectOffset, generation, status);
+                    }
                 }
                 token = this._tokenizer.readMeaningfulToken(Token.integer, Token.trailer);
             }
@@ -240,6 +245,7 @@ JSClass("PDFReader", JSObject, {
         while (levels < maxLevels && (object instanceof PDFIndirectObject)){
             entry = this._crossReferenceTable[object.objectID];
             if (!entry || entry.generation != object.generation || entry.status != CrossReferenceTableEntry.Status.used){
+                logger.info("Requesting indirect object that doesn't exist as used in cross reference table");
                 return null;
             }
             offset = entry.offset;
@@ -289,6 +295,7 @@ JSClass("PDFReader", JSObject, {
     _getStreamData: function(stream, offset, completion, target){
         // Bail if the stream has an external file reference
         if (stream.F){
+            logger.warn("Stream external file references not supportd");
             return null;
         }
 
@@ -296,6 +303,7 @@ JSClass("PDFReader", JSObject, {
         this._tokenizer.stream.seek(offset);
         var data = this._tokenizer.stream.read(length);
         if (data.length != length){
+            logger.warn("Not enough data for stream length");
             return null;
         }
 
@@ -305,6 +313,7 @@ JSClass("PDFReader", JSObject, {
                 try{
                     data = filters[i].decode(data);
                 }catch (e){
+                    logger.warn("Stream decode failed @%08X: %{public}", offset, e);
                     data = null;
                 }
             }

@@ -34,7 +34,7 @@ JSGlobalObject.PDFResourcesObject.prototype = Object.create(PDFObject.prototype,
     colorSpace: {
         value: function PDFResourcesObject_getColorSpace(name){
             var spaces = this.ColorSpace;
-            if (name in spaces){
+            if (spaces && (name in spaces)){
                 return spaces[name];
             }
             return null;

@@ -195,34 +195,36 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
             var resources = this.effectiveResources;
 
             var handleOperationIterator = function PDFPageObject_getText_handleOperationIterator(iterator){
-                var operation = iterator.next();
-                var text;
-                var stack = PDFGraphicsState.stack();
-                stack.resources = resources;
-                var transform;
-                var placed;
-                while (operation !== null){
-                    switch (operation.operator){
-                        case Op.text:
-                            transform = stack.state.textTransform.concatenatedWith(stack.state.transform);
-                            text = stack.state.font.stringFromData(operation.operands[0]);
-                            placed = {
-                                origin: transform.convertPointFromTransform(JSPoint.Zero),
-                                width: 0,
-                                text: text
-                            };
-                            stack.handleOperation(operation);
-                            transform = stack.state.textTransform.concatenatedWith(stack.state.transform);
-                            placed.width = transform.convertPointFromTransform(JSPoint.Zero).x - placed.origin.x;
-                            // TODO: save space width so we can use it to compare later?
-                            // TODO: save font or font size so we can use it to compare later?
-                            placedStrings.push(placed);
-                            break;
-                        default:
-                            stack.handleOperation(operation);
-                            break;
+                if (iterator !== null){
+                    var operation = iterator.next();
+                    var text;
+                    var stack = PDFGraphicsState.stack();
+                    stack.resources = resources;
+                    var transform;
+                    var placed;
+                    while (operation !== null){
+                        switch (operation.operator){
+                            case Op.text:
+                                transform = stack.state.textTransform.concatenatedWith(stack.state.transform);
+                                text = stack.state.font.stringFromData(operation.operands[0]);
+                                placed = {
+                                    origin: transform.convertPointFromTransform(JSPoint.Zero),
+                                    width: 0,
+                                    text: text
+                                };
+                                stack.handleOperation(operation);
+                                transform = stack.state.textTransform.concatenatedWith(stack.state.transform);
+                                placed.width = transform.convertPointFromTransform(JSPoint.Zero).x - placed.origin.x;
+                                // TODO: save space width so we can use it to compare later?
+                                // TODO: save font or font size so we can use it to compare later?
+                                placedStrings.push(placed);
+                                break;
+                            default:
+                                stack.handleOperation(operation);
+                                break;
+                        }
+                        operation = iterator.next();
                     }
-                    operation = iterator.next();
                 }
                 ++streamIndex;
                 if (streamIndex < streams.length){
@@ -287,22 +289,24 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
             context.restore();
 
             var handleOperationIterator = function PDFPageObject_drawInContext_handleOperationIterator(iterator){
-                var handler;
-                var stack = PDFGraphicsState.stack();
-                stack.resources = resources;
-                var obj = {
-                    context: context,
-                    stack: stack,
-                    resources: resources
-                };
-                var operation = iterator.next();
-                while (operation !== null){
-                    handler = contextOperationHandler[operation.operator];
-                    if (handler){
-                        handler.apply(obj, operation.operands);
+                if (iterator !== null){
+                    var handler;
+                    var stack = PDFGraphicsState.stack();
+                    stack.resources = resources;
+                    var obj = {
+                        context: context,
+                        stack: stack,
+                        resources: resources
+                    };
+                    var operation = iterator.next();
+                    while (operation !== null){
+                        handler = contextOperationHandler[operation.operator];
+                        if (handler){
+                            handler.apply(obj, operation.operands);
+                        }
+                        stack.handleOperation(operation);
+                        operation = iterator.next();
                     }
-                    stack.handleOperation(operation);
-                    operation = iterator.next();
                 }
                 ++streamIndex;
                 if (streamIndex < streams.length){
