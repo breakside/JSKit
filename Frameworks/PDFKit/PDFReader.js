@@ -115,19 +115,41 @@ JSClass("PDFReader", JSObject, {
 
     _readEndOfFile: function(){
         // Go to the end of the file and read the final line, expecting %%EOF
+        // Some PDF files have junk after the %%EOF, so we'll be forgiving
+        // - up to 32 lines after %%EOF will be ignored
+        // - any content after %%EOF on the same line will be ingored
         this._tokenizer.stream.seek(this._tokenizer.stream.length);
         this._tokenizer.stream.seekToStartOfLine();
         var backwardsOffset = this._tokenizer.stream.offset;
 
-        this._tokenizer.readToken(Token.endOfFileComment);
-        this._tokenizer.readToken(Token.endOfData, Token.endOfLine);
+        var token;
+        try{
+            token = this._tokenizer.readToken();
+        }catch (e){
+            // invalid junk might cause exceptions, just ignore it
+            token = null;
+        }
+        var lines = 0;
+        var maxLines = 32;
+        while (lines < maxLines && this._tokenizer.stream.offset > 0 && token != Token.endOfFileComment){
+            this._tokenizer.stream.seek(backwardsOffset);
+            this._tokenizer.stream.seekToStartOfLine();
+            backwardsOffset = this._tokenizer.stream.offset;
+            try{
+                token = this._tokenizer.readToken();
+            }catch (e){
+                // invalid junk might cause exceptions, just ignore it
+                token = null;
+            }
+            ++lines;
+        }
 
         // Read the previous token, which should be an integer represeting the
         // cross reference table offset.  (Be sure to skip comment lines)
         this._tokenizer.stream.seek(backwardsOffset);
         this._tokenizer.stream.seekToStartOfLine();
         backwardsOffset = this._tokenizer.stream.offset;
-        var token = this._tokenizer.readToken(Token.integer, Token.commentStart);
+        token = this._tokenizer.readToken(Token.integer, Token.commentStart);
         while (token == Token.commentStart){
             this._tokenizer.stream.seek(backwardsOffset);
             this._tokenizer.stream.seekToStartOfLine();
@@ -185,26 +207,26 @@ JSClass("PDFReader", JSObject, {
                     offset = this._tokenizer.stream.offset;
                     var entryLine = String.initWithData(this._tokenizer.stream.read(20), String.Encoding.utf8);
                     if (entryLine.length != 20){
-                        throw new Error("Not enough space for cross reference line @ %08X".sprintf(offset));
+                        throw new Error("Not enough space for cross reference line @ 0x%08X".sprintf(offset));
                     }
                     // Spec says lines should end with \r\n
                     // reality seems to be any two whitespace bytes
                     if (!PDFTokenizer.Whitespace.isWhitespace(entryLine.charCodeAt(18)) || !PDFTokenizer.Whitespace.isWhitespace(entryLine.charCodeAt(19))){
-                        throw new Error("Invalid cross reference entry, missing CRLF @ %08X".sprintf(offset + 18));
+                        throw new Error("Invalid cross reference entry, missing CRLF @ 0x%08X".sprintf(offset + 18));
                     }
                     if (entryLine.charAt(10) != " " || entryLine.charAt(16) != " "){
-                        throw new Error("Invalid cross reference entry, missing spaces @ %08X".sprintf(offset));
+                        throw new Error("Invalid cross reference entry, missing spaces @ 0x%08X".sprintf(offset));
                     }
                     status = entryLine.charAt(17);
                     if (status != CrossReferenceTableEntry.Status.free && status != CrossReferenceTableEntry.Status.used){
-                        throw new Error("Invalid cross reference entry, invalid status @ %08X".sprintf(offset + 17));
+                        throw new Error("Invalid cross reference entry, invalid status @ 0x%08X".sprintf(offset + 17));
                     }
                     for (var j = 0; j < 16; ++j){
                         if (j == 10){
                             continue;
                         }
                         if (!PDFTokenizer.Numeric.isDigit(entryLine.charCodeAt(j))){
-                            throw new Error("Invalid cross reference entry, invalid integer @ %08X".sprintf(offset + j)); 
+                            throw new Error("Invalid cross reference entry, invalid integer @ 0x%08X".sprintf(offset + j)); 
                         }
                     }
                     objectOffset = parseInt(entryLine.substr(0, 10));
@@ -252,11 +274,11 @@ JSClass("PDFReader", JSObject, {
             this._tokenizer.stream.seek(offset);
             token = this._tokenizer.readToken(Token.integer);
             if (token.pdfObject != object.objectID){
-                throw new Error("Incorrect object id for %d %d R @ %08X".sprintf(object.objectID, object.generation, offset));
+                throw new Error("Incorrect object id for %d %d R @ 0x%08X".sprintf(object.objectID, object.generation, offset));
             }
             token = this._tokenizer.readToken(Token.integer);
             if (token.pdfObject != object.generation){
-                throw new Error("Incorrect generation for %d %d R @ %08X".sprintf(object.objectID, object.generation, offset));
+                throw new Error("Incorrect generation for %d %d R @ 0x%08X".sprintf(object.objectID, object.generation, offset));
             }
             token = this._tokenizer.readToken(Token.obj);
             tmp = object;
@@ -313,7 +335,7 @@ JSClass("PDFReader", JSObject, {
                 try{
                     data = filters[i].decode(data);
                 }catch (e){
-                    logger.warn("Stream decode failed @%08X: %{public}", offset, e);
+                    logger.warn("Stream decode failed @ 0x%08X: %{public}", offset, e);
                     data = null;
                 }
             }
@@ -333,19 +355,6 @@ JSClass("PDFReader", JSObject, {
             configurable: true,
             value: function PDFReader_getStreamData(completion, target){
                 reader._getStreamData(this, offset, completion, target);
-            }
-        });
-        Object.defineProperty(stream, 'getOperationIterator', {
-            configurable: true,
-            value: function PDFReader_getStreamOperationIterator(completion, target){
-                this.getData(function(data){
-                    if (data === null){
-                        completion.call(target, null);
-                        return;
-                    }
-                    var iterator = PDFStreamOperationIterator.initWithData(data);
-                    completion.call(target, iterator);
-                }, this);
             }
         });
     }
@@ -377,318 +386,6 @@ CrossReferenceTableEntry.Status = {
     used: 'n'
 };
 
-JSClass('PDFStreamOperationIterator', JSObject, {
-
-    tokenizer: null,
-    state: null,
-    queue: null,
-
-    initWithData: function(data){
-        this.tokenizer = PDFTokenizer.initWithData(data);
-        this.queue = [];
-    },
-
-    next: function(){
-        var operands = [];
-        var compatibilityLevel = 0;
-        var obj;
-        // Certain operators are really just shortcut combinations of other
-        // operations.  To simplify the set of operations that callers need
-        // to worry about, we'll convert the shortcuts into the their longer
-        // combinations.  A queue helps manage this expansion, as one token
-        // may add several operations to the queue; only the first operation
-        // gets returned, and remaining items are dequeued on subsequent calls
-        // to next() before continuing reading tokens.
-        while (this.queue.length === 0){
-            var token = this.tokenizer.readMeaningfulToken();
-            switch (token.toString()){
-
-                // Operands
-
-                case Token.true:
-                    if (compatibilityLevel === 0){
-                        operands.push(true);
-                    }
-                    break;
-                case Token.false:
-                    if (compatibilityLevel === 0){
-                        operands.push(false);
-                    }
-                    break;
-                case Token.integer:
-                    if (compatibilityLevel === 0){
-                        operands.push(token.pdfObject);
-                    }
-                    break;
-                case Token.real:
-                    if (compatibilityLevel === 0){
-                        operands.push(token.pdfObject);
-                    }
-                    break;
-                case Token.stringStart:
-                case Token.hexStringStart:
-                case Token.dictionaryStart:
-                case Token.arrayStart:
-                    obj = this.tokenizer.finishReadingObject(token);
-                    if (compatibilityLevel === 0){
-                        operands.push(obj);
-                    }
-                    break;
-                case Token.commentStart:
-                    this.tokenizer.finishReadingComment();
-                    break;
-                case Token.name:
-                    if (compatibilityLevel === 0){
-                        operands.push(token.pdfObject);
-                    }
-                    break;
-                case Token.null:
-                    if (compatibilityLevel === 0){
-                        operands.push(null);
-                    }
-                    break;
-
-                // Errors
-                // (will appear to consumers like the stream ended)
-
-                case Token.stringEnd:
-                case Token.hexStringEnd:
-                case Token.arrayEnd:
-                case Token.dictionaryEnd:
-                case Token.endOfData:
-                case Token.endOfFileComment:
-                case Token.stream:
-                case Token.endstream:
-                case Token.obj:
-                case Token.endobj:
-                case Token.xref:
-                case Token.trailer:
-                case Token.startxref:
-                case Token.indirect:
-                case Op.imageData:
-                case Op.endImage:
-                    this.queue.push(null);
-                    break;
-
-                // Compatibility
-
-                case Op.beginCompatibility:
-                    ++compatibilityLevel;
-                    break;
-                case Op.endCompatibility:
-                    if (compatibilityLevel === 0){
-                        return null;
-                    }
-                    --compatibilityLevel;
-                    break;
-
-                // Inline Images
-
-                case Op.beginImage:
-                    if (compatibilityLevel === 0){
-                        try{
-                            obj = this.finishReadingInlineImage();
-                            if (obj === null){
-                                return null;
-                            }
-                        }catch (e){
-                            return null;
-                        }
-                        this.queue.push(PDFStreamOperation(Op.endImage, [obj]));
-                    }
-                    break;
-
-                // Text
-                // Special cases that are really just combinations of other
-                // operators.  Handling them here makes it easier on readers
-                // since they'll only have to handle the simpler cases.
-
-                case Op.nextLineText:
-                    if (compatibilityLevel === 0){
-                        this.queue.push(PDFStreamOperation(Op.nextLine, []));
-                        this.queue.push(PDFStreamOperation(Op.text, operands));
-                    }
-                    break;
-                case Op.nextLineTextSpacing:
-                    if (compatibilityLevel === 0){
-                        this.queue.push(PDFStreamOperation(Op.wordSpacing, [operands[0]]));
-                        this.queue.push(PDFStreamOperation(Op.characterSpacing, [operands[1]]));
-                        this.queue.push(PDFStreamOperation(Op.nextLine, []));
-                        this.queue.push(PDFStreamOperation(Op.text, [operands[2]]));
-                    }
-                    break;
-                case Op.textArray:
-                    // For `[(abc) 1 (def) 2 (ghi) 3] TJ` operations, we'll make up a new
-                    // operator, `xTextAdvance`, that should adjust the text matrix, but
-                    // not the text line matrix.  The Tm operator won't do because it uses
-                    // absolute instead of relative values and update the line matrix too.
-                    // This way, consumers of operations will only ever see a single kind
-                    // of text drawing operator, Tj, simplifying their logic.
-                    if (compatibilityLevel === 0){
-                        for (var i = 0, l = operands[0].length; i < l; ++i){
-                            var op = operands[0][i];
-                            if (typeof(op) == 'number'){
-                                // TODO: consider vertical writing direction and set y instead of x if applicable (should be negative to move down)
-                                // TODO: consider RTL writing direction and set x to negative to move left
-                                this.queue.push(PDFStreamOperation(Op.xTextAdvance, [op, 0]));
-                            }else{
-                                this.queue.push(PDFStreamOperation(Op.text, [op]));
-                            }
-                        }
-                    }
-                    break;
-
-                // Aliases
-                // (operators that are really just aliases for others)
-
-                case Token.fillPathAlias:
-                    this.queue.push(PDFStreamOperation(Op.fillPath));
-                    break;
-
-                // Functions
-                // (currently unused and ingored by treating them like compatibility markers)
-
-                case Token.functionStart:
-                    ++compatibilityLevel;
-                    break;
-                case Token.functionEnd:
-                    if (compatibilityLevel === 0){
-                        return null;
-                    }
-                    --compatibilityLevel;
-                    break;
-
-                // TODO: Marked Content
-
-                // Operators
-                // (allowing any operator, even unknown, to be read by caller)
-
-                default:
-                    if (compatibilityLevel === 0){
-                        this.queue.push(PDFStreamOperation(token, operands));
-                    }
-                    break;
-            }
-        }
-        // TODO: validate known operations (argument lengths and types)
-        return this.queue.shift();
-    },
-
-    finishReadingInlineImage: function(){
-        var token = this.tokenizer.readMeaningfulToken(Token.name, Op.imageData);
-        var parameters = {};
-        var key;
-        var value;
-        var data = null;
-        while (token != Op.imageData){
-            key = token.pdfObject;
-            value = this.tokenizer.readObject();
-            parameters[key] = value;
-            token = this.tokenizer.readMeaningfulToken(Token.name, Op.imageData);
-        }
-
-        var filters = parameters.Filter || parameters.F;
-        if (!filters){
-            var w = parameters.Width || parameters.W || 0;
-            var h = parameters.Height || parameters.H || 0;
-            var bitsPerComponent = parameters.BitsPerComponent || parameters.BPC || 8;
-            var colorSpace = parameters.ColorSpace || parameters.CS || null;
-            var components = 0;
-            if (colorSpace !== null){
-                switch (colorSpace.toString()){
-                    case "DeviceGray":
-                    case "G":
-                        components = 1;
-                        break;
-                    case "DeviceRGB":
-                    case "RGB":
-                        components = 3;
-                        break;
-                    case "DeviceCMYK":
-                    case "CMYK":
-                        components = 4;
-                        break;
-                    default:
-                        // Ugh, need to lookup in resources, which we don't have
-                        break;
-                }
-            }
-            var count;
-            if (components !== 0){
-                count = w * h * components * bitsPerComponent / 8;
-                data = this.tokenizer.stream.read(count);
-                this.tokenizer.readMeaningfulToken(Op.endImage);
-            }else{
-                // We don't know the number of components, but it should be 1..4
-                count = w * h * bitsPerComponent / 8;
-
-                // Trying 1...
-                data = this.tokenizer.stream.read(count);
-                var offset = this.tokenizer.stream.offset;
-                try{
-                    this.tokenizer.readMeaningfulToken(Op.endImage);
-                }catch (e){
-                    // Trying 2...
-                    this.tokenizer.stream.seek(offset);
-                    var data2 = this.tokenizer.stream.read(count);
-                    offset = this.tokenizer.stream.offset;
-                    try{
-                        this.tokenizer.readMeaningfulToken(Op.endImage);
-                        data = JSData.initWithChunks([data.bytes, data2.bytes]);
-                    }catch (e2){
-                        // Trying 3...
-                        this.tokenizer.stream.seek(offset);
-                        var data3 = this.tokenizer.stream.read(count);
-                        offset = this.tokenizer.stream.offset;
-                        try{
-                            this.tokenizer.readMeaningfulToken(Op.endImage);
-                            data = JSData.initWithChunks([data.bytes, data2.bytes, data3.bytes]);
-                        }catch (e3){
-                            // Trying 4...
-                            this.tokenizer.stream.seek(offset);
-                            var data4 = this.tokenizer.stream.read(count);
-                            data = JSData.initWithChunks([data.bytes, data2.bytes, data3.bytes, data4.bytes]);
-                            this.tokenizer.readMeaningfulToken(Op.endImage);
-                        }
-                    }
-                }
-            }
-        }else{
-            if (filters instanceof PDFNameObject){
-                filters = [filters];
-            }
-            switch (filters[0]){
-                case "ASCIIHexDecode":
-                case "AHx":
-                case "ASCII85Decode":
-                case "A85":
-                    // TODO: scan for >
-                    break;
-                default:
-                    // TODO: scan for EI?
-                    // Filters should be able to tell when the reach their end of data
-                    // perhaps the filter code needs to be updated to be more incremental
-                    // so it can tell us when it's done rather than us having to know the
-                    // length of the input data
-                    break;
-            }
-        }
-        var byte = this.tokenizer.stream.byte();
-        var foundE = false;
-        while (byte !== null){
-            if (foundE && byte == 0x49){
-                break;
-            }
-            foundE = byte == 0x45;
-            byte = this.tokenizer.stream.byte();
-        }
-        // FIXME: should collect data, decode, and return
-        return {parameters: parameters, data: data};
-    }
-
-});
-
 var Token = PDFTokenizer.Token;
-var Op = PDFStreamOperation.Operator;
 
 })();

@@ -23,13 +23,6 @@ JSGlobalObject.PDFStreamObject.prototype = Object.create(PDFObject.prototype, {
         value: function PDFStreamObject_getData(completion, target){
             return completion.call(target, null);
         }
-    },
-
-    // PDFReader will redefine this property using an internal class to provide the operation
-    getOperationIterator: {
-        value: function PDFStreamObject_getOperationIterator(completion, target){
-            return completion.call(target, null);
-        }
     }
 });
 

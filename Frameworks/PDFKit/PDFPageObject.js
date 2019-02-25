@@ -4,7 +4,7 @@
 // #import "PDFKit/PDFStreamOperation.js"
 // #import "PDFKit/PDFGraphicsState.js"
 // #import "PDFKit/PDFColorSpace.js"
-/* global JSGlobalObject, JSData, JSPoint, JSSize, JSRect, JSColor, JSAffineTransform, JSContext, PDFObject, PDFColorSpace, PDFObjectProperty, PDFPageObject, PDFNameObject, PDFResourcesObject, PDFStreamObject, PDFStreamOperation, PDFGraphicsState */
+/* global JSGlobalObject, JSData, JSPoint, JSSize, JSRect, JSColor, JSAffineTransform, JSContext, PDFObject, PDFColorSpace, PDFObjectProperty, PDFPageObject, PDFNameObject, PDFResourcesObject, PDFStreamObject, PDFStreamOperation, PDFGraphicsState, PDFOperationIterator */
 'use strict';
 
 (function(){
@@ -127,10 +127,10 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
             var mediaBox = normalizedBox(this.effectiveMediaBox);
             var cropBox = normalizedBox(this.effectiveCropBox, mediaBox);
             var contentBox;
-            if (this.ArtBox){
-                contentBox = normalizedBox(this.ArtBox, cropBox);
-            }else if (this.TrimBox){
+            if (this.TrimBox){
                 contentBox = normalizedBox(this.TrimBox, cropBox);
+            }else if (this.ArtBox){
+                contentBox = normalizedBox(this.ArtBox, cropBox);
             }else{
                 contentBox = cropBox;
             }
@@ -158,6 +158,10 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
             var chunks = [];
             var contentIndex = 0;
             var handleChunk = function(chunk){
+                if (chunk === null){
+                    completion.call(target, null);
+                    return;
+                }
                 chunks.push(chunk.bytes);
                 ++contentIndex;
                 if (contentIndex < contents.length){
@@ -168,6 +172,19 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
                 }
             };
             contents[contentIndex].getData(handleChunk, this);
+        }
+    },
+
+    getOperationIterator: {
+        value: function PDFPageObject_getOperationIterator(completion, target){
+            this.getContentsData(function(data){
+                if (data === null){
+                    completion.call(target, null);
+                    return;
+                }
+                var iterator = PDFOperationIterator.initWithData(data);
+                completion.call(target, iterator);
+            }, this);
         }
     },
 
@@ -186,54 +203,45 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
 
     getText: {
         value: function PDFPageObject_getText(completion, target){
-            var streams = this._getStreams();
-            if (streams.length === 0){
-                completion.call(target, "");
-            }
-            var streamIndex = 0;
             var placedStrings = [];
             var resources = this.effectiveResources;
-
             var handleOperationIterator = function PDFPageObject_getText_handleOperationIterator(iterator){
-                if (iterator !== null){
-                    var operation = iterator.next();
-                    var text;
-                    var stack = PDFGraphicsState.stack();
-                    stack.resources = resources;
-                    var transform;
-                    var placed;
-                    while (operation !== null){
-                        switch (operation.operator){
-                            case Op.text:
-                                transform = stack.state.textTransform.concatenatedWith(stack.state.transform);
-                                text = stack.state.font.stringFromData(operation.operands[0]);
-                                placed = {
-                                    origin: transform.convertPointFromTransform(JSPoint.Zero),
-                                    width: 0,
-                                    text: text
-                                };
-                                stack.handleOperation(operation);
-                                transform = stack.state.textTransform.concatenatedWith(stack.state.transform);
-                                placed.width = transform.convertPointFromTransform(JSPoint.Zero).x - placed.origin.x;
-                                // TODO: save space width so we can use it to compare later?
-                                // TODO: save font or font size so we can use it to compare later?
-                                placedStrings.push(placed);
-                                break;
-                            default:
-                                stack.handleOperation(operation);
-                                break;
-                        }
-                        operation = iterator.next();
-                    }
-                }
-                ++streamIndex;
-                if (streamIndex < streams.length){
-                    streams[streamIndex].getOperationIterator(handleOperationIterator, this);
-                }else{
+                if (iterator === null){
                     finish();
+                    return;
                 }
+                var operation = iterator.next();
+                var text;
+                var stack = PDFGraphicsState.stack();
+                stack.resources = resources;
+                var transform;
+                var placed;
+                while (operation !== null){
+                    switch (operation.operator){
+                        case Op.text:
+                            transform = stack.state.textTransform.concatenatedWith(stack.state.transform);
+                            text = stack.state.font.stringFromData(operation.operands[0]);
+                            placed = {
+                                origin: transform.convertPointFromTransform(JSPoint.Zero),
+                                width: 0,
+                                text: text
+                            };
+                            stack.handleOperation(operation);
+                            transform = stack.state.textTransform.concatenatedWith(stack.state.transform);
+                            placed.width = transform.convertPointFromTransform(JSPoint.Zero).x - placed.origin.x;
+                            // TODO: save space width so we can use it to compare later?
+                            // TODO: save font or font size so we can use it to compare later?
+                            placedStrings.push(placed);
+                            break;
+                        default:
+                            stack.handleOperation(operation);
+                            break;
+                    }
+                    operation = iterator.next();
+                }
+                finish();
             };
-            var finish = function PDFPageObject_getText_consolidateText(){
+            var finish = function PDFPageObject_getText_finish(){
                 var text = "";
                 // TODO: analyze placedStrings and combine adjacent runs
                 // - combine horizontally anything less than a space distance
@@ -252,18 +260,13 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
             };
 
             resources.load(function PDFPageObject_getText_loadResources(){
-                streams[streamIndex].getOperationIterator(handleOperationIterator, this);
+                this.getOperationIterator(handleOperationIterator, this);
             }, this);
         }
     },
 
     drawInContext: {
         value: function(context, rect, completion, target){
-            var streams = this._getStreams();
-            if (streams.length === 0){
-                completion.call(target);
-            }
-            var streamIndex = 0;
             var resources = this.effectiveResources;
             // TODO: annotations
 
@@ -289,31 +292,28 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
             context.restore();
 
             var handleOperationIterator = function PDFPageObject_drawInContext_handleOperationIterator(iterator){
-                if (iterator !== null){
-                    var handler;
-                    var stack = PDFGraphicsState.stack();
-                    stack.resources = resources;
-                    var obj = {
-                        context: context,
-                        stack: stack,
-                        resources: resources
-                    };
-                    var operation = iterator.next();
-                    while (operation !== null){
-                        handler = contextOperationHandler[operation.operator];
-                        if (handler){
-                            handler.apply(obj, operation.operands);
-                        }
-                        stack.handleOperation(operation);
-                        operation = iterator.next();
-                    }
-                }
-                ++streamIndex;
-                if (streamIndex < streams.length){
-                    streams[streamIndex].getOperationIterator(handleOperationIterator, this);
-                }else{
+                if (iterator === null){
                     finish();
+                    return;
                 }
+                var handler;
+                var stack = PDFGraphicsState.stack();
+                stack.resources = resources;
+                var obj = {
+                    context: context,
+                    stack: stack,
+                    resources: resources
+                };
+                var operation = iterator.next();
+                while (operation !== null){
+                    handler = contextOperationHandler[operation.operator];
+                    if (handler){
+                        handler.apply(obj, operation.operands);
+                    }
+                    stack.handleOperation(operation);
+                    operation = iterator.next();
+                }
+                finish();
             };
 
             var finish = function PDFPageObject_drawInContext_cleanup(){
@@ -324,7 +324,7 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
             };
 
             resources.load(function PDFPageObject_drawInContext_loadResources(){
-                streams[streamIndex].getOperationIterator(handleOperationIterator, this);
+                this.getOperationIterator(handleOperationIterator, this);
             }, this);
         }
     }

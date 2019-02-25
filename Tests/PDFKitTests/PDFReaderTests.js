@@ -1,7 +1,7 @@
 // #import "PDFKit/PDFKit.js"
 // #import "TestKit/TestKit.js"
 /* global JSClass, TKTestSuite, PDFReader, TKExpectation */
-/* global PDFIndirectObject, PDFNameObject, PDFObject, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFStreamObject, PDFTrailerObject, PDFFontObject, PDFType1FontObject, PDFTrueTypeFontObject, PDFImageObject */
+/* global PDFIndirectObject, PDFNameObject, PDFObject, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFStreamObject, PDFTrailerObject, PDFFontObject, PDFType1FontObject, PDFTrueTypeFontObject, PDFImageObject, PDFStreamOperation */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
@@ -23,6 +23,81 @@ JSClass("PDFReaderTests", TKTestSuite, {
             "startxref",
             "45",
             "%%EOF"
+        ].join("\n").utf8();
+
+
+        var reader = PDFReader.initWithData(data);
+        var expectation = TKExpectation.init();
+        expectation.call(reader.open, reader, function(status, document){
+            TKAssertExactEquals(status, PDFReader.Status.open);
+            TKAssertNotNull(document);
+            TKAssert(document instanceof PDFDocumentObject);
+            TKAssertEquals(document.Type, "Catalog");
+            TKAssertExactEquals(document.pageCount, 0);
+            TKAssertNull(document.Pages);
+        });
+        this.wait(expectation, 2);
+    },
+
+    testLinesAfterEOF: function(){
+        // Apparently, trailing data after %%EOF is acceptable...have seen it
+        // in the wild with files that work fine in Preview
+        // NOTE: the files in question were linearized, which may have helped
+        // Preview deal with the issue, but even if we don't read the linearized
+        // stuff, we should still handle a mostly-correct PDF file without complaint
+        var data = [
+            "%PDF-1.7",
+            "1 0 obj",
+            "<< /Type /Catalog >>",
+            "endobj",
+            "xref",
+            "0 2",
+            "0000000000 65535 f\r",
+            "0000000009 00000 n\r",
+            "trailer",
+            "<< /Root 1 0 R /Size 2 >>",
+            "startxref",
+            "45",
+            "%%EOF",
+            "",
+            "",
+            "-- Extra comment"
+        ].join("\n").utf8();
+
+
+        var reader = PDFReader.initWithData(data);
+        var expectation = TKExpectation.init();
+        expectation.call(reader.open, reader, function(status, document){
+            TKAssertExactEquals(status, PDFReader.Status.open);
+            TKAssertNotNull(document);
+            TKAssert(document instanceof PDFDocumentObject);
+            TKAssertEquals(document.Type, "Catalog");
+            TKAssertExactEquals(document.pageCount, 0);
+            TKAssertNull(document.Pages);
+        });
+        this.wait(expectation, 2);
+    },
+
+    testCommentAfterEOF: function(){
+        // Apparently, trailing data after %%EOF is acceptable...have seen it
+        // in the wild with files that work fine in Preview
+        // NOTE: the files in question were linearized, which may have helped
+        // Preview deal with the issue, but even if we don't read the linearized
+        // stuff, we should still handle a mostly-correct PDF file without complaint
+        var data = [
+            "%PDF-1.7",
+            "1 0 obj",
+            "<< /Type /Catalog >>",
+            "endobj",
+            "xref",
+            "0 2",
+            "0000000000 65535 f\r",
+            "0000000009 00000 n\r",
+            "trailer",
+            "<< /Root 1 0 R /Size 2 >>",
+            "startxref",
+            "45",
+            "%%EOF hello there"
         ].join("\n").utf8();
 
 
@@ -280,10 +355,10 @@ JSClass("PDFReaderTests", TKTestSuite, {
             TKAssertNotNull(document);
             var page = document.page(0);
             var bounds = page.bounds;
-            TKAssertEquals(bounds.origin.x, 13);
-            TKAssertEquals(bounds.origin.y, 35);
-            TKAssertEquals(bounds.size.width, 42);
-            TKAssertEquals(bounds.size.height, 43);
+            TKAssertEquals(bounds.origin.x, 14);
+            TKAssertEquals(bounds.origin.y, 36);
+            TKAssertEquals(bounds.size.width, 40);
+            TKAssertEquals(bounds.size.height, 41);
         }, this);
         this.wait(expectation, 2);
     },
@@ -337,6 +412,45 @@ JSClass("PDFReaderTests", TKTestSuite, {
                 var expected = "q 100 200 300 400 re f Q".utf8();
                 TKAssertObjectEquals(data, expected);
             });
+        });
+        this.wait(expectation, 2);
+    },
+
+    testSplitStream: function(){
+        var data = this._pdfForObjects([
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Count 1 /Kids [ 3 0 R] >>",
+            "<< /Type /Page /Contents [4 0 R 5 0 R] /Parent 2 0 R >>",
+            "<< /Length 9 >>\nstream\nq 100 200\nendstream",
+            "<< /Length 15 >>\nstream\n 300 400 re f Q\nendstream",
+            ], "<< /Root 1 0 R /Size 6 >>");
+        var reader = PDFReader.initWithData(data);
+        var expectation = TKExpectation.init();
+        var Op = PDFStreamOperation.Operator;
+        expectation.call(reader.open, reader, function(status, document){
+            var page = document.page(0);
+            expectation.call(page.getOperationIterator, page, function(iterator){
+                TKAssertNotNull(iterator);
+                var operation = iterator.next();
+                TKAssertNotNull(operation);
+                TKAssertEquals(operation.operator, Op.pushState);
+                TKAssertExactEquals(operation.operands.length, 0);
+                operation = iterator.next();
+                TKAssertEquals(operation.operator, Op.rectangle);
+                TKAssertExactEquals(operation.operands.length, 4);
+                TKAssertEquals(operation.operands[0], 100);
+                TKAssertEquals(operation.operands[1], 200);
+                TKAssertEquals(operation.operands[2], 300);
+                TKAssertEquals(operation.operands[3], 400);
+                operation = iterator.next();
+                TKAssertEquals(operation.operator, Op.fillPath);
+                TKAssertExactEquals(operation.operands.length, 0);
+                operation = iterator.next();
+                TKAssertEquals(operation.operator, Op.popState);
+                TKAssertExactEquals(operation.operands.length, 0);
+                operation = iterator.next();
+                TKAssertNull(operation);
+            }, this);
         });
         this.wait(expectation, 2);
     },

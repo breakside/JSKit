@@ -103,9 +103,6 @@ JSClass("PDFTokenizer", JSObject, {
         if (byte == PDFTokenizer.Delimiters.rightBrace){
             return Token.functionEnd;
         }
-        if (byte == 0x52){  // R
-            return Token.indirect;
-        }
         if (byte == PDFTokenizer.Whitespace.carriageReturn){
             byte = this.stream.byte();
             if (byte != PDFTokenizer.Whitespace.lineFeed && byte !== null){
@@ -139,7 +136,7 @@ JSClass("PDFTokenizer", JSObject, {
                 }
             }
             if (byte !== null && !PDFTokenizer.Whitespace.isWhitespace(byte) && !PDFTokenizer.Delimiters.isDelimiter(byte)){
-                throw new Error("Expecting whitespace or delimter after number, got %02X @ %08X".sprintf(byte, this.stream.offset - 1));
+                throw new Error("Expecting whitespace or delimter after number, got %02X @ 0x%08X".sprintf(byte, this.stream.offset - 1));
             }
             if (byte !== null){
                 this.stream.seekRelative(-1);
@@ -179,7 +176,7 @@ JSClass("PDFTokenizer", JSObject, {
                 return token;
             }
         }
-        throw new Error("Expecting %s, got %s @ %08X".sprintf(expecting.join('|'), token, offset));
+        throw new Error("Expecting %s, got %s @ 0x%08X".sprintf(expecting.join('|'), token, offset));
     },
 
     readMeaningfulToken: function(){
@@ -200,7 +197,7 @@ JSClass("PDFTokenizer", JSObject, {
                 return token;
             }
         }
-        throw new Error("Expecting %s, got %s @ %08X".sprintf(expecting.join('|'), token, offset));
+        throw new Error("Expecting %s, got %s @ 0x%08X".sprintf(expecting.join('|'), token, offset));
     },
 
     // MARK: - Objects
@@ -219,11 +216,11 @@ JSClass("PDFTokenizer", JSObject, {
             if (byte == PDFTokenizer.NameEscape.numberSign){
                 a = this.stream.byte();
                 if (!PDFTokenizer.Hexadecimal.isHexadecimal(a)){
-                    throw new Error("Expecting hex char @ %08X".sprintf(this.stream.offset - 1));
+                    throw new Error("Expecting hex char @ 0x%08X".sprintf(this.stream.offset - 1));
                 }
                 b = this.stream.byte();
                 if (!PDFTokenizer.Hexadecimal.isHexadecimal(b)){
-                    throw new Error("Expecting hex char @ %08X".sprintf(this.stream.offset - 1));
+                    throw new Error("Expecting hex char @ 0x%08X".sprintf(this.stream.offset - 1));
                 }
                 byte = PDFTokenizer.Hexadecimal.outputHexadecimal(a, b);
             }
@@ -334,7 +331,7 @@ JSClass("PDFTokenizer", JSObject, {
                     a = null;
                 }
             }else if (!PDFTokenizer.Whitespace.isWhitespace(byte)){
-                throw new Error("Expecting hexadecimal byte @ %08X".sprintf(this.stream.offset - 1));
+                throw new Error("Expecting hexadecimal byte @ 0x%08X".sprintf(this.stream.offset - 1));
             }
             byte = this.stream.byte();
         }

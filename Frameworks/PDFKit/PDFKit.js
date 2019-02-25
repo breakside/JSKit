@@ -6,6 +6,7 @@
 // #import "PDFKit/PDFTypes.js"
 // #import "PDFKit/PDFGraphicsState.js"
 // #import "PDFKit/PDFStreamOperation.js"
+// #import "PDFKit/PDFOperationIterator.js"
 // #import "PDFKit/PDFWriter.js"
 // #import "PDFKit/PDFTokenizer.js"
 // #import "PDFKit/PDFReaderStream.js"
