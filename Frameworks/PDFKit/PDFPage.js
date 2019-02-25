@@ -1,22 +1,22 @@
 // #import "PDFKit/PDFObject.js"
-// #import "PDFKit/PDFNameObject.js"
-// #import "PDFKit/PDFStreamObject.js"
+// #import "PDFKit/PDFName.js"
+// #import "PDFKit/PDFStream.js"
 // #import "PDFKit/PDFStreamOperation.js"
 // #import "PDFKit/PDFGraphicsState.js"
 // #import "PDFKit/PDFColorSpace.js"
-/* global JSGlobalObject, JSData, JSPoint, JSSize, JSRect, JSColor, JSAffineTransform, JSContext, PDFObject, PDFColorSpace, PDFObjectProperty, PDFPageObject, PDFNameObject, PDFResourcesObject, PDFStreamObject, PDFStreamOperation, PDFGraphicsState, PDFOperationIterator */
+/* global JSGlobalObject, JSData, JSPoint, JSSize, JSRect, JSColor, JSAffineTransform, JSContext, PDFObject, PDFColorSpace, PDFObjectProperty, PDFPage, PDFName, PDFResources, PDFStream, PDFStreamOperation, PDFGraphicsState, PDFOperationIterator */
 'use strict';
 
 (function(){
 
-JSGlobalObject.PDFPageObject = function(){
+JSGlobalObject.PDFPage = function(){
     if (this === undefined){
-        return new PDFPageObject();
+        return new PDFPage();
     }
 };
 
-JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
-    Type:                   { enumerable: true, value: PDFNameObject("Page") },
+JSGlobalObject.PDFPage.prototype = Object.create(PDFObject.prototype, {
+    Type:                   { enumerable: true, value: PDFName("Page") },
     Parent:                 PDFObjectProperty,
     LastModified:           PDFObjectProperty,
     Resources:              PDFObjectProperty,
@@ -49,7 +49,7 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
 
     effectiveMediaBox: {
         enumerable: false,
-        get: function PDFPageObject_getEffectiveMediaBox(){
+        get: function PDFPage_getEffectiveMediaBox(){
             if (this.MediaBox){
                 return this.MediaBox;
             }
@@ -62,7 +62,7 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
 
     inheritedCropBox: {
         enumerable: false,
-        get: function PDFPageObject_getInheritedCropBox(){
+        get: function PDFPage_getInheritedCropBox(){
             if (this.CropBox){
                 return this.CropBox;
             }
@@ -75,7 +75,7 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
 
     effectiveCropBox: {
         enumerable: false,
-        get: function PDFPageObject_getEffectiveCropBox(){
+        get: function PDFPage_getEffectiveCropBox(){
             var box = this.inheritedCropBox;
             if (box){
                 return box;
@@ -86,7 +86,7 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
 
     effectiveRotation: {
         enumerable: false,
-        get: function PDFPageObject_getEffectiveRotation(){
+        get: function PDFPage_getEffectiveRotation(){
             if (this.Rotate){
                 return this.Rotate;
             }
@@ -100,20 +100,20 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
 
     effectiveResources: {
         enumerable: false,
-        get: function PDFPageObject_getEffectiveResources(){
+        get: function PDFPage_getEffectiveResources(){
             if (this.Resources){
                 return this.Resources;
             }
             if (this.Parent){
                 return this.Parent.effectiveResources;
             }
-            return PDFResourcesObject();
+            return PDFResources();
         }
     },
 
     uncroppedBounds: {
         configurable: true,
-        get: function PDFPageObject_uncroppedBounds(){
+        get: function PDFPage_uncroppedBounds(){
             var mediaBox = normalizedBox(this.effectiveMediaBox);
             var bounds = JSRect(mediaBox[0], mediaBox[1], mediaBox[2] - mediaBox[0], mediaBox[3] - mediaBox[1]);
             Object.defineProperty(this, 'uncroppedBounds', {value: bounds});
@@ -123,7 +123,7 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
 
     bounds: {
         configurable: true,
-        get: function PDFPageObject_getBounds(){
+        get: function PDFPage_getBounds(){
             var mediaBox = normalizedBox(this.effectiveMediaBox);
             var cropBox = normalizedBox(this.effectiveCropBox, mediaBox);
             var contentBox;
@@ -141,13 +141,13 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
     },
 
     getContentsData: {
-        value: function PDFPageObject_getContentsData(completion, target){
+        value: function PDFPage_getContentsData(completion, target){
             var contents = this.Contents;
             if (!contents){
                 completion.call(target, null);
                 return;
             }
-            if (contents instanceof PDFStreamObject){
+            if (contents instanceof PDFStream){
                 contents.getData(completion, target);
                 return;
             }
@@ -176,7 +176,7 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
     },
 
     getOperationIterator: {
-        value: function PDFPageObject_getOperationIterator(completion, target){
+        value: function PDFPage_getOperationIterator(completion, target){
             this.getContentsData(function(data){
                 if (data === null){
                     completion.call(target, null);
@@ -189,12 +189,12 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
     },
 
     _getStreams: {
-        value: function PDFPageObject_getStreams(){
+        value: function PDFPage_getStreams(){
             var contents = this.Contents;
             if (!contents){
                 return [];
             }
-            if (contents instanceof PDFStreamObject){
+            if (contents instanceof PDFStream){
                 return [contents];
             }
             return contents;
@@ -202,10 +202,10 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
     },
 
     getText: {
-        value: function PDFPageObject_getText(completion, target){
+        value: function PDFPage_getText(completion, target){
             var placedStrings = [];
             var resources = this.effectiveResources;
-            var handleOperationIterator = function PDFPageObject_getText_handleOperationIterator(iterator){
+            var handleOperationIterator = function PDFPage_getText_handleOperationIterator(iterator){
                 if (iterator === null){
                     finish();
                     return;
@@ -241,7 +241,7 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
                 }
                 finish();
             };
-            var finish = function PDFPageObject_getText_finish(){
+            var finish = function PDFPage_getText_finish(){
                 var text = "";
                 // TODO: analyze placedStrings and combine adjacent runs
                 // - combine horizontally anything less than a space distance
@@ -259,7 +259,7 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
                 completion.call(target, text);
             };
 
-            resources.load(function PDFPageObject_getText_loadResources(){
+            resources.load(function PDFPage_getText_loadResources(){
                 this.getOperationIterator(handleOperationIterator, this);
             }, this);
         }
@@ -291,7 +291,7 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
             context.fillRect(bounds);
             context.restore();
 
-            var handleOperationIterator = function PDFPageObject_drawInContext_handleOperationIterator(iterator){
+            var handleOperationIterator = function PDFPage_drawInContext_handleOperationIterator(iterator){
                 if (iterator === null){
                     finish();
                     return;
@@ -316,14 +316,14 @@ JSGlobalObject.PDFPageObject.prototype = Object.create(PDFObject.prototype, {
                 finish();
             };
 
-            var finish = function PDFPageObject_drawInContext_cleanup(){
+            var finish = function PDFPage_drawInContext_cleanup(){
                 context.restore();
                 context.restore();
                 resources.unload();
                 completion.call(target);
             };
 
-            resources.load(function PDFPageObject_drawInContext_loadResources(){
+            resources.load(function PDFPage_drawInContext_loadResources(){
                 this.getOperationIterator(handleOperationIterator, this);
             }, this);
         }

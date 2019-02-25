@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "PDFKit/PDFTypes.js"
-/* global JSClass, JSReadOnlyProperty, JSObject, PDFDocumentObject, PDFStream, PDFNameObject, PDFIndirectObject, PDFObject, PDFWriter, PDFTrailerObject */
+/* global JSClass, JSReadOnlyProperty, JSObject, PDFDocument, PDFStream, PDFName, PDFIndirectObject, PDFObject, PDFWriter, PDFTrailer */
 'use strict';
 
 (function(){
@@ -20,7 +20,7 @@ JSClass("PDFWriter", JSObject, {
         this._crossReferenceTable = [
             CrossReferenceTableEntry(0, 65535, CrossReferenceTableEntry.Status.free)
         ];
-        this._trailer = PDFTrailerObject();
+        this._trailer = PDFTrailer();
     },
 
     format: function(message){
@@ -61,7 +61,7 @@ JSClass("PDFWriter", JSObject, {
         this._writeObjectOpening(obj);
         this._writeObject(obj);
         this._write("\nendobj\n");
-        if (obj instanceof PDFDocumentObject){
+        if (obj instanceof PDFDocument){
             this._trailer.Root = obj.indirect;
         }
     },
@@ -91,7 +91,7 @@ JSClass("PDFWriter", JSObject, {
     _writeObject: function(obj, preferIndirect){
         if (obj === null){
             this._writeNullObject();
-        }else if (obj instanceof PDFNameObject){
+        }else if (obj instanceof PDFName){
             this._writeNameObject(obj);
         }else if (obj instanceof PDFIndirectObject){
             if (preferIndirect){
@@ -156,7 +156,7 @@ JSClass("PDFWriter", JSObject, {
         var value;
         for (var k in dict){
             value = dict[k];
-            this._writeNameObject(PDFNameObject(k));
+            this._writeNameObject(PDFName(k));
             this._write(" ");
             this._writeObject(dict[k], true);
             this._write(" ");

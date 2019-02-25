@@ -1,17 +1,17 @@
 // #import "PDFKit/PDFObject.js"
 // #import "PDFKit/PDFColorSpace.js"
-/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFResourcesObject, PDFNameObject, PDFColorSpace */
+/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFResources, PDFName, PDFColorSpace */
 'use strict';
 
 (function(){
 
-JSGlobalObject.PDFResourcesObject = function(){
+JSGlobalObject.PDFResources = function(){
     if (this === undefined){
-        return new PDFResourcesObject();
+        return new PDFResources();
     }
 };
 
-JSGlobalObject.PDFResourcesObject.prototype = Object.create(PDFObject.prototype, {
+JSGlobalObject.PDFResources.prototype = Object.create(PDFObject.prototype, {
     ExtGState:  PDFObjectProperty,
     ColorSpace: PDFObjectProperty,
     Pattern:    PDFObjectProperty,
@@ -22,7 +22,7 @@ JSGlobalObject.PDFResourcesObject.prototype = Object.create(PDFObject.prototype,
     Properties: PDFObjectProperty,
 
     graphicsState: {
-        value: function PDFResourcesObject_getGraphicsState(name){
+        value: function PDFResources_getGraphicsState(name){
             var states = this.ExtGState;
             if (name in states){
                 return states[name];
@@ -32,7 +32,7 @@ JSGlobalObject.PDFResourcesObject.prototype = Object.create(PDFObject.prototype,
     },
 
     colorSpace: {
-        value: function PDFResourcesObject_getColorSpace(name){
+        value: function PDFResources_getColorSpace(name){
             var spaces = this.ColorSpace;
             if (spaces && (name in spaces)){
                 return spaces[name];
@@ -42,7 +42,7 @@ JSGlobalObject.PDFResourcesObject.prototype = Object.create(PDFObject.prototype,
     },
 
     xObject: {
-        value: function PDFResourcesObject_getXObject(name){
+        value: function PDFResources_getXObject(name){
             var objects = this.XObject;
             if (name in objects){
                 return objects[name];
@@ -52,7 +52,7 @@ JSGlobalObject.PDFResourcesObject.prototype = Object.create(PDFObject.prototype,
     },
 
     font: {
-        value: function PDFResourcesObject_getFont(name){
+        value: function PDFResources_getFont(name){
             var fonts = this.Font;
             if (name in fonts){
                 return fonts[name];
@@ -71,7 +71,7 @@ JSGlobalObject.PDFResourcesObject.prototype = Object.create(PDFObject.prototype,
     },
 
     load: {
-        value: function PDFResourcesObject_load(completion, target){
+        value: function PDFResources_load(completion, target){
             var name;
             var fonts = [];
             var colorSpaces = [];
@@ -86,7 +86,7 @@ JSGlobalObject.PDFResourcesObject.prototype = Object.create(PDFObject.prototype,
     },
 
     unload: {
-        value: function PDFResourcesObject_unload(){
+        value: function PDFResources_unload(){
             this._loaded.ExtGState = {};
             this._loaded.ColorSpace = {};
             this._loaded.XObject = {};

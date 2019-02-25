@@ -1,7 +1,7 @@
 // #import "PDFKit/PDFKit.js"
 // #import "TestKit/TestKit.js"
 /* global JSClass, TKTestSuite, PDFReader, TKExpectation */
-/* global PDFIndirectObject, PDFNameObject, PDFObject, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFStreamObject, PDFTrailerObject, PDFFontObject, PDFType1FontObject, PDFTrueTypeFontObject, PDFImageObject, PDFStreamOperation */
+/* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1FontObject, PDFTrueTypeFontObject, PDFImage, PDFStreamOperation */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
@@ -31,7 +31,7 @@ JSClass("PDFReaderTests", TKTestSuite, {
         expectation.call(reader.open, reader, function(status, document){
             TKAssertExactEquals(status, PDFReader.Status.open);
             TKAssertNotNull(document);
-            TKAssert(document instanceof PDFDocumentObject);
+            TKAssert(document instanceof PDFDocument);
             TKAssertEquals(document.Type, "Catalog");
             TKAssertExactEquals(document.pageCount, 0);
             TKAssertNull(document.Pages);
@@ -70,7 +70,7 @@ JSClass("PDFReaderTests", TKTestSuite, {
         expectation.call(reader.open, reader, function(status, document){
             TKAssertExactEquals(status, PDFReader.Status.open);
             TKAssertNotNull(document);
-            TKAssert(document instanceof PDFDocumentObject);
+            TKAssert(document instanceof PDFDocument);
             TKAssertEquals(document.Type, "Catalog");
             TKAssertExactEquals(document.pageCount, 0);
             TKAssertNull(document.Pages);
@@ -106,7 +106,7 @@ JSClass("PDFReaderTests", TKTestSuite, {
         expectation.call(reader.open, reader, function(status, document){
             TKAssertExactEquals(status, PDFReader.Status.open);
             TKAssertNotNull(document);
-            TKAssert(document instanceof PDFDocumentObject);
+            TKAssert(document instanceof PDFDocument);
             TKAssertEquals(document.Type, "Catalog");
             TKAssertExactEquals(document.pageCount, 0);
             TKAssertNull(document.Pages);
@@ -146,12 +146,12 @@ JSClass("PDFReaderTests", TKTestSuite, {
             TKAssertExactEquals(status, PDFReader.Status.open);
             TKAssertNotNull(document);
             TKAssertEquals(document.pageCount, 1);
-            TKAssert(document.Pages instanceof PDFPageTreeNodeObject);
+            TKAssert(document.Pages instanceof PDFPages);
             TKAssertNull(document.Pages.Parent);
             TKAssertEquals(document.Pages.Count, 1);
             TKAssertEquals(document.Pages.Kids.length, 1);
             var page = document.Pages.Kids[0];
-            TKAssert(page instanceof PDFPageObject);
+            TKAssert(page instanceof PDFPage);
             TKAssertNull(page.Contents);
         });
         this.wait(expectation, 2);
@@ -192,14 +192,14 @@ JSClass("PDFReaderTests", TKTestSuite, {
         expectation.call(reader.open, reader, function(status, document){
             TKAssertExactEquals(status, PDFReader.Status.open);
             TKAssertNotNull(document);
-            TKAssert(document instanceof PDFDocumentObject);
-            TKAssert(document.Pages instanceof PDFPageTreeNodeObject);
+            TKAssert(document instanceof PDFDocument);
+            TKAssert(document.Pages instanceof PDFPages);
             TKAssertEquals(document.pageCount, 1);
             TKAssertNull(document.Pages.Parent);
             TKAssertEquals(document.Pages.Count, 1);
             TKAssertEquals(document.Pages.Kids.length, 1);
             var page = document.Pages.Kids[0];
-            TKAssert(page instanceof PDFPageObject);
+            TKAssert(page instanceof PDFPage);
             TKAssertNull(page.Contents);
         });
         this.wait(expectation, 2);
@@ -452,9 +452,9 @@ JSClass("PDFReaderTests", TKTestSuite, {
         expectation.call(reader.open, reader, function(status, document){
             var page = document.page(0);
             TKAssertNotNull(page);
-            TKAssert(page instanceof PDFPageObject);
+            TKAssert(page instanceof PDFPage);
             var stream = page.Contents;
-            TKAssert(stream instanceof PDFStreamObject);
+            TKAssert(stream instanceof PDFStream);
             TKAssertEquals(stream.Length, 24);
             expectation.call(stream.getData, stream, function(data){
                 var expected = "q 100 200 300 400 re f Q".utf8();

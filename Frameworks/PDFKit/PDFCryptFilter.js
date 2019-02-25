@@ -1,5 +1,5 @@
 // #import "PDFKit/PDFFilter.js"
-/* global JSClass, JSObject, PDFFilter, PDFNameObject */
+/* global JSClass, JSObject, PDFFilter, PDFName */
 'use strict';
 
 JSClass("PDFCryptFilter", PDFFilter, {
@@ -12,7 +12,7 @@ JSClass("PDFCryptFilter", PDFFilter, {
         if (name){
             this.name = name;
         }else{
-            this.name = PDFNameObject("Identity");
+            this.name = PDFName("Identity");
         }
     },
 

@@ -1,16 +1,16 @@
 // #import "PDFKit/PDFObject.js"
-// #import "PDFKit/PDFNameObject.js"
-/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFDocumentObject, PDFPageIterator, PDFNameObject */
+// #import "PDFKit/PDFName.js"
+/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFDocument, PDFPageIterator, PDFName */
 'use strict';
 
-JSGlobalObject.PDFDocumentObject = function(){
+JSGlobalObject.PDFDocument = function(){
     if (this === undefined){
-        return new PDFDocumentObject();
+        return new PDFDocument();
     }
 };
 
-JSGlobalObject.PDFDocumentObject.prototype = Object.create(PDFObject.prototype, {
-    Type:               { enumerable: true, value: PDFNameObject("Catalog") },
+JSGlobalObject.PDFDocument.prototype = Object.create(PDFObject.prototype, {
+    Type:               { enumerable: true, value: PDFName("Catalog") },
     Version:            PDFObjectProperty,
     Extensions:         PDFObjectProperty,
     Pages:              PDFObjectProperty,
@@ -41,7 +41,7 @@ JSGlobalObject.PDFDocumentObject.prototype = Object.create(PDFObject.prototype, 
     NeedsRendering:     PDFObjectProperty,
 
     pageCount: {
-        get: function PDFDocumentObject_getPageCount(){
+        get: function PDFDocument_getPageCount(){
             if (this.Pages === null){
                 return 0;
             }
@@ -50,7 +50,7 @@ JSGlobalObject.PDFDocumentObject.prototype = Object.create(PDFObject.prototype, 
     },
 
     page: {
-        value: function PDFDocumentObject_getPage(index){
+        value: function PDFDocument_getPage(index){
             if (this.Pages === null){
                 return null;
             }

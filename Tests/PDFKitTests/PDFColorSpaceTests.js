@@ -1,76 +1,76 @@
 // #import "PDFKit/PDFKit.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, PDFColorSpace, PDFNameObject, JSColor */
+/* global JSClass, TKTestSuite, PDFColorSpace, PDFName, JSColor */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
 JSClass("PDFColorSpaceTests", TKTestSuite, {
 
     testFactory: function(){
-        var space = PDFColorSpace(PDFNameObject("DeviceGray"));
+        var space = PDFColorSpace(PDFName("DeviceGray"));
         TKAssertEquals(space.numberOfComponents, 1);
 
-        space = PDFColorSpace(PDFNameObject("DeviceRGB"));
+        space = PDFColorSpace(PDFName("DeviceRGB"));
         TKAssertEquals(space.numberOfComponents, 3);
 
-        space = PDFColorSpace(PDFNameObject("DeviceCMYK"));
+        space = PDFColorSpace(PDFName("DeviceCMYK"));
         TKAssertEquals(space.numberOfComponents, 4);
 
-        space = PDFColorSpace(PDFNameObject("Pattern"));
+        space = PDFColorSpace(PDFName("Pattern"));
         TKAssertEquals(space.numberOfComponents, 1);
 
         TKAssertThrows(function(){
-            var space = PDFColorSpace(PDFNameObject("BadName"));
+            var space = PDFColorSpace(PDFName("BadName"));
         });
 
-        space = PDFColorSpace([PDFNameObject("CalGray"), {WhitePoint: [1, 1, 1]}]);
+        space = PDFColorSpace([PDFName("CalGray"), {WhitePoint: [1, 1, 1]}]);
         TKAssertEquals(space.numberOfComponents, 1);
 
-        space = PDFColorSpace([PDFNameObject("CalRGB"), {WhitePoint: [1, 1, 1]}]);
+        space = PDFColorSpace([PDFName("CalRGB"), {WhitePoint: [1, 1, 1]}]);
         TKAssertEquals(space.numberOfComponents, 3);
 
-        space = PDFColorSpace([PDFNameObject("CalCMYK"), {WhitePoint: [1, 1, 1]}]);
+        space = PDFColorSpace([PDFName("CalCMYK"), {WhitePoint: [1, 1, 1]}]);
         TKAssertEquals(space.numberOfComponents, 4);
 
-        space = PDFColorSpace([PDFNameObject("Lab"), {WhitePoint: [1, 1, 1]}]);
+        space = PDFColorSpace([PDFName("Lab"), {WhitePoint: [1, 1, 1]}]);
         TKAssertEquals(space.numberOfComponents, 3);
 
-        space = PDFColorSpace([PDFNameObject("ICCBased"), {N: 1, Alternate: PDFNameObject("DeviceGray")}]);
+        space = PDFColorSpace([PDFName("ICCBased"), {N: 1, Alternate: PDFName("DeviceGray")}]);
         TKAssertEquals(space.numberOfComponents, 1);
 
-        space = PDFColorSpace([PDFNameObject("ICCBased"), {N: 1}]);
+        space = PDFColorSpace([PDFName("ICCBased"), {N: 1}]);
         TKAssertEquals(space.numberOfComponents, 1);
 
-        space = PDFColorSpace([PDFNameObject("ICCBased"), {N: 3, Alternate: PDFNameObject("DeviceRGB")}]);
+        space = PDFColorSpace([PDFName("ICCBased"), {N: 3, Alternate: PDFName("DeviceRGB")}]);
         TKAssertEquals(space.numberOfComponents, 3);
 
-        space = PDFColorSpace([PDFNameObject("ICCBased"), {N: 3}]);
+        space = PDFColorSpace([PDFName("ICCBased"), {N: 3}]);
         TKAssertEquals(space.numberOfComponents, 3);
 
-        space = PDFColorSpace([PDFNameObject("ICCBased"), {N: 4, Alternate: PDFNameObject("DeviceCMYK")}]);
+        space = PDFColorSpace([PDFName("ICCBased"), {N: 4, Alternate: PDFName("DeviceCMYK")}]);
         TKAssertEquals(space.numberOfComponents, 4);
 
-        space = PDFColorSpace([PDFNameObject("ICCBased"), {N: 4}]);
+        space = PDFColorSpace([PDFName("ICCBased"), {N: 4}]);
         TKAssertEquals(space.numberOfComponents, 4);
 
         TKAssertThrows(function(){
-            var space = PDFColorSpace([PDFNameObject("ICCBased"), {N: 2}]);
+            var space = PDFColorSpace([PDFName("ICCBased"), {N: 2}]);
         });
 
         TKAssertThrows(function(){
-            var space = PDFColorSpace([PDFNameObject("ICCBased"), {N: 5}]);
+            var space = PDFColorSpace([PDFName("ICCBased"), {N: 5}]);
         });
 
         TKAssertThrows(function(){
-            var space = PDFColorSpace([PDFNameObject("BadName")]);
+            var space = PDFColorSpace([PDFName("BadName")]);
         });
 
-        space = PDFColorSpace([PDFNameObject("DeviceN"), [PDFNameObject("a"), PDFNameObject("b"), PDFNameObject("c"), PDFNameObject("d"), PDFNameObject("e")]]);
+        space = PDFColorSpace([PDFName("DeviceN"), [PDFName("a"), PDFName("b"), PDFName("c"), PDFName("d"), PDFName("e")]]);
         TKAssertEquals(space.numberOfComponents, 5);
     },
 
     testDeviceGray: function(){
-        var space = PDFColorSpace(PDFNameObject("DeviceGray"));
+        var space = PDFColorSpace(PDFName("DeviceGray"));
         var components = space.defaultComponents();
         TKAssertEquals(components.length, 1);
         TKAssertEquals(components[0], 0);
@@ -92,7 +92,7 @@ JSClass("PDFColorSpaceTests", TKTestSuite, {
     },
 
     testDeviceRGB: function(){
-        var space = PDFColorSpace(PDFNameObject("DeviceRGB"));
+        var space = PDFColorSpace(PDFName("DeviceRGB"));
         var components = space.defaultComponents();
         TKAssertEquals(components.length, 3);
         TKAssertEquals(components[0], 0);
@@ -125,7 +125,7 @@ JSClass("PDFColorSpaceTests", TKTestSuite, {
     },
 
     testDeviceCMYK: function(){
-        var space = PDFColorSpace(PDFNameObject("DeviceCMYK"));
+        var space = PDFColorSpace(PDFName("DeviceCMYK"));
         var components = space.defaultComponents();
         TKAssertEquals(components.length, 4);
         TKAssertEquals(components[0], 0);

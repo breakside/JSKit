@@ -6,7 +6,7 @@
 // #import "PDFKit/PDFReaderStream.js"
 // #import "PDFKit/PDFStreamOperation.js"
 /* global JSClass, JSObject, JSLog, JSReadOnlyProperty, PDFReader, PDFTokenizer, PDFReaderStream, PDFReaderDataStream, PDFStreamOperationIterator, JSData, PDFFilter, PDFEncryption, PDFStreamOperation */
-/* global PDFIndirectObject, PDFNameObject, PDFObject, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFStreamObject, PDFTrailerObject, PDFFontObject, PDFType1FontObject, PDFTrueTypeFontObject, PDFImageObject, PDFXrefStreamObject */
+/* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1FontObject, PDFTrueTypeFontObject, PDFImage, PDFXrefStream */
 'use strict';
 
 (function(){
@@ -259,7 +259,7 @@ JSClass("PDFReader", JSObject, {
             token = this._tokenizer.readMeaningfulToken(Token.integer, Token.trailer);
         }
         token = this._tokenizer.readMeaningfulToken(Token.dictionaryStart);
-        var trailer = this._tokenizer.finishReadingDictionary(PDFTrailerObject);
+        var trailer = this._tokenizer.finishReadingDictionary(PDFTrailer);
         return trailer;
     },
 
@@ -273,7 +273,7 @@ JSClass("PDFReader", JSObject, {
         var token = this._tokenizer.readToken(Token.integer);
         token = this._tokenizer.readToken(Token.obj);
         this._tokenizer.readMeaningfulToken(Token.dictionaryStart);
-        var xref = this._tokenizer.finishReadingDictionary(PDFXrefStreamObject);
+        var xref = this._tokenizer.finishReadingDictionary(PDFXrefStream);
         this._tokenizer.readMeaningfulToken(Token.stream);
         this._tokenizer.readToken(Token.endOfLine);
         var offset = this._tokenizer.stream.offset;

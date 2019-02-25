@@ -3,7 +3,7 @@
 // #import "SecurityKit/SecurityKit.js"
 // #import "PDFKit/PDFCryptFilter.js"
 // #import "PDFKit/PDFTypes.js"
-/* global JSClass, JSData, JSObject, PDFEncryption, JSMD5Hash, SECCipher, PDFNameObject */
+/* global JSClass, JSData, JSObject, PDFEncryption, JSMD5Hash, SECCipher, PDFName */
 'use strict';
 
 (function(){
@@ -175,7 +175,7 @@ JSClass("PDFEncryption", JSObject, {
             var filters = stream.Filter;
             var firstFilter = null;
             var firstParams = null;
-            if (filters instanceof PDFNameObject){
+            if (filters instanceof PDFName){
                 firstFilter = filters;
                 firstParams = stream.DecodeParms;
             }else if (filters){

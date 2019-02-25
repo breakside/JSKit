@@ -1,17 +1,17 @@
 // #import "PDFKit/PDFObject.js"
-/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFFontObject, PDFNameObject, PDFType1FontObject, PDFTrueTypeFontObject */
+/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFFont, PDFName, PDFType1FontObject, PDFTrueTypeFontObject */
 'use strict';
 
 (function(){
 
-JSGlobalObject.PDFFontObject = function(){
+JSGlobalObject.PDFFont = function(){
     if (this === undefined){
-        return new PDFFontObject();
+        return new PDFFont();
     }
 };
 
-JSGlobalObject.PDFFontObject.prototype = Object.create(PDFObject.prototype, {
-    Type:           { enumerable: true, value: PDFNameObject("Font") },
+JSGlobalObject.PDFFont.prototype = Object.create(PDFObject.prototype, {
+    Type:           { enumerable: true, value: PDFName("Font") },
     Subtype:        PDFObjectProperty,
 });
 
@@ -21,8 +21,8 @@ JSGlobalObject.PDFType1FontObject = function(){
     }
 };
 
-JSGlobalObject.PDFType1FontObject.prototype = Object.create(PDFFontObject.prototype, {
-    Subtype:        { enumerable: true, value: PDFNameObject("Type1") },
+JSGlobalObject.PDFType1FontObject.prototype = Object.create(PDFFont.prototype, {
+    Subtype:        { enumerable: true, value: PDFName("Type1") },
     Name:           PDFObjectProperty,
     BaseFont:       PDFObjectProperty,
     FirstChar:      PDFObjectProperty,
@@ -48,7 +48,7 @@ JSGlobalObject.PDFTrueTypeFontObject = function(){
 };
 
 JSGlobalObject.PDFTrueTypeFontObject.prototype = Object.create(PDFType1FontObject.prototype, {
-    Subtype:    { enumerable: true, value: PDFNameObject("TrueType") },
+    Subtype:    { enumerable: true, value: PDFName("TrueType") },
 });
 
 var StandardFonts = [

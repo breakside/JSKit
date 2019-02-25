@@ -1,18 +1,18 @@
 // #import "PDFKit/PDFObject.js"
-// #import "PDFKit/PDFNameObject.js"
-/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFPageTreeNodeObject, PDFNameObject */
+// #import "PDFKit/PDFName.js"
+/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFPages, PDFName */
 'use strict';
 
-JSGlobalObject.PDFPageTreeNodeObject = function(){
+JSGlobalObject.PDFPages = function(){
     if (this === undefined){
-        return new PDFPageTreeNodeObject();
+        return new PDFPages();
     }
     this.Kids = [];
     this.Count = 0;
 };
 
-JSGlobalObject.PDFPageTreeNodeObject.prototype = Object.create(PDFObject.prototype, {
-    Type:       { enumerable: true, value: PDFNameObject("Pages") },
+JSGlobalObject.PDFPages.prototype = Object.create(PDFObject.prototype, {
+    Type:       { enumerable: true, value: PDFName("Pages") },
     Parent:     PDFObjectProperty,
     Kids:       PDFObjectProperty,
     Count:      PDFObjectProperty,
@@ -23,7 +23,7 @@ JSGlobalObject.PDFPageTreeNodeObject.prototype = Object.create(PDFObject.prototy
 
     effectiveMediaBox: {
         enumerable: false,
-        get: function PDFPageObject_getEffectiveMediaBox(){
+        get: function PDFPage_getEffectiveMediaBox(){
             if (this.MediaBox){
                 return this.MediaBox;
             }
@@ -36,7 +36,7 @@ JSGlobalObject.PDFPageTreeNodeObject.prototype = Object.create(PDFObject.prototy
 
     inheritedCropBox: {
         enumerable: false,
-        get: function PDFPageObject_getEffectiveMediaBox(){
+        get: function PDFPage_getEffectiveMediaBox(){
             if (this.CropBox){
                 return this.CropBox;
             }
@@ -49,7 +49,7 @@ JSGlobalObject.PDFPageTreeNodeObject.prototype = Object.create(PDFObject.prototy
 
     effectiveRotation: {
         enumerable: false,
-        get: function PDFPageObject_getEffectiveMediaBox(){
+        get: function PDFPage_getEffectiveMediaBox(){
             if (this.Rotate){
                 return this.Rotate;
             }
@@ -61,7 +61,7 @@ JSGlobalObject.PDFPageTreeNodeObject.prototype = Object.create(PDFObject.prototy
     },
 
     page: {
-        value: function PDFPageTreeNodeObject_getPage(index){
+        value: function PDFPages_getPage(index){
             var kid;
             var number = 0;
             for (var i = 0, l = this.Kids.length; i < l; ++i){

@@ -4,7 +4,7 @@
 // #import "PDFKit/JSColor+PDF.js"
 // #import "PDFKit/JSRect+PDF.js"
 // #import "ImageKit/ImageKit.js"
-/* global JSClass, JSContext, PDFContext, PDFWriter, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFNameObject, PDFStreamObject, JSAffineTransform, JSRect, PDFType1FontObject, PDFImageObject, JSData, JSImage, IKBitmap */
+/* global JSClass, JSContext, PDFContext, PDFWriter, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFName, PDFStream, JSAffineTransform, JSRect, PDFType1FontObject, PDFImage, JSData, JSImage, IKBitmap */
 'use strict';
 
 (function(){
@@ -56,9 +56,9 @@ JSClass("PDFContext", JSContext, {
             mediaBox = JSRect(0, 0, this._dpi * this._defaultPageWidthInInches, this._dpi * this._defaultPageHeightInInches);
         }
         this._writer = PDFWriter.initWithStream(stream);
-        this._document = PDFDocumentObject();
-        this._pages = PDFPageTreeNodeObject();
-        this._pages.Resources = PDFResourcesObject();
+        this._document = PDFDocument();
+        this._pages = PDFPages();
+        this._pages.Resources = PDFResources();
         this._pages.MediaBox = mediaBox.pdfRectangle();
         this._writer.indirect(this._pages, this._pages.Resources);
         this._document.Pages = this._pages.indirect;
@@ -83,9 +83,9 @@ JSClass("PDFContext", JSContext, {
             options = {};
         }
         this.endPage();
-        this._page = PDFPageObject();
+        this._page = PDFPage();
         this._page.Parent = this._pages.indirect;
-        this._page.Resources = PDFResourcesObject();
+        this._page.Resources = PDFResources();
         if (options.mediaBox !== undefined){
             this._page.MediaBox = options.mediaBox.pdfRectangle();
         }
@@ -150,7 +150,7 @@ JSClass("PDFContext", JSContext, {
         var image = info.image;
         var xobjects = this._pages.Resources.XObject;
         var writer = this._writer;
-        var pdfimage = PDFImageObject();
+        var pdfimage = PDFImage();
         pdfimage.Length = writer.createIndirect();
         image.getBitmap(function(bitmap){
             if (bitmap === null){
@@ -159,7 +159,7 @@ JSClass("PDFContext", JSContext, {
             pdfimage.Width = bitmap.size.width;
             pdfimage.Height = bitmap.size.height;
             // TODO: embed icc profile from bitmap, if present
-            pdfimage.ColorSpace = PDFNameObject("DeviceRGB");
+            pdfimage.ColorSpace = PDFName("DeviceRGB");
             pdfimage.BitsPerComponent = 8;
             writer.beginStreamObject(pdfimage);
             // TODO: compress the stream
@@ -204,7 +204,7 @@ JSClass("PDFContext", JSContext, {
         var info = job.fontInfo;
         var fonts = this._pages.Resources.Font;
         var font = PDFType1FontObject();
-        font.BaseFont = PDFNameObject("Helvetica");
+        font.BaseFont = PDFName("Helvetica");
         this._writer.writeObject(font);
         fonts[info.resourceName] = font.indirect;
         job.complete();
@@ -219,7 +219,7 @@ JSClass("PDFContext", JSContext, {
 
     _createNewContentStream: function(){
         this._endContentStream();
-        this._content = PDFStreamObject();
+        this._content = PDFStream();
         this._content.Length = this._writer.createIndirect();
         this._writer.beginStreamObject(this._content);
         this._page.Contents = this._content.indirect;
@@ -331,7 +331,7 @@ JSClass("PDFContext", JSContext, {
         var info = this._imageInfo[image.objectID];
         if (!info){
             info = this._imageInfo[image.objectID] = PDFImageInfo(image);
-            info.resourceName = PDFNameObject("IM%d".sprintf(this._nextImageNumber++));
+            info.resourceName = PDFName("IM%d".sprintf(this._nextImageNumber++));
         }
         return info;
     },
@@ -400,7 +400,7 @@ JSClass("PDFContext", JSContext, {
         var info = this._fontInfo[font.postScriptName];
         if (!info){
             info = this._fontInfo[font.postScriptName] = PDFFontInfo(font);
-            info.resourceName = PDFNameObject("F%d".sprintf(this._nextFontNumber++));
+            info.resourceName = PDFName("F%d".sprintf(this._nextFontNumber++));
         }
         return info;
     },

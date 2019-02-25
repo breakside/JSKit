@@ -1,6 +1,6 @@
-// #import "PDFKit/PDFNameObject.js"
-// #import "PDFKit/PDFStreamObject.js"
-/* global JSGlobalObject, JSColor, PDFObject, PDFNameObject, PDFStreamObject, PDFColorSpace */
+// #import "PDFKit/PDFName.js"
+// #import "PDFKit/PDFStream.js"
+/* global JSGlobalObject, JSColor, PDFObject, PDFName, PDFStream, PDFColorSpace */
 'use strict';
 
 (function(){
@@ -8,7 +8,7 @@
 var logger = JSLog("PDFKit", "ColorSpace");
 
 JSGlobalObject.PDFColorSpace = function(params){
-    if (params instanceof PDFNameObject){
+    if (params instanceof PDFName){
         switch (params.toString()){
             case "DeviceGray":
                 return PDFColorSpace.deviceGray;
@@ -324,7 +324,7 @@ PDFColorSpaceCIELab.prototype = Object.create(PDFColorSpace.prototype, {
 var PDFColorSpaceIndexed = function(base, max, lookup){
     this.base = base;
     this.max = max;
-    if (lookup instanceof PDFStreamObject){
+    if (lookup instanceof PDFStream){
         logger.warn("Not fetching Indexed stream data, using black");
         // FIXME: need to get data synchronously
         this.lookup = null;

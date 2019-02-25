@@ -1,18 +1,18 @@
-/* global JSGlobalObject, PDFNameObject */
+/* global JSGlobalObject, PDFName */
 'use strict';
 
-JSGlobalObject.PDFNameObject = function(value){
+JSGlobalObject.PDFName = function(value){
     if (this === undefined){
-        return new PDFNameObject(value);
+        return new PDFName(value);
     }
-    if (value instanceof PDFNameObject){
+    if (value instanceof PDFName){
         this.value = value.value;
     }else{
         this.value = value;
     }
 };
 
-JSGlobalObject.PDFNameObject.prototype = Object.create({}, {
+JSGlobalObject.PDFName.prototype = Object.create({}, {
     valueDecodingUTF8: {
         configurable: true,
         enumerable: false,

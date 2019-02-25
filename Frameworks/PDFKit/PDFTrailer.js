@@ -1,14 +1,14 @@
 // #import "PDFKit/PDFObject.js"
-/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFTrailerObject, PDFNameObject */
+/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFTrailer, PDFName */
 'use strict';
 
-JSGlobalObject.PDFTrailerObject = function(){
+JSGlobalObject.PDFTrailer = function(){
     if (this === undefined){
-        return new PDFTrailerObject();
+        return new PDFTrailer();
     }
 };
 
-JSGlobalObject.PDFTrailerObject.prototype = Object.create(PDFObject.prototype, {
+JSGlobalObject.PDFTrailer.prototype = Object.create(PDFObject.prototype, {
     Size:       PDFObjectProperty,
     Prev:       PDFObjectProperty,
     XRefStm:    PDFObjectProperty,

@@ -1,15 +1,15 @@
-// #import "PDFKit/PDFStreamObject.js"
-/* global JSGlobalObject, PDFStreamObject, PDFObjectProperty, PDFObjectStreamObject, PDFNameObject, PDFTokenizer */
+// #import "PDFKit/PDFStream.js"
+/* global JSGlobalObject, PDFStream, PDFObjectProperty, PDFObjectStream, PDFName, PDFTokenizer */
 'use strict';
 
-JSGlobalObject.PDFObjectStreamObject = function(){
+JSGlobalObject.PDFObjectStream = function(){
     if (this === undefined){
-        return new PDFObjectStreamObject();
+        return new PDFObjectStream();
     }
 };
 
-JSGlobalObject.PDFObjectStreamObject.prototype = Object.create(PDFStreamObject.prototype, {
-    Type:           { enumerable: true, value: PDFNameObject("ObjStm") },
+JSGlobalObject.PDFObjectStream.prototype = Object.create(PDFStream.prototype, {
+    Type:           { enumerable: true, value: PDFName("ObjStm") },
     N:              PDFObjectProperty,
     First:          PDFObjectProperty,
     Extends:        PDFObjectProperty,
@@ -41,7 +41,7 @@ JSGlobalObject.PDFObjectStreamObject.prototype = Object.create(PDFStreamObject.p
     },
 
     object: {
-        value: function PDFObjectStreamObject_getObject(index){
+        value: function PDFObjectStream_getObject(index){
             var offset = this.First + this.objectOffsets[index].offset;
             this.tokenizer.stream.seek(offset);
             var object = this.tokenizer.readObject();

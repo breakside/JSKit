@@ -2,7 +2,7 @@
 // #import "PDFKit/PDFTypes.js"
 // #import "PDFKit/PDFColorSpace.js"
 // #import "PDFKit/PDFStreamOperation.js"
-/* global JSGlobalObject, JSPoint, JSColor, PDFColorSpace, PDFGraphicsState, JSAffineTransform, PDFNameObject, PDFStreamOperation */
+/* global JSGlobalObject, JSPoint, JSColor, PDFColorSpace, PDFGraphicsState, JSAffineTransform, PDFName, PDFStreamOperation */
 'use strict';
 
 (function(){
@@ -47,9 +47,9 @@ PDFGraphicsState.Properties = {
     miterLimit: 10.0,
     dashArray: [],
     dashPhase: 0,
-    renderingIntent: PDFNameObject("RelativeColorimetric"),
+    renderingIntent: PDFName("RelativeColorimetric"),
     strokeAdjustment: false,
-    blendMode: PDFNameObject("Normal"),
+    blendMode: PDFName("Normal"),
     softMask: null,
     strokeAlpha: 1.0,
     fillAlpha: 1.0,
@@ -281,32 +281,32 @@ var operationHandler = {
     },
 
     G: function(w){
-        this.state.strokeColorSpace = PDFNameObject("DeviceGray");
+        this.state.strokeColorSpace = PDFName("DeviceGray");
         this.state.strokeColorComponents = [w];
     },
 
     g: function(w){
-        this.state.fillColorSpace = PDFNameObject("DeviceGray");
+        this.state.fillColorSpace = PDFName("DeviceGray");
         this.state.fillColorComponents = [w];
     },
 
     RG: function(r, g, b){
-        this.state.strokeColorSpace = PDFNameObject("DeviceRGB");
+        this.state.strokeColorSpace = PDFName("DeviceRGB");
         this.state.strokeColorComponents = [r, g, b];
     },
 
     rg: function(r, g, b){
-        this.state.fillColorSpace = PDFNameObject("DeviceRGB");
+        this.state.fillColorSpace = PDFName("DeviceRGB");
         this.state.fillColorComponents = [r, g, b];
     },
 
     K: function(c, m, y, k){
-        this.state.fillColorSpace = PDFNameObject("DeviceCMYK");
+        this.state.fillColorSpace = PDFName("DeviceCMYK");
         this.state.fillColorComponents = [c, m, y, k];
     },
 
     k: function(c, m, y, k){
-        this.state.fillColorSpace = PDFNameObject("DeviceCMYK");
+        this.state.fillColorSpace = PDFName("DeviceCMYK");
         this.state.fillColorComponents = [c, m, y, k];
     },
 

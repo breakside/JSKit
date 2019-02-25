@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
-// #import "PDFKit/PDFNameObject.js"
-/* global JSClass, JSObject, PDFFilter, PDFNameObject */
+// #import "PDFKit/PDFName.js"
+/* global JSClass, JSObject, PDFFilter, PDFName */
 /* global PDFASCIIHexFilter, PDFASCII85Filter, PDFLZWFilter, PDFDeflateFilter, PDFRunLengthFilter, PDFCCITTFaxFilter, PDFJBIG2Filter, PDFDCTFilter, PDFJPXFilter, PDFCryptFilter */
 'use strict';
 
@@ -25,7 +25,7 @@ PDFFilter.CreateChain = function(filters, decodeParameters){
     if (!filters){
         return [];
     }
-    if (filters instanceof PDFNameObject){
+    if (filters instanceof PDFName){
         return [PDFFilter.Create(filters, decodeParameters || {})];
     }
     var chain = [];

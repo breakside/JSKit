@@ -1,6 +1,6 @@
 // #import "PDFKit/PDFKit.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, PDFWriter, PDFWriterStream, PDFWriterTestsStringStream, PDFDocumentObject, PDFPageObject, PDFPageTreeNodeObject, PDFStreamObject, PDFNameObject */
+/* global JSClass, TKTestSuite, PDFWriter, PDFWriterStream, PDFWriterTestsStringStream, PDFDocument, PDFPage, PDFPages, PDFStream, PDFName */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
@@ -57,7 +57,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         var writer = PDFWriter.initWithStream(stream);
         var isClosed = false;
 
-        var doc = PDFDocumentObject();
+        var doc = PDFDocument();
 
         writer.writeObject(doc);
         writer.close(function(){
@@ -90,9 +90,9 @@ JSClass("PDFWriterTests", TKTestSuite, {
         var writer = PDFWriter.initWithStream(stream);
         var isClosed = false;
 
-        var doc = PDFDocumentObject();
-        var pages = PDFPageTreeNodeObject();
-        var page = PDFPageObject();
+        var doc = PDFDocument();
+        var pages = PDFPages();
+        var page = PDFPage();
 
         writer.indirect(pages, page);
 
@@ -142,10 +142,10 @@ JSClass("PDFWriterTests", TKTestSuite, {
         var writer = PDFWriter.initWithStream(stream);
         var isClosed = false;
 
-        var doc = PDFDocumentObject();
-        var pages = PDFPageTreeNodeObject();
-        var page = PDFPageObject();
-        var content = PDFStreamObject();
+        var doc = PDFDocument();
+        var pages = PDFPages();
+        var page = PDFPage();
+        var content = PDFStream();
 
         writer.indirect(pages, page, content);
 
@@ -213,7 +213,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         var stream = PDFWriterTestsStringStream.init();
         var writer = PDFWriter.initWithStream(stream);
         var isClosed = false;
-        var doc = PDFDocumentObject();
+        var doc = PDFDocument();
         doc.XNumber = 0;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
@@ -225,7 +225,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         stream = PDFWriterTestsStringStream.init();
         writer = PDFWriter.initWithStream(stream);
         isClosed = false;
-        doc = PDFDocumentObject();
+        doc = PDFDocument();
         doc.XNumber = 12;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
@@ -237,7 +237,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         stream = PDFWriterTestsStringStream.init();
         writer = PDFWriter.initWithStream(stream);
         isClosed = false;
-        doc = PDFDocumentObject();
+        doc = PDFDocument();
         doc.XNumber = -12;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
@@ -249,7 +249,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         stream = PDFWriterTestsStringStream.init();
         writer = PDFWriter.initWithStream(stream);
         isClosed = false;
-        doc = PDFDocumentObject();
+        doc = PDFDocument();
         doc.XNumber = 12.34;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
@@ -261,7 +261,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         stream = PDFWriterTestsStringStream.init();
         writer = PDFWriter.initWithStream(stream);
         isClosed = false;
-        doc = PDFDocumentObject();
+        doc = PDFDocument();
         doc.XNumber = -12.34;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
@@ -273,7 +273,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         stream = PDFWriterTestsStringStream.init();
         writer = PDFWriter.initWithStream(stream);
         isClosed = false;
-        doc = PDFDocumentObject();
+        doc = PDFDocument();
         doc.XNumber = 12.345678987654;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
@@ -285,7 +285,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         stream = PDFWriterTestsStringStream.init();
         writer = PDFWriter.initWithStream(stream);
         isClosed = false;
-        doc = PDFDocumentObject();
+        doc = PDFDocument();
         doc.XNumber = 12.345678912345;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
@@ -297,7 +297,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         stream = PDFWriterTestsStringStream.init();
         writer = PDFWriter.initWithStream(stream);
         isClosed = false;
-        doc = PDFDocumentObject();
+        doc = PDFDocument();
         doc.XNumber = -12.345678987654;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
@@ -309,7 +309,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         stream = PDFWriterTestsStringStream.init();
         writer = PDFWriter.initWithStream(stream);
         isClosed = false;
-        doc = PDFDocumentObject();
+        doc = PDFDocument();
         doc.XNumber = -12.345678912345;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
@@ -321,7 +321,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         stream = PDFWriterTestsStringStream.init();
         writer = PDFWriter.initWithStream(stream);
         isClosed = false;
-        doc = PDFDocumentObject();
+        doc = PDFDocument();
         doc.XNumber = 12.000000000001234;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
@@ -333,7 +333,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         stream = PDFWriterTestsStringStream.init();
         writer = PDFWriter.initWithStream(stream);
         isClosed = false;
-        doc = PDFDocumentObject();
+        doc = PDFDocument();
         doc.XNumber = null / null;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
@@ -345,7 +345,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         stream = PDFWriterTestsStringStream.init();
         writer = PDFWriter.initWithStream(stream);
         isClosed = false;
-        doc = PDFDocumentObject();
+        doc = PDFDocument();
         doc.XNumber = 1 / 0;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });
@@ -357,7 +357,7 @@ JSClass("PDFWriterTests", TKTestSuite, {
         stream = PDFWriterTestsStringStream.init();
         writer = PDFWriter.initWithStream(stream);
         isClosed = false;
-        doc = PDFDocumentObject();
+        doc = PDFDocument();
         doc.XNumber = 1000000000000;
         writer.writeObject(doc);
         writer.close(function(){ isClosed = true; });

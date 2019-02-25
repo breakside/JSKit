@@ -1,8 +1,8 @@
 // #import "Foundation/Foundation.js"
-// #import "PDFKit/PDFNameObject.js"
+// #import "PDFKit/PDFName.js"
 // #import "PDFKit/PDFTokenizer.js"
 // #import "PDFKit/PDFStreamOperation.js"
-/* global JSClass, JSObject, JSLog, JSReadOnlyProperty, PDFReader, PDFTokenizer, PDFOperationIterator, JSData, PDFStreamOperation, PDFNameObject */
+/* global JSClass, JSObject, JSLog, JSReadOnlyProperty, PDFReader, PDFTokenizer, PDFOperationIterator, JSData, PDFStreamOperation, PDFName */
 'use strict';
 
 (function(){
@@ -289,7 +289,7 @@ JSClass('PDFOperationIterator', JSObject, {
                 }
             }
         }else{
-            if (filters instanceof PDFNameObject){
+            if (filters instanceof PDFName){
                 filters = [filters];
             }
             switch (filters[0]){

@@ -1,16 +1,16 @@
-// #import "PDFKit/PDFStreamObject.js"
-/* global JSGlobalObject, PDFStreamObject, PDFObjectProperty, PDFNameObject, PDFImageObject */
+// #import "PDFKit/PDFStream.js"
+/* global JSGlobalObject, PDFStream, PDFObjectProperty, PDFName, PDFImage */
 'use strict';
 
-JSGlobalObject.PDFImageObject = function(){
+JSGlobalObject.PDFImage = function(){
     if (this === undefined){
-        return new PDFImageObject();
+        return new PDFImage();
     }
 };
 
-JSGlobalObject.PDFImageObject.prototype = Object.create(PDFStreamObject.prototype, {
-    Type:               { enumerable: true, value: PDFNameObject("XObject") },
-    Subtype:            { enumerable: true, value: PDFNameObject("Image") },
+JSGlobalObject.PDFImage.prototype = Object.create(PDFStream.prototype, {
+    Type:               { enumerable: true, value: PDFName("XObject") },
+    Subtype:            { enumerable: true, value: PDFName("Image") },
     Width:              PDFObjectProperty,
     Height:             PDFObjectProperty,
     ColorSpace:         PDFObjectProperty,

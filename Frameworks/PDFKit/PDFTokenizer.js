@@ -1,7 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "PDFKit/PDFTypes.js"
 /* global JSClass, JSObject, JSReadOnlyProperty, PDFTokenizer, PDFReaderStream, PDFReaderDataStream, JSData */
-/* global PDFIndirectObject, PDFNameObject, PDFObject, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFStreamObject, PDFTrailerObject, PDFFontObject, PDFType1FontObject, PDFTrueTypeFontObject, PDFFontDescriptorObject, PDFImageObject, PDFXrefStreamObject, PDFObjectStreamObject */
+/* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1FontObject, PDFTrueTypeFontObject, PDFFontDescriptor, PDFImage, PDFXrefStream, PDFObjectStream */
 'use strict';
 
 (function(){
@@ -244,9 +244,9 @@ JSClass("PDFTokenizer", JSObject, {
         // Most keys are plain ascii, so iso8859-1 gives us what we want even for printing.
         // Certain names are required to be encoded in utf8.  If we encounter one of those names,
         // code can call use the `.valueDecodingUTF8()` function instead of the `.value`
-        // property on the `PDFNameObject` instance, which will reinterpret the bytes as utf8.
+        // property on the `PDFName` instance, which will reinterpret the bytes as utf8.
         var value = bytes.stringByDecodingLatin1();
-        return PDFNameObject(value);
+        return PDFName(value);
     },
 
     _finishReadingString: function(){
@@ -642,20 +642,20 @@ var PDFObjectClassesBySubtype = {};
 
 var PDFObjectClassForDictionary = function(dict){
     var type = dict.Type;
-    if (type instanceof PDFNameObject){
+    if (type instanceof PDFName){
         if (type in PDFObjectClassesByType){
             return PDFObjectClassesByType[type];
         }
         if (type in PDFObjectClassesBySubtype){
             var subtype = dict.Subtype;
-            if (subtype instanceof PDFNameObject){
+            if (subtype instanceof PDFName){
                 if (subtype in PDFObjectClassesBySubtype[type]){
                     return PDFObjectClassesBySubtype[type][subtype];
                 }
             }
         }
     }
-    // We want stream objects to be instantiated as PDFStreamObject instances,
+    // We want stream objects to be instantiated as PDFStream instances,
     // which have special properties for accessing the stream data.
     //
     // Unfortunately, plain streams don't have a Type field that allows them to be easily
@@ -667,7 +667,7 @@ var PDFObjectClassForDictionary = function(dict){
     //   to know if it's reading a stream or not.  For exmample, after reading a dictionary,
     //   PDFReader already checks for the `stream` keyword.  However, we've already
     //   parsed the dictionary and assigned a type by then.  The objet would have to
-    //   be re-instantiated as a PDFStreamObject, which is tricky becasue of the lazy
+    //   be re-instantiated as a PDFStream, which is tricky becasue of the lazy
     //   reader properties for indirect objects.
     //
     // - Objects themeselves could hold information about the expected type of their properties,
@@ -675,30 +675,30 @@ var PDFObjectClassForDictionary = function(dict){
     //   For example, Page.Contents can be a stream or an array of streams.  This complicates
     //   specifiying types for each property because the type isn't known until the property is read.
     if ('Length' in dict){
-        return PDFStreamObject;
+        return PDFStream;
     }
 
     // Similarly, Resources don't have a specified type, but can be identified by its properties
     if (('ExtGState' in dict) || ('ColorSpace' in dict) || ('Pattern' in dict) || ('Shading' in dict) || ('XObject' in dict) || ('Font' in dict) || ('ProcSet' in dict) || ('Properties' in dict)){
-        return PDFResourcesObject;
+        return PDFResources;
     }
     return PDFObject;
 };
 
 
 var types = [
-    PDFDocumentObject,
-    PDFPageTreeNodeObject,
-    PDFPageObject,
-    PDFGraphicsStateParametersObject,
-    PDFXrefStreamObject,
-    PDFObjectStreamObject
+    PDFDocument,
+    PDFPages,
+    PDFPage,
+    PDFGraphicsStateParameters,
+    PDFXrefStream,
+    PDFObjectStream
 ];
 var typesWithSubtypes = [
     PDFType1FontObject,
     PDFTrueTypeFontObject,
-    PDFFontDescriptorObject,
-    PDFImageObject,
+    PDFFontDescriptor,
+    PDFImage,
 ];
 var i, l;
 for (i = 0, l = types.length; i < l; ++i){
