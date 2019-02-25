@@ -30,9 +30,9 @@ JSClass("TKTestSuite", JSObject, {
         expectation.setTimeout(timeout);
     },
 
-    getResourceData: function(resourceName, completion, target){
+    getResourceData: function(resourceName, ext, completion, target){
         var bundle = JSBundle.mainBundle;
-        var metadata = bundle.metadataForResourceName(resourceName);
+        var metadata = bundle.metadataForResourceName(resourceName, ext);
         bundle.getResourceData(metadata, completion, target);
     }
 

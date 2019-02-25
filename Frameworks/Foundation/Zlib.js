@@ -255,7 +255,7 @@ var ZlibBuffer = function(bytes, length){
     this.bitOffset = 0;
 };
 
-ZlibBuffer.prototype = {
+ZlibBuffer.prototype = Object.create({}, {
     doubleCapacity: {
         value: function ZlibBuffer_doubleCapacity(){
             var copy = new Uint8Array(this.bytes.length * 2);
@@ -265,6 +265,6 @@ ZlibBuffer.prototype = {
             this.bytes = new Uint8Array(copy.buffer, 0, copy.length);
         }
     }
-};
+});
 
 })();

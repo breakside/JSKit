@@ -57,7 +57,11 @@ class Bundle(object):
         for name in names:
             if name not in self.resourceLookup[localization]:
                 self.resourceLookup[localization][name] = []
-            self.resourceLookup[localization][name].append(resourceIndex)
+            if ext != '':
+                self.resourceLookup[localization][name].append(resourceIndex)
+            else:
+                # If we don't hanve an ext, always insert at the front of the hit list
+                self.resourceLookup[localization][name].insert(0, resourceIndex)
         return resourceIndex
 
     def jsonObject(self):

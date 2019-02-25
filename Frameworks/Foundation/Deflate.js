@@ -332,6 +332,7 @@ DeflateBuffer.prototype = Object.create({}, {
             this.bytes[(this.offset + this.length) % this.bytes.length] = byte;
             ++this.length;
             if (this.length > this.bytes.length){
+                this.length = this.bytes.length;
                 this.offset++;
                 if (this.offset === this.bytes.length){
                     this.offset = 0;

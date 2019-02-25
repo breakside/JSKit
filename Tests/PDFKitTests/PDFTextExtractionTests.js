@@ -9,7 +9,7 @@ JSClass("PDFTextExtractionTests", TKTestSuite, {
 
     testBasic: function(){
         var expectation = TKExpectation.init();
-        expectation.call(this.getResourceData, this, "test.pdf", function(data){
+        expectation.call(this.getResourceData, this, "test", "pdf", function(data){
             TKAssertNotNull(data);
             var reader = PDFReader.initWithData(data);
             expectation.call(reader.open, reader, function(status, document){
