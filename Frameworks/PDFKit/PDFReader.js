@@ -38,7 +38,12 @@ JSClass("PDFReader", JSObject, {
         var encrypt = this._trailer.Encrypt;
         if (!encrypt){
             this._readObjectStreams(function(){
-                completion.call(target, PDFReader.Status.open, this._trailer.Root);
+                var document = this._trailer.Root;
+                if (document && (document instanceof PDFDocument)){
+                    completion.call(target, PDFReader.Status.open, document);
+                }else{
+                    completion.call(target, PDFReader.Status.error, null);
+                }
             }, this);
             return;
         }
@@ -68,7 +73,12 @@ JSClass("PDFReader", JSObject, {
         this._encryption.authenticateUser(userPassword, function PDFReader_authenticate_result(success){
             if (success){
                 this._readObjectStreams(function(){
-                    completion.call(target, PDFReader.Status.open, this._trailer.Root);
+                    var document = this._trailer.Root;
+                    if (document && (document instanceof PDFDocument)){
+                        completion.call(target, PDFReader.Status.open, this._trailer.Root);
+                    }else{
+                        completion.call(target, PDFReader.Status.error, null);
+                    }
                 }, this);
                 return;
             }
@@ -181,9 +191,11 @@ JSClass("PDFReader", JSObject, {
 
     _readCrossReferenceEntries: function(offset){
         var maxSections = 1024;
-        var sectionCount = 0;
         var trailer;
-        while (offset !== null && sectionCount < maxSections){
+        var offsets = [offset];
+        var i = 0;
+        while (i < offsets.length && offsets.length < maxSections){
+            offset = offsets[i++];
             this._tokenizer.stream.seek(offset);
             var token = this._tokenizer.readToken(Token.xref, Token.integer);
             if (token == Token.integer){
@@ -192,16 +204,20 @@ JSClass("PDFReader", JSObject, {
                 trailer = this._readCrossReferenceTable();
             }
             if ('XRefStrm' in trailer){
-                offset = trailer.XRefStrm;
+                if (trailer.XRefStrm !== null){
+                    offsets.push(trailer.XRefStrm);
+                }
             }else if ('Prev' in trailer){
-                offset = trailer.Prev;
-            }else{
-                offset = null;
+                if (trailer.Prev !== null){
+                    offsets.push(trailer.Prev);
+                }
             }
             if (this._trailer === null){
                 this._trailer = trailer;
             }
-            ++sectionCount;
+        }
+        if (i < offsets.length){
+            throw new Error("Too many cross reference sections");
         }
         if (this._crossReferenceTable.length > this._trailer.Size){
             this._crossReferenceTable.splice(this._trailer.Size);
@@ -296,13 +312,11 @@ JSClass("PDFReader", JSObject, {
         // Still need to unfilter, though
         data = this._decodeStreamData(xref, offset, data);
 
-        // TODO: decode data
         var subsections = xref.Index;
         if (!subsections){
-            subsections = [[0, xref.Size]];
+            subsections = [0, xref.Size];
         }
 
-        var subsection;
         var objectID;
         var count;
         var field1Size = xref.W[0];
@@ -311,10 +325,9 @@ JSClass("PDFReader", JSObject, {
         var field1, field2, field3;
         var entry;
         offset = 0;
-        for (var i = 0, l = subsections.length; i < l; ++i){
-            subsection = subsections[i];
-            objectID = subsection[0];
-            count = subsection[1];
+        for (var i = 0, l = subsections.length; i < l; i += 2){
+            objectID = subsections[i];
+            count = subsections[i + 1];
             for (var j = 0; j < count; ++j, ++objectID){
                 if (field1Size === 0){
                     field1 = 1;

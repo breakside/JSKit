@@ -4,7 +4,7 @@
 // #import "PDFKit/PDFStreamOperation.js"
 // #import "PDFKit/PDFGraphicsState.js"
 // #import "PDFKit/PDFColorSpace.js"
-/* global JSGlobalObject, JSData, JSPoint, JSSize, JSRect, JSColor, JSAffineTransform, JSContext, PDFObject, PDFColorSpace, PDFObjectProperty, PDFPage, PDFName, PDFResources, PDFStream, PDFStreamOperation, PDFGraphicsState, PDFOperationIterator */
+/* global JSGlobalObject, JSClass, JSObject, JSData, JSPoint, JSSize, JSRect, JSColor, JSAffineTransform, JSContext, PDFObject, PDFColorSpace, PDFObjectProperty, PDFPage, PDFName, PDFResources, PDFStream, PDFStreamOperation, PDFGraphicsState, PDFOperationIterator, PDFPageDrawing */
 'use strict';
 
 (function(){
@@ -265,69 +265,80 @@ JSGlobalObject.PDFPage.prototype = Object.create(PDFObject.prototype, {
         }
     },
 
-    drawInContext: {
-        value: function(context, rect, completion, target){
-            var resources = this.effectiveResources;
-            // TODO: annotations
-
-            // Scale to given rect (flipping coordinates in the process)
-            context.save();
-            var bounds = this.bounds;
-            context.translateBy(rect.origin.x, rect.origin.y + rect.size.height);
-            var sx = rect.size.width / bounds.size.width;
-            var sy = rect.size.height / bounds.size.height;
-            context.scaleBy(sx, -sy);
-            context.translateBy(-bounds.origin.x, -bounds.origin.y);
-
-            // Clip to bounds
-            context.addRect(bounds);
-            context.clip();
-            context.beginPath();
-            context.save();
-
-            // Make page background white
-            context.save();
-            context.setFillColor(JSColor.whiteColor);
-            context.fillRect(bounds);
-            context.restore();
-
-            var handleOperationIterator = function PDFPage_drawInContext_handleOperationIterator(iterator){
-                if (iterator === null){
-                    finish();
-                    return;
-                }
-                var handler;
-                var stack = PDFGraphicsState.stack();
-                stack.resources = resources;
-                var obj = {
-                    context: context,
-                    stack: stack,
-                    resources: resources
-                };
-                var operation = iterator.next();
-                while (operation !== null){
-                    handler = contextOperationHandler[operation.operator];
-                    if (handler){
-                        handler.apply(obj, operation.operands);
-                    }
-                    stack.handleOperation(operation);
-                    operation = iterator.next();
-                }
-                finish();
-            };
-
-            var finish = function PDFPage_drawInContext_cleanup(){
-                context.restore();
-                context.restore();
-                resources.unload();
-                completion.call(target);
-            };
-
-            resources.load(function PDFPage_drawInContext_loadResources(){
-                this.getOperationIterator(handleOperationIterator, this);
+    prepareDrawing: {
+        value: function(completion, target){
+            var drawing = PDFPageDrawing.init();
+            drawing.page = this;
+            drawing.resources = this.effectiveResources;
+            drawing.resources.load(function PDFPage_prepareForDrawing_handleResources(){
+                this.getOperationIterator(function PDFPage_prepareForDrawing_handleIterator(iterator){
+                    drawing.operationIterator = iterator;
+                    completion.call(target, drawing);
+                }, this);
             }, this);
+
+            // TODO: annotations
         }
     }
+});
+
+JSClass("PDFPageDrawing", JSObject, {
+
+    page: null,
+    resources: null,
+    operationIterator: null,
+
+    drawInContext: function(context, rect){
+        // Scale to given rect (flipping coordinates in the process)
+        context.save();
+        var bounds = this.page.bounds;
+        context.translateBy(rect.origin.x, rect.origin.y + rect.size.height);
+        var sx = rect.size.width / bounds.size.width;
+        var sy = rect.size.height / bounds.size.height;
+        context.scaleBy(sx, -sy);
+        context.translateBy(-bounds.origin.x, -bounds.origin.y);
+
+        // Clip to bounds
+        context.addRect(bounds);
+        context.clip();
+        context.beginPath();
+        context.save();
+
+        // Make page background white
+        context.save();
+        context.setFillColor(JSColor.whiteColor);
+        context.fillRect(bounds);
+        context.restore();
+
+        if (this.operationIterator !== null){
+            var handler;
+            var stack = PDFGraphicsState.stack();
+            stack.resources = this.resources;
+            var obj = {
+                context: context,
+                stack: stack,
+                resources: this.resources
+            };
+            var operation = this.operationIterator.next();
+            while (operation !== null){
+                handler = contextOperationHandler[operation.operator];
+                if (handler){
+                    handler.apply(obj, operation.operands);
+                }
+                stack.handleOperation(operation);
+                operation = this.operationIterator.next();
+            }
+            this.operationIterator.reset();
+        }
+
+        context.restore();
+        context.restore();
+    },
+
+    finish: function(){
+        this.resources.unload();
+    }
+
 });
 
 JSContext.definePropertiesFromExtensions({

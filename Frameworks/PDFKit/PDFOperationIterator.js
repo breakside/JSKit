@@ -20,6 +20,10 @@ JSClass('PDFOperationIterator', JSObject, {
         this.queue = [];
     },
 
+    reset: function(){
+        this.tokenizer.stream.seek(0);
+    },
+
     next: function(){
         var operands = [];
         var compatibilityLevel = 0;
