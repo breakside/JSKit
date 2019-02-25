@@ -177,11 +177,11 @@ JSClass("PDFEncryption", JSObject, {
             var firstParams = null;
             if (filters instanceof PDFNameObject){
                 firstFilter = filters;
-                firstParams = stream.DecodeParams;
+                firstParams = stream.DecodeParms;
             }else if (filters){
                 firstFilter = filters[0];
-                if (stream.DecodeParams){
-                    firstParams = stream.DecodeParams[0];
+                if (stream.DecodeParms){
+                    firstParams = stream.DecodeParms[0];
                 }
             }
             var filterDictionary = null;

@@ -6,7 +6,7 @@
 // #import "PDFKit/PDFReaderStream.js"
 // #import "PDFKit/PDFStreamOperation.js"
 /* global JSClass, JSObject, JSLog, JSReadOnlyProperty, PDFReader, PDFTokenizer, PDFReaderStream, PDFReaderDataStream, PDFStreamOperationIterator, JSData, PDFFilter, PDFEncryption, PDFStreamOperation */
-/* global PDFIndirectObject, PDFNameObject, PDFObject, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFStreamObject, PDFTrailerObject, PDFFontObject, PDFType1FontObject, PDFTrueTypeFontObject, PDFImageObject */
+/* global PDFIndirectObject, PDFNameObject, PDFObject, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFStreamObject, PDFTrailerObject, PDFFontObject, PDFType1FontObject, PDFTrueTypeFontObject, PDFImageObject, PDFXrefStreamObject */
 'use strict';
 
 (function(){
@@ -34,10 +34,12 @@ JSClass("PDFReader", JSObject, {
         this._crossReferenceTable = [];
         this._readVersion();
         var offset = this._readEndOfFile();
-        this._readCrossReferenceTable(offset);
+        this._readCrossReferenceEntries(offset);
         var encrypt = this._trailer.Encrypt;
         if (!encrypt){
-            completion.call(target, PDFReader.Status.open, this._trailer.Root);
+            this._readObjectStreams(function(){
+                completion.call(target, PDFReader.Status.open, this._trailer.Root);
+            }, this);
             return;
         }
         var ids = this._trailer.ID;
@@ -65,7 +67,9 @@ JSClass("PDFReader", JSObject, {
     authenticate: function(userPassword, completion, target){
         this._encryption.authenticateUser(userPassword, function PDFReader_authenticate_result(success){
             if (success){
-                completion.call(target, PDFReader.Status.open, this._trailer.Root);
+                this._readObjectStreams(function(){
+                    completion.call(target, PDFReader.Status.open, this._trailer.Root);
+                }, this);
                 return;
             }
             completion.call(target, PDFReader.Status.passwordRequired, null);
@@ -175,71 +179,25 @@ JSClass("PDFReader", JSObject, {
         return crossReferenceTableOffset;
     },
 
-    _readCrossReferenceTable: function(offset){
+    _readCrossReferenceEntries: function(offset){
         var maxSections = 1024;
         var sectionCount = 0;
+        var trailer;
         while (offset !== null && sectionCount < maxSections){
             this._tokenizer.stream.seek(offset);
             var token = this._tokenizer.readToken(Token.xref, Token.integer);
-            var objectID;
-            var generation;
             if (token == Token.integer){
-                objectID = token.pdfObject;
-                token = this._tokenizer.readToken(Token.integer);
-                generation = token.pdfObject;
-                token = this._tokenizer.readToken(Token.obj);
-                logger.warn("Cross reference stream not supported");
-                return;
+                trailer = this._readCrossReferenceStream();
+            }else{
+                trailer = this._readCrossReferenceTable();
             }
-            token = this._tokenizer.readMeaningfulToken(Token.integer);
-            var count;
-            var objectOffset;
-            var status;
-            while (token == Token.integer){
-                objectID = token.pdfObject;
-                token = this._tokenizer.readToken(Token.integer);
-                count = token.pdfObject;
-                token = this._tokenizer.readToken(Token.commentStart, Token.endOfLine);
-                if (token == Token.commentStart){
-                    this._tokenizer.finishReadingComment();
-                }
-                for (var i = 0; i < count; ++i, ++objectID){
-                    offset = this._tokenizer.stream.offset;
-                    var entryLine = String.initWithData(this._tokenizer.stream.read(20), String.Encoding.utf8);
-                    if (entryLine.length != 20){
-                        throw new Error("Not enough space for cross reference line @ 0x%08X".sprintf(offset));
-                    }
-                    // Spec says lines should end with \r\n
-                    // reality seems to be any two whitespace bytes
-                    if (!PDFTokenizer.Whitespace.isWhitespace(entryLine.charCodeAt(18)) || !PDFTokenizer.Whitespace.isWhitespace(entryLine.charCodeAt(19))){
-                        throw new Error("Invalid cross reference entry, missing CRLF @ 0x%08X".sprintf(offset + 18));
-                    }
-                    if (entryLine.charAt(10) != " " || entryLine.charAt(16) != " "){
-                        throw new Error("Invalid cross reference entry, missing spaces @ 0x%08X".sprintf(offset));
-                    }
-                    status = entryLine.charAt(17);
-                    if (status != CrossReferenceTableEntry.Status.free && status != CrossReferenceTableEntry.Status.used){
-                        throw new Error("Invalid cross reference entry, invalid status @ 0x%08X".sprintf(offset + 17));
-                    }
-                    for (var j = 0; j < 16; ++j){
-                        if (j == 10){
-                            continue;
-                        }
-                        if (!PDFTokenizer.Numeric.isDigit(entryLine.charCodeAt(j))){
-                            throw new Error("Invalid cross reference entry, invalid integer @ 0x%08X".sprintf(offset + j)); 
-                        }
-                    }
-                    objectOffset = parseInt(entryLine.substr(0, 10));
-                    generation = parseInt(entryLine.substr(11, 5));
-                    if (this._crossReferenceTable[objectID] === undefined){
-                        this._crossReferenceTable[objectID] = CrossReferenceTableEntry(objectOffset, generation, status);
-                    }
-                }
-                token = this._tokenizer.readMeaningfulToken(Token.integer, Token.trailer);
+            if ('XRefStrm' in trailer){
+                offset = trailer.XRefStrm;
+            }else if ('Prev' in trailer){
+                offset = trailer.Prev;
+            }else{
+                offset = null;
             }
-            token = this._tokenizer.readMeaningfulToken(Token.dictionaryStart);
-            var trailer = this._tokenizer.finishReadingDictionary(PDFTrailerObject);
-            offset = trailer.Prev;
             if (this._trailer === null){
                 this._trailer = trailer;
             }
@@ -250,8 +208,189 @@ JSClass("PDFReader", JSObject, {
         }
     },
 
-    _readCrossReferenceStream: function(indirect){
-        // TODO:
+    _readCrossReferenceTable: function(){
+        var token = this._tokenizer.readMeaningfulToken(Token.integer);
+        var count;
+        var objectOffset;
+        var status;
+        var objectID;
+        var generation;
+        var offset;
+        while (token == Token.integer){
+            objectID = token.pdfObject;
+            token = this._tokenizer.readToken(Token.integer);
+            count = token.pdfObject;
+            token = this._tokenizer.readToken(Token.commentStart, Token.endOfLine);
+            if (token == Token.commentStart){
+                this._tokenizer.finishReadingComment();
+            }
+            for (var i = 0; i < count; ++i, ++objectID){
+                offset = this._tokenizer.stream.offset;
+                var entryLine = String.initWithData(this._tokenizer.stream.read(20), String.Encoding.utf8);
+                if (entryLine.length != 20){
+                    throw new Error("Not enough space for cross reference line @ 0x%08X".sprintf(offset));
+                }
+                // Spec says lines should end with \r\n
+                // reality seems to be any two whitespace bytes
+                if (!PDFTokenizer.Whitespace.isWhitespace(entryLine.charCodeAt(18)) || !PDFTokenizer.Whitespace.isWhitespace(entryLine.charCodeAt(19))){
+                    throw new Error("Invalid cross reference entry, missing CRLF @ 0x%08X".sprintf(offset + 18));
+                }
+                if (entryLine.charAt(10) != " " || entryLine.charAt(16) != " "){
+                    throw new Error("Invalid cross reference entry, missing spaces @ 0x%08X".sprintf(offset));
+                }
+                status = entryLine.charAt(17);
+                if (status != CrossReferenceTableEntry.Status.free && status != CrossReferenceTableEntry.Status.used){
+                    throw new Error("Invalid cross reference entry, invalid status @ 0x%08X".sprintf(offset + 17));
+                }
+                for (var j = 0; j < 16; ++j){
+                    if (j == 10){
+                        continue;
+                    }
+                    if (!PDFTokenizer.Numeric.isDigit(entryLine.charCodeAt(j))){
+                        throw new Error("Invalid cross reference entry, invalid integer @ 0x%08X".sprintf(offset + j)); 
+                    }
+                }
+                objectOffset = parseInt(entryLine.substr(0, 10));
+                generation = parseInt(entryLine.substr(11, 5));
+                if (this._crossReferenceTable[objectID] === undefined){
+                    this._crossReferenceTable[objectID] = CrossReferenceTableEntry(objectOffset, generation, status);
+                }
+            }
+            token = this._tokenizer.readMeaningfulToken(Token.integer, Token.trailer);
+        }
+        token = this._tokenizer.readMeaningfulToken(Token.dictionaryStart);
+        var trailer = this._tokenizer.finishReadingDictionary(PDFTrailerObject);
+        return trailer;
+    },
+
+    _objectStreamsById: null,
+
+    _readCrossReferenceStream: function(){
+        if (this._objectStreamsById === null){
+            this._objectStreamsById = {};
+        }
+        // generation number - we don't care about it
+        var token = this._tokenizer.readToken(Token.integer);
+        token = this._tokenizer.readToken(Token.obj);
+        this._tokenizer.readMeaningfulToken(Token.dictionaryStart);
+        var xref = this._tokenizer.finishReadingDictionary(PDFXrefStreamObject);
+        this._tokenizer.readMeaningfulToken(Token.stream);
+        this._tokenizer.readToken(Token.endOfLine);
+        var offset = this._tokenizer.stream.offset;
+        this._defineStreamProperty(xref, offset);
+
+        if (xref.F){
+            logger.warn("xref stream external file references not supportd");
+            return;
+        }
+
+        // Reading stream data without encryption (we can't use _getStreamData
+        // because it will try to decrypt the data)
+        var length = xref.Length;
+        var data = this._tokenizer.stream.read(length);
+        if (data.length != length){
+            logger.warn("Not enough data for xref stream length");
+            return null;
+        }
+
+        // Still need to unfilter, though
+        data = this._decodeStreamData(xref, offset, data);
+
+        // TODO: decode data
+        var subsections = xref.Index;
+        if (!subsections){
+            subsections = [[0, xref.Size]];
+        }
+
+        var subsection;
+        var objectID;
+        var count;
+        var field1Size = xref.W[0];
+        var field2Size = xref.W[1];
+        var field3Size = xref.W[2];
+        var field1, field2, field3;
+        var entry;
+        offset = 0;
+        for (var i = 0, l = subsections.length; i < l; ++i){
+            subsection = subsections[i];
+            objectID = subsection[0];
+            count = subsection[1];
+            for (var j = 0; j < count; ++j, ++objectID){
+                if (field1Size === 0){
+                    field1 = 1;
+                }else{
+                    field1 = integerFromBytes(data.bytes, offset, field1Size);
+                    offset += field1Size;
+                }
+                if (field2Size === 0){
+                    field2 = 0;
+                }else{
+                    field2 = integerFromBytes(data.bytes, offset, field2Size);
+                    offset += field2Size;
+                }
+                if (field3Size === 0){
+                    field3 = 0;
+                }else{
+                    field3 = integerFromBytes(data.bytes, offset, field3Size);
+                    offset += field3Size;
+                }
+                switch (field1){
+                    case 0:
+                        entry = CrossReferenceTableEntry(field2, field3, CrossReferenceTableEntry.Status.free);
+                        break;
+                    case 1:
+                        entry = CrossReferenceTableEntry(field2, field3, CrossReferenceTableEntry.Status.used);
+                        break;
+                    case 2:
+                        entry = ObjectStreamEntry(field2, field3);
+                        this._objectStreamsById[field2] = null;
+                        break;
+                    default:
+                        // logger.warn("Invalid cross reference stream entry type (%d) for object %d", field1, objectID);
+                        entry = null;
+                        break;
+                }
+                if (entry !== null && this._crossReferenceTable[objectID] === undefined){
+                    this._crossReferenceTable[objectID] = entry;
+                }
+            }
+        }
+    
+        return xref;
+    },
+
+    _readObjectStreams: function(completion, target){
+        if (this._objectStreamsById === null){
+            completion.call(target);
+            return;
+        }
+        var indirect;
+        var streams = [];
+        for (var objectID in this._objectStreamsById){
+            indirect = PDFIndirectObject(objectID, 0);
+            this._objectStreamsById[objectID] = this._getObject(indirect);
+            streams.push(this._objectStreamsById[objectID]);
+        }
+
+        if (streams.length === 0){
+            completion.call(target);
+            return;
+        }
+
+        var streamIndex = 0;
+        var handleStreamData = function(data){
+            var stream = streams[streamIndex];
+            stream.tokenizer = PDFTokenizer.initWithData(data);
+            stream.tokenizer.allowsIndirectObjects = true;
+            stream.tokenizer.delegate = this;
+            ++streamIndex;
+            if (streamIndex < streams.length){
+                streams[streamIndex].getData(handleStreamData, this);
+            }else{
+                completion.call(target);
+            }
+        };
+        streams[streamIndex].getData(handleStreamData, this);
     },
 
     // MARK: - Indirect objects
@@ -262,34 +401,45 @@ JSClass("PDFReader", JSObject, {
         var levels = 0;
         var offset;
         var token;
-        var tmp;
+        var prev;
         var entry;
+        var tokenizer;
         while (levels < maxLevels && (object instanceof PDFIndirectObject)){
+            prev = object;
             entry = this._crossReferenceTable[object.objectID];
-            if (!entry || entry.generation != object.generation || entry.status != CrossReferenceTableEntry.Status.used){
-                logger.info("Requesting indirect object that doesn't exist as used in cross reference table");
+            if (!entry){
+                logger.info("Requesting indirect object %d %d that doesn't exist as used in cross reference table", indirect.objectID, indirect.generation);
                 return null;
             }
-            offset = entry.offset;
-            this._tokenizer.stream.seek(offset);
-            token = this._tokenizer.readToken(Token.integer);
-            if (token.pdfObject != object.objectID){
-                throw new Error("Incorrect object id for %d %d R @ 0x%08X".sprintf(object.objectID, object.generation, offset));
+            if (entry instanceof ObjectStreamEntry){
+                var objectStream = this._objectStreamsById[entry.streamObjectID];
+                object = objectStream.object(entry.objectIndex);
+            }else{
+                if (entry.generation != object.generation || entry.status != CrossReferenceTableEntry.Status.used){
+                    logger.info("Requesting indirect object %d %d that doesn't exist as used in cross reference table", indirect.objectID, indirect.generation);
+                    return null;
+                }
+                tokenizer = this._tokenizer;
+                offset = entry.offset;
+                tokenizer.stream.seek(offset);
+                token = tokenizer.readToken(Token.integer);
+                if (token.pdfObject != object.objectID){
+                    throw new Error("Incorrect object id for %d %d R @ 0x%08X".sprintf(object.objectID, object.generation, offset));
+                }
+                token = tokenizer.readToken(Token.integer);
+                if (token.pdfObject != object.generation){
+                    throw new Error("Incorrect generation for %d %d R @ 0x%08X".sprintf(object.objectID, object.generation, offset));
+                }
+                token = tokenizer.readToken(Token.obj);
+                object = tokenizer.readObject();
+                token = tokenizer.readMeaningfulToken(Token.endobj, Token.stream);
+                if (token == Token.stream){
+                    tokenizer.readToken(Token.endOfLine);
+                    this._defineStreamProperty(object, tokenizer.stream.offset);
+                }
             }
-            token = this._tokenizer.readToken(Token.integer);
-            if (token.pdfObject != object.generation){
-                throw new Error("Incorrect generation for %d %d R @ 0x%08X".sprintf(object.objectID, object.generation, offset));
-            }
-            token = this._tokenizer.readToken(Token.obj);
-            tmp = object;
-            object = this._tokenizer.readObject();
             if (object instanceof PDFObject){
-                object.indirect = tmp;
-            }
-            token = this._tokenizer.readMeaningfulToken(Token.endobj, Token.stream);
-            if (token == Token.stream){
-                this._tokenizer.readToken(Token.endOfLine);
-                this._defineStreamProperty(object, this._tokenizer.stream.offset);
+                object.indirect = prev;
             }
             ++levels;
         }
@@ -330,15 +480,7 @@ JSClass("PDFReader", JSObject, {
         }
 
         var decode = function PDFReader_getStreamData_decode(data){
-            var filters = PDFFilter.CreateChain(stream.Filter, stream.DecodeParams);
-            for (var i = 0, l = filters.length; data !== null && i < l; ++i){
-                try{
-                    data = filters[i].decode(data);
-                }catch (e){
-                    logger.warn("Stream decode failed @ 0x%08X: %{public}", offset, e);
-                    data = null;
-                }
-            }
+            data = this._decodeStreamData(stream, offset, data);
             completion.call(target, data);
         };
 
@@ -347,6 +489,19 @@ JSClass("PDFReader", JSObject, {
         }else{
             decode.call(this, data);
         }
+    },
+
+    _decodeStreamData: function(stream, offset, data){
+        var filters = PDFFilter.CreateChain(stream.Filter, stream.DecodeParms);
+        for (var i = 0, l = filters.length; data !== null && i < l; ++i){
+            try{
+                data = filters[i].decode(data);
+            }catch (e){
+                logger.warn("Stream decode failed @ 0x%08X: %{public}", offset, e);
+                data = null;
+            }
+        }
+        return data;
     },
 
     _defineStreamProperty: function(stream, offset){
@@ -386,6 +541,26 @@ CrossReferenceTableEntry.Status = {
     used: 'n'
 };
 
+var ObjectStreamEntry = function(streamObjectID, objectIndex){
+    if (this === undefined){
+        return new ObjectStreamEntry(streamObjectID, objectIndex);
+    }  
+    this.streamObjectID = streamObjectID;
+    this.objectIndex = objectIndex;
+};
+
 var Token = PDFTokenizer.Token;
+
+var integerFromBytes = function(bytes, offset, size){
+    var n = 0;
+    var b;
+    var s = 8 * (size - 1);
+    for (var i = 0; i < size; ++i){
+        b = bytes[offset + i];
+        n |= (b << s);
+        s -= 8;
+    }
+    return n;
+};
 
 })();

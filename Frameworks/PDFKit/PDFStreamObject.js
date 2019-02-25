@@ -12,10 +12,10 @@ JSGlobalObject.PDFStreamObject = function(){
 JSGlobalObject.PDFStreamObject.prototype = Object.create(PDFObject.prototype, {
     Length:         PDFObjectProperty,
     Filter:         PDFObjectProperty,
-    DecodeParams:   PDFObjectProperty,
+    DecodeParms:    PDFObjectProperty,
     F:              PDFObjectProperty,
     FFilter:        PDFObjectProperty,
-    FDecodeParams:  PDFObjectProperty,
+    FDecodeParms:   PDFObjectProperty,
     DL:             PDFObjectProperty,
 
     // PDFReader will redefine this property so it reads data from the pdf file

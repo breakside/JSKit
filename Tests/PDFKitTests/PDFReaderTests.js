@@ -157,6 +157,54 @@ JSClass("PDFReaderTests", TKTestSuite, {
         this.wait(expectation, 2);
     },
 
+    testCrossReferenceStream: function(){
+        var data = [
+            "%PDF-1.7",
+            "1 0 obj",
+            "<< /Pages 3 0 R /Type /Catalog >>",
+            "endobj",
+            "2 0 obj",
+            "<< /Type /ObjStm /N 2 /First 9 /Length 84 >>",
+            "stream",
+            "3 0 4 44",
+            "<< /Kids [ 4 0 R ] /Count 1 /Type /Pages >>",
+            "<< /Parent 3 0 R /Type /Page >>",
+            "endstream",
+            "enobj",
+            "5 0 obj",
+            "<< /Type /Xref /Filter /ASCIIHexDecode /Length 67 /Root 1 0 R /Size 6 /W [1 2 1] >>",
+            "stream",
+            "00 FFFF FF",
+            "01 0009 00",
+            "01 003a 00",
+            "02 0002 00",
+            "02 0002 01",
+            "01 00Db 00>",
+            "endstream",
+            "endobj",
+            "startxref",
+            "219",
+            "%%EOF"
+        ].join("\n").utf8();
+
+        var reader = PDFReader.initWithData(data);
+        var expectation = TKExpectation.init();
+        expectation.call(reader.open, reader, function(status, document){
+            TKAssertExactEquals(status, PDFReader.Status.open);
+            TKAssertNotNull(document);
+            TKAssert(document instanceof PDFDocumentObject);
+            TKAssert(document.Pages instanceof PDFPageTreeNodeObject);
+            TKAssertEquals(document.pageCount, 1);
+            TKAssertNull(document.Pages.Parent);
+            TKAssertEquals(document.Pages.Count, 1);
+            TKAssertEquals(document.Pages.Kids.length, 1);
+            var page = document.Pages.Kids[0];
+            TKAssert(page instanceof PDFPageObject);
+            TKAssertNull(page.Contents);
+        });
+        this.wait(expectation, 2);
+    },
+
     testPageBounds: function(){
         var data = this._pdfForObjects([
             "<< /Pages 2 0 R /Type /Catalog >>",

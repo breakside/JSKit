@@ -51,6 +51,9 @@ JSGlobalObject.PDFDocumentObject.prototype = Object.create(PDFObject.prototype, 
 
     page: {
         value: function PDFDocumentObject_getPage(index){
+            if (this.Pages === null){
+                return null;
+            }
             return this.Pages.page(index);
         }
     }

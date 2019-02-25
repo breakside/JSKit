@@ -1,6 +1,6 @@
 // #import "PDFKit/PDFKit.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, PDFDeflateFilter */
+/* global JSClass, TKTestSuite, PDFDeflateFilter, TKExpectation */
 /* global PDFNameObject, PDFObject, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFStreamObject, PDFTrailerObject, PDFFontObject, PDFType1FontObject, PDFTrueTypeFontObject, PDFImageObject */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
@@ -20,5 +20,48 @@ JSClass("PDFDeflateFilterTests", TKTestSuite, {
         'Tj ET Q Q'
         ].join('\n').latin1();
         TKAssertObjectEquals(decoded, expected);
+    },
+
+    testPredictor10: function(){
+        var compressed = "eJxjSExKTklNY0jPyMzKzmHIzcsvKCxiKC4pLSuvAACJUgot".dataByDecodingBase64();
+        var expected = "abcdefghijklmnopqrstuvwx".latin1();
+        var params = {
+            Columns: 6,
+            Predictor: 10
+        };
+        var filter = PDFDeflateFilter.initWithParametersDictionary(params);
+        var uncompressed = filter.decode(compressed);
+        TKAssertObjectEquals(uncompressed, expected);
+    },
+
+    testPredictor11: function(){
+        var compressed = "eJxjTGQEgyQGEGBMZmBkYmYBAA+IATk=".dataByDecodingBase64();
+        var expected = "abcdefbbbbbbccdfim".latin1();
+        var params = {
+            Columns: 6,
+            Predictor: 11
+        };
+        var filter = PDFDeflateFilter.initWithParametersDictionary(params);
+        var uncompressed = filter.decode(compressed);
+        TKAssertObjectEquals(uncompressed, expected);
+    },
+
+    testPredictor12: function(){
+        var expectation = TKExpectation.init();
+        expectation.call(this.getResourceData, this, "xref", "z", function(compressed){
+            expectation.call(this.getResourceData, this, "xref", "dat", function(expected){
+                var params = {
+                    Columns: 6,
+                    Predictor: 12
+                };
+                var filter = PDFDeflateFilter.initWithParametersDictionary(params);
+                var uncompressed = filter.decode(compressed);
+                TKAssertObjectEquals(uncompressed, expected);
+            }, this);
+        }, this);
+        this.wait(expectation, 2);
     }
+
+    // TODO: test other predictors
+    // TODO: test png predictors with various bitsPerComponent and colorSamples
 });

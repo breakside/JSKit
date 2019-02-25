@@ -11,6 +11,7 @@ JSGlobalObject.PDFTrailerObject = function(){
 JSGlobalObject.PDFTrailerObject.prototype = Object.create(PDFObject.prototype, {
     Size:       PDFObjectProperty,
     Prev:       PDFObjectProperty,
+    XRefStm:    PDFObjectProperty,
     Root:       PDFObjectProperty,
     Encrypt:    PDFObjectProperty,
     Info:       PDFObjectProperty,

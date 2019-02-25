@@ -11,5 +11,7 @@
 // #import "PDFKit/PDFFontObject.js"
 // #import "PDFKit/PDFFontDescriptorObject.js"
 // #import "PDFKit/PDFImageObject.js"
-/* global PDFIndirectObject, PDFNameObject, PDFObject, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFStreamObject, PDFTrailerObject, PDFFontObject, PDFType1FontObject, PDFTrueTypeFontObject, PDFFontDescriptorObject, PDFImageObject */
+// #import "PDFKit/PDFXrefStreamObject.js"
+// #import "PDFKit/PDFObjectStreamObject.js"
+/* global PDFIndirectObject, PDFNameObject, PDFObject, PDFDocumentObject, PDFPageTreeNodeObject, PDFPageObject, PDFResourcesObject, PDFGraphicsStateParametersObject, PDFStreamObject, PDFTrailerObject, PDFFontObject, PDFType1FontObject, PDFTrueTypeFontObject, PDFFontDescriptorObject, PDFImageObject, PDFXrefStreamObject, PDFObjectStreamObject */
 'use strict';
