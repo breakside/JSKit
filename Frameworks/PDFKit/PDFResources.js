@@ -1,9 +1,11 @@
 // #import "PDFKit/PDFObject.js"
 // #import "PDFKit/PDFColorSpace.js"
-/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFResources, PDFName, PDFColorSpace */
+/* global JSGlobalObject, JSLog, PDFObject, PDFObjectProperty, PDFResources, PDFName, PDFColorSpace */
 'use strict';
 
 (function(){
+
+var logger = JSLog("PDFKit", "Resources");
 
 JSGlobalObject.PDFResources = function(){
     if (this === undefined){
@@ -78,10 +80,24 @@ JSGlobalObject.PDFResources.prototype = Object.create(PDFObject.prototype, {
             var xObjects = [];
             if (this.Font){
                 for (name in this.Font){
-                    fonts.push({name: name, font: this.Font[name]});
+                    fonts.push(this.Font[name]);
                 }
             }
-            completion.call(target);
+            var fontIndex = 0;
+            var handleFontLoad = function PDFResources_load_handleFont(){
+                var font = fonts[fontIndex];
+                ++fontIndex;
+                if (fontIndex < fonts.length){
+                    fonts[fontIndex].load(handleFontLoad, this);
+                }else{
+                    completion.call(target);
+                }
+            };
+            if (fonts.length > 0){
+                fonts[fontIndex].load(handleFontLoad, this);
+            }else{
+                completion.call(target);
+            }
         }
     },
 

@@ -6,7 +6,7 @@
 // #import "PDFKit/PDFReaderStream.js"
 // #import "PDFKit/PDFStreamOperation.js"
 /* global JSClass, JSObject, JSLog, JSReadOnlyProperty, PDFReader, PDFTokenizer, PDFReaderStream, PDFReaderDataStream, PDFStreamOperationIterator, JSData, PDFFilter, PDFEncryption, PDFStreamOperation */
-/* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1FontObject, PDFTrueTypeFontObject, PDFImage, PDFXrefStream */
+/* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFTrueTypeFont, PDFImage, PDFXrefStream */
 'use strict';
 
 (function(){
@@ -466,6 +466,7 @@ JSClass("PDFReader", JSObject, {
         var reader = this;
         Object.defineProperty(obj, property, {
             configurable: true,
+            enumerable: true,
             get: function PDFReader_getIndirectValue(){
                 var resolved = reader._getObject(indirect);
                 Object.defineProperty(this, property, {configurable: true, writable: true, enumerable: true, value: resolved});

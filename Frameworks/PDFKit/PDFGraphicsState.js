@@ -382,7 +382,9 @@ var operationHandler = {
 
     // show string
     Tj: function(binaryString){
-        // TODO: advance text matrix
+        // advance text matrix
+        var width = this.state.font.widthOfData(binaryString) * this.state.textHorizontalScaling / 100;
+        this.state.textTransform = this.state.textTransform.translatedBy(width, 0);
     },
 
 

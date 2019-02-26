@@ -4,7 +4,7 @@
 // #import "PDFKit/JSColor+PDF.js"
 // #import "PDFKit/JSRect+PDF.js"
 // #import "ImageKit/ImageKit.js"
-/* global JSClass, JSContext, PDFContext, PDFWriter, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFName, PDFStream, JSAffineTransform, JSRect, PDFType1FontObject, PDFImage, JSData, JSImage, IKBitmap */
+/* global JSClass, JSContext, PDFContext, PDFWriter, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFName, PDFStream, JSAffineTransform, JSRect, PDFType1Font, PDFImage, JSData, JSImage, IKBitmap */
 'use strict';
 
 (function(){
@@ -203,7 +203,7 @@ JSClass("PDFContext", JSContext, {
         // For a font subset, the PostScript name of the font -- the value of the font’s BaseFont entry and the font descriptor’s FontName entry -- shall begin with a tag followed by a plus sign (+). The tag shall consist of exactly six uppercase letters; the choice of letters is arbitrary, but different subsets in the same PDF file shall have different tags.
         var info = job.fontInfo;
         var fonts = this._pages.Resources.Font;
-        var font = PDFType1FontObject();
+        var font = PDFType1Font();
         font.BaseFont = PDFName("Helvetica");
         this._writer.writeObject(font);
         fonts[info.resourceName] = font.indirect;

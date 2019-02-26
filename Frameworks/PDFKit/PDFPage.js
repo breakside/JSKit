@@ -221,6 +221,7 @@ JSGlobalObject.PDFPage.prototype = Object.create(PDFObject.prototype, {
                         case Op.text:
                             transform = stack.state.textTransform.concatenatedWith(stack.state.transform);
                             text = stack.state.font.stringFromData(operation.operands[0]);
+                            // TODO: expand characters like fi and fl
                             placed = {
                                 origin: transform.convertPointFromTransform(JSPoint.Zero),
                                 width: 0,
@@ -656,6 +657,11 @@ var contextOperationHandler = {
 
     Tj: function(str){
         if (this.stack.state.textRenderingMode == PDFGraphicsState.TextRenderingMode.invisible){
+            return;
+        }
+        var font = this.stack.state.font;
+        if (font.Subtype == "Type3"){
+            // TODO: read streams and do drawing
             return;
         }
         // TODO: figure out canvas API
