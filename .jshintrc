@@ -5,6 +5,7 @@
     "predef": [
         "Uint8Array",
         "Uint32Array",
+        "DataView",
         "Promise"
     ]
 }
