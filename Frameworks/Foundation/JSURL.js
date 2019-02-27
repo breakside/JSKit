@@ -3,7 +3,7 @@
 // #import "Foundation/String+JS.js"
 // #import "Foundation/JSFormFieldMap.js"
 // #import "Foundation/JSLog.js"
-/* global JSClass, JSObject, JSURL, JSDynamicProperty, JSCopy, JSReadOnlyProperty, JSData, JSLog, JSFormFieldMap */
+/* global JSClass, JSObject, JSRange, JSURL, JSDynamicProperty, JSCopy, JSReadOnlyProperty, JSData, JSLog, JSFormFieldMap */
 
 // https://tools.ietf.org/html/rfc3986
 
@@ -87,7 +87,7 @@ JSClass("JSURL", JSObject, {
         this._query = JSFormFieldMap();
         var parser = JSURLParser(this);
         try{
-            parser.parse(data.bytes);
+            parser.parse(data);
         }catch (e){
             if (e.name == JSURLParserError){
                 logger.warn(e);
@@ -291,14 +291,14 @@ JSClass("JSURL", JSObject, {
         if (this._encodedFragment === null){
             return null;
         }
-        return this._encodedFragment.bytes.arrayByDecodingPercentEscapes().stringByDecodingUTF8();
+        return this._encodedFragment.dataByDecodingPercentEscapes().stringByDecodingUTF8();
     },
 
     setFragment: function(fragment){
         if (fragment === null){
             this._encodedFragment = null;
         }else{
-            this._encodedFragment = JSData.initWithBytes(fragment.utf8().bytes.arrayByEncodingPercentEscapes());
+            this._encodedFragment = fragment.utf8().dataByEncodingPercentEscapes();
         }
     },
 
@@ -375,21 +375,21 @@ var JSURLParser = function(url){
 JSURLParser.prototype = {
 
     url: null,
-    bytes: null,
+    data: null,
     offset: 0,
 
-    parse: function(bytes){
+    parse: function(data){
         // URL data should basically be printable ASCII.  This check isn't perfectly in accordance
         // with any specification, but it's an easy sanity check to run that allows further parsing
         // to make assumptions about the data it sees, and shouldn't mess up any legitimate use case.
-        for (var i = 0, l = bytes.length; i < l; ++i){
-            if (bytes[i] < 0x20 || bytes[i] >= 0x80){
-                var error = new Error("Invalid character (%#02x) found in URL at byte position: %d".sprintf(bytes[i], i));
+        for (var i = 0, l = data.length; i < l; ++i){
+            if (data[i] < 0x20 || data[i] >= 0x80){
+                var error = new Error("Invalid character (%#02x) found in URL at byte position: %d".sprintf(data[i], i));
                 error.name = JSURLParserError;
                 throw error;
             }
         }
-        this.bytes = bytes;
+        this.data = data;
         this.parseStart();
     },
 
@@ -403,26 +403,26 @@ JSURLParser.prototype = {
         this.url.encodedFragment = null;
 
         // Empty is allowed
-        if (this.bytes.length === 0){
+        if (this.data.length === 0){
             return;
         }
         // A single byte must be a path
-        if (this.bytes.length === 1){
-            this.url.path = String.fromCharCode(this.bytes[0]);
+        if (this.data.length === 1){
+            this.url.path = String.fromCharCode(this.data[0]);
             return;
         }
         // If we start with //, then we must be a scheme-relative authority
-        if (this.bytes[0] == 0x2F && this.bytes[1] == 0x2F){
+        if (this.data[0] == 0x2F && this.data[1] == 0x2F){
             this.parseAuthority();
             return;
         }
         // If we start with a ?, then we've just got a query string
-        if (this.bytes[0] == 0x3F){
+        if (this.data[0] == 0x3F){
             this.parseQuery();
             return;
         }
         // If we start with a #, then we've just got a fragment
-        if (this.bytes[0] == 0x23){
+        if (this.data[0] == 0x23){
             this.parseFragment();
             return;
         }
@@ -440,11 +440,11 @@ JSURLParser.prototype = {
 
     parseSchemeOrPath: function(){
         var foundScheme = false;
-        var length = this.bytes.length;
+        var length = this.data.length;
         var offset = this.offset;
         var b;
         while (offset < length){
-            b = this.bytes[offset];
+            b = this.data[offset];
             if (b == 0x3A){
                 // Found a :, so we've got a scheme
                 break;
@@ -456,7 +456,7 @@ JSURLParser.prototype = {
             ++offset;
         }
         if (b == 0x3A){
-            var schemeData = JSData.initWithBytes(this.bytes.subarray(this.offset, offset));
+            var schemeData = this.data.subdataInRange(JSRange(this.offset, offset - this.offset));
             this.url._scheme = String.initWithData(schemeData, String.Encoding.utf8);
             this.offset = offset + 1;
             this.parseAuthority();
@@ -466,9 +466,9 @@ JSURLParser.prototype = {
     },
 
     parseAuthority: function(){
-        var length = this.bytes.length;
+        var length = this.data.length;
         var offset = this.offset;
-        if (offset < length - 1 && this.bytes[offset] == 0x2F && this.bytes[offset + 1] == 0x2F){
+        if (offset < length - 1 && this.data[offset] == 0x2F && this.data[offset + 1] == 0x2F){
             this.offset += 2;
             this.url._hasAuthority = true;
             this.parseHost();
@@ -478,14 +478,14 @@ JSURLParser.prototype = {
     },
 
     parseHost: function(){
-        var length = this.bytes.length;
+        var length = this.data.length;
         var offset = this.offset;
         var b;
         while (offset < length){
-            b = this.bytes[offset];
+            b = this.data[offset];
             if (b == 0x40){
                 // Found a @ before a / ? or #, must mean we've got user info before the host
-                this.url._encodedUserInfo = JSData.initWithBytes(this.bytes.subarray(this.offset, offset));
+                this.url._encodedUserInfo = this.data.subdataInRange(JSRange(this.offset, offset - this.offset));
                 this.offset = offset + 1;
                 break;
             }else if (b == 0x2F || b == 0x3F || b == 0x23){
@@ -496,7 +496,7 @@ JSURLParser.prototype = {
         }
         offset = this.offset;
         while (offset < length){
-            b = this.bytes[offset];
+            b = this.data[offset];
             if (b == 0x3A || b == 0x2F || b == 0x3F || b == 0x23){
                 // :, /, ?, or #...must be the end of the host
                 break;
@@ -504,7 +504,7 @@ JSURLParser.prototype = {
             ++offset;
         }
         if (offset > this.offset){
-            var hostData = JSData.initWithBytes(this.bytes.subarray(this.offset, offset));
+            var hostData = this.data.subdataInRange(JSRange(this.offset, offset - this.offset));
             var encodedHost = String.initWithData(hostData, String.Encoding.utf8);
             this.url._host = JSURL.decodeDomainName(encodedHost);
         }
@@ -518,11 +518,11 @@ JSURLParser.prototype = {
     },
 
     parsePort: function(){
-        var length = this.bytes.length;
+        var length = this.data.length;
         var offset = this.offset;
         var b;
         while (offset < length){
-            b = this.bytes[offset];
+            b = this.data[offset];
             if (b == 0x2F || b == 0x3F || b == 0x23){
                 // /, ?, or #...must be the end of the port
                 break;
@@ -533,7 +533,7 @@ JSURLParser.prototype = {
             var port = 0;
             var i = this.offset;
             while (i < offset){
-                b = this.bytes[i];
+                b = this.data[i];
                 if (b >= 0x30 && b < 0x40){
                     port *= 10;
                     port += b - 0x30;
@@ -553,17 +553,17 @@ JSURLParser.prototype = {
 
     parsePath: function(){
         var offset = this.offset;
-        var length = this.bytes.length;
+        var length = this.data.length;
         var b;
         while (offset < length){
-            b = this.bytes[offset];
+            b = this.data[offset];
             if (b == 0x23 || b == 0x3F){
                 break;
             }
             ++offset;
         }
-        var pathData = this.bytes.subarray(this.offset, offset);
-        this.url.path = pathData.arrayByDecodingPercentEscapes().stringByDecodingUTF8();
+        var pathData = this.data.subarray(this.offset, offset);
+        this.url.path = pathData.dataByDecodingPercentEscapes().stringByDecodingUTF8();
         this.offset = offset;
         if (b == 0x3f){
             this.parseQuery();
@@ -574,20 +574,20 @@ JSURLParser.prototype = {
 
     parseQuery: function(){
         var offset = this.offset;
-        var length = this.bytes.length;
+        var length = this.data.length;
         if (offset < length){
-            var b = this.bytes[offset];
+            var b = this.data[offset];
             if (b == 0x3F){
                 ++offset;
                 this.offset = offset;
                 while (offset < length){
-                    b = this.bytes[offset];
+                    b = this.data[offset];
                     if (b == 0x23){
                         break;
                     }
                     ++offset;
                 }
-                this.url.encodedQuery = JSData.initWithBytes(this.bytes.subarray(this.offset, offset));
+                this.url.encodedQuery = this.data.subdataInRange(JSRange(this.offset, offset - this.offset));
             }
             this.offset = offset;
             if (b == 0x23){
@@ -598,13 +598,13 @@ JSURLParser.prototype = {
 
     parseFragment: function(){
         var offset = this.offset;
-        var length = this.bytes.length;
+        var length = this.data.length;
         if (offset < length){
-            var b = this.bytes[offset];
+            var b = this.data[offset];
             if (b == 0x23){
                 this.offset += 1;
-                offset = this.bytes.length;
-                this.url._encodedFragment = JSData.initWithBytes(this.bytes.subarray(this.offset, offset));
+                offset = this.data.length;
+                this.url._encodedFragment = this.data.subdataInRange(JSRange(this.offset, offset - this.offset));
             }
         }
     }

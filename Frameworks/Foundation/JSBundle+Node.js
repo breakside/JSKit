@@ -9,12 +9,12 @@ JSBundle.definePropertiesFromExtensions({
 
     getResourceData: function(metadata, callback, target){
         var resourcePath = this.getNodePath(metadata);
-        fs.readFile(resourcePath, function(error, data){
+        fs.readFile(resourcePath, function(error, buffer){
             if (error){
                 callback.call(target, null);
                 return;
             }
-            callback.call(target, JSData.initWithBytes(data));
+            callback.call(target, JSData.initWithNodeBuffer(buffer));
         });
     },
 

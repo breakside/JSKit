@@ -19,7 +19,7 @@ JSClass("PDFASCII85Filter", PDFFilter, {
         var expectingEnd = false;
         var foundEnd = false;
         while (i < l){
-            x = data.bytes[i];
+            x = data[i];
             if (expectingEnd){
                 if (!PDFTokenizer.Whitespace.isWhitespace(x)){
                     if (x == 0x3E){
@@ -28,7 +28,7 @@ JSClass("PDFASCII85Filter", PDFFilter, {
                         if (slot > 0){
                             q = PDFASCII85Filter.decodeQuintet.apply(undefined, quintet);
                             for (var j = 0; j < slot - 1; ++j){
-                                output.bytes[o++] = q[j];
+                                output[o++] = q[j];
                             }
                         }
                         break;
@@ -41,18 +41,18 @@ JSClass("PDFASCII85Filter", PDFFilter, {
                     quintet[slot++] = x;
                     if (slot == 5){
                         q = PDFASCII85Filter.decodeQuintet.apply(undefined, quintet);
-                        output.bytes[o++] = q[0];
-                        output.bytes[o++] = q[1];
-                        output.bytes[o++] = q[2];
-                        output.bytes[o++] = q[3];
+                        output[o++] = q[0];
+                        output[o++] = q[1];
+                        output[o++] = q[2];
+                        output[o++] = q[3];
                         quintet = [117, 117, 117, 117, 117];
                         slot = 0;
                     }
                 }else if (x == 0x7A){
-                    output.bytes[o++] = 0;
-                    output.bytes[o++] = 0;
-                    output.bytes[o++] = 0;
-                    output.bytes[o++] = 0;
+                    output[o++] = 0;
+                    output[o++] = 0;
+                    output[o++] = 0;
+                    output[o++] = 0;
                 }else if (x == 0x7E){
                     expectingEnd = true;
                 }else if (!PDFTokenizer.Whitespace.isWhitespace(x)){
@@ -64,8 +64,7 @@ JSClass("PDFASCII85Filter", PDFFilter, {
         if (!foundEnd){
             throw new Error("PDFASCII85Filter reached end of data without ~> marker");
         }
-        output.truncateToLength(o);
-        return output;
+        return output.truncatedToLength(o);
     },
 
     encode: function(data){
@@ -81,43 +80,43 @@ JSClass("PDFASCII85Filter", PDFFilter, {
         var i, l;
         var lineLength = 0;
         for (i = 0, l = data.length - tail; i < l; i += 4){
-            a = data.bytes[i];
-            b = data.bytes[i + 1];
-            c = data.bytes[i + 2];
-            d = data.bytes[i + 3];
+            a = data[i];
+            b = data[i + 1];
+            c = data[i + 2];
+            d = data[i + 3];
             q = PDFASCII85Filter.encodeQuartet(a, b, c, d);
             if (q[0] === 0 && q[1] === 0 && q[2] === 0 && q[3] === 0 && q[4] === 0){
-                output.bytes[o] = 0x7A;
+                output[o] = 0x7A;
                 o += 1;
             }else{
-                output.bytes[o++] = q[0];
+                output[o++] = q[0];
                 ++lineLength;
                 if (lineLength == this.maximumLineLength){
-                    output.bytes[o++] = 0x0a;
+                    output[o++] = 0x0a;
                     lineLength = 0;
                 }
-                output.bytes[o++] = q[1];
+                output[o++] = q[1];
                 ++lineLength;
                 if (lineLength == this.maximumLineLength){
-                    output.bytes[o++] = 0x0a;
+                    output[o++] = 0x0a;
                     lineLength = 0;
                 }
-                output.bytes[o++] = q[2];
+                output[o++] = q[2];
                 ++lineLength;
                 if (lineLength == this.maximumLineLength){
-                    output.bytes[o++] = 0x0a;
+                    output[o++] = 0x0a;
                     lineLength = 0;
                 }
-                output.bytes[o++] = q[3];
+                output[o++] = q[3];
                 ++lineLength;
                 if (lineLength == this.maximumLineLength){
-                    output.bytes[o++] = 0x0a;
+                    output[o++] = 0x0a;
                     lineLength = 0;
                 }
-                output.bytes[o++] = q[4];
+                output[o++] = q[4];
                 ++lineLength;
                 if (lineLength == this.maximumLineLength){
-                    output.bytes[o++] = 0x0a;
+                    output[o++] = 0x0a;
                     lineLength = 0;
                 }
             }
@@ -125,27 +124,26 @@ JSClass("PDFASCII85Filter", PDFFilter, {
         if (tail){
             var quartet = [0, 0, 0, 0];
             for (i = 0; i < tail; ++i){
-                quartet[i] = data.bytes[data.length - tail + i];
+                quartet[i] = data[data.length - tail + i];
             }
             q = PDFASCII85Filter.encodeQuartet.apply(undefined, quartet);
             for (i = 0; i <= tail; ++i){
-                output.bytes[o++] = q[i];
+                output[o++] = q[i];
                 ++lineLength;
                 if (lineLength == this.maximumLineLength){
-                    output.bytes[o++] = 0x0a;
+                    output[o++] = 0x0a;
                     lineLength = 0;
                 }
             }
         }
-        output.bytes[o++] = 0x7E;
+        output[o++] = 0x7E;
         ++lineLength;
         if (lineLength == this.maximumLineLength){
-            output.bytes[o++] = 0x0a;
+            output[o++] = 0x0a;
             lineLength = 0;
         }
-        output.bytes[o++] = 0x3E;
-        output.truncateToLength(o);
-        return output;
+        output[o++] = 0x3E;
+        return output.truncatedToLength(o);
     }
 });
 

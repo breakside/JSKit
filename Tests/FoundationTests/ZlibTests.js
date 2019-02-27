@@ -7,7 +7,7 @@
 JSClass("ZlibTests", TKTestSuite, {
 
     testCompress: function(){
-        var uncompressed = "this is a test".utf8().bytes;
+        var uncompressed = "this is a test".utf8();
         var output = Zlib.compress(uncompressed, 0);
         TKAssertObjectEquals(output, [0x78,0x01,0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74,0x26,0x33,0x05,0x16]);
 
@@ -19,7 +19,7 @@ JSClass("ZlibTests", TKTestSuite, {
     testCompressInChunks: function(){
         // All input, limited output
         var stream = new ZlibStream(0);
-        stream.input = "this is a test".utf8().bytes;
+        stream.input = "this is a test".utf8();
         stream.outputBuffer = new ArrayBuffer(4);
         var output = stream.compress(true);
         TKAssertNotEquals(stream.state, ZlibStream.State.done);
@@ -45,7 +45,7 @@ JSClass("ZlibTests", TKTestSuite, {
 
         // Limited input, plenty of output
         stream = new ZlibStream(0);
-        var fullInput = "this is a test".utf8().bytes;
+        var fullInput = "this is a test".utf8();
         stream.input = new Uint8Array(fullInput.buffer, 0, 2);
         stream.outputBuffer = new ArrayBuffer(32);
         output = stream.compress();
@@ -327,15 +327,14 @@ JSClass("ZlibTests", TKTestSuite, {
 
     testFontCmapSample: function(){
         // var base64Compressed = "eJydlHlQlVUYh98NyppSZFyqmdvhNqBluWYumWZuoOIGbik7yCKKlZPhAriA+wZtlimMZTNhAYIo7oqKYu4p7vdelVLcN3LhcnuZyNHsr87M882Z7zvnnXnOd94fVEAKuEMcABC8AEmQCavgZ9gCu+AA/A7XoRrrogd6YxNsiQEYgtGYhMm4ENMxC3PxBrroFWpHw2kjldAeOkO3GZm5Dtfl13gOz+N0zuJcLuI9vJ8P8zHxlhbSQ/pLuCRIoqTJfikTh9x1Q7d6bp4WtHSxpFpuWm5b7r/qb543HqaBsRiraWJamjamo+lkupvxJtl8b34yq0yeWW82ebl5eXo19LJ6+Xg19wq2ktXdWtda3/qy1WJtZvW1hlqjvEuvUWXxQ6l2uZwuF0Ctq1HXLHX9BbZCCRyEP+AGuLAe1kcfbIqtMBBDMabWNRNz1PUBNa513aWux9UVHrnOUNcFnMErOI/XcykfUlcQH2kpPWWARMg4mSiz5IAcl3NS6UZuHhawdLakWDIttyx31BVMPeNpGhljvNW1tenwyHWFWWmy1bXIbHzCdUStq8djrpHqiuqK6lqlrgjgqnRdwB9c23GJaxsAzlNmKtOVqUqyMkFJdDVwubuk+s/qCtxQc0TVkdXd4IazzHnMuduZ7/zRudKZ5VzqnK0V97pKa1Y46+g8u8pZ9QCgqkjJU1Yqmbr7rnJL534A5TnlCeWmvP+FgnL/8iDHCMdQAEegI8Ax0OF3/lNH1/NjHe0ddez6Z+wnlaP2/fZ99jR7on2CPd6WYQ+zt7Wln822pdlSbUm2SbYEW4Ctk63DqaOey5+zua+gbMyp8fzX0EpwQb1eVJo+RtyTyzAOxz+1959v4bUr0vS5rPZdoVKtF8hH8VWGKecUdWX3p2vQvf+qTBf/5v8M6kv+1I/60wAaCFPJl0ZSEAVTCIVSGEyD6RROERRJUTQKZkAqRVMMxVIcjaZ4SIOZNIE+o0SaSJNoMsyC2TSFkiiZUmgqzKFe0gvmkh/Mo1zKo9WUTwW0BuZTIa2ldVRE62mD3v1NsAAW0mbaQltpG22nYtoBi2Ax7dSuKKHd2hmlkA4ZdIJOah6cJRvZqTf1oUE0hu7RfXpAD6lMu+cUna7pPg6AHA7kwTwEciGPgziYQ2A1h3IY5HM4R0ABR8IajoJCHsXRsJZjYB0UcSzH8WiO5zE8lhN4HBTzx/wJ7OCPYKdmVwnshj1QCnt5PPwK+7QnJ8IhngSHeTJP4SROhiPwGxzlqbyap8Exng5l2sGpcJzT4ITenVM8k1PgNM/i2Zpic7W35/MCOANneSEvgktQAZfhCi+Gq3ANrnO6JsdNuAW3OQPu8Of8BdzlL6GSv+J8/hqRlyDxN/wtL+XvkFHQjZdxAS9Hd3wGn5UgXsOF2BAbYWN8idfyOs2PIs3bppqRETISX8c3sBm+iW9JsIRgc2whQ2UYb+CN4ie9NZVbSaiEYWtsI32kL76NbfEdbIftsQNv4s3iL/14C2+VOBmtqTsAO+K7MlAGYSd8DzvLCOyC78tw+ZC38XYuxq74gcRILHbD7hIpURIggTJKorGHpvc+PsAHNdcO8xHsib1ksAzhi3wJfdGPK/iyxMsY7M1XZCxf5WsYi3GaeQmYLL6Y+hexzr2F";
-        // var compressed = base64Compressed.dataByDecodingBase64().bytes;
+        // var compressed = base64Compressed.dataByDecodingBase64();
         // var output = Zlib.uncompress(compressed);
         // var base64Output = output.base64StringRepresentation();
         // TKAssertEquals(base64Output, "AOoAgAAGAGoAAAACAA0AfgCgAKwArQC/AMYAzwDmAO8A/gEPAREBJQEnATABUwFfAWcBfgF/AY8BkgGhAbAB8AH/AhsCNwJZArwCxwLJAt0C8wMBAwMDCQMPAyMDigOMA5IDoQOwA7kDyQPOA9ID1gQlBC8ERQRPBGIEbwR5BIYEzgTXBOEE9QUBBRAFEx4BHj8ehR7xHvMe+R9NIAsgESAVIB4gIiAnIDAgMyA6IDwgRCB0IH8gpCCqIKwgsSC6IL0hBSETIRYhIiEmIS4hXiICIgYiDyISIhoiHiIrIkgiYCJlJcruAvbD+wT+///9//8AAAAAAAIADQAgAKAAoQCtAK4AwADHANAA5wDwAP8BEAESASYBKAExAVQBYAFoAX8BjwGSAaABrwHwAfoCGAI3AlkCvALGAskC2ALzAwADAwMJAw8DIwOEA4wDjgOTA6MDsQO6A8oD0QPWBAAEJgQwBEYEUARjBHAEegSIBM8E2ATiBPYFAgURHgAePh6AHqAe8h70H00gACAQIBMgFyAgICUgMCAyIDkgPCBEIHQgfyCjIKYgqyCxILkgvCEFIRMhFiEiISYhLiFbIgIiBiIPIhEiGiIeIisiSCJgImQlyu4B9sP7Af7///z//wABAAD/9v/kAaX/wgGZ/8EAAAGMAAABhwAAAYMAAAGBAAABfwAAAXcAAAF5/xX/Bv8E/vf+6gG7AAAAAP5k/kMA8P3X/db9yP2z/af9pv2h/Zz9iQAA/8v/ygAAAAD9CQAA/6v8/fz6AAD8uQAA/LEAAPymAAD8oAAA/vUAAP7yAAD8SQAA5a/lb+Ug5U/ktOVN5V3hW+FXAADhVOFT4VHhSeN24UHjbuE44Qng/wAA4NoAAODV4M7gzeCG4Hngd+Bs35PgYeA135Leq9+G34Xfft9732/fU9883znb1ROfCt8GowKrAa8AAQAAAAAAAAAAAAAAAAAAAAAA2gAAAOQAAAEOAAABKAAAASgAAAEoAAABagAAAAAAAAAAAAAAAAAAAWoBdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFiAAAAAAFqAYYAAAGeAAAAAAAAAbYAAAH+AAACJgAAAkgAAAJYAAAC4gAAAvIAAAMGAAAAAAAAAAAAAAAAAAAAAAAAAvgAAAAAAAAAAAAAAAAAAAAAAAAAAALoAAAC6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJMAk0CTgJPAlACUQCBAkgCXAJdAl4CXwJgAmEAggCDAmICYwJkAmUCZgCEAIUCZwJoAmkCagJrAmwAhgCHAncCeAJ5AnoCewJ8AIgAiQJ9An4CfwKAAoEAigJHBEcAiwJJAIwCsAKxArICswK0ArUAjQK2ArcCuAK5AroCuwK8Ar0AjgCPAr4CvwLAAsECwgLDAsQAkACRAsUCxgLHAsgCyQLKAJIAkwLZAtoC3QLeAt8C4AJKAksCUgJtAvgC+QL6AvsC1wLYAtsC3ACtAK4DUwCvA1QDVQNWALAAsQNdA14DXwCyA2ADYQCzA2IDYwC0A2QAtQNlALYDZgNnALcDaAC4ALkDaQNqA2sDbANtA24DbwNwAMMDcgNzAMQDcQDFAMYAxwDIAMkAygDLA3QAzADNA7EDegDRA3sA0gN8A30DfgN/ANMA1ADVA4EDsgOCANYDgwDXA4QDhQDYA4YA2QDaANsDhwOAANwDiAOJA4oDiwOMA40DjgDdAN4DjwOQAOkA6gDrAOwDkQDtAO4A7wOSAPAA8QDyAPMDkwD0A5QDlQD1A5YA9gOXA7MDmAEBA5kBAgOaA5sDnAOdAQMBBAEFA54DtAOfAQYBBwEIBF0DtQO2ARYBFwEYARkDtwO4A7oDuQEnASgEYgRjBFwBKQEqASsBLAEtBF4EXwEuAS8EVwRYA7sDvARJBEoBMAExBGAEYQEyATMESwRMATQBNQE2ATcBOAE5A70DvgRNBE4DvwPABGoEawRPBFABOgE7BFEEUgE8AT0BPgRbAT8BQARZBFoDwQPCA8MBQQFCBGgEaQFDAUQEZARlBFMEVARmBGcBRQPOA80DzwPQA9ED0gPTAUYBRwRVBFYD6APpAUgBSQPqA+sEbARtAUoD7ARuA+0D7gFpAWoEcARvAX8ESAGF");
         var expectation = TKExpectation.init();
         expectation.call(this.getResourceData, this, "cmap", "z", function(compressed){
             expectation.call(this.getResourceData, this, "cmap", "dat", function(expected){
-                var uncompressedBytes = Zlib.uncompress(compressed.bytes);
-                var uncompressed = JSData.initWithBytes(uncompressedBytes);
+                var uncompressed = Zlib.uncompress(compressed);
                 TKAssertObjectEquals(uncompressed, expected);
             }, this);
         }, this);
@@ -346,8 +345,7 @@ JSClass("ZlibTests", TKTestSuite, {
         var expectation = TKExpectation.init();
         expectation.call(this.getResourceData, this, "stream", "z", function(compressed){
             expectation.call(this.getResourceData, this, "stream", "dat", function(expected){
-                var uncompressedBytes = Zlib.uncompress(compressed.bytes);
-                var uncompressed = JSData.initWithBytes(uncompressedBytes);
+                var uncompressed = Zlib.uncompress(compressed);
                 TKAssertObjectEquals(uncompressed, expected);
             }, this);
         }, this);

@@ -39,7 +39,7 @@ JSClass("Adler32Tests", TKTestSuite, {
         sum = Adler32(data);
         TKAssertEquals(sum, 119538160);
 
-        sum = Adler32("this is a test".utf8().bytes);
+        sum = Adler32("this is a test".utf8());
         TKAssertEquals(sum, 640877846);
     },
 

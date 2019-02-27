@@ -183,6 +183,9 @@ function parseOptions(){
 function main(){
     var testRun = HTMLTestRun.initWithRootElement(document.body);
     var options = parseOptions();
+    if (options.pause){
+        debugger;
+    }
     if (options.suite){
         if (options.case){
             testRun.runCaseNamed(options.suite, options.case);

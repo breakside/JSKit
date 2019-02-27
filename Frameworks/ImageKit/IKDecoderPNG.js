@@ -12,7 +12,7 @@ JSClass("IKDecoderPNG", IKDecoder, {
 
     format: IKBitmap.Format.png,
 
-    bitmapBytes: null,
+    bitmapData: null,
     colorSpace: null,
     size: null,
     bitDepth: 0,
@@ -36,36 +36,34 @@ JSClass("IKDecoderPNG", IKDecoder, {
     paintAdvance: 0,
 
     decodeData: function(data){
-        var bytes = data.bytes;
-        if (bytes.length < 20){
+        if (data.length < 20){
             this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.invalidData, 0, "Not enough data for a valid PNG file");
         }
-        if (bytes[0] != 0x89 ||
-            bytes[1] != 0x50 ||
-            bytes[2] != 0x4E ||
-            bytes[3] != 0x47 ||
-            bytes[4] != 0x0D ||
-            bytes[5] != 0x0A ||
-            bytes[6] != 0x1A ||
-            bytes[7] != 0x0A){
+        if (data[0] != 0x89 ||
+            data[1] != 0x50 ||
+            data[2] != 0x4E ||
+            data[3] != 0x47 ||
+            data[4] != 0x0D ||
+            data[5] != 0x0A ||
+            data[6] != 0x1A ||
+            data[7] != 0x0A){
             this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.invalidData, 0, "PNG magic bytes not valid");
         }
         if (this.error === null && (
-            bytes[12] != 0x49 ||
-            bytes[13] != 0x48 ||
-            bytes[14] != 0x44 ||
-            bytes[15] != 0x52)){
+            data[12] != 0x49 ||
+            data[13] != 0x48 ||
+            data[14] != 0x44 ||
+            data[15] != 0x52)){
             this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.invalidData, 0, "IHDR not found in initial block position");
         }
-        if (this.error === null && (((bytes[8] << 24) | (bytes[9] << 16) | (bytes[10] << 8) | bytes[11]) < 13)){
+        if (this.error === null && (((data[8] << 24) | (data[9] << 16) | (data[10] << 8) | data[11]) < 13)){
             this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.invalidData, 0, "IHDR length too short");
         }
         if (this.error === null){
-            this.dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+            this.dataView = new DataView(data.buffer, data.byteOffset, data.length);
             this.readSections();
         }
-        var bitmapData = JSData.initWithBytes(this.bitmapBytes);
-        return IKBitmap.initWithData(bitmapData, this.size, this.colorSpace);
+        return IKBitmap.initWithData(this.bitmapData, this.size, this.colorSpace);
     },
 
     readSections: function(){
@@ -79,7 +77,7 @@ JSClass("IKDecoderPNG", IKDecoder, {
         do {
             length = this.dataView.getUint32(offset);
             if (offset + length + 12 > this.dataView.byteLength){
-                this.bitmapBytes = null;
+                this.bitmapData = null;
                 this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.lengthBeyondEnd, offset, "Length of section extends beyond available data");
             }else{
                 offset += 4;
@@ -97,14 +95,14 @@ JSClass("IKDecoderPNG", IKDecoder, {
                     if (check == crc.final){
                         method.call(this, section, offset - length - 8);
                     }else{
-                        this.bitmapBytes = null;
+                        this.bitmapData = null;
                         this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.crcFailed, offset - 4, "CRC for '%s' failed".sprintf(type));
                     }
                 }else{
                     offset += length + 4;   
                 }
             }
-        } while (offset < this.dataView.byteLength - 4 && type != 'IEND' && this.bitmapBytes !== null);
+        } while (offset < this.dataView.byteLength - 4 && type != 'IEND' && this.bitmapData !== null);
     },
 
     isValid: function(){
@@ -143,15 +141,15 @@ JSClass("IKDecoderPNG", IKDecoder, {
         return false;
     },
 
-    read_IHDR: function(bytes){
-        if (bytes.length >= 13){
-            var header = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+    read_IHDR: function(data){
+        if (data.length >= 13){
+            var header = new DataView(data.buffer, data.byteOffset, data.length);
             this.size = JSSize(header.getUint32(0), header.getUint32(4));
-            this.bitDepth = bytes[8];
-            this.colorType = bytes[9];
-            this.compressionMethod = bytes[10];
-            this.filterMethod = bytes[11];
-            this.interlaceMethod = bytes[12];
+            this.bitDepth = data[8];
+            this.colorType = data[9];
+            this.compressionMethod = data[10];
+            this.filterMethod = data[11];
+            this.interlaceMethod = data[12];
             if (this.isValid()){
                 switch (this.colorType){
                     case IKDecoderPNG.ColorType.grayscale:
@@ -183,17 +181,17 @@ JSClass("IKDecoderPNG", IKDecoder, {
                         break;
                 }
                 this.filterByteOffset = (this.bitDepth < 8) ? 1 : (this.numberOfComponents * this.bitDepth / 8);
-                this.bitmapBytes = new Uint8Array(this.size.width * this.size.height * 4);
+                this.bitmapData = JSData.initWithLength(this.size.width * this.size.height * 4);
             }
         }
     },
 
-    read_cHRM: function(bytes){
-        if (this.dataStream !== null || this.bitmapBytes === null || this.sRGB !== null){
+    read_cHRM: function(data){
+        if (this.dataStream !== null || this.bitmapData === null || this.sRGB !== null){
             return;
         }
-        var chroma = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
-        if (bytes.length >= 32){
+        var chroma = new DataView(data.buffer, data.byteOffset, data.length);
+        if (data.length >= 32){
             this.chroma = {
                 white:  JSPoint(chroma.getUint32(0)  / 100000,  chroma.getUint32(4)  / 100000),
                 red:    JSPoint(chroma.getUint32(8)  / 100000,  chroma.getUint32(12) / 100000),
@@ -203,96 +201,95 @@ JSClass("IKDecoderPNG", IKDecoder, {
         }
     },
 
-    read_gAMA: function(bytes){
-        if (this.dataStream !== null || this.bitmapBytes === null || this.sRGB !== null){
+    read_gAMA: function(data){
+        if (this.dataStream !== null || this.bitmapData === null || this.sRGB !== null){
             return;
         }
-        if (bytes.length >= 4){
-            var gamma = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+        if (data.length >= 4){
+            var gamma = new DataView(data.buffer, data.byteOffset, data.length);
             this.gamma = gamma.getUint32(0) / 100000;
         }
     },
 
-    read_iCCP: function(bytes){
-        if (this.dataStream !== null || this.bitmapBytes === null || this.sRGB !== null){
+    read_iCCP: function(data){
+        if (this.dataStream !== null || this.bitmapData === null || this.sRGB !== null){
             return;
         }
         // IKBitmap is currently defined as only supporting the sRGBA color space
         // So it only makes sense to use the color space info if either:
         // 1. We do the conversion to sRGB ourselves
         // 2. We update IKBitmap to allow different color spaces and do no coversion ourselves
-        // var data = JSData.initWithBytes(bytes);
-        // this.colorSpace = IKColorSpace.initWithProfileData(bytes);
+        // this.colorSpace = IKColorSpace.initWithProfileData(data);
     },
 
-    read_sRGB: function(bytes){
-        if (this.dataStream !== null || this.bitmapBytes === null){
+    read_sRGB: function(data){
+        if (this.dataStream !== null || this.bitmapData === null){
             return;
         }
         this.gamma = null;
         this.chroma = null;
-        if (bytes.length >= 1){
-            this.sRGB = bytes[0];
+        if (data.length >= 1){
+            this.sRGB = data[0];
         }
     },
 
-    read_PLTE: function(bytes){
-        if (this.dataStream !== null || this.bitmapBytes === null){
+    read_PLTE: function(data){
+        if (this.dataStream !== null || this.bitmapData === null){
             return;
         }
         if (this.colorType != IKDecoderPNG.ColorType.indexed){
             return;
         }
-        if (bytes.length % 3 !== 0){
+        if (data.length % 3 !== 0){
             return;
         }
         this.palette = [];
-        var entries = bytes.length / 3;
+        var entries = data.length / 3;
         var i = 0;
         var r, g, b;
-        while (i < bytes.length){
-            r = bytes[i++];
-            g = bytes[i++];
-            b = bytes[i++];
+        while (i < data.length){
+            r = data[i++];
+            g = data[i++];
+            b = data[i++];
             this.palette.push([r, g, b, 255]);
         }
     },
 
-    read_tRNS: function(bytes){
-        if (this.dataStream !== null || this.bitmapBytes === null){
+    read_tRNS: function(data){
+        if (this.dataStream !== null || this.bitmapData === null){
             return;
         }
-        var trans = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+        var trans = new DataView(data.buffer, data.byteOffset, data.length);
         if (this.colorType == IKDecoderPNG.ColorType.grayscale){
-            if (bytes.length >= 2){
+            if (data.length >= 2){
                 this.alphaSamples = [trans.getUint16(0)];
             }
         }else if (this.colorType == IKDecoderPNG.ColorType.truecolor){
-            if (bytes.length >= 6){
+            if (data.length >= 6){
                 this.alphaSamples = [trans.getUint16(0), trans.getUint16(2), trans.getUint16(4)];
             }
         }else if (this.colorType == IKDecoderPNG.ColorType.indexed){
-            if (this.palette !== null && bytes.length >= this.palette.length){
-                for (var i = 0, l = this.palette.length && i < bytes.length; i < l; ++i){
-                    this.palette[i][3] = bytes[i];
+            if (this.palette !== null && data.length >= this.palette.length){
+                for (var i = 0, l = this.palette.length && i < data.length; i < l; ++i){
+                    this.palette[i][3] = data[i];
                 }
             }
         }
     },
 
-    read_IDAT: function(bytes, offset){
+    read_IDAT: function(data, offset){
         if (this.dataStream === null){
             if (this.colorType == IKDecoderPNG.ColorType.indexed && this.palette === null){
                 this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.missingPalette, offset, "PLTE not found before first IDAT");
-                this.bitmapBytes = null;
+                this.bitmapData = null;
                 return;
             }
-            this.scanline = new Uint8Array(this.bytesPerRow + 1);
+            this.scanline = JSData.initWithLength(this.bytesPerRow + 1);
             this.dataStream = new ZlibStream();
             this.dataStream.outputBuffer = this.scanline.buffer;
         }
         var output;
-        this.dataStream.input = bytes;
+        this.dataStream.input = data;
         do {
             this.dataStream.outputOffset = this.scanlineLength;
             output = this.dataStream.uncompress();
@@ -303,7 +300,7 @@ JSClass("IKDecoderPNG", IKDecoder, {
         }while (output.length > 0);
     },
 
-    read_IEND: function(bytes){
+    read_IEND: function(data){
         this.dataStream = null;
         this.correctColors();
     },
@@ -342,11 +339,9 @@ JSClass("IKDecoderPNG", IKDecoder, {
 
     copyScanline: function(){
         if (this.lastScanline === null){
-            this.lastScanline = new Uint8Array(this.scanline);
+            this.lastScanline = this.scanline;
         }else{
-            for (var i = 0; i < this.scanlineLength; ++i){
-                this.lastScanline[i] = this.scanline[i];
-            }
+            this.scanline.copyTo(this.lastScanline);
         }
     },
 
@@ -355,10 +350,10 @@ JSClass("IKDecoderPNG", IKDecoder, {
         var alpha;
         for (var i = 1; i < this.scanlineLength;){
             alpha = (this.scanline[i] === this.alphaSamples[0] && this.scanline[i + 1] == this.alphaSamples[1] && this.scanline[i + 2] == this.alphaSamples[2]) ? 0 : 255;
-            this.bitmapBytes[this.paintOffset++] = this.scanline[i++];
-            this.bitmapBytes[this.paintOffset++] = this.scanline[i++];
-            this.bitmapBytes[this.paintOffset++] = this.scanline[i++];
-            this.bitmapBytes[this.paintOffset++] = alpha;
+            this.bitmapData[this.paintOffset++] = this.scanline[i++];
+            this.bitmapData[this.paintOffset++] = this.scanline[i++];
+            this.bitmapData[this.paintOffset++] = this.scanline[i++];
+            this.bitmapData[this.paintOffset++] = alpha;
             this.paintOffset += this.paintAdvance;
         }
     },
@@ -372,10 +367,10 @@ JSClass("IKDecoderPNG", IKDecoder, {
             g = (this.scanline[i + 2] << 8) | this.scanline[i + 3];
             b = (this.scanline[i + 4] << 8) | this.scanline[i + 5];
             alpha = (r == this.alphaSamples[0] && g == this.alphaSamples[1] && b == this.alphaSamples[2]) ? 0 : 255;
-            this.bitmapBytes[this.paintOffset++] = Math.min(0xFF, (r + 0x7F) >> 8);
-            this.bitmapBytes[this.paintOffset++] = Math.min(0xFF, (g + 0x7F) >> 8);
-            this.bitmapBytes[this.paintOffset++] = Math.min(0xFF, (b + 0x7F) >> 8);
-            this.bitmapBytes[this.paintOffset++] = alpha;
+            this.bitmapData[this.paintOffset++] = Math.min(0xFF, (r + 0x7F) >> 8);
+            this.bitmapData[this.paintOffset++] = Math.min(0xFF, (g + 0x7F) >> 8);
+            this.bitmapData[this.paintOffset++] = Math.min(0xFF, (b + 0x7F) >> 8);
+            this.bitmapData[this.paintOffset++] = alpha;
             this.paintOffset += this.paintAdvance;
         }
     },
@@ -383,10 +378,10 @@ JSClass("IKDecoderPNG", IKDecoder, {
     paintScanline_6_8: function(){
         // RGBA 8bpc
         for (var i = 1; i < this.scanlineLength;){
-            this.bitmapBytes[this.paintOffset++] = this.scanline[i++];
-            this.bitmapBytes[this.paintOffset++] = this.scanline[i++];
-            this.bitmapBytes[this.paintOffset++] = this.scanline[i++];
-            this.bitmapBytes[this.paintOffset++] = this.scanline[i++];
+            this.bitmapData[this.paintOffset++] = this.scanline[i++];
+            this.bitmapData[this.paintOffset++] = this.scanline[i++];
+            this.bitmapData[this.paintOffset++] = this.scanline[i++];
+            this.bitmapData[this.paintOffset++] = this.scanline[i++];
             this.paintOffset += this.paintAdvance;
         }
     },
@@ -394,10 +389,10 @@ JSClass("IKDecoderPNG", IKDecoder, {
     paintScanline_6_16: function(){
         // RGBA 16bpc
         for (var i = 1; i < this.scanlineLength; i += 8){
-            this.bitmapBytes[this.paintOffset++] = Math.min(0xFF, (((this.scanline[i] << 8) | this.scanline[i + 1]) + 0x7F) >> 8);
-            this.bitmapBytes[this.paintOffset++] = Math.min(0xFF, (((this.scanline[i + 2] << 8) | this.scanline[i + 3]) + 0x7F) >> 8);
-            this.bitmapBytes[this.paintOffset++] = Math.min(0xFF, (((this.scanline[i + 4] << 8) | this.scanline[i + 5]) + 0x7F) >> 8);
-            this.bitmapBytes[this.paintOffset++] = Math.min(0xFF, (((this.scanline[i + 6] << 8) | this.scanline[i + 7]) + 0x7F) >> 8);
+            this.bitmapData[this.paintOffset++] = Math.min(0xFF, (((this.scanline[i] << 8) | this.scanline[i + 1]) + 0x7F) >> 8);
+            this.bitmapData[this.paintOffset++] = Math.min(0xFF, (((this.scanline[i + 2] << 8) | this.scanline[i + 3]) + 0x7F) >> 8);
+            this.bitmapData[this.paintOffset++] = Math.min(0xFF, (((this.scanline[i + 4] << 8) | this.scanline[i + 5]) + 0x7F) >> 8);
+            this.bitmapData[this.paintOffset++] = Math.min(0xFF, (((this.scanline[i + 6] << 8) | this.scanline[i + 7]) + 0x7F) >> 8);
             this.paintOffset += this.paintAdvance;
         }
     },
@@ -411,10 +406,10 @@ JSClass("IKDecoderPNG", IKDecoder, {
                 // TODO: don't overrun bitmap row
                 v = (this.scanline[i] & b) >> shift;
                 alpha = (v == this.alphaSamples[0]) ? 0 : 255;
-                this.bitmapBytes[this.paintOffset++] = v ? 255 : 0;
-                this.bitmapBytes[this.paintOffset++] = v ? 255 : 0;
-                this.bitmapBytes[this.paintOffset++] = v ? 255 : 0;
-                this.bitmapBytes[this.paintOffset++] = alpha;
+                this.bitmapData[this.paintOffset++] = v ? 255 : 0;
+                this.bitmapData[this.paintOffset++] = v ? 255 : 0;
+                this.bitmapData[this.paintOffset++] = v ? 255 : 0;
+                this.bitmapData[this.paintOffset++] = alpha;
             }
             this.paintOffset += this.paintAdvance;
         }
@@ -430,10 +425,10 @@ JSClass("IKDecoderPNG", IKDecoder, {
                 v = (this.scanline[i] & b) >> shift;
                 alpha = (v == this.alphaSamples[0]) ? 0 : 255;
                 v = (v << 6) | (v << 4) | (v << 2) | v;
-                this.bitmapBytes[this.paintOffset++] = v;
-                this.bitmapBytes[this.paintOffset++] = v;
-                this.bitmapBytes[this.paintOffset++] = v;
-                this.bitmapBytes[this.paintOffset++] = alpha;
+                this.bitmapData[this.paintOffset++] = v;
+                this.bitmapData[this.paintOffset++] = v;
+                this.bitmapData[this.paintOffset++] = v;
+                this.bitmapData[this.paintOffset++] = alpha;
             }
             this.paintOffset += this.paintAdvance;
         }
@@ -449,10 +444,10 @@ JSClass("IKDecoderPNG", IKDecoder, {
                 v = (this.scanline[i] & b) >> shift;
                 alpha = (v == this.alphaSamples[0]) ? 0 : 255;
                 v = (v << 4) | v;
-                this.bitmapBytes[this.paintOffset++] = v;
-                this.bitmapBytes[this.paintOffset++] = v;
-                this.bitmapBytes[this.paintOffset++] = v;
-                this.bitmapBytes[this.paintOffset++] = alpha;
+                this.bitmapData[this.paintOffset++] = v;
+                this.bitmapData[this.paintOffset++] = v;
+                this.bitmapData[this.paintOffset++] = v;
+                this.bitmapData[this.paintOffset++] = alpha;
             }
             this.paintOffset += this.paintAdvance;
         }
@@ -463,10 +458,10 @@ JSClass("IKDecoderPNG", IKDecoder, {
         var alpha;
         for (var i = 1; i < this.scanlineLength; ++i){
             alpha = (this.scanline[i] == this.alphaSamples[0]) ? 0 : 255;
-            this.bitmapBytes[this.paintOffset++] = this.scanline[i];
-            this.bitmapBytes[this.paintOffset++] = this.scanline[i];
-            this.bitmapBytes[this.paintOffset++] = this.scanline[i];
-            this.bitmapBytes[this.paintOffset++] = alpha;
+            this.bitmapData[this.paintOffset++] = this.scanline[i];
+            this.bitmapData[this.paintOffset++] = this.scanline[i];
+            this.bitmapData[this.paintOffset++] = this.scanline[i];
+            this.bitmapData[this.paintOffset++] = alpha;
             this.paintOffset += this.paintAdvance;
         }
     },
@@ -479,10 +474,10 @@ JSClass("IKDecoderPNG", IKDecoder, {
             w = (this.scanline[i] << 8) | this.scanline[i + 1];
             alpha = (w == this.alphaSamples[0]) ? 0 : 255;
             w = Math.min(0xFF, (w + 0x7F) >> 8);
-            this.bitmapBytes[this.paintOffset++] = w;
-            this.bitmapBytes[this.paintOffset++] = w;
-            this.bitmapBytes[this.paintOffset++] = w;
-            this.bitmapBytes[this.paintOffset++] = alpha;
+            this.bitmapData[this.paintOffset++] = w;
+            this.bitmapData[this.paintOffset++] = w;
+            this.bitmapData[this.paintOffset++] = w;
+            this.bitmapData[this.paintOffset++] = alpha;
             this.paintOffset += this.paintAdvance;
         }
     },
@@ -490,10 +485,10 @@ JSClass("IKDecoderPNG", IKDecoder, {
     paintScanline_4_8: function(){
         // Gray w/ Alpha 8bpc
         for (var i = 1; i < this.scanlineLength;){
-            this.bitmapBytes[this.paintOffset++] = this.scanline[i];
-            this.bitmapBytes[this.paintOffset++] = this.scanline[i];
-            this.bitmapBytes[this.paintOffset++] = this.scanline[i++];
-            this.bitmapBytes[this.paintOffset++] = this.scanline[i++];
+            this.bitmapData[this.paintOffset++] = this.scanline[i];
+            this.bitmapData[this.paintOffset++] = this.scanline[i];
+            this.bitmapData[this.paintOffset++] = this.scanline[i++];
+            this.bitmapData[this.paintOffset++] = this.scanline[i++];
             this.paintOffset += this.paintAdvance;
         }
     },
@@ -503,10 +498,10 @@ JSClass("IKDecoderPNG", IKDecoder, {
         var w;
         for (var i = 1; i < this.scanlineLength; i += 4){
             w = Math.min(0xFF, (((this.scanline[i] << 8) | this.scanline[i + 1]) + 0x7F) >> 8);
-            this.bitmapBytes[this.paintOffset++] = w;
-            this.bitmapBytes[this.paintOffset++] = w;
-            this.bitmapBytes[this.paintOffset++] = w;
-            this.bitmapBytes[this.paintOffset++] = Math.min(0xFF, (((this.scanline[i + 2] << 8) | this.scanline[i + 3]) + 0x7F) >> 8);
+            this.bitmapData[this.paintOffset++] = w;
+            this.bitmapData[this.paintOffset++] = w;
+            this.bitmapData[this.paintOffset++] = w;
+            this.bitmapData[this.paintOffset++] = Math.min(0xFF, (((this.scanline[i + 2] << 8) | this.scanline[i + 3]) + 0x7F) >> 8);
             this.paintOffset += this.paintAdvance;
         }
     },
@@ -520,10 +515,10 @@ JSClass("IKDecoderPNG", IKDecoder, {
                 // TODO: don't overrun bitmap row
                 v = (this.scanline[i] & b) >> shift;
                 color = this.palette[v];
-                this.bitmapBytes[this.paintOffset++] = color[0];
-                this.bitmapBytes[this.paintOffset++] = color[1];
-                this.bitmapBytes[this.paintOffset++] = color[2];
-                this.bitmapBytes[this.paintOffset++] = color[3];
+                this.bitmapData[this.paintOffset++] = color[0];
+                this.bitmapData[this.paintOffset++] = color[1];
+                this.bitmapData[this.paintOffset++] = color[2];
+                this.bitmapData[this.paintOffset++] = color[3];
             }
             this.paintOffset += this.paintAdvance;
         }
@@ -538,10 +533,10 @@ JSClass("IKDecoderPNG", IKDecoder, {
                 // TODO: don't overrun bitmap row
                 v = (this.scanline[i] & b) >> shift;
                 color = this.palette[v];
-                this.bitmapBytes[this.paintOffset++] = color[0];
-                this.bitmapBytes[this.paintOffset++] = color[1];
-                this.bitmapBytes[this.paintOffset++] = color[2];
-                this.bitmapBytes[this.paintOffset++] = color[3];
+                this.bitmapData[this.paintOffset++] = color[0];
+                this.bitmapData[this.paintOffset++] = color[1];
+                this.bitmapData[this.paintOffset++] = color[2];
+                this.bitmapData[this.paintOffset++] = color[3];
             }
             this.paintOffset += this.paintAdvance;
         }
@@ -556,10 +551,10 @@ JSClass("IKDecoderPNG", IKDecoder, {
                 // TODO: don't overrun bitmap row
                 v = (this.scanline[i] & b) >> shift;
                 color = this.palette[v];
-                this.bitmapBytes[this.paintOffset++] = color[0];
-                this.bitmapBytes[this.paintOffset++] = color[1];
-                this.bitmapBytes[this.paintOffset++] = color[2];
-                this.bitmapBytes[this.paintOffset++] = color[3];
+                this.bitmapData[this.paintOffset++] = color[0];
+                this.bitmapData[this.paintOffset++] = color[1];
+                this.bitmapData[this.paintOffset++] = color[2];
+                this.bitmapData[this.paintOffset++] = color[3];
             }
             this.paintOffset += this.paintAdvance;
         }
@@ -570,10 +565,10 @@ JSClass("IKDecoderPNG", IKDecoder, {
         var color;
         for (var i = 1; i < this.scanlineLength; ++i){
             color = this.palette[this.scanline[i]];
-            this.bitmapBytes[this.paintOffset++] = color[0];
-            this.bitmapBytes[this.paintOffset++] = color[1];
-            this.bitmapBytes[this.paintOffset++] = color[2];
-            this.bitmapBytes[this.paintOffset++] = color[3];
+            this.bitmapData[this.paintOffset++] = color[0];
+            this.bitmapData[this.paintOffset++] = color[1];
+            this.bitmapData[this.paintOffset++] = color[2];
+            this.bitmapData[this.paintOffset++] = color[3];
         }
     },
 
@@ -697,10 +692,10 @@ var IKDecoderPNGError = function(code, byteOffset, msg){
 
 IKDecoderPNGError.prototype = Object.create(Error.prototype);
 
-var CRC = function(bytes){
+var CRC = function(data){
     if (this === undefined){
         var crc = new CRC();
-        crc.update(bytes);
+        crc.update(data);
         return crc.final;
     }
     this.workpad = new Uint32Array([0xFFFFFFFF, 0]);
@@ -711,9 +706,9 @@ CRC.prototype = Object.create({}, {
     workpad: {writable: true, value: null},
 
     update: {
-        value: function CRC_update(bytes){
-            for (var i = 0, l = bytes.length; i < l; ++i){
-                this.workpad[1] = this.workpad[0] ^ bytes[i];
+        value: function CRC_update(data){
+            for (var i = 0, l = data.length; i < l; ++i){
+                this.workpad[1] = this.workpad[0] ^ data[i];
                 this.workpad[0] = CRC.table[this.workpad[1] & 0xFF] ^ ((this.workpad[0] >> 8) & 0xFFFFFF);
             }
         }

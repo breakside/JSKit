@@ -49,7 +49,7 @@ SECCipher.definePropertiesFromExtensions({
             name: this.htmlAlgorithmName
         };
         var extractable = true;
-        crypto.subtle.importKey("raw", data.bytes, algorithm, extractable, ["encrypt", "decrypt", "wrapKey", "unwrapKey"]).then(function(htmlKey){
+        crypto.subtle.importKey("raw", data, algorithm, extractable, ["encrypt", "decrypt", "wrapKey", "unwrapKey"]).then(function(htmlKey){
             completion.call(target, SECHTMLKey.initWithKey(htmlKey));
         }, function(e){
             completion.call(target, null);
@@ -63,12 +63,12 @@ SECCipher.definePropertiesFromExtensions({
             name: HTMLCryptoAlgorithmNames.pbkdf2
         };
         var derivedAlgorithmName = this.htmlAlgorithmName;
-        crypto.subtle.importKey('raw', passphrase.utf8().bytes, algorithm, false, ["deriveKey"]).then(function(masterKey){
+        crypto.subtle.importKey('raw', passphrase.utf8(), algorithm, false, ["deriveKey"]).then(function(masterKey){
             // 2. Derive a key using the PBKDF algorithm and the given salt, resulting in a key suitable
             //    for use with this cipher
             var algorithm = {
                 name: HTMLCryptoAlgorithmNames.pbkdf2,
-                salt: salt.bytes,
+                salt: salt,
                 iterations: 500000,
                 hash: 'SHA-512'
             };
@@ -93,24 +93,24 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
     _getHTMLEncryptAlgorithm: function(){
         return {
             name: HTMLCryptoAlgorithmNames.aesCBC,
-            iv: crypto.getRandomValues(new Uint8Array(16))
+            iv: crypto.getRandomValues(JSData.initWithLength(16))
         };
     },
 
     _getHTMLDecryptAlgorithm: function(prefixedData){
         return {
             name: HTMLCryptoAlgorithmNames.aesCBC,
-            iv: prefixedData.subdataInRange(JSRange(0, 16)).bytes
+            iv: prefixedData.subdataInRange(JSRange(0, 16))
         };
     },
 
     encrypt: function(data, key, completion, target){
         var algorithm = this._getHTMLEncryptAlgorithm();
-        crypto.subtle.encrypt(algorithm, key.htmlKey, data.bytes).then(function(encrypted){
+        crypto.subtle.encrypt(algorithm, key.htmlKey, data).then(function(encrypted){
             // prefix the encrypted data with the random initializtion vector so
             // it is available to the decrypt function.  The iv does not need
             // to be a secret, it just needs to be random, so prefixing does not affect security.
-            var ivPrefixed = JSData.initWithChunks([algorithm.iv, new Uint8Array(encrypted)]);
+            var ivPrefixed = JSData.initWithChunks([algorithm.iv, JSData.initWithBuffer(encrypted)]);
             completion.call(target, ivPrefixed);
         },function(e){
             completion.call(target, null);
@@ -120,8 +120,8 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
     decrypt: function(data, key, completion, target){
         var algorithm = this._getHTMLDecryptAlgorithm(data);
         var encrypted = data.subdataInRange(JSRange(16, data.length - 16));
-        crypto.subtle.decrypt(algorithm, key.htmlKey, encrypted.bytes).then(function(decrypted){
-            var decryptedData = JSData.initWithBytes(new Uint8Array(decrypted));
+        crypto.subtle.decrypt(algorithm, key.htmlKey, encrypted).then(function(decrypted){
+            var decryptedData = JSData.initWithBuffer(decrypted);
             completion.call(target, decryptedData);
         }, function(e){
             completion.call(target, null);
@@ -131,7 +131,7 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
     wrapKey: function(key, wrappingKey, completion, target){
         var algorithm = this._getHTMLEncryptAlgorithm();
         crypto.subtle.wrapKey("raw", key.htmlKey, wrappingKey.htmlKey, algorithm).then(function(bytes){
-            var ivPrefixed = JSData.initWithChunks([algorithm.iv, new Uint8Array(bytes)]);
+            var ivPrefixed = JSData.initWithChunks([algorithm.iv, JSData.initWithBuffer(bytes)]);
             completion.call(target, ivPrefixed);
         }, function(e){
             completion.call(target, null);
@@ -142,7 +142,7 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
         var algorithm = this._getHTMLDecryptAlgorithm(wrappedKeyData);
         var unwrappedKeyHTMLAlgorithm = HTMLCryptoAlgorithmNames.fromAlgorithm(unwrappedKeyAlgorithm);
         wrappedKeyData = wrappedKeyData.subdataInRange(JSRange(16, wrappedKeyData.length - 16));
-        crypto.subtle.unwrapKey("raw", wrappedKeyData.bytes, wrappingKey.htmlKey, algorithm, unwrappedKeyHTMLAlgorithm, true, ["encrypt", "decrypt"]).then(function(key){
+        crypto.subtle.unwrapKey("raw", wrappedKeyData, wrappingKey.htmlKey, algorithm, unwrappedKeyHTMLAlgorithm, true, ["encrypt", "decrypt"]).then(function(key){
             completion.call(target, SECHTMLKey.initWithKey(key));
         }, function(e){
             completion.call(target, null);
@@ -156,7 +156,7 @@ SECCipherAESCounter.definePropertiesFromExtensions({
     htmlAlgorithmName: HTMLCryptoAlgorithmNames.aesCTR,
 
     _getHTMLEncryptAlgorithm: function(){
-        var nonce = new Uint8Array([
+        var nonce = JSData.initWithArray([
             1,
             ((this.encryptedMessageId / 0x100000000) >> 16) & 0xFF,
             ((this.encryptedMessageId / 0x100000000) >> 8) & 0xFF,
@@ -168,7 +168,7 @@ SECCipherAESCounter.definePropertiesFromExtensions({
         ]);
         var algorithm = {
             name: HTMLCryptoAlgorithmNames.aesCTR,
-            counter: new Uint8Array(16),
+            counter: JSData.initWithLength(16),
             length: 64
         };
         nonce.copyTo(algorithm.counter, 0);
@@ -179,18 +179,18 @@ SECCipherAESCounter.definePropertiesFromExtensions({
         var nonce = prefixedData.subdataInRange(JSRange(0, 8));
         var algorithm = {
             name: HTMLCryptoAlgorithmNames.aesCTR,
-            counter: new Uint8Array(16),
+            counter: JSData.initWithLength(16),
             length: 64
         };
         this.decryptedMessageId =
-              (nonce.bytes[6] << 48)
-            | (nonce.bytes[5] << 40)
-            | (nonce.bytes[4] << 32)
-            | (nonce.bytes[3] << 24)
-            | (nonce.bytes[2] << 16)
-            | (nonce.bytes[1] << 8)
-            | (nonce.bytes[0]);
-        nonce.bytes.copyTo(algorithm.counter, 0);
+              (nonce[6] << 48)
+            | (nonce[5] << 40)
+            | (nonce[4] << 32)
+            | (nonce[3] << 24)
+            | (nonce[2] << 16)
+            | (nonce[1] << 8)
+            | (nonce[0]);
+        nonce.copyTo(algorithm.counter, 0);
         return algorithm;
     },
 
@@ -200,9 +200,9 @@ SECCipherAESCounter.definePropertiesFromExtensions({
             return;
         }
         var algorithm = this._getHTMLEncryptAlgorithm();
-        var nonce = new Uint8Array(algorithm.counter.buffer, algorithm.counter.byteOffset, 8);
-        crypto.subtle.encrypt(algorithm, key.htmlKey, data.bytes).then(function(encrypted){
-            var noncePrefixed = JSData.initWithChunks([nonce, new Uint8Array(encrypted)]);
+        var nonce = algorithm.counter.truncatedToLength(8);
+        crypto.subtle.encrypt(algorithm, key.htmlKey, data).then(function(encrypted){
+            var noncePrefixed = JSData.initWithChunks([nonce, JSData.initWithBuffer(encrypted)]);
             completion.call(target, noncePrefixed);
         },function(e){
             completion.call(target, null);
@@ -213,8 +213,8 @@ SECCipherAESCounter.definePropertiesFromExtensions({
         // Extract the nonce from the start of the data, then use it to decrypt the remaining data
         var algorithm = this._getHTMLDecryptAlgorithm(data);
         var encrypted = data.subdataInRange(JSRange(8, data.length - 8));
-        crypto.subtle.decrypt(algorithm, key.htmlKey, encrypted.bytes).then(function(decrypted){
-            var decryptedData = JSData.initWithBytes(new Uint8Array(decrypted));
+        crypto.subtle.decrypt(algorithm, key.htmlKey, encrypted).then(function(decrypted){
+            var decryptedData = JSData.initWithBuffer(decrypted);
             completion.call(target, decryptedData);
         }, function(error){
             completion.call(target, null);
@@ -227,9 +227,9 @@ SECCipherAESCounter.definePropertiesFromExtensions({
             return;
         }
         var algorithm = this._getHTMLEncryptAlgorithm();
-        var nonce = new Uint8Array(algorithm.counter.buffer, algorithm.counter.byteOffset, 8);
+        var nonce = algorithm.counter.truncatedToLength(8);
         crypto.subtle.wrapKey("raw", key.htmlKey, wrappingKey.htmlKey, algorithm).then(function(bytes){
-            var noncePrefixed = JSData.initWithChunks([nonce, new Uint8Array(bytes)]);
+            var noncePrefixed = JSData.initWithChunks([nonce, JSData.initWithBuffer(bytes)]);
             completion.call(target, noncePrefixed);
         }, function(e){
             completion.call(target, null);
@@ -240,7 +240,7 @@ SECCipherAESCounter.definePropertiesFromExtensions({
         var algorithm = this._getHTMLDecryptAlgorithm(wrappedKeyData);
         var unwrappedKeyHTMLAlgorithm = HTMLCryptoAlgorithmNames.fromAlgorithm(unwrappedKeyAlgorithm);
         wrappedKeyData = wrappedKeyData.subdataInRange(JSRange(8, wrappedKeyData.length - 8));
-        crypto.subtle.unwrapKey("raw", wrappedKeyData.bytes, wrappingKey.htmlKey, algorithm, unwrappedKeyHTMLAlgorithm, true, ["encrypt", "decrypt"]).then(function(key){
+        crypto.subtle.unwrapKey("raw", wrappedKeyData, wrappingKey.htmlKey, algorithm, unwrappedKeyHTMLAlgorithm, true, ["encrypt", "decrypt"]).then(function(key){
             completion.call(target, SECHTMLKey.initWithKey(key));
         }, function(e){
             completion.call(target, null);
@@ -254,7 +254,7 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
     htmlAlgorithmName: HTMLCryptoAlgorithmNames.aesGCM,
 
     _getHTMLEncryptAlgorithm: function(){
-        var nonce = new Uint8Array([
+        var nonce = JSData.initWithArray([
             1,
             ((this.encryptedMessageId / 0x100000000) >> 16) & 0xFF,
             ((this.encryptedMessageId / 0x100000000) >> 8) & 0xFF,
@@ -266,7 +266,7 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         ]);
         var algorithm = {
             name: HTMLCryptoAlgorithmNames.aesGCM,
-            iv: new Uint8Array(16),
+            iv: JSData.initWithLength(16),
             tagLength: 128
         };
         nonce.copyTo(algorithm.iv, 0);
@@ -277,18 +277,18 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         var nonce = prefixedData.subdataInRange(JSRange(0, 8));
         var algorithm = {
             name: HTMLCryptoAlgorithmNames.aesGCM,
-            iv: new Uint8Array(16),
+            iv: JSData.initWithLength(16),
             tagLength: 128
         };
         this.decryptedMessageId =
-              (nonce.bytes[6] << 48)
-            | (nonce.bytes[5] << 40)
-            | (nonce.bytes[4] << 32)
-            | (nonce.bytes[3] << 24)
-            | (nonce.bytes[2] << 16)
-            | (nonce.bytes[1] << 8)
-            | (nonce.bytes[0]);
-        nonce.bytes.copyTo(algorithm.iv, 0);
+              (nonce[6] << 48)
+            | (nonce[5] << 40)
+            | (nonce[4] << 32)
+            | (nonce[3] << 24)
+            | (nonce[2] << 16)
+            | (nonce[1] << 8)
+            | (nonce[0]);
+        nonce.copyTo(algorithm.iv, 0);
         return algorithm;
     },
 
@@ -298,9 +298,9 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
             return;
         }
         var algorithm = this._getHTMLEncryptAlgorithm();
-        var nonce = new Uint8Array(algorithm.iv.buffer, algorithm.iv.byteOffset, 8);
-        crypto.subtle.encrypt(algorithm, key.htmlKey, data.bytes).then(function(encrypted){
-            var noncePrefixed = JSData.initWithChunks([nonce, new Uint8Array(encrypted)]);
+        var nonce = algorithm.iv.truncatedToLength(8);
+        crypto.subtle.encrypt(algorithm, key.htmlKey, data).then(function(encrypted){
+            var noncePrefixed = JSData.initWithChunks([nonce, JSData.initWithBuffer(encrypted)]);
             completion.call(target, noncePrefixed);
         },function(e){
             completion.call(target, null);
@@ -310,8 +310,8 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
     decrypt: function(data, key, completion, target){
         var algorithm = this._getHTMLDecryptAlgorithm(data);
         var encrypted = data.subdataInRange(JSRange(8, data.length - 8));
-        crypto.subtle.decrypt(algorithm, key.htmlKey, encrypted.bytes).then(function(decrypted){
-            var decryptedData = JSData.initWithBytes(new Uint8Array(decrypted));
+        crypto.subtle.decrypt(algorithm, key.htmlKey, encrypted).then(function(decrypted){
+            var decryptedData = JSData.initWithBuffer(decrypted);
             completion.call(target, decryptedData);
         }, function(error){
             completion.call(target, null);
@@ -324,9 +324,9 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
             return;
         }
         var algorithm = this._getHTMLEncryptAlgorithm();
-        var nonce = new Uint8Array(algorithm.iv.buffer, algorithm.iv.byteOffset, 8);
+        var nonce = algorithm.iv.truncatedToLength(8);
         crypto.subtle.wrapKey("raw", key.htmlKey, wrappingKey.htmlKey, algorithm).then(function(bytes){
-            var noncePrefixed = JSData.initWithChunks([nonce, new Uint8Array(bytes)]);
+            var noncePrefixed = JSData.initWithChunks([nonce, JSData.initWithBuffer(bytes)]);
             completion.call(target, noncePrefixed);
         }, function(e){
             completion.call(target, null);
@@ -337,7 +337,7 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         var algorithm = this._getHTMLDecryptAlgorithm(wrappedKeyData);
         var unwrappedKeyHTMLAlgorithm = HTMLCryptoAlgorithmNames.fromAlgorithm(unwrappedKeyAlgorithm);
         wrappedKeyData = wrappedKeyData.subdataInRange(JSRange(8, wrappedKeyData.length - 8));
-        crypto.subtle.unwrapKey("raw", wrappedKeyData.bytes, wrappingKey.htmlKey, algorithm, unwrappedKeyHTMLAlgorithm, true, ["encrypt", "decrypt"]).then(function(key){
+        crypto.subtle.unwrapKey("raw", wrappedKeyData, wrappingKey.htmlKey, algorithm, unwrappedKeyHTMLAlgorithm, true, ["encrypt", "decrypt"]).then(function(key){
             completion.call(target, SECHTMLKey.initWithKey(key));
         }, function(e){
             completion.call(target, null);
@@ -346,7 +346,7 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
 });
 
 SECCipher.getRandomData = function(length){
-    return JSData.initWithBytes(crypto.getRandomValues(new Uint8Array(length)));
+    return crypto.getRandomValues(JSData.initWithLength(length));
 };
 
 })();

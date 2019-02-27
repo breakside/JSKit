@@ -172,7 +172,7 @@ JSClass("PDFWriter", JSObject, {
             data = data.utf8();
         }
         this._offset += data.length;
-        this._stream.write(data.bytes, 0, data.bytes.length);
+        this._stream.write(data, 0, data.length);
     },
 
     _writeCrossReferenceTable: function(){
@@ -293,7 +293,7 @@ var pdf_formatter = {
         var byte;
         var hex;
         for (var i = 0, l = data.length; i < l; ++i){
-            byte = data.bytes[i];
+            byte = data[i];
             if (byte >= 0x21 && byte <= 0x7E){
                 str += String.fromCharCode(byte);
             }else{

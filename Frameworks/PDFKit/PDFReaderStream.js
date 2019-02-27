@@ -46,11 +46,11 @@ JSClass("PDFReaderStream", JSObject, {
     },
 
     readLine: function(){
-        var bytes = new Uint8Array(256);
+        var data = JSData.initWithLength(256);
         var length = 0;
         var byte = this.byte();
         while (byte !== null && byte != PDFTokenizer.Whitespace.carriageReturn && byte != PDFTokenizer.Whitespace.lineFeed && length < 256){
-            bytes[length++] = byte;
+            data[length++] = byte;
             byte = this.byte();
         }
         if (byte == PDFTokenizer.Whitespace.carriageReturn){
@@ -59,12 +59,11 @@ JSClass("PDFReaderStream", JSObject, {
                 this.seekRelative(-1);
             }
         }
-        bytes = new Uint8Array(bytes.buffer, bytes.byteOffset, length);
-        return JSData.initWithBytes(bytes);
+        return data.truncatedToLength(length);
     },
 
     read: function(count){
-        var bytes = new Uint8Array(count);
+        var data = JSData.initWithLength(count);
         var length = 0;
         var byte;
         while (length < count){
@@ -72,10 +71,9 @@ JSClass("PDFReaderStream", JSObject, {
             if (byte === null){
                 break;
             }
-            bytes[length++] = byte;
+            data[length++] = byte;
         }
-        bytes = new Uint8Array(bytes.buffer, bytes.byteOffset, length);
-        return JSData.initWithBytes(bytes);
+        return data.truncatedToLength(length);
     },
 
 });
@@ -94,14 +92,14 @@ JSClass("PDFReaderDataStream", PDFReaderStream, {
         if (this._offset >= this._data.length){
             return null;
         }
-        return this._data.bytes[this._offset++];
+        return this._data[this._offset++];
     },
 
     byteBackwards: function(){
         if (this._offset === 0){
             return null;
         }
-        return this._data.bytes[--this._offset];
+        return this._data[--this._offset];
     },
 
     seek: function(offset){

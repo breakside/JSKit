@@ -143,7 +143,7 @@ JSFileManager.definePropertiesFromExtensions({
         var created = false;
         var create = function(parentExists){
             if (parentExists){
-                fs.writeFile(url.path, data.bytes, function(error){
+                fs.writeFile(url.path, data, function(error){
                     completion.call(target, error === null);
                 });
             }else{
@@ -380,7 +380,7 @@ JSFileManager.definePropertiesFromExtensions({
         }
         fs.readFile(url.path, function(error, buffer){
             if (error === null){
-                completion.call(target, JSData.initWithBytes(buffer));
+                completion.call(target, JSData.initWithNodeBuffer(buffer));
             }else{
                 completion.call(target, null);
             }

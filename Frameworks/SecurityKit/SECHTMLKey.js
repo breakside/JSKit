@@ -12,7 +12,7 @@ JSClass("SECHTMLKey", SECKey, {
 
     getData: function(completion, target){
         crypto.subtle.exportKey("raw", this.htmlKey).then(function(rawBuffer){
-            completion.call(target, JSData.initWithBytes(new Uint8Array(rawBuffer)));
+            completion.call(target, JSData.initWithBuffer(rawBuffer));
         }, function(){
             completion.call(target, null);
         });

@@ -7,8 +7,7 @@
 JSClass("JSFileTests", TKTestSuite, {
 
     testDataFile: function(){
-        var bytes = new Uint8Array([0x01, 0x02, 0x03, 0x04]);
-        var data = JSData.initWithBytes(bytes);
+        var data = JSData.initWithArray([0x01, 0x02, 0x03, 0x04]);
         var file = JSFile.initWithData(data, "test.dat", "application/octet-stream");
         TKAssertNotNull(file);
         TKAssertEquals(file.size, 4);
@@ -17,8 +16,7 @@ JSClass("JSFileTests", TKTestSuite, {
     },
 
     testReadDataFile: function(){
-        var bytes = new Uint8Array([0x01, 0x02, 0x03, 0x04]);
-        var data = JSData.initWithBytes(bytes);
+        var data = JSData.initWithArray([0x01, 0x02, 0x03, 0x04]);
         var file = JSFile.initWithData(data, "test.dat", "application/octet-stream");
         var expectation = TKExpectation.init();
         expectation.call(file.readData, file, function(readData){
@@ -29,16 +27,15 @@ JSClass("JSFileTests", TKTestSuite, {
     },
 
     testReadDataFileRange: function(){
-        var bytes = new Uint8Array([0x01, 0x02, 0x03, 0x04]);
-        var data = JSData.initWithBytes(bytes);
+        var data = JSData.initWithArray([0x01, 0x02, 0x03, 0x04]);
         var file = JSFile.initWithData(data, "test.dat", "application/octet-stream");
         var expectation = TKExpectation.init();
         var range = JSRange(1, 2);
         expectation.call(file.readDataRange, file, range, function(readData){
             TKAssertNotNull(readData);
             TKAssertEquals(readData.length, 2);
-            TKAssertEquals(readData.bytes[0], 0x02);
-            TKAssertEquals(readData.bytes[1], 0x03);
+            TKAssertEquals(readData[0], 0x02);
+            TKAssertEquals(readData[1], 0x03);
         });
         this.wait(expectation, 1.0);
     },

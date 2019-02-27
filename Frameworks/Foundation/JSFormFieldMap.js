@@ -26,25 +26,24 @@ JSFormFieldMap.prototype = {
     fields: null,
 
     decode: function(urlEncodedData, decodePlusAsSpace){
-        var bytes = urlEncodedData.bytes;
-        var l = bytes.length;
+        var l = urlEncodedData.length;
         var start = 0;
         var i = 0;
         var name = null;
         var value;
         while (i < l){
             if (name === null){
-                if (bytes[i] == 0x3D){
+                if (urlEncodedData[i] == 0x3D){
                     name = String.initWithData(urlEncodedData.subdataInRange(JSRange(start, i - start)).dataByDecodingPercentEscapes(decodePlusAsSpace), String.Encoding.utf8);
                     start = i + 1;
-                }else if (bytes[i] == 0x26){
+                }else if (urlEncodedData[i] == 0x26){
                     name = String.initWithData(urlEncodedData.subdataInRange(JSRange(start, i - start)).dataByDecodingPercentEscapes(decodePlusAsSpace), String.Encoding.utf8);
                     this.add(name, null);
                     name = null;
                     start = i + 1;
                 }
             }else{
-                if (bytes[i] == 0x26){
+                if (urlEncodedData[i] == 0x26){
                     value = String.initWithData(urlEncodedData.subdataInRange(JSRange(start, i - start)).dataByDecodingPercentEscapes(decodePlusAsSpace), String.Encoding.utf8);
                     this.add(name, value);
                     name = null;
@@ -70,8 +69,8 @@ JSFormFieldMap.prototype = {
         var field;
         var data;
         var i, l;
-        var ampersand = JSData.initWithBytes(Uint8Array.from([0x26]));
-        var equals = JSData.initWithBytes(Uint8Array.from([0x3D]));
+        var ampersand = JSData.initWithArray([0x26]);
+        var equals = JSData.initWithArray([0x3D]);
         for (i = 0, l = this.fields.length; i < l; ++i){
             field = this.fields[i];
             if (i > 0){
@@ -89,15 +88,15 @@ JSFormFieldMap.prototype = {
                 totalLength += data.length;
             }
         }
-        var encoded = new Uint8Array(totalLength);
+        var encoded = JSData.initWithLength(totalLength);
         var j = 0;
         for (i = 0, l = dataList.length; i < l; ++i){
             data = dataList[i];
-            for (var ii = 0, ll = data.bytes.length; ii < ll; ++ii){
-                encoded[j++] = data.bytes[ii];
+            for (var ii = 0, ll = data.length; ii < ll; ++ii){
+                encoded[j++] = data[ii];
             }
         }
-        return JSData.initWithBytes(encoded);
+        return encoded;
     },
 
     add: function(name, value){

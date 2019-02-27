@@ -150,7 +150,7 @@ JSClass("PDFTokenizer", JSObject, {
             }
             return _token;
         }
-        var bytes = new Uint8Array(128);
+        var bytes = JSData.initWithLength(128);
         var length = 0;
         while (byte !== null && !PDFTokenizer.Whitespace.isWhitespace(byte) && !PDFTokenizer.Delimiters.isDelimiter(byte)){
             bytes[length++] = byte;
@@ -159,7 +159,7 @@ JSClass("PDFTokenizer", JSObject, {
         if (byte !== null){
             this.stream.seekRelative(-1);
         }
-        bytes = new Uint8Array(bytes.buffer, bytes.byteOffset, length);
+        bytes = bytes.truncatedToLength(length);
         var token = bytes.stringByDecodingUTF8();
         return token;
     },
@@ -209,7 +209,7 @@ JSClass("PDFTokenizer", JSObject, {
     _finishReadingName: function(){
         // empty name is valid
         var byte = this.stream.byte();
-        var bytes = new Uint8Array(128);
+        var bytes = JSData.initWithLength(128);
         var length = 0;
         var a, b;
         while (!PDFTokenizer.Whitespace.isWhitespace(byte) && !PDFTokenizer.Delimiters.isDelimiter(byte)){
@@ -230,7 +230,7 @@ JSClass("PDFTokenizer", JSObject, {
         if (byte !== null){
             this.stream.seekRelative(-1);
         }
-        bytes = new Uint8Array(bytes.buffer, bytes.byteOffset, length);
+        bytes = bytes.truncatedToLength(length);
         // Getting the unescaped bytes is straightforward, but we're left with
         // a problem.
         //
@@ -314,8 +314,7 @@ JSClass("PDFTokenizer", JSObject, {
             }
             byte = this.stream.byte();
         }
-        bytes = Uint8Array.from(bytes);
-        return JSData.initWithBytes(bytes);
+        return JSData.initWithArray(bytes);
     },
 
     _finishReadingHexadecimalString: function(){
@@ -338,8 +337,7 @@ JSClass("PDFTokenizer", JSObject, {
         if (a !== null){
             bytes.push(PDFTokenizer.Hexadecimal.outputHexadecimal(a, 0));
         }
-        bytes = Uint8Array.from(bytes);
-        return JSData.initWithBytes(bytes);
+        return JSData.initWithArray(bytes);
     },
 
     readObject: function(){

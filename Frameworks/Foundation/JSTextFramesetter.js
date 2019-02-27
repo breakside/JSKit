@@ -55,7 +55,7 @@ JSClass("JSTextFramesetter", JSObject, {
             y += line.size.height;
             if (y <= heightLimit){
                 spacing = Math.min(heightLimit - y, (this.attributes.lineSpacing - 1.0) * line.size.height);
-                line.size.height += spacing;
+                line.size.height += Math.max(0, spacing);
                 y += spacing;
                 lines.push(line);
                 remianingRange.advance(line.range.length);

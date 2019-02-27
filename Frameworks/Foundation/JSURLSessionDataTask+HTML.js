@@ -21,7 +21,7 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
         var data = null;
         var url = request.url.encodedString;
         if (request.data !== null){
-            data = request.data.bytes;
+            data = request.data;
         }
         if (this._xmlRequest.readyState === XMLHttpRequest.UNSENT){
             try {
@@ -107,8 +107,8 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
     },
 
     _finalizeResponse: function(){
-        var bytes = new Uint8Array(this._xmlRequest.response);
-        this._currentRequest._response.data = JSData.initWithBytes(bytes);
+        var data = JSData.initWithBuffer(this._xmlRequest.response);
+        this._currentRequest._response.data = data;
     },
 
     _complete: function(){

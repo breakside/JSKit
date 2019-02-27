@@ -70,7 +70,7 @@ JSClass("SKHTTPResponder", JSObject, {
 
         logger.info("Accepting websocket");
         var key = requestHeaders.get('Sec-WebSocket-Key', '');
-        var accept = JSSHA1Hash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").utf8().bytes).base64StringRepresentation();
+        var accept = JSSHA1Hash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").utf8()).base64StringRepresentation();
         var upgradeHeaders = JSMIMEHeaderMap();
         upgradeHeaders.add("Upgrade", "websocket");
         upgradeHeaders.add("Connection", "Upgrade");

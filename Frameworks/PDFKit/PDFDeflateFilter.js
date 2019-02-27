@@ -4,12 +4,12 @@
 
 JSClass("PDFDeflateFilter", PDFPredictorFilter, {
     decodePrimaryData: function(data){
-        var uncompressed = Zlib.uncompress(data.bytes);
-        return JSData.initWithBytes(uncompressed);
+        var uncompressed = Zlib.uncompress(data);
+        return uncompressed;
     },
 
     encodePrimaryData: function(data){
-        var compressed = Zlib.compress(data.bytes);
-        return JSData.initWithBytes(compressed);
+        var compressed = Zlib.compress(data);
+        return compressed;
     }
 });

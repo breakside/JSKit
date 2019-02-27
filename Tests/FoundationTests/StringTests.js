@@ -748,40 +748,40 @@ JSClass('StringTests', TKTestSuite, {
         var str = "Hèllo";
         var utf8 = str.utf8();
         TKAssertEquals(utf8.length, 6);
-        TKAssertEquals(utf8.bytes[0], 0x48);
-        TKAssertEquals(utf8.bytes[1], 0xc3);
-        TKAssertEquals(utf8.bytes[2], 0xa8);
-        TKAssertEquals(utf8.bytes[3], 0x6c);
-        TKAssertEquals(utf8.bytes[4], 0x6c);
-        TKAssertEquals(utf8.bytes[5], 0x6f);
+        TKAssertEquals(utf8[0], 0x48);
+        TKAssertEquals(utf8[1], 0xc3);
+        TKAssertEquals(utf8[2], 0xa8);
+        TKAssertEquals(utf8[3], 0x6c);
+        TKAssertEquals(utf8[4], 0x6c);
+        TKAssertEquals(utf8[5], 0x6f);
 
         str = "😀";
         utf8 = str.utf8();
         TKAssertEquals(utf8.length, 4);
-        TKAssertEquals(utf8.bytes[0], 0xf0);
-        TKAssertEquals(utf8.bytes[1], 0x9f);
-        TKAssertEquals(utf8.bytes[2], 0x98);
-        TKAssertEquals(utf8.bytes[3], 0x80);
+        TKAssertEquals(utf8[0], 0xf0);
+        TKAssertEquals(utf8[1], 0x9f);
+        TKAssertEquals(utf8[2], 0x98);
+        TKAssertEquals(utf8[3], 0x80);
     },
 
     testLatin1: function(){
         var str = "Hello";
         var data = str.latin1();
         TKAssertEquals(data.length, 5);
-        TKAssertEquals(data.bytes[0], 0x48);
-        TKAssertEquals(data.bytes[1], 0x65);
-        TKAssertEquals(data.bytes[2], 0x6c);
-        TKAssertEquals(data.bytes[3], 0x6c);
-        TKAssertEquals(data.bytes[4], 0x6f);
+        TKAssertEquals(data[0], 0x48);
+        TKAssertEquals(data[1], 0x65);
+        TKAssertEquals(data[2], 0x6c);
+        TKAssertEquals(data[3], 0x6c);
+        TKAssertEquals(data[4], 0x6f);
 
         str = "Hèllo";
         data = str.latin1();
         TKAssertEquals(data.length, 5);
-        TKAssertEquals(data.bytes[0], 0x48);
-        TKAssertEquals(data.bytes[1], 0xe8);
-        TKAssertEquals(data.bytes[2], 0x6c);
-        TKAssertEquals(data.bytes[3], 0x6c);
-        TKAssertEquals(data.bytes[4], 0x6f);
+        TKAssertEquals(data[0], 0x48);
+        TKAssertEquals(data[1], 0xe8);
+        TKAssertEquals(data[2], 0x6c);
+        TKAssertEquals(data[3], 0x6c);
+        TKAssertEquals(data[4], 0x6f);
 
         TKAssertThrows(function(){
             var str = "😀";
@@ -820,14 +820,14 @@ JSClass('StringTests', TKTestSuite, {
     },
 
     testBase64Decode: function(){
-        TKAssertEquals("".dataByDecodingBase64().bytes.stringByDecodingUTF8(), "");
-        TKAssertEquals("Zg==".dataByDecodingBase64().bytes.stringByDecodingUTF8(), "f");
-        TKAssertEquals("Zm8=".dataByDecodingBase64().bytes.stringByDecodingUTF8(), "fo");
-        TKAssertEquals("Zm9v".dataByDecodingBase64().bytes.stringByDecodingUTF8(), "foo");
-        TKAssertEquals("Zm9vYg==".dataByDecodingBase64().bytes.stringByDecodingUTF8(), "foob");
-        TKAssertEquals("Zm9vYmE=".dataByDecodingBase64().bytes.stringByDecodingUTF8(), "fooba");
-        TKAssertEquals("Zm9vYmFy".dataByDecodingBase64().bytes.stringByDecodingUTF8(), "foobar");
-        TKAssertObjectEquals("s3pPLMBiTxaQ9kYGzzhZRbK+xOo=".dataByDecodingBase64().bytes, new Uint8Array([0xb3, 0x7a, 0x4f, 0x2c, 0xc0, 0x62, 0x4f, 0x16, 0x90, 0xf6, 0x46, 0x06, 0xcf, 0x38, 0x59, 0x45, 0xb2, 0xbe, 0xc4, 0xea]));
+        TKAssertEquals("".dataByDecodingBase64().stringByDecodingUTF8(), "");
+        TKAssertEquals("Zg==".dataByDecodingBase64().stringByDecodingUTF8(), "f");
+        TKAssertEquals("Zm8=".dataByDecodingBase64().stringByDecodingUTF8(), "fo");
+        TKAssertEquals("Zm9v".dataByDecodingBase64().stringByDecodingUTF8(), "foo");
+        TKAssertEquals("Zm9vYg==".dataByDecodingBase64().stringByDecodingUTF8(), "foob");
+        TKAssertEquals("Zm9vYmE=".dataByDecodingBase64().stringByDecodingUTF8(), "fooba");
+        TKAssertEquals("Zm9vYmFy".dataByDecodingBase64().stringByDecodingUTF8(), "foobar");
+        TKAssertObjectEquals("s3pPLMBiTxaQ9kYGzzhZRbK+xOo=".dataByDecodingBase64(), JSData.initWithArray([0xb3, 0x7a, 0x4f, 0x2c, 0xc0, 0x62, 0x4f, 0x16, 0x90, 0xf6, 0x46, 0x06, 0xcf, 0x38, 0x59, 0x45, 0xb2, 0xbe, 0xc4, 0xea]));
     },
 
     testMasking: function(){

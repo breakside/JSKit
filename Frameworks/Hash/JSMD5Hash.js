@@ -1,5 +1,5 @@
 // #import "Hash/JSIterativeHash.js"
-/* global JSIterativeHash, JSGlobalObject, JSMD5Hash */
+/* global JSIterativeHash, JSGlobalObject, JSData, JSMD5Hash */
 'use strict';
 
 JSGlobalObject.JSMD5Hash = function JSMD5Hash(x){
@@ -106,7 +106,7 @@ JSMD5Hash.prototype._hashBlock = function(block){
 
 JSMD5Hash.prototype.digest = function(){
     var temp;
-    var digest = new Uint8Array(16);
+    var digest = JSData.initWithLength(16);
     for (var i = 0, l = this.words.length; i < l; ++i){
         temp = this.words[i];
         for (var j = 0; j < 4; ++j){

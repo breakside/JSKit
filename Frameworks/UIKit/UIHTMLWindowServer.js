@@ -890,7 +890,7 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
             var dataList = this.dataListForType(type);
             var base64List = [];
             for (var i = 0, l = dataList.length; i < l; ++i){
-                base64List.push(dataList[i].bytes.base64StringRepresentation());
+                base64List.push(dataList[i].base64StringRepresentation());
             }
             this._dataTransfer.setData(type, base64List);
         }
@@ -956,7 +956,7 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
             if (file.isKindOfClass(JSHTMLFile)){
                 htmlFile = file._blob;
             }else if (file.isKindOfClass(JSDataFile)){
-                htmlFile = new File(file._data.bytes, file.name, {type: file.contentType});
+                htmlFile = new File(file._data, file.name, {type: file.contentType});
             }
             // This allows files to be dragged out of Chrome to the Desktop.
             // Disabling for now because there's not a good hook for revoking the file url when the pasteboard is done with it

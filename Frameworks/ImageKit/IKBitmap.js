@@ -49,27 +49,26 @@ IKBitmap.FormatOfData = function(data){
     if (data === null){
         return IKBitmap.Format.unknown;
     }
-    var bytes = data.bytes;
-    if (bytes.length >= 16){
+    if (data.length >= 16){
         // PNG magic bytes
-        if (bytes[0] == 0x89 &&
-            bytes[1] == 0x50 &&
-            bytes[2] == 0x4E &&
-            bytes[3] == 0x47 &&
-            bytes[4] == 0x0D &&
-            bytes[5] == 0x0A &&
-            bytes[6] == 0x1A &&
-            bytes[7] == 0x0A)
+        if (data[0] == 0x89 &&
+            data[1] == 0x50 &&
+            data[2] == 0x4E &&
+            data[3] == 0x47 &&
+            data[4] == 0x0D &&
+            data[5] == 0x0A &&
+            data[6] == 0x1A &&
+            data[7] == 0x0A)
         {
             // Verifying "IHDR" signature
-            if (bytes[12] == 0x49 && bytes[13] == 0x48 && bytes[14] == 0x44 && bytes[15] == 0x52){
+            if (data[12] == 0x49 && data[13] == 0x48 && data[14] == 0x44 && data[15] == 0x52){
                 return IKBitmap.Format.png;
                 // Invalid PNG
             }
         }
-    }else if (bytes.length >= 2){
+    }else if (data.length >= 2){
         // JPEG magic bytes
-        if (bytes[0] == 0xFF && bytes[1] == 0xD8){
+        if (data[0] == 0xFF && data[1] == 0xD8){
             return IKBitmap.Format.jpeg;
         }
     }

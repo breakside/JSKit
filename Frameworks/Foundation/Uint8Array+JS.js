@@ -11,7 +11,48 @@ var base64EncodingMap = [
     '+', '/'
 ];
 
+Object.defineProperties(Uint8Array, {
+
+    initWithLength: {
+        value: function Uint8Array_initWithLength(length){
+            return new Uint8Array(length);
+        }
+    },
+
+    initWithBuffer: {
+        value: function Uint8Array_initWithBuffer(buffer){
+            return new Uint8Array(buffer);
+        }
+    },
+
+    initWithChunks: {
+        value: function Uint8Array_initWithChunks(chunks){
+            var length = 0;
+            var i, l;
+            for (i = 0, l = chunks.length; i < l; ++i){
+                length += chunks[i].length;
+            }
+            var bytes = new Uint8Array(length);
+            var offset = 0;
+            for (i = 0, l = chunks.length; i < l; ++i){
+                chunks[i].copyTo(bytes, offset);
+                offset += chunks[i].length;
+            }
+            return bytes;
+        }
+    },
+
+    initWithArray: {
+        value: function Uint8Array_initWithArray(array){
+            return Uint8Array.from(array);
+        }
+    }
+
+});
+
 Object.defineProperties(Uint8Array.prototype, {
+
+    // MARK: - Mutations
 
     zero: {
         enumerable: false,
@@ -19,6 +60,28 @@ Object.defineProperties(Uint8Array.prototype, {
             for (var i = 0, l = this.length; i < l; ++i){
                 this[i] = 0;
             }
+        }
+    },
+
+    increasedByLength: {
+        value: function Uint8Array_increasedByLength(length){
+            var copy = new Uint8Array(this.length + length);
+            this.copyTo(copy);
+            return copy;
+        }
+    },
+
+    // MARK: - Subdata
+
+    subdataInRange: {
+        value: function Uint8Array_subdataInRange(range){
+            return new Uint8Array(this.buffer, this.byteOffset + range.location, range.length);
+        }
+    },
+
+    truncatedToLength: {
+        value: function Uint8Array_truncatedToLength(length){
+            return new Uint8Array(this.buffer, this.byteOffset, length);
         }
     },
 
@@ -209,9 +272,9 @@ Object.defineProperties(Uint8Array.prototype, {
         }
     },
 
-    arrayByDecodingPercentEscapes: {
+    dataByDecodingPercentEscapes: {
         enumerable: false,
-        value: function Uint8Array_arrayByDecodingPercentEscapes(decodePlusAsSpace){
+        value: function Uint8Array_dataByDecodingPercentEscapes(decodePlusAsSpace){
             var decoded = new Uint8Array(this.length);
             var i = 0;
             var j = 0;
@@ -237,9 +300,9 @@ Object.defineProperties(Uint8Array.prototype, {
         }
     },
 
-    arrayByEncodingPercentEscapes: {
+    dataByEncodingPercentEscapes: {
         enumerable: false,
-        value: function Uint8Array_arrayByEncodingPercentEscapes(reserved, encodeSpaceAsPlus){
+        value: function Uint8Array_dataByEncodingPercentEscapes(reserved, encodeSpaceAsPlus){
             var encoded = new Uint8Array(this.length * 3);
             var j = 0;
             var c;
@@ -277,6 +340,7 @@ Object.defineProperties(Uint8Array.prototype, {
 
     copyTo: {
         value: function(other, index){
+            if (index === undefined) index = 0;
             for (var i = 0, l = this.length, l2 = other.length; i < l && i + index < l2; ++i){
                 other[index + i] = this[i];
             }

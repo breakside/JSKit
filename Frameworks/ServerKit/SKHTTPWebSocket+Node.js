@@ -46,8 +46,8 @@ SKHTTPWebSocket.definePropertiesFromExtensions({
         }
     },
 
-    _handleDataEvent: function(bytes){
-        this._receive(JSData.initWithBytes(bytes));
+    _handleDataEvent: function(buffer){
+        this._receive(JSData.initWithNodeBuffer(buffer));
     },
 
     _handleCloseEvent: function(){

@@ -25,7 +25,7 @@ JSClass("UITokenFieldTests", TKTestSuite, {
         TKAssertNotUndefined(attachment);
         TKAssert(attachment.isKindOfClass(UITextAttachmentView));
         TKAssert(attachment.view.isKindOfClass(UITokenFieldTokenView));
-        TKAssertEquals(attachment.view.labelView.text, "hello");
+        TKAssertEquals(attachment.view.tokenLabel.text, "hello");
 
         field.insertText("test");
         TKAssertEquals(field.text, "\uFFFCtest");
@@ -36,9 +36,9 @@ JSClass("UITokenFieldTests", TKTestSuite, {
         TKAssertEquals(field.selections[0].range.location, 2);
         TKAssertEquals(field.selections[0].range.length, 0);
         attachment = field.attributedText.attributeAtIndex(JSAttributedString.Attribute.attachment, 0);
-        TKAssertEquals(attachment.view.labelView.text, "hello");
+        TKAssertEquals(attachment.view.tokenLabel.text, "hello");
         attachment = field.attributedText.attributeAtIndex(JSAttributedString.Attribute.attachment, 1);
-        TKAssertEquals(attachment.view.labelView.text, "test");
+        TKAssertEquals(attachment.view.tokenLabel.text, "test");
 
         field.setSelectionRange(JSRange(0, 0));
         field.insertText("three");
@@ -50,11 +50,11 @@ JSClass("UITokenFieldTests", TKTestSuite, {
         TKAssertEquals(field.selections[0].range.location, 1);
         TKAssertEquals(field.selections[0].range.length, 0);
         attachment = field.attributedText.attributeAtIndex(JSAttributedString.Attribute.attachment, 0);
-        TKAssertEquals(attachment.view.labelView.text, "three");
+        TKAssertEquals(attachment.view.tokenLabel.text, "three");
         attachment = field.attributedText.attributeAtIndex(JSAttributedString.Attribute.attachment, 1);
-        TKAssertEquals(attachment.view.labelView.text, "hello");
+        TKAssertEquals(attachment.view.tokenLabel.text, "hello");
         attachment = field.attributedText.attributeAtIndex(JSAttributedString.Attribute.attachment, 2);
-        TKAssertEquals(attachment.view.labelView.text, "test");
+        TKAssertEquals(attachment.view.tokenLabel.text, "test");
 
         field.setSelectionRange(JSRange(1, 1));
         field.insertText("four");
@@ -66,11 +66,11 @@ JSClass("UITokenFieldTests", TKTestSuite, {
         TKAssertEquals(field.selections[0].range.location, 2);
         TKAssertEquals(field.selections[0].range.length, 0);
         attachment = field.attributedText.attributeAtIndex(JSAttributedString.Attribute.attachment, 0);
-        TKAssertEquals(attachment.view.labelView.text, "three");
+        TKAssertEquals(attachment.view.tokenLabel.text, "three");
         attachment = field.attributedText.attributeAtIndex(JSAttributedString.Attribute.attachment, 1);
-        TKAssertEquals(attachment.view.labelView.text, "four");
+        TKAssertEquals(attachment.view.tokenLabel.text, "four");
         attachment = field.attributedText.attributeAtIndex(JSAttributedString.Attribute.attachment, 2);
-        TKAssertEquals(attachment.view.labelView.text, "test");
+        TKAssertEquals(attachment.view.tokenLabel.text, "test");
 
         field.deleteBackward();
         TKAssertEquals(field.text.length, 2);
@@ -79,9 +79,9 @@ JSClass("UITokenFieldTests", TKTestSuite, {
         TKAssertEquals(field.selections[0].range.location, 1);
         TKAssertEquals(field.selections[0].range.length, 0);
         attachment = field.attributedText.attributeAtIndex(JSAttributedString.Attribute.attachment, 0);
-        TKAssertEquals(attachment.view.labelView.text, "three");
+        TKAssertEquals(attachment.view.tokenLabel.text, "three");
         attachment = field.attributedText.attributeAtIndex(JSAttributedString.Attribute.attachment, 1);
-        TKAssertEquals(attachment.view.labelView.text, "test");
+        TKAssertEquals(attachment.view.tokenLabel.text, "test");
     }
 
 });

@@ -159,9 +159,9 @@ PDFColorSpace.deviceCMYK = {
         var b = 0;
         for (i = 0, l = offsets.length; i < l; ++i){
             if (offsets[i].offset >= CMYKToLabLookup.length) return;
-            L += CMYKToLabLookup.bytes[offsets[i].offset] / 255.0 * offsets[i].pct;
-            a += CMYKToLabLookup.bytes[offsets[i].offset + 1] / 255.0 * offsets[i].pct;
-            b += CMYKToLabLookup.bytes[offsets[i].offset + 2] / 255.0 * offsets[i].pct;
+            L += CMYKToLabLookup[offsets[i].offset] / 255.0 * offsets[i].pct;
+            a += CMYKToLabLookup[offsets[i].offset + 1] / 255.0 * offsets[i].pct;
+            b += CMYKToLabLookup[offsets[i].offset + 2] / 255.0 * offsets[i].pct;
         }
 
         L *= 100;
@@ -360,7 +360,7 @@ PDFColorSpaceIndexed.prototype = Object.create(PDFColorSpace.prototype, {
             var lookupComponents = [];
             var x;
             for (var i = 0; i < n; ++i, ++offset){
-                x = this.lookup.bytes[offset];
+                x = this.lookup[offset];
                 lookupComponents.push(x / 255.0);
             }
             return this.base.colorFromComponents(lookupComponents);

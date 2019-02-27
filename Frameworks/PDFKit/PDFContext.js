@@ -168,7 +168,7 @@ JSClass("PDFContext", JSContext, {
             var stream = writer.stream;
             for (var row = 0; row < bitmap.size.height; ++row){
                 for (var col = 0; col < bitmap.size.width; ++col){
-                    stream.write(bitmap.data.bytes, offset, 3);
+                    stream.write(bitmap.data, offset, 3);
                     offset += 4;
                     length += 3;
                 }

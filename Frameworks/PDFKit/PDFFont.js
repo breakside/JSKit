@@ -56,7 +56,7 @@ JSGlobalObject.PDFType1Font.prototype = Object.create(PDFFont.prototype, {
             var code;
             var unicode;
             for (var i = 0, l = data.length; i < l; ++i){
-                code = data.bytes[i];
+                code = data[i];
                 str += this._cachedEncoding.stringForByte(code);
             }
             return str;
@@ -73,7 +73,7 @@ JSGlobalObject.PDFType1Font.prototype = Object.create(PDFFont.prototype, {
             var min = this.FirstChar;
             var max = this.LastChar;
             for (var i = 0, l = data.length; i < l; ++i){
-                index = data.bytes[i];
+                index = data[i];
                 if (index >= min && index <= max){
                     width += this.W[index - min];
                 }else if (this.FontDescriptor){
@@ -332,7 +332,7 @@ var ToUnicodeEncoding = function(cmap){
 };
 
 var integerFromData = function(data){
-    var dataView = new DataView(data.bytes.buffer, data.bytes.byteOffset, data.bytes.length);
+    var dataView = new DataView(data.buffer, data.byteOffset, data.length);
     switch (dataView.byteLength){
         case 0:
             return 0;
@@ -417,8 +417,8 @@ ToUnicodeEncoding.prototype = {
                     this.codeToStringRanges.push({
                         low: low,
                         high: high,
-                        prefix: JSData.initWithBytes(unicode, unicode.length - 1).stringByDecodingUTF16BE(),
-                        first: unicode.bytes[unicode.length - 1]
+                        prefix: unicode.truncatedToLength(unicode.length - 1).stringByDecodingUTF16BE(),
+                        first: unicode[unicode.length - 1]
                     });
                 }
             }else{

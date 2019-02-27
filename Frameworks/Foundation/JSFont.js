@@ -91,7 +91,7 @@ JSClass("JSFont", JSObject, {
 
     glyphForCharacter: function(character){
         if (!this._cache.cmap){
-            var cmapBytes = Zlib.uncompress(this._cache.cmap64.data.dataByDecodingBase64().bytes);
+            var cmapBytes = Zlib.uncompress(this._cache.cmap64.data.dataByDecodingBase64());
             this._cache.cmap = {
                 tables: new CMap(this._cache.cmap64.format, cmapBytes),
                 map: {},
@@ -153,7 +153,7 @@ JSClass("JSFont", JSObject, {
     widthOfGlyph: function(glyphIndex){
         if (!this._cache.widths){
             if (this._cache.widths64){
-                var widthBytes = Zlib.uncompress(this._cache.widths64.dataByDecodingBase64().bytes);
+                var widthBytes = Zlib.uncompress(this._cache.widths64.dataByDecodingBase64());
                 if (widthBytes.length > 1){
                     this._cache.widths = new DataView(widthBytes.buffer, widthBytes.byteOffset, widthBytes.length);
                 }else{

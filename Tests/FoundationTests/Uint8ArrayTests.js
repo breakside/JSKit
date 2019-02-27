@@ -30,13 +30,13 @@ JSClass('Uint8ArrayTests', TKTestSuite, {
     },
 
     testBase64StringRepresentation: function(){
-        TKAssertEquals("".utf8().bytes.base64StringRepresentation(), "");
-        TKAssertEquals("f".utf8().bytes.base64StringRepresentation(), "Zg==");
-        TKAssertEquals("fo".utf8().bytes.base64StringRepresentation(), "Zm8=");
-        TKAssertEquals("foo".utf8().bytes.base64StringRepresentation(), "Zm9v");
-        TKAssertEquals("foob".utf8().bytes.base64StringRepresentation(), "Zm9vYg==");
-        TKAssertEquals("fooba".utf8().bytes.base64StringRepresentation(), "Zm9vYmE=");
-        TKAssertEquals("foobar".utf8().bytes.base64StringRepresentation(), "Zm9vYmFy");
+        TKAssertEquals("".utf8().base64StringRepresentation(), "");
+        TKAssertEquals("f".utf8().base64StringRepresentation(), "Zg==");
+        TKAssertEquals("fo".utf8().base64StringRepresentation(), "Zm8=");
+        TKAssertEquals("foo".utf8().base64StringRepresentation(), "Zm9v");
+        TKAssertEquals("foob".utf8().base64StringRepresentation(), "Zm9vYg==");
+        TKAssertEquals("fooba".utf8().base64StringRepresentation(), "Zm9vYmE=");
+        TKAssertEquals("foobar".utf8().base64StringRepresentation(), "Zm9vYmFy");
         TKAssertEquals(new Uint8Array([0xb3, 0x7a, 0x4f, 0x2c, 0xc0, 0x62, 0x4f, 0x16, 0x90, 0xf6, 0x46, 0x06, 0xcf, 0x38, 0x59, 0x45, 0xb2, 0xbe, 0xc4, 0xea]).base64StringRepresentation(), "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=");
     }
 

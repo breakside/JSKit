@@ -18,17 +18,17 @@ JSClass("PDFLZWFilter", PDFPredictorFilter, {
     },
 
     decodePrimaryData: function(data){
-        var stream = new PDFLZWStream(data.bytes);
+        var stream = new PDFLZWStream(data);
         stream.bitIncreaseOffset = this.bitIncreaseOffset;
         stream.uncompress();
-        return JSData.initWithBytes(stream.output);
+        return stream.output;
     },
 
     encodePrimaryData: function(data){
-        var stream = new PDFLZWStream(data.bytes);
+        var stream = new PDFLZWStream(data);
         stream.bitIncreaseOffset = this.bitIncreaseOffset;
         stream.compress();
-        return JSData.initWithBytes(stream.output);
+        return stream.output;
     }
 });
 
@@ -63,7 +63,7 @@ PDFLZWStream.prototype = {
     },
 
     compress: function(){
-        this.output = new Uint8Array(Math.ceil((this.input.length + 2) * 9 / 8));
+        this.output = JSData.initWithLength(Math.ceil((this.input.length + 2) * 9 / 8));
         this.resetTable();
         this.bitLength = 9;
         var root = new LZWSequenceNode(null);
@@ -99,11 +99,11 @@ PDFLZWStream.prototype = {
             this.writeCode(node.value);
         }
         this.writeCode(257);
-        this.output = new Uint8Array(this.output.buffer, this.output.byteOffset, this.byteOffset + (this.bitOffset ? 1 : 0));
+        this.output = this.output.truncatedToLength(this.byteOffset + (this.bitOffset ? 1 : 0));
     },
 
     increaseOutput: function(at_least){
-        var output = new Uint8Array(this.output.length * 2 + at_least);
+        var output = JSData.initWithLength(this.output.length * 2 + at_least);
         for (var i = 0, l = this.outputLength; i < l; ++i){
             output[i] = this.output[i];
         }
@@ -115,7 +115,7 @@ PDFLZWStream.prototype = {
         this.bitOffset = 0;
         this.outputLength = 0;
         this.bitLength = 9;
-        this.output = new Uint8Array(this.input.length * 5);
+        this.output = JSData.initWithLength(this.input.length * 5);
         var code;
         var i, l;
         var sequence = [];
@@ -168,7 +168,7 @@ PDFLZWStream.prototype = {
             }
         } while (code != 257);
         // logger.info("ended at %d.%d".sprintf(this.byteOffset, this.bitOffset));
-        this.output = new Uint8Array(this.output.buffer, this.output.byteOffset, this.outputLength);
+        this.output = this.output.truncatedToLength(this.outputLength);
     },
 
     readCode: function(){

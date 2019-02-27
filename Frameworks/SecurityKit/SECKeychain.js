@@ -57,8 +57,8 @@ JSClass("SECKeychain", JSObject, {
                                 // 4. Populate the encrypted JSON format that will be saved to disk
                                 this._contents = {
                                     masterAlgorithm: masterAlgorithm,
-                                    masterSalt: masterSalt.bytes.base64StringRepresentation(),
-                                    methods: [{algorithm: methodAlgorithm, key: wrappedMethodKeyData.bytes.base64StringRepresentation()}],
+                                    masterSalt: masterSalt.base64StringRepresentation(),
+                                    methods: [{algorithm: methodAlgorithm, key: wrappedMethodKeyData.base64StringRepresentation()}],
                                     preferredMethod: 0,
                                     items: {}
                                 };
@@ -197,7 +197,7 @@ JSClass("SECKeychain", JSObject, {
                         var encryptNextMethod = function(){
                             if (methodIndex == this._methods.length){
                                 this._contents.masterAlgorithm = masterAlgorithm;
-                                this._contents.masterSalt = masterSalt.bytes.base64StringRepresentation();
+                                this._contents.masterSalt = masterSalt.base64StringRepresentation();
                                 this._contents.methods = lockedMethods;
                                 this._persistAfterDelay();
                                 completion.call(target, true);
@@ -207,7 +207,7 @@ JSClass("SECKeychain", JSObject, {
                                     if (wrappedMethodKeyData !== null){
                                         var methodInfo = {
                                             algorithm: method.algorithm,
-                                            key: wrappedMethodKeyData.bytes.base64StringRepresentation()
+                                            key: wrappedMethodKeyData.base64StringRepresentation()
                                         };
                                         lockedMethods.push(methodInfo);
                                         ++methodIndex;
@@ -321,7 +321,7 @@ JSClass("SECKeychain", JSObject, {
                 try{
                     var itemInfo = {
                         method: methodIndex,
-                        data: encrypted.bytes.base64StringRepresentation()
+                        data: encrypted.base64StringRepresentation()
                     };
                     this._contents.items[id] = itemInfo;
                 }catch (e){

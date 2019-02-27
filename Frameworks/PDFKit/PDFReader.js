@@ -100,28 +100,28 @@ JSClass("PDFReader", JSObject, {
         if (data.length < 8){
             throw new Error("Expecting %PDF-1.x at start");
         }
-        if (data.bytes[0] != 0x25){  // %
+        if (data[0] != 0x25){  // %
             throw new Error("Expecting %PDF-1.x at start");
         }
-        if (data.bytes[1] != 0x50){  // P
+        if (data[1] != 0x50){  // P
             throw new Error("Expecting %PDF-1.x at start");
         }
-        if (data.bytes[2] != 0x44){  // D
+        if (data[2] != 0x44){  // D
             throw new Error("Expecting %PDF-1.x at start");
         }
-        if (data.bytes[3] != 0x46){  // F
+        if (data[3] != 0x46){  // F
             throw new Error("Expecting %PDF-1.x at start");
         }
-        if (data.bytes[4] != 0x2D){  // -
+        if (data[4] != 0x2D){  // -
             throw new Error("Expecting %PDF-1.x at start");
         }
-        if (data.bytes[5] != 0x31){  // 1
+        if (data[5] != 0x31){  // 1
             throw new Error("Expecting %PDF-1.x at start");
         }
-        if (data.bytes[6] != 0x2E){  // .
+        if (data[6] != 0x2E){  // .
             throw new Error("Expecting %PDF-1.x at start");
         }
-        var minorVersion = data.bytes[7] - PDFTokenizer.Numeric.zero;
+        var minorVersion = data[7] - PDFTokenizer.Numeric.zero;
         if (minorVersion < 0){
             throw new Error("Invalid minor version number: %d".sprintf(minorVersion));
         }
@@ -332,19 +332,19 @@ JSClass("PDFReader", JSObject, {
                 if (field1Size === 0){
                     field1 = 1;
                 }else{
-                    field1 = integerFromBytes(data.bytes, offset, field1Size);
+                    field1 = integerFromBytes(data, offset, field1Size);
                     offset += field1Size;
                 }
                 if (field2Size === 0){
                     field2 = 0;
                 }else{
-                    field2 = integerFromBytes(data.bytes, offset, field2Size);
+                    field2 = integerFromBytes(data, offset, field2Size);
                     offset += field2Size;
                 }
                 if (field3Size === 0){
                     field3 = 0;
                 }else{
-                    field3 = integerFromBytes(data.bytes, offset, field3Size);
+                    field3 = integerFromBytes(data, offset, field3Size);
                     offset += field3Size;
                 }
                 switch (field1){

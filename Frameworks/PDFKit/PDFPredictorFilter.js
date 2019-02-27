@@ -111,8 +111,8 @@ var pngFilter = function(data){
     var o = 0;
     var filter;
     for (var row = 0; row < rows; ++row, i += bytesPerRow, o += bytesPerRow){
-        filter = _pngFilter[data.bytes[i++]] || pngFilterNone;
-        filter(data.bytes, i, out.bytes, o, bytesPerRow, stride);
+        filter = _pngFilter[data[i++]] || pngFilterNone;
+        filter(data, i, out, o, bytesPerRow, stride);
     }
     return out;
 };

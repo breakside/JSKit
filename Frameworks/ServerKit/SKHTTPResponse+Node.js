@@ -33,7 +33,7 @@ SKHTTPResponse.definePropertiesFromExtensions({
     },
 
     writeData: function(data){
-        this._nodeResponse.write(data.bytes.nodeBuffer());
+        this._nodeResponse.write(data.nodeBuffer());
     },
 
     writeFile: function(filePath){

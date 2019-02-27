@@ -47,8 +47,7 @@ JSClass("JSHTMLFile", JSFile, {
                     var data = null;
                     if (reader.result !== null){
                         var buffer = reader.result;
-                        var bytes = new Uint8Array(buffer);
-                        data = JSData.initWithBytes(bytes);
+                        data = JSData.initWithBuffer(buffer);
                     }
                     completion.call(target, data);
                 }

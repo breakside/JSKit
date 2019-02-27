@@ -29,7 +29,7 @@ JSURLSessionStreamTask.definePropertiesFromExtensions({
 
     sendMessage: function(data){
         if (this._websocket !== null && this._websocket.readyState == WebSocket.OPEN){
-            this._websocket.send(data.bytes);
+            this._websocket.send(data);
         }
     },
 
@@ -58,7 +58,7 @@ JSURLSessionStreamTask.definePropertiesFromExtensions({
     },
 
     _event_message: function(e){
-        this.session._taskDidReceiveStreamData(this, JSData.initWithBytes(new Uint8Array(e.data)));
+        this.session._taskDidReceiveStreamData(this, JSData.initWithBuffer(e.data));
     },
 
     _event_error: function(e){

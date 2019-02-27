@@ -17,17 +17,17 @@ JSClass("PDFASCIIHexFilter", PDFFilter, {
         var l = data.length;
         var foundEnd = false;
         while (i < l){
-            h = data.bytes[i];
+            h = data[i];
             if (PDFTokenizer.Hexadecimal.isHexadecimal(h)){
                 pair[slot++] = h;
                 if (slot == 2){
-                    output.bytes[o++] = parseInt(String.fromCharCode(pair[0], pair[1]), 16);
+                    output[o++] = parseInt(String.fromCharCode(pair[0], pair[1]), 16);
                     slot = 0;
                 }
             }else if (h === 0x3E){
                 foundEnd = true;
                 if (slot == 1){
-                    output.bytes[o++] = parseInt(String.fromCharCode(pair[0]) + '0', 16);
+                    output[o++] = parseInt(String.fromCharCode(pair[0]) + '0', 16);
                 }
                 break;
             }else if (!PDFTokenizer.Whitespace.isWhitespace(h)){
@@ -38,8 +38,7 @@ JSClass("PDFASCIIHexFilter", PDFFilter, {
         if (!foundEnd){
             throw new Error("PDFASCIIHexFilter reached end of data without > marker");
         }
-        output.truncateToLength(o);
-        return output;
+        return output.truncatedToLength(o);
     },
 
     encode: function(data){
@@ -53,22 +52,22 @@ JSClass("PDFASCIIHexFilter", PDFFilter, {
         var o = 0;
         var lineLength = 0;
         for (var i = 0, l = data.length; i < l; ++i){
-            c = data.bytes[i];
+            c = data[i];
             h = (c < 16 ? '0': '') + c.toString(16).toUpperCase();
-            output.bytes[o++] = h.charCodeAt(0);
+            output[o++] = h.charCodeAt(0);
             ++lineLength;
             if (lineLength == this.maximumLineLength){
                 lineLength = 0;
-                output.bytes[o++] = 0x0a;
+                output[o++] = 0x0a;
             }
-            output.bytes[o++] = h.charCodeAt(1);
+            output[o++] = h.charCodeAt(1);
             ++lineLength;
             if (lineLength == this.maximumLineLength){
                 lineLength = 0;
-                output.bytes[o++] = 0x0a;
+                output[o++] = 0x0a;
             }
         }
-        output.bytes[o] = 0x3E;
+        output[o] = 0x3E;
         return output;
     }
 });

@@ -10,10 +10,6 @@ JSClass("SECDataKey", SECKey, {
         this.keyData = data;
     },
 
-    initWithBytes: function(bytes){
-        this.initWithData(JSData.initWithBytes(bytes));
-    },
-
     getData: function(completion, target){
         JSRunLoop.main.schedule(completion, target, this.keyData);
     }

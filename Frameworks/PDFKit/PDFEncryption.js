@@ -105,10 +105,10 @@ JSClass("PDFEncryption", JSObject, {
                 // b) Initialize the MD5 hash function and pass the 32-byte padding string
                 var md5 = new JSMD5Hash();
                 md5.start();
-                md5.add(Uint8Array.from(passwordPadding));
+                md5.add(JSData.initWithArray(passwordPadding));
 
                 // c) Pass the first element of the file's file identifier array
-                md5.add(this.documentId.bytes);
+                md5.add(this.documentId);
                 md5.finish();
                 var iteration = 0;
 
@@ -127,7 +127,7 @@ JSClass("PDFEncryption", JSObject, {
                     if (iteration < 20){
                         var newKeyData = JSData.initWithLength(keyData.length);
                         for (i = 0, l = keyData.length; i < l; ++i){
-                            newKeyData.bytes[i] = keyData.bytes[i] ^ iteration;
+                            newKeyData[i] = keyData[i] ^ iteration;
                         }
                         cipher.createKeyWithData(newKeyData, function(newKey){
                             if (newKey === null){
@@ -140,7 +140,7 @@ JSClass("PDFEncryption", JSObject, {
                         // ... If the first 16 bytes of result are equal to the value of the encryption dictionary’s U entry, password is valid
                         var success = true;
                         for (i = 0, l = 16; i < l && success; ++i){
-                            if (encrypted.bytes[i] != this.userCheck.bytes[i]){
+                            if (encrypted[i] != this.userCheck[i]){
                                 success = false;
                             }
                         }
@@ -152,10 +152,10 @@ JSClass("PDFEncryption", JSObject, {
                 };
 
                 // d) Encrypt the 16-byte result of the hash, using an RC4 encryption function 
-                cipher.encrypt(JSData.initWithBytes(md5.digest(), 16), key, handleEncryption, this);
+                cipher.encrypt(md5.digest().truncatedToLength(16), key, handleEncryption, this);
             }else{
                 // b) Encrypt the 32-byte padding string
-                var paddingData = JSData.initWithBytes(Uint8Array.from(passwordPadding));
+                var paddingData = JSData.initWithArray(passwordPadding);
                 cipher.encrypt(paddingData, key, function(encrypted){
 
                     // ... If the result is equal to the value of the encryption dictionary’s U entry, password is valid
@@ -250,19 +250,18 @@ JSClass("PDFEncryption", JSObject, {
     _generateDocumentKeyData: function(password){
         // a) Pad or truncate the password string to exactly 32 bytes.
         var passwordData = this._dataForPassword(password);
-        var paddedPasswordData = JSData.initWithChunks([passwordData.bytes, Uint8Array.from(passwordPadding)]);
-        paddedPasswordData.truncateToLength(32);
+        var paddedPasswordData = JSData.initWithChunks([passwordData, JSData.initWithArray(passwordPadding)]).truncatedToLength(32);
 
         // b) Initialize the MD5 hash function and pass the result of step (a) as input to this function.
         var md5 = new JSMD5Hash();
         md5.start();
-        md5.add(paddedPasswordData.bytes);
+        md5.add(paddedPasswordData);
 
         // c) Pass the value of the encryption dictionary's O entry to the MD5 hash function
-        md5.add(this.ownerCheck.bytes);
+        md5.add(this.ownerCheck);
 
         // d) Convert the integer value of the P entry to a 32-bit unsigned binary number and pass these bytes to the MD5 hash function, low-order byte first.
-        md5.add(Uint8Array.from([
+        md5.add(JSData.initWithArray([
             this.permissions & 0xFF,
             (this.permissions >> 8) & 0xFF,
             (this.permissions >> 16) & 0xFF,
@@ -270,11 +269,11 @@ JSClass("PDFEncryption", JSObject, {
         ]));
 
         // e) Pass the first element of the file's file identifier array to the MD5 hash function.
-        md5.add(this.documentId.bytes);
+        md5.add(this.documentId);
 
         // f) (Security handlers of revision 4 or greater) If document metadata is not being encrypted, pass 4 bytes with the value 0xFFFFFFFF to the MD5 hash function.
         if (this.revision >= 4 && !this.encryptMetadata){
-            md5.add(Uint8Array.from([0xFF, 0xFF, 0xFF, 0xFF]));
+            md5.add(JSData.initWithArray([0xFF, 0xFF, 0xFF, 0xFF]));
         }
 
         // g) Finish the hash.
@@ -282,10 +281,10 @@ JSClass("PDFEncryption", JSObject, {
 
         // h) Security handlers of revision 3 or greater) Do the following 50 times: Take the output from the previous MD5 hash and pass the first n bytes of the output as input into a new MD5 hash
         // i) Set the encryption key to the first n bytes of the output from the final MD5 hash
-        var keyData = JSData.initWithBytes(md5.digest(), this.keyLengthInBytes);
+        var keyData = md5.digest().truncatedToLength(this.keyLengthInBytes);
         if (this.revision >= 3){
             for (var i = 0; i < 50; ++i){
-                keyData = JSData.initWithBytes(JSMD5Hash(keyData.bytes), this.keyLengthInBytes);
+                keyData = JSMD5Hash(keyData).truncatedToLength(this.keyLengthInBytes);
             }
         }
 
@@ -297,14 +296,14 @@ JSClass("PDFEncryption", JSObject, {
 
         var md5 = new JSMD5Hash();
         md5.start();
-        md5.add(this.documentKeyData.bytes);
+        md5.add(this.documentKeyData);
 
         // b) For all strings and streams without crypt filter specifier; treating the
         //    object number and generation number as binary integers, extend the original
         //    n-byte encryption key to n + 5 bytes by appending the low-order 3 bytes of
         //    the object number and the low-order 2 bytes of the generation number in that
         //    order, low-order byte first.
-        md5.add(Uint8Array.from([
+        md5.add(JSData.initWithArray([
             objectId & 0xFF,
             (objectId >> 8) & 0xFF,
             (objectId >> 16) & 0xFF,
@@ -316,7 +315,7 @@ JSClass("PDFEncryption", JSObject, {
         //     4 bytes by adding the value “sAlT”, which corresponds to the hexadecimal
         //     values 0x73, 0x41, 0x6C, 0x54
         if (algorithm == SECCipher.Algorithm.aesCBC){
-            md5.add(Uint8Array.from([0x73, 0x41, 0x6C, 0x54]));
+            md5.add(JSData.initWithArray([0x73, 0x41, 0x6C, 0x54]));
         }
 
         // c) Initialize the MD5 hash function and pass the result of step (b) as input to this function.
@@ -324,7 +323,7 @@ JSClass("PDFEncryption", JSObject, {
 
         // d) Use the first (n + 5) bytes, up to a maximum of 16, of the output from the MD5 hash as the key
         var keyLength = Math.min(16, this.documentKeyData.length + 5);
-        var keyData = JSData.initWithBytes(md5.digest(), keyLength);
+        var keyData = md5.digest().truncatedToLength(keyLength);
         return keyData;
     }
 

@@ -1,5 +1,5 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject, JSData, SKHTTPWebSocketParser, JSLog */
+/* global JSClass, JSObject, JSData, JSRange, SKHTTPWebSocketParser, JSLog */
 'use strict';
 
 (function(){
@@ -36,9 +36,8 @@ JSClass("SKHTTPWebSocketParser", JSObject, {
     },
 
     receive: function(framedData){
-        var framedBytes = framedData.bytes;
         var consumed = 0;
-        var l = framedBytes.length;
+        var l = framedData.length;
 
         // Keep going until we've read all of the input data
         while (consumed < l){
@@ -49,7 +48,7 @@ JSClass("SKHTTPWebSocketParser", JSObject, {
             // - stop after the header is done, or if we're out of data
             while (consumed < l && this._remainingHeaderCount > 0){
                 for (; this._remainingHeaderCount > 0 && consumed < l; ++consumed){
-                    this._header[this._headerLength++] = framedBytes[consumed];
+                    this._header[this._headerLength++] = framedData[consumed];
                     --this._remainingHeaderCount;
                 }
                 if (this._headerLength == 2){
@@ -68,13 +67,13 @@ JSClass("SKHTTPWebSocketParser", JSObject, {
             // or to the end of the frame's length.
             if (consumed < l && this.frame !== null){
                 var length = Math.min(l - consumed, this.frame.length - this.frame.received);
-                var chunk = new Uint8Array(framedBytes.buffer, framedBytes.byteOffset + consumed, length);
+                var chunk = framedData.subdataInRange(JSRange(consumed, length));
                 consumed += length;
                 if (this.frame.maskingKey !== null){
                     this._unmask(chunk, this.frame.received);
                 }
                 this.frame.received += length;
-                this._handleChunk(JSData.initWithBytes(chunk));
+                this._handleChunk(chunk);
                 if (this.frame.received == this.frame.length){
                     this._reset();
                 }
@@ -186,7 +185,7 @@ JSClass("SKHTTPWebSocketParser", JSObject, {
             }
         }
         this.frame = null;
-        this._header = new Uint8Array(13);
+        this._header = JSData.initWithLength(13);
         this._headerLength = 0;
         this._remainingHeaderCount = 2;
     }
@@ -207,23 +206,23 @@ SKHTTPWebSocketParser.UnmaskedHeaderForData = function(chunks, code, isFinal){
     }
     var header;
     if (length < 126){
-        header = new Uint8Array(2);
+        header = JSData.initWithLength(2);
         header[1] = length;
     }else if (length < 0x10000){
-        header = new Uint8Array(4);
+        header = JSData.initWithLength(4);
         header[1] = 126;
         header[2] = length >> 8;
         header[3] = length & 0xFF;
     }else{
         header[1] = 127;
-        header = new Uint8Array(10);
+        header = JSData.initWithLength(10);
         for (i = 9; i >= 2; --i){
             header[i] = length & 0xFF;
             length >>= 8;
         }
     }
     header[0] = (isFinal ? 0x80 : 0x00) | code;
-    return JSData.initWithBytes(header);
+    return header;
 };
 
 SKHTTPWebSocketParser.FrameCode = {

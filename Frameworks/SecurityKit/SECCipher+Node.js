@@ -27,7 +27,7 @@ SECCipher.definePropertiesFromExtensions({
             if (error){
                 completion.call(target, null);
             }else{
-                completion.call(target, SECNodeKey.initWithBytes(keyBytes));
+                completion.call(target, SECNodeKey.initWithData(JSData.initWithNodeBuffer(keyBytes)));
             }
         });
     },
@@ -38,13 +38,13 @@ SECCipher.definePropertiesFromExtensions({
     },
 
     createKeyWithPassphrase: function(passphrase, salt, completion, target){
-        var utf8Passphrase = String.fromCharCode.apply(String, passphrase.utf8().bytes);
-        var saltString = String.fromCharCode.apply(String, salt.bytes);
+        var utf8Passphrase = String.fromCharCode.apply(String, passphrase.utf8());
+        var saltString = String.fromCharCode.apply(String, salt);
         crypto.pbkdf2(utf8Passphrase, saltString, 500000, 32, 'sha512', function(error, derivedBytes){
             if (error){
                 completion.call(target, null);
             }else{
-                completion.call(target, SECNodeKey.initWithBytes(derivedBytes));
+                completion.call(target, SECNodeKey.initWithData(JSData.initWithNodeBuffer(derivedBytes)));
             }
         });
     },
@@ -75,8 +75,8 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
                 completion.call(target, null);
                 return;
             }
-            var cipher = crypto.createCipheriv(name, key.keyData.bytes, iv);
-            var chunks = [iv, cipher.update(data.bytes), cipher.final()];
+            var cipher = crypto.createCipheriv(name, key.keyData, iv);
+            var chunks = [iv, cipher.update(data), cipher.final()];
             completion.call(target, JSData.initWithChunks(chunks));
         });
     },
@@ -88,9 +88,9 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
                 JSRunLoop.main.schedule(completion, target, null);
                 return;
             }
-            var iv = data.subdataInRange(JSRange(0, 16)).bytes;
-            var cipher = crypto.createDecipheriv(name, key.keyData.bytes, iv);
-            var chunks = [cipher.update(data.subdataInRange(JSRange(16, data.length - 16)).bytes), cipher.final()];
+            var iv = data.subdataInRange(JSRange(0, 16));
+            var cipher = crypto.createDecipheriv(name, key.keyData, iv);
+            var chunks = [cipher.update(data.subdataInRange(JSRange(16, data.length - 16))), cipher.final()];
             JSRunLoop.main.schedule(completion, target, JSData.initWithChunks(chunks));
         }catch (e){
             JSRunLoop.main.schedule(completion, target, null);
@@ -123,7 +123,7 @@ SECCipherAESCounter.definePropertiesFromExtensions({
             JSRunLoop.main.schedule(completion, target, null);
             return;
         }
-        var nonce = new Uint8Array([
+        var nonce = JSData.initWithArray([
             1,
             ((this.encryptedMessageId / 0x100000000) >> 16) & 0xFF,
             ((this.encryptedMessageId / 0x100000000) >> 8) & 0xFF,
@@ -133,10 +133,10 @@ SECCipherAESCounter.definePropertiesFromExtensions({
             (this.encryptedMessageId >> 8) & 0xFF,
             this.encryptedMessageId & 0xF
         ]);
-        var iv = new Uint8Array(16);
+        var iv = JSData.initWithLength(16);
         nonce.copyTo(iv, 0);
-        var cipher = crypto.createCipheriv(name, key.keyData.bytes, iv);
-        var chunks = [nonce, cipher.update(data.bytes), cipher.final()];
+        var cipher = crypto.createCipheriv(name, key.keyData, iv);
+        var chunks = [nonce, cipher.update(data), cipher.final()];
         JSRunLoop.main.schedule(completion, target, JSData.initWithChunks(chunks));
     },
 
@@ -147,7 +147,7 @@ SECCipherAESCounter.definePropertiesFromExtensions({
                 JSRunLoop.main.schedule(completion, target, null);
                 return;
             }
-            var nonce = data.subdataInRange(JSRange(0, 8)).bytes;
+            var nonce = data.subdataInRange(JSRange(0, 8));
             this.decryptedMessageId =
                   (nonce[6] << 48)
                 | (nonce[5] << 40)
@@ -156,10 +156,10 @@ SECCipherAESCounter.definePropertiesFromExtensions({
                 | (nonce[2] << 16)
                 | (nonce[1] << 8)
                 | (nonce[0]);
-            var iv = new Uint8Array(16);
+            var iv = JSData.initWithLength(16);
             nonce.copyTo(iv, 0);
-            var cipher = crypto.createDecipheriv(name, key.keyData.bytes, iv);
-            var chunks = [cipher.update(data.subdataInRange(JSRange(8, data.length - 8)).bytes), cipher.final()];
+            var cipher = crypto.createDecipheriv(name, key.keyData, iv);
+            var chunks = [cipher.update(data.subdataInRange(JSRange(8, data.length - 8))), cipher.final()];
             JSRunLoop.main.schedule(completion, target, JSData.initWithChunks(chunks));
         }catch (e){
             JSRunLoop.main.schedule(completion, target, null);
@@ -192,7 +192,7 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
             JSRunLoop.main.schedule(completion, target, null);
             return;
         }
-        var nonce = new Uint8Array([
+        var nonce = JSData.initWithArray([
             1,
             ((this.encryptedMessageId / 0x100000000) >> 16) & 0xFF,
             ((this.encryptedMessageId / 0x100000000) >> 8) & 0xFF,
@@ -202,11 +202,11 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
             (this.encryptedMessageId >> 8) & 0xFF,
             this.encryptedMessageId & 0xF
         ]);
-        var iv = new Uint8Array(16);
+        var iv = JSData.initWithLength(16);
         nonce.copyTo(iv, 0);
-        var cipher = crypto.createCipheriv(name, key.keyData.bytes, iv);
-        var chunks = [nonce, cipher.update(data.bytes), cipher.final()];
-        var tag = new Uint8Array(16);
+        var cipher = crypto.createCipheriv(name, key.keyData, iv);
+        var chunks = [nonce, cipher.update(data), cipher.final()];
+        var tag = JSData.initWithLength(16);
         cipher.getAuthTag().copyTo(tag, 0);
         chunks.push(tag);
         JSRunLoop.main.schedule(completion, target, JSData.initWithChunks(chunks));
@@ -219,7 +219,7 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
                 JSRunLoop.main.schedule(completion, target, null);
                 return;
             }
-            var nonce = data.subdataInRange(JSRange(0, 8)).bytes;
+            var nonce = data.subdataInRange(JSRange(0, 8));
             this.decryptedMessageId =
                   (nonce[6] << 48)
                 | (nonce[5] << 40)
@@ -228,12 +228,12 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
                 | (nonce[2] << 16)
                 | (nonce[1] << 8)
                 | (nonce[0]);
-            var iv = new Uint8Array(16);
+            var iv = JSData.initWithLength(16);
             nonce.copyTo(iv, 0);
-            var cipher = crypto.createDecipheriv(name, key.keyData.bytes, iv);
-            var tag = data.subdataInRange(JSRange(data.length - 16, 16)).bytes;
+            var cipher = crypto.createDecipheriv(name, key.keyData, iv);
+            var tag = data.subdataInRange(JSRange(data.length - 16, 16));
             cipher.setAuthTag(tag);
-            var chunks = [cipher.update(data.subdataInRange(JSRange(8, data.length - 8 - 16)).bytes), cipher.final()];
+            var chunks = [cipher.update(data.subdataInRange(JSRange(8, data.length - 8 - 16))), cipher.final()];
             JSRunLoop.main.schedule(completion, target, JSData.initWithChunks(chunks));
         }catch(e){
             JSRunLoop.main.schedule(completion, target, null);
@@ -243,5 +243,5 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
 });
 
 SECCipher.getRandomData = function(length){
-    return JSData.initWithBytes(crypto.randomBytes(length));
+    return JSData.initWithNodeBuffer(crypto.randomBytes(length));
 };

@@ -43,9 +43,9 @@ Object.defineProperties(String, {
         enumerable: false,
         value: function String_initWithData(data, encoding){
             if (encoding == String.Encoding.utf8){
-                return data.bytes.stringByDecodingUTF8();
+                return data.stringByDecodingUTF8();
             }else if (encoding == String.Encoding.latin1){
-                return data.bytes.stringByDecodingLatin1();
+                return data.stringByDecodingLatin1();
             }else{
                 throw new Error("Unsupported encoding: %s".sprintf(encoding));
             }
@@ -299,7 +299,7 @@ Object.defineProperties(String.prototype, {
         enumerable: false,
         value: function String_utf8(){
             // TODO: use TextEncoder if available
-            var utf8 = new Uint8Array(this.length * 4);
+            var utf8 = JSData.initWithLength(this.length * 4);
             var c;
             var j = 0;
             var iterator = UnicodeIterator(this, 0);
@@ -326,15 +326,14 @@ Object.defineProperties(String.prototype, {
                 }
                 iterator.increment();
             }
-            var bytes = new Uint8Array(utf8.buffer, utf8.byteOffset, j);
-            return JSData.initWithBytes(bytes);
+            return utf8.truncatedToLength(j);
         }
     },
 
     latin1: {
         enumerable: false,
         value: function String_latin1(){
-            var bytes = new Uint8Array(this.length);
+            var bytes = JSData.initWithLength(this.length);
             var c;
             var iterator = UnicodeIterator(this, 0);
             var i = 0;
@@ -346,8 +345,7 @@ Object.defineProperties(String.prototype, {
                 bytes[i++] = c;
                 iterator.increment();
             }
-            bytes = new Uint8Array(bytes.buffer, bytes.byteOffset, i);
-            return JSData.initWithBytes(bytes);
+            return bytes;
         }
     },
 
@@ -368,7 +366,7 @@ Object.defineProperties(String.prototype, {
         enumerable: false,
         value: function String_dataByDecodingBase64(){
             var group = new Uint32Array(1);
-            var bytes = new Uint8Array(this.length * 3 / 4);
+            var bytes = JSData.initWithLength(this.length * 3 / 4);
             var offset = 0;
             var decoded;
             var remaining = 4;
@@ -397,7 +395,7 @@ Object.defineProperties(String.prototype, {
             }else if (remaining == 3){
                 throw new Error("Expecting more input for base64 decode");
             }
-            return JSData.initWithBytes(new Uint8Array(bytes.buffer, bytes.byteOffset, offset));
+            return bytes.truncatedToLength(offset);
         }
     },
 

@@ -9,7 +9,7 @@ JSClass("JSHTMLFileTests", TKTestSuite, {
     requiredEnvironment: 'html',
 
     testHTMLFile: function(){
-        var bytes = new Uint8Array([0x01, 0x02, 0x03, 0x04]);
+        var bytes = JSData.initWithArray([0x01, 0x02, 0x03, 0x04]);
         var blob = new File([bytes], "test.dat", {type: "application/octet-stream"});
         var file = JSHTMLFile.initWithFile(blob);
         TKAssertNotNull(file);
@@ -19,19 +19,19 @@ JSClass("JSHTMLFileTests", TKTestSuite, {
     },
 
     testReadHTMLFile: function(){
-        var bytes = new Uint8Array([0x01, 0x02, 0x03, 0x04]);
+        var bytes = JSData.initWithArray([0x01, 0x02, 0x03, 0x04]);
         var blob = new File([bytes], "test.dat", {type: "application/octet-stream"});
         var file = JSHTMLFile.initWithFile(blob);
         var expectation = TKExpectation.init();
         expectation.call(file.readData, file, function(readData){
             TKAssertNotNull(readData);
-            TKAssertObjectEquals(bytes, readData.bytes);
+            TKAssertObjectEquals(bytes, readData);
         });
         this.wait(expectation, 1.0);
     },
 
     testReadHTMLFileRange: function(){
-        var bytes = new Uint8Array([0x01, 0x02, 0x03, 0x04]);
+        var bytes = JSData.initWithArray([0x01, 0x02, 0x03, 0x04]);
         var blob = new File([bytes], "test.dat", {type: "application/octet-stream"});
         var file = JSHTMLFile.initWithFile(blob);
         var expectation = TKExpectation.init();
@@ -39,14 +39,14 @@ JSClass("JSHTMLFileTests", TKTestSuite, {
         expectation.call(file.readDataRange, file, range, function(readData){
             TKAssertNotNull(readData);
             TKAssertEquals(readData.length, 2);
-            TKAssertEquals(readData.bytes[0], 0x02);
-            TKAssertEquals(readData.bytes[1], 0x03);
+            TKAssertEquals(readData[0], 0x02);
+            TKAssertEquals(readData[1], 0x03);
         });
         this.wait(expectation, 1.0);
     },
 
     testHTMLFileURL: function(){
-        var bytes = new Uint8Array([0x01, 0x02, 0x03, 0x04]);
+        var bytes = JSData.initWithArray([0x01, 0x02, 0x03, 0x04]);
         var blob = new File([bytes], "test.dat", {type: "application/octet-stream"});
         var file = JSHTMLFile.initWithFile(blob);
         var url = file.url;
@@ -55,8 +55,7 @@ JSClass("JSHTMLFileTests", TKTestSuite, {
     },
 
     testDataFileURL: function(){
-        var bytes = new Uint8Array([0x01, 0x02, 0x03, 0x04]);
-        var data = JSData.initWithBytes(bytes);
+        var data = JSData.initWithArray([0x01, 0x02, 0x03, 0x04]);
         var file = JSFile.initWithData(data, "test.dat", "application/octet-stream");
         var url = file.url;
         TKAssertNotNull(url);

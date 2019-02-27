@@ -212,9 +212,9 @@ JSFileManager.definePropertiesFromExtensions({
             if (parentExists){
                 var dataRequest;
                 if (metadata === null){
-                    dataRequest = transaction.data.add(data.bytes);
+                    dataRequest = transaction.data.add(data);
                 }else{
-                    dataRequest = transaction.data.put(data.bytes, metadata.dataKey);
+                    dataRequest = transaction.data.put(data, metadata.dataKey);
                 }
                 dataRequest.onsuccess = function(e){
                     var t = manager.timestamp;
@@ -487,14 +487,14 @@ JSFileManager.definePropertiesFromExtensions({
             throw new Error("JSFileManager.contentsAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
         var transaction = this.begin(JSFileManager.Permission.readonly, [JSFileManager.Tables.metadata, JSFileManager.Tables.data]);
-        var data = null;
+        var contents = null;
         var visitedURLSet = {};
         transaction.addCompletion(function(success){
-            completion.call(target, data);
+            completion.call(target, contents);
         }, this);
-        this._contentsInTransactionAtURL(transaction, url, visitedURLSet, function(bytes){
-            if (bytes !== null){
-                data = JSData.initWithBytes(bytes);
+        this._contentsInTransactionAtURL(transaction, url, visitedURLSet, function(data){
+            if (data !== null){
+                contents = data;
             }
         });
     },

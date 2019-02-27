@@ -18,7 +18,7 @@ JSClass("PDFRunLengthFilter", PDFFilter, {
             if (i >= L){
                 throw new Error("PDFRunLengthFilter reading past end of input");
             }
-            code = data.bytes[i];
+            code = data[i];
             ++i;
             if (code < 128){
                 length = code + 1; 
@@ -27,28 +27,27 @@ JSClass("PDFRunLengthFilter", PDFFilter, {
                     throw new Error("PDFRunLengthFilter reading past end of input");
                 }
                 if (o + length > output.length){
-                    output.increaseLengthBy(length + output.length);
+                    output = output.increasedByLength(length + output.length);
                 }
                 for (; i < l; ++i){
-                    output.bytes[o++] = data.bytes[i];
+                    output[o++] = data[i];
                 }
             }else if (code > 128){
                 ++i;
                 if (i >= L){
                     throw new Error("PDFRunLengthFilter reading past end of input");
                 }
-                x = data.bytes[i];
+                x = data[i];
                 length = 257 - code;
                 if (o + length > output.length){
-                    output.increaseLengthBy(length + output.length);
+                    output = output.increasedByLength(length + output.length);
                 }
                 for (j = 0; j < length; ++j){
-                    output.bytes[o++] = x;
+                    output[o++] = x;
                 }
             }
         } while (code != 128);
-        output.truncateToLength(o);
-        return output;
+        return output.truncatedToLength(0);
     },
 
     encode: function(data){

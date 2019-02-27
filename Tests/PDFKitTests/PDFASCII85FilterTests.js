@@ -11,7 +11,7 @@ JSClass("PDFASCII85FilterTests", TKTestSuite, {
         var data = "!!*-'\"9eu7#RLhG$k3[W&-~>".utf8();
         var filter = PDFASCII85Filter.init();
         var decoded = filter.decode(data);
-        var expected = JSData.initWithBytes(Uint8Array.from([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]));
+        var expected = JSData.initWithArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
         TKAssertObjectEquals(decoded, expected);
 
         data = "FD,B0+DGm>@3AN<;cF)~>".utf8();
@@ -25,7 +25,7 @@ JSClass("PDFASCII85FilterTests", TKTestSuite, {
         var data = "  ! ! *\n-\t'\"9eu   7#RL\r\nhG$ \r k3[W&-~\n>".utf8();
         var filter = PDFASCII85Filter.init();
         var decoded = filter.decode(data);
-        var expected = JSData.initWithBytes(Uint8Array.from([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]));
+        var expected = JSData.initWithArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
         TKAssertObjectEquals(decoded, expected);
 
         data = " F  D   ,    B\n0\n\n+\n\n\nD\n\n\n\nG\r    \tm\n>\n\n@3AN<;cF)~>\n\n\r\n\r\r\t".utf8();
@@ -68,7 +68,7 @@ JSClass("PDFASCII85FilterTests", TKTestSuite, {
     },
 
     testEncode: function(){
-        var data = JSData.initWithBytes(Uint8Array.from([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]));
+        var data = JSData.initWithArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
         var filter = PDFASCII85Filter.init();
         var encoded = filter.encode(data);
         var expected = "!!*-'\"9eu7#RLhG$k3[W&-~>".utf8();

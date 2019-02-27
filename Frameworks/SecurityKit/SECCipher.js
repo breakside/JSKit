@@ -123,15 +123,15 @@ JSClass("SECCipherRC4", SECCipher, {
         var S = JSData.initWithLength(256);
         var i, l;
         for (i = 0; i < 256; ++i){
-            S.bytes[i] = i;
+            S[i] = i;
         }
         var j = 0;
         var tmp;
         for (i = 0; i < 256; ++i){
-            j = (j + S.bytes[i] + key.keyData.bytes[i % key.keyData.length]) & 0xFF;
-            tmp = S.bytes[i];
-            S.bytes[i] = S.bytes[j];
-            S.bytes[j] = tmp;
+            j = (j + S[i] + key.keyData[i % key.keyData.length]) & 0xFF;
+            tmp = S[i];
+            S[i] = S[j];
+            S[j] = tmp;
         }
         var o = 0;
         var K = 0;
@@ -139,12 +139,12 @@ JSClass("SECCipherRC4", SECCipher, {
         j = 0;
         for (l = data.length; o < l; ++o){
             i = (i + 1) & 0xFF;
-            j = (j + S.bytes[i]) & 0xFF;
-            tmp = S.bytes[i];
-            S.bytes[i] = S.bytes[j];
-            S.bytes[j] = tmp;
-            K = S.bytes[(S.bytes[i] + S.bytes[j]) & 0xFF];
-            encrypted.bytes[o] = data.bytes[o] ^ K;
+            j = (j + S[i]) & 0xFF;
+            tmp = S[i];
+            S[i] = S[j];
+            S[j] = tmp;
+            K = S[(S[i] + S[j]) & 0xFF];
+            encrypted[o] = data[o] ^ K;
         }
         JSRunLoop.main.schedule(completion, target, encrypted);
     },

@@ -25,6 +25,23 @@ JSClass("UITokenField", UITextField, {
         UITokenField.$super.commonUIControlInit.call(this);
         this.tokensView = UIView.initWithFrame(JSRect.Zero);
         this._clipView.addSubview(this.tokensView);
+        this._updateLineSpacing();
+        this.setNeedsLayout();
+    },
+
+    setFont: function(font){
+        UITokenField.$super.setFont.call(this, font);
+        this._updateLineSpacing();
+    },
+
+    getFont: function(){
+        return this._textLayer.font;
+    },
+
+    _updateLineSpacing: function(){
+        if (this.font === null){
+            return;
+        }
         var lineHeight = this.font.displayLineHeight;
         this._textLayer.lineSpacing = (lineHeight + 4) / lineHeight;
         this.setNeedsLayout();

@@ -7,7 +7,7 @@
 JSClass("DeflateTests", TKTestSuite, {
 
     testDeflateLevel0: function(){
-        var inflated = "this is a test".utf8().bytes;
+        var inflated = "this is a test".utf8();
         var output = Deflate.deflate(inflated, 0);
         TKAssertObjectEquals(output, [0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74]);
     },
@@ -44,7 +44,7 @@ JSClass("DeflateTests", TKTestSuite, {
     testDeflateLevel0InChuncks: function(){
         // All input, limited output
         var stream = new DeflateStream(0);
-        stream.input = "this is a test".utf8().bytes;
+        stream.input = "this is a test".utf8();
         stream.outputBuffer = new ArrayBuffer(4);
         var output = stream.deflate(true);
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
@@ -64,7 +64,7 @@ JSClass("DeflateTests", TKTestSuite, {
 
         // Limited input, plenty of output
         stream = new DeflateStream(0);
-        var fullInput = "this is a test".utf8().bytes;
+        var fullInput = "this is a test".utf8();
         stream.input = new Uint8Array(fullInput.buffer, 0, 2);
         stream.outputBuffer = new ArrayBuffer(32);
         output = stream.deflate();
@@ -85,7 +85,7 @@ JSClass("DeflateTests", TKTestSuite, {
 
         // All input, plenty of output, final block empty
         stream = new DeflateStream(0);
-        stream.input = "this is a test".utf8().bytes;
+        stream.input = "this is a test".utf8();
         stream.outputBuffer = new ArrayBuffer(32);
         output = stream.deflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
@@ -97,7 +97,7 @@ JSClass("DeflateTests", TKTestSuite, {
 
         // All input, plenty of output, final block empty with original input
         stream = new DeflateStream(0);
-        stream.input = "this is a test".utf8().bytes;
+        stream.input = "this is a test".utf8();
         stream.outputBuffer = new ArrayBuffer(32);
         output = stream.deflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);

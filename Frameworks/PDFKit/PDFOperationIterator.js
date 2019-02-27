@@ -273,7 +273,7 @@ JSClass('PDFOperationIterator', JSObject, {
                     offset = this.tokenizer.stream.offset;
                     try{
                         this.tokenizer.readMeaningfulToken(Op.endImage);
-                        data = JSData.initWithChunks([data.bytes, data2.bytes]);
+                        data = JSData.initWithChunks([data, data2]);
                     }catch (e2){
                         // Trying 3...
                         this.tokenizer.stream.seek(offset);
@@ -281,12 +281,12 @@ JSClass('PDFOperationIterator', JSObject, {
                         offset = this.tokenizer.stream.offset;
                         try{
                             this.tokenizer.readMeaningfulToken(Op.endImage);
-                            data = JSData.initWithChunks([data.bytes, data2.bytes, data3.bytes]);
+                            data = JSData.initWithChunks([data, data2, data3]);
                         }catch (e3){
                             // Trying 4...
                             this.tokenizer.stream.seek(offset);
                             var data4 = this.tokenizer.stream.read(count);
-                            data = JSData.initWithChunks([data.bytes, data2.bytes, data3.bytes, data4.bytes]);
+                            data = JSData.initWithChunks([data, data2, data3, data4]);
                             this.tokenizer.readMeaningfulToken(Op.endImage);
                         }
                     }

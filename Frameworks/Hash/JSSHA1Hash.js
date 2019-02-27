@@ -1,5 +1,5 @@
 // #import "Hash/JSIterativeHash.js"
-/* global JSIterativeHash, JSGlobalObject, JSSHA1Hash */
+/* global JSIterativeHash, JSGlobalObject, JSData, JSSHA1Hash */
 'use strict';
 
 JSGlobalObject.JSSHA1Hash = function JSSHA1Hash(x){
@@ -103,7 +103,7 @@ JSSHA1Hash.prototype._padBlock = function(block, length){
 
 JSSHA1Hash.prototype.digest = function(){
     var temp;
-    var digest = new Uint8Array(20);
+    var digest = JSData.initWithLength(20);
     for (var i = 0, l = this.words.length; i < l; ++i){
         temp = this.words[i];
         for (var j = 3; j >= 0; --j){
