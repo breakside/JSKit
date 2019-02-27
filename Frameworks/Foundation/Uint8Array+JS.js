@@ -1,4 +1,5 @@
 // #feature Uint8Array
+// #feature DataView
 'use strict';
 
 (function(){
@@ -173,14 +174,38 @@ Object.defineProperties(Uint8Array.prototype, {
         }
     },
 
+    stringByDecodingUTF16BE: {
+        enumerable: false,
+        value: function Uint8Array_stringByDecodingUTF16BE(){
+            var dataView = new DataView(this.buffer, this.byteOffset, this.length);
+            var a;
+            var b;
+            var codes = [];
+            for (var i = 0, l = dataView.byteLength; i < l; i += 2){
+                codes.push(dataView.getUint16(i));
+            }
+            return String.fromCharCode.apply(undefined, codes);
+        }
+    },
+
+    stringByDecodingUTF16LE: {
+        enumerable: false,
+        value: function Uint8Array_stringByDecodingUTF16BE(){
+            var dataView = new DataView(this.buffer, this.byteOffset, this.length);
+            var a;
+            var b;
+            var codes = [];
+            for (var i = 0, l = dataView.byteLength; i < l; i += 2){
+                codes.push(dataView.getUint16(i, true));
+            }
+            return String.fromCharCode.apply(undefined, codes);
+        }
+    },
+
     stringByDecodingLatin1: {
         enumerable: false,
         value: function Uint8Array_stringByDecodingLatin1(){
-            var str = "";
-            for (var i = 0, l = this.length; i < l; ++i){
-                str += String.fromUnicode(this[i]);
-            }
-            return str;
+            return String.fromCodePoint.apply(undefined, this);
         }
     },
 
