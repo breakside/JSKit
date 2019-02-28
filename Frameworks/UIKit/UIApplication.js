@@ -39,10 +39,13 @@ JSClass('UIApplication', UIResponder, {
     },
 
     setupFonts: function(){
-        JSFont.registerBundleFonts(this.bundle);
+        var descriptors = JSFont.registerBundleFonts(this.bundle);
         var systemFontName = this.bundle.info[UIApplication.InfoKeys.systemFont];
         if (systemFontName){
             JSFont.registerSystemFontResource(systemFontName);
+        }
+        for (var i = 0, l = descriptors.length; i < l; ++i){
+            this.windowServer.displayServer.registerBundleFontDescriptor(descriptors[i]);
         }
     },
 

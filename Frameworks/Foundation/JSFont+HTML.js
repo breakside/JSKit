@@ -1,5 +1,6 @@
 // #import "Foundation/JSFont.js"
-/* global JSFont, JSReadOnlyProperty, document */
+// #import "Foundation/JSURL.js"
+/* global JSFont, JSURL, JSResourceFont, JSDataFont, JSReadOnlyProperty, document */
 'use strict';
 
 (function(){
@@ -17,14 +18,9 @@ JSFont.definePropertiesFromExtensions({
             lineHeight,
             this._descriptor._family
         );
-    },
+    }
 
-    // _calculateHTMLMetrics: function(){
-    //     HTMLFontMetricsCalculator.shared.calculate(this);
-    // }
 });
-
-// JSFont.addCreationHook(JSFont.prototype._calculateHTMLMetrics);
 
 var HTMLFontMetricsCalculator = function(domDocument){
     this.domDocument = document;

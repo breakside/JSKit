@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, JSTextFrame, JSTextFramesetter, JSTextFramesetterFontTests, JSAttributedString, JSPoint, JSSize, JSRange, JSLineBreakMode, JSTextAlignment, JSTextLine, JSTextRun, JSFont, JSFontDescriptor */
+/* global JSClass, TKTestSuite, JSTextFrame, JSTextFramesetter, JSAttributedString, JSPoint, JSSize, JSRange, JSLineBreakMode, JSTextAlignment, JSTextLine, JSTextRun, JSFont, JSTestFontDescriptor */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
 'use strict';
 
@@ -8,7 +8,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
 
     testSingleRunUnconstrainedLine: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextFramesetterFontTests.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
@@ -61,7 +61,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
 
     testSingleRunUnconstrainedLineWithNewline: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextFramesetterFontTests.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('Testing 123\nAnd more', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
@@ -222,7 +222,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
 
     testSingleRunConstrainedLineWithNewline: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextFramesetterFontTests.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('Testing 123\nAnd more', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
@@ -461,7 +461,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
 
     testEmptyUnconstrainedLine: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextFramesetterFontTests.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
@@ -485,7 +485,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
 
     testWhitespaceUnconstrainedLine: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextFramesetterFontTests.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('    ', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
@@ -515,7 +515,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
 
     testNewlineUnconstrainedLine: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextFramesetterFontTests.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('\n', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
@@ -545,7 +545,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
 
     testEmptyConstrainedLine: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextFramesetterFontTests.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
@@ -569,7 +569,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
 
     testWhitespaceConstrainedLine: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextFramesetterFontTests.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('    ', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
@@ -600,7 +600,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
 
     testNewlineConstrainedLine: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextFramesetterFontTests.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('\n', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
@@ -630,7 +630,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
 
     testCharacterWrapping: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextFramesetterFontTests.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
@@ -696,7 +696,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
 
     testRightAlign: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextFramesetterFontTests.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
@@ -758,7 +758,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
 
     testCenterAlign: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextFramesetterFontTests.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
@@ -819,7 +819,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
 
     testWordWrapping: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextFramesetterFontTests.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
@@ -994,7 +994,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
 
     testWhitespaceAtEndOfLine: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextFramesetterFontTests.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('Testing          123', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
@@ -1076,7 +1076,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
 
     testTruncation: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextFramesetterFontTests.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
@@ -1248,7 +1248,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
 
     testLineSpacing: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextFramesetterFontTests.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('Testing 123\nSecond line', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
@@ -1371,51 +1371,4 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
     // TODO: maximum lines
     // TODO: height restriction
 
-});
-
-JSClass("JSTextFramesetterFontTests", JSFont, {
-
-    init: function(){
-        this._descriptor = JSFontDescriptor.initWithProperties("JSTextFramesetterFontTests", JSFont.Weight.regular, JSFont.Style.normal);
-        this._fullName = "JSTextFramesetterFontTests";
-        this._postScriptName = "JSTextFramesetterFontTests";
-        this._faceName = "JSTextFramesetterFontTests";
-        this._unitsPerEM = 2048;
-        this._ascenderInUnits = 1900;
-        this._descenderInUnits = -500;
-        this._pointSize = 14.0;
-        this._calculateMetrics();
-    },
-
-    glyphForCharacter: function(character){
-        if (character.code == 0x2026){ // ellipsis
-            return 1;
-        }
-        if (character.code == 0x200B){ // zero-width space
-            return 4;
-        }
-        if (character.code >= 0x61){  // lowercase, {, }, |, ~
-            return 2;
-        }
-        return 3; // uppercase, digits, most punctuation
-
-    },
-
-    widthOfGlyph: function(glyph){
-        if (glyph === 0){
-            return 30;
-        }
-        if (glyph == 1){
-            return 10;
-        }
-        if (glyph == 2){
-            return 20;
-        }
-        if (glyph == 3){
-            return 30;
-        }
-        if (glyph == 4){
-            return 0;
-        }
-    }
 });

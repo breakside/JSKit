@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, JSTextRun, JSTextLine, JSRange, JSFont, JSFontDescriptor, JSPoint, JSTextLineTestsFont */
+/* global JSClass, TKTestSuite, JSTextRun, JSTextLine, JSRange, JSFont, JSTestFontDescriptor, JSPoint */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
 'use strict';
 
@@ -19,7 +19,7 @@ JSClass("JSTextLineTests", TKTestSuite, {
     },
 
     testInitWithRuns: function(){
-        var font = JSTextLineTestsFont.init();
+        var font = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var glyphs = this._glyphsFromString("This is a test", font);
         var run1 = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(12, 14));
         glyphs = this._glyphsFromString(" of a text line", font);
@@ -42,7 +42,7 @@ JSClass("JSTextLineTests", TKTestSuite, {
     },
 
     testInitWithHeight: function(){
-        var font = JSTextLineTestsFont.init();
+        var font = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var line = JSTextLine.initWithHeight(font.lineHeight, -font.descender, 12);
 
         TKAssertEquals(line.runs.length, 0);
@@ -56,7 +56,7 @@ JSClass("JSTextLineTests", TKTestSuite, {
     },
 
     testCopy: function(){
-        var font = JSTextLineTestsFont.init();
+        var font = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var glyphs = this._glyphsFromString("This is a test", font);
         var run1 = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(12, 14));
         glyphs = this._glyphsFromString(" of a text line", font);
@@ -80,7 +80,7 @@ JSClass("JSTextLineTests", TKTestSuite, {
     },
 
     testCharacterAtPoint: function(){
-        var font = JSTextLineTestsFont.init();
+        var font = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var glyphs = this._glyphsFromString("This is a test", font);
         var run1 = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(12, 14));
         glyphs = this._glyphsFromString(" of a text line", font);
@@ -158,7 +158,7 @@ JSClass("JSTextLineTests", TKTestSuite, {
     },
 
     testRectForCharacterAtIndex: function(){
-        var font = JSTextLineTestsFont.init();
+        var font = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var glyphs = this._glyphsFromString("This is a test", font);
         var run1 = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(12, 14));
         glyphs = this._glyphsFromString(" of a text line", font);
@@ -209,7 +209,7 @@ JSClass("JSTextLineTests", TKTestSuite, {
     },
 
     testRectForCharacterAtIndexEmptyLine: function(){
-        var font = JSTextLineTestsFont.init();
+        var font = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var line = JSTextLine.initWithHeight(font.lineHeight, - font.descender, 12);
 
         // mid of run 2
@@ -229,7 +229,7 @@ JSClass("JSTextLineTests", TKTestSuite, {
     },
 
     testTruncatedLine: function(){
-        var font = JSTextLineTestsFont.init();
+        var font = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var glyphs = this._glyphsFromString("This is a test", font);
         var run1 = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(12, 14));
         glyphs = this._glyphsFromString(" of a text line", font);
@@ -273,51 +273,4 @@ JSClass("JSTextLineTests", TKTestSuite, {
         TKAssertEquals(truncated.range.length, 0);
     }
 
-});
-
-JSClass("JSTextLineTestsFont", JSFont, {
-
-    init: function(){
-        this._descriptor = JSFontDescriptor.initWithProperties("JSTextLineTestsFont", JSFont.Weight.regular, JSFont.Style.normal);
-        this._fullName = "JSTextLineTestsFont";
-        this._postScriptName = "JSTextLineTestsFont";
-        this._faceName = "JSTextLineTestsFont";
-        this._unitsPerEM = 2048;
-        this._ascenderInUnits = 1900;
-        this._descenderInUnits = -500;
-        this._pointSize = 14.0;
-        this._calculateMetrics();
-    },
-
-    glyphForCharacter: function(character){
-        if (character.code == 0x2026){ // ellipsis
-            return 1;
-        }
-        if (character.code == 0x200B){ // zero-width space
-            return 4;
-        }
-        if (character.code >= 0x61){  // lowercase, {, }, |, ~
-            return 2;
-        }
-        return 3; // uppercase, digits, most punctuation
-
-    },
-
-    widthOfGlyph: function(glyph){
-        if (glyph === 0){
-            return 30;
-        }
-        if (glyph == 1){
-            return 10;
-        }
-        if (glyph == 2){
-            return 20;
-        }
-        if (glyph == 3){
-            return 30;
-        }
-        if (glyph == 4){
-            return 0;
-        }
-    }
 });

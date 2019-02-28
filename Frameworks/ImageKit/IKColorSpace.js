@@ -1,5 +1,5 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, DataView */
+/* global JSClass, JSObject, JSReadOnlyProperty */
 'use strict';
 
 (function(){
@@ -14,7 +14,7 @@ JSClass("IKColorSpace", JSObject, {
         if (profileData.length < 132){
             return null;
         }
-        var dataView = new DataView(profileData.buffer, profileData.byteOffset, profileData.length);
+        var dataView = profileData.dataView();
         this._profileData = profileData;
         this._header = IKColorSpaceHeader(dataView);
         var tagCount = dataView.getUint32(128);

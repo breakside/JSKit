@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, JSTextTypesetter, JSTextTypesetterTestsFont, JSTextTypesetterTestsFont2, JSTextTypesetterTestsFont3, JSAttributedString, JSPoint, JSRange, JSLineBreakMode, JSTextAlignment, JSTextLine, JSTextRun, JSFont, JSFontDescriptor, JSImage, JSTextAttachment */
+/* global JSClass, TKTestSuite, JSTextTypesetter, JSTextTypesetterTestsFallback, JSAttributedString, JSPoint, JSRange, JSLineBreakMode, JSTextAlignment, JSTextLine, JSTextRun, JSFont, JSTestFontDescriptor, JSImage, JSTextAttachment */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
 'use strict';
 
@@ -8,7 +8,7 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
 
     testCreateLineSingleRun: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
         var typesetter = JSTextTypesetter.init();
         typesetter.attributedString = attributedString;
@@ -46,7 +46,7 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
 
     testCreateLineMultipleRun: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
         attributedString.addAttributeInRange('underline', true, JSRange(3, 6));
         var typesetter = JSTextTypesetter.init();
@@ -102,7 +102,7 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
 
     testCreateLineEmpty: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('', attributes);
         var typesetter = JSTextTypesetter.init();
         typesetter.attributedString = attributedString;
@@ -118,7 +118,7 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
 
     testCreateLineNewline: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('\n', attributes);
         var typesetter = JSTextTypesetter.init();
         typesetter.attributedString = attributedString;
@@ -140,7 +140,7 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
 
     testCreateLineTrailingWhitespace: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('Testing 123   ', attributes);
         var typesetter = JSTextTypesetter.init();
         typesetter.attributedString = attributedString;
@@ -182,7 +182,7 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
 
     testCreateLineWhitespace: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('   ', attributes);
         var typesetter = JSTextTypesetter.init();
         typesetter.attributedString = attributedString;
@@ -224,7 +224,7 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
 
     testSuggestLineBreakInRange: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var typesetter = JSTextTypesetter.init();
 
         // no range
@@ -263,7 +263,7 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
 
     testSuggestLineBreakMandatory: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var typesetter = JSTextTypesetter.init();
 
         // break at end
@@ -410,7 +410,7 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
 
     testSuggestLineBreakCharacterWrap: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var typesetter = JSTextTypesetter.init();
         var attributedString = JSAttributedString.initWithString('Testing character wrapping', attributes);
         typesetter.attributedString = attributedString;
@@ -456,7 +456,7 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
 
     testSuggestLineBreakWordWrap: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var typesetter = JSTextTypesetter.init();
         var attributedString = JSAttributedString.initWithString('Testing word wrapping in a line of text', attributes);
         typesetter.attributedString = attributedString;
@@ -507,7 +507,7 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
 
     testAttachment: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont.init();
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var typesetter = JSTextTypesetter.init();
         var attributedString = JSAttributedString.initWithString('Testing  attachment runs', attributes);
         var image = JSImage.initWithResourceName("attachment");
@@ -536,8 +536,66 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
 
     testFallbackFont: function(){
         var attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont3.init();
-        var typesetter = JSTextTypesetterTestsFallback.initWithFallbackFonts([JSTextTypesetterTestsFont2.init(), JSTextTypesetterTestsFont.init()]);
+        var descriptor1 = JSTestFontDescriptor.initWithName("Test1");
+        var descriptor2 = JSTestFontDescriptor.initWithName("Test2");
+        var descriptor3 = JSTestFontDescriptor.initWithName("Test3");
+
+        Object.defineProperties(descriptor2, {
+            glyphForCharacter: {
+                value: function(character){
+                    // uppercase
+                    if (character.code >= 0x41 && character.code <= 0x5A){
+                        return 1;
+                    }
+                    // lowercase
+                    if (character.code >= 0x61 && character.code <= 0x7A){
+                        return 2;
+                    }
+                    return 0;
+                }
+            },
+
+            widthOfGlyph: {
+                value: function(glyph){
+                    if (glyph === 0){
+                        return 10/14;
+                    }
+                    if (glyph == 1){
+                        return 30/14;
+                    }
+                    if (glyph == 2){
+                        return 20/14;
+                    }
+                }
+            }
+        });
+
+        Object.defineProperties(descriptor3, {
+            glyphForCharacter: {
+                value: function(character){
+                    // uppercase only
+                    if (character.code >= 0x41 && character.code <= 0x5A){
+                        return 1;
+                    }
+                    return 0;
+                }
+            },
+
+            widthOfGlyph: {
+                value: function(glyph){
+                    if (glyph === 0){
+                        return 10/14;
+                    }
+                    if (glyph == 1){
+                        return 30/14;
+                    }
+                }
+            }
+        });
+
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(descriptor3, 14.0);
+
+        var typesetter = JSTextTypesetterTestsFallback.initWithFallbackFonts([JSFont.initWithDescriptor(descriptor2, 14.0), JSFont.initWithDescriptor(descriptor1, 14.0)]);
         var attributedString = JSAttributedString.initWithString('TESTing fallBACK FONTS', attributes);
         typesetter.attributedString = attributedString;
         var line = typesetter.createLine(JSRange(0, attributedString.string.length));
@@ -546,30 +604,30 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
         TKAssertEquals(line.runs.length, 7);
         TKAssertEquals(line.runs[0].range.location, 0);
         TKAssertEquals(line.runs[0].range.length, 4);
-        TKAssertEquals(line.runs[0].font.familyName, "JSTextTypesetterTestsFont3");
+        TKAssertEquals(line.runs[0].font.familyName, "Test3");
         TKAssertEquals(line.runs[1].range.location, 4);
         TKAssertEquals(line.runs[1].range.length, 3);
-        TKAssertEquals(line.runs[1].font.familyName, "JSTextTypesetterTestsFont2");
+        TKAssertEquals(line.runs[1].font.familyName, "Test2");
         TKAssertEquals(line.runs[2].range.location, 7);
         TKAssertEquals(line.runs[2].range.length, 1);
-        TKAssertEquals(line.runs[2].font.familyName, "JSTextTypesetterTestsFont");
+        TKAssertEquals(line.runs[2].font.familyName, "Test1");
         TKAssertEquals(line.runs[3].range.location, 8);
         TKAssertEquals(line.runs[3].range.length, 4);
-        TKAssertEquals(line.runs[3].font.familyName, "JSTextTypesetterTestsFont2");
+        TKAssertEquals(line.runs[3].font.familyName, "Test2");
         TKAssertEquals(line.runs[4].range.location, 12);
         TKAssertEquals(line.runs[4].range.length, 4);
-        TKAssertEquals(line.runs[4].font.familyName, "JSTextTypesetterTestsFont3");
+        TKAssertEquals(line.runs[4].font.familyName, "Test3");
         TKAssertEquals(line.runs[5].range.location, 16);
         TKAssertEquals(line.runs[5].range.length, 1);
-        TKAssertEquals(line.runs[5].font.familyName, "JSTextTypesetterTestsFont");
+        TKAssertEquals(line.runs[5].font.familyName, "Test1");
         TKAssertEquals(line.runs[6].range.location, 17);
         TKAssertEquals(line.runs[6].range.length, 5);
-        TKAssertEquals(line.runs[6].font.familyName, "JSTextTypesetterTestsFont3");
+        TKAssertEquals(line.runs[6].font.familyName, "Test3");
 
         // If a glyph isn't found in any of the fallbacks, a run change should not occur
         attributes = {};
-        attributes[JSAttributedString.Attribute.font] = JSTextTypesetterTestsFont3.init();
-        typesetter = JSTextTypesetterTestsFallback.initWithFallbackFonts([JSTextTypesetterTestsFont2.init()]);
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(descriptor3, 14.0);
+        typesetter = JSTextTypesetterTestsFallback.initWithFallbackFonts([JSFont.initWithDescriptor(descriptor2, 14.0)]);
         attributedString = JSAttributedString.initWithString('TESTing fallBACK FONTS', attributes);
         typesetter.attributedString = attributedString;
         line = typesetter.createLine(JSRange(0, attributedString.string.length));
@@ -578,13 +636,13 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
         TKAssertEquals(line.runs.length, 3);
         TKAssertEquals(line.runs[0].range.location, 0);
         TKAssertEquals(line.runs[0].range.length, 4);
-        TKAssertEquals(line.runs[0].font.familyName, "JSTextTypesetterTestsFont3");
+        TKAssertEquals(line.runs[0].font.familyName, "Test3");
         TKAssertEquals(line.runs[1].range.location, 4);
         TKAssertEquals(line.runs[1].range.length, 8);
-        TKAssertEquals(line.runs[1].font.familyName, "JSTextTypesetterTestsFont2");
+        TKAssertEquals(line.runs[1].font.familyName, "Test2");
         TKAssertEquals(line.runs[2].range.location, 12);
         TKAssertEquals(line.runs[2].range.length, 10);
-        TKAssertEquals(line.runs[2].font.familyName, "JSTextTypesetterTestsFont3");
+        TKAssertEquals(line.runs[2].font.familyName, "Test3");
     },
 
     // TODO: more multi-run tests
@@ -605,122 +663,4 @@ JSClass("JSTextTypesetterTestsFallback", JSTextTypesetter, {
         return this.fallbackFonts;
     }
 
-});
-
-JSClass("JSTextTypesetterTestsFont", JSFont, {
-
-    init: function(){
-        this._descriptor = JSFontDescriptor.initWithProperties("JSTextTypesetterTestsFont", JSFont.Weight.regular, JSFont.Style.normal);
-        this._fullName = "JSTextTypesetterTestsFont";
-        this._postScriptName = "JSTextTypesetterTestsFont";
-        this._faceName = "JSTextTypesetterTestsFont";
-        this._unitsPerEM = 2048;
-        this._ascenderInUnits = 1900;
-        this._descenderInUnits = -500;
-        this._pointSize = 14.0;
-        this._calculateMetrics();
-    },
-
-    glyphForCharacter: function(character){
-        if (character.code == 0x2026){ // ellipsis
-            return 1;
-        }
-        if (character.code == 0x200B){ // zero-width space
-            return 4;
-        }
-        if (character.code >= 0x61){  // lowercase, {, }, |, ~
-            return 2;
-        }
-        return 3; // uppercase, digits, most punctuation
-
-    },
-
-    widthOfGlyph: function(glyph){
-        if (glyph === 0){
-            return 30;
-        }
-        if (glyph == 1){
-            return 10;
-        }
-        if (glyph == 2){
-            return 20;
-        }
-        if (glyph == 3){
-            return 30;
-        }
-        if (glyph == 4){
-            return 0;
-        }
-    }
-});
-
-JSClass("JSTextTypesetterTestsFont2", JSFont, {
-
-    init: function(){
-        this._descriptor = JSFontDescriptor.initWithProperties("JSTextTypesetterTestsFont2", JSFont.Weight.regular, JSFont.Style.normal);
-        this._fullName = "JSTextTypesetterTestsFont2";
-        this._postScriptName = "JSTextTypesetterTestsFont2";
-        this._faceName = "JSTextTypesetterTestsFont2";
-        this._unitsPerEM = 2048;
-        this._ascenderInUnits = 1900;
-        this._descenderInUnits = -500;
-        this._pointSize = 14.0;
-        this._calculateMetrics();
-    },
-
-    glyphForCharacter: function(character){
-        // uppercase
-        if (character.code >= 0x41 && character.code <= 0x5A){
-            return 1;
-        }
-        // lowercase
-        if (character.code >= 0x61 && character.code <= 0x7A){
-            return 2;
-        }
-        return 0;
-    },
-
-    widthOfGlyph: function(glyph){
-        if (glyph === 0){
-            return 10;
-        }
-        if (glyph == 1){
-            return 30;
-        }
-        if (glyph == 2){
-            return 20;
-        }
-    }
-});
-
-JSClass("JSTextTypesetterTestsFont3", JSFont, {
-
-    init: function(){
-        this._descriptor = JSFontDescriptor.initWithProperties("JSTextTypesetterTestsFont3", JSFont.Weight.regular, JSFont.Style.normal);
-        this._fullName = "JSTextTypesetterTestsFont3";
-        this._postScriptName = "JSTextTypesetterTestsFont3";
-        this._faceName = "JSTextTypesetterTestsFont3";
-        this._unitsPerEM = 2048;
-        this._ascenderInUnits = 1900;
-        this._descenderInUnits = -500;
-        this._pointSize = 14.0;
-        this._calculateMetrics();
-    },
-
-    glyphForCharacter: function(character){
-        // uppercase only
-        if (character.code >= 0x41 && character.code <= 0x5A){
-            return 1;
-        }
-        return 0;
-    },
-
-    widthOfGlyph: function(glyph){
-        if (glyph === 0){
-            return 10;
-        }
-        if (glyph == 1){
-            return 30;
-        }
-    }
 });

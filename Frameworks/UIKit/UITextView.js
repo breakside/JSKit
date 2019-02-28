@@ -16,8 +16,7 @@ JSClass("UITextView", UIView, {
     initWithSpec: function(spec, values){
         UITextView.$super.initWithSpec.call(this, spec, values);
         if ("font" in values){
-            var descriptor = spec.resolvedValue(values.font.descriptor);
-            this.font = JSFont.fontWithDescriptor(descriptor, values.font.pointSize);
+            this.font = JSFont.initWithSpec(spec, values.font);
         }
         if ("text" in values){
             this.text = values.text;

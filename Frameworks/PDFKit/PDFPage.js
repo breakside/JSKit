@@ -628,6 +628,12 @@ var contextOperationHandler = {
 
     // MARK: - Text
 
+    Tf: function(name, size){
+        var pdfFont = this.resources.font(name);
+        var font = pdfFont.foundationFontOfSize(size);
+        this.context.setFont(font);
+    },
+
     Tr: function(renderingMode){
         switch (renderingMode){
             case PDFGraphicsState.TextRenderingMode.fill:

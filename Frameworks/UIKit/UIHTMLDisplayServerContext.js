@@ -6,6 +6,7 @@
 
 JSClass("UIHTMLDisplayServerContext", JSContext, {
 
+    displayServer: null,
     element: null,
     style: null,
     needsCustomDisplay: false,

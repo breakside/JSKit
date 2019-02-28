@@ -553,8 +553,10 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     _textDrawingMode: JSContext.TextDrawingMode.fill,
 
     setFont: function(font){
+        // TODO: register font if needed
         this.canvasContext.font = font.cssString();
         this._font = font;
+        this.displayServer.registerFont(font);
     },
 
     setTextDrawingMode: function(textDrawingMode){

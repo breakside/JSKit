@@ -39,9 +39,11 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         this.domDocument = this.rootElement.ownerDocument;
         this.domWindow = this.domDocument.defaultView;
         this.windowsContext = this.contextClass.initWithElementUnmodified(this.rootElement);
+        this.windowsContext.displayServer = this;
         this.contextsByObjectID = {};
         this._insertedLayers = {};
         this._removedLayers = {};
+        this._registeredFontCSSRules = {};
         this._displayFrameBound = this.displayFrame.bind(this);
         if (sharedInstance !== null){
             throw new Error("Only one UIHTMLDisplayServer instance is allowed");
@@ -63,6 +65,32 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     deinit: function(){
         sharedInstance = null;
+    },
+
+    // MARK: - Fonts
+
+    _registeredFontCSSRules: null,
+
+    registerBundleFontDescriptor: function(descriptor){
+        // bundle fonts rules are already in a linked 
+        var name = "%s|%s|%d".sprintf(descriptor.family, descriptor.style, Math.floor(descriptor.weight));
+        this._registeredFontCSSRules[name] = null;
+    },
+
+    registerFontDescriptor: function(descriptor){
+        var name = "%s|%s|%d".sprintf(descriptor.family, descriptor.style, Math.floor(descriptor.weight));
+        if (name in this._registeredFontCSSRules){
+            return;
+        }
+        if (!this._fontStyleElement){
+            var doc = this.element.ownerDocument;
+            this._fontStyleElement = doc.createElement("style");
+            this._fontStyleElement.type = "text/css";
+            doc.head.appendChild(this._fontStyleElement);
+        }
+        var stylesheet = this._fontStyleElement.sheet;
+        var ruleText = descriptor.cssFontFaceRuleString();
+        this._registeredFontCSSRules[name] = stylesheet.insertRule(ruleText, stylesheet.cssRules.length);
     },
 
     // -------------------------------------------------------------------------
@@ -155,6 +183,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         if (context === undefined){
             var element = this.domDocument.createElement('div');
             context = this.contextClass.initWithElement(element);
+            context.displayServer = this;
             this.associateContextWithLayer(context, layer);
         }
         return context;
@@ -170,6 +199,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             if (context === undefined){
                 var element = this.domDocument.createElement('div');
                 context = this.contextClass.initWithElement(element);
+                context.displayServer = this;
                 this.contextsByObjectID[attachment.objectID] = context;
             }
         }
@@ -358,6 +388,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
                 layer.delegate.destroyLayerHTMLContext(layer, context);
             }
             context.destroy();
+            context.displayServer = null;
             delete this.contextsByObjectID[layer.objectID];
         }
     },

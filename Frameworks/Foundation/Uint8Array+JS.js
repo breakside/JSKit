@@ -240,7 +240,7 @@ Object.defineProperties(Uint8Array.prototype, {
     stringByDecodingUTF16BE: {
         enumerable: false,
         value: function Uint8Array_stringByDecodingUTF16BE(){
-            var dataView = new DataView(this.buffer, this.byteOffset, this.length);
+            var dataView = this.dataView();
             var a;
             var b;
             var codes = [];
@@ -254,7 +254,7 @@ Object.defineProperties(Uint8Array.prototype, {
     stringByDecodingUTF16LE: {
         enumerable: false,
         value: function Uint8Array_stringByDecodingUTF16BE(){
-            var dataView = new DataView(this.buffer, this.byteOffset, this.length);
+            var dataView = this.dataView();
             var a;
             var b;
             var codes = [];
@@ -344,6 +344,12 @@ Object.defineProperties(Uint8Array.prototype, {
             for (var i = 0, l = this.length, l2 = other.length; i < l && i + index < l2; ++i){
                 other[index + i] = this[i];
             }
+        }
+    },
+
+    dataView: {
+        value: function(){
+            return new DataView(this.buffer, this.byteOffset, this.length);
         }
     }
 

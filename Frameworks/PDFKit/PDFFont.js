@@ -15,20 +15,26 @@ JSGlobalObject.PDFFont.prototype = Object.create(PDFObject.prototype, {
     Subtype:        PDFObjectProperty,
 
     load: {
-        value: function PDFType1Font_load(completion, target){
+        value: function PDFFont_load(completion, target){
             completion.call(target);
         }
     },
 
     stringFromData: {
-        value: function PDFType1Font_stringFromData(data){
+        value: function PDFFont_stringFromData(data){
             return null;
         }
     },
 
     widthOfData: {
-        value: function PDFType1Font_widthOfData(data){
+        value: function PDFFont_widthOfData(data){
             return 0;
+        }
+    },
+
+    foundationFontOfSize: {
+        value: function PDFFont_foundationFontOfSize(size){
+            return JSFont.systemFontOfSize(size);
         }
     }
 });
@@ -115,24 +121,12 @@ JSGlobalObject.PDFType1Font.prototype = Object.create(PDFFont.prototype, {
                 }
                 if (this.FontDescriptor.FontFile2){
                     this.FontDescriptor.FontFile2.getData(function(ttf){
-                        // TODO: make JSFont from ttf
-                        // needs to eventually modify page style and add
-                        // a font-face and be accessible via a URL (blob, likely)
-                        // 
-                        // - UIHTMLDisplayServerContext setFont should take care of adding font-face CSS
-                        //   so it somehow needs to know that this a font that hasn't been added yet.
-                        //   Maybe all fonts get added to CSS this way instead of via build?
+                        // TODO: make JSFont from ttf and descriptor info
                         next.call(this);       
                     }, this);
                 }else if (this.FontDescriptor.FontFile3 && this.FontDescriptor.FontFile3.SubType == "OpenType"){
                     this.FontDescriptor.FontFile3.getData(function(otf){
-                        // TODO: make JSFont from ttf
-                        // needs to eventually modify page style and add
-                        // a font-face and be accessible via a URL (blob, likely)
-                        // 
-                        // - UIHTMLDisplayServerContext setFont should take care of adding font-face CSS
-                        //   so it somehow needs to know that this a font that hasn't been added yet.
-                        //   Maybe all fonts get added to CSS this way instead of via build?
+                        // TODO: make JSFont from otf and descriptor info
                         next.call(this);
                     }, this);
                 }else{
@@ -332,7 +326,7 @@ var ToUnicodeEncoding = function(cmap){
 };
 
 var integerFromData = function(data){
-    var dataView = new DataView(data.buffer, data.byteOffset, data.length);
+    var dataView = data.dataView();
     switch (dataView.byteLength){
         case 0:
             return 0;

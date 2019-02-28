@@ -1,7 +1,7 @@
 // #import "UIKit/UIKit.js"
 // #import "TestKit/TestKit.js"
 // #import "MockWindowServer.js"
-/* global JSClass, TKTestSuite, UITextEditor, UITextEditorTestsFont, MockWindowServer, UITextLayer, JSRange, JSRect, JSFont, JSFontDescriptor, JSLineBreakMode, UIEvent, JSPoint */
+/* global JSClass, TKTestSuite, UITextEditor, MockWindowServer, UITextLayer, JSRange, JSRect, JSFont, JSTestFontDescriptor, JSLineBreakMode, UIEvent, JSPoint */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
 'use strict';
 
@@ -15,7 +15,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
     setup: function(){
         this.windowServer = MockWindowServer.init();
         this.textLayer = UITextLayer.init();
-        this.textLayer.font = UITextEditorTestsFont.init();
+        this.textLayer.font = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         this.windowServer.displayServer.layerInserted(this.textLayer);
         this.windowServer.displayServer.updateDisplay();
     },
@@ -3575,53 +3575,6 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 95);
     }
 
-});
-
-JSClass("UITextEditorTestsFont", JSFont, {
-
-    init: function(){
-        this._descriptor = JSFontDescriptor.initWithProperties("UITextEditorTestsFont", JSFont.Weight.regular, JSFont.Style.normal);
-        this._fullName = "UITextEditorTestsFont";
-        this._postScriptName = "UITextEditorTestsFont";
-        this._faceName = "UITextEditorTestsFont";
-        this._unitsPerEM = 2048;
-        this._ascenderInUnits = 1900;
-        this._descenderInUnits = -500;
-        this._pointSize = 14.0;
-        this._calculateMetrics();
-    },
-
-    glyphForCharacter: function(character){
-        if (character.code == 0x2026){ // ellipsis
-            return 1;
-        }
-        if (character.code == 0x200B){ // zero-width space
-            return 4;
-        }
-        if (character.code >= 0x61){  // lowercase, {, }, |, ~
-            return 2;
-        }
-        return 3; // uppercase, digits, most punctuation
-
-    },
-
-    widthOfGlyph: function(glyph){
-        if (glyph === 0){
-            return 30;
-        }
-        if (glyph == 1){
-            return 10;
-        }
-        if (glyph == 2){
-            return 20;
-        }
-        if (glyph == 3){
-            return 30;
-        }
-        if (glyph == 4){
-            return 0;
-        }
-    }
 });
 
 })();

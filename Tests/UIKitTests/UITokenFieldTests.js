@@ -1,6 +1,6 @@
 // #import "UIKit/UIKit.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, UITokenField, JSRect, JSRange, JSAttributedString, UITextAttachmentView, UITokenFieldTokenView, JSFont, JSFontDescriptor, UITokenFieldTestsFont */
+/* global JSClass, TKTestSuite, UITokenField, JSRect, JSRange, JSAttributedString, UITextAttachmentView, UITokenFieldTokenView, JSFont, JSTestFontDescriptor */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
@@ -8,7 +8,7 @@ JSClass("UITokenFieldTests", TKTestSuite, {
 
     testNoDelegate: function(){
         var field = UITokenField.initWithFrame(JSRect(0, 0, 500, 21));
-        field.font = UITokenFieldTestsFont.init();
+        field.font = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
 
         field.becomeFirstResponder();
         field.setSelectionRange(JSRange(0, 0));
@@ -84,51 +84,4 @@ JSClass("UITokenFieldTests", TKTestSuite, {
         TKAssertEquals(attachment.view.tokenLabel.text, "test");
     }
 
-});
-
-JSClass("UITokenFieldTestsFont", JSFont, {
-
-    init: function(){
-        this._descriptor = JSFontDescriptor.initWithProperties("UITokenFieldTestsFont", JSFont.Weight.regular, JSFont.Style.normal);
-        this._fullName = "UITokenFieldTestsFont";
-        this._postScriptName = "UITokenFieldTestsFont";
-        this._faceName = "UITokenFieldTestsFont";
-        this._unitsPerEM = 2048;
-        this._ascenderInUnits = 1900;
-        this._descenderInUnits = -500;
-        this._pointSize = 14.0;
-        this._calculateMetrics();
-    },
-
-    glyphForCharacter: function(character){
-        if (character.code == 0x2026){ // ellipsis
-            return 1;
-        }
-        if (character.code == 0x200B){ // zero-width space
-            return 4;
-        }
-        if (character.code >= 0x61){  // lowercase, {, }, |, ~
-            return 2;
-        }
-        return 3; // uppercase, digits, most punctuation
-
-    },
-
-    widthOfGlyph: function(glyph){
-        if (glyph === 0){
-            return 30;
-        }
-        if (glyph == 1){
-            return 10;
-        }
-        if (glyph == 2){
-            return 20;
-        }
-        if (glyph == 3){
-            return 30;
-        }
-        if (glyph == 4){
-            return 0;
-        }
-    }
 });

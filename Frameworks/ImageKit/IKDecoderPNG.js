@@ -2,8 +2,7 @@
 // #import "ImageKit/IKDecoder.js"
 // #import "ImageKit/IKBitmap.js"
 // #import "ImageKit/IKColorSpace.js"
-/* feature DataView, ArrayBuffer */
-/* global IKDecoder, IKBitmap, JSClass, JSSize, DataView, JSPoint, IKDecoderPNG, ZlibStream, ArrayBuffer, JSData, IKColorSpace */
+/* global IKDecoder, IKBitmap, JSClass, JSSize, JSPoint, IKDecoderPNG, ZlibStream, JSData, IKColorSpace */
 'use strict';
 
 (function(){
@@ -60,7 +59,7 @@ JSClass("IKDecoderPNG", IKDecoder, {
             this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.invalidData, 0, "IHDR length too short");
         }
         if (this.error === null){
-            this.dataView = new DataView(data.buffer, data.byteOffset, data.length);
+            this.dataView = data.dataView();
             this.readSections();
         }
         return IKBitmap.initWithData(this.bitmapData, this.size, this.colorSpace);
@@ -143,7 +142,7 @@ JSClass("IKDecoderPNG", IKDecoder, {
 
     read_IHDR: function(data){
         if (data.length >= 13){
-            var header = new DataView(data.buffer, data.byteOffset, data.length);
+            var header = data.dataView();
             this.size = JSSize(header.getUint32(0), header.getUint32(4));
             this.bitDepth = data[8];
             this.colorType = data[9];
@@ -190,7 +189,7 @@ JSClass("IKDecoderPNG", IKDecoder, {
         if (this.dataStream !== null || this.bitmapData === null || this.sRGB !== null){
             return;
         }
-        var chroma = new DataView(data.buffer, data.byteOffset, data.length);
+        var chroma = data.dataView();
         if (data.length >= 32){
             this.chroma = {
                 white:  JSPoint(chroma.getUint32(0)  / 100000,  chroma.getUint32(4)  / 100000),
@@ -206,7 +205,7 @@ JSClass("IKDecoderPNG", IKDecoder, {
             return;
         }
         if (data.length >= 4){
-            var gamma = new DataView(data.buffer, data.byteOffset, data.length);
+            var gamma = data.dataView();
             this.gamma = gamma.getUint32(0) / 100000;
         }
     },
@@ -259,7 +258,7 @@ JSClass("IKDecoderPNG", IKDecoder, {
         if (this.dataStream !== null || this.bitmapData === null){
             return;
         }
-        var trans = new DataView(data.buffer, data.byteOffset, data.length);
+        var trans = data.dataView();
         if (this.colorType == IKDecoderPNG.ColorType.grayscale){
             if (data.length >= 2){
                 this.alphaSamples = [trans.getUint16(0)];

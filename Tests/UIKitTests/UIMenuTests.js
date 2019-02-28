@@ -1,7 +1,7 @@
 // #import "UIKit/UIKit.js"
 // #import "TestKit/TestKit.js"
 // #import "MockWindowServer.js"
-/* global JSClass, TKTestSuite, UIMenu, UIMenuItem, JSFont, JSFontDescriptor, UIMenuTestsFont, MockWindowServer, UIApplication, UIRootWindow, UIView, JSRect, JSPoint */
+/* global JSClass, TKTestSuite, UIMenu, UIMenuItem, JSFont, JSTestFontDescriptor, MockWindowServer, UIApplication, UIRootWindow, UIView, JSRect, JSPoint */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
@@ -12,7 +12,12 @@ JSClass("UIMenuTests", TKTestSuite, {
             longestItemTitle = "This is an item with a really long title that gets truncated";
         }
         var menu = UIMenu.init();
-        menu.font = UIMenuTestsFont.init();
+        var descriptor = JSTestFontDescriptor.initWithName("Test");
+        descriptor.fixedWidth = true;
+        menu.font = JSFont.initWithDescriptor(descriptor, 14.0);
+        menu.font._displayLineHeight = 16;
+        menu.font._displayAscender = 12;
+        menu.font._displayDescender = 4;
         menu.addItemWithTitle(longestItemTitle);
         for (var i = 1; i < itemCount; ++i){
             menu.addItemWithTitle("i");
@@ -589,30 +594,4 @@ JSClass("UIMenuTests", TKTestSuite, {
         menu.close();
     }
 
-});
-
-JSClass("UIMenuTestsFont", JSFont, {
-
-    init: function(){
-        this._descriptor = JSFontDescriptor.initWithProperties("UIMenuTestsFont", JSFont.Weight.regular, JSFont.Style.normal);
-        this._fullName = "UIMenuTestsFont";
-        this._postScriptName = "UIMenuTestsFont";
-        this._faceName = "UIMenuTestsFont";
-        this._unitsPerEM = 2048;
-        this._ascenderInUnits = 1900;
-        this._descenderInUnits = -500;
-        this._pointSize = 14.0;
-        this._calculateMetrics();
-        this._displayLineHeight = 16;
-        this._displayAscender = 12;
-        this._displayDescender = 4;
-    },
-
-    glyphForCharacter: function(character){
-        return 1;
-    },
-
-    widthOfGlyph: function(glyph){
-        return 20;
-    }
 });
