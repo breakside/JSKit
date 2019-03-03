@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation+Node.js"
+// #import "Foundation/Foundation.js"
 /* global module */
 'use strict';
 

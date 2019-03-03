@@ -1,5 +1,0 @@
-{
-    "JSBundleType": "node",
-    "JSBundleIdentifier": "com.yourcompany.sample",
-    "JSExecutableName": "${PROJECT_NAME_FILE_SAFE}"
-}
