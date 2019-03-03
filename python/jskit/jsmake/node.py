@@ -187,7 +187,7 @@ class NodeBuilder(Builder):
                 bundlePath = os.path.realpath(self.outputBundlePath)
                 return "docker run \\\n    --rm \\\n    --name %s \\\n    -p%d:%d \\\n    --mount type=bind,source=%s,target=/jskitapp \\\n    %s" % (self.dockerName, self.debugPort, self.httpPort, bundlePath, self.dockerIdentifier)
             else:
-                return "node --inspect %s" % os.path.relpath(os.path.join(self.outputExecutablePath, self.exePath))
+                return "node --inspect-brk %s" % os.path.relpath(os.path.join(self.outputExecutablePath, self.exePath))
 
 
 def _unixpath(ospath):
