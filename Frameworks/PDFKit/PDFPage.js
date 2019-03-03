@@ -4,7 +4,7 @@
 // #import "PDFKit/PDFStreamOperation.js"
 // #import "PDFKit/PDFGraphicsState.js"
 // #import "PDFKit/PDFColorSpace.js"
-/* global JSGlobalObject, JSClass, JSObject, JSData, JSPoint, JSSize, JSRect, JSColor, JSAffineTransform, JSContext, PDFObject, PDFColorSpace, PDFObjectProperty, PDFPage, PDFName, PDFResources, PDFStream, PDFStreamOperation, PDFGraphicsState, PDFOperationIterator, PDFPageDrawing */
+/* global JSGlobalObject, JSClass, JSObject, JSFont, JSData, JSPoint, JSSize, JSRect, JSColor, JSAffineTransform, JSContext, PDFObject, PDFColorSpace, PDFObjectProperty, PDFPage, PDFName, PDFResources, PDFStream, PDFStreamOperation, PDFGraphicsState, PDFOperationIterator, PDFPageDrawing */
 'use strict';
 
 (function(){
@@ -216,23 +216,27 @@ JSGlobalObject.PDFPage.prototype = Object.create(PDFObject.prototype, {
                 stack.resources = resources;
                 var transform;
                 var placed;
+                var font;
                 while (operation !== null){
                     switch (operation.operator){
                         case Op.text:
-                            transform = stack.state.textTransform.concatenatedWith(stack.state.transform);
-                            text = stack.state.font.stringFromData(operation.operands[0]);
-                            // TODO: expand characters like fi and fl
-                            placed = {
-                                origin: transform.convertPointFromTransform(JSPoint.Zero),
-                                width: 0,
-                                text: text
-                            };
-                            stack.handleOperation(operation);
-                            transform = stack.state.textTransform.concatenatedWith(stack.state.transform);
-                            placed.width = transform.convertPointFromTransform(JSPoint.Zero).x - placed.origin.x;
-                            // TODO: save space width so we can use it to compare later?
-                            // TODO: save font or font size so we can use it to compare later?
-                            placedStrings.push(placed);
+                            font = stack.state.font;
+                            if (font && font.Subtype != "Type3"){
+                                transform = stack.state.textTransform.concatenatedWith(stack.state.transform);
+                                text = font.stringFromData(operation.operands[0]);
+                                // TODO: expand characters like fi and fl
+                                placed = {
+                                    origin: transform.convertPointFromTransform(JSPoint.Zero),
+                                    width: 0,
+                                    text: text
+                                };
+                                stack.handleOperation(operation);
+                                transform = stack.state.textTransform.concatenatedWith(stack.state.transform);
+                                placed.width = transform.convertPointFromTransform(JSPoint.Zero).x - placed.origin.x;
+                                // TODO: save space width so we can use it to compare later?
+                                // TODO: save font or font size so we can use it to compare later?
+                                placedStrings.push(placed);
+                            }
                             break;
                         default:
                             stack.handleOperation(operation);
@@ -318,7 +322,9 @@ JSClass("PDFPageDrawing", JSObject, {
             var obj = {
                 context: context,
                 stack: stack,
-                resources: this.resources
+                resources: this.resources,
+                font: null,
+                fontStack: []
             };
             var operation = this.operationIterator.next();
             while (operation !== null){
@@ -380,10 +386,14 @@ var contextOperationHandler = {
 
     q: function(){
         this.context.save();
+        this.fontStack.push(this.font);
     },
 
     Q: function(){
         this.context.restore();
+        if (this.fontStack.length > 0){
+            this.font = this.fontStack.pop();
+        }
     },
 
     cm: function(a, b, c, d, e, f){
@@ -631,7 +641,14 @@ var contextOperationHandler = {
     Tf: function(name, size){
         var pdfFont = this.resources.font(name);
         var font = pdfFont.foundationFontOfSize(size);
-        this.context.setFont(font);
+        this.font = font;
+        if (font){
+            this.context.setFont(font);
+        }
+    },
+
+    Tc: function(spacing){
+        this.context.setCharacterSpacing(spacing);
     },
 
     Tr: function(renderingMode){
@@ -661,18 +678,24 @@ var contextOperationHandler = {
         }
     },
 
-    Tj: function(str){
+    Tj: function(bytestring){
         if (this.stack.state.textRenderingMode == PDFGraphicsState.TextRenderingMode.invisible){
             return;
         }
-        var font = this.stack.state.font;
-        if (font.Subtype == "Type3"){
+        var pdfFont = this.stack.state.font;
+        if (pdfFont.Subtype == "Type3"){
             // TODO: read streams and do drawing
             return;
         }
-        // TODO: figure out canvas API
-        var glyphs = [];
-        // this.canvas.showGlyphs(glyphs);
+        var text = pdfFont.stringFromData(bytestring);
+        var font = this.font;
+        if (!font){
+            // FIXME: We don't have a valid font...use fallback?
+            return;
+        }
+        var textMatrix = this.stack.state.textTransform.scaledBy(this.stack.state.textHorizontalScaling, -1);
+        this.context.setTextMatrix(textMatrix);
+        this.context.showText(text);
         if (this.stack.state.textRenderingMode >= PDFGraphicsState.TextRenderingMode.fillAddPath && this.stack.state.textRenderingMode <= PDFGraphicsState.TextRenderingMode.addPath){
             // TODO: add glyphs to clipping path
         }
@@ -700,9 +723,13 @@ var contextStateUpdater = {
         // TODO: ?
     },
     Font: function(value){
-        // TODO: how to get a JSFont?
-        // Probably make a special PDFFont subclass that PDFContext can passthrough easily
-        // Need to coordinate with resources, which will cache all the data for a font
+        var pdfFont = value[0];
+        var size = value[1];
+        var font = pdfFont.foundationFontOfSize(size);
+        this.font = font;
+        if (font){
+            this.context.setFont(font);
+        }
     },
     FL: function(value){
         // TODO: ?

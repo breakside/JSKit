@@ -1,8 +1,11 @@
 // #import "PDFKit/PDFObject.js"
-/* global JSGlobalObject, JSClass, JSFont, JSData, PDFObject, PDFObjectProperty, PDFFont, PDFName, PDFType1Font, PDFType0Font, PDFTrueTypeFont, PDFMMType1Font, PDFType3Font, PDFCIDFontType0Font, PDFCIDFontType1Font, PDFOperationIterator */
+// #import "FontKit/FontKit.js"
+/* global JSGlobalObject, JSClass, JSLog, UUID, JSFont, JSFontDescriptor, FNTFontDescriptor, FNTType1Font, PDFStandardFontDescriptor, PDFOpenTypeFontDescriptor, JSData, PDFObject, PDFObjectProperty, PDFFont, PDFName, PDFType1Font, PDFType0Font, PDFTrueTypeFont, PDFMMType1Font, PDFType3Font, PDFCIDType0Font, PDFCIDType2Font, PDFOperationIterator */
 'use strict';
 
 (function(){
+
+var logger = JSLog("PDFKit", "Font");
 
 JSGlobalObject.PDFFont = function(){
     if (this === undefined){
@@ -27,26 +30,19 @@ JSGlobalObject.PDFFont.prototype = Object.create(PDFObject.prototype, {
     },
 
     widthOfData: {
-        value: function PDFFont_widthOfData(data){
+        value: function PDFFont_widthOfData(data, characterSpacing){
             return 0;
         }
     },
 
     foundationFontOfSize: {
         value: function PDFFont_foundationFontOfSize(size){
-            return JSFont.systemFontOfSize(size);
+            return null;
         }
     }
 });
 
-JSGlobalObject.PDFType1Font = function(){
-    if (this === undefined){
-        return new PDFType1Font();
-    }
-};
-
-JSGlobalObject.PDFType1Font.prototype = Object.create(PDFFont.prototype, {
-    Subtype:        { enumerable: true, value: PDFName("Type1") },
+var SimpleFontPrototype = Object.create(PDFFont.prototype, {
     Name:           PDFObjectProperty,
     BaseFont:       PDFObjectProperty,
     FirstChar:      PDFObjectProperty,
@@ -57,7 +53,7 @@ JSGlobalObject.PDFType1Font.prototype = Object.create(PDFFont.prototype, {
     ToUnicode:      PDFObjectProperty,
 
     stringFromData: {
-        value: function PDFType1Font_stringFromData(data){
+        value: function PDFSimpleFont_stringFromData(data){
             var str = "";
             var code;
             var unicode;
@@ -70,8 +66,11 @@ JSGlobalObject.PDFType1Font.prototype = Object.create(PDFFont.prototype, {
     },
 
     widthOfData: {
-        value: function PDFType1Font_widthOfData(data){
-            if (!this.W){
+        value: function PDFSimpleFont_widthOfData(data, characterSpacing){
+            if (data.length === 0){
+                return 0;
+            }
+            if (!this.Widths){
                 return 0;
             }
             var index;
@@ -81,12 +80,12 @@ JSGlobalObject.PDFType1Font.prototype = Object.create(PDFFont.prototype, {
             for (var i = 0, l = data.length; i < l; ++i){
                 index = data[i];
                 if (index >= min && index <= max){
-                    width += this.W[index - min];
+                    width += this.Widths[index - min];
                 }else if (this.FontDescriptor){
                     width += this.FontDescriptor.MissingWidth || 0;
                 }
             }
-            return width / 1000;
+            return width / 1000 + characterSpacing * data.length;
         }
     },
 
@@ -94,18 +93,19 @@ JSGlobalObject.PDFType1Font.prototype = Object.create(PDFFont.prototype, {
         writable: true,
         value: null,
     },
-    _cachedFoundationFont: {
+
+    _cachedFontDescriptor: {
         writable: true,
         value: null,
     },
 
     load: {
-        value: function PDFType1Font_load(completion, target){
+        value: function PDFSimpleFont_load(completion, target){
             // fill in missing values from standard font, if possible
             var standard = StandardFonts[this.BaseFont];
             if (standard){
-                if (!this.W){
-                    this.W = standard.W;
+                if (!this.Widths){
+                    this.Widths = standard.Widths;
                     this.FirstChar = standard.FirstChar;
                     this.LastChar = standard.LastChar;
                 }
@@ -119,19 +119,12 @@ JSGlobalObject.PDFType1Font.prototype = Object.create(PDFFont.prototype, {
                     next.call(this);
                     return;
                 }
-                if (this.FontDescriptor.FontFile2){
-                    this.FontDescriptor.FontFile2.getData(function(ttf){
-                        // TODO: make JSFont from ttf and descriptor info
-                        next.call(this);       
-                    }, this);
-                }else if (this.FontDescriptor.FontFile3 && this.FontDescriptor.FontFile3.SubType == "OpenType"){
-                    this.FontDescriptor.FontFile3.getData(function(otf){
-                        // TODO: make JSFont from otf and descriptor info
-                        next.call(this);
-                    }, this);
-                }else{
+                this.FontDescriptor.getOpenTypeData(function(otf){
+                    if (otf){
+                        this._cachedFontDescriptor = PDFOpenTypeFontDescriptor.initWithData(otf, this);
+                    }
                     next.call(this);
-                }
+                }, this);
             };
 
             var loadUnicode = function(){
@@ -140,6 +133,7 @@ JSGlobalObject.PDFType1Font.prototype = Object.create(PDFFont.prototype, {
                     return;
                 }
                 this.ToUnicode.getData(function(cmap){
+                    var base = null;
                     // TODO: use this.ToUnicode.UseCMap, if present
                     this._cachedEncoding = ToUnicodeEncoding(cmap);
                     next.call(this);
@@ -152,6 +146,7 @@ JSGlobalObject.PDFType1Font.prototype = Object.create(PDFFont.prototype, {
                     return;
                 }
                 var base;
+                var diffs = [];
                 if (this.Encoding){
                     if (this.Encoding instanceof PDFName){
                         this._cachedEncoding = SingleByteEncoding(this.Encoding);
@@ -160,6 +155,9 @@ JSGlobalObject.PDFType1Font.prototype = Object.create(PDFFont.prototype, {
                         if (!base){
                             // TODO: use built in font encoding as base if font file is embedded
                         }
+                    }
+                    if (this.Encoding.Differences){
+                        diffs = this.Encoding.Differences;
                     }
                 }else{
                     // TODO: use the font's built in encoding as base if file is embedded
@@ -178,15 +176,29 @@ JSGlobalObject.PDFType1Font.prototype = Object.create(PDFFont.prototype, {
                                 break;
                         }
                     }
-                    this._cachedEncoding = SingleByteEncoding(base, this.Encoding.Differences);
+                    this._cachedEncoding = SingleByteEncoding(base, diffs);
                 }
+                next.call(this);
+            };
+
+            var createFallbackDescriptor = function(){
+                if (this._cachedFontDescriptor !== null){
+                    next.call(this);
+                    return;
+                }
+                if (!standard){
+                    next.call(this);
+                    return;
+                }
+                this._cachedFontDescriptor = PDFStandardFontDescriptor.initWithPDFFont(this);
                 next.call(this);
             };
 
             var steps = [
                 loadFontFile,
                 loadUnicode,
-                loadEncoding
+                loadEncoding,
+                createFallbackDescriptor
             ];
             var stepIndex = -1;
             var next = function(){
@@ -199,7 +211,26 @@ JSGlobalObject.PDFType1Font.prototype = Object.create(PDFFont.prototype, {
             };
             next.call(this);
         }
+    },
+
+    foundationFontOfSize: {
+        value: function PDFSimpleFont_foundationFontOfSize(size){
+            if (this._cachedFontDescriptor){
+                return JSFont.initWithDescriptor(this._cachedFontDescriptor, size);
+            }
+            return null;
+        }
     }
+});
+
+JSGlobalObject.PDFType1Font = function(){
+    if (this === undefined){
+        return new PDFType1Font();
+    }
+};
+
+JSGlobalObject.PDFType1Font.prototype = Object.create(SimpleFontPrototype, {
+    Subtype:        { enumerable: true, value: PDFName("Type1") },
 });
 
 JSGlobalObject.PDFTrueTypeFont = function(){
@@ -208,8 +239,18 @@ JSGlobalObject.PDFTrueTypeFont = function(){
     }
 };
 
-JSGlobalObject.PDFTrueTypeFont.prototype = Object.create(PDFType1Font.prototype, {
+JSGlobalObject.PDFTrueTypeFont.prototype = Object.create(SimpleFontPrototype, {
     Subtype:    { enumerable: true, value: PDFName("TrueType") },
+});
+
+JSGlobalObject.PDFMMType1Font = function(){
+    if (this === undefined){
+        return new PDFMMType1Font();
+    }
+};
+
+JSGlobalObject.PDFMMType1Font.prototype = Object.create(SimpleFontPrototype, {
+    Subtype:        { enumerable: true, value: PDFName("MMType1") }
 });
 
 JSGlobalObject.PDFType0Font = function(){
@@ -219,17 +260,103 @@ JSGlobalObject.PDFType0Font = function(){
 };
 
 JSGlobalObject.PDFType0Font.prototype = Object.create(PDFFont.prototype, {
-    Subtype:        { enumerable: true, value: PDFName("Type0") }
+    Subtype:        { enumerable: true, value: PDFName("Type0") },
+    BaseFont:       PDFObjectProperty,
+    Encoding:       PDFObjectProperty,
+    DescendantFonts: PDFObjectProperty,
+    ToUnicode:      PDFObjectProperty,
+
+    _cachedFontDescriptor: {
+        writable: true,
+        value: null,
+    },
+
+    load: {
+        value: function PDFType0Font_load(completion, target){
+            var descendant = this.DescendantFonts[0];
+
+            var loadFontFile = function(){
+                descendant.FontDescriptor.getOpenTypeData(function(otf){
+                    if (otf){
+                        this._cachedFontDescriptor = PDFOpenTypeFontDescriptor.initWithData(otf, descendant);
+                    }
+                    next.call(this);
+                }, this);
+            };
+
+            var loadUnicode = function(){
+                if (!this.ToUnicode){
+                    next.call(this);
+                    return;
+                }
+                this.ToUnicode.getData(function(cmap){
+                    // TODO: use this.ToUnicode.UseCMap, if present
+                    this._cachedEncoding = ToUnicodeEncoding(cmap);
+                    next.call(this);
+                }, this);
+            };
+
+            var steps = [
+                loadFontFile,
+                loadUnicode
+            ];
+            var stepIndex = -1;
+            var next = function(){
+                ++stepIndex;
+                if (stepIndex < steps.length){
+                    steps[stepIndex].call(this);
+                }else{
+                    completion.call(target);
+                }
+            };
+            next.call(this);
+        }
+    },
+
+    stringFromData: {
+        value: function PDFType0Font_stringFromData(data){
+            return null;
+        }
+    },
+
+    widthOfData: {
+        value: function PDFType0Font_widthOfData(data, characterSpacing){
+            return 0;
+        }
+    },
+
+    foundationFontOfSize: {
+        value: function PDFType0Font_foundationFontOfSize(size){
+            if (this._cachedFontDescriptor){
+                return JSFont.initWithDescriptor(this._cachedFontDescriptor, size);
+            }
+            return null;
+        }
+    }
 });
 
-JSGlobalObject.PDFMMType1Font = function(){
+var CIDFontPrototype = Object.create(PDFObject.prototype, {
+
+});
+
+JSGlobalObject.PDFCIDType0Font = function(){
     if (this === undefined){
-        return new PDFMMType1Font();
+        return new PDFCIDType0Font();
     }
 };
 
-JSGlobalObject.PDFMMType1Font.prototype = Object.create(PDFFont.prototype, {
-    Subtype:        { enumerable: true, value: PDFName("MMType1") }
+JSGlobalObject.PDFCIDType0Font.prototype = Object.create(CIDFontPrototype, {
+    Subtype:        { enumerable: true, value: PDFName("CIDFontType0") }
+});
+
+JSGlobalObject.PDFCIDType2Font = function(){
+    if (this === undefined){
+        return new PDFCIDType2Font();
+    }
+};
+
+JSGlobalObject.PDFCIDType2Font.prototype = Object.create(CIDFontPrototype, {
+    Subtype:        { enumerable: true, value: PDFName("CIDFontType1") }
 });
 
 JSGlobalObject.PDFType3Font = function(){
@@ -242,24 +369,48 @@ JSGlobalObject.PDFType3Font.prototype = Object.create(PDFFont.prototype, {
     Subtype:        { enumerable: true, value: PDFName("Type3") },
 });
 
-JSGlobalObject.PDFCIDFontType0Font = function(){
-    if (this === undefined){
-        return new PDFCIDFontType0Font();
-    }
-};
+JSClass("PDFStandardFontDescriptor", JSFontDescriptor, {
+    // TODO: populate with pdfDescriptor
+    // TODO: make available to UIDisplayServer
+    //       - no need to register
+    //       - family name should match css expectation
 
-JSGlobalObject.PDFCIDFontType0Font.prototype = Object.create(PDFFont.prototype, {
-    Subtype:        { enumerable: true, value: PDFName("CIDFontType0") }
+    initWithPDFFont: function(pdfFont){
+        var pdfDescriptor = pdfFont.FontDescriptor;
+        this._family = pdfDescriptor.FontFamily.stringByDecodingLatin1();
+        this._weight = pdfDescriptor.Weight || JSFont.Weight.regular;
+        this._style = (pdfDescriptor.Flags & 0x40) ? JSFont.Style.italic : JSFont.Style.normal;
+        this._postScriptName = pdfDescriptor.FontName.valueDecodingUTF8();
+        this._name = this._postScriptName;
+        this._face = "";
+        this._ascender = pdfDescriptor.Ascent;
+        this._descender = pdfDescriptor.Descent;
+        this._unitsPerEM = 1000;
+    }
 });
 
-JSGlobalObject.PDFCIDFontType1Font = function(){
-    if (this === undefined){
-        return new PDFCIDFontType1Font();
-    }
-};
+var descriptorId = 0;
 
-JSGlobalObject.PDFCIDFontType1Font.prototype = Object.create(PDFFont.prototype, {
-    Subtype:        { enumerable: true, value: PDFName("CIDFontType1") }
+JSClass("PDFOpenTypeFontDescriptor", FNTFontDescriptor, {
+
+    pdfFont: null,
+    missingWidth: 0,
+
+    initWithData: function(data, pdfFont){
+        this.pdfFont = pdfFont;
+        PDFOpenTypeFontDescriptor.$super.initWithOpenTypeData.call(this, data);
+        var pdfDescriptor = this.pdfFont.FontDescriptor;
+        this._family = "PDFKit%d".sprintf(descriptorId++);
+        this._weight = pdfDescriptor.Weight || JSFont.Weight.regular;
+        this._style = (pdfDescriptor.Flags & 0x40) ? JSFont.Style.italic : JSFont.Style.normal;
+        this._postScriptName = pdfDescriptor.FontName.valueDecodingUTF8();
+        this._name = this._postScriptName;
+        this._face = "";
+        if ('MissingWidth' in pdfDescriptor){
+            this.missingWidth = pdfDescriptor.MissingWidth;
+        }
+    }
+
 });
 
 var SingleByteEncoding = function(base, diffs){
@@ -1181,37 +1332,110 @@ var AdobeNamesToUnicode = {
 
 var StandardFonts = {
     "Times-Roman": {
-    },
-    "Times-Bold": {
-    },
-    "Times-Italic": {
-    },
-    "Times-BoldItalic": {
-    },
-    // Notice Copyright (c) 1985, 1987, 1989, 1990, 1997 Adobe Systems Incorporated.  All Rights Reserved.Helvetica is a trademark of Linotype-Hell AG and/or its subsidiaries.
-    "Helvetica": {
-        W: [278,278,355,556,556,889,667,222,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,222,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,580,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,333,556,556,167,556,556,556,556,191,333,556,333,333,500,500,0,556,556,556,278,0,537,350,222,333,333,556,1000,1000,0,611,0,333,333,333,333,333,333,333,333,0,333,333,0,333,333,333,1000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1000,0,370,0,0,0,0,556,778,1000,365,0,0,0,0,0,889,0,0,0,278,0,0,222,611,944,611],
+        Widths: [250,333,408,500,500,833,778,333,333,333,500,564,250,333,250,278,500,500,500,500,500,500,500,500,500,500,278,278,564,564,564,444,921,722,667,667,722,611,556,722,722,333,389,722,611,889,722,722,556,722,667,556,611,722,722,944,722,722,611,333,278,333,469,500,333,444,500,444,500,444,333,500,500,278,278,500,278,778,500,500,500,500,333,389,278,500,500,722,500,500,444,480,200,480,541,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,333,500,500,167,500,500,500,500,180,444,500,333,333,556,556,0,500,500,500,250,0,453,350,333,444,444,500,1000,1000,0,444,0,333,333,333,333,333,333,333,333,0,333,333,0,333,333,333,1000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,889,0,276,0,0,0,0,611,722,889,310,0,0,0,0,0,667,0,0,0,278,0,0,278,500,722,500],
         FirstChar: 32,
         LastChar: 251,
         FontDescriptor: {
-            FontName: "Helvetica",
-            FontFamily: "Helvetica",
-            Weight: "Medium",
-            ItalicAngle: 0,
-            IsFixedPitch: false,
-            CharSet: "ExtendedRoman",
-            FontBBox: [-166, -225, 1000, 931],
-            CapHeight: 718,
-            XHeight: 523,
-            Ascender: 718,
-            Descender: -207
+            FontName: PDFName("Times-Roman"),
+            FontFamily: "Times".latin1(),
+            Weight: 400,
+            Flags: 0,
+            Ascent: 683,
+            Descent: -217
         }
     },
+    "Times-Bold": {
+        Widths: [250,333,555,500,500,1000,833,333,333,333,500,570,250,333,250,278,500,500,500,500,500,500,500,500,500,500,333,333,570,570,570,500,930,722,667,722,722,667,611,778,778,389,500,778,667,944,722,778,611,778,722,556,667,722,722,1000,722,722,667,333,278,333,581,500,333,500,556,444,556,444,333,500,556,278,333,556,278,833,556,500,556,556,444,389,333,556,500,722,500,500,444,394,220,394,520,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,333,500,500,167,500,500,500,500,278,500,500,333,333,556,556,0,500,500,500,250,0,540,350,333,500,500,500,1000,1000,0,500,0,333,333,333,333,333,333,333,333,0,333,333,0,333,333,333,1000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1000,0,300,0,0,0,0,667,778,1000,330,0,0,0,0,0,722,0,0,0,278,0,0,278,500,722,556],
+        FirstChar: 32,
+        LastChar: 251,
+        FontDescriptor: {
+            FontName: PDFName("Times-Bold"),
+            FontFamily: "Times".latin1(),
+            Weight: 700,
+            Flags: 0,
+            Ascent: 683,
+            Descent: -217
+        }
+    },
+    "Times-Italic": {
+        Widths: [250,333,420,500,500,833,778,333,333,333,500,675,250,333,250,278,500,500,500,500,500,500,500,500,500,500,333,333,675,675,675,500,920,611,611,667,722,611,611,722,722,333,444,667,556,833,667,722,611,722,611,500,556,722,611,833,611,556,556,389,278,389,422,500,333,500,500,444,500,444,278,500,500,278,278,444,278,722,500,500,500,500,389,389,278,500,444,667,444,444,389,400,275,400,541,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,389,500,500,167,500,500,500,500,214,556,500,333,333,500,500,0,500,500,500,250,0,523,350,333,556,556,500,889,1000,0,500,0,333,333,333,333,333,333,333,333,0,333,333,0,333,333,333,889,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,889,0,276,0,0,0,0,556,722,944,310,0,0,0,0,0,667,0,0,0,278,0,0,278,500,667,500],
+        FirstChar: 32,
+        LastChar: 251,
+        FontDescriptor: {
+            FontName: PDFName("Times-Italic"),
+            FontFamily: "Times".latin1(),
+            Weight: 400,
+            Flags: 0x40,
+            Ascent: 683,
+            Descent: -217
+        }
+    },
+    "Times-BoldItalic": {
+        Widths: [250,389,555,500,500,833,778,333,333,333,500,570,250,333,250,278,500,500,500,500,500,500,500,500,500,500,333,333,570,570,570,500,832,667,667,667,722,667,667,722,778,389,500,667,611,889,722,722,611,722,667,556,611,722,667,889,667,611,611,333,278,333,570,500,333,500,500,444,500,444,333,500,556,278,278,500,278,778,556,500,500,500,389,389,278,556,444,667,500,444,389,348,220,348,570,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,389,500,500,167,500,500,500,500,278,500,500,333,333,556,556,0,500,500,500,250,0,500,350,333,500,500,500,1000,1000,0,500,0,333,333,333,333,333,333,333,333,0,333,333,0,333,333,333,1000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,944,0,266,0,0,0,0,611,722,944,300,0,0,0,0,0,722,0,0,0,278,0,0,278,500,722,500],
+        FirstChar: 32,
+        LastChar: 251,
+        FontDescriptor: {
+            FontName: PDFName("Times-BoldItalic"),
+            FontFamily: "Times".latin1(),
+            Weight: 700,
+            Flags: 0x40,
+            Ascent: 683,
+            Descent: -217
+        }
+    },
+    // Notice Copyright (c) 1985, 1987, 1989, 1990, 1997 Adobe Systems Incorporated.  All Rights Reserved.Helvetica is a trademark of Linotype-Hell AG and/or its subsidiaries.
+    "Helvetica": {
+        Widths: [278,278,355,556,556,889,667,222,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,222,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,580,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,333,556,556,167,556,556,556,556,191,333,556,333,333,500,500,0,556,556,556,278,0,537,350,222,333,333,556,1000,1000,0,611,0,333,333,333,333,333,333,333,333,0,333,333,0,333,333,333,1000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1000,0,370,0,0,0,0,556,778,1000,365,0,0,0,0,0,889,0,0,0,278,0,0,222,611,944,611],
+        FirstChar: 32,
+        LastChar: 251,
+        FontDescriptor: {
+            FontName: PDFName("Helvetica"),
+            FontFamily: "Helvetica".latin1(),
+            Weight: 400,
+            Flags: 0,
+            Ascent: 718,
+            Descent: -207
+        }
+    },
+    // Notice Copyright (c) 1985, 1987, 1989, 1990, 1997 Adobe Systems Incorporated.  All Rights Reserved.Helvetica is a trademark of Linotype-Hell AG and/or its subsidiaries.
     "Helvetica-Bold": {
+        Widths: [278,333,474,556,556,889,722,278,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,278,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,333,556,556,167,556,556,556,556,238,500,556,333,333,611,611,0,556,556,556,278,0,556,350,278,500,500,556,1000,1000,0,611,0,333,333,333,333,333,333,333,333,0,333,333,0,333,333,333,1000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1000,0,370,0,0,0,0,611,778,1000,365,0,0,0,0,0,889,0,0,0,278,0,0,278,611,944,611],
+        FirstChar: 32,
+        LastChar: 251,
+        FontDescriptor: {
+            FontName: PDFName("Helvetica-Bold"),
+            FontFamily: "Helvetica".latin1(),
+            Weight: 700,
+            Flags: 0,
+            Ascent: 718,
+            Descent: -207
+        }
     },
     "Helvetica-Oblique": {
+        Widths: [278,278,355,556,556,889,667,222,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,222,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,333,556,556,167,556,556,556,556,191,333,556,333,333,500,500,0,556,556,556,278,0,537,350,222,333,333,556,1000,1000,0,611,0,333,333,333,333,333,333,333,333,0,333,333,0,333,333,333,1000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1000,0,370,0,0,0,0,556,778,1000,365,0,0,0,0,0,889,0,0,0,278,0,0,222,611,944,611],
+        FirstChar: 32,
+        LastChar: 251,
+        FontDescriptor: {
+            FontName: PDFName("Helvetica-Oblique"),
+            FontFamily: "Helvetica".latin1(),
+            Weight: 400,
+            Flags: 0x40,
+            Ascent: 718,
+            Descent: -207
+        }
     },
     "Helvetica-BoldOblique": {
+        Widths: [278,333,474,556,556,889,722,278,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,278,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,333,556,556,167,556,556,556,556,238,500,556,333,333,611,611,0,556,556,556,278,0,556,350,278,500,500,556,1000,1000,0,611,0,333,333,333,333,333,333,333,333,0,333,333,0,333,333,333,1000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1000,0,370,0,0,0,0,611,778,1000,365,0,0,0,0,0,889,0,0,0,278,0,0,278,611,944,611],
+        FirstChar: 32,
+        LastChar: 251,
+        FontDescriptor: {
+            FontName: PDFName("Helvetica-BoldOblique"),
+            FontFamily: "Helvetica".latin1(),
+            Weight: 700,
+            Flags: 0x40,
+            Ascent: 718,
+            Descent: -207
+        }
     },
     "Courier": {
     },

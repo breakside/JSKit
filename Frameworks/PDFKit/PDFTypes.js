@@ -10,8 +10,9 @@
 // #import "PDFKit/PDFTrailer.js"
 // #import "PDFKit/PDFFont.js"
 // #import "PDFKit/PDFFontDescriptor.js"
+// #import "PDFKit/PDFCMap.js"
 // #import "PDFKit/PDFImage.js"
 // #import "PDFKit/PDFXrefStream.js"
 // #import "PDFKit/PDFObjectStream.js"
-/* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFType0Font, PDFTrueTypeFont, PDFMMType1Font, PDFType3Font, PDFCIDFontType0Font, PDFCIDFontType1Font, PDFFontDescriptor, PDFImage, PDFXrefStream, PDFObjectStream */
+/* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFType0Font, PDFTrueTypeFont, PDFMMType1Font, PDFType3Font, PDFCIDType0Font, PDFCIDType2Font, PDFFontDescriptor, PDFImage, PDFXrefStream, PDFObjectStream, PDFCMap */
 'use strict';

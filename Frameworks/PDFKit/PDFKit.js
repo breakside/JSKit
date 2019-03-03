@@ -2,6 +2,7 @@
 // #import "ImageKit/ImageKit.js"
 // #import "SecurityKit/SecurityKit.js"
 // #import "Hash/Hash.js"
+// #import "FontKit/FontKit.js"
 
 // #import "PDFKit/PDFTypes.js"
 // #import "PDFKit/PDFGraphicsState.js"

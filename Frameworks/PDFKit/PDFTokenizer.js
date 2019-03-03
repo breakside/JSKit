@@ -1,7 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "PDFKit/PDFTypes.js"
 /* global JSClass, JSObject, JSReadOnlyProperty, PDFTokenizer, PDFReaderStream, PDFReaderDataStream, JSData */
-/* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFType0Font, PDFTrueTypeFont, PDFFontDescriptor, PDFImage, PDFXrefStream, PDFObjectStream */
+/* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFMMType1Font, PDFType3Font, PDFType0Font, PDFCIDType0Font, PDFCIDType2Font, PDFTrueTypeFont, PDFFontDescriptor, PDFImage, PDFXrefStream, PDFObjectStream */
 'use strict';
 
 (function(){
@@ -690,13 +690,17 @@ var types = [
     PDFPage,
     PDFGraphicsStateParameters,
     PDFXrefStream,
-    PDFObjectStream
+    PDFObjectStream,
+    PDFFontDescriptor
 ];
 var typesWithSubtypes = [
     PDFType1Font,
     PDFTrueTypeFont,
+    PDFMMType1Font,
+    PDFType3Font,
     PDFType0Font,
-    PDFFontDescriptor,
+    PDFCIDType0Font,
+    PDFCIDType2Font,
     PDFImage,
 ];
 var i, l;

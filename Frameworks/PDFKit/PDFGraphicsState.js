@@ -61,7 +61,7 @@ PDFGraphicsState.Properties = {
     textLineTransform: null,
     characterSpacing: 0,
     wordSpacing: 0,
-    textHorizontalScaling: 100,
+    textHorizontalScaling: 1,
     textLeading: 0,
     font: null,
     fontSize: 0,
@@ -323,12 +323,12 @@ var operationHandler = {
     },
 
     Tm: function(a, b, c, d, e, f){
-        this.state.textTransform = JSAffineTransform(a, b, c, d, e, e, f);
-        this.state.textLineTransform = JSAffineTransform(a, b, c, d, e, e, f);
+        this.state.textTransform = JSAffineTransform(a, b, c, d, e, f);
+        this.state.textLineTransform = JSAffineTransform(a, b, c, d, e, f);
     },
 
     __PDFKit_xTextAdvance__: function(x, y){
-        this.state.textTransform = this.state.textTransform.translatedBy(x / 1000.0 * this.state.fontSize * this.state.textHorizontalScaling / 100.0, y / 1000.0 * this.state.fontSize);
+        this.state.textTransform = this.state.textTransform.translatedBy(x / 1000.0 * this.state.fontSize * this.state.textHorizontalScaling, y / 1000.0 * this.state.fontSize);
     },
 
     Tc: function(spacing){
@@ -340,7 +340,7 @@ var operationHandler = {
     },
 
     Tz: function(scaling){
-        this.state.textHorizontalScaling = scaling;
+        this.state.textHorizontalScaling = scaling / 100;
     },
 
     TL: function(leading){
@@ -371,7 +371,7 @@ var operationHandler = {
     TD: function(x, y){
         this.state.textLineTransform = this.state.textLineTransform.translatedBy(x, y);
         this.state.textTransform = JSAffineTransform(this.state.textLineTransform);
-        this.textLeading = -y;
+        this.state.textLeading = -y;
     },
 
     // next line using leading
@@ -383,7 +383,7 @@ var operationHandler = {
     // show string
     Tj: function(binaryString){
         // advance text matrix
-        var width = this.state.font.widthOfData(binaryString) * this.state.textHorizontalScaling / 100;
+        var width = this.state.font.widthOfData(binaryString, this.state.characterSpacing) * this.state.fontSize * this.state.textHorizontalScaling;
         this.state.textTransform = this.state.textTransform.translatedBy(width, 0);
     },
 

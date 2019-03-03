@@ -32,8 +32,6 @@ JSClass("PDFContext", JSContext, {
 
     _fontInfo: null,
     _nextFontNumber: 1,
-    _fontStack: null,
-    _textMatrix: null,
 
     _imageInfo: null,
     _nextImageNumber: 1,
@@ -48,9 +46,11 @@ JSClass("PDFContext", JSContext, {
     initWithStream: function(stream, mediaBox){
         PDFContext.$super.init.call(this);
         this._fontInfo = {};
-        this._fontStack = [];
-        this._textMatrixStack = [];
-        this._textMatrix = JSAffineTransform.Scaled(1, -1);
+        this._stack = [];
+        this._state = {
+            textMatrix: JSAffineTransform.Scaled(1, -1),
+            font: null,
+        };
         this._imageInfo = {};
         if (mediaBox === undefined){
             mediaBox = JSRect(0, 0, this._dpi * this._defaultPageWidthInInches, this._dpi * this._defaultPageHeightInInches);
@@ -351,36 +351,35 @@ JSClass("PDFContext", JSContext, {
     // MARK: - Text
 
     setTextMatrix: function(tm){
-        this._textMatrix = tm;
-    },
-
-    setTextPosition: function(textPosition){
-        // TODO: PDF command
+        this._state.textMatrix = tm;
     },
 
     setFont: function(font){
-        this._font = font;
+        this._state.font = font;
     },
 
     setTextDrawingMode: function(textDrawingMode){
         this._writeStreamData("%n Tr ", textDrawingMode);
     },
 
-    showGlyphs: function(glyphs, points){
+    showGlyphs: function(glyphs){
         // TODO: if any glyphs are bitmaps (like in emoji fonts), might need to draw them as images
-        var chars = this._font.charactersForGlyphs(glyphs);
-        var info = this._infoForFont(this._font);
+        var chars = this._state.font.charactersForGlyphs(glyphs);
+        var info = this._infoForFont(this._state.font);
         var encoded = this._encodedString(chars, info);
-        var tm = this._textMatrix;
+        var tm = this._state.textMatrix;
         info.useGlyphs(glyphs);
         info.hasMacEncoding = info.hasMacEncoding || encoded.isMacEncoding;
         info.hasUTF16Encoding = info.hasUTF16Encoding || !encoded.isMacEncoding;
-        // TODO: positioning
-        this._writeStreamData("BT %N %n Tf ", encoded.fontResourceName, this._font.pointSize);
+        this._writeStreamData("BT %N %n Tf ", encoded.fontResourceName, this._state.font.pointSize);
         this._writeStreamData("%n %n %n %n %n %n Tm ", tm.a, tm.b, tm.c, tm.d, tm.tx, tm.ty);
-        this._writeStreamData("%n %n Td ", points[0].x, points[0].y);
         this._writeStreamData("%S Tj ", encoded.string);
         this._writeStreamData("ET ");
+    },
+
+    showText: function(text){
+        var glyphs = this._state.font.glyphsForString(text);
+        this.showGlyphs(glyphs);
     },
 
     _encodedString: function(chars, info){
@@ -496,14 +495,14 @@ JSClass("PDFContext", JSContext, {
 
     save: function(){
         this._writeStreamData("q ");
-        this._fontStack.push(this._font);
-        this._textMatrixStack.push(this._textMatrix);
+        this._stack.push(this._state);
     },
 
     restore: function(){
         this._writeStreamData("Q ");
-        this._font = this._fontStack.pop();
-        this._textMatrix = this._textMatrixStack.pop();
+        if (this._stack.length > 0){
+            this._state = this._stack.pop();
+        }
     },
 
     // ----------------------------------------------------------------------

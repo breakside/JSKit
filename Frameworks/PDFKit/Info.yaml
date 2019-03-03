@@ -1,0 +1,9 @@
+JSBundleType: framework
+JSBundleIdentifier: io.breakside.JSKit.PDFKit
+JSBundleVersion: 1.0.0
+JSIncludeFrameworks:
+  - Foundation
+  - Hash
+  - SecurityKit
+  - ImageKit
+  - FontKit
