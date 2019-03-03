@@ -7,7 +7,7 @@
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
 // #feature Document.prototype.createElement
-/* global JSGlobalObject, Element, JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, UIHTMLDisplayServerCanvasContext, UIHTMLDisplayServerSVGContext, JSSize, JSRect, JSPoint, UILayer, JSLog, UITextFramesetter, UIHTMLTextFramesetter, UIView, UITextAttachmentView */
+/* global JSGlobalObject, Element, JSFont, JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, UIHTMLDisplayServerCanvasContext, UIHTMLDisplayServerSVGContext, JSSize, JSRect, JSPoint, UILayer, JSLog, UITextFramesetter, UIHTMLTextFramesetter, UIView, UITextAttachmentView */
 'use strict';
 
 (function(){
@@ -23,6 +23,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     rootElement: null,
     windowsContext: null,
     displayFrameID: null,
+    _fontStyleElement: null,
     _displayFrameBound: null,
     contextsByObjectID: null,
     contextClass: null,
@@ -82,15 +83,19 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         if (name in this._registeredFontCSSRules){
             return;
         }
+        var doc = this.domDocument;
         if (!this._fontStyleElement){
-            var doc = this.element.ownerDocument;
             this._fontStyleElement = doc.createElement("style");
             this._fontStyleElement.type = "text/css";
             doc.head.appendChild(this._fontStyleElement);
         }
         var stylesheet = this._fontStyleElement.sheet;
         var ruleText = descriptor.cssFontFaceRuleString();
-        this._registeredFontCSSRules[name] = stylesheet.insertRule(ruleText, stylesheet.cssRules.length);
+        if (ruleText !== null){
+            this._registeredFontCSSRules[name] = stylesheet.insertRule(ruleText, stylesheet.cssRules.length);
+        }else{
+            this._registeredFontCSSRules[name] = null;
+        }
     },
 
     // -------------------------------------------------------------------------

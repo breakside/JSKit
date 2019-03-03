@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIHTMLDisplayServerContext.js"
-/* global JSClass, JSContext, UIHTMLDisplayServerContext, JSRect, JSObject, UILayer, UIHTMLDisplayServerCanvasContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
+/* global JSClass, JSContext, JSAffineTransform, UIHTMLDisplayServerContext, JSRect, JSObject, UILayer, UIHTMLDisplayServerCanvasContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
 'use strict';
 
 JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
@@ -29,7 +29,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this._canvasElements = [];
         this._externalElements = [];
         this._previousExternalElements = [];
-        this._fontStack = [];
+        this._stack = [];
+        this._state = {
+            font: null,
+            textMatrix: JSAffineTransform.Identity,
+            characterSpacing: 0,
+            textDrawingMode: JSContext.TextDrawingMode.fill
+        };
         this.bounds = JSRect.Zero;
     },
 
@@ -550,26 +556,87 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     // ----------------------------------------------------------------------
     // MARK: - Text
 
-    _textDrawingMode: JSContext.TextDrawingMode.fill,
-
     setFont: function(font){
-        // TODO: register font if needed
+        this._state.font = font;
+        if (font.descriptor){
+            this.displayServer.registerFontDescriptor(font.descriptor);
+        }
         this.canvasContext.font = font.cssString();
-        this._font = font;
-        this.displayServer.registerFont(font);
+    },
+
+    setCharacterSpacing: function(spacing){
+        this._state.characterSpacing = spacing;
+    },
+
+    setTextMatrix: function(textMatrix){
+        this._state.textMatrix = textMatrix;
     },
 
     setTextDrawingMode: function(textDrawingMode){
-        this._textDrawingMode = textDrawingMode;
+        this._state.textDrawingMode = textDrawingMode;
     },
 
-    showGlyphs: function(glyphs, points){
-        var text = this._font.stringForGlyphs(glyphs);
-        if (this._textDrawingMode == JSContext.TextDrawingMode.fill || this._textDrawingMode == JSContext.TextDrawingMode.fillStroke){
-            this.canvasContext.fillText(text, points[0].x, points[0].y);
+    showGlyphs: function(glyphs){
+        var tm = this._state.textMatrix;
+        var width;
+        var glyph;
+        var text;
+        var font = this._state.font;
+        this.canvasContext.save();
+        this.concatenate(tm);
+        for (var i = 0, l = glyphs.length; i < l; ++i){
+            glyph = glyphs[i];
+            text = font.stringForGlyphs([glyph]);
+            if (this._state.textDrawingMode == JSContext.TextDrawingMode.fill || this._state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+                this.canvasContext.fillText(text, 0, 0);
+            }
+            if (this._state.textDrawingMode == JSContext.TextDrawingMode.stroke || this._state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+                this.canvasContext.strokeText(text, 0, 0);
+            }
+            width = font.widthOfGlyph(glyph) + this._state.characterSpacing;
+            this.translateBy(width, 0);
         }
-        if (this._textDrawingMode == JSContext.TextDrawingMode.stroke || this._textDrawingMode == JSContext.TextDrawingMode.fillStroke){
-            this.canvasContext.strokeText(text, points[0].x, points[0].y);
+        this.canvasContext.restore();
+    },
+
+    showText: function(text){
+        // If there's a non-zero character spacing specified, we can't use
+        // canvasContext.fillText, because Canvas2D has no way of specifying
+        // character spacing.  So, we'll use showGlyphs to paint glyph by
+        // glyph.
+        //
+        // Disabled until we have the font cmap stuff working correctly for pdf fonts
+        // if (this._state.characterSpacing !== 0){
+        //     var glyphs = this._state.font.glyphsForString(text);
+        //     this.showGlyphs(glyphs);
+        //     return;
+        // }
+
+        // If character spacing is zero, then it's far more effient to just paint
+        // the text we were given all at once.
+        var tm = this._state.textMatrix;
+        var nonIdentityMatrix = !tm.isIdentity;
+        if  (nonIdentityMatrix){
+            // Canvas2D doens't have a concept of a text transform, so we'll just
+            // add it to the base transform.
+            // - Be sure to adjust the lineWidth for the new scale
+            this.canvasContext.save();
+            this.setLineWidth(this.canvasContext.lineWidth / Math.abs(tm.d));
+            this.concatenate(tm);
+        }
+        if (this._state.textDrawingMode == JSContext.TextDrawingMode.fill || this._state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+            this.canvasContext.fillText(text, 0, 0);
+        }
+        if (this._state.textDrawingMode == JSContext.TextDrawingMode.stroke || this._state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+            this.canvasContext.strokeText(text, 0, 0);
+        }
+        // Debugging
+        // this.canvasContext.save();
+        // this.setFillColor(JSColor.initWithRGBA(1,0,0,0.4));
+        // this.fillRect(JSRect(0, -this._state.font.ascender, this._state.font.lineHeight, this._state.font.lineHeight));
+        // this.canvasContext.restore();
+        if (nonIdentityMatrix){
+            this.canvasContext.restore();
         }
     },
 
@@ -597,7 +664,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     setShadow: function(offset, blur, color){
         this.canvasContext.shadowOffsetX = offset.x;
         this.canvasContext.shadowOffsetY = offset.y;
-        this.canvasContext.shadodwBlur = blur;
+        this.canvasContext.shadowBlur = blur;
         this.canvasContext.shadowColor = color ? color.cssString() : '';
     },
 
@@ -662,7 +729,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         if (this._canvasContext){
             this._canvasContext.save();
         }
-        this._fontStack.push(this._font);
+        this._stack.push(this._state);
     },
 
 
@@ -670,7 +737,9 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         if (this._canvasContext){
             this._canvasContext.restore();
         }
-        this._font = this._fontStack.pop();
+        if (this._stack.length > 0){
+            this._state = this._stack.pop();
+        }
     },
 
 });
