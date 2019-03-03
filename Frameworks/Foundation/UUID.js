@@ -6,7 +6,7 @@
 
 JSGlobalObject.UUID = function(version){
   if (this === undefined){
-    return (new UUID()).string;
+    return (new UUID(version)).string;
   }
   this.bytes = new Uint8Array(16);
   this.variant = 0x4;

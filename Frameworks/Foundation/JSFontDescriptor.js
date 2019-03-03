@@ -60,7 +60,7 @@ JSClass("JSFontDescriptor", JSObject, {
     },
 
     getData: function(completion, target){
-        completion.call(target);
+        completion.call(target, null);
     }
 
 });
@@ -71,7 +71,10 @@ JSClass("JSDataFontDescriptor", JSFontDescriptor, {
 
     initWithData: function(data){
         this.data = data;
-        // TODO: parse out info
+        this.extractDescription();
+    },
+
+    extractDescription: function(){
     },
 
     getData: function(completion, target){
@@ -94,6 +97,8 @@ JSClass("JSResourceFontDescriptor", JSFontDescriptor, {
         this._name = metadata.font.name;
         this._postScriptName = metadata.font.postscript_name;
         this._face = metadata.font.face;
+        this._ascender = metadata.font.ascender;
+        this._descender = metadata.font.descender;
         this._unitsPerEM = metadata.font.unitsPerEM;
         this._cache = {
             widths64: metadata.font.widths,
@@ -101,7 +106,7 @@ JSClass("JSResourceFontDescriptor", JSFontDescriptor, {
             cmap: null,
             widths: null,
         };
-        JSResourceFontDescriptor.descriptorsByName[metadata.unique_identifier] = this;
+        JSResourceFontDescriptor.descriptorsByName[metadata.font.unique_identifier] = this;
         if (!(this._family in JSResourceFontDescriptor.descriptorsByFamily)){
             JSResourceFontDescriptor.descriptorsByFamily[this._family] = {};
         }

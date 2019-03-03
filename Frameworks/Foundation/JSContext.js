@@ -489,7 +489,7 @@ JSClass("JSContext", JSObject, {
     setTextMatrix: function(textMatrix){
     },
 
-    setTextPosition: function(textPosition){
+    setCharacterSpacing: function(spacing){
     },
 
     setFont: function(font){
@@ -498,7 +498,10 @@ JSClass("JSContext", JSObject, {
     setTextDrawingMode: function(textDrawingMode){
     },
 
-    showGlyphs: function(glyphs, points){
+    showGlyphs: function(glyphs){
+    },
+
+    showText: function(text){
     },
 
     // ----------------------------------------------------------------------

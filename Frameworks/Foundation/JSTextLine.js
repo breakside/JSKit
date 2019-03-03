@@ -202,15 +202,12 @@ JSClass("JSTextLine", JSObject, {
         var tokenRun;
         do {
             run = line.runs[runIndex];
-            // FIXME: attachment font will return a 0-width glyph here, meaning ellipis won't be shown
-            // Fix could be to change the truncatedLine() api to take an already-constructed line as the
-            // token, but then we might not match the font of the final run.  I suppose we only really
-            // want to match the font size of the final run, and international fonts may also miss the 
-            // ellipsis token.
-            tokenGlyph = run.font.glyphForCharacter(tokenChar);
-            tokenRun = JSTextRun.initWithGlyphs([tokenGlyph], [1], run.font, run.attributes, JSRange.Zero);
-            if (line.size.width - run.size.width + tokenRun.size.width <= width){
-                break;
+            if (!run.attachment){
+                tokenGlyph = run.font.glyphForCharacter(tokenChar);
+                tokenRun = JSTextRun.initWithGlyphs([tokenGlyph], [1], run.font, run.attributes, JSRange.Zero);
+                if (line.size.width - run.size.width + tokenRun.size.width <= width){
+                    break;
+                }
             }
             line.runs.pop();
             line.size.width -= run.size.width;
@@ -223,28 +220,30 @@ JSClass("JSTextLine", JSObject, {
             return line;
         }
 
-        line.runs.push(tokenRun);
-        line.size.width += tokenRun.size.width;
+        if (tokenRun){
+            line.runs.push(tokenRun);
+            line.size.width += tokenRun.size.width;
 
-        var glyph;
-        var characterLength;
-        var glyphWidth;
-        while (line.size.width > width){
-            // FIXME: could break up user perceived characters
-            // Combining marks seem to have 0 width in some fonts, in which case
-            // they won't be broken up since removing just the mark won't
-            // reduce the line's width, but I'm not sure if that's
-            // true for all multi-codepoint characters and all fonts
-            glyph = run.glyphs.pop();
-            glyphWidth = run.font.widthOfGlyph(glyph);
-            characterLength = run.glyphCharacterLengths.pop();
-            run.size.width -= glyphWidth;
-            run.range.length -= characterLength;
-            line.size.width -= glyphWidth;
-            line.range.length -= characterLength;
+            var glyph;
+            var characterLength;
+            var glyphWidth;
+            while (line.size.width > width){
+                // FIXME: could break up user perceived characters
+                // Combining marks seem to have 0 width in some fonts, in which case
+                // they won't be broken up since removing just the mark won't
+                // reduce the line's width, but I'm not sure if that's
+                // true for all multi-codepoint characters and all fonts
+                glyph = run.glyphs.pop();
+                glyphWidth = run.font.widthOfGlyph(glyph);
+                characterLength = run.glyphCharacterLengths.pop();
+                run.size.width -= glyphWidth;
+                run.range.length -= characterLength;
+                line.size.width -= glyphWidth;
+                line.range.length -= characterLength;
+            }
+
+            line.verticallyAlignRuns();
         }
-
-        line.verticallyAlignRuns();
 
         return line;
     }

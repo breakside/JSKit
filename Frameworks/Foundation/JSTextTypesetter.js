@@ -144,7 +144,9 @@ JSClass("JSTextTypesetter", JSObject, {
                 // attachment's width
                 attachment = runIterator.attributes[JSAttributedString.Attribute.attachment];
                 attachment.layout(preferredFont, width);
-                runDescriptor.font = JSAttachmentFont.initWithAttachment(attachment);
+                usedWidth += attachment.size.width;
+                runDescriptor.glyphs.push(0);
+                runDescriptor.glyphCharacterLengths.push(1);
             }else{
                 // 2. Fallback fonts:
                 // If the character is not found in the run's font, switch to a fallback, creating
@@ -169,18 +171,18 @@ JSClass("JSTextTypesetter", JSObject, {
                         runDescriptor.font = fallbackFont;
                     }
                 }
-            }
-            // newline characters do not result in glyphs, but we should still
-            // count them in the run descriptor length so the resulting JSRun
-            // has the correct range including the newline
-            if (!newline){
-                codeIterator = iterator.utf16.unicodeIterator();
-                while (codeIterator.character !== null){
-                    glyph = runDescriptor.font.glyphForCharacter(codeIterator.character);
-                    usedWidth += runDescriptor.font.widthOfGlyph(glyph);
-                    runDescriptor.glyphs.push(glyph);
-                    runDescriptor.glyphCharacterLengths.push(codeIterator.nextIndex - codeIterator.index);
-                    codeIterator.increment();
+                // newline characters do not result in glyphs, but we should still
+                // count them in the run descriptor length so the resulting JSRun
+                // has the correct range including the newline
+                if (!newline){
+                    codeIterator = iterator.utf16.unicodeIterator();
+                    while (codeIterator.character !== null){
+                        glyph = runDescriptor.font.glyphForCharacter(codeIterator.character);
+                        usedWidth += runDescriptor.font.widthOfGlyph(glyph);
+                        runDescriptor.glyphs.push(glyph);
+                        runDescriptor.glyphCharacterLengths.push(codeIterator.nextIndex - codeIterator.index);
+                        codeIterator.increment();
+                    }
                 }
             }
             runDescriptor.length += iterator.range.length;
@@ -343,6 +345,9 @@ var JSTextTypesetterPrintableRange = function(location, length, width){
 
 JSTextTypesetter.FontFromAttributes = function(attributes){
     var font = attributes[JSAttributedString.Attribute.font];
+    if (!font){
+        return null;
+    }
     if (attributes[JSAttributedString.Attribute.bold]){
         font = font.fontWithWeight(JSFont.Weight.bold);
     }

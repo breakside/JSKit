@@ -11,7 +11,7 @@ JSFont.definePropertiesFromExtensions({
         if (lineHeight === undefined){
             lineHeight = this.displayLineHeight;
         }
-        return '%d %s %fpx/%fpx %s'.sprintf(
+        return '%d %s %fpx/%fpx "%s"'.sprintf(
             this._descriptor._weight,
             this._descriptor._style,
             this._pointSize,

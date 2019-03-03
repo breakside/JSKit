@@ -7,19 +7,23 @@
 JSFontDescriptor.definePropertiesFromExtensions({
 
     htmlURLString: function(){
-        return "";
+        return null;
     },
 
     cssFontFaceRuleString: function(){
-        var ruleText = [
-            '@font-face{',
-            'font-family: "%s";'.sprintf(this._family),
-            'font-style: %s;'.sprintf(this._style),
-            'font-weight: %d;'.sprintf(Math.floor(this._weight)),
-            'font-display: block;',
-            'src: url("%s");'.sprintf(this.htmlURLString()),
-            '}'
-        ].join("\n");
+        var url = this.htmlURLString();
+        if (url){
+            return [
+                '@font-face{',
+                'font-family: "%s";'.sprintf(this._family),
+                'font-style: %s;'.sprintf(this._style),
+                'font-weight: %d;'.sprintf(Math.floor(this._weight)),
+                'font-display: block;',
+                'src: url("%s");'.sprintf(url),
+                '}'
+            ].join("\n");
+        }
+        return null;
     }
 
 });
@@ -35,7 +39,7 @@ JSResourceFontDescriptor.definePropertiesFromExtensions({
 JSDataFontDescriptor.definePropertiesFromExtensions({
 
     htmlURLString: function(){
-        return this.data.htmlURLstring();
+        return this.data.htmlURLString();
     },
 
 });

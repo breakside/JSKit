@@ -58,6 +58,8 @@ JSClass("JSFont", JSObject, {
         }
         if ('size' in values){
             size = spec.resolvedEnum(values.size, JSFont.Size);
+        }else{
+            size = JSFont.Size.normal;
         }
         if (family){
             var descriptor = JSResourceFontDescriptor.descriptorWithFamily(family, weight, style);
@@ -122,6 +124,16 @@ JSClass("JSFont", JSObject, {
         this._displayLineHeight = this._displayAscender - this._displayDescender;
     },
 
+    glyphsForString: function(str){
+        var iterator = str.unicodeIterator();
+        var glyphs = [];
+        while (iterator.index < str.length){
+            glyphs.push(this.glyphForCharacter(iterator.character));
+            iterator.increment();
+        }
+        return glyphs;
+    },
+
     glyphForCharacter: function(character){
         return this._descriptor.glyphForCharacter(character);
     },
@@ -150,14 +162,6 @@ JSClass("JSFont", JSObject, {
 
     widthOfGlyph: function(glyphIndex){
         return this._descriptor.widthOfGlyph(glyphIndex) * this.pointSize;
-    },
-
-    drawGlyphsInContextAtPoint: function(glyphs, context, point){
-        // TODO: if this is a color bitmap font (like emojis), use drawImage() instead of showGlyphs()
-        context.save();
-        context.setFont(this);
-        context.showGlyphs(glyphs, [JSPoint(point.x, -point.y - this.lineHeight - this.descender)]);
-        context.restore();
     }
 
 });
@@ -250,65 +254,5 @@ JSFont.Style = {
     normal: "normal",
     italic: "italic"
 };
-
-JSClass("JSAttachmentFont", JSFont, {
-
-    _attachment: null,
-
-    initWithAttachment: function(attachment){
-        this._attachment = attachment;
-        this._pointSize = attachment.size.height;
-        this._lineHeight = attachment.size.height + Math.max(0, attachment.baselineAdjustment);
-        this._descender = Math.min(0, attachment.baselineAdjustment);
-        this._ascender = this._lineHeight + this._descender;
-        this._descriptor = null;
-    },
-
-    getFullName: function(){
-        return "";
-    },
-
-    getPostScriptName: function(){
-        return "";
-    },
-
-    getFamilyName: function(){
-        return "";
-    },
-
-    getFaceName: function(){
-        return this._descriptor.face;
-    },
-
-    fontWithStyle: function(){
-        return this;
-    },
-
-    fontWithWeight: function(){
-        return this;
-    },
-
-    glyphForCharacter: function(character){
-        if (character.code === 0xFFFC){
-            return 1;
-        }
-        return 0;
-    },
-
-    widthOfGlyph: function(glyph){
-        if (glyph === 1){
-            return this._attachment.size.width;
-        }
-        return 0;
-    },
-
-    drawGlyphsInContextAtPoint: function(glyphs, context, point){
-        if (glyphs.length != 1 || glyphs[0] != 1){
-            throw new Error("JSAttachmentFont can only draw a single glyph at a time");
-        }
-        this._attachment.drawInContextAtPoint(context, point);
-    }
-
-});
 
 })();

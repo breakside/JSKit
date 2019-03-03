@@ -1,6 +1,7 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/CoreTypes.js"
-/* global JSClass, JSTextRun, JSObject, JSSize, JSRange, JSRect, JSPoint, JSDynamicProperty, JSReadOnlyProperty, JSAffineTransform */
+// #import "Foundation/JSAttributedString.js"
+/* global JSClass, JSTextRun, JSObject, JSAttributedString, JSSize, JSRange, JSRect, JSPoint, JSDynamicProperty, JSReadOnlyProperty, JSAffineTransform */
 'use strict';
 
 (function(){
@@ -21,11 +22,17 @@ JSClass("JSTextRun", JSObject, {
         this.glyphs = glyphs;
         this.glyphCharacterLengths = glyphCharacterLengths;
         this.attributes = attributes;
-        this.font = font;
-        this.baseline = -font.descender;
-        this._size = JSSize(0, font.lineHeight);
-        for (var i = 0, l = glyphs.length; i < l; ++i){
-            this._size.width += font.widthOfGlyph(glyphs[i]);
+        this.attachment = attributes[JSAttributedString.Attribute.attachment] || null;
+        if (this.attachment){
+            this.baseline = this.attachment.baselineAdjustment;
+            this._size = JSSize(this.attachment.size.width, this.attachment.size.height - Math.min(0, this.attachment.baselineAdjustment));
+        }else{
+            this.font = font;
+            this.baseline = -font.descender;
+            this._size = JSSize(0, font.lineHeight);
+            for (var i = 0, l = glyphs.length; i < l; ++i){
+                this._size.width += font.widthOfGlyph(glyphs[i]);
+            }
         }
         this._range = JSRange(range);
         this._origin = JSPoint.Zero;
@@ -39,7 +46,15 @@ JSClass("JSTextRun", JSObject, {
         // context.strokeRect(JSRect(this.origin, this.size));
         // context.fillEllipseInRect(JSRect(this.origin.x - 2.5, this.origin.y - 2.5, 5, 5));
         // context.restore();
-        this.font.drawGlyphsInContextAtPoint(this.glyphs, context, point);
+        if (this.attachment){
+            this.attachment.drawInContextAtPoint(context, point);
+        }else{
+            context.save();
+            context.translateBy(point.x, point.y + this.font.ascender);
+            context.setFont(this.font);
+            context.showGlyphs(this.glyphs);
+            context.restore();
+        }
     },
 
     characterIndexAtPoint: function(point){
