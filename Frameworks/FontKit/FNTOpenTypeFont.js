@@ -1,7 +1,7 @@
 // #import "Foundation/Foundation.js"
 /* global JSClass, JSLazyInitProperty, JSObject, JSRange, FNTOpenTypeFont, UnicodeChar */
 /* global FNTOpenTypeFontTable, FNTOpenTypeFontTableHead, FNTOpenTypeFontTableName, FNTOpenTypeFontTableCmap, FNTOpenTypeFontTableHhea, FNTOpenTypeFontTableHmtx, FNTOpenTypeFontTableGlyf, FNTOpenTypeFontTableOS2, FNTOpenTypeFontTableLoca, FNTOpenTypeFontTableMaxp */
-/* global FNTOpenTypeFontCmap, FNTOpenTypeFontCmap0, FNTOpenTypeFontCmap4, FNTOpenTypeFontCmap6, FNTOpenTypeFontCmap10, FNTOpenTypeFontCmap12, FNTOpenTypeFontCmap13 */
+/* global FNTOpenTypeFontCmapNull, FNTOpenTypeFontCmap, FNTOpenTypeFontCmap0, FNTOpenTypeFontCmap4, FNTOpenTypeFontCmap6, FNTOpenTypeFontCmap10, FNTOpenTypeFontCmap12, FNTOpenTypeFontCmap13 */
 'use strict';
 
 (function(){
@@ -124,10 +124,7 @@ JSClass("FNTOpenTypeFont", JSObject, {
     },
 
     glyphForCharacter: function(character){
-        if (this.cmap !== null){
-            return this.cmap.glyphForCharacterCode(character.code);
-        }
-        return 0;
+        return this.cmap.glyphForCharacterCode(character.code);
     },
 
     _getUnicodeCmap: function(){
@@ -137,7 +134,7 @@ JSClass("FNTOpenTypeFont", JSObject, {
             // consult the true type reference for details
             // basic idea is to get a unicode map, preferring
             // the unicode platform (0) first, then windows (3)
-            return cmap.getMap(
+            var unicodeMap = cmap.getMap(
                 [0, 4],
                 [0, 3],
                 [0, 2],
@@ -146,8 +143,21 @@ JSClass("FNTOpenTypeFont", JSObject, {
                 [3, 10],
                 [3, 1]
             );
+            if (unicodeMap){
+                return unicodeMap;
+            }
+
+            // If we don't have a unicode based map, we'll look for a Mac
+            // map.  It is common for PDF embedded fonts to only include
+            // a 1,0 mac roman cmap.
+            //
+            // Since the mac roman encoding isn't aligned with unicode,
+            // we'll wrap it in a map-like object that can convert from
+            // unicode to mac roman, and then lookup the glyph.
+            var macRomanMap = cmap.getMap([1,0]);
+            return UnicodeConvertingCmap(UnicodeToMacRoman, macRomanMap);
         }
-        return null;
+        return FNTOpenTypeFontCmapNull.init();
     }
 
 });
@@ -252,6 +262,21 @@ JSClass("FNTOpenTypeFontTableName", FNTOpenTypeFontTable, {
             }
             this.lookup[key][nameId] = data.subdataInRange(JSRange(stringsOffset + stringOffset, stringLength));
         }
+    },
+
+    getName: function(){
+        var preferences = Array.prototype.slice.call(arguments, 0);
+        var key;
+        var nameId;
+        for (var i = 0, l = preferences.length; i < l; ++i){
+            key = "%d:%d:%d".sprintf(preferences[i][0], preferences[i][1], preferences[i][2]);
+            if (key in this.lookup){
+                if (nameId in this.lookup[key]){
+                    return this.lookup[key][nameId];
+                }
+            }
+        }
+        return null;
     }
 });
 
@@ -301,10 +326,12 @@ JSClass("FNTOpenTypeFontTableCmap", FNTOpenTypeFontTable, {
 
     tag: 'cmap',
     maps: null,
+    data: null,
     dataView: null,
 
     initWithData: function(font, data){
         FNTOpenTypeFontTableCmap.$super.initWithData.call(this, font, data);
+        this.data = data;
         this.dataView = data.dataView();
         this.maps = {};
         var dataView = data.dataView();
@@ -365,6 +392,157 @@ JSClass("FNTOpenTypeFontTableCmap", FNTOpenTypeFontTable, {
     },
 });
 
+var UnicodeConvertingCmap = function(unicodeMap, map){
+    if (this === undefined){
+        return new UnicodeConvertingCmap(unicodeMap, map);
+    }
+    this.unicodeMap = unicodeMap;
+    this.map = map;
+};
+
+UnicodeConvertingCmap.prototype = {
+
+    glyphForCharacterCode: function(code){
+        if (code > 128){
+            code = this.unicodeMap[code] || 0;
+        }
+        return this.map.glyphForCharacterCode(code);
+    }
+
+};
+
+// From Unicode to Mac Roman encoding
+var UnicodeToMacRoman = {
+    196: 128,
+    197: 129,
+    199: 130,
+    201: 131,
+    209: 132,
+    214: 133,
+    220: 134,
+    225: 135,
+    224: 136,
+    226: 137,
+    228: 138,
+    227: 139,
+    229: 140,
+    231: 141,
+    233: 142,
+    232: 143,
+    234: 144,
+    235: 145,
+    237: 146,
+    236: 147,
+    238: 148,
+    239: 149,
+    241: 150,
+    243: 151,
+    242: 152,
+    244: 153,
+    246: 154,
+    245: 155,
+    250: 156,
+    249: 157,
+    251: 158,
+    252: 159,
+    8224: 160,
+    176: 161,
+    162: 162,
+    163: 163,
+    167: 164,
+    8226: 165,
+    182: 166,
+    223: 167,
+    174: 168,
+    169: 169,
+    8482: 170,
+    180: 171,
+    168: 172,
+    8800: 173,
+    198: 174,
+    216: 175,
+    8734: 176,
+    177: 177,
+    8804: 178,
+    8805: 179,
+    165: 180,
+    181: 181,
+    8706: 182,
+    8721: 183,
+    8719: 184,
+    960: 185,
+    8747: 186,
+    170: 187,
+    186: 188,
+    937: 189,
+    230: 190,
+    248: 191,
+    191: 192,
+    161: 193,
+    172: 194,
+    8730: 195,
+    402: 196,
+    8776: 197,
+    8710: 198,
+    171: 199,
+    187: 200,
+    8230: 201,
+    160: 202,
+    192: 203,
+    195: 204,
+    213: 205,
+    338: 206,
+    339: 207,
+    8211: 208,
+    8212: 209,
+    8220: 210,
+    8221: 211,
+    8216: 212,
+    8217: 213,
+    247: 214,
+    9674: 215,
+    255: 216,
+    376: 217,
+    8260: 218,
+    8364: 219,
+    8249: 220,
+    8250: 221,
+    64257: 222,
+    64258: 223,
+    8225: 224,
+    183: 225,
+    8218: 226,
+    8222: 227,
+    8240: 228,
+    194: 229,
+    202: 230,
+    193: 231,
+    203: 232,
+    200: 233,
+    205: 234,
+    206: 235,
+    207: 236,
+    204: 237,
+    211: 238,
+    212: 239,
+    63743: 240,
+    210: 241,
+    218: 242,
+    219: 243,
+    217: 244,
+    305: 245,
+    710: 246,
+    732: 247,
+    175: 248,
+    728: 249,
+    729: 250,
+    730: 251,
+    184: 252,
+    733: 253,
+    731: 254,
+    711: 255
+};
+
 JSClass("FNTOpenTypeFontCmap", JSObject, {
 
     data: null,
@@ -396,6 +574,12 @@ JSClass("FNTOpenTypeFontCmap", JSObject, {
     glyphForCharacterCode: function(code){
     },
 
+});
+
+JSClass("FNTOpenTypeFontCmapNull", FNTOpenTypeFontCmap, {
+    glyphForCharacterCode: function(code){
+        return 0;
+    }
 });
 
 // Format 0 is a simple 8 bit mapping
@@ -493,7 +677,7 @@ JSClass("FNTOpenTypeFontCmap6", FNTOpenTypeFontCmap, {
         if (!this.range.contains(code)){
             return 0;
         }
-        return this.mapView.getUint16(10 + 2 * (code - this.range.location));
+        return this.dataView.getUint16(10 + 2 * (code - this.range.location));
     },
 
     toString: function(){

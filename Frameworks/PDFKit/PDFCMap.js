@@ -1,5 +1,6 @@
 // #import "PDFKit/PDFObject.js"
-/* global JSGlobalObject, JSClass, PDFCMap, PDFObject, PDFName, PDFObjectProperty */
+// #import "PDFKit/PDFFontEncoding.js"
+/* global JSGlobalObject, JSClass, JSData, PDFCMap, PDFObject, PDFName, PDFOperationIterator, PDFObjectProperty, PDFOperationItertor, PDFAdobeNamesToUnicode */
 'use strict';
 
 (function(){

@@ -10,7 +10,12 @@ JSClass("FNTFontDescriptor", JSFontDescriptor, {
     _characterToGlyphMap: null,
 
     initWithOpenTypeData: function(data){
-        this.font = FNTOpenTypeFont.initWithData(data);
+        var font = FNTOpenTypeFont.initWithData(data);
+        this.initWithOpenTypeFont(font);
+    },
+
+    initWithOpenTypeFont: function(font){
+        this.font = font;
         var head = this.font.tables.head;
         if (head){            
             this._unitsPerEM = head.unitsPerEM;

@@ -583,6 +583,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         var text;
         var font = this._state.font;
         this.canvasContext.save();
+        this.setLineWidth(this.canvasContext.lineWidth / Math.abs(tm.d));
         this.concatenate(tm);
         for (var i = 0, l = glyphs.length; i < l; ++i){
             glyph = glyphs[i];
@@ -606,11 +607,11 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         // glyph.
         //
         // Disabled until we have the font cmap stuff working correctly for pdf fonts
-        // if (this._state.characterSpacing !== 0){
-        //     var glyphs = this._state.font.glyphsForString(text);
-        //     this.showGlyphs(glyphs);
-        //     return;
-        // }
+        if (this._state.characterSpacing !== 0){
+            var glyphs = this._state.font.glyphsForString(text);
+            this.showGlyphs(glyphs);
+            return;
+        }
 
         // If character spacing is zero, then it's far more effient to just paint
         // the text we were given all at once.

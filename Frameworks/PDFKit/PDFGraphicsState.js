@@ -328,7 +328,7 @@ var operationHandler = {
     },
 
     __PDFKit_xTextAdvance__: function(x, y){
-        this.state.textTransform = this.state.textTransform.translatedBy(x / 1000.0 * this.state.fontSize * this.state.textHorizontalScaling, y / 1000.0 * this.state.fontSize);
+        this.state.textTransform = this.state.textTransform.translatedBy(-x / 1000.0 * this.state.fontSize * this.state.textHorizontalScaling, y / 1000.0 * this.state.fontSize);
     },
 
     Tc: function(spacing){

@@ -17,7 +17,7 @@ JSGlobalObject.PDFColorSpace = function(params){
             case "DeviceCMYK":
                 return PDFColorSpace.deviceCMYK;
             case "Pattern":
-                logger.warn("No support for Patterns, using black");
+                logger.warn("No support for Patterns, using clear");
                 // TODO: support patterns
                 return new PDFColorSpacePattern();
         }
@@ -415,7 +415,7 @@ PDFColorSpacePattern.prototype = Object.create(PDFColorSpace.prototype, {
     colorFromComponents: {
         value: function PDFColorSpacePattern_colorFromComponents(components){
             // TODO: support Pattern
-            return JSColor.blackColor;
+            return JSColor.clearColor;
         }
     },
     defaultComponents: {

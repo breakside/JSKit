@@ -678,7 +678,7 @@ var contextOperationHandler = {
         }
     },
 
-    Tj: function(bytestring){
+    Tj: function(data){
         if (this.stack.state.textRenderingMode == PDFGraphicsState.TextRenderingMode.invisible){
             return;
         }
@@ -687,12 +687,12 @@ var contextOperationHandler = {
             // TODO: read streams and do drawing
             return;
         }
-        var text = pdfFont.stringFromData(bytestring);
         var font = this.font;
         if (!font){
             // FIXME: We don't have a valid font...use fallback?
             return;
         }
+        var text = pdfFont.fontCompatibleStringFromData(data);
         var textMatrix = this.stack.state.textTransform.scaledBy(this.stack.state.textHorizontalScaling, -1);
         this.context.setTextMatrix(textMatrix);
         this.context.showText(text);
