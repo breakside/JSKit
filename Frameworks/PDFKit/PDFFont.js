@@ -126,7 +126,7 @@ var SimpleFontPrototype = Object.create(PDFFont.prototype, {
     },
 
     widthOfData: {
-        value: function PDFSimpleFont_widthOfData(data, characterSpacing){
+        value: function PDFSimpleFont_widthOfData(data, characterSpacing, wordSpacing){
             if (data.length === 0){
                 return 0;
             }
@@ -138,6 +138,7 @@ var SimpleFontPrototype = Object.create(PDFFont.prototype, {
             var min = this.FirstChar;
             var max = this.LastChar;
             var missingWidth = 0;
+            var spaceCount = 0;
             if (this.FontDescriptor){
                 missingWidth = this.FontDescriptor.MissingWidth || 0;
             }
@@ -148,8 +149,11 @@ var SimpleFontPrototype = Object.create(PDFFont.prototype, {
                 }else{
                     width += missingWidth;
                 }
+                if (data[i] == 0x20){
+                    ++spaceCount;
+                }
             }
-            return width / 1000 + characterSpacing * data.length;
+            return width / 1000 + characterSpacing * data.length + spaceCount * wordSpacing;
         }
     },
 

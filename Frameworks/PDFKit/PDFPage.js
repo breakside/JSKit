@@ -692,6 +692,13 @@ var contextOperationHandler = {
             // FIXME: We don't have a valid font...use fallback?
             return;
         }
+        // if (this.stack.state.wordSpacing !== 0){
+        //     if (pdfFont.Subtype == "Type1" || pdfFont.Subtype == "TrueType" || pdfFont.Subtype == "MMType1"){
+        //         contextOperationHandler._textWithSimpleWordSpacing.call(this, data, pdfFont);
+        //         return;
+        //     }
+        //     // TODO: word spacing with Type0 fonts
+        // }
         var text = pdfFont.fontCompatibleStringFromData(data);
         var textMatrix = this.stack.state.textTransform.scaledBy(this.stack.state.textHorizontalScaling, -1);
         this.context.setTextMatrix(textMatrix);
@@ -700,6 +707,34 @@ var contextOperationHandler = {
             // TODO: add glyphs to clipping path
         }
     },
+
+    _textWithSimpleWordSpacing: function(data, pdfFont){
+        var chunks = [];
+        var start = 0;
+        var i, l;
+        for (i = 0, l = data.length; i < l; ++i){
+            if (data[i] == 0x20){
+                chunks.push(data.subdataInRange(JSRange(start, i - start + 1)));
+                start = i + 1;
+            }
+        }
+        if (start < data.length - 1){
+            chunks.push(data.subdataInRange(JSRange(start, i - start)));
+        }
+
+        var chunk;
+        var text;
+        var textMatrix = this.stack.state.textTransform.scaledBy(this.stack.state.textHorizontalScaling, -1);
+        var width;
+        for (i = 0, l = chunks.length; i < l; ++i){
+            chunk = chunks[i];
+            text = pdfFont.fontCompatibleStringFromData(chunk);
+            this.context.setTextMatrix(textMatrix);
+            this.context.showText(text);
+            width = pdfFont.widthOfData(chunk, this.stack.state.characterSpacing, this.stack.state.wordSpacing);
+            textMatrix = textMatrix.translatedBy(width, 0);
+        }
+    }
 
 };
 

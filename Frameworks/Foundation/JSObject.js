@@ -227,14 +227,23 @@ JSObject.definePropertiesFromExtensions({
             }else if (keyPath.endsWith("!=null")){
                 keyPath = keyPath.substr(0, keyPath.length - 6);
                 options.valueTransformer = JSIsNotNullValueTransformer;
+            }else if (keyPath.endsWith("!==null")){
+                keyPath = keyPath.substr(0, keyPath.length - 7);
+                options.valueTransformer = JSIsNotNullValueTransformer;
             }else if (keyPath.endsWith("==null")){
                 keyPath = keyPath.substr(0, keyPath.length - 6);
+                options.valueTransformer = JSIsNullValueTransformer;
+            }else if (keyPath.endsWith("===null")){
+                keyPath = keyPath.substr(0, keyPath.length - 7);
                 options.valueTransformer = JSIsNullValueTransformer;
             }else if (keyPath.endsWith(".length>0")){
                 keyPath = keyPath.substr(0, keyPath.length - 9);
                 options.valueTransformer = JSIsNotEmptyValueTransformer;
             }else if (keyPath.endsWith(".length==0")){
                 keyPath = keyPath.substr(0, keyPath.length - 10);
+                options.valueTransformer = JSIsEmptyValueTransformer;
+            }else if (keyPath.endsWith(".length===0")){
+                keyPath = keyPath.substr(0, keyPath.length - 11);
                 options.valueTransformer = JSIsEmptyValueTransformer;
             }
             if (options.valueTransformer && !options.valueTransformer.canReverseTransform){

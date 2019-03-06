@@ -63,12 +63,14 @@ JSGlobalObject.PDFResources.prototype = Object.create(PDFObject.prototype, {
         }
     },
 
-    _loaded: {
-        value: {
-            ExtGState: {},
-            ColorSpace: {},
-            XObject: {},
-            Font: {}
+    fonts: {
+        value: function PDFResources_getFonts(){
+            var fonts = this.Font;
+            var list = [];
+            for (var name in fonts){
+                list.push(fonts[name]);
+            }
+            return list;
         }
     },
 
@@ -103,10 +105,6 @@ JSGlobalObject.PDFResources.prototype = Object.create(PDFObject.prototype, {
 
     unload: {
         value: function PDFResources_unload(){
-            this._loaded.ExtGState = {};
-            this._loaded.ColorSpace = {};
-            this._loaded.XObject = {};
-            this._loaded.Font = {};
         }
     }
 

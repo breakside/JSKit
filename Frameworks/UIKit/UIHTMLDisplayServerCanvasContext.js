@@ -558,9 +558,9 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     setFont: function(font){
         this._state.font = font;
-        if (font.descriptor){
-            this.displayServer.registerFontDescriptor(font.descriptor);
-        }
+        // if (font.descriptor){
+        //     this.displayServer.registerFontDescriptor(font.descriptor);
+        // }
         this.canvasContext.font = font.cssString();
     },
 

@@ -1,5 +1,5 @@
 // #import "Foundation/JSFontDescriptor.js"
-/* global JSFontDescriptor, JSResourceFontDescriptor, JSDataFontDescriptor */
+/* global window, FontFace, JSFontDescriptor, JSResourceFontDescriptor, JSDataFontDescriptor */
 'use strict';
 
 (function(){
@@ -8,6 +8,16 @@ JSFontDescriptor.definePropertiesFromExtensions({
 
     htmlURLString: function(){
         return null;
+    },
+
+    htmlFontFace: function(){
+        var url = this.htmlURLString();
+        if (url){
+            return new FontFace(this._family, 'url("%s")'.sprintf(url), {
+                style: this._style,
+                weight: this._weight
+            });
+        }
     },
 
     cssFontFaceRuleString: function(){
@@ -40,6 +50,20 @@ JSDataFontDescriptor.definePropertiesFromExtensions({
 
     htmlURLString: function(){
         return this.data.htmlURLString();
+    },
+
+    htmlCleanup: function(){
+        this.data.htmlCleanup();
+    },
+
+    htmlFontFace: function(){
+        if (!this._htmlFontFace){
+            this._htmlFontFace = new FontFace(this._family, this.data, {
+                style: this._style,
+                weight: this._weight
+            });
+        }
+        return this._htmlFontFace;
     },
 
 });

@@ -78,23 +78,35 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         this._registeredFontCSSRules[name] = null;
     },
 
-    registerFontDescriptor: function(descriptor){
+    registerFontDescriptor: function(descriptor, completion, target){
         var name = "%s|%s|%d".sprintf(descriptor.family, descriptor.style, Math.floor(descriptor.weight));
         if (name in this._registeredFontCSSRules){
+            completion.call(target);
             return;
         }
+        var font = descriptor.htmlFontFace();
         var doc = this.domDocument;
-        if (!this._fontStyleElement){
-            this._fontStyleElement = doc.createElement("style");
-            this._fontStyleElement.type = "text/css";
-            doc.head.appendChild(this._fontStyleElement);
-        }
-        var stylesheet = this._fontStyleElement.sheet;
-        var ruleText = descriptor.cssFontFaceRuleString();
-        if (ruleText !== null){
-            this._registeredFontCSSRules[name] = stylesheet.insertRule(ruleText, stylesheet.cssRules.length);
+        if (font){
+            font.load().then(function(){
+                doc.fonts.add(font);
+                completion.call(target);
+            });
+            this._registeredFontCSSRules[name] = font;
         }else{
-            this._registeredFontCSSRules[name] = null;
+            if (!this._fontStyleElement){
+                this._fontStyleElement = doc.createElement("style");
+                this._fontStyleElement.type = "text/css";
+                doc.head.appendChild(this._fontStyleElement);
+            }
+            var stylesheet = this._fontStyleElement.sheet;
+            var ruleText = descriptor.cssFontFaceRuleString();
+            if (ruleText !== null){
+                this._registeredFontCSSRules[name] = stylesheet.insertRule(ruleText, stylesheet.cssRules.length);
+            }else{
+                this._registeredFontCSSRules[name] = null;
+            }
+            // TODO: need to force load the font by using it somewhere
+            JSRunLoop.main.schedule(completion, target);
         }
     },
 
