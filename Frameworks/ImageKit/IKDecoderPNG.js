@@ -34,32 +34,32 @@ JSClass("IKDecoderPNG", IKDecoder, {
     paintOffset: 0,
     paintAdvance: 0,
 
-    decodeData: function(data){
-        if (data.length < 20){
+    getBitmap: function(){
+        if (this.data.length < 20){
             this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.invalidData, 0, "Not enough data for a valid PNG file");
         }
-        if (data[0] != 0x89 ||
-            data[1] != 0x50 ||
-            data[2] != 0x4E ||
-            data[3] != 0x47 ||
-            data[4] != 0x0D ||
-            data[5] != 0x0A ||
-            data[6] != 0x1A ||
-            data[7] != 0x0A){
+        if (this.data[0] != 0x89 ||
+            this.data[1] != 0x50 ||
+            this.data[2] != 0x4E ||
+            this.data[3] != 0x47 ||
+            this.data[4] != 0x0D ||
+            this.data[5] != 0x0A ||
+            this.data[6] != 0x1A ||
+            this.data[7] != 0x0A){
             this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.invalidData, 0, "PNG magic bytes not valid");
         }
         if (this.error === null && (
-            data[12] != 0x49 ||
-            data[13] != 0x48 ||
-            data[14] != 0x44 ||
-            data[15] != 0x52)){
+            this.data[12] != 0x49 ||
+            this.data[13] != 0x48 ||
+            this.data[14] != 0x44 ||
+            this.data[15] != 0x52)){
             this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.invalidData, 0, "IHDR not found in initial block position");
         }
-        if (this.error === null && (((data[8] << 24) | (data[9] << 16) | (data[10] << 8) | data[11]) < 13)){
+        if (this.error === null && (((this.data[8] << 24) | (this.data[9] << 16) | (this.data[10] << 8) | this.data[11]) < 13)){
             this.error = new IKDecoderPNGError(IKDecoderPNG.ErrorCode.invalidData, 0, "IHDR length too short");
         }
         if (this.error === null){
-            this.dataView = data.dataView();
+            this.dataView = this.data.dataView();
             this.readSections();
         }
         return IKBitmap.initWithData(this.bitmapData, this.size, this.colorSpace);
@@ -285,7 +285,7 @@ JSClass("IKDecoderPNG", IKDecoder, {
             }
             this.scanline = JSData.initWithLength(this.bytesPerRow + 1);
             this.dataStream = new ZlibStream();
-            this.dataStream.outputBuffer = this.scanline.buffer;
+            this.dataStream.output = this.scanline;
         }
         var output;
         this.dataStream.input = data;

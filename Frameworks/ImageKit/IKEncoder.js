@@ -4,7 +4,7 @@
 
 JSClass("IKEncoder", JSObject, {
 
-    initWithFormat: function(format){
+    initWithFormat: function(format, bitmap){
         var encoderClass = IKEncoder.EncoderClassesByFormat[format];
         if (encoderClass !== undefined){
             return encoderClass.init();
@@ -12,7 +12,13 @@ JSClass("IKEncoder", JSObject, {
         return null;
     },
 
-    encodeBitmap: function(bitmap){
+    initWithBitmap: function(bitmap){
+        this.bitmap = bitmap;
+    },
+
+    bitmap: null,
+
+    getData: function(){
     }
 
 });

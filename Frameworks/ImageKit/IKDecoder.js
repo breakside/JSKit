@@ -4,15 +4,21 @@
 
 JSClass("IKDecoder", JSObject, {
 
-    initWithFormat: function(format){
+    initWithFormat: function(format, data){
         var decoderClass = IKDecoder.DecoderClassesByFormat[format];
         if (decoderClass !== undefined){
-            return decoderClass.init();
+            return decoderClass.initWithData(data);
         }
         return null;
     },
 
-    decodeData: function(data){
+    initWithData: function(data){
+        this.data = data;
+    },
+
+    data: null,
+
+    getBitmap: function(){
         return null;
     }
 

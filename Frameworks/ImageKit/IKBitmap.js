@@ -1,7 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "ImageKit/IKDecoder.js"
 // #import "ImageKit/IKEncoder.js"
-/* global JSClass, JSObject, IKBitmap, JSReadOnlyProperty, JSSize, IKDecoder, IKEncoder */
+/* global JSClass, JSObject, IKBitmap, JSReadOnlyProperty, JSImage, JSSize, IKDecoder, IKEncoder */
 'use strict';
 
 (function(){
@@ -23,20 +23,22 @@ JSClass('IKBitmap', JSObject, {
 
     initWithEncodedData: function(data){
         var format = IKBitmap.FormatOfData(data);
-        var decoder = IKDecoder.initWithFormat(format);
+        var decoder = IKDecoder.initWithFormat(format, data);
         if (decoder === null){
             return null;
         }
-        return decoder.decodeData(data);
+        return decoder.getBitmap();
     },
 
-    encode: function(format, callback){
-        var encoder = IKEncoder.initWithFormat(format);
+    imageWithFormat: function(format){
+        var encoder = IKEncoder.initWithFormat(format, this);
         if (encoder === null){
-            callback(null);
-            return;
+            return null;
         }
-        encoder.encodeBitmap(this);
+        var encoded = encoder.getData();
+        var image = JSImage.initWithData(encoded);
+        image._size = JSSize(this.size);
+        return image;
     },
 
     close: function(){
