@@ -1,9 +1,9 @@
 // #import "Foundation/Foundation.js"
 // #import "FontKit/FNTOpenTypeFont.js"
-/* global JSClass, JSFontDescriptor, FNTOpenTypeFont, JSFont, UnicodeChar */
+/* global JSClass, JSDataFontDescriptor, FNTFontDescriptor, FNTOpenTypeFont, JSFont, UnicodeChar */
 'use strict';
 
-JSClass("FNTFontDescriptor", JSFontDescriptor, {
+JSClass("FNTFontDescriptor", JSDataFontDescriptor, {
 
     font: null,
     _glyphToCharacterMap: null,
@@ -15,6 +15,7 @@ JSClass("FNTFontDescriptor", JSFontDescriptor, {
     },
 
     initWithOpenTypeFont: function(font){
+        FNTFontDescriptor.$super.initWithData.call(this, font.data);
         this.font = font;
         var head = this.font.tables.head;
         if (head){            
