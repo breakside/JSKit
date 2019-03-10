@@ -506,7 +506,7 @@ JSClass("PDFReader", JSObject, {
     },
 
     _decodeStreamData: function(stream, offset, data){
-        var filters = PDFFilter.CreateChain(stream.Filter, stream.DecodeParms);
+        var filters = PDFFilter.CreateChain(stream.filters());
         for (var i = 0, l = filters.length; data !== null && i < l; ++i){
             try{
                 data = filters[i].decode(data);

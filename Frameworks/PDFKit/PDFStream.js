@@ -18,6 +18,22 @@ JSGlobalObject.PDFStream.prototype = Object.create(PDFObject.prototype, {
     FDecodeParms:   PDFObjectProperty,
     DL:             PDFObjectProperty,
 
+    filters: {
+        value: function PDFStream_getFilters(){
+            if (!this.Filter){
+                return [];
+            }
+            if (this.Filter instanceof PDFName){
+                return [{name: this.Filter, params: this.DecodeParms}];
+            }
+            var filters = [];
+            for (var i = 0, l = this.Filter.length; i < l; ++i){
+                filters.push({name: this.Filter[i], params: this.DecodeParms ? this.DecodeParms[i] : null});
+            }
+            return filters;
+        }
+    },
+
     // PDFReader will redefine this property so it reads data from the pdf file
     getData: {
         value: function PDFStream_getData(completion, target){

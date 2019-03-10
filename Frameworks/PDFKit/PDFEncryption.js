@@ -172,27 +172,16 @@ JSClass("PDFEncryption", JSObject, {
     decryptStream: function(stream, data, completion, target){
         var cipherAlgorithm = null;
         if (this.algorithm == PDFEncryption.Algorithm.crypt){
-            var filters = stream.Filter;
-            var firstFilter = null;
-            var firstParams = null;
-            if (filters instanceof PDFName){
-                firstFilter = filters;
-                firstParams = stream.DecodeParms;
-            }else if (filters){
-                firstFilter = filters[0];
-                if (stream.DecodeParms){
-                    firstParams = stream.DecodeParms[0];
-                }
-            }
+            var filters = stream.filters();
             var filterDictionary = null;
-            if (firstFilter == "Crypt"){
-                if (firstParams && firstParams.Name){
-                    filterDictionary = this.filterDictionaries[firstParams];
+            if (filters.length > 0 && filters[0].name == "Crypt"){
+                if (filters[0].params){
+                    filterDictionary = this.filterDictionaries[filters[0].params.Name];
                 }
             }else{
                 filterDictionary = this.defaultStreamFilter;
             }
-
+            
             // If we couldn't find a matching filter, behave as if the stream
             // specified the /Identity filter, which just returns the data unchanged.
             if (!filterDictionary){

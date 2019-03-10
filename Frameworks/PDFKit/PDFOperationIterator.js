@@ -185,16 +185,12 @@ JSClass('PDFOperationIterator', JSObject, {
                     break;
 
                 // Functions
-                // (currently unused and ingored by treating them like compatibility markers)
 
                 case Token.functionStart:
-                    ++compatibilityLevel;
+                    this.queue.push(PDFStreamOperation(Op.beginFunction, operands));
                     break;
                 case Token.functionEnd:
-                    if (compatibilityLevel === 0){
-                        return null;
-                    }
-                    --compatibilityLevel;
+                    this.queue.push(PDFStreamOperation(Op.endFunction, operands));
                     break;
 
                 // TODO: Marked Content

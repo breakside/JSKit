@@ -1,6 +1,6 @@
 // #import "PDFKit/PDFName.js"
 // #import "PDFKit/PDFStream.js"
-/* global JSGlobalObject, JSColor, PDFObject, PDFName, PDFStream, PDFColorSpace */
+/* global JSGlobalObject, JSLog, JSColor, PDFObject, PDFName, PDFStream, PDFColorSpace */
 'use strict';
 
 (function(){
@@ -8,6 +8,9 @@
 var logger = JSLog("PDFKit", "ColorSpace");
 
 JSGlobalObject.PDFColorSpace = function(params){
+    if (params === null){
+        return null;
+    }
     if (params instanceof PDFName){
         switch (params.toString()){
             case "DeviceGray":
@@ -51,15 +54,10 @@ JSGlobalObject.PDFColorSpace = function(params){
             }
             throw new Error("Invalid ICC color space, no alternate and N != 1|3|4");
         case "Indexed":
-            // Might need to load stream data (params[3] could be hex string or a stream)
-            // (for now, will always return black if params[3] is a stream)
             var base = PDFColorSpace(params[1]);
             return new PDFColorSpaceIndexed(base, params[2], params[3]);
         case "Separation":
-            logger.warn("No support for Separation, using alternate");
-            // TOO: fullly support Separation
-            // Using alternate space
-            return PDFColorSpace(params[2]);
+            return PDFColorSpaceSeparation(params[1], PDFColorSpace(params[2]), params[3]);
         case "DeviceN":
             logger.warn("No support for DeviceN, using black");
             // TODO: fully support DeviceN
@@ -83,6 +81,12 @@ PDFColorSpace.prototype = Object.create({}, {
     defaultComponents: {
         value: function PDFColorSpace_defaultComponents() {
             return [0];
+        }
+    },
+
+    load: {
+        value: function PDFColorSpace_load(completion, target){
+            completion.call(target);
         }
     }
 });
@@ -325,9 +329,14 @@ var PDFColorSpaceIndexed = function(base, max, lookup){
     this.base = base;
     this.max = max;
     if (lookup instanceof PDFStream){
-        logger.warn("Not fetching Indexed stream data, using black");
-        // FIXME: need to get data synchronously
-        this.lookup = null;
+        Object.defineProperty(this, 'load', {
+            value: function PDFColorSpaceIndexed_load(completion, target){
+                lookup.getData(function(data){
+                    this.lookup = data;
+                    completion.call(target);
+                }, this);
+            }
+        });
     }else{
         this.lookup = lookup;
     }
@@ -423,6 +432,48 @@ PDFColorSpacePattern.prototype = Object.create(PDFColorSpace.prototype, {
             return [1];
         }
     }
+
+});
+
+var PDFColorSpaceSeparation = function(name, alternate, tintTransform){
+    if (this === undefined){
+        return new PDFColorSpaceSeparation(name, alternate, tintTransform);
+    }
+    this.name = name;
+    this.alternate = alternate;
+    this.tintTransform = tintTransform;
+};
+
+PDFColorSpaceSeparation.prototype = Object.create(PDFColorSpace.prototype, {
+
+    numberOfComponents: {
+        value: 1
+    },
+
+    load: {
+        value: function PDFColorSpaceSeparation_load(completion, target){
+            this.tintTransform.load(function(){
+                if (this.alternate.load){
+                    this.alternate.load(completion, target);
+                }else{
+                    completion.call(target);
+                }
+            }, this);
+        }
+    },
+
+    colorFromComponents: {
+        value: function PDFColorSpace_colorFromComponents(components){
+            var alternateComponents = this.tintTransform.call(components);
+            return this.alternate.colorFromComponents(alternateComponents);
+        }
+    },
+
+    defaultComponents: {
+        value: function PDFColorSpace_defaultComponents() {
+            return [1];
+        }
+    },
 
 });
 

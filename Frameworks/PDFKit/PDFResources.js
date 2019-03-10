@@ -33,9 +33,14 @@ JSGlobalObject.PDFResources.prototype = Object.create(PDFObject.prototype, {
         }
     },
 
+    _cachedColorSpacesByName: {
+        writable: true,
+        value: null,
+    },
+
     colorSpace: {
         value: function PDFResources_getColorSpace(name){
-            var spaces = this.ColorSpace;
+            var spaces = this._cachedColorSpacesByName;
             if (spaces && (name in spaces)){
                 return spaces[name];
             }
@@ -63,6 +68,17 @@ JSGlobalObject.PDFResources.prototype = Object.create(PDFObject.prototype, {
         }
     },
 
+    _cachedImagesByName: {
+        writable: true,
+        value: null,
+    },
+
+    image: {
+        value: function PDFResources_getImage(name){
+            return this._cachedImagesByName[name];
+        }
+    },
+
     fonts: {
         value: function PDFResources_getFonts(){
             var fonts = this.Font;
@@ -77,26 +93,40 @@ JSGlobalObject.PDFResources.prototype = Object.create(PDFObject.prototype, {
     load: {
         value: function PDFResources_load(completion, target){
             var name;
-            var fonts = [];
-            var colorSpaces = [];
-            var xObjects = [];
+            var loadables = [];
             if (this.Font){
                 for (name in this.Font){
-                    fonts.push(this.Font[name]);
+                    loadables.push(this.Font[name]);
                 }
             }
-            var fontIndex = 0;
-            var handleFontLoad = function PDFResources_load_handleFont(){
-                var font = fonts[fontIndex];
-                ++fontIndex;
-                if (fontIndex < fonts.length){
-                    fonts[fontIndex].load(handleFontLoad, this);
+            if (this.XObject){
+                for (name in this.XObject){
+                    loadables.push(this.XObject[name]);
+                }
+            }
+            if (this.ColorSpace){
+                this._cachedColorSpacesByName = {};
+                for (name in this.ColorSpace){
+                    this._cachedColorSpacesByName[name] = PDFColorSpace(this.ColorSpace[name]);
+                    loadables.push(this._cachedColorSpacesByName[name]);
+                }
+            }
+            var loadableIndex = 0;
+            var handleLoad = function PDFResources_load_handleLoad(){
+                ++loadableIndex;
+                if (loadableIndex < loadables.length){
+                    loadables[loadableIndex].load(handleLoad, this);
                 }else{
                     completion.call(target);
                 }
             };
-            if (fonts.length > 0){
-                fonts[fontIndex].load(handleFontLoad, this);
+            for (var i = loadables.length - 1; i >= 0; --i){
+                if (!loadables[i].load){
+                    loadables.splice(i, 1);
+                }
+            }
+            if (loadables.length > 0){
+                loadables[loadableIndex].load(handleLoad, this);
             }else{
                 completion.call(target);
             }

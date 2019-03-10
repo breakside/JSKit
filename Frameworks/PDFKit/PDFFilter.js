@@ -22,16 +22,12 @@ JSClass("PDFFilter", JSObject, {
 });
 
 PDFFilter.CreateChain = function(filters, decodeParameters){
-    if (!filters){
-        return [];
-    }
-    if (filters instanceof PDFName){
-        return [PDFFilter.Create(filters, decodeParameters || {})];
-    }
     var chain = [];
+    var filter;
     for (var i = 0, l = filters.length; i < l; ++i){
-        if (filters[i] !== null){
-            chain.push(PDFFilter.Create(filters[i], decodeParameters ? (decodeParameters[i] || {}) : {}));
+        filter = PDFFilter.Create(filters[i].name, filters[i].params || {});
+        if (filter !== null){
+            chain.push(filter);
         }
     }
     return chain;

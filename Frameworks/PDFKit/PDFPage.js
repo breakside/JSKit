@@ -1,10 +1,11 @@
 // #import "PDFKit/PDFObject.js"
 // #import "PDFKit/PDFName.js"
 // #import "PDFKit/PDFStream.js"
+// #import "PDFKit/PDFImage.js"
 // #import "PDFKit/PDFStreamOperation.js"
 // #import "PDFKit/PDFGraphicsState.js"
 // #import "PDFKit/PDFColorSpace.js"
-/* global JSGlobalObject, JSClass, JSObject, JSFont, JSData, JSPoint, JSSize, JSRect, JSColor, JSAffineTransform, JSContext, PDFObject, PDFColorSpace, PDFObjectProperty, PDFPage, PDFName, PDFResources, PDFStream, PDFStreamOperation, PDFGraphicsState, PDFOperationIterator, PDFPageDrawing */
+/* global JSGlobalObject, JSClass, JSObject, JSFont, JSData, JSPoint, JSSize, JSRect, JSColor, JSAffineTransform, JSContext, PDFObject, PDFColorSpace, PDFObjectProperty, PDFPage, PDFName, PDFResources, PDFStream, PDFStreamOperation, PDFGraphicsState, PDFOperationIterator, PDFPageDrawing, PDFImage */
 'use strict';
 
 (function(){
@@ -612,19 +613,8 @@ var contextOperationHandler = {
         if (!obj){
             return;
         }
-        if (obj.Subtype == "Image"){
-            // TODO: get JSImage from PDFImage
-            // - JSImage needs to be convertable to IKBitmap (for pdf contexts)
-            // - JSImage needs to have a URL (for html contexts)
-            //
-            // - Could have new IKBitmap-backed JSImage subclass for images read out
-            //   of PDFs, but need to figure out the URL (and therefore content-type)
-            // - Could always extract a data-based JSImage from PDF, but need to
-            //   convert the extracted bitmap to a supported type like PNG or JPEG
-            // - JPEGs could be easy if we can can just pass around the compressed
-            //   blob instead of an uncompressed bitmap.  Need to verify a PDF filter
-            //   is compatible, and then somehow avoid uncompressing.
-            var image = null;
+        if (obj instanceof PDFImage){
+            var image = obj.foundationImage;
             if (image){
                 this.context.drawImage(image, JSRect(JSPoint.Zero, image.size));
             }

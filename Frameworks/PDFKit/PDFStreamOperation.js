@@ -110,7 +110,11 @@ PDFStreamOperation.Operator = {
     beginMarkedContent: "BMC",
     endMarkedContent: "EMC",
     defineMarkedContentPointProperties: "DP",
-    defineMarkedContentPoint: "MP"
+    defineMarkedContentPoint: "MP",
+
+    // Functions
+    beginFunction: "{",
+    endFunction: "}"
 
 };
 

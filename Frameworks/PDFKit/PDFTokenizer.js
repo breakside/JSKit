@@ -1,7 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "PDFKit/PDFTypes.js"
 /* global JSClass, JSObject, JSReadOnlyProperty, PDFTokenizer, PDFReaderStream, PDFReaderDataStream, JSData */
-/* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFMMType1Font, PDFType3Font, PDFType0Font, PDFCIDType0Font, PDFCIDType2Font, PDFTrueTypeFont, PDFFontDescriptor, PDFImage, PDFXrefStream, PDFObjectStream */
+/* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFMMType1Font, PDFType3Font, PDFType0Font, PDFCIDType0Font, PDFCIDType2Font, PDFTrueTypeFont, PDFFontDescriptor, PDFImage, PDFXrefStream, PDFObjectStream, PDFFunctionSampled, PDFFunctionExponential, PDFFunctionStitching, PDFFunctionCalculator */
 'use strict';
 
 (function(){
@@ -640,19 +640,42 @@ var PDFObjectClassesBySubtype = {};
 
 var PDFObjectClassForDictionary = function(dict){
     var type = dict.Type;
+    var subtype = dict.Subtype;
     if (type instanceof PDFName){
         if (type in PDFObjectClassesByType){
             return PDFObjectClassesByType[type];
         }
         if (type in PDFObjectClassesBySubtype){
-            var subtype = dict.Subtype;
             if (subtype instanceof PDFName){
                 if (subtype in PDFObjectClassesBySubtype[type]){
                     return PDFObjectClassesBySubtype[type][subtype];
                 }
             }
         }
+    }else if (subtype){
+        // XObject like Images are not required to include the XObject type,
+        // but are required to include the Subtype.
+        for (type in PDFObjectClassesBySubtype){
+            if (subtype in PDFObjectClassesBySubtype[type]){
+                return PDFObjectClassesBySubtype[type][subtype];
+            }
+        }
     }
+
+    // Function objects don't have a Type, but do have a required FunctionType
+    if ("FunctionType" in dict){
+        switch (dict.FunctionType){
+            case 0:
+                return PDFFunctionSampled;
+            case 2:
+                return PDFFunctionExponential;
+            case 3:
+                return PDFFunctionStitching;
+            case 4:
+                return PDFFunctionCalculator;
+        }
+    }
+
     // We want stream objects to be instantiated as PDFStream instances,
     // which have special properties for accessing the stream data.
     //

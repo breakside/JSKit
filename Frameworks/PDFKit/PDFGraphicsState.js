@@ -251,12 +251,12 @@ var operationHandler = {
     },
 
     CS: function(name){
-        this.state.strokeColorSpace = PDFColorSpace(this.resources.colorSpace(name) || name);
+        this.state.strokeColorSpace = this.resources.colorSpace(name) || PDFColorSpace(name);
         this.state.strokeColorComponents = this.state.strokeColorSpace.defaultComponents();
     },
 
     cs: function(name){
-        this.state.fillColorSpace = PDFColorSpace(this.resources.colorSpace(name) || name);
+        this.state.fillColorSpace = this.resources.colorSpace(name) || PDFColorSpace(name);
         this.state.fillColorComponents = this.state.fillColorSpace.defaultComponents();
     },
 
