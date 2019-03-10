@@ -71,10 +71,6 @@ JSClass("JSDataFontDescriptor", JSFontDescriptor, {
 
     initWithData: function(data){
         this.data = data;
-        this.extractDescription();
-    },
-
-    extractDescription: function(){
     },
 
     getData: function(completion, target){
