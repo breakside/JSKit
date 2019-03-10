@@ -4,6 +4,7 @@
     "multistr": true,
     "predef": [
         "Uint8Array",
+        "Uint16Array",
         "Uint32Array",
         "DataView",
         "Promise"
