@@ -1,6 +1,7 @@
 // #import "PDFKit/PDFIndirectObject.js"
 // #import "PDFKit/PDFName.js"
 // #import "PDFKit/PDFObject.js"
+// #import "PDFKit/PDFArray.js"
 // #import "PDFKit/PDFDocument.js"
 // #import "PDFKit/PDFPages.js"
 // #import "PDFKit/PDFPage.js"

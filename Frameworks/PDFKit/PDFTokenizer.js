@@ -1,7 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "PDFKit/PDFTypes.js"
 /* global JSClass, JSObject, JSReadOnlyProperty, PDFTokenizer, PDFReaderStream, PDFReaderDataStream, JSData */
-/* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFMMType1Font, PDFType3Font, PDFType0Font, PDFCIDType0Font, PDFCIDType2Font, PDFTrueTypeFont, PDFFontDescriptor, PDFImage, PDFXrefStream, PDFObjectStream, PDFFunctionSampled, PDFFunctionExponential, PDFFunctionStitching, PDFFunctionCalculator */
+/* global PDFIndirectObject, PDFName, PDFObject, PDFArray, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFMMType1Font, PDFType3Font, PDFType0Font, PDFCIDType0Font, PDFCIDType2Font, PDFTrueTypeFont, PDFFontDescriptor, PDFImage, PDFXrefStream, PDFObjectStream, PDFFunctionSampled, PDFFunctionExponential, PDFFunctionStitching, PDFFunctionCalculator */
 'use strict';
 
 (function(){
@@ -385,8 +385,7 @@ JSClass("PDFTokenizer", JSObject, {
     _finishReadingArray: function(){
         // Note this is not a true array, but can function like one with the added
         // benefit of automatically resolving indirect references.
-        var array = {};
-        array.length = 0;
+        var array = PDFArray();
         var token = this.readMeaningfulToken(Token.true, Token.false, Token.null, Token.integer, Token.real, Token.name, Token.stringStart, Token.hexStringStart, Token.arrayStart, Token.dictionaryStart, Token.arrayEnd);
         var obj;
         while (token != Token.arrayEnd){

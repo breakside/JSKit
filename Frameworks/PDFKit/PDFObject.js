@@ -29,6 +29,20 @@ JSGlobalObject.PDFObject.prototype = Object.create({}, {
         get: function(){
             return this._indirect;
         }
+    },
+
+    toString: {
+        value: function PDFObject_toString(){
+            if (this._indirect){
+                return "%d %d R".sprintf(this._indirect.objectID, this._indirect.generation);
+            }
+            var str = "<< ";
+            for (var k in this){
+                str += "/%s %s ".sprintf(k, this[k]);
+            }
+            str += ">>";
+            return str;
+        }
     }
 
 });
