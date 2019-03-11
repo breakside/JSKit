@@ -258,6 +258,8 @@ class JSScanner(object):
                     return JSStrict(sourceLine=self.sourceLine, rawline=line)
             if not self.minify:
                 return line
+            if len(stripped) > 0 and stripped[-1] == '\\':
+                return line
             while line != "":
                 if self.context == self.CONTEXT_JS:
                     i = line.find('//')
