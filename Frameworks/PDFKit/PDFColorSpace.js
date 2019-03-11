@@ -1,6 +1,7 @@
 // #import "PDFKit/PDFName.js"
 // #import "PDFKit/PDFStream.js"
-/* global JSGlobalObject, JSLog, JSColor, PDFObject, PDFName, PDFStream, PDFColorSpace */
+/* global JSGlobalObject, JSLog, JSColor, PDFObject, PDFName, PDFStream */
+/* global PDFColorSpace, PDFColorSpaceCIEGray, PDFColorSpaceCIERGB, PDFColorSpaceCIELab, PDFColorSpaceIndexed, PDFColorSpaceDeviceN, PDFColorSpacePattern, PDFColorSpaceSeparation, PDFColorSpaceICCBased */
 'use strict';
 
 (function(){
@@ -37,22 +38,7 @@ JSGlobalObject.PDFColorSpace = function(params){
         case "Lab":
             return new PDFColorSpaceCIELab(params[1]);
         case "ICCBased":
-            // Will need to load stream data when implented
-            // (using Alternate for now instead)
-            if (params[1].Alternate){
-                logger.info("Using Alernate color space for ICCBased");
-                return PDFColorSpace(params[1].Alternate);
-            }
-            logger.info("Using device color space for ICCBased with %d components", params[1].N);
-            switch (params[1].N){
-                case 1:
-                    return PDFColorSpace.deviceGray;
-                case 3:
-                    return PDFColorSpace.deviceRGB;
-                case 4:
-                    return PDFColorSpace.deviceCMYK;
-            }
-            throw new Error("Invalid ICC color space, no alternate and N != 1|3|4");
+            return new PDFColorSpaceICCBased(params[1]);
         case "Indexed":
             var base = PDFColorSpace(params[1]);
             return new PDFColorSpaceIndexed(base, params[2], params[3]);
@@ -101,6 +87,10 @@ PDFColorSpace.deviceGray = {
 
     defaultComponents: function(){
         return [0];
+    },
+
+    load: function(completion, target){
+        completion.call(target);
     }
 };
 
@@ -114,6 +104,10 @@ PDFColorSpace.deviceRGB = {
 
     defaultComponents: function(){
         return [0, 0, 0];
+    },
+
+    load: function(completion, target){
+        completion.call(target);
     }
 };
 
@@ -181,10 +175,14 @@ PDFColorSpace.deviceCMYK = {
 
     defaultComponents: function(){
         return [0, 0, 0, 1];
+    },
+
+    load: function(completion, target){
+        completion.call(target);
     }
 };
 
-var PDFColorSpaceCIEGray = function(params){
+JSGlobalObject.PDFColorSpaceCIEGray = function(params){
     this.whitePoint = params.WhitePoint;
     if ('BlackPoint' in params){
         this.blackPoint = params.BlackPoint;
@@ -226,7 +224,7 @@ PDFColorSpaceCIEGray.prototype = Object.create(PDFColorSpace.prototype, {
     }
 });
 
-var PDFColorSpaceCIERGB = function(params){
+JSGlobalObject.PDFColorSpaceCIERGB = function(params){
     this.whitePoint = params.WhitePoint;
     if ('BlackPoint' in params){
         this.blackPoint = params.BlackPoint;
@@ -280,7 +278,7 @@ PDFColorSpaceCIERGB.prototype = Object.create(PDFColorSpace.prototype, {
     }
 });
 
-var PDFColorSpaceCIELab = function(params){
+JSGlobalObject.PDFColorSpaceCIELab = function(params){
     this.whitePoint = params.WhitePoint;
     if ('BlackPoint' in params){
         this.blackPoint = params.BlackPoint;
@@ -325,7 +323,7 @@ PDFColorSpaceCIELab.prototype = Object.create(PDFColorSpace.prototype, {
     }
 });
 
-var PDFColorSpaceIndexed = function(base, max, lookup){
+JSGlobalObject.PDFColorSpaceIndexed = function(base, max, lookup){
     this.base = base;
     this.max = max;
     if (lookup instanceof PDFStream){
@@ -383,7 +381,7 @@ PDFColorSpaceIndexed.prototype = Object.create(PDFColorSpace.prototype, {
 
 });
 
-var PDFColorSpaceDeviceN = function(names, alternate, tintTransform, attributes){
+JSGlobalObject.PDFColorSpaceDeviceN = function(names, alternate, tintTransform, attributes){
     this.numberOfComponents = names.length;
     this._defaultComponents = [];
     for (var i = 0, l = this.numberOfComponents; i < l; ++i){
@@ -414,7 +412,7 @@ PDFColorSpaceDeviceN.prototype = Object.create(PDFColorSpace.prototype, {
 
 });
 
-var PDFColorSpacePattern = function(){
+JSGlobalObject.PDFColorSpacePattern = function(){
 };
 
 PDFColorSpacePattern.prototype = Object.create(PDFColorSpace.prototype, {
@@ -435,7 +433,7 @@ PDFColorSpacePattern.prototype = Object.create(PDFColorSpace.prototype, {
 
 });
 
-var PDFColorSpaceSeparation = function(name, alternate, tintTransform){
+JSGlobalObject.PDFColorSpaceSeparation = function(name, alternate, tintTransform){
     if (this === undefined){
         return new PDFColorSpaceSeparation(name, alternate, tintTransform);
     }
@@ -472,6 +470,80 @@ PDFColorSpaceSeparation.prototype = Object.create(PDFColorSpace.prototype, {
     defaultComponents: {
         value: function PDFColorSpace_defaultComponents() {
             return [1];
+        }
+    },
+
+});
+
+JSGlobalObject.PDFColorSpaceICCBased = function(stream){
+    if (this === undefined){
+        return new PDFColorSpaceSeparation(stream);
+    }
+    this.stream = stream;
+    this.numberOfComponents = stream.N;
+    if (stream.Alternate){
+        this.alternate = PDFColorSpace(stream.Alternate);
+    }else{
+        switch (this.numberOfComponents){
+            case 1:
+                this.alternate = PDFColorSpace.deviceGray;
+                break;
+            case 3:
+                this.alternate = PDFColorSpace.deviceRGB;
+                break;
+            case 4:
+                this.alternate = PDFColorSpace.deviceCMYK;
+                break;
+            default:
+                throw new Error("Invalid ICC color space, no alternate and N != 1|3|4");
+        }
+    }
+};
+
+PDFColorSpaceICCBased.prototype = Object.create(PDFColorSpace.prototype, {
+
+    stream: {
+        writable: true,
+        value: null,
+    },
+
+    alternate: {
+        writable: true,
+        value: null,
+    },
+
+    iccData: {
+        writable: true,
+        value: null,
+    },
+    
+    numberOfComponents: {
+        writable: true,
+        value: 0
+    },
+
+    load: {
+        value: function PDFColorSpaceSeparation_load(completion, target){
+            this.stream.getData(function(icc){
+                this.iccData = icc;
+                if (this.alternate.load){
+                    this.alternate.load(completion, target);
+                }else{
+                    completion.call(target);
+                }
+            }, this);
+        }
+    },
+
+    colorFromComponents: {
+        value: function PDFColorSpace_colorFromComponents(components){
+            return this.alternate.colorFromComponents(components);
+        }
+    },
+
+    defaultComponents: {
+        value: function PDFColorSpace_defaultComponents() {
+            return this.alternate.defaultComponents();
         }
     },
 

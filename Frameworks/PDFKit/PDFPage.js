@@ -616,7 +616,14 @@ var contextOperationHandler = {
         if (obj instanceof PDFImage){
             var image = obj.foundationImage;
             if (image){
-                this.context.drawImage(image, JSRect(JSPoint.Zero, image.size));
+                // Images are drawn at 0,0 in a 1x1 unit rect
+                // We need to un-flip the coordinates first
+                this.context.save();
+                this.context.setFillColor(JSColor.greenColor);
+                this.context.concatenate(JSAffineTransform(1, 0, 0, -1, 0, 1));
+                this.context.fillRect(JSRect(0, 0, 0.5, 0.5));
+                this.context.drawImage(image, JSRect(JSPoint.Zero, JSSize(1, 1)));
+                this.context.restore();
             }
         }
         // TODO: other objects

@@ -142,8 +142,7 @@ var operationHandler = {
     // concatenate matrix
     cm: function(a, b, c, d, e, f){
         var transform = JSAffineTransform(a, b, c, d, e, f);
-        // TODO: verify this operation is the correct one to use
-        this.state.transform = this.state.transform.concatenatedWith(transform);
+        this.state.transform = transform.concatenatedWith(this.state.transform);
     },
 
     w: function(lineWidth){
