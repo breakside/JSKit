@@ -30,15 +30,13 @@ JSClass('IKBitmap', JSObject, {
         return decoder.getBitmap();
     },
 
-    imageWithFormat: function(format){
+    encodedData: function(format){
         var encoder = IKEncoder.initWithFormat(format, this);
         if (encoder === null){
             return null;
         }
         var encoded = encoder.getData();
-        var image = JSImage.initWithData(encoded);
-        image._size = JSSize(this.size);
-        return image;
+        return encoded;
     },
 
     close: function(){

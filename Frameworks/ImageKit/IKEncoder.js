@@ -7,7 +7,7 @@ JSClass("IKEncoder", JSObject, {
     initWithFormat: function(format, bitmap){
         var encoderClass = IKEncoder.EncoderClassesByFormat[format];
         if (encoderClass !== undefined){
-            return encoderClass.init();
+            return encoderClass.initWithBitmap(bitmap);
         }
         return null;
     },

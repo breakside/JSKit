@@ -741,4 +741,6 @@ Object.defineProperty(CRC, 'table', {
     }
 });
 
+IKDecoderPNG.CRC = CRC;
+
 })();

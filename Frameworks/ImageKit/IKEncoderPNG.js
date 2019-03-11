@@ -1,6 +1,7 @@
 // #import "ImageKit/IKEncoder.js"
 // #import "ImageKit/IKBitmap.js"
-/* global IKEncoder, JSClass, JSData, ZlibStream, JSRange, IKEncoderPNG, IKBitmap */
+// #import "ImageKit/IKDecoderPNG.js"
+/* global IKEncoder, JSClass, JSData, ZlibStream, JSRange, IKEncoderPNG, IKBitmap, IKDecoderPNG */
 'use strict';
 
 (function(){
@@ -14,30 +15,30 @@ JSClass("IKEncoderPNG", IKEncoder, {
 
         // Header
         var header = new Chunk("IHDR", 13);
-        header.dataView.setUint32(this.bitmap.size.width, 0);
-        header.dataView.setUint32(this.bitmap.size.height, 4);
+        header.dataView.setUint32(0, this.bitmap.size.width);
+        header.dataView.setUint32(4, this.bitmap.size.height);
         header.dataView.setUint8(8, 8); // bit depth
-        header.dataView.setUint8(6, 9); // color type (6 = rgba)
-        header.dataView.setUint8(0, 10); // compression method (0 = flate)
-        header.dataView.setUint8(0, 11); // filter method (0 = adaptive)
-        header.dataView.setUint8(0, 12); // interlace method (0 = none)
+        header.dataView.setUint8(9, 6); // color type (6 = rgba)
+        header.dataView.setUint8(10, 0); // compression method (0 = flate)
+        header.dataView.setUint8(11, 0); // filter method (0 = adaptive)
+        header.dataView.setUint8(12, 0); // interlace method (0 = none)
         chunks.push(header);
 
         // Color space (sRGB with spec-recommended fallback gAMA and CHRM)
         chunks.push(new Chunk("sRGB"));
         var gamma = new Chunk("gAMA", 4);
-        gamma.dataView.setUint32(45455, 0);
+        gamma.dataView.setUint32(0, 45455);
         chunks.push(gamma);
 
         var chrm = new Chunk("cHRM", 32);
-        chrm.dataView.setUint32(31270, 0);
-        chrm.dataView.setUint32(32900, 4);
-        chrm.dataView.setUint32(64000, 8);
-        chrm.dataView.setUint32(33000, 12);
-        chrm.dataView.setUint32(30000, 16);
-        chrm.dataView.setUint32(60000, 20);
-        chrm.dataView.setUint32(15000, 24);
-        chrm.dataView.setUint32(6000, 28);
+        chrm.dataView.setUint32(0, 31270);
+        chrm.dataView.setUint32(4, 32900);
+        chrm.dataView.setUint32(8, 64000);
+        chrm.dataView.setUint32(12, 33000);
+        chrm.dataView.setUint32(16, 30000);
+        chrm.dataView.setUint32(20, 60000);
+        chrm.dataView.setUint32(24, 15000);
+        chrm.dataView.setUint32(28, 6000);
         chunks.push(chrm);
 
         // Compressed data
@@ -66,8 +67,9 @@ JSClass("IKEncoderPNG", IKEncoder, {
                     chunks.push(idat);
                     outputLength = 0;
                 }
+                stream.output = output;
                 stream.outputOffset = outputLength;
-                outputLength += stream.deflate(range.location + scanLineLength >= l).length;
+                outputLength += stream.compress(range.location + scanLineLength >= l).length;
             }while (outputLength == output.length);
         }
         if (outputLength > 0){
@@ -81,8 +83,11 @@ JSClass("IKEncoderPNG", IKEncoder, {
 
         // Checksum and combine all chunk data
         var chunk;
-        var dataChunks = [];
-        for (i = 0, l = this.chunks.length; i < l; ++i){
+        var dataChunks = [
+            // magic bytes
+            JSData.initWithArray([0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A])
+        ];
+        for (i = 0, l = chunks.length; i < l; ++i){
             chunk = chunks[i];
             chunk.calculateChecksum();
             dataChunks.push(chunk.data);
@@ -101,16 +106,22 @@ var Chunk = function(name, length){
     this.data = JSData.initWithLength(length + 12);
     name.latin1().copyTo(this.data, 4);
     this._chunkDataView = this.data.dataView();
-    this._chunkDataView.setUint32(length, 0);
+    this._chunkDataView.setUint32(0, length);
     this.dataView = this.data.subdataInRange(JSRange(8, length)).dataView();
 };
 
 Chunk.prototype = {
 
     calculateChecksum: function(){
-        // calculated 
+        var crc = new CRC();
+        crc.update(this.data.subdataInRange(JSRange(4, this.data.length - 8)));
+        this._chunkDataView.setUint32(this.data.length - 4, crc.final);
     }
 
 };
+
+IKEncoderPNG.Chunk = Chunk;
+
+var CRC = IKDecoderPNG.CRC;
 
 })();
