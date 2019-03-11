@@ -8,22 +8,23 @@ JSClass("ZlibTests", TKTestSuite, {
 
     testCompress: function(){
         var uncompressed = "this is a test".utf8();
-        var output = Zlib.compress(uncompressed, 0);
-        TKAssertObjectEquals(output, [0x78,0x01,0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74,0x26,0x33,0x05,0x16]);
+        var output = Zlib.compress(uncompressed);
+        TKAssertObjectEquals(output, [0x78,0x9C,0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74,0x26,0x33,0x05,0x16]);
 
+        TKAssertThrows(function(){ Zlib.compress(uncompressed, 0); });
         TKAssertThrows(function(){ Zlib.compress(uncompressed, 1); });
-        TKAssertThrows(function(){ Zlib.compress(uncompressed, 2); });
+        Zlib.compress(uncompressed, 2);
         TKAssertThrows(function(){ Zlib.compress(uncompressed, 3); });
     },
 
     testCompressInChunks: function(){
         // All input, limited output
-        var stream = new ZlibStream(0);
+        var stream = new ZlibStream();
         stream.input = "this is a test".utf8();
         stream.output = JSData.initWithLength(4);
         var output = stream.compress(true);
         TKAssertNotEquals(stream.state, ZlibStream.State.done);
-        TKAssertObjectEquals(output, [0x78,0x01,0x01,0x0e]);
+        TKAssertObjectEquals(output, [0x78,0x9C,0x01,0x0e]);
         stream.outputOffset = 0;
         output = stream.compress(true);
         TKAssertNotEquals(stream.state, ZlibStream.State.done);
@@ -50,13 +51,13 @@ JSClass("ZlibTests", TKTestSuite, {
         TKAssertObjectEquals(output, [0x16]);
 
         // Limited input, plenty of output
-        stream = new ZlibStream(0);
+        stream = new ZlibStream();
         var fullInput = "this is a test".utf8();
         stream.input = new Uint8Array(fullInput.buffer, 0, 2);
         stream.output = JSData.initWithLength(32);
         output = stream.compress();
         TKAssertNotEquals(stream.state, ZlibStream.State.done);
-        TKAssertObjectEquals(output, [0x78,0x01]);
+        TKAssertObjectEquals(output, [0x78,0x9C]);
         stream.input = new Uint8Array(fullInput.buffer, 2, 3);
         output = stream.compress();
         TKAssertNotEquals(stream.state, ZlibStream.State.done);

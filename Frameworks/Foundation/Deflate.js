@@ -18,7 +18,7 @@ JSGlobalObject.DeflateStream = function(level, info){
         info = DeflateStream.WindowSize.window32K;
     }
     if (level === undefined){
-        level = 0;
+        level = Deflate.Level.default;
     }
     this.info = info;
     this.level = level;
@@ -177,8 +177,8 @@ DeflateStream.prototype = Object.create({}, {
 
     deflate: {
         value: function DelfateStream_deflate(isFinal){
-            if (this.level !== 0){
-                throw new DeflateError("Level %d compression is not supported.  Use level 0", this.level);
+            if (this.level !== Deflate.Level.default){
+                throw new DeflateError("Level %d compression is not supported.  Use level %d (default)", this.level, DeflateStream.Level.default);
             }
             if (this._input === null){
                 throw Error("deflate() called without adding input");
@@ -723,6 +723,13 @@ JSGlobalObject.Deflate = {
         } while (length == output.length);
         return output.truncatedToLength(length);
     }
+};
+
+Deflate.Level = {
+    fastest: 0,
+    fast: 1,
+    default: 2,
+    maximum: 3
 };
 
 // -----------------------------------------------------------------------
