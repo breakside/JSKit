@@ -1,7 +1,9 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIHTMLDisplayServerContext.js"
-/* global JSClass, JSContext, JSAffineTransform, UIHTMLDisplayServerContext, JSRect, JSObject, UILayer, UIHTMLDisplayServerCanvasContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
+/* global JSClass, JSContext, JSColor, JSAffineTransform, UIHTMLDisplayServerContext, JSRect, JSObject, UILayer, UIHTMLDisplayServerCanvasContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
 'use strict';
+
+(function(){
 
 JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
@@ -30,12 +32,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this._externalElements = [];
         this._previousExternalElements = [];
         this._stack = [];
-        this._state = {
-            font: null,
-            textMatrix: JSAffineTransform.Identity,
-            characterSpacing: 0,
-            textDrawingMode: JSContext.TextDrawingMode.fill
-        };
+        this._state = Object.create(StatePrototype);
         this.bounds = JSRect.Zero;
     },
 
@@ -144,8 +141,12 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
                 this._previousExternalElements.splice(i, 1);
             }
         }
+        var canvasContext;
         for (i = 0, l = this._canvasElements.length; i < l; ++i){
-            this._canvasElements[i].getContext('2d').restore();
+            canvasContext = this._canvasElements[i].getContext('2d');
+            for (; canvasContext._restoreCount >= 0; --canvasContext._restoreCount){
+                canvasContext.restore();
+            }
         }
         this._previousExternalElements = [];
         this.firstSublayerNodeIndex = this._childInsertionIndex;
@@ -311,6 +312,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             canvasElement.style.position = 'absolute';
             canvasElement.style.width = '100%';
             canvasElement.style.height = '100%';
+            canvasElement.style.pointerEvents = 'none';
             this._canvasElements.push(canvasElement);
         }
         var element = this._canvasElements[this._canvasElementIndex];
@@ -319,22 +321,55 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     },
 
     getCanvasContext: function(){
-        // FIXME: needs to respect state of any prior canvas
         if (!this._canvasContext){
             var scale = this.element.ownerDocument.defaultView.devicePixelRatio || 1;
-            // FIXME: scale should account for any transform on our layer or its ancestor layers
+            // FIXME: scale should account for any transform ancestor layers
             var canvas = this._dequeueReusableCanvasElement();
             canvas.width = this.bounds.size.width * scale;
             canvas.height = this.bounds.size.height * scale;
             this._insertChildElement(canvas);
             this._canvasContext = canvas.getContext('2d');
+            this._canvasContext._restoreCount = 0;
             if (scale != 1){
                 this._canvasContext.scale(scale, scale);
             }
             this._canvasContext.save();
+            this._canvasContext._restoreCount++;
             this._canvasContext.translate(-this.bounds.origin.x, -this.bounds.origin.y);
+
+            // Catch up to current state
+            // - If this is the first state, then we haven't made any changes to the state yet
+            // - If this is not the first canvas element we've added, then
+            //   we need to make sure its state agrees with the state of the
+            //   previous canvas
+            if (this._canvasElementIndex > 1){
+                for (var i = 0, l = this._stack.length; i < l; ++i){
+                    this._canvasContextAdoptState(this._canvasContext, this._stack[i]);
+                    this._canvasContext.save();
+                    this._canvasContext._restoreCount++;
+                }
+                this._canvasContextAdoptState(this._canvasContext, this._state);
+            }
         }
         return this._canvasContext;
+    },
+
+    _canvasContextAdoptState: function(context, state){
+        context.globalAlpha = state.alpha;
+        context.fillStyle = state.fillColor ? state.fillColor.cssString() : '';
+        context.strokeStyle = state.strokeColor ? state.strokeColor.cssString() : '';
+        context.shadowOffsetX = state.shadowOffset.x;
+        context.shadowOffsetY = state.shadowOffset.y;
+        context.shadowBlur = state.shadowBlur;
+        context.shadowColor = state.shadowColor ? state.shadowColor.cssString() : '';
+        context.lineWidth = state.lineWidth;
+        context.lineCap = state.lineCap;
+        context.lineJoin = state.lineJoin;
+        context.miterLimit = state.miterLimit;
+        context.lineDashOffset = state.lineDash[0];
+        context.setLineDash(state.lineDash[1]);
+        context.transform(state.transform.a, state.transform.b, state.transform.c, state.transform.d, state.transform.tx, state.transform.ty);
+        context.font = state.font ? state.font.cssString() : '';
     },
 
     // ----------------------------------------------------------------------
@@ -485,10 +520,16 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             var url = image.htmlURLString();
             if (url){
                 var imageElement = this._dequeueReusableImageElement();
-                imageElement.style.top = rect.origin.y + 'px';
-                imageElement.style.left = rect.origin.x + 'px';
-                imageElement.style.width = rect.size.width + 'px';
-                imageElement.style.height = rect.size.height + 'px';
+                var boundsTransform = JSAffineTransform.Translated(-this.bounds.origin.x, -this.bounds.origin.y);
+                var transform = this._state.transform.translatedBy(rect.origin.x, rect.origin.y).concatenatedWith(boundsTransform);
+                transform = transform.scaledBy(rect.size.width / image.size.width, rect.size.height / image.size.height);
+                imageElement.style.top = '0';
+                imageElement.style.left = '0';
+                imageElement.style.width = image.size.width + 'px';
+                imageElement.style.height = image.size.height + 'px';
+                imageElement.style.transformOrigin = 'top left';
+                imageElement.style.transform = 'matrix(%f, %f, %f, %f, %f, %f)'.sprintf(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
+                imageElement.style.pointerEvents = 'none';
                 var cssURL = "url('" + url + "')";
                 var caps = image.capInsets;
                 if (caps !== null){
@@ -537,7 +578,6 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             this._imageElements.push(imageElement);
         }
         var element = this._imageElements[this._imageElementIndex];
-        element.style.transform = 'translate(%fpx,%fpx)'.sprintf(-this.bounds.origin.x, -this.bounds.origin.y);
         ++this._imageElementIndex;
         return element;
     },
@@ -582,7 +622,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         var glyph;
         var text;
         var font = this._state.font;
-        this.canvasContext.save();
+        this.save();
         this.setLineWidth(this.canvasContext.lineWidth / Math.abs(tm.d));
         this.concatenate(tm);
         for (var i = 0, l = glyphs.length; i < l; ++i){
@@ -597,7 +637,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             width = font.widthOfGlyph(glyph) + this._state.characterSpacing;
             this.translateBy(width, 0);
         }
-        this.canvasContext.restore();
+        this.restore();
     },
 
     showText: function(text){
@@ -621,7 +661,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             // Canvas2D doens't have a concept of a text transform, so we'll just
             // add it to the base transform.
             // - Be sure to adjust the lineWidth for the new scale
-            this.canvasContext.save();
+            this.save();
             this.setLineWidth(this.canvasContext.lineWidth / Math.abs(tm.d));
             this.concatenate(tm);
         }
@@ -637,7 +677,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         // this.fillRect(JSRect(0, -this._state.font.ascender, this._state.font.lineHeight, this._state.font.lineHeight));
         // this.canvasContext.restore();
         if (nonIdentityMatrix){
-            this.canvasContext.restore();
+            this.restore();
         }
     },
 
@@ -649,17 +689,20 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     },
 
     setAlpha: function(alpha){
+        this._state.alpha = alpha;
         this.canvasContext.globalAlpha = alpha;
     },
 
     setFillColor: function(fillColor){
         UIHTMLDisplayServerCanvasContext.$super.setFillColor.call(this, fillColor);
         this.canvasContext.fillStyle = fillColor ? fillColor.cssString() : '';
+        this._state.fillColor = fillColor;
     },
 
     setStrokeColor: function(strokeColor){
         UIHTMLDisplayServerCanvasContext.$super.setStrokeColor.call(this, strokeColor);
         this.canvasContext.strokeStyle = strokeColor ? strokeColor.cssString() : '';
+        this._state.strokeColor = strokeColor;
     },
 
     setShadow: function(offset, blur, color){
@@ -667,6 +710,9 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this.canvasContext.shadowOffsetY = offset.y;
         this.canvasContext.shadowBlur = blur;
         this.canvasContext.shadowColor = color ? color.cssString() : '';
+        this._state.shadowOffset = offset;
+        this._state.shadowBlur = blur;
+        this._state.shadowColor = color;
     },
 
     // ----------------------------------------------------------------------
@@ -685,18 +731,22 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     scaleBy: function(sx, sy){
         this.canvasContext.scale(sx, sy);
+        this._state.transform = this._state.transform.scaledBy(sx, sy);
     },
 
     rotateBy: function(angle){
         this.canvasContext.rotate(angle);
+        this._state.transform = this._state.transform.rotatedBy(angle);
     },
 
     translateBy: function(tx, ty){
         this.canvasContext.translate(tx, ty);
+        this._state.transform = this._state.transform.translatedBy(tx, ty);
     },
 
     concatenate: function(transform){
         this.canvasContext.transform(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
+        this._state.transform = transform.concatenatedWith(this._state.transform);
     },
 
     // ----------------------------------------------------------------------
@@ -704,39 +754,45 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     setLineWidth: function(lineWidth){
         this.canvasContext.lineWidth = lineWidth;
+        this._state.lineWidth = lineWidth;
     },
 
     setLineCap: function(lineCap){
         this.canvasContext.lineCap = lineCap;
+        this._state.lineWidth = lineCap;
     },
 
     setLineJoin: function(lineJoin){
         this.canvasContext.lineJoin = lineJoin;
+        this._state.lineJoin = lineJoin;
     },
 
     setMiterLimit: function(miterLimit){
         this.canvasContext.miterLimit = miterLimit;
+        this._state.miterLimit = miterLimit;
     },
 
     setLineDash: function(phase, lengths){
         this.canvasContext.lineDashOffset = phase;
         this.canvasContext.setLineDash(lengths);
+        this._state.lineDash = [phase, lengths];
     },
 
     // ----------------------------------------------------------------------
     // MARK: - Graphics State
 
     save: function(){
-        if (this._canvasContext){
-            this._canvasContext.save();
-        }
+        this.canvasContext.save();
+        this._canvasContext._restoreCount++;
         this._stack.push(this._state);
+        this._state = Object.create(this._state);
     },
 
 
     restore: function(){
         if (this._canvasContext){
             this._canvasContext.restore();
+            this._canvasContext._restoreCount--;
         }
         if (this._stack.length > 0){
             this._state = this._stack.pop();
@@ -744,3 +800,23 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     },
 
 });
+
+var StatePrototype = {
+    alpha: 1,
+    font: null,
+    transform: JSAffineTransform.Identity,
+    textMatrix: JSAffineTransform.Identity,
+    characterSpacing: 0,
+    textDrawingMode: JSContext.TextDrawingMode.fill,
+    fillColor: JSColor.blackColor,
+    strokeColor: JSColor.blackColor,
+    shadowOffset: JSPoint.Zero,
+    shadowRadius: 0,
+    shadowColor: null,
+    lineWidth: 0,
+    lineCap: JSContext.LineCap.butt,
+    lineJoin: JSContext.LineJoin.miter,
+    lineDash: [0, []]
+};
+
+})();
