@@ -50,7 +50,9 @@ JSClass("IKEncoderPNG", IKEncoder, {
         var filteredLine = JSData.initWithLength(1 + scanLineLength);
         var output = JSData.initWithLength(0xFFFF);
         var outputLength = 0;
+        var totalOutputLength = 0;
         var idat;
+        var length;
         for (l = bitmapData.length; range.location < l; range.location += scanLineLength){
             scanLine = bitmapData.subdataInRange(range);
             scanLine.copyTo(filteredLine, 1);
@@ -69,12 +71,14 @@ JSClass("IKEncoderPNG", IKEncoder, {
                 }
                 stream.output = output;
                 stream.outputOffset = outputLength;
-                outputLength += stream.compress(range.location + scanLineLength >= l).length;
+                length = stream.compress(range.location + scanLineLength >= l).length;
+                outputLength += length;
+                totalOutputLength += length;
             }while (outputLength == output.length);
         }
         if (outputLength > 0){
             idat = new Chunk('IDAT', outputLength);
-            output.copyTo(idat.data, 8);
+            output.subdataInRange(JSRange(0, outputLength)).copyTo(idat.data, 8);
             chunks.push(idat);
         }
 
