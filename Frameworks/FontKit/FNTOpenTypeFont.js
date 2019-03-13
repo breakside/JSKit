@@ -54,6 +54,8 @@ JSClass("FNTOpenTypeFont", JSObject, {
 
     cmap: JSLazyInitProperty('_getUnicodeCmap'),
 
+    // MARK: - Reading
+
     initWithData: function(data){
         this.data = data;
         this.dataView = data.dataView();
@@ -114,6 +116,8 @@ JSClass("FNTOpenTypeFont", JSObject, {
             }
         });
     },
+
+    // MARK: - Glyphs
 
     widthOfGlyph: function(glyphIndex){
         var hmtx = this.tables.hmtx;
