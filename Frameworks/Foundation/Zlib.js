@@ -204,7 +204,7 @@ ZlibStream.prototype = Object.create({}, {
                     --this._headerRemaining;
                 }
                 if (this._deflateStream.outputOffset == this._deflateStream.output.length){
-                    return this._deflateStream.output.subdataInRange(JSRange(startingOffset, startingOffset - this._deflateStream.outputOffset));
+                    return this._deflateStream.output.subdataInRange(JSRange(startingOffset, this._deflateStream.outputOffset - startingOffset));
                 }
             }
             if (this._inputNeedsSum){
@@ -212,7 +212,7 @@ ZlibStream.prototype = Object.create({}, {
                 this._inputNeedsSum = false;
             }
             if (this._deflateStream.state != DeflateStream.State.done){
-                var deflateOutput = this._deflateStream.deflate(isFinal);
+                this._deflateStream.deflate(isFinal);
             }
             if (this._deflateStream.state == DeflateStream.State.done){
                 var sum = this._adler.sum;

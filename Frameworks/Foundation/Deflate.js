@@ -230,7 +230,11 @@ DeflateStream.prototype = Object.create({}, {
                         if (isFinal){
                             break;
                         }
-                        this._state = DeflateStream.State.needInput;
+                        if (this._input.offset == this._input.length){
+                            this._state = DeflateStream.State.needInput;
+                        }else{
+                            break;
+                        }
                     }
                 }else{
                     this._state = DeflateStream.State.needInput;
