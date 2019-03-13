@@ -17,8 +17,10 @@ JSGlobalObject.JSClass = function(name, superclass, extensions){
     }
 };
 
+JSClass._registry = {};
+
 JSClass.FromName = function(className){
-    var cls = JSResolveDottedName(JSGlobalObject, className);
+    var cls = JSResolveDottedName(JSClass._registry, className);
     if (!cls){
         throw new Error("Class not found: %s.  Missing include?  Typo?".sprintf(className));
     }
@@ -84,6 +86,7 @@ JSClass.prototype = {
                 this.defineInitMethod(name);
             }
         }
+        JSClass._registry[this.name] = this;
     },
 
     definePropertiesFromExtensions: function(extensions){
