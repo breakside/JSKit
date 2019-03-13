@@ -188,6 +188,7 @@ JSGlobalObject.PDFImage.prototype = Object.create(PDFXObject.prototype, {
                     this.SMask._getFullyDecodedData(function(data){
                         var i, o;
                         var l;
+                        // TODO: undo preblending with values from Matte property
                         if (this.SMask.BitsPerComponent == 8){
                             if (data.length * 4 == bitmapData.length){
                                 i = 0;

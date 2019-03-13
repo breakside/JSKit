@@ -14,8 +14,9 @@
 // #import "PDFKit/PDFCMap.js"
 // #import "PDFKit/PDFXObject.js"
 // #import "PDFKit/PDFImage.js"
+// #import "PDFKit/PDFForm.js"
 // #import "PDFKit/PDFXrefStream.js"
 // #import "PDFKit/PDFObjectStream.js"
 // #import "PDFKit/PDFFunction.js"
-/* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFType0Font, PDFTrueTypeFont, PDFMMType1Font, PDFType3Font, PDFCIDType0Font, PDFCIDType2Font, PDFFontDescriptor, PDFImage, PDFXrefStream, PDFObjectStream, PDFCMap, PDFFunctionSampled, PDFFunctionExponential, PDFFunctionStitching, PDFFunctionCalculator */
+/* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFType0Font, PDFTrueTypeFont, PDFMMType1Font, PDFType3Font, PDFCIDType0Font, PDFCIDType2Font, PDFFontDescriptor, PDFImage, PDFXrefStream, PDFObjectStream, PDFCMap, PDFFunctionSampled, PDFFunctionExponential, PDFFunctionStitching, PDFFunctionCalculator, PDFForm */
 'use strict';

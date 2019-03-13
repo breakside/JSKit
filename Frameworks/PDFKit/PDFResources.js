@@ -111,24 +111,25 @@ JSGlobalObject.PDFResources.prototype = Object.create(PDFObject.prototype, {
                     loadables.push(this._cachedColorSpacesByName[name]);
                 }
             }
-            var loadableIndex = 0;
-            var handleLoad = function PDFResources_load_handleLoad(){
-                ++loadableIndex;
-                if (loadableIndex < loadables.length){
-                    loadables[loadableIndex].load(handleLoad, this);
-                }else{
-                    completion.call(target);
-                }
-            };
-            for (var i = loadables.length - 1; i >= 0; --i){
+            var i, l;
+            for (i = loadables.length - 1; i >= 0; --i){
                 if (!loadables[i].load){
                     loadables.splice(i, 1);
                 }
             }
-            if (loadables.length > 0){
-                loadables[loadableIndex].load(handleLoad, this);
-            }else{
+            var remaining = loadables.length;
+            if (remaining === 0){
                 completion.call(target);
+                return;
+            }
+            var handleLoad = function PDFResources_load_handleLoad(){
+                --remaining;
+                if (remaining === 0){
+                    completion.call(target);
+                }
+            };
+            for (i = 0, l = loadables.length; i < l; ++i){
+                loadables[i].load(handleLoad, this);
             }
         }
     },

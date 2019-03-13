@@ -1,7 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "PDFKit/PDFTypes.js"
 /* global JSClass, JSObject, JSReadOnlyProperty, PDFTokenizer, PDFReaderStream, PDFReaderDataStream, JSData */
-/* global PDFIndirectObject, PDFName, PDFObject, PDFArray, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFMMType1Font, PDFType3Font, PDFType0Font, PDFCIDType0Font, PDFCIDType2Font, PDFTrueTypeFont, PDFFontDescriptor, PDFImage, PDFXrefStream, PDFObjectStream, PDFFunctionSampled, PDFFunctionExponential, PDFFunctionStitching, PDFFunctionCalculator */
+/* global PDFIndirectObject, PDFName, PDFObject, PDFArray, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFMMType1Font, PDFType3Font, PDFType0Font, PDFCIDType0Font, PDFCIDType2Font, PDFTrueTypeFont, PDFFontDescriptor, PDFImage, PDFXrefStream, PDFObjectStream, PDFFunctionSampled, PDFFunctionExponential, PDFFunctionStitching, PDFFunctionCalculator, PDFForm */
 'use strict';
 
 (function(){
@@ -637,7 +637,12 @@ PDFTokenizer.NameEscape = {
 var PDFObjectClassesByType = {};
 var PDFObjectClassesBySubtype = {};
 
+var hasRegisteredTypes = false;
+
 var PDFObjectClassForDictionary = function(dict){
+    if (!hasRegisteredTypes){
+        registerTypes();
+    }
     var type = dict.Type;
     var subtype = dict.Subtype;
     if (type instanceof PDFName){
@@ -652,7 +657,7 @@ var PDFObjectClassForDictionary = function(dict){
             }
         }
     }else if (subtype){
-        // XObject like Images are not required to include the XObject type,
+        // XObject like Images and Forms are not required to include the XObject type,
         // but are required to include the Subtype.
         for (type in PDFObjectClassesBySubtype){
             if (subtype in PDFObjectClassesBySubtype[type]){
@@ -705,35 +710,38 @@ var PDFObjectClassForDictionary = function(dict){
     return PDFObject;
 };
 
-
-var types = [
+var registerTypes = function(){
+    hasRegisteredTypes = true;
+    var types = [
     PDFDocument,
     PDFPages,
     PDFPage,
     PDFGraphicsStateParameters,
     PDFXrefStream,
     PDFObjectStream,
-    PDFFontDescriptor
-];
-var typesWithSubtypes = [
-    PDFType1Font,
-    PDFTrueTypeFont,
-    PDFMMType1Font,
-    PDFType3Font,
-    PDFType0Font,
-    PDFCIDType0Font,
-    PDFCIDType2Font,
-    PDFImage,
-];
-var i, l;
-for (i = 0, l = types.length; i < l; ++i){
-    PDFObjectClassesByType[types[i].prototype.Type] = types[i];
-}
-for (i = 0, l = typesWithSubtypes.length; i < l; ++i){
-    if (!(typesWithSubtypes[i].prototype.Type in PDFObjectClassesBySubtype)){
-        PDFObjectClassesBySubtype[typesWithSubtypes[i].prototype.Type] = {};
+        PDFFontDescriptor
+    ];
+    var typesWithSubtypes = [
+        PDFType1Font,
+        PDFTrueTypeFont,
+        PDFMMType1Font,
+        PDFType3Font,
+        PDFType0Font,
+        PDFCIDType0Font,
+        PDFCIDType2Font,
+        PDFImage,
+        PDFForm
+    ];
+    var i, l;
+    for (i = 0, l = types.length; i < l; ++i){
+        PDFObjectClassesByType[types[i].prototype.Type] = types[i];
     }
-    PDFObjectClassesBySubtype[typesWithSubtypes[i].prototype.Type][[typesWithSubtypes[i].prototype.Subtype]] = typesWithSubtypes[i];
-}
+    for (i = 0, l = typesWithSubtypes.length; i < l; ++i){
+        if (!(typesWithSubtypes[i].prototype.Type in PDFObjectClassesBySubtype)){
+            PDFObjectClassesBySubtype[typesWithSubtypes[i].prototype.Type] = {};
+        }
+        PDFObjectClassesBySubtype[typesWithSubtypes[i].prototype.Type][[typesWithSubtypes[i].prototype.Subtype]] = typesWithSubtypes[i];
+    }
+};
 
 })();
