@@ -23,6 +23,14 @@ JSFileManager.definePropertiesFromExtensions({
     // MARK: - Opening the File System
 
     open: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(function(status){
+                if (status != JSFileManager.State.success){
+                    return Promise.reject(status);
+                }
+                return status;
+            });
+        }
         var request = indexedDB.open(this._identifier, CURRENT_DATABASE_VERSION);
         var manager = this;
         request.onblocked = function(e){
@@ -44,6 +52,7 @@ JSFileManager.definePropertiesFromExtensions({
             manager._db = e.target.result;
             completion.call(target, JSFileManager.State.success);
         };
+        return completion.promise;
     },
 
     // --------------------------------------------------------------------
@@ -57,7 +66,7 @@ JSFileManager.definePropertiesFromExtensions({
         return JSURL.initWithString('%s:///Containers/%s'.sprintf(JSFileManager.Scheme.jskitfile, JSBundle.mainBundleIdentifier));
     },
 
-    _getWorkingDirectoryURL: function(completion, target){
+    _getWorkingDirectoryURL: function(){
         return this.persistentContainerURL.appendingPathComponent("Working");
     },
 
@@ -69,6 +78,9 @@ JSFileManager.definePropertiesFromExtensions({
     // MARK: - Checking for Items
 
     itemExistsAtURL: function(url, completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to itemExistsAtURL");
             url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
@@ -84,12 +96,16 @@ JSFileManager.definePropertiesFromExtensions({
         this._metadataInTransactionAtURL(transaction, url, function(metadata){
             exists = metadata !== null;
         });
+        return completion.promise;
     },
 
     // --------------------------------------------------------------------
     // MARK: - Item Attributes
 
     attributesOfItemAtURL: function(url, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to attributesOfItemAtURL");
             url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
@@ -105,6 +121,7 @@ JSFileManager.definePropertiesFromExtensions({
         this._metadataInTransactionAtURL(transaction, url, function(metadata_){
             metadata = metadata_;
         });
+        return completion.promise;
     },
 
     _metadataInTransactionAtURL: function(transaction, url, completion){
@@ -136,6 +153,9 @@ JSFileManager.definePropertiesFromExtensions({
     // MARK: - Creating Folders
 
     createFolderAtURL: function(url, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to createFolderAtURL");
             url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
@@ -153,6 +173,7 @@ JSFileManager.definePropertiesFromExtensions({
                 transaction.abort();
             }
         });
+        return completion.promise;
     },
 
     _createFolderInTransactionAtURL: function(transaction, url, completion){
@@ -192,6 +213,9 @@ JSFileManager.definePropertiesFromExtensions({
     // MARK: - Creating Files
 
     createFileAtURL: function(url, data, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to createFileAtURL");
             url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
@@ -244,12 +268,16 @@ JSFileManager.definePropertiesFromExtensions({
                 });
             }
         });
+        return completion.promise;
     },
 
     // --------------------------------------------------------------------
     // MARK: - Moving & Copying Items
 
     moveItemAtURL: function(url, toURL, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to moveItemAtURL");
             url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
@@ -298,9 +326,13 @@ JSFileManager.definePropertiesFromExtensions({
                 });
             }
         });
+        return completion.promise;
     },
 
     copyItemAtURL: function(url, toURL, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to copyItemAtURL");
             url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
@@ -349,6 +381,7 @@ JSFileManager.definePropertiesFromExtensions({
                 });
             }
         });
+        return completion.promise;
     },
 
     _copyItemInTransactionAtURL: function(transaction, url, toURL, toParent, metadata){
@@ -404,6 +437,9 @@ JSFileManager.definePropertiesFromExtensions({
     // MARK: - Removing Items
 
     removeItemAtURL: function(url, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to removeItemAtURL");
             url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
@@ -426,6 +462,7 @@ JSFileManager.definePropertiesFromExtensions({
                 transaction.abort();
             }
         });
+        return completion.promise;
     },
 
     _removeItemInTransactionAtURL: function(transaction, url, parent, metadata){
@@ -479,6 +516,9 @@ JSFileManager.definePropertiesFromExtensions({
     // MARK: - File Contents
 
     contentsAtURL: function(url, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to contentsAtURL");
             url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
@@ -497,6 +537,7 @@ JSFileManager.definePropertiesFromExtensions({
                 contents = data;
             }
         });
+        return completion.promise;
     },
 
     _contentsInTransactionAtURL: function(transaction, url, visitedURLSet, callback){
@@ -535,6 +576,9 @@ JSFileManager.definePropertiesFromExtensions({
     // MARK: - Symbolic Links
 
     createSymbolicLinkAtURL: function(url, toURL, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to createSymbolicLinkAtURL");
             url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
@@ -573,12 +617,16 @@ JSFileManager.definePropertiesFromExtensions({
                 manager._createFolderInTransactionAtURL(transaction, parent, create);
             }
         });
+        return completion.promise;
     },
 
     // --------------------------------------------------------------------
     // MARK: - Destorying the File Manager
 
     destroy: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
         if (this._db){
             this._db.close();
         }
@@ -589,6 +637,7 @@ JSFileManager.definePropertiesFromExtensions({
         request.onerror = function(e){
             completion.call(target, false);
         };
+        return completion.promise;
     },
 
     // --------------------------------------------------------------------

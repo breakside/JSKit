@@ -367,6 +367,124 @@ JSClass("PromiseTests", TKTestSuite, {
             TKAssertNull(resolved);
         }, 50);
         this.wait(expectation, 1.0);
+    },
+
+    testCompletion: function(){
+        var completion = PromiseClass.completion();
+        TKAssertEquals(typeof(completion), "function");
+        TKAssertNotUndefined(completion.promise);
+        TKAssertNotNull(completion.promise);
+        TKAssert(completion.promise instanceof PromiseClass);
+        var resolved;
+        var rejected;
+        completion.promise.then(function(value){
+            resolved = value;
+        }, function(value){
+            rejected = value;
+        });
+        TKAssertUndefined(resolved);
+        var expectation = TKExpectation.init();
+        expectation.call(setTimeout, JSGlobalObject, function(){
+            TKAssertEquals(resolved, 123);
+            TKAssertUndefined(rejected);
+        });
+        completion(123);
+        this.wait(expectation, 1.0);
+    },
+
+    testCompletionResolveNonNull: function(){
+        var completion = PromiseClass.completion(PromiseClass.resolveNonNull);
+        var resolved;
+        var rejected;
+        completion.promise.then(function(value){
+            resolved = value;
+        }, function(value){
+            rejected = value;
+        });
+        TKAssertUndefined(resolved);
+        var expectation = TKExpectation.init();
+        expectation.call(setTimeout, JSGlobalObject, function(){
+            TKAssertEquals(resolved, 123);
+            TKAssertUndefined(rejected);
+        });
+        completion(123);
+        this.wait(expectation, 1.0);
+    },
+
+    testCompletionRejectNull: function(){
+        var completion = PromiseClass.completion(PromiseClass.resolveNonNull);
+        var resolved;
+        var rejected = false;
+        completion.promise.then(function(value){
+            resolved = value;
+        }, function(value){
+            rejected = true;
+        });
+        TKAssertUndefined(resolved);
+        var expectation = TKExpectation.init();
+        expectation.call(setTimeout, JSGlobalObject, function(){
+            TKAssertUndefined(resolved);
+            TKAssert(rejected);
+        });
+        completion(null);
+        this.wait(expectation, 1.0);
+    },
+
+    testCompletionResolveTrue: function(){
+        var completion = PromiseClass.completion(PromiseClass.resolveTrue);
+        var resolved = false;
+        var rejected = false;
+        completion.promise.then(function(){
+            resolved = true;
+        }, function(){
+            rejected = true;
+        });
+        var expectation = TKExpectation.init();
+        expectation.call(setTimeout, JSGlobalObject, function(){
+            TKAssert(resolved);
+            TKAssert(!rejected);
+        });
+        completion(true);
+        this.wait(expectation, 1.0);
+    },
+
+    testCompletionRejectFalse: function(){
+        var completion = PromiseClass.completion(PromiseClass.resolveTrue);
+        var resolved = false;
+        var rejected = false;
+        completion.promise.then(function(){
+            resolved = true;
+        }, function(){
+            rejected = true;
+        });
+        var expectation = TKExpectation.init();
+        expectation.call(setTimeout, JSGlobalObject, function(){
+            TKAssert(!resolved);
+            TKAssert(rejected);
+        });
+        completion(false);
+        this.wait(expectation, 1.0);
+    },
+
+    testCompletionResolveKeyed: function(){
+        var completion = PromiseClass.completion(PromiseClass.resolveKeyed('one', 'two', 'three'));
+        var resolved;
+        var rejected;
+        completion.promise.then(function(value){
+            resolved = value;
+        }, function(value){
+            rejected = value;
+        });
+        TKAssertUndefined(resolved);
+        var expectation = TKExpectation.init();
+        expectation.call(setTimeout, JSGlobalObject, function(){
+            TKAssertEquals(resolved.one, 1);
+            TKAssertEquals(resolved.two, 2);
+            TKAssertEquals(resolved.three, 3);
+            TKAssertUndefined(rejected);
+        });
+        completion(1, 2, 3);
+        this.wait(expectation, 1.0);
     }
 
 });

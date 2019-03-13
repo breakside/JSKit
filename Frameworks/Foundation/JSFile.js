@@ -69,11 +69,19 @@ JSClass("JSDataFile", JSFile, {
     },
 
     readData: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         completion.call(target, this._data);
+        return completion.promise;
     },
 
     readDataRange: function(range, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         completion.call(target, this._data.subdataInRange(range));
+        return completion.promise;
     }
 
 });

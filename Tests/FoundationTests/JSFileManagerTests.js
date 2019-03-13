@@ -39,6 +39,22 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         this.wait(expectation, 3.0);
     },
 
+    testCreateFolderAtURLPromise: function(){
+        var manager = this.manager;
+        var expectation = TKExpectation.init();
+        var url = manager.temporaryDirectoryURL.appendingPathComponent('tests');
+        var promise = manager.createFolderAtURL(url);
+        TKAssert(promise instanceof Promise);
+        expectation.call(promise.then, promise, function(){
+            expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
+                TKAssert(exists);
+            });
+        }, function(){
+            TKAssert();
+        });
+        this.wait(expectation, 3.0);
+    },
+
     testCreateFolderAtURL_withIntermediates: function(){
         var manager = this.manager;
         var expectation = TKExpectation.init();
@@ -62,6 +78,20 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         this.wait(expectation, 1.0);
     },
 
+    testItemExistsAtURLPromise: function(){
+        var manager = this.manager;
+        var expectation = TKExpectation.init();
+        var url = manager.temporaryDirectoryURL.appendingPathComponents(['tests', 'a', 'c']);
+        var promise = manager.itemExistsAtURL(url);
+        TKAssert(promise instanceof Promise);
+        expectation.call(promise.then, promise, function(exists){
+            TKAssert(!exists);
+        }, function(){
+            TKAssert();
+        });
+        this.wait(expectation, 1.0);
+    },
+
     testCreateFileAtURL: function(){
         var manager = this.manager;
         var expectation = TKExpectation.init();
@@ -72,6 +102,23 @@ JSClass("JSFileManagerTests", TKTestSuite, {
             expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
                 TKAssert(exists);
             });
+        });
+        this.wait(expectation, 1.0);
+    },
+
+    testCreateFileAtURLPromise: function(){
+        var manager = this.manager;
+        var expectation = TKExpectation.init();
+        var url = manager.temporaryDirectoryURL.appendingPathComponents(['tests', 'test1.txt']);
+        var txt = "This is a test!";
+        var promise = manager.createFileAtURL(url, txt.utf8());
+        TKAssert(promise instanceof Promise);
+        expectation.call(promise.then, promise, function(){
+            expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
+                TKAssert(exists);
+            });
+        }, function(){
+            TKAssert();
         });
         this.wait(expectation, 1.0);
     },
@@ -122,6 +169,25 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         this.wait(expectation, 1.0);
     },
 
+    testContentsAtURLPromise: function(){
+        var manager = this.manager;
+        var expectation = TKExpectation.init();
+        var url = manager.temporaryDirectoryURL.appendingPathComponent('test1.txt');
+        var txt = "This is a test!";
+        expectation.call(manager.createFileAtURL, manager, url, txt.utf8(), function(success){
+            TKAssert(success);
+            var promise = manager.contentsAtURL(url);
+            TKAssert(promise instanceof Promise);
+            expectation.call(promise.then, promise, function(data){
+                var str = String.initWithData(data, String.Encoding.utf8);
+                TKAssertEquals(str, "This is a test!");
+            }, function(){
+                TKAssert();
+            });
+        });
+        this.wait(expectation, 1.0);
+    },
+
     testRemoveItemAtURL: function(){
         var manager = this.manager;
         var expectation = TKExpectation.init();
@@ -136,6 +202,28 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                     expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
                         TKAssert(!exists);
                     });
+                });
+            });
+        });
+        this.wait(expectation, 1.0);
+    },
+
+    testRemoveItemAtURLPromise: function(){
+        var manager = this.manager;
+        var expectation = TKExpectation.init();
+        var url = manager.temporaryDirectoryURL.appendingPathComponent('test1.txt');
+        var txt = "This is a test!";
+        expectation.call(manager.createFileAtURL, manager, url, txt.utf8(), function(success){
+            TKAssert(success);
+            expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
+                TKAssert(exists);
+                var promise = manager.removeItemAtURL(url);
+                expectation.call(promise.then, promise, function(){
+                    expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
+                        TKAssert(!exists);
+                    });
+                }, function(){
+                    TKAssert();
                 });
             });
         });
@@ -179,6 +267,28 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                     var str = String.initWithData(data, String.Encoding.utf8);
                     TKAssertEquals(str, "This is a test!");
                 });
+            });
+        });
+        this.wait(expectation, 1.0);
+    },
+
+    testCreateSymbolicLinkAtURLPromise: function(){
+        var manager = this.manager;
+        var expectation = TKExpectation.init();
+        var url = manager.temporaryDirectoryURL.appendingPathComponent('test1.txt');
+        var url2 = manager.temporaryDirectoryURL.appendingPathComponent('test2.txt');
+        var txt = "This is a test!";
+        expectation.call(manager.createFileAtURL, manager, url, txt.utf8(), function(success){
+            TKAssert(success);
+            var promise = manager.createSymbolicLinkAtURL(url2, url);
+            expectation.call(promise.then, promise, function(){
+                expectation.call(manager.contentsAtURL, manager, url2, function(data){
+                    TKAssertNotNull(data);
+                    var str = String.initWithData(data, String.Encoding.utf8);
+                    TKAssertEquals(str, "This is a test!");
+                });
+            }, function(){
+                TKAssert();
             });
         });
         this.wait(expectation, 1.0);

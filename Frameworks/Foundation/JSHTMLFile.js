@@ -25,12 +25,20 @@ JSClass("JSHTMLFile", JSFile, {
     },
 
     readData: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         this._readBlob(this._blob, completion, target);
+        return completion.promise;
     },
 
     readDataRange: function(range, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var slice = this._blob.slice(range.location, range.end);
         this._readBlob(slice, completion, target);
+        return completion.promise;
     },
 
     _readBlob: function(blob, completion, target){

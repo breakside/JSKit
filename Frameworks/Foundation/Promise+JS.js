@@ -227,5 +227,56 @@ if (!PromiseClass.prototype.finally){
     };
 
 }
+
+Object.defineProperties(PromiseClass, {
+
+    completion: {
+        value: function(thenfn){
+            var completion = function Promise_handleCompletion(){
+                var values = Array.prototype.slice.call(arguments, 0);
+                completion.resolve(values.length == 1 ? values[0] : values);
+            };
+            completion.promise = new Promise(function(resolve, reject){
+                completion.resolve = resolve;
+                completion.reject = reject;
+            });
+            if (thenfn){
+                completion.promise = completion.promise.then(thenfn);
+            }
+            return completion;
+        }
+    },
+
+    resolveNonNull: {
+        value: function(result){
+            if (result === null){
+                return Promise.reject();
+            }
+            return result;
+        }
+    },
+
+    resolveTrue: {
+        value: function(result){
+            if (!result){
+                return Promise.reject();
+            }
+        }
+    },
+
+    resolveKeyed: {
+        value: function(){
+            var keys = Array.prototype.slice.call(arguments, 0);
+            return function(values){
+                var result = {};
+                for (var i = 0, l = keys.length; i < l; ++i){
+                    result[keys[i]] = values[i];
+                }
+                return result;
+            };
+        }
+    }
+
+});
     
 })();
