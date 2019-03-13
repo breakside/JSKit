@@ -34,7 +34,7 @@ JSClass("UIActivityIndicatorView", UIView, {
         UIActivityIndicatorView.$super.initWithSpec.call(this, spec, values);
         this._skipSuperInit = true;
         if ('style' in values){
-            var style = spec.resolvedValue(values.style);
+            var style = spec.resolvedEnum(values.style, UIActivityIndicatorView.Style);
             this.initWithStyle(style);
         }else if ('color' in values){
             var color = spec.resolvedValue(values.color, "JSColor");
