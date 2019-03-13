@@ -329,13 +329,14 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             canvas.height = this.bounds.size.height * scale;
             this._insertChildElement(canvas);
             this._canvasContext = canvas.getContext('2d');
-            this._canvasContext._restoreCount = 0;
+            this._canvasContext.save();
+            this._canvasContext._restoreCount = 1;
             if (scale != 1){
                 this._canvasContext.scale(scale, scale);
             }
+            this._canvasContext.translate(-this.bounds.origin.x, -this.bounds.origin.y);
             this._canvasContext.save();
             this._canvasContext._restoreCount++;
-            this._canvasContext.translate(-this.bounds.origin.x, -this.bounds.origin.y);
 
             // Catch up to current state
             // - If this is the first state, then we haven't made any changes to the state yet
@@ -343,8 +344,9 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             //   we need to make sure its state agrees with the state of the
             //   previous canvas
             if (this._canvasElementIndex > 1){
-                for (var i = 0, l = this._stack.length; i < l; ++i){
-                    this._canvasContextAdoptState(this._canvasContext, this._stack[i]);
+                var i, l;
+                for (i = 0, l = this._stack.length; i < l; ++i){
+                    this._canvasContextAdoptState(this._canvasContext, this._stack[i], scale);
                     this._canvasContext.save();
                     this._canvasContext._restoreCount++;
                 }
@@ -354,7 +356,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         return this._canvasContext;
     },
 
-    _canvasContextAdoptState: function(context, state){
+    _canvasContextAdoptState: function(context, state, scale){
         context.globalAlpha = state.alpha;
         context.fillStyle = state.fillColor ? state.fillColor.cssString() : '';
         context.strokeStyle = state.strokeColor ? state.strokeColor.cssString() : '';
@@ -368,8 +370,10 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         context.miterLimit = state.miterLimit;
         context.lineDashOffset = state.lineDash[0];
         context.setLineDash(state.lineDash[1]);
-        context.transform(state.transform.a, state.transform.b, state.transform.c, state.transform.d, state.transform.tx, state.transform.ty);
+        var transform = state.transform.concatenatedWith(JSAffineTransform.Scaled(scale, scale));
+        context.setTransform(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
         context.font = state.font ? state.font.cssString() : '';
+        // TODO: clipping path
     },
 
     // ----------------------------------------------------------------------
