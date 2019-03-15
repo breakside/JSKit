@@ -27,7 +27,16 @@ JSClass("TKExpectation", JSObject, {
             }
         }
         ++this._callCount;
-        return fn.apply(target, args);
+        var result = fn.apply(target, args);
+        if (result instanceof Promise){
+            var expectation = this;
+            result.catch(function(e){
+                expectation.error = e;
+                expectation._cancelTimer();
+                expectation._finish();
+            });
+        }
+        return result;
     },
 
     cancel: function(){
@@ -112,14 +121,18 @@ JSClass("TKExpectation", JSObject, {
                 expectation.error = e;
             }finally{
                 if (expectation._callCount === 0 || expectation.error !== null){
-                    if (expectation.timeoutTimer !== null){
-                        expectation.timeoutTimer.invalidate();
-                        expectation.timeoutTimer = null;
-                    }
+                    expectation._cancelTimer();
                     expectation._finish();
                 }
             }
         };
+    },
+
+    _cancelTimer: function(){
+        if (this.timeoutTimer !== null){
+            this.timeoutTimer.invalidate();
+            this.timeoutTimer = null;
+        }   
     }
 
 });
