@@ -25,6 +25,9 @@ JSClass("SECKeychain", JSObject, {
     },
 
     create: function(password, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
         // 1. Use the given password to derive an encryption key that will
         //    encrypt the item encryption keys.  This level of indirection allows a user
         //    to change the password later, without re-encrypting the whole database;
@@ -85,12 +88,16 @@ JSClass("SECKeychain", JSObject, {
                 completion.call(target, false);
             }
         }, this);
+        return completion.promise;
     },
 
     // --------------------------------------------------------------------
     // MARK: - Unlocking & Locking the Keychain
 
     unlock: function(password, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
         if (this._methods === null){
             var unlockHandler = function(unlockedMethods){
                 if (unlockedMethods !== null){
@@ -114,6 +121,7 @@ JSClass("SECKeychain", JSObject, {
         }else{
             JSRunLoop.main.schedule(completion, target, true);
         }
+        return completion.promise;
     },
 
     _unlockOpened: function(password, completion, target){
@@ -163,6 +171,9 @@ JSClass("SECKeychain", JSObject, {
     },
 
     close: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
         this.lock();
         var needsSave = false;
         if (this._persistScheduled){
@@ -179,12 +190,16 @@ JSClass("SECKeychain", JSObject, {
         }else{
             JSRunLoop.main.schedule(completion, target, true);
         }
+        return completion.promise;
     },
 
     // --------------------------------------------------------------------
     // MARK: - Changing the Master Password
 
     changeMasterPassword: function(oldPassword, newPassword, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
         this._unlockOpened(oldPassword, function(unlockedMethods){
             if (unlockedMethods !== null){
                 var masterAlgorithm = SECCipher.Algorithm.aesGaloisCounterMode;
@@ -227,6 +242,7 @@ JSClass("SECKeychain", JSObject, {
                 completion.call(target, false);
             }
         }, this);
+        return completion.promise;
     },
 
     // --------------------------------------------------------------------
@@ -240,9 +256,12 @@ JSClass("SECKeychain", JSObject, {
     },
 
     get: function(itemID, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         if (this.locked || !this.contains(itemID)){
             JSRunLoop.main.schedule(completion, target, null);
-            return;
+            return completion.promise;
         }
         try{
             var itemInfo = this._contents.items[itemID];
@@ -265,25 +284,33 @@ JSClass("SECKeychain", JSObject, {
             logger.error(e);
             JSRunLoop.main.schedule(completion, target, null);
         }
+        return completion.promise;
     },
 
     // --------------------------------------------------------------------
     // MARK: - Updating Items
 
     add: function(item, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         if (this.locked){
             JSRunLoop.main.schedule(completion, target, null);
-            return;
+            return completion.promise;
         }
         var id = UUID();
         var methodIndex = this._preferredMethodForItem(item, null);
         this._saveItem(id, item, methodIndex, completion, target);
+        return completion.promise;
     },
 
     update: function(item, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         if (this.locked){
             JSRunLoop.main.schedule(completion, target, null);
-            return;
+            return completion.promise;
         }
         var id = item.id;
         try{
@@ -297,6 +324,7 @@ JSClass("SECKeychain", JSObject, {
             logger.error(e);
             JSRunLoop.main.schedule(completion, target, null);
         }
+        return completion.promise;
     },
 
     _preferredMethodForItem: function(item, existingMethod){
@@ -339,15 +367,19 @@ JSClass("SECKeychain", JSObject, {
     },
 
     remove: function(itemID, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
         if (this.locked){
             JSRunLoop.main.schedule(completion, target, false);
-            return;
+            return completion.promise;
         }
         if (this.contains(itemID)){
             delete this._contents.items[itemID];
             this._persistAfterDelay();
         }
         JSRunLoop.main.schedule(completion, target, true);
+        return completion.promise;
     },
 
     // --------------------------------------------------------------------

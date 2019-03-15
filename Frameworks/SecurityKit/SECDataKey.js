@@ -11,7 +11,11 @@ JSClass("SECDataKey", SECKey, {
     },
 
     getData: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         JSRunLoop.main.schedule(completion, target, this.keyData);
+        return completion.promise;
     }
 
 });

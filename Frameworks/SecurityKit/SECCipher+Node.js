@@ -9,10 +9,17 @@ var crypto = require('crypto');
 SECCipher.definePropertiesFromExtensions({
 
     wrapKey: function(key, wrappingKey, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         this.encrypt(key.keyData, wrappingKey, completion, target);
+        return completion.promise;
     },
 
     unwrapKey: function(wrappedKeyData, unwrappedKeyAlgorithm, wrappingKey, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         this.decrypt(wrappedKeyData, wrappingKey, function(decrypted){
             if (decrypted !== null){
                 completion.call(target, SECNodeKey.initWithData(decrypted));
@@ -20,9 +27,13 @@ SECCipher.definePropertiesFromExtensions({
                 completion.call(target, null);
             }
         }, this);
+        return completion.promise;
     },
 
     createKey: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         crypto.randomBytes(32, function(error, keyBytes){
             if (error){
                 completion.call(target, null);
@@ -30,14 +41,22 @@ SECCipher.definePropertiesFromExtensions({
                 completion.call(target, SECNodeKey.initWithData(JSData.initWithNodeBuffer(keyBytes)));
             }
         });
+        return completion.promise;
     },
 
     createKeyWithData: function(data, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var key = SECNodeKey.initWithData(data);
         JSRunLoop.main.schedule(completion, target, key);
+        return completion.promise;
     },
 
     createKeyWithPassphrase: function(passphrase, salt, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var utf8Passphrase = String.fromCharCode.apply(String, passphrase.utf8());
         var saltString = String.fromCharCode.apply(String, salt);
         crypto.pbkdf2(utf8Passphrase, saltString, 500000, 32, 'sha512', function(error, derivedBytes){
@@ -47,6 +66,7 @@ SECCipher.definePropertiesFromExtensions({
                 completion.call(target, SECNodeKey.initWithData(JSData.initWithNodeBuffer(derivedBytes)));
             }
         });
+        return completion.promise;
     },
 });
 
@@ -65,6 +85,9 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
     },
 
     encrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var name = this._cipherNameForKey(key);
         crypto.randomBytes(16, function(error, iv){
             if (error){
@@ -79,14 +102,18 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
             var chunks = [iv, cipher.update(data), cipher.final()];
             completion.call(target, JSData.initWithChunks(chunks));
         });
+        return completion.promise;
     },
 
     decrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         try{
             var name = this._cipherNameForKey(key);
             if (name === null){
                 JSRunLoop.main.schedule(completion, target, null);
-                return;
+                return completion.promise;
             }
             var iv = data.subdataInRange(JSRange(0, 16));
             var cipher = crypto.createDecipheriv(name, key.keyData, iv);
@@ -95,6 +122,7 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
         }catch (e){
             JSRunLoop.main.schedule(completion, target, null);
         }
+        return completion.promise;
     }
 
 });
@@ -114,14 +142,17 @@ SECCipherAESCounter.definePropertiesFromExtensions({
     },
 
     encrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         if (!this.ensureUniqueMessageID()){
             JSRunLoop.main.schedule(completion, target, null);
-            return;
+            return completion.promise;
         }
         var name = this._cipherNameForKey(key);
         if (name === null){
             JSRunLoop.main.schedule(completion, target, null);
-            return;
+            return completion.promise;
         }
         var nonce = JSData.initWithArray([
             1,
@@ -138,14 +169,18 @@ SECCipherAESCounter.definePropertiesFromExtensions({
         var cipher = crypto.createCipheriv(name, key.keyData, iv);
         var chunks = [nonce, cipher.update(data), cipher.final()];
         JSRunLoop.main.schedule(completion, target, JSData.initWithChunks(chunks));
+        return completion.promise;
     },
 
     decrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         try{
             var name = this._cipherNameForKey(key);
             if (name === null){
                 JSRunLoop.main.schedule(completion, target, null);
-                return;
+                return completion.promise;
             }
             var nonce = data.subdataInRange(JSRange(0, 8));
             this.decryptedMessageId =
@@ -164,6 +199,7 @@ SECCipherAESCounter.definePropertiesFromExtensions({
         }catch (e){
             JSRunLoop.main.schedule(completion, target, null);
         }
+        return completion.promise;
     }
 
 });
@@ -183,14 +219,17 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
     },
 
     encrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         if (!this.ensureUniqueMessageID()){
             JSRunLoop.main.schedule(completion, target, null);
-            return;
+            return completion.promise;
         }
         var name = this._cipherNameForKey(key);
         if (name === null){
             JSRunLoop.main.schedule(completion, target, null);
-            return;
+            return completion.promise;
         }
         var nonce = JSData.initWithArray([
             1,
@@ -210,14 +249,18 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         cipher.getAuthTag().copyTo(tag, 0);
         chunks.push(tag);
         JSRunLoop.main.schedule(completion, target, JSData.initWithChunks(chunks));
+        return completion.promise;
     },
 
     decrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         try{
             var name = this._cipherNameForKey(key);
             if (name === null){
                 JSRunLoop.main.schedule(completion, target, null);
-                return;
+                return completion.promise;
             }
             var nonce = data.subdataInRange(JSRange(0, 8));
             this.decryptedMessageId =
@@ -238,6 +281,7 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         }catch(e){
             JSRunLoop.main.schedule(completion, target, null);
         }
+        return completion.promise;
     }
 
 });

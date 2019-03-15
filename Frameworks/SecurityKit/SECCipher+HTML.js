@@ -32,6 +32,9 @@ SECCipher.definePropertiesFromExtensions({
     htmlAlgorithmName: null,
 
     createKey: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var algorithm = {
             name: this.htmlAlgorithmName,
             length: 256
@@ -42,9 +45,13 @@ SECCipher.definePropertiesFromExtensions({
         }, function(e){
             completion.call(target, null);
         });
+        return completion.promise;
     },
 
     createKeyWithData: function(data, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var algorithm = {
             name: this.htmlAlgorithmName
         };
@@ -54,9 +61,13 @@ SECCipher.definePropertiesFromExtensions({
         }, function(e){
             completion.call(target, null);
         });
+        return completion.promise;
     },
 
     createKeyWithPassphrase: function(passphrase, salt, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         // 1. Create a new PBKDF (Password-Based Key Derivation Function) key, using just the raw passphrase,
         //    with permission to derive a key
         var algorithm = {
@@ -82,6 +93,7 @@ SECCipher.definePropertiesFromExtensions({
         }, function(e){
             completion.call(target, null);
         });
+        return completion.promise;
     }
 
 });
@@ -105,6 +117,9 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
     },
 
     encrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var algorithm = this._getHTMLEncryptAlgorithm();
         crypto.subtle.encrypt(algorithm, key.htmlKey, data).then(function(encrypted){
             // prefix the encrypted data with the random initializtion vector so
@@ -115,9 +130,13 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
         },function(e){
             completion.call(target, null);
         });
+        return completion.promise;
     },
 
     decrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var algorithm = this._getHTMLDecryptAlgorithm(data);
         var encrypted = data.subdataInRange(JSRange(16, data.length - 16));
         crypto.subtle.decrypt(algorithm, key.htmlKey, encrypted).then(function(decrypted){
@@ -126,9 +145,13 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
         }, function(e){
             completion.call(target, null);
         });
+        return completion.promise;
     },
 
     wrapKey: function(key, wrappingKey, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var algorithm = this._getHTMLEncryptAlgorithm();
         crypto.subtle.wrapKey("raw", key.htmlKey, wrappingKey.htmlKey, algorithm).then(function(bytes){
             var ivPrefixed = JSData.initWithChunks([algorithm.iv, JSData.initWithBuffer(bytes)]);
@@ -136,9 +159,13 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
         }, function(e){
             completion.call(target, null);
         });
+        return completion.promise;
     },
 
     unwrapKey: function(wrappedKeyData, unwrappedKeyAlgorithm, wrappingKey, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var algorithm = this._getHTMLDecryptAlgorithm(wrappedKeyData);
         var unwrappedKeyHTMLAlgorithm = HTMLCryptoAlgorithmNames.fromAlgorithm(unwrappedKeyAlgorithm);
         wrappedKeyData = wrappedKeyData.subdataInRange(JSRange(16, wrappedKeyData.length - 16));
@@ -147,6 +174,7 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
         }, function(e){
             completion.call(target, null);
         });
+        return completion.promise;
     }
 
 });
@@ -195,9 +223,12 @@ SECCipherAESCounter.definePropertiesFromExtensions({
     },
 
     encrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         if (!this.ensureUniqueMessageID()){
             JSRunLoop.main.schedule(completion, undefined, null);
-            return;
+            return completion.promise;
         }
         var algorithm = this._getHTMLEncryptAlgorithm();
         var nonce = algorithm.counter.truncatedToLength(8);
@@ -207,9 +238,13 @@ SECCipherAESCounter.definePropertiesFromExtensions({
         },function(e){
             completion.call(target, null);
         });
+        return completion.promise;
     },
 
     decrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         // Extract the nonce from the start of the data, then use it to decrypt the remaining data
         var algorithm = this._getHTMLDecryptAlgorithm(data);
         var encrypted = data.subdataInRange(JSRange(8, data.length - 8));
@@ -219,12 +254,16 @@ SECCipherAESCounter.definePropertiesFromExtensions({
         }, function(error){
             completion.call(target, null);
         });
+        return completion.promise;
     },
 
     wrapKey: function(key, wrappingKey, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         if (!this.ensureUniqueMessageID()){
             JSRunLoop.main.schedule(completion, target, null);
-            return;
+            return completion.promise;
         }
         var algorithm = this._getHTMLEncryptAlgorithm();
         var nonce = algorithm.counter.truncatedToLength(8);
@@ -234,9 +273,13 @@ SECCipherAESCounter.definePropertiesFromExtensions({
         }, function(e){
             completion.call(target, null);
         });
+        return completion.promise;
     },
 
     unwrapKey: function(wrappedKeyData, unwrappedKeyAlgorithm, wrappingKey, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var algorithm = this._getHTMLDecryptAlgorithm(wrappedKeyData);
         var unwrappedKeyHTMLAlgorithm = HTMLCryptoAlgorithmNames.fromAlgorithm(unwrappedKeyAlgorithm);
         wrappedKeyData = wrappedKeyData.subdataInRange(JSRange(8, wrappedKeyData.length - 8));
@@ -245,6 +288,7 @@ SECCipherAESCounter.definePropertiesFromExtensions({
         }, function(e){
             completion.call(target, null);
         });
+        return completion.promise;
     }
 
 });
@@ -293,9 +337,12 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
     },
 
     encrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         if (!this.ensureUniqueMessageID()){
             JSRunLoop.main.schedule(completion, target, null);
-            return;
+            return completion.promise;
         }
         var algorithm = this._getHTMLEncryptAlgorithm();
         var nonce = algorithm.iv.truncatedToLength(8);
@@ -305,9 +352,13 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         },function(e){
             completion.call(target, null);
         });
+        return completion.promise;
     },
 
     decrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var algorithm = this._getHTMLDecryptAlgorithm(data);
         var encrypted = data.subdataInRange(JSRange(8, data.length - 8));
         crypto.subtle.decrypt(algorithm, key.htmlKey, encrypted).then(function(decrypted){
@@ -316,12 +367,16 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         }, function(error){
             completion.call(target, null);
         });
+        return completion.promise;
     },
 
     wrapKey: function(key, wrappingKey, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         if (!this.ensureUniqueMessageID()){
             JSRunLoop.main.schedule(completion, target, null);
-            return;
+            return completion.promise;
         }
         var algorithm = this._getHTMLEncryptAlgorithm();
         var nonce = algorithm.iv.truncatedToLength(8);
@@ -331,9 +386,13 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         }, function(e){
             completion.call(target, null);
         });
+        return completion.promise;
     },
 
     unwrapKey: function(wrappedKeyData, unwrappedKeyAlgorithm, wrappingKey, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var algorithm = this._getHTMLDecryptAlgorithm(wrappedKeyData);
         var unwrappedKeyHTMLAlgorithm = HTMLCryptoAlgorithmNames.fromAlgorithm(unwrappedKeyAlgorithm);
         wrappedKeyData = wrappedKeyData.subdataInRange(JSRange(8, wrappedKeyData.length - 8));
@@ -342,6 +401,7 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         }, function(e){
             completion.call(target, null);
         });
+        return completion.promise;
     }
 });
 

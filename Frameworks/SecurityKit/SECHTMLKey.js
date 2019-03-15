@@ -11,11 +11,15 @@ JSClass("SECHTMLKey", SECKey, {
     },
 
     getData: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         crypto.subtle.exportKey("raw", this.htmlKey).then(function(rawBuffer){
             completion.call(target, JSData.initWithBuffer(rawBuffer));
         }, function(){
             completion.call(target, null);
         });
+        return completion.promise;
     }
 
 });

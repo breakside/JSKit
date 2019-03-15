@@ -11,14 +11,29 @@ JSClass("SECCipherTests", TKTestSuite, {
         this._testEncryptDecrypt(cipher);
     },
 
+    testAESCipherBlockChainingEncryptDecryptPromise: function(){
+        var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesCipherBlockChaining);
+        this._testEncryptDecryptPromise(cipher);
+    },
+
     testAESCounterEncryptDecrypt: function(){
         var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesCounter);
         this._testEncryptDecrypt(cipher);
     },
 
+    testAESCounterEncryptDecryptPromise: function(){
+        var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesCounter);
+        this._testEncryptDecryptPromise(cipher);
+    },
+
     testAESGaloisCounterModeEncryptDecrypt: function(){
         var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesGaloisCounterMode);
         this._testEncryptDecrypt(cipher);
+    },
+
+    testAESGaloisCounterModeEncryptDecryptPromise: function(){
+        var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesGaloisCounterMode);
+        this._testEncryptDecryptPromise(cipher);
     },
 
     testRC4_1: function(){
@@ -87,10 +102,43 @@ JSClass("SECCipherTests", TKTestSuite, {
         this.wait(expectation, 5.0);
     },
 
+    _testEncryptDecryptPromise: function(cipher){
+        var expectation = TKExpectation.init();
+        var promise = cipher.createKey();
+        TKAssert(promise instanceof Promise);
+        expectation.call(promise.then, promise, function(key){
+            var promise = cipher.encryptString("Hello, World!", key);
+            TKAssert(promise instanceof Promise);
+            expectation.call(promise.then, promise, function(encrypted){
+                TKAssertObjectNotEquals(encrypted, "Hello, World!".utf8());
+                var promise = cipher.decryptString(encrypted, key);
+                TKAssert(promise instanceof Promise);
+                expectation.call(promise.then, promise, function(decrypted){
+                    TKAssertEquals(decrypted, "Hello, World!");
+                }, function(){
+                    TKAssert();
+                });
+                expectation.setTimeout(5.0);
+            }, function(){
+                TKAssert();
+            });
+            expectation.setTimeout(5.0);
+        }, function(){
+            TKAssert();
+        });
+        this.wait(expectation, 5.0);
+    },
+
     testAESCipherBlockChainingWrapUnwrapKey: function(){
         var algorithm = SECCipher.Algorithm.aesCipherBlockChaining;
         var cipher = SECCipher.initWithAlgorithm(algorithm);
         this._testWrapUnwrap(cipher, algorithm);
+    },
+
+    testAESCipherBlockChainingWrapUnwrapKeyPromise: function(){
+        var algorithm = SECCipher.Algorithm.aesCipherBlockChaining;
+        var cipher = SECCipher.initWithAlgorithm(algorithm);
+        this._testWrapUnwrapPromise(cipher, algorithm);
     },
 
     testAESCounterWrapUnwrapKey: function(){
@@ -99,10 +147,22 @@ JSClass("SECCipherTests", TKTestSuite, {
         this._testWrapUnwrap(cipher, algorithm);
     },
 
+    testAESCounterWrapUnwrapKeyPromise: function(){
+        var algorithm = SECCipher.Algorithm.aesCounter;
+        var cipher = SECCipher.initWithAlgorithm(algorithm);
+        this._testWrapUnwrapPromise(cipher, algorithm);
+    },
+
     testAESGaloisCounterModeWrapUnwrapKey: function(){
         var algorithm = SECCipher.Algorithm.aesGaloisCounterMode;
         var cipher = SECCipher.initWithAlgorithm(algorithm);
         this._testWrapUnwrap(cipher, algorithm);
+    },
+
+    testAESGaloisCounterModeWrapUnwrapKeyPromise: function(){
+        var algorithm = SECCipher.Algorithm.aesGaloisCounterMode;
+        var cipher = SECCipher.initWithAlgorithm(algorithm);
+        this._testWrapUnwrapPromise(cipher, algorithm);
     },
 
     _testWrapUnwrap: function(cipher, algorithm){
@@ -133,9 +193,63 @@ JSClass("SECCipherTests", TKTestSuite, {
         this.wait(expectation, 5.0);
     },
 
+    _testWrapUnwrapPromise: function(cipher, algorithm){
+        var expectation = TKExpectation.init();
+        var promise = cipher.createKey();
+        TKAssert(promise instanceof Promise);
+        expectation.call(promise.then, promise, function(key1){
+            var promise = cipher.createKey();
+            TKAssert(promise instanceof Promise);
+            expectation.call(promise.then, promise, function(key2){
+                var promise = key2.getData();
+                TKAssert(promise instanceof Promise);
+                expectation.call(promise.then, promise, function(rawData){
+                    var promise = cipher.encryptString("Hello, World!", key2);
+                    TKAssert(promise instanceof Promise);
+                    expectation.call(promise.then, promise, function(encrypted){
+                        var promise = cipher.wrapKey(key2, key1);
+                        TKAssert(promise instanceof Promise);
+                        expectation.call(promise.then, promise, function(wrappedData){
+                            TKAssertObjectNotEquals(rawData, wrappedData);
+                            var promise = cipher.unwrapKey(wrappedData, algorithm, key1);
+                            TKAssert(promise instanceof Promise);
+                            expectation.call(promise.then, promise, function(key3){
+                                var promise = cipher.decryptString(encrypted, key3);
+                                TKAssert(promise instanceof Promise);
+                                expectation.call(promise.then, promise, function(decrypted){
+                                    TKAssertEquals(decrypted, "Hello, World!");
+                                }, function(){
+                                    TKAssert();
+                                });
+                            }, function(){
+                                TKAssert();
+                            });
+                        }, function(){
+                            TKAssert();
+                        });
+                    }, function(){
+                        TKAssert();
+                    });
+                }, function(){
+                    TKAssert();
+                });
+            }, function(){
+                TKAssert();
+            });
+        }, function(){
+            TKAssert();
+        });
+        this.wait(expectation, 5.0);
+    },
+
     testAESCipherBlockChainingCreateKeyWithPassphrase: function(){
         var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesCipherBlockChaining);
         this._testCreateKeyWithPassphrase(cipher);
+    },
+
+    testAESCipherBlockChainingCreateKeyWithPassphrasePromise: function(){
+        var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesCipherBlockChaining);
+        this._testCreateKeyWithPassphrasePromise(cipher);
     },
 
     testAESCounterCreateKeyWithPassphrase: function(){
@@ -143,9 +257,19 @@ JSClass("SECCipherTests", TKTestSuite, {
         this._testCreateKeyWithPassphrase(cipher);
     },
 
+    testAESCounterCreateKeyWithPassphrasePromise: function(){
+        var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesCounter);
+        this._testCreateKeyWithPassphrasePromise(cipher);
+    },
+
     testAESGaloisCounterModeCreateKeyWithPassphrase: function(){
         var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesGaloisCounterMode);
         this._testCreateKeyWithPassphrase(cipher);
+    },
+
+    testAESGaloisCounterModeCreateKeyWithPassphrasePromise: function(){
+        var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesGaloisCounterMode);
+        this._testCreateKeyWithPassphrasePromise(cipher);
     },
 
     _testCreateKeyWithPassphrase: function(cipher){
@@ -170,6 +294,49 @@ JSClass("SECCipherTests", TKTestSuite, {
                     });
                 });
             });
+        });
+        this.wait(expectation, 5.0);
+    },
+
+    _testCreateKeyWithPassphrasePromise: function(cipher){
+        var password = "test123";
+        var salt = SECCipher.getRandomData(16);
+        var expectation = TKExpectation.init();
+        var promise = cipher.createKeyWithPassphrase(password, salt);
+        TKAssert(promise instanceof Promise);
+        expectation.call(promise.then, promise, function(key){
+            var promise = cipher.encryptString("Hello, World!", key);
+            TKAssert(promise instanceof Promise);
+            expectation.call(promise.then, promise, function(encrypted){
+                var promise = cipher.createKeyWithPassphrase(password, salt);
+                TKAssert(promise instanceof Promise);
+                expectation.call(promise.then, promise, function(key2){
+                    expectation.call(cipher.decryptString, cipher, encrypted, key2, function(decrypted){
+                        TKAssertEquals(decrypted, "Hello, World!");
+                        var promise = cipher.createKeyWithPassphrase("Test123", salt);
+                        TKAssert(promise instanceof Promise);
+                        expectation.call(promise.then, promise, function(key3){
+                            var promise = cipher.decryptString(encrypted, key3);
+                            TKAssert(promise instanceof Promise);
+                            expectation.call(promise.then, promise, function(decrypted){
+                                TKAssert(decrypted != "Hello, World!");
+                            }, function(){
+                                // expecting failure
+                            });
+                        }, function(){
+                            TKAssert();
+                        });
+                    }, function(){
+                        TKAssert();
+                    });
+                }, function(){
+                    TKAssert();
+                });
+            }, function(){
+                TKAssert();
+            });
+        }, function(){
+            TKAssert();
         });
         this.wait(expectation, 5.0);
     }

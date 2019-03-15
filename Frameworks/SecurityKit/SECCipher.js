@@ -21,19 +21,34 @@ JSClass("SECCipher", JSObject, {
 
     encrypt: function(data, key, completion, target){
         // Implemented in subclasses
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         JSRunLoop.main.schedule(completion, target, null);
+        return completion.promise;
     },
 
     decrypt: function(data, key, completion, target){
         // Implemented in subclasses
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         JSRunLoop.main.schedule(completion, target, null);
+        return completion.promise;
     },
 
     encryptString: function(str, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         this.encrypt(str.utf8(), key, completion, target);
+        return completion.promise;
     },
 
     decryptString: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         this.decrypt(data, key, function(decrypted){
             if (decrypted === null){
                 completion.call(target, null);
@@ -41,31 +56,52 @@ JSClass("SECCipher", JSObject, {
                 completion.call(target, String.initWithData(decrypted, String.Encoding.utf8));
             }
         });
+        return completion.promise;
     },
 
     wrapKey: function(key, wrappingKey, completion, target){
         // Implemented in subclasses
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         JSRunLoop.main.schedule(completion, target, null);
+        return completion.promise;
     },
 
     unwrapKey: function(wrappedKeyData, unwrappedKeyAlgorithm, wrappingKey, completion, target){
         // Implemented in subclasses
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         JSRunLoop.main.schedule(completion, target, null);
+        return completion.promise;
     },
 
     createKey: function(completion, target){
         // Implemented in subclasses
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         JSRunLoop.main.schedule(completion, target, null);
+        return completion.promise;
     },
 
     createKeyWithData: function(data, completion, target){
         // Implemented in subclasses
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         JSRunLoop.main.schedule(completion, target, null);
+        return completion.promise;
     },
 
     createKeyWithPassphrase: function(passphrase, salt, completion, target){
         // Implemented in subclasses
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         JSRunLoop.main.schedule(completion, target, null);
+        return completion.promise;
     }
 
 });
@@ -85,7 +121,7 @@ JSClass("SECCipherAESCounter", SECCipher, {
     init: function(){
     },
 
-    ensureUniqueMessageID: function(completion, target){
+    ensureUniqueMessageID: function(){
         if (this.encryptedMessageId == 9007199254740991){
             return false;
         }
@@ -103,7 +139,7 @@ JSClass("SECCipherAESGaloisCounterMode", SECCipher, {
     init: function(){
     },
 
-    ensureUniqueMessageID: function(completion, target){
+    ensureUniqueMessageID: function(){
         if (this.encryptedMessageId == 9007199254740991){
             return false;
         }
@@ -119,6 +155,9 @@ JSClass("SECCipherAESGaloisCounterMode", SECCipher, {
 JSClass("SECCipherRC4", SECCipher, {
 
     encrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var encrypted = JSData.initWithLength(data.length);
         var S = JSData.initWithLength(256);
         var i, l;
@@ -147,6 +186,7 @@ JSClass("SECCipherRC4", SECCipher, {
             encrypted[o] = data[o] ^ K;
         }
         JSRunLoop.main.schedule(completion, target, encrypted);
+        return completion.promise;
     },
 
     decrypt: function(data, key, completion, target){
@@ -154,8 +194,12 @@ JSClass("SECCipherRC4", SECCipher, {
     },
 
     createKeyWithData: function(data, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var key = SECDataKey.initWithData(data);
         JSRunLoop.main.schedule(completion, target, key);
+        return completion.promise;
     }
 
 });

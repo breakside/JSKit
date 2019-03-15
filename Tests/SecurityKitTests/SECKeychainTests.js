@@ -49,6 +49,18 @@ JSClass("SECKeychainTests", TKTestSuite, {
         this.wait(expectation, 5.0);
     },
 
+    testUnlockPromise: function(){
+        var expectation = TKExpectation.init();
+        this.keychain.lock();
+        var promise = this.keychain.unlock("test123");
+        TKAssert(promise instanceof Promise);
+        expectation.call(promise.then, promise, function(){
+        }, function(){
+            TKAssert();
+        });
+        this.wait(expectation, 5.0);
+    },
+
     testUnlockFailure: function(){
         var expectation = TKExpectation.init();
         this.keychain.lock();
@@ -58,11 +70,36 @@ JSClass("SECKeychainTests", TKTestSuite, {
         this.wait(expectation, 5.0);
     },
 
+    testUnlockFailurePromise: function(){
+        var expectation = TKExpectation.init();
+        this.keychain.lock();
+        var promise = this.keychain.unlock("Test123");
+        TKAssert(promise instanceof Promise);
+        expectation.call(promise.then, promise, function(){
+            TKAssert();
+        }, function(){
+            // expecting failure
+        });
+        this.wait(expectation, 5.0);
+    },
+
     testAddItem: function(){
         var expectation = TKExpectation.init();
         var item = {username: "test", password: "pass"};
         expectation.call(this.keychain.add, this.keychain, item, function(id){
             TKAssertNotNull(id);
+        });
+        this.wait(expectation, 5.0);
+    },
+
+    testAddItemPromise: function(){
+        var expectation = TKExpectation.init();
+        var item = {username: "test", password: "pass"};
+        var promise = this.keychain.add(item);
+        TKAssert(promise instanceof Promise);
+        expectation.call(promise.then, promise, function(id){
+        }, function(){
+            TKAssert();
         });
         this.wait(expectation, 5.0);
     },
@@ -94,6 +131,49 @@ JSClass("SECKeychainTests", TKTestSuite, {
         this.wait(expectation, 5.0);
     },
 
+    testGetItemPromise: function(){
+        var expectation = TKExpectation.init();
+        var keychain = this.keychain;
+        var item = {username: "test", password: "pass"};
+        var promise = keychain.add(item);
+        TKAssert(promise instanceof Promise);
+        expectation.call(promise.then, promise, function(id){
+            var promise = keychain.get(id);
+            TKAssert(promise instanceof Promise);
+            expectation.call(promise.then, promise, function(fetchedItem){
+                TKAssertNotExactEquals(item, fetchedItem);
+                TKAssertEquals(fetchedItem.username, "test");
+                TKAssertEquals(fetchedItem.password, "pass");
+                keychain.lock();
+                var promise = keychain.get(id);
+                TKAssert(promise instanceof Promise);
+                expectation.call(promise.then, promise, function(fetchedItem){
+                    TKAssert();
+                }, function(){
+                    var promise = keychain.unlock("test123");
+                    TKAssert(promise instanceof Promise);
+                    expectation.call(promise.then, promise, function(success){
+                        var promise = keychain.get(id);
+                        TKAssert(promise instanceof Promise);
+                        expectation.call(promise.then, promise, function(fetchedItem){
+                            TKAssertEquals(fetchedItem.username, "test");
+                            TKAssertEquals(fetchedItem.password, "pass");
+                        }, function(){
+                            TKAssert();
+                        });
+                    }, function(){
+                        TKAssert();
+                    });
+                });
+            }, function(){
+                TKAssert();
+            });
+        }, function(){
+            TKAssert();
+        });
+        this.wait(expectation, 5.0);
+    },
+
     testUpdateItem: function(){
         var expectation = TKExpectation.init();
         var item = {username: "test", password: "pass"};
@@ -117,6 +197,42 @@ JSClass("SECKeychainTests", TKTestSuite, {
         this.wait(expectation, 5.0);
     },
 
+    testUpdateItemPromise: function(){
+        var expectation = TKExpectation.init();
+        var keychain = this.keychain;
+        var item = {username: "test", password: "pass"};
+        var promise = keychain.add(item);
+        TKAssert(promise instanceof Promise);
+        expectation.call(promise.then, promise, function(id){
+            var promise = keychain.get(id);
+            TKAssert(promise instanceof Promise);
+            expectation.call(promise.then, promise, function(fetchedItem){
+                TKAssertEquals(fetchedItem.username, "test");
+                TKAssertEquals(fetchedItem.password, "pass");
+                fetchedItem.password = "pass2";
+                var promise = keychain.update(fetchedItem);
+                TKAssert(promise instanceof Promise);
+                expectation.call(promise.then, promise, function(id){
+                    var promise = keychain.get(id);
+                    TKAssert(promise instanceof Promise);
+                    expectation.call(promise.then, promise, function(fetchedItem){
+                        TKAssertEquals(fetchedItem.username, "test");
+                        TKAssertEquals(fetchedItem.password, "pass2");
+                    }, function(){
+                        TKAssert();
+                    });
+                }, function(){
+                    TKAssert();
+                });
+            }, function(){
+                TKAssert();
+            });
+        }, function(){
+            TKAssert();
+        });
+        this.wait(expectation, 5.0);
+    },
+
     testRemoveItem: function(){
         var expectation = TKExpectation.init();
         var item = {username: "test", password: "pass"};
@@ -135,6 +251,38 @@ JSClass("SECKeychainTests", TKTestSuite, {
         this.wait(expectation, 5.0);
     },
 
+    testRemoveItemPromise: function(){
+        var expectation = TKExpectation.init();
+        var keychain = this.keychain;
+        var item = {username: "test", password: "pass"};
+        var promise = keychain.add(item);
+        TKAssert(promise instanceof Promise);
+        expectation.call(promise.then, promise, function(id){
+            var promise = keychain.get(id);
+            TKAssert(promise instanceof Promise);
+            expectation.call(promise.then, promise, function(fetchedItem){
+                var promise = keychain.remove(id);
+                TKAssert(promise instanceof Promise);
+                expectation.call(promise.then, promise, function(){
+                    var promise = keychain.get(id);
+                    TKAssert(promise instanceof Promise);
+                    expectation.call(promise.then, promise, function(fetchedItem){
+                        TKAssert();
+                    }, function(){
+                        // expecting rejection
+                    });
+                }, function(){
+                    TKAssert();
+                });
+            }, function(){
+                TKAssert();
+            });
+        }, function(){
+            TKAssert();
+        });
+        this.wait(expectation, 5.0);
+    },
+
     testChangeMasterPassword: function(){
         var expectation = TKExpectation.init();
         expectation.call(this.keychain.changeMasterPassword, this.keychain, "Test123", "test456", function(success){
@@ -147,6 +295,31 @@ JSClass("SECKeychainTests", TKTestSuite, {
                 }, this);
             }, this);
         }, this);
+        this.wait(expectation, 5.0);
+    },
+
+    testChangeMasterPasswordPromise: function(){
+        var expectation = TKExpectation.init();
+        var keychain = this.keychain;
+        var promise = keychain.changeMasterPassword("Test123", "test456");
+        TKAssert(promise instanceof Promise);
+        expectation.call(promise.then, promise, function(){
+            TKAssert();
+        }, function(){
+            var promise = keychain.changeMasterPassword("test123", "test456");
+            TKAssert(promise instanceof Promise);
+            expectation.call(promise.then, promise, function(){
+                keychain.lock();
+                var promise = keychain.unlock("test456");
+                TKAssert(promise instanceof Promise);
+                expectation.call(promise.then, promise, function(){
+                }, function(){
+                    TKAssert();
+                });
+            }, function(){
+                TKAssert();
+            });
+        });
         this.wait(expectation, 5.0);
     }
 
