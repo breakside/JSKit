@@ -188,7 +188,7 @@ JSClass('JSBundle', JSObject, {
         return null;
     },
 
-    getResourceData: function(metadata, callback, target){
+    getResourceData: function(metadata, completion, target){
     },
 
     fonts: function(){

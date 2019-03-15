@@ -60,7 +60,11 @@ JSClass("JSFontDescriptor", JSObject, {
     },
 
     getData: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         completion.call(target, null);
+        return completion.promise;
     }
 
 });
@@ -74,7 +78,11 @@ JSClass("JSDataFontDescriptor", JSFontDescriptor, {
     },
 
     getData: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         completion.call(target, this.data);
+        return completion.promise;
     }
 
 });
@@ -195,7 +203,7 @@ JSClass("JSResourceFontDescriptor", JSFontDescriptor, {
     },
 
     getData: function(completion, target){
-        this.bundle.getResourceData(this.metadata, completion, target);
+        return this.bundle.getResourceData(this.metadata, completion, target);
     }
 
 });

@@ -7,15 +7,19 @@ var path = require('path');
 
 JSBundle.definePropertiesFromExtensions({
 
-    getResourceData: function(metadata, callback, target){
+    getResourceData: function(metadata, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var resourcePath = this.getNodePath(metadata);
         fs.readFile(resourcePath, function(error, buffer){
             if (error){
-                callback.call(target, null);
+                completion.call(target, null);
                 return;
             }
-            callback.call(target, JSData.initWithNodeBuffer(buffer));
+            completion.call(target, JSData.initWithNodeBuffer(buffer));
         });
+        return completion.promise;
     },
 
     getNodePath: function(metadata){
