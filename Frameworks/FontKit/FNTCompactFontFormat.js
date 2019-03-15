@@ -247,8 +247,11 @@ JSClass("FNTCompactFontFormat", JSObject, {
     },
 
     getOpenTypeData: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         completion.call(target, null);
-        return;
+        return completion.promise;
         // disabling open type construction until it works
         var constructor = FNTOpenTypeConstructor.init();
         // head  Font header
@@ -281,6 +284,7 @@ JSClass("FNTCompactFontFormat", JSObject, {
         // post  PostScript information
         constructor.addTable('CFF ', this.data);
         constructor.getData(completion, target);
+        return completion.promise;
     }
 
 });

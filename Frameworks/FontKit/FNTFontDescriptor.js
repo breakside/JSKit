@@ -64,7 +64,11 @@ JSClass("FNTFontDescriptor", JSDataFontDescriptor, {
     },
 
     getData: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         completion.call(target, this.font.data);
+        return completion.promise;
     }
 
 });

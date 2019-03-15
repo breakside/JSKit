@@ -13,14 +13,22 @@ JSClass("FNTType1Font", JSObject, {
     },
 
     getCompactFont: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         // TODO: create compact data
         completion.call(target, null);
+        return completion.promise;
     },
 
     getOpenTypeData: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         this.getCompactFont(function(ccf){
             ccf.getOpenTypeData(completion, target);
         }, this);
+        return completion.promise;
     }
 
 });

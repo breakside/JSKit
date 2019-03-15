@@ -1,5 +1,5 @@
 // #import "Foundation/Foundation.js"
-/* global JSClass, JSLazyInitProperty, JSObject, JSRange, FNTOpenTypeFont, UnicodeChar */
+/* global JSClass, JSLazyInitProperty, JSReadOnlyProperty, JSCustomProperty, JSObject, JSData, JSRange, FNTOpenTypeFont, UnicodeChar */
 /* global FNTOpenTypeFontTable, FNTOpenTypeFontTableHead, FNTOpenTypeFontTableName, FNTOpenTypeFontTableCmap, FNTOpenTypeFontTableHhea, FNTOpenTypeFontTableHmtx, FNTOpenTypeFontTableGlyf, FNTOpenTypeFontTableOS2, FNTOpenTypeFontTableLoca, FNTOpenTypeFontTableMaxp */
 /* global FNTOpenTypeFontCmapNull, FNTOpenTypeFontCmap, FNTOpenTypeFontCmap0, FNTOpenTypeFontCmap4, FNTOpenTypeFontCmap6, FNTOpenTypeFontCmap10, FNTOpenTypeFontCmap12, FNTOpenTypeFontCmap13 */
 'use strict';
@@ -106,10 +106,21 @@ JSClass("FNTOpenTypeFont", JSObject, {
             enumerable: true,
             get: function FNTOpenTypeFont_getTable(){
                 var data = font.data.subdataInRange(JSRange(tableOffset, tableLength));
-                // var sum = tableChecksum(data);
-                // if (sum != checksum){
-                //     throw new Error("Invalid checksum for %s table at 0x%08x".sprintf(tag, tableOffset));
-                // }
+                var sum;
+                if (tag == 'head'){
+                    var adjustment = data.subdataInRange(JSRange(8, 4));
+                    data[8] = 0;
+                    data[9] = 0;
+                    data[10] = 0;
+                    data[11] = 0;
+                    sum = tableChecksum(data);
+                    adjustment.copyTo(data, 8);
+                }else{
+                    sum = tableChecksum(data);
+                }
+                if (sum != checksum){
+                    throw new Error("Invalid checksum for %s table at 0x%08x".sprintf(tag, tableOffset));
+                }
                 var table = FNTOpenTypeFontTable.initWithTag(tag, font, data);
                 Object.defineProperty(this, property, {enumerable: true, value: table});
                 return table;
@@ -170,8 +181,15 @@ var tableChecksum = function(data){
     var dataView = data.dataView();
     var sum = new Uint32Array(1);
     sum[0] = 0;
-    for (var offset = 0, l = data.length; offset < l; offset += 4){
+    for (var offset = 0, l = data.length; offset < l - 3; offset += 4){
         sum[0] += dataView.getUint32(offset);
+    }
+    if (offset == l - 1){
+        sum[0] += dataView.getUint8(offset) << 24;
+    }else if (offset == l - 2){
+        sum[0] += dataView.getUint16(offset) << 16;
+    }else if (offset == l - 3){
+        sum[0] = (dataView.getUint8(offset) << 24) | (dataView.getUint16(offset + 1) << 8);
     }
     return sum[0];
 };
@@ -180,16 +198,35 @@ JSClass("FNTOpenTypeFontTable", JSObject, {
 
     tag: null,
     data: null,
-    font: null,
+    dataView: null,
 
-    initWithData: function(font, data){
-        this.font = font;
+    initWithDataLengthh: function(length){
+        this.data = JSData.initWithLength(length);
+        this.dataView = this.data.dataView();
+    },
+
+    initWithData: function(data){
         this.data = data;
+        this.dataView = data.dataView();
     },
 
     initWithTag: function(tag, font, data){
         var cls = FNTOpenTypeFontTable.ClassesByTag[tag] || FNTOpenTypeFontTable;
-        return cls.initWithData(font, data);
+        return cls.initWithData(data, font);
+    },
+
+    alignedLength: JSReadOnlyProperty(),
+
+    getAlignedLength: function(){
+        var remainder = this.data.length % 4;
+        if (remainder !== 0){
+            return this.data.length + 4 - remainder;
+        }
+        return this.data.length;
+    },
+
+    calculateChecksum: function(){
+        return tableChecksum(this.data);
     }
 });
 
@@ -201,48 +238,123 @@ FNTOpenTypeFontTable.$extend = function(extensions, name){
     return subclass;
 };
 
+var TableDataBackedProperty = function(offset, dataType){
+    if (this === undefined){
+        return new TableDataBackedProperty(offset, dataType);
+    }else{
+        this.offset = offset;
+        this.dataType = dataType;
+    }
+};
+
+TableDataBackedProperty.prototype = Object.create(JSCustomProperty.prototype);
+
+TableDataBackedProperty.prototype.define = function(C, publicKey, extensions){
+    var privateKey = "_" + publicKey;
+    var upperType = this.dataType.ucFirst();
+    var dataGetter = DataView.prototype['get' + upperType];
+    var dataSetter = DataView.prototype['set' + upperType];
+    var offset = this.offset;
+    Object.defineProperty(this, privateKey, {writable: true, value: undefined});
+    Object.defineProperty(C.prototype, publicKey, {
+        get: function TableDataBackedProperty_get(){
+            if (this[privateKey] === undefined){
+                var value = dataGetter.call(this.dataView, offset);
+                this[privateKey]=  value;
+            }
+            return this[privateKey];
+        },
+        set: function TableDataBackedProperty_set(value){
+            dataSetter.call(this.dataView, offset, value);
+            this[privateKey] = value;
+        }
+    });
+};
+
 JSClass("FNTOpenTypeFontTableHead", FNTOpenTypeFontTable, {
-
     tag: 'head',
-    versionHigh: 0,
-    revision: 0,
-    checksumAdjustment: 0,
-    magicNumber: 0,
-    flags: 0,
-    unitsPerEM: 0,
 
-    initWithData: function(font, data){
-        FNTOpenTypeFontTableHead.$super.initWithData.call(this, font, data);
+    majorVersion:       TableDataBackedProperty(0, 'uint16'),
+    minorVersion:       TableDataBackedProperty(2, 'uint16'),
+    majorRevision:      TableDataBackedProperty(4, 'uint16'),
+    minorRevision:      TableDataBackedProperty(6, 'uint16'),
+    cheksumAdjustment:  TableDataBackedProperty(8, 'uint32'),
+    magicNumber:        TableDataBackedProperty(12, 'uint32'),
+    flags:              TableDataBackedProperty(16, 'uint16'),
+    unitsPerEM:         TableDataBackedProperty(18, 'uint16'),
+    createdHigh:        TableDataBackedProperty(20, 'uint32'),
+    createdLow:         TableDataBackedProperty(24, 'uint32'),
+    modifiedHigh:       TableDataBackedProperty(28, 'uint32'),
+    modifiedLow:        TableDataBackedProperty(32, 'uint32'),
+    xMin:               TableDataBackedProperty(36, 'int16'),
+    yMin:               TableDataBackedProperty(38, 'int16'),
+    xMax:               TableDataBackedProperty(40, 'int16'),
+    yMax:               TableDataBackedProperty(42, 'int16'),
+    macStyle:           TableDataBackedProperty(44, 'uint16'),
+    lowestRecPPEM:      TableDataBackedProperty(46, 'uint16'),
+    fontDirectionHint:  TableDataBackedProperty(48, 'int16'),
+    indexToLocFormat:   TableDataBackedProperty(50, 'int16'),
+    glyphDataFormat:    TableDataBackedProperty(52, 'int16'),
+
+    init: function(){
+        FNTOpenTypeFontTableHead.$super.initWithDataLength.call(this, 54);
+        this.majorVersion = 1;
+        this.magicNumber = 0x5F0F3CF5;
+        this.unitsPerEM = 2048;
+        this.lowestRecPPEM = 1;
+        this.fontDirectionHint = 2; // Deprecated (Set to 2)
+        this.indexToLocFormat = 1; // (1 = 32 bit offsets)
+        this.glyphDataFormat = 0; // (0 = current format)
+    },
+
+    initWithData: function(data, font){
+        FNTOpenTypeFontTableHead.$super.initWithData.call(this, data);
         if (data.length < 20){
             throw new Error("head data not long enough");
         }
-        var dataView = data.dataView();
-        this.version = dataView.getUint32(0);
-        this.revision = dataView.getUint32(4);
-        this.checksumAdjustment = dataView.getUint32(8);
-        this.magicNumber = dataView.getUint32(12);
-        this.flags = dataView.getUint16(16);
-        this.unitsPerEM = dataView.getUint16(18);
-    }
+    },
 
+    setFileChecksum: function(sum){
+        this.cheksumAdjustment = 0xB1B0AFBA - sum;
+    },
+
+    setItalic: function(){
+        this.macStyle = this.macStyle | 0x2;
+    },
+
+    setBold: function(){
+        this.macStyle = this.macStyle | 0x1;
+    },
+
+    setBoundingBox: function(box){
+        this.xMin = box[0];
+        this.yMin = box[1];
+        this.xMax = box[2];
+        this.yMax = box[3];
+    }
 });
 
 JSClass("FNTOpenTypeFontTableName", FNTOpenTypeFontTable, {
-
     tag: 'name',
+
+    format: TableDataBackedProperty(0, 'uint16'),
+    count: TableDataBackedProperty(2, 'uint16'),
+    stringsOffset: TableDataBackedProperty(4, 'uint16'),
+
     lookup: null,
 
-    initWithData: function(font, data){
-        FNTOpenTypeFontTableName.$super.initWithData.call(this, font, data);
+    init: function(){
+        FNTOpenTypeFontTableName.$super.initWithDataLength(this, 6);
+        this.stringsOffset = 6;
+    },
+
+    initWithData: function(data, font){
+        FNTOpenTypeFontTableName.$super.initWithData.call(this, data);
         if (data.length < 6){
             throw new Error("name data not long enough");
         }
         this.records = [];
-        var dataView = data.dataView();
-        var format = dataView.getUint16(0);
-        var count = dataView.getUint16(2);
-        var stringsOffset = dataView.getUint16(4);
-        if (data.length < 6 + count * 12){
+        if (data.length < 6 + this.count * 12){
             throw new Error("name data not long enough");
         }
         var platformId;
@@ -253,18 +365,18 @@ JSClass("FNTOpenTypeFontTableName", FNTOpenTypeFontTable, {
         var stringOffset;
         var offset = 6;
         var key;
-        for (var i = 0; i < count; ++i, offset += 12){
-            platformId = dataView.getUint16(offset);
-            encodingId = dataView.getUint16(offset + 2);
-            languageId = dataView.getUint16(offset + 4);
-            nameId = dataView.getUint16(offset + 6);
-            stringLength = dataView.getUint16(offset + 8);
-            stringOffset = dataView.getUint16(offset + 10);
+        for (var i = 0; i < this.count; ++i, offset += 12){
+            platformId = this.dataView.getUint16(offset);
+            encodingId = this.dataView.getUint16(offset + 2);
+            languageId = this.dataView.getUint16(offset + 4);
+            nameId = this.dataView.getUint16(offset + 6);
+            stringLength = this.dataView.getUint16(offset + 8);
+            stringOffset = this.dataView.getUint16(offset + 10);
             key = "%d:%d:%d".sprintf(platformId, encodingId, languageId);
             if (!(key in this.lookup)){
                 this.lookup[key] = {};
             }
-            this.lookup[key][nameId] = data.subdataInRange(JSRange(stringsOffset + stringOffset, stringLength));
+            this.lookup[key][nameId] = data.subdataInRange(JSRange(this.stringsOffset + stringOffset, stringLength));
         }
     },
 
@@ -285,33 +397,53 @@ JSClass("FNTOpenTypeFontTableName", FNTOpenTypeFontTable, {
 });
 
 JSClass("FNTOpenTypeFontTableHhea", FNTOpenTypeFontTable, {
-
     tag: 'hhea',
-    ascender: 0,
-    descender: 0,
-    longMetricsCount: 0,
 
-    initWithData: function(font, data){
-        FNTOpenTypeFontTableHhea.$super.initWithData.call(this, font, data);
+    majorVersion:           TableDataBackedProperty(0, 'uint16'),
+    minorVersion:           TableDataBackedProperty(2, 'uint16'),
+    ascender:               TableDataBackedProperty(4, 'int16'),
+    descender:              TableDataBackedProperty(6, 'int16'),
+    lineGap:                TableDataBackedProperty(8, 'int16'),
+    advanceWidthMax:        TableDataBackedProperty(10, 'uint16'),
+    minLeftSideBearing:     TableDataBackedProperty(12, 'int16'),
+    minRightSideBearing:    TableDataBackedProperty(14, 'int16'),
+    xMaxExtent:             TableDataBackedProperty(16, 'uint16'),
+    caretSlopeRise:         TableDataBackedProperty(18, 'int16'),
+    caretSlopeRun:          TableDataBackedProperty(20, 'int16'),
+    caretOffset:            TableDataBackedProperty(22, 'int16'),
+    reserved1:              TableDataBackedProperty(24, 'int16'),
+    reserved2:              TableDataBackedProperty(26, 'int16'),
+    reserved3:              TableDataBackedProperty(28, 'int16'),
+    reserved4:              TableDataBackedProperty(30, 'int16'),
+    metricDataFormat:       TableDataBackedProperty(32, 'int16'),
+    numberOfHMetrics:       TableDataBackedProperty(34, 'uint16'),
+
+    init: function(){
+        FNTOpenTypeFontTableHhea.$super.initWithDataLength.call(this, 36);
+        this.majorVersion = 1;
+        this.caretSlopeRise = 1;
+        this.caretSlopeRun = 0;
+        this.metricDataFormat = 0;
+    },
+
+    initWithData: function(data, font){
+        FNTOpenTypeFontTableHhea.$super.initWithData.call(this, data);
         if (data.length < 36){
             throw new Error("hhea data not long enough");
         }
-        var dataView = data.dataView();
-        this.ascender = dataView.getInt16(4);
-        this.descender = dataView.getInt16(6);
-        this.longMetricsCount = dataView.getUint16(34);
+        this.dataView = data.dataView();
     }
-
 });
 
 JSClass("FNTOpenTypeFontTableHmtx", FNTOpenTypeFontTable, {
-
     tag: 'hmtx',
-    dataView: null,
-    widthCount: 0,
 
-    initWithData: function(font, data){
-        FNTOpenTypeFontTableHmtx.$super.initWithData.call(this, font, data);
+    init: function(){
+        FNTOpenTypeFontTableHmtx.$super.initWithDataLength(this, 0);
+    },
+
+    initWithData: function(data, font){
+        FNTOpenTypeFontTableHmtx.$super.initWithData.call(this, data);
         this.widthCount = font.tables.hhea.longMetricsCount;
         this.dataView = data.dataView();
         if (data.length < this.widthCount * 4){
@@ -322,24 +454,33 @@ JSClass("FNTOpenTypeFontTableHmtx", FNTOpenTypeFontTable, {
     widthOfGlyph: function(glyphIndex){
         var offset = Math.min(glyphIndex, this.widthCount - 1) * 4;
         return this.dataView.getUint16(offset);
-    }
+    },
 
+    setWidths: function(widths){
+        this.data = JSData.initWithLength(widths * 4);
+        this.dataView = this.data.dataView();
+        var offset = 0;
+        for (var i = 0, l = widths.length; i < l; ++i, offset += 4){
+            this.dataView.setUint16(offset, widths[i]);
+        }
+    }
 });
 
 JSClass("FNTOpenTypeFontTableCmap", FNTOpenTypeFontTable, {
-
     tag: 'cmap',
-    maps: null,
-    data: null,
-    dataView: null,
 
-    initWithData: function(font, data){
-        FNTOpenTypeFontTableCmap.$super.initWithData.call(this, font, data);
-        this.data = data;
-        this.dataView = data.dataView();
+    version:    TableDataBackedProperty(0, 'uint16'),
+    count:      TableDataBackedProperty(2, 'uint16'),
+
+    maps: null,
+
+    init: function(){
+        FNTOpenTypeFontTableCmap.$super.initWithDataLength.call(this, 4);
+    },
+
+    initWithData: function(data, font){
+        FNTOpenTypeFontTableCmap.$super.initWithData.call(this, data);
         this.maps = {};
-        var dataView = data.dataView();
-        var count = dataView.getUint16(2);
         var offset = 4;
         var platformId;
         var specificId;
@@ -353,10 +494,10 @@ JSClass("FNTOpenTypeFontTableCmap", FNTOpenTypeFontTable, {
         // platform: 3, specific: 1
         // platform: 3, specific: 0
         var lastResort;
-        for (var i = 0; i < count; ++i, offset += 8){
-            platformId = dataView.getUint16(offset);
-            specificId = dataView.getUint16(offset + 2);
-            mapOffset = dataView.getUint32(offset + 4);
+        for (var i = 0; i < this.count; ++i, offset += 8){
+            platformId = this.dataView.getUint16(offset);
+            specificId = this.dataView.getUint16(offset + 2);
+            mapOffset = this.dataView.getUint32(offset + 4);
             this._defineMapProperty(platformId, specificId, mapOffset);
         }
     },
@@ -394,6 +535,136 @@ JSClass("FNTOpenTypeFontTableCmap", FNTOpenTypeFontTable, {
         }
         return null;
     },
+});
+
+JSClass("FNTOpenTypeFontTableOS2", FNTOpenTypeFontTable, {
+    tag: "OS/2",
+
+    version: TableDataBackedProperty(0, 'uint16'),
+    xAvgCharWidth: TableDataBackedProperty(2, 'int16'),
+    usWeightClass: TableDataBackedProperty(4, 'uint16'),
+    usWidthClass: TableDataBackedProperty(6, 'uint16'),
+    fsType: TableDataBackedProperty(8, 'uint16'),
+    ySubscriptXSize: TableDataBackedProperty(10, 'int16'),
+    ySubscriptYSize: TableDataBackedProperty(12, 'int16'),
+    ySubscriptXOffset: TableDataBackedProperty(14, 'int16'),
+    ySubscriptYOffset: TableDataBackedProperty(16, 'int16'),
+    ySuperscriptXSize: TableDataBackedProperty(18, 'int16'),
+    ySuperscriptYSize: TableDataBackedProperty(20, 'int16'),
+    ySuperscriptXOffset: TableDataBackedProperty(22, 'int16'),
+    ySuperscriptYOffset: TableDataBackedProperty(24, 'int16'),
+    yStrikeoutSize: TableDataBackedProperty(26, 'int16'),
+    yStrikeoutPosition: TableDataBackedProperty(28, 'int16'),
+    sFamilyClass: TableDataBackedProperty(30, 'int16'),
+    panose0: TableDataBackedProperty(32, 'uint8'),
+    panose1: TableDataBackedProperty(33, 'uint8'),
+    panose2: TableDataBackedProperty(34, 'uint8'),
+    panose3: TableDataBackedProperty(35, 'uint8'),
+    panose4: TableDataBackedProperty(36, 'uint8'),
+    panose5: TableDataBackedProperty(37, 'uint8'),
+    panose6: TableDataBackedProperty(38, 'uint8'),
+    panose7: TableDataBackedProperty(39, 'uint8'),
+    panose8: TableDataBackedProperty(40, 'uint8'),
+    panose9: TableDataBackedProperty(41, 'uint8'),
+    ulUnicodeRange1: TableDataBackedProperty(42, 'uint32'),
+    ulUnicodeRange2: TableDataBackedProperty(46, 'uint32'),
+    ulUnicodeRange3: TableDataBackedProperty(50, 'uint32'),
+    ulUnicodeRange4: TableDataBackedProperty(54, 'uint32'),
+    achVendID: TableDataBackedProperty(58, 'uint32'),
+    fsSelection: TableDataBackedProperty(62, 'uint16'),
+    usFirstCharIndex: TableDataBackedProperty(64, 'uint16'),
+    usLastCharIndex: TableDataBackedProperty(66, 'uint16'),
+    sTypoAscender: TableDataBackedProperty(68, 'int16'),
+    sTypoDescender: TableDataBackedProperty(70, 'int16'),
+    sTypoLineGap: TableDataBackedProperty(72, 'int16'),
+    usWinAscent: TableDataBackedProperty(74, 'uint16'),
+    usWinDescent: TableDataBackedProperty(76, 'uint16'),
+    ulCodePageRange1: TableDataBackedProperty(78, 'uint32'),
+    ulCodePageRange2: TableDataBackedProperty(82, 'uint32'),
+    sxHeight: TableDataBackedProperty(86, 'int16'),
+    sCapHeight: TableDataBackedProperty(88, 'int16'),
+    usDefaultChar: TableDataBackedProperty(90, 'uint16'),
+    usBreakChar: TableDataBackedProperty(92, 'uint16'),
+    usMaxContext: TableDataBackedProperty(94, 'uint16'),
+    usLowerOpticalPointSize: TableDataBackedProperty(96, 'uint16'),
+    usUpperOpticalPointSize: TableDataBackedProperty(98, 'uint16'),
+
+    init: function(){
+        FNTOpenTypeFontTableOS2.$super.initWithDataLength.call(this, 100);
+        this.version = 5;
+        this.usWeightClass = 400;
+        this.usWidthClass = 5;
+        this.usBreakChar = 0x20;
+        this.usMaxContext = 3;
+        this.usLowerOpticalPointSize = 0;
+        this.usUpperOpticalPointSize = 0xFFFF;
+    },
+
+    setLineHeight: function(ascender, descender){
+        this.sTypoAscender = ascender;
+        this.sTypoDescender = descender;
+        this.usWinAscent = ascender;
+        this.usWinDescent = -descender;
+    }
+});
+
+JSClass("FNTOpenTypeFontTableMaxp", FNTOpenTypeFontTable, {
+    tag: 'maxp',
+
+    majorVersion:           TableDataBackedProperty(0, 'uint16'),
+    minorVersion:           TableDataBackedProperty(2, 'uint16'),
+    numberOfGlyphs:         TableDataBackedProperty(4, 'uint16'),
+
+    // Version 1 only
+    maxPoints:              TableDataBackedProperty(6, 'uint16'),
+    maxContours:            TableDataBackedProperty(8, 'uint16'),
+    maxCompositePoints:     TableDataBackedProperty(10, 'uint16'),
+    maxCompositeContours:   TableDataBackedProperty(12, 'uint16'),
+    maxZones:               TableDataBackedProperty(14, 'uint16'),
+    maxTwilightPoints:      TableDataBackedProperty(16, 'uint16'),
+    maxStorage:             TableDataBackedProperty(18, 'uint16'),
+    maxFunctionDefs:        TableDataBackedProperty(20, 'uint16'),
+    maxInstructionDefs:     TableDataBackedProperty(22, 'uint16'),
+    maxStackElements:       TableDataBackedProperty(24, 'uint16'),
+    maxSizeOfInstructions:  TableDataBackedProperty(26, 'uint16'),
+    maxComponentElements:   TableDataBackedProperty(28, 'uint16'),
+    maxComponentDepth:      TableDataBackedProperty(30, 'uint16'),
+
+    initVersion05: function(){
+        FNTOpenTypeFontTableMaxp.$super.initWithDataLength.call(this, 6);
+        this.majorVersion = 0;
+        this.minorVersion = 0x5000;
+        this.numberOfGlyphs = 0;
+    },
+
+    initVersion1: function(){
+        FNTOpenTypeFontTableMaxp.$super.initWithDataLength.call(this, 32);
+        this.majorVersion = 1;
+        this.minorVersion = 0;
+        this.numberOfGlyphs = 0;
+    }
+});
+
+JSClass("FNTOpenTypeFontTablePost", FNTOpenTypeFontTable, {
+    tag: 'post',
+
+    majorVersion: TableDataBackedProperty(0, 'uint16'),
+    minorVersion: TableDataBackedProperty(2, 'uint16'),
+    italicAngleWhole: TableDataBackedProperty(4, 'int16'),
+    italicAngleFraction: TableDataBackedProperty(6, 'uint16'),
+    underlinePosition: TableDataBackedProperty(8, 'int16'),
+    underlineThickness: TableDataBackedProperty(10, 'int16'),
+    isFixedPitch: TableDataBackedProperty(12, 'uint32'),
+    minMemType42: TableDataBackedProperty(16, 'uint32'),
+    maxMemType42: TableDataBackedProperty(20, 'uint32'),
+    minMemType1: TableDataBackedProperty(24, 'uint32'),
+    maxMemType1: TableDataBackedProperty(28, 'uint32'),
+
+    init: function(){
+        FNTOpenTypeFontTableMaxp.$super.initWithDataLength.call(this, 6);
+        this.majorVersion = 3;
+        this.minorVersion = 0;
+    }
 });
 
 var UnicodeConvertingCmap = function(unicodeMap, map){
@@ -797,54 +1068,7 @@ JSClass("FNTOpenTypeFontCmap13", FNTOpenTypeFontCmap, {
 
 });
 
-JSClass("FNTOpenTypeFontTableOS2", FNTOpenTypeFontTable, {
-
-    tag: 'OS/2',
-    weight: 0,
-    selection: 0,
-
-    initWithData: function(font, data){
-        FNTOpenTypeFontTableOS2.$super.initWithData.call(this, font, data);
-        var dataView = data.dataView();
-        this.weight = dataView.getUint16(4);
-        this.selection = dataView.getUint16(62);
-    },
-
-
-
-});
-
-JSClass("FNTOpenTypeFontTableLoca", FNTOpenTypeFontTable, {
-
-    tag: 'loca',
-
-    initWithData: function(font, data){
-        FNTOpenTypeFontTableLoca.$super.initWithData.call(this, font, data);
-    }
-
-});
-
-JSClass("FNTOpenTypeFontTableMaxp", FNTOpenTypeFontTable, {
-
-    tag: 'maxp',
-
-    initWithData: function(font, data){
-        FNTOpenTypeFontTableMaxp.$super.initWithData.call(this, font, data);
-    }
-
-});
-
-JSClass("FNTOpenTypeFontTableGlyf", FNTOpenTypeFontTable, {
-
-    tag: 'glyf',
-
-    initWithData: function(font, data){
-        FNTOpenTypeFontTableGlyf.$super.initWithData.call(this, font, data);
-    }
-
-});
-
-Object.defineProperties(DataView.prototype, {
+Object.droperties(DataView.prototype, {
 
     getOTFFixed: function(offset){
         var whole = this.getUint16(offset);
