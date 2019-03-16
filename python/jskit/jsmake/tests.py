@@ -72,6 +72,9 @@ class TestsBuilder(Builder):
             os.makedirs(self.nginxPath)
         self.appJS = []
 
+    def buildFontResource(self, bundle, nameComponents, fullPath, mime):
+        return self.buildBinaryResource(bundle, nameComponents, fullPath, mime, dict())
+
     def buildBinaryResource(self, bundle, nameComponents, fullPath, mime, extractors=dict()):
         resourceIndex = super(TestsBuilder, self).buildBinaryResource(bundle, nameComponents, fullPath, mime, extractors)
         metadata = bundle.resources[resourceIndex]
