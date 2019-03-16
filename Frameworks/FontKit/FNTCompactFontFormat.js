@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "FontKit/FNTOpenTypeConstructor.js"
-/* global JSClass, JSObject, JSRange, FNTOpenTypeConstructor */
+/* global JSClass, JSObject, JSRange, FNTOpenTypeConstructor, FNTOpenTypeFontTableCFF, FNTOpenTypeFontCmap4 */
 'use strict';
 
 (function(){
@@ -17,8 +17,7 @@ JSClass("FNTCompactFontFormat", JSObject, {
     initWithData: function(data){
         this.data = data;
         this.dataView = data.dataView();
-        return;
-        // disabling full init until it works
+
         var major = this.dataView.getUint8(0);
         var minor = this.dataView.getUint8(1);
         if (major != 1){
@@ -37,17 +36,16 @@ JSClass("FNTCompactFontFormat", JSObject, {
         offset += this.strings.length;
         this.globalSubroutines = new CFFIndex(this.dataView, offset);
         offset += this.globalSubroutines.length;
-        // Encodings
         // Charsets
         // FDSelect (CIDFonts only)
-        // CharStrings Index (per font)
         // Font Dict Index (per font, CID Only)
-        // Private Dict (per font)
         // Local Subroutines Index (per-font or per-Private DICT for CIDFonts)
         // Copyright and Trademark
         this.name = this.names.objectDataAtIndex(0).stringByDecodingLatin1();
         this.info = this.getTopDictionary(0);
         this.private = this.getPrivateDictionary(this.info.Private[1], this.info.Private[0]);
+        this.encoding = new CFFIndex(this.dataView, this.info.Encoding);
+        this.charStrings = new CFFIndex(this.dataView, this.info.CharStrings);
     },
 
     getTopDictionary: function(i){
@@ -250,19 +248,31 @@ JSClass("FNTCompactFontFormat", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        completion.call(target, null);
-        return completion.promise;
-        // disabling open type construction until it works
-        var constructor = FNTOpenTypeConstructor.init();
+
+        var otf = FNTOpenTypeConstructor.init();
+
+        // name
+        // All names are mac (1) roman (0) english (0)
+        // Must add names in ascending ID order
+        if (this.info.FamilyName){
+            otf.name.addName(1, 0, 0, 2, this.info.FamilyName.latin1()); // family name (2)
+        }
+        if (this.info.FullName){
+            otf.name.addName(1, 0, 0, 4, this.info.FullName.latin1()); // full name (4)
+        }
+        otf.name.addName(1, 0, 0, 6, this.name.latin1()); // Postscript name (6)
+
         // head  Font header
-        constructor.head.setUintsPerEM(Math.round(1 / this.info.FontMatrix[0]));
-        constructor.head.setBoundingBox(this.info.FontBBox[0], this.info.FontBBox[1], this.info.FontBBox[2], this.info.FontBBox[3]);
-        if (this.info.ItalicAngle){
-            constructor.head.setItalic();
-        }
+        otf.head.setUintsPerEM(Math.round(1 / this.info.FontMatrix[0]));
+        otf.head.setBoundingBox(this.info.FontBBox);
+        otf.setItalicAngle(this.info.ItalicAngle);
         if (this.info.Weight == "Bold" || this.info.Weight == "Black"){
-            constructor.head.setBold();
+            otf.head.setBold();
         }
+
+        // maxp  Maximum Profile
+        otf.maxp.numberOfGlyphs = this.charStrings.count;
+
         // hhea  Horizontal header
         var ascender = this.info.FontBBox[3];
         var descender = this.info.FontBBox[1];
@@ -272,22 +282,118 @@ JSClass("FNTCompactFontFormat", JSObject, {
         if (this.private.OtherBlues && this.private.OtherBlues.length > 1){
             descender = this.private.OtherBlues[1];
         }
-        constructor.setLineHeight(ascender, descender);
-        constructor.hhea.setNumberOfHMetrics(0); // FIXME
-        // hmtx  Horizontal metrics
-        constructor.hmtx.setWidths([]); // FIXME
-        // maxp  Maximum profile
-        constructor.maxp.setNumberOfGlyphs(0); // FIXME
-        // cmap  Character to glyph mapping
-        // name  Naming table
-        // OS/2  OS/2 and Windows specific metrics
-        // post  PostScript information
-        constructor.addTable('CFF ', this.data);
-        constructor.getData(completion, target);
+        otf.setLineHeight(ascender, descender);
+
+        // widths
+        // TODO: left side bearing?
+        var widths = [];
+        var charString;
+        var i, l;
+        var charStringView;
+        var op;
+        var width;
+        var w;
+        if (this.info.CharstringType == 2){
+            for (i = 0, l = this.charStrings.count; i < l; ++i){
+                // extract width from Type 2 format & add to nominalWidthX, or use default
+                // If the first item in the charString is an encoded number, it's the width stored
+                // as the difference from nominalWidthX
+                charString = new CharString(this.charStrings.objectDataAtIndex(i));
+                op = charString.next();
+                if ('number' in op){
+                    widths.push(Math.round(op.number + this.nominalWidthX));
+                }else{
+                    widths.push(this.info.defaultWidthX);
+                }
+            }
+        }else{
+            for (i = 0, l = this.charStrings.count; i < l; ++i){
+                // extract width from Type 1 format, or use default
+                // Should start with s w hsbsw
+                // or sx sy wx wy sbw
+                charString = new CharString(this.charStrings.objectDataAtIndex(i));
+                op = charString.next();
+                width = 0;
+                if ('number' in op){
+                    op = charString.next();
+                    if ('number' in op){
+                        w = op.number;
+                        op = charString.next();
+                        if ('number' in op){
+                            w = op.number;
+                            op = charString.next();
+                            if ('number' in op){
+                                op = charString.next();
+                                if (op.operator == 12){
+                                    op = charString.next();
+                                    if (op.operator == 7){
+                                        width = w;
+                                    }
+                                }
+                            }
+                        }else{
+                            if (op.operator == 13){
+                                width = w;
+                            }
+                        }
+                    }
+                }
+                widths.push(width);
+            }
+        }
+
+        otf.hhea.numberOfHMetrics = widths.length;
+        otf.hmtx.setWidths(widths);
+
+        // cmap
+        var unicodeToGlyph = [];
+        var map = FNTOpenTypeFontCmap4.initWithUnicodeMap(unicodeToGlyph);
+        otf.cmap.addMap(map);
+
+        // CFF
+        var cff = FNTOpenTypeFontTableCFF.initWithData(this.data);
+        otf.addTable(cff);
+
+        otf.getData(completion, target);
+
         return completion.promise;
     }
 
 });
+
+var CharString = function(data){
+    if (this === undefined){
+        return new CharString(data);
+    }
+    this.data = data;
+    this.dataView = data.dataView();
+    this.offset = 0;
+};
+
+CharString.prototype = {
+    next: function(){
+        if (this.offset >= this.data.length){
+            return {};
+        }
+        var b = this.data[this.offset++];
+        if (b >= 32){
+            if (b <= 246){
+                return {number: b - 139};
+            }
+            if (b <= 250){
+                return {number: (b - 247) * 256 + this.data[this.offset++] + 108};
+            }
+            if (b <= 254){
+                return {number: -(b - 247) * 256 - this.data[this.offset++] - 108};
+            }
+            var whole = this.dataView.getInt16(this.offset);
+            var fraction = this.dataView.getUint16(this.offset + 2) / 0x10000;
+            this.offset += 4;
+            return {number: whole + fraction};
+        }
+        return {operator: b};
+    }
+};
 
 var fieldTypes = {
     number: function(n){ return n; },

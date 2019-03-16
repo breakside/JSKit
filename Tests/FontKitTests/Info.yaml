@@ -1,6 +1,6 @@
 JSBundleType:         tests
 JSBundleIdentifier:   io.breakside.JSKit.FontKitTests
-JSBundleDisplayName:  FontKitTestss
+JSBundleDisplayName:  FontKitTests
 JSIncludeFrameworks:
   - FontKit
   - TestKit

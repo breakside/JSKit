@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 /* global JSClass, JSObject, JSData, FNTOpenTypeConstructor */
-/* global FNTOpenTypeFontTableHead, FNTOpenTypeFontTableHhea, FNTOpenTypeFontTableOS2, FNTOpenTypeFontTableMaxp, FNTOpenTypeFontTablePost, FNTOpenTypeFontTableHtmx, FNTOpenTypeFontTableName, FNTOpenTypeFontTableCmap */
+/* global FNTOpenTypeFontTableHead, FNTOpenTypeFontTableHhea, FNTOpenTypeFontTableOS2, FNTOpenTypeFontTableMaxp, FNTOpenTypeFontTablePost, FNTOpenTypeFontTableHmtx, FNTOpenTypeFontTableName, FNTOpenTypeFontTableCmap */
 'use strict';
 
 (function(){
@@ -8,8 +8,23 @@
 JSClass("FNTOpenTypeConstructor", JSObject, {
 
     _tables: null,
-    version: 0x4F54544F,
+    version: 0,
     head: null,
+
+    initWithTables: function(tables){
+        this._tables = tables;
+        var tag;
+        for (var i = 0, l = this._tables.length; i < l; ++i){
+            tag = this._tables[i].tag;
+            if (tag == "head"){
+                this.head = this._tables[i];
+            }else if (tag == "CFF "){
+                this.version = 0x4F54544F;
+            }else if (tag == "glyf"){
+                this.version = 0x00010000;
+            }
+        }
+    },
 
     initWithGlyphType: function(glyphType){
         // head  Font header
@@ -21,15 +36,17 @@ JSClass("FNTOpenTypeConstructor", JSObject, {
         // maxp  Maximum profile
         if (glyphType == FNTOpenTypeConstructor.GlyphType.compactFontFormat){
             this.maxp = FNTOpenTypeFontTableMaxp.initVersion05();
+            this.version = 0x4F54544F;
         }else{
             this.maxp = FNTOpenTypeFontTableMaxp.initVersion1();
+            this.version = 0x00010000;
         }
         // post  PostScript information
         this.post = FNTOpenTypeFontTablePost.init();
         // name  Naming table
         this.name = FNTOpenTypeFontTableName.init();
         // hmtx  Horizontal metrics
-        this.hmtx = FNTOpenTypeFontTableHtmx.init();
+        this.hmtx = FNTOpenTypeFontTableHmtx.init();
         // cmap  Character to glyph mapping
         this.cmap = FNTOpenTypeFontTableCmap.init();
 
@@ -53,6 +70,23 @@ JSClass("FNTOpenTypeConstructor", JSObject, {
         this.hhea.ascender = ascender;
         this.hhea.descender = descender;
         this.OS2.setLineHeight(ascender, descender);
+    },
+
+    setItalicAngle: function(angle){
+        if (!angle){
+            return;
+        }
+        this.head.setItalic();
+        var positive = Math.abs(angle);
+        var isNegative = angle < 0;
+        var whole = Math.floor(Math.abs(positive));
+        var fraction = Math.round((positive - whole) * 0x10000);
+        if (fraction == 0x10000){
+            fraction = 0;
+            whole += 1;
+        }
+        this.post.italicAngleWhole = isNegative ? -whole : whole;
+        this.post.italicAngleFraction = fraction;
     },
 
     getData: function(completion, target){
@@ -80,7 +114,8 @@ JSClass("FNTOpenTypeConstructor", JSObject, {
 
         var tableRecord = JSData.initWithLength(16 * this._tables.length);
         var tableRecordView = tableRecord.dataView();
-        var offset;
+        chunks.push(tableRecord);
+        var offset = 0;
         var tableOffset = offsetTable.length + tableRecord.length;
         var table;
         var align;
@@ -91,14 +126,15 @@ JSClass("FNTOpenTypeConstructor", JSObject, {
             tableRecordView.setUint8(offset + 1, table.tag.charCodeAt(1));
             tableRecordView.setUint8(offset + 2, table.tag.charCodeAt(2));
             tableRecordView.setUint8(offset + 3, table.tag.charCodeAt(3));
-            tableRecordView.setUint32(4, table.calculateChecksum());
-            tableRecordView.setUint32(8, tableOffset);
-            tableRecordView.setUint32(12, table.alignedLength);
+            tableRecordView.setUint32(offset + 4, table.calculateChecksum());
+            tableRecordView.setUint32(offset + 8, tableOffset);
+            tableRecordView.setUint32(offset + 12, table.data.length);
             chunks.push(table.data);
-            tableOffset += table.alignedLength;
-            align = table.alignedLength - table.length;
+            tableOffset += table.data.length;
+            align = tableOffset % 4;
             if (align !== 0){
-                zeros = JSData.initWithLength(align);
+                zeros = JSData.initWithLength(4 - align);
+                tableOffset += zeros.length;
                 chunks.push(zeros);
             }
         }
