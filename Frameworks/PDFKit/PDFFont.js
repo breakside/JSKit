@@ -179,8 +179,11 @@ var SimpleFontPrototype = Object.create(PDFFont.prototype, {
                 }
                 this.FontDescriptor.getOpenTypeData(function(otf){
                     if (otf){
-                        this.embeddedOpenTypeFont = FNTOpenTypeFont.initWithData(otf);
-                        this.foundationFontDescriptor = PDFOpenTypeFontDescriptor.initWithFont(this.embeddedOpenTypeFont, this);
+                        var font = FNTOpenTypeFont.initWithData(otf);
+                        font.getCorrectedFont(function(font){
+                            this.embeddedOpenTypeFont = font;
+                            this.foundationFontDescriptor = PDFOpenTypeFontDescriptor.initWithFont(this.embeddedOpenTypeFont, this);
+                        }, this);
                     }
                     next.call(this);
                 }, this);
