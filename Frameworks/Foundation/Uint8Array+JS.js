@@ -341,9 +341,14 @@ Object.defineProperties(Uint8Array.prototype, {
     copyTo: {
         value: function(other, index){
             if (index === undefined) index = 0;
-            for (var i = 0, l = this.length, l2 = other.length; i < l && i + index < l2; ++i){
-                other[index + i] = this[i];
+            if (index + this.length > other.length){
+                other.set(new Uint8Array(this.buffer, this.byteOffset, other.length - index), index);
+            }else{
+                other.set(this, index);
             }
+            // for (var i = 0, l = this.length, l2 = other.length; i < l && i + index < l2; ++i){
+            //     other[index + i] = this[i];
+            // }
         }
     },
 
