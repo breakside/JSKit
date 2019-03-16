@@ -44,6 +44,10 @@ Object.defineProperties(String, {
         value: function String_initWithData(data, encoding){
             if (encoding == String.Encoding.utf8){
                 return data.stringByDecodingUTF8();
+            }else if (encoding == String.Encoding.utf16be){
+                return data.stringByDecodingUTF16BE();
+            }else if (encoding == String.Encoding.utf16le){
+                return data.stringByDecodingUTF16LE();
             }else if (encoding == String.Encoding.latin1){
                 return data.stringByDecodingLatin1();
             }else{
@@ -76,6 +80,8 @@ Object.defineProperties(String, {
         configurable: false,
         value: {
             utf8: "utf8",
+            utf16be: "utf16be",
+            utf16le: "utf16le",
             iso8859_1: "iso8859-1",
             latin1: "iso8859-1"
         }
