@@ -13,28 +13,12 @@ JSGlobalObject.TKAssertion = function(message){
 TKAssertion.LineForCurrentCaseInError = function(error){
     if (error.stack){
         var stack = error.stack.split("\n");
-        var prefix = TKAssertion.CurrentTestCase + '@';
         var i, l;
         var parts;
         var line;
         var caller;
-        for (i = 0, l = stack.length; i < l; ++i){
-            caller = stack[i];
-            if (caller.substr(0, 14) == '    at Object.'){
-                // chrome
-                caller = caller.substr(14);
-                prefix = TKAssertion.CurrentTestCase + ' (';
-            }else if (caller.charAt(0) == '.'){
-                // firefox
-                caller = caller.substr(1);
-            }
-            if (caller.substr(0, prefix.length) == prefix){
-                caller = caller.substr(prefix.length);
-                parts = caller.split(':');
-                line = parts[parts.length - 2];
-                return line;
-            }
-        }
+
+        // Look for trace after a run of 1 or more TKAssert.js traces
         var atIndex;
         var url;
         var returnNext = false;
@@ -50,9 +34,39 @@ TKAssertion.LineForCurrentCaseInError = function(error){
             line = parts.pop();
             url = parts.join(':');
             parts = url.split('/');
-            if (parts[parts.length - 1] == 'TKAssert.js'){
+            if (parts[parts.length - 1] == 'TKAssert.js' || parts[parts.length - 1] == 'TKExpectation.js'){
                 returnNext = true;
             }else if (returnNext){
+                return line;
+            }
+        }
+
+        // Look for matching test case call
+        var chromePrefix = TKAssertion.CurrentTestCase + '(';
+        var firefoxPrefix = TKAssertion.CurrentTestCase + '@';
+        var nodePrefix = TKAssertion.CurrentTestSuite + '.' + TKAssertion.CurrentTestCase + ' (';
+        var prefix;
+        for (i = 0, l = stack.length; i < l; ++i){
+            caller = stack[i];
+            if (caller.substr(0, 14) == '    at Object.'){
+                // chrome
+                caller = caller.substr(14);
+                prefix = chromePrefix;
+            }else if (caller.charAt(0) == '.'){
+                // firefox
+                caller = caller.substr(1);
+                prefix = firefoxPrefix;
+            }else if (caller.substr(0, 7) == '    at '){
+                // node
+                caller = caller.substr(7);
+                prefix = nodePrefix;
+            }else{
+                continue;
+            }
+            if (caller.substr(0, prefix.length) == prefix){
+                caller = caller.substr(prefix.length);
+                parts = caller.split(':');
+                line = parts[parts.length - 2];
                 return line;
             }
         }
@@ -60,6 +74,7 @@ TKAssertion.LineForCurrentCaseInError = function(error){
     return 0;
 };
 
+TKAssertion.CurrentTestSuite = '';
 TKAssertion.CurrentTestCase = '';
 
 JSGlobalObject.TKAssert = function(condition, message){

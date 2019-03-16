@@ -51,6 +51,7 @@ JSClass('TKTestRun', JSObject, {
     },
 
     _runCase: function(suite, testName){
+        TKAssertion.CurrentTestSuite = suite.className;
         TKAssertion.CurrentTestCase = testName;
         this.startCase(suite, testName);
         var result = null;
