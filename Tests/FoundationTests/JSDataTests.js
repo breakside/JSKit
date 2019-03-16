@@ -45,6 +45,38 @@ JSClass('JSDataTests', TKTestSuite, {
         TKAssertEquals(subset[0], 0x01);
         TKAssertEquals(subset[1], 0x02);
         TKAssertEquals(subset[2], 0x03);
+    },
+
+    testCopyTo: function(){
+        var a = JSData.initWithArray([1,2,3,4,5]);
+        var b = JSData.initWithArray([6,7,8,9,0]);
+        b.copyTo(a);
+        TKAssertEquals(a[0], 6);
+        TKAssertEquals(a[1], 7);
+        TKAssertEquals(a[2], 8);
+        TKAssertEquals(a[3], 9);
+        TKAssertEquals(a[4], 0);
+
+        b.copyTo(a, 3);
+        TKAssertEquals(a[0], 6);
+        TKAssertEquals(a[1], 7);
+        TKAssertEquals(a[2], 8);
+        TKAssertEquals(a[3], 6);
+        TKAssertEquals(a[4], 7);
+
+        b.subdataInRange(JSRange(0, 2)).copyTo(a, 2);
+        TKAssertEquals(a[0], 6);
+        TKAssertEquals(a[1], 7);
+        TKAssertEquals(a[2], 6);
+        TKAssertEquals(a[3], 7);
+        TKAssertEquals(a[4], 7);
+
+        b.subdataInRange(JSRange(2, 2)).copyTo(a, 4);
+        TKAssertEquals(a[0], 6);
+        TKAssertEquals(a[1], 7);
+        TKAssertEquals(a[2], 6);
+        TKAssertEquals(a[3], 7);
+        TKAssertEquals(a[4], 8);
     }
 
 });
