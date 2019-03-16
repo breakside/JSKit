@@ -90,6 +90,9 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             font.load().then(function(){
                 doc.fonts.add(font);
                 completion.call(target);
+            }, function(e){
+                logger.error("Failed to load font");
+                completion.call(target);
             });
             this._registeredFontCSSRules[name] = font;
         }else{
