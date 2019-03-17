@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "FontKit/FNTOpenTypeConstructor.js"
-/* global JSClass, JSObject, JSRange, FNTOpenTypeConstructor, FNTOpenTypeFontTableCFF, FNTOpenTypeFontCmap4 */
+/* global JSClass, JSObject, JSRange, FNTOpenTypeConstructor, FNTOpenTypeFontTableCFF, FNTOpenTypeFontCmap12 */
 'use strict';
 
 (function(){
@@ -347,8 +347,8 @@ JSClass("FNTCompactFontFormat", JSObject, {
 
         // cmap
         var unicodeToGlyph = [];
-        var map = FNTOpenTypeFontCmap4.initWithUnicodeMap(unicodeToGlyph);
-        otf.cmap.addMap(map);
+        var map = FNTOpenTypeFontCmap12.initWithUnicodeMap(unicodeToGlyph);
+        otf.cmap.addMap(3, 10, map);
 
         // CFF
         var cff = FNTOpenTypeFontTableCFF.initWithData(this.data);

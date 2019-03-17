@@ -77,8 +77,12 @@ JSClass("FNTOpenTypeFontTests", TKTestSuite, {
             TKAssertNotNull(data);
             var font1 = FNTOpenTypeFont.initWithData(data);
             TKAssert(!('OS/2' in font1.tableIndex));
+            TKAssert(!('post' in font1.tableIndex));
             var cmap = font1.tables.cmap.getMap([0, 3], [3, 10], [3, 1]);
             TKAssertNull(cmap);
+            TKAssertEquals(font1.searchRange, 128);
+            TKAssertEquals(font1.entrySelector, 4);
+            TKAssertEquals(font1.rangeShift, 64);
             expectation.call(font1.getCorrectedFont, font1, function(font2){
                 TKAssertNotNull(font2);
                 font2.validateChecksums();
@@ -96,8 +100,8 @@ JSClass("FNTOpenTypeFontTests", TKTestSuite, {
                 TKAssertLessThan(font2.tableIndex.cmap.offset, font2.tableIndex.loca.offset);
                 TKAssertLessThan(font2.tableIndex.loca.offset, font2.tableIndex.glyf.offset);
                 TKAssertLessThan(font2.tableIndex.glyf.offset, font2.tableIndex.post.offset);
-                TKAssertLessThan(font2.tableIndex.post.offset, font2.tableIndex.name.offset);
                 TKAssert('OS/2' in font2.tableIndex);
+                TKAssert('post' in font2.tableIndex);
                 TKAssertLessThan(font2.tableIndex.name.offset, font2.tableIndex['OS/2'].offset);
                 TKAssertObjectEquals(font1.tables.cvt.data, font2.tables.cvt.data);
                 TKAssertObjectEquals(font1.tables.fpgm.data, font2.tables.fpgm.data);
@@ -109,7 +113,6 @@ JSClass("FNTOpenTypeFontTests", TKTestSuite, {
                 TKAssertObjectEquals(font1.tables.loca.data, font2.tables.loca.data);
                 TKAssertObjectEquals(font1.tables.maxp.data, font2.tables.maxp.data);
                 TKAssertObjectEquals(font1.tables.prep.data, font2.tables.prep.data);
-                TKAssertObjectEquals(font1.tables.post.data, font2.tables.post.data);
                 TKAssertObjectEquals(font1.tables.name.data, font2.tables.name.data);
                 for (var tag in font2.tableIndex){
                     TKAssertEquals(font2.tableIndex[tag].offset % 4, 0, tag);

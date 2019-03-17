@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 /* global JSClass, JSLazyInitProperty, JSReadOnlyProperty, JSCustomProperty, JSObject, JSData, JSRange, FNTOpenTypeFont, UnicodeChar, FNTOpenTypeConstructor */
-/* global FNTOpenTypeFontTable, FNTOpenTypeFontTableHead, FNTOpenTypeFontTableName, FNTOpenTypeFontTableCmap, FNTOpenTypeFontTableHhea, FNTOpenTypeFontTableHmtx, FNTOpenTypeFontTableGlyf, FNTOpenTypeFontTableOS2, FNTOpenTypeFontTableLoca, FNTOpenTypeFontTableMaxp */
+/* global FNTOpenTypeFontTable, FNTOpenTypeFontTableHead, FNTOpenTypeFontTableName, FNTOpenTypeFontTableCmap, FNTOpenTypeFontTableHhea, FNTOpenTypeFontTableHmtx, FNTOpenTypeFontTableGlyf, FNTOpenTypeFontTableOS2, FNTOpenTypeFontTableLoca, FNTOpenTypeFontTableMaxp, FNTOpenTypeFontTablePost */
 /* global FNTOpenTypeFontCmapNull, FNTOpenTypeFontCmap, FNTOpenTypeFontCmap0, FNTOpenTypeFontCmap4, FNTOpenTypeFontCmap6, FNTOpenTypeFontCmap10, FNTOpenTypeFontCmap12, FNTOpenTypeFontCmap13 */
 'use strict';
 
@@ -196,6 +196,18 @@ JSClass("FNTOpenTypeFont", JSObject, {
     /// missing OS/2 tables.  Safari doesn't care about these errors, but
     /// Chrome and Firefox do, so we need to correct them in order to use the
     /// font in those browsers.
+    ///
+    /// Chrome and Firefox use the OTS (https://github.com/khaledhosny/ots)
+    /// OpenType sanitizer, which checks for a lot of common errors.
+    /// While an ideal method here would check for all the same errors, we've
+    /// started with only those observed in PDF files in the wild:
+    ///
+    /// - Missing OS/2 table
+    /// - Missing post table
+    /// - Missing cmap table
+    /// - Missing unicode cmap
+    /// - Tables not aligned to 4 byte boundaries
+    /// - Invalid table search parameters in header
     getCorrectedFont: function(completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
@@ -203,9 +215,13 @@ JSClass("FNTOpenTypeFont", JSObject, {
         var errors = {
             alignment: false,
             os2: false,
-            unicode: false
+            post: false,
+            unicode: false,
+            tableSearchParams: false
         };
         var tables = [];
+
+        // Table alignment
         var tag;
         for (tag in this.tableIndex){
             if (this.tableIndex[tag].offset % 4){
@@ -213,11 +229,28 @@ JSClass("FNTOpenTypeFont", JSObject, {
                 break;
             }
         }
+
+        // Missing OS/2 
         if (!('OS/2' in this.tables)){
             errors.os2 = true;
         }
-        errors.unicode = !this.tables.cmap.getMap([0, 3], [3, 10], [3, 1]);
-        if (errors.alignment || errors.os2 || errors.unicode){
+
+        // Missing post
+        if (!('post' in this.tables)){
+            errors.post = true;
+        }
+
+        // Missing Unicode cmap
+        errors.unicode = !this.tables.cmap || !this.tables.cmap.getMap([0, 3], [3, 10], [3, 1]);
+
+        // Table Search params
+        var entrySelector = log2(this.tableCount);
+        var searchRange = 1 << (entrySelector + 4);
+        var rangeShift = this.tableCount * 16 - searchRange;
+
+        errors.tableSearchParams = (entrySelector != this.entrySelector) || (searchRange != this.searchRange) || (rangeShift != this.rangeShift);
+
+        if (errors.alignment || errors.os2 || errors.post || errors.unicode){
             var head;
             var cmap;
             for (tag in this.tables){
@@ -236,6 +269,7 @@ JSClass("FNTOpenTypeFont", JSObject, {
                 }
             }
             var index = this.tableIndex;
+            // Keep the tables in their orignal order
             tables.sort(function(a, b){
                 return index[a.tag].offset - index[b.tag].offset;
             });
@@ -244,11 +278,27 @@ JSClass("FNTOpenTypeFont", JSObject, {
                 os2.setLineHeight(this.tables.head.ascender, this.tables.head.descender);
                 tables.push(os2);
             }
+            if (errors.post){
+                var post = FNTOpenTypeFontTablePost.init();
+                tables.push(post);
+            }
             if (errors.unicode){
-                var macRomanMap = this.tables.cmap.getMap([1, 0]);
-                var unicodeMap = UnicodeConvertingCmap(UnicodeToMacRoman, macRomanMap);
-                var map = FNTOpenTypeFontCmap4.initWithUnicodeMap(unicodeMap.unicodeToGlyphMap());
-                cmap.addMap(3, 1, map.data);
+                var map;
+                if (!this.tables.cmap){
+                    cmap = FNTOpenTypeFontTableCmap.init();
+                    tables.push(cmap);
+                    // Have a PDF with a font, no cmap table at all, and over 4000 glyphs
+                    // (WRONG) Just assume that char code == glyph??
+                    // (WRONG) Assume standard encoding and ingore most of the glyphs??
+                    // Use mapping from pdf somehow??
+                    map = FNTOpenTypeFontCmap12.initWithUnicodeMap([[32, 1], [33, 2], [34, 3], [35, 4], [36, 5], [37, 6], [38, 7], [39, 8], [40, 9], [41, 10], [42, 11], [43, 12], [44, 13], [45, 14], [46, 15], [47, 16], [48, 17], [49, 18], [50, 19], [51, 20], [51, 21], [53, 22], [54, 23], [55, 24], [56, 25], [57, 26], [58, 27], [59, 28], [60, 29], [61, 30], [62, 31], [63, 32], [64, 33], [65, 34], [66, 35], [67, 36], [68, 37], [69, 38], [70, 39], [71, 40], [72, 41], [73, 42], [74, 43], [75, 44], [76, 45], [77, 46], [78, 47], [79, 48], [80, 49], [81, 50], [82, 51], [83, 52], [84, 53], [85, 54], [86, 55], [87, 56], [88, 57], [89, 58], [90, 59], [91, 60], [92, 61], [93, 62], [94, 63], [96, 64], [97, 65], [98, 66], [99, 67], [100, 68], [101, 69], [102, 70], [103, 71], [104, 72], [105, 73], [106, 74], [107, 75], [108, 76], [109, 77], [110, 78], [111, 79], [112, 80], [113, 81], [114, 82], [115, 83], [116, 84], [117, 85], [118, 86], [119, 87], [120, 88], [121, 89], [122, 90], [123, 91], [124, 92], [125, 93], [126, 94], [137, 95], [161, 96], [162, 97], [163, 98], [164, 99], [165, 100], [166, 101], [167, 102], [168, 103], [169, 104], [170, 105], [171, 106], [172, 107], [173, 108], [174, 109], [175, 110], [177, 111], [178, 112], [179, 113], [180, 114], [182, 115], [183, 116], [184, 117], [185, 118], [186, 119], [187, 120], [188, 121], [189, 122], [191, 123], [193, 124], [194, 125], [195, 126], [196, 127], [197, 128], [198, 129], [199, 130], [200, 131], [202, 132], [203, 133], [205, 134], [206, 135], [207, 136], [208, 137], [225, 138], [227, 139], [232, 140], [233, 141], [234, 142], [235, 143], [241, 144], [245, 145], [248, 146], [249, 147], [250, 148], [251, 149]]);
+                }else{
+                    // FIXME: no assurance we have a 1,0 mac roman map
+                    var macRomanMap = this.tables.cmap.getMap([1, 0]);
+                    var unicodeMap = UnicodeConvertingCmap(UnicodeToMacRoman, macRomanMap);
+                    map = FNTOpenTypeFontCmap12.initWithUnicodeMap(unicodeMap.unicodeToGlyphMap());
+                }
+                cmap.addMap(3, 10, map.data);
             }
             var constructor = FNTOpenTypeConstructor.initWithTables(tables);
             constructor.getData(function(data){
@@ -259,6 +309,18 @@ JSClass("FNTOpenTypeFont", JSObject, {
                 var font = FNTOpenTypeFont.initWithData(data);
                 completion.call(target, font);
             }, this);
+        }else if (errors.tableSearchParams){
+            // If we only have table search params issues, we can simply do
+            // a copy of the data and overwrite those entries; nothing has to
+            // be realigned or added.
+            var data = JSData.initWithLength(this.data.length);
+            var dataView = data.dataView();
+            this.data.copyTo(data);
+            dataView.setUint16(6, searchRange);
+            dataView.setUint16(8, entrySelector);
+            dataView.setUint16(10, rangeShift);
+            var font = FNTOpenTypeFont.initWithData(data);
+            completion.call(target, font);
         }else{
             completion.call(target, this);
         }
@@ -609,6 +671,7 @@ JSClass("FNTOpenTypeFontTableCmap", FNTOpenTypeFontTable, {
 
     init: function(){
         FNTOpenTypeFontTableCmap.$super.initWithDataLength.call(this, 4);
+        this.maps = {};
     },
 
     initWithData: function(data, font){
@@ -828,7 +891,7 @@ JSClass("FNTOpenTypeFontTablePost", FNTOpenTypeFontTable, {
     maxMemType1: DataBackedProperty(28, 'uint32'),
 
     init: function(){
-        FNTOpenTypeFontTableMaxp.$super.initWithDataLength.call(this, 6);
+        FNTOpenTypeFontTableMaxp.$super.initWithDataLength.call(this, 32);
         this.majorVersion = 3;
         this.minorVersion = 0;
     }
@@ -1123,7 +1186,7 @@ JSClass("FNTOpenTypeFontCmap4", FNTOpenTypeFontCmap, {
         }
 
         this.numberOfGroups = ranges.length;
-        var length = 16 + 8 * this.numberOfGroups; // TODO: + 2 * glyphIdArray.length
+        var length = 16 + 8 * this.numberOfGroups;
         var data = JSData.initWithLength(length);
         FNTOpenTypeFontCmap4.$super.initWithData.call(this, data);
         this.startOffset = this.endOffset + 2 * this.numberOfGroups + 2;
@@ -1142,7 +1205,7 @@ JSClass("FNTOpenTypeFontCmap4", FNTOpenTypeFontCmap, {
         //                 floor(log2(segCount))
         // rangeShift = 2 × segCount - searchRange
         //
-        this.entrySelector = Math.floor(Math.log(this.numberOfGroups) * Math.LOG2E);
+        this.entrySelector = log2(this.numberOfGroups);
         this.searchRange = 1 << (this.entrySelector + 1);
         this.rangeShift = 2 * this.numberOfGroups - this.searchRange;
 
@@ -1261,11 +1324,65 @@ JSClass("FNTOpenTypeFontCmap10", FNTOpenTypeFontCmap, {
 // Format 12 is a set of sparse ranges with 32 bit values
 JSClass("FNTOpenTypeFontCmap12", FNTOpenTypeFontCmap, {
 
-    numberOfGroups: 0,
+    format: DataBackedProperty(0, 'uint16'),
+    length: DataBackedProperty(4, 'uint32'),
+    language: DataBackedProperty(8, 'uint32'),
+    numberOfGroups: DataBackedProperty(12, 'uint32'),
+
+    groups: null,
+
+    initWithUnicodeMap: function(map){
+        var i, l;
+        var ranges = [];
+        map.sort(function(a, b){
+            return a[0] - b[0];
+        });
+        var lastCode = -2;
+        var lastGlyph = -2;
+        var range;
+        var code, glyph;
+        var delta;
+        for (i = 0, l = map.length; i < l; ++i){
+            code = map[i][0];
+            glyph = map[i][1];
+            if (glyph !== 0){
+                if (code == lastCode + 1 && glyph == lastGlyph + 1){
+                    range.end++;
+                }else{
+                    range = {start: code, glyph: glyph, end: code};
+                    ranges.push(range);
+                }
+                lastCode = code;
+                lastGlyph = glyph;
+            }
+        }
+
+        this.initWithRanges(ranges);
+    },
+
+    initWithRanges: function(ranges){
+        var length = 16 + 12 * ranges.length;
+        var data = JSData.initWithLength(length);
+        FNTOpenTypeFontCmap12.$super.initWithData.call(this, data);
+
+        this.format = 12;
+        this.length = length;
+        this.language = 0;
+        this.numberOfGroups = ranges.length;
+
+        var offset = 16;
+        var range;
+        var i, l;
+        for (i = 0, l = ranges.length; i < l; ++i, offset += 12){
+            range = ranges[i];
+            this.dataView.setUint32(offset, range.start);
+            this.dataView.setUint32(offset + 4, range.end);
+            this.dataView.setUint32(offset + 8, range.glyph);
+        }
+    },
 
     initWithData: function(data){
-        FNTOpenTypeFontCmap13.$super.initWithData.call(this, data);
-        this.numberOfGroups = this.dataView.getUint32(12);
+        FNTOpenTypeFontCmap12.$super.initWithData.call(this, data);
     },
 
     glyphForCharacterCode: function(code){
@@ -1347,5 +1464,17 @@ Object.defineProperties(DataView.prototype, {
     }
 
 });
+
+var log2 = function(n){
+    if (n === 0){
+        return -Infinity;
+    }
+    var i = 0;
+    while (n > 1){
+        n >>= 1;
+        ++i;
+    }
+    return i;
+};
 
 })();

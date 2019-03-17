@@ -30,14 +30,14 @@ JSClass("FNTOpenTypeConstructorTests", TKTestSuite, {
             TKAssertEquals(font.entrySelector, 3);
             TKAssertEquals(font.rangeShift, 0);
             TKAssertEquals(tags.length, 8);
-            TKAssertEquals(tags[0], 'head');
-            TKAssertEquals(tags[1], 'OS/2');
-            TKAssertEquals(tags[2], 'hhea');
-            TKAssertEquals(tags[3], 'maxp');
-            TKAssertEquals(tags[4], 'post');
-            TKAssertEquals(tags[5], 'name');
-            TKAssertEquals(tags[6], 'hmtx');
-            TKAssertEquals(tags[7], 'cmap');
+            TKAssertEquals(tags[0], 'OS/2');
+            TKAssertEquals(tags[1], 'cmap');
+            TKAssertEquals(tags[2], 'head');
+            TKAssertEquals(tags[3], 'hhea');
+            TKAssertEquals(tags[4], 'hmtx');
+            TKAssertEquals(tags[5], 'maxp');
+            TKAssertEquals(tags[6], 'name');
+            TKAssertEquals(tags[7], 'post');
             for (var tag in font.tableIndex){
                 TKAssertEquals(font.tableIndex[tag].offset % 4, 0, tag);
             }

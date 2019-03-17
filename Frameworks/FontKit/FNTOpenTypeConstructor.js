@@ -92,43 +92,36 @@ JSClass("FNTOpenTypeConstructor", JSObject, {
     getData: function(completion, target){
         var i, l;
 
-        l = this._tables.length;
-        i = 1;
-        var power = 0;
-        while (i <= this._tables.length){
-            i *= 2;
-            power += 1;
-        }
-        power -= 1;
-        i /= 2;
+        var entrySelector = log2(this._tables.length);
+        var searchRange = 1 << (entrySelector + 4);
+        var rangeShift = this._tables.length * 16 - searchRange;
 
         var chunks = [];
+
+        // Offset Table
         var offsetTable = JSData.initWithLength(12);
         var offsetTableView = offsetTable.dataView();
         offsetTableView.setUint32(0, this.version);
         offsetTableView.setUint16(4, this._tables.length);
-        offsetTableView.setUint16(6, i * 16);
-        offsetTableView.setUint16(8, power);
-        offsetTableView.setUint16(10, this._tables.length * 16 - i * 16);
+        offsetTableView.setUint16(6, searchRange);
+        offsetTableView.setUint16(8, entrySelector);
+        offsetTableView.setUint16(10, rangeShift);
         chunks.push(offsetTable);
 
+        // Table records
         var tableRecord = JSData.initWithLength(16 * this._tables.length);
         var tableRecordView = tableRecord.dataView();
         chunks.push(tableRecord);
-        var offset = 0;
+
+        // Table data, with zero-padding
         var tableOffset = offsetTable.length + tableRecord.length;
         var table;
         var align;
         var zeros;
-        for (i = 0, l = this._tables.length; i < l; ++i, offset += 16){
+        var records = [];
+        for (i = 0, l = this._tables.length; i < l; ++i){
             table = this._tables[i];
-            tableRecordView.setUint8(offset, table.tag.charCodeAt(0));
-            tableRecordView.setUint8(offset + 1, table.tag.charCodeAt(1));
-            tableRecordView.setUint8(offset + 2, table.tag.charCodeAt(2));
-            tableRecordView.setUint8(offset + 3, table.tag.charCodeAt(3));
-            tableRecordView.setUint32(offset + 4, table.calculateChecksum());
-            tableRecordView.setUint32(offset + 8, tableOffset);
-            tableRecordView.setUint32(offset + 12, table.data.length);
+            records.push({table: table, offset: tableOffset});
             chunks.push(table.data);
             tableOffset += table.data.length;
             align = tableOffset % 4;
@@ -137,6 +130,30 @@ JSClass("FNTOpenTypeConstructor", JSObject, {
                 tableOffset += zeros.length;
                 chunks.push(zeros);
             }
+        }
+
+
+        // Write the table records in tag-sorted order
+        records.sort(function(a, b){
+            if (a.table.tag < b.table.tag){
+                return -1;
+            }
+            if (a.table.tag > b.table.tag){
+                return 1;
+            }
+            return 0;
+        });
+        var offset = 0;
+        var record;
+        for (i = 0, l = records.length; i < l; ++i, offset += 16){
+            record = records[i];
+            tableRecordView.setUint8(offset, record.table.tag.charCodeAt(0));
+            tableRecordView.setUint8(offset + 1, record.table.tag.charCodeAt(1));
+            tableRecordView.setUint8(offset + 2, record.table.tag.charCodeAt(2));
+            tableRecordView.setUint8(offset + 3, record.table.tag.charCodeAt(3));
+            tableRecordView.setUint32(offset + 4, record.table.calculateChecksum());
+            tableRecordView.setUint32(offset + 8, record.offset);
+            tableRecordView.setUint32(offset + 12, record.table.data.length);
         }
 
         var sum = Checksum();
@@ -174,6 +191,18 @@ Checksum.prototype = {
             }
         }
     }
+};
+
+var log2 = function(n){
+    if (n === 0){
+        return -Infinity;
+    }
+    var i = 0;
+    while (n > 1){
+        n >>= 1;
+        ++i;
+    }
+    return i;
 };
 
 })();
