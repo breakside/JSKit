@@ -337,8 +337,11 @@ JSGlobalObject.PDFType0Font.prototype = Object.create(PDFFont.prototype, {
             var loadFontFile = function(){
                 descendant.FontDescriptor.getOpenTypeData(function(otf){
                     if (otf){
-                        this.embeddedOpenTypeFont = FNTOpenTypeFont.initWithData(otf);
-                        this.foundationFontDescriptor = PDFOpenTypeFontDescriptor.initWithFont(this.embeddedOpenTypeFont, descendant);
+                        var font = FNTOpenTypeFont.initWithData(otf);
+                        font.getCorrectedFont(function(font){
+                            this.embeddedOpenTypeFont = font;
+                            this.foundationFontDescriptor = PDFOpenTypeFontDescriptor.initWithFont(this.embeddedOpenTypeFont, descendant);
+                        }, this);
                     }
                     next.call(this);
                 }, this);
