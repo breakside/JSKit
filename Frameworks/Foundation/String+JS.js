@@ -42,17 +42,22 @@ Object.defineProperties(String, {
     initWithData: {
         enumerable: false,
         value: function String_initWithData(data, encoding){
+            if (data === null){
+                return null;
+            }
             if (encoding == String.Encoding.utf8){
                 return data.stringByDecodingUTF8();
-            }else if (encoding == String.Encoding.utf16be){
-                return data.stringByDecodingUTF16BE();
-            }else if (encoding == String.Encoding.utf16le){
-                return data.stringByDecodingUTF16LE();
-            }else if (encoding == String.Encoding.latin1){
-                return data.stringByDecodingLatin1();
-            }else{
-                throw new Error("Unsupported encoding: %s".sprintf(encoding));
             }
+            if (encoding == String.Encoding.utf16be){
+                return data.stringByDecodingUTF16BE();
+            }
+            if (encoding == String.Encoding.utf16le){
+                return data.stringByDecodingUTF16LE();
+            }
+            if (encoding == String.Encoding.latin1){
+                return data.stringByDecodingLatin1();
+            }
+            throw new Error("Unsupported encoding: %s".sprintf(encoding));
         }
     },
 

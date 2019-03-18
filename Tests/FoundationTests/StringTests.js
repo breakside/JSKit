@@ -896,4 +896,22 @@ JSClass('StringTests', TKTestSuite, {
 
     },
 
+    testInitWithData: function(){
+        var data = null;
+        var str = String.initWithData(data, String.Encoding.utf8);
+        TKAssertNull(str);
+
+        data = "Helló".utf8();
+        str = String.initWithData(data, String.Encoding.utf8);
+        TKAssertEquals(str, "Helló");
+
+        data = "Helló".latin1();
+        str = String.initWithData(data, String.Encoding.latin1);
+        TKAssertEquals(str, "Helló");
+
+        TKAssertThrows(function(){
+            var str = String.initWithData(data, "INVALID ENCODING");
+        });
+    }
+
 });
