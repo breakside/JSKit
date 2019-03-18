@@ -68,14 +68,18 @@ JSGlobalObject.PDFForm.prototype = Object.create(PDFXObject.prototype, {
             drawing.backgroundColor = null;
             drawing.bounds = this.bounds;
             drawing.resources = this.Resources;
-            drawing.resources.load(function PDFForm_prepareForDrawing_handleResources(){
+            var handleResourcesLoaded = function PDFForm_prepareForDrawing_handleResources(){
                 this.getOperationIterator(function PDFForm_prepareForDrawing_handleIterator(iterator){
                     drawing.operationIterator = iterator;
                     this.drawing = drawing;
                     completion.call(target);
                 }, this);
-            }, this);
-            completion.call(target);
+            };
+            if (drawing.resources){
+                drawing.resources.load(handleResourcesLoaded, this);
+            }else{
+                handleResourcesLoaded.call(this);
+            }
         }
     },
 

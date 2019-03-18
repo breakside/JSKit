@@ -1,6 +1,6 @@
 // #import "PDFKit/PDFObject.js"
 // #import "FontKit/FontKit.js"
-/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFFontDescriptor, PDFName, PDFType1Font, PDFTrueTypeFont, FNTType1Font, FNTCompactFontFormat */
+/* global JSGlobalObject, JSCopy, PDFObject, PDFObjectProperty, PDFFontDescriptor, PDFName, PDFType1Font, PDFTrueTypeFont, FNTType1Font, FNTCompactFontFormat */
 'use strict';
 
 JSGlobalObject.PDFFontDescriptor = function(){
@@ -34,7 +34,7 @@ JSGlobalObject.PDFFontDescriptor.prototype = Object.create(PDFObject.prototype, 
     CharSet:        PDFObjectProperty,
 
     getOpenTypeData: {
-        value: function PDFFontDescriptor_getOpenTypeData(completion, target){
+        value: function PDFFontDescriptor_getOpenTypeData(info, completion, target){
             if (this.FontFile){
                 if (this.Subtype == "Type1" || this.Subtype == "MMType1"){
                     this.FontFile.getData(function(type1){
@@ -50,9 +50,14 @@ JSGlobalObject.PDFFontDescriptor.prototype = Object.create(PDFObject.prototype, 
                 if (this.FontFile3.Subtype == "OpenType"){
                     this.FontFile3.getData(completion, target);
                 }else if (this.FontFile3.Subtype == "Type1C" || this.FontFile3.Subtype == "CIDFontType0C"){
+                    info = JSCopy(info);
+                    info.ascender = this.Ascent;
+                    info.descender = this.Descent;
+                    info.bbox = this.FontBBox;
+                    info.nominalWidth = this.AvgWidth || 0;
                     this.FontFile3.getData(function(ccf){
                         var compactFont = FNTCompactFontFormat.initWithData(ccf);
-                        compactFont.getOpenTypeData(completion, target);
+                        compactFont.getOpenTypeData(info, completion, target);
                     }, this);
                 }else{
                     completion.call(target, null);

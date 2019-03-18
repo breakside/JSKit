@@ -290,12 +290,13 @@ JSClass("PDFTokenizer", JSObject, {
                     byte = PDFTokenizer.StringEscape.outputOctal(byte, b, c);
                 }else if (byte == PDFTokenizer.Whitespace.carriageReturn){
                     byte = this.stream.byte();
-                    if (byte != PDFTokenizer.Whitespace.lineFeed && byte !== null){
-                        this.stream.seekRelative(-1);
+                    if (byte !== null && byte == PDFTokenizer.Whitespace.lineFeed){
+                        byte = this.stream.byte();
                     }
                     carriageReturn = false;
                     continue;
                 }else if (byte == PDFTokenizer.Whitespace.lineFeed){
+                    byte = this.stream.byte();
                     carriageReturn = false;
                     continue;
                 }else{

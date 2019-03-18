@@ -1,7 +1,7 @@
 // #import "FontKit/FontKit.js"
 // #import "PDFKit/PDFObject.js"
 // #import "PDFKit/PDFCMap.js"
-/* global JSGlobalObject, JSClass, JSLog, UUID, JSFont, JSFontDescriptor, FNTOpenTypeFont, FNTFontDescriptor, FNTType1Font, PDFStandardFontDescriptor, PDFOpenTypeFontDescriptor, JSData, PDFObject, PDFObjectProperty, PDFFont, PDFName, PDFType1Font, PDFType0Font, PDFTrueTypeFont, PDFMMType1Font, PDFType3Font, PDFCIDType0Font, PDFCIDType2Font, PDFOperationIterator, PDFCMap, FNTAdobeNamesToUnicode */
+/* global JSGlobalObject, JSClass, JSRange, JSLog, UUID, JSFont, JSFontDescriptor, FNTOpenTypeFont, FNTFontDescriptor, FNTType1Font, PDFStandardFontDescriptor, PDFOpenTypeFontDescriptor, JSData, PDFObject, PDFObjectProperty, PDFFont, PDFName, PDFType1Font, PDFType0Font, PDFTrueTypeFont, PDFMMType1Font, PDFType3Font, PDFCIDType0Font, PDFCIDType2Font, PDFOperationIterator, PDFCMap, FNTAdobeNamesToUnicode */
 'use strict';
 
 (function(){
@@ -171,12 +171,39 @@ var SimpleFontPrototype = Object.create(PDFFont.prototype, {
                 }
             }
 
+            var loadSpecifiedEncoding = function(){
+                var map = null;
+                var diffs = [];
+                if (this.Encoding){
+                    if (this.Encoding instanceof PDFName){
+                        map = SingleByteEncoding.Named[this.Encoding] || null;
+                    }else{
+                        if (this.Encoding.BaseEncoding){
+                            map = SingleByteEncoding.Named[this.Encoding.BaseEncoding] || null;
+                        }
+                        if (this.Encoding.Differences){
+                            diffs = this.Encoding.Differences;
+                        }
+                    }
+                }
+                if (map !== null){
+                    this.encoding = SingleByteEncoding(map, diffs);
+                }
+                next.call(this);
+            };
+
             var loadFontFile = function(){
                 if (!this.FontDescriptor || !this.FontDescriptor.getOpenTypeData){
                     next.call(this);
                     return;
                 }
-                this.FontDescriptor.getOpenTypeData(function(otf){
+                var info = {
+                    singleByteEncoding: this.encoding ? this.encoding._map : undefined,
+                    widths: this.Widths,
+                    firstWidth: this.FirstChar,
+                    lastWidth: this.LastChar
+                };
+                this.FontDescriptor.getOpenTypeData(info, function(otf){
                     if (otf){
                         var font = FNTOpenTypeFont.initWithData(otf);
                         font.getCorrectedFont(function(font){
@@ -199,36 +226,25 @@ var SimpleFontPrototype = Object.create(PDFFont.prototype, {
                 }, this);
             };
 
-            var loadEncoding = function(){
+            var loadImplicitEncoding = function(){
                 var map = null;
-                var diffs = [];
-                if (this.Encoding){
-                    if (this.Encoding instanceof PDFName){
-                        map = SingleByteEncoding.Named[this.Encoding] || null;
-                    }else{
-                        if (this.Encoding.BaseEncoding){
-                            map = SingleByteEncoding.Named[this.Encoding.BaseEncoding] || null;
-                        }
-                        if (this.Encoding.Differences){
-                            diffs = this.Encoding.Differences;
-                        }
-                    }
-                }
-                if (map === null && this.embeddedOpenTypeFont){
-                    var windowsUnicode = this.embeddedOpenTypeFont.tables.cmap.getMap([3, 1]);
-                    if (windowsUnicode){
-                        map = SingleByteEncoding.WinUnicodeEncoding;
-                    }else{
-                        var macRoman = this.embeddedOpenTypeFont.tables.cmap.getMap([1, 0]);
-                        if (macRoman){
-                            map = SingleByteEncoding.MacOSEncoding;
+                if (this.encoding === null){
+                    if (this.embeddedOpenTypeFont){
+                        var windowsUnicode = this.embeddedOpenTypeFont.tables.cmap.getMap([3, 1]);
+                        if (windowsUnicode){
+                            map = SingleByteEncoding.WinUnicodeEncoding;
+                        }else{
+                            var macRoman = this.embeddedOpenTypeFont.tables.cmap.getMap([1, 0]);
+                            if (macRoman){
+                                map = SingleByteEncoding.MacOSEncoding;
+                            }
                         }
                     }
+                    if (map === null){
+                        map = SingleByteEncoding.Symbolic[this.BaseFont] || SingleByteEncoding.StandardEncoding;
+                    }
+                    this.encoding = SingleByteEncoding(map);
                 }
-                if (map === null){
-                    map = SingleByteEncoding.Symbolic[this.BaseFont] || SingleByteEncoding.StandardEncoding;
-                }
-                this.encoding = SingleByteEncoding(map, diffs);
                 if (this.stringDecoder === null){
                     this.stringDecoder = this.encoding;
                 }
@@ -243,9 +259,10 @@ var SimpleFontPrototype = Object.create(PDFFont.prototype, {
             };
 
             var steps = [
+                loadSpecifiedEncoding,
                 loadFontFile,
                 loadUnicodeDecoder,
-                loadEncoding,
+                loadImplicitEncoding,
                 createFallbackDescriptor
             ];
             var stepIndex = -1;
@@ -334,7 +351,7 @@ JSGlobalObject.PDFType0Font.prototype = Object.create(PDFFont.prototype, {
             var descendant = this.DescendantFonts[0];
 
             var loadFontFile = function(){
-                descendant.FontDescriptor.getOpenTypeData(function(otf){
+                descendant.FontDescriptor.getOpenTypeData({}, function(otf){
                     if (otf){
                         var font = FNTOpenTypeFont.initWithData(otf);
                         font.getCorrectedFont(function(font){
