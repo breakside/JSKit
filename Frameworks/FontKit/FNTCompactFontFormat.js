@@ -1,6 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "FontKit/FNTOpenTypeConstructor.js"
-/* global JSClass, JSObject, JSRange, FNTOpenTypeConstructor, FNTOpenTypeFontTableCFF, FNTOpenTypeFontCmap12 */
+// #import "FontKit/FNTAdobeNames.js"
+/* global Int16Array, Int32Array, JSClass, JSDeepCopy, JSObject, JSRange, FNTOpenTypeConstructor, FNTOpenTypeFontTableCFF, FNTOpenTypeFontCmap12, FNTAdobeNamesToUnicode */
 'use strict';
 
 (function(){
@@ -9,18 +10,23 @@ JSClass("FNTCompactFontFormat", JSObject, {
 
     data: null,
     dataView: null,
+    majorVersion: 0,
+    minorVersion: 0,
     numberOfFonts: 0,
     name: null,
     info: null,
     private: null,
+    encoding: null,
+    charset: null,
+    charStrings: null,
 
     initWithData: function(data){
         this.data = data;
         this.dataView = data.dataView();
 
-        var major = this.dataView.getUint8(0);
-        var minor = this.dataView.getUint8(1);
-        if (major != 1){
+        this.majorVersion = this.dataView.getUint8(0);
+        this.minorVersion = this.dataView.getUint8(1);
+        if (this.majorVersion != 1){
             return null;
         }
         var headerSize = this.dataView.getUint8(2);
@@ -36,141 +42,48 @@ JSClass("FNTCompactFontFormat", JSObject, {
         offset += this.strings.length;
         this.globalSubroutines = new CFFIndex(this.dataView, offset);
         offset += this.globalSubroutines.length;
-        // Charsets
         // FDSelect (CIDFonts only)
         // Font Dict Index (per font, CID Only)
         // Local Subroutines Index (per-font or per-Private DICT for CIDFonts)
         // Copyright and Trademark
         this.name = this.names.objectDataAtIndex(0).stringByDecodingLatin1();
         this.info = this.getTopDictionary(0);
-        this.private = this.getPrivateDictionary(this.info.Private[1], this.info.Private[0]);
-        this.encoding = new CFFIndex(this.dataView, this.info.Encoding);
-        this.charStrings = new CFFIndex(this.dataView, this.info.CharStrings);
+        if (this.info.Private){
+            this.private = this.getPrivateDictionary(this.info.Private[1], this.info.Private[0]);
+        }else{
+            this.private = privateDefaults;
+        }
+        if (this.info.Encoding){
+            this.encoding = new CFFIndex(this.dataView, this.info.Encoding);
+        }
+        if (this.info.CharStrings){
+            this.charStrings = new CFFIndex(this.dataView, this.info.CharStrings);
+        }
+        if (this.info.charset >= 3 && this.charStrings){
+            this.charset = new CharacterSet(this.dataView, this.info.charset, this);
+        }else{
+            if (this.info.charset === 0){
+                // TODO: use ISOAdobe charset
+            }else if (this.info.charset == 1){
+                // TODO: use Expert
+            }else if (this.info.charset == 2){
+                // TODO: use ExpertSubset
+            }
+        }
     },
 
     getTopDictionary: function(i){
         var data = this.topDicts.objectDataAtIndex(i);
-        return this._decodeDictionary(data, [
-            ["version", "sid"],
-            ["notice", "sid"],
-            ["FullName", "sid"],
-            ["FamilyName", "sid"],
-            ["Weight", "sid"],
-            ["FontBBox", "array"],
-            [null, "number"],
-            [null, "number"],
-            [null, "number"],
-            [null, "number"],
-            [null, "number"],
-            [null, "number"],
-            [null, [
-                ["Copyright", "sid"],
-                ["isFixedPitch", "boolean"],
-                ["ItalicAngle", "number"],
-                ["UnderlinePosition", "number"],
-                ["UnderlineThickness", "number"],
-                ["PaintType", "number"],
-                ["CharstringType", "number"],
-                ["FontMatrix", "array"],
-                ["StrokeWidth", "number"],
-                [null, "number"],
-                [null, "number"],
-                [null, "number"],
-                [null, "number"],
-                [null, "number"],
-                [null, "number"],
-                [null, "number"],
-                [null, "number"],
-                [null, "number"],
-                [null, "number"],
-                [null, "number"],
-                ["SyntheticBase", "number"],
-                ["PostScript", "sid"],
-                ["BaseFontName", "sid"],
-                ["BaseFontBlend", "delta"]
-            ]],
-            ["UniqueID", "number"],
-            ["XUID", "array"],
-            ["charset", "number"],
-            ["Encoding", "number"],
-            ["CharStrings", "number"],
-            ["Private", "array"]
-        ], {
-            isFixedPitch: false,
-            ItalicAngle: 0,
-            UnderlinePosition: -100,
-            UnderlineThickness: 50,
-            PaintType: 0,
-            CharstringType: 2,
-            FontMatrix: [0.001,0,0,0.001,0,0],
-            FontBBox: [0, 0, 0, 0],
-            StrokeWidth: 0,
-            charset: 0,
-            Encoding: 0
-        });
+        return this._decodeDictionary(data, topFieldMap, topDefaults);
     },
 
     getPrivateDictionary: function(offset, length){
         var data = this.data.subdataInRange(JSRange(offset, length));
-        this._decodeDictionary(data, [
-            [null, "number"],
-            [null, "number"],
-            [null, "number"],
-            [null, "number"],
-            [null, "number"],
-            [null, "number"],
-            ["BlueValues", "delta"],
-            ["OtherBlues", "delta"],
-            ["FamilyBlues", "delta"],
-            ["FamilyOtherBlues", "delta"],
-            ["StdHW", "number"],
-            ["StdVW", "number"],
-            [null, [
-                [null, "number"],
-                [null, "number"],
-                [null, "number"],
-                [null, "number"],
-                [null, "number"],
-                [null, "number"],
-                [null, "number"],
-                [null, "number"],
-                [null, "number"],
-                ["BlueScale", "number"],
-                ["BlueShift", "number"],
-                ["BlueFuzz", "number"],
-                ["StemSnapH", "delta"],
-                ["StemSnapV", "delta"],
-                ["ForceBold", "boolean"],
-                [null, "number"],
-                [null, "number"],
-                ["LanguageGroup", "number"],
-                ["ExpansionFactor", "number"],
-                ["initialRandomSeed", "number"]
-            ]],
-            [null, "number"],
-            [null, "number"],
-            [null, "number"],
-            [null, "number"],
-            [null, "number"],
-            [null, "number"],
-            ["Subrs", "number"],
-            ["defaultWidthX", "number"],
-            ["nominalWidthX", "number"]
-        ], {
-            BlueScale: 0.039625,
-            BlueShift: 7,
-            BlueFuzz: 1,
-            ForceBold: false,
-            LanguageGroup: 0,
-            ExpansionFactor: 0.06,
-            initialRandomSeed: 0,
-            defaultWidthX: 0,
-            nominalWidthX: 0
-        });
+        this._decodeDictionary(data, privateFieldMap, privateDefaults);
     },
 
     _decodeDictionary: function(data, fieldMap, defaultValues){
-        var info = defaultValues || {};
+        var info = defaultValues ? JSDeepCopy(defaultValues) : {};
         var i = 0;
         var b;
         var field;
@@ -225,11 +138,15 @@ JSClass("FNTCompactFontFormat", JSObject, {
                 }
                 operands.push(parseFloat(str));
             }else{
-                field = data[i++];
-                if (typeof(field[1]) == "object"){
-                    field = field[i][data[i++]];
+                field = fieldMap[b];
+                if (field){
+                    if (typeof(field[1]) == "object"){
+                        field = field[1][data[i++]];
+                    }
+                    if (field){
+                        info[field[0]] = fieldTypes[field[1]].apply(this, operands);
+                    }
                 }
-                info[field[0]] = fieldTypes[field[1]].apply(this, operands);
                 operands = [];
             }
             
@@ -249,7 +166,7 @@ JSClass("FNTCompactFontFormat", JSObject, {
             completion = Promise.completion(Promise.resolveNonNull);
         }
 
-        var otf = FNTOpenTypeConstructor.init();
+        var otf = FNTOpenTypeConstructor.initWithGlyphType(FNTOpenTypeConstructor.GlyphType.compactFontFormat);
 
         // name
         // All names are mac (1) roman (0) english (0)
@@ -263,8 +180,7 @@ JSClass("FNTCompactFontFormat", JSObject, {
         otf.name.addName(1, 0, 0, 6, this.name.latin1()); // Postscript name (6)
 
         // head  Font header
-        otf.head.setUintsPerEM(Math.round(1 / this.info.FontMatrix[0]));
-        otf.head.setBoundingBox(this.info.FontBBox);
+        otf.head.unitsPerEM = Math.round(1 / this.info.FontMatrix[0]);
         otf.setItalicAngle(this.info.ItalicAngle);
         if (this.info.Weight == "Bold" || this.info.Weight == "Black"){
             otf.head.setBold();
@@ -274,13 +190,18 @@ JSClass("FNTCompactFontFormat", JSObject, {
         otf.maxp.numberOfGlyphs = this.charStrings.count;
 
         // hhea  Horizontal header
-        var ascender = this.info.FontBBox[3];
-        var descender = this.info.FontBBox[1];
-        if (this.private.BlueValues.length > 2){
-            ascender = this.private.BlueValues[this.private.BlueValues.length - 2];
-        }
-        if (this.private.OtherBlues && this.private.OtherBlues.length > 1){
-            descender = this.private.OtherBlues[1];
+        var ascender = 0;
+        var descender = 0;
+        if (this.info.FontBBox){
+            otf.head.setBoundingBox(this.info.FontBBox);
+            ascender = this.info.FontBBox[3];
+            descender = this.info.FontBBox[1];
+            if (this.private.BlueValues.length > 2){
+                ascender = this.private.BlueValues[this.private.BlueValues.length - 2];
+            }
+            if (this.private.OtherBlues && this.private.OtherBlues.length > 1){
+                descender = this.private.OtherBlues[1];
+            }
         }
         otf.setLineHeight(ascender, descender);
 
@@ -301,9 +222,9 @@ JSClass("FNTCompactFontFormat", JSObject, {
                 charString = new CharString(this.charStrings.objectDataAtIndex(i));
                 op = charString.next();
                 if ('number' in op){
-                    widths.push(Math.round(op.number + this.nominalWidthX));
+                    widths.push(Math.round(op.number + this.private.nominalWidthX));
                 }else{
-                    widths.push(this.info.defaultWidthX);
+                    widths.push(this.private.defaultWidthX);
                 }
             }
         }else{
@@ -346,8 +267,13 @@ JSClass("FNTCompactFontFormat", JSObject, {
         otf.hmtx.setWidths(widths);
 
         // cmap
-        var unicodeToGlyph = [];
-        var map = FNTOpenTypeFontCmap12.initWithUnicodeMap(unicodeToGlyph);
+        var map;
+        if (this.charset){
+            var unicodeToGlyph = this.charset.getUnicodeMap();
+            map = FNTOpenTypeFontCmap12.initWithUnicodeMap(unicodeToGlyph);
+        }else{
+            map = FNTOpenTypeFontCmap12.initWithUnicodeMap([]);
+        }
         otf.cmap.addMap(3, 10, map);
 
         // CFF
@@ -360,6 +286,125 @@ JSClass("FNTCompactFontFormat", JSObject, {
     }
 
 });
+
+var topFieldMap = [
+    ["version", "sid"],
+    ["notice", "sid"],
+    ["FullName", "sid"],
+    ["FamilyName", "sid"],
+    ["Weight", "sid"],
+    ["FontBBox", "array"],
+    [null, "number"],
+    [null, "number"],
+    [null, "number"],
+    [null, "number"],
+    [null, "number"],
+    [null, "number"],
+    [null, [
+        ["Copyright", "sid"],
+        ["isFixedPitch", "boolean"],
+        ["ItalicAngle", "number"],
+        ["UnderlinePosition", "number"],
+        ["UnderlineThickness", "number"],
+        ["PaintType", "number"],
+        ["CharstringType", "number"],
+        ["FontMatrix", "array"],
+        ["StrokeWidth", "number"],
+        [null, "number"],
+        [null, "number"],
+        [null, "number"],
+        [null, "number"],
+        [null, "number"],
+        [null, "number"],
+        [null, "number"],
+        [null, "number"],
+        [null, "number"],
+        [null, "number"],
+        [null, "number"],
+        ["SyntheticBase", "number"],
+        ["PostScript", "sid"],
+        ["BaseFontName", "sid"],
+        ["BaseFontBlend", "delta"]
+    ]],
+    ["UniqueID", "number"],
+    ["XUID", "array"],
+    ["charset", "number"],
+    ["Encoding", "number"],
+    ["CharStrings", "number"],
+    ["Private", "array"]
+];
+
+var privateFieldMap = [
+    [null, "number"],
+    [null, "number"],
+    [null, "number"],
+    [null, "number"],
+    [null, "number"],
+    [null, "number"],
+    ["BlueValues", "delta"],
+    ["OtherBlues", "delta"],
+    ["FamilyBlues", "delta"],
+    ["FamilyOtherBlues", "delta"],
+    ["StdHW", "number"],
+    ["StdVW", "number"],
+    [null, [
+        [null, "number"],
+        [null, "number"],
+        [null, "number"],
+        [null, "number"],
+        [null, "number"],
+        [null, "number"],
+        [null, "number"],
+        [null, "number"],
+        [null, "number"],
+        ["BlueScale", "number"],
+        ["BlueShift", "number"],
+        ["BlueFuzz", "number"],
+        ["StemSnapH", "delta"],
+        ["StemSnapV", "delta"],
+        ["ForceBold", "boolean"],
+        [null, "number"],
+        [null, "number"],
+        ["LanguageGroup", "number"],
+        ["ExpansionFactor", "number"],
+        ["initialRandomSeed", "number"]
+    ]],
+    [null, "number"],
+    [null, "number"],
+    [null, "number"],
+    [null, "number"],
+    [null, "number"],
+    [null, "number"],
+    ["Subrs", "number"],
+    ["defaultWidthX", "number"],
+    ["nominalWidthX", "number"]
+];
+
+var topDefaults = {
+    isFixedPitch: false,
+    ItalicAngle: 0,
+    UnderlinePosition: -100,
+    UnderlineThickness: 50,
+    PaintType: 0,
+    CharstringType: 2,
+    FontMatrix: [0.001,0,0,0.001,0,0],
+    FontBBox: [0, 0, 0, 0],
+    StrokeWidth: 0,
+    charset: 0,
+    Encoding: 0
+};
+
+var privateDefaults = {
+    BlueScale: 0.039625,
+    BlueShift: 7,
+    BlueFuzz: 1,
+    ForceBold: false,
+    LanguageGroup: 0,
+    ExpansionFactor: 0.06,
+    initialRandomSeed: 0,
+    defaultWidthX: 0,
+    nominalWidthX: 0
+};
 
 var CharString = function(data){
     if (this === undefined){
@@ -399,9 +444,9 @@ var fieldTypes = {
     number: function(n){ return n; },
     boolean: function(n){ return n !== 0; },
     sid: function(n){ return this.getString(n); },
-    array: function(){ Array.prototype.slice.apply(arguments, 0); },
+    array: function(){ Array.prototype.slice.call(arguments, 0); },
     delta: function(){
-        var n = Array.prototype.slice.apply(arguments, 0);
+        var n = Array.prototype.slice.call(arguments, 0);
         for (var i = 1, l = n.length; i < l; ++i){
             n[i] += n[i - 1];
         }
@@ -412,7 +457,7 @@ var fieldTypes = {
     }
 };
 
-var CFFIndex = function(dataView, offset, dataSize){
+var CFFIndex = function(dataView, offset){
     if (this === undefined){
         return new CFFIndex(dataView, offset);
     }
@@ -437,6 +482,107 @@ CFFIndex.prototype = {
         var offset = this.offsetOfObjectAtIndex(i);
         var length = this.offsetOfObjectAtIndex(i + 1) - offset;
         return new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + offset, length);
+    }
+
+};
+
+var CharacterSet = function(dataView, offset, font){
+    if (this === undefined){
+        return new CharacterSet(dataView, offset, font);
+    }
+    this.dataView = dataView;
+    this.offset = offset;
+    this.format = dataView.getUint8(offset);
+    this.font = font;
+    switch (this.format){
+        case 0:
+            this.getUnicodeMap = this.getUnicodeMap0;
+            break;
+        case 1:
+            this.getUnicodeMap = this.getUnicodeMap1;
+            break;
+        case 2:
+            this.getUnicodeMap = this.getUnicodeMap2;
+            break;
+        default:
+            throw new Error("Invalid charset format: %d".sprintf(this.format));
+    }
+};
+
+CharacterSet.prototype = {
+
+    getUnicodeMap0: function(){
+        var sid;
+        var map = [];
+        var name;
+        var code;
+        var offset = this.offset + 1;
+        for (var glyph = 1, last = this.font.charStrings.count - 1; glyph < last; ++glyph, offset += 2){
+            sid = this.dataView.getUint16(offset);
+            name = this.font.getString(sid);
+            code = FNTAdobeNamesToUnicode[name];
+            if (code){
+                map.push([code, glyph]);
+            }
+        }
+        return map;
+    },
+
+    getUnicodeMap1: function(){
+        var offset = this.offset + 1;
+        var glyph = 1;
+        var map = [];
+        var name;
+        var sid;
+        var remaining;
+        var code;
+        do {
+            sid = this.dataView.getUint16(offset);
+            remaining = this.dataView.getUint8(offset + 2);
+            name = this.font.getString(sid);
+            code = FNTAdobeNamesToUnicode[name];
+            if (code){
+                map.push([code, glyph]);
+                ++code;
+                ++glyph;
+                for (; remaining > 0; --remaining, ++code, ++glyph){
+                    map.push([code, glyph]);
+                }
+            }else{
+                glyph += remaining + 1;
+            }
+            offset += 3;
+        }while (glyph < this.font.charStrings.count);
+        return map;
+    },
+
+    getUnicodeMap2: function(){
+        // just like format 1 except remaining is a unit16 instead of unit8
+        var offset = this.offset + 1;
+        var glyph = 1;
+        var map = [];
+        var name;
+        var sid;
+        var remaining;
+        var code;
+        do {
+            sid = this.dataView.getUint16(offset);
+            remaining = this.dataView.getUint16(offset + 2);
+            name = this.font.getString(sid);
+            code = FNTAdobeNamesToUnicode[name];
+            if (code){
+                map.push([code, glyph]);
+                ++code;
+                ++glyph;
+                for (; remaining > 0; --remaining, ++code, ++glyph){
+                    map.push([code, glyph]);
+                }
+            }else{
+                glyph += remaining + 1;
+            }
+            offset += 4;
+        }while (glyph < this.font.charStrings.count);
+        return map;
     }
 
 };

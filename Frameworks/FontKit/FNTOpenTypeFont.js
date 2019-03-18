@@ -298,7 +298,7 @@ JSClass("FNTOpenTypeFont", JSObject, {
                     var unicodeMap = UnicodeConvertingCmap(UnicodeToMacRoman, macRomanMap);
                     map = FNTOpenTypeFontCmap12.initWithUnicodeMap(unicodeMap.unicodeToGlyphMap());
                 }
-                cmap.addMap(3, 10, map.data);
+                cmap.addMap(3, 10, map);
             }
             var constructor = FNTOpenTypeConstructor.initWithTables(tables);
             constructor.getData(function(data){
@@ -571,6 +571,9 @@ JSClass("FNTOpenTypeFontTableName", FNTOpenTypeFontTable, {
         this.count = this.count + 1;
         this.stringsOffset = 6 + 12 * this.count;
         var key = "%d:%d:%d".sprintf(platformId, encodingId, languageId);
+        if (!(key in this.lookup)){
+            this.lookup[key] = {};
+        }
         this.lookup[key][nameId] = nameData;
     },
 
@@ -652,7 +655,7 @@ JSClass("FNTOpenTypeFontTableHmtx", FNTOpenTypeFontTable, {
     },
 
     setWidths: function(widths){
-        this.data = JSData.initWithLength(widths * 4);
+        this.data = JSData.initWithLength(widths.length * 4);
         this.dataView = this.data.dataView();
         var offset = 0;
         for (var i = 0, l = widths.length; i < l; ++i, offset += 4){
@@ -737,7 +740,7 @@ JSClass("FNTOpenTypeFontTableCmap", FNTOpenTypeFontTable, {
         return null;
     },
 
-    addMap: function(platformId, specificId, mapData){
+    addMap: function(platformId, specificId, map){
         var header = this.data.subdataInRange(JSRange(0, 4));
         var recordsRange = JSRange(4, 8 * this.count);
         var records = this.data.subdataInRange(recordsRange);
@@ -753,7 +756,7 @@ JSClass("FNTOpenTypeFontTableCmap", FNTOpenTypeFontTable, {
             records,
             newRecord,
             maps,
-            mapData
+            map.data
         ]);
         this.dataView = this.data.dataView();
         this.count = this.count + 1;
