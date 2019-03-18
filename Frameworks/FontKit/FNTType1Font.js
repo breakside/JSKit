@@ -26,7 +26,7 @@ JSClass("FNTType1Font", JSObject, {
             completion = Promise.completion(Promise.resolveNonNull);
         }
         this.getCompactFont(function(ccf){
-            ccf.getOpenTypeData(completion, target);
+            ccf.getOpenTypeData({}, completion, target);
         }, this);
         return completion.promise;
     }

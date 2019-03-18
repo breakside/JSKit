@@ -43,7 +43,8 @@ JSClass("FNTCompactFontFormatTests", TKTestSuite, {
         expectation.call(this.getResourceData, this, "T1_0", "cff", function(data){
             TKAssertNotNull(data);
             var font = FNTCompactFontFormat.initWithData(data);
-            expectation.call(font.getOpenTypeData, font, function(otf){
+            var info = {ascender: 1400, descender: -300};
+            expectation.call(font.getOpenTypeData, font, info, function(otf){
                 TKAssertNotNull(otf);
                 var font = FNTOpenTypeFont.initWithData(otf);
                 var tags = Object.keys(font.tableIndex);
@@ -66,8 +67,8 @@ JSClass("FNTCompactFontFormatTests", TKTestSuite, {
                 TKAssertEquals(font.tables.maxp.numberOfGlyphs, 75);
                 TKAssertEquals(font.tables.hhea.numberOfHMetrics, 75);
                 TKAssertObjectEquals(font.tables.CFF.data, data);
-                TKAssertEquals(font.tables.hhea.ascender, 0);
-                TKAssertEquals(font.tables.hhea.descender, 0);
+                TKAssertEquals(font.tables.hhea.ascender, 1400);
+                TKAssertEquals(font.tables.hhea.descender, -300);
                 TKAssertEquals(font.tables.head.unitsPerEM, 1000);
                 var glyph = font.glyphForCharacter(UnicodeChar(0));
                 TKAssertEquals(glyph, 0);

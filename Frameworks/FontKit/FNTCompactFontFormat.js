@@ -161,7 +161,7 @@ JSClass("FNTCompactFontFormat", JSObject, {
         return this.strings.objectDataAtIndex(sid - AdobeStandardStrings.length).stringByDecodingLatin1();
     },
 
-    getOpenTypeData: function(completion, target){
+    getOpenTypeData: function(externalInfo, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
@@ -190,91 +190,77 @@ JSClass("FNTCompactFontFormat", JSObject, {
         otf.maxp.numberOfGlyphs = this.charStrings.count;
 
         // hhea  Horizontal header
+        var bbox = externalInfo.bbox || this.info.FontBBox;
         var ascender = 0;
         var descender = 0;
-        if (this.info.FontBBox){
-            otf.head.setBoundingBox(this.info.FontBBox);
-            ascender = this.info.FontBBox[3];
-            descender = this.info.FontBBox[1];
-            if (this.private.BlueValues.length > 2){
-                ascender = this.private.BlueValues[this.private.BlueValues.length - 2];
-            }
-            if (this.private.OtherBlues && this.private.OtherBlues.length > 1){
-                descender = this.private.OtherBlues[1];
-            }
+        if (bbox){
+            otf.head.setBoundingBox(bbox);
+            ascender = bbox[3];
+            descender = bbox[1];
+        }
+        if (this.private.BlueValues && this.private.BlueValues.length > 2){
+            ascender = this.private.BlueValues[this.private.BlueValues.length - 2];
+        }
+        if (this.private.OtherBlues && this.private.OtherBlues.length > 1){
+            descender = this.private.OtherBlues[1];
+        }
+        if ('ascender' in externalInfo){
+            ascender = externalInfo.ascender;
+        }
+        if ('descender' in externalInfo){
+            descender = externalInfo.descender;
         }
         otf.setLineHeight(ascender, descender);
+
+        var i, l;
+
+        // cmap
+        var map;
+        var unicodeToGlyph;
+        if (this.charset){
+            unicodeToGlyph = this.charset.getUnicodeMap();
+        }else{
+            unicodeToGlyph = [];
+        }
+        map = FNTOpenTypeFontCmap12.initWithUnicodeMap(unicodeToGlyph);
+        otf.cmap.addMap(3, 10, map);
 
         // widths
         // TODO: left side bearing?
         var widths = [];
-        var charString;
-        var i, l;
-        var charStringView;
-        var op;
-        var width;
-        var w;
-        if (this.info.CharstringType == 2){
-            for (i = 0, l = this.charStrings.count; i < l; ++i){
-                // extract width from Type 2 format & add to nominalWidthX, or use default
-                // If the first item in the charString is an encoded number, it's the width stored
-                // as the difference from nominalWidthX
-                charString = new CharString(this.charStrings.objectDataAtIndex(i));
-                op = charString.next();
-                if ('number' in op){
-                    widths.push(Math.round(op.number + this.private.nominalWidthX));
-                }else{
-                    widths.push(this.private.defaultWidthX);
+        if (externalInfo.widths && externalInfo.singleByteEncoding){
+            var glyph;
+            for (var code = externalInfo.firstWidth; code < externalInfo.lastWidth; ++code){
+                glyph = map.glyphForCharacterCode(externalInfo.singleByteEncoding[code]);
+                if (glyph !== 0){
+                    widths[glyph] = externalInfo.widths[code - externalInfo.firstWidth];
+                }
+            }
+            for (i = 0, l = widths.length; i < l; ++i){
+                if (widths[i] === undefined){
+                    widths[i] = 0;
                 }
             }
         }else{
-            for (i = 0, l = this.charStrings.count; i < l; ++i){
-                // extract width from Type 1 format, or use default
-                // Should start with s w hsbsw
-                // or sx sy wx wy sbw
-                charString = new CharString(this.charStrings.objectDataAtIndex(i));
-                op = charString.next();
-                width = 0;
-                if ('number' in op){
-                    op = charString.next();
-                    if ('number' in op){
-                        w = op.number;
-                        op = charString.next();
-                        if ('number' in op){
-                            w = op.number;
-                            op = charString.next();
-                            if ('number' in op){
-                                op = charString.next();
-                                if (op.operator == 12){
-                                    op = charString.next();
-                                    if (op.operator == 7){
-                                        width = w;
-                                    }
-                                }
-                            }
-                        }else{
-                            if (op.operator == 13){
-                                width = w;
-                            }
-                        }
-                    }
+            var charString;
+            var charStringView;
+            var op;
+            var width;
+            var w;
+            if (this.info.CharstringType == 2){
+                for (i = 0, l = this.charStrings.count; i < l; ++i){
+                    charString = new CharString(this.charStrings.objectDataAtIndex(i));
+                    widths.push(charString.type2Width(externalInfo.nominalWidth || this.private.nominalWidthX, this.private.defaultWidthX));
                 }
-                widths.push(width);
+            }else{
+                for (i = 0, l = this.charStrings.count; i < l; ++i){
+                    charString = new CharString(this.charStrings.objectDataAtIndex(i));
+                    widths.push(charString.type1Width(this.private.defaultWidthX));
+                }
             }
         }
-
         otf.hhea.numberOfHMetrics = widths.length;
         otf.hmtx.setWidths(widths);
-
-        // cmap
-        var map;
-        if (this.charset){
-            var unicodeToGlyph = this.charset.getUnicodeMap();
-            map = FNTOpenTypeFontCmap12.initWithUnicodeMap(unicodeToGlyph);
-        }else{
-            map = FNTOpenTypeFontCmap12.initWithUnicodeMap([]);
-        }
-        otf.cmap.addMap(3, 10, map);
 
         // CFF
         var cff = FNTOpenTypeFontTableCFF.initWithData(this.data);
@@ -436,7 +422,91 @@ CharString.prototype = {
             this.offset += 4;
             return {number: whole + fraction};
         }
+        if (b == 28){
+            b = this.data[this.ofset++];
+            return {number: new Int16Array([(b << 8) | this.data[this.offset++]])[0]};
+        }
+        if (b == 12){
+            return {operator: 120 + this.data[this.offset++]};
+        }
         return {operator: b};
+    },
+
+    type1Width: function(defaultWidth){
+        // extract width from Type 1 format, or use default
+        // Should start with s w hsbsw
+        // or sx sy wx wy sbw
+        var stack = [];
+        var op = this.next();
+        while (op !== null){
+            if ('number' in op){
+                stack.push(op.number);
+            }else{
+                if (op.operator == 127){
+                    op = this.next();
+                    stack.pop();
+                    return stack.pop();
+                }else if (op.operator == 13){
+                    return stack.pop();
+                }else{
+                    return defaultWidth;
+                }
+            }
+            op = this.next();
+        }
+        return defaultWidth;
+    },
+
+    type2Width: function(nominalWidth, defaultWidth){
+        // extract width from Type 2 format & add to nominalWidthX, or use default
+        // w? {hs* vs* cm* hm* mt subpath}? {mt subpath}* endchar
+        // 
+        // hs = hstem or hstemhm command
+        // vs = vstem or vstemhm command
+        // cm = cntrmask operator
+        // hm = hintmask operator
+        // mt = moveto (i.e. any of the moveto) operators
+        //
+        // We need to parse up to the first operator, then see if there's
+        // an extra operand at the start of the stack, which would be the
+        // width if present.
+        var argumentCountByOperator = {
+            21: 2,
+            22: 1,
+            4: 1,
+            14: 0,
+            1: 'even',
+            3: 'even',
+            18: 'even',
+            23: 'even',
+            19: 0,
+            20: 0,
+        };
+        var stack = [];
+        var op = this.next();
+        var argc = 0;
+        while (op !== null){
+            if ('number' in op){
+                stack.push(op.number);
+            }else{
+                argc = argumentCountByOperator[op.operator];
+                if (argc === undefined){
+                    return defaultWidth;
+                }else if (argc == 'even'){
+                    if (stack.length % 2){
+                        return stack[0] + nominalWidth;
+                    }
+                    return defaultWidth;
+                }else{
+                    if (stack.length == argc + 1){
+                        return stack[0] + nominalWidth;
+                    }
+                    return defaultWidth;
+                }
+            }
+            op = this.next();
+        }
+        return defaultWidth;
     }
 };
 
@@ -517,7 +587,7 @@ CharacterSet.prototype = {
         var name;
         var code;
         var offset = this.offset + 1;
-        for (var glyph = 1, last = this.font.charStrings.count - 1; glyph < last; ++glyph, offset += 2){
+        for (var glyph = 1, last = this.font.charStrings.count - 1; glyph <= last; ++glyph, offset += 2){
             sid = this.dataView.getUint16(offset);
             name = this.font.getString(sid);
             code = FNTAdobeNamesToUnicode[name];
