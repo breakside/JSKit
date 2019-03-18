@@ -1,8 +1,7 @@
 // #import "FontKit/FontKit.js"
 // #import "PDFKit/PDFObject.js"
-// #import "PDFKit/PDFFontEncoding.js"
 // #import "PDFKit/PDFCMap.js"
-/* global JSGlobalObject, JSClass, JSLog, UUID, JSFont, JSFontDescriptor, FNTOpenTypeFont, FNTFontDescriptor, FNTType1Font, PDFStandardFontDescriptor, PDFOpenTypeFontDescriptor, JSData, PDFObject, PDFObjectProperty, PDFFont, PDFName, PDFType1Font, PDFType0Font, PDFTrueTypeFont, PDFMMType1Font, PDFType3Font, PDFCIDType0Font, PDFCIDType2Font, PDFOperationIterator, PDFCMap, PDFAdobeNamesToUnicode */
+/* global JSGlobalObject, JSClass, JSLog, UUID, JSFont, JSFontDescriptor, FNTOpenTypeFont, FNTFontDescriptor, FNTType1Font, PDFStandardFontDescriptor, PDFOpenTypeFontDescriptor, JSData, PDFObject, PDFObjectProperty, PDFFont, PDFName, PDFType1Font, PDFType0Font, PDFTrueTypeFont, PDFMMType1Font, PDFType3Font, PDFCIDType0Font, PDFCIDType2Font, PDFOperationIterator, PDFCMap, FNTAdobeNamesToUnicode */
 'use strict';
 
 (function(){
@@ -517,7 +516,7 @@ var SingleByteEncoding = function(map, diffs){
             if (typeof(codeOrName) == "number"){
                 code = codeOrName;
             }else{
-                this._map[code] = PDFAdobeNamesToUnicode[codeOrName];
+                this._map[code] = FNTAdobeNamesToUnicode[codeOrName];
                 ++code;
             }
         }
@@ -652,7 +651,7 @@ ToUnicodeCMap.prototype = {
             }else{
                 for (var code = low, j = 0; code <= high; ++code, ++j){
                     if (unicode[i] instanceof PDFName){
-                        this.codeToString[code] = PDFAdobeNamesToUnicode[unicode[i]].stringByDecodingUTF16BE();
+                        this.codeToString[code] = FNTAdobeNamesToUnicode[unicode[i]].stringByDecodingUTF16BE();
                     }else{
                         this.codeToString[code] = unicode[i].stringByDecodingUTF16BE();
                     }
@@ -675,7 +674,7 @@ ToUnicodeCMap.prototype = {
             code = integerFromData(args[a++]);
             unicode = args[a++];
             if (unicode instanceof PDFName){
-                this.codeToString[code] = PDFAdobeNamesToUnicode[unicode] || 0xfffd;
+                this.codeToString[code] = FNTAdobeNamesToUnicode[unicode] || 0xfffd;
             }else{
                 this.codeToString[code] = unicode.stringByDecodingUTF16BE();
             }
