@@ -652,8 +652,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         //
         // Disabled until we have the font cmap stuff working correctly for pdf fonts
         if (this._state.characterSpacing !== 0){
-            var glyphs = this._state.font.glyphsForString(text);
-            this.showGlyphs(glyphs);
+            this._showSpacedText(text);
             return;
         }
 
@@ -683,6 +682,28 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         if (nonIdentityMatrix){
             this.restore();
         }
+    },
+
+    _showSpacedText: function(text){
+        var tm = this._state.textMatrix;
+        var width;
+        var font = this._state.font;
+        this.save();
+        this.setLineWidth(this.canvasContext.lineWidth / Math.abs(tm.d));
+        this.concatenate(tm);
+        var iterator = text.unicodeIterator();
+        while (iterator.character !== null){
+            if (this._state.textDrawingMode == JSContext.TextDrawingMode.fill || this._state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+                this.canvasContext.fillText(iterator.character.utf16, 0, 0);
+            }
+            if (this._state.textDrawingMode == JSContext.TextDrawingMode.stroke || this._state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+                this.canvasContext.strokeText(iterator.character.utf16, 0, 0);
+            }
+            width = font.widthOfCharacter(iterator.character) + this._state.characterSpacing;
+            this.translateBy(width, 0);
+            iterator.increment();
+        }
+        this.restore();
     },
 
     // ----------------------------------------------------------------------
