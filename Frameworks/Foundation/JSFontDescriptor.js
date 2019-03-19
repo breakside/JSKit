@@ -59,6 +59,11 @@ JSClass("JSFontDescriptor", JSObject, {
         return 0;
     },
 
+    widthOfCharacter: function(character){
+        var glyph = this.glyphForCharacter(character);
+        return this.widthOfGlyph(glyph);
+    },
+
     getData: function(completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);

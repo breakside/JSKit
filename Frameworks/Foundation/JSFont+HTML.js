@@ -11,13 +11,7 @@ JSFont.definePropertiesFromExtensions({
         if (lineHeight === undefined){
             lineHeight = this.displayLineHeight;
         }
-        return '%d %s %fpx/%fpx "%s"'.sprintf(
-            this._descriptor._weight,
-            this._descriptor._style,
-            this._pointSize,
-            lineHeight,
-            this._descriptor._family
-        );
+        return this._descriptor.cssString(this._pointSize, lineHeight);
     }
 
 });

@@ -150,18 +150,22 @@ JSClass("JSFont", JSObject, {
         return this._descriptor.stringForGlyphs(glyphs);
     },
 
+    widthOfGlyph: function(glyphIndex){
+        return this._descriptor.widthOfGlyph(glyphIndex) * this.pointSize;
+    },
+
+    widthOfCharacter: function(character){
+        return this._descriptor.widthOfCharacter(character) * this.pointSize;
+    },
+
     widthOfString: function(str){
         var iterator = str.unicodeIterator();
         var width = 0;
         while (iterator.index < str.length){
-            width += this.widthOfGlyph(this.glyphForCharacter(iterator.character));
+            width += this.widthOfCharacter(iterator.character);
             iterator.increment();
         }
         return width;
-    },
-
-    widthOfGlyph: function(glyphIndex){
-        return this._descriptor.widthOfGlyph(glyphIndex) * this.pointSize;
     }
 
 });

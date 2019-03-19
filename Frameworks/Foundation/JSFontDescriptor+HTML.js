@@ -10,6 +10,16 @@ JSFontDescriptor.definePropertiesFromExtensions({
         return null;
     },
 
+    cssString: function(pointSize, lineHeight){
+        return '%d %s %fpx/%fpx "%s"'.sprintf(
+            this._weight,
+            this._style,
+            pointSize,
+            lineHeight,
+            this._family
+        );
+    },
+
     htmlFontFace: function(){
         var url = this.htmlURLString();
         if (url){
