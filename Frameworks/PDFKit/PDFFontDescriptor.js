@@ -1,6 +1,6 @@
 // #import "PDFKit/PDFObject.js"
 // #import "FontKit/FontKit.js"
-/* global JSGlobalObject, JSCopy, PDFObject, PDFObjectProperty, PDFFontDescriptor, PDFName, PDFType1Font, PDFTrueTypeFont, FNTType1Font, FNTCompactFontFormat */
+/* global JSGlobalObject, JSCopy, PDFObject, PDFObjectProperty, PDFFontDescriptor, PDFName, PDFType1Font, PDFTrueTypeFont, FNTType1Font, FNTOpenTypeFont, FNTCompactFontFormat */
 'use strict';
 
 JSGlobalObject.PDFFontDescriptor = function(){
@@ -33,35 +33,83 @@ JSGlobalObject.PDFFontDescriptor.prototype = Object.create(PDFObject.prototype, 
     FontFile3:      PDFObjectProperty,
     CharSet:        PDFObjectProperty,
 
-    getOpenTypeData: {
-        value: function PDFFontDescriptor_getOpenTypeData(info, completion, target){
+    embeddedType1Font: {
+        value: null,
+        writable: true
+    },
+
+    embeddedCompactFont: {
+        value: null,
+        writable: true,
+    },
+
+    embeddedTrueTypeFont: {
+        value: null,
+        writable: true
+    },
+
+    embeddedOpenTypeFont: {
+        value: null,
+        writable: true
+    },
+
+    load: {
+        value: function PDFFontDescriptor_load(completion, target){
             if (this.FontFile){
                 if (this.Subtype == "Type1" || this.Subtype == "MMType1"){
                     this.FontFile.getData(function(type1){
-                        var type1Font = FNTType1Font.initWithData(type1);
-                        type1Font.getOpenTypeData(completion, target);
+                        this.embeddedType1Font = FNTType1Font.initWithData(type1);
+                        completion.call(target);
                     }, this);
                 }else{
                     completion.call(target, null);
                 }
             }if (this.FontFile2){
-                this.FontFile2.getData(completion, target);
+                this.FontFile2.getData(function(ttf){
+                    this.embeddedTrueTypeFont = FNTOpenTypeFont.initWithData(ttf);
+                    completion.call(target, null);
+                }, this);
             }else if (this.FontFile3){
                 if (this.FontFile3.Subtype == "OpenType"){
-                    this.FontFile3.getData(completion, target);
+                    this.FontFile3.getData(function(otf){
+                        this.embeddedOpenTypeFont = FNTOpenTypeFont.initWithData(otf);
+                        completion.call(target, null);
+                    }, this);
                 }else if (this.FontFile3.Subtype == "Type1C" || this.FontFile3.Subtype == "CIDFontType0C"){
-                    info = JSCopy(info);
-                    info.ascender = this.Ascent;
-                    info.descender = this.Descent;
-                    info.bbox = this.FontBBox;
-                    info.nominalWidth = this.AvgWidth || 0;
                     this.FontFile3.getData(function(ccf){
-                        var compactFont = FNTCompactFontFormat.initWithData(ccf);
-                        compactFont.getOpenTypeData(info, completion, target);
+                        this.embeddedCompactFont = FNTCompactFontFormat.initWithData(ccf);
+                        completion.call(target, null);
                     }, this);
                 }else{
                     completion.call(target, null);
                 }
+            }else{
+                completion.call(target, null);
+            }
+        }
+    },
+
+    getOpenTypeFont: {
+        value: function PDFFontDescriptor_getOpenTypeFont(info, completion, target){
+            if (this.embeddedOpenTypeFont){
+                this.embeddedOpenTypeFont.getCorrectedFont(completion, target);
+            }else if (this.embeddedTrueTypeFont){
+                this.embeddedTrueTypeFont.getCorrectedFont(completion, target);
+            }else if (this.embeddedCompactFont){
+                info = JSCopy(info);
+                info.ascender = this.Ascent;
+                info.descender = this.Descent;
+                info.bbox = this.FontBBox;
+                info.nominalWidth = this.AvgWidth || 0;
+                this.embeddedCompactFont.getOpenTypeData(info, function(data){
+                    var font = FNTOpenTypeFont.initWithData(data);
+                    completion.call(target, font);
+                });
+            }else if (this.embeddedType1Font){
+                this.embeddedType1Font.getOpenTypeData(function(data){
+                    var font = FNTOpenTypeFont.initWithData(data);
+                    completion.call(target, font);
+                });
             }else{
                 completion.call(target, null);
             }

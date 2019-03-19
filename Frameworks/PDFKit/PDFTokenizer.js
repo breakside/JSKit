@@ -359,11 +359,15 @@ JSClass("PDFTokenizer", JSObject, {
                 if (this.allowsIndirectObjects){
                     // might be an indirect reference, so we'll read ahead to see
                     // if another integer and an R follows.  If not, we need to back up.
-                    try{
-                        var token2 = this.readMeaningfulToken(Token.integer);
-                        this.readMeaningfulToken(Token.indirect);
-                        return PDFIndirectObject(token.pdfObject, token2.pdfObject);
-                    }catch (e){
+                    var token2 = this.readMeaningfulToken();
+                    if (token2 == Token.integer){
+                        var token3 = this.readMeaningfulToken();
+                        if (token3 == Token.indirect){
+                            return PDFIndirectObject(token.pdfObject, token2.pdfObject);
+                        }else{
+                            this.stream.seek(offset);
+                        }
+                    }else{
                         this.stream.seek(offset);
                     }
                 }

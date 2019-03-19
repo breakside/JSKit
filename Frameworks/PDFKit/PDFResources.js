@@ -125,6 +125,18 @@ JSGlobalObject.PDFResources.prototype = Object.create(PDFObject.prototype, {
             var handleLoad = function PDFResources_load_handleLoad(){
                 --remaining;
                 if (remaining === 0){
+                    if (this.XObject){
+                        // Some Form XObjects in early version of pdf don't have their own resources,
+                        // and instead use the page's resources.  We'll fill in the gaps after everything
+                        // is loaded.
+                        var xobj;
+                        for (var name in this.XObject){
+                            xobj = this.XObject[name];
+                            if (xobj.Subtype == "Form" && xobj.drawing && !xobj.drawing.resources){
+                                xobj.drawing.resources = this;
+                            }
+                        }
+                    }
                     completion.call(target);
                 }
             };
