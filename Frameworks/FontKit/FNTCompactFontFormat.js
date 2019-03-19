@@ -1,7 +1,7 @@
 // #import "Foundation/Foundation.js"
 // #import "FontKit/FNTOpenTypeConstructor.js"
 // #import "FontKit/FNTAdobeNames.js"
-/* global Int16Array, Int32Array, JSClass, JSDeepCopy, JSObject, JSRange, FNTOpenTypeConstructor, FNTOpenTypeFontTableCFF, FNTOpenTypeFontCmap12, FNTAdobeNamesToUnicode */
+/* global Int16Array, Int32Array, JSClass, JSCopy, JSDeepCopy, JSObject, JSRange, FNTOpenTypeConstructor, FNTOpenTypeFontTableCFF, FNTOpenTypeFontCmap12, FNTAdobeNamesToUnicode */
 'use strict';
 
 (function(){
@@ -53,9 +53,6 @@ JSClass("FNTCompactFontFormat", JSObject, {
         }else{
             this.private = privateDefaults;
         }
-        if (this.info.Encoding){
-            this.encoding = new CFFIndex(this.dataView, this.info.Encoding);
-        }
         if (this.info.CharStrings){
             this.charStrings = new CFFIndex(this.dataView, this.info.CharStrings);
         }
@@ -68,6 +65,13 @@ JSClass("FNTCompactFontFormat", JSObject, {
                 // TODO: use Expert
             }else if (this.info.charset == 2){
                 // TODO: use ExpertSubset
+            }
+        }
+        if (this.info.Encoding){
+            this.encoding = new CFFIndex(this.dataView, this.info.Encoding);
+        }else{
+            if (this.info.Encoding === 0){
+                this.encoding = new PredefinedEncoding(PredefinedEncoding.StandardEncoding);
             }
         }
     },
@@ -216,22 +220,42 @@ JSClass("FNTCompactFontFormat", JSObject, {
 
         // cmap
         var map;
-        var unicodeToGlyph;
+        var unicodeGlyphPairs;
         if (this.charset){
-            unicodeToGlyph = this.charset.getUnicodeMap();
+            unicodeGlyphPairs = this.charset.getUnicodeGlyphPairs();
         }else{
-            unicodeToGlyph = [];
+            unicodeGlyphPairs = [];
         }
-        map = FNTOpenTypeFontCmap12.initWithUnicodeMap(unicodeToGlyph);
+        map = FNTOpenTypeFontCmap12.initWithUnicodeGlyphPairs(unicodeGlyphPairs);
         otf.cmap.addMap(3, 10, map);
 
         // widths
         // TODO: left side bearing?
         var widths = [];
-        if (externalInfo.widths && externalInfo.singleByteEncoding){
+        var encoding = externalInfo.singleByteEncoding;
+        var code;
+        if (!encoding && this.encoding){
+            encoding = this.encoding.getByteMap();
+        }
+        if (encoding){
+            if (externalInfo.diffs){
+                encoding = JSCopy(encoding);
+                var codeOrName;
+                for (i = 0, l = externalInfo.diffs.length; i < l; ++i){
+                    codeOrName = externalInfo.diffs[i];
+                    if (typeof(codeOrName) == "number"){
+                        code = codeOrName;
+                    }else{
+                        encoding[code] = FNTAdobeNamesToUnicode[codeOrName];
+                        ++code;
+                    }
+                }
+            }
+        }
+        if (externalInfo.widths && encoding){
             var glyph;
-            for (var code = externalInfo.firstWidth; code < externalInfo.lastWidth; ++code){
-                glyph = map.glyphForCharacterCode(externalInfo.singleByteEncoding[code]);
+            for (code = externalInfo.firstWidth; code < externalInfo.lastWidth; ++code){
+                glyph = map.glyphForCharacterCode(encoding[code]);
                 if (glyph !== 0){
                     widths[glyph] = externalInfo.widths[code - externalInfo.firstWidth];
                 }
@@ -566,13 +590,13 @@ var CharacterSet = function(dataView, offset, font){
     this.font = font;
     switch (this.format){
         case 0:
-            this.getUnicodeMap = this.getUnicodeMap0;
+            this.getUnicodeGlyphPairs = this.getUnicodeGlyphPairs0;
             break;
         case 1:
-            this.getUnicodeMap = this.getUnicodeMap1;
+            this.getUnicodeGlyphPairs = this.getUnicodeGlyphPairs1;
             break;
         case 2:
-            this.getUnicodeMap = this.getUnicodeMap2;
+            this.getUnicodeGlyphPairs = this.getUnicodeGlyphPairs2;
             break;
         default:
             throw new Error("Invalid charset format: %d".sprintf(this.format));
@@ -581,7 +605,7 @@ var CharacterSet = function(dataView, offset, font){
 
 CharacterSet.prototype = {
 
-    getUnicodeMap0: function(){
+    getUnicodeGlyphPairs0: function(){
         var sid;
         var map = [];
         var name;
@@ -598,7 +622,7 @@ CharacterSet.prototype = {
         return map;
     },
 
-    getUnicodeMap1: function(){
+    getUnicodeGlyphPairs1: function(){
         var offset = this.offset + 1;
         var glyph = 1;
         var map = [];
@@ -626,7 +650,7 @@ CharacterSet.prototype = {
         return map;
     },
 
-    getUnicodeMap2: function(){
+    getUnicodeGlyphPairs2: function(){
         // just like format 1 except remaining is a unit16 instead of unit8
         var offset = this.offset + 1;
         var glyph = 1;
@@ -653,9 +677,112 @@ CharacterSet.prototype = {
             offset += 4;
         }while (glyph < this.font.charStrings.count);
         return map;
+    },
+
+    getGlyphToUnicodeMap: function(){
+        var pairs = this.getUnicodeGlyphPairs();
+        var map = [];
+        for (var i = 0, l = pairs.length; i < l; ++i){
+            map[pairs[1]] = map.pairs[0];
+        }
+        return map;
     }
 
 };
+
+var Encoding = function(dataView, offset, font){
+    if (this === undefined){
+        return new Encoding(dataView, offset, font);
+    }
+    this.dataView = dataView;
+    this.offset = offset;
+    this.format = dataView.getUint8(offset);
+    this.hasSupplements = this.format & 0x80;
+    if (this.hasSupplements){
+        this.format = this.format & 0x7F;
+    }
+    // TODO: support supplemental encodings
+    this.font = font;
+    switch (this.format){
+        case 0:
+            this.getByteMap = this.getByteMap0;
+            break;
+        case 1:
+            this.getByteMap = this.getByteMap1;
+            break;
+        default:
+            throw new Error("Invalid encoding format: %d".sprintf(this.format));
+    }
+};
+
+Encoding.prototype = {
+
+    getByteMap0: function(){
+        var count = this.dataView.getUint8(this.offset + 1);
+        var map = [];
+        var i, l;
+        for (i = 0; i < 256; ++i){
+            map[i] = 0xfffd;
+        }
+        if (this.font.charset){
+            var glyphMap = this.charset.getGlyphToUnicodeMap();
+            var code;
+            var unicode;
+            for (var glyph = 0; glyph < count; ++glyph){
+                code = this.dataView.getUint8(this.offset + 1 + glyph);
+                unicode = glyphMap[glyph];
+                if (unicode !== undefined){
+                    map[code] = unicode;
+                }
+            }
+        }
+        return map;
+    },
+
+    getByteMap1: function(){
+        var count = this.dataView.getUint8(this.offset + 1);
+        var first;
+        var left;
+        var offset = this.offset + 2;
+        var map = [];
+        var i, l;
+        var unicode;
+        for (i = 0; i < 256; ++i){
+            map[i] = 0xfffd;
+        }
+        if (this.charset){
+            var glyphMap = this.charset.getGlyphToUnicodeMap();
+            var glyph = 0;
+            for (i = 0; i < count; ++i){
+                first = this.dataView.getUint8(offset++);
+                left = this.dataView.getUint8(offset++);
+                for (var code = first; code <= first + left; ++code, ++glyph){
+                    unicode = glyphMap[glyph];
+                    if (unicode !== undefined){
+                        map[code] = unicode;
+                    }
+                }
+            }
+        }
+        return map;
+    }
+
+};
+
+var PredefinedEncoding = function(map){
+    if (this === undefined){
+        return new PredefinedEncoding(map);
+    }
+    this.map = map;
+};
+
+PredefinedEncoding.prototype = {
+    getByteMap: function(){
+        return this.map;
+    }
+};
+
+PredefinedEncoding.StandardEncoding = [0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27,0x28,0x29,0x2a,0x2b,0x2c,0x2d,0x2e,0x2f,0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x3a,0x3b,0x3c,0x3d,0x3e,0x3f,0x40,0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4a,0x4b,0x4c,0x4d,0x4e,0x4f,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5a,0x5b,0x5c,0x5d,0x5e,0x5f,0x60,0x61,0x62,0x63,0x64,0x65,0x66,0x67,0x68,0x69,0x6a,0x6b,0x6c,0x6d,0x6e,0x6f,0x70,0x71,0x72,0x73,0x74,0x75,0x76,0x77,0x78,0x79,0x7a,0x7b,0x7c,0x7d,0x7e,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0x00a1,0x00a2,0x00a3,0x2044,0x00a5,0x0192,0x00a7,0x00a4,0x0027,0x201c,0x00ab,0x2039,0x203a,0xfb01,0xfb02,0xfffd,0x2013,0x2020,0x2021,0x00b7,0xfffd,0x00b6,0x2022,0x201a,0x201e,0x201d,0x00bb,0x2026,0x2030,0xfffd,0x00bf,0xfffd,0x0060,0x00b4,0x02c6,0x02dc,0x00af,0x02d8,0x02d9,0x00a8,0xfffd,0x02da,0x00b8,0xfffd,0x02dd,0x02db,0x02c7,0x2014,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0x00c6,0xfffd,0x00aa,0xfffd,0xfffd,0xfffd,0xfffd,0x0141,0x00d8,0x0152,0x00ba,0xfffd,0xfffd,0xfffd,0xfffd,0xfffd,0x00e6,0xfffd,0xfffd,0xfffd,0x0131,0xfffd,0xfffd,0x0142,0x00f8,0x0153,0x00df,0xfffd,0xfffd,0xfffd,0xfffd];
 
 var getInt = [
     null,

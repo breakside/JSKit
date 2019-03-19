@@ -291,12 +291,12 @@ JSClass("FNTOpenTypeFont", JSObject, {
                     // (WRONG) Just assume that char code == glyph??
                     // (WRONG) Assume standard encoding and ingore most of the glyphs??
                     // Use mapping from pdf somehow??
-                    map = FNTOpenTypeFontCmap12.initWithUnicodeMap([[32, 1], [33, 2], [34, 3], [35, 4], [36, 5], [37, 6], [38, 7], [39, 8], [40, 9], [41, 10], [42, 11], [43, 12], [44, 13], [45, 14], [46, 15], [47, 16], [48, 17], [49, 18], [50, 19], [51, 20], [51, 21], [53, 22], [54, 23], [55, 24], [56, 25], [57, 26], [58, 27], [59, 28], [60, 29], [61, 30], [62, 31], [63, 32], [64, 33], [65, 34], [66, 35], [67, 36], [68, 37], [69, 38], [70, 39], [71, 40], [72, 41], [73, 42], [74, 43], [75, 44], [76, 45], [77, 46], [78, 47], [79, 48], [80, 49], [81, 50], [82, 51], [83, 52], [84, 53], [85, 54], [86, 55], [87, 56], [88, 57], [89, 58], [90, 59], [91, 60], [92, 61], [93, 62], [94, 63], [96, 64], [97, 65], [98, 66], [99, 67], [100, 68], [101, 69], [102, 70], [103, 71], [104, 72], [105, 73], [106, 74], [107, 75], [108, 76], [109, 77], [110, 78], [111, 79], [112, 80], [113, 81], [114, 82], [115, 83], [116, 84], [117, 85], [118, 86], [119, 87], [120, 88], [121, 89], [122, 90], [123, 91], [124, 92], [125, 93], [126, 94], [137, 95], [161, 96], [162, 97], [163, 98], [164, 99], [165, 100], [166, 101], [167, 102], [168, 103], [169, 104], [170, 105], [171, 106], [172, 107], [173, 108], [174, 109], [175, 110], [177, 111], [178, 112], [179, 113], [180, 114], [182, 115], [183, 116], [184, 117], [185, 118], [186, 119], [187, 120], [188, 121], [189, 122], [191, 123], [193, 124], [194, 125], [195, 126], [196, 127], [197, 128], [198, 129], [199, 130], [200, 131], [202, 132], [203, 133], [205, 134], [206, 135], [207, 136], [208, 137], [225, 138], [227, 139], [232, 140], [233, 141], [234, 142], [235, 143], [241, 144], [245, 145], [248, 146], [249, 147], [250, 148], [251, 149]]);
+                    map = FNTOpenTypeFontCmap12.initWithUnicodeGlyphPairs([[32, 1], [33, 2], [34, 3], [35, 4], [36, 5], [37, 6], [38, 7], [39, 8], [40, 9], [41, 10], [42, 11], [43, 12], [44, 13], [45, 14], [46, 15], [47, 16], [48, 17], [49, 18], [50, 19], [51, 20], [51, 21], [53, 22], [54, 23], [55, 24], [56, 25], [57, 26], [58, 27], [59, 28], [60, 29], [61, 30], [62, 31], [63, 32], [64, 33], [65, 34], [66, 35], [67, 36], [68, 37], [69, 38], [70, 39], [71, 40], [72, 41], [73, 42], [74, 43], [75, 44], [76, 45], [77, 46], [78, 47], [79, 48], [80, 49], [81, 50], [82, 51], [83, 52], [84, 53], [85, 54], [86, 55], [87, 56], [88, 57], [89, 58], [90, 59], [91, 60], [92, 61], [93, 62], [94, 63], [96, 64], [97, 65], [98, 66], [99, 67], [100, 68], [101, 69], [102, 70], [103, 71], [104, 72], [105, 73], [106, 74], [107, 75], [108, 76], [109, 77], [110, 78], [111, 79], [112, 80], [113, 81], [114, 82], [115, 83], [116, 84], [117, 85], [118, 86], [119, 87], [120, 88], [121, 89], [122, 90], [123, 91], [124, 92], [125, 93], [126, 94], [137, 95], [161, 96], [162, 97], [163, 98], [164, 99], [165, 100], [166, 101], [167, 102], [168, 103], [169, 104], [170, 105], [171, 106], [172, 107], [173, 108], [174, 109], [175, 110], [177, 111], [178, 112], [179, 113], [180, 114], [182, 115], [183, 116], [184, 117], [185, 118], [186, 119], [187, 120], [188, 121], [189, 122], [191, 123], [193, 124], [194, 125], [195, 126], [196, 127], [197, 128], [198, 129], [199, 130], [200, 131], [202, 132], [203, 133], [205, 134], [206, 135], [207, 136], [208, 137], [225, 138], [227, 139], [232, 140], [233, 141], [234, 142], [235, 143], [241, 144], [245, 145], [248, 146], [249, 147], [250, 148], [251, 149]]);
                 }else{
                     // FIXME: no assurance we have a 1,0 mac roman map
                     var macRomanMap = this.tables.cmap.getMap([1, 0]);
                     var unicodeMap = UnicodeConvertingCmap(UnicodeToMacRoman, macRomanMap);
-                    map = FNTOpenTypeFontCmap12.initWithUnicodeMap(unicodeMap.unicodeToGlyphMap());
+                    map = FNTOpenTypeFontCmap12.initWithUnicodeGlyphPairs(unicodeMap.getUnicodeGlyphPairs());
                 }
                 cmap.addMap(3, 10, map);
             }
@@ -921,15 +921,15 @@ UnicodeConvertingCmap.prototype = {
         return this.map.glyphForCharacterCode(code);
     },
 
-    unicodeToGlyphMap: function(){
-        var map = [];
+    getUnicodeGlyphPairs: function(){
+        var pairs = [];
         for (var i = 0; i < 128; ++i){
-            map.push([i, this.map.glyphForCharacterCode(i)]);
+            pairs.push([i, this.map.glyphForCharacterCode(i)]);
         }
         for (var code in this.unicodeMap){
-            map.push([parseInt(code), this.map.glyphForCharacterCode(this.unicodeMap[code])]);
+            pairs.push([parseInt(code), this.map.glyphForCharacterCode(this.unicodeMap[code])]);
         }
-        return map;
+        return pairs;
     }
 
 };
@@ -1154,10 +1154,10 @@ JSClass("FNTOpenTypeFontCmap4", FNTOpenTypeFontCmap, {
     idDeltaOffset: 0,
     idRangeOffset: 0,
 
-    initWithUnicodeMap: function(map){
+    initWithUnicodeGlyphPairs: function(pairs){
         var i, l;
         var ranges = [];
-        map.sort(function(a, b){
+        pairs.sort(function(a, b){
             return a[0] - b[0];
         });
         var lastCode = -2;
@@ -1165,9 +1165,9 @@ JSClass("FNTOpenTypeFontCmap4", FNTOpenTypeFontCmap, {
         var range;
         var code, glyph;
         var delta;
-        for (i = 0, l = map.length; i < l; ++i){
-            code = map[i][0];
-            glyph = map[i][1];
+        for (i = 0, l = pairs.length; i < l; ++i){
+            code = pairs[i][0];
+            glyph = pairs[i][1];
             if (code <= 0xFFFF && glyph !== 0){
                 if (code == lastCode + 1 && glyph == lastGlyph + 1){
                     range.glyphs.push(glyph);
@@ -1334,10 +1334,10 @@ JSClass("FNTOpenTypeFontCmap12", FNTOpenTypeFontCmap, {
 
     groups: null,
 
-    initWithUnicodeMap: function(map){
+    initWithUnicodeGlyphPairs: function(pairs){
         var i, l;
         var ranges = [];
-        map.sort(function(a, b){
+        pairs.sort(function(a, b){
             return a[0] - b[0];
         });
         var lastCode = -2;
@@ -1345,9 +1345,9 @@ JSClass("FNTOpenTypeFontCmap12", FNTOpenTypeFontCmap, {
         var range;
         var code, glyph;
         var delta;
-        for (i = 0, l = map.length; i < l; ++i){
-            code = map[i][0];
-            glyph = map[i][1];
+        for (i = 0, l = pairs.length; i < l; ++i){
+            code = pairs[i][0];
+            glyph = pairs[i][1];
             if (glyph !== 0){
                 if (code == lastCode + 1 && glyph == lastGlyph + 1){
                     range.end++;

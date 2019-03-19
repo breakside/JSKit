@@ -88,8 +88,8 @@ JSClass("FNTCompactFontFormatTests", TKTestSuite, {
                 TKAssertEquals(glyph, 4);
                 glyph = font.glyphForCharacter(UnicodeChar(8219));
                 TKAssertEquals(glyph, 5);
-                glyph = font.glyphForCharacter(UnicodeChar(44));
-                TKAssertEquals(glyph, 6);
+                glyph = font.glyphForCharacter(UnicodeChar(8212));
+                TKAssertEquals(glyph, 74);
                 TKAssert(false, "width checks not written");
             });
         });
