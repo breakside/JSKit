@@ -233,8 +233,8 @@ JSGlobalObject.PDFImage.prototype = Object.create(PDFXObject.prototype, {
 
     _wrapJPEG2000Data: {
         value: function PDFImage_wrapJPEG2000Data(data, colorSpace, completion, target){
-            logger.warn("JPEG2000 format not supported");
-            completion.call(target, null);
+            logger.warn("JPEG2000 format not supported in most browsers");
+            completion.call(target, data);
         }
     },
 
