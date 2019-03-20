@@ -60,8 +60,14 @@ JSGlobalObject.PDFImage.prototype = Object.create(PDFXObject.prototype, {
             var wrapper = this._wrapBitmapData;
             var colorSpace = this.ImageMask ? PDFColorSpace.deviceGray : PDFColorSpace(this.ColorSpace);
             if (filters.length > 0){
-                if (final.name == "DCTDecode"){
+                if (final.name == "DCTDecode" && !this.SMask && (!final.params || !final.params.ColorTransform) && !this.Decode){
                     // Rather than decoding and re-encoding a jpeg, just wrap the DCT encoded data
+                    // - image must not have an SMask (alpha channel)
+                    // - data must not use Decode arrays
+                    // - filter must not use a ColorTransform
+
+                    // TODO: inspect data for APP14 Adobe marker with inverted colors flag
+                    // If so, we need to decode ourselves
                     filters.pop();
                     wrapper = this._wrapJPEGData;
                 }else if (final.name == "JPXDecode"){
@@ -221,8 +227,7 @@ JSGlobalObject.PDFImage.prototype = Object.create(PDFXObject.prototype, {
 
     _wrapJPEGData: {
         value: function PDFImage_wrapJPEGData(data, colorSpace, completion, target){
-            logger.warn("JPEG format not supported");
-            completion.call(target, null);
+            completion.call(target, data);
         }
     },
 
