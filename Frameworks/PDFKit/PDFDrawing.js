@@ -433,11 +433,13 @@ var contextOperationHandler = {
         //     // TODO: word spacing with Type0 fonts
         // }
         var text = pdfFont.fontCompatibleStringFromData(data);
-        var textMatrix = this.stack.state.textTransform.scaledBy(this.stack.state.textHorizontalScaling, -1);
-        this.context.setTextMatrix(textMatrix);
-        this.context.showText(text);
-        if (this.stack.state.textRenderingMode >= PDFGraphicsState.TextRenderingMode.fillAddPath && this.stack.state.textRenderingMode <= PDFGraphicsState.TextRenderingMode.addPath){
-            // TODO: add glyphs to clipping path
+        if (text !== null){
+            var textMatrix = this.stack.state.textTransform.scaledBy(this.stack.state.textHorizontalScaling, -1);
+            this.context.setTextMatrix(textMatrix);
+            this.context.showText(text);
+            if (this.stack.state.textRenderingMode >= PDFGraphicsState.TextRenderingMode.fillAddPath && this.stack.state.textRenderingMode <= PDFGraphicsState.TextRenderingMode.addPath){
+                // TODO: add glyphs to clipping path
+            }
         }
     },
 

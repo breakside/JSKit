@@ -234,8 +234,25 @@ var SimpleFontPrototype = Object.create(PDFFont.prototype, {
                             }
                         }else if (this.FontDescriptor.embeddedTrueTypeFont){
                             // If an embedded true type font does not have a specified Encoding,
-                            // it's unclear which encoding we're supposed fallback to.
-                            map = SingleByteEncoding.StandardEncoding;
+                            // we're supposed to look for particular cmaps, but it's not entirely
+                            // clear what do do with them.
+                            var unicode = this.FontDescriptor.embeddedTrueTypeFont.tables.cmap.getMap([3, 1]);
+                            if (unicode){
+                                // ok, we have a unicode cmap, but what does that say about the
+                                // PDF's encoding?
+                                map = SingleByteEncoding.StandardEncoding;
+                            }else{
+                                var macRoman = this.FontDescriptor.embeddedTrueTypeFont.tables.cmap.getMap([1, 0]);
+                                if (macRoman){
+                                    // If we don't have a unicode cmap, but do have a mac cmap,
+                                    // assume MacOS encoding, which is a little different from
+                                    // PDF's MacRoman encoding
+                                    map = SingleByteEncoding.MacOSEncoding;
+                                }else{
+                                    // And if we don't have a mac cmap, well, ???
+                                    map = SingleByteEncoding.StandardEncoding;
+                                }
+                            }
                         }else if (this.FontDescriptor.embeddedOpenTypeFont){
                             // If an embedded open type font does not have a specified Encoding,
                             // it's unclear which encoding we're supposed fallback to.
