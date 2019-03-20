@@ -60,13 +60,13 @@ IKBitmap.FormatOfData = function(data){
             data[6] == 0x1A &&
             data[7] == 0x0A)
         {
+            return IKBitmap.Format.png;
             // Verifying "IHDR" signature
-            if (data[12] == 0x49 && data[13] == 0x48 && data[14] == 0x44 && data[15] == 0x52){
-                return IKBitmap.Format.png;
-                // Invalid PNG
-            }
+            // if (data[12] == 0x49 && data[13] == 0x48 && data[14] == 0x44 && data[15] == 0x52){
+            // }
         }
-    }else if (data.length >= 2){
+    }
+    if (data.length >= 2){
         // JPEG magic bytes
         if (data[0] == 0xFF && data[1] == 0xD8){
             return IKBitmap.Format.jpeg;
