@@ -298,6 +298,7 @@ JSGlobalObject.FNTAdobeNamesToUnicode = {
     "ffi": 0xfb03,
     "ffl": 0xfb04,
     "fi": 0xfb01,
+    "f_i": 0xfb01, /* not in glyphlist.txt, but seen in CFF files */
     "figuredash": 0x2012,
     "five": 0x0035,
     "fiveeighths": 0x215d,
@@ -305,6 +306,7 @@ JSGlobalObject.FNTAdobeNamesToUnicode = {
     "fiveoldstyle": 0xf735,
     "fivesuperior": 0x2075,
     "fl": 0xfb02,
+    "f_l": 0xfb02, /* not in glyphlist.txt, but seen in CFF files */
     "florin": 0x0192,
     "four": 0x0034,
     "fourinferior": 0x2084,

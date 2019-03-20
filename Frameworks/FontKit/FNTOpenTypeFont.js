@@ -635,6 +635,7 @@ JSClass("FNTOpenTypeFontTableHhea", FNTOpenTypeFontTable, {
 
 JSClass("FNTOpenTypeFontTableHmtx", FNTOpenTypeFontTable, {
     tag: 'hmtx',
+    widthCount: 0,
 
     init: function(){
         FNTOpenTypeFontTableHmtx.$super.initWithDataLength.call(this, 0);
@@ -661,6 +662,7 @@ JSClass("FNTOpenTypeFontTableHmtx", FNTOpenTypeFontTable, {
         for (var i = 0, l = widths.length; i < l; ++i, offset += 4){
             this.dataView.setUint16(offset, widths[i]);
         }
+        this.widthCount = widths.length;
     }
 });
 
