@@ -57,7 +57,16 @@ JSClass("PDFDrawing", JSObject, {
                 stack: stack,
                 resources: this.resources,
                 font: null,
-                fontStack: []
+                fontStack: [],
+                clipOnNextPaint: false,
+                clipFillRule: JSContext.FillRule.winding,
+                clipIfNeeded: function(){
+                    if (!this.clipOnNextPaint){
+                        return;
+                    }
+                    this.clipOnNextPaint = false;
+                    this.context.clip(this.clipFillRule);
+                }
             };
             var operation = this.operationIterator.next();
             while (operation !== null){
@@ -219,53 +228,64 @@ var contextOperationHandler = {
         this.context.addRect(rect);
     },
 
-    n: function(){
-        this.context.beginPath();
-    },
-
     W: function(){
-        this.context.clip(JSContext.FillRule.winding);
+        this.clipOnNextPaint = true;
+        this.clipFillRule = JSContext.FillRule.winding;
     },
 
     'W*': function(){
-        this.context.clip(JSContext.FillRule.evenOdd);
+        this.clipOnNextPaint = true;
+        this.clipFillRule = JSContext.FillRule.evenOdd;
     },
 
     // MARK: - Path Painting
 
     S: function(){
         this.context.strokePath();
+        this.clipIfNeeded();
     },
 
     s: function(){
         this.context.closePath();
+        this.clipIfNeeded();
         this.context.strokePath();
     },
 
     f: function(){
+        this.clipIfNeeded();
         this.context.fillPath(JSContext.FillRule.winding);
     },
 
     'f*': function(){
+        this.clipIfNeeded();
         this.context.fillPath(JSContext.FillRule.evenOdd);
     },
 
     B: function(){
+        this.clipIfNeeded();
         this.context.drawPath(JSContext.DrawingMode.fillStroke);
     },
 
     'B*': function(){
+        this.clipIfNeeded();
         this.context.drawPath(JSContext.DrawingMode.evenOddFillStroke);
     },
 
     b: function(){
         this.context.closePath();
+        this.clipIfNeeded();
         this.context.drawPath(JSContext.DrawingMode.fillStroke);
     },
 
     'b*': function(){
         this.context.closePath();
+        this.clipIfNeeded();
         this.context.drawPath(JSContext.DrawingMode.evenOddFillStroke);
+    },
+
+    n: function(){
+        this.clipIfNeeded();
+        this.context.beginPath();
     },
 
     // MARK: - Colors
