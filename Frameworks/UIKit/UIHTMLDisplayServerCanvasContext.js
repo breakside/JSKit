@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIHTMLDisplayServerContext.js"
-/* global JSClass, JSContext, JSColor, JSAffineTransform, UIHTMLDisplayServerContext, JSRect, JSObject, UILayer, UIHTMLDisplayServerCanvasContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
+/* global JSClass, JSContext, JSColor, JSCopy, JSAffineTransform, UIHTMLDisplayServerContext, JSRect, JSObject, UILayer, UIHTMLDisplayServerCanvasContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
 'use strict';
 
 (function(){
@@ -31,8 +31,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this._canvasElements = [];
         this._externalElements = [];
         this._previousExternalElements = [];
+        this._currentPath = [];
         this._stack = [];
-        this._state = Object.create(StatePrototype);
+        this._state = Object.create(StatePrototype, {
+            clips: {
+                value: []
+            }
+        });
         this.bounds = JSRect.Zero;
     },
 
@@ -350,7 +355,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
                     this._canvasContext.save();
                     this._canvasContext._restoreCount++;
                 }
-                this._canvasContextAdoptState(this._canvasContext, this._state);
+                this._canvasContextAdoptState(this._canvasContext, this._state, scale);
             }
         }
         return this._canvasContext;
@@ -373,7 +378,17 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         var transform = state.transform.concatenatedWith(JSAffineTransform.Scaled(scale, scale));
         context.setTransform(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
         context.font = state.font ? state.font.cssString() : '';
-        // TODO: clipping path
+        var clip;
+        var op;
+        for (var i = 0, l = state.clips.length; i < l; ++i){
+            clip = state.clips[i];
+            for (var j = 0, k = clip.operations.length; j < k; ++j){
+                op = clip.operations[j];
+                op.method.apply(context, op.arguments);
+            }
+            context.clip.apply(context, clip.arguments);
+            context.beginPath();
+        }
     },
 
     // ----------------------------------------------------------------------
@@ -424,38 +439,48 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     beginPath: function(){
         this.canvasContext.beginPath();
+        this._currentPath = [];
     },
 
     moveToPoint: function(x, y){
         this.canvasContext.moveTo(x, y);
+        this._currentPath.push({method: this.canvasContext.moveTo, arguments: [x, y]});
     },
 
     addLineToPoint: function(x, y){
         this.canvasContext.lineTo(x, y);
+        this._currentPath.push({method: this.canvasContext.lineTo, arguments: [x, y]});
     },
 
     addRect: function(rect){
         this.canvasContext.rect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+        this._currentPath.push({method: this.canvasContext.rect, arguments: [rect.origin.x, rect.origin.y, rect.size.width, rect.size.height]});
     },
 
     addArc: function(center, radius, startAngle, endAngle, clockwise){
         this.canvasContext.arc(center.x, center.y, radius, startAngle, endAngle, !clockwise);
+        this._currentPath.push({method: this.canvasContext.arc, arguments: [center.x, center.y, radius, startAngle, endAngle, !clockwise]});
+
     },
 
     addArcUsingTangents: function(tangent1End, tangent2End, radius){
         this.canvasContext.arcTo(tangent1End.x, tangent1End.y, tangent2End.x, tangent2End.y, radius);
+        this._currentPath.push({method: this.canvasContext.arcTo, arguments: [tangent1End.x, tangent1End.y, tangent2End.x, tangent2End.y, radius]});
     },
 
     addCurveToPoint: function(point, control1, control2){
         this.canvasContext.bezierCurveTo(control1.x, control1.y, control2.x, control2.y, point.x, point.y);
+        this._currentPath.push({method: this.canvasContext.bezierCurveTo, arguments: [control1.x, control1.y, control2.x, control2.y, point.x, point.y]});
     },
 
     addQuadraticCurveToPoint: function(point, control){
         this.canvasContext.quadraticCurveTo(control.x, control.y, point.x, point.y);
+        this._currentPath.push({method: this.canvasContext.quadraticCurveTo, arguments: [control.x, control.y, point.x, point.y]});
     },
 
     closePath: function(){
         this.canvasContext.closePath();
+        this._currentPath.push({method: this.canvasContext.closePath, arguments: []});
     },
 
     // ----------------------------------------------------------------------
@@ -481,7 +506,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
                 this.canvasContext.stroke();
                 break;
         }
-        this.canvasContext.beginPath();
+        this.beginPath();
     },
 
     fillPath: function(fillRule){
@@ -490,12 +515,12 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         }else{
             this.canvasContext.fill();
         }
-        this.canvasContext.beginPath();
+        this.beginPath();
     },
 
     strokePath: function(){
         this.canvasContext.stroke();
-        this.canvasContext.beginPath();
+        this.beginPath();
     },
 
     // ----------------------------------------------------------------------
@@ -503,14 +528,17 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     clearRect: function(rect){
         this.canvasContext.clearRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+        this.beginPath();
     },
 
     fillRect: function(rect){
         this.canvasContext.fillRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+        this.beginPath();
     },
 
     strokeRect: function(rect){
         this.canvasContext.strokeRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+        this.beginPath();
     },
 
     // ----------------------------------------------------------------------
@@ -523,6 +551,27 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         if (image !== null){
             var url = image.htmlURLString();
             if (url){
+                // FIXME: proof of concept, but really shouldn't do async
+                // drawing to a reusable canvas.
+                //
+                // Better long term solution is likely to have image data
+                // already prepped so we can do sync drawing for all images,
+                // regardless of clipping path
+                if (this._state.isClipped){
+                    var img = this.element.ownerDocument.createElement('img');
+                    this._canvasContext = null;
+                    var context = this.canvasContext;
+                    this._canvasContext = null;
+                    img.onload = function(){
+                        context.drawImage(img, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+                        img.onload = null;
+                    };
+                    for (var i = 0; i <= context._restoreCount; ++i){
+                        context.save();
+                    }
+                    img.src = url;
+                    return;
+                }
                 var imageElement = this._dequeueReusableImageElement();
                 var boundsTransform = JSAffineTransform.Translated(-this.bounds.origin.x, -this.bounds.origin.y);
                 var transform = this._state.transform.translatedBy(rect.origin.x, rect.origin.y).concatenatedWith(boundsTransform);
@@ -744,11 +793,16 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     // MARK: - Clipping
 
     clip: function(fillRule){
+        var args = [];
         if (fillRule == JSContext.FillRule.evenOdd){
             this.canvasContext.clip('evenodd');
+            args.push('evenodd');
         }else{
             this.canvasContext.clip();
         }
+        this._state.clips.push({arguments: args, operations: JSCopy(this._currentPath)});
+        this._state.isClipped = true;
+        this.beginPath();
     },
 
     // ----------------------------------------------------------------------
@@ -810,9 +864,12 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this.canvasContext.save();
         this._canvasContext._restoreCount++;
         this._stack.push(this._state);
-        this._state = Object.create(this._state);
+        this._state = Object.create(this._state, {
+            clips: {
+                value: []
+            }
+        });
     },
-
 
     restore: function(){
         if (this._canvasContext){
@@ -836,12 +893,15 @@ var StatePrototype = {
     fillColor: JSColor.blackColor,
     strokeColor: JSColor.blackColor,
     shadowOffset: JSPoint.Zero,
-    shadowRadius: 0,
+    shadowBlur: 0,
     shadowColor: null,
     lineWidth: 0,
+    miterLimit: 10,
     lineCap: JSContext.LineCap.butt,
     lineJoin: JSContext.LineJoin.miter,
-    lineDash: [0, []]
+    lineDash: [0, []],
+    clips: null,
+    isClipped: false
 };
 
 })();
