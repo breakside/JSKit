@@ -82,7 +82,7 @@ PDFColorSpace.deviceGray = {
     numberOfComponents: 1,
 
     colorFromComponents: function(components){
-        return JSColor.initWithWhite(components[0]);
+        return JSColor.initWithWhite(components[0]).rgbaColor();
     },
 
     defaultComponents: function(){
