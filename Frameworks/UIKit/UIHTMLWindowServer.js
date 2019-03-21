@@ -33,6 +33,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.textInputManager = UIHTMLTextInputManager.initWithRootElement(rootElement);
         this.textInputManager.windowServer = this;
         this.screen = UIScreen.initWithFrame(JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight), this.domDocument.defaultView.devicePixelRatio || 1);
+        this.displayServer.setScreenSize(this.screen.frame.size);
         this._updateScreenClientOrigin();
         UIPasteboard.general = UIHTMLDataTransferPasteboard.init();
     },
@@ -638,6 +639,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             var oldFrame = JSRect(this.screen.frame);
             this.screen.frame = JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight);
             this.screenDidChangeFrame(oldFrame);
+            this.displayServer.setScreenSize(this.screen.frame.size);
         }
     },
 

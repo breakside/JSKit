@@ -7,18 +7,49 @@
 
 (function(){
 
-JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
+// Context element
+// g
+//   shadow?
+//   backgroundColor?
+//   backgroundGradient?
+//   customDrawing?
+//   sublayer*
+//   border?
 
-    drawsHiddenLayers: true,
+JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
 
     // ----------------------------------------------------------------------
     // MARK: - Creating a Context
 
-    initWithElementUnmodified: function(element){
-        UIHTMLDisplayServerSVGContext.$super.initWithElementUnmodified.call(this, element);
-        this.domDocument = element.ownerDocument;
+    initScreenInContainer: function(containerElement){
+        UIHTMLDisplayServerSVGContext.$super.init.call(this);
+        var doc = containerElement.ownerDocument;
+        this.element = doc.createElementNS(SVGNamespace, "svg");
+        this.element.setAttribute("version", "1.1");
+        this.element.width.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_PX, 100);
+        this.element.height.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_PX, 100);
+        this.element.style.pointerEvents = 'none';
+        this.element.style.position = 'absolute';
+        this.element.style.top = '0';
+        this.element.style.left = '0';
+        this._definitionsElement = doc.createElementNS(SVGNamespace, "defs");
+        this.element.appendChild(this._definitionsElement);
+        this.firstSublayerNodeIndex = 1;
+    },
+
+    initForScreenContext: function(screenContext){
+        UIHTMLDisplayServerSVGContext.$super.init.call(this);
+        var doc = screenContext.element.ownerDocument;
+        var svg = screenContext.element;
+        this.element = doc.createElementNS(SVGNamespace, "g");
+        this.originTransform = svg.createSVGTransform();
+        this.element.transform.baseVal.appendItem(this.originTransform);
+
+        this._uniqueIdPrefix = "context-" + this.objectID + "-";
+        this._definitionsElement = screenContext._definitionsElement;
+
         this._state = Object.create(State);
-        this._stateStack = [];
+        this._stack = [];
         this._imageMasks = [];
         this._propertiesNeedingUpdate = {
             bounds: true,
@@ -35,18 +66,34 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         };
     },
 
-    initWithElement: function(element){
-        UIHTMLDisplayServerSVGContext.$super.initWithElement.call(this, element);
-        this.svgElement = this.createElement("svg");
-        this.svgElement.setAttribute("version", "1.1");
-        this.svgElement.setAttribute("width", "100");
-        this.svgElement.setAttribute("height", "100");
-        this.svgElement.style.position = 'absolute';
-        this.svgElement.style.top = '0';
-        this.svgElement.style.left = '0';
-        this.svgElement.style.pointerEvents = 'none';
-        this.element.appendChild(this.svgElement);
+    _definitionsElement: null,
+    _uniqueIdPrefix: null,
+
+    destroy: function(){
+        if (this._shadowFilter){
+            this._shadowFilter.parentNode.removeChild(this._shadowFilter);
+        }
+        if (this._backgroundGradient){
+            this._backgroundGradient.parentNode.removeChild(this._backgroundGradient);
+        }
+        UIHTMLDisplayServerSVGContext.$super.destroy.call(this);
     },
+
+    // --------------------------------------------------------------------
+    // MARK: - Size & Position
+
+    setOrigin: function(origin){
+        this.originTransform.setTranslate(origin.x, origin.y);
+    },
+
+    setSize: function(size){
+        // only called for the root context, which has an svg element
+        this.element.width.baseVal.value = size.width;
+        this.element.height.baseVal.value = size.height;
+    },
+
+    originTransform: null,
+    layerTransorm: null,
 
     // ----------------------------------------------------------------------
     // MARK: - Display Lifecycle
@@ -83,7 +130,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
             this[methodName](layer);
         }
         if (this._needsBoundsPathsRedraw){
-            if (this._backgroundPath !== null){
+            if (this._backgroundPath !== null || this._backgroundGradientPath !== null){
                 this._updateBackgroundPath(layer);
             }
             if (this._borderPath !== null){
@@ -98,67 +145,148 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         if (this.needsCustomDisplay){
             if (this._state.groupElement){
                 this._state.groupElement.parentNode.removeChild(this._state.groupElement);
+                --this.firstSublayerNodeIndex;
             }
-            this._state.groupElement = this.createElement("g");
-            this.svgElement.appendChild(this._state.groupElement);
+            this._state.groupElement = this.element.ownerDocument.createElementNS(SVGNamespace, "g");
+            this.element.insertBefore(this._state.groupElement, this.element.childNodes[this.firstSublayerNodeIndex]);
+            ++this.firstSublayerNodeIndex;
             layer._drawInContext(this);
+            if (this._stack.length > 0){
+                throw new Error("Unbalanced save/restore");
+            }
             this.needsCustomDisplay = false;
         }
         this._propertiesNeedingUpdate = {};
     },
 
     // ----------------------------------------------------------------------
-    // MARK: - SVG Shortcuts
+    // MARK: - Background, Shadow, Border
 
-    _definitionsElement: null,
+    _needsBoundsPathsRedraw: true,
+
+    _shadowPath: null,
     _shadowFilter: null,
     _shadowOffsetElement: null,
     _shadowBlurElement: null,
     _shadowColorElement: null,
-    _shadowPath: null,
-    _backgroundPath: null,
-    _backgroundGradient: null,
-    _borderSVGElement: null,
-    _borderPath: null,
-    _needsBoundsPathsRedraw: true,
-    _propertiesNeedingUpdate: null,
 
-    _createDefinitionsElementIfNeeded: function(){
-        if (this._definitionsElement === null){
-            this._definitionsElement = this.createElement("defs");
-            this.svgElement.insertBefore(this._definitionsElement, this.svgElement.firstChild);
+    _backgroundIndex: 0,
+    _backgroundGradientIndex: 0,
+
+    _createShadowPathIfNeeded: function(layer){
+        if (this._shadowPath === null){
+            this._createShadowFilterIfNeeded(layer);
+            this._shadowPath = this.element.ownerDocument.createElementNS(SVGNamespace, "path");
+            this._shadowPath.style.fill = 'black';
+            this._shadowPath.style.filter = 'url(#%s)'.sprintf(this._shadowFilter.id);
+            this.element.insertBefore(this._shadowPath, this.element.childNodes[0]);
+            this._updateShadowPath(layer);
+            ++this._backgroundIndex;
+            ++this._backgroundGradientIndex;
+            ++this.firstSublayerNodeIndex;
         }
     },
 
+    _createShadowFilterIfNeeded: function(layer){
+        if (this._shadowFilter === null){
+            this._shadowFilter = this.element.ownerDocument.createElementNS(SVGNamespace, "filter");
+            this._shadowFilter.id = this._uniqueIdPrefix + 'shadow';
+            var size = layer.presentation.bounds.size;
+            // Not clear why this throws a NotSupported error here, but not later
+            // this._shadowFilter.x.baseVal.value = 0;
+            // this._shadowFilter.y.baseVal.value = 0;
+            // this._shadowFilter.width.baseVal.value = size.width;
+            // this._shadowFilter.height.baseVal.value = size.height;
+            this._shadowFilter.setAttribute("filterUnits", "objectBoundingBox");
+
+            this._shadowOffsetElement = this.element.ownerDocument.createElementNS(SVGNamespace, "feOffset");
+            this._shadowOffsetElement.setAttribute("in", "SourceAlpha");
+            this._shadowOffsetElement.dx.baseVal = 0;
+            this._shadowOffsetElement.dy.baseVal = 0;
+
+            this._shadowBlurElement = this.element.ownerDocument.createElementNS(SVGNamespace, "feGaussianBlur");
+            this._shadowBlurElement.setStdDeviation(0, 0);
+
+            this._shadowColorElement = this.element.ownerDocument.createElementNS(SVGNamespace, "feColorMatrix");
+            this._shadowColorElement.setAttribute("values", "0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0 0");
+            this._shadowColorElement.setAttribute("type", "matrix");
+
+            this._shadowFilter.appendChild(this._shadowOffsetElement);
+            this._shadowFilter.appendChild(this._shadowBlurElement);
+            this._shadowFilter.appendChild(this._shadowColorElement);
+            this._definitionsElement.appendChild(this._shadowFilter);
+        }
+    },
+
+    _updateShadowPath: function(layer){
+        this._shadowPath.pathSegList.clear();
+        this._currentPath = this._shadowPath;
+        this.addBorderPathForLayerProperties(layer.presentation, UILayer.Path.shadow);
+        this._currentPath = null;
+    },
+
+    _updateShadowFilterSize: function(layer){
+        var radius = layer.presentation.shadowRadius;
+        var size = layer.presentation.bounds.size;
+        this._shadowFilter.x.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, -radius);
+        this._shadowFilter.y.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, -radius);
+        this._shadowFilter.width.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, size.width + radius + radius);
+        this._shadowFilter.height.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, size.height + radius + radius);
+    },
+
+    _backgroundPath: null,
+    _backgroundGradientPath: null,
+    _backgroundGradient: null,
+
     _createBackgroundPathIfNeeded: function(layer){
         if (this._backgroundPath === null){
-            this._backgroundPath = this.createElement("path");
-            this.svgElement.appendChild(this._backgroundPath);
+            this._backgroundPath = this.element.ownerDocument.createElementNS(SVGNamespace, "path");
+            this.element.insertBefore(this._backgroundPath, this.element.childNodes[this._backgroundIndex]);
+            this._updateBackgroundPath(layer);
+            ++this._backgroundGradientIndex;
+            ++this.firstSublayerNodeIndex;
+        }
+    },
+
+    _createBackgroundGradientPathIfNeeded: function(layer){
+        if (this._backgroundGradientPath === null){
+            this._backgroundGradientPath = this.element.ownerDocument.createElementNS(SVGNamespace, "path");
+            this.element.appendChild(this._backgroundGradientPath);
+            this.element.insertBefore(this._backgroundPath, this.element.childNodes[this._backgroundGradientIndex]);
             this._updateBackgroundPath(layer);
         }
     },
 
-    _updateBackgroundPath: function(layer){
-        this._backgroundPath.pathSegList.clear();
-        this._currentPath = this._backgroundPath;
-        this.addBorderPathForLayerProperties(layer.presentation, UILayer.Path.background);
-        this._currentPath = null;
+    _createBackgroundGradientIfNecessary: function(layer){
+        if (this._backgroundGradient === null){
+            this._backgroundGradient = this.element.ownerDocument.createElementNS(SVGNamespace, "linearGradient");
+            this._backgroundGradient.id = this._uniqueIdPrefix + 'backgroundGradient';
+            this._definitionsElement.appendChild(this._backgroundGradient);
+        }
     },
+
+    _updateBackgroundPath: function(layer){
+        if (this._backgroundPath !== null){
+            this._backgroundPath.pathSegList.clear();
+            this._currentPath = this._backgroundPath;
+            this.addBorderPathForLayerProperties(layer.presentation, UILayer.Path.background);
+            this._currentPath = null;
+        }
+        if (this._backgroundGradientPath !== null){
+            this._backgroundGradientPath.pathSegList.clear();
+            this._currentPath = this._backgroundGradientPath;
+            this.addBorderPathForLayerProperties(layer.presentation, UILayer.Path.background);
+            this._currentPath = null;
+        }
+    },
+
+    _borderPath: null,
 
     _createBorderPathIfNeeded: function(layer){
         if (this._borderPath === null){
-            this._borderSVGElement = this.createElement("svg");
-            this._borderSVGElement.setAttribute("version", "1.1");
-            this._borderSVGElement.setAttribute("width", this.svgElement.getAttribute("width"));
-            this._borderSVGElement.setAttribute("height", this.svgElement.getAttribute("height"));
-            this._borderSVGElement.style.position = 'absolute';
-            this._borderSVGElement.style.top = '0';
-            this._borderSVGElement.style.left = '0';
-            this._borderSVGElement.style.pointerEvents = 'none';
-            this.element.appendChild(this._borderSVGElement);
-            this._borderPath = this.createElement("path");
+            this._borderPath = this.element.ownerDocument.createElementNS(SVGNamespace, "path");
             this._borderPath.style.fill = 'none';
-            this._borderSVGElement.appendChild(this._borderPath);
+            this.element.appendChild(this._borderPath);
             this._updateBorderPath(layer);
         }
     },
@@ -170,109 +298,87 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         this._currentPath = null;
     },
 
-    _createShadowPathIfNeeded: function(layer){
-        if (this._shadowPath === null){
-            this._createShadowFilterIfNeeded(layer);
-            this._shadowPath = this.createElement("path");
-            this._shadowPath.style.fill = 'black';
-            this._shadowPath.style.filter = 'url(#%s)'.sprintf(this._shadowFilter.id);
-            this.svgElement.insertBefore(this._shadowPath, this._backgroundPath);
-            this._updateShadowPath(layer);
-        }
-    },
+    // ----------------------------------------------------------------------
+    // MARK: - SVG Layer Shortcuts
 
-    _updateShadowPath: function(layer){
-        this._shadowPath.pathSegList.clear();
-        this._currentPath = this._shadowPath;
-        this.addBorderPathForLayerProperties(layer.presentation, UILayer.Path.shadow);
-        this._currentPath = null;
-    },
-
-    _createShadowFilterIfNeeded: function(layer){
-        if (this._shadowFilter === null){
-            this._shadowFilter = this.createElement("filter");
-            this._shadowFilter.id = 'contetx-%d-shadow'.sprintf(this.objectID);
-            var size = layer.presentation.bounds.size;
-            // Not clear why this throws a NotSupported error here, but not later
-            // this._shadowFilter.x.baseVal.value = 0;
-            // this._shadowFilter.y.baseVal.value = 0;
-            // this._shadowFilter.width.baseVal.value = size.width;
-            // this._shadowFilter.height.baseVal.value = size.height;
-            this._shadowFilter.setAttribute("filterUnits", "objectBoundingBox");
-
-            this._shadowOffsetElement = this.createElement("feOffset");
-            this._shadowOffsetElement.setAttribute("in", "SourceAlpha");
-            this._shadowOffsetElement.dx.baseVal = 0;
-            this._shadowOffsetElement.dy.baseVal = 0;
-
-            this._shadowBlurElement = this.createElement("feGaussianBlur");
-            this._shadowBlurElement.setStdDeviation(0, 0);
-
-            this._shadowColorElement = this.createElement("feColorMatrix");
-            this._shadowColorElement.setAttribute("values", "0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0 0");
-            this._shadowColorElement.setAttribute("type", "matrix");
-
-            this._shadowFilter.appendChild(this._shadowOffsetElement);
-            this._shadowFilter.appendChild(this._shadowBlurElement);
-            this._shadowFilter.appendChild(this._shadowColorElement);
-            this._createDefinitionsElementIfNeeded();
-            this._definitionsElement.appendChild(this._shadowFilter);
-        }
-    },
+    _propertiesNeedingUpdate: null,
 
     updateSVG_bounds: function(layer){
         var size = layer.presentation.bounds.size;
-        this.style.width = size.width + 'px';
-        this.style.height = size.height + 'px';
-        this.svgElement.width.baseVal.value = size.width;
-        this.svgElement.height.baseVal.value = size.height;
-        if (this._borderSVGElement !== null){
-            this._borderSVGElement.width.baseVal.value = size.width;
-            this._borderSVGElement.height.baseVal.value = size.height;
-        }
         if (this._shadowFilter !== null){
             this._updateShadowFilterSize(layer);
         }
     },
 
+    updateSVG_origin: function(){
+
+    },
+
     updateSVG_transform: function(layer){
         var transform = layer.presentation.transform;
-        var anchorPoint = layer.presentation.anchorPoint;
-        if (!transform.isIdentity){
-            var cssTransform = 'matrix(%f, %f, %f, %f, %f, %f)'.sprintf(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
-            this.style.transform = cssTransform;
-            this.style.transformOrigin = '%f%% %f%% 0'.sprintf(anchorPoint.x * 100, anchorPoint.y * 100);
+        var l = this.element.transform.baseVal.numberOfItems;
+        if (transform.isIdentity){
+            --l;
+            // remove all but first item (this.originTransform)
+            while (l > 0){
+                this.element.transform.baseVal.removeItem(l);
+                --l;
+            }
         }else{
-            this.style.transform = '';
-            this.style.transformOrigin = '';
+            var anchorPoint = JSPoint(layer.presentation.anchorPoint.x * layer.presentation.bounds.width, layer.presentation.anchorPoint.y * layer.presentation.bounds.height);
+            var t1;
+            var t2;
+            var t3;
+            var matrix = this.element.ownerSVGElement.createSVGMatrix();
+            matrix.a = transform.a;
+            matrix.b = transform.b;
+            matrix.c = transform.c;
+            matrix.d = transform.d;
+            matrix.e = transform.tx;
+            matrix.f = transform.ty;
+            if (l == 1){
+                t1 = this.element.ownerSVGElement.createSVGTransform();
+                t2 = this.element.ownerSVGElement.createSVGTransform();
+                t3 = this.element.ownerSVGElement.createSVGTransform();
+                this.element.transform.baseVal.appendItem(t1);
+                this.element.transform.baseVal.appendItem(t2);
+                this.element.transform.baseVal.appendItem(t3);
+            }else{
+                t1 = this.element.transform.baseVal.getItem(1);
+                t2 = this.element.transform.baseVal.getItem(2);
+                t3 = this.element.transform.baseVal.getItem(3);
+            }
+            t1.setTranslate(anchorPoint.x, anchorPoint.y);
+            t2.setMatrix(matrix);
+            t3.setTranslate(-anchorPoint.x, -anchorPoint.y);
         }
     },
 
     updateSVG_hidden: function(layer){
-        this.style.visibility = layer.presentation.hidden ? 'hidden' : '';
+        this.element.style.visibility = layer.presentation.hidden ? 'hidden' : '';
     },
 
     updateSVG_clipsToBounds: function(layer){
-        // FIXME: this clips the SVG shadow
-        // FIXME: this doesn't properly clip subviews under rounded corners
-        // this.style.overflow = layer._clipsToBounds ? 'hidden' : '';
+        // TODO: clip contents, but not shadow
     },
 
     updateSVG_alpha: function(layer){
-        this.style.opacity = layer.presentation.alpha != 1.0 ? layer.presentation.alpha : '';
+        this.element.style.opacity = layer.presentation.alpha != 1.0 ? layer.presentation.alpha : '';
     },
 
     updateSVG_background: function(layer){
-        var gradient = layer.presentation.backgroundGradient;
         var color = layer.presentation.backgroundColor;
-        if (gradient !== null){
+        if (color !== null){
             this._createBackgroundPathIfNeeded(layer);
-            if (this._backgroundGradient === null){
-                this._backgroundGradient = this.createElement("linearGradient");
-                this._backgroundGradient.id = "context-%d-backgroundGradient".sprintf(this.objectID);
-                this._createDefinitionsElementIfNeeded();
-                this._definitionsElement.appendChild(this._backgroundGradient);
-            }
+            this._backgroundPath.style.fill = color.cssString();
+        }else if (this._backgroundPath !== null){
+            this._backgroundPath.style.fill = 'none';
+        }
+
+        var gradient = layer.presentation.backgroundGradient;
+        if (gradient !== null){
+            this._createBackgroundGradientPathIfNeeded(layer);
+            this._createBackgroundGradientIfNecessary(layer);
             this._backgroundGradient.x1.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_PERCENTAGE, gradient.start.x * 100);
             this._backgroundGradient.y1.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_PERCENTAGE, gradient.start.y * 100);
             this._backgroundGradient.x2.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_PERCENTAGE, gradient.end.x * 100);
@@ -285,7 +391,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
                 if (i < existingStopCount){
                     stop = this._backgroundGradient.childNodes[i];
                 }else{
-                    stop = this.createElement("stop");
+                    stop = this.element.ownerDocument.createElementNS(SVGNamespace, "stop");
                     this._backgroundGradient.appendChild(stop);
                 }
                 stop.offset.baseVal = position;
@@ -295,14 +401,9 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
             for (var j = existingStopCount - 1; j >= i; --j){
                 this._backgroundGradient.removeChild(this._backgroundGradient.childNodes[j]);
             }
-            this._backgroundPath.style.fill = 'url(#%s)'.sprintf(this._backgroundGradient.id);
-        }else{
-            if (color !== null){
-                this._createBackgroundPathIfNeeded(layer);
-                this._backgroundPath.style.fill = color.cssString();
-            }else if (this._backgroundPath !== null){
-                this._backgroundPath.style.fill = 'none';
-            }
+            this._backgroundGradientPath.style.fill = 'url(#%s)'.sprintf(this._backgroundGradient.id);
+        }else if (this._backgroundGradientPath !== null){
+            this._backgroundGradientPath.fill = 'none';
         }
     },
 
@@ -333,15 +434,13 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
                 this._shadowPath.parentNode.removeChild(this._shadowPath);
                 this._shadowPath = null;
             }
-            this.svgElement.style.overflow = '';
         }else{
             this._createShadowPathIfNeeded(layer);
-            this.svgElement.style.overflow = 'visible';
             var rgba = color.rgbaColor();
-            var r = this.svgElement.createSVGNumber();
-            var g = this.svgElement.createSVGNumber();
-            var b = this.svgElement.createSVGNumber();
-            var a = this.svgElement.createSVGNumber();
+            var r = this.element.ownerSVGElement.createSVGNumber();
+            var g = this.element.ownerSVGElement.createSVGNumber();
+            var b = this.element.ownerSVGElement.createSVGNumber();
+            var a = this.element.ownerSVGElement.createSVGNumber();
             r.value = rgba.red;
             g.value = rgba.green;
             b.value = rgba.blue;
@@ -375,25 +474,6 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         }
     },
 
-    _updateShadowFilterSize: function(layer){
-        var radius = layer.presentation.shadowRadius;
-        var size = layer.presentation.bounds.size;
-        this._shadowFilter.x.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, -radius);
-        this._shadowFilter.y.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, -radius);
-        this._shadowFilter.width.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, size.width + radius + radius);
-        this._shadowFilter.height.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, size.height + radius + radius);
-    },
-
-    // ----------------------------------------------------------------------
-    // MARK: - Creating SVG Elements
-
-    domDocument: null,
-    svgElement: null,
-
-    createElement: function(name){
-        return this.domDocument.createElementNS("http://www.w3.org/2000/svg", name);
-    },
-
     // ----------------------------------------------------------------------
     // MARK: - Tracking
 
@@ -401,28 +481,30 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     trackingListener: null,
 
     startMouseTracking: function(trackingType, listener){
-        if (this.trackingElement === null){
-            this.trackingElement = this.element.ownerDocument.createElement('div');
-            this.trackingElement.style.position = 'absolute';
-            this.trackingElement.style.top = '0';
-            this.trackingElement.style.left = '0';
-            this.trackingElement.style.bottom = '0';
-            this.trackingElement.style.right = '0';
-            this.trackingElement.dataset.tag = "tracking";
-            this.element.appendChild(this.trackingElement);
-        }else if (this.trackingListener !== null){
-            this.trackingElement.removeEventListener('mouseenter', this.trackingListener);
-            this.trackingElement.removeEventListener('mouseleave', this.trackingListener);
-            this.trackingElement.removeEventListener('mousemove', this.trackingListener);
-        }
-        this.trackingListener = listener;
-        if (trackingType & UIView.MouseTracking.enterAndExit){
-            this.trackingElement.addEventListener('mouseenter', this.trackingListener);
-            this.trackingElement.addEventListener('mouseleave', this.trackingListener);
-        }
-        if (trackingType & UIView.MouseTracking.move){
-            this.trackingElement.addEventListener('mousemove', this.trackingListener);
-        }
+        // TODO:
+
+        // if (this.trackingElement === null){
+        //     this.trackingElement = this.element.ownerDocument.createElement('div');
+        //     this.trackingElement.style.position = 'absolute';
+        //     this.trackingElement.style.top = '0';
+        //     this.trackingElement.style.left = '0';
+        //     this.trackingElement.style.bottom = '0';
+        //     this.trackingElement.style.right = '0';
+        //     this.trackingElement.dataset.tag = "tracking";
+        //     this.element.appendChild(this.trackingElement);
+        // }else if (this.trackingListener !== null){
+        //     this.trackingElement.removeEventListener('mouseenter', this.trackingListener);
+        //     this.trackingElement.removeEventListener('mouseleave', this.trackingListener);
+        //     this.trackingElement.removeEventListener('mousemove', this.trackingListener);
+        // }
+        // this.trackingListener = listener;
+        // if (trackingType & UIView.MouseTracking.enterAndExit){
+        //     this.trackingElement.addEventListener('mouseenter', this.trackingListener);
+        //     this.trackingElement.addEventListener('mouseleave', this.trackingListener);
+        // }
+        // if (trackingType & UIView.MouseTracking.move){
+        //     this.trackingElement.addEventListener('mousemove', this.trackingListener);
+        // }
     },
 
     stopMouseTracking: function(){
@@ -443,12 +525,8 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     _currentPath: null,
 
     beginPath: function(){
-        this._beginPathUsingElement(this.createElement("path"));
-    },
-
-    _beginPathUsingElement: function(pathElement){
         UIHTMLDisplayServerSVGContext.$super.beginPath.call(this);
-        this._currentPath = this.createElement("path");
+        this._currentPath = this.element.ownerDocument.createElementNS(SVGNamespace, "path");
     },
 
     _discardPath: function(){
@@ -508,7 +586,6 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         if (!this._currentPath){
             this.beginPath();
         }
-        this._state.groupElement.appendChild(this._currentPath);
         switch (drawingMode){
             case JSContext.DrawingMode.fill:
                 this._styleElementForFill(this._currentPath, JSContext.FillRule.winding);
@@ -599,22 +676,22 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     },
 
     fillRect: function(rect){
-        var svgRect = this.createElement(rect);
+        var svgRect = this.element.ownerDocument.createElementNS(SVGNamespace, "rect");
         svgRect.x.baseVal.value = rect.origin.x;
         svgRect.y.baseVal.value = rect.origin.y;
-        svgRect.width.baseVal.value = rect.origin.width;
-        svgRect.height.baseVal.value = rect.origin.height;
+        svgRect.width.baseVal.value = rect.size.width;
+        svgRect.height.baseVal.value = rect.size.height;
         this._styleElementForFill(svgRect);
         this._state.groupElement.appendChild(svgRect);
         this._discardPath();
     },
 
     strokeRect: function(rect){
-        var svgRect = this.createElement(rect);
+        var svgRect = this.element.ownerDocument.createElementNS(SVGNamespace, "rect");
         svgRect.x.baseVal.value = rect.origin.x;
         svgRect.y.baseVal.value = rect.origin.y;
-        svgRect.width.baseVal.value = rect.origin.width;
-        svgRect.height.baseVal.value = rect.origin.height;
+        svgRect.width.baseVal.value = rect.size.width;
+        svgRect.height.baseVal.value = rect.size.height;
         this._styleElementForStroke(svgRect);
         this._state.groupElement.appendChild(svgRect);
         this._discardPath();
@@ -628,7 +705,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         if (caps !== null){
             // TODO: stretchable images
         }else{
-            var svgImage = this.createElement("image");
+            var svgImage = this.element.ownerDocument.createElementNS(SVGNamespace, "image");
             svgImage.x.baseVal.value = rect.origin.x;
             svgImage.y.baseVal.value = rect.origin.y;
             svgImage.width.baseVal.value = rect.size.width;
@@ -641,7 +718,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
                 svgImage.style.filter = 'url(#%s)'.sprintf(this._imageMaskFilter.id);
                 var mask = this._dequeueImageMask();
                 mask.appendChild(svgImage);
-                var svgRect = this.createElement("rect");
+                var svgRect = this.element.ownerDocument.createElementNS(SVGNamespace, "rect");
                 svgRect.x.baseVal.value = rect.origin.x;
                 svgRect.y.baseVal.value = rect.origin.y;
                 svgRect.width.baseVal.value = rect.size.width;
@@ -661,14 +738,13 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
 
     _createImageMaskFilterIfNeeded: function(layer){
         if (this._imageMaskFilter === null){
-            var filter = this.createElement("filter");
-            filter.id = "context-%d-imageMaskFilter".sprintf(this.objectID);
-            var colorMatrix = this.createElement("feColorMatrix");
+            var filter = this.element.ownerDocument.createElementNS(SVGNamespace, "filter");
+            filter.id = this._uniqueIdPrefix + "imageMaskFilter";
+            var colorMatrix = this.element.ownerDocument.createElementNS(SVGNamespace, "feColorMatrix");
             colorMatrix.setAttribute("in", "SourceAlpha");
             colorMatrix.setAttribute("type", "matrix");
             colorMatrix.setAttribute("values", "0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0");
             filter.appendChild(colorMatrix);
-            this._createDefinitionsElementIfNeeded();
             this._definitionsElement.appendChild(filter);
             this._imageMaskFilter = filter;
         }
@@ -680,9 +756,8 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
             mask = this._imageMasks[this._imageMaskIndex];
             mask.removeChild(mask.childNodes[0]);
         }else{
-            mask = this.createElement("mask");
-            mask.id = "context-%d-imageMask-%d".sprintf(this.objectID, this._imageMasks.length);
-            this._createDefinitionsElementIfNeeded();
+            mask = this.element.ownerDocument.createElementNS(SVGNamespace, "mask");
+            mask.id = this._uniqueIdPrefix + "imageMask-" + this._imageMasks.length;
             this._definitionsElement.appendChild(mask);
         }
         ++this._imageMaskIndex;
@@ -703,23 +778,68 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     // ----------------------------------------------------------------------
     // MARK: - Text
 
-    _textDrawingMode: JSContext.TextDrawingMode.fill,
-
     setFont: function(font){
         this._state.font = font;
+    },
+
+    setCharacterSpacing: function(spacing){
+        this._state.characterSpacing = spacing;
+    },
+
+    setTextMatrix: function(textMatrix){
+        this._state.textMatrix = textMatrix;
     },
 
     setTextDrawingMode: function(textDrawingMode){
         this._state.textDrawingMode = textDrawingMode;
     },
 
-    showGlyphs: function(glyphs, points){
-        // TODO:
+    showGlyphs: function(glyphs){
+        var text = this._state.font.stringForGlyphs(glyphs);
+        this.showText(text);
+    },
+
+    showText: function(text){
+        var textElement = this.element.ownerDocument.createElementNS(SVGNamespace, "text");
+        var tspanElement = this.element.ownerDocument.createElementNS(SVGNamespace, "tspan");
+        var matrix = this.element.ownerSVGElement.createSVGMatrix();
+        matrix.a = this._state.textMatrix.a;
+        matrix.b = this._state.textMatrix.b;
+        matrix.c = this._state.textMatrix.c;
+        matrix.d = this._state.textMatrix.d;
+        matrix.e = this._state.textMatrix.tx;
+        matrix.f = this._state.textMatrix.ty;
+        var transform = this.element.ownerSVGElement.createSVGTransform();
+        transform.setMatrix(matrix);
+        textElement.transform.baseVal.appendItem(transform);
+        textElement.style.font = this._state.font.cssString();
+        textElement.style.kerning = "0";
+        switch (this._state.textDrawingMode){
+            case JSContext.TextDrawingMode.fill:
+                textElement.style.fill = this._state.fillColor.cssString();
+                break;
+            case JSContext.TextDrawingMode.stroke:
+                textElement.style.fill = 'none';
+                textElement.style.strokeWidth = this._state.lineWidth / Math.abs(this._state.textMatrix.d);
+                textElement.style.stroke = this._state.strokeColor.cssString();
+                break;
+            case JSContext.TextDrawingMode.fillStroke:
+                textElement.style.fill = this._state.fillColor.cssString();
+                textElement.style.strokeWidth = this._state.lineWidth / Math.abs(this._state.textMatrix.d);
+                textElement.style.stroke = this._state.strokeColor.cssString();
+                break;
+        }
+        if (this._state.characterSpacing !== 0){
+            textElement.style.letterSpacing = "%0.2f".sprintf(this._state.characterSpacing);
+        }
+        tspanElement.appendChild(this.element.ownerDocument.createTextNode(text));
+        textElement.appendChild(tspanElement);
+        this._state.groupElement.appendChild(textElement);
     },
 
     addExternalElementInRect: function(element, rect){
         element.style.position = 'relative';
-        var foreignObject = this.createElement("foreignObject");
+        var foreignObject = this.element.ownerDocument.createElementNS(SVGNamespace, "foreignObject");
         foreignObject.x.baseVal.value = rect.origin.x;
         foreignObject.y.baseVal.value = rect.origin.y;
         foreignObject.width.baseVal.value = rect.size.width;
@@ -757,12 +877,13 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     _clipPathID: 0,
 
     clip: function(fillRule){
-        this._createDefinitionsElementIfNeeded();
-        this._state.clipPath = this.createElement("clipPath");
-        this._state.clipPath.id = "context-%d-clip-%d".sprintf(this.objectID, ++this._clipPathID);
-        this._state.clipPath.appendChild(this._currentPath);
-        this._currentPath.style.fill = 'black';
-        this._definitionsElement.appendChild(this._state.clipPath);
+        // FIXME: needs to consider all clips on the state stack, combined with fillRule
+        // this._state.clipPath = this.element.ownerDocument.createElementNS(SVGNamespace, "clipPath");
+        // ++this._clipPathID;
+        // this._state.clipPath.id = this._uniqueIdPrefix + "clip-" + this._clipPathID;
+        // this._state.clipPath.appendChild(this._currentPath);
+        // this._currentPath.style.fill = 'black';
+        // this._definitionsElement.appendChild(this._state.clipPath);
         this._discardPath();
     },
 
@@ -770,37 +891,37 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     // MARK: - Transformations
 
     scaleBy: function(sx, sy){
-        var svgTransform = this.svgElement.createSVGTransform();
+        var svgTransform = this.element.ownerSVGElement.createSVGTransform();
         svgTransform.setScale(sx, sy);
         this._addTransform(svgTransform);
     },
 
     rotateBy: function(angle){
-        var svgTransform = this.svgElement.createSVGTransform();
+        var svgTransform = this.element.ownerSVGElement.createSVGTransform();
         svgTransform.setRotate(angle);
         this._addTransform(svgTransform);
     },
 
     translateBy: function(tx, ty){
-        var svgTransform = this.svgElement.createSVGTransform();
+        var svgTransform = this.element.ownerSVGElement.createSVGTransform();
         svgTransform.setTranslate(tx, ty);
         this._addTransform(svgTransform);
     },
 
     concatenate: function(transform){
-        var svgMatrix = this.svgElement.createSVGMatrix();
+        var svgMatrix = this.element.ownerSVGElement.createSVGMatrix();
         svgMatrix.a = transform.a;
         svgMatrix.b = transform.b;
         svgMatrix.c = transform.c;
         svgMatrix.d = transform.d;
         svgMatrix.e = transform.tx;
         svgMatrix.f = transform.ty;
-        var svgTransform = this.svgElement.createSVGTransformFromMatrix(svgMatrix);
+        var svgTransform = this.element.ownerSVGElement.createSVGTransformFromMatrix(svgMatrix);
         this._addTransform(svgTransform);
     },
 
     _addTransform: function(svgTransform){
-        var group = this.createElement("g");
+        var group = this.element.ownerDocument.createElementNS(SVGNamespace, "g");
         group.transform.baseVal.initialize(svgTransform);
         this._state.groupElement.appendChild(group);
         this._state.groupElement = group;
@@ -833,26 +954,28 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     // MARK: - Graphics State
 
     _state: null,
-    _stateStack: null,
+    _stack: null,
 
     save: function(){
         var newState = Object.create(this._state);
-        this._stateStack.push(this._state);
+        this._stack.push(this._state);
         this._state = newState;
     },
 
     restore: function(){
-        if (this._stateStack.length > 0){
-            this._state = this._stateStack.pop();
+        if (this._stack.length > 0){
+            this._state = this._stack.pop();
         }
     }
 
 });
 
+var SVGNamespace = "http://www.w3.org/2000/svg";
+
 var State = {
     alpha: 1,
     transform: JSAffineTransform.Identity,
-    clippingPath: null,
+    clipPath: null,
     fillColor: JSColor.blackColor,
     strokeColor: JSColor.blackColor,
     lineWidth: 1,
@@ -860,8 +983,13 @@ var State = {
     lineJoin: JSContext.LineJoin.miter,
     miterLimit: 10,
     lineDash: {phase: 0, lengths: []},
+    shadowOffset: JSPoint.Zero,
+    shadowBlur: 0,
+    shadowColor: null,
     font: null,
+    textMatrix: JSAffineTransform.Identity,
     textDrawingMode: JSContext.TextDrawingMode.fill,
+    characterSpacing: 0,
     groupElement: null
 };
 

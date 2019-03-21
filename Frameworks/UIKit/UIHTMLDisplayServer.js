@@ -1,6 +1,6 @@
 // #import "UIKit/UIDisplayServer.js"
 // #import "UIKit/UIHTMLDisplayServerCanvasContext.js"
-/// #import "UIKit/UIHTMLDisplayServerSVGContext.js"
+// #import "UIKit/UIHTMLDisplayServerSVGContext.js"
 // #import "UIKit/UIHTMLTextFramesetter.js"
 // #import "UIKit/UITextAttachmentView.js"
 // #feature Window.prototype.addEventListener
@@ -21,7 +21,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     domWindow: null,
     domDocument: null,
     rootElement: null,
-    windowsContext: null,
+    screenContext: null,
     displayFrameID: null,
     _fontStyleElement: null,
     _displayFrameBound: null,
@@ -34,13 +34,14 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     initWithRootElement: function(rootElement){
         UIHTMLDisplayServer.$super.init.call(this);
-        this.contextClass = UIHTMLDisplayServerCanvasContext;
+        this.contextClass = UIHTMLDisplayServerSVGContext;
         this.rootElement = rootElement;
         this.rootElement.style.webkitOverflowScrolling = 'auto';
         this.domDocument = this.rootElement.ownerDocument;
         this.domWindow = this.domDocument.defaultView;
-        this.windowsContext = this.contextClass.initWithElementUnmodified(this.rootElement);
-        this.windowsContext.displayServer = this;
+        this.screenContext = this.contextClass.initScreenInContainer(this.rootElement);
+        this.rootElement.appendChild(this.screenContext.element);
+        this.screenContext.displayServer = this;
         this.contextsByObjectID = {};
         this._insertedLayers = {};
         this._removedLayers = {};
@@ -66,6 +67,12 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     deinit: function(){
         sharedInstance = null;
+    },
+
+    // MARK: - Screen Size
+
+    setScreenSize: function(size){
+        this.screenContext.setSize(size);
     },
 
     // MARK: - Fonts
@@ -185,8 +192,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         var size = layer.presentation.bounds.size;
         origin.x -= size.width * layer.presentation.anchorPoint.x + superorigin.x;
         origin.y -= size.height * layer.presentation.anchorPoint.y + superorigin.y;
-        context.style.top = origin.y + 'px';
-        context.style.left = origin.x + 'px';
+        context.setOrigin(origin);
     },
 
     _layerDidChangeBoundsOrigin: function(layer){
@@ -201,8 +207,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     contextForLayer: function(layer){
         var context = this.contextsByObjectID[layer.objectID];
         if (context === undefined){
-            var element = this.domDocument.createElement('div');
-            context = this.contextClass.initWithElement(element);
+            context = this.contextClass.initForScreenContext(this.screenContext);
             context.displayServer = this;
             this.associateContextWithLayer(context, layer);
         }
@@ -217,8 +222,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         }else{
             context = this.contextsByObjectID[attachment.objectID];
             if (context === undefined){
-                var element = this.domDocument.createElement('div');
-                context = this.contextClass.initWithElement(element);
+                context = this.contextClass.initForScreenContext(this.screenContext);
                 context.displayServer = this;
                 this.contextsByObjectID[attachment.objectID] = context;
             }
@@ -260,7 +264,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     _removedLayers: null,
 
     windowInserted: function(window){
-        this._layerInserted(window.layer, this.windowsContext);
+        this._layerInserted(window.layer, this.screenContext);
         this.windowInsertedQueue.enqueue(window);
     },
 

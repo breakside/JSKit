@@ -7,13 +7,21 @@
 
 JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
-    drawsHiddenLayers: true,
+    style: null,
 
     // --------------------------------------------------------------------
     // MARK: - Creating a Context
 
-    initWithElementUnmodified: function(element){
-        UIHTMLDisplayServerCanvasContext.$super.initWithElementUnmodified.call(this, element);
+    initScreenInContainer: function(containerElement){
+        this.initForDocument(containerElement.ownerDocument);
+        this.style.top = '0';
+        this.style.left = '0';
+        this.style.bottom = '0';
+        this.style.right = '0';
+    },
+
+    initForScreenContext: function(screenContext){
+        this.initForDocument(screenContext.element.ownerDocument);
         this.propertiesNeedingUpdate = {
             bounds: true,
             transform: true,
@@ -41,12 +49,36 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this.bounds = JSRect.Zero;
     },
 
+    initForDocument: function(document){
+        UIHTMLDisplayServerCanvasContext.$super.init.call(this);
+        this.element = document.createElement('div');
+        this.style = this.element.style;
+        this.style.position = 'absolute';
+        this.style.boxSizing = 'border-box';
+        this.style.mozBoxSizing = 'border-box';
+        this.style.touchAction = 'none';
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Destroying a Context
 
     destroy: function(){
         this.trackingElement = null;
+        this.style = null;
         UIHTMLDisplayServerCanvasContext.$super.destroy.call(this);
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Size & Position
+
+    setOrigin: function(origin){
+        this.style.top = origin.y + 'px';
+        this.style.left = origin.x + 'px';
+    },
+
+    setSize: function(size){
+        // No need to set size becuase it's only called on the root context, which
+        // we anchor to top/right/bottom/left
     },
 
     // --------------------------------------------------------------------

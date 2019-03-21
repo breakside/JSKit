@@ -52,6 +52,7 @@ JSClass("JSTextRun", JSObject, {
             context.save();
             context.translateBy(point.x, point.y + this.font.ascender);
             context.setFont(this.font);
+            context.setFillColor(this.attributes.textColor);
             context.showGlyphs(this.glyphs);
             context.restore();
         }

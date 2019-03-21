@@ -137,7 +137,7 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
     },
 
     drawInContextAtPoint: function(context, point){
-        if (context.isKindOfClass(UIHTMLDisplayServerContext)){
+        if (context.isKindOfClass(UIHTMLDisplayServerCanvasContext)){
             if (this.element.style.visibility == 'hidden'){
                 this.element.style.visibility = '';
             }

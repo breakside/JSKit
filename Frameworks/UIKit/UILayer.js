@@ -914,6 +914,19 @@ JSContext.definePropertiesFromExtensions({
                 }
             }
 
+            if ((properties.maskedCorners & UILayer.Corners.minXminY) == UILayer.Corners.minXminY){
+                p1 = JSPoint(rect.origin.x, rect.origin.y + cornerRadius);
+                if (maskedBorders & UILayer.Sides.minX){
+                    this.addLineToPoint(p1.x, p1.y);
+                }else{
+                    this.moveToPoint(p1.x, p1.y);
+                }
+            }else{
+                if (maskedBorders & UILayer.Sides.minX){
+                    this.addLineToPoint(rect.origin.x, rect.origin.y);
+                }
+            }
+
             if (this.maskedBorders & UILayer.Sides.minX){
                 this.closePath();
             }

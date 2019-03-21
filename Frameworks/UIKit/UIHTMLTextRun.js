@@ -56,20 +56,29 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         // However, if UIHTMLTextFrame is asked to draw in a non-HTML context, it follows
         // the default logic from JSTextFrame, in which case it calls on lines and runs to draw themselves.
         // Therefore, if we're called here, it means a non-HTML context is drawing the text frame.
-        // Since we don't have references to any glyphs for drawing, and since we may need
-        // to resolve fallback fonts for parts of this run, we can't rely on the JSTextRun drawing logic.
-        // Instead, we'll use a generic typesetter to re-set our run.
-        // NOTE: this assumes that the metrics of the typest run won't be noticably different
-        // from the HTML layout.
-        // NOTE: If fallback fonts are not available to the generic typesetter, some glyphs
-        // that show in HTML may not show in this drawing
-        // NOTE: calling line.drawInContextAtPoint will not cause recursive loops back here
-        // because all of line's runs will be JSTextRuns, not UIHTMLTextRuns
-        var typesetter = JSTextTypesetter.init();
-        typesetter.attributedString = JSAttributedString.initWithString(this.textNode.value, this.attributes);
-        var line = typesetter.createLine(JSRange(0, typesetter.attributedString.string.length));
-        line.drawInContextAtPoint(context, point);
         // TODO: what if this is an attachment run?
+        if (context.isKindOfClass(UIHTMLDisplayServerContext)){
+            // If we're in an HTML context, we don't need to worry about resovling fallback fonts
+            // so just send use showText instead of creating a new line and calling showGlyphs.
+            context.save();
+            context.translateBy(point.x, point.y + this.font.ascender);
+            context.setFont(this.font);
+            context.setFillColor(this.attributes.textColor);
+            context.showText(this.textNode.nodeValue);
+            context.restore();
+        }else{
+            // If we're not in an HTML context, we may need to resolve fallback fonts
+            // for parts of this run, so we can't just call showText.
+            // Instead, we'll use a generic typesetter to re-set our run and fill in any missing glyphs.
+            // NOTE: this assumes that the metrics of the typest run won't be noticably different
+            // from the HTML layout.
+            // NOTE: If fallback fonts are not available to the generic typesetter, some glyphs
+            // that show in HTML may not show in this drawing
+            var typesetter = JSTextTypesetter.init();
+            typesetter.attributedString = JSAttributedString.initWithString(this.textNode.nodeValue, this.attributes);
+            var line = typesetter.createLine(JSRange(0, typesetter.attributedString.string.length));
+            line.drawInContextAtPoint(context, point);
+        }
     },
 
     characterIndexAtPoint: function(point){
