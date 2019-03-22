@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIHTMLDisplayServerContext.js"
-/* global JSClass, JSContext, JSColor, JSCopy, JSAffineTransform, UIHTMLDisplayServerContext, JSRect, JSObject, UILayer, UIHTMLDisplayServerCanvasContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
+/* global JSClass, JSContext, JSReadOnlyProperty, JSColor, JSCopy, JSAffineTransform, UIHTMLDisplayServerContext, JSRect, JSObject, UILayer, UIHTMLDisplayServerCanvasContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
 'use strict';
 
 (function(){
@@ -363,9 +363,15 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         return element;
     },
 
+    deviceScale: JSReadOnlyProperty(),
+
+    getDeviceScale: function(){
+        return this.element.ownerDocument.defaultView.devicePixelRatio || 1;
+    },
+
     getCanvasContext: function(){
         if (!this._canvasContext){
-            var scale = this.element.ownerDocument.defaultView.devicePixelRatio || 1;
+            var scale = this.deviceScale;
             // FIXME: scale should account for any transform ancestor layers
             var canvas = this._dequeueReusableCanvasElement();
             canvas.width = this.bounds.size.width * scale;
@@ -864,7 +870,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     setShadow: function(offset, blur, color){
         this.canvasContext.shadowOffsetX = offset.x;
         this.canvasContext.shadowOffsetY = offset.y;
-        this.canvasContext.shadowBlur = blur;
+        this.canvasContext.shadowBlur = blur * this.deviceScale;
         this.canvasContext.shadowColor = color ? color.cssString() : '';
         this._state.shadowOffset = offset;
         this._state.shadowBlur = blur;

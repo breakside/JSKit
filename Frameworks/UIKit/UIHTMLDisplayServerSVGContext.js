@@ -68,7 +68,9 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
 
         this._state = Object.create(State);
         this._stack = [];
-        this._usedImageMasks = [];
+        this._usedImageMasksById = {};
+        this._usedShadowFiltersById = {};
+        this._usedClipPaths = [];
         this._propertiesNeedingUpdate = {
             bounds: true,
             transform: true,
@@ -78,9 +80,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
             background: true,
             borderColor: true,
             borderWidth: true,
-            shadowColor: true,
-            shadowRadius: true,
-            shadowOffset: true
+            shadow: true
         };
     },
 
@@ -89,14 +89,15 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     _uniqueIdPrefix: null,
 
     destroy: function(){
-        if (this._shadowFilter){
-            this._shadowFilter.parentNode.removeChild(this._shadowFilter);
-        }
+        this.resetForDisplay();
         if (this._backgroundGradient){
             this._backgroundGradient.parentNode.removeChild(this._backgroundGradient);
         }
         if (this._boundsClipPath){
             this._boundsClipPath.parentNode.removeChild(this._boundsClipPath);
+        }
+        if (this._shadowFilter){
+            this._definitions.releaseShadowFilter(this._shadowFilter);
         }
         UIHTMLDisplayServerSVGContext.$super.destroy.call(this);
     },
@@ -136,6 +137,11 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
             case 'maskedBorders':
             case 'maskedCorners':
                 this._needsBoundsPathsRedraw = true;
+                break;
+            case 'shadowColor':
+            case 'shadowOffset':
+            case 'shadowRadius':
+                this.propertiesNeedingUpdate.shadow = true;
                 break;
             case 'bounds':
                 this._propertiesNeedingUpdate.bounds = true;
@@ -194,10 +200,10 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
             if (this._stack.length > 0){
                 throw new Error("Unbalanced save/restore");
             }
-            this.cleanupAfterDisplay();
             this.needsCustomDisplay = false;
         }
         this._propertiesNeedingUpdate = {};
+        this.cleanupAfterDisplay();
     },
 
     resetForDisplay: function(){
@@ -205,10 +211,22 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
             this._state.groupElement.parentNode.removeChild(this._state.groupElement);
             --this._sublayersIndex;
         }
-        for (var i = this._usedImageMasks.length - 1; i >= 0; --i){
-            this._definitions.releaseImageMask(this._usedImageMasks[i]);
+        var i;
+        for (i = this._usedClipPaths.length - 1; i >= 0;--i){
+            this._usedClipPaths[i].parentNode.removeChild(this._usedClipPaths[i]);
         }
-        this._usedImageMasks = [];
+        this._usedClipPaths = [];
+
+        var id;
+        for (id in this._usedImageMasksById){
+            this._definitions.releaseImageMask(this._usedImageMasksById[id]);
+        }
+        this._usedImageMasksById = {};
+
+        for (id in this._usedShadowFiltersById){
+            this._definitions.releaseShadowFilter(this._usedShadowFiltersById[id]);
+        }
+        this._usedShadowFiltersById = {};
     },
 
     cleanupAfterDisplay: function(){
@@ -222,16 +240,11 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
 
     _shadowPath: null,
     _shadowFilter: null,
-    _shadowOffsetElement: null,
-    _shadowBlurElement: null,
-    _shadowColorElement: null,
 
     _createShadowPathIfNeeded: function(layer){
         if (this._shadowPath === null){
-            this._createShadowFilterIfNeeded(layer);
             this._shadowPath = this.element.ownerDocument.createElementNS(SVGNamespace, "path");
             this._shadowPath.style.fill = 'black';
-            this._shadowPath.style.filter = 'url(#%s)'.sprintf(this._shadowFilter.id);
             this.element.insertBefore(this._shadowPath, this.element.childNodes[0]);
             this._updateShadowPath(layer);
             ++this._trackingIndex;
@@ -241,51 +254,11 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         }
     },
 
-    _createShadowFilterIfNeeded: function(layer){
-        if (this._shadowFilter === null){
-            this._shadowFilter = this.element.ownerDocument.createElementNS(SVGNamespace, "filter");
-            this._shadowFilter.id = this._uniqueIdPrefix + 'shadow';
-            var size = layer.presentation.bounds.size;
-            // Not clear why this throws a NotSupported error here, but not later
-            // this._shadowFilter.x.baseVal.value = 0;
-            // this._shadowFilter.y.baseVal.value = 0;
-            // this._shadowFilter.width.baseVal.value = size.width;
-            // this._shadowFilter.height.baseVal.value = size.height;
-            this._shadowFilter.setAttribute("filterUnits", "objectBoundingBox");
-
-            this._shadowOffsetElement = this.element.ownerDocument.createElementNS(SVGNamespace, "feOffset");
-            this._shadowOffsetElement.setAttribute("in", "SourceAlpha");
-            this._shadowOffsetElement.dx.baseVal = 0;
-            this._shadowOffsetElement.dy.baseVal = 0;
-
-            this._shadowBlurElement = this.element.ownerDocument.createElementNS(SVGNamespace, "feGaussianBlur");
-            this._shadowBlurElement.setStdDeviation(0, 0);
-
-            this._shadowColorElement = this.element.ownerDocument.createElementNS(SVGNamespace, "feColorMatrix");
-            this._shadowColorElement.setAttribute("values", "0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0 0");
-            this._shadowColorElement.setAttribute("type", "matrix");
-
-            this._shadowFilter.appendChild(this._shadowOffsetElement);
-            this._shadowFilter.appendChild(this._shadowBlurElement);
-            this._shadowFilter.appendChild(this._shadowColorElement);
-            this._definitions.element.appendChild(this._shadowFilter);
-        }
-    },
-
     _updateShadowPath: function(layer){
         this._shadowPath.pathSegList.clear();
         this._currentPath = this._shadowPath;
         this.addBorderPathForLayerProperties(layer.presentation, UILayer.Path.shadow);
         this._currentPath = null;
-    },
-
-    _updateShadowFilterSize: function(layer){
-        var radius = layer.presentation.shadowRadius;
-        var size = layer.presentation.bounds.size;
-        this._shadowFilter.x.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, -radius);
-        this._shadowFilter.y.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, -radius);
-        this._shadowFilter.width.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, size.width + radius + radius);
-        this._shadowFilter.height.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, size.height + radius + radius);
     },
 
     _backgroundPath: null,
@@ -360,9 +333,6 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
 
     updateSVG_bounds: function(layer){
         var size = layer.presentation.bounds.size;
-        if (this._shadowFilter !== null){
-            this._updateShadowFilterSize(layer);
-        }
         if (this._boundsClipPathContents){
             this._updateBoundsClipPath(layer);
         }
@@ -535,50 +505,22 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         }
     },
 
-    updateSVG_shadowColor: function(layer){
+    updateSVG_shadow: function(layer){
+        if (this._shadowFilter !== null){
+            this._definitions.releaseShadowFilter(this._shadowFilter);
+            this._shadowFilter = null;
+        }
+        var offset = layer.presentation.shadowOffset;
+        var radius = layer.presentation.shadowRadius;
         var color = layer.presentation.shadowColor;
-        if (color === null){
-            if (this._shadowPath !== null){
-                this._shadowPath.parentNode.removeChild(this._shadowPath);
-                this._shadowPath = null;
-            }
-        }else{
+        if (color){
+            this._shadowFilter = this._definitions.filterForShadow(offset, radius, color);
             this._createShadowPathIfNeeded(layer);
-            var rgba = color.rgbaColor();
-            var r = this.element.ownerSVGElement.createSVGNumber();
-            var g = this.element.ownerSVGElement.createSVGNumber();
-            var b = this.element.ownerSVGElement.createSVGNumber();
-            var a = this.element.ownerSVGElement.createSVGNumber();
-            r.value = rgba.red;
-            g.value = rgba.green;
-            b.value = rgba.blue;
-            a.value = rgba.alpha;
-            this._shadowColorElement.values.baseVal.replaceItem(r, 4);
-            this._shadowColorElement.values.baseVal.replaceItem(g, 9);
-            this._shadowColorElement.values.baseVal.replaceItem(b, 14);
-            this._shadowColorElement.values.baseVal.replaceItem(a, 18);
-        }
-    },
-
-    updateSVG_shadowOffset: function(layer){
-        if (layer.presentation.shadowColor !== null){
-            this._createShadowFilterIfNeeded(layer);
-        }
-        if (this._shadowOffsetElement !== null){
-            var offset = layer.presentation.shadowOffset;
-            this._shadowOffsetElement.dx.baseVal = offset.x;
-            this._shadowOffsetElement.dy.baseVal = offset.y;
-        }
-    },
-
-    updateSVG_shadowRadius: function(layer){
-        if (layer.presentation.shadowColor !== null){
-            this._createShadowFilterIfNeeded(layer);
-        }
-        if (this._shadowBlurElement !== null){
-            var radius = layer.presentation.shadowRadius;
-            this._shadowBlurElement.setStdDeviation(radius / 2, radius / 2);
-            this._updateShadowFilterSize(layer);
+            this._shadowPath.style.filter = "url(#%s)".sprintf(this._shadowFilter.id);
+            this._shadowPath.style.visibility = '';
+        }else if (this._shadowPath !== null){
+            this._shadowPath.style.filter = '';
+            this._shadowPath.style.visibility = 'hidden';
         }
     },
 
@@ -765,27 +707,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         if (!this._currentPath){
             this.beginPath();
         }
-        switch (drawingMode){
-            case JSContext.DrawingMode.fill:
-                this._styleElementForFill(this._currentPath, JSContext.FillRule.winding);
-                break;
-            case JSContext.DrawingMode.evenOddFill:
-                this._styleElementForFill(this._currentPath, JSContext.FillRule.evenOdd);
-                break;
-            case JSContext.DrawingMode.stroke:
-                this._styleElementForStroke(this._currentPath);
-                break;
-            case JSContext.DrawingMode.fillStroke:
-                // style stroke first because it sets fill to none, then override with fill
-                // NOTE: the stroke will still be painted on top of the fill
-                this._styleElementForStroke(this._currentPath);
-                this._styleElementForFill(this._currentPath, JSContext.FillRule.winding);
-                break;
-            case JSContext.DrawingMode.evenOddFillStroke:
-                this._styleElementForStroke(this._currentPath);
-                this._styleElementForFill(this._currentPath, JSContext.FillRule.evenOdd);
-                break;
-        }
+        this._styleElementForDrawingMode(this._currentPath, drawingMode);
         this._state.groupElement.appendChild(this._currentPath);
         this._discardPath();
     },
@@ -794,7 +716,13 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         if (!this._currentPath){
             this.beginPath();
         }
-        this._styleElementForFill(this._currentPath, fillRule);
+        var drawingMode;
+        if (fillRule == JSContext.FillRule.evenOdd){
+            drawingMode = JSContext.DrawingMode.evenOddFill;
+        }else{
+            drawingMode = JSContext.DrawingMode.fill;
+        }
+        this._styleElementForDrawingMode(this._currentPath, drawingMode);
         this._state.groupElement.appendChild(this._currentPath);
         this._discardPath();
     },
@@ -803,47 +731,72 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         if (!this._currentPath){
             this.beginPath();
         }
-        this._styleElementForStroke(this._currentPath);
+        this._styleElementForDrawingMode(this._currentPath, JSContext.DrawingMode.stroke);
         this._state.groupElement.appendChild(this._currentPath);
         this._discardPath();
     },
 
-    _styleElementForFill: function(element, fillRule){
-        var color = this._state.fillColor;
-        element.style.fill = color ? color.cssString() : '';
-        if (fillRule == JSContext.FillRule.evenOdd){
-            element.style.fillRule = 'evenodd';
+    _styleElementForDrawingMode: function(element, drawingMode){
+        var fill = false;
+        var stroke = false;
+        var fillRule = JSContext.FillRule.winding;
+        switch (drawingMode){
+            case JSContext.DrawingMode.fill:
+                fill = true;
+                break;
+            case JSContext.DrawingMode.evenOddFill:
+                fill = true;
+                fillRule = JSContext.FillRule.evenOdd;
+                break;
+            case JSContext.DrawingMode.stroke:
+                stroke = true;
+                break;
+            case JSContext.DrawingMode.fillStroke:
+                fill = true;
+                stroke = true;
+                break;
+            case JSContext.DrawingMode.evenOddFillStroke:
+                fill = true;
+                stroke = true;
+                fillRule = JSContext.FillRule.evenOdd;
+                break;
         }
-        if (this._state.clipPath){
-            element.style.clipPath = 'url(#%s)'.sprintf(this._state.clipPath.id);
-        }
-    },
 
-    _styleElementForStroke: function(element){
-        element.style.fill = 'none';
-        if (this._state.lineWidth === 0){
-            return;
-        }
-        var color = this._state.strokeColor;
-        element.style.stroke = color ? color.cssString() : '';
-        element.style.strokeWidth = this._state.lineWidth;
-        if (this._state.lineCap !== JSContext.LineCap.butt){
-            element.style.strokeLinecap = this._state.lineCap;
-        }
-        if (this._state.lineJoin !== JSContext.LineJoin.miter){
-            element.style.strokeLinejoin = this._state.lineJoin;
-        }
-        if (this._state.miterLimit !== 4){
-            element.style.strokeMiterlimit = this._state.miterLimit;
-        }
-        if (this._state.lineDash.lengths.length > 0){
-            element.style.strokeDasharray = this._state.lineDash.join(',');
-            if (this._state.lineDash.phase !== 0){
-                element.style.strokeDashoffset = this._state.lineDash.phase;
+        if (fill){
+            element.style.fill = this._state.fillColor ? this._state.fillColor.cssString() : '';
+            if (fillRule == JSContext.FillRule.evenOdd){
+                element.style.fillRule = 'evenodd';
             }
+        }else{
+            element.style.fill = 'none';
         }
-        if (this._state.clipPath){
-            element.style.clipPath = 'url(#%s)'.sprintf(this._state.clipPath.id);
+
+        if (stroke){
+            element.style.stroke = this._state.strokeColor ? this._state.strokeColor.cssString() : '';
+            element.style.strokeWidth = this._state.lineWidth;
+            if (this._state.lineCap !== JSContext.LineCap.butt){
+                element.style.strokeLinecap = this._state.lineCap;
+            }
+            if (this._state.lineJoin !== JSContext.LineJoin.miter){
+                element.style.strokeLinejoin = this._state.lineJoin;
+            }
+            if (this._state.miterLimit !== 4){
+                element.style.strokeMiterlimit = this._state.miterLimit;
+            }
+            if (this._state.lineDash.lengths.length > 0){
+                element.style.strokeDasharray = this._state.lineDash.join(',');
+                if (this._state.lineDash.phase !== 0){
+                    element.style.strokeDashoffset = this._state.lineDash.phase;
+                }
+            }
+        }else{
+            element.style.stroke = 'none';
+        }
+
+        if (this._state.shadowColor !== null){
+            var shadowFilter = this._definitions.filterForShadow(this._state.shadowOffset, this._state.shadowBlur, this._state.shadowColor);
+            element.style.filter = "url(#%s)".sprintf(shadowFilter.id);
+            this._usedShadowFiltersById[shadowFilter.id] = shadowFilter;
         }
     },
 
@@ -860,7 +813,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         svgRect.y.baseVal.value = rect.origin.y;
         svgRect.width.baseVal.value = rect.size.width;
         svgRect.height.baseVal.value = rect.size.height;
-        this._styleElementForFill(svgRect);
+        this._styleElementForDrawingMode(svgRect, JSContext.DrawingMode.fill);
         this._state.groupElement.appendChild(svgRect);
         this._discardPath();
     },
@@ -871,7 +824,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         svgRect.y.baseVal.value = rect.origin.y;
         svgRect.width.baseVal.value = rect.size.width;
         svgRect.height.baseVal.value = rect.size.height;
-        this._styleElementForStroke(svgRect);
+        this._styleElementForDrawingMode(svgRect, JSContext.DrawingMode.stroke);
         this._state.groupElement.appendChild(svgRect);
         this._discardPath();
     },
@@ -894,7 +847,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
                 svgRect.style.fill = image.templateColor.cssString();
                 svgRect.style.mask = 'url(#%s)'.sprintf(mask.id);
                 this._state.groupElement.appendChild(svgRect);
-                this._usedImageMasks.push(mask);
+                this._usedImageMasksById[mask.id] = mask;
             }else{
                 var svgImage = this.element.ownerDocument.createElementNS(SVGNamespace, "image");
                 svgImage.x.baseVal.value = rect.origin.x;
@@ -909,7 +862,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         }
     },
 
-    _usedImageMasks: null,
+    _usedImageMasksById: null,
 
     // ----------------------------------------------------------------------
     // MARK: - Gradients
@@ -1027,8 +980,12 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     },
 
     setShadow: function(offset, blur, color){
-        // TODO:
+        this._state.shadowOffset = offset;
+        this._state.shadowBlur = blur;
+        this._state.shadowColor = color;
     },
+
+    _usedShadowFiltersById: null,
 
     // ----------------------------------------------------------------------
     // MARK: - Clipping
@@ -1036,15 +993,22 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     _clipPathID: 0,
 
     clip: function(fillRule){
-        // FIXME: needs to consider all clips on the state stack, combined with fillRule
-        // this._state.clipPath = this.element.ownerDocument.createElementNS(SVGNamespace, "clipPath");
-        // ++this._clipPathID;
-        // this._state.clipPath.id = this._uniqueIdPrefix + "clip-" + this._clipPathID;
-        // this._state.clipPath.appendChild(this._currentPath);
-        // this._currentPath.style.fill = 'black';
-        // this._definitionsElement.appendChild(this._state.clipPath);
+        // FIXME: needs to consider fill rule
+        var clipPath = this.element.ownerDocument.createElementNS(SVGNamespace, "clipPath");
+        ++this._clipPathID;
+        clipPath.id = this._uniqueIdPrefix + "clip-" + this._clipPathID;
+        clipPath.appendChild(this._currentPath);
+        this._definitions.element.appendChild(clipPath);
+        var group = this.element.ownerDocument.createElementNS(SVGNamespace, "g");
+        group.style.clipPath = "url(#%s)".sprintf(clipPath.id);
+        group.style.clipRule = fillRule == JSContext.FillRule.evenOdd ? "evenodd" : "nonzero";
+        this._state.groupElement.appendChild(group);
+        this._state.groupElement = group;
+        this._usedClipPaths.push(clipPath);
         this._discardPath();
     },
+
+    _usedClipPaths: null,
 
     // ----------------------------------------------------------------------
     // MARK: - Transformations
@@ -1139,6 +1103,8 @@ JSClass("_UIHTMLDisplayServerSVGContextDefs", JSObject, {
         this._createImageMaskFilter();
         this._imageMasksById = {};
         this._unusedImageMaskIds = new Set();
+        this._shadowFiltersById = {};
+        this._unusedShadowFilters = new Set();
     },
 
     // MARK: - Image Masking
@@ -1180,8 +1146,8 @@ JSClass("_UIHTMLDisplayServerSVGContextDefs", JSObject, {
             mask.height.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 1);
             mask.setAttribute("maskContentUnits", "objectBoundingBox");
             mask.id = maskId;
-            this.element.appendChild(mask);
             mask.appendChild(svgImage);
+            this.element.appendChild(mask);
             maskInfo = {
                 useCount: 0,
                 mask: mask
@@ -1203,7 +1169,78 @@ JSClass("_UIHTMLDisplayServerSVGContextDefs", JSObject, {
         }
     },
 
+    // MARK: - Shadows
+
+    _shadowFiltersById: null,
+    _unusedShadowFilters: null,
+
+    filterForShadow: function(offset, radius, color){
+        var shadowId = this._uniqueIdPrefix + "shadow-%d-%d-%d-%s".sprintf(Math.round(offset.x * 2), Math.round(offset.y * 2), Math.round(radius * 2), color.cssString().replace(/\s/g, '').replace(/[^a-z0-9\.]/g, '_'));
+        var shadowInfo = this._shadowFiltersById[shadowId];
+        if (!shadowInfo){
+            var filter = this.element.ownerDocument.createElementNS(SVGNamespace, "filter");
+            filter.id = shadowId;
+            filter.setAttribute("filterUnits", "objectBoundingBox");
+            filter.x.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, -1);
+            filter.y.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, -1);
+            filter.width.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 3);
+            filter.height.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 3);
+
+            var offsetElement = this.element.ownerDocument.createElementNS(SVGNamespace, "feOffset");
+            offsetElement.setAttribute("in", "SourceAlpha");
+            offsetElement.dx.baseVal = offset.x;
+            offsetElement.dy.baseVal = offset.y;
+
+            var blurElement = this.element.ownerDocument.createElementNS(SVGNamespace, "feGaussianBlur");
+            blurElement.setStdDeviation(radius / 2, radius / 2);
+
+            var colorElement = this.element.ownerDocument.createElementNS(SVGNamespace, "feColorMatrix");
+            colorElement.setAttribute("values", "0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0 0");
+            colorElement.setAttribute("type", "matrix");
+            var rgba = color.rgbaColor();
+            var r = this.element.ownerSVGElement.createSVGNumber();
+            var g = this.element.ownerSVGElement.createSVGNumber();
+            var b = this.element.ownerSVGElement.createSVGNumber();
+            var a = this.element.ownerSVGElement.createSVGNumber();
+            r.value = rgba.red;
+            g.value = rgba.green;
+            b.value = rgba.blue;
+            a.value = rgba.alpha;
+            colorElement.values.baseVal.replaceItem(r, 4);
+            colorElement.values.baseVal.replaceItem(g, 9);
+            colorElement.values.baseVal.replaceItem(b, 14);
+            colorElement.values.baseVal.replaceItem(a, 18);
+
+            filter.appendChild(offsetElement);
+            filter.appendChild(blurElement);
+            filter.appendChild(colorElement);
+            this.element.appendChild(filter);
+
+            shadowInfo = {
+                useCount: 0,
+                filter: filter
+            };
+            this._shadowFiltersById[shadowId] = shadowInfo;
+        }
+        this._unusedShadowFilters.delete(shadowId);
+        ++shadowInfo.useCount;
+        return shadowInfo.filter;
+    },
+
+    releaseShadowFilter: function(filter){
+        var shadowInfo = this._shadowFiltersById[filter.id];
+        if (shadowInfo){
+            --shadowInfo.useCount;
+            if (shadowInfo.useCount === 0){
+                this._unusedShadowFilters.add(filter.id);
+            }
+        }
+    },
+
+    // MARK: - Cleanup of unused items
+
     cleanup: function(){
+        // Image masks
         var map = this._imageMasksById;
         this._unusedImageMaskIds.forEach(function(maskId){
             var maskInfo = map[maskId];
@@ -1211,6 +1248,15 @@ JSClass("_UIHTMLDisplayServerSVGContextDefs", JSObject, {
             delete map[maskId];
         });
         this._unusedImageMaskIds.clear();
+
+        // shadow filters
+        map = this._shadowFiltersById;
+        this._unusedShadowFilters.forEach(function(shadowId){
+            var shadowInfo = map[shadowId];
+            shadowInfo.filter.parentNode.removeChild(shadowInfo.filter);
+            delete map[shadowId];
+        });
+        this._unusedShadowFilters.clear();
     }
 
 });
@@ -1220,7 +1266,6 @@ var SVGNamespace = "http://www.w3.org/2000/svg";
 var State = {
     alpha: 1,
     transform: JSAffineTransform.Identity,
-    clipPath: null,
     fillColor: JSColor.blackColor,
     strokeColor: JSColor.blackColor,
     lineWidth: 1,
