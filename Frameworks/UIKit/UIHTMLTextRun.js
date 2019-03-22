@@ -50,22 +50,37 @@ JSClass("UIHTMLTextRun", JSTextRun, {
     },
 
     drawInContextAtPoint: function(context, point){
-        // UIHTMLTextRun should only exist inside a UIHTMLTextFrame structure, and
-        // UIHTMLTextFrame short-circuits the drawing in an HTML context by simply adding its element,
-        // which already contains all line and run elements, to the context.
-        // However, if UIHTMLTextFrame is asked to draw in a non-HTML context, it follows
-        // the default logic from JSTextFrame, in which case it calls on lines and runs to draw themselves.
-        // Therefore, if we're called here, it means a non-HTML context is drawing the text frame.
-        // TODO: what if this is an attachment run?
+        // A UIHTMLTextRun should only be created as part of a UIHTMLTextFrame.
+        // When the frame is rendered to an UIHTMLDisplayServerCanvasContext, it
+        // simply adds itself (including its descendant lines & runs) as a single
+        // external element to the context.
+        // So lines and runs never need to draw themselves.
+        //
+        // However, the frame is rendered to a non html-canvas context, we need
+        // to draw ourself.
+        // 
+        // If we're drawing to an html-svg canvas, we can take a few shortcuts.
+        //
+        // If we're drawing to any other kind of canvas, we need to make up for
+        // the fact that the html typesetter never bothers to handle fallback
+        // fonts for missing glyphs, and therefore re-layout using a plain typesetter.
+
         if (context.isKindOfClass(UIHTMLDisplayServerContext)){
-            // If we're in an HTML context, we don't need to worry about resovling fallback fonts
-            // so just send use showText instead of creating a new line and calling showGlyphs.
-            context.save();
-            context.translateBy(point.x, point.y + this.font.ascender);
-            context.setFont(this.font);
-            context.setFillColor(this.attributes.textColor);
-            context.showText(this.textNode.nodeValue);
-            context.restore();
+            // The assumption is that we're drawing to an html-svg canvas because otherwise
+            // our ancestor text frame would have short-cut the drawing without looping to lines and runs.
+            if (this.attachment){
+                var attachmentContext = context.displayServer.contextForAttachment(this.attachment);
+                context.addExternalElementInRect(attachmentContext.element, JSRect(point, this.attachment.size));
+            }else{
+                // If we're in an HTML context, the browser will take care of resovling fallback fonts
+                // so just send use showText instead of creating a new line and calling showGlyphs.
+                context.save();
+                context.translateBy(point.x, point.y + this.font.ascender);
+                context.setFont(this.font);
+                context.setFillColor(this.attributes.textColor);
+                context.showText(this.textNode.nodeValue);
+                context.restore();
+            }
         }else{
             // If we're not in an HTML context, we may need to resolve fallback fonts
             // for parts of this run, so we can't just call showText.

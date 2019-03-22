@@ -7,7 +7,11 @@
 
 JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
+    hasDragEvents: true,
     style: null,
+
+    firstSublayerNodeIndex: 0,
+    layerManagedNodeCount: 0,
 
     // --------------------------------------------------------------------
     // MARK: - Creating a Context
@@ -22,6 +26,8 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     initForScreenContext: function(screenContext){
         this.initForDocument(screenContext.element.ownerDocument);
+        this.layerManagedNodeCount = this.element.childNodes.length;
+        this.firstSublayerNodeIndex = this.layerManagedNodeCount;
         this.propertiesNeedingUpdate = {
             bounds: true,
             transform: true,
@@ -429,7 +435,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     trackingElement: null,
     trackingListener: null,
 
-    startMouseTracking: function(trackingType, listener){
+    startMouseTracking: function(trackingType, listener, layer){
         if (this.trackingElement === null){
             this.trackingElement = this.element.ownerDocument.createElement('div');
             this.trackingElement.style.position = 'absolute';
@@ -464,6 +470,50 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this.trackingElement.parentNode.removeChild(this.trackingElement);
         this.trackingElement = null;
         this.trackingListener = null;
+    },
+
+    setCursor: function(cursor){
+        if (cursor === null){
+            this.element.style.cursor = '';
+            return;
+        }
+        var cssCursorStrings = cursor.cssStrings();
+        // UICursor.cssStrings() returns a set of css strings, one of which
+        // should work in our browser, but some of which may fail because they
+        // use commands specific to other browsers.  The failure looks like
+        // style.cursor is an empty string, so we'll keep going until it's
+        // not an empty string, or we're out of options
+        for (var i = 0, l = cssCursorStrings.length; i < l; ++i){
+            this.element.style.cursor = cssCursorStrings[i];
+            if (this.element.style.cursor !== ''){
+                break;
+            }
+        }
+    },
+
+    // ----------------------------------------------------------------------
+    // MARK: - Sublayers
+
+    insertSublayerContext: function(sublayer, context){
+        var insertIndex = this.firstSublayerNodeIndex + sublayer.sublayerIndex;
+        // If we're moving within the same node, we need to be careful about the index
+        // calculations.  For example, if context.element is currently at index 4, and it's
+        // moving to index 7, that 7 was calculated assuming that index 4 was removed.  So it
+        // really should be 8 in the DOM since our element is still in there.  But we can't just
+        // add 1 because the same doesn't hold if we're moving down in index, like from 7 to 4.
+        // So the easiest thing to do is remove our element from the parent first.  Alternatively,
+        // we could find the current index with Array.indexOf(), and conditionally add 1 if moving up.
+        // I doubt there's a big performance difference.
+        if (context.element.parentNode === this.element){
+            this.element.removeChild(context.element);
+        }
+        if (insertIndex < this.element.childNodes.length){
+            if (context.element !== this.element.childNodes[insertIndex]){
+                this.element.insertBefore(context.element, this.element.childNodes[insertIndex]);
+            }
+        }else{
+            this.element.appendChild(context.element);
+        }
     },
 
     // ----------------------------------------------------------------------

@@ -145,6 +145,9 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             var attachmentInfo;
             for (var i = 0, l = this.attachments.length; i < l; ++i){
                 attachmentInfo = this.attachments[i];
+                if (attachmentInfo.context.element.parentNode !== attachmentInfo.run.element){
+                    attachmentInfo.run.element.appendChild(attachmentInfo.context.element);
+                }
                 attachmentInfo.attachment.drawInContextAtPoint(attachmentInfo.context, JSPoint.Zero);
             }
         }else{

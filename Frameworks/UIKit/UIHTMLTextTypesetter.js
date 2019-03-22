@@ -202,7 +202,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                 // 1. Want context for attachment to be resuable to minimize dom manipulations, but
                 //    also need a distinct context per text frame that uses this string+attachment
                 attachments.push({
-                    context: this._htmlDisplayServer.contextForAttachment(fragment.runDescriptor.attachment, span),
+                    context: this._htmlDisplayServer.contextForAttachment(fragment.runDescriptor.attachment),
                     attachment: fragment.runDescriptor.attachment,
                     run: run
                 });

@@ -35,6 +35,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.screen = UIScreen.initWithFrame(JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight), this.domDocument.defaultView.devicePixelRatio || 1);
         this.displayServer.setScreenSize(this.screen.frame.size);
         this._updateScreenClientOrigin();
+        this.setCursor(UICursor.currentCursor);
         UIPasteboard.general = UIHTMLDataTransferPasteboard.init();
     },
 
@@ -67,7 +68,6 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.style.userSelect = 'none';
         this.rootElement.style.mozUserSelect = 'none';
         this.rootElement.style.webkitUserSelect = 'none';
-        this.setCursor(UICursor.currentCursor);
     },
 
     // --------------------------------------------------------------------
@@ -84,26 +84,12 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         }
         if (!this._isOverridingCursor){
             var context = this.displayServer.contextForLayer(view.layer);
-            this._setElementCursor(context.element, cursor !== null ? cursor.cssStrings() : ['']);
-        }
-    },
-
-    _setElementCursor: function(element, cssCursorStrings){
-        // UICursor.cssStrings() returns a set of css strings, one of which
-        // should work in our browser, but some of which may fail because they
-        // use commands specific to other browsers.  The failure looks like
-        // style.cursor is an empty string, so we'll keep going until it's
-        // not an empty string, or we're out of options
-        for (var i = 0, l = cssCursorStrings.length; i < l; ++i){
-            element.style.cursor = cssCursorStrings[i];
-            if (element.style.cursor !== ''){
-                break;
-            }
+            context.setCursor(cursor, view.layer);
         }
     },
 
     hideCursor: function(){
-        this._setCursor("none", true);
+        this._setCursor(UICursor.none, true);
     },
 
     unhideCursor: function(){
@@ -111,11 +97,11 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     setCursor: function(cursor){
-        this._setCursor(cursor.cssStrings(), UICursor._stack.length > 1);
+        this._setCursor(cursor, UICursor._stack.length > 1);
     },
 
-    _setCursor: function(cssCursorStrings, isOverride){
-        this._setElementCursor(this.rootElement, cssCursorStrings);
+    _setCursor: function(cursor, isOverride){
+        this.displayServer.screenContext.setCursor(cursor, null);
         var id;
         var view;
         var context;
@@ -124,7 +110,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                 this._isOverridingCursor = true;
                 for (id in this._cursorViewsById){
                     context = this.displayServer.contextForLayer(this._cursorViewsById[id].layer);
-                    this._setElementCursor(context.element, ['']);
+                    context.setCursor(null, this._cursorViewsById[id].layer);
                 }
             }
         }else{
@@ -133,7 +119,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                 for (id in this._cursorViewsById){
                     view = this._cursorViewsById[id];
                     context = this.displayServer.contextForLayer(view.layer);
-                    this._setElementCursor(context.element, view.cursor.cssStrings());
+                    context.setCursor(view.cursor, view.layer);
                 }
             }
         }
@@ -163,7 +149,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                     windowServer._createMouseTrackingEventFromDOMEvent(e, UIEvent.Type.mouseMoved, view);
                 }
             };
-            context.startMouseTracking(trackingType, listener);
+            context.startMouseTracking(trackingType, listener, view.layer);
         }
     },
 
@@ -720,23 +706,24 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
 
     createDraggingSessionWithItems: function(items, event, view){
         var session = UIHTMLWindowServer.$super.createDraggingSessionWithItems.call(this, items, event, view);
-        session.isActive = false;
         var context = this.displayServer.contextForLayer(view.layer);
-        context.element.draggable = true;
+        session.isActive = !context.hasDragEvents;
 
-        // Could use a subclass here, but this seems to work too
-        var originalSetImage = session.setImage;
-        var windowServer = this;
-        Object.defineProperties(session, {
-            setImage: {
-                configurable: true,
-                value: function UIHTMLWindowServer_UIDragSession_setImage(image, imageOffset){
-                    originalSetImage.call(this, image, imageOffset);
-                    windowServer.prerenderDragImage(image);
+        if (context.hasDragEvents){
+            context.element.draggable = true;
+            // Could use a subclass here, but this seems to work too
+            var originalSetImage = session.setImage;
+            var windowServer = this;
+            Object.defineProperties(session, {
+                setImage: {
+                    configurable: true,
+                    value: function UIHTMLWindowServer_UIDragSession_setImage(image, imageOffset){
+                        originalSetImage.call(this, image, imageOffset);
+                        windowServer.prerenderDragImage(image);
+                    }
                 }
-            }
-        });
-
+            });
+        }
         return session;
     },
 

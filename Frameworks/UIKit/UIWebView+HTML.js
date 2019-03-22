@@ -5,33 +5,39 @@
 UIWebView.definePropertiesFromExtensions({
 
     _iframe: null,
+    _url: null,
+
+    initWithFrame: function(frame){
+        UIWebView.$super.initWithFrame.call(this, frame);
+        this.setNeedsDisplay();
+    },
+
+    initWithSpec: function(spec, values){
+        UIWebView.$super.initWithSpec.call(this, spec, values);
+        this.setNeedsDisplay();
+    },
 
     loadURL: function(url){
-        this._iframe.src = url.encodedString;
+        this._url = url;
+        this._loadURL();
+    },
+
+    _loadURL: function(){
+        if (this._iframe !== null){
+            this._iframe.src = this._url ? this._url.encodedString : 'about:blank';
+        }
     },
 
     layerDidChangeSize: function(){
-        if (this._iframe === null){
-            return;
+        this._updateIframeSize();
+    },
+
+    _updateIframeSize: function(){
+        if (this._iframe !== null){
+            this._iframe.style.width = "%dpx".sprintf(this.layer.bounds.size.width);
+            this._iframe.style.height = "%dpx".sprintf(this.layer.bounds.size.height);
+            this.setNeedsDisplay();
         }
-        this._iframe.style.width = "%dpx".sprintf(this.layer.bounds.size.width);
-        this._iframe.style.height = "%dpx".sprintf(this.layer.bounds.size.height);
-    },
-
-    initializeLayerHTMLContext: function(layer, context){
-        var element = context.element;
-        var iframe = element.ownerDocument.createElement('iframe');
-        iframe.addEventListener('load', this);
-        iframe.style.border = 'none';
-        iframe.style.width = "%dpx".sprintf(this.layer.bounds.size.width);
-        iframe.style.height = "%dpx".sprintf(this.layer.bounds.size.height);
-        iframe.src = "about:blank";
-        element.appendChild(iframe);
-        this._iframe = iframe;
-    },
-
-    destroyLayerHTMLContext: function(layer, context){
-        this._iframe.removeEventListener('load', this);
     },
 
     handleEvent: function(e){
@@ -44,7 +50,32 @@ UIWebView.definePropertiesFromExtensions({
             url = JSURL.initWithString(e.target.contentWindow.location.href);
         }catch(err){
         }
-        this.delegate.webViewDidLoadURL(this, url);
+        if (this.delegate && this.delegate.webViewDidLoadURL){
+            this.delegate.webViewDidLoadURL(this, url);
+        }
+    },
+
+    _createIframeIfNeeded: function(document){
+        if (this._iframe !== null){
+            return;
+        }
+        var iframe = document.createElement('iframe');
+        iframe.addEventListener('load', this);
+        iframe.style.border = 'none';
+        iframe.style.width = "%dpx".sprintf(this.layer.bounds.size.width);
+        iframe.style.height = "%dpx".sprintf(this.layer.bounds.size.height);
+        iframe.style.pointerEvents = 'all';
+        iframe.src = "about:blank";
+        this._iframe = iframe;
+        this._updateIframeSize();
+        this._loadURL();
+    },
+
+    drawLayerInContext: function(layer, context){
+        if (context.isKindOfClass(UIHTMLDisplayServerContext)){
+            this._createIframeIfNeeded(context.element.ownerDocument);
+            context.addExternalElementInRect(this._iframe, this.layer.bounds);
+        }
     }
 
 });

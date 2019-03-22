@@ -9,8 +9,7 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     displayServer: null,
     element: null,
     needsCustomDisplay: false,
-    firstSublayerNodeIndex: 0,
-    layerManagedNodeCount: 0,
+    hasDragEvents: false,
 
     drawsHiddenLayers: true,
 
@@ -36,6 +35,9 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     },
 
     addExternalElementInRect: function(element, rect){
+    },
+
+    insertSublayerContext: function(sublayer, context){
     },
 
     destroy: function(){

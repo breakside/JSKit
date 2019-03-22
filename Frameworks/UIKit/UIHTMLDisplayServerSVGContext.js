@@ -2,7 +2,7 @@
 // #import "UIKit/UIView.js"
 // #import "UIKit/UIHTMLDisplayServerContext.js"
 // #import "UIKit/SVGPathSegList.js"
-/* global SVGLength, JSClass, UILayer, JSContext, JSAffineTransform, JSColor, JSObject, UIHTMLDisplayServerContext, UIHTMLDisplayServerSVGContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
+/* global SVGLength, JSClass, UILayer, JSContext, JSAffineTransform, JSColor, JSObject, UIHTMLDisplayServerContext, UIHTMLDisplayServerSVGContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView, _UIHTMLDisplayServerSVGContextDefs */
 'use strict';
 
 (function(){
@@ -10,13 +10,20 @@
 // Context element
 // g
 //   shadow?
+//   tracking?
 //   backgroundColor?
 //   backgroundGradient?
 //   customDrawing?
-//   sublayer*
+//   sublayers?
+//     sublayer*
 //   border?
 
 JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
+
+    _trackingIndex: 0,
+    _backgroundIndex: 0,
+    _backgroundGradientIndex: 0,
+    _sublayersIndex: 0,
 
     // ----------------------------------------------------------------------
     // MARK: - Creating a Context
@@ -32,9 +39,17 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         this.element.style.position = 'absolute';
         this.element.style.top = '0';
         this.element.style.left = '0';
-        this._definitionsElement = doc.createElementNS(SVGNamespace, "defs");
-        this.element.appendChild(this._definitionsElement);
-        this.firstSublayerNodeIndex = 1;
+        this._definitions = _UIHTMLDisplayServerSVGContextDefs.initWithSVGElement(this.element);
+        this.element.appendChild(this._definitions.element);
+        this._trackingPath = doc.createElementNS(SVGNamespace, "rect");
+        this._trackingPath.x.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 0);
+        this._trackingPath.x.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 0);
+        this._trackingPath.width.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 100);
+        this._trackingPath.height.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 100);
+        this._trackingPath.style.pointerEvents = 'all';
+        this._trackingPath.style.visibility = 'hidden';
+        this.element.appendChild(this._trackingPath);
+        this._sublayersIndex = 2;
     },
 
     initForScreenContext: function(screenContext){
@@ -44,13 +59,16 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         this.element = doc.createElementNS(SVGNamespace, "g");
         this.originTransform = svg.createSVGTransform();
         this.element.transform.baseVal.appendItem(this.originTransform);
+        if (UIHTMLDisplayServerSVGContext.requiresTransformReplace === undefined){
+            UIHTMLDisplayServerSVGContext.requiresTransformReplace = this.element.transform.baseVal.getItem(0) !== this.originTransform;
+        }
 
         this._uniqueIdPrefix = "context-" + this.objectID + "-";
-        this._definitionsElement = screenContext._definitionsElement;
+        this._definitions = screenContext._definitions;
 
         this._state = Object.create(State);
         this._stack = [];
-        this._imageMasks = [];
+        this._usedImageMasks = [];
         this._propertiesNeedingUpdate = {
             bounds: true,
             transform: true,
@@ -66,7 +84,8 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         };
     },
 
-    _definitionsElement: null,
+    _definitions: null,
+
     _uniqueIdPrefix: null,
 
     destroy: function(){
@@ -76,6 +95,9 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         if (this._backgroundGradient){
             this._backgroundGradient.parentNode.removeChild(this._backgroundGradient);
         }
+        if (this._boundsClipPath){
+            this._boundsClipPath.parentNode.removeChild(this._boundsClipPath);
+        }
         UIHTMLDisplayServerSVGContext.$super.destroy.call(this);
     },
 
@@ -84,12 +106,22 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
 
     setOrigin: function(origin){
         this.originTransform.setTranslate(origin.x, origin.y);
+        // IE 11 and Edge (pre-Chromium) make a copy of this.originTransform
+        // when it's added to the list, contrary to the SVG spec.
+        // So, we'll take the extra step of doing a replaceItem.
+        if (UIHTMLDisplayServerSVGContext.requiresTransformReplace){
+            this.element.transform.baseVal.replaceItem(this.originTransform, 0);
+        }
     },
 
     setSize: function(size){
         // only called for the root context, which has an svg element
         this.element.width.baseVal.value = size.width;
         this.element.height.baseVal.value = size.height;
+        if (this._trackingPath){
+            this._trackingPath.width.baseVal.value = size.width;
+            this._trackingPath.height.baseVal.value = size.height;
+        }
     },
 
     originTransform: null,
@@ -124,6 +156,9 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     },
 
     drawLayer: function(layer){
+        if (this.needsCustomDisplay){
+            this.resetForDisplay();
+        }
         var methodName;
         for (var property in this._propertiesNeedingUpdate){
             methodName = 'updateSVG_' + property;
@@ -139,24 +174,45 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
             if (this._shadowPath !== null){
                 this._updateShadowPath(layer);
             }
+            if (this._trackingPath !== null){
+                this._updateTrackingPath(layer);
+            }
+            if (this._boundsClipPath !== null){
+                this._updateBoundsClipPath(layer);
+            }
             this._needsBoundsPathsRedraw = false;
         }
         this._colorFilterIndex = 0;
         if (this.needsCustomDisplay){
-            if (this._state.groupElement){
-                this._state.groupElement.parentNode.removeChild(this._state.groupElement);
-                --this.firstSublayerNodeIndex;
-            }
             this._state.groupElement = this.element.ownerDocument.createElementNS(SVGNamespace, "g");
-            this.element.insertBefore(this._state.groupElement, this.element.childNodes[this.firstSublayerNodeIndex]);
-            ++this.firstSublayerNodeIndex;
+            this.element.insertBefore(this._state.groupElement, this.element.childNodes[this._sublayersIndex]);
+            if (this._clippedToBounds){
+                this._state.groupElement.style.clipPath = 'url(#%s)'.sprintf(this._boundsClipPath.id);
+            }
+            ++this._sublayersIndex;
             layer._drawInContext(this);
             if (this._stack.length > 0){
                 throw new Error("Unbalanced save/restore");
             }
+            this.cleanupAfterDisplay();
             this.needsCustomDisplay = false;
         }
         this._propertiesNeedingUpdate = {};
+    },
+
+    resetForDisplay: function(){
+        if (this._state.groupElement){
+            this._state.groupElement.parentNode.removeChild(this._state.groupElement);
+            --this._sublayersIndex;
+        }
+        for (var i = this._usedImageMasks.length - 1; i >= 0; --i){
+            this._definitions.releaseImageMask(this._usedImageMasks[i]);
+        }
+        this._usedImageMasks = [];
+    },
+
+    cleanupAfterDisplay: function(){
+        this._definitions.cleanup();
     },
 
     // ----------------------------------------------------------------------
@@ -170,9 +226,6 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     _shadowBlurElement: null,
     _shadowColorElement: null,
 
-    _backgroundIndex: 0,
-    _backgroundGradientIndex: 0,
-
     _createShadowPathIfNeeded: function(layer){
         if (this._shadowPath === null){
             this._createShadowFilterIfNeeded(layer);
@@ -181,9 +234,10 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
             this._shadowPath.style.filter = 'url(#%s)'.sprintf(this._shadowFilter.id);
             this.element.insertBefore(this._shadowPath, this.element.childNodes[0]);
             this._updateShadowPath(layer);
+            ++this._trackingIndex;
             ++this._backgroundIndex;
             ++this._backgroundGradientIndex;
-            ++this.firstSublayerNodeIndex;
+            ++this._sublayersIndex;
         }
     },
 
@@ -214,7 +268,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
             this._shadowFilter.appendChild(this._shadowOffsetElement);
             this._shadowFilter.appendChild(this._shadowBlurElement);
             this._shadowFilter.appendChild(this._shadowColorElement);
-            this._definitionsElement.appendChild(this._shadowFilter);
+            this._definitions.element.appendChild(this._shadowFilter);
         }
     },
 
@@ -244,7 +298,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
             this.element.insertBefore(this._backgroundPath, this.element.childNodes[this._backgroundIndex]);
             this._updateBackgroundPath(layer);
             ++this._backgroundGradientIndex;
-            ++this.firstSublayerNodeIndex;
+            ++this._sublayersIndex;
         }
     },
 
@@ -254,6 +308,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
             this.element.appendChild(this._backgroundGradientPath);
             this.element.insertBefore(this._backgroundPath, this.element.childNodes[this._backgroundGradientIndex]);
             this._updateBackgroundPath(layer);
+            ++this._sublayersIndex;
         }
     },
 
@@ -261,7 +316,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         if (this._backgroundGradient === null){
             this._backgroundGradient = this.element.ownerDocument.createElementNS(SVGNamespace, "linearGradient");
             this._backgroundGradient.id = this._uniqueIdPrefix + 'backgroundGradient';
-            this._definitionsElement.appendChild(this._backgroundGradient);
+            this._definitions.element.appendChild(this._backgroundGradient);
         }
     },
 
@@ -308,13 +363,25 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         if (this._shadowFilter !== null){
             this._updateShadowFilterSize(layer);
         }
+        if (this._boundsClipPathContents){
+            this._updateBoundsClipPath(layer);
+        }
     },
 
     updateSVG_origin: function(){
-
+        // TODO: move custom drawing element
     },
 
     updateSVG_transform: function(layer){
+        // Our element has the following transform list
+        // origin [layerAnchorPoint layerTransform returnToOrigin]?
+        //
+        // If the layer's transform is the identity, we only need the
+        // origin transform.
+        //
+        // If the layer's transform is not the identity, we need to
+        // perform the transform at the anchor point and then return
+        // back to the origin.
         var transform = layer.presentation.transform;
         var l = this.element.transform.baseVal.numberOfItems;
         if (transform.isIdentity){
@@ -351,6 +418,11 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
             t1.setTranslate(anchorPoint.x, anchorPoint.y);
             t2.setMatrix(matrix);
             t3.setTranslate(-anchorPoint.x, -anchorPoint.y);
+            if (UIHTMLDisplayServerSVGContext.requiresTransformReplace){
+                this.element.transform.baseVal.replaceItem(t1, 1);
+                this.element.transform.baseVal.replaceItem(t2, 2);
+                this.element.transform.baseVal.replaceItem(t3, 3);
+            }
         }
     },
 
@@ -358,8 +430,44 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         this.element.style.visibility = layer.presentation.hidden ? 'hidden' : '';
     },
 
+    _boundsClipPath: null,
+    _boundsClipPathContents: null,
+
+    _updateBoundsClipPath: function(layer){
+        var bounds = layer.presentation.bounds;
+        this._boundsClipPathContents.x.baseVal.value = bounds.origin.x;
+        this._boundsClipPathContents.y.baseVal.value = bounds.origin.y;
+        this._boundsClipPathContents.width.baseVal.value = bounds.size.width;
+        this._boundsClipPathContents.height.baseVal.value = bounds.size.height;
+    },
+
+    _clippedToBounds: false,
+
     updateSVG_clipsToBounds: function(layer){
-        // TODO: clip contents, but not shadow
+        this._clippedToBounds = layer.clipsToBounds;
+        if (this._clippedToBounds){
+            if (!this._boundsClipPath){
+                this._boundsClipPath = this.element.ownerDocument.createElementNS(SVGNamespace, "clipPath");
+                this._boundsClipPath.id = this._uniqueIdPrefix + "boundsClipPath";
+                this._boundsClipPathContents = this.element.ownerDocument.createElementNS(SVGNamespace, "rect");
+                this._boundsClipPath.appendChild(this._boundsClipPathContents);
+                this._updateBoundsClipPath(layer);
+                this._definitions.element.appendChild(this._boundsClipPath);
+            }
+            if (this._sublayerGroup !== null){
+                this._sublayerGroup.style.clipPath = 'url(#%s)'.sprintf(this._boundsClipPath.id);
+            }
+            if (this._state.groupElement !== null){
+                this._state.groupElement.style.clipPath = 'url(#%s)'.sprintf(this._boundsClipPath.id);
+            }
+        }else{
+            if (this._sublayerGroup !== null){
+                this._sublayerGroup.style.clipPath = '';
+            }
+            if (this._state.groupElement !== null){
+                this._state.groupElement.style.clipPath = '';
+            }
+        }
     },
 
     updateSVG_alpha: function(layer){
@@ -477,46 +585,117 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     // ----------------------------------------------------------------------
     // MARK: - Tracking
 
-    trackingElement: null,
+    _trackingPath: null,
     trackingListener: null,
 
-    startMouseTracking: function(trackingType, listener){
-        // TODO:
-
-        // if (this.trackingElement === null){
-        //     this.trackingElement = this.element.ownerDocument.createElement('div');
-        //     this.trackingElement.style.position = 'absolute';
-        //     this.trackingElement.style.top = '0';
-        //     this.trackingElement.style.left = '0';
-        //     this.trackingElement.style.bottom = '0';
-        //     this.trackingElement.style.right = '0';
-        //     this.trackingElement.dataset.tag = "tracking";
-        //     this.element.appendChild(this.trackingElement);
-        // }else if (this.trackingListener !== null){
-        //     this.trackingElement.removeEventListener('mouseenter', this.trackingListener);
-        //     this.trackingElement.removeEventListener('mouseleave', this.trackingListener);
-        //     this.trackingElement.removeEventListener('mousemove', this.trackingListener);
-        // }
-        // this.trackingListener = listener;
-        // if (trackingType & UIView.MouseTracking.enterAndExit){
-        //     this.trackingElement.addEventListener('mouseenter', this.trackingListener);
-        //     this.trackingElement.addEventListener('mouseleave', this.trackingListener);
-        // }
-        // if (trackingType & UIView.MouseTracking.move){
-        //     this.trackingElement.addEventListener('mousemove', this.trackingListener);
-        // }
+    startMouseTracking: function(trackingType, listener, layer){
+        this._createTrackingPathIfNeeded(layer);
+        if (this.trackingListener !== null){
+            this._trackingPath.removeEventListener('mouseenter', this.trackingListener);
+            this._trackingPath.removeEventListener('mouseleave', this.trackingListener);
+            this._trackingPath.removeEventListener('mousemove', this.trackingListener);
+        }
+        this.trackingListener = listener;
+        if (trackingType & UIView.MouseTracking.enterAndExit){
+            this._trackingPath.addEventListener('mouseenter', this.trackingListener);
+            this._trackingPath.addEventListener('mouseleave', this.trackingListener);
+        }
+        if (trackingType & UIView.MouseTracking.move){
+            this._trackingPath.addEventListener('mousemove', this.trackingListener);
+        }
     },
 
     stopMouseTracking: function(){
         if (this.trackingElement === null || this.trackingListener === null){
             return;
         }
-        this.trackingElement.removeEventListener('mouseenter', this.trackingListener);
-        this.trackingElement.removeEventListener('mouseleave', this.trackingListener);
-        this.trackingElement.removeEventListener('mousemove', this.trackingListener);
-        this.trackingElement.parentNode.removeChild(this.trackingElement);
-        this.trackingElement = null;
+        this._trackingPath.removeEventListener('mouseenter', this.trackingListener);
+        this._trackingPath.removeEventListener('mouseleave', this.trackingListener);
+        this._trackingPath.removeEventListener('mousemove', this.trackingListener);
         this.trackingListener = null;
+    },
+
+    _createTrackingPathIfNeeded: function(layer){
+        if (this._trackingPath !== null){
+            return null;
+        }
+        this._trackingPath = this.element.ownerDocument.createElementNS(SVGNamespace, "path");
+        this._trackingPath.style.pointerEvents = 'visible';
+        this._trackingPath.style.fill = 'none';
+        this._trackingPath.style.stroke = 'none';
+        this._updateTrackingPath(layer);
+        this.element.insertBefore(this._trackingPath, this.element.childNodes[this._trackingIndex]);
+        ++this._backgroundIndex;
+        ++this._backgroundGradientIndex;
+        ++this._sublayersIndex;
+    },
+
+    _updateTrackingPath: function(layer){
+        this._trackingPath.pathSegList.clear();
+        this._currentPath = this._trackingPath;
+        this.addBorderPathForLayerProperties(layer.presentation, UILayer.Path.shadow);
+        this._currentPath = null;
+    },
+
+    setCursor: function(cursor, layer){
+        if (cursor === null){
+            if (this._trackingPath){
+                this._trackingPath.style.cursor = '';
+            }
+            return;
+        }
+        this._createTrackingPathIfNeeded(layer);
+        var cssCursorStrings = cursor.cssStrings();
+        // UICursor.cssStrings() returns a set of css strings, one of which
+        // should work in our browser, but some of which may fail because they
+        // use commands specific to other browsers.  The failure looks like
+        // style.cursor is an empty string, so we'll keep going until it's
+        // not an empty string, or we're out of options
+        for (var i = 0, l = cssCursorStrings.length; i < l; ++i){
+            this._trackingPath.style.cursor = cssCursorStrings[i];
+            if (this._trackingPath.style.cursor !== ''){
+                break;
+            }
+        }
+    },
+
+    // ----------------------------------------------------------------------
+    // MARK: - Sublayers
+
+    insertSublayerContext: function(sublayer, context){
+        this._createSublayerGroupIfNeeded();
+        var insertIndex = sublayer.sublayerIndex;
+        // If we're moving within the same node, we need to be careful about the index
+        // calculations.  For example, if context.element is currently at index 4, and it's
+        // moving to index 7, that 7 was calculated assuming that index 4 was removed.  So it
+        // really should be 8 in the DOM since our element is still in there.  But we can't just
+        // add 1 because the same doesn't hold if we're moving down in index, like from 7 to 4.
+        // So the easiest thing to do is remove our element from the parent first.  Alternatively,
+        // we could find the current index with Array.indexOf(), and conditionally add 1 if moving up.
+        // I doubt there's a big performance difference.
+        if (context.element.parentNode === this._sublayerGroup){
+            this._sublayerGroup.removeChild(context.element);
+        }
+        if (insertIndex < this._sublayerGroup.childNodes.length){
+            if (context.element !== this._sublayerGroup.childNodes[insertIndex]){
+                this._sublayerGroup.insertBefore(context.element, this._sublayerGroup.childNodes[insertIndex]);
+            }
+        }else{
+            this._sublayerGroup.appendChild(context.element);
+        }
+    },
+
+    _sublayerGroup: null,
+
+    _createSublayerGroupIfNeeded: function(){
+        if (this._sublayerGroup !== null){
+            return;
+        }
+        this._sublayerGroup = this.element.ownerDocument.createElementNS(SVGNamespace, "g");
+        this.element.insertBefore(this._sublayerGroup, this.element.childNodes[this._sublayersIndex]);
+        if (this._clippedToBounds){
+            this._sublayerGroup.style.clipPath = 'url(#%s)'.sprintf(this._boundsClipPath.id);
+        }
     },
 
     // ----------------------------------------------------------------------
@@ -705,19 +884,8 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         if (caps !== null){
             // TODO: stretchable images
         }else{
-            var svgImage = this.element.ownerDocument.createElementNS(SVGNamespace, "image");
-            svgImage.x.baseVal.value = rect.origin.x;
-            svgImage.y.baseVal.value = rect.origin.y;
-            svgImage.width.baseVal.value = rect.size.width;
-            svgImage.height.baseVal.value = rect.size.height;
-            svgImage.setAttribute("preserveAspectRatio", "none");
-            var url = image.htmlURLString();
-            svgImage.setAttributeNS("http://www.w3.org/1999/xlink", "href", url);
             if (image.templateColor){
-                this._createImageMaskFilterIfNeeded();
-                svgImage.style.filter = 'url(#%s)'.sprintf(this._imageMaskFilter.id);
-                var mask = this._dequeueImageMask();
-                mask.appendChild(svgImage);
+                var mask = this._definitions.maskForImage(image);
                 var svgRect = this.element.ownerDocument.createElementNS(SVGNamespace, "rect");
                 svgRect.x.baseVal.value = rect.origin.x;
                 svgRect.y.baseVal.value = rect.origin.y;
@@ -726,43 +894,22 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
                 svgRect.style.fill = image.templateColor.cssString();
                 svgRect.style.mask = 'url(#%s)'.sprintf(mask.id);
                 this._state.groupElement.appendChild(svgRect);
+                this._usedImageMasks.push(mask);
             }else{
+                var svgImage = this.element.ownerDocument.createElementNS(SVGNamespace, "image");
+                svgImage.x.baseVal.value = rect.origin.x;
+                svgImage.y.baseVal.value = rect.origin.y;
+                svgImage.width.baseVal.value = rect.size.width;
+                svgImage.height.baseVal.value = rect.size.height;
+                svgImage.setAttribute("preserveAspectRatio", "none");
+                var url = image.htmlURLString();
+                svgImage.setAttributeNS("http://www.w3.org/1999/xlink", "href", url);
                 this._state.groupElement.appendChild(svgImage);
             }
         }
     },
 
-    _imageMaskFilter: null,
-    _imageMasks: null,
-    _imageMaskIndex: 0,
-
-    _createImageMaskFilterIfNeeded: function(layer){
-        if (this._imageMaskFilter === null){
-            var filter = this.element.ownerDocument.createElementNS(SVGNamespace, "filter");
-            filter.id = this._uniqueIdPrefix + "imageMaskFilter";
-            var colorMatrix = this.element.ownerDocument.createElementNS(SVGNamespace, "feColorMatrix");
-            colorMatrix.setAttribute("in", "SourceAlpha");
-            colorMatrix.setAttribute("type", "matrix");
-            colorMatrix.setAttribute("values", "0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0");
-            filter.appendChild(colorMatrix);
-            this._definitionsElement.appendChild(filter);
-            this._imageMaskFilter = filter;
-        }
-    },
-
-    _dequeueImageMask: function(){
-        var mask;
-        if (this._imageMaskIndex < this._imageMasks.length){
-            mask = this._imageMasks[this._imageMaskIndex];
-            mask.removeChild(mask.childNodes[0]);
-        }else{
-            mask = this.element.ownerDocument.createElementNS(SVGNamespace, "mask");
-            mask.id = this._uniqueIdPrefix + "imageMask-" + this._imageMasks.length;
-            this._definitionsElement.appendChild(mask);
-        }
-        ++this._imageMaskIndex;
-        return mask;
-    },
+    _usedImageMasks: null,
 
     // ----------------------------------------------------------------------
     // MARK: - Gradients
@@ -838,14 +985,26 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     },
 
     addExternalElementInRect: function(element, rect){
-        element.style.position = 'relative';
-        var foreignObject = this.element.ownerDocument.createElementNS(SVGNamespace, "foreignObject");
-        foreignObject.x.baseVal.value = rect.origin.x;
-        foreignObject.y.baseVal.value = rect.origin.y;
-        foreignObject.width.baseVal.value = rect.size.width;
-        foreignObject.height.baseVal.value = rect.size.height;
-        foreignObject.appendChild(element);
-        this._state.groupElement.appendChild(foreignObject);
+        if (element.namespaceURI == SVGNamespace){
+            var group = this.element.ownerDocument.createElementNS(SVGNamespace, "g");
+            var origin = this.element.ownerSVGElement.createSVGTransform();
+            origin.setTranslate(rect.origin.x, rect.origin.y);
+            group.transform.baseVal.initialize(origin);
+            group.appendChild(element);
+            this._state.groupElement.appendChild(group);
+        }else{
+            // NOTE: Safari has issues if element or its decendants
+            // - use opacity
+            // - use relative positioning
+            // - use absolute positioning
+            var foreignObject = this.element.ownerDocument.createElementNS(SVGNamespace, "foreignObject");
+            foreignObject.x.baseVal.value = rect.origin.x;
+            foreignObject.y.baseVal.value = rect.origin.y;
+            foreignObject.width.baseVal.value = rect.size.width;
+            foreignObject.height.baseVal.value = rect.size.height;
+            foreignObject.appendChild(element);
+            this._state.groupElement.appendChild(foreignObject);
+        }
     },
 
     // ----------------------------------------------------------------------
@@ -966,6 +1125,92 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         if (this._stack.length > 0){
             this._state = this._stack.pop();
         }
+    }
+
+});
+
+JSClass("_UIHTMLDisplayServerSVGContextDefs", JSObject, {
+
+    element: null,
+
+    initWithSVGElement: function(svg){
+        this.element = svg.ownerDocument.createElementNS(SVGNamespace, "defs");
+        this._uniqueIdPrefix = 'defs-' + this.objectID + '-';
+        this._createImageMaskFilter();
+        this._imageMasksById = {};
+        this._unusedImageMaskIds = new Set();
+    },
+
+    // MARK: - Image Masking
+
+    _imageMaskFilter: null,
+    _imageMasksById: null,
+    _unusedImageMaskIds: null,
+
+    _createImageMaskFilter: function(){
+        var filter = this.element.ownerDocument.createElementNS(SVGNamespace, "filter");
+        filter.id = this._uniqueIdPrefix + "imageMaskFilter";
+        var colorMatrix = this.element.ownerDocument.createElementNS(SVGNamespace, "feColorMatrix");
+        colorMatrix.setAttribute("in", "SourceAlpha");
+        colorMatrix.setAttribute("type", "matrix");
+        colorMatrix.setAttribute("values", "0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0");
+        filter.appendChild(colorMatrix);
+        this.element.appendChild(filter);
+        this._imageMaskFilter = filter;
+    },
+
+    maskForImage: function(image){
+        var maskId = this._uniqueIdPrefix + "imageMask-" + image.objectID;
+        var maskInfo = this._imageMasksById[maskId];
+        if (!maskInfo){
+            var svgImage = this.element.ownerDocument.createElementNS(SVGNamespace, "image");
+            svgImage.setAttribute("preserveAspectRatio", "none");
+            svgImage.x.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 0);
+            svgImage.y.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 0);
+            svgImage.width.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 1);
+            svgImage.height.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 1);
+            var url = image.htmlURLString();
+            svgImage.setAttributeNS("http://www.w3.org/1999/xlink", "href", url);
+            svgImage.style.filter = 'url(#%s)'.sprintf(this._imageMaskFilter.id);
+            var mask = this.element.ownerDocument.createElementNS(SVGNamespace, "mask");
+            mask.setAttribute("maskUnits", "objectBoundingBox");
+            mask.x.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 0);
+            mask.y.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 0);
+            mask.width.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 1);
+            mask.height.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 1);
+            mask.setAttribute("maskContentUnits", "objectBoundingBox");
+            mask.id = maskId;
+            this.element.appendChild(mask);
+            mask.appendChild(svgImage);
+            maskInfo = {
+                useCount: 0,
+                mask: mask
+            };
+            this._imageMasksById[maskId] = maskInfo;
+        }
+        ++maskInfo.useCount;
+        this._unusedImageMaskIds.delete(maskId);
+        return maskInfo.mask;
+    },
+
+    releaseImageMask: function(mask){
+        var maskInfo = this._imageMasksById[mask.id];
+        if (maskInfo){
+            --maskInfo.useCount;
+            if (maskInfo.useCount === 0){
+                this._unusedImageMaskIds.add(mask.id);
+            }
+        }
+    },
+
+    cleanup: function(){
+        var map = this._imageMasksById;
+        this._unusedImageMaskIds.forEach(function(maskId){
+            var maskInfo = map[maskId];
+            maskInfo.mask.parentNode.removeChild(maskInfo.mask);
+            delete map[maskId];
+        });
+        this._unusedImageMaskIds.clear();
     }
 
 });

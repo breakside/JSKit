@@ -117,6 +117,7 @@ Object.defineProperties(UICursor, {
 });
 
 UICursor.SystemIdentifier = {
+    none: 'none',
     arrow: 'default',
     iBeam: 'text',
     pointingHand: 'pointer',
@@ -126,9 +127,10 @@ UICursor.SystemIdentifier = {
     openHand: 'grab',
     closedHand: 'grabbing',
     dragLink: 'alias',
-    dragCopy: 'copy'
+    dragCopy: 'copy',
 };
 
+UICursor.none = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.none);
 UICursor.arrow = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.arrow);
 UICursor.iBeam = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.iBeam);
 UICursor.pointingHand = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.pointingHand);

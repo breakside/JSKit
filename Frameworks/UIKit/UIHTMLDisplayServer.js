@@ -214,7 +214,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         return context;
     },
 
-    contextForAttachment: function(attachment, parentElement){
+    contextForAttachment: function(attachment){
         var context;
         if (attachment.isKindOfClass(UITextAttachmentView)){
             var layer = attachment.view.layer;
@@ -227,9 +227,6 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
                 this.contextsByObjectID[attachment.objectID] = context;
             }
         }
-        if (context.element.parentNode !== parentElement){
-            parentElement.appendChild(context.element);
-        }
         return context;
     },
 
@@ -237,11 +234,6 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         if (layer.objectID in this.contextsByObjectID){
             throw new Error("Layer already has a context");
         }
-        if (layer.delegate && layer.delegate.initializeLayerHTMLContext){
-            layer.delegate.initializeLayerHTMLContext(layer, context);
-        }
-        context.layerManagedNodeCount = context.element.childNodes.length;
-        context.firstSublayerNodeIndex = context.layerManagedNodeCount;
         if (context.element.dataset){
             context.element.dataset.layerId = layer.objectID;
             if (layer.delegate !== null){
@@ -419,25 +411,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     _insertLayerIntoDOM: function(layer, parentContext){
         var context = this.contextForLayer(layer);
-        var insertIndex = parentContext.firstSublayerNodeIndex + layer.sublayerIndex;
-        // If we're moving within the same node, we need to be careful about the index
-        // calculations.  For example, if context.element is currently at index 4, and it's
-        // moving to index 7, that 7 was calculated assuming that index 4 was removed.  So it
-        // really should be 8 in the DOM since our element is still in there.  But we can't just
-        // add 1 because the same doesn't hold if we're moving down in index, like from 7 to 4.
-        // So the easiest thing to do is remove our element from the parent first.  Alternatively,
-        // we could find the current index with Array.indexOf(), and conditionally add 1 if moving up.
-        // I doubt there's a big performance difference.
-        if (context.element.parentNode === parentContext.element){
-            parentContext.element.removeChild(context.element);
-        }
-        if (insertIndex < parentContext.element.childNodes.length){
-            if (context.element !== parentContext.element.childNodes[insertIndex]){
-                parentContext.element.insertBefore(context.element, parentContext.element.childNodes[insertIndex]);
-            }
-        }else{
-            parentContext.element.appendChild(context.element);
-        }
+        parentContext.insertSublayerContext(layer, context);
     },
 
     attachmentInserted: function(attachment){
