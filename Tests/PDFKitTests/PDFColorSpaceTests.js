@@ -77,18 +77,27 @@ JSClass("PDFColorSpaceTests", TKTestSuite, {
 
         var color = space.colorFromComponents([0]);
         TKAssertNotNull(color);
-        TKAssertEquals(color.colorSpace, JSColor.SpaceIdentifier.gray);
-        TKAssertFloatEquals(color.white, 0);
+        TKAssertEquals(color.colorSpace, JSColor.SpaceIdentifier.rgba);
+        TKAssertFloatEquals(color.red, 0);
+        TKAssertFloatEquals(color.green, 0);
+        TKAssertFloatEquals(color.blue, 0);
+        TKAssertFloatEquals(color.alpha, 1);
 
         color = space.colorFromComponents([1]);
         TKAssertNotNull(color);
-        TKAssertEquals(color.colorSpace, JSColor.SpaceIdentifier.gray);
-        TKAssertFloatEquals(color.white, 1);
+        TKAssertEquals(color.colorSpace, JSColor.SpaceIdentifier.rgba);
+        TKAssertFloatEquals(color.red, 1);
+        TKAssertFloatEquals(color.green, 1);
+        TKAssertFloatEquals(color.blue, 1);
+        TKAssertFloatEquals(color.alpha, 1);
 
         color = space.colorFromComponents([0.4]);
         TKAssertNotNull(color);
-        TKAssertEquals(color.colorSpace, JSColor.SpaceIdentifier.gray);
-        TKAssertFloatEquals(color.white, 0.4);
+        TKAssertEquals(color.colorSpace, JSColor.SpaceIdentifier.rgba);
+        TKAssertFloatEquals(color.red, 0.4);
+        TKAssertFloatEquals(color.green, 0.4);
+        TKAssertFloatEquals(color.blue, 0.4);
+        TKAssertFloatEquals(color.alpha, 1);
     },
 
     testDeviceRGB: function(){
