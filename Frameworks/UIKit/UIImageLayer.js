@@ -33,11 +33,12 @@ JSClass("UIImageLayer", UILayer, {
 
     drawInContext: function(context){
         if (this._image !== null && this._imageFrame.size.width > 0 && this._imageFrame.size.height > 0){
-            var image = this._image;
-            if (this._renderMode == UIImageLayer.RenderMode.template){
-                image = image.templateImageWithColor(this.templateColor);
+            if (this.renderMode == UIImageLayer.RenderMode.template){
+                context.setFillColor(this._templateColor);
+                context.fillMaskedRect(this._imageFrame, this._image);
+            }else{
+                context.drawImage(this._image, this._imageFrame);
             }
-            context.drawImage(image, this._imageFrame);
         }
     },
 

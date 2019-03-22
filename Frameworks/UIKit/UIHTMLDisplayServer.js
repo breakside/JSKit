@@ -34,7 +34,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     initWithRootElement: function(rootElement){
         UIHTMLDisplayServer.$super.init.call(this);
-        this.contextClass = UIHTMLDisplayServerSVGContext;
+        this.contextClass = UIHTMLDisplayServerCanvasContext;
         this.rootElement = rootElement;
         this.rootElement.style.webkitOverflowScrolling = 'auto';
         this.domDocument = this.rootElement.ownerDocument;

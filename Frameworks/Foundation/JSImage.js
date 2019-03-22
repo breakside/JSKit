@@ -13,7 +13,6 @@ JSClass('JSImage', JSObject, {
     size: JSReadOnlyProperty('_size', null),
     scale: JSReadOnlyProperty('_scale', 1),
     capInsets: JSReadOnlyProperty('_capInsets', null),
-    templateColor: JSReadOnlyProperty('_templateColor', null),
 
     init: function(){
         this._initWithPixelSize(JSSize.Zero, 1);
@@ -50,19 +49,12 @@ JSClass('JSImage', JSObject, {
         image._size = JSSize(this._size);
         image._scale = this._scale;
         image._capInsets = JSInsets(this._capInsets);
-        image._templateColor = this._templateColor;
         return image;
     },
 
     stretchableImageWithCapSizes: function(leftCapWidth, topCapHeight, rightCapWidth, bottomCapHeight){
         var image = this.copy();
         image._capInsets = JSInsets(topCapHeight, leftCapWidth, bottomCapHeight, rightCapWidth);
-        return image;
-    },
-
-    templateImageWithColor: function(color){
-        var image = this.copy();
-        image._templateColor = color;
         return image;
     },
 

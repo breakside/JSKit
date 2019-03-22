@@ -388,19 +388,19 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             this._canvasContext._restoreCount++;
 
             // Catch up to current state
-            // - If this is the first state, then we haven't made any changes to the state yet
+            // - If this is the first state, some state udpate (like set color) are
+            //   done without creating a canvasContext, because it might not be necessary
+            //   depending on the subsequent drawing operation.
             // - If this is not the first canvas element we've added, then
             //   we need to make sure its state agrees with the state of the
             //   previous canvas
-            if (this._canvasElementIndex > 1){
-                var i, l;
-                for (i = 0, l = this._stack.length; i < l; ++i){
-                    this._canvasContextAdoptState(this._canvasContext, this._stack[i], scale);
-                    this._canvasContext.save();
-                    this._canvasContext._restoreCount++;
-                }
-                this._canvasContextAdoptState(this._canvasContext, this._state, scale);
+            var i, l;
+            for (i = 0, l = this._stack.length; i < l; ++i){
+                this._canvasContextAdoptState(this._canvasContext, this._stack[i], scale);
+                this._canvasContext.save();
+                this._canvasContext._restoreCount++;
             }
+            this._canvasContextAdoptState(this._canvasContext, this._state, scale);
         }
         return this._canvasContext;
     },
@@ -624,6 +624,19 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this.beginPath();
     },
 
+    fillMaskedRect: function(rect, maskImage){
+        var imageElement = this._dequeueReusableImageElement();
+        this._positionImageElement(imageElement, maskImage, rect);
+        var url = maskImage.htmlURLString();
+        var cssURL = "url('" + url + "')";
+        imageElement.style.maskImage = cssURL;
+        imageElement.style.maskSize = '100% 100%';
+        imageElement.style.webkitMaskImage = cssURL;
+        imageElement.style.webkitMaskSize = '100% 100%';
+        imageElement.style.backgroundColor = this._state.fillColor ? this._state.fillColor.cssString() : '';
+        this._insertChildElement(imageElement);
+    },
+
     strokeRect: function(rect){
         this.canvasContext.strokeRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
         this.beginPath();
@@ -638,74 +651,39 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     drawImage: function(image, rect){
         if (image !== null){
             var url = image.htmlURLString();
-            if (url){
-                // FIXME: proof of concept, but really shouldn't do async
-                // drawing to a reusable canvas.
-                //
-                // Better long term solution is likely to have image data
-                // already prepped so we can do sync drawing for all images,
-                // regardless of clipping path
-                if (this._state.isClipped){
-                    var img = this.element.ownerDocument.createElement('img');
-                    this._canvasContext = null;
-                    var context = this.canvasContext;
-                    this._canvasContext = null;
-                    img.onload = function(){
-                        context.drawImage(img, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
-                        img.onload = null;
-                    };
-                    for (var i = 0; i <= context._restoreCount; ++i){
-                        context.save();
-                    }
-                    img.src = url;
-                    return;
+            // FIXME: proof of concept, but really shouldn't do async
+            // drawing to a reusable canvas.
+            //
+            // Better long term solution is likely to have image data
+            // already prepped so we can do sync drawing for all images,
+            // regardless of clipping path
+            if (this._state.isClipped){
+                var img = this.element.ownerDocument.createElement('img');
+                this._canvasContext = null;
+                var context = this.canvasContext;
+                this._canvasContext = null;
+                img.onload = function(){
+                    context.drawImage(img, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+                    img.onload = null;
+                };
+                for (var i = 0; i <= context._restoreCount; ++i){
+                    context.save();
                 }
-                var imageElement = this._dequeueReusableImageElement();
-                var boundsTransform = JSAffineTransform.Translated(-this.bounds.origin.x, -this.bounds.origin.y);
-                var transform = this._state.transform.translatedBy(rect.origin.x, rect.origin.y).concatenatedWith(boundsTransform);
-                transform = transform.scaledBy(rect.size.width / image.size.width, rect.size.height / image.size.height);
-                imageElement.style.top = '0';
-                imageElement.style.left = '0';
-                imageElement.style.width = image.size.width + 'px';
-                imageElement.style.height = image.size.height + 'px';
-                imageElement.style.transformOrigin = 'top left';
-                imageElement.style.transform = 'matrix(%f, %f, %f, %f, %f, %f)'.sprintf(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
-                imageElement.style.pointerEvents = 'none';
-                var cssURL = "url('" + url + "')";
-                var caps = image.capInsets;
-                if (caps !== null){
-                    imageElement.style.backgroundColor = '';
-                    imageElement.style.backgroundImage = '';
-                    imageElement.style.maskImage = '';
-                    imageElement.style.maskSize = '';
-                    imageElement.style.webkitMaskImage = '';
-                    imageElement.style.webkitMaskSize = '';
-                    imageElement.style.borderWidth = '%dpx %dpx %dpx %dpx'.sprintf(caps.top, caps.right, caps.bottom, caps.left);
-                    imageElement.style.borderImage = cssURL + " %d %d %d %d fill stretch".sprintf(caps.top * image.scale, caps.right * image.scale, caps.bottom * image.scale, caps.left * image.scale);
-                }else if (image.templateColor !== null){
-                    imageElement.style.backgroundImage = '';
-                    imageElement.style.borderWidth = '';
-                    imageElement.style.borderImage = '';
-                    imageElement.style.maskImage = cssURL;
-                    imageElement.style.maskSize = '100% 100%';
-                    imageElement.style.webkitMaskImage = cssURL;
-                    imageElement.style.webkitMaskSize = '100% 100%';
-                    imageElement.style.backgroundColor = image.templateColor.cssString();
-                }else{
-                    imageElement.style.backgroundColor = '';
-                    imageElement.style.backgroundImage = cssURL;
-                    imageElement.style.backgroundSize = '100% 100%';
-                    imageElement.style.borderWidth = '';
-                    imageElement.style.borderImage = '';
-                    imageElement.style.maskImage = '';
-                    imageElement.style.maskSize = '';
-                    imageElement.style.webkitMaskImage = '';
-                    imageElement.style.webkitMaskSize = '';
-                }
-                this._insertChildElement(imageElement);
-            }else{
-                // TODO: draw to canvas using putImageData
+                img.src = url;
+                return;
             }
+            var imageElement = this._dequeueReusableImageElement();
+            this._positionImageElement(imageElement, image, rect);
+            var cssURL = "url('" + url + "')";
+            var caps = image.capInsets;
+            if (caps !== null){
+                imageElement.style.borderWidth = '%dpx %dpx %dpx %dpx'.sprintf(caps.top, caps.right, caps.bottom, caps.left);
+                imageElement.style.borderImage = cssURL + " %d %d %d %d fill stretch".sprintf(caps.top * image.scale, caps.right * image.scale, caps.bottom * image.scale, caps.left * image.scale);
+            }else{
+                imageElement.style.backgroundImage = cssURL;
+                imageElement.style.backgroundSize = '100% 100%';
+            }
+            this._insertChildElement(imageElement);
         }
     },
 
@@ -720,7 +698,29 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         }
         var element = this._imageElements[this._imageElementIndex];
         ++this._imageElementIndex;
+        element.style.backgroundColor = '';
+        element.style.backgroundImage = '';
+        element.style.backgroundSize = '';
+        element.style.borderWidth = '';
+        element.style.borderImage = '';
+        element.style.maskImage = '';
+        element.style.maskSize = '';
+        element.style.webkitMaskImage = '';
+        element.style.webkitMaskSize = '';
+        element.style.pointerEvents = 'none';
         return element;
+    },
+
+    _positionImageElement: function(imageElement, image, rect){
+        var boundsTransform = JSAffineTransform.Translated(-this.bounds.origin.x, -this.bounds.origin.y);
+        var transform = this._state.transform.translatedBy(rect.origin.x, rect.origin.y).concatenatedWith(boundsTransform);
+        transform = transform.scaledBy(rect.size.width / image.size.width, rect.size.height / image.size.height);
+        imageElement.style.top = '0';
+        imageElement.style.left = '0';
+        imageElement.style.transformOrigin = 'top left';
+        imageElement.style.width = image.size.width + 'px';
+        imageElement.style.height = image.size.height + 'px';
+        imageElement.style.transform = 'matrix(%f, %f, %f, %f, %f, %f)'.sprintf(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
     },
 
     // ----------------------------------------------------------------------
@@ -739,10 +739,9 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     setFont: function(font){
         this._state.font = font;
-        // if (font.descriptor){
-        //     this.displayServer.registerFontDescriptor(font.descriptor);
-        // }
-        this.canvasContext.font = font.cssString();
+        if (this._canvasContext){
+            this._canvasContext.font = font ? font.cssString() : '';
+        }
     },
 
     setCharacterSpacing: function(spacing){
@@ -852,26 +851,34 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     setAlpha: function(alpha){
         this._state.alpha = alpha;
-        this.canvasContext.globalAlpha = alpha;
+        if (this._canvasContext){
+             this._canvasContext.globalAlpha = alpha;
+        }
     },
 
     setFillColor: function(fillColor){
         UIHTMLDisplayServerCanvasContext.$super.setFillColor.call(this, fillColor);
-        this.canvasContext.fillStyle = fillColor ? fillColor.cssString() : '';
+        if (this._canvasContext){
+            this._canvasContext.fillStyle = fillColor ? fillColor.cssString() : '';
+        }
         this._state.fillColor = fillColor;
     },
 
     setStrokeColor: function(strokeColor){
         UIHTMLDisplayServerCanvasContext.$super.setStrokeColor.call(this, strokeColor);
-        this.canvasContext.strokeStyle = strokeColor ? strokeColor.cssString() : '';
+        if (this._canvasContext){
+            this._canvasContext.strokeStyle = strokeColor ? strokeColor.cssString() : '';
+        }
         this._state.strokeColor = strokeColor;
     },
 
     setShadow: function(offset, blur, color){
-        this.canvasContext.shadowOffsetX = offset.x;
-        this.canvasContext.shadowOffsetY = offset.y;
-        this.canvasContext.shadowBlur = blur * this.deviceScale;
-        this.canvasContext.shadowColor = color ? color.cssString() : '';
+        if (this._canvasContext){
+            this._canvasContext.shadowOffsetX = offset.x;
+            this._canvasContext.shadowOffsetY = offset.y;
+            this._canvasContext.shadowBlur = blur * this.deviceScale;
+            this._canvasContext.shadowColor = color ? color.cssString() : '';
+        }
         this._state.shadowOffset = offset;
         this._state.shadowBlur = blur;
         this._state.shadowColor = color;
@@ -897,22 +904,30 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     // MARK: - Transformations
 
     scaleBy: function(sx, sy){
-        this.canvasContext.scale(sx, sy);
+        if (this._canvasContext){
+            this._canvasContext.scale(sx, sy);
+        }
         this._state.transform = this._state.transform.scaledBy(sx, sy);
     },
 
     rotateBy: function(angle){
-        this.canvasContext.rotate(angle);
+        if (this._canvasContext){
+            this._canvasContext.rotate(angle);
+        }
         this._state.transform = this._state.transform.rotatedBy(angle);
     },
 
     translateBy: function(tx, ty){
-        this.canvasContext.translate(tx, ty);
+        if (this._canvasContext){
+            this._canvasContext.translate(tx, ty);
+        }
         this._state.transform = this._state.transform.translatedBy(tx, ty);
     },
 
     concatenate: function(transform){
-        this.canvasContext.transform(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
+        if (this._canvasContext){
+            this._canvasContext.transform(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
+        }
         this._state.transform = transform.concatenatedWith(this._state.transform);
     },
 
@@ -920,28 +935,38 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     // MARK: - Drawing Options
 
     setLineWidth: function(lineWidth){
-        this.canvasContext.lineWidth = lineWidth;
+        if (this._canvasContext){
+            this._canvasContext.lineWidth = lineWidth;
+        }
         this._state.lineWidth = lineWidth;
     },
 
     setLineCap: function(lineCap){
-        this.canvasContext.lineCap = lineCap;
+        if (this._canvasContext){
+            this._canvasContext.lineCap = lineCap;
+        }
         this._state.lineWidth = lineCap;
     },
 
     setLineJoin: function(lineJoin){
-        this.canvasContext.lineJoin = lineJoin;
+        if (this._canvasContext){
+            this._canvasContext.lineJoin = lineJoin;
+        }
         this._state.lineJoin = lineJoin;
     },
 
     setMiterLimit: function(miterLimit){
-        this.canvasContext.miterLimit = miterLimit;
+        if (this._canvasContext){
+            this._canvasContext.miterLimit = miterLimit;
+        }
         this._state.miterLimit = miterLimit;
     },
 
     setLineDash: function(phase, lengths){
-        this.canvasContext.lineDashOffset = phase;
-        this.canvasContext.setLineDash(lengths);
+        if (this._canvasContext){
+            this._canvasContext.lineDashOffset = phase;
+            this._canvasContext.setLineDash(lengths);
+        }
         this._state.lineDash = [phase, lengths];
     },
 
@@ -949,8 +974,10 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     // MARK: - Graphics State
 
     save: function(){
-        this.canvasContext.save();
-        this._canvasContext._restoreCount++;
+        if (this._canvasContext){
+            this._canvasContext.save();
+            this._canvasContext._restoreCount++;
+        }
         this._stack.push(this._state);
         this._state = Object.create(this._state, {
             clips: {

@@ -313,12 +313,17 @@ JSClass("PDFContext", JSContext, {
         // TODO: overpaint with white?  Throw exception?  Shouldn't really be called for PDFs
     },
 
+    fillMaskedRect: function(rect, maskImage){
+        // TODO:
+    },
+
     // ----------------------------------------------------------------------
     // MARK: - Images
 
     drawImage: function(image, rect){
         // TODO: pdf images
         // TODO: support svg images (perhaps by compiling them to PDF)
+        // TODO: stretchable images
         var info = this._infoForImage(image);
         this.save();
         var transform = JSAffineTransform.Translated(rect.origin.x, rect.origin.y + rect.size.height).scaledBy(rect.size.width, -rect.size.height);

@@ -818,6 +818,19 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         this._discardPath();
     },
 
+    fillMaskedRect: function(rect, maskImage){
+        var svgRect = this.element.ownerDocument.createElementNS(SVGNamespace, "rect");
+        svgRect.x.baseVal.value = rect.origin.x;
+        svgRect.y.baseVal.value = rect.origin.y;
+        svgRect.width.baseVal.value = rect.size.width;
+        svgRect.height.baseVal.value = rect.size.height;
+        this._styleElementForDrawingMode(svgRect, JSContext.DrawingMode.fill);
+        var mask = this._definitions.maskForImage(maskImage);
+        svgRect.style.mask = 'url(#%s)'.sprintf(mask.id);
+        this._state.groupElement.appendChild(svgRect);
+        this._usedImageMasksById[mask.id] = mask;
+    },
+
     strokeRect: function(rect){
         var svgRect = this.element.ownerDocument.createElementNS(SVGNamespace, "rect");
         svgRect.x.baseVal.value = rect.origin.x;
@@ -837,28 +850,15 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         if (caps !== null){
             // TODO: stretchable images
         }else{
-            if (image.templateColor){
-                var mask = this._definitions.maskForImage(image);
-                var svgRect = this.element.ownerDocument.createElementNS(SVGNamespace, "rect");
-                svgRect.x.baseVal.value = rect.origin.x;
-                svgRect.y.baseVal.value = rect.origin.y;
-                svgRect.width.baseVal.value = rect.size.width;
-                svgRect.height.baseVal.value = rect.size.height;
-                svgRect.style.fill = image.templateColor.cssString();
-                svgRect.style.mask = 'url(#%s)'.sprintf(mask.id);
-                this._state.groupElement.appendChild(svgRect);
-                this._usedImageMasksById[mask.id] = mask;
-            }else{
-                var svgImage = this.element.ownerDocument.createElementNS(SVGNamespace, "image");
-                svgImage.x.baseVal.value = rect.origin.x;
-                svgImage.y.baseVal.value = rect.origin.y;
-                svgImage.width.baseVal.value = rect.size.width;
-                svgImage.height.baseVal.value = rect.size.height;
-                svgImage.setAttribute("preserveAspectRatio", "none");
-                var url = image.htmlURLString();
-                svgImage.setAttributeNS("http://www.w3.org/1999/xlink", "href", url);
-                this._state.groupElement.appendChild(svgImage);
-            }
+            var svgImage = this.element.ownerDocument.createElementNS(SVGNamespace, "image");
+            svgImage.x.baseVal.value = rect.origin.x;
+            svgImage.y.baseVal.value = rect.origin.y;
+            svgImage.width.baseVal.value = rect.size.width;
+            svgImage.height.baseVal.value = rect.size.height;
+            svgImage.setAttribute("preserveAspectRatio", "none");
+            var url = image.htmlURLString();
+            svgImage.setAttributeNS("http://www.w3.org/1999/xlink", "href", url);
+            this._state.groupElement.appendChild(svgImage);
         }
     },
 

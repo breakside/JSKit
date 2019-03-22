@@ -450,6 +450,9 @@ JSClass("JSContext", JSObject, {
         this.fillPath(JSContext.FillRule.winding);
     },
 
+    fillMaskedRect: function(rect, maskImage){
+    },
+
     strokeRect: function(rect){
         this.beginPath();
         this.addRect(rect);
