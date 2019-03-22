@@ -44,6 +44,11 @@ JSClass.prototype = {
         C.prototype = Object.create(superclass.prototype, {
             constructor: {value: C}
         });
+        Object.defineProperties(C, {
+            className: {
+                value: className
+            }
+        });
         C.definePropertiesFromExtensions(extensions);
         C.initialize();
         return C;
@@ -65,11 +70,15 @@ JSClass.prototype = {
             '$super': {
                 configurable: true,
                 value: Object.getPrototypeOf(this.prototype)
-            },
-            className: {
-                value: this.name
             }
         });
+        if (this.className === undefined){
+            Object.defineProperties(this, {
+                className: {
+                    value: this.name
+                }
+            });
+        }
         Object.defineProperties(this.prototype, {
             '$class': {
                 configurable: false,
@@ -86,7 +95,7 @@ JSClass.prototype = {
                 this.defineInitMethod(name);
             }
         }
-        JSClass._registry[this.name] = this;
+        JSClass._registry[this.className] = this;
     },
 
     definePropertiesFromExtensions: function(extensions){
