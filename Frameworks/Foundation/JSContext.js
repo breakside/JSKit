@@ -106,7 +106,7 @@ JSClass("JSContext", JSObject, {
         }
 
         // Figure out how much of an angle we're going to draw
-        var direction = clockwise ? -1 : 1;
+        var direction = clockwise ? 1 : -1;
         var sweep = direction * (endAngle - startAngle);
 
         // If the sweep is against the specified direction (negative), adjust it to be
@@ -331,9 +331,9 @@ JSClass("JSContext", JSObject, {
         }
         var clockwise;
         if (startAngle > endAngle){
-            clockwise = startAngle - endAngle < Math.PI;
+            clockwise = startAngle - endAngle >= Math.PI;
         }else{
-            clockwise = endAngle - startAngle > Math.PI;
+            clockwise = endAngle - startAngle <= Math.PI;
         }
         this.moveToPoint(t1.x, t1.y);
         this.addArc(center, radius, startAngle, endAngle, clockwise);

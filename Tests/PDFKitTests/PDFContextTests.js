@@ -174,14 +174,16 @@ JSClass("PDFContextTests", TKTestSuite, {
     },
 
     testArc: function(){
-        // counter clockwise arc
+        // clockwise arc
+        // NOTE: A clockwise arc will appear counter-clockwise for a PDF
+        // context that does not flip its coordinates
         var stream = PDFContextTestsStringStream.init();
         var context = PDFContext.initWithStream(stream);
         var isClosed = false;
         context.beginPage({flipCoordinates: false});
         var center = JSPoint(100, 200);
         var radius = 50;
-        context.addArc(center, radius, 0, Math.PI / 4, false);
+        context.addArc(center, radius, 0, Math.PI / 4, true);
         context.strokePath();
         context.endPage();
         context.endDocument(function(){ isClosed = true;});
