@@ -847,8 +847,19 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
 
     drawImage: function(image, rect){
         var caps = image.capInsets;
+        var url = image.htmlURLString();
         if (caps !== null){
-            // TODO: stretchable images
+            var htmlDiv = this.element.ownerDocument.createElement('div');
+            htmlDiv.style.boxSizing = 'border-box';
+            htmlDiv.style.mozBoxSizing = 'border-box';
+            htmlDiv.style.width = rect.size.width + 'px';
+            htmlDiv.style.height = rect.size.height + 'px';
+            htmlDiv.style.borderColor = 'transparent';
+            htmlDiv.style.pointerEvents = 'none';
+            var cssURL = "url('" + url + "')";
+            htmlDiv.style.borderWidth = '%dpx %dpx %dpx %dpx'.sprintf(caps.top, caps.right, caps.bottom, caps.left);
+            htmlDiv.style.borderImage = cssURL + " %d %d %d %d fill stretch".sprintf(caps.top * image.scale, caps.right * image.scale, caps.bottom * image.scale, caps.left * image.scale);
+            this.addExternalElementInRect(htmlDiv, rect);
         }else{
             var svgImage = this.element.ownerDocument.createElementNS(SVGNamespace, "image");
             svgImage.x.baseVal.value = rect.origin.x;
@@ -856,7 +867,6 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
             svgImage.width.baseVal.value = rect.size.width;
             svgImage.height.baseVal.value = rect.size.height;
             svgImage.setAttribute("preserveAspectRatio", "none");
-            var url = image.htmlURLString();
             svgImage.setAttributeNS("http://www.w3.org/1999/xlink", "href", url);
             this._state.groupElement.appendChild(svgImage);
         }

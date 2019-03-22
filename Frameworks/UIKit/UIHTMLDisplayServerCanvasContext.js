@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "UIKit/UIHTMLDisplayServerContext.js"
-/* global JSClass, JSContext, JSReadOnlyProperty, JSColor, JSCopy, JSAffineTransform, UIHTMLDisplayServerContext, JSRect, JSObject, UILayer, UIHTMLDisplayServerCanvasContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
+/* global JSClass, JSContext, JSReadOnlyProperty, JSSize, JSColor, JSCopy, JSAffineTransform, UIHTMLDisplayServerContext, JSRect, JSObject, UILayer, UIHTMLDisplayServerCanvasContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
 'use strict';
 
 (function(){
@@ -714,12 +714,17 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     _positionImageElement: function(imageElement, image, rect){
         var boundsTransform = JSAffineTransform.Translated(-this.bounds.origin.x, -this.bounds.origin.y);
         var transform = this._state.transform.translatedBy(rect.origin.x, rect.origin.y).concatenatedWith(boundsTransform);
-        transform = transform.scaledBy(rect.size.width / image.size.width, rect.size.height / image.size.height);
+        var size = JSSize(image.size);
+        if (image.capInsets){
+            size.width = rect.size.width;
+            size.height = rect.size.height;
+        }
+        transform = transform.scaledBy(rect.size.width / size.width, rect.size.height / size.height);
         imageElement.style.top = '0';
         imageElement.style.left = '0';
         imageElement.style.transformOrigin = 'top left';
-        imageElement.style.width = image.size.width + 'px';
-        imageElement.style.height = image.size.height + 'px';
+        imageElement.style.width = size.width + 'px';
+        imageElement.style.height = size.height + 'px';
         imageElement.style.transform = 'matrix(%f, %f, %f, %f, %f, %f)'.sprintf(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
     },
 
