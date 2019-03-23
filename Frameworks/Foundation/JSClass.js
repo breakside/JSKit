@@ -72,7 +72,7 @@ JSClass.prototype = {
                 value: Object.getPrototypeOf(this.prototype)
             }
         });
-        if (this.className === undefined){
+        if (!Object.hasOwnProperty('className')){
             Object.defineProperties(this, {
                 className: {
                     value: this.name

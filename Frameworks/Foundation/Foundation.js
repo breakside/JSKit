@@ -71,4 +71,6 @@
 // #import "Foundation/JSLog.js"
 // #import "Foundation/Zlib.js"
 
+// #import "Foundation/JSArguments.js"
+
 'use strict';

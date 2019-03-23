@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation+Node.js"
 // #import "TestKit/TestKit.js"
-/* global global, require, module, process, JSClass, JSBundle, TKTestRun, TKTestResult, NodeTestRun, console */
+/* global global, require, module, process, JSClass, JSBundle, JSArguments, TKTestRun, TKTestResult, NodeTestRun, console */
 'use strict';
 
 global.performance = require('perf_hooks').performance;
@@ -91,41 +91,31 @@ JSClass('NodeTestRun', TKTestRun, {
     }
 });
 
-function parseOptions(){
-    var options = {};
-    var argv = process.argv.slice(1);
-    var arg;
-    var key = null;
-    for (var i = 1; i < argv.length; ++i){
-        arg = argv[i];
-        if (arg.length > 1 && arg.charAt(0) == '-' && arg.charAt(1) == '-'){
-            if (key !== null){
-                options[key] = true;
-                key = null;
-            }
-            key = arg.substr(2);
-        }else{
-            if (key !== null){
-                options[key] = arg;
-                key = null;
-            }
-        }
-    }
-    if (key !== null){
-        options[key] = true;
-        key = null;
-    }
-    return options;
-}
-
 module.exports.run = function(){
+    var args = JSArguments.initWithOptions({
+        help: {kind: "flag", shortcut: "h", hidden: true},
+        suite: {default: null, help: "The single test suite (class name) to run"},
+        case: {default: null, help: "The single test case (method name) to run (requires --suite)"},
+    });
+    var argv = process.argv.slice(1);
+    try{
+        args.parse(argv);
+    }catch (e){
+        process.stdout.write(e.toString());
+        process.stdout.write("\n\n");
+        process.stdout.write(args.helpString());
+        return;
+    }
+    if (args.help){
+        process.stdout.write(args.helpString());
+        return;
+    }
     var testRun = NodeTestRun.init();
-    var options = parseOptions();
-    if (options.suite){
-        if (options.case){
-            testRun.runCaseNamed(options.suite, options.case);
+    if (args.suite !== null){
+        if (args.case !== null){
+            testRun.runCaseNamed(args.suite, args.case);
         }else{
-            testRun.runSuiteNamed(options.suite);
+            testRun.runSuiteNamed(args.suite);
         }
     }else{
         testRun.runAllRegisteredSuites();

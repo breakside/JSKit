@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global document, window, JSClass, JSBundle, TKTestRun, TKTestResult, HTMLTestRun, console */
+/* global document, window, JSClass, JSArguments, JSBundle, TKTestRun, TKTestResult, HTMLTestRun, console */
 'use strict';
 
 JSClass('HTMLTestRun', TKTestRun, {
@@ -164,33 +164,28 @@ JSClass('HTMLTestRun', TKTestRun, {
     }
 });
 
-function parseOptions(){
-    var options = {};
-    var pairs = window.location.search.substr(1).split('&');
-    var keyValue;
-    for (var i = 0; i < pairs.length; ++i){
-        keyValue = pairs[i].split('=');
-        if (keyValue.length == 1){
-            options[keyValue[0]] = true;
-        }else{
-            var key = keyValue.shift();
-            options[key] = keyValue.join('=');
-        }
-    }
-    return options;
-}
-
 function main(){
+    var args = JSArguments.initWithOptions({
+        suite: {default: null, help: "The single test suite to run"},
+        case: {default: null, help: "The single test case to run"},
+        pause: {kind: "flag", help: "Pause the debugger before running tests"}
+    });
+    try{
+        args.parseQueryString(window.location.search);
+    }catch (e){
+        console.error(e);
+        console.log(args.helpString());
+        return;
+    }
     var testRun = HTMLTestRun.initWithRootElement(document.body);
-    var options = parseOptions();
-    if (options.pause){
+    if (args.pause){
         debugger;
     }
-    if (options.suite){
-        if (options.case){
-            testRun.runCaseNamed(options.suite, options.case);
+    if (args.suite){
+        if (args.case){
+            testRun.runCaseNamed(args.suite, args.case);
         }else{
-            testRun.runSuiteNamed(options.suite);
+            testRun.runSuiteNamed(args.suite);
         }
     }else{
         testRun.runAllRegisteredSuites();
