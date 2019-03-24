@@ -197,11 +197,11 @@ JSClass("JSArguments", JSObject, {
             if (!('default' in option) && option.kind != "flag"){
                 if (option.multiple){
                     if (this[name].length === 0){
-                        throw Error("Missing required argument: --%s".sprintf(name));
+                        throw Error("Missing required argument: %s".sprintf(name));
                     }
                 }else{
                     if (!(name in this)){
-                        throw Error("Missing required argument: --%s".sprintf(name));
+                        throw Error("Missing required argument: %s".sprintf(name));
                     }
                 }
             }
@@ -313,7 +313,7 @@ JSClass("JSArguments", JSObject, {
                 lines.push(indent + "(default: %s)".sprintf(option.default));
             }
             if (option.allowed){
-                lines.push(indent + "options:");
+                lines.push(indent + "one of:");
                 for (var j = 0, k = option.allowed.length; j < k; ++j){
                     lines.push(indent + "  %s".sprintf(option.allowed[j]));
                 }

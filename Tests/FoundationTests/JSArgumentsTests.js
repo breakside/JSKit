@@ -405,7 +405,7 @@ JSClass("JSArgumentsTests", TKTestSuite, {
             "Usage: cmd test1",
             "",
             "  test1    Testing",
-            "           options:",
+            "           one of:",
             "             abc",
             "             123",
             ""
