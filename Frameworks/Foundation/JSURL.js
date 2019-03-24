@@ -42,6 +42,10 @@ JSClass("JSURL", JSObject, {
         return this.initWithData(data);
     },
 
+    initWithFilePath: function(path){
+        return this.initWithString("file://" + path);
+    },
+
     initWithBaseURL: function(baseURL, relativeURL){
         if (relativeURL.isAbsolute){
             if (relativeURL._scheme === null){

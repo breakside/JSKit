@@ -25,7 +25,7 @@ JSBundle.definePropertiesFromExtensions({
     getNodePath: function(metadata){
         var resourcePath = metadata.nodeBundlePath;
         if (!path.isAbsolute(resourcePath)){
-            resourcePath = path.join(this._dict.nodeRootPath, metadata.nodeBundlePath);
+            resourcePath = path.join(JSBundle.nodeRootPath, metadata.nodeBundlePath);
         }
         return resourcePath;
     }

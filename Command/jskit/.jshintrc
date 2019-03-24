@@ -1,0 +1,10 @@
+{
+    "globalstrict": true,
+    "newcap": false,
+    "multistr": true,
+    "esversion": 8,
+    "predef": [
+        "require",
+        "process"
+    ]
+}
