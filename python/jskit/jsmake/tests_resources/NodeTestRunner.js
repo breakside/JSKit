@@ -50,8 +50,10 @@ JSClass('NodeTestRun', TKTestRun, {
             icon = "✅";
         }else if (result.result == TKTestResult.Failed){
             icon = "‼️ ";
+            process.exitCode = -2;
         }else if (result.result == TKTestResult.Error){
             icon = "❌";
+            process.exitCode = -2;
         }
         if (process.stdout.isTTY){
             process.stdout.write('\x1b[1K\r');
@@ -104,10 +106,12 @@ module.exports.run = function(){
         process.stdout.write(e.toString());
         process.stdout.write("\n\n");
         process.stdout.write(args.helpString());
+        process.exit(-1);
         return;
     }
     if (args.help){
         process.stdout.write(args.helpString());
+        process.exit(0);
         return;
     }
     var testRun = NodeTestRun.init();

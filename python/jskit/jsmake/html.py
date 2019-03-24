@@ -215,7 +215,7 @@ class HTMLBuilder(Builder):
                 self.jsCompilation.writeComment(u"%s (%s)\n----\n%s" % (self.mainBundle.info.get('JSBundleIdentifier'), self.mainBundle.info.get('JSBundleVersion'), license))
             for path in self.includes:
                 self.jsCompilation.include(path)
-            self.jsCompilation.include(bundleJSFile, 'bundle.js')
+            self.jsCompilation.include(bundleJSFile, 'bundle-hmtl.js')
             appJSNumber = 0
             for outfile in self.jsCompilation.outfiles:
                 if not outfile.fp.closed:

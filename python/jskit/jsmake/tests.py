@@ -83,7 +83,7 @@ class TestsBuilder(Builder):
             os.makedirs(os.path.dirname(outputPath))
         metadata.update(dict(
              htmlURL=os.path.relpath(outputPath, self.outputProjectPath).replace(os.sep, '/'),
-             nodeBundlePath=outputPath
+             nodeBundlePath=os.path.relpath(outputPath, self.outputProjectPath)
         ))
         shutil.copyfile(fullPath, outputPath)
         return resourceIndex
@@ -112,7 +112,7 @@ class TestsBuilder(Builder):
                     jsCompilation.include(envInclude)
             for path in self.includes:
                 jsCompilation.include(path)
-            jsCompilation.include(bundleJSFile, 'bundle.js')
+            jsCompilation.include(bundleJSFile, 'bundle-html.js')
             for outfile in jsCompilation.outfiles:
                 if not outfile.fp.closed:
                     outfile.fp.flush()
@@ -202,8 +202,10 @@ class TestsBuilder(Builder):
         self.nodeAppJS = []
         with tempfile.NamedTemporaryFile() as bundleJSFile:
             bundleJSFile.write("'use strict';\n")
+            bundleJSFile.write("var path = require('path');\n")
             bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug, default=lambda x: x.jsonObject()))
             bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.mainBundle.info['JSBundleIdentifier'])
+            bundleJSFile.write("JSBundle.nodeRootPath = path.dirname(path.dirname(__filename));\n")
             jsCompilation = JSCompilation(self.includePaths, minify=False, combine=False)
             jsCompilation.include('NodeTestRunner.js')
             for bundle in self.bundles.values():
@@ -212,7 +214,7 @@ class TestsBuilder(Builder):
                     jsCompilation.include(envInclude)
             for path in self.includes:
                 jsCompilation.include(path)
-            jsCompilation.include(bundleJSFile, 'bundle.js')
+            jsCompilation.include(bundleJSFile, 'bundle-node.js')
             for outfile in jsCompilation.outfiles:
                 if not outfile.fp.closed:
                     outfile.fp.flush()

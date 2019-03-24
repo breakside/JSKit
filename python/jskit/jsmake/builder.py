@@ -430,9 +430,13 @@ class Builder(object):
     def targetUsage(self):
         return None
 
+    def licenseFilename(self):
+        filename = self.mainBundle.info.get('JSLicense', 'LICENSE.txt')
+        return filename, os.path.exists(os.path.join(self.projectPath, filename))
+
     def licenseText(self):
-        licenseFile = os.path.join(self.projectPath, self.mainBundle.info.get('JSLicense', 'LICENSE.txt'))
-        if os.path.exists(licenseFile):
-            with open(licenseFile, 'r') as license:
-                return license.read()
+        licenseFilename, exists = self.licenseFilename()
+        if os.path.exists(licenseFilename):
+            with open(licenseFilename, 'r') as licenseFile:
+                return licenseFile.read()
         return ""

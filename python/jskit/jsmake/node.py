@@ -58,6 +58,7 @@ class NodeBuilder(Builder):
             self.buildWorker()
         if self.useDocker:
             self.buildDocker()
+        self.buildNPM()
         self.finish()
 
     def setup(self):
@@ -111,15 +112,14 @@ class NodeBuilder(Builder):
         sys.stdout.flush()
         with tempfile.NamedTemporaryFile() as bundleJSFile:
             bundleJSFile.write("'use strict';\n")
-            bundleJSFile.write("var process = require('process');\n")
             bundleJSFile.write("var path = require('path');\n")
             bundleJSFile.write("JSBundle.bundles = %s;\n" % json.dumps(self.bundles, indent=self.debug, default=lambda x: x.jsonObject()))
             bundleJSFile.write("JSBundle.mainBundleIdentifier = '%s';\n" % self.mainBundle.identifier)
-            bundleJSFile.write("JSBundle.bundles[JSBundle.mainBundleIdentifier].nodeRootPath = path.dirname(path.dirname(process.argv[1]));\n")
+            bundleJSFile.write("JSBundle.nodeRootPath = path.dirname(path.dirname(__filename));\n")
             self.jsCompilation = JSCompilation(self.includePaths, minify=False, combine=False)
             for path in self.includes:
                 self.jsCompilation.include(path)
-            self.jsCompilation.include(bundleJSFile, 'bundle.js')
+            self.jsCompilation.include(bundleJSFile, 'bundle-node.js')
             for outfile in self.jsCompilation.outfiles:
                 if not outfile.fp.closed:
                     outfile.fp.flush()
@@ -180,6 +180,32 @@ class NodeBuilder(Builder):
                 if subprocess.call(args, stdout=fp, stderr=fp) != 0:
                     raise Exception("Error building docker with: %s" % ' '.join(args))
                 self.dockerBuilt = True
+
+    def buildNPM(self):
+        packagePath = os.path.join(self.projectPath, "package.json")
+        if not os.path.exists(packagePath):
+            return
+        with open(packagePath, 'r') as packageFile:
+            package = json.load(packageFile)
+            package['name'] = self.mainBundle.info['JSExecutableName']
+            package['version'] = self.mainBundle.info['JSBundleVersion']
+            license, exists = self.licenseFilename()
+            if exists:
+                package['license'] = "SEE LICENSE IN %s" % license
+            else:
+                package['license'] = "UNLICENSED"
+            package['files'] = ["*"]
+            package['main'] = 'module.js'
+            package['bin'] = os.path.join(".", os.path.relpath(self.exePath, self.outputBundlePath))
+            outputPackagePath = os.path.join(self.outputBundlePath, "package.json")
+            with open(outputPackagePath, 'w') as outputPackageFile:
+                json.dump(package, outputPackageFile)
+        self.buildModule()
+
+    def buildModule(self):
+        modulePath = os.path.join(self.outputBundlePath, "module.js")
+        with open(modulePath, 'w') as moduleFile:
+            moduleFile.write("// cannot be included as a module, only usable as a command line tool")
 
     def targetUsage(self):
         if self.debug:
