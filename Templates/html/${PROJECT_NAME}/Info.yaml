@@ -1,5 +1,5 @@
 JSBundleType:               html
-JSBundleIdentifier:         com.yourcompany.sample
+JSBundleIdentifier:         com.yourcompany.${PROJECT_NAME_FILE_SAFE}
 UIMainSpec:                 MainWindow
 UIApplicationTitle:         .applicationTitle
 UIApplicationLaunchOptions: 

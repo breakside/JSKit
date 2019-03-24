@@ -4,15 +4,24 @@ About
 JSKit is a collection of Javascript frameworks that can create desktop-quality
 web applications.
 
-For an in-depth explanation of motivatin and rationale, consule the
-[Documenation/Goals.md](Goals Document).
+For an in-depth explanation of motivatin and rationale, consult the
+[Goals Document](Documenation/Goals.md).
 
 
 Creating a JSKit-based Project
 ==============================
 
-# Install the jskit python package
-# `$ mkdir MyProjectArea; cd MyProjectArea`
-# `$ jsproj MyProject ...`
-# `$ jsmake MyProject --debug`
-# Follow the instructions output by `jsmake` to run the application
+# `$ mkdir MyProject; cd MyProject`
+# `$ npm install jskit`
+# `$ npx jskit init <project-type>`
+# `$ npx jskit make MyProject --debug`
+# Follow the instructions output by `jskit make` to run the application
+
+
+Development Install
+==============================
+
+# `$ git clone url/to/JSKit.git`
+# `$ cd JSKit`
+# `$ npm install`
+

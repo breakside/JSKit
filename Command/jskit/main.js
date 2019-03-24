@@ -1,6 +1,7 @@
 // #import "Foundation/Foundation.js"
+// #import "InitCommand.js"
 // #import "MakeCommand.js"
-// #import "ProjectCommand.js"
+// #import "AddCommand.js"
 /* global module, require, process, JSArguments, JSCopy, Command */
 'use strict';
 
