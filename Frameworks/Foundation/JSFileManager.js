@@ -26,6 +26,12 @@ JSClass("JSFileManager", JSObject, {
     persistentContainerURL: JSLazyInitProperty('_getPersistentContainerURL'),
 
     // --------------------------------------------------------------------
+    // MARK: - Paths to URLs
+
+    urlForPath: function(path, baseURL){
+    },
+
+    // --------------------------------------------------------------------
     // MARK: - Checking for Items
 
     itemExistsAtURL: function(url, completion, target){
@@ -35,9 +41,9 @@ JSClass("JSFileManager", JSObject, {
     },
 
     // --------------------------------------------------------------------
-    // MARK: - Creating Folders
+    // MARK: - Creating Directories
 
-    createFolderAtURL: function(url, data, completion, target){
+    createDirectoryAtURL: function(url, data, completion, target){
     },
 
     // --------------------------------------------------------------------
@@ -65,6 +71,12 @@ JSClass("JSFileManager", JSObject, {
     // MARK: - File Contents
 
     contentsAtURL: function(url, completion, target){
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Directory Contents
+
+    contentsOfDirectoryAtURL: function(url, completion, target){
     },
 
     // --------------------------------------------------------------------
@@ -106,7 +118,7 @@ JSFileManager.State = {
 };
 
 JSFileManager.ItemType = {
-    folder: 0,
+    directory: 0,
     file: 1,
     symbolicLink: 2,
     other: 3

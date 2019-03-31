@@ -26,11 +26,11 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         this.wait(expectation, 2.0);
     },
 
-    testCreateFolderAtURL: function(){
+    testCreateDirectoryAtURL: function(){
         var manager = this.manager;
         var expectation = TKExpectation.init();
         var url = manager.temporaryDirectoryURL.appendingPathComponent('tests');
-        expectation.call(manager.createFolderAtURL, manager, url, function(success){
+        expectation.call(manager.createDirectoryAtURL, manager, url, function(success){
             TKAssert(success);
             expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
                 TKAssert(exists);
@@ -39,11 +39,11 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         this.wait(expectation, 3.0);
     },
 
-    testCreateFolderAtURLPromise: function(){
+    testCreateDirectoryAtURLPromise: function(){
         var manager = this.manager;
         var expectation = TKExpectation.init();
         var url = manager.temporaryDirectoryURL.appendingPathComponent('tests');
-        var promise = manager.createFolderAtURL(url);
+        var promise = manager.createDirectoryAtURL(url);
         TKAssert(promise instanceof Promise);
         expectation.call(promise.then, promise, function(){
             expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
@@ -55,11 +55,11 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         this.wait(expectation, 3.0);
     },
 
-    testCreateFolderAtURL_withIntermediates: function(){
+    testCreateDirectoryAtURL_withIntermediates: function(){
         var manager = this.manager;
         var expectation = TKExpectation.init();
         var url = manager.temporaryDirectoryURL.appendingPathComponents(['tests', 'a', 'b']);
-        expectation.call(manager.createFolderAtURL, manager, url, function(success){
+        expectation.call(manager.createDirectoryAtURL, manager, url, function(success){
             TKAssert(success);
             expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
                 TKAssert(exists);
@@ -123,7 +123,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         this.wait(expectation, 1.0);
     },
 
-    testCreateFolderAtURL_withFileParent: function(){
+    testCreateDirectoryAtURL_withFileParent: function(){
         var manager = this.manager;
         var expectation = TKExpectation.init();
         var url1 = manager.temporaryDirectoryURL.appendingPathComponent('test.txt');
@@ -131,7 +131,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         var txt = "This is a test!";
         expectation.call(manager.createFileAtURL, manager, url1, txt.utf8(), function(success){
             TKAssert(success);
-            expectation.call(manager.createFolderAtURL, manager, url2, function(success){
+            expectation.call(manager.createDirectoryAtURL, manager, url2, function(success){
                 TKAssert(!success);
             });
         });
@@ -230,7 +230,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         this.wait(expectation, 1.0);
     },
 
-    testRemoveFolderAtURL: function(){
+    testRemoveDirectoryAtURL: function(){
         var manager = this.manager;
         var expectation = TKExpectation.init();
         var temp = manager.temporaryDirectoryURL;
@@ -316,6 +316,43 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                             });
                         });
                     });
+                });
+            });
+        });
+        this.wait(expectation, 1.0);
+    },
+
+    testContentsOfDirectory: function(){
+        var manager = this.manager;
+        var expectation = TKExpectation.init();
+        var url = manager.temporaryDirectoryURL.appendingPathComponent('test1.txt');
+        var txt = "This is a test!";
+        expectation.call(manager.createFileAtURL, manager, url, txt.utf8(), function(success){
+            TKAssert(success);
+            var url = manager.temporaryDirectoryURL.appendingPathComponent("sub");
+            expectation.call(manager.createDirectoryAtURL, manager, url, function(success){
+                TKAssert(success);
+                expectation.call(manager.contentsOfDirectoryAtURL, manager, manager.temporaryDirectoryURL, function(entries){
+                    TKAssertNotNull(entries);
+                    TKAssertEquals(entries.length, 2);
+                    entries.sort(function(a, b){
+                        if (a.name < b.name){
+                            return -1;
+                        }
+                        if (a.name > b.name){
+                            return 1;
+                        }
+                        return 0;
+                    });
+                    var url = manager.temporaryDirectoryURL.appendingPathComponent("sub");
+                    TKAssertEquals(entries[0].name, 'sub');
+                    TKAssertObjectEquals(entries[0].url, url);
+                    TKAssertExactEquals(entries[0].itemType, JSFileManager.ItemType.directory);
+
+                    url = manager.temporaryDirectoryURL.appendingPathComponent("test1.txt");
+                    TKAssertEquals(entries[1].name, 'test1.txt');
+                    TKAssertObjectEquals(entries[1].url, url);
+                    TKAssertExactEquals(entries[1].itemType, JSFileManager.ItemType.file);
                 });
             });
         });

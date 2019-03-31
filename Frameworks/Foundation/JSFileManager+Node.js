@@ -13,7 +13,8 @@ var pathLib = require('path');
 
 JSFileManager.definePropertiesFromExtensions({
 
-    _rootPath: null,
+    _rootURL: null,
+    _platform: process.platform,
 
     // --------------------------------------------------------------------
     // MARK: - Opening the File System
@@ -27,9 +28,49 @@ JSFileManager.definePropertiesFromExtensions({
                 return status;
             });
         }
-        this._rootPath = pathLib.join(process.cwd(), 'io.breakside.jskit.JSFileManager');
+        this._rootURL = this.urlForPath(pathLib.join(process.cwd(), 'io.breakside.jskit.JSFileManager'));
         completion.call(target, JSFileManager.State.success);
         return completion.promise;
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Paths to URLs
+
+    urlForPath: function(path, baseURL){
+        var components = path.split(pathLib.sep);
+        if (this._platform == 'win32'){
+            if (components.length > 0 && components[0].endsWith(":")){
+                components[0] = components[0].substr(0, components[0].length - 1);
+                components.unshift("/");
+            }
+        }else{
+            if (components.length > 0 && components[0] === ''){
+                components[0] = '/';
+            }
+        }
+        var url = JSURL.init();
+        if (components.length > 0 && components[0] == "/"){
+            url.scheme = JSFileManager.Scheme.file;
+            url.host = "";
+        }
+        url.pathComponents = components;
+        if (!url.isAbsolute){
+            return JSURL.initWithBaseURL(baseURL, url);
+        }
+        return url;
+    },
+
+    _pathForURL: function(url){
+        if (this._platform == 'win32'){
+            var components = JSCopy(url.pathComponents);
+            if (components.length > 1 && components[0] == "/"){
+                components.shift();
+                components[0] = components[0] + ':';
+            }
+            var path = pathLib.join.apply(pathLib, components);
+            return path;
+        }
+        return url.path;
     },
 
     // --------------------------------------------------------------------
@@ -40,7 +81,7 @@ JSFileManager.definePropertiesFromExtensions({
     },
 
     _getPersistentContainerURL: function(){
-        return JSURL.initWithString('%s://%s/Containers/%s'.sprintf(JSFileManager.Scheme.file, this._rootPath, JSBundle.mainBundleIdentifier));
+        return this._rootURL.appendingPathComponent(JSBundle.mainBundleIdentifier);
     },
 
     // --------------------------------------------------------------------
@@ -56,7 +97,8 @@ JSFileManager.definePropertiesFromExtensions({
         if (url.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.itemExistsAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
-        fs.stat(url.path, function(error, stats){
+        var path = this._pathForURL(url);
+        fs.stat(path, function(error, stats){
             completion.call(target, error === null);
         });
         return completion.promise;
@@ -75,14 +117,15 @@ JSFileManager.definePropertiesFromExtensions({
         if (url.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.attributesOfItemAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
-        fs.lstat(url.path, function(error, stats){
+        var path = this._pathForURL(url);
+        fs.lstat(path, function(error, stats){
             var attrs = null;
             if (!error){
                 var itemType;
                 if (stats.isSymbolicLink()){
                     itemType = JSFileManager.ItemType.symbolicLink;
                 }else if (stats.isDirectory()){
-                    itemType = JSFileManager.ItemType.folder;
+                    itemType = JSFileManager.ItemType.directory;
                 }else if (stats.isFile()){
                     itemType = JSFileManager.ItemType.file;
                 }else{
@@ -100,33 +143,34 @@ JSFileManager.definePropertiesFromExtensions({
     },
 
     // --------------------------------------------------------------------
-    // MARK: - Creating Folders
+    // MARK: - Creating Directories
 
-    createFolderAtURL: function(url, completion, target){
+    createDirectoryAtURL: function(url, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
         if (!url.isAbsolute){
-            logger.warn("relative URL passed to createFolderAtURL");
+            logger.warn("relative URL passed to createDirectoryAtURL");
         }
         if (url.scheme != JSFileManager.Scheme.file){
-            throw new Error("JSFileManager.createFolderAtURL unsupported scheme: %s".sprintf(url.scheme));
+            throw new Error("JSFileManager.createDirectoryAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
         if (url.pathComponents.length === 1){
-            throw new Error("JSFileManager.createFolderAtURL cannot create root path");
+            throw new Error("JSFileManager.createDirectoryAtURL cannot create root path");
         }
-        this._createFolderWithAncestorsAtURL(url, function(error){
+        this._createDirectoryWithAncestorsAtURL(url, function(error){
             completion.call(target, error === null);
         });
         return completion.promise;
     },
 
-    _createFolderWithAncestorsAtURL: function(url, completion){
+    _createDirectoryWithAncestorsAtURL: function(url, completion){
         var parent = url.removingLastPathComponent();
         var manager = this;
         var create = function(parentError){
             if (parentError === null){
-                fs.mkdir(url.path, function(error){
+                var path = manager._pathForURL(url);
+                fs.mkdir(path, function(error){
                     completion(error);
                 });
             }else{
@@ -136,11 +180,12 @@ JSFileManager.definePropertiesFromExtensions({
         if (parent.pathComponents.length === 0){
             completion(new Error("Parent has no path"));
         }else{
-            fs.stat(parent.path, function(error, stat){
+            var path = manager._pathForURL(parent);
+            fs.stat(path, function(error, stat){
                 if (error === null){
                     create(stat.isDirectory() ? null : new Error("Parent is not a directory"));
                 }else{
-                    manager._createFolderWithAncestorsAtURL(parent, create);
+                    manager._createDirectoryWithAncestorsAtURL(parent, create);
                 }
             });
         }
@@ -167,18 +212,20 @@ JSFileManager.definePropertiesFromExtensions({
         var created = false;
         var create = function(parentExists){
             if (parentExists){
-                fs.writeFile(url.path, data, function(error){
+                var path = manager._pathForURL(url);
+                fs.writeFile(path, data, function(error){
                     completion.call(target, error === null);
                 });
             }else{
                 completion.call(target, false);
             }
         };
-        fs.stat(parent.path, function(error, stat){
+        var path = manager._pathForURL(parent);
+        fs.stat(path, function(error, stat){
             if (error === null){
                 create(stat.isDirectory());
             }else{
-                manager._createFolderWithAncestorsAtURL(parent, function(error){
+                manager._createDirectoryWithAncestorsAtURL(parent, function(error){
                     create(error === null);
                 });
             }
@@ -216,10 +263,12 @@ JSFileManager.definePropertiesFromExtensions({
         }
         var toParent = toURL.removingLastPathComponent();
         var manager = this;
-        fs.stat(url.path, function(error, stat){
+        var path = manager._pathForURL(url);
+        var toPath = manager._pathForURL(toURL);
+        fs.stat(path, function(error, stat){
             var move = function(toParentExists){
                 if (toParentExists){
-                    fs.rename(url.path, toURL.path, function(error){
+                    fs.rename(path, toPath, function(error){
                         completion.call(target, error === null);
                     });
                 }else{
@@ -229,7 +278,7 @@ JSFileManager.definePropertiesFromExtensions({
             if (error === null){
                 move(stat.isDirectory());
             }else{
-                manager._createFolderWithAncestorsAtURL(toParent, function(error){
+                manager._createDirectoryWithAncestorsAtURL(toParent, function(error){
                     move(error === null);
                 });
             }
@@ -264,7 +313,8 @@ JSFileManager.definePropertiesFromExtensions({
         }
         var toParent = toURL.removingLastPathComponent();
         var manager = this;
-        fs.stat(url.path, function(error, stat){
+        var path = manager._pathForURL(url);
+        fs.stat(path, function(error, stat){
             var copy = function(toParentExists){
                 if (toParentExists){
                     manager._copyItemAtURL(url, toURL, stat, completion, target);
@@ -275,7 +325,7 @@ JSFileManager.definePropertiesFromExtensions({
             if (error === null){
                 copy(stat.isDirectory());
             }else{
-                manager._createFolderWithAncestorsAtURL(toParent, function(error){
+                manager._createDirectoryWithAncestorsAtURL(toParent, function(error){
                     copy(error === null);
                 });
             }
@@ -285,23 +335,27 @@ JSFileManager.definePropertiesFromExtensions({
 
     _copyItemAtURL: function(url, toURL, stat, completion, target){
         if (stat.isDirectory()){
-            this._copyFolderAtURL(url, toURL, completion, target);
+            this._copyDirectoryAtURL(url, toURL, completion, target);
         }else{
             this._copyFileAtURL(url, toURL, completion, target);
         }
     },
 
     _copyFileAtURL: function(url, toURL, completion, target){
-        fs.copy(url, toURL, function(error){
+        var path = this._pathForURL(url);
+        var toPath = this._pathForURL(toURL);
+        fs.copy(path, toPath, function(error){
             completion.call(target, error === null);
         });
     },
 
-    _copyFolderAtURL: function(url, toURL, completion, target){
+    _copyDirectoryAtURL: function(url, toURL, completion, target){
         var manager = this;
-        fs.mkdir(toURL.path, function(error){
+        var path = manager._pathForURL(url);
+        var toPath = manager._pathForURL(toURL);
+        fs.mkdir(toPath, function(error){
             if (error === null){
-                fs.readdir(url.path, function(error, files){
+                fs.readdir(path, function(error, files){
                     var i = 0;
                     var copyNextChild = function(){
                         if (i === files.length){
@@ -309,7 +363,8 @@ JSFileManager.definePropertiesFromExtensions({
                         }else{
                             var childURL = url.appendingPathComponent(files[i]);
                             var toChildURL = toURL.appendingPathComponent(files[i]);
-                            fs.stat(childURL.path, function(error, stat){
+                            var childPath = manager._pathForURL(childURL);
+                            fs.stat(childPath, function(error, stat){
                                 manager._copyItemAtURL(childURL, toChildURL, stat, function(success){
                                     if (success){
                                         ++i;
@@ -350,7 +405,8 @@ JSFileManager.definePropertiesFromExtensions({
             throw new Error("JSFileManager.removeItemAtURL cannot remove root path");
         }
         var manager = this;
-        fs.lstat(url.path, function(error, stats){
+        var path = manager._pathForURL(url);
+        fs.lstat(path, function(error, stats){
             if (error === null){
                 manager._removeItemAtURL(url, stats, completion, target);
             }else{
@@ -362,31 +418,34 @@ JSFileManager.definePropertiesFromExtensions({
 
     _removeItemAtURL: function(url, stat, completion, target){
         if (stat.isDirectory()){
-            this._removeFolderAtURL(url, completion, target);
+            this._removeDirectoryAtURL(url, completion, target);
         }else{
             this._removeFileAtURL(url, completion, target);
         }
     },
 
     _removeFileAtURL: function(url, completion, target){
-        fs.unlink(url.path, function(error){
+        var path = this._pathForURL(url);
+        fs.unlink(path, function(error){
             completion.call(target, error === null);
         });
     },
 
-    _removeFolderAtURL: function(url, completion, target){
+    _removeDirectoryAtURL: function(url, completion, target){
         var manager = this;
-        fs.readdir(url.path, function(error, files){
+        var path = this._pathForURL(url);
+        fs.readdir(path, function(error, files){
             if (error === null){
                 var i = 0;
                 var removeNextChild = function(){
                     if (i == files.length){
-                        fs.rmdir(url.path, function(error){
+                        fs.rmdir(path, function(error){
                             completion.call(target, error === null);
                         });
                     }else{
                         var childURL = url.appendingPathComponent(files[i]);
-                        fs.lstat(childURL.path, function(error, stat){
+                        var childPath = manager._pathForURL(childURL);
+                        fs.lstat(childPath, function(error, stat){
                             manager._removeItemAtURL(childURL, stat, function(success){
                                 if (success){
                                     ++i;
@@ -418,7 +477,8 @@ JSFileManager.definePropertiesFromExtensions({
         if (url.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.contentsAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
-        fs.readFile(url.path, function(error, buffer){
+        var path = this._pathForURL(url);
+        fs.readFile(path, function(error, buffer){
             if (error === null){
                 completion.call(target, JSData.initWithNodeBuffer(buffer));
             }else{
@@ -426,6 +486,45 @@ JSFileManager.definePropertiesFromExtensions({
             }
         });
         return completion.promise;
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Directory Contents
+
+    contentsOfDirectoryAtURL: function(url, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var path = this._pathForURL(url);
+        var manager = this;
+        fs.readdir(path, {withFileTypes: true}, function(error, entries){
+            if (error !== null){
+                completion.call(target, error);
+                return;
+            }
+            var contents = [];
+            var entry;
+            var itemType;
+            for (var i = 0, l = entries.length; i < l; ++i){
+                entry = entries[i];
+                if (entry.isSymbolicLink()){
+                    itemType = JSFileManager.ItemType.symbolicLink;
+                }else if (entry.isDirectory()){
+                    itemType = JSFileManager.ItemType.directory;
+                }else if (entry.isFile()){
+                    itemType = JSFileManager.ItemType.file;
+                }else{
+                    itemType = JSFileManager.ItemType.other;
+                }
+                contents.push({
+                    url: url.appendingPathComponent(entry.name),
+                    name: entry.name,
+                    itemType: itemType
+                });
+            }
+            completion.call(target, contents);
+        });
+        return completion;
     },
 
     // --------------------------------------------------------------------
@@ -450,7 +549,9 @@ JSFileManager.definePropertiesFromExtensions({
         if (url.path == toURL.path){
             throw new Error("JSFileManager.createSymbolicLinkAtURL target and destination are the same");
         }
-        fs.symlink(toURL.path, url.path, function(error){
+        var path = this._pathForURL(url);
+        var toPath = this._pathForURL(toURL);
+        fs.symlink(toPath, path, function(error){
             if (error !== null){
                 debugger;
             }
@@ -464,9 +565,10 @@ JSFileManager.definePropertiesFromExtensions({
 
     destroy: function(completion, target){
         var manager = this;
-        fs.stat(manager._rootPath, function(error, stat){
+        var rootPath = this._pathForURL(this._rootURL);
+        fs.stat(rootPath, function(error, stat){
             if (error === null){
-                manager._removeItemAtURL(JSURL.initWithString("%s://%s".sprintf(JSFileManager.Scheme.file, manager._rootPath)), stat, function(success){
+                manager._removeItemAtURL(manager._rootURL, stat, function(success){
                     completion.call(target, success);
                 });
             }else{
