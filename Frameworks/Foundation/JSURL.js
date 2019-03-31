@@ -42,10 +42,6 @@ JSClass("JSURL", JSObject, {
         return this.initWithData(data);
     },
 
-    initWithFilePath: function(path){
-        return this.initWithString("file://" + path);
-    },
-
     initWithBaseURL: function(baseURL, relativeURL){
         if (relativeURL.isAbsolute){
             if (relativeURL._scheme === null){
@@ -102,7 +98,9 @@ JSClass("JSURL", JSObject, {
     },
 
     setHost: function(host){
-        this._host = host;
+        if (host !== ""){
+            this._host = host;
+        }
         if (host === null){
             this._port = null;
             this._hasAuthority = false;
@@ -310,7 +308,7 @@ JSClass("JSURL", JSObject, {
         return this.getEncodedString();
     },
 
-    isEqualToURL: function(url){
+    isEqual: function(url){
         if (this._scheme !== url._scheme){
             return false;
         }

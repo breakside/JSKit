@@ -96,7 +96,7 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
 
     _initializeResponse: function(){
         var url = JSURL.initWithString(this._xmlRequest.responseURL);
-        if (!url.isEqualToURL(this._currentRequest.url)){
+        if (!url.isEqual(this._currentRequest.url)){
             this._currentRequest = this._originalRequest.redirectedRequestToURL(url);
         }
         var response = JSURLResponse.init();
