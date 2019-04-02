@@ -813,6 +813,80 @@ JSClass('JSURLTests', TKTestSuite, {
         url = JSURL.initWithString("http://google.com/test.a.reallylongext");
         ext = url.fileExtension;
         TKAssertExactEquals(ext, '.reallylongext');
+    },
+
+    testRelativeTo: function(){
+        var url = JSURL.initWithString("file:///one/two/three/four");
+        var baseURL = JSURL.initWithString("file:///one/two/three");
+        var relativeURL = url.relativeTo(baseURL);
+        TKAssertEquals(relativeURL.path, "three/four");
+        TKAssertEquals(relativeURL.encodedString, "three/four");
+
+        url = JSURL.initWithString("file:///one/two/three/four/");
+        baseURL = JSURL.initWithString("file:///one/two/three/");
+        relativeURL = url.relativeTo(baseURL);
+        TKAssertEquals(relativeURL.path, "four/");
+        TKAssertEquals(relativeURL.encodedString, "four/");
+
+        url = JSURL.initWithString("file:///one/two/four");
+        baseURL = JSURL.initWithString("file:///one/two/three/");
+        relativeURL = url.relativeTo(baseURL);
+        TKAssertEquals(relativeURL.path, "../four");
+        TKAssertEquals(relativeURL.encodedString, "../four");
+
+        url = JSURL.initWithString("file:///one/two/four");
+        baseURL = JSURL.initWithString("file:///one/two/three");
+        relativeURL = url.relativeTo(baseURL);
+        TKAssertEquals(relativeURL.path, "four");
+        TKAssertEquals(relativeURL.encodedString, "four");
+
+        url = JSURL.initWithString("file:///one/four");
+        baseURL = JSURL.initWithString("file:///one/two/three/");
+        relativeURL = url.relativeTo(baseURL);
+        TKAssertEquals(relativeURL.path, "../../four");
+        TKAssertEquals(relativeURL.encodedString, "../../four");
+
+        url = JSURL.initWithString("file:///one/four");
+        baseURL = JSURL.initWithString("file:///one/two/three");
+        relativeURL = url.relativeTo(baseURL);
+        TKAssertEquals(relativeURL.path, "../four");
+        TKAssertEquals(relativeURL.encodedString, "../four");
+
+        url = JSURL.initWithString("file:///one/");
+        baseURL = JSURL.initWithString("file:///one/two/three");
+        relativeURL = url.relativeTo(baseURL);
+        TKAssertEquals(relativeURL.path, "../");
+        TKAssertEquals(relativeURL.encodedString, "../");
+
+        url = JSURL.initWithString("file:///one");
+        baseURL = JSURL.initWithString("file:///one/two/three/");
+        relativeURL = url.relativeTo(baseURL);
+        TKAssertEquals(relativeURL.path, "../..");
+        TKAssertEquals(relativeURL.encodedString, "../..");
+
+        url = JSURL.initWithString("file:///one/four");
+        baseURL = JSURL.initWithString("http://google.com");
+        relativeURL = url.relativeTo(baseURL);
+        TKAssertEquals(relativeURL.path, "/one/four");
+        TKAssertEquals(relativeURL.encodedString, "file:///one/four");
+
+        url = JSURL.initWithString("http://google.com/one/two/");
+        baseURL = JSURL.initWithString("http://google.com/one/");
+        relativeURL = url.relativeTo(baseURL);
+        TKAssertEquals(relativeURL.path, "two/");
+        TKAssertEquals(relativeURL.encodedString, "two/");
+
+        url = JSURL.initWithString("http://google.com/one/four");
+        baseURL = JSURL.initWithString("http://google.com/one/two/three/");
+        relativeURL = url.relativeTo(baseURL);
+        TKAssertEquals(relativeURL.path, "../../four");
+        TKAssertEquals(relativeURL.encodedString, "../../four");
+
+        url = JSURL.initWithString("http://google.com/one/four");
+        baseURL = JSURL.initWithString("http://yahoo.com/one/two/three/");
+        relativeURL = url.relativeTo(baseURL);
+        TKAssertEquals(relativeURL.path, "/one/four");
+        TKAssertEquals(relativeURL.encodedString, "//google.com/one/four");
     }
 
     // TODO: test modifying parts other than path

@@ -26,6 +26,7 @@ JSClass("JSURL", JSObject, {
     path: JSDynamicProperty('_path', null),
     pathComponents: JSDynamicProperty(),
     lastPathComponent: JSReadOnlyProperty(),
+    hasDirectoryPath: JSDynamicProperty('_hasDirectoryPath', false),
     fileExtension: JSReadOnlyProperty(),
     encodedQuery: JSDynamicProperty('_encodedQuery', null),
     encodedFragment: JSDynamicProperty('_encodedFragment', null),
@@ -36,7 +37,6 @@ JSClass("JSURL", JSObject, {
     encodedString: JSReadOnlyProperty(),
 
     _hasAuthority: false,
-    _hasDirectoryPath: false,
 
     initWithString: function(str, baseURL){
         var data = str.utf8();
@@ -243,6 +243,10 @@ JSClass("JSURL", JSObject, {
         return url;
     },
 
+    setHasDirectoryPath: function(hasDirectoryPath){
+        this._hasDirectoryPath = hasDirectoryPath;
+    },
+
     standardize: function(){
         var components = JSCopy(this.pathComponents);
         if (components.length === 0){
@@ -393,6 +397,31 @@ JSClass("JSURL", JSObject, {
             return false;
         }
         return true;
+    },
+
+    relativeTo: function(baseURL){
+        if (this._scheme != baseURL._scheme){
+            return this;
+        }
+        var url = this.copy();
+        url.scheme = null;
+        if (url._encodedUserInfo == baseURL._encodedUserInfo && url._host == baseURL._host && url._port == baseURL._port){
+            url.encodedUserInfo = null;
+            url.host = null;
+            var components = url.pathComponents;
+            var baseComponents = baseURL.pathComponents;
+            if (!baseURL._hasDirectoryPath){
+                baseComponents = baseComponents.slice(0, baseComponents.length - 1);
+            }
+            for (var i = 0; i < components.length && i < baseComponents.length && components[i] == baseComponents[i]; ++i){
+            }
+            components = components.slice(i);
+            for (; i < baseComponents.length; ++i){
+                components.unshift('..');
+            }
+            url.setPathComponents(components, url._hasDirectoryPath);
+        }
+        return url;
     }
 
 });
