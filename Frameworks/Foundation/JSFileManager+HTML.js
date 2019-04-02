@@ -61,9 +61,10 @@ JSFileManager.definePropertiesFromExtensions({
     urlForPath: function(path, baseURL){
         var url = JSURL.init();
         url.scheme = JSFileManager.Scheme.jskitfile;
+        url.host = "";
         url.path = path;
-        if (!url.isAbsolute){
-            return JSURL.initWithBaseURL(baseURL, url);
+        if (baseURL){
+            url.resolveToBaseURL(baseURL);
         }
         return url;
     },
@@ -72,15 +73,15 @@ JSFileManager.definePropertiesFromExtensions({
     // MARK: - Common Directories
 
     _getTemporaryDirectoryURL: function(){
-        return this.persistentContainerURL.appendingPathComponent("Temp");
+        return this.persistentContainerURL.appendingPathComponent("Temp", true);
     },
 
     _getPersistentContainerURL: function(){
-        return JSURL.initWithString('%s:///Containers/%s'.sprintf(JSFileManager.Scheme.jskitfile, JSBundle.mainBundleIdentifier));
+        return JSURL.initWithString('%s:///Containers/%s/'.sprintf(JSFileManager.Scheme.jskitfile, JSBundle.mainBundleIdentifier));
     },
 
     _getWorkingDirectoryURL: function(){
-        return this.persistentContainerURL.appendingPathComponent("Working");
+        return this.persistentContainerURL.appendingPathComponent("Working", true);
     },
 
     begin: function(permission, stores){
@@ -96,7 +97,7 @@ JSFileManager.definePropertiesFromExtensions({
         }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to itemExistsAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
+            url.resolveToBaseURL(this.workingDirectoryURL);
         }
         if (url.scheme != JSFileManager.Scheme.jskitfile){
             throw new Error("JSFileManager.itemExistsAtURL unsupported scheme: %s".sprintf(url.scheme));
@@ -121,7 +122,7 @@ JSFileManager.definePropertiesFromExtensions({
         }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to attributesOfItemAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
+            url.resolveToBaseURL(this.workingDirectoryURL);
         }
         if (url.scheme != JSFileManager.Scheme.jskitfile){
             throw new Error("JSFileManager.attributesOfItemAtURL unsupported scheme: %s".sprintf(url.scheme));
@@ -140,7 +141,7 @@ JSFileManager.definePropertiesFromExtensions({
     _metadataInTransactionAtURL: function(transaction, url, completion){
         var parent = url.removingLastPathComponent();
         var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
-        var lookup = [parent.path, url.lastPathComponent];
+        var lookup = [parent.path || '', url.lastPathComponent];
         var request = index.get(lookup);
         var metadata;
         request.onsuccess = function(e){
@@ -171,7 +172,7 @@ JSFileManager.definePropertiesFromExtensions({
         }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to createDirectoryAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
+            url.resolveToBaseURL(this.workingDirectoryURL);
         }
         if (url.scheme != JSFileManager.Scheme.jskitfile){
             throw new Error("JSFileManager.createDirectoryAtURL unsupported scheme: %s".sprintf(url.scheme));
@@ -231,7 +232,7 @@ JSFileManager.definePropertiesFromExtensions({
         }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to createFileAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
+            url.resolveToBaseURL(this.workingDirectoryURL);
         }
         if (url.scheme != JSFileManager.Scheme.jskitfile){
             throw new Error("JSFileManager.createFileAtURL unsupported scheme: %s".sprintf(url.scheme));
@@ -293,11 +294,11 @@ JSFileManager.definePropertiesFromExtensions({
         }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to moveItemAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
+            url.resolveToBaseURL(this.workingDirectoryURL);
         }
         if (!toURL.isAbsolute){
             logger.warn("relative URL passed to moveItemAtURL");
-            toURL = JSURL.initWithBaseURL(this.workingDirectoryURL, toURL);
+            toURL.resolveToBaseURL(this.workingDirectoryURL);
         }
         if (url.scheme != JSFileManager.Scheme.jskitfile){
             throw new Error("JSFileManager.moveItemAtURL unsupported scheme: %s".sprintf(url.scheme));
@@ -348,11 +349,11 @@ JSFileManager.definePropertiesFromExtensions({
         }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to copyItemAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
+            url.resolveToBaseURL(this.workingDirectoryURL);
         }
         if (!toURL.isAbsolute){
             logger.warn("relative URL passed to copyItemAtURL");
-            toURL = JSURL.initWithBaseURL(this.workingDirectoryURL, toURL);
+            toURL.resolveToBaseURL(this.workingDirectoryURL);
         }
         if (url.scheme != JSFileManager.Scheme.jskitfile){
             throw new Error("JSFileManager.copyItemAtURL unsupported scheme: %s".sprintf(url.scheme));
@@ -455,7 +456,7 @@ JSFileManager.definePropertiesFromExtensions({
         }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to removeItemAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
+            url.resolveToBaseURL(this.workingDirectoryURL);
         }
         if (url.scheme != JSFileManager.Scheme.jskitfile){
             throw new Error("JSFileManager.removeItemAtURL unsupported scheme: %s".sprintf(url.scheme));
@@ -534,7 +535,7 @@ JSFileManager.definePropertiesFromExtensions({
         }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to contentsAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
+            url.resolveToBaseURL(this.workingDirectoryURL);
         }
         if (url.scheme != JSFileManager.Scheme.jskitfile){
             throw new Error("JSFileManager.contentsAtURL unsupported scheme: %s".sprintf(url.scheme));
@@ -578,7 +579,7 @@ JSFileManager.definePropertiesFromExtensions({
                     };
                     break;
                 case JSFileManager.ItemType.symbolicLink:
-                    var link = JSURL.initWithString(metadata.link);
+                    var link = JSURL.initWithString(metadata.link, url);
                     manager._contentsInTransactionAtURL(transaction, link, visitedURLSet, callback);
                     break;
             }
@@ -594,7 +595,7 @@ JSFileManager.definePropertiesFromExtensions({
         }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to removeItemAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
+            url.resolveToBaseURL(this.workingDirectoryURL);
         }
         if (url.scheme != JSFileManager.Scheme.jskitfile){
             throw new Error("JSFileManager.removeItemAtURL unsupported scheme: %s".sprintf(url.scheme));
@@ -638,19 +639,19 @@ JSFileManager.definePropertiesFromExtensions({
         }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to createSymbolicLinkAtURL");
-            url = JSURL.initWithBaseURL(this.workingDirectoryURL, url);
-        }
-        if (!toURL.isAbsolute){
-            logger.warn("relative URL passed to createSymbolicLinkAtURL");
-            toURL = JSURL.initWithBaseURL(this.workingDirectoryURL, toURL);
+            url.resolveToBaseURL(this.workingDirectoryURL);
         }
         if (url.scheme != JSFileManager.Scheme.jskitfile){
             throw new Error("JSFileManager.createSymbolicLinkAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
-        if (toURL.scheme != JSFileManager.Scheme.jskitfile){
+        if (toURL.scheme !== null && toURL.scheme != JSFileManager.Scheme.jskitfile){
             throw new Error("JSFileManager.createSymbolicLinkAtURL unsupported scheme: %s".sprintf(toURL.scheme));
         }
         if (url.path == toURL.path){
+            throw new Error("JSFileManager.createSymbolicLinkAtURL target and destination are the same");
+        }
+        var absoluteToURL = toURL.resolvingToBaseURL(url);
+        if (url.isEqual(absoluteToURL)){
             throw new Error("JSFileManager.createSymbolicLinkAtURL target and destination are the same");
         }
         var transaction = this.begin(JSFileManager.Permission.readwrite, JSFileManager.Tables.metadata);
@@ -672,6 +673,30 @@ JSFileManager.definePropertiesFromExtensions({
                 create(true);
             }else{
                 manager._createDirectoryInTransactionAtURL(transaction, parent, create);
+            }
+        });
+        return completion.promise;
+    },
+
+    destinationOfSymbolicLinkAtURL: function(url, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        if (!url.isAbsolute){
+            logger.warn("relative URL passed to attributesOfItemAtURL");
+            url.resolveToBaseURL(this.workingDirectoryURL);
+        }
+        if (url.scheme != JSFileManager.Scheme.jskitfile){
+            throw new Error("JSFileManager.attributesOfItemAtURL unsupported scheme: %s".sprintf(url.scheme));
+        }
+        var link = null;
+        var transaction = this.begin(JSFileManager.Permission.read, JSFileManager.Tables.metadata);
+        transaction.addCompletion(function(success){
+            completion.call(target, link);
+        });
+        this._metadataInTransactionAtURL(transaction, url, function(metadata){
+            if (metadata && metadata.itemType == JSFileManager.ItemType.symbolicLink){
+                link = JSURL.initWithString(metadata.link, url);
             }
         });
         return completion.promise;

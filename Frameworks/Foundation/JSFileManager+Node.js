@@ -37,51 +37,51 @@ JSFileManager.definePropertiesFromExtensions({
     // MARK: - Paths to URLs
 
     urlForPath: function(path, baseURL){
-        var components = path.split(pathLib.sep);
-        if (this._platform == 'win32'){
-            if (components.length > 0 && components[0].endsWith(":")){
-                components[0] = components[0].substr(0, components[0].length - 1);
-                components.unshift("/");
-            }
-        }else{
-            if (components.length > 0 && components[0] === ''){
-                components[0] = '/';
-            }
+        if (pathLib.sep != "/"){
+            path = path.split(pathLib.sep).join("/");
         }
         var url = JSURL.init();
-        if (components.length > 0 && components[0] == "/"){
-            url.scheme = JSFileManager.Scheme.file;
-            url.host = "";
+        url.path = path;
+        var firstComponent = url.pathComponents[0];
+        if (process.platform == 'win32'){
+            if (firstComponent.endsWith(':')){
+                url.scheme = JSFileManager.Scheme.file;
+                url.host = "";
+            }
+        }else{
+            if (firstComponent == "/"){
+                url.scheme = JSFileManager.Scheme.file;
+                url.host = "";
+            }
         }
-        url.pathComponents = components;
-        if (!url.isAbsolute){
-            return JSURL.initWithBaseURL(baseURL, url);
+        if (baseURL){
+            url.resolveToBaseURL(baseURL);
         }
         return url;
     },
 
     _pathForURL: function(url){
-        if (this._platform == 'win32'){
-            var components = JSCopy(url.pathComponents);
-            if (components.length > 1 && components[0] == "/"){
-                components.shift();
-                components[0] = components[0] + ':';
-            }
-            var path = pathLib.join.apply(pathLib, components);
-            return path;
+        var path = url.path;
+        if (pathLib.sep != "/"){
+            path = path.split("/").join(pathLib.sep);
         }
-        return url.path;
+        if (process.platform == 'win32'){
+            if (path.startsWith("\\")){
+                path = path.substr(1);
+            }
+        }
+        return path;
     },
 
     // --------------------------------------------------------------------
     // MARK: - Common Directories
 
     _getTemporaryDirectoryURL: function(){
-        return this.persistentContainerURL.appendingPathComponent("Temp");
+        return this.persistentContainerURL.appendingPathComponent("Temp", true);
     },
 
     _getPersistentContainerURL: function(){
-        return this._rootURL.appendingPathComponent(JSBundle.mainBundleIdentifier);
+        return this._rootURL.appendingPathComponent(JSBundle.mainBundleIdentifier, true);
     },
 
     // --------------------------------------------------------------------
@@ -528,7 +528,7 @@ JSFileManager.definePropertiesFromExtensions({
     },
 
     // --------------------------------------------------------------------
-    // MARK: - Symbolic Links
+    // MARK: - Symbolic & Hard Links
 
     createSymbolicLinkAtURL: function(url, toURL, completion, target){
         if (!completion){
@@ -537,25 +537,37 @@ JSFileManager.definePropertiesFromExtensions({
         if (!url.isAbsolute){
             logger.warn("relative URL passed to createSymbolicLinkAtURL");
         }
-        if (!toURL.isAbsolute){
-            logger.warn("relative URL passed to createSymbolicLinkAtURL");
-        }
         if (url.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.createSymbolicLinkAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
-        if (toURL.scheme != JSFileManager.Scheme.file){
+        if (toURL.scheme !== null && toURL.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.createSymbolicLinkAtURL unsupported scheme: %s".sprintf(toURL.scheme));
         }
-        if (url.path == toURL.path){
+        var absoluteToURL = toURL.resolvingToBaseURL(url);
+        if (url.isEqual(absoluteToURL)){
             throw new Error("JSFileManager.createSymbolicLinkAtURL target and destination are the same");
         }
         var path = this._pathForURL(url);
         var toPath = this._pathForURL(toURL);
         fs.symlink(toPath, path, function(error){
-            if (error !== null){
-                debugger;
-            }
             completion.call(target, error === null);
+        });
+        return completion.promise;
+    },
+
+    destinationOfSymbolicLinkAtURL: function(url, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var path = this._pathForURL(url);
+        var manager = this;
+        fs.readlink(path, function(error, destination){
+            if (error !== null){
+                completion.call(target, null);
+                return;
+            }
+            var destinationURL = manager.urlForPath(destination, url);
+            completion.call(target, destinationURL);
         });
         return completion.promise;
     },

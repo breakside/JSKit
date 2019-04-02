@@ -43,7 +43,7 @@ JSClass("JSFileManager", JSObject, {
     // --------------------------------------------------------------------
     // MARK: - Creating Directories
 
-    createDirectoryAtURL: function(url, data, completion, target){
+    createDirectoryAtURL: function(url, completion, target){
     },
 
     // --------------------------------------------------------------------
@@ -83,6 +83,12 @@ JSClass("JSFileManager", JSObject, {
     // MARK: - Symbolic Links
 
     createSymbolicLinkAtURL: function(url, toURL, completion, target){
+    },
+
+    createLinkAtURL: function(url, toURL){
+    },
+
+    destinationOfSymbolicLinkAtURL: function(url, completion, target){
     },
 
     // --------------------------------------------------------------------

@@ -1,6 +1,6 @@
 // #import "Foundation/Foundation.js"
 // #import "TestKit/TestKit.js"
-/* global JSClass, TKTestSuite, JSFileManager, TKExpectation */
+/* global JSClass, TKTestSuite, JSFileManager, TKExpectation, JSURL */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
@@ -294,6 +294,31 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         this.wait(expectation, 1.0);
     },
 
+    testCreateSymbolicLinkAtURLRelative: function(){
+        var manager = this.manager;
+        var expectation = TKExpectation.init();
+        var parentURL = manager.temporaryDirectoryURL.appendingPathComponent('test');
+        var url = manager.temporaryDirectoryURL.appendingPathComponent('test.txt');
+        var toURL = JSURL.initWithString("../test.txt");
+        var url2 = parentURL.appendingPathComponent('test2.txt');
+        var txt = "This is a test!";
+        expectation.call(manager.createDirectoryAtURL, manager, parentURL, function(success){
+            TKAssert(success);
+            expectation.call(manager.createFileAtURL, manager, url, txt.utf8(), function(success){
+                TKAssert(success);
+                expectation.call(manager.createSymbolicLinkAtURL, manager, url2, toURL, function(success){
+                    TKAssert(success);
+                    expectation.call(manager.contentsAtURL, manager, url2, function(data){
+                        TKAssertNotNull(data);
+                        var str = String.initWithData(data, String.Encoding.utf8);
+                        TKAssertEquals(str, "This is a test!");
+                    });
+                });
+            });
+        });
+        this.wait(expectation, 1.0);
+    },
+
     testCircularSymbolicLinkAtURL: function(){
         var manager = this.manager;
         var expectation = TKExpectation.init();
@@ -321,6 +346,50 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         });
         this.wait(expectation, 1.0);
     },
+
+    testDestinationOfSymbolicLinkAtURL: function(){
+        var manager = this.manager;
+        var expectation = TKExpectation.init();
+        var url = manager.temporaryDirectoryURL.appendingPathComponent('test.txt');
+        var url2 = manager.temporaryDirectoryURL.appendingPathComponent('test2.txt');
+        var txt = "This is a test!";
+        expectation.call(manager.createFileAtURL, manager, url, txt.utf8(), function(success){
+            TKAssert(success);
+            expectation.call(manager.createSymbolicLinkAtURL, manager, url2, url, function(success){
+                TKAssert(success);
+                expectation.call(manager.destinationOfSymbolicLinkAtURL, manager, url2, function(destinationURL){
+                    TKAssertNotNull(destinationURL);
+                    TKAssertObjectEquals(destinationURL, url);
+                });
+            });
+        });
+        this.wait(expectation, 1.0);
+    },
+
+    testDestinationOfSymbolicLinkAtURLRelative: function(){
+        var manager = this.manager;
+        var expectation = TKExpectation.init();
+        var parentURL = manager.temporaryDirectoryURL.appendingPathComponent('test');
+        var url = manager.temporaryDirectoryURL.appendingPathComponent('test.txt');
+        var toURL = JSURL.initWithString("../test.txt");
+        var url2 = parentURL.appendingPathComponent('test2.txt');
+        var txt = "This is a test!";
+        expectation.call(manager.createDirectoryAtURL, manager, parentURL, function(success){
+            TKAssert(success);
+            expectation.call(manager.createFileAtURL, manager, url, txt.utf8(), function(success){
+                TKAssert(success);
+                expectation.call(manager.createSymbolicLinkAtURL, manager, url2, toURL, function(success){
+                    TKAssert(success);
+                    expectation.call(manager.destinationOfSymbolicLinkAtURL, manager, url2, function(destinationURL){
+                        TKAssertNotNull(destinationURL);
+                        TKAssertObjectEquals(destinationURL, url);
+                    });
+                });
+            });
+        });
+        this.wait(expectation, 1.0);
+    },
+
 
     testContentsOfDirectory: function(){
         var manager = this.manager;
@@ -357,6 +426,6 @@ JSClass("JSFileManagerTests", TKTestSuite, {
             });
         });
         this.wait(expectation, 1.0);
-    }
+    },
 
 });

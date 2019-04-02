@@ -912,6 +912,36 @@ JSClass('StringTests', TKTestSuite, {
         TKAssertThrows(function(){
             var str = String.initWithData(data, "INVALID ENCODING");
         });
+    },
+
+    testFileExtension: function(){
+        var str = "";
+        var ext = str.fileExtension;
+        TKAssertExactEquals(ext, "");
+
+        str = "test";
+        ext = str.fileExtension;
+        TKAssertExactEquals(ext, "");
+
+        str = ".test";
+        ext = str.fileExtension;
+        TKAssertExactEquals(ext, "");
+
+        str = "test.";
+        ext = str.fileExtension;
+        TKAssertExactEquals(ext, ".");
+
+        str = "test.a";
+        ext = str.fileExtension;
+        TKAssertExactEquals(ext, ".a");
+
+        str = "test.a.b";
+        ext = str.fileExtension;
+        TKAssertExactEquals(ext, ".b");
+
+        str = "test.reallylongextension";
+        ext = str.fileExtension;
+        TKAssertExactEquals(ext, ".reallylongextension");
     }
 
 });

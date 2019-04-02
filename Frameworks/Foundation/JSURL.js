@@ -23,51 +23,30 @@ JSClass("JSURL", JSObject, {
     encodedUserInfo: JSDynamicProperty('_encodedUserInfo', null),
     host: JSDynamicProperty('_host', null),
     port: JSDynamicProperty('_port', null),
-    path: JSDynamicProperty(),
-    pathComponents: JSDynamicProperty('_pathComponents', null),
+    path: JSDynamicProperty('_path', null),
+    pathComponents: JSDynamicProperty(),
     lastPathComponent: JSReadOnlyProperty(),
+    fileExtension: JSReadOnlyProperty(),
     encodedQuery: JSDynamicProperty('_encodedQuery', null),
     encodedFragment: JSDynamicProperty('_encodedFragment', null),
-    query: JSDynamicProperty('_query', null),
+    query: JSDynamicProperty(),
     fragment: JSDynamicProperty(),
 
     isAbsolute: JSReadOnlyProperty(),
     encodedString: JSReadOnlyProperty(),
 
     _hasAuthority: false,
-    _pathHasTrailingSlash: false,
+    _hasDirectoryPath: false,
 
-    initWithString: function(str){
+    initWithString: function(str, baseURL){
         var data = str.utf8();
-        return this.initWithData(data);
-    },
-
-    initWithBaseURL: function(baseURL, relativeURL){
-        if (relativeURL.isAbsolute){
-            if (relativeURL._scheme === null){
-                this._scheme = baseURL._scheme;
-            }else{
-                this._scheme = relativeURL._scheme;
-            }
-            this._encodedUserInfo = relativeURL._encodedUserInfo;
-            this._host = relativeURL._host;
-            this._port = relativeURL._port;
-            this._pathComponents = JSCopy(relativeURL._pathComponents);
-            this._hasAuthority = relativeURL._hasAuthority;
-            this._pathHasTrailingSlash = relativeURL._pathHasTrailingSlash;
-        }else{
-            this._scheme = baseURL._scheme;
-            this._encodedUserInfo = baseURL._encodedUserInfo;
-            this._host = baseURL._host;
-            this._port = baseURL._port;
-            this._pathComponents = JSCopy(baseURL._pathComponents);
-            this._hasAuthority = baseURL._hasAuthority;
-            this._pathHasTrailingSlash = baseURL._pathHasTrailingSlash;
-            this.appendPathComponents(relativeURL._pathComponents);
+        var url = this.initWithData(data);
+        if (url === null){
+            return null;
         }
-        this._encodedQuery = relativeURL._encodedQuery;
-        this._query = JSFormFieldMap(relativeURL._query);
-        this._encodedFragment = relativeURL._encodedFragment;
+        if (baseURL){
+            this.resolveToBaseURL(baseURL);
+        }
     },
 
     initWithURL: function(url){
@@ -75,16 +54,14 @@ JSClass("JSURL", JSObject, {
         this._encodedUserInfo = url._encodedUserInfo;
         this._host = url._host;
         this._port = url._port;
-        this._pathComponents = JSCopy(url._pathComponents);
+        this._path = url._path;
         this._encodedQuery = url._encodedQuery;
-        this._query = JSFormFieldMap(url._query);
         this._encodedFragment = url._encodedFragment;
         this._hasAuthority = url._hasAuthority;
-        this._pathHasTrailingSlash = url._pathHasTrailingSlash;
+        this._hasDirectoryPath = url._hasDirectoryPath;
     },
 
     initWithData: function(data){
-        this._query = JSFormFieldMap();
         var parser = JSURLParser(this);
         try{
             parser.parse(data);
@@ -97,15 +74,63 @@ JSClass("JSURL", JSObject, {
         }
     },
 
-    setHost: function(host){
-        if (host !== ""){
-            this._host = host;
+    resolveToBaseURL: function(baseURL){
+        if (this._hasAuthority){
+            if (this._scheme === null){
+                this._scheme = baseURL._scheme;
+            }
+        }else{
+            this._scheme = baseURL._scheme;
+            this._hasAuthority = baseURL._hasAuthority;
+            this._encodedUserInfo = baseURL._encodedUserInfo;
+            this._host = baseURL._host;
+            this._port = baseURL._port;
+            if (this._path === null || this._path === ""){
+                this._path = baseURL._path;
+                if (this._encodedQuery === null){
+                    this._encodedQuery = baseURL._encodedQuery;
+                    if (this._encodedFragment === null){
+                        this._encodedFragment = baseURL._encodedFragment;
+                    }
+                }
+                this._hasDirectoryPath = baseURL._hasDirectoryPath;
+            }else if (baseURL.path !== null && !this._path.startsWith("/")){
+                var mergedComponents = JSCopy(baseURL.pathComponents);
+                var components = this.pathComponents;
+                var component;
+                if (!baseURL._hasDirectoryPath && mergedComponents.length > 0){
+                    mergedComponents.pop();
+                }
+                for (var i = 0, l = components.length; i < l; ++i){
+                    component = components[i];
+                    mergedComponents.push(component);
+                }
+                var hasDirectoryPath = this._hasDirectoryPath;
+                this.setPathComponents(mergedComponents, this._hasDirectoryPath);
+                this._hasDirectoryPath = hasDirectoryPath;
+                this.standardize();
+            }
         }
+    },
+
+    resolvingToBaseURL: function(baseURL){
+        var url = this.copy();
+        url.resolveToBaseURL(baseURL);
+        return url;
+    },
+
+    setHost: function(host){
+        this._host = host;
         if (host === null){
             this._port = null;
             this._hasAuthority = false;
         }else{
             this._hasAuthority = true;
+            // If we have a relative path and are setting a host, the
+            // path must become absolute
+            if (this._path !== null && this._path !== '' && !this._path.startsWith("/")){
+                this.path = "/" + this._path;
+            }
         }
     },
 
@@ -116,86 +141,99 @@ JSClass("JSURL", JSObject, {
     //     this._port = port;
     // },
 
-    getPath: function(){
-        var path = "";
-        var component;
-        for (var i = 0, l = this._pathComponents.length; i < l; ++i){
-            component = this._pathComponents[i];
-            if (i > 0 && this._pathComponents[i - 1] != "/"){
-                path += "/";
-            }
-            path += component;
+    setPath: function(path){
+        // If we have an authority, the path must be absolute
+        if (this._hasAuthority && path !== null && path !== '' && !path.startsWith("/")){
+            path = "/" + path;
         }
-        if (this._pathHasTrailingSlash){
-            path += "/";
-        }
-        return path;
+        this._path = path;
+        this._pathComponents = null;
+        this._hasDirectoryPath = path !== null && path.endsWith("/");
     },
 
+    _updatePathFromComponents: function(){
+        var path = pathFromComponents(this._pathComponents);
+        if (path !== null){
+            if (this._hasDirectoryPath && !path.endsWith("/")){
+                path += "/";
+            }
+        }
+        this._path = path;
+    },
+
+    _pathComponents: null,
+
     getLastPathComponent: function(){
-        if (this._pathComponents.length > 0){
-            return this._pathComponents[this._pathComponents.length - 1];
+        var components = this.pathComponents;
+        if (components.length > 0){
+            return components[components.length - 1];
         }
         return null;
     },
 
-    setPath: function(path){
-        if (path === null || path === undefined){
-            path = "";
+    getFileExtension: function(){
+        var components = this.pathComponents;
+        if (components.length > 0){
+            return components[components.length - 1].fileExtension;
         }
-        var components = path.split('/');
+        return '';
+    },
+
+    getPathComponents: function(){
+        if (this._pathComponents === null){
+            this._pathComponents = componentsFromPath(this._path);
+        }
+        return this._pathComponents;
+    },
+
+    setPathComponents: function(components, isFinalDirectory){
         this._pathComponents = [];
-        var minComponentCount = 1;
-        if ((this.isAbsolute && path !== "") || (path.startsWith("/"))){
+        this.appendPathComponents(components, isFinalDirectory);
+    },
+
+    appendPathComponents: function(components, isFinalDirectory){
+        if (this._pathComponents === null){
+            this._pathComponents = componentsFromPath(this._path);
+        }
+        if (components.length > 0 && components[0].startsWith("/") && this._pathComponents.length === 0){
             this._pathComponents.push("/");
-            minComponentCount = 2;
-            if (components.length > 0 && components[0] == ''){
-                components.shift();
+        }
+        components = components.join("/").split("/");
+        var component;
+        for (var i = 0, l = components.length; i < l; ++i){
+            component = components[i];
+            if (component !== ""){
+                this._pathComponents.push(component);
             }
         }
-        this._appendExpandedPathComponents(components);
-        this._pathHasTrailingSlash = this._pathComponents.length >= minComponentCount && components[components.length - 1] === "";
-    },
-
-    setPathComponents: function(components){
-        this._pathComponents = [];
-        if (this.isAbsolute || (components.length > 0 && components[0].startsWith("/"))){
-            this._pathComponents.push("/");
+        if (this._hasAuthority && this._pathComponents.length > 0 && this._pathComponents[0] != "/"){
+            this._pathComponents.unshift("/");
         }
-        var expandedComponents = expandComponents(components);
-        this._appendExpandedPathComponents(expandedComponents);
-        this._pathHasTrailingSlash = false;
+        this._hasDirectoryPath = isFinalDirectory === true;
+        this._updatePathFromComponents();
     },
 
-    appendPathComponents: function(components){
-        if (this._pathComponents.length === 0 && components.length > 0 && components[0].startsWith("/")){
-            this._pathComponents.push("/");
-        }
-        var expandedComponents = expandComponents(components);
-        this._appendExpandedPathComponents(expandedComponents);
-        this._pathHasTrailingSlash = false;
+    appendPathComponent: function(component, isDirectory){
+        this.appendPathComponents([component], isDirectory);
     },
 
-    appendPathComponent: function(component){
-        this.appendPathComponents([component]);
-    },
-
-    appendingPathComponents: function(components){
+    appendingPathComponents: function(components, isFinalDirectory){
         var url = this.copy();
         url.appendPathComponents(components);
         return url;
     },
 
-    appendingPathComponent: function(component){
+    appendingPathComponent: function(component, isDirectory){
         var url = this.copy();
-        url.appendPathComponent(component);
+        url.appendPathComponent(component, isDirectory);
         return url;
     },
 
     removeLastPathComponent: function(){
-        if (this._pathComponents.length > 0){
+        if (this.pathComponents.length > 0){
             this._pathComponents.pop();
-            this._pathHasTrailingSlash = false;
+            this._hasDirectoryPath = this._pathComponents.length > 0;
+            this._updatePathFromComponents();
         }
     },
 
@@ -205,32 +243,35 @@ JSClass("JSURL", JSObject, {
         return url;
     },
 
-    copy: function(){
-        return JSURL.initWithURL(this);
-    },
-
-    _appendExpandedPathComponents: function(expandedComponents){
+    standardize: function(){
+        var components = JSCopy(this.pathComponents);
+        if (components.length === 0){
+            return;
+        }
+        var standardComponents = [];
         var component;
-        var i, l;
-        if (this.scheme === null || this.scheme === 'http' || this.scheme === 'https' || this.scheme === 'ws' || this.scheme === 'wss' || this.scheme === 'file' || this.scheme === 'ftp' || this.scheme === 'io.breakside.jskit.file'){
-            for (i = 0, l = expandedComponents.length; i < l; ++i){
-                component = expandedComponents[i];
-                if (component !== "" && component !== "."){
-                    if (component === ".." && this._pathComponents.length > 0 && this._pathComponents[this._pathComponents.length - 1] !== ".."){
-                        if (this._pathComponents[this._pathComponents.length - 1] !== "/"){
-                            this._pathComponents.pop();
-                        }
-                    }else{
-                        this._pathComponents.push(component);
-                    }
+        for (var i = 0, l = components.length; i < l; ++i){
+            component = components[i];
+            if (component == "."){
+            }else if (component == ".." && standardComponents.length > 0 && standardComponents[standardComponents.length - 1] != ".."){
+                if (standardComponents[standardComponents.length - 1] != "/"){
+                    standardComponents.pop();
                 }
-            }
-        }else{
-            for (i = 0, l = expandedComponents.length; i < l; ++i){
-                component = expandedComponents[i];
-                this._pathComponents.push(component);
+            }else{
+                standardComponents.push(component);
             }
         }
+        this.setPathComponents(standardComponents, this._hasDirectoryPath);
+    },
+
+    standardized: function(){
+        var url = this.copy();
+        url.standardize();
+        return url;
+    },
+
+    copy: function(){
+        return JSURL.initWithURL(this);
     },
 
     getIsAbsolute: function(){
@@ -239,14 +280,17 @@ JSClass("JSURL", JSObject, {
 
     setEncodedQuery: function(encodedQuery){
         this._encodedQuery = encodedQuery;
-        this._query = JSFormFieldMap();
-        if (this._encodedQuery !== null){
-            this._query.decode(this._encodedQuery, true);
-        }
+        this._query = null;
     },
 
     getQuery: function(){
-        return JSFormFieldMap(this._query);
+        if (this._query === null){
+            this._query = JSFormFieldMap();
+            if (this._encodedQuery !== null){
+                this._query.decode(this._encodedQuery, true);
+            }
+        }
+        return this._query;
     },
 
     setQuery: function(query){
@@ -277,7 +321,9 @@ JSClass("JSURL", JSObject, {
                 encodedString += ":%d".sprintf(this._port);
             }
         }
-        encodedString += String.initWithData(this.path.utf8().dataByEncodingPercentEscapes(PathReserved), String.Encoding.utf8);
+        if (this._path !== null){
+            encodedString += String.initWithData(this._path.utf8().dataByEncodingPercentEscapes(PathReserved), String.Encoding.utf8);
+        }
         if (this._encodedQuery !== null){
             encodedString += '?';
             encodedString += String.initWithData(this._encodedQuery, String.Encoding.utf8);
@@ -327,13 +373,8 @@ JSClass("JSURL", JSObject, {
         if (this._port !== url._port){
             return false;
         }
-        if (this._pathComponents.length != url._pathComponents.length){
+        if (this._path !== url._path){
             return false;
-        }
-        for (var i = 0, l = this._pathComponents.length; i < l; ++i){
-            if (this._pathComponents[i] !== url._pathComponents[i]){
-                return false;
-            }
         }
         if (this._encodedQuery !== null && url._encodedQuery !== null){
             var decodedQueryA = this._encodedQuery.dataByDecodingPercentEscapes().stringByDecodingUTF8();
@@ -400,7 +441,7 @@ JSURLParser.prototype = {
         this.url.encodedUserInfo = null;
         this.url.host = null;
         this.url.port = null;
-        this.url.pathComponents = [];
+        this.url.path = null;
         this.url.encodedQuery = null;
         this.url.encodedFragment = null;
 
@@ -648,6 +689,37 @@ var JSURLParserError = "JSURLParserError";
 
 function expandComponents(components){
     return components.join("/").split("/");
+}
+
+function pathFromComponents(components){
+    if (components.length === 0){
+        return null;
+    }
+    var path = "";
+    if (components[0] == "/"){
+        return "/" + components.slice(1).join("/");
+    }
+    return components.join("/");
+}
+
+function componentsFromPath(path){
+    if (path === null || path.length === 0){
+        return [];
+    }
+    var result = [];
+    if (path.startsWith("/")){
+        result.push("/");
+        path = path.substr(1);
+    }
+    var components = path.split('/');
+    var component;
+    for (var i = 0, l = components.length; i < l; ++i){
+        component = components[i];
+        if (component !== ""){
+            result.push(component);
+        }
+    }
+    return result;
 }
 
 })();

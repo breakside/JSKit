@@ -634,6 +634,16 @@ Object.defineProperties(String.prototype, {
         }
     },
 
+    fileExtension: {
+        get: function String_getFileExtension(){
+            var index = this.lastIndexOf('.');
+            if (index > 0){
+                return this.substr(index);
+            }
+            return '';
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Private helpers for finding word and character breaks
 
