@@ -58,11 +58,16 @@ JSFileManager.definePropertiesFromExtensions({
     // --------------------------------------------------------------------
     // MARK: - Paths to URLs
 
-    urlForPath: function(path, baseURL){
+    urlForPath: function(path, baseURL, isDirectory){
         var url = JSURL.init();
-        url.scheme = JSFileManager.Scheme.jskitfile;
-        url.host = "";
+        if (isDirectory && !path.endsWith('/')){
+            path += '/';
+        }
         url.path = path;
+        if (path.startsWith("/")){
+            url.scheme = JSFileManager.Scheme.jskitfile;
+            url.host = "";
+        }
         if (baseURL){
             url.resolveToBaseURL(baseURL);
         }

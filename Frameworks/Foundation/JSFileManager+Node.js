@@ -28,7 +28,7 @@ JSFileManager.definePropertiesFromExtensions({
                 return status;
             });
         }
-        this._rootURL = this.urlForPath(pathLib.join(process.cwd(), 'io.breakside.jskit.JSFileManager'));
+        this._rootURL = this.urlForPath(pathLib.join(process.cwd(), 'io.breakside.jskit.JSFileManager'), true);
         completion.call(target, JSFileManager.State.success);
         return completion.promise;
     },
@@ -36,11 +36,14 @@ JSFileManager.definePropertiesFromExtensions({
     // --------------------------------------------------------------------
     // MARK: - Paths to URLs
 
-    urlForPath: function(path, baseURL){
+    urlForPath: function(path, baseURL, isDirectory){
         if (pathLib.sep != "/"){
             path = path.split(pathLib.sep).join("/");
         }
         var url = JSURL.init();
+        if (isDirectory && !path.endsWith('/')){
+            path += '/';
+        }
         url.path = path;
         var firstComponent = url.pathComponents[0];
         if (process.platform == 'win32'){
