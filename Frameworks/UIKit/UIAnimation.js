@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 /* global JSClass, JSObject, JSReadOnlyProperty, JSCubicBezier, UIAnimation, JSPoint, JSSize, JSRect, JSAffineTransform, JSColor */
 'use strict';
 

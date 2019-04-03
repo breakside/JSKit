@@ -1,4 +1,2 @@
 JSBundleType: framework
 JSBundleIdentifier: io.breakside.JSKit.AIKit
-JSIncludeFrameworks:
-    - Foundation

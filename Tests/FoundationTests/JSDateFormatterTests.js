@@ -1,5 +1,5 @@
-// #import "Foundation/Foundation.js"
-// #import "TestKit/TestKit.js"
+// #import Foundation
+// #import Testkit
 /* global JSClass, TKTestSuite, JSDateFormatter, JSTimeZone, JSCalendar, JSLocale */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';

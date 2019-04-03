@@ -1,5 +1,5 @@
-// #import "UIKit/UIKit.js"
-// #import "TestKit/TestKit.js"
+// #import UIKit
+// #import Testkit
 /* global JSClass, JSObject, UIEvent, UITouch, TKTestSuite, UIRootWindow, UIView, JSRect, JSPoint */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
 'use strict';

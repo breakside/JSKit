@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "UIKit/UILayer.js"
 /* global JSClass, JSDynamicProperty, JSUndoManager, JSAttributedString, JSCopy, JSObject, JSRange, UITextEditor, JSRect, JSPoint, JSColor, UILayer, JSTimer, JSBinarySearcher */
 'use strict';

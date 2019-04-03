@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 /* global JSGlobalObject, JSArguments, JSClass, JSObject, SKApplication, JSFont, JSBundle, JSSpec */
 'use strict';
 

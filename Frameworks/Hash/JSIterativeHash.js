@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #feature ArrayBuffer
 // #feature Uint8Array
 /* global JSIterativeHash, JSGlobalObject, ArrayBuffer */

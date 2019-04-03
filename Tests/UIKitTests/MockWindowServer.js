@@ -1,4 +1,4 @@
-// #import "UIKit/UIKit.js"
+// #import UIKit
 /* global JSClass, setTimeout, UIDisplayServer, JSTextFramesetter, MockDisplayContext, UITextInputManager, MockTextInputManager, JSContext, UIWindowServer, MockWindowServer, MockDisplayServer, UIScreen, JSRect */
 'use strict';
 

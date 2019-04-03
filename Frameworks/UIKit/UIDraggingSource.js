@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 /* global JSProtocol, JSGlobalObject */
 'use strict';
 

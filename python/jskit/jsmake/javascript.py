@@ -247,7 +247,11 @@ class JSScanner(object):
                         if j >= 0:
                             path = arguments[i + 1:j]
                             return JSImport(path, sourceLine=self.sourceLine, rawline=line)
-                    raise Exception("Invalid #import in %s at %d" % (command, self.sourceName, self.sourceLine))
+                    # new build system imports frameworks by name without quotes
+                    # hack to stay compatible with new files
+                    path = "%s/%s.js" % (arguments, arguments)
+                    return JSImport(path, sourceLine=self.sourceLine, rawline=line)
+                    # raise Exception("Invalid #import in %s at %d" % (command, self.sourceName, self.sourceLine))
                 if command == "feature":
                     return JSFeature(arguments, sourceLine=self.sourceLine, rawline=line)
                 if command == "var":

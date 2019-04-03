@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "SecurityKit/SECDataKey.js"
 /* global JSClass, JSObject, JSReadOnlyProperty, JSData, JSRunLoop, SECCipher, SECDataKey, SECCipherAESCipherBlockChaining, SECCipherAESCounter, SECCipherAESGaloisCounterMode, JSRunLoop, SECCipherRC4 */
 'use strict';

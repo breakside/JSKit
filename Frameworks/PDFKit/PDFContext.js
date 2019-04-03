@@ -1,9 +1,9 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
+// #import ImageKit
 // #import "PDFKit/PDFWriter.js"
 // #import "PDFKit/PDFTypes.js"
 // #import "PDFKit/JSColor+PDF.js"
 // #import "PDFKit/JSRect+PDF.js"
-// #import "ImageKit/ImageKit.js"
 /* global JSClass, JSContext, PDFContext, PDFWriter, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFName, PDFStream, JSAffineTransform, JSRect, PDFType1Font, PDFImage, JSData, JSImage, IKBitmap */
 'use strict';
 

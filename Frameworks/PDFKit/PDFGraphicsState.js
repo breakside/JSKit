@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "PDFKit/PDFTypes.js"
 // #import "PDFKit/PDFColorSpace.js"
 // #import "PDFKit/PDFStreamOperation.js"

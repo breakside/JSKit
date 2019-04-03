@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "UIKit/UIResponder.js"
 // #import "UIKit/UILayer.js"
 // #import "UIKit/UIAnimation.js"

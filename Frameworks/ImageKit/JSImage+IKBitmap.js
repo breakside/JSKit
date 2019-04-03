@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "ImageKit/IKBitmap.js"
 /* global JSImage, IKBitmap, JSSize */
 'use strict';

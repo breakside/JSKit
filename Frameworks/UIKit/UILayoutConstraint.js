@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 /* global JSGlobalObject, JSClass, JSObject, JSDynamicProperty, UILayoutConstraint, UILayoutRelation, UILayoutAttribute, UILayoutPriority */
 'use strict';
 

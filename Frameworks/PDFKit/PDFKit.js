@@ -1,8 +1,8 @@
-// #import "Foundation/Foundation.js"
-// #import "ImageKit/ImageKit.js"
-// #import "SecurityKit/SecurityKit.js"
-// #import "Hash/Hash.js"
-// #import "FontKit/FontKit.js"
+// #import Foundation
+// #import ImageKit
+// #import SecurityKit
+// #import Hash
+// #import FontKit
 
 // #import "PDFKit/PDFTypes.js"
 // #import "PDFKit/PDFGraphicsState.js"

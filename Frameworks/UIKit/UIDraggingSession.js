@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "UIKit/UIPasteboard.js"
 // #import "UIKit/UIDraggingSource.js"
 // #import "UIKit/UIDraggingDestination.js"

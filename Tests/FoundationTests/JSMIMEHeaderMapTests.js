@@ -1,5 +1,5 @@
-// #import "Foundation/Foundation.js"
-// #import "TestKit/TestKit.js"
+// #import Foundation
+// #import Testkit
 /* global JSClass, TKTestSuite, TKAssert, TKAssertEquals, TKAssertExactEquals, TKAssertNotNull, TKAssertUndefined, JSMIMEHeader, JSMIMEHeaderMap */
 'use strict';
 

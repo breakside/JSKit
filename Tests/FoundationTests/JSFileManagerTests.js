@@ -1,5 +1,5 @@
-// #import "Foundation/Foundation.js"
-// #import "TestKit/TestKit.js"
+// #import Foundation
+// #import Testkit
 /* global JSClass, TKTestSuite, JSFileManager, TKExpectation, JSURL */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
@@ -398,7 +398,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         var txt = "This is a test!";
         expectation.call(manager.createFileAtURL, manager, url, txt.utf8(), function(success){
             TKAssert(success);
-            var url = manager.temporaryDirectoryURL.appendingPathComponent("sub");
+            var url = manager.temporaryDirectoryURL.appendingPathComponent("sub", true);
             expectation.call(manager.createDirectoryAtURL, manager, url, function(success){
                 TKAssert(success);
                 expectation.call(manager.contentsOfDirectoryAtURL, manager, manager.temporaryDirectoryURL, function(entries){
@@ -413,7 +413,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                         }
                         return 0;
                     });
-                    var url = manager.temporaryDirectoryURL.appendingPathComponent("sub");
+                    var url = manager.temporaryDirectoryURL.appendingPathComponent("sub", true);
                     TKAssertEquals(entries[0].name, 'sub');
                     TKAssertObjectEquals(entries[0].url, url);
                     TKAssertExactEquals(entries[0].itemType, JSFileManager.ItemType.directory);

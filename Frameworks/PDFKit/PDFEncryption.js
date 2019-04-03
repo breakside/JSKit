@@ -1,6 +1,6 @@
-// #import "Foundation/Foundation.js"
-// #import "Hash/Hash.js"
-// #import "SecurityKit/SecurityKit.js"
+// #import Foundation
+// #import Hash
+// #import SecurityKit
 // #import "PDFKit/PDFCryptFilter.js"
 // #import "PDFKit/PDFTypes.js"
 /* global JSClass, JSData, JSObject, PDFEncryption, JSMD5Hash, SECCipher, PDFName */

@@ -1,5 +1,5 @@
-// #import "Foundation/Foundation.js"
-// #import "TestKit/TestKit.js"
+// #import Foundation
+// #import Testkit
 /* global document, window, JSClass, JSArguments, JSBundle, TKTestRun, TKTestResult, HTMLTestRun, console */
 'use strict';
 

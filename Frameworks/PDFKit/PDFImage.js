@@ -1,4 +1,4 @@
-// #import "ImageKit/ImageKit.js"
+// #import ImageKit
 // #import "PDFKit/PDFXObject.js"
 // #import "PDFKit/PDFColorSpace.js"
 /* global JSGlobalObject, JSLog, JSData, JSRange, JSImage, PDFStream, PDFXObject, PDFObjectProperty, PDFName, PDFImage, JSSize, IKBitmap, PDFColorSpace, PDFFilter, IKEncoderPNG, Zlib */

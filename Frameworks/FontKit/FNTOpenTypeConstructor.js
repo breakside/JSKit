@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 /* global JSClass, JSObject, JSData, FNTOpenTypeConstructor */
 /* global FNTOpenTypeFontTableHead, FNTOpenTypeFontTableHhea, FNTOpenTypeFontTableOS2, FNTOpenTypeFontTableMaxp, FNTOpenTypeFontTablePost, FNTOpenTypeFontTableHmtx, FNTOpenTypeFontTableName, FNTOpenTypeFontTableCmap */
 'use strict';

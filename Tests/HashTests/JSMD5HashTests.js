@@ -1,5 +1,5 @@
-// #import "Hash/Hash.js"
-// #import "TestKit/TestKit.js"
+// #import Hash
+// #import Testkit
 /* global JSClass, TKTestSuite, TKAssert, TKAssertNotNull, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSMD5Hash */
 'use strict';
 

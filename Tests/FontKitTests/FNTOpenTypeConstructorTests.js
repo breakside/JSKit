@@ -1,5 +1,5 @@
-// #import "FontKit/FontKit.js"
-// #import "TestKit/TestKit.js"
+// #import FontKit
+// #import Testkit
 /* global JSClass, TKTestSuite, FNTOpenTypeFont, FNTOpenTypeConstructor, TKExpectation, UnicodeChar */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';

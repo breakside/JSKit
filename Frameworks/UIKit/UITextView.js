@@ -1,4 +1,4 @@
-// #imoprt "UIKit/UIView.js"
+// #import "UIKit/UIView.js"
 // #import "UIKit/UITextLayer.js"
 /* global JSClass, UIView, UITextLayer, JSDynamicProperty, UITextView, JSFont, UIViewLayerProperty */
 'use strict';

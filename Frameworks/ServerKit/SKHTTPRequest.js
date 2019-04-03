@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "ServerKit/SKHTTPResponse.js"
 /* global JSClass, JSDate, JSObject, JSData, JSReadOnlyProperty, JSURL, JSMIMEHeaderMap, SKHTTPResponse, JSLog */
 'use strict';

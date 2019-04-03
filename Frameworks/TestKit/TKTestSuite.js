@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "TestKit/TKAssert.js"
 /* global JSObject, JSClass, JSBundle, TKAssertion, TKTestSuite, performance */
 'use strict';

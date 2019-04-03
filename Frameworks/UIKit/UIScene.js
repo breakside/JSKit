@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "UIKit/UIApplication.js"
 /* global JSClass, JSObject, UIScene, UIApplication, JSSpec */
 'use strict';

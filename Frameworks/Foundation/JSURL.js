@@ -399,7 +399,7 @@ JSClass("JSURL", JSObject, {
         return true;
     },
 
-    relativeTo: function(baseURL){
+    encodedStringRelativeTo: function(baseURL){
         if (this._scheme != baseURL._scheme){
             return this;
         }
@@ -421,7 +421,7 @@ JSClass("JSURL", JSObject, {
             }
             url.setPathComponents(components, url._hasDirectoryPath);
         }
-        return url;
+        return url.encodedString;
     }
 
 });

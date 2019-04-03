@@ -623,7 +623,7 @@ JSFileManager.definePropertiesFromExtensions({
                 value = e.target.result[i];
                 entries.push({
                     name: value.name,
-                    url: url.appendingPathComponent(value.name),
+                    url: url.appendingPathComponent(value.name, value.itemType == JSFileManager.ItemType.directory),
                     itemType: value.itemType
                 });
             }

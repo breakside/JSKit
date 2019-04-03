@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 /* global JSObject, JSClass, IKEncoder */
 'use strict';
 

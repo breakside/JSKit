@@ -1,5 +1,4 @@
-// #import "Foundation/Foundation.js"
-// #import "Foundation/JSFileManager.js"
+// #import Foundation
 // #import "SecurityKit/SECCipher.js"
 // #import "SecurityKit/SECKey.js"
 /* global JSClass, JSObject, UUID, JSCopy, JSReadOnlyProperty, JSFileManager, JSRunLoop, JSTimer, SECCipher, SECKey, JSLog */

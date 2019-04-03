@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "FontKit/FNTOpenTypeConstructor.js"
 // #import "FontKit/FNTAdobeNames.js"
 /* global Int16Array, Int32Array, JSClass, JSCopy, JSDeepCopy, JSObject, JSRange, FNTOpenTypeConstructor, FNTOpenTypeFontTableCFF, FNTOpenTypeFontCmap12, FNTAdobeNamesToUnicode */

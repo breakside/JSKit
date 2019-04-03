@@ -1,8 +1,8 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "ServerKit/SKHTTPResponderContext.js"
 // #import "ServerKit/SKHTTPError.js"
 // #import "ServerKit/SKHTTPResponse.js"
-// #import "Hash/Hash.js"
+// #import Hash
 /* global JSClass, JSObject, JSReadOnlyProperty, JSMIMEHeaderMap, JSSHA1Hash, SKHTTPResponder, SKHTTPResponse, SKHTTPResponderContext, SKHTTPError, JSLog */
 'use strict';
 

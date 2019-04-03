@@ -1,5 +1,5 @@
-// #import "PDFKit/PDFKit.js"
-// #import "TestKit/TestKit.js"
+// #import PDFKit
+// #import Testkit
 /* global JSClass, TKTestSuite, PDFReader, TKExpectation */
 /* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFTrueTypeFont, PDFImage, PDFStreamOperation */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */

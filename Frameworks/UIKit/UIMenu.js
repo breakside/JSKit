@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "UIKit/UIMenuItem.js"
 // #import "UIKit/UIApplication.js"
 // #import "UIKit/UIPlatform.js"

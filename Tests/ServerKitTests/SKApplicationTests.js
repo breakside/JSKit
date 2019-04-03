@@ -1,5 +1,5 @@
-// #import "ServerKit/ServerKit.js"
-// #import "TestKit/TestKit.js"
+// #import ServerKit
+// #import Testkit
 /* global JSClass, TKTestSuite, SKApplication */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
 'use strict';

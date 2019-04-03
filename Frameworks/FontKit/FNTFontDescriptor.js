@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "FontKit/FNTOpenTypeFont.js"
 /* global JSClass, JSDataFontDescriptor, FNTFontDescriptor, FNTOpenTypeFont, JSFont, UnicodeChar */
 'use strict';

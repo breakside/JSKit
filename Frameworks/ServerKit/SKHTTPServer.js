@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "ServerKit/SKHTTPRoute.js"
 // #import "ServerKit/SKHTTPError.js"
 // #import "ServerKit/SKHTTPResponder.js"

@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "UIKit/UITouch.js"
 /* global JSClass, JSObject, JSReadOnlyProperty, UIEvent, JSPoint */
 'use strict';

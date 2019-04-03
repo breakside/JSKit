@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "UIKit/UIEvent.js"
 // #import "UIKit/UICursor.js"
 // #import "UIKit/UILayer.js"

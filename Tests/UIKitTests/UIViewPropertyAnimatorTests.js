@@ -1,5 +1,5 @@
-// #import "UIKit/UIKit.js"
-// #import "TestKit/TestKit.js"
+// #import UIKit
+// #import Testkit
 // #import "MockWindowServer.js"
 /* global JSClass, TKTestSuite, JSFont, JSPoint, UIApplication, UIRootWindow, UIViewPropertyAnimator, MockWindowServer, UIView, TKExpectation */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */

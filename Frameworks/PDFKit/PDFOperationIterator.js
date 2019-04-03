@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "PDFKit/PDFName.js"
 // #import "PDFKit/PDFTokenizer.js"
 // #import "PDFKit/PDFStreamOperation.js"

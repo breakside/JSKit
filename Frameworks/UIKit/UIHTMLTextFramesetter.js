@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "UIKit/UITextFramesetter.js"
 // #import "UIKit/UIHTMLTextFrame.js"
 // #import "UIKit/UIHTMLTextTypesetter.js"

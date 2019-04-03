@@ -520,7 +520,7 @@ JSFileManager.definePropertiesFromExtensions({
                     itemType = JSFileManager.ItemType.other;
                 }
                 contents.push({
-                    url: url.appendingPathComponent(entry.name),
+                    url: url.appendingPathComponent(entry.name, itemType == JSFileManager.ItemType.directory),
                     name: entry.name,
                     itemType: itemType
                 });

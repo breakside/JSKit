@@ -1,5 +1,5 @@
-// #import "UIKit/UIKit.js"
-// #import "TestKit/TestKit.js"
+// #import UIKit
+// #import Testkit
 // #import "MockWindowServer.js"
 /* global JSClass, JSObject, TKTestSuite, UIRootWindow, JSBundle, TKExpectation, UITouch, JSPoint, MockWindowServer, MockLayer, UIApplication, UIEvent, TKAssert, TKAssertNull, TKAssertEquals, TKAssertNotNull, TKAssertExactEquals, TKAssertThrows */
 'use strict';

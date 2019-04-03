@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "UIKit/UIHTMLTextLine.js"
 // #import "UIKit/UIHTMLTextRun.js"
 // #import "UIKit/UITextAttachmentView.js"

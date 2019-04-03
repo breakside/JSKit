@@ -1,4 +1,4 @@
-// #import "ImageKit/ImageKit.js"
+// #import ImageKit
 // #import "PDFKit/PDFStream.js"
 /* global JSGlobalObject, PDFStream, PDFObjectProperty, PDFName, PDFXObject, JSSize, IKBitmap */
 'use strict';

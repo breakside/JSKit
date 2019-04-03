@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "UIKit/UIView.js"
 /* global JSClass, JSTextAttachment, UIView, JSPoint, JSSize */
 'use strict';

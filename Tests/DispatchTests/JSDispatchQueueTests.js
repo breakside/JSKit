@@ -1,5 +1,5 @@
-// #import "Dispatch/Dispatch.js"
-// #import "TestKit/TestKit.js"
+// #import Dispatch
+// #import TestKit
 /* global JSClass, TKTestSuite, TKExpectation, JSDispatchQueue, JSDispatchJob, JSDispatchQueueTestsJob, JSDispatchQueueTestsJobAsync, setTimeout, performance */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';

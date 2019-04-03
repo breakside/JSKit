@@ -1,5 +1,5 @@
-// #import "PDFKit/PDFKit.js"
-// #import "TestKit/TestKit.js"
+// #import PDFKit
+// #import Testkit
 /* global JSClass, TKTestSuite, PDFContext, PDFWriterStream, PDFContextTestsStringStream, JSRect, JSPoint */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';

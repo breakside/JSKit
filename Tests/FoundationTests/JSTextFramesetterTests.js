@@ -1,5 +1,5 @@
-// #import "Foundation/Foundation.js"
-// #import "TestKit/TestKit.js"
+// #import Foundation
+// #import Testkit
 /* global JSClass, TKTestSuite, JSTextFrame, JSTextFramesetter, JSAttributedString, JSPoint, JSSize, JSRange, JSLineBreakMode, JSTextAlignment, JSTextLine, JSTextRun, JSFont, JSTestFontDescriptor */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
 'use strict';

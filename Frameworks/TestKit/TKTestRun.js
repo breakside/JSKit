@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "TestKit/TKAssert.js"
 // #import "TestKit/TKTestResult.js"
 // #import "TestKit/TKTestSuite.js"

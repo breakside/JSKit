@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 /* global JSClass, JSObject, JSPoint, UICursor, JSImage, JSBundle, JSCopy, UIApplication */
 'use strict';
 
