@@ -1,15 +1,17 @@
 // #import Foundation
 // #import Hash
+// #import FontKit
 // #import jsyaml
-/* global JSClass, JSObject, JSSHA1Hash, JSFileManager, jsyaml */
+/* global JSClass, JSObject, JSSHA1Hash, JSFileManager, jsyaml, FNTOpenTypeFont, Zlib, JSData */
 'use strict';
 
 JSClass("Resources", JSObject, {
 
-    init: function(){
+    initWithFileManager: function(fileManager){
         this.lookup = {global: {}};
         this.metadata = [];
         this.sourceURLs = [];
+        this.fileManager = fileManager;
     },
 
     lookup: null,
@@ -21,12 +23,77 @@ JSClass("Resources", JSObject, {
         var subdirectory = null;
         var ext = url.fileExtension;
         if (ext == ".lproj"){
-            this._addLocalization(url);
+            await this._addLocalization(url);
         }else if (ext == ".imageset"){
-            this._addImageset(url, 'global');
+            await this._addImageset(url, 'global');
         }else{
-            this._addResource(url, 'global');
+            await this._addResource(url, 'global');
         }
+    },
+
+    getImportPaths: async function(importDirectoryURLs){
+        var fileManager = this.fileManager;
+        var addImportsFromObject = async function(obj){
+            if (typeof(obj) == "object"){
+                if ('class' in obj){
+                    let path = obj['class'] + '.js';
+                    let url = await urlForPath(path);
+                    if (url !== null){
+                        paths.push(path);
+                    }
+                }
+                if ('include' in obj){
+                    let includes;
+                    if (typeof(obj.include) == 'string'){
+                        includes = [obj.include];
+                    }else{
+                        includes = obj.include;
+                    }
+                    for (let i = 0, l = includes.length; i < l; ++i){
+                        let path = includes[i];
+                        if (path.endsWith("/*")){
+                            let directoryPath = path.substr(0, path.length - 1);
+                            let directoryURL = urlForPath(directoryPath);
+                            let entries = await fileManager.contentsOfDirectoryAtURL(directoryURL);
+                            for (let j = 0, k = entries.length; j < k; ++j){
+                                let entry = entries[j];
+                                if (entry.name.fileExtension == '.js'){
+                                    paths.push(directoryPath + entry.name);
+                                }
+                            }
+                        }else{
+                            paths.push(path);
+                        }
+                    }
+                }
+                for (let k in obj){
+                    if (k == 'class' || k == 'include') continue;
+                    await addImportsFromObject(obj[k]);
+                }
+            }
+        };
+        var urlForPath = async function(path){
+            let isDirectory = path.endsWith('/');
+            if (isDirectory){
+                path = path.substr(0, path.length - 1);
+            }
+            for (let i = 0, l = importDirectoryURLs.length; i < l; ++i){
+                let url = importDirectoryURLs[i].appendingPathComponent(path, true);
+                let exists = await fileManager.itemExistsAtURL(url);
+                if (exists){
+                    return url;
+                }
+            }
+            return null;
+        };
+        var paths = [];
+        for (let i = 0, l = this.metadata.length; i < l; ++i){
+            let metadata = this.metadata[i];
+            if (metadata.spec){
+                await addImportsFromObject(metadata.spec);
+            }
+        }
+        return paths;
     },
 
     _resourceId: 0,
@@ -43,7 +110,7 @@ JSClass("Resources", JSObject, {
                     this._addImageset(entry.url, lang);
                 }
             }else{
-                this._addResource(entry.url, lang);
+                await this._addResource(entry.url, lang);
             }
         }
     },
@@ -55,7 +122,7 @@ JSClass("Resources", JSObject, {
         for (let i = 0, l = entries.length; i < l; ++i){
             entry = entries[i];
             if (entry.itemType != JSFileManager.ItemType.directory){
-                this._addResource(entry.url, lang, subdirectory);
+                await this._addResource(entry.url, lang, subdirectory);
             }
         }
     },
@@ -75,17 +142,17 @@ JSClass("Resources", JSObject, {
         var path = pathComponents.join("/");
 
         // populate metadata
-        var contents = await this.fileManager.contentsOfItemAtURL(url);
+        var contents = await this.fileManager.contentsAtURL(url);
         var hash = JSSHA1Hash(contents);
         var metadata = {
             path: path,
             byte_size: contents.length,
             mime_type: mimeTypesByExt[ext] || null,
-            hash: hash
+            hash: hash.hexStringRepresentation()
         };
         var extra = addMetadata[ext];
         if (extra){
-            extra.call(this, contents, metadata);
+            extra.call(this, name, contents, metadata);
         }
         this.sourceURLs.push(url);
         this.metadata.push(metadata);
@@ -112,18 +179,26 @@ JSClass("Resources", JSObject, {
         ++this._resourceId;
     },
 
+    ignoreFontErrors: false,
+
 });
 
 var addMetadata = {
-    '.json': async function(contents, metadata){
+    '.json': async function(name, contents, metadata){
         metadata.value = JSON.parse(contents.stringByDecodingUTF8());
+        if (name.fileExtension == '.spec'){
+            metadata.spec = true;
+        }
     },
 
-    '.yaml': async function(contents, metadata){
+    '.yaml': async function(name, contents, metadata){
         metadata.value = jsyaml.safeLoad(contents.stringByDecodingUTF8());
+        if (name.fileExtension == '.spec'){
+            metadata.spec = true;
+        }
     },
 
-    '.png': async function(contents, metadata){
+    '.png': async function(name, contents, metadata){
         if (contents.length >= 24 &&
             // magic
             contents[0] == 0x89 &&
@@ -149,7 +224,7 @@ var addMetadata = {
         }
     },
 
-    '.jpg': async function(contents, metadata){
+    '.jpg': async function(name, contents, metadata){
         if (contents.length < 2 || contents[0] != 0xFF || contents[0] != 0xD8){
             // not a jpeg
             return;
@@ -201,7 +276,7 @@ var addMetadata = {
         }
     },
 
-    '.svg': async function(contents, metadata){
+    '.svg': async function(name, contents, metadata){
         var xml = contents.stringByDecodingUTF8();
         if (!xml.startsWith("<?xml")){
             return;
@@ -211,8 +286,130 @@ var addMetadata = {
         };
     },
 
-    '.ttf': async function(contents, metadata){
+    '.ttf': async function(name, contents, metadata){
+        try{
+            let font = FNTOpenTypeFont.initWithData(contents);
+            metadata.font = {};
+            let head = font.tables.head;
+            if (head){
+                metadata.font.yMax = head.yMax;
+                metadata.font.yMin = head.yMin;
+                metadata.font.unitsPerEM = head.unitsPerEM;
+            }
+            let name = font.tables.name;
+            if (name){
+                let family = name.getName(
+                    [1, 0, 0, 16],
+                    [1, 0, 0, 1],
+                    [3, 1, 1033, 16],
+                    [3, 1, 1033, 1],
+                );
+                if (family !== null){
+                    metadata.font.family = family;
+                }
+                let face = name.getName(
+                    [1, 0, 0, 17],
+                    [1, 0, 0, 2],
+                    [3, 1, 1033, 17],
+                    [3, 1, 1033, 2],
+                );
+                if (face !== null){
+                    metadata.font.face = face;
+                }
+                let uniqueID = name.getName(
+                    [1, 0, 0, 3],
+                    [3, 1, 1033, 3],
+                );
+                if (uniqueID !== null){
+                    metadata.font.unique_identifier = uniqueID;
+                }
+                let fontName = name.getName(
+                    [1, 0, 0, 4],
+                    [3, 1, 1033, 4],
+                );
+                if (fontName !== null){
+                    metadata.font.name = fontName;
+                }
+                let postscript = name.getName(
+                    [1, 0, 0, 6],
+                    [3, 1, 1033, 6],
+                );
+                if (postscript !== null){
+                    metadata.font.postscript_name = postscript;
+                }
+            }
+            let os2 = font.tables['OS/2'];
+            if (os2){
+                metadata.font.weight = os2.usWeightClass;
+                metadata.font.style = (os2.fsSelection & 0x0001) ? 'italic' : 'normal';
+                metadata.font.os2ascender = os2.sTypoAscender;
+                metadata.font.os2descender = os2.sTypoDescender;
+                metadata.font.os2line_gap = os2.sTypoLineGap;
+                metadata.font.winascender = os2.usWinAscent;
+                metadata.font.windescender = os2.usWinDescent;
+            }
+            let cmap = font.tables.cmap;
+            if (cmap){
+                let map = cmap.getMap(
+                    [0, 4],
+                    [0, 3],
+                    [0, 2],
+                    [0, 1],
+                    [0, 0],
+                    [3, 10],
+                    [3, 1],
+                );
+                let data = null;
+                if (map !== null){
+                }
+                if (data !== null){
+                    metadata.font.cmap = {
+                        format: map.format,
+                        data: Zlib.compress(data).base64StringRepresentation()
+                    };
+                }
+            }
+            let hhea = font.tables.hhea;
+            if (hhea){
+                metadata.font.ascender = hhea.ascender;
+                metadata.font.descender = hhea.descender;
+                metadata.font.line_gap = hhea.lineGap;
+                let hmtx = font.tables.hmtx;
+                let data = JSData.initWithLength(hhea.numberOfHMetrics);
+                let dataView = data.dataView();
+                let o = 0;
+                for (let i = 0; i < hhea.numberOfHMetrics; ++i, o += 2){
+                    let width = hmtx.widthOfGlyph(i);
+                    dataView.setUint16(o, width);
+                }
+                metadata.font.widths = Zlib.compress(data).base64StringRepresentation();
+            }
+        }catch (e){
+            // Some fonts bundled with the FontKitTests will
+            // throw errors because they're intentionally corrupt
+            if (!this.ignoreFontErrors){
+                throw e;
+            }
+        }
     },
+};
+
+var adjustSpecMetadata = function(metadata){
+    metadata.spec = true;
+    // TODO: compile constraints
+    // port from python
+    //     if isinstance(obj, dict):
+    //     if 'constraints' in obj and 'equalities' in obj['constraints']: 
+    //         refs = dict(self='<self>')
+    //         if 'references' in obj['constraints']:
+    //             refs.update(obj['constraints']['references'])
+    //         obj['constraints'] = self.compileConstraints(obj['constraints']['equalities'], refs)
+    //     for k, v in obj.items():
+    //         if k not in ('constraints',):
+    //             self.compileSpecConstraints(v)
+    // elif isinstance(obj, list):
+    //     for v in obj:
+    //         self.compileSpecConstraints(v)
 };
 
 addMetadata['.jpeg'] = addMetadata['.jpg'];

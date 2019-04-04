@@ -1,7 +1,6 @@
 // #import "Builder.js"
 // #import "Resources.js"
-// #import Hash
-/* global JSClass, JSObject, JSCopy, JSReadOnlyProperty, JSURL, Builder, NodeBuilder, JSSHA1Hash, Resources */
+/* global JSClass, JSObject, JSCopy, JSReadOnlyProperty, JSURL, Builder, TestBuilder, Resources */
 'use strict';
 
 // buildURL
@@ -13,16 +12,13 @@
 //       - {ExecutableName}
 //       - ...javascript...
 
-JSClass("NodeBuilder", Builder, {
+JSClass("TestBuilder", Builder, {
 
-    bundleType: "node",
+    bundleType: "tests",
 
     options: {
-        'port':         {valueType: "integer", default: 8081,   help: "The port on which the node application will be available"},
-        'docker-owner': {default: null,                         help: "The docker repo prefix to use when building a docker image"}
     },
 
-    needsDockerBuild: true,
     hasLinkedDispatchFramework: false,
 
     // -----------------------------------------------------------------------
@@ -36,7 +32,7 @@ JSClass("NodeBuilder", Builder, {
     executableURL: null,
 
     setup: async function(){
-        await NodeBuilder.$super.setup.call(this);
+        await TestBuilder.$super.setup.call(this);
         this.isJSKit = this.project.info.JSBundleIdentifier == "io.breakside.jskit";
         this.executableRequires = [];
         this.bundleURL = this.buildURL.appendingPathComponent(this.executableName, true);
@@ -44,7 +40,6 @@ JSClass("NodeBuilder", Builder, {
         this.frameworksURL = this.bundleURL.appendingPathComponent("Frameworks", true);
         this.nodeURL = this.bundleURL.appendingPathComponent("Node", true);
         this.executableURL = this.nodeURL.appendingPathComponent(this.executableName);
-        this.workerURL = this.nodeURL.appendingPathComponent("JSDispatch-worker.js");
         var exists = await this.fileManager.itemExistsAtURL(this.bundleURL);
         if (exists){
             this.printer.setStatus("Cleaning old build...");
@@ -62,7 +57,6 @@ JSClass("NodeBuilder", Builder, {
 
     build: async function(){
         await this.setup();
-        await this.findResources();
         await this.findImports();
         await this.bundleFrameworks();
         await this.bundleResources();
@@ -71,24 +65,22 @@ JSClass("NodeBuilder", Builder, {
         if (this.hasLinkedDispatchFramework){
             await this.buildWorker();
         }
+        if (this.needsDockerBuild){
+            await this.buildDocker();
+        }
         if (this.isJSKit){
             await this.bundleJSKitRoot();
         }
         await this.buildNPM();
         await this.copyLicense();
         await this.copyInfo();
-        await this.buildDocker();
-        await this.finish();
     },
 
     findImports: async function(){
         this.printer.setStatus("Finding code...");
         var entryPoint = this.project.entryPoint;
         var includeDirectoryURLs = await this.project.findIncludeDirectoryURLs();
-        var roots = [entryPoint.path];
-        var resourceImportPaths = await this.resources.getImportPaths(includeDirectoryURLs);
-        roots = roots.concat(resourceImportPaths);
-        this.imports = await this.project.findJavascriptImports(roots, includeDirectoryURLs);
+        this.imports = await this.project.findJavascriptImports([entryPoint.path], includeDirectoryURLs);
     },
 
     // ----------------------------------------------------------------------
@@ -110,9 +102,6 @@ JSClass("NodeBuilder", Builder, {
         await this.addFrameworkSources(framework, 'generic');
         await this.addFrameworkSources(framework, 'node');
         await this.addBundleJS(bundledURL, bundledURL.appendingPathComponent("Resources", true), framework.info, framework.resources);
-        if (framework.info.JSBundleIdentifier == 'io.breakside.JSKit.Dispatch'){
-            this.hasLinkedDispatchFramework = true;
-        }
     },
 
     addFrameworkSources: async function(framework, env){
@@ -137,11 +126,9 @@ JSClass("NodeBuilder", Builder, {
     // ----------------------------------------------------------------------
     // MARK: - Resources
 
-    resources: null,
-
-    findResources: async function(){
+    bundleResources: async function(){
         var blacklist = {
-            names: new Set(["Info.yaml", "Info.json", "package.json", "Dockerfile", this.project.licenseFilename]),
+            names: new Set(["Info.yaml", "Info.json", this.project.licenseFilename]),
             extensions: new Set(['.js'])
         };
         this.printer.setStatus("Finding resources...");
@@ -149,20 +136,16 @@ JSClass("NodeBuilder", Builder, {
         var resources = Resources.initWithFileManager(this.fileManager);
         for (let i = 0, l = resourceURLs.length; i < l; ++i){
             let url = resourceURLs[i];
-            await resources.addResourceAtURL(url);
+            resources.addResourceAtURL(url);
         }
-        this.resources = resources;
-    },
-
-    bundleResources: async function(){
-        for (let i = 0, l = this.resources.metadata.length; i < l; ++i){
-            let metadata = this.resources.metadata[i];
-            let url = this.resources.sourceURLs[i];
+        for (let i = 0, l = resources.metadata.length; i < l; ++i){
+            let metadata = resources.metadata[i];
+            let url = resources.sourceURLs[i];
             let bundledURL = JSURL.initWithString(metadata.path, this.resourcesURL);
             this.printer.setStatus("Copying resource %s...".sprintf(url.lastPathComponent));
             await this.fileManager.copyItemAtURL(url, bundledURL);
         }
-        this.addBundleJS(this.nodeURL, this.resourcesURL, this.project.info, this.resources, true);
+        this.addBundleJS(this.nodeURL, this.resourcesURL, this.project.info, resources, true);
     },
 
     addBundleJS: async function(parentURL, resourcesURL, info, resources, isMain){
@@ -192,10 +175,6 @@ JSClass("NodeBuilder", Builder, {
             js += 'JSBundle.mainBundleIdentifier = "%s";\n'.sprintf(info.JSBundleIdentifier);
             js += 'var path = require("path");\n';
             js += 'JSBundle.nodeRootPath = path.dirname(path.dirname(__filename));\n';
-            if (this.hasLinkedDispatchFramework){
-                bundle.Info = JSCopy(bundle.Info);
-                bundle.Info.JSNodeDispatchQueueWorkerModule = this.workerURL.lastPathComponent;
-            }
         }
         var jsURL = parentURL.appendingPathComponent("node-bundle.js");
         await this.fileManager.createFileAtURL(jsURL, js.utf8());
@@ -266,29 +245,6 @@ JSClass("NodeBuilder", Builder, {
     },
 
     // -----------------------------------------------------------------------
-    // MARK: - Worker
-
-    buildWorker: async function(){
-        this.printer.updateStatus("Creating worker.js...");
-        var lines = [
-            "'use strict';",
-            "",
-            "global.JSGlobalObject = global;",
-            ""
-        ];
-        var entryPoint = this.project.entryPoint;
-        var path;
-        var hasEntry = false;
-        for (let i = 0, l = this.executableRequires.length; i < l; ++i){
-            path = this.executableRequires[i];
-            lines.push('require("./%s");'.sprintf(path));
-        }
-        lines.push("var queueWorker = JSNodeDispatchQueueWorker.init();\n");
-        var js = lines.join("\n").utf8();
-        await this.fileManager.createFileAtURL(this.workerURL, js);
-    },
-
-    // -----------------------------------------------------------------------
     // MARK: - Node Package Manager (npm)
 
     buildNPM: async function(){
@@ -327,23 +283,7 @@ JSClass("NodeBuilder", Builder, {
         var licenseName = this.project.licenseFilename;
         var originalURL = this.project.url.appendingPathComponent(licenseName);
         var licenseURL = this.bundleURL.appendingPathComponent(licenseName);
-        var exists = await this.fileManager.itemExistsAtURL(originalURL);
-        if (exists){
-            await this.fileManager.copyItemAtURL(originalURL, licenseURL);   
-        }
-    },
-
-    buildDocker: async function(){
-        if (!this.needsDockerBuild){
-            return;
-        }
-        this.needsDockerBuild = false;
-        var dockerfileURL = this.project.url.appendingPathComponent("Dockerfile");
-        var exists = await this.fileManager.itemExistsAtURL(dockerfileURL);
-        if (!exists){
-            return;
-        }
-        // TODO: finish building docker image
+        await this.fileManager.copyItemAtURL(originalURL, licenseURL);
     },
 
     // -----------------------------------------------------------------------

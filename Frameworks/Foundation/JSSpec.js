@@ -15,11 +15,10 @@ JSClass('JSSpec', JSObject, {
     _keysForNextObjectInit: null,
 
     initWithResource: function(resource, bundle){
-        var extIndex = resource.lastIndexOf('.');
-        if (extIndex > 0 && extIndex < resource.length - 1){
-            this._baseName = resource.substr(0, extIndex);
-        }else{
-            this._baseName = resource;
+        var ext = resource.fileExtension;
+        this._baseName = resource.substr(0, resource.length - ext.length);
+        if (!ext){
+            resource = resource + '.spec';
         }
         this._bundle = bundle || JSBundle.mainBundle;
         var plist = JSPropertyList.initWithResource(resource, this._bundle);

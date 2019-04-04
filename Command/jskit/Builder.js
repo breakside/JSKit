@@ -74,6 +74,18 @@ JSClass("Builder", JSObject, {
         this.buildURL = this.buildsRootURL.appendingPathComponents([this.project.info.JSBundleIdentifier, this.debug ? "debug" : this.buildLabel]);
     },
 
+    finish: async function(){
+        if (!this.debug){
+            var buildParentURL = this.buildURL.removingLastPathComponent();
+            var latestBuildURL = buildParentURL.appendingPathComponent("latest");
+            var exists = await this.fileManager.itemExistsAtURL(latestBuildURL);
+            if (exists){
+                await this.fileManager.removeItemAtURL(latestBuildURL);
+            }
+            await this.fileManager.createSymbolicLinkAtURL(latestBuildURL, this.buildURL);
+        }
+    },
+
     // -----------------------------------------------------------------------
     // MARK: - Dependencies
 

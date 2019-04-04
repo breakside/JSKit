@@ -1,7 +1,7 @@
 // #import Foundation
-// #import "JavascriptFile.js"
 // #import jsyaml
-/* global JSClass, JSObject, JSFileManager, jsyaml, JSReadOnlyProperty, JavascriptFile */
+// #import "JavascriptFile.js"
+/* global JSClass, JSObject, JSFileManager, jsyaml, JSReadOnlyProperty, JavascriptFile, JSURL */
 'use strict';
 
 JSClass("Project", JSObject, {
@@ -166,6 +166,19 @@ JSClass("Project", JSObject, {
                             directoryURL = includeDirectoryURLs[j];
                             candidateURL = directoryURL.appendingPathComponent(name + '.jsframework', true);
                             found = await this.fileManager.itemExistsAtURL(candidateURL);
+                            if (!found){
+                                candidateURL = directoryURL.appendingPathComponent(name + '.jslink', false);
+                                found = await this.fileManager.itemExistsAtURL(candidateURL);
+                                if (found){
+                                    let link = await this.fileManager.contentsAtURL(candidateURL);
+                                    candidateURL = JSURL.initWithString(link, candidateURL);
+                                    isProject = true;
+                                    found = await this.fileManager.itemExistsAtURL(candidateURL);
+                                    if (!found){
+                                        throw new Error("Bad .jslink at %s.jslink".sprintf(name));
+                                    }
+                                }
+                            }
                             // TODO: consider project references (reference format TBD, but should
                             // push a framework result of {name: name, projectURL: urlToReferencedProject})
                         }
@@ -221,8 +234,9 @@ JSClass("Project", JSObject, {
             let entries = await this.fileManager.contentsOfDirectoryAtURL(url);
             for (let i = 0, l = entries.length; i < l; ++i){
                 let entry = entries[i];
-                if (entry.itemType == JSFileManager.ItemType.directory && entry.fileExtension != '.lproj' && entry.fileExtension != '.imageset'){
-                    if (entry.name.fileExtension == '.jsframework'){
+                if (entry.name.startsWith(".")) continue;
+                if (entry.itemType == JSFileManager.ItemType.directory && entry.name.fileExtension != '.lproj' && entry.name.fileExtension != '.imageset'){
+                    if (entry.name.fileExtension != '.jsframework'){
                         stack.push(entry.url);
                     }
                 }else{
@@ -233,6 +247,6 @@ JSClass("Project", JSObject, {
             }
         }
         return urls;
-    },
+    }
 
 });

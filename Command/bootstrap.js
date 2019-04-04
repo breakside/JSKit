@@ -54,7 +54,7 @@ function path_for_framework(framework, includeDirectories){
     var name = framework + '.jsframework';
     var candidate;
     for (var i = 0, l = includeDirectories.length; i < l; ++i){
-        candidate = path.join(includeDirectories[i], name, 'JS');
+        candidate = path.join(includeDirectories[i], name);
         if (fs.existsSync(candidate)){
             return candidate;
         }
@@ -119,18 +119,32 @@ function require_framework(framework, includeDirectories){
     }
     visitedFrameworks.add(framework);
     var directory = path_for_framework(framework, includeDirectories);
-    var frameworkIncludeDirectories = recursive_include_paths(directory);
-    // Frameworks still have a lot of imports that include the framework name itself,
-    // so allow those to work by adding the parent directory as an include path
-    frameworkIncludeDirectories.push(path.join(rootDirectory, "Frameworks"));
-    var roots = [framework + '.js'];
-    // Assume node extensions are +Node, which should be true for any internal
-    // frameworks, which are the only kind we rely on
-    var nodeExtensions = framework + '+Node.js';
-    if (fs.existsSync(path.join(directory, nodeExtensions))){
-        roots.push(nodeExtensions);
+    if (path.extname(path.basename(directory)) == '.jsframework'){
+        let sources = JSON.parse(fs.readFileSync(path.join(directory, 'sources.json'), 'utf-8'));
+        for (let i = 0, l = sources.generic.files.length; i < l; ++i){
+            let jspath = path.join(directory, 'JS', sources.generic.files[i]);
+            require(jspath);
+        }
+        if (sources.node){
+            for (let i = 0, l = sources.node.files.length; i < l; ++i){
+                let jspath = path.join(directory, 'JS', sources.node.files[i]);
+                require(jspath);
+            }
+        }
+    }else{
+        var frameworkIncludeDirectories = recursive_include_paths(directory);
+        // Frameworks still have a lot of imports that include the framework name itself,
+        // so allow those to work by adding the parent directory as an include path
+        frameworkIncludeDirectories.push(path.join(rootDirectory, "Frameworks"));
+        var roots = [framework + '.js'];
+        // Assume node extensions are +Node, which should be true for any internal
+        // frameworks, which are the only kind we rely on
+        var nodeExtensions = framework + '+Node.js';
+        if (fs.existsSync(path.join(directory, nodeExtensions))){
+            roots.push(nodeExtensions);
+        }
+        require_includes(roots, frameworkIncludeDirectories);
     }
-    require_includes(roots, frameworkIncludeDirectories);
 }
 
 var rootDirectory = path.dirname(path.dirname(__filename));

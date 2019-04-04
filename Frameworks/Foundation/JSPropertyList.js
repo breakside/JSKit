@@ -7,13 +7,8 @@ JSClass('JSPropertyList', JSObject, {
 
     initWithResource: function(name, bundle){
         bundle = bundle || JSBundle.mainBundle;
-        var ext = null;
-        var extIndex = name.lastIndexOf('.');
-        var extentions = [];
-        if (extIndex > 0 && extIndex < name.length - 1){
-            ext = name.substr(extIndex + 1);
-            name = name.substr(0, extIndex);
-        }
+        var ext = name.fileExtension;
+        var name = name.substr(0, name.length - ext.length);
         var metadata = bundle.metadataForResourceName(name, ext);
         this.initWithObject(metadata.value);
     },

@@ -66,23 +66,24 @@ JSClass("FrameworkBuilder", Builder, {
         await this.bundleJavascript();
         await this.copyInfo();
         await this.copyLicense();
+        await this.finish();
     },
 
     bundleResources: async function(){
         var blacklist = {
-            names: new Set(["Info.yaml", "Info.json", this.project.licenseFilename]),
+            names: new Set(["Info.yaml", "Info.json", "jshint.json", this.project.licenseFilename]),
             extensions: new Set(['.js'])
         };
         this.printer.setStatus("Finding resources...");
-        var resourceURLs = this.project.findResourceURLs(blacklist);
-        var resources = Resources.init();
+        var resourceURLs = await this.project.findResourceURLs(blacklist);
+        var resources = Resources.initWithFileManager(this.fileManager);
         for (let i = 0, l = resourceURLs.length; i < l; ++i){
             let url = resourceURLs[i];
-            resources.addResourceAtURL(url);
+            await resources.addResourceAtURL(url);
         }
         for (let i = 0, l = resources.metadata.length; i < l; ++i){
             let metadata = resources.metadata[i];
-            let url = resources.sourcesURLs[i];
+            let url = resources.sourceURLs[i];
             let bundledURL = JSURL.initWithString(metadata.path, this.resourcesURL);
             this.printer.setStatus("Copying resource %s...".sprintf(url.lastPathComponent));
             await this.fileManager.copyItemAtURL(url, bundledURL);
@@ -195,7 +196,10 @@ JSClass("FrameworkBuilder", Builder, {
         var licenseName = this.project.licenseFilename;
         var originalURL = this.project.url.appendingPathComponent(licenseName);
         var licenseURL = this.bundleURL.appendingPathComponent(licenseName);
-        await this.fileManager.copyItemAtURL(originalURL, licenseURL);
+        var exists = await this.fileManager.itemExistsAtURL(originalURL);
+        if (exists){
+            await this.fileManager.copyItemAtURL(originalURL, licenseURL);   
+        }
     }
 
 });
