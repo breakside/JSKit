@@ -5,5 +5,3 @@ SKMainDefinitionResource: Main
 EntryPoint: main.js:main
 SKApplicationLaunchOptions:
     port: {kind: integer, default: 8081}
-JSIncludeFrameworks:
-    - ServerKit

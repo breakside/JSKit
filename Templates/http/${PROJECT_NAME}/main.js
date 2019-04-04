@@ -1,4 +1,4 @@
-// #import "ServerKit/ServerKit.js"
+// #import ServerKit
 /* global module, SKApplicationMain */
 'use strict';
 

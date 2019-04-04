@@ -1,4 +1,4 @@
-// #import "ServerKit/ServerKit.js"
+// #import ServerKit
 // #import "Responders/RootContext.js"
 /* global JSClass, SKHTTPResponder, RootResponder, SocketRoute, RootContext */
 'use strict';

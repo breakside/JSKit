@@ -7,6 +7,3 @@ UIApplicationLaunchOptions:
     kind:                   string
 # UIApplicationSystemFont:    Roboto/Roboto-Light
 JSDevelopmentLanguage:      en
-JSIncludeFrameworks:
-  - UIKit
-  - Dispatch

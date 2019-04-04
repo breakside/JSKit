@@ -1,0 +1,4 @@
+JSBundleType: tests
+JSBundleIdentifier: com.yourcompany.${PROJECT_NAME_FILE_SAFE}Tests
+JSBundleDisplayName: ${PROJECT_NAME} Tests
+# TODO: reference/include project somehow

@@ -1,32 +1,32 @@
-File's Owner: /App Delegate
+File's Owner: /AppDelegate
 
-App Delegate:
+AppDelegate:
   class: ApplicationDelegate
   outlets:
-    window: /Main Window
+    window: /MainWindow
 
-Dark Color:
+DarkColor:
   class : JSColor
   rgba: 204,0,0
 
-Main Window:
+MainWindow:
   class: UIWindow
-  contentViewController: /Main View Controller
+  contentViewController: /MainViewController
 
-Main View Controller:
+MainViewController:
   class: MainViewController
-  view: /Main View
+  view: /MainView
 
-Main View:
+MainView:
   class: UIView
-  backgroundColor: /Dark Color
+  backgroundColor: /DarkColor
   subviews:
     - /Label
 
 Label:
   class: UILabel
   frame: 10,10,100,20
-  text: Hello, world!
+  text: .helloWorld
   font:
     size: detail
   textColor:

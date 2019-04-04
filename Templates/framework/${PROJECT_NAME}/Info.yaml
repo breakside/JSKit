@@ -1,0 +1,3 @@
+JSBundleType: framework
+JSBundleIdentifier: com.yourcompany.${PROJECT_NAME_FILE_SAFE}
+JSBundleVersion: 1.0.0

@@ -1,4 +1,4 @@
-// #import "ServerKit/ServerKit.js"
+// #import ServerKit
 /* global JSClass, SKHTTPResponderContext */
 'use strict';
 

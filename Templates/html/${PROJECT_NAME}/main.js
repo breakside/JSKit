@@ -1,4 +1,4 @@
-// #import "UIKit/UIKit.js"
+// #import UIKit
 /* global UIApplicationMain */
 'use strict';
 

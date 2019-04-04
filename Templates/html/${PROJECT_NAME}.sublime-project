@@ -3,19 +3,19 @@
     [
         {
             "path": ".",
-            "folder_exclude_patterns": ["builds"]
+            "folder_exclude_patterns": ["builds", "node_modules"]
         }
     ],
     "build_systems":
     [
         {
-            "name": "jsmake",
-            "cmd": ["jsmake", "${PROJECT_NAME}"],
+            "name": "jskit",
+            "cmd": ["npx", "jskit", "make", "${PROJECT_NAME}"],
             "working_dir": "${project_path}",
             "variants": [
                 {
                     "name": "debug",
-                    "cmd": ["jsmake", "${PROJECT_NAME}", "--debug"]
+                    "cmd": ["npx", "jskit", "make", "--debug", "${PROJECT_NAME}"]
                 }
             ]
         }

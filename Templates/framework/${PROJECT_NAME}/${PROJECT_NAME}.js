@@ -1,2 +1,2 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 'use strict';

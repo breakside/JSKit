@@ -1,4 +1,4 @@
-// #import "UIKit/UIKit.js"
+// #import UIKit
 /* global JSClass, JSObject, UIWindow, JSColor, UIView, JSRect, UIBasicAnimation */
 'use strict';
 
