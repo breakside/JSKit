@@ -71,14 +71,14 @@ JSClass("JavascriptCompilation", JSObject, {
                 this.outputUsesStrict = useStrict;
             }
             if (useStrict !== this.outputUsesStrict){
-                this._saveChunks();
+                await this._saveChunks();
             }
             this.write(code);
         }
     },
 
-    finish: function(){
-        this._saveChunks();
+    finish: async function(){
+        await this._saveChunks();
         this.frameworks = this._frameworkSet.values();
     },
 

@@ -79,13 +79,14 @@ JSClass("FrameworkBuilder", Builder, {
         var resources = Resources.initWithFileManager(this.fileManager);
         for (let i = 0, l = resourceURLs.length; i < l; ++i){
             let url = resourceURLs[i];
+            this.printer.setStatus("Inspecting %s...".sprintf(url.lastPathComponent));
             await resources.addResourceAtURL(url);
         }
         for (let i = 0, l = resources.metadata.length; i < l; ++i){
             let metadata = resources.metadata[i];
             let url = resources.sourceURLs[i];
             let bundledURL = JSURL.initWithString(metadata.path, this.resourcesURL);
-            this.printer.setStatus("Copying resource %s...".sprintf(url.lastPathComponent));
+            this.printer.setStatus("Copying %s...".sprintf(url.lastPathComponent));
             await this.fileManager.copyItemAtURL(url, bundledURL);
         }
         var manifest = {
@@ -94,7 +95,7 @@ JSClass("FrameworkBuilder", Builder, {
             fonts: resources.fonts
         };
         var manifestURL = this.bundleURL.appendingPathComponent('resources.json');
-        var json = JSON.stringify(manifest);
+        var json = JSON.stringify(manifest, this.debug ? 2 : 0);
         await this.fileManager.createFileAtURL(manifestURL, json.utf8());
     },
 
@@ -106,7 +107,7 @@ JSClass("FrameworkBuilder", Builder, {
             manifest = await this.minifyReleaseJavascript();
         }
         var manifestURL = this.bundleURL.appendingPathComponent('sources.json');
-        var json = JSON.stringify(manifest);
+        var json = JSON.stringify(manifest, this.debug ? 2 : 0);
         await this.fileManager.createFileAtURL(manifestURL, json.utf8());
     },
 
@@ -171,7 +172,7 @@ JSClass("FrameworkBuilder", Builder, {
                     compilation.writeJavascriptAtURL(file.url);
                 }
             }
-            compilation.finish();
+            await compilation.finish();
             for (let i = 0, l = compilation.frameworks.length; i < l; ++i){
                 let framework = compilation.frameworks[i];
                 if (env == 'generic'){
@@ -181,7 +182,7 @@ JSClass("FrameworkBuilder", Builder, {
                     sources[env].frameworks.push(framework);
                 }
             }
-            sources[env].files = compilation.outfiles;
+            sources[env].files = compilation.files;
         }
         return sources;
     },

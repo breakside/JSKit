@@ -152,7 +152,7 @@ JSClass("Builder", JSObject, {
         await project.load();
         var args = {};
         var builder = FrameworkBuilder.initWithProject(project, args);
-        builder.debug = true;
+        builder.debug = this.debug || this.bundleType == 'node';
         builder.printer = this.printer;
         builder.buildsRootURL = this.buildsRootURL;
         await builder.build();

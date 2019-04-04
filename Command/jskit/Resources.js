@@ -1,8 +1,9 @@
 // #import Foundation
 // #import Hash
 // #import FontKit
+// #import DOM
 // #import jsyaml
-/* global JSClass, JSObject, JSSHA1Hash, JSFileManager, jsyaml, FNTOpenTypeFont, Zlib, JSData */
+/* global JSClass, JSObject, JSSHA1Hash, JSFileManager, jsyaml, FNTOpenTypeFont, Zlib, JSData, XMLParser */
 'use strict';
 
 JSClass("Resources", JSObject, {
@@ -284,6 +285,49 @@ var addMetadata = {
         metadata.image = {
             vector: true
         };
+        var parser = new XMLParser();
+        try {
+            parser.parse(xml, {
+                beginElement: function(name, namespace, attributes, isClosed){
+                    var multiple = {
+                        'em': 12,
+                        'ex': 24,
+                        'px': 1,
+                        'in': 72,
+                        'cm': 72/2.54,
+                        'mm': 72/25.4,
+                        'pt': 1,
+                        'pc': 12
+                    };
+                    var px = function(length){
+                        if (length === undefined || length === null){
+                            return undefined;
+                        }
+                        var matches = length.match(/^\s*(\d+)\s*(em|ex|px|in|cm|mm|pt|pc|%)?\s*$/);
+                        if (!matches){
+                            return undefined;
+                        }
+                        let n = parseInt(matches[1]);
+                        if (!matches[2]){
+                            return n;
+                        }
+                        let unit = matches[2];
+                        if (unit == '%'){
+                            return undefined;
+                        }
+                        return multiple[unit] * n;
+                    };
+                    if (namespace == 'http://www.w3.org/2000/svg' && name.toLowerCase() == 'svg'){
+                        metadata.width = px(attributes.width);
+                        metadata.height = px(attributes.height);
+                    }
+                    throw new Error("Stopping parser");
+                }
+            });
+        }catch (e){
+            // either an intentional stop or...
+            // oh well
+        }
     },
 
     '.ttf': async function(name, contents, metadata){

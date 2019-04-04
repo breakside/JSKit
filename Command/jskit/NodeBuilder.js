@@ -149,6 +149,7 @@ JSClass("NodeBuilder", Builder, {
         var resources = Resources.initWithFileManager(this.fileManager);
         for (let i = 0, l = resourceURLs.length; i < l; ++i){
             let url = resourceURLs[i];
+            this.printer.setStatus("Inspecting %s...".sprintf(url.lastPathComponent));
             await resources.addResourceAtURL(url);
         }
         this.resources = resources;
@@ -159,10 +160,10 @@ JSClass("NodeBuilder", Builder, {
             let metadata = this.resources.metadata[i];
             let url = this.resources.sourceURLs[i];
             let bundledURL = JSURL.initWithString(metadata.path, this.resourcesURL);
-            this.printer.setStatus("Copying resource %s...".sprintf(url.lastPathComponent));
+            this.printer.setStatus("Copying %s...".sprintf(url.lastPathComponent));
             await this.fileManager.copyItemAtURL(url, bundledURL);
         }
-        this.addBundleJS(this.nodeURL, this.resourcesURL, this.project.info, this.resources, true);
+        await this.addBundleJS(this.nodeURL, this.resourcesURL, this.project.info, this.resources, true);
     },
 
     addBundleJS: async function(parentURL, resourcesURL, info, resources, isMain){
@@ -186,7 +187,7 @@ JSClass("NodeBuilder", Builder, {
                 bundle.ResourceLookup = resources.lookup;
             }
         }
-        var json = JSON.stringify(bundle);
+        var json = JSON.stringify(bundle, this.debug ? 2 : 0);
         var js = "'use strict';\nJSBundle.bundles['%s'] = %s;\n".sprintf(info.JSBundleIdentifier, json);
         if (isMain){
             js += 'JSBundle.mainBundleIdentifier = "%s";\n'.sprintf(info.JSBundleIdentifier);
@@ -310,7 +311,7 @@ JSClass("NodeBuilder", Builder, {
         pkg.main = 'npmmain.js';
         pkg.bin = "./" + this.executableURL.encodedStringRelativeTo(this.bundleURL);
         var outputPackageURL = this.bundleURL.appendingPathComponent("package.json");
-        packageJSON = JSON.stringify(pkg);
+        packageJSON = JSON.stringify(pkg, this.debug ? 2 : 0);
         await this.fileManager.createFileAtURL(outputPackageURL, packageJSON.utf8());
     },
 
@@ -332,6 +333,9 @@ JSClass("NodeBuilder", Builder, {
             await this.fileManager.copyItemAtURL(originalURL, licenseURL);   
         }
     },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Docker
 
     buildDocker: async function(){
         if (!this.needsDockerBuild){

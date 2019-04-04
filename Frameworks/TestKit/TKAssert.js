@@ -227,3 +227,14 @@ JSGlobalObject.TKAssertThrows = function(f){
         throw TKAssertion('TKAssertThrows failed, no exception thrown for ' + f);
     }
 };
+
+JSGlobalObject.TKAssertArrayEquals = function(a, b, message){
+    for (var i = 0, l1 = a.length, l2 = b.length; i < l1 && i < l2; ++i){
+        if (a[i] !== b[i]){
+            throw TKAssertion('TKAssertArrayEquals failed, index ' + i + ', ' + (a[i]) + ' !== ' + (b[i]) + '. '  + (message || ''));
+        }
+    }
+    if (l1 != l2){
+        throw TKAssertion('TKAssertArrayEquals failed, length mismatch. '  + (message || ''));
+    }
+};

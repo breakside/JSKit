@@ -16,7 +16,7 @@ JSClass("JSArguments", JSObject, {
         for (name in this._options){
             option = this._options[name];
             if ('default' in option){
-                Object.defineProperty(this, name, {configurable: true, value: option.default});
+                Object.defineProperty(this, name, {configurable: true, value: option.default, writable: option.default === null});
             }else if (option.multiple || option.kind == "unknown"){
                 Object.defineProperty(this, name, {configurable: true, value: []});
             }else if (option.kind == "flag"){

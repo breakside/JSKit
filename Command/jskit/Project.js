@@ -221,6 +221,9 @@ JSClass("Project", JSObject, {
         if (!('names' in blacklist)){
             blacklist.names = new Set();
         }
+        if (!('directories' in blacklist)){
+            blacklist.directories = new Set();
+        }
         if (!('extensions' in blacklist)){
             blacklist.extensions = new Set();
         }
@@ -236,7 +239,7 @@ JSClass("Project", JSObject, {
                 let entry = entries[i];
                 if (entry.name.startsWith(".")) continue;
                 if (entry.itemType == JSFileManager.ItemType.directory && entry.name.fileExtension != '.lproj' && entry.name.fileExtension != '.imageset'){
-                    if (entry.name.fileExtension != '.jsframework'){
+                    if (!blacklist.directories.has(entry.name) && entry.name.fileExtension != '.jsframework'){
                         stack.push(entry.url);
                     }
                 }else{
