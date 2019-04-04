@@ -219,7 +219,7 @@ JSClass("JSURL", JSObject, {
 
     appendingPathComponents: function(components, isFinalDirectory){
         var url = this.copy();
-        url.appendPathComponents(components);
+        url.appendPathComponents(components, isFinalDirectory);
         return url;
     },
 

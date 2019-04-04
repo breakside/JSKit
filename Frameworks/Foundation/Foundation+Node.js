@@ -3,3 +3,4 @@
 // #import "Foundation/JSBundle+Node.js"
 // #import "Foundation/JSRunLoop+Node.js"
 // #import "Foundation/JSFileManager+Node.js"
+// #import "Foundation/JSLocale+Node.js"

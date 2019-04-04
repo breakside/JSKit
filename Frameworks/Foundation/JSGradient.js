@@ -1,4 +1,3 @@
-// #import Foundation
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSColor.js"
 /* global JSClass, JSObject, JSGradient, JSPoint */

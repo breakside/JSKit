@@ -1,4 +1,4 @@
-// #import "Foundation/Foundation.js"
+// #import Foundation
 // #import "InitCommand.js"
 // #import "MakeCommand.js"
 // #import "AddCommand.js"
@@ -6,12 +6,12 @@
 'use strict';
 
 var options = {
-    help: {kind: "flag", shortcut: "h", hidden: true},
+    help:    {kind: "flag", shortcut: "h", hidden: true},
     command: {kind: "positional", help: "The jskit sub-command to run", allowed: Command.names},
     subargs: {kind: "unknown", help: "Additional arguments for the sub-command"}
 };
 
-module.exports.main = function(){
+module.exports.main = async function(){
     var args = JSArguments.initWithOptions(options);
     var argv = process.argv.slice(1);
     try{
@@ -28,7 +28,8 @@ module.exports.main = function(){
         process.exitCode = 0;
         return;
     }
-    var command = Command.initWithName(args.command);
+    var workingDirectory = process.cwd();
+    var command = Command.initWithName(args.command, workingDirectory);
     var commandArgv = [args.command].concat(args.subargs);
     var commandOptions = JSCopy(command.options);
     commandOptions.help = {kind: "flag", shortcut: "h", hidden: true};
@@ -51,5 +52,5 @@ module.exports.main = function(){
         process.exitCode = 0;
         return;
     }
-    command.run();
+    await command.run();
 };

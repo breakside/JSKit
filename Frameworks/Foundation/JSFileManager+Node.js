@@ -173,8 +173,14 @@ JSFileManager.definePropertiesFromExtensions({
         var create = function(parentError){
             if (parentError === null){
                 var path = manager._pathForURL(url);
-                fs.mkdir(path, function(error){
-                    completion(error);
+                fs.stat(path, function(error, stat){
+                    if (error !== null){
+                        fs.mkdir(path, function(error){
+                            completion(error);
+                        });
+                    }else{
+                        completion(null);
+                    }
                 });
             }else{
                 completion(parentError);
@@ -268,7 +274,8 @@ JSFileManager.definePropertiesFromExtensions({
         var manager = this;
         var path = manager._pathForURL(url);
         var toPath = manager._pathForURL(toURL);
-        fs.stat(path, function(error, stat){
+        var toParentPath = manager._pathForURL(toParent);
+        fs.stat(toParentPath, function(error, stat){
             var move = function(toParentExists){
                 if (toParentExists){
                     fs.rename(path, toPath, function(error){
@@ -316,11 +323,18 @@ JSFileManager.definePropertiesFromExtensions({
         }
         var toParent = toURL.removingLastPathComponent();
         var manager = this;
-        var path = manager._pathForURL(url);
-        fs.stat(path, function(error, stat){
+        var toParentPath = manager._pathForURL(toParent);
+        fs.stat(toParentPath, function(error, stat){
             var copy = function(toParentExists){
                 if (toParentExists){
-                    manager._copyItemAtURL(url, toURL, stat, completion, target);
+                    var path = manager._pathForURL(url);
+                    fs.stat(path, function(error, stat){
+                        if (error === null){
+                            manager._copyItemAtURL(url, toURL, stat, completion, target);
+                        }else{
+                            completion.call(target, false);
+                        }
+                    });
                 }else{
                     completion.call(target, false);
                 }
@@ -347,7 +361,7 @@ JSFileManager.definePropertiesFromExtensions({
     _copyFileAtURL: function(url, toURL, completion, target){
         var path = this._pathForURL(url);
         var toPath = this._pathForURL(toURL);
-        fs.copy(path, toPath, function(error){
+        fs.copyFile(path, toPath, function(error){
             completion.call(target, error === null);
         });
     },
@@ -502,7 +516,7 @@ JSFileManager.definePropertiesFromExtensions({
         var manager = this;
         fs.readdir(path, {withFileTypes: true}, function(error, entries){
             if (error !== null){
-                completion.call(target, error);
+                completion.call(target, null);
                 return;
             }
             var contents = [];
@@ -527,7 +541,7 @@ JSFileManager.definePropertiesFromExtensions({
             }
             completion.call(target, contents);
         });
-        return completion;
+        return completion.promise;
     },
 
     // --------------------------------------------------------------------

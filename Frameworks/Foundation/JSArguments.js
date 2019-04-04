@@ -159,6 +159,7 @@ JSClass("JSArguments", JSObject, {
                     if (unknownName !== null){
                         this[unknownName].push(arg);
                         hasUnknown = true;
+                        value = null;
                     }else{
                         throw new Error("Got a positional arg, but no option for it");
                     }

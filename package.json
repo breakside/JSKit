@@ -2,7 +2,7 @@
   "name": "jskit-dev",
   "files": [],
   "scripts": {
-    "preinstall": "node Command/bootstrap/build-jskit.js"
+    "preinstall": "node Command/bootstrap.js"
   },
   "dependencies": {
     "jskit": "./builds/io.breakside.jskit/debug/jskit"
