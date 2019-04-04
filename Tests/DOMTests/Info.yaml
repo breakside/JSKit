@@ -1,0 +1,6 @@
+JSBundleType:         tests
+JSBundleIdentifier:   io.breakside.JSKit.DOMTests
+JSBundleDisplayName:  DOMTests
+JSIncludeFrameworks:
+  - DOM
+  - TestKit

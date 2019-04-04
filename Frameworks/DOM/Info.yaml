@@ -1,0 +1,5 @@
+JSBundleType: framework
+JSBundleIdentifier: io.breakside.JSKit.DOM
+JSBundleEnvironments:
+  html: DOM+HTML.js
+  node: DOM+Node.js
