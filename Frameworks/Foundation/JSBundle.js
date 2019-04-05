@@ -152,7 +152,10 @@ JSClass('JSBundle', JSObject, {
     metadataForResourceName: function(name, ext, subdirectory){
         var lookupKey = name;
         if (ext !== undefined && ext !== null){
-            lookupKey += '.' + ext;
+            if (!ext.startsWith('.')){
+                ext = '.' + ext;
+            }
+            lookupKey += ext;
         }
         if (subdirectory !== undefined && subdirectory !== null){
             lookupKey = subdirectory + '/' + lookupKey;
