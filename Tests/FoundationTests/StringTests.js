@@ -942,6 +942,40 @@ JSClass('StringTests', TKTestSuite, {
         str = "test.reallylongextension";
         ext = str.fileExtension;
         TKAssertExactEquals(ext, ".reallylongextension");
+    },
+
+    testReplacingTemplateParameters: function(){
+        var template = "This is a {{test}} of template {{test2}} params {{test3}}";
+        var params = {
+            test: 'hello, world!',
+            test3: 'Goodbye!'
+        };
+        var str = template.replacingTemplateParameters(params);
+        TKAssertEquals(str, "This is a hello, world! of template {{test2}} params Goodbye!");
+
+        template = "This is a ${test} of template ${test2} params ${test3}";
+        str = template.replacingTemplateParameters(params, '${');
+        TKAssertEquals(str, "This is a hello, world! of template ${test2} params Goodbye!");
+
+        template = "This is a template with no params";
+        str = template.replacingTemplateParameters(params, '${');
+        TKAssertEquals(str, "This is a template with no params");
+
+        template = "This is a template {{ with {{one}} param";
+        str = template.replacingTemplateParameters({one: "1"});
+        TKAssertEquals(str, "This is a template {{ with 1 param");
+
+        template = "This is a template {{ with {{one}} param }}";
+        str = template.replacingTemplateParameters({one: "1"});
+        TKAssertEquals(str, "This is a template {{ with 1 param }}");
+
+        template = "This is a template {{ with no params";
+        str = template.replacingTemplateParameters({one: "1"});
+        TKAssertEquals(str, "This is a template {{ with no params");
+
+        template = "This is a template {{ with no {{ params";
+        str = template.replacingTemplateParameters({one: "1"});
+        TKAssertEquals(str, "This is a template {{ with no {{ params");
     }
 
 });

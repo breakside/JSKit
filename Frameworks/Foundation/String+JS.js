@@ -644,6 +644,51 @@ Object.defineProperties(String.prototype, {
         }
     },
 
+    replacingTemplateParameters: {
+        value: function String_replacingTemplateParameters(parameters, open, close){
+            if (open === undefined){
+                open = "{{";
+            }
+            if (close === undefined){
+                if (open == "${"){
+                    close = "}";
+                }else{
+                    close = "}}";
+                }
+            }
+            var replaced = "";
+            var index = 0;
+            var openIndex = this.indexOf(open, index);
+            var closeIndex;
+            var nextOpenIndex;
+            var name;
+            while (openIndex >= 0){
+                closeIndex = this.indexOf(close, openIndex + open.length);
+                nextOpenIndex = this.indexOf(open, openIndex + open.length);
+                if (closeIndex < 0 && nextOpenIndex < 0){
+                    // no closing or next opening, we're done
+                    break;
+                }
+                if (closeIndex >= 0 && (nextOpenIndex < 0 || nextOpenIndex > closeIndex)){
+                    // we have a closing, and it comes before the next opening
+                    name = this.substr(openIndex + open.length, closeIndex - openIndex - open.length);
+                    if (name in parameters){
+                        // we have a match
+                        replaced += this.substr(index, openIndex - index);
+                        replaced += parameters[name];
+                        index = closeIndex + close.length;
+                    }
+                }
+                openIndex = nextOpenIndex;
+            }
+            if (index === 0){
+                return this;
+            }
+            replaced += this.substr(index);
+            return replaced;
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Private helpers for finding word and character breaks
 
