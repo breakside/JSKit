@@ -18,7 +18,6 @@ XMLParser.prototype = {
         var lineNumber = 1;
         var lineOffset;
         var readToken = function(){
-            readWhitespace();
             if (offset >= length){
                 return null;
             }
@@ -59,6 +58,10 @@ XMLParser.prototype = {
             }
             var startingOffset = offset;
             while (offset < length && input[offset] != '<'){
+                if (input[offset] == "\n"){
+                    ++lineNumber;
+                    lineOffset = offset + 1;
+                }
                 ++offset;
             }
             return input.substr(startingOffset, offset - startingOffset);
@@ -123,8 +126,7 @@ XMLParser.prototype = {
                 name = readName();
                 readWhitespace();
                 var lowerName = name.toLowerCase();
-                var attributes = {};
-                var namespacedAttributes = {};
+                var attributes = [];
                 var attrName;
                 var attrValue;
                 while (offset < length && input[offset] != '>' && input[offset] != '/'){
@@ -133,9 +135,9 @@ XMLParser.prototype = {
                     if (offset < length && input[offset] == '='){
                         ++offset;
                         readWhitespace();
-                        attributes[attrName] = textByDecodingEntities(readAttributeValue());
+                        attributes.push({name: attrName, value: textByDecodingEntities(readAttributeValue())});
                     }else{
-                        attributes[attrName] = true;
+                        attributes.push({name: attrName, value: true});
                     }
                     readWhitespace();
                 }
@@ -179,56 +181,61 @@ XMLParser.prototype = {
             offset = index + token.length;
             return content;
         };
-
         var resolveNamespace = function(name, isAttr){
             var index = name.indexOf(':');
             if (index < 0){
-                return {name: name, namespace: isAttr ? null : namespaces[':default:']};
+                return {name: name, prefix: null, namespace: isAttr ? null : namespaces[':default:']};
             }
             var prefix = name.substr(0, index);
             name = name.substr(index + 1);
             if (!(prefix in namespaces)){
                 throw new Error("Unknown namspace for prefix: " + prefix);
             }
-            return {name: name, namespace: namespaces[prefix]};
+            return {name: name, prefix: prefix, namespace: namespaces[prefix]};
         };
-
         var resolveElementNamespace = function(name, attributes){
-            var attrName;
-            for (attrName in attributes){
-                if (attrName.startsWith("xmlns:")){
-                    namespaces[attrName.substr(6)] = attributes[attrName];
-                }else if (attrName == "xmlns"){
-                    namespaces[':default:'] = attributes[attrName];
+            var attr;
+            var i, l;
+            for (i = 0, l = attributes.length; i < l; ++i){
+                attr = attributes[i];
+                if (attr.name.startsWith("xmlns:")){
+                    namespaces[attr.name.substr(6)] = attr.value;
+                }else if (attr.name == "xmlns"){
+                    namespaces[':default:'] = attr.value;
                 }
             }
             var resolved = resolveNamespace(name);
             var element = {
                 name: resolved.name,
+                prefix: resolved.prefix,
                 namespace: resolved.namespace,
-                attributes: {}
+                attributes: []
             };
-            for (attrName in attributes){
-                if (!attrName.startsWith("xmlns:") && attrName != "xmlns"){
-                    resolved = resolveNamespace(attrName, true);
-                    if (resolved.namespace){
-                        element.attributes[resolved.name + '|' + resolved.namespace] = attributes[attrName];
-                    }else{
-                        element.attributes[resolved.name] = attributes[attrName];
-                    }
+            for (i = 0, l = attributes.length; i < l; ++i){
+                attr = attributes[i];
+                if (!attr.name.startsWith("xmlns:") && attr.name != "xmlns"){
+                    resolved = resolveNamespace(attr.name, true);
+                    element.attributes.push({
+                        name: resolved.name,
+                        prefix: resolved.prefix,
+                        namespace: resolved.namespace,
+                        value: attr.value
+                    });
                 }
             }
             return element;
         };
 
-        var obj = readObject();
-        var hasSeenInitialPI = obj !== null && obj.kind == 'PI' && obj.name == 'xml';
-        if (!isHTML && !hasSeenInitialPI){
-            throw new Error("Expecting <?xml at start of document");
-        }
-        if (hasSeenInitialPI){
+        var obj;
+        if (isHTML){
+            readWhitespace();
+        }else{
             obj = readObject();
+            if (obj === null || obj.kind != 'PI' || obj.name != 'xml'){
+                throw new Error("Expecting <?xml at start of document");
+            }
         }
+        obj = readObject();
         var elementNameStack = [];
         var namespaces = {':default:': null};
         var namespacesStack = [];
@@ -260,6 +267,9 @@ XMLParser.prototype = {
                     listener.handleProcessingInstruction(obj.name, obj.value);
                 }
             }else if (obj.kind == 'CDATA'){
+                if (elementNameStack.length === 0){
+                    throw new Error("CDATA not allowed at document root");
+                }
                 if (listener.handleCDATA){
                     listener.handleCDATA(obj.value);
                 }
@@ -276,7 +286,7 @@ XMLParser.prototype = {
                 namespaces = Object.create(namespaces);
                 var element = resolveElementNamespace(obj.name, obj.attributes);
                 if (listener.beginElement){
-                    listener.beginElement(element.name, element.namespace, element.attributes, obj.isClosed);
+                    listener.beginElement(element.name, element.prefix, element.namespace, element.attributes, obj.isClosed);
                 }
                 var elementIsClosed = obj.isClosed;
                 if (obj.rawContents !== null){
@@ -294,10 +304,13 @@ XMLParser.prototype = {
                 }
             }else if (obj.kind == 'Text'){
                 if (elementNameStack.length === 0){
-                    throw new Error("Text not allowed at the document root");
-                }
-                if (listener.handleText){
-                    listener.handleText(obj.value);
+                    if (!obj.value.match(/^[\r\n\t ]*$/)){
+                        throw new Error("Text not allowed at the document root");
+                    }
+                }else{
+                    if (listener.handleText){
+                        listener.handleText(obj.value);
+                    }
                 }
             }else if (obj.kind == 'ElementEnd'){
                 var name = elementNameStack.pop();

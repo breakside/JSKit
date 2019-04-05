@@ -1,5 +1,6 @@
 // #import "DOMNode.js"
 // #import "DOMElement.js"
+// #import "DOMAttr.js"
 // #import "DOMText.js"
 // #import "DOMComment.js"
 // #import "DOMCDATASection.js"
@@ -7,36 +8,45 @@
 /* global JSGlobalObject, DOM */
 'use strict';
 
-
-DOM.createDocumentType = function(name, publicId, systemId){
-    var doctype = Object.create(DOM.DocumentType.prototype, {
-        nodeType: DOM.Node.DOCUMENT_TYPE_NODE,
-        nodeName: {value: '#doctype'},
-        childNodes: {value: []},
-        name: {value: name},
-        publicId: {value: publicId},
-        systemId: {value: systemId}
-    });
-    return doctype;
-};
-
 DOM.createDocument = function(namespace, qualifiedName, doctype){
     var document = Object.create(DOM.Document.prototype, {
-        nodeType: DOM.Node.DOCUMENT_NODE,
+        nodeType: {value: DOM.Node.DOCUMENT_NODE},
         nodeName: {value: '#document'},
         childNodes: {value: []},
+        implementation: {
+            value: Object.create({}, {
+                createDocumentType: {
+                    value: function(name, publicId, systemId){
+                        var doctype = Object.create(DOM.DocumentType.prototype, {
+                            nodeType: {value: DOM.Node.DOCUMENT_TYPE_NODE},
+                            nodeName: {value: '#doctype'},
+                            childNodes: {value: []},
+                            name: {value: name},
+                            publicId: {value: (publicId !== undefined && publicId !== null) ? publicId : ''},
+                            systemId: {value: (systemId !== undefined && systemId !== null) ? systemId : ''},
+                            ownerDocument: {value: document}
+                        });
+                        return doctype;
+                    }
+                }
+            })
+        }
     });
     if (doctype){
-        Object.defineProperty(doctype, 'ownerDocument', {value: document});
         document.appendChild(doctype);
     }
     if (qualifiedName){
         var element = document.createElementNS(namespace, qualifiedName);
         document.appendChild(element);
     }
+    return document;
 };
 
 DOM.Document.prototype = Object.create(DOM.Node.prototype, {
+
+    constructor: {
+        value: DOM.Document
+    },
 
     doctype: {
         get: function(){
@@ -64,23 +74,116 @@ DOM.Document.prototype = Object.create(DOM.Node.prototype, {
         }
     },
 
-    createElement: {
-        value: function DOMDocument_createElement(name){
-            var element = Object.create(DOM.Element.prototype, {
-                nodeType: DOM.Node.ELEMENT_NODE,
-                nodeName: {value: name},
+    createTextNode: {
+        value: function DOMDocument_createTextNode(value){
+            var node = Object.create(DOM.Text.prototype, {
+                nodeType: {value: DOM.Node.TEXT_NODE},
+                nodeName: {value: '#text'},
                 ownerDocument: {value: this},
                 childNodes: {value: []},
+                nodeValue: {value: value, writable: true}
             });
-            return element;
+            return node;
+        }
+    },
+
+    createComment: {
+        value: function DOMDocument_createComment(value){
+            var node = Object.create(DOM.Comment.prototype, {
+                nodeType: {value: DOM.Node.COMMENT_NODE},
+                nodeName: {value: '#comment'},
+                ownerDocument: {value: this},
+                childNodes: {value: []},
+                nodeValue: {value: value, writable: true}
+            });
+            return node;
+        }
+    },
+
+    createCDATASection: {
+        value: function DOMDocument_createCDATASection(value){
+            var node = Object.create(DOM.CDATASection.prototype, {
+                nodeType: {value: DOM.Node.CDATA_SECTION_NODE},
+                nodeName: {value: '#cdata'},
+                ownerDocument: {value: this},
+                childNodes: {value: []},
+                nodeValue: {value: value, writable: true}
+            });
+            return node;
+        }
+    },
+
+    createProcessingInstruction: {
+        value: function DOMDocument_createProcessingInstruction(target, data){
+            var node = Object.create(DOM.CDATASection.prototype, {
+                nodeType: {value: DOM.Node.PROCESSING_INSTRUCTION_NODE},
+                nodeName: {value: '#cdata'},
+                ownerDocument: {value: this},
+                childNodes: {value: []},
+                target: {value: target},
+                nodeValue: {value: data, writable: true}
+            });
+            return node;
+        }
+    },
+
+    createElement: {
+        value: function DOMDocument_createElement(name){
+            return this.createElementNS(null, name);
         }
     },
 
     createElementNS: {
         value: function DOMDocument_createElementNS(namespace, qualifiedName){
-            if (!namespace){
-                return this.createElement(qualifiedName);
+            var prefix = null;
+            var localName = qualifiedName;
+            var tagName = qualifiedName;
+            if (namespace !== null){
+                var name = DOM._parseQualifiedName(qualifiedName);
+                localName = name.localName;
+                prefix = name.prefix;
             }
+            var element = Object.create(DOM.Element.prototype, {
+                nodeType: {value: DOM.Node.ELEMENT_NODE},
+                nodeName: {value: qualifiedName},
+                ownerDocument: {value: this},
+                childNodes: {value: []},
+                namespaceURI: {value: namespace},
+                prefix: {value: prefix},
+                localName: {value: localName},
+                attributes: {value: []},
+                _attributeMap: {value: {':global:': {}}}
+            });
+            return element;
+        }
+    },
+
+    createAttribute: {
+        value: function DOMDocument_createAttribute(name){
+            return this.createAttributeNS(null, name);
+        }
+    },
+
+    createAttributeNS: {
+        value: function DOMDocument_createAttributeNS(namespace, qualifiedName){
+            var prefix = null;
+            var localName = qualifiedName;
+            var tagName = qualifiedName;
+            if (namespace !== null){
+                var name = DOM._parseQualifiedName(qualifiedName);
+                localName = name.localName;
+                prefix = name.prefix;
+            }
+            var attr = Object.create(DOM.Attr.prototype, {
+                nodeType: {value: DOM.Node.ATTRIBUTE_NODE},
+                nodeName: {value: qualifiedName},
+                ownerDocument: {value: this},
+                childNodes: {value: []},
+                namespaceURI: {value: namespace},
+                prefix: {value: prefix},
+                localName: {value: localName},
+            });
+            return attr;
         }
     },
 

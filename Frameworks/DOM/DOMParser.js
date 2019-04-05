@@ -8,20 +8,20 @@ JSGlobalObject.DOMParser = function DOMParser(){
 
 DOMParser.prototype = {
 
-    parseFromString: function(str){
+    parseFromString: function(str, mimetype){
         var parser = new XMLParser();
-        if (str == "text/html"){
-            parser.isHTML = true;
-        }
+        var isHTML = mimetype == "text/html";
+        parser.isHTML = isHTML;
         var document = null;
         var node = null;
         var stack = [];
         parser.parse(str, {
             beginDocument: function(){
                 document = DOM.createDocument();
+                node = document;
             },
             handleDocumentType: function(name, publicId, systemId){
-                var doctype = DOM.createDocumentType(name, publicId, systemId);
+                var doctype = document.implementation.createDocumentType(name, publicId, systemId);
                 document.appendChild(doctype);
             },
             handleProcessingInstruction: function(name, data){
@@ -36,16 +36,34 @@ DOMParser.prototype = {
                 var cdata = document.createCDATASection(text);
                 node.appendChild(cdata);
             },
-            beginElement: function(name, namespace, attributes, isClosed){
+            beginElement: function(name, prefix, namespace, attributes, isClosed){
                 var element;
-                if (namespace){
-                    element = document.createElementNS(namespace, name);
+                if (namespace !== null){
+                    if (prefix !== null){
+                        element = document.createElementNS(namespace, prefix + ':' + name);   
+                    }else{
+                        element = document.createElementNS(namespace, name);
+                    }
                 }else{
                     element = document.createElement(name);
+                }
+                var attr;
+                for (var i = 0, l = attributes.length; i < l; ++i){
+                    attr = attributes[i];
+                    if (attr.namespace){
+                        if (attr.prefix !== null){
+                            element.setAttributeNS(attr.namespace, attr.prefix + ':' + attr.name, attr.value);
+                        }else{
+                            element.setAttribute(attr.namespace, attr.name, attr.value);
+                        }
+                    }else{
+                        element.setAttribute(attr.name, attr.value);
+                    }
                 }
                 node.appendChild(element);
                 if (!isClosed){
                     stack.push(node);
+                    node = element;
                 }
             },
             handleText: function(text){

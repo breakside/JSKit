@@ -1,7 +1,11 @@
-// #import "DOMText.js"
+// #import "DOMCharacterData.js"
 /* global JSGlobalObject, DOM */
 'use strict';
 
-DOM.Comment.prototype = Object.create(DOM.Text.prototype, {
+DOM.Comment.prototype = Object.create(DOM.CharacterData.prototype, {
+    
+    constructor: {
+        value: DOM.Comment
+    },
 
 });

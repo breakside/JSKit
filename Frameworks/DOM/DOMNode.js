@@ -16,6 +16,10 @@ DOM.Node.DOCUMENT_FRAGMENT_NODE = 11;
 DOM.Node.NOTATION_NODE = 12; // historical
 
 DOM.Node.prototype = Object.create({}, {
+    
+    constructor: {
+        value: DOM.Node
+    },
 
     nodeValue: {writable: true, value: null},
     parentNode: {configurable: true, value: null},
@@ -23,6 +27,15 @@ DOM.Node.prototype = Object.create({}, {
 
     insertBefore: {
         value: function DOMNode_insertBefore(child, sibling){
+            if (this.nodeType == DOM.Node.DOCUMENT_NODE){
+                if (child.ownerDocument !== this){
+                    throw new Error("Cannot insert node with a different ownerDocument");
+                }
+            }else{
+                if (child.ownerDocument !== this.ownerDocument){
+                    throw new Error("Cannot insert node with a different ownerDocument");
+                }
+            }
             if (child.parentNode){
                 child.parentNode.removeChild(child);
             }

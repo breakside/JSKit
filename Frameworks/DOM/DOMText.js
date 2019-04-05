@@ -4,5 +4,9 @@
 
 
 DOM.Text.prototype = Object.create(DOM.CharacterData.prototype, {
+    
+    constructor: {
+        value: DOM.Text
+    },
 
 });

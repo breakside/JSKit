@@ -33,6 +33,12 @@ JSGlobalObject.DOM = Object.create({}, {
         }
     },
 
+    Attr: {
+        value: function Attr(){
+            throw new Error("use DOM.createAttribute()");
+        }
+    },
+
     CharacterData: {
         value: function CharacterData(){
             throw new Error("use DOM.createTextNode()");
@@ -56,5 +62,18 @@ JSGlobalObject.DOM = Object.create({}, {
             throw new Error("use DOM.createComment()");
         }
     },
+
+    _parseQualifiedName: {
+        value: function(name){
+            var index = name.indexOf(":");
+            if (index < 0){
+                return {localName: name, prefix: null};
+            }
+            return {
+                localName: name.substr(index + 1),
+                prefix: name.substr(0, index)
+            };
+        }
+    }
 
 });
