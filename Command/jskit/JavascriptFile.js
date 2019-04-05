@@ -97,7 +97,7 @@ JSClass("JavascriptFile", JSObject, {
                     index = line.indexOf('*/', index + 2);
                     while (index < 0){
                         line = this.nextLine();
-                        index = line.indexOf(result.token, index + 2);
+                        index = line.indexOf('*/');
                     }
                     line = line.substr(index + 2);
                     index = 0;

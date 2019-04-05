@@ -44,6 +44,7 @@ JSClass("MakeCommand", Command, {
         if (this.builder === null){
             throw new Error("Unknown project type: %s".sprintf(project.info.JSBundleType));
         }
+        this.builder.workingDirectoryURL = this.workingDirectoryURL;
         this.builder.printer = this.printer;
         this.builder.debug = this.arguments.debug;
         if (arguments.root){
@@ -54,6 +55,10 @@ JSClass("MakeCommand", Command, {
         this.printer.setStatus("Starting...");
         await this.builder.build();
         this.printer.setStatus("Done (build label: %s)".sprintf(this.builder.buildLabel));
+        if (this.builder.commands.length > 0){
+            var commands = "$ " + this.builder.commands.join("\n$ ") + "\n";
+            this.printer.print(commands);
+        }
         while (this.arguments.watch && this.builder.watchlist.length > 0){
             this.printer.print("Watching for file changes...\n");
             await this.watchForChanges(this.builder.watchlist);

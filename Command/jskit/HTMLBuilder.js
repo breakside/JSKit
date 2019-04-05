@@ -214,7 +214,7 @@ JSClass("HTMLBuilder", Builder, {
                 bundle.ResourceLookup = resources.lookup;
             }
         }
-        var json = JSON.stringify(bundle, this.debug ? 2 : 0);
+        var json = JSON.stringify(bundle, null, this.debug ? 2 : 0);
         var js = "'use strict';\nJSBundle.bundles['%s'] = %s;\n".sprintf(info.JSBundleIdentifier, json);
         if (isMain){
             js += 'JSBundle.mainBundleIdentifier = "%s";\n'.sprintf(info.JSBundleIdentifier);

@@ -15,16 +15,17 @@ JSClass("Builder", JSObject, {
         if (!subclass){
             return null;
         }
-        var args = JSArguments.initWithOptions(subclass.options);
+        var args = JSArguments.initWithOptions(subclass.prototype.options);
         argv = [subclass.bundleType].concat(argv);
         args.parse(argv);
-        return subclass.initWithProject(project, arguments);
+        return subclass.initWithProject(project, args);
     },
 
     initWithProject: function(project, args){
         this.project = project;
         this.arguments = args;
         this.watchlist = [];
+        this.commands = [];
         this.fileManager = project.fileManager;
         var now = new Date();
         this.buildLabel = "%04d-%02d-%02d-%02d-%02d-%02d".sprintf(
@@ -46,6 +47,7 @@ JSClass("Builder", JSObject, {
     buildURL: null,
     buildsRootURL: null,
     fileManager: null,
+    workingDirectoryURL: null,
     debug: false,
 
     // -----------------------------------------------------------------------
@@ -58,6 +60,7 @@ JSClass("Builder", JSObject, {
     // MARK: - Status
 
     printer: null,
+    commands: null,
 
     // -----------------------------------------------------------------------
     // MARK: - File Watching
@@ -71,7 +74,8 @@ JSClass("Builder", JSObject, {
     },
 
     setup: async function(){
-        this.buildURL = this.buildsRootURL.appendingPathComponents([this.project.info.JSBundleIdentifier, this.debug ? "debug" : this.buildLabel]);
+        this.commands = [];
+        this.buildURL = this.buildsRootURL.appendingPathComponents([this.project.info.JSBundleIdentifier, this.debug ? "debug" : this.buildLabel], true);
     },
 
     finish: async function(){
@@ -114,7 +118,7 @@ JSClass("Builder", JSObject, {
             dependenciesByName[name] = dependencies;
             frameworksByName[name] = framework;
             for (let j = 0, k = dependencies.length; j < k; ++j){
-                let name = dependencies[i];
+                let name = dependencies[j];
                 if (!seen.has(name)){
                     seen.add(name);
                     // TODO: allow searching for dependencies within built framework bundle
@@ -155,9 +159,13 @@ JSClass("Builder", JSObject, {
         builder.debug = this.debug || this.bundleType == 'node';
         builder.printer = this.printer;
         builder.buildsRootURL = this.buildsRootURL;
+        builder.workingDirectoryURL = this.workingDirectoryURL;
         await builder.build();
         return builder.bundleURL;
     },
+
+    replaceTemplateText: function(text, parameters){
+    }
 
 });
 

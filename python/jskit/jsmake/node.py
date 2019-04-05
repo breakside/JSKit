@@ -99,7 +99,7 @@ class NodeBuilder(Builder):
             envInclude = bundle.includeForEnvironment('node')
             if envInclude is not None:
                 self.includes.append(envInclude)
-        mainSpecName = self.mainBundle.info.get('SKMainDefinitionResource', None)
+        mainSpecName = self.mainBundle.info.get('SKMainSpec', None)
         if mainSpecName is not None:
             mainSpec = self.mainBundle[mainSpecName]["value"]
             self.findSpecIncludes(mainSpec)

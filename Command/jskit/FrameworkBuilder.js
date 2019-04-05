@@ -95,7 +95,7 @@ JSClass("FrameworkBuilder", Builder, {
             fonts: resources.fonts
         };
         var manifestURL = this.bundleURL.appendingPathComponent('resources.json');
-        var json = JSON.stringify(manifest, this.debug ? 2 : 0);
+        var json = JSON.stringify(manifest, null, this.debug ? 2 : 0);
         await this.fileManager.createFileAtURL(manifestURL, json.utf8());
     },
 
@@ -107,7 +107,7 @@ JSClass("FrameworkBuilder", Builder, {
             manifest = await this.minifyReleaseJavascript();
         }
         var manifestURL = this.bundleURL.appendingPathComponent('sources.json');
-        var json = JSON.stringify(manifest, this.debug ? 2 : 0);
+        var json = JSON.stringify(manifest, null, this.debug ? 2 : 0);
         await this.fileManager.createFileAtURL(manifestURL, json.utf8());
     },
 

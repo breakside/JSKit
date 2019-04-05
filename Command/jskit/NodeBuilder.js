@@ -51,6 +51,10 @@ JSClass("NodeBuilder", Builder, {
             var entries = await this.fileManager.contentsOfDirectoryAtURL(this.bundleURL);
             for (let i = 0, l = entries.length; i < l; ++i){
                 let entry = entries[i];
+                if (this.isJSKit && entry.itemType == JSFileManager.ItemType.symbolicLink){
+                    // don't delete dev symlinks out from under us
+                    continue;
+                }
                 await this.fileManager.removeItemAtURL(entry.url);
             }
         }
@@ -88,6 +92,9 @@ JSClass("NodeBuilder", Builder, {
         var roots = [entryPoint.path];
         var resourceImportPaths = await this.resources.getImportPaths(includeDirectoryURLs);
         roots = roots.concat(resourceImportPaths);
+        if (!this.project.info.SKMainSpec && this.project.info.SKApplicationDelegate){
+            roots.push(this.project.info.SKApplicationDelegate + ".js");
+        }
         this.imports = await this.project.findJavascriptImports(roots, includeDirectoryURLs);
     },
 
@@ -187,7 +194,7 @@ JSClass("NodeBuilder", Builder, {
                 bundle.ResourceLookup = resources.lookup;
             }
         }
-        var json = JSON.stringify(bundle, this.debug ? 2 : 0);
+        var json = JSON.stringify(bundle, null, this.debug ? 2 : 0);
         var js = "'use strict';\nJSBundle.bundles['%s'] = %s;\n".sprintf(info.JSBundleIdentifier, json);
         if (isMain){
             js += 'JSBundle.mainBundleIdentifier = "%s";\n'.sprintf(info.JSBundleIdentifier);
@@ -263,7 +270,14 @@ JSClass("NodeBuilder", Builder, {
         lines.push("");
         var exe = lines.join("\n").utf8();
         await this.fileManager.createFileAtURL(this.executableURL, exe);
-        // TODO: make sure executable permissions are set on file
+        await this.fileManager.makeExecutableAtURL(this.executableURL);
+
+        let localPath = this.fileManager.relativePathFromURL(this.workingDirectoryURL, this.executableURL);
+        if (this.debug){
+            this.commands.push("node --inspect-brk " + localPath);
+        }else{
+            this.commands.push(localPath);
+        }
     },
 
     // -----------------------------------------------------------------------
@@ -311,7 +325,7 @@ JSClass("NodeBuilder", Builder, {
         pkg.main = 'npmmain.js';
         pkg.bin = "./" + this.executableURL.encodedStringRelativeTo(this.bundleURL);
         var outputPackageURL = this.bundleURL.appendingPathComponent("package.json");
-        packageJSON = JSON.stringify(pkg, this.debug ? 2 : 0);
+        packageJSON = JSON.stringify(pkg, null, this.debug ? 2 : 0);
         await this.fileManager.createFileAtURL(outputPackageURL, packageJSON.utf8());
     },
 
@@ -347,7 +361,53 @@ JSClass("NodeBuilder", Builder, {
         if (!exists){
             return;
         }
-        // TODO: finish building docker image
+        var contents = await this.fileManager.contentsAtURL(dockerfileURL);
+        var dockerfile = contents.stringByDecodingUTF8();
+        var params = {
+            BUILD_ID: this.buildId,
+            PORT: this.arguments.port
+        };
+        dockerfile = dockerfile.replacingTemplateParameters(params);
+        var url = this.buildURL.appendingPathComponent("Dockerfile");
+        await this.fileManager.createFileAtURL(url, dockerfile);
+
+        var prefix = this.arguments['docker-owner'] || this.project.info.DockerOwner;
+        var image = this.project.lastIdentifierPart;
+        var tag = this.debug ? 'debug' : this.buildLabel;
+        var identifier = "%s%s:%s".sprintf(prefix ? prefix + '/' : '', image, tag).toLowerCase();
+        var name = this.project.info.JSBundleIdentifier.replace('/\./g', '_');
+
+        this.printer.setStatus("Building docker image %s...".sprintf(identifier));
+
+        const { spawn } = require('child_process');
+        var args = ["build", "-t", identifier, '.'];
+        var cwd = this.fileManager.pathForURL(this.buildURL);
+        var docker = spawn("docker", args, {cwd: cwd});
+        var err = "";
+        docker.stderr.on('data', function(data){
+            if (data){
+                err += data.stringByDecodingUTF8();
+            }
+        });
+
+        var bundleName = this.bundleURL.lastPathComponent;
+        var bundlePath = this.fileManager.pathForURL(this.bundleURL);
+        this.commands.push([
+            "docker run",
+            "--rm",
+            "--name " + name,
+            "-p%d:%d".sprintf(this.arguments.port, this.arguments.port),
+            "--mount type=bind,source=%s,target=/%s".sprintf(bundlePath, bundleName),
+            identifier
+        ].join(" \\\n    "));
+        return new Promise(function(resolve, reject){
+            docker.on('close', function(code){
+                if (code !== 0){
+                    reject(new Error("Error building docker: " + err));
+                }
+                resolve();
+            });
+        });
     },
 
     // -----------------------------------------------------------------------
@@ -360,7 +420,10 @@ JSClass("NodeBuilder", Builder, {
             // so we can a link back to JSKit based on known directory structure
             // JSKit/builds/io.breakside.jskit/debug/jskit/Root
             let jskitURL = JSURL.initWithString("../../../../");
-            await this.fileManager.createSymbolicLinkAtURL(bundledRootURL, jskitURL);
+            let exists = await this.fileManager.itemExistsAtURL(bundledRootURL);
+            if (!exists){
+                await this.fileManager.createSymbolicLinkAtURL(bundledRootURL, jskitURL);
+            }
         }else{
             // A release build should copy JSKit/Frameworks and JSKit/Templates to bundle/Root/.
             // so they're available to the packaged jskit command

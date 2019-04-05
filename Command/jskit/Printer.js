@@ -20,7 +20,7 @@ JSClass("Printer", JSObject, {
         }
         var prefix = "[%s] ".sprintf(this.label);
         var line = prefix + message;
-        this.statusMessage = line.utf8()
+        this.statusMessage = line.utf8();
         this._printRawData(this.statusMessage);
     },
 

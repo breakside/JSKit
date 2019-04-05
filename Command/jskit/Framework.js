@@ -64,12 +64,16 @@ JSClass("Framework", JSObject, {
 
     dependencies: function(env){
         var names = [];
-        for (let i = 0, l = this.sources.generic.length; i < l; ++i){
-            names.push(this.sources.generic[i]);
+        if (this.sources.generic.frameworks){
+            for (let i = 0, l = this.sources.generic.frameworks.length; i < l; ++i){
+                names.push(this.sources.generic.frameworks[i]);
+            }
         }
         if (env in this.sources){
-            for (let i = 0, l = this.sources[env].length; i < l; ++i){
-                names.push(this.sources[env][i]);
+            if (this.sources[env].frameworks){
+                for (let i = 0, l = this.sources[env].frameworks.length; i < l; ++i){
+                    names.push(this.sources[env].frameworks[i]);
+                }
             }
         }
         return names;

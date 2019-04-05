@@ -54,7 +54,7 @@ JSClass("Resources", JSObject, {
                         let path = includes[i];
                         if (path.endsWith("/*")){
                             let directoryPath = path.substr(0, path.length - 1);
-                            let directoryURL = urlForPath(directoryPath);
+                            let directoryURL = await urlForPath(directoryPath);
                             let entries = await fileManager.contentsOfDirectoryAtURL(directoryURL);
                             for (let j = 0, k = entries.length; j < k; ++j){
                                 let entry = entries[j];
@@ -79,7 +79,7 @@ JSClass("Resources", JSObject, {
                 path = path.substr(0, path.length - 1);
             }
             for (let i = 0, l = importDirectoryURLs.length; i < l; ++i){
-                let url = importDirectoryURLs[i].appendingPathComponent(path, true);
+                let url = importDirectoryURLs[i].appendingPathComponent(path, isDirectory);
                 let exists = await fileManager.itemExistsAtURL(url);
                 if (exists){
                     return url;
@@ -91,7 +91,7 @@ JSClass("Resources", JSObject, {
         for (let i = 0, l = this.metadata.length; i < l; ++i){
             let metadata = this.metadata[i];
             if (metadata.spec){
-                await addImportsFromObject(metadata.spec);
+                await addImportsFromObject(metadata.value);
             }
         }
         return paths;
@@ -148,7 +148,7 @@ JSClass("Resources", JSObject, {
         var metadata = {
             path: path,
             byte_size: contents.length,
-            mime_type: mimeTypesByExt[ext] || null,
+            mimetype: mimeTypesByExt[ext] || null,
             hash: hash.hexStringRepresentation()
         };
         var extra = addMetadata[ext];
@@ -187,14 +187,14 @@ JSClass("Resources", JSObject, {
 var addMetadata = {
     '.json': async function(name, contents, metadata){
         metadata.value = JSON.parse(contents.stringByDecodingUTF8());
-        if (name.fileExtension == '.spec'){
+        if (name.endsWith('.spec.json')){
             metadata.spec = true;
         }
     },
 
     '.yaml': async function(name, contents, metadata){
         metadata.value = jsyaml.safeLoad(contents.stringByDecodingUTF8());
-        if (name.fileExtension == '.spec'){
+        if (name.endsWith('.spec.yaml')){
             metadata.spec = true;
         }
     },
@@ -288,7 +288,7 @@ var addMetadata = {
         var parser = new XMLParser();
         try {
             parser.parse(xml, {
-                beginElement: function(name, namespace, attributes, isClosed){
+                beginElement: function(name, prefix, namespace, attributes, isClosed){
                     var multiple = {
                         'em': 12,
                         'ex': 24,
@@ -318,8 +318,15 @@ var addMetadata = {
                         return multiple[unit] * n;
                     };
                     if (namespace == 'http://www.w3.org/2000/svg' && name.toLowerCase() == 'svg'){
-                        metadata.width = px(attributes.width);
-                        metadata.height = px(attributes.height);
+                        var attrs = {};
+                        for (let i = 0, l = attributes.length; i < l; ++i){
+                            let attr = attributes[i];
+                            if (attr.namespace === null){
+                                attrs[attr.name] = attr.value;
+                            }
+                        }
+                        metadata.width = px(attrs.width);
+                        metadata.height = px(attrs.height);
                     }
                     throw new Error("Stopping parser");
                 }

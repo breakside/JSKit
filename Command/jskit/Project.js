@@ -25,6 +25,17 @@ JSClass("Project", JSObject, {
     info: null,
     infoURL: null,
 
+    lastIdentifierPart: JSReadOnlyProperty(),
+
+    getLastIdentifierPart: function(){
+        var identifier = this.info.JSBundleIdentifier;
+        var index = identifier.lastIndexOf('.');
+        if (index < 0){
+            return identifier;
+        }
+        return identifier.substr(index + 1);
+    },
+
     // -----------------------------------------------------------------------
     // MARK: - Loading Project
 
@@ -190,7 +201,7 @@ JSClass("Project", JSObject, {
                         }
                         if (!found){
                             if (sourceURL){
-                                throw new Error('Cannot find framework %s, included from %s:%d'.sprintf(path, sourceURL, sourceLine));
+                                throw new Error('Cannot find framework %s, included from %s:%d'.sprintf(name, sourceURL, sourceLine));
                             }
                             throw new Error('Cannot find "%s"');
                         }
