@@ -63,7 +63,7 @@ JSFileManager.definePropertiesFromExtensions({
         return url;
     },
 
-    _pathForURL: function(url){
+    pathForURL: function(url){
         var path = url.path;
         if (pathLib.sep != "/"){
             path = path.split("/").join(pathLib.sep);
@@ -100,7 +100,7 @@ JSFileManager.definePropertiesFromExtensions({
         if (url.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.itemExistsAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
-        var path = this._pathForURL(url);
+        var path = this.pathForURL(url);
         fs.stat(path, function(error, stats){
             completion.call(target, error === null);
         });
@@ -120,7 +120,7 @@ JSFileManager.definePropertiesFromExtensions({
         if (url.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.attributesOfItemAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
-        var path = this._pathForURL(url);
+        var path = this.pathForURL(url);
         fs.lstat(path, function(error, stats){
             var attrs = null;
             if (!error){
@@ -172,7 +172,7 @@ JSFileManager.definePropertiesFromExtensions({
         var manager = this;
         var create = function(parentError){
             if (parentError === null){
-                var path = manager._pathForURL(url);
+                var path = manager.pathForURL(url);
                 fs.stat(path, function(error, stat){
                     if (error !== null){
                         fs.mkdir(path, function(error){
@@ -189,7 +189,7 @@ JSFileManager.definePropertiesFromExtensions({
         if (parent.pathComponents.length === 0){
             completion(new Error("Parent has no path"));
         }else{
-            var path = manager._pathForURL(parent);
+            var path = manager.pathForURL(parent);
             fs.stat(path, function(error, stat){
                 if (error === null){
                     create(stat.isDirectory() ? null : new Error("Parent is not a directory"));
@@ -221,7 +221,7 @@ JSFileManager.definePropertiesFromExtensions({
         var created = false;
         var create = function(parentExists){
             if (parentExists){
-                var path = manager._pathForURL(url);
+                var path = manager.pathForURL(url);
                 fs.writeFile(path, data, function(error){
                     completion.call(target, error === null);
                 });
@@ -229,7 +229,7 @@ JSFileManager.definePropertiesFromExtensions({
                 completion.call(target, false);
             }
         };
-        var path = manager._pathForURL(parent);
+        var path = manager.pathForURL(parent);
         fs.stat(path, function(error, stat){
             if (error === null){
                 create(stat.isDirectory());
@@ -241,6 +241,27 @@ JSFileManager.definePropertiesFromExtensions({
         });
         return completion.promise;
     },
+
+    // --------------------------------------------------------------------
+    // MARK: - Permissions
+
+    makeExecutableAtURL: function(url, data, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
+        if (!url.isAbsolute){
+            logger.warn("relative URL passed to makeExecutableAtURL");
+        }
+        if (url.scheme != JSFileManager.Scheme.file){
+            throw new Error("JSFileManager.makeExecutableAtURL unsupported scheme: %s".sprintf(url.scheme));
+        }
+        var path = this.pathForURL(url);
+        fs.chmod(path, 493, function(error){
+            completion.call(target, error === null);
+        });
+        return completion.promise;
+    },
+
 
     // --------------------------------------------------------------------
     // MARK: - Moving & Copying Items
@@ -272,9 +293,9 @@ JSFileManager.definePropertiesFromExtensions({
         }
         var toParent = toURL.removingLastPathComponent();
         var manager = this;
-        var path = manager._pathForURL(url);
-        var toPath = manager._pathForURL(toURL);
-        var toParentPath = manager._pathForURL(toParent);
+        var path = manager.pathForURL(url);
+        var toPath = manager.pathForURL(toURL);
+        var toParentPath = manager.pathForURL(toParent);
         fs.stat(toParentPath, function(error, stat){
             var move = function(toParentExists){
                 if (toParentExists){
@@ -323,11 +344,11 @@ JSFileManager.definePropertiesFromExtensions({
         }
         var toParent = toURL.removingLastPathComponent();
         var manager = this;
-        var toParentPath = manager._pathForURL(toParent);
+        var toParentPath = manager.pathForURL(toParent);
         fs.stat(toParentPath, function(error, stat){
             var copy = function(toParentExists){
                 if (toParentExists){
-                    var path = manager._pathForURL(url);
+                    var path = manager.pathForURL(url);
                     fs.stat(path, function(error, stat){
                         if (error === null){
                             manager._copyItemAtURL(url, toURL, stat, completion, target);
@@ -359,8 +380,8 @@ JSFileManager.definePropertiesFromExtensions({
     },
 
     _copyFileAtURL: function(url, toURL, completion, target){
-        var path = this._pathForURL(url);
-        var toPath = this._pathForURL(toURL);
+        var path = this.pathForURL(url);
+        var toPath = this.pathForURL(toURL);
         fs.copyFile(path, toPath, function(error){
             completion.call(target, error === null);
         });
@@ -368,8 +389,8 @@ JSFileManager.definePropertiesFromExtensions({
 
     _copyDirectoryAtURL: function(url, toURL, completion, target){
         var manager = this;
-        var path = manager._pathForURL(url);
-        var toPath = manager._pathForURL(toURL);
+        var path = manager.pathForURL(url);
+        var toPath = manager.pathForURL(toURL);
         fs.mkdir(toPath, function(error){
             if (error === null){
                 fs.readdir(path, function(error, files){
@@ -380,7 +401,7 @@ JSFileManager.definePropertiesFromExtensions({
                         }else{
                             var childURL = url.appendingPathComponent(files[i]);
                             var toChildURL = toURL.appendingPathComponent(files[i]);
-                            var childPath = manager._pathForURL(childURL);
+                            var childPath = manager.pathForURL(childURL);
                             fs.stat(childPath, function(error, stat){
                                 manager._copyItemAtURL(childURL, toChildURL, stat, function(success){
                                     if (success){
@@ -422,7 +443,7 @@ JSFileManager.definePropertiesFromExtensions({
             throw new Error("JSFileManager.removeItemAtURL cannot remove root path");
         }
         var manager = this;
-        var path = manager._pathForURL(url);
+        var path = manager.pathForURL(url);
         fs.lstat(path, function(error, stats){
             if (error === null){
                 manager._removeItemAtURL(url, stats, completion, target);
@@ -442,7 +463,7 @@ JSFileManager.definePropertiesFromExtensions({
     },
 
     _removeFileAtURL: function(url, completion, target){
-        var path = this._pathForURL(url);
+        var path = this.pathForURL(url);
         fs.unlink(path, function(error){
             completion.call(target, error === null);
         });
@@ -450,7 +471,7 @@ JSFileManager.definePropertiesFromExtensions({
 
     _removeDirectoryAtURL: function(url, completion, target){
         var manager = this;
-        var path = this._pathForURL(url);
+        var path = this.pathForURL(url);
         fs.readdir(path, function(error, files){
             if (error === null){
                 var i = 0;
@@ -461,7 +482,7 @@ JSFileManager.definePropertiesFromExtensions({
                         });
                     }else{
                         var childURL = url.appendingPathComponent(files[i]);
-                        var childPath = manager._pathForURL(childURL);
+                        var childPath = manager.pathForURL(childURL);
                         fs.lstat(childPath, function(error, stat){
                             manager._removeItemAtURL(childURL, stat, function(success){
                                 if (success){
@@ -494,7 +515,7 @@ JSFileManager.definePropertiesFromExtensions({
         if (url.scheme != JSFileManager.Scheme.file){
             throw new Error("JSFileManager.contentsAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
-        var path = this._pathForURL(url);
+        var path = this.pathForURL(url);
         fs.readFile(path, function(error, buffer){
             if (error === null){
                 completion.call(target, JSData.initWithNodeBuffer(buffer));
@@ -512,7 +533,7 @@ JSFileManager.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        var path = this._pathForURL(url);
+        var path = this.pathForURL(url);
         var manager = this;
         fs.readdir(path, {withFileTypes: true}, function(error, entries){
             if (error !== null){
@@ -564,8 +585,8 @@ JSFileManager.definePropertiesFromExtensions({
         if (url.isEqual(absoluteToURL)){
             throw new Error("JSFileManager.createSymbolicLinkAtURL target and destination are the same");
         }
-        var path = this._pathForURL(url);
-        var toPath = this._pathForURL(toURL);
+        var path = this.pathForURL(url);
+        var toPath = this.pathForURL(toURL);
         fs.symlink(toPath, path, function(error){
             completion.call(target, error === null);
         });
@@ -576,7 +597,7 @@ JSFileManager.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        var path = this._pathForURL(url);
+        var path = this.pathForURL(url);
         var manager = this;
         fs.readlink(path, function(error, destination){
             if (error !== null){
@@ -594,7 +615,7 @@ JSFileManager.definePropertiesFromExtensions({
 
     destroy: function(completion, target){
         var manager = this;
-        var rootPath = this._pathForURL(this._rootURL);
+        var rootPath = this.pathForURL(this._rootURL);
         fs.stat(rootPath, function(error, stat){
             if (error === null){
                 manager._removeItemAtURL(manager._rootURL, stat, function(success){

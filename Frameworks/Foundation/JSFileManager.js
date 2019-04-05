@@ -1,5 +1,5 @@
 // #import "Foundation/JSObject.js"
-/* global JSClass, JSObject, JSLazyInitProperty, JSReadOnlyProperty, JSFileManager */
+/* global JSClass, JSObject, JSLazyInitProperty, JSReadOnlyProperty, JSFileManager, JSURL */
 'use strict';
 
 JSClass("JSFileManager", JSObject, {
@@ -28,7 +28,16 @@ JSClass("JSFileManager", JSObject, {
     // --------------------------------------------------------------------
     // MARK: - Paths to URLs
 
-    urlForPath: function(path, baseURL){
+    urlForPath: function(path, baseURL, isDirectory){
+    },
+
+    pathForURL: function(url){
+    },
+
+    relativePathFromURL: function(url, toURL){
+        var relative = toURL.encodedStringRelativeTo(url);
+        var relativeURL = JSURL.initWithString(relative);
+        return this.pathForURL(relativeURL);
     },
 
     // --------------------------------------------------------------------
@@ -50,6 +59,13 @@ JSClass("JSFileManager", JSObject, {
     // MARK: - Creating Files
 
     createFileAtURL: function(url, data, completion, target){
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Permissions
+
+    makeExecutableAtURL: function(url, data, completion, target){
+        completion.call(target, true);
     },
 
     // --------------------------------------------------------------------

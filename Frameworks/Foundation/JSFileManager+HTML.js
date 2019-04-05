@@ -74,6 +74,10 @@ JSFileManager.definePropertiesFromExtensions({
         return url;
     },
 
+    pathForURL: function(url){
+        return url.path;
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Common Directories
 
