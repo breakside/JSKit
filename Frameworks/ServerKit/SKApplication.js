@@ -48,14 +48,14 @@ JSClass('SKApplication', JSObject, {
     },
 
     setupDelegate: function(){
-        if (this.bundle.info[SKApplication.InfoKeys.MainDefinitionResource]){
-            var mainUIFile = JSSpec.initWithResource(this.bundle.info[SKApplication.InfoKeys.MainDefinitionResource]);
+        if (this.bundle.info[SKApplication.InfoKeys.MainSpec]){
+            var mainUIFile = JSSpec.initWithResource(this.bundle.info[SKApplication.InfoKeys.MainSpec]);
             this.delegate = mainUIFile.filesOwner;
         }else if (this.bundle.info[SKApplication.InfoKeys.ApplicationDelegate]){
             var delegateClass = JSClass.FromName(this.bundle.info[SKApplication.InfoKeys.ApplicationDelegate]);
             this.delegate = delegateClass.init();
         }else{
-            throw new Error("SKApplication: Info is missing required key '%s' or '%s'".sprintf(SKApplication.InfoKeys.MainDefinitionResource, SKApplication.InfoKeys.ApplicationDelegate));
+            throw new Error("SKApplication: Info is missing required key '%s' or '%s'".sprintf(SKApplication.InfoKeys.MainSpec, SKApplication.InfoKeys.ApplicationDelegate));
         }
     },
 
@@ -66,7 +66,7 @@ JSClass('SKApplication', JSObject, {
 });
 
 SKApplication.InfoKeys = {
-    MainDefinitionResource: "SKMainDefinitionResource",
+    MainSpec: "SKMainSpec",
     ApplicationDelegate: "SKApplicationDelegate",
     LaunchOptions: "SKApplicationLaunchOptions",
 };
