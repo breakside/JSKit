@@ -10,6 +10,7 @@ JSClass("Command", JSObject, {
 
     name: null,
     options: null,
+    help: null,
 
     // -----------------------------------------------------------------------
     // MARK: - Creating a Command

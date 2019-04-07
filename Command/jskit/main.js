@@ -2,6 +2,7 @@
 // #import "InitCommand.js"
 // #import "MakeCommand.js"
 // #import "AddCommand.js"
+// #import "TestCommand.js"
 /* global module, require, process, JSArguments, JSCopy, Command */
 'use strict';
 

@@ -49,7 +49,7 @@ JSClass("MakeCommand", Command, {
         this.builder.workingDirectoryURL = this.workingDirectoryURL;
         this.builder.printer = this.printer;
         this.builder.debug = this.arguments.debug;
-        if (arguments.root){
+        if (this.arguments['builds-root']){
             this.builder.buildsRootURL = this.fileManager.urlForPath(this.arguments['builds-root'], this.workingDirectoryURL, true);
         }else{
             this.builder.buildsRootURL = this.workingDirectoryURL.appendingPathComponent('builds', true);
