@@ -3,7 +3,7 @@
 // #import FontKit
 // #import DOM
 // #import jsyaml
-/* global JSClass, JSObject, JSSHA1Hash, JSFileManager, jsyaml, FNTOpenTypeFont, Zlib, JSData, XMLParser */
+/* global JSClass, JSObject, JSRange, JSSHA1Hash, JSFileManager, jsyaml, FNTOpenTypeFont, Zlib, JSData, XMLParser */
 'use strict';
 
 JSClass("Resources", JSObject, {
@@ -97,6 +97,18 @@ JSClass("Resources", JSObject, {
         return paths;
     },
 
+    getMetadata: function(name, subdirectory){
+        var lookupKey = name;
+        if (subdirectory){
+            lookupKey = subdirectory + '/' + lookupKey;
+        }
+        var hits = this.lookup.global[lookupKey];
+        if (hits.length){
+            return this.metadata[hits[0]];
+        }
+        return null;
+    },
+
     _resourceId: 0,
 
     _addLocalization: async function(url){
@@ -106,6 +118,7 @@ JSClass("Resources", JSObject, {
         this.lookup[lang] = {};
         for (let i = 0, l = entries.length; i < l; ++i){
             entry = entries[i];
+            if (entry.name.startsWith(".")) continue;
             if (entry.itemType == JSFileManager.ItemType.directory){
                 if (entry.name.fileExtension == '.imageset'){
                     this._addImageset(entry.url, lang);
@@ -122,6 +135,7 @@ JSClass("Resources", JSObject, {
         var subdirectory = url.lastPathComponent;
         for (let i = 0, l = entries.length; i < l; ++i){
             entry = entries[i];
+            if (entry.name.startsWith(".")) continue;
             if (entry.itemType != JSFileManager.ItemType.directory){
                 await this._addResource(entry.url, lang, subdirectory);
             }
@@ -151,14 +165,22 @@ JSClass("Resources", JSObject, {
             mimetype: mimeTypesByExt[ext] || null,
             hash: hash.hexStringRepresentation()
         };
-        var extra = addMetadata[ext];
-        if (extra){
-            extra.call(this, name, contents, metadata);
+        if (lang != 'global' && name.endsWith('.strings.yaml')){
+            this.addStringsMetadata(lang, name, contents, metadata);
+        }else{
+            var extra = addMetadata[ext];
+            if (extra){
+                await extra.call(this, name, contents, metadata);
+            }
         }
         this.sourceURLs.push(url);
         this.metadata.push(metadata);
         
         // Add to lookup
+        if (lang != 'global'){
+            pathComponents.shift();
+            path = pathComponents.join('/');
+        }
         var names = [path];
         if (ext){
             names.push(path.substr(0, path.length - ext.length));
@@ -181,6 +203,26 @@ JSClass("Resources", JSObject, {
     },
 
     ignoreFontErrors: false,
+
+    addStringsMetadata: function(lang, name, contents, metadata){
+        var obj = jsyaml.safeLoad(contents.stringByDecodingUTF8());
+        var top = obj[lang];
+        if (!top){
+            throw new Error("%s must have a top level key for '%s'".sprintf(name, lang));
+        }
+        metadata.strings = {};
+        var visit = function(obj, prefix){
+            for (var k in obj){
+                var v = obj[k];
+                if (typeof(v) == "string" || v.length){
+                    metadata.strings[prefix + k] = v;
+                }else{
+                    visit(v, prefix + k + '.');
+                }
+            }
+        };
+        visit(top, '');
+    }
 
 });
 
@@ -226,7 +268,7 @@ var addMetadata = {
     },
 
     '.jpg': async function(name, contents, metadata){
-        if (contents.length < 2 || contents[0] != 0xFF || contents[0] != 0xD8){
+        if (contents.length < 2 || contents[0] != 0xFF || contents[1] != 0xD8){
             // not a jpeg
             return;
         }
@@ -273,6 +315,7 @@ var addMetadata = {
                     }
                     return;
                 }
+                i += blockLength;
             }
         }
     },
@@ -286,55 +329,50 @@ var addMetadata = {
             vector: true
         };
         var parser = new XMLParser();
-        try {
-            parser.parse(xml, {
-                beginElement: function(name, prefix, namespace, attributes, isClosed){
-                    var multiple = {
-                        'em': 12,
-                        'ex': 24,
-                        'px': 1,
-                        'in': 72,
-                        'cm': 72/2.54,
-                        'mm': 72/25.4,
-                        'pt': 1,
-                        'pc': 12
-                    };
-                    var px = function(length){
-                        if (length === undefined || length === null){
-                            return undefined;
-                        }
-                        var matches = length.match(/^\s*(\d+)\s*(em|ex|px|in|cm|mm|pt|pc|%)?\s*$/);
-                        if (!matches){
-                            return undefined;
-                        }
-                        let n = parseInt(matches[1]);
-                        if (!matches[2]){
-                            return n;
-                        }
-                        let unit = matches[2];
-                        if (unit == '%'){
-                            return undefined;
-                        }
-                        return multiple[unit] * n;
-                    };
-                    if (namespace == 'http://www.w3.org/2000/svg' && name.toLowerCase() == 'svg'){
-                        var attrs = {};
-                        for (let i = 0, l = attributes.length; i < l; ++i){
-                            let attr = attributes[i];
-                            if (attr.namespace === null){
-                                attrs[attr.name] = attr.value;
-                            }
-                        }
-                        metadata.width = px(attrs.width);
-                        metadata.height = px(attrs.height);
+        parser.parse(xml, {
+            beginElement: function(name, prefix, namespace, attributes, isClosed){
+                var multiple = {
+                    'em': 12,
+                    'ex': 24,
+                    'px': 1,
+                    'in': 72,
+                    'cm': 72/2.54,
+                    'mm': 72/25.4,
+                    'pt': 1,
+                    'pc': 12
+                };
+                var px = function(length){
+                    if (length === undefined || length === null){
+                        return undefined;
                     }
-                    throw new Error("Stopping parser");
+                    var matches = length.match(/^\s*(\d+)\s*(em|ex|px|in|cm|mm|pt|pc|%)?\s*$/);
+                    if (!matches){
+                        return undefined;
+                    }
+                    let n = parseInt(matches[1]);
+                    if (!matches[2]){
+                        return n;
+                    }
+                    let unit = matches[2];
+                    if (unit == '%'){
+                        return undefined;
+                    }
+                    return multiple[unit] * n;
+                };
+                if (namespace == 'http://www.w3.org/2000/svg' && name.toLowerCase() == 'svg'){
+                    var attrs = {};
+                    for (let i = 0, l = attributes.length; i < l; ++i){
+                        let attr = attributes[i];
+                        if (attr.namespace === null){
+                            attrs[attr.name] = attr.value;
+                        }
+                    }
+                    metadata.image.width = px(attrs.width);
+                    metadata.image.height = px(attrs.height);
                 }
-            });
-        }catch (e){
-            // either an intentional stop or...
-            // oh well
-        }
+                parser.stop();
+            }
+        });
     },
 
     '.ttf': async function(name, contents, metadata){
@@ -349,45 +387,11 @@ var addMetadata = {
             }
             let name = font.tables.name;
             if (name){
-                let family = name.getName(
-                    [1, 0, 0, 16],
-                    [1, 0, 0, 1],
-                    [3, 1, 1033, 16],
-                    [3, 1, 1033, 1],
-                );
-                if (family !== null){
-                    metadata.font.family = family;
-                }
-                let face = name.getName(
-                    [1, 0, 0, 17],
-                    [1, 0, 0, 2],
-                    [3, 1, 1033, 17],
-                    [3, 1, 1033, 2],
-                );
-                if (face !== null){
-                    metadata.font.face = face;
-                }
-                let uniqueID = name.getName(
-                    [1, 0, 0, 3],
-                    [3, 1, 1033, 3],
-                );
-                if (uniqueID !== null){
-                    metadata.font.unique_identifier = uniqueID;
-                }
-                let fontName = name.getName(
-                    [1, 0, 0, 4],
-                    [3, 1, 1033, 4],
-                );
-                if (fontName !== null){
-                    metadata.font.name = fontName;
-                }
-                let postscript = name.getName(
-                    [1, 0, 0, 6],
-                    [3, 1, 1033, 6],
-                );
-                if (postscript !== null){
-                    metadata.font.postscript_name = postscript;
-                }
+                metadata.font.family = name.family;
+                metadata.font.face = name.face;
+                metadata.font.name = name.fullName;
+                metadata.font.unique_identifier = name.uniqueID;
+                metadata.font.postscript_name = name.postscript;
             }
             let os2 = font.tables['OS/2'];
             if (os2){
@@ -412,6 +416,8 @@ var addMetadata = {
                 );
                 let data = null;
                 if (map !== null){
+                    let offset = map.format >= 10 ? 12 : 6;
+                    data = map.data.subdataInRange(JSRange(offset, map.data.length - offset));
                 }
                 if (data !== null){
                     metadata.font.cmap = {
@@ -426,7 +432,7 @@ var addMetadata = {
                 metadata.font.descender = hhea.descender;
                 metadata.font.line_gap = hhea.lineGap;
                 let hmtx = font.tables.hmtx;
-                let data = JSData.initWithLength(hhea.numberOfHMetrics);
+                let data = JSData.initWithLength(hhea.numberOfHMetrics * 2);
                 let dataView = data.dataView();
                 let o = 0;
                 for (let i = 0; i < hhea.numberOfHMetrics; ++i, o += 2){

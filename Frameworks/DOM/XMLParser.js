@@ -9,6 +9,11 @@ XMLParser.prototype = {
     isHTML: false,
 
     state: null,
+    isStopped: false,
+
+    stop: function(){
+        this.isStopped = true;
+    },
 
     parse: function(input, listener){
         var length = input.length;
@@ -137,7 +142,7 @@ XMLParser.prototype = {
                         readWhitespace();
                         attributes.push({name: attrName, value: textByDecodingEntities(readAttributeValue())});
                     }else{
-                        attributes.push({name: attrName, value: true});
+                        attributes.push({name: attrName, value: null});
                     }
                     readWhitespace();
                 }
@@ -178,6 +183,17 @@ XMLParser.prototype = {
                 throw new Error("Expecting '" + token + "' at " + lineNumber  + ':' + (offset - lineOffset));
             }
             var content = input.substr(offset, index - offset);
+            var newlineIndex = content.lastIndexOf("\n");
+            if (newlineIndex >= 0){
+                lineOffset = offset + newlineIndex + 1;
+                while (newlineIndex > 0){
+                    lineNumber += 1;
+                    newlineIndex = content.lastIndexOf("\n", newlineIndex - 1);
+                    if (newlineIndex === 0){
+                        lineNumber += 1;
+                    }
+                }
+            }
             offset = index + token.length;
             return content;
         };
@@ -244,7 +260,7 @@ XMLParser.prototype = {
         if (listener.beginDocument){
             listener.beginDocument();
         }
-        while (obj !== null){
+        while (!this.isStopped && obj !== null){
             if (obj.kind == 'Doctype'){
                 if (hasSentDoctype){
                     throw new Error("Only one doctype allowed");
@@ -290,10 +306,10 @@ XMLParser.prototype = {
                 }
                 var elementIsClosed = obj.isClosed;
                 if (obj.rawContents !== null){
-                    if (listener.handleText && obj.rawContents.length > 0){
+                    if (!this.isStopped && listener.handleText && obj.rawContents.length > 0){
                         listener.handleText(obj.rawContents);
                     }
-                    if (listener.endElement){
+                    if (!this.isStopped && listener.endElement){
                         listener.endElement();
                     }
                     elementIsClosed = true;
@@ -324,7 +340,7 @@ XMLParser.prototype = {
             }
             obj = readObject();
         }
-        if (listener.endDocument){
+        if (!this.isStopped && listener.endDocument){
             listener.endDocument();
         }
     }

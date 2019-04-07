@@ -3,6 +3,11 @@
 
 (function(g){
 
+// web workers don't have the SVG DOM
+if (!g.SVGPathElement){
+    return;
+}
+
 if (!g.SVGPathSegList){
 
     g.SVGPathSegList = function SVGPathSegList(pathElement){

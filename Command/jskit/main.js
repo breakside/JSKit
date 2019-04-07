@@ -52,5 +52,16 @@ module.exports.main = async function(){
         process.exitCode = 0;
         return;
     }
-    await command.run();
+    try {
+        await command.run();
+    }catch (e){
+        process.stderr.write("\nFailed!\n");
+        if (e){
+            process.stderr.write(e.toString() + "\n");
+            process.stderr.write(e.stack + "\n");
+        }else{
+            process.stderr.write("(No error information)\n");
+        }
+        process.exitCode = -1;
+    }
 };

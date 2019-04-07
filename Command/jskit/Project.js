@@ -36,6 +36,21 @@ JSClass("Project", JSObject, {
         return identifier.substr(index + 1);
     },
 
+    getInfoString: function(infoKey, resources){
+        var infoValue = this.info[infoKey] || '';
+        var devlang = this.info.JSDevelopmentLanguage || null;
+        if (devlang !== null && (devlang in resources.lookup)){
+            if (infoValue.length > 0 && infoValue[0] == '.'){
+                let hits = resources.lookup[devlang]["Info.strings"];
+                if (hits && hits.length > 0){
+                    let table = resources.metadata[hits[0]].strings;
+                    return table[infoValue.substr(1)] || '';
+                }
+            }
+        }
+        return infoValue;
+    },
+
     // -----------------------------------------------------------------------
     // MARK: - Loading Project
 
@@ -112,6 +127,9 @@ JSClass("Project", JSObject, {
             urls.push(url);
             for (let i = 0, l = entries.length; i < l; ++i){
                 let entry = entries[i];
+                if (entry.name.startsWith(".'")){
+                    continue;
+                }
                 if (entry.itemType == JSFileManager.ItemType.directory){
                     stack.push(entry.url);
                 }
@@ -127,11 +145,13 @@ JSClass("Project", JSObject, {
     findJavascriptImports: async function(roots, includeDirectoryURLs){
         var result = {
             files: [],
-            frameworks: []
+            frameworks: [],
+            features: []
         };
         var visited = {
             paths: new Set(),
-            frameworks: new Set()
+            frameworks: new Set(),
+            features: new Set()
         };
         let prefix = "%s/".sprintf(this.url.lastPathComponent);
 
@@ -182,7 +202,8 @@ JSClass("Project", JSObject, {
                                 found = await this.fileManager.itemExistsAtURL(candidateURL);
                                 if (found){
                                     let link = await this.fileManager.contentsAtURL(candidateURL);
-                                    candidateURL = JSURL.initWithString(link, candidateURL);
+                                    candidateURL = JSURL.initWithString(link.stringByDecodingUTF8(), candidateURL);
+                                    candidateURL.hasDirectoryPath = true;
                                     isProject = true;
                                     found = await this.fileManager.itemExistsAtURL(candidateURL);
                                     if (!found){
@@ -210,6 +231,12 @@ JSClass("Project", JSObject, {
                         }else{
                             result.frameworks.push({name: name, url: candidateURL});
                         }
+                    }
+                }
+                for (let i = 0, l = imports.features.length; i < l; ++i){
+                    let feature = imports.features[i];
+                    if (!visited.features.has(feature)){
+                        result.features.push(feature);
                     }
                 }
             }

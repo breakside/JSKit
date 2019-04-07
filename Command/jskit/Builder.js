@@ -26,17 +26,8 @@ JSClass("Builder", JSObject, {
         this.arguments = args;
         this.watchlist = [];
         this.commands = [];
+        this.builtURLs = {};
         this.fileManager = project.fileManager;
-        var now = new Date();
-        this.buildLabel = "%04d-%02d-%02d-%02d-%02d-%02d".sprintf(
-            now.getFullYear(),
-            now.getMonth() + 1,
-            now.getDate(),
-            now.getHours(),
-            now.getMinutes(),
-            now.getSeconds()
-        );
-        this.buildId = JSMD5Hash(this.buildLabel.utf8()).hexStringRepresentation();
     },
 
     // -----------------------------------------------------------------------
@@ -55,6 +46,7 @@ JSClass("Builder", JSObject, {
 
     project: null,
     arguments: null,
+    builtURLs: null,
 
     // -----------------------------------------------------------------------
     // MARK: - Status
@@ -74,8 +66,21 @@ JSClass("Builder", JSObject, {
     },
 
     setup: async function(){
+        var now = new Date();
+        this.buildLabel = "%04d-%02d-%02d-%02d-%02d-%02d".sprintf(
+            now.getFullYear(),
+            now.getMonth() + 1,
+            now.getDate(),
+            now.getHours(),
+            now.getMinutes(),
+            now.getSeconds()
+        );
+        this.buildId = JSMD5Hash(this.buildLabel.utf8()).hexStringRepresentation();
         this.commands = [];
+        this.watchlist = [];
+        this.builtURLs = {};
         this.buildURL = this.buildsRootURL.appendingPathComponents([this.project.info.JSBundleIdentifier, this.debug ? "debug" : this.buildLabel], true);
+        await this.project.load();
     },
 
     finish: async function(){
@@ -110,7 +115,11 @@ JSClass("Builder", JSObject, {
             let name = names[i];
             let builtURL = url;
             if (url.fileExtension != '.jsframework'){
-                builtURL = await this.buildFramework(url);
+                builtURL = this.builtURLs[name];
+                if (!builtURL){
+                    builtURL = await this.buildFramework(url);
+                    this.builtURLs[name] = builtURL;
+                }
             }
             let framework = Framework.initWithURL(builtURL, this.fileManager);
             await framework.load();

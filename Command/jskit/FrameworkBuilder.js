@@ -115,12 +115,13 @@ JSClass("FrameworkBuilder", Builder, {
         this.printer.setStatus("Copying code...");
         var genericFrameworks = new Set();
         var genericFiles = new Set();
+        var genericFeatures = new Set();
         var sources = {};
         var roots = this.environmentRoots;
         var includeDirectoryURLs = await this.project.findIncludeDirectoryURLs();
         for (let env in roots){
             let root = roots[env];
-            sources[env] = {frameworks: [], files: []};
+            sources[env] = {frameworks: [], files: [], features: []};
             let imports = await this.project.findJavascriptImports([root], includeDirectoryURLs);
             for (let i = 0, l = imports.frameworks.length; i < l; ++i){
                 let framework = imports.frameworks[i];
@@ -141,7 +142,17 @@ JSClass("FrameworkBuilder", Builder, {
                 if (env == 'generic' || !genericFiles.has(bundledPath)){
                     sources[env].files.push(bundledPath);
                     let bundledURL = JSURL.initWithString(bundledPath, this.sourcesURL);
+                    this.printer.setStatus("Copying %s...".sprintf(file.url.lastPathComponent));
                     await this.fileManager.copyItemAtURL(file.url, bundledURL);
+                }
+            }
+            for (let i = 0, l = imports.features.length; i < l; ++i){
+                let feature = imports.features[i];
+                if (env == 'generic'){
+                    genericFeatures.add(feature);
+                }
+                if (env == 'generic' || !genericFeatures.has(feature)){
+                    sources[env].features.push(feature);
                 }
             }
         }
@@ -152,6 +163,7 @@ JSClass("FrameworkBuilder", Builder, {
         this.printer.setStatus("Minifying code...");
         var genericFrameworks = new Set();
         var genericFiles = new Set();
+        var genericFeatures = new Set();
         var sources = {};
         var roots = this.environmentRoots;
         var includeDirectoryURLs = await this.project.findIncludeDirectoryURLs();
@@ -173,6 +185,7 @@ JSClass("FrameworkBuilder", Builder, {
                 }
             }
             await compilation.finish();
+            sources[env].files = compilation.files;
             for (let i = 0, l = compilation.frameworks.length; i < l; ++i){
                 let framework = compilation.frameworks[i];
                 if (env == 'generic'){
@@ -182,7 +195,15 @@ JSClass("FrameworkBuilder", Builder, {
                     sources[env].frameworks.push(framework);
                 }
             }
-            sources[env].files = compilation.files;
+            for (let i = 0, l = imports.features.length; i < l; ++i){
+                let feature = imports.features[i];
+                if (env == 'generic'){
+                    genericFeatures.add(feature);
+                }
+                if (env == 'generic' || !genericFeatures.has(feature)){
+                    sources[env].features.push(feature);
+                }
+            }
         }
         return sources;
     },

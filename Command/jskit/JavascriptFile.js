@@ -20,7 +20,8 @@ JSClass("JavascriptFile", JSObject, {
     imports: function(){
         var imports = {
             paths: [],
-            frameworks: []
+            frameworks: [],
+            features: []
         };
         var scan = this.next();
         while (scan !== null){
@@ -38,6 +39,8 @@ JSClass("JavascriptFile", JSObject, {
                         sourceLine: this.lineNumber
                     });
                 }
+            }else if (scan.command == "feature"){
+                imports.features.push(scan.args);
             }
             scan = this.next();
         }

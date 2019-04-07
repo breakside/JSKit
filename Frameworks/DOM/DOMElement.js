@@ -75,6 +75,24 @@ DOM.Element.prototype = Object.create(DOM.Node.prototype, {
             }
             return null;
         }
+    },
+
+    hasAttribute: {
+        value: function DOMElement_hasAttribute(name){
+            var attr = this._attributeMap[':global:'][name];
+            return attr !== undefined;
+        }
+    },
+
+    removeAttribute: {
+        value: function DOMElement_removeAttribute(name){
+            var attr = this._attributeMap[':global:'][name];
+            if (attr){
+                var index = this.attributes.indexOf(attr);
+                this.attributes.splice(index, 1);
+                delete this._attributeMap[':global:'][name];
+            }
+        }
     }
 
 });

@@ -591,6 +591,63 @@ JSClass("FNTOpenTypeFontTableName", FNTOpenTypeFontTable, {
             }
         }
         return null;
+    },
+
+    _getNameString: function(){
+        var nameIds = Array.prototype.slice.call(arguments, 0);
+        var mac = this.lookup["1:0:0"];
+        var win = this.lookup["3:1:1033"];
+        var macEncoding = String.Encoding.utf8;
+        var winEncoding = String.Encoding.utf16be;
+        var i, l;
+        var nameId;
+        if (mac){
+            for (i = 0, l = nameIds.length; i < l; ++i){
+                nameId = nameIds[i];
+                if (nameId in mac){
+                    return String.initWithData(mac[nameId], macEncoding);
+                }
+            }
+        }
+        if (win){
+            for (i = 0, l = nameIds.length; i < l; ++i){
+                nameId = nameIds[i];
+                if (nameId in win){
+                    return String.initWithData(win[nameId], winEncoding);
+                }
+            }
+        }
+        return null;
+    },
+
+    family: JSReadOnlyProperty(),
+
+    getFamily: function(){
+        return this._getNameString(16, 1);
+    },
+
+    face: JSReadOnlyProperty(),
+
+    getFace: function(){
+        return this._getNameString(17, 2);
+    },
+
+    uniqueID: JSReadOnlyProperty(),
+
+    getUniqueID: function(){
+        return this._getNameString(3);
+    },
+
+    postscript: JSReadOnlyProperty(),
+
+    getPostscript: function(){
+        return this._getNameString(6);
+    },
+
+    fullName: JSReadOnlyProperty(),
+
+    getFullName: function(){
+        return this._getNameString(4);
     }
 });
 

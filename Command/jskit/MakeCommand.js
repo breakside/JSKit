@@ -3,6 +3,7 @@
 // #import "Builder.js"
 // #import "FrameworkBuilder.js"
 // #import "NodeBuilder.js"
+// #import "HtmlBuilder.js"
 // #import "Printer.js"
 /* global JSClass, JSObject, Command, MakeCommand, Project, Builder, Printer */
 'use strict';
@@ -54,13 +55,16 @@ JSClass("MakeCommand", Command, {
         }
         this.printer.setStatus("Starting...");
         await this.builder.build();
-        this.printer.setStatus("Done (build label: %s)".sprintf(this.builder.buildLabel));
+        var willWatch = this.arguments.watch && this.builder.watchlist.length > 0;
+        if (!willWatch){
+            this.printer.setStatus("Done (build label: %s)".sprintf(this.builder.buildLabel));
+        }
         if (this.builder.commands.length > 0){
             var commands = "$ " + this.builder.commands.join("\n$ ") + "\n";
-            this.printer.print(commands);
+            this.printer.print(commands, false, willWatch);
         }
         while (this.arguments.watch && this.builder.watchlist.length > 0){
-            this.printer.print("Watching for file changes...\n");
+            this.printer.setStatus("Done (build label: %s).  Watching for file changes...".sprintf(this.builder.buildLabel));
             await this.watchForChanges(this.builder.watchlist);
             await this.builder.build();
         }
@@ -68,6 +72,7 @@ JSClass("MakeCommand", Command, {
     },
 
     watchForChanges: async function(watchlist){
+        var fileManager = this.fileManager;
         return new Promise(function(resolve, reject){
             var watchers = [];
             var handleChange = function(){
@@ -77,9 +82,10 @@ JSClass("MakeCommand", Command, {
                 watchers = [];
                 resolve();
             };
-            var watcher;
-            for (var i = 0, l = watchlist.length; i < l; ++i){
-                watcher = fs.watch(watchlist[i], handleChange);
+            for (let i = 0, l = watchlist.length; i < l; ++i){
+                let url = watchlist[i];
+                let path = fileManager.pathForURL(watchlist[i]);
+                let watcher = fs.watch(path, {recursive: url.hasDirectoryPath}, handleChange);
                 watchers.push(watcher);
             }
         });

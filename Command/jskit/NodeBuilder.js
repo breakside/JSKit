@@ -37,6 +37,7 @@ JSClass("NodeBuilder", Builder, {
 
     setup: async function(){
         await NodeBuilder.$super.setup.call(this);
+        this.watchlist.push(this.project.url);
         this.isJSKit = this.project.info.JSBundleIdentifier == "io.breakside.jskit";
         this.executableRequires = [];
         this.bundleURL = this.buildURL.appendingPathComponent(this.executableName, true);
@@ -100,6 +101,12 @@ JSClass("NodeBuilder", Builder, {
 
     // ----------------------------------------------------------------------
     // MARK: - Frameworks
+
+    buildFramework: async function(url){
+        let builtURL = await NodeBuilder.$super.buildFramework.call(this, url);
+        this.watchlist.push(url);
+        return builtURL;
+    },
 
     bundleFrameworks: async function(){
         var frameworks = await this.buildFrameworks(this.imports.frameworks, 'node');
@@ -180,6 +187,12 @@ JSClass("NodeBuilder", Builder, {
             ResourceLookup: {},
             Fonts: []
         };
+        if (isMain){
+            if (this.hasLinkedDispatchFramework){
+                bundle.Info = JSCopy(bundle.Info);
+                bundle.Info.JSNodeDispatchQueueWorkerModule = this.workerURL.lastPathComponent;
+            }
+        }
         if (resources){
             for (let i = 0, l = resources.metadata.length; i < l; ++i){
                 let metadata = JSCopy(resources.metadata[i]);
@@ -200,10 +213,6 @@ JSClass("NodeBuilder", Builder, {
             js += 'JSBundle.mainBundleIdentifier = "%s";\n'.sprintf(info.JSBundleIdentifier);
             js += 'var path = require("path");\n';
             js += 'JSBundle.nodeRootPath = path.dirname(path.dirname(__filename));\n';
-            if (this.hasLinkedDispatchFramework){
-                bundle.Info = JSCopy(bundle.Info);
-                bundle.Info.JSNodeDispatchQueueWorkerModule = this.workerURL.lastPathComponent;
-            }
         }
         var jsURL = parentURL.appendingPathComponent("node-bundle.js");
         await this.fileManager.createFileAtURL(jsURL, js.utf8());

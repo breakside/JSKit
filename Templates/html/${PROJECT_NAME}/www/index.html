@@ -83,18 +83,18 @@
     <div id="progress"><div id="progress-bar"></div></div>
     <div id="details"></div>
   </div>
-  <script type="text/javascript" src="HTMLAppBootstrapper.js?{{BUILD_ID}}"></script>
-  <script type="text/javascript">
+  <script type="text/javascript" src="HTMLAppBootstrapper.js"></script>
+  <script type="text/javascript" jskit>
   'use strict';
   (function(){
-    var jskitapp = {{JSKIT_APP}};
+    var app = {{JSKIT_APP}};
     var splash = document.getElementById('splash');
     var statusLabel = document.getElementById('status');
     var detailsLabel = document.getElementById('details');
     var bootstrapStyle = document.getElementById('bootstrap-style');
     var progress = document.getElementById('progress');
     var progressBar = document.getElementById('progress-bar');
-    var bootstrapper = HTMLAppBootstrapper(document.body, jskitapp);
+    var bootstrapper = HTMLAppBootstrapper(document.body, app);
     var downListener = null;
     bootstrapper.onstatus = function index_boostrapper_status(){
       var S = HTMLAppBootstrapper.STATUS;

@@ -54,17 +54,20 @@ XMLSerializer.prototype = {
                 }
             }else if (node.nodeType == DOM.Node.ATTRIBUTE_NODE){
                 value = node.value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+                if (value !== null){
+                    value = '="%s"'.sprintf(value);
+                }
                 if (node.namespaceURI){
                     if (node.prefix){
                         if (!(node.prefix in namespaces)){
                             str += ' xmlns:%s="%s"'.sprintf(node.prefix, node.namespaceURI);
                         }
-                        str += ' %s:%s="%s"'.sprintf(node.prefix, node.localName, value);
+                        str += ' %s:%s%s'.sprintf(node.prefix, node.localName, value);
                     }else{
-                        str += ' %s="%s"'.sprintf(node.localName, value);
+                        str += ' %s%s'.sprintf(node.localName, value);
                     }
                 }else{
-                    str += ' %s="%s"'.sprintf(node.localName, value);
+                    str += ' %s%s'.sprintf(node.localName, value);
                 }
             }else if (node.nodeType == DOM.Node.TEXT_NODE){
                 if (isHTML && htmlElements.raw.has(node.parentNode.localName)){

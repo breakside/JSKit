@@ -25,9 +25,9 @@ JSClass("Printer", JSObject, {
     },
 
     print: function(message, reprintStatus=false, overwriteStatus=false){
-        if (overwriteStatus){
-            reprintStatus = true;
-        }
+        // if (overwriteStatus){
+        //     reprintStatus = true;
+        // }
         if (!overwriteStatus && this.statusMessage.length > 0){
             this._printRawData("\n".utf8(), false);
         }

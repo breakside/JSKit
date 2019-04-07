@@ -1,7 +1,9 @@
+// #import DOM
+// #import Hash
 // #import "Builder.js"
 // #import "Resources.js"
 // #import "JavascriptCompilation.js"
-/* global JSClass, JSObject, JSCopy, JSURL, Builder, HTMLBuilder, Resources, JavascriptCompilation */
+/* global JSClass, JSObject, JSCopy, JSURL, Builder, HTMLBuilder, Resources, JavascriptCompilation, JSFileManager, DOMParser, XMLSerializer, DOM, JSSHA1Hash */
 'use strict';
 
 // buildURL
@@ -29,7 +31,7 @@ JSClass("HTMLBuilder", Builder, {
         'docker-owner': {default: null, help: "The docker repo prefix to use when building a docker image"}
     },
 
-    needsDockerBuild: false,
+    needsDockerBuild: true,
 
     bundleURL: null,
     wwwURL: null,
@@ -42,6 +44,7 @@ JSClass("HTMLBuilder", Builder, {
 
     setup: async function(){
         await HTMLBuilder.$super.setup.call(this);
+        this.watchlist.push(this.project.url);
         if (this.arguments.workers === null){
             if (this.debug){
                 this.arguments.workers = 1;
@@ -58,15 +61,17 @@ JSClass("HTMLBuilder", Builder, {
         }
         this.wwwJavascriptPaths = [];
         this.wwwResourcePaths = [];
+        this.preflightFeatures = new Set();
         this.bundleURL = this.buildURL.appendingPathComponent(this.project.name, true);
         this.wwwURL = this.bundleURL.appendingPathComponent('www', true);
         this.confURL = this.bundleURL.appendingPathComponent('conf', true);
         this.logsURL = this.bundleURL.appendingPathComponent('logs', true);
-        this.cacheBustingURL = this.bundleURL.appendingPathComponent(this.debug ? this.buildLabel : this.buildId);
-        this.sourcesURL = this.cacheBustingURL.appendingPathComponent("JS");
+        this.cacheBustingURL = this.wwwURL.appendingPathComponent(this.debug ? 'debug' : this.buildId);
+        this.sourcesURL = this.cacheBustingURL.appendingPathComponent("JS", true);
         this.frameworksURL = this.cacheBustingURL.appendingPathComponent("Frameworks");
         this.resourcesURL = this.wwwURL.appendingPathComponent('Resources', true);
-        var exists = await this.fileManager.itemExistsAtURL(this.www);
+        this.workerURL = this.cacheBustingURL.appendingPathComponent("JSDispatch-worker.js");
+        var exists = await this.fileManager.itemExistsAtURL(this.wwwURL);
         if (exists){
             this.printer.setStatus("Cleaning old build...");
             var entries = await this.fileManager.contentsOfDirectoryAtURL(this.wwwURL);
@@ -80,7 +85,7 @@ JSClass("HTMLBuilder", Builder, {
         await this.fileManager.createDirectoryAtURL(this.wwwURL);
         await this.fileManager.createDirectoryAtURL(this.logsURL);
         await this.fileManager.createDirectoryAtURL(this.cacheBustingURL);
-        await this.fileManager.createDirectoryAtURL(this.sourceURL);
+        await this.fileManager.createDirectoryAtURL(this.sourcesURL);
         await this.fileManager.createDirectoryAtURL(this.frameworksURL);
         await this.fileManager.createDirectoryAtURL(this.resourcesURL);
     },
@@ -119,6 +124,12 @@ JSClass("HTMLBuilder", Builder, {
     // ----------------------------------------------------------------------
     // MARK: - Frameworks
 
+    buildFramework: async function(url){
+        let builtURL = await HTMLBuilder.$super.buildFramework.call(this, url);
+        this.watchlist.push(url);
+        return builtURL;
+    },
+
     bundleFrameworks: async function(){
         var frameworks = await this.buildFrameworks(this.imports.frameworks, 'html');
         for (let i = 0, l = frameworks.length; i < l; ++i){
@@ -134,7 +145,14 @@ JSClass("HTMLBuilder", Builder, {
         await this.fileManager.copyItemAtURL(framework.sourcesURL, bundledURL);
         await this.addFrameworkSources(framework, 'generic', bundledURL);
         await this.addFrameworkSources(framework, 'html', bundledURL);
-        await this.addBundleJS(bundledURL, framework.info, framework.resources);
+        let sourceURLs = [];
+        let resourcesBase = framework.url.appendingPathComponent("Resources");
+        for (let i = 0, l = framework.resources.metadata.length; i < l; ++i){
+            let metadata = framework.resources.metadata[i];
+            let url = resourcesBase.appendingPathComponent(metadata.path);
+            sourceURLs.push(url);
+        }
+        await this.addBundleJS(bundledURL, framework.info, framework.resources, sourceURLs);
         if (framework.info.JSBundleIdentifier == 'io.breakside.JSKit.Dispatch'){
             this.hasLinkedDispatchFramework = true;
         }
@@ -149,13 +167,17 @@ JSClass("HTMLBuilder", Builder, {
         if (!sources){
             return;
         }
-        if (!sources.files){
-            return;
+        if (sources.files){
+            let prefix = toURL.encodedStringRelativeTo(this.wwwURL);
+            for (let i = 0, l = sources.files.length; i < l; ++i){
+                let path = prefix + sources.files[i];
+                this.wwwJavascriptPaths.push(path);
+            }
         }
-        let prefix = toURL.encodedStringRelativeTo(this.wwwURL);
-        for (let i = 0, l = sources.files.length; i < l; ++i){
-            let path = prefix + sources.files[i];
-            this.wwwJavascriptPaths.push(path);
+        if (sources.features){
+            for (let i = 0, l = sources.features.length; i < l; ++i){
+                this.preflightFeatures.add(sources.features[i]);
+            }
         }
     },
 
@@ -177,28 +199,38 @@ JSClass("HTMLBuilder", Builder, {
         for (let i = 0, l = resourceURLs.length; i < l; ++i){
             let url = resourceURLs[i];
             this.printer.setStatus("Inspecting %s...".sprintf(url.lastPathComponent));
-            await resources.addResourceAtURL(url);
+            try{
+                await resources.addResourceAtURL(url);
+            }catch (e){
+                throw e;
+            }
         }
         this.resources = resources;
     },
 
     bundleResources: async function(){
-        await this.addBundleJS(this.sourcesURL, this.project.info, this.resources, true);
+        await this.addBundleJS(this.sourcesURL, this.project.info, this.resources, this.resources.sourceURLs, true);
     },
 
-    addBundleJS: async function(parentURL, info, resources, isMain){
+    addBundleJS: async function(parentURL, info, resources, sourceURLs, isMain){
         var bundle = {
             Info: info,
             Resources: [],
             ResourceLookup: {},
             Fonts: []
         };
+        if (isMain){
+            if (this.hasLinkedDispatchFramework){
+                bundle.Info = JSCopy(bundle.Info);
+                bundle.Info.JSHTMLDispatchQueueWorkerScript = this.workerURL.encodedStringRelativeTo(this.wwwURL);
+            }
+        }
         if (resources){
             for (let i = 0, l = resources.metadata.length; i < l; ++i){
                 let metadata = JSCopy(resources.metadata[i]);
                 let hashedPath = metadata.hash + metadata.path.fileExtension;
                 let url = this.resourcesURL.appendingPathComponent(hashedPath);
-                let sourceURL = resources.sourceURLs[i];
+                let sourceURL = sourceURLs[i];
                 metadata.htmlURL = url.encodedStringRelativeTo(this.wwwURL);
                 bundle.Resources.push(metadata);
                 if (metadata.font){
@@ -209,6 +241,7 @@ JSClass("HTMLBuilder", Builder, {
                     this.printer.setStatus("Copying %s...".sprintf(sourceURL.lastPathComponent));
                     await this.fileManager.copyItemAtURL(sourceURL, url);
                 }
+                this.wwwResourcePaths.push(metadata.htmlURL);
             }
             if (resources.lookup){
                 bundle.ResourceLookup = resources.lookup;
@@ -219,7 +252,7 @@ JSClass("HTMLBuilder", Builder, {
         if (isMain){
             js += 'JSBundle.mainBundleIdentifier = "%s";\n'.sprintf(info.JSBundleIdentifier);
         }
-        var jsURL = parentURL.appendingPathComponent("node-bundle.js");
+        var jsURL = parentURL.appendingPathComponent("html-bundle.js");
         await this.fileManager.createFileAtURL(jsURL, js.utf8());
         var path = jsURL.encodedStringRelativeTo(this.wwwURL);
         this.wwwJavascriptPaths.push(path);
@@ -247,16 +280,12 @@ JSClass("HTMLBuilder", Builder, {
             await this.fileManager.copyItemAtURL(file.url, bundledURL);
             this.wwwJavascriptPaths.push(wwwPath);
         }
+        for (let i = 0, l = this.imports.features.length; i < l; ++i){
+            this.preflightFeatures.add(this.imports.features[i]);
+        }
     },
 
     minifyReleaseJavascript: async function(){
-        for (let i = 0, l = this.imports.files.length; i < l; ++i){
-            let file = this.imports.files[i];
-            let bundledPath = file.url.encodedStringRelativeTo(this.project.url);
-            let bundledURL = JSURL.initWithString(bundledPath, this.nodeURL);
-            await this.fileManager.copyItemAtURL(file.url, bundledURL);
-            this.executableRequires.push(bundledPath);
-        }
         let compilation = JavascriptCompilation.initWithName("%s.js".sprintf(this.project.name), this.sourcesURL, this.fileManager);
         var header = "%s (%s)\n----\n%s".sprintf(this.project.info.JSBundleIdentifier, this.project.info.JSBundleVersion, this.project.licenseString);
         compilation.writeComment(header);
@@ -270,6 +299,9 @@ JSClass("HTMLBuilder", Builder, {
             let wwwPath = url.encodedStringRelativeTo(this.wwwURL);
             this.wwwJavascriptPaths.push(wwwPath);
         }
+        for (let i = 0, l = this.imports.features.length; i < l; ++i){
+            this.preflightFeatures.add(this.imports.features[i]);
+        }
     },
 
     // -----------------------------------------------------------------------
@@ -277,45 +309,108 @@ JSClass("HTMLBuilder", Builder, {
 
     wwwJavascriptPaths: null,
     wwwCSSPaths:  null,
+    wwwPaths: null,
     manifestURL: null,
     preflightId: null,
     preflightURL: null,
+    preflightFeatures: null,
     workerURL: null,
 
     bundleWWW: async function(){
         this.wwwCSSPaths = [];
+        this.wwwPaths = [];
+        this.manifestURL = this.wwwURL.appendingPathComponent("manifest.appcache");
+
         await this.buildCSS();
         await this.buildPreflight();
-        await this.buildManifest();
-
-        var params = {
-            JSKIT_APP: JSON.stringify({
-                appSrc: this.wwwJavascriptPaths,
-                appCss: this.wwwCSSPaths,
-                preflightId: this.preflightId,
-                preflightSrc: this.preflightURL.encodedStringRelativeTo(this.wwwURL)
-            }, 2),
-            BUILD_ID: this.buildId
-        };
 
         var projectWWWURL = this.project.url.appendingPathComponent('www');
         var entries = await this.fileManager.contentsOfDirectoryAtURL(projectWWWURL);
+        var indexName = this.project.info.UIApplicationHTMLIndexFile || 'index.html';
         for (let i = 0, l = entries.length; i < l; ++i){
             let entry = entries[i];
+            if (entry.name.startsWith('.')){
+                continue;
+            }
             let toURL = this.wwwURL.appendingPathComponent(entry.url.lastPathComponent);
-            if (entry.name == 'index.html'){
+            if (entry.name == indexName){
                 await this.buildIndex(entry.url, toURL);
             }else{
                 await this.fileManager.copyItemAtURL(entry.url, toURL);
+                if (entry.itemType != JSFileManager.ItemType.directory){
+                    this.wwwPaths.push(entry.name);
+                }
             }
         }
+
+        await this.buildManifest();
     },
 
     buildIndex: async function(sourceURL, toURL){
         let contents = await this.fileManager.contentsAtURL(sourceURL);
         let html = contents.stringByDecodingUTF8();
-        let documet = DOMParser.parseFromString(html, "text/html");
-        let serializer = DOMSerializer
+        let parser = new DOMParser();
+        let document = parser.parseFromString(html, "text/html");
+        let stack = [document.documentElement];
+        while (stack.length > 0){
+            let element = stack.shift();
+            if (element.localName == 'head'){
+                let icons = this.applicationIcons();
+                for (let i = 0, l = icons.length; i < l; ++i){
+                    let icon = icons[i];
+                    if (icon.rel == 'mask-icon'){
+                        continue;
+                    }
+                    let link = document.createElement("link");
+                    link.setAttribute("rel", icon.rel);
+                    link.setAttribute("href", icon.href);
+                    link.setAttribute("type", icon.type);
+                    link.setAttribute("sizes", icon.sizes);
+                    element.appendChild(link);
+                }
+            }else if (element.localName == 'title' && element.parentNode.localName == 'head'){
+                let title = this.project.getInfoString('UIApplicationTitle', this.resources);
+                element.appendChild(document.createTextNode(title));
+            }else if (element.localName == 'script' && element.getAttribute('type') == 'text/javascript'){
+                if (element.hasAttribute("jskit")){
+                    let params = {
+                        JSKIT_APP: JSON.stringify({
+                            appSrc: this.wwwJavascriptPaths,
+                            appCss: this.wwwCSSPaths,
+                            preflightId: this.preflightId,
+                            preflightSrc: this.preflightURL.encodedStringRelativeTo(this.wwwURL)
+                        }, null, 2)
+                    };
+                    element.removeAttribute("jskit");
+                    var js = "";
+                    for (let i = 0, l = element.childNodes.length; i < l; ++i){
+                        let child = element.childNodes[i];
+                        js += child.data;
+                    }
+                    js = js.replacingTemplateParameters(params);
+                    for (let i = element.childNodes.length - 1; i > 0; --i){
+                        let child = element.childNodes[i];
+                        element.removeChild(child);
+                    }
+                    if (element.childNodes.length === 0){
+                        element.appendChild(document.createTextNode(""));
+                    }
+                    element.childNodes[0].data = js;
+                }
+            }
+            for (let i = 0, l = element.childNodes.length; i < l; ++i){
+                let child = element.childNodes[i];
+                if (child.nodeType == DOM.Node.ELEMENT_NODE){
+                    stack.push(child);
+                }
+            }
+        }
+        if (this.manifestURL){
+            document.documentElement.setAttribute('manifest', this.manifestURL.encodedStringRelativeTo(this.wwwURL));
+        }
+        let serializer = new XMLSerializer();
+        html = serializer.serializeToString(document);
+        await this.fileManager.createFileAtURL(toURL, html.utf8());
     },
 
     buildCSS: async function(){
@@ -330,66 +425,74 @@ JSClass("HTMLBuilder", Builder, {
             return;
         }
         var lines = [];
+        let fontsCSSURL = this.cacheBustingURL.appendingPathComponent("fonts.css");
         for (let i = 0, l = fonts.length; i < l; ++i){
             let metadata = fonts[i];
+            let bundledURL = this.resourcesURL.appendingPathComponent(metadata.hash + metadata.path.fileExtension);
             lines.push('@font-face {');
             lines.push('  font-family: "%s";'.sprintf(metadata.font.family));
             lines.push('  font-style: %s;'.sprintf(metadata.font.style));
             // TTF weights can be 1 to 1000, CSS weights can on be multiples of 100
             lines.push('  font-weight: %s;'.sprintf(Math.floor((metadata.font.weight / 100) * 100)));
-            lines.push('  src: url("%s");'.sprintf(metadata.htmlURL));
+            lines.push('  src: url("%s");'.sprintf(bundledURL.encodedStringRelativeTo(fontsCSSURL)));
             lines.push('  font-display: block;');
             lines.push('}');
         }
         let css = lines.join("\n");
-        let url = this.cacheBustingURL.appendingPathComponent("fonts.css");
-        await this.fileManager.createFileAtURL(url, css.utf8());
-        let path = url.encodedStringRelativeTo(this.wwwURL);
+        await this.fileManager.createFileAtURL(fontsCSSURL, css.utf8());
+        let path = fontsCSSURL.encodedStringRelativeTo(this.wwwURL);
         this.wwwCSSPaths.push(path);
     },
 
     buildWorker: async function(){
-        // TODO:
-        // self.updateStatus("Creating worker.js...")
-        // sys.stdout.flush()
-        // workerJSFile = open(self.workerJSPath, 'w')
-        // workerJSFile.write("'use strict';\n")
-        // # FIXME: we should probably include logger config as a script file so we're syncd with index, and so
-        // # it's easier to import here
-        // workerJSFile.write("self.JSGlobalObject = self;\n")
-        // workerJSFile.write("importScripts.apply(undefined, %s);\n" % json.dumps([self.absoluteWebPath(js) for js in self.appJS], indent=2))
-        // workerJSFile.write("var queueWorker = JSHTMLDispatchQueueWorker.init();\n")
-        // workerJSFile.close()
-        // self.manifest.append(workerJSFile.name)
+        this.printer.setStatus("Creating worker.js...");
+        var workerPaths = [];
+        for (let i = 0, l = this.wwwJavascriptPaths.length; i < l; ++i){
+            let path = this.wwwJavascriptPaths[i];
+            let url = JSURL.initWithString(path, this.wwwURL);
+            let workerPath = url.encodedStringRelativeTo(this.workerURL);
+            workerPaths.push(workerPath);
+        }
+        var js = [
+            "'use strict';",
+            "self.JSGlobalObject = self;",
+            "importScripts.apply(undefined, %s);".sprintf(JSON.stringify(workerPaths, null, 2)),
+            "var queueWorker = JSHTMLDispatchQueueWorker.init();",
+            ""
+        ].join("\n");
+        await this.fileManager.createFileAtURL(this.workerURL, js.utf8());
     },
 
     buildPreflight: async function(){
-        // TODO:
-        // self.updateStatus("Creating preflight js...")
-        // sys.stdout.flush()
-        // self.featureCheck = JSFeatureCheck()
-        // self.featureCheck.addFeature(JSFeature('window'))
-        // self.featureCheck.addFeature(JSFeature("document.body"))
-        // for feature in self.jsCompilation.features:
-        //     self.featureCheck.addFeature(feature)
-        // self.preflightFile = open(os.path.join(self.outputWebRootPath, 'preflight-%s.js' % self.featureCheck.hash), 'w')
-        // self.featureCheck.serialize(self.preflightFile, 'bootstrapper')
-        // self.preflightFile.close()
-        // self.manifest.append(self.preflightFile.name)
+        this.printer.setStatus("Creating preflight js...");
+        var features = Array.from(this.preflightFeatures.values()).sort();
+        var checks = [];
+        var js = "'use strict';\nHTMLAppBootstrapper.mainBootstrapper.preflightChecks = [\n";
+        for (let i = 0, l = features.length; i < l; ++i){
+            let feature = features[i];
+            let name = JSON.stringify("feature %s".sprintf(feature));
+            js += '  {name: %s, fn: function(){ return !!(%s); }},\n'.sprintf(name, feature);
+        }
+        js += '];\n';
+        var contents = js.utf8();
+        this.preflightId = JSSHA1Hash(contents).hexStringRepresentation();
+        this.preflightURL = this.wwwURL.appendingPathComponent('preflight-%s.js'.sprintf(this.preflightId));
+        await this.fileManager.createFileAtURL(this.preflightURL, contents);
     },
 
     buildManifest: async function(){
         this.printer.setStatus("Creating manifest.appcache...");
         let lines = [
             "CACHE MANIFEST",
-            "# build %s\n".sprintf(this.buildId)
+            "# build %s".sprintf(this.buildId),
         ];
-        for (let i = 0, l = this.wwwResourcePaths.length; i < l; ++i){
-            lines.push(this.wwwResourcePaths[i]);
+        lines.push("");
+        lines.push("# index related");
+        for (let i = 0, l = this.wwwPaths.length; i < l; ++i){
+            lines.push(this.wwwPaths[i]);
         }
-        for (let i = 0, l = this.wwwCSSPaths.length; i < l; ++i){
-            lines.push(this.wwwCSSPaths[i]);
-        }
+        lines.push("");
+        lines.push("# Javascript");
         for (let i = 0, l = this.wwwJavascriptPaths.length; i < l; ++i){
             lines.push(this.wwwJavascriptPaths[i]);
         }
@@ -397,40 +500,51 @@ JSClass("HTMLBuilder", Builder, {
             let path = this.preflightURL.encodedStringRelativeTo(this.wwwURL);
             lines.push(path);
         }
-        if (this.workerURL !== null){
+        if (this.workerURL !== null && this.hasLinkedDispatchFramework){
             let path = this.workerURL.encodedStringRelativeTo(this.wwwURL);
             lines.push(path);
         }
-        // TODO: Bootstrap include (or any others)
+        lines.push("");
+        lines.push("# Resources");
+        for (let i = 0, l = this.wwwResourcePaths.length; i < l; ++i){
+            lines.push(this.wwwResourcePaths[i]);
+        }
+        lines.push("");
+        lines.push("# CSS");
+        for (let i = 0, l = this.wwwCSSPaths.length; i < l; ++i){
+            lines.push(this.wwwCSSPaths[i]);
+        }
         lines.push("");
         lines.push("NETWORK:");
         lines.push("*");
         lines.push("");
         let txt = lines.join("\n");
-        this.manifestURL = this.wwwURL.appendingPathComponent("manifest.appcache");
         await this.fileManager.createFileAtURL(this.manifestURL, txt.utf8());
     },
 
-
-
-    // TODO: app icons
-    // def applicationIcons(self):
-    //     icons = []
-    //     imagesetName = self.mainBundle.info.get("UIApplicationIcon", None)
-    //     if imagesetName is not None:
-    //         imagesetName += '.imageset'
-    //         contents = self.mainBundle[imagesetName + '/Contents.json']
-    //         images = contents['value']['images']
-    //         for image in images:
-    //             metadata = self.mainBundle[imagesetName + '/' + image['filename']]
-    //             icons.append(dict(
-    //                 rel="icon" if not image.get('mask', False) else 'mask-icon',
-    //                 href=metadata['htmlURL'],
-    //                 type=metadata['mimetype'],
-    //                 sizes=('%dx%d' % (metadata['image']['width'], metadata['image']['height'])) if not metadata['image'].get('vector', False) else 'any',
-    //                 color=image.get('color', None)
-    //             ))
-    //     return icons
+    applicationIcons: function(){
+        var icons = [];
+        let setName = this.project.info.UIApplicationIcon;
+        if (setName){
+            setName += '.imageset';
+            let metadata = this.resources.getMetadata('Contents.json', setName);
+            let contents = metadata.value;
+            let images = contents.images;
+            for (let i = 0, l = images.length; i < l; ++i){
+                let image = images[i];
+                let metadata = this.resources.getMetadata(image.filename, setName);
+                let bundledURL = this.resourcesURL.appendingPathComponent(metadata.hash + metadata.path.fileExtension);
+                icons.push({
+                    rel: image.mask ? "mask-icon" : "icon",
+                    href: bundledURL.encodedStringRelativeTo(this.wwwURL),
+                    type: metadata.mimetype,
+                    sizes: image.vector ? "any" : '%dx%d'.sprintf(metadata.image.width, metadata.image.height),
+                    color: image.color || null
+                });
+            }
+        }
+        return icons;
+    },
 
     // -----------------------------------------------------------------------
     // MARK: - Nginx Conf
@@ -442,6 +556,26 @@ JSClass("HTMLBuilder", Builder, {
             WORKER_CONNECTIONS: this.arguments.connections,
             HTTP_PORT: this.arguments['http-port']
         };
+        var projectConfURL = this.project.url.appendingPathComponents(["conf", this.debug ? "debug" : "release"], true);
+        var entries = await this.fileManager.contentsOfDirectoryAtURL(projectConfURL);
+        for (let i = 0, l = entries.length; i < l; ++i){
+            let entry = entries[i];
+            if (entry.name.startsWith('.')){
+                continue;
+            }
+            let toURL = this.confURL.appendingPathComponent(entry.name);
+            this.printer.setStatus("Copying %s...".sprintf(entry.name));
+            if (entry.name.fileExtension == '.conf'){
+                let contents = await this.fileManager.contentsAtURL(entry.url);
+                let conf = contents.stringByDecodingUTF8();
+                conf = conf.replacingTemplateParameters(params);
+                await this.fileManager.createFileAtURL(toURL, conf.utf8());
+            }else{
+                await this.fileManager.copyItemAtURL(entry.url, toURL);
+            }
+        }
+        let bundlePath = this.fileManager.relativePathFromURL(this.workingDirectoryURL, this.bundleURL);
+        this.commands.push("nginx -p %s".sprintf(bundlePath));
     },
 
     // -----------------------------------------------------------------------
@@ -476,7 +610,53 @@ JSClass("HTMLBuilder", Builder, {
         if (!exists){
             return;
         }
-        // TODO: finish building docker image
+        var contents = await this.fileManager.contentsAtURL(dockerfileURL);
+        var dockerfile = contents.stringByDecodingUTF8();
+        var params = {
+            BUILD_ID: this.buildId,
+            HTTP_PORT: this.arguments['http-port']
+        };
+        dockerfile = dockerfile.replacingTemplateParameters(params);
+        var url = this.buildURL.appendingPathComponent("Dockerfile");
+        await this.fileManager.createFileAtURL(url, dockerfile);
+
+        var prefix = this.arguments['docker-owner'] || this.project.info.DockerOwner;
+        var image = this.project.lastIdentifierPart;
+        var tag = this.debug ? 'debug' : this.buildLabel;
+        var identifier = "%s%s:%s".sprintf(prefix ? prefix + '/' : '', image, tag).toLowerCase();
+        var name = this.project.info.JSBundleIdentifier.replace('/\./g', '_');
+
+        this.printer.setStatus("Building docker image %s...".sprintf(identifier));
+
+        const { spawn } = require('child_process');
+        var args = ["build", "-t", identifier, '.'];
+        var cwd = this.fileManager.pathForURL(this.buildURL);
+        var docker = spawn("docker", args, {cwd: cwd});
+        var err = "";
+        docker.stderr.on('data', function(data){
+            if (data){
+                err += data.stringByDecodingUTF8();
+            }
+        });
+
+        var localWWWPath = this.fileManager.pathForURL(this.wwwURL);
+        var remoteWWWPath = this.wwwURL.encodedStringRelativeTo(this.bundleURL.removingLastPathComponent());
+        this.commands.push([
+            "docker run",
+            "--rm",
+            "--name " + name,
+            "-p%d:%d".sprintf(this.arguments['http-port'], this.arguments['http-port']),
+            "--mount type=bind,source=%s,target=/%s".sprintf(localWWWPath, remoteWWWPath),
+            identifier
+        ].join(" \\\n    "));
+        return new Promise(function(resolve, reject){
+            docker.on('close', function(code){
+                if (code !== 0){
+                    reject(new Error("Error building docker: " + err));
+                }
+                resolve();
+            });
+        });
     },
 
 });
