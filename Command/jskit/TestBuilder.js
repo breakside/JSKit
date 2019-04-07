@@ -109,6 +109,7 @@ JSClass("TestBuilder", Builder, {
                 suites.push(entry.name);
             }
         }
+        suites.sort();
         var includeDirectoryURLs = await this.project.findIncludeDirectoryURLs();
         this.imports = await this.project.findJavascriptImports(suites, includeDirectoryURLs);
     },
