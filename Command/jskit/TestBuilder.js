@@ -133,6 +133,9 @@ JSClass("TestBuilder", Builder, {
         await this.fileManager.copyItemAtURL(framework.url, bundledURL);
         await this.addFrameworkSources(framework);
         await this.addBundleJS(bundledURL, bundledURL.appendingPathComponent("Resources", true), framework.info, framework.resources);
+        if (framework.info.JSBundleIdentifier == 'io.breakside.JSKit.Dispatch'){
+            this.hasLinkedDispatchFramework = true;
+        }
     },
 
     addFrameworkSources: async function(framework){
@@ -304,7 +307,7 @@ JSClass("TestBuilder", Builder, {
     },
 
     buildNodeWorker: async function(){
-        this.printer.updateStatus("Creating node worker.js...");
+        this.printer.setStatus("Creating node worker.js...");
         var lines = [
             "'use strict';",
             "",
@@ -443,6 +446,7 @@ JSClass("TestBuilder", Builder, {
             "var queueWorker = JSHTMLDispatchQueueWorker.init();",
             ""
         ].join("\n");
+        await this.fileManager.createFileAtURL(this.htmlWorkerURL, js.utf8());
     },
 
     // -----------------------------------------------------------------------
