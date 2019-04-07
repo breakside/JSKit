@@ -1,9 +1,0 @@
-{
-    "JSBundleType": "tests",
-    "JSBundleIdentifier": "io.breakside.JSKit.HashTests",
-    "JSBundleDisplayName": "HashTests",
-    "JSIncludeFrameworks": [
-        "TestKit",
-        "Hash"
-    ]
-}

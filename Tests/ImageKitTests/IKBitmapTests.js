@@ -1,5 +1,5 @@
 // #import ImageKit
-// #import Testkit
+// #import TestKit
 /* global JSClass, TKTestSuite, IKBitmap, JSData */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals, JSImage, TKExpectation */
 'use strict';

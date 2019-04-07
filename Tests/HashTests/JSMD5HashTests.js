@@ -1,5 +1,5 @@
 // #import Hash
-// #import Testkit
+// #import TestKit
 /* global JSClass, TKTestSuite, TKAssert, TKAssertNotNull, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSMD5Hash */
 'use strict';
 

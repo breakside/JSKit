@@ -1,9 +1,0 @@
-{
-    "JSBundleType": "tests",
-    "JSBundleIdentifier": "io.breakside.JSKit.PDFKitTests",
-    "JSBundleDisplayName": "PDFKitTests",
-    "JSIncludeFrameworks": [
-        "PDFKit",
-        "TestKit"
-    ]
-}

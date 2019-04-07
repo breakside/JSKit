@@ -37,6 +37,7 @@ JSClass("NodeBuilder", Builder, {
 
     setup: async function(){
         await NodeBuilder.$super.setup.call(this);
+        this.buildURL = this.buildsRootURL.appendingPathComponents([this.project.info.JSBundleIdentifier, this.debug ? "debug" : this.buildLabel], true);
         this.watchlist.push(this.project.url);
         this.isJSKit = this.project.info.JSBundleIdentifier == "io.breakside.jskit";
         this.executableRequires = [];
@@ -120,6 +121,7 @@ JSClass("NodeBuilder", Builder, {
 
     bundleFramework: async function(framework){
         var bundledURL = this.frameworksURL.appendingPathComponent(framework.url.lastPathComponent, true);
+        this.printer.setStatus("Copying %s...".sprintf(bundledURL.lastPathComponent));
         await this.fileManager.copyItemAtURL(framework.url, bundledURL);
         await this.addFrameworkSources(framework, 'generic');
         await this.addFrameworkSources(framework, 'node');
@@ -155,8 +157,7 @@ JSClass("NodeBuilder", Builder, {
 
     findResources: async function(){
         var blacklist = {
-            names: new Set(["Info.yaml", "Info.json", "package.json", "Dockerfile", this.project.licenseFilename]),
-            extensions: new Set(['.js'])
+            names: new Set(["Info.yaml", "Info.json", "package.json", "Dockerfile", this.project.licenseFilename])
         };
         this.printer.setStatus("Finding resources...");
         var resourceURLs = await this.project.findResourceURLs(blacklist);
@@ -300,11 +301,8 @@ JSClass("NodeBuilder", Builder, {
             "global.JSGlobalObject = global;",
             ""
         ];
-        var entryPoint = this.project.entryPoint;
-        var path;
-        var hasEntry = false;
         for (let i = 0, l = this.executableRequires.length; i < l; ++i){
-            path = this.executableRequires[i];
+            let path = this.executableRequires[i];
             lines.push('require("./%s");'.sprintf(path));
         }
         lines.push("var queueWorker = JSNodeDispatchQueueWorker.init();\n");

@@ -2,7 +2,7 @@
 // #import "TestKit/TKAssert.js"
 // #import "TestKit/TKTestResult.js"
 // #import "TestKit/TKTestSuite.js"
-/* global JSClass, JSObject, TKAssertion, TKTestResult, TKTestSuite */
+/* global JSClass, JSObject, TKAssertion, TKTestResult, TKTestSuite, JSBundle */
 'use strict';
 
 JSClass('TKTestRun', JSObject, {
@@ -10,12 +10,14 @@ JSClass('TKTestRun', JSObject, {
     results: null,
     suiteQueue: null,
     caseQueue: null,
+    bundle: null,
 
     initInEnvironment: function(environment){
         this.suiteQueue = [];
         this.caseQueue = [];
         this.results = {};
         this.environment = environment;
+        this.bundle = JSBundle.testBundle;
     },
 
     canRunSuite: function(suite){
@@ -76,6 +78,7 @@ JSClass('TKTestRun', JSObject, {
         var setupTestCase = function(){
             try{
                 suiteInstance = suite.init();
+                suiteInstance.bundle = run.bundle;
                 suiteInstance.setup();
             }catch (e){
                 handleTestCaseError(e);

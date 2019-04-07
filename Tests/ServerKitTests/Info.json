@@ -1,9 +1,0 @@
-{
-    "JSBundleType": "tests",
-    "JSBundleIdentifier": "io.breakside.JSKit.ServerKitTests",
-    "JSBundleDisplayName": "ServerKitTests",
-    "JSIncludeFrameworks": [
-        "ServerKit",
-        "TestKit"
-    ]
-}

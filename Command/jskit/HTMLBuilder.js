@@ -44,6 +44,7 @@ JSClass("HTMLBuilder", Builder, {
 
     setup: async function(){
         await HTMLBuilder.$super.setup.call(this);
+        this.buildURL = this.buildsRootURL.appendingPathComponents([this.project.info.JSBundleIdentifier, this.debug ? "debug" : this.buildLabel], true);
         this.watchlist.push(this.project.url);
         if (this.arguments.workers === null){
             if (this.debug){
@@ -142,6 +143,7 @@ JSClass("HTMLBuilder", Builder, {
 
     bundleFramework: async function(framework){
         var bundledURL = this.frameworksURL.appendingPathComponent(framework.name, true);
+        this.printer.setStatus("Copying %s...".sprintf(framework.url.lastPathComponent));
         await this.fileManager.copyItemAtURL(framework.sourcesURL, bundledURL);
         await this.addFrameworkSources(framework, 'generic', bundledURL);
         await this.addFrameworkSources(framework, 'html', bundledURL);
@@ -189,9 +191,7 @@ JSClass("HTMLBuilder", Builder, {
 
     findResources: async function(){
         var blacklist = {
-            names: new Set(["Info.yaml", "Info.json", "Dockerfile", this.project.licenseFilename]),
-            directories: new Set(["conf", "www"]),
-            extensions: new Set(['.js'])
+            names: new Set(["Info.yaml", "Info.json", "Dockerfile", "conf", "www", this.project.licenseFilename])
         };
         this.printer.setStatus("Finding resources...");
         var resourceURLs = await this.project.findResourceURLs(blacklist);

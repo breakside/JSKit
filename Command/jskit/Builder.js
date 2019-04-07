@@ -78,8 +78,6 @@ JSClass("Builder", JSObject, {
         this.buildId = JSMD5Hash(this.buildLabel.utf8()).hexStringRepresentation();
         this.commands = [];
         this.watchlist = [];
-        this.builtURLs = {};
-        this.buildURL = this.buildsRootURL.appendingPathComponents([this.project.info.JSBundleIdentifier, this.debug ? "debug" : this.buildLabel], true);
         await this.project.load();
     },
 
@@ -130,7 +128,6 @@ JSClass("Builder", JSObject, {
                 let name = dependencies[j];
                 if (!seen.has(name)){
                     seen.add(name);
-                    // TODO: allow searching for dependencies within built framework bundle
                     let candidateURL = this.fileManager.urlForPath(JSKitRootDirectoryPath).appendingPathComponents(["Frameworks", name], true);
                     let exists = await this.fileManager.itemExistsAtURL(candidateURL);
                     if (!exists){
@@ -165,10 +162,11 @@ JSClass("Builder", JSObject, {
         await project.load();
         var args = {};
         var builder = FrameworkBuilder.initWithProject(project, args);
-        builder.debug = this.debug || this.bundleType == 'node';
+        builder.debug = this.debug || this.bundleType == 'node' || this.bundleType == 'tests';
         builder.printer = this.printer;
         builder.buildsRootURL = this.buildsRootURL;
         builder.workingDirectoryURL = this.workingDirectoryURL;
+        builder.builtURLs = this.builtURLs;
         await builder.build();
         return builder.bundleURL;
     },

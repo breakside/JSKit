@@ -104,11 +104,19 @@ JSClass("Project", JSObject, {
     entryPoint: JSReadOnlyProperty(),
 
     getEntryPoint: function(){
-        var entryPoint = this.info.EntryPoint || 'main.js:main';
-        var entryParts = entryPoint.split(':');
+        if (this.info.EntryPoint){
+            var entryParts = this.info.EntryPoint.split(':');   
+            return {
+                path: entryParts[0],
+                fn: entryParts[1] || null
+            };
+        }
+        if (this.info.JSBundleType == 'framework'){
+            return {path: this.info.EntryPoint || this.name + '.js', fn: null};
+        }
         return {
-            path: entryParts[0],
-            fn: entryParts[1]
+            path: 'main.js',
+            fn: 'main'
         };
     },
 
@@ -259,15 +267,12 @@ JSClass("Project", JSObject, {
         if (!('names' in blacklist)){
             blacklist.names = new Set();
         }
-        if (!('directories' in blacklist)){
-            blacklist.directories = new Set();
-        }
         if (!('extensions' in blacklist)){
             blacklist.extensions = new Set();
         }
-        if (!('urls' in blacklist)){
-            blacklist.urls = new Set();
-        }
+        blacklist.extensions.add(".js");
+        blacklist.extensions.add(".jslink");
+        blacklist.extensions.add(".jsframework");
         var stack = [this.url];
         var urls = [];
         while (stack.length > 0){
@@ -277,14 +282,21 @@ JSClass("Project", JSObject, {
                 let entry = entries[i];
                 if (entry.name.startsWith(".")) continue;
                 if (entry.itemType == JSFileManager.ItemType.directory && entry.name.fileExtension != '.lproj' && entry.name.fileExtension != '.imageset'){
-                    if (!blacklist.directories.has(entry.name) && entry.name.fileExtension != '.jsframework'){
+                    if (!blacklist.names.has(entry.name) && !blacklist.extensions.has(entry.name.fileExtension)){
                         stack.push(entry.url);
                     }
                 }else{
-                    if (!blacklist.names.has(entry.name) && !blacklist.extensions.has(entry.name.fileExtension) && !blacklist.urls.has(entry.url.encodedString)){
+                    if (!blacklist.names.has(entry.name) && !blacklist.extensions.has(entry.name.fileExtension)){
                         urls.push(entry.url);
                     }
                 }
+            }
+        }
+        if (this.info.JSResources){
+            for (let i = 0, l = this.info.JSResources.length; i < l; ++i){
+                let path = this.info.JSResources[i];
+                let url = this.url.appendingPathComponent(path);
+                urls.push(url);
             }
         }
         return urls;

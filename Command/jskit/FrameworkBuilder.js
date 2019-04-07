@@ -28,7 +28,7 @@ JSClass("FrameworkBuilder", Builder, {
     environmentRoots: JSReadOnlyProperty(),
 
     getEnvironmentRoots: function(){
-        var roots = {generic: this.project.name + '.js'};
+        var roots = {generic: this.project.entryPoint.path};
         var environments = this.project.info.JSBundleEnvironments;
         if (environments){
             for (let env in environments){
@@ -48,6 +48,7 @@ JSClass("FrameworkBuilder", Builder, {
 
     setup: async function(){
         await FrameworkBuilder.$super.setup.call(this);
+        this.buildURL = this.buildsRootURL.appendingPathComponents([this.project.info.JSBundleIdentifier, this.debug ? "debug" : this.buildLabel], true);
         this.bundleURL = this.buildURL.appendingPathComponent(this.project.name + '.jsframework', true);
         var exists = await this.fileManager.itemExistsAtURL(this.bundleURL);
         if (exists){
@@ -71,8 +72,7 @@ JSClass("FrameworkBuilder", Builder, {
 
     bundleResources: async function(){
         var blacklist = {
-            names: new Set(["Info.yaml", "Info.json", "jshint.json", this.project.licenseFilename]),
-            extensions: new Set(['.js'])
+            names: new Set(["Info.yaml", "Info.json", "jshint.json", this.project.licenseFilename])
         };
         this.printer.setStatus("Finding resources...");
         var resourceURLs = await this.project.findResourceURLs(blacklist);

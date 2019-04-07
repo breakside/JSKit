@@ -62,17 +62,25 @@ JSClass("Framework", JSObject, {
     sources: null,
     resources: null,
 
-    dependencies: function(env){
+    dependencies: function(envs){
         var names = [];
         if (this.sources.generic.frameworks){
             for (let i = 0, l = this.sources.generic.frameworks.length; i < l; ++i){
                 names.push(this.sources.generic.frameworks[i]);
             }
         }
-        if (env in this.sources){
-            if (this.sources[env].frameworks){
-                for (let i = 0, l = this.sources[env].frameworks.length; i < l; ++i){
-                    names.push(this.sources[env].frameworks[i]);
+        if (!envs){
+            envs = [];
+        }else if (typeof(envs) == "string"){
+            envs = [envs];
+        }
+        for (let i = 0, l = envs.length; i < l; ++i){
+            let env = envs[i];
+            if (env in this.sources){
+                if (this.sources[env].frameworks){
+                    for (let i = 0, l = this.sources[env].frameworks.length; i < l; ++i){
+                        names.push(this.sources[env].frameworks[i]);
+                    }
                 }
             }
         }

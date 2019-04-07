@@ -4,6 +4,7 @@
 // #import "FrameworkBuilder.js"
 // #import "NodeBuilder.js"
 // #import "HtmlBuilder.js"
+// #import "TestBuilder.js"
 // #import "Printer.js"
 /* global JSClass, JSObject, Command, MakeCommand, Project, Builder, Printer */
 'use strict';
@@ -66,6 +67,7 @@ JSClass("MakeCommand", Command, {
         while (this.arguments.watch && this.builder.watchlist.length > 0){
             this.printer.setStatus("Done (build label: %s).  Watching for file changes...".sprintf(this.builder.buildLabel));
             await this.watchForChanges(this.builder.watchlist);
+            this.builder.builtURLs = {};
             await this.builder.build();
         }
         this.printer.print("");

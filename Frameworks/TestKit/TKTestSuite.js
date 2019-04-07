@@ -6,6 +6,7 @@
 JSClass("TKTestSuite", JSObject, {
 
     expectation: null,
+    bundle: null,
 
     init: function(){
     },
@@ -31,9 +32,8 @@ JSClass("TKTestSuite", JSObject, {
     },
 
     getResourceData: function(resourceName, ext, completion, target){
-        var bundle = JSBundle.mainBundle;
-        var metadata = bundle.metadataForResourceName(resourceName, ext);
-        bundle.getResourceData(metadata, completion, target);
+        var metadata = this.bundle.metadataForResourceName(resourceName, ext);
+        this.bundle.getResourceData(metadata, completion, target);
     }
 
 });

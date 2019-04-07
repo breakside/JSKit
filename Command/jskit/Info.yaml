@@ -2,3 +2,6 @@ JSBundleType: node
 JSBundleIdentifier: io.breakside.jskit
 JSBundleVersion: 1.0.0
 JSExecutableName: jskit
+JSResources:
+  - Tests/HTMLTestRunner.js
+  - Tests/NodeTestRunner.js

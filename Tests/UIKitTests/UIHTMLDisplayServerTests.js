@@ -1,5 +1,5 @@
 // #import UIKit
-// #import Testkit
+// #import TestKit
 /* global document, JSClass, TKTestSuite, UIHTMLDisplayServer, UILayer, JSRect, UIHTMLDisplayServerTestsDisplayServer */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';

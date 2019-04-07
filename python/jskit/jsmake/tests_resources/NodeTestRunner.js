@@ -1,5 +1,4 @@
-// #import "Foundation/Foundation+Node.js"
-// #import Testkit
+// #import TestKit
 /* global global, require, module, process, JSClass, JSBundle, JSArguments, TKTestRun, TKTestResult, NodeTestRun, console */
 'use strict';
 

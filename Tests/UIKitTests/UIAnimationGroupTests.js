@@ -1,5 +1,5 @@
 // #import UIKit
-// #import Testkit
+// #import TestKit
 /* global JSClass, TKTestSuite, UIBasicAnimation, UIAnimationGroup, TKAssert, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, UILayer, TKAssertFloatEquals, JSColor, JSSize, JSPoint, JSRect, JSAffineTransform */
 'use strict';
 

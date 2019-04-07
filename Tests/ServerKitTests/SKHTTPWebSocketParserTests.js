@@ -1,5 +1,5 @@
 // #import ServerKit
-// #import Testkit
+// #import TestKit
 /* global JSClass, TKTestSuite, SKHTTPWebSocketParser, TKAssertEquals, TKAssertObjectEquals, TKAssertNotNull, TKAssert, JSData, JSRange */
 'use strict';
 

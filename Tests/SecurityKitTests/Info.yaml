@@ -1,6 +1,3 @@
 JSBundleType:         tests
 JSBundleIdentifier:   io.breakside.JSKit.SecurityKitTests
 JSBundleDisplayName:  SecurityKitTests
-JSIncludeFrameworks:
-  - SecurityKit
-  - TestKit

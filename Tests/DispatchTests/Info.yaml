@@ -1,6 +1,3 @@
 JSBundleType:         tests
 JSBundleIdentifier:   io.breakside.JSKit.DispatchTests
 JSBundleDisplayName:  DispatchTests
-JSIncludeFrameworks:
-  - Dispatch
-  - TestKit

@@ -50,6 +50,7 @@ DOM.Node.prototype = Object.create({}, {
                     value: this
                 }
             });
+            return child;
         }
     },
 
@@ -70,7 +71,7 @@ DOM.Node.prototype = Object.create({}, {
 
     appendChild: {
         value: function DOMNode_appendChild(child){
-            this.insertBefore(child, null);
+            return this.insertBefore(child, null);
         }
     }
 

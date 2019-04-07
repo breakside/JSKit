@@ -1,6 +1,7 @@
 JSBundleType: framework
 JSBundleIdentifier: io.breakside.JSKit.Foundation
 JSBundleVersion: 1.0.0
+JSDevelopmentLanguage: en
 JSBundleEnvironments:
   html: Foundation+HTML.js
   node: Foundation+Node.js
