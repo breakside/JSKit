@@ -72,7 +72,7 @@ JSClass("FrameworkBuilder", Builder, {
 
     bundleResources: async function(){
         var blacklist = {
-            names: new Set(["Info.yaml", "Info.json", "jshint.json", this.project.licenseFilename])
+            names: new Set(["Info.yaml", "Info.json", this.project.licenseFilename])
         };
         this.printer.setStatus("Finding resources...");
         var resourceURLs = await this.project.findResourceURLs(blacklist);

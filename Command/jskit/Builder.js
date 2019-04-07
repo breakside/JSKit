@@ -2,7 +2,7 @@
 // #import "Project.js"
 // #import "Framework.js"
 // #import "JavascriptFile.js"
-/* global JSClass, JSObject, JSCopy, JSURL, Builder, Project, JavascriptFile, JSArguments, JSDate, JSDateFormatter, JSFileManager, JSMD5Hash, Framework */
+/* global JSClass, JSObject, JSCopy, JSURL, Builder, Project, JavascriptFile, JSArguments, JSDate, JSDateFormatter, JSFileManager, JSMD5Hash, Framework, JSKitRootDirectoryPath, FrameworkBuilder */
 'use strict';
 
 JSClass("Builder", JSObject, {

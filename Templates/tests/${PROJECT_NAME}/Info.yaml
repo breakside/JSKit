@@ -1,0 +1,3 @@
+JSBundleType: tests
+JSBundleIdentifier: com.yourcompany.${PROJECT_NAME_FILE_SAFE}
+JSBundleDisplayName: ${PROJECT_NAME}

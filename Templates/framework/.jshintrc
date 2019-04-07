@@ -1,8 +1,0 @@
-{
-    "globalstrict": true,
-    "newcap": false,
-    "predef": [
-        "Uint8Array",
-        "Uint32Array"
-    ]
-}

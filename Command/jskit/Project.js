@@ -1,7 +1,7 @@
 // #import Foundation
 // #import jsyaml
 // #import "JavascriptFile.js"
-/* global JSClass, JSObject, JSFileManager, jsyaml, JSReadOnlyProperty, JavascriptFile, JSURL */
+/* global JSClass, JSObject, JSFileManager, jsyaml, JSReadOnlyProperty, JavascriptFile, JSURL, JSKitRootDirectoryPath */
 'use strict';
 
 JSClass("Project", JSObject, {

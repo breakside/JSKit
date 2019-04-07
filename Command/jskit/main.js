@@ -31,7 +31,7 @@ module.exports.main = async function(){
     }
     var workingDirectory = process.cwd();
     var command = Command.initWithName(args.command, workingDirectory);
-    var commandArgv = [args.command].concat(args.subargs);
+    var commandArgv = [args._commandName + ' ' + args.command].concat(args.subargs);
     var commandOptions = JSCopy(command.options);
     commandOptions.help = {kind: "flag", shortcut: "h", hidden: true};
     command.arguments = JSArguments.initWithOptions(command.options);
@@ -41,8 +41,6 @@ module.exports.main = async function(){
         process.stderr.write(e.toString());
         process.stderr.write("\n\n");
         process.stderr.write(command.arguments.helpString());
-        process.stderr.write("\n\n");
-        process.stderr.write(args.helpString());
         process.exitCode = -1;
         return;
     }
