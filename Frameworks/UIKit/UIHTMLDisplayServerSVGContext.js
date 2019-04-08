@@ -278,8 +278,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     _createBackgroundGradientPathIfNeeded: function(layer){
         if (this._backgroundGradientPath === null){
             this._backgroundGradientPath = this.element.ownerDocument.createElementNS(SVGNamespace, "path");
-            this.element.appendChild(this._backgroundGradientPath);
-            this.element.insertBefore(this._backgroundPath, this.element.childNodes[this._backgroundGradientIndex]);
+            this.element.insertBefore(this._backgroundGradientPath, this.element.childNodes[this._backgroundGradientIndex]);
             this._updateBackgroundPath(layer);
             ++this._sublayersIndex;
         }
@@ -362,7 +361,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
                 --l;
             }
         }else{
-            var anchorPoint = JSPoint(layer.presentation.anchorPoint.x * layer.presentation.bounds.width, layer.presentation.anchorPoint.y * layer.presentation.bounds.height);
+            var anchorPoint = JSPoint(layer.presentation.anchorPoint.x * layer.presentation.bounds.size.width, layer.presentation.anchorPoint.y * layer.presentation.bounds.size.height);
             var t1;
             var t2;
             var t3;
