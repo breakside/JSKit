@@ -1,8 +1,0 @@
-{
-    "JSBundleType": "framework",
-    "JSBundleIdentifier": "io.breakside.JSKit.ImageKit",
-    "JSBundleVersion": "1.0.0",
-    "JSIncludeFrameworks": [
-        "Foundation"
-    ]
-}

@@ -1,3 +1,3 @@
-// #import "Dispatch/JSDispatchQueue.js"
-// #import "Dispatch/JSDispatchJob.js"
-// #import "Dispatch/JSWorkerBasedDispatchQueue.js"
+// #import "JSDispatchQueue.js"
+// #import "JSDispatchJob.js"
+// #import "JSWorkerBasedDispatchQueue.js"

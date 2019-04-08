@@ -1,5 +1,7 @@
 JSBundleType: framework
 JSBundleIdentifier: io.breakside.JSKit.DOM
+JSBundleVersion: 1.0.0
+JSDevelopmentLanguage: en
 JSBundleEnvironments:
   html: DOM+HTML.js
   node: DOM+Node.js

@@ -1,1 +1,1 @@
-// #import "Dispatch/JSHTMLDispatchQueue.js"
+// #import "JSHTMLDispatchQueue.js"

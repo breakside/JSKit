@@ -1,7 +1,7 @@
 JSBundleType: framework
 JSBundleIdentifier: io.breakside.JSKit.SecurityKit
-JSIncludeFrameworks:
-    - Foundation
+JSBundleVersion: 1.0.0
+JSDevelopmentLanguage: en
 JSBundleEnvironments:
   html: SecurityKit+HTML.js
   node: SecurityKit+Node.js

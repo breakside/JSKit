@@ -1,6 +1,6 @@
 JSBundleType: framework
 JSBundleIdentifier: io.breakside.JSKit.FontKit
-JSIncludeFrameworks:
-    - Foundation
+JSBundleVersion: 1.0.0
+JSDevelopmentLanguage: en
 JSBundleEnvironments:
   html: FontKit+HTML.js

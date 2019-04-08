@@ -1,7 +1,0 @@
-{
-    "JSBundleType": "framework",
-    "JSBundleIdentifier": "io.breakside.JSKit.Hash",
-    "JSIncludeFrameworks": [
-        "Foundation"
-    ]
-}

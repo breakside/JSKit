@@ -2,7 +2,5 @@ JSBundleType: framework
 JSBundleIdentifier: io.breakside.JSKit.UIKit
 JSBundleVersion: 1.0.0
 JSDevelopmentLanguage: en
-JSIncludeFrameworks:
-    - Foundation
 JSBundleEnvironments:
     html: UIKit+HTML.js

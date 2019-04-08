@@ -1,4 +1,5 @@
 JSBundleType: node
 JSBundleIdentifier: com.yourcompany.${PROJECT_NAME_FILE_SAFE}
+JSBundleVersion: 1.0.0
 JSExecutableName: ${PROJECT_NAME_FILE_SAFE}
 JSDevelopmentLanguage: en

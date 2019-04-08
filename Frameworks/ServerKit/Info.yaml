@@ -1,7 +1,6 @@
 JSBundleType: framework
 JSBundleIdentifier: io.breakside.JSKit.ServerKit
-JSIncludeFrameworks:
-    - Foundation
-    - Hash
+JSBundleVersion: 1.0.0
+JSDevelopmentLanguage: en
 JSBundleEnvironments:
     node: ServerKit+Node.js
