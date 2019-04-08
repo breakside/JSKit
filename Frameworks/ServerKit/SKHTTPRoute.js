@@ -78,8 +78,8 @@ JSClass("SKHTTPRoute", JSObject, {
             // FIXME: unwind components
         }
         var responderClass = JSClass.FromName(this._responderClassName);
-        if (responderClass.contextClass){
-            contextClass = responderClass.contextClass;
+        if (responderClass.prototype.contextClass){
+            contextClass = responderClass.prototype.contextClass;
         }
         var responder = null;
         if (componentIndex == pathComponents.length){

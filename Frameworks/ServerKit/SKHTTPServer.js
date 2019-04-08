@@ -47,20 +47,22 @@ JSClass("SKHTTPServer", JSObject, {
                 logger.warn("Method not supported %{public}", request.method);
                 throw new SKHTTPError(SKHTTPResponse.StatusCode.methodNotAllowed);
             }
-            responder.context.open(function(error){
-                if (error !== null){
-                    responder.fail(error);
-                }else{
-                    try{
-                        // TODO: access control here, as part of context.open, or both?
-                        method.call(responder);
-                    }catch (e){
-                        if (!(e instanceof SKHTTPError)){
-                            logger.error(e);
+            responder.authenticate(function(authentication){
+                responder.context.authentication = authentication;
+                responder.context.open(function(error){
+                    if (error !== null){
+                        responder.fail(error);
+                    }else{
+                        try{
+                            method.call(responder);
+                        }catch (e){
+                            if (!(e instanceof SKHTTPError)){
+                                logger.error(e);
+                            }
+                            responder.fail(e);
                         }
-                        responder.fail(e);
                     }
-                }
+                }, this);
             }, this);
         }catch (e){
             if (!(e instanceof SKHTTPError)){

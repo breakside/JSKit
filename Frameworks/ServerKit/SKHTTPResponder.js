@@ -23,6 +23,14 @@ JSClass("SKHTTPResponder", JSObject, {
         this._response = request ? request.response : null;
     },
 
+    authenticate: function(completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        completion.call(target, null);
+        return completion.promise;
+    },
+
     fail: function(error){
         if (this._isWebsocket){
             this._request.close();
