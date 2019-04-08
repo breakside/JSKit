@@ -252,7 +252,7 @@ JSClass("HTMLBuilder", Builder, {
         if (isMain){
             js += 'JSBundle.mainBundleIdentifier = "%s";\n'.sprintf(info.JSBundleIdentifier);
         }
-        var jsURL = parentURL.appendingPathComponent("html-bundle.js");
+        var jsURL = parentURL.appendingPathComponent("%s-bundle.js".sprintf(info.JSBundleIdentifier));
         await this.fileManager.createFileAtURL(jsURL, js.utf8());
         var path = jsURL.encodedStringRelativeTo(this.wwwURL);
         this.wwwJavascriptPaths.push(path);
@@ -287,7 +287,8 @@ JSClass("HTMLBuilder", Builder, {
 
     minifyReleaseJavascript: async function(){
         let compilation = JavascriptCompilation.initWithName("%s.js".sprintf(this.project.name), this.sourcesURL, this.fileManager);
-        var header = "%s (%s)\n----\n%s".sprintf(this.project.info.JSBundleIdentifier, this.project.info.JSBundleVersion, this.project.licenseString);
+        var licenseString = await this.project.licenseString();
+        var header = "%s (%s)\n----\n%s".sprintf(this.project.info.JSBundleIdentifier, this.project.info.JSBundleVersion, licenseString);
         compilation.writeComment(header);
         for (let i = 0, l = this.imports.files.length; i < l; ++i){
             let file = this.imports.files[i];

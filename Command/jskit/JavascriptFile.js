@@ -92,6 +92,9 @@ JSClass("JavascriptFile", JSObject, {
                             index = line.indexOf(result.token, index + 1);
                         }
                     }
+                    if (index >= 0){
+                        index += 1;
+                    }
                 }else if (result.token == "//"){
                     line = line.substr(0, index);
                     index = -1;
@@ -173,6 +176,7 @@ var findToken = function(line, index){
                     return {token: '//', index: i - 1};
                 }
             }
+            --i;
         }
     }
     return {token: null, index: -1};

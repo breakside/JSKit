@@ -208,14 +208,14 @@ JSClass("NodeBuilder", Builder, {
                 bundle.ResourceLookup = resources.lookup;
             }
         }
-        var json = JSON.stringify(bundle, null, this.debug ? 2 : 0);
+        var json = JSON.stringify(bundle, null, 2);
         var js = "'use strict';\nJSBundle.bundles['%s'] = %s;\n".sprintf(info.JSBundleIdentifier, json);
         if (isMain){
             js += 'JSBundle.mainBundleIdentifier = "%s";\n'.sprintf(info.JSBundleIdentifier);
             js += 'var path = require("path");\n';
             js += 'JSBundle.nodeRootPath = path.dirname(path.dirname(__filename));\n';
         }
-        var jsURL = parentURL.appendingPathComponent("node-bundle.js");
+        var jsURL = parentURL.appendingPathComponent("%s-bundle.js".sprintf(info.JSBundleIdentifier));
         await this.fileManager.createFileAtURL(jsURL, js.utf8());
         var path = jsURL.encodedStringRelativeTo(this.executableURL);
         this.executableRequires.push(path);
@@ -332,7 +332,7 @@ JSClass("NodeBuilder", Builder, {
         pkg.main = 'npmmain.js';
         pkg.bin = "./" + this.executableURL.encodedStringRelativeTo(this.bundleURL);
         var outputPackageURL = this.bundleURL.appendingPathComponent("package.json");
-        packageJSON = JSON.stringify(pkg, null, this.debug ? 2 : 0);
+        packageJSON = JSON.stringify(pkg, null, 2);
         await this.fileManager.createFileAtURL(outputPackageURL, packageJSON.utf8());
     },
 

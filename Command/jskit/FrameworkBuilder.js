@@ -167,9 +167,10 @@ JSClass("FrameworkBuilder", Builder, {
         var sources = {};
         var roots = this.environmentRoots;
         var includeDirectoryURLs = await this.project.findIncludeDirectoryURLs();
-        var header = "%s (%s)\n----\n%s".sprintf(this.project.info.JSBundleIdentifier, this.project.info.JSBundleVersion, this.project.licenseString);
+        var licenseString = await this.project.licenseString();
+        var header = "%s (%s)\n----\n%s".sprintf(this.project.info.JSBundleIdentifier, this.project.info.JSBundleVersion, licenseString);
         for (let env in roots){
-            sources[env] = {frameworks: [], files: []};
+            sources[env] = {frameworks: [], files: [], features: []};
             let root = roots[env];
             let compilation = JavascriptCompilation.initWithName(root, this.sourcesURL, this.fileManager);
             compilation.writeComment(header);
@@ -181,7 +182,7 @@ JSClass("FrameworkBuilder", Builder, {
                     genericFiles.add(bundledPath);
                 }
                 if (env == 'generic' || !genericFiles.has(bundledPath)){
-                    compilation.writeJavascriptAtURL(file.url);
+                    await compilation.writeJavascriptAtURL(file.url);
                 }
             }
             await compilation.finish();

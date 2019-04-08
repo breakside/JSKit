@@ -235,7 +235,7 @@ JSClass("TestBuilder", Builder, {
             js += 'JSBundle.testBundle = JSBundle.initWithIdentifier("%s");\n'.sprintf(info.JSBundleIdentifier);
         }
 
-        var jsURL = parentURL.appendingPathComponent("tests-bundle.js");
+        var jsURL = parentURL.appendingPathComponent("%s-bundle.js".sprintf(info.JSBundleIdentifier));
         await this.fileManager.createFileAtURL(jsURL, js.utf8());
         var path = jsURL.encodedStringRelativeTo(this.executableURL);
         this.htmlScripts.push(path);

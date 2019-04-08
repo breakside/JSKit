@@ -94,8 +94,12 @@ JSClass("Project", JSObject, {
 
     licenseString: async function(){
         var url = this.url.appendingPathComponent(this.licenseFilename);
-        var txt = await this.fileManager.contentsAtURL(url);
-        return txt.stringByDecodingUTF8();
+        var exists = await this.fileManager.itemExistsAtURL(url);
+        if (exists){
+            var txt = await this.fileManager.contentsAtURL(url);
+            return txt.stringByDecodingUTF8();
+        }
+        return "";
     },
 
     // -----------------------------------------------------------------------

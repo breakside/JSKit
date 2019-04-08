@@ -29,6 +29,7 @@ JSClass("JavascriptCompilation", JSObject, {
     outputChunks: null,
     outputNumber: 0,
     outputUsesStrict: undefined,
+    outputLineLength: 0,
 
     write: function(text){
         this.outputChunks.push(text.utf8());
@@ -49,7 +50,6 @@ JSClass("JavascriptCompilation", JSObject, {
         var useStrict;
         var code = "";
         while (scan !== null){
-            scan = js.next();
             if (scan.strict){
                 if (useStrict !== undefined){
                     throw new Error("'use strict' must be the first line of code in a file");
@@ -59,19 +59,30 @@ JSClass("JavascriptCompilation", JSObject, {
                 if (code.length === 0 && useStrict === undefined){
                     useStrict = false;
                 }
+                this.outputLineLength += scan.code.length;
+                if (this.outputLineLength > 4096){
+                    code += "\n";
+                    this.outputLineLength = scan.code.length;
+                }
                 code += scan.code;
             }else if (scan.command == 'import'){
                 if (scan.framework){
                     this._frameworkSet.add(scan.framework);
                 }
             }
+            scan = js.next();
         }
         if (code.length > 0){
+            let needsStrict = false;
             if (this.outputUsesStrict === undefined){
                 this.outputUsesStrict = useStrict;
+                needsStrict = this.outputUsesStrict;
             }
             if (useStrict !== this.outputUsesStrict){
                 await this._saveChunks();
+            }
+            if (needsStrict){
+                this.write("'use strict';\n");
             }
             this.write(code);
         }
@@ -79,7 +90,7 @@ JSClass("JavascriptCompilation", JSObject, {
 
     finish: async function(){
         await this._saveChunks();
-        this.frameworks = this._frameworkSet.values();
+        this.frameworks = Array.from(this._frameworkSet.values());
     },
 
     _saveChunks: async function(){
