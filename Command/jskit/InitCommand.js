@@ -11,6 +11,7 @@ JSClass("InitCommand", Command, {
 
     options: {
         template: {kind: "positional", help: "The project template to use as a starting point", allowed: ["html", "http", "node", "framework"]},
+        name: {kind: "positional", default: null, help: "The name for your initial project"}
     },
 
     run: async function(){
@@ -30,7 +31,7 @@ JSClass("InitCommand", Command, {
         }
         var printer = Printer.initWithLabel('init');
         printer.setStatus("Initializing %s workspace...".sprintf(this.arguments.template));
-        var projectName = workspaceURL.lastPathComponent;
+        var projectName = this.arguments.name || workspaceURL.lastPathComponent;
         var templatesURL = this.fileManager.urlForPath(JSKitRootDirectoryPath).appendingPathComponent("Templates", true);
 
         var workspaceTemplateURL = templatesURL.appendingPathComponent("workspace");
