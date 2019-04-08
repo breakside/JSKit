@@ -9,6 +9,8 @@ JSClass("Printer", JSObject, {
         this.label = label;
     },
 
+    stream: process.stdout,
+
     // -----------------------------------------------------------------------
     // MARK: - Status messages
 
@@ -46,14 +48,14 @@ JSClass("Printer", JSObject, {
     },
 
     _printRawData: function(data, flush=false){
-        process.stdout.write(data);
+        this.stream.write(data);
         if (flush){
-            process.stdout.flush();
+            this.stream.flush();
         }
     },
 
     _erase: function(count, flush=false){
-        if (process.stdout.isTTY){
+        if (this.stream.isTTY){
             this._printRawData("".leftPaddedString("\x08", count).utf8(), flush);
             this._printRawData("\x1B[0K".utf8());
         }else if (count > 0){

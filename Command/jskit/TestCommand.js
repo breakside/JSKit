@@ -37,8 +37,10 @@ JSClass("TestCommand", Command, {
         }else{
             builder.buildsRootURL = this.workingDirectoryURL.appendingPathComponent('builds', true);
         }
-        this.printer.setStatus("Starting...");
+        this.printer.setStatus("Building...");
+        this.printer.stream = {write: function(){ }};
         await builder.build();
+        this.printer.stream = process.stdout;
         this.printer.setStatus("Done");
         this.printer.print("");
 

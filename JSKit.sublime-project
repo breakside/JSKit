@@ -5,5 +5,22 @@
 			"path": ".",
             "folder_exclude_patterns": ["builds", "env", "node_modules", "Designs", "*.egg-info"]
 		}
-	]
+	],
+    "build_systems":
+    [
+        {
+            "name": "Tests",
+            "working_dir": "${project_path}",
+            "variants": [
+                {
+                    "name": "Foundation",
+                    "cmd": ["npx", "jskit", "test", "Tests/FoundationTests"]
+                },
+                {
+                    "name": "UIKit",
+                    "cmd": ["npx", "jskit", "test", "Tests/UIKitTests"]
+                }
+            ]
+        }
+    ]
 }
