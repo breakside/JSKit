@@ -4,12 +4,12 @@
 
 JSProtocol("JSURLSessionDelegate", JSProtocol, {
 
-    urlSessionTaskDidSendBodyData: ['session', 'task', 'totalSent', 'totalExpected'],
-    urlSessoinTaskDidReceiveBodyData: ['session', 'task', 'totalReceived', 'totalExpected'],
-    urlSessionTaskDidComplete: ['session', 'task', 'error'],
-    urlSessionTaskDidOpenStream: ['session', 'task'],
-    urlSessionTaskDidCloseStream: ['session', 'task'],
-    urlSessionTaskDidReceiveStreamData: ['session', 'task', 'data'],
-    urlSessionTaskDidReceiveStreamError: ['session', 'task']
+    urlSessionTaskDidSendBodyData: function(session, task, totalSent, totalExpected){},
+    urlSessoinTaskDidReceiveBodyData: function(session, task, totalReceived, totalExpected){},
+    urlSessionTaskDidComplete: function(session, task, error){},
+    urlSessionTaskDidOpenStream: function(session, task){},
+    urlSessionTaskDidCloseStream: function(session, task){},
+    urlSessionTaskDidReceiveStreamData: function(session, task, data){},
+    urlSessionTaskDidReceiveStreamError: function(session, task){}
 
 });

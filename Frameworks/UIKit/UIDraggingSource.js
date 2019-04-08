@@ -4,6 +4,6 @@
 
 JSProtocol("UIDraggingSource", JSProtocol, {
 
-    draggingSessionEnded: ["session", "operation"]
+    draggingSessionEnded: function(session, operation){}
 
 });

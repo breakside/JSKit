@@ -142,9 +142,9 @@ JSClass("SKHTTPRouteTestsFourContext", SKHTTPResponderContext, {
 
 JSClass("SKHTTPRouteTestsRootResponder", SKHTTPResponder, {
 
-});
+    contextClass: SKHTTPRouteTestsRootContext
 
-SKHTTPRouteTestsRootResponder.contextClass = SKHTTPRouteTestsRootContext;
+});
 
 JSClass("SKHTTPRouteTestsOneResponder", SKHTTPResponder, {
 
@@ -160,9 +160,9 @@ JSClass("SKHTTPRouteTestsTwoResponder", SKHTTPResponder, {
 
 JSClass("SKHTTPRouteTestsThreeResponder", SKHTTPResponder, {
 
-});
+    contextClass: SKHTTPRouteTestsThreeContext
 
-SKHTTPRouteTestsThreeResponder.contextClass = SKHTTPRouteTestsThreeContext;
+});
 
 JSClass("SKHTTPRouteTestsThreeXResponder", SKHTTPResponder, {
 
@@ -170,6 +170,6 @@ JSClass("SKHTTPRouteTestsThreeXResponder", SKHTTPResponder, {
 
 JSClass("SKHTTPRouteTestsFourResponder", SKHTTPResponder, {
 
+    contextClass: SKHTTPRouteTestsFourContext
+    
 });
-
-SKHTTPRouteTestsFourResponder.contextClass = SKHTTPRouteTestsFourContext;

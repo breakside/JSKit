@@ -4,7 +4,7 @@
 
 JSProtocol("UITextEditorDelegate", JSProtocol, {
 
-    textEditorDidReplaceCharactersInRange: ['textEditor', 'range', 'insertedText'],
-    textEditorDidPositionCursors: ['textEditor']
+    textEditorDidReplaceCharactersInRange: function(textEditor, range, insertedText){},
+    textEditorDidPositionCursors: function(textEditor){}
 
 });

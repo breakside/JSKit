@@ -5,7 +5,7 @@
 
 JSProtocol("UIScrollViewDelegate", JSProtocol, {
 
-    scrollViewDidScroll: ['scrollView']
+    scrollViewDidScroll: function(scrollView){}
 
 });
 

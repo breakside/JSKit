@@ -10,40 +10,40 @@
 JSProtocol("UIListViewDelegate", JSProtocol, {
 
     // Cells
-    cellForListViewAtIndexPath: ['listView', 'indexPath'],
-    heightForListViewRowAtIndexPath: ['listView', 'indexPath'],
-    estimatedHeightForListViewRows: ['listView'],
+    cellForListViewAtIndexPath: function(listView, indexPath){},
+    heightForListViewRowAtIndexPath: function(listView, indexPath){},
+    estimatedHeightForListViewRows: function(listView){},
 
     // Headers & Footers
-    headerViewForListViewSection: ['listView', 'section'],
-    footerViewForListViewSection: ['listView', 'section'],
-    heightForListViewHeaderInSection: ['listView', 'section'],
-    heightForListViewFooterInSection: ['listView', 'section'],
+    headerViewForListViewSection: function(listView, section){},
+    footerViewForListViewSection: function(listView, section){},
+    heightForListViewHeaderInSection: function(listView, section){},
+    heightForListViewFooterInSection: function(listView, section){},
 
     // Selection
-    listViewShouldSelectCellAtIndexPath: ['listView', 'indexPath'],
-    listViewDidSelectCellAtIndexPath: ['listView', 'indexPath'],
-    listViewDidFinishSelectingCellAtIndexPath: ['listView', 'indexPath'],
-    listViewDidOpenCellAtIndexPath: ['listView', 'indexPath'],
-    listViewSelectionDidChange: ['listView', 'selectedIndexPaths'],
+    listViewShouldSelectCellAtIndexPath: function(listView, indexPath){},
+    listViewDidSelectCellAtIndexPath: function(listView, indexPath){},
+    listViewDidFinishSelectingCellAtIndexPath: function(listView, indexPath){},
+    listViewDidOpenCellAtIndexPath: function(listView, indexPath){},
+    listViewSelectionDidChange: function(listView, selectedIndexPaths){},
 
     // Context menu
-    menuForListViewCellAtIndexPath: ['listView', 'indexPath'],
+    menuForListViewCellAtIndexPath: function(listView, indexPath){},
 
     // Dragging cells
-    listViewShouldDragCellAtIndexPath: ['listView', 'indexPath'],
-    pasteboardItemsForListViewAtIndexPath: ['listView', 'indexPath'],
-    listViewWillBeginDraggingSession: ['listView', 'session']
+    listViewShouldDragCellAtIndexPath: function(listView, indexPath){},
+    pasteboardItemsForListViewAtIndexPath: function(listView, indexPath){},
+    listViewWillBeginDraggingSession: function(listView, session){}
 
 });
 
 JSProtocol("UIListViewDataSource", JSProtocol, {
 
-    numberOfSectionsInListView: ['listView'],
-    numberOfRowsInListViewSection: ['listView', 'sectionIndex'],
+    numberOfSectionsInListView: function(listView){},
+    numberOfRowsInListViewSection: function(listView, sectionIndex){},
 
     // Editing
-    listViewCommitDeletionOfRowAtIndexPath: ['listView', 'indexPath']
+    listViewCommitDeletionOfRowAtIndexPath: function(listView, indexPath){}
 
 });
 

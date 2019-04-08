@@ -4,8 +4,8 @@
 
 JSProtocol("UITokenFieldDelegate", JSProtocol, {
 
-    tokenFieldRepresentedObjectForString: ['tokenField', 'string'],
-    tokenFieldViewForRepresentedObject: ['tokenField', 'representedObject'],
-    tokenFieldStringForRepresentedObject: ['tokenField', 'representedObject']
+    tokenFieldRepresentedObjectForString: function(tokenField, string){},
+    tokenFieldViewForRepresentedObject: function(tokenField, representedObject){},
+    tokenFieldStringForRepresentedObject: function(tokenField, representedObject){}
 
 });

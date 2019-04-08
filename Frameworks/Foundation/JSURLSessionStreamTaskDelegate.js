@@ -4,9 +4,9 @@
 
 JSProtocol("JSURLSessionStreamTaskDelegate", JSProtocol, {
 
-    taskDidOpenStream: ['task'],
-    taskDidCloseStream: ['task'],
-    taskDidReceiveStreamData: ['task', 'data'],
-    taskDidReceiveStreamError: ['task']
+    taskDidOpenStream: function(task){},
+    taskDidCloseStream: function(task){},
+    taskDidReceiveStreamData: function(task, data){},
+    taskDidReceiveStreamError: function(task){}
 
 });

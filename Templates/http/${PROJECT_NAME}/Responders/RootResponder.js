@@ -5,9 +5,9 @@
 
 JSClass('RootResponder', SKHTTPResponder, {
 
+    contextClass: RootResponder,
+
     get: function(){
     }
 
 });
-
-RootResponder.contextClass = RootContext;

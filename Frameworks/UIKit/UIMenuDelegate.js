@@ -3,7 +3,7 @@
 'use strict';
 
 JSProtocol("UIMenuDelegate", JSProtocol, {
-    menuDidClose: ['menu'],
-    menuDidNavigateLeft: ['menu'],
-    menuDidNavigateRight: ['menu']
+    menuDidClose: function(menu){},
+    menuDidNavigateLeft: function(menu){},
+    menuDidNavigateRight: function(menu){}
 });

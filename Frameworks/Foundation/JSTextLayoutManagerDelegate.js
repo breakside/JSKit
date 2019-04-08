@@ -4,9 +4,9 @@
 
 JSProtocol("JSTextLayoutManagerDelegate", JSProtocol, {
 
-    layoutManagerEffectiveAttributedString: ['layoutManager'],
-    layoutManagerDidInvalidateLayout: ['layoutMangaer'],
-    layoutManagerDidCompleteLayoutForContainer: ['layoutManager', 'container', 'isAtEnd'],
-    layoutManagerTextContainerForLocation: ['layoutManager', 'location']
+    layoutManagerEffectiveAttributedString: function(layoutManager){},
+    layoutManagerDidInvalidateLayout: function(layoutMangaer){},
+    layoutManagerDidCompleteLayoutForContainer: function(layoutManager, container, isAtEnd){},
+    layoutManagerTextContainerForLocation: function(layoutManager, location){}
 
 });

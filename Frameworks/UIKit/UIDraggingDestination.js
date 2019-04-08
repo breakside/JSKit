@@ -4,11 +4,11 @@
 
 JSProtocol("UIDraggingDestination", JSProtocol, {
 
-    draggingEntered: ["session"],
-    draggingUpdated: ["session"],
-    draggingExited: ["session"],
+    draggingEntered: function(session){},
+    draggingUpdated: function(session){},
+    draggingExited: function(session){},
 
-    performDragOperation: ["session", "operation"]
+    performDragOperation: function(session, operation){}
 
 });
 

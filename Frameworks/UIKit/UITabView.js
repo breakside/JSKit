@@ -7,8 +7,8 @@
 
 JSProtocol("UITabViewDelegate", JSProtocol, {
 
-    tabViewWillSelectItemAtIndex: ['tabView', 'index'],
-    tabViewDidSelectItemAtIndex: ['tabView', 'index']
+    tabViewWillSelectItemAtIndex: function(tabView, index){},
+    tabViewDidSelectItemAtIndex: function(tabView, index){}
 
 });
 

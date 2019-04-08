@@ -11,8 +11,8 @@
 (function(){
 
 JSProtocol("UITextFieldDelegate", JSProtocol, {
-    textFieldDidReceiveEnter: ['textField'],
-    textFieldDidChange: ['textField']
+    textFieldDidReceiveEnter: function(textField){},
+    textFieldDidChange: function(textField){}
 });
 
 JSClass("UITextField", UIControl, {

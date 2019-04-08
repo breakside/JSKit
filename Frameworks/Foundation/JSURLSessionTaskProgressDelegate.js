@@ -3,6 +3,6 @@
 'use strict';
 
 JSProtocol("JSURLSessionTaskProgressDelegate", JSProtocol, {
-    taskDidSendBodyData: ['task', 'totalSent', 'totalExpected'],
-    taskDidReceiveBodyData: ['task', 'totalReceived', 'totalExpected']
+    taskDidSendBodyData: function(task, totalSent, totalExpected){},
+    taskDidReceiveBodyData: function(task, totalReceived, totalExpected){}
 });

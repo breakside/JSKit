@@ -4,7 +4,7 @@
 
 JSProtocol("SKHTTPWebSocketDelegate", JSProtocol, {
 
-    socketDidReceiveData: ['socket', 'data'],
-    socketDidReceiveMessage: ['socket', 'chunks']
+    socketDidReceiveData: function(socket, data){},
+    socketDidReceiveMessage: function(socket, chunks){}
 
 });

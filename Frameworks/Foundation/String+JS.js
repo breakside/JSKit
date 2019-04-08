@@ -410,6 +410,21 @@ Object.defineProperties(String.prototype, {
         }
     },
 
+    dataByDecodingHex: {
+        value: function String_dataByDecodingHex(){
+            var data = JSData.initWithLength(Math.ceil(this.length / 2));
+            var o = 0;
+            var b;
+            for (var i = 0, l = this.length; i < l; i += 2, ++o){
+                b = parseInt(this.substr(i, 2), 16);
+                if (!isNaN(b)){
+                    data[o] = b;
+                }
+            }
+            return data;
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Formatting
 

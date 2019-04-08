@@ -256,6 +256,15 @@ Object.defineProperties(PromiseClass, {
         }
     },
 
+    resolveNull: {
+        value: function(result){
+            if (result !== null){
+                return Promise.reject(result);
+            }
+            return result;
+        }
+    },
+
     resolveTrue: {
         value: function(result){
             if (!result){

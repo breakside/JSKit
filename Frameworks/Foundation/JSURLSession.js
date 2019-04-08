@@ -13,27 +13,34 @@ JSClass("JSURLSession", JSObject, {
     init: function(){
     },
 
-    dataTaskWithURL: function(url, completionHandler){
+    dataTaskWithURL: function(url, completion, target){
         var request = JSURLRequest.initWithURL(url);
-        return this.dataTaskWithRequest(request, completionHandler);
+        return this.dataTaskWithRequest(request, completion, target);
     },
 
-    dataTaskWithRequest: function(request, completionHandler){
+    dataTaskWithRequest: function(request, completion, target){
         var task = JSURLSessionDataTask.initWithRequest(request);
         task.session = this;
-        task._sessionManagedCompletionHandler = completionHandler;
+        task.completion = completion;
+        task.target = target;
         return task;
     },
 
-    uploadTaskWithRequest: function(request, completionHandler){
+    uploadTaskWithRequest: function(request, completion, target){
         var task = JSURLSessionUploadTask.initWithRequest(request);
         task.session = this;
-        task._sessionManagedCompletionHandler = completionHandler;
+        task.completion = completion;
+        task.target = target;
         return task;
     },
 
     streamTaskWithURL: function(url, requestedProtocols){
-        var task = JSURLSessionStreamTask.initWithURL(url, requestedProtocols);
+        var request = JSURLRequest.initWithURL(url);
+        return this.streamTaskWithRequest(request, requestedProtocols);
+    },
+
+    streamTaskWithRequest: function(request, requestedProtocols){
+        var task = JSURLSessionStreamTask.initWithRequest(request, requestedProtocols);
         task.session = this;
         return task;
     },
@@ -93,9 +100,10 @@ JSClass("JSURLSession", JSObject, {
     },
 
     _taskDidComplete: function(task, error){
-        if (task._sessionManagedCompletionHandler){
-            task._sessionManagedCompletionHandler(error);
-            delete task._sessionManagedCompletionHandler;
+        if (task.completion){
+            task.completion.call(task.target, error);
+            task.completion = null;
+            task.target = null;
         }
         if (this.delegate && this.delegate.urlSessionTaskDidComplete){
             this.delegate.urlSessionTaskDidComplete(this, task, error);

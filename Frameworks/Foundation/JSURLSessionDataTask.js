@@ -8,6 +8,8 @@ JSClass("JSURLSessionDataTask", JSURLSessionTask, {
     originalRequest: JSReadOnlyProperty('_originalRequest', null),
     currentRequest: JSReadOnlyProperty('_currentRequest', null),
     response: JSReadOnlyProperty(),
+    completion: null,
+    target: null,
 
     initWithRequest: function(request){
         this._originalRequest = request;
