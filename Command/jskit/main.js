@@ -54,10 +54,13 @@ module.exports.main = async function(){
     try {
         await command.run();
     }catch (e){
-        process.stderr.write("\nFailed!\n");
+        process.stderr.write("\n");
         if (e){
-            process.stderr.write(e.toString() + "\n");
-            process.stderr.write(e.stack + "\n");
+            if (e.stack){
+                process.stderr.write(e.stack + "\n");
+            }else{
+                process.stderr.write(e.toString() + "\n");
+            }
         }else{
             process.stderr.write("(No error information)\n");
         }
