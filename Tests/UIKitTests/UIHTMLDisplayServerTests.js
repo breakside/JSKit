@@ -44,10 +44,10 @@ JSClass("UIHTMLDisplayServerTests", TKTestSuite, {
         var layer = UILayer.init();
         layer.frame = JSRect(10, 20, 30, 40);
         this.displayServer.windowInserted({layer: layer, didClose: function(){ }, didBecomeVisible: function(){ }});
-        TKAssertEquals(this.rootElement.childNodes.length, 0);
+        TKAssertEquals(this.displayServer.screenContext.element.childNodes.length, 0);
         this.displayServer.updateDisplay(0);
-        TKAssertEquals(this.rootElement.childNodes.length, 1);
-        var element = this.rootElement.childNodes[0];
+        TKAssertEquals(this.displayServer.screenContext.element.childNodes.length, 1);
+        var element = this.displayServer.screenContext.element.childNodes[0];
         TKAssertEquals(element.style.position, 'absolute');
         TKAssertEquals(element.style.left, '10px');
         TKAssertEquals(element.style.top, '20px');
@@ -62,10 +62,10 @@ JSClass("UIHTMLDisplayServerTests", TKTestSuite, {
         layer2.frame = JSRect(5, 6, 7, 8);
         layer1.addSublayer(layer2);
         this.displayServer.windowInserted({layer: layer1, didClose: function(){ }, didBecomeVisible: function(){ }});
-        TKAssertEquals(this.rootElement.childNodes.length, 0);
+        TKAssertEquals(this.displayServer.screenContext.element.childNodes.length, 0);
         this.displayServer.updateDisplay(0);
-        TKAssertEquals(this.rootElement.childNodes.length, 1);
-        element = this.rootElement.childNodes[0];
+        TKAssertEquals(this.displayServer.screenContext.element.childNodes.length, 1);
+        element = this.displayServer.screenContext.element.childNodes[0];
         TKAssertEquals(element.style.position, 'absolute');
         TKAssertEquals(element.style.left, '10px');
         TKAssertEquals(element.style.top, '20px');
@@ -86,10 +86,10 @@ JSClass("UIHTMLDisplayServerTests", TKTestSuite, {
         layer1.frame = JSRect(10, 20, 300, 400);
         layer2.frame = JSRect(5, 6, 7, 8);
         this.displayServer.windowInserted({layer: layer1, didClose: function(){ }, didBecomeVisible: function(){ }});
-        TKAssertEquals(this.rootElement.childNodes.length, 0);
+        TKAssertEquals(this.displayServer.screenContext.element.childNodes.length, 0);
         this.displayServer.updateDisplay(0);
-        TKAssertEquals(this.rootElement.childNodes.length, 1);
-        element = this.rootElement.childNodes[0];
+        TKAssertEquals(this.displayServer.screenContext.element.childNodes.length, 1);
+        element = this.displayServer.screenContext.element.childNodes[0];
         TKAssertEquals(element.style.position, 'absolute');
         TKAssertEquals(element.style.left, '10px');
         TKAssertEquals(element.style.top, '20px');
@@ -114,13 +114,13 @@ JSClass("UIHTMLDisplayServerTests", TKTestSuite, {
         var mockWindow = {layer: layer, didClose: function(){ }, didBecomeVisible: function(){ }};
         layer.frame = JSRect(10, 20, 30, 40);
         this.displayServer.windowInserted(mockWindow);
-        TKAssertEquals(this.rootElement.childNodes.length, 0);
+        TKAssertEquals(this.displayServer.screenContext.element.childNodes.length, 0);
         this.displayServer.updateDisplay(0);
-        TKAssertEquals(this.rootElement.childNodes.length, 1);
+        TKAssertEquals(this.displayServer.screenContext.element.childNodes.length, 1);
         this.displayServer.windowRemoved(mockWindow);
-        TKAssertEquals(this.rootElement.childNodes.length, 1);
+        TKAssertEquals(this.displayServer.screenContext.element.childNodes.length, 1);
         this.displayServer.updateDisplay(0.001);
-        TKAssertEquals(this.rootElement.childNodes.length, 0);
+        TKAssertEquals(this.displayServer.screenContext.element.childNodes.length, 0);
 
         // multilayer remove
         this._resetDisplayServer();
@@ -131,16 +131,16 @@ JSClass("UIHTMLDisplayServerTests", TKTestSuite, {
         layer2.frame = JSRect(5, 6, 7, 8);
         layer1.addSublayer(layer2);
         this.displayServer.windowInserted(mockWindow);
-        TKAssertEquals(this.rootElement.childNodes.length, 0);
+        TKAssertEquals(this.displayServer.screenContext.element.childNodes.length, 0);
         this.displayServer.updateDisplay(0);
-        TKAssertEquals(this.rootElement.childNodes.length, 1);
-        var element = this.rootElement.childNodes[0];
+        TKAssertEquals(this.displayServer.screenContext.element.childNodes.length, 1);
+        var element = this.displayServer.screenContext.element.childNodes[0];
         TKAssertEquals(element.childNodes.length, 1);
         this.displayServer.windowRemoved(mockWindow);
-        TKAssertEquals(this.rootElement.childNodes.length, 1);
+        TKAssertEquals(this.displayServer.screenContext.element.childNodes.length, 1);
         TKAssertEquals(element.childNodes.length, 1);
         this.displayServer.updateDisplay(0.001);
-        TKAssertEquals(this.rootElement.childNodes.length, 0);
+        TKAssertEquals(this.displayServer.screenContext.element.childNodes.length, 0);
         TKAssertEquals(element.childNodes.length, 1);
     }
 

@@ -7,11 +7,13 @@ JSClass("UIBasicAnimationTests", TKTestSuite, {
 
     testUpdateForTime: function(){
         var layer = UILayer.init();
+        var frame = JSRect(layer.model.frame);
+        layer.model.frame = frame;
         var animation = UIBasicAnimation.initWithKeyPath('frame.size.width');
         animation.layer = layer;
         animation.duration = 1;
-        animation.fromValue = layer.model.frame.size.width = 0;
-        layer.model.frame.size.width = 100;
+        animation.fromValue = frame.size.width = 0;
+        frame.size.width = 100;
         animation.updateForTime(0);
         TKAssert(!animation.isComplete);
         TKAssertFloatEquals(layer.presentation.frame.size.width, 0);
@@ -50,11 +52,13 @@ JSClass("UIBasicAnimationTests", TKTestSuite, {
 
     testInterpolateNumber: function(){
         var layer = UILayer.init();
+        var frame = JSRect(layer.model.frame);
+        layer.model.frame = frame;
         var animation = UIBasicAnimation.initWithKeyPath('frame.size.width');
         animation.layer = layer;
         animation.duration = 1;
-        animation.fromValue = layer.model.frame.size.width = 0;
-        layer.model.frame.size.width = 100;
+        animation.fromValue = frame.size.width = 0;
+        frame.size.width = 100;
         animation.updateForTime(0);
         TKAssert(!animation.isComplete);
         TKAssertFloatEquals(layer.presentation.frame.size.width, 0);
@@ -71,11 +75,13 @@ JSClass("UIBasicAnimationTests", TKTestSuite, {
 
     testInterpolatePoint: function(){
         var layer = UILayer.init();
+        var frame = JSRect(layer.model.frame);
+        layer.model.frame = frame;
         var animation = UIBasicAnimation.initWithKeyPath('frame.origin');
         animation.layer = layer;
         animation.duration = 1;
-        animation.fromValue = layer.model.frame.origin = JSPoint(0, 0);
-        layer.model.frame.origin = JSPoint(100, 200);
+        animation.fromValue = frame.origin = JSPoint(0, 0);
+        frame.origin = JSPoint(100, 200);
         animation.updateForTime(0);
         TKAssert(!animation.isComplete);
         TKAssertFloatEquals(layer.presentation.frame.origin.x, 0);
@@ -96,11 +102,13 @@ JSClass("UIBasicAnimationTests", TKTestSuite, {
 
     testInterpolateSize: function(){
         var layer = UILayer.init();
+        var frame = JSRect(layer.model.frame);
+        layer.model.frame = frame;
         var animation = UIBasicAnimation.initWithKeyPath('frame.size');
         animation.layer = layer;
         animation.duration = 1;
-        animation.fromValue = layer.model.frame.size = JSSize(0, 0);
-        layer.model.frame.size = JSSize(100, 200);
+        animation.fromValue = frame.size = JSSize(0, 0);
+        frame.size = JSSize(100, 200);
         animation.updateForTime(0);
         TKAssert(!animation.isComplete);
         TKAssertFloatEquals(layer.presentation.frame.size.width, 0);

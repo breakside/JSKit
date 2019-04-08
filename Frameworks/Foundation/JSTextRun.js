@@ -59,6 +59,9 @@ JSClass("JSTextRun", JSObject, {
     },
 
     characterIndexAtPoint: function(point){
+        if (this.attachment){
+            return this.range.location;
+        }
         var x = 0;
         if (this.glyphs === null || this.glyphs.length === 0 || x >= point.x){
             return this.range.location;
@@ -83,6 +86,9 @@ JSClass("JSTextRun", JSObject, {
     },
 
     rectForCharacterAtIndex: function(index){
+        if (this.attachment){
+            return JSRect(JSPoint.Zero, this._size);
+        }
         if (this.glyphs === null){
             return JSRect(JSPoint.Zero, this._size);
         }

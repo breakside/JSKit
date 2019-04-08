@@ -100,7 +100,7 @@ JSClass("UILayer", JSObject, {
         if (!anchorPoint.isEqual(this.model.anchorPoint)){
             // When the anchor point changes, the position remains constant and we have to recalculate the frame
             this._addImplicitAnimationForKey('anchorPoint');
-            this.model.anchorPoint = anchorPoint;
+            this.model.anchorPoint = JSPoint(anchorPoint);
             this._recalculateFrame();
             this.didChangeProperty('anchorPoint');
         }
@@ -204,6 +204,18 @@ JSClass("UILayer", JSObject, {
         if (this.delegate && this.delegate.layerDidChangeSize){
             this.delegate.layerDidChangeSize(this);
         }
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Shadows
+
+    setShadowOffset: function(shadowOffset){
+        if (shadowOffset === this.model.shadowOffset){
+            return;
+        }
+        this._addImplicitAnimationForKey('shadowOffset');
+        this.model.shadowOffset = JSPoint(shadowOffset);
+        this.didChangeProperty('shadowOffset');
     },
 
     // -------------------------------------------------------------------------

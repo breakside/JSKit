@@ -7,12 +7,14 @@ JSClass("UIAnimationGroupTests", TKTestSuite, {
 
     testUpdateForTime: function(){
         var layer = UILayer.init();
+        var frame = JSRect(layer.model.frame);
+        layer.model.frame = frame;
         var groupAnimation = UIAnimationGroup.init();
         var animation1 = UIBasicAnimation.initWithKeyPath('frame.size.width');
         var animation2 = UIBasicAnimation.initWithKeyPath('backgroundColor');
         animation1.duration = 1.000;
-        animation1.fromValue = layer.model.frame.size.width = 0;
-        layer.model.frame.size.width = 100;
+        animation1.fromValue = frame.size.width = 0;
+        frame.size.width = 100;
         animation2.duration = 0.500;
         animation2.fromValue = layer.model.backgroundColor = JSColor.initWithRGBA(0.1, 0.2, 0.3, 0.4);
         groupAnimation.addAnimation(animation1);
@@ -34,12 +36,14 @@ JSClass("UIAnimationGroupTests", TKTestSuite, {
 
     testIsComplete: function(){
         var layer = UILayer.init();
+        var frame = JSRect(layer.model.frame);
+        layer.model.frame = frame;
         var groupAnimation = UIAnimationGroup.init();
         var animation1 = UIBasicAnimation.initWithKeyPath('frame.size.width');
         var animation2 = UIBasicAnimation.initWithKeyPath('backgroundColor');
         animation1.duration = 1.000;
-        animation1.fromValue = layer.model.frame.size.width = 0;
-        layer.model.frame.size.width = 100;
+        animation1.fromValue = frame.size.width = 0;
+        frame.size.width = 100;
         animation2.duration = 0.500;
         animation2.fromValue = layer.model.backgroundColor = JSColor.initWithRGBA(0.1, 0.2, 0.3, 0.4);
         groupAnimation.addAnimation(animation1);
@@ -81,12 +85,14 @@ JSClass("UIAnimationGroupTests", TKTestSuite, {
 
     testSetLayer: function(){
         var layer = UILayer.init();
+        var frame = JSRect(layer.model.frame);
+        layer.model.frame = frame;
         var groupAnimation = UIAnimationGroup.init();
         var animation1 = UIBasicAnimation.initWithKeyPath('frame.size.width');
         var animation2 = UIBasicAnimation.initWithKeyPath('backgroundColor');
         animation1.duration = 1.000;
-        animation1.fromValue = layer.model.frame.size.width = 0;
-        layer.model.frame.size.width = 100;
+        animation1.fromValue = frame.size.width = 0;
+        frame.size.width = 100;
         animation2.duration = 0.500;
         animation2.fromValue = layer.model.backgroundColor = JSColor.initWithRGBA(0.1, 0.2, 0.3, 0.4);
         groupAnimation.addAnimation(animation1);
@@ -98,13 +104,15 @@ JSClass("UIAnimationGroupTests", TKTestSuite, {
 
 
         layer = UILayer.init();
+        frame = JSRect(layer.model.frame);
+        layer.model.frame = frame;
         groupAnimation = UIAnimationGroup.init();
         groupAnimation.layer = layer;
         animation1 = UIBasicAnimation.initWithKeyPath('frame.size.width');
         animation2 = UIBasicAnimation.initWithKeyPath('backgroundColor');
         animation1.duration = 1.000;
-        animation1.fromValue = layer.model.frame.size.width = 0;
-        layer.model.frame.size.width = 100;
+        animation1.fromValue = frame.size.width = 0;
+        frame.size.width = 100;
         animation2.duration = 0.500;
         animation2.fromValue = layer.model.backgroundColor = JSColor.initWithRGBA(0.1, 0.2, 0.3, 0.4);
         groupAnimation.addAnimation(animation1);

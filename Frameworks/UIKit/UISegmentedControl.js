@@ -557,7 +557,7 @@ JSClass("UISegmentedControlDefaultStyler", UISegmentedControlStyler, {
         var imageSize;
         var image = itemView.item.image;
         if (itemView._titleLabel !== null && !itemView._titleLabel.hidden){
-            titleSize = itemView._titleLabel.intrinsicSize;
+            titleSize = JSSize(itemView._titleLabel.intrinsicSize);
             titleSize.width = Math.ceil(titleSize.width);
             if (image !== null){
                 size.width += image.size.width + this.imageSpacing + titleSize.width;

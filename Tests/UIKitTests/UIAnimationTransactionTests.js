@@ -1,6 +1,6 @@
 // #import UIKit
 // #import TestKit
-/* global JSClass, TKTestSuite, UIAnimationTransaction, UIBasicAnimation, UILayer, TKAssert, TKAssertEquals, TKAssertNotExactEquals, TKAssertExactEquals, TKAssertNull, TKAssertNotNull, JSColor */
+/* global JSClass, TKTestSuite, UIAnimationTransaction, UIBasicAnimation, UILayer, TKAssert, TKAssertEquals, TKAssertNotExactEquals, TKAssertExactEquals, TKAssertNull, TKAssertNotNull, JSColor, JSRect */
 'use strict';
 
 JSClass("UIAnimationTransactionTests", TKTestSuite, {
@@ -30,11 +30,13 @@ JSClass("UIAnimationTransactionTests", TKTestSuite, {
 
     testCompletionFunction: function(){
         var layer = UILayer.init();
+        var frame = JSRect(layer.model.frame);
+        layer.model.frame = frame;
         UIAnimationTransaction.begin();
         var transaction = UIAnimationTransaction.currentTransaction;
         var animation1 = UIBasicAnimation.initWithKeyPath('frame.origin.x');
         animation1.fromValue = 0;
-        layer.model.frame.origin.x = 100;
+        frame.origin.x = 100;
         animation1.duration = transaction.duration;
         animation1.layer = layer;
         transaction.addAnimation(animation1);
