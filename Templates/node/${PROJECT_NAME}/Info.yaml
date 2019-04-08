@@ -1,5 +1,4 @@
 JSBundleType: node
-JSBundleIdentifier: com.yourcompany.sample
+JSBundleIdentifier: com.yourcompany.${PROJECT_NAME_FILE_SAFE}
 JSExecutableName: ${PROJECT_NAME_FILE_SAFE}
-JSIncludeFrameworks:
-  - Foundation
+JSDevelopmentLanguage: en

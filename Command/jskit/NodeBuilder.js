@@ -294,7 +294,7 @@ JSClass("NodeBuilder", Builder, {
     // MARK: - Worker
 
     buildWorker: async function(){
-        this.printer.updateStatus("Creating worker.js...");
+        this.printer.setStatus("Creating worker.js...");
         var lines = [
             "'use strict';",
             "",
