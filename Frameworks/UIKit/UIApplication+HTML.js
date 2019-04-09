@@ -1,18 +1,29 @@
 // #import "UIKit/UIApplication.js"
 // #import "UIKit/UIHTMLWindowServer.js"
-/* global JSGlobalObject, UIApplication, JSURL, window, UIHTMLWindowServer */
+/* global JSGlobalObject, UIApplication, JSURL, window, UIHTMLWindowServer, JSArguments */
 'use strict';
 
 UIApplication.definePropertiesFromExtensions({
 
     launchOptions: function(){
-        var options = {};
         var url = JSURL.initWithString(window.location.href);
         var fragment = url.fragment;
-        if (fragment !== null && fragment.length > 0 && fragment[0] == '/'){
-            options[UIApplication.LaunchOptions.state] = fragment;
+        var query = "";
+        if (fragment !== null && fragment.length > 0){
+            if (fragment[0] == '/'){
+                var queryIndex = fragment.indexOf('?');
+                if (queryIndex >= 0){
+                    query = fragment.substr(queryIndex + 1);
+                    query += "state=" + fragment.substr(0, queryIndex);
+                }
+            }else{
+                query = fragment;
+            }
         }
-        return options;
+        var options = this.bundle.info.UIApplicationLaunchOptions || {};
+        var args = JSArguments.initWithOptions(options);
+        args.parseQueryString(query);
+        return args;
     },
 
     openURL: function(url){
