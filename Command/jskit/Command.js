@@ -25,8 +25,7 @@ JSClass("Command", JSObject, {
 
     initInWorkingDirectory: function(workingDirectory){
         this.fileManager = JSFileManager.shared;
-        this.workingDirectoryURL = this.fileManager.urlForPath(workingDirectory);
-        this.workingDirectoryURL.hasDirectoryPath = true;
+        this.workingDirectoryURL = this.fileManager.urlForPath(workingDirectory, null, true);
     },
 
     // -----------------------------------------------------------------------

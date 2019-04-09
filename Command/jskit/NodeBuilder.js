@@ -19,7 +19,8 @@ JSClass("NodeBuilder", Builder, {
 
     options: {
         'port':         {valueType: "integer", default: 8081,   help: "The port on which the node application will be available"},
-        'docker-owner': {default: null,                         help: "The docker repo prefix to use when building a docker image"}
+        'docker-owner': {default: null,                         help: "The docker repo prefix to use when building a docker image"},
+        'no-docker':    {kind: "flag",                          help: "Don't build the docker image"}
     },
 
     needsDockerBuild: true,
@@ -314,14 +315,17 @@ JSClass("NodeBuilder", Builder, {
     // MARK: - Node Package Manager (npm)
 
     buildNPM: async function(){
+        await this.buildPackageJSON();
+        await this.copyPackageLock();
+        await this.linkeNodeModules();
+    },
+
+    buildPackageJSON: async function(){
         var packageURL = this.project.url.appendingPathComponent("package.json");
         var exists = await this.fileManager.itemExistsAtURL(packageURL);
         if (!exists){
             return;
         }
-        var mainjs = "// cannot be included as a module, only usable as a command line tool\n";
-        var mainURL = this.bundleURL.appendingPathComponent("npmmain.js");
-        await this.fileManager.createFileAtURL(mainURL, mainjs.utf8());
         var packageJSON = await this.fileManager.contentsAtURL(packageURL);
         var pkg = JSON.parse(packageJSON.stringByDecodingUTF8());
         pkg.name = this.project.info.JSExecutableName;
@@ -329,11 +333,35 @@ JSClass("NodeBuilder", Builder, {
         var licenseName = this.project.licenseFilename;
         pkg.license = "SEE LICENSE IN %s" % licenseName;
         pkg.files = ["*"];
-        pkg.main = 'npmmain.js';
         pkg.bin = "./" + this.executableURL.encodedStringRelativeTo(this.bundleURL);
         var outputPackageURL = this.bundleURL.appendingPathComponent("package.json");
         packageJSON = JSON.stringify(pkg, null, 2);
         await this.fileManager.createFileAtURL(outputPackageURL, packageJSON.utf8());
+    },
+
+    copyPackageLock: async function(){
+        var packageURL = this.project.url.appendingPathComponent("package-lock.json");
+        var exists = await this.fileManager.itemExistsAtURL(packageURL);
+        if (!exists){
+            return;
+        }
+        var toURL = this.bundleURL.appendingPathComponent("package-lock.json");
+        await this.fileManager.copyItemAtURL(packageURL, toURL);
+    },
+
+    linkeNodeModules: async function(){
+        var modulesURL = this.project.url.appendingPathComponent('node_modules');
+        var exists = await this.fileManager.itemExistsAtURL(modulesURL);
+        if (!exists){
+            return;
+        }
+        var linkURL = this.buildURL.appendingPathComponent('node_modules');
+        var relativeURL = JSURL.initWithString(modulesURL.encodedStringRelativeTo(linkURL));
+        exists = await this.fileManager.itemExistsAtURL(linkURL);
+        if (exists){
+            await this.fileManager.removeItemAtURL(linkURL);
+        }
+        await this.fileManager.createSymbolicLinkAtURL(linkURL, relativeURL);
     },
 
     // -----------------------------------------------------------------------
@@ -359,6 +387,9 @@ JSClass("NodeBuilder", Builder, {
     // MARK: - Docker
 
     buildDocker: async function(){
+        if (this.arguments['no-docker']){
+            return;
+        }
         if (!this.needsDockerBuild){
             return;
         }
@@ -404,7 +435,6 @@ JSClass("NodeBuilder", Builder, {
             "--rm",
             "--name " + name,
             "-p%d:%d".sprintf(this.arguments.port, this.arguments.port),
-            "--mount type=bind,source=%s,target=/%s".sprintf(bundlePath, bundleName),
             identifier
         ].join(" \\\n    "));
         return new Promise(function(resolve, reject){
