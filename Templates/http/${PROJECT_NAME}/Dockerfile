@@ -1,7 +1,5 @@
 FROM node:latest
 
-RUN npm install pg redis
-
 COPY ${PROJECT_NAME_FILE_SAFE} /${PROJECT_NAME_FILE_SAFE}
 
 EXPOSE {{PORT}}
