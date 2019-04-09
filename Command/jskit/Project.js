@@ -223,8 +223,19 @@ JSClass("Project", JSObject, {
                                     }
                                 }
                             }
-                            // TODO: consider project references (reference format TBD, but should
-                            // push a framework result of {name: name, projectURL: urlToReferencedProject})
+                            if (!found){
+                                candidateURL = this.url.removingLastPathComponent().appendingPathComponent(name, true);
+                                found = await this.fileManager.itemExistsAtURL(candidateURL);
+                                if (found){
+                                    let project = Project.initWithURL(candidateURL);
+                                    try{
+                                        await project.load();
+                                        isProject = true;
+                                    }catch (e){
+                                        found = false;
+                                    }
+                                }
+                            }
                         }
                         if (!found){
                             var jskitURL = this.fileManager.urlForPath(JSKitRootDirectoryPath);
