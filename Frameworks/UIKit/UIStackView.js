@@ -52,6 +52,14 @@ JSClass("UIStackView", UIView, {
         this.setNeedsLayout();
     },
 
+    sizeToFit: function(){
+        if (this._axis === UIStackView.Axis.horizontal){
+            this._sizeToFitSizeHorizontally(JSSize(Number.MAX_VALUE, this.bounds.size.height));
+        }else{
+            this._sizeToFitSizeVertically(JSSize(this.bounds.size.width, Number.MAX_VALUE));
+        }
+    },
+
     sizeToFitSize: function(size){
         if (this._axis === UIStackView.Axis.horizontal){
             this._sizeToFitSizeHorizontally(size);
