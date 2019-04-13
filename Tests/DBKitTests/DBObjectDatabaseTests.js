@@ -63,6 +63,22 @@ JSClass("DBObjectDatabaseTests", TKTestSuite, {
         this.wait(expectation, 1.0);
     },
 
+    testSavePromise: function(){
+        var obj = {
+            id: this.db.id("test"),
+            one: 1,
+            two: "2",
+            three: null
+        };
+        var expectation = TKExpectation.init();
+        var promise = this.db.saveObject(obj);
+        expectation.call(promise.then, promise, function(){
+        }, function(){
+            TKAssert(false, "Promise rejected");
+        });
+        this.wait(expectation, 1.0);
+    },
+
     testObject: function(){
         var id = this.db.id("test");
         var obj = {
@@ -82,6 +98,34 @@ JSClass("DBObjectDatabaseTests", TKTestSuite, {
                 TKAssertNull(obj.three);
             }, this);
         }, this);
+        this.wait(expectation, 1.0);
+    },
+
+    testObjectPromise: function(){
+        var id = this.db.id("test");
+        var obj = {
+            id: id,
+            one: 1,
+            two: "2",
+            three: null
+        };
+        var expectation = TKExpectation.init();
+        var promise = this.db.saveObject(obj);
+        var db  = this.db;
+        expectation.call(promise.then, promise, function(){
+            var promise = db.object(id);
+            expectation.call(promise.then, promise, function(obj){
+                TKAssertNotNull(obj);
+                TKAssertEquals(obj.id, id);
+                TKAssertExactEquals(obj.one, 1);
+                TKAssertExactEquals(obj.two, "2");
+                TKAssertNull(obj.three);
+            }, function(){
+                TKAssert(false, "Promise rejected");
+            });
+        }, function(){
+            TKAssert(false, "Promise rejected");
+        });
         this.wait(expectation, 1.0);
     },
 
