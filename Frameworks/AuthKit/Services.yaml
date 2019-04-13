@@ -1,0 +1,4 @@
+google:
+  endpoint: https://accounts.google.com/
+microsoft:
+  endpoint: https://login.microsoftonline.com/common/v2.0/
