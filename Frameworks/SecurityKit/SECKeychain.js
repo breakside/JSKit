@@ -1,6 +1,6 @@
 // #import Foundation
-// #import "SecurityKit/SECCipher.js"
-// #import "SecurityKit/SECKey.js"
+// #import "SECCipher.js"
+// #import "SECKey.js"
 /* global JSClass, JSObject, UUID, JSCopy, JSReadOnlyProperty, JSFileManager, JSRunLoop, JSTimer, SECCipher, SECKey, JSLog */
 'use strict';
 

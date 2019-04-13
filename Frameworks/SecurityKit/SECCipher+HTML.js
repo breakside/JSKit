@@ -1,6 +1,6 @@
 // #import Foundation
-// #import "SecurityKit/SECCipher.js"
-// #import "SecurityKit/SECHTMLKey.js"
+// #import "SECCipher.js"
+// #import "SECHTMLKey.js"
 /* global crypto, JSClass, JSObject, JSRunLoop, SECCipher, SECCipherAESCipherBlockChaining, SECCipherAESCounter, SECCipherAESGaloisCounterMode, JSData, JSRange, SECHTMLKey */
 // #feature window.crypto.subtle
 'use strict';

@@ -1,4 +1,7 @@
 // #import Foundation
 
-// #import "SecurityKit/SECCipher.js"
-// #import "SecurityKit/SECKeychain.js"
+// #import "SECCipher.js"
+// #import "SECHash.js"
+// #import "SECVerify.js"
+// #import "SECKeychain.js"
+// #import "SECJWT.js"

@@ -1,4 +1,4 @@
-// #import "SecurityKit/SECKey.js"
+// #import "SECKey.js"
 /* global crypto, JSClass, JSObject, SECKey, JSData */
 'use strict';
 
