@@ -10,6 +10,7 @@ JSClass('SKApplication', JSObject, {
 
     launchOptions: null,
     bundle: null,
+    workingDirectoryURL: null,
 
     init: function(){
         if (shared){
@@ -17,6 +18,7 @@ JSClass('SKApplication', JSObject, {
         }
         shared = this;
         this.bundle = JSBundle.mainBundle;
+        this.workingDirectoryURL = this._getWorkingDirectoryURL();
         this.parseLaunchOptions();
         this.setup();
     },
@@ -62,6 +64,10 @@ JSClass('SKApplication', JSObject, {
     rawProcessArguments: function(){
         return [];
     },
+
+    _getWorkingDirectoryURL: function(){
+        return null;
+    }
 
 });
 

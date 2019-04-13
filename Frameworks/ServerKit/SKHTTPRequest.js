@@ -1,6 +1,6 @@
 // #import Foundation
 // #import "ServerKit/SKHTTPResponse.js"
-/* global JSClass, JSDate, JSObject, JSData, JSReadOnlyProperty, JSURL, JSMIMEHeaderMap, SKHTTPResponse, JSLog */
+/* global JSClass, JSDate, JSLazyInitProperty, JSObject, JSData, JSReadOnlyProperty, JSURL, JSMIMEHeaderMap, SKHTTPResponse, JSLog, JSMediaType */
 'use strict';
 
 var logger = JSLog("server", "http");
@@ -11,11 +11,17 @@ JSClass("SKHTTPRequest", JSObject, {
     response: JSReadOnlyProperty('_response', null),
     headerMap: JSReadOnlyProperty('_headerMap', null),
     method: JSReadOnlyProperty('_method', null),
+    contentType: JSLazyInitProperty('_getContentType'),
 
     initWithMethodAndURL: function(method, url){
         this._method = method;
         this._url = url;
         this._headerMap = JSMIMEHeaderMap();
+    },
+
+    _getContentType: function(){
+        var header = this.headerMap.get('Content-Type');
+        return JSMediaType(header);
     },
 
     respond: function(statusCode, statusMessage, headerMap){
@@ -86,6 +92,34 @@ JSClass("SKHTTPRequest", JSObject, {
             return this.needsEntityWithTag(etag) && this.needsEntityModifiedAt(lastModified);
         }
         return this.needsEntityModifiedAt(lastModified);
+    },
+
+    getData: function(completion, target){
+    },
+
+    getObject: function(completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        var mediaType = this.contentType;
+        if (mediaType.mime !== 'application/json' || mediaType.parameters.charset !== String.Encoding.utf8){
+            completion.call(target, null);
+            return completion.promise;
+        }
+        this.getData(function(data){
+            if (data === null){
+                completion.call(target, null);
+                return;
+            }
+            var json = String.initWithData(data, mediaType.parameters.charset);
+            var obj = null;
+            try{
+                obj = JSON.parse(json);
+            }catch (e){
+            }
+            completion.call(target, obj);
+        }, this);
+        return completion.promise;
     }
 
 });

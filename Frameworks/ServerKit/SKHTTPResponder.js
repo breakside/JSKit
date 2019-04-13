@@ -3,7 +3,7 @@
 // #import "ServerKit/SKHTTPError.js"
 // #import "ServerKit/SKHTTPResponse.js"
 // #import Hash
-/* global JSClass, JSObject, JSReadOnlyProperty, JSMIMEHeaderMap, JSSHA1Hash, SKHTTPResponder, SKHTTPResponse, SKHTTPResponderContext, SKHTTPError, JSLog */
+/* global JSClass, JSObject, JSURL, JSReadOnlyProperty, JSMIMEHeaderMap, JSSHA1Hash, SKHTTPResponder, SKHTTPResponse, SKHTTPResponderContext, SKHTTPError, JSLog */
 'use strict';
 
 (function(){
@@ -15,6 +15,7 @@ JSClass("SKHTTPResponder", JSObject, {
     request: JSReadOnlyProperty('_request', null),
     context: JSReadOnlyProperty('_context', null),
     response: JSReadOnlyProperty('_response', null),
+    route: null,
     _isWebsocket: false,
 
     initWithRequest: function(request, context){
@@ -37,6 +38,15 @@ JSClass("SKHTTPResponder", JSObject, {
         }else{
             SKHTTPResponder.fail(this._request, error);
         }
+    },
+
+    urlForResponder: function(responder, params){
+        var url = JSURL.init();
+        url.scheme = this.request.url.scheme;
+        url.host = this.request.url.host;
+        url.port = this.request.url.port;
+        url.setPathComponents = this.route.pathComponentsForResponder(responder, params);
+        return url;
     },
 
     objectMethodForRequestMethod: function(requestMethod){
@@ -109,13 +119,18 @@ JSClass("SKHTTPResponder", JSObject, {
         var json = JSON.stringify(obj);
         this.response.setHeader("Cache-Control", "no-cache");
         this.response.setHeader("Expires", "Thu, 01 Jan 1970 00:00:01 GMT");
-        this.sendString(json, "application/json", status);
+        this.sendString(json, "application/json; charset=utf8", status);
     },
 
     sendStatus: function(status){
         this.response.contentLength = 0;
         this.response.statusCode = status;
         this.response.complete();
+    },
+
+    sendRedirect: function(destination){
+        this.response.statusCode = SKHTTPResponse.StatusCode.found;
+        this.response.setHeader("Location: %s".sprintf(destination));
     },
 
     sendFile: function(filePath, contentType, hash){

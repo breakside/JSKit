@@ -1,7 +1,7 @@
 // #import "ServerKit/SKHTTPRequest.js"
 // #import "ServerKit/SKHTTPWebSocket+Node.js"
 // #import "ServerKit/SKHTTPResponse+Node.js"
-/* global SKHTTPRequest, SKHTTPResponse, JSURL, JSMIMEHeaderMap, SKHTTPWebSocket */
+/* global require, SKHTTPRequest, SKHTTPResponse, JSURL, JSData, JSMIMEHeaderMap, SKHTTPWebSocket */
 'use strict';
 
 SKHTTPRequest.definePropertiesFromExtensions({
@@ -36,6 +36,20 @@ SKHTTPRequest.definePropertiesFromExtensions({
 
     getMethod: function(){
         return this._nodeRequest.method;
+    },
+
+    getData: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var chunks = [];
+        this._nodeRequest.on('data', function(chunk){
+            chunks.push(chunk);
+        });
+        this._nodeRequest.on('end', function(){
+            completion.call(target, JSData.initWithChunks(chunks));
+        });
+        return completion.promise;
     }
 
 });

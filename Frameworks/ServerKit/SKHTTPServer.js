@@ -2,10 +2,16 @@
 // #import "ServerKit/SKHTTPRoute.js"
 // #import "ServerKit/SKHTTPError.js"
 // #import "ServerKit/SKHTTPResponder.js"
-/* global JSClass, JSObject, JSDynamicProperty, SKHTTPResponse, SKHTTPResponder, SKHTTPRoute, SKHTTPServer, SKHTTPError, JSLog */
+/* global JSClass, JSObject, JSProtocol, JSDynamicProperty, SKHTTPResponse, SKHTTPResponder, SKHTTPRoute, SKHTTPServer, SKHTTPError, JSLog */
 'use strict';
 
 var logger = JSLog("server", "http");
+
+JSProtocol("SKHTTPServerDelegate", JSProtocol, {
+
+    serverFoundResponder: function(server, responder){}
+
+});
 
 JSClass("SKHTTPServer", JSObject, {
 
@@ -13,6 +19,7 @@ JSClass("SKHTTPServer", JSObject, {
     rootRoute: null,
     notFoundRoute: null,
     _nodeHttpServer: null,
+    delegate: null,
 
     initWithPort: function(port){
         this._port = port;
@@ -23,6 +30,7 @@ JSClass("SKHTTPServer", JSObject, {
         SKHTTPServer.$super.initWithSpec.call(this, spec, values);
         this.rootRoute = SKHTTPRoute.CreateFromMap(values.routes, spec);
         this._extensionInit();
+        this.contextProperties = {};
     },
 
     _extensionInit: function(){
@@ -47,14 +55,33 @@ JSClass("SKHTTPServer", JSObject, {
                 logger.warn("Method not supported %{public}", request.method);
                 throw new SKHTTPError(SKHTTPResponse.StatusCode.methodNotAllowed);
             }
-            responder.authenticate(function(authentication){
-                responder.context.authentication = authentication;
-                responder.context.open(function(error){
-                    if (error !== null){
-                        responder.fail(error);
+            if (this.delegate && this.delegate.serverFoundResponder){
+                this.delegate.serverFoundResponder(this, responder);
+            }
+            responder.authenticate(function(authorized, authenticated, statusCode){
+                if (!authorized){
+                    if (authenticated !== null){
+                        responder.fail(new SKHTTPError(statusCode || SKHTTPResponse.StatusCode.forbidden));
+                        return;
+                    }
+                    responder.fail(new SKHTTPError(statusCode || SKHTTPResponse.StatusCode.unauthorized));
+                    return;
+                }
+                responder.context.authenticated = authenticated;
+                responder.context.open(function(status){
+                    if (status){
+                        responder.fail(new SKHTTPError(status));
                     }else{
                         try{
-                            method.call(responder);
+                            var promise = method.call(responder);
+                            if (promise && promise.catch){
+                                promise.catch(function(e){
+                                    if (!(e instanceof SKHTTPError)){
+                                        logger.error(e);
+                                    }
+                                    responder.fail(e);
+                                });
+                            }
                         }catch (e){
                             if (!(e instanceof SKHTTPError)){
                                 logger.error(e);

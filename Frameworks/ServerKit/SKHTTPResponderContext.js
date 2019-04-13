@@ -6,7 +6,7 @@
 JSClass("SKHTTPResponderContext", JSObject, {
 
     request: JSReadOnlyProperty('_request', null),
-    authentication: null,
+    authenticated: null,
 
     initWithPathComponentMatches: function(pathComponentMatches){
         if (pathComponentMatches !== undefined){
@@ -17,11 +17,7 @@ JSClass("SKHTTPResponderContext", JSObject, {
     },
 
     open: function(completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveNull);
-        }
-        completion.call(target, null);
-        return completion.promise;
+        completion.call(target);
     }
 
 });

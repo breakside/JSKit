@@ -8,8 +8,11 @@
 JSClass("SKHTTPRoute", JSObject, {
 
     children: null,
+    parent: null,
     _componentMatchers: null,
-    _responderClassName: null,
+    _responderClass: null,
+    _routesByResponderClass: null,
+    _root: null,
 
     _init: function(){
         this._componentMatchers = [];
@@ -23,7 +26,7 @@ JSClass("SKHTTPRoute", JSObject, {
 
     initWithComponentStrings: function(componentStrings, responderClassName){
         this._init();
-        this._responderClassName = responderClassName;
+        this._responderClass = JSClass.FromName(responderClassName);
         if (componentStrings.length === 0){
             throw Error("Must have at least 1 component string for route");
         }
@@ -77,7 +80,7 @@ JSClass("SKHTTPRoute", JSObject, {
         if (matcher.isGreedy && this.children.length > 0){
             // FIXME: unwind components
         }
-        var responderClass = JSClass.FromName(this._responderClassName);
+        var responderClass = this._responderClass;
         if (responderClass.prototype.contextClass){
             contextClass = responderClass.prototype.contextClass;
         }
@@ -98,12 +101,68 @@ JSClass("SKHTTPRoute", JSObject, {
         return responder;
     },
 
+    pathComponentsForResponder: function(responderClass, params){
+        var route = this._routesByResponderClass[responderClass.className];
+        if (!route){
+            return null;
+        }
+        return route.pathComponentsForParams(params);
+    },
+
+    pathComponentsForParams: function(params){
+        var components = [];
+        var matchers = [];
+        var matcher;
+        var component;
+        var i, l;
+
+        var stack = [];
+        var route = this;
+        while (route !== null){
+            stack.unshift(route);
+            route = route.parent;
+        }
+
+        for (i = 0, l = stack.length; i < l; ++i){
+            route = stack[i];
+            for (var j = 0, k = route._componentMatchers.length; j < k; ++j){
+                matchers.push(route._componentMatchers[j]);
+            }
+        }
+
+        for (i = 0, l = matchers.length; i < l; ++i){
+            matcher = matchers[i];
+            component = matcher.replace(params);
+            if (typeof(component) == "string"){
+                components.push(component);
+            }else{
+                components = components.concat(component);
+            }
+        }
+        return components;
+    },
+
     _createResponder: function(responderClass, request, context){
-        return responderClass.initWithRequest(request, context);
+        var responder = responderClass.initWithRequest(request, context);
+        responder.route = this;
+        return responder;
     },
 
     addChild: function(route){
+        route.parent = this;
         this.children.push(route);
+    },
+
+    updateRoutesByResponderClass: function(){
+        var routesByResponderClass = {};
+        var visit = function(route){
+            route._routesByResponderClass = routesByResponderClass;
+            routesByResponderClass[route._responderClass.className] = route;
+            for (var i = 0, l = route.children.length; i < l; ++i){
+                visit(route.children[i]);
+            }
+        };
+        visit(this);
     }
 
 });
@@ -124,7 +183,9 @@ JSClass("SKHTTPResourceRoute", SKHTTPRoute, {
     },
 
     _createResponder: function(responderClass, request, context){
-        return responderClass.initWithResourceMetadata(this._bundle, this._resourceMetadata, request, context);
+        var responder = responderClass.initWithResourceMetadata(this._bundle, this._resourceMetadata, request, context);
+        responder.route = this;
+        return responder;
     },
 
     addChild: function(route){
@@ -203,7 +264,9 @@ SKHTTPRoute.CreateFromMap = function(routes, spec){
             routeMap[route.parentPath].instantiated.addChild(route.instantiated);
         }
     }
-    return routeMap['/'].instantiated;
+    var rootRoute = routeMap['/'].instantiated;
+    rootRoute.updateRoutesByResponderClass();
+    return rootRoute;
 };
 
 var FixedComponentMatcher = function(fixed){
@@ -218,6 +281,10 @@ FixedComponentMatcher.prototype = {
 
     matches: function(component, matches){
         return component === this.fixed;
+    },
+
+    replace: function(params){
+        return this.fixed;
     }
 };
 
@@ -243,6 +310,20 @@ WildcardComponentMatcher.prototype = {
             matches[this.name] = component;
         }
         return true;
+    },
+
+    replace: function(params){
+        var component = params[this.name];
+        if (component === undefined){
+            return "undefined";
+        }
+        if (component === null){
+            return "null";
+        }
+        if (component instanceof Array){
+            return component;
+        }
+        return component.toString();
     }
 };
 
