@@ -10,7 +10,7 @@ DarkColor:
   rgba: 204,0,0
 
 MainWindow:
-  class: UIWindow
+  class: UIRootWindow
   contentViewController: /MainViewController
 
 MainViewController:
