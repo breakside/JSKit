@@ -40,7 +40,14 @@ JSClass("Resources", JSObject, {
                     let path = obj['class'] + '.js';
                     let url = await urlForPath(path);
                     if (url !== null){
-                        paths.push(path);
+                        paths.add(path);
+                    }
+                }
+                if ('responder' in obj){
+                    let path = obj.responder + '.js';
+                    let url = await urlForPath(path);
+                    if (url !== null){
+                        paths.add(path);
                     }
                 }
                 if ('include' in obj){
@@ -59,11 +66,11 @@ JSClass("Resources", JSObject, {
                             for (let j = 0, k = entries.length; j < k; ++j){
                                 let entry = entries[j];
                                 if (entry.name.fileExtension == '.js'){
-                                    paths.push(directoryPath + entry.name);
+                                    paths.add(directoryPath + entry.name);
                                 }
                             }
                         }else{
-                            paths.push(path);
+                            paths.add(path);
                         }
                     }
                 }
@@ -87,14 +94,14 @@ JSClass("Resources", JSObject, {
             }
             return null;
         };
-        var paths = [];
+        var paths = new Set();
         for (let i = 0, l = this.metadata.length; i < l; ++i){
             let metadata = this.metadata[i];
             if (metadata.spec){
                 await addImportsFromObject(metadata.value);
             }
         }
-        return paths;
+        return Array.from(paths.values());
     },
 
     getMetadata: function(name, subdirectory){
