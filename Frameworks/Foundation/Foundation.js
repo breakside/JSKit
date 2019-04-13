@@ -32,6 +32,7 @@
 // #import "Foundation/JSURL.js"
 // #import "Foundation/JSFormFieldMap.js"
 // #import "Foundation/JSMIMEHeaderMap.js"
+// #import "Foundation/JSMediaType.js"
 
 // #import "Foundation/JSDate.js"
 // #import "Foundation/JSCalendar.js"

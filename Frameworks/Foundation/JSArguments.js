@@ -222,7 +222,7 @@ JSClass("JSArguments", JSObject, {
         }
     },
 
-    parseQueryString: function(query){
+    parseQueryString: function(query, positional){
         if (query.length > 0 && query.charAt(0) == '?'){
             query = query.substr(1);
         }
@@ -230,11 +230,17 @@ JSClass("JSArguments", JSObject, {
         map.decode(query.utf8(), true);
         var argv = [null];
         var field;
-        for (var i = 0, l = map.fields.length; i < l; ++i){
+        var i, l;
+        for (i = 0, l = map.fields.length; i < l; ++i){
             field = map.fields[i];
             argv.push('--' + field.name);
             if (field.value !== null){
                 argv.push(field.value);
+            }
+        }
+        if (positional){
+            for (i = 0, l = positional.length; i < l; ++i){
+                argv.push(positional[i]);
             }
         }
         this.parse(argv);

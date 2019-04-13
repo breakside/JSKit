@@ -1,7 +1,8 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSURL.js"
 // #import "Foundation/JSMIMEHeaderMap.js"
-/* global JSClass, JSObject, JSURL, JSReadOnlyProperty, JSMIMEHeaderMap, JSDynamicProperty, JSURLRequest */
+// #import "Foundation/JSMediaType.js"
+/* global JSClass, JSObject, JSURL, JSReadOnlyProperty, JSMediaType, JSMIMEHeaderMap, JSDynamicProperty, JSURLRequest */
 'use strict';
 
 JSClass("JSURLRequest", JSObject, {
@@ -11,7 +12,9 @@ JSClass("JSURLRequest", JSObject, {
     data: JSDynamicProperty('_data', null),
     response: JSReadOnlyProperty('_response', null),
     headers: JSReadOnlyProperty(),
-    _headerMap: null,
+    headerMap: JSDynamicProperty('_headerMap', null),
+    object: JSDynamicProperty('_object', null),
+    contentType: JSDynamicProperty(),
 
     initWithURL: function(url){
         if (typeof(url) == "string"){
@@ -31,6 +34,25 @@ JSClass("JSURLRequest", JSObject, {
         request._headerMap = this._headerMap;
         request._data = this._data;
         return request;
+    },
+
+    setObject: function(object){
+        this._object = object;
+        var json = JSON.stringify(object);
+        this.data = json.utf8();
+        this.contentType = JSMediaType('application/json', {charset: 'utf-8'});
+    },
+
+    setContentType: function(mediaType){
+        this._headerMap.set('Content-Type', mediaType.toString());
+    },
+
+    getContentType: function(mediaType){
+        var header = this._headerMap.get('Content-Type');
+        if (!header){
+            return null;
+        }
+        return JSMediaType(header);
     }
 
 });

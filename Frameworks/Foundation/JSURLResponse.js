@@ -1,11 +1,13 @@
 // #import "Foundation/JSObject.js"
 // #import "Foundation/JSMIMEHeaderMap.js"
-/* global JSClass, JSObject, JSDynamicProperty, JSURLResponse, JSMIMEHeaderMap */
+// #import "Foundation/JSMediaType.js"
+/* global JSClass, JSObject, JSReadOnlyProperty, JSMediaType, JSLazyInitProperty, JSDynamicProperty, JSURLResponse, JSMIMEHeaderMap */
 'use strict';
 
 JSClass("JSURLResponse", JSObject, {
 
-    _headerMap: null,
+    headerMap: JSReadOnlyProperty('_headerMap', null),
+    contentType: JSLazyInitProperty('_getContentType', null),
 
     statusCode: -1,
     statusClass: JSDynamicProperty(),
@@ -18,6 +20,37 @@ JSClass("JSURLResponse", JSObject, {
 
     getStatusClass: function(){
         return this.statusCode === JSURLResponse.StatusCode.unknown ? JSURLResponse.StatusClass.unknown : Math.floor(this.statusCode / 100);
+    },
+
+    _getContentType: function(){
+        var header = this._headerMap.get('Content-Type');
+        if (!header){
+            return null;
+        }
+        return JSMediaType(header);
+    },
+
+    object: JSLazyInitProperty('_getObject'),
+
+    _getObject: function(){
+        if (this.data === null){
+            return null;
+        }
+        if (!this.contentType){
+            return null;
+        }
+        if (this.contentType.mime != 'application/json'){
+            return null;
+        }
+        if (this.contentType.parameters.charset != String.Encoding.utf8){
+            return null;
+        }
+        var json = String.initWithData(this.data, this.contentType.parameters.charset);
+        try{
+            return JSON.parse(json);
+        }catch (e){
+            return null;
+        }
     }
 
 });

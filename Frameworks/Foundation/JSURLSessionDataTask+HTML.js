@@ -25,10 +25,16 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
         }
         if (this._xmlRequest.readyState === XMLHttpRequest.UNSENT){
             try {
-                this._xmlRequest.open('GET', url, true);
+                this._xmlRequest.open(request.method, url, true);
             }catch (e){
                 this._error = e;
                 logger.error("error opening request: %{public}", e.message);
+            }
+            var headers = request.headers;
+            var header;
+            for (var i = 0, l = headers.length; i < l; ++i){
+                header = headers[i];
+                this._xmlRequest.setRequestHeader(header.name, header.value);
             }
         }
         if (this._xmlRequest.readyState !== XMLHttpRequest.UNSENT){
@@ -46,12 +52,6 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
         var request = this._currentRequest;
         var xmlRequest = new XMLHttpRequest();
         xmlRequest.responseType = "arraybuffer";
-        var headers = request.headers;
-        var header;
-        for (var i = 0, l = headers.length; i < l; ++i){
-            header = headers[i];
-            xmlRequest.setRequestHeader(header.name, header.value);
-        }
         this._addEventListeners(xmlRequest);
         return xmlRequest;
     },

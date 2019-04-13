@@ -14,6 +14,10 @@ JSDate.prototype = {
         return Math.abs(this.timeIntervalSince1970 - other.timeIntervalSince1970) < 0.001;
     },
 
+    isPast: function(){
+        return this.timeIntervalSince1970 < JSDate.now.timeIntervalSince1970;
+    },
+
     compare: function(other){
         return this.timeIntervalSince1970 - other.timeIntervalSince1970;
     },
