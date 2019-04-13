@@ -2,7 +2,7 @@
 // #import TestKit
 /* global JSClass, TKTestSuite, SKHTTPRoute, JSSpect, JSPropertyList, SKHTTPResponder, SKHTTPResponderContext */
 /* global SKHTTPRouteTestsRootResponder, SKHTTPRouteTestsOneResponder, SKHTTPRouteTestsOneAResponder, SKHTTPRouteTestsTwoResponder, SKHTTPRouteTestsThreeResponder, SKHTTPRouteTestsThreeXResponder, SKHTTPRouteTestsFourResponder, SKHTTPRouteTestsRootContext, SKHTTPRouteTestsThreeContext, SKHTTPRouteTestsFourContext */
-/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
+/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows, TKAssertArrayEquals */
 'use strict';
 
 JSClass("SKHTTPRouteTests", TKTestSuite, {
@@ -124,6 +124,30 @@ JSClass("SKHTTPRouteTests", TKTestSuite, {
 
         responder = rootRoute.responderForRequest(null, ['/', '', 'hello', 'there.txt']);
         TKAssertNull(responder);
+    },
+
+    testPathComponentsForResponder: function(){
+        var routes = {
+            "/":            {responder: "SKHTTPRouteTestsRootResponder"},
+            "/one":         {responder: "SKHTTPRouteTestsOneResponder"},
+            "/one/a":       {responder: "SKHTTPRouteTestsOneAResponder"},
+            "/two/*id/*name/test/**final": {responder: "SKHTTPRouteTestsTwoResponder"},
+            "/three/*id":   {responder: "SKHTTPRouteTestsThreeResponder"},
+            "/three/*id/x": {responder: "SKHTTPRouteTestsThreeXResponder"},
+            "/four/**file": {responder: "SKHTTPRouteTestsFourResponder"},
+        };
+        var rootRoute = SKHTTPRoute.CreateFromMap(routes);
+        var otherRoute = rootRoute.children[0].children[0];
+        var components = rootRoute.pathComponentsForResponder(SKHTTPRouteTestsThreeResponder, {id: 'hello'});
+        TKAssertArrayEquals(components, ["/", "three", "hello"]);
+        var components2 = otherRoute.pathComponentsForResponder(SKHTTPRouteTestsThreeResponder, {id: 'hello'});
+        TKAssertArrayEquals(components, ["/", "three", "hello"]);
+
+        components = otherRoute.pathComponentsForResponder(SKHTTPRouteTestsFourResponder, {file: ["alpha", "beta", "test.txt"]});
+        TKAssertArrayEquals(components, ["/", "four", "alpha", "beta", "test.txt"]);
+
+        components = otherRoute.pathComponentsForResponder(SKHTTPRouteTestsTwoResponder, {id: 123, name: "testing", final: ["alpha", "bravo", "charlie"]});
+        TKAssertArrayEquals(components, ["/", "two", "123", "testing", "test", "alpha", "bravo", "charlie"]);
     }
 
 });
