@@ -341,6 +341,12 @@ Object.defineProperties(Uint8Array.prototype, {
     dataByEncodingPercentEscapes: {
         enumerable: false,
         value: function Uint8Array_dataByEncodingPercentEscapes(reserved, encodeSpaceAsPlus){
+            if (reserved === undefined){
+                reserved = {};
+            }
+            if (encodeSpaceAsPlus === undefined){
+                encodeSpaceAsPlus = false;
+            }
             var encoded = new Uint8Array(this.length * 3);
             var j = 0;
             var c;
