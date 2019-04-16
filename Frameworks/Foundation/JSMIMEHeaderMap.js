@@ -92,3 +92,13 @@ JSGlobalObject.JSMIMEHeader = function(name, value){
         }
     }
 };
+
+JSMIMEHeader.prototype = {
+    toString: function(){
+        var str = this.name + ": ";
+        if (this.value !== undefined && this.value !== null){
+            str += this.value;
+        }
+        return str;
+    }
+};
