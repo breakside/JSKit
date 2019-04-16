@@ -1,6 +1,6 @@
 // #import "UIKit/UIApplication.js"
 // #import "UIKit/UIHTMLWindowServer.js"
-/* global JSGlobalObject, UIApplication, JSURL, window, UIHTMLWindowServer, JSArguments */
+/* global JSGlobalObject, JSReadOnlyProperty, UIApplication, JSURL, window, UIHTMLWindowServer, JSArguments */
 'use strict';
 
 UIApplication.definePropertiesFromExtensions({
@@ -25,14 +25,32 @@ UIApplication.definePropertiesFromExtensions({
         }
         var options = this.bundle.info.UIApplicationLaunchOptions || {};
         var args = JSArguments.initWithOptions(options);
-        args.parseQueryString(query);
-        url.fragment = null;
+        args.parseQueryString(query, positional);
+        url.fragment = positional.length > 0 ? positional[0] : null;
         window.history.replaceState(null, null, url.encodedString);
         return args;
     },
 
-    openURL: function(url){
-        window.open(url.encodedString);
+    openURL: function(url, options){
+        if (options.replacingApplication){
+            var open = function(){
+                window.location.href = url;
+            };
+            if (this.delegate && this.delegate.applicationWillTerminate){
+                this.delegate.applicationWillTerminate(open);
+            }else{
+                open();
+            }
+        }else{
+            window.open(url.encodedString);
+        }
+    },
+
+    baseURL: JSReadOnlyProperty(),
+
+    getBaseURL: function(){
+        var url = JSURL.initWithString(window.location.origin + window.location.pathname);
+        return url;
     }
 
 });
