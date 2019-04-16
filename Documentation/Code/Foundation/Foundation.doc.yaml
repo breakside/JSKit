@@ -1,0 +1,110 @@
+kind: framework
+summary: The foundational classes used to build JSKit-based applications
+tasks:
+  - 
+    name: Core functionality
+    members:
+      - JSClass
+      - JSObject
+      - JSRange
+      - JSIndexPath
+      - JSIndexSet
+      - JSBundle
+      - JSPropertyList
+      - JSSpec
+      - JSProtocol
+      - JSValueTransformer
+  - 
+    name: Strings & Data
+    summary: Dealing with strings, bytes, attributed strings, unicode, and encodings
+    members:
+      - String
+      - JSAttributedString
+      - JSData
+      - UnicodeChar
+  - 
+    name: Date & Time
+    summary: Date & Time, including calendar, time zone, and localization
+    members:
+      - JSDate
+      - JSDateFormatter
+      - JSCalendar
+      - JSLocale
+      - JSTimeZone
+  -
+    name: Drawing & Images
+    summary: Basic kinds for use in coordinate systems such as points, rects, etc.
+    members:
+      - JSContext
+      - JSPoint
+      - JSSize
+      - JSRect
+      - JSAffineTransform
+      - JSColor
+      - JSCubicBezier
+      - JSGradient
+      - JSImage
+  -
+    name: Filesystem
+    summary: Files and file system operations
+    members:
+      - JSFileManager
+      - JSFile
+  -
+    name: Application
+    summary: Common functionality shared across GUI and command line applications
+    members:
+      - JSUserDefaults
+      - JSArguments
+      - JSRunLoop
+      - JSPasteboard
+      - JSUndoManager
+  -
+    name: Logging
+    summary: Logging, telemetry, and error reporting
+    members:
+      - JSLog
+  -
+    name: Web
+    summary: Making web requests and handling common data kinds
+    members:
+      - JSURL
+      - JSURLSession
+      - JSURLSessionDataTask
+      - JSURLSessionStreamTask
+      - JSURLSessionUploadTask
+      - JSURLRequest
+      - JSURLResponse
+      - JSFormFieldMap
+      - JSMediaType
+      - JSMIMEHeaderMap
+  -
+    name: Text & Typesetting
+    summary: Text layout & font management
+    members:
+      - JSFont
+      - JSFontDescriptor
+      - JSTextAttachment
+      - JSTextContainer
+      - JSTextFrame
+      - JSTextFramesetter
+      - JSTextLayoutManager
+      - JSTextLine
+      - JSTextRun
+      - JSTextStorage
+      - JSTextTypesetter
+  - 
+    name: Zlib
+    summary: Data compression with zlib
+    members:
+      - Zlib
+      - Deflate
+  -
+    name: Utilities
+    summary: Miscellaneous utilities such as timers and formatters
+    members:
+      - JSTimer
+      - JSNumberFormatter
+      - JSBinarySearcher
+      - JSMath
+      - UUID

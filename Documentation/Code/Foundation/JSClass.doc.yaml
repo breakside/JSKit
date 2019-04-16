@@ -1,0 +1,233 @@
+kind: functionclass
+summary: A function that creates JSKit classes and serves as the base type\
+  for all JSKit classes.
+description: |
+  `JSClass` is used to create new classes:
+
+  ````
+  JSClass("MyObject", JSObject, {
+
+    // ...
+
+  });
+  ````
+
+  It also serves as the base of all JSKit classes, and contains functionaility
+  for inspecting the class hierarchy, looking up classes by name, and extending
+  existing classes with mixins.
+tasks:
+  -
+    name: Creating Classes
+    members:
+      -
+        kind: constructor
+        summary: Create a new class
+        return: The new class
+        type: JSClass
+        arguments:
+          -
+            name: className
+            type: string
+            summary: The name of the new class to create
+          -
+            name: superclass
+            type: JSClass
+            summary: The class from which the new class will inherit
+          -
+            name: extensions,
+            type: MyObject
+            summary: A collection of properties and methods that the new class will contain
+      -
+        name: initialize
+        kind: method
+        summary: Setup any `init*` methods and register the class for lookup
+        description: |
+          This initialization method is called automatically as part of the
+          `JSClass()` function call.
+
+          However, if you're using class syntax, you'll need to call `initialize()`
+          yourself.
+
+          ````
+          class MyObject extends JSObject{
+
+            // ...
+
+          }
+
+          MyObject.initialize();
+          ````
+        important:
+          This method must be called on any classes created using the class syntax
+      -
+        name: definePropertiesFromExtensions
+        kind: method
+        summary: Add more properties or methods to a class, similar to a mixin
+        description: |
+          Adding more properties or methods to an object can be a handy way of
+          increasing functionality while maintaining clean object oriented
+          patterns.
+
+          Maybe a framework includes a definition of RGB color:
+
+          ````
+          // In a framework...
+
+          JSClass("RGBColor", JSObject, {
+
+            red: 0,
+            green: 0,
+            blue: 0,
+
+            initWithRGB(red, green, blue){
+              this.red = red;
+              this.green = green;
+              this.blue = blue;
+            }
+          });
+          ````
+
+          But in your application, you often want to convert from RGB to
+          grayscale.  While you could make a standalone function called
+          `rgbToGrayscale(rgbObject)`, extensions allow you to add a method
+          right on the `RGBColor` object itself:
+
+          ````
+          // In your application...
+
+          RGBColor.definePropertiesFromExtensions({
+            getGrayscale: function(){
+              return (this.red + this.blue + this.green) / 3;
+            }
+          });
+          ````
+        arguments:
+          -
+            name: extensions
+            type: object
+            summary: The extra properties and methods to add to the class
+  -
+    name: Class Identity
+    members:
+      -
+        name: className
+        type: string
+        summary: The name of the class
+        description: |
+          Sometimes, such as in cases like serialization, it is much easier to
+          pass around the name of a class rather than the class itself.
+
+          This property provides a way to access the class name.
+
+          If you have an instance object, you would lookup it's class name
+          with a line like:
+
+          ````
+          this.$class.className
+          ````
+      -
+        name: $super
+        type: string
+        summary: The superclass of this class
+        description:
+      -
+        name: isSubclassOfClass
+        kind: method
+        summary: Check if the class is a subclass of the given class
+        return: \`true` if this class is a subclass of the given class, `false` otherwise
+        type: boolean
+        arguments:
+          -
+            name: referenceClass
+            type: JSClass
+            summary: The class to test against
+  -
+    name: Class Lookup
+    members:
+      -
+        name: FromName
+        kind: method
+        static: true
+        summary: Find the class with a name matching the given name
+        description: |
+          Sometimes, such as in cases like serialization, it is much easier to
+          pass around the name of a class rather than the class itself.
+
+          This function provides a way to convert 
+        return: The class matching the given name
+        type: JSClass
+        arguments:
+          -
+            name: className
+            type: string
+            summary: The name of the class to lookup
+  -
+    name: Extending
+    members:
+      -
+        name: $extend
+        kind: method
+        summary: Create a new class by extending this class
+        description: |
+          Not typically called directly, as `JSClass()` is the preferred way
+          of creating new classes.
+
+          Can be overridden by subclasses interested in doing some kind of
+          automatic registration of their own subclasses, in support of a
+          factory pattern.
+
+          Here's an example of an image reader that can factory out specific
+          subclasses depending on file etension:
+
+          ````
+          JSClass("ImageReader", JSObject, {
+            ext: null,
+
+            initFromFile:file){
+              var subclass = ImageReader.subclassesByExt[file.ext];
+              if (!subclass){
+                return null;
+              }
+              return subclass.initWithFile(file);
+            }
+          });
+
+          ImageReader.subclassesByExt = {};
+
+          ImageReader.$extend = function(extensions, className){
+            var subclass = this.$super.$extend.call(this, extensions, className);
+            ImageReader.subclassesByExt[subclass.prototype.ext] = subclass;
+            return subclass;
+          };
+
+          JSClass("PNGReader", ImageReader, {
+            ext: 'png',
+
+            initWithFile: function(file){
+              // ...
+            }
+          });
+
+          JSClass("JPGReader", ImageReader, {
+            ext: 'jpg',
+
+            initWithFile: function(file){
+              // ...
+            }
+          });
+
+          var file = getFileFromSomewhere();
+          var obj = ImageReader.initFromFile(file);
+          // obj will be a PNGReader if file.ext == 'png'
+          //             a JPGReader if file.ext == 'jpg'
+          ````
+        arguments:
+          -
+            name: extensions
+            type: object
+            summary: A collection of properties and methods for the subclass
+          -
+            name: className
+            type: string
+            summary: The name for the new subclass
+

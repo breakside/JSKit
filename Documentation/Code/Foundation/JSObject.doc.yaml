@@ -1,0 +1,198 @@
+kind: class
+summary: The base class for all other JSKit classes, providing common\
+  functionality such as binding and observers.
+tasks:
+  -
+    name: Creating a `JSObject` from a `JSSpec`
+    members:
+      - 
+        name: initWithSpecName
+        kind: init
+        summary: Create any object by loading a spec resource and initializing\
+          it's owner object
+        arguments:
+          - 
+            name: specName
+            type: string
+            summary: The name of a resource contained in the main bundle
+      -
+        name: initWithSpec
+        kind: init
+        summary: Initialize an object with the values extracted from part of\
+          a spec file
+        description: |
+          A spec is a declarative dictionary of properties that describe how
+          an object should be initialized.
+
+          Typically a subclass will implement its own version of this method
+          to initialize properties from the spec, but first calling
+          `$super.initWithSpec`.
+
+          A simple example is:
+
+          ````
+          JSClass("MyObject", JSObject, {
+
+            myProperty: 0
+
+            initWithSpec: function(spec, values){
+              MyObject.$super.initWithSpec.call(this, spec, values);
+              this.myProperty = values.myProperty;
+            }
+
+          });
+          ````
+
+          However, some property initialization is more complex and requires
+          using the spec to resolve more values.
+
+          In this case, a color object is created.
+
+          ````
+          JSClass("MyObject", JSObject, {
+
+            myColor: 0
+
+            initWithSpec: function(spec, values){
+              MyObject.$super.initWithSpec.call(this, spec, values);
+              this.myColor = spec.resolveValue(values.myColor, "JSColor");
+            }
+
+          });
+          ````
+
+          See `JSSpec` for more details on what kind of values can be
+          resolved.
+        arguments:
+          - 
+            name: spec
+            type: JSSpec
+            summary: The spec in which the object is described
+          - 
+            name: values
+            type: object
+            summary:The dictionary that the describes the object in the spec
+      - 
+        name: awakeFromSpec
+        kind: method
+        summary: Called after the object has been initialized from a spec file
+        description: |
+          Can be used to perform extra intialization tasks when creating an
+          object from a spec file
+  -
+    name: Class Inspection
+    members:
+      -
+        name: $class
+        type: JSClass
+        summary: The `JSClass` of which this object in an instance
+      -
+        name: isKindOfClass
+        kind: method
+        type: boolean
+        summary: Check if the object is an instance of the given class or one\
+          of its subclasses
+        return: "`true` if the object is an instance of the given class, `false` otherwise"
+        description: |
+          While good class design generally leverages polymorphism so calling
+          code doesn't need to distinguish between subclasses, in rare cases it
+          can be useful to know exactly which kind of class an object is.
+
+          In other cases, lack of argument overloading in JavaScript can be
+          overcome by using dynamic type checking in a function to mimic the
+          kind of overloading that is possible in other languages.
+        note: |
+          You can also use the `instanceof` operator to perform the same
+          check, which can be convenient in situations where you don't even
+          know if the arg is a `JSObject` with a `isKindOfClass` member to call.
+        arguments:
+          -
+            name: referenceClass
+            type: JSClass
+            summary: The class for which this object may be an instance
+  -
+    name: Object Identification
+    members:
+      -
+        name: objectID
+        type: int
+        summary: A unqiue identifier for the object
+        description: |
+          You can use an object's unique identifier as a key in dictionaries.
+
+          No two objects will be assigned the same identifier.
+  -
+    name: Binding & Observing
+    members:
+      -
+        name: addObserverForKeyPath
+        kind: method
+        summary: Register the given observer object to receive notifications\
+          when the value for the given keyPath changes.
+        arguments:
+          -
+            name: observer
+            type: JSObject
+            summary: The object that will receive change notifications
+          -
+            name: keyPath
+            type: string
+            summary: The dot-separated keyPath corresponding to the observed value
+          -
+            name: options
+            default: null
+            type: object
+            summary: Options that control how the observation behaves
+          -
+            name: context
+            default: null
+            type: any
+            summary: An object or value that will be provided in the notification\
+              callback, allowing the observer to identify and distinguish the\
+              notification if needed
+      -
+        name: observeValueForKeyPath
+        kind: method
+        summary: Called when an observed value changes
+        description: |
+          ````
+          JSClass("MyObject", JSObject, {
+
+            observedValue: 0,
+
+            observeValueForKeyPath: function(keyPath, ofObject, change, context){
+              this.observedValue = ofObject.valueForKeyPath(keyPath);
+            }
+
+          });
+
+          JSClass("MyObserver", JSObject, {
+
+            myProperty: 1
+
+          });
+
+          var observer = MyObserver.init();
+          var obj = MyObject.init();
+          obj.addObserverForKeyPath("myProperty", observer);
+          obj.myProperty = 2;
+          // observer.observedValue == 2
+          ````
+        arguments:
+          -
+            name: keyPath
+            type: string
+            summary: The dot-separated keyPath corresponding to the value that changed
+          -
+            name: ofObject
+            type: JSObject
+            summary: The object holding the value that changed
+          -
+            name: change
+            type: object
+            summary: A description of the change that occurred
+          -
+            name: context
+            type: any
+            summary: The exact `context` object/value that was provided in\
+              `addObserverForKeyPath`

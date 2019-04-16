@@ -1,0 +1,38 @@
+kind: functionclass
+summary: A location + length pair that can specificy a continuous range of items\
+  in a one-dimensional list
+description: |
+  Often used for string-based operations, a `JSRange` is a simple object containing
+  `location` and a `length` properties.
+tasks:
+  -
+    name: Creating a range
+    members:
+      -
+        kind: constructor
+        summary: Create a new range with the given location and length
+        arguments:
+          -
+            name: location
+            type: int
+            summary: The starting index for the range
+          -
+            name: length
+            type: int
+            summary: The length of the range (could be 0)
+  -
+    name: Range Information
+    members:
+      -
+        name: location
+        type: int
+        summary: The starting index of the range
+      -
+        name: length
+        type: int
+        summary: The length of the range
+      -
+        name: end
+        type: int
+        summary: The ending index of the range, equal to `location` + `length`
+        note: The ending index is not considered to be part of the range itself
