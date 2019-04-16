@@ -2,8 +2,9 @@
 // #import "ServerKit/SKHTTPResponderContext.js"
 // #import "ServerKit/SKHTTPError.js"
 // #import "ServerKit/SKHTTPResponse.js"
+// #import "ServerKit/SKValidatingObject.js"
 // #import Hash
-/* global JSClass, JSObject, JSURL, JSReadOnlyProperty, JSMIMEHeaderMap, JSSHA1Hash, SKHTTPResponder, SKHTTPResponse, SKHTTPResponderContext, SKHTTPError, JSLog */
+/* global JSClass, JSObject, JSURL, JSReadOnlyProperty, JSMIMEHeaderMap, JSSHA1Hash, SKHTTPResponder, SKHTTPResponse, SKHTTPResponderContext, SKHTTPError, JSLog, SKValidatingObject */
 'use strict';
 
 (function(){
@@ -15,6 +16,7 @@ JSClass("SKHTTPResponder", JSObject, {
     request: JSReadOnlyProperty('_request', null),
     context: JSReadOnlyProperty('_context', null),
     response: JSReadOnlyProperty('_response', null),
+    allowedOrigins: null,
     route: null,
     _isWebsocket: false,
 
@@ -22,6 +24,7 @@ JSClass("SKHTTPResponder", JSObject, {
         this._request = request;
         this._context = context;
         this._response = request ? request.response : null;
+        this.allowedOrigins = {};
     },
 
     authenticate: function(completion, target){
@@ -32,12 +35,25 @@ JSClass("SKHTTPResponder", JSObject, {
         return completion.promise;
     },
 
+    options: function(){
+        this._setAccessHeaders();
+        this.sendStatus(SKHTTPResponse.StatusCode.ok);
+    },
+
     fail: function(error){
         if (this._isWebsocket){
             this._request.close();
-        }else{
-            SKHTTPResponder.fail(this._request, error);
+            return;
         }
+        if (error instanceof SKValidatingObject.Error){
+            this.sendObject({error: error.message}, SKHTTPResponse.StatusCode.badRequest);
+            return;
+        }
+        var statusCode = SKHTTPResponse.StatusCode.internalServerError;
+        if (error instanceof SKHTTPError){
+            statusCode = error.statusCode;
+        }
+        this.sendStatus(statusCode);
     },
 
     urlForResponder: function(responder, params){
@@ -61,6 +77,9 @@ JSClass("SKHTTPResponder", JSObject, {
         var methodName = requestMethod.toLowerCase();
         if (methodName.startsWith('_')){
             return null;
+        }
+        if (methodName == 'options'){
+            return this.options;
         }
         if (methodName in SKHTTPResponder.prototype){
             return null;
@@ -104,6 +123,7 @@ JSClass("SKHTTPResponder", JSObject, {
         if (status === undefined){
             status = SKHTTPResponse.StatusCode.ok;
         }
+        this._setAccessHeaders();
         this.response.statusCode = status;
         this.response.contentType = contentType;
         this.response.contentLength = data.length;
@@ -119,53 +139,48 @@ JSClass("SKHTTPResponder", JSObject, {
         var json = JSON.stringify(obj);
         this.response.setHeader("Cache-Control", "no-cache");
         this.response.setHeader("Expires", "Thu, 01 Jan 1970 00:00:01 GMT");
-        this.sendString(json, "application/json; charset=utf8", status);
+        this.sendString(json + "\n", "application/json; charset=utf8", status);
     },
 
     sendStatus: function(status){
+        this._setAccessHeaders();
         this.response.contentLength = 0;
         this.response.statusCode = status;
         this.response.complete();
     },
 
     sendRedirect: function(destination){
+        this._setAccessHeaders();
         this.response.statusCode = SKHTTPResponse.StatusCode.found;
-        this.response.setHeader("Location: %s".sprintf(destination));
+        this.response.setHeader("Location", destination);
     },
 
     sendFile: function(filePath, contentType, hash){
+    },
+
+    _setAccessHeaders: function(){
+        var origin = this.request.origin;
+        if (origin){
+            var allowed = this.allowedOrigins[origin];
+            if (allowed){
+                this.response.setHeader("Access-Control-Allow-Origin", origin);
+                if (origin != "*"){
+                    this.response.setHeader("Vary", "Origin");
+                }
+                if (this.request.headerMap.get('Access-Control-Request-Method', null) !== null){
+                    this.response.setHeader("Access-Control-Allow-Methods", allowed.methods.join(", "));
+                }
+                if (this.request.headerMap.get('Access-Control-Request-Headers', null) !== null){
+                    this.response.setHeader("Access-Control-Allow-Headers", allowed.headers.join(", "));
+                }
+                if (this.request.method == "OPTIONS"){
+                    this.response.setHeader("Access-Control-Max-Age", 60 * 60);
+                }
+            }
+        }
     }
 
 });
-
-SKHTTPResponder.fail = function(request, error){
-    var statusCode = SKHTTPResponse.StatusCode.internalServerError;
-    if (error instanceof SKHTTPError){
-        statusCode = error.statusCode;
-    }else{
-        statusCode = SKHTTPResponse.StatusCode.internalServerError;
-        try {
-            logger.error("Uncaught error handling '%{public}': %{public}". request.url, error.message);
-            if (error.stack){
-                var lines = error.stack.split("\n");
-                for (var i = 0, l = lines.length; i < l; ++i){
-                    logger.error(lines[i]);
-                }
-            }
-        }catch(e){
-        }
-    }
-    var response = request.response;
-    if (response){
-        response.statusCode = statusCode;
-        response.complete();
-    }else{
-        var headers = JSMIMEHeaderMap();
-        headers.add("Content-Length", "0");
-        request.respond(statusCode, "", headers);
-        request.close();
-    }
-};
 
 var findFirstMatch = function(a, b){
     for (var i = 0, l = a.length; i < l; ++i){

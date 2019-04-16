@@ -25,12 +25,12 @@ SKHTTPServer.definePropertiesFromExtensions({
 
     _handleNodeRequest: function(nodeRequest, nodeResponse){
         var request = SKHTTPRequest.initWithNodeRequest(nodeRequest, nodeResponse);
-        this._handleRequest(request);
+        this.handleRequest(request);
     },
 
     _handleNodeUpgrade: function(nodeRequest, socket, headPacket){
         var request = SKHTTPRequest.initWithNodeRequest(nodeRequest, null);
-        this._handleUpgrade(request);
+        this.handleUpgrade(request);
     }
 
 });

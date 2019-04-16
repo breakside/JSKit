@@ -7,6 +7,7 @@ var fs = require('fs');
 SKHTTPResponder.definePropertiesFromExtensions({
 
     sendFile: function(filePath, contentType, hash){
+        this._setAccessHeaders();
         var responder = this;
         fs.stat(filePath, function(error, stat){
             if (error){

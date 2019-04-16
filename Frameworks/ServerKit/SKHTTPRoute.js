@@ -50,15 +50,34 @@ JSClass("SKHTTPRoute", JSObject, {
         }
     },
 
-    responderForRequest: function(request, pathComponents, matches, contextClass){
-        if (pathComponents === undefined){
-            pathComponents = request.url.pathComponents;
+    contextWithMatches: function(matches){
+        var route = this;
+        var contextClass = null;
+        do{
+            contextClass = route._responderClass.prototype.contextClass || null;
+            route = route.parent;
+        }while (route !== null && contextClass === null);
+        if (contextClass !== null){
+            return contextClass.initWithPathComponentMatches(matches);
         }
-        if (pathComponents.length === 0){
+        return null;
+    },
+
+    responderWithRequest: function(request, context){
+        var responder = this._responderClass.initWithRequest(request, context);
+        responder.route = this;
+        return responder;
+    },
+
+    routeInfoForRequest: function(request){
+        var matches = {};
+        var routeInfo = this._routeInfoForPathComponents(request.url.pathComponents, matches);
+        return routeInfo;
+    },
+
+    _routeInfoForPathComponents: function(pathComponents, matches){
+        if (pathComponents.length === null){
             return null;
-        }
-        if (matches === undefined){
-            matches = {};
         }
         var componentIndex = 0;
         var matcherIndex = 0;
@@ -80,25 +99,16 @@ JSClass("SKHTTPRoute", JSObject, {
         if (matcher.isGreedy && this.children.length > 0){
             // FIXME: unwind components
         }
-        var responderClass = this._responderClass;
-        if (responderClass.prototype.contextClass){
-            contextClass = responderClass.prototype.contextClass;
-        }
-        var responder = null;
         if (componentIndex == pathComponents.length){
-            if (!contextClass){
-                contextClass = SKHTTPResponderContext;
-            }
-            var context = contextClass.initWithPathComponentMatches(matches);
-            responder = this._createResponder(responderClass, request, context);
-        }else{
-            var child;
-            for (var i = 0, l = this.children.length; i < l && responder === null; ++i){
-                child = this.children[i];
-                responder = child.responderForRequest(request, pathComponents.slice(componentIndex), JSCopy(matches), contextClass);
-            }
+            return {route: this, matches: matches};
         }
-        return responder;
+        var child;
+        var routeInfo = null;
+        for (var i = 0, l = this.children.length; i < l && routeInfo === null; ++i){
+            child = this.children[i];
+            routeInfo = child._routeInfoForPathComponents(pathComponents.slice(componentIndex), Object.create(matches));
+        }
+        return routeInfo;
     },
 
     pathComponentsForResponder: function(responderClass, params){
@@ -142,12 +152,6 @@ JSClass("SKHTTPRoute", JSObject, {
         return components;
     },
 
-    _createResponder: function(responderClass, request, context){
-        var responder = responderClass.initWithRequest(request, context);
-        responder.route = this;
-        return responder;
-    },
-
     addChild: function(route){
         route.parent = this;
         this.children.push(route);
@@ -182,8 +186,8 @@ JSClass("SKHTTPResourceRoute", SKHTTPRoute, {
         this._resourceMetadata = this._bundle.metadataForResourceName(values.resource, values.type);
     },
 
-    _createResponder: function(responderClass, request, context){
-        var responder = responderClass.initWithResourceMetadata(this._bundle, this._resourceMetadata, request, context);
+    responderWithRequest: function(request, context){
+        var responder = this._responderClass.initWithResourceMetadata(this._bundle, this._resourceMetadata, request, context);
         responder.route = this;
         return responder;
     },

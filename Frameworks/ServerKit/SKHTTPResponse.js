@@ -1,4 +1,3 @@
-// #import Foundation
 // #import "ServerKit/SKHTTPHeaders.js"
 /* global JSClass, JSObject, JSDate, JSCustomProperty, JSDynamicProperty, JSReadOnlyProperty, JSURLResponse, SKHTTPResponse, SKHTTPHeaders*/
 'use strict';

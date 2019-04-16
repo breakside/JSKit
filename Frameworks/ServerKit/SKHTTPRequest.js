@@ -1,6 +1,7 @@
 // #import Foundation
 // #import "ServerKit/SKHTTPResponse.js"
-/* global JSClass, JSDate, JSLazyInitProperty, JSObject, JSData, JSReadOnlyProperty, JSURL, JSMIMEHeaderMap, SKHTTPResponse, JSLog, JSMediaType */
+// #import "ServerKit/SKValidatingObject.js"
+/* global JSClass, JSDate, JSLazyInitProperty, JSObject, JSData, JSReadOnlyProperty, JSURL, JSMIMEHeaderMap, SKHTTPResponse, JSLog, JSMediaType, SKValidatingObject */
 'use strict';
 
 var logger = JSLog("server", "http");
@@ -12,6 +13,7 @@ JSClass("SKHTTPRequest", JSObject, {
     headerMap: JSReadOnlyProperty('_headerMap', null),
     method: JSReadOnlyProperty('_method', null),
     contentType: JSLazyInitProperty('_getContentType'),
+    origin: JSLazyInitProperty('_getOrigin'),
 
     initWithMethodAndURL: function(method, url){
         this._method = method;
@@ -24,12 +26,16 @@ JSClass("SKHTTPRequest", JSObject, {
         return JSMediaType(header);
     },
 
+    _getOrigin: function(){
+        return this.headerMap.get('Origin', null);
+    },
+
     respond: function(statusCode, statusMessage, headerMap){
         this._write("HTTP/1.1 %d %s\r\n".sprintf(statusCode, statusMessage));
         var header;
         for (var i = 0, l = headerMap.headers.length; i < l; ++i){
             header = headerMap.headers[i];
-            this._write("%s: %s\r\n".sprintf(header.name, header.value || ""));
+            this._write("%s\r\n".sprintf(header));
         }
         this._write("\r\n");
     },
@@ -101,8 +107,7 @@ JSClass("SKHTTPRequest", JSObject, {
         if (!completion){
             completion = Promise.completion();
         }
-        var mediaType = this.contentType;
-        if (mediaType.mime !== 'application/json' || mediaType.parameters.charset !== String.Encoding.utf8){
+        if (!this.contentType || this.contentType.mime !== 'application/json' || this.contentType.parameters.charset !== String.Encoding.utf8){
             completion.call(target, null);
             return completion.promise;
         }
@@ -111,7 +116,7 @@ JSClass("SKHTTPRequest", JSObject, {
                 completion.call(target, null);
                 return;
             }
-            var json = String.initWithData(data, mediaType.parameters.charset);
+            var json = String.initWithData(data, this.contentType.parameters.charset);
             var obj = null;
             try{
                 obj = JSON.parse(json);
@@ -119,6 +124,17 @@ JSClass("SKHTTPRequest", JSObject, {
             }
             completion.call(target, obj);
         }, this);
+        return completion.promise;
+    },
+
+    getValidatingObject: function(completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        this.getObject(function(obj){
+            var validator = SKValidatingObject.initWithObject(obj);
+            completion.call(target, validator);
+        });
         return completion.promise;
     }
 
