@@ -1,37 +1,43 @@
+// #import Foundation
 // #import "SECHash.js"
-/* global JSGlobalObject, SECHash, SECVerify, JSData */
+/* global JSClass, JSObject, JSReadOnlyProperty, SECHash, SECVerify, JSData */
 'use strict';
 
 (function(){
 
-JSGlobalObject.SECJWT = {
+JSClass("SECJSONWebToken", JSObject, {
 
-    validateToken: function(token, keys, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveNonNull);
+    signature: null,
+    _signedChunks: null,
+    _header: null,
+    unverifiedPayload: JSReadOnlyProperty('_unverifiedPayload'),
+
+    initWithString: function(str){
+        var parts = str.split('.');
+        if (parts.length !== 3){
+            return null;
         }
-        var parts = token.split('.');
-        if (parts.length != 3){
-            completion.call(target, null);
-        }
-        var header;
-        var payload;
-        var signature;
-        var headerObj;
-        var payloadObj;
         try{
-            header = parts[0].dataByDecodingBase64URL();
-            payload = parts[1].dataByDecodingBase64URL();
-            signature = parts[2].dataByDecodingBase64URL();
-            headerObj = JSON.parse(header.stringByDecodingUTF8());
-            payloadObj = JSON.parse(payload.stringByDecodingUTF8());
+            var headerData = parts[0].dataByDecodingBase64URL();
+            var payloadData = parts[1].dataByDecodingBase64URL();
+            this.signature = parts[2].dataByDecodingBase64URL();
+            this._header = JSON.parse(headerData.stringByDecodingUTF8());
+            this._unverifiedPayload = JSON.parse(payloadData.stringByDecodingUTF8());
         }catch (e){
-            completion.call(target, null);
-            return;
+            return null;
         }
-        if (headerObj.alg == "none"){
-            completion.call(target, payloadObj);
-            return;
+        this._signedChunks = [parts[0].utf8(), dot, parts[1].utf8()];
+    },
+
+    signed: JSReadOnlyProperty(null, 'isSigned'),
+
+    isSigned: function(){
+        return this._header.alg != 'none';
+    },
+
+    verifiedPayload: function(keys, completion, target){
+        if (!completion){
+            completion = Promise.completion();
         }
         var key;
         var keyData = null;
@@ -40,7 +46,7 @@ JSGlobalObject.SECJWT = {
         }else{
             for (var i = 0, l = keys.length; i < l && keyData === null; ++i){
                 key = keys[i];
-                if (headerObj.kid == key.kid){
+                if (this._header.kid == key.kid){
                     keyData = key;
                 }
             }
@@ -49,25 +55,24 @@ JSGlobalObject.SECJWT = {
             completion.call(target, null);
             return;
         }
-        var chunks = [parts[0].utf8(), dot, parts[1].utf8()];
-        switch (headerObj.alg){
+        switch (this._header.alg){
             case "HS256":
-                this._verifyHash(SECHash.Algorithm.hmacSHA256, keyData, chunks, signature, payloadObj, completion, target);
+                this._verifyHash(SECHash.Algorithm.hmacSHA256, keyData, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
                 break;
             case "HS384":
-                this._verifyHash(SECHash.Algorithm.hmacSHA384, keyData, chunks, signature, payloadObj, completion, target);
+                this._verifyHash(SECHash.Algorithm.hmacSHA384, keyData, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
                 break;
             case "HS512":
-                this._verifyHash(SECHash.Algorithm.hmacSHA512, keyData, chunks, signature, payloadObj, completion, target);
+                this._verifyHash(SECHash.Algorithm.hmacSHA512, keyData, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
                 break;
             case "RS256":
-                this._verifyRSA(SECHash.Algorithm.rsaSHA256, keyData, chunks, signature, payloadObj, completion, target);
+                this._verifyRSA(SECHash.Algorithm.rsaSHA256, keyData, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
                 break;
             case "RS384":
-                this._verifyRSA(SECHash.Algorithm.rsaSHA384, keyData, chunks, signature, payloadObj, completion, target);
+                this._verifyRSA(SECHash.Algorithm.rsaSHA384, keyData, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
                 break;
             case "RS512":
-                this._verifyRSA(SECHash.Algorithm.rsaSHA512, keyData, chunks, signature, payloadObj, completion, target);
+                this._verifyRSA(SECHash.Algorithm.rsaSHA512, keyData, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
                 break;
             default:
                 completion.call(target, null);
@@ -110,7 +115,7 @@ JSGlobalObject.SECJWT = {
         }, this);
     }
 
-};
+});
 
 var dot = JSData.initWithArray([0x2E]);
 

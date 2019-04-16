@@ -4,4 +4,4 @@
 // #import "SECHash.js"
 // #import "SECVerify.js"
 // #import "SECKeychain.js"
-// #import "SECJWT.js"
+// #import "SECJSONWebToken.js"
