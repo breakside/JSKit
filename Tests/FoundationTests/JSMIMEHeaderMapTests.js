@@ -159,5 +159,17 @@ JSClass("JSMIMEHeaderMapTests", TKTestSuite, {
         map.unset("Third");
         values = map.getAll("Third");
         TKAssertEquals(values.length, 0);
+    },
+
+    testToString: function(){
+        var map = JSMIMEHeaderMap();
+        map.add("Test", "0");
+        map.add("Another");
+        map.add("Third", null);
+        map.add("Third", "again");
+        TKAssertEquals(map.headers[0].toString(), "Test: 0");
+        TKAssertEquals(map.headers[1].toString(), "Another: ");
+        TKAssertEquals(map.headers[2].toString(), "Third: ");
+        TKAssertEquals(map.headers[3].toString(), "Third: again");
     }
 });
