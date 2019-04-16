@@ -2,6 +2,9 @@
 'use strict';
 
 JSGlobalObject.JSMediaType = function(str, parameters){
+    if (str === null || str === undefined){
+        return null;
+    }
     if (this === undefined){
         return new JSMediaType(str, parameters);
     }
