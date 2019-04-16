@@ -239,7 +239,8 @@ JSFont.systemFontOfSize = function(pointSize){
 
 JSFont.Size = {
     detail: 12.0,
-    normal: 14.0
+    normal: 14.0,
+    heading: 24.0
 };
 
 JSFont.Weight = {
