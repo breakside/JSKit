@@ -45,6 +45,10 @@ JSClass("JSUserDefaults", JSObject, {
         });
     },
 
+    close: function(completion, target){
+        this._persist(completion, target);
+    },
+
     // MARK: - Getting and Setting values
 
     valueForKey: function(key){
@@ -107,12 +111,18 @@ JSClass("JSUserDefaults", JSObject, {
         }, this);
     },
 
-    _persist: function(){
+    _persist: function(completion, target){
+        if (this._persistTimer !== null){
+            this._persistTimer.invalidate();
+        }
         this._persistTimer = null;
         var data = JSON.stringify(this._values).utf8();
         JSFileManager.shared.createFileAtURL(this._url, data, function(success){
             if (!success){
                 logger.error("Failed to write preferences to %{public}", this._url);
+            }
+            if (completion){
+                completion.call(target, success);
             }
         }, this);
     }
