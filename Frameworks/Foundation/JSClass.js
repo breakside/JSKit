@@ -346,7 +346,7 @@ JSLazyInitProperty.prototype.define = function(C, key, extensions){
         get: function(){
             var x = this[propertyInitMethodName]();
             Object.defineProperty(this, key, {
-                configurable: false,
+                configurable: true,
                 enumerable: false,
                 value: x
             });
