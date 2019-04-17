@@ -1,0 +1,12 @@
+kind: functionclass
+summary: A compact representation of a possibly large collection of indexes.
+description: |
+  Tracking the selected items in a large list presents a challenge because
+  while only some of the items may be loaded and vislble on screen, a selection
+  can cover a potentially large number of the items.
+
+  An index set holds a collection of ranges instead of a collection of indexes.
+  The ranges in turn hold start and end values.
+
+  For example, a selection set holding all items from a 10,000 item list simply
+  holds one range: [0,10000].

@@ -4,9 +4,10 @@ summary: A location + length pair that can specificy a continuous range of items
 description: |
   Often used for string-based operations, a `JSRange` is a simple object containing
   `location` and a `length` properties.
-tasks:
+members:
   -
     name: Creating a range
+    kind: topic
     members:
       -
         kind: constructor
@@ -20,8 +21,17 @@ tasks:
             name: length
             type: int
             summary: The length of the range (could be 0)
+      -
+        kind: constructor
+        summary: Create a copy of a range
+        arguments:
+          -
+            name: range
+            type: JSRange
+            summary: The range to copy
   -
     name: Range Information
+    kind: topic
     members:
       -
         name: location

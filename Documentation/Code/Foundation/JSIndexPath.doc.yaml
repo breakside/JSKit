@@ -1,0 +1,180 @@
+kind: functionclass
+summary: A two-dimensional index, useful for things like sectioned lists
+description: |
+  An index path has two properties that together specify a lookup location
+  in a two-dimensional list.
+
+  For example, a common UI view is a list view with rows that are grouepd
+  into sections.  A `JSIndexPath` can reference a particular row by specifying
+  the top level `section` and `row` within the section.
+members:
+  -
+    name: Creating an IndexPath
+    kind: topic
+    members:
+      -
+        kind: constructor
+        summary: Create an index path with the given section and row components
+        arguments:
+          -
+            name: section
+            type: int
+            summary: The top level section index
+          -
+            name: row
+            type: int
+            summary: The row index within the section
+      -
+        kind: constructor
+        summary: Copy an index path
+        arguments:
+          -
+            name: indexPath
+            type: JSIndexPath
+            summary: The index path to copy
+  -
+    name: Index values
+    kind: topic
+    members:
+      -
+        name: section
+        type: int
+        summary: The top level section index for this index path
+      -
+        name: row
+        type: int
+        summary: The row index within the section
+  -
+    name: Comparisons
+    kind: topic
+    members:
+      -
+        name: isEqual
+        kind: method
+        summary: Check if this index path is equal to another
+        description: |
+          Two index paths are equal if their `section` and `row` properties
+          are both equal.
+        return: \`true` if the index path's properties match ours, `false` otherwise
+        type: bool
+        arguments:
+          -
+            name: otherIndexPath
+            type: JSIndexPath
+            summary: The index path to compare to
+      -
+        name: isLessThan
+        kind: method
+        summary: Check if this index path is less than another index path
+        description: |
+          And index path is less than another if its `section` is less than the other's
+          `section`, or if the two sections are equal and its `row` is less than the
+          other's `row`
+        return: \`true` if this index path is less than the other, `false` otherwise
+        type: bool
+        arguments:
+          -
+            name: otherIndexPath
+            type: JSIndexPath
+            summary: The index path to compare to
+      -
+        name: isLessThanOrEqual
+        kind: method
+        summary: Check if this index path is less than or equal to another index path
+        description: |
+          And index path is less than or equal to another if its `section` is less than the other's
+          `section`, or if the two sections are equal and its `row` is less than or equal to the
+          other's `row`
+        return: \`true` if this index path is less than or equal to the other, `false` otherwise
+        type: bool
+        arguments:
+          -
+            name: otherIndexPath
+            type: JSIndexPath
+            summary: The index path to compare to
+      -
+        name: isGreaterThan
+        kind: method
+        summary: Check if this index path is greater than another index path
+        description: |
+          And index path is greater than another if its `section` is greater than the other's
+          `section`, or if the two sections are equal and its `row` is greater than the
+          other's `row`
+        return: \`true` if this index path is greater than the other, `false` otherwise
+        type: bool
+        arguments:
+          -
+            name: otherIndexPath
+            type: JSIndexPath
+            summary: The index path to compare to
+      -
+        name: isGreaterThanOrEqual
+        kind: method
+        summary: Check if this index path is greater than or equal to another index path
+        description: |
+          And index path is greater than or equal to another if its `section` is greater than the other's
+          `section`, or if the two sections are equal and its `row` is greater than or equal to the
+          other's `row`
+        return: \`true` if this index path is greater than or equal to the other, `false` otherwise
+        type: bool
+        arguments:
+          -
+            name: otherIndexPath
+            type: JSIndexPath
+            summary: The index path to compare to     
+      -
+        name: compare
+        kind: method
+        summary: Return a `sort()`-compatible comparison result between this index path and another
+        description: |
+          While the same information can be obtained by calling `isLessThan()`,
+          `isGreaterThan()`, and `isEqual()`, this `compare()` function is designed
+          to be used with a `sort()` function that expects a negative, positive, or zero
+          return value.
+        return: \`-1` if this index path is less than the other, `1` if this index path is greater, or `0` if the two index paths are equal
+        type: int
+        arguments:
+          -
+            name: otherIndexPath
+            type: JSIndexPath
+            summary: The index path to compare to
+      -
+        name: incremented
+        kind: method
+        summary: Return a new index path incremented by one row, rolling over to\
+          the first row of the next section if necessary
+        description: |
+          Adds a single row to the index path, using the `numberOfRowsBySection`
+          argument to rollover into the next section if necessary.
+
+          If this index path is the final row in the final section, there is no
+          incremented index path, and `null` is returned instead.
+        return: A new index path that is one row greater than this index path,\
+          or `null` if we're the final row in the final section
+        type: JSIndexPath
+        arguments:
+          -
+            name: numberOfRowsBySection
+            type: int[]
+            summary: An array of integers representing the number of rows in each section,\
+              required in order to tell if this index path is the final row in its section.
+      -
+        name: decremented
+        kind: method
+        summary: Return a new index path decremented by one row, rolling over to\
+          the final row in of previous section if necessary
+        description: |
+          Subtracts a single row to the index path, using the `numberOfRowsBySection`
+          argument to rollover into the previous section if necessary.
+
+          If this indexPath is 0,0 there is no decremented index path, and `null`
+          is returned instead.
+        return: A new index path that is one row less than this index path,\
+          or `null` if we're the first row in the first section
+        type: JSIndexPath
+        arguments:
+          -
+            name: numberOfRowsBySection
+            type: int[]
+            summary: An array of integers representing the number of rows in each section,\
+              required in order to tell what the final row of the previous section is

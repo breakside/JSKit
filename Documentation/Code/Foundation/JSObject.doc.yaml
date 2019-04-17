@@ -1,9 +1,32 @@
 kind: class
 summary: The base class for all other JSKit classes, providing common\
   functionality such as binding and observers.
-tasks:
+description: |
+  `JSObject` the root class in the JSKit class hierarchy.
+
+  All objects extending from `JSObject` inherit the ability to participate
+  in value binding and observing, along with class inspection methods.
+members:
+  -
+    name: Creating a JSObject
+    kind: topic
+    member:
+      -
+        name: init
+        kind: init
+        summary: Create an empty object
+        note: |
+          Every subclass inherits this default init method.
+
+          However, since this method does absolutely nothing, subclasses
+          do not need to call `$super.init` if they override this method
+          or if they declare a different init method.
+
+          Properties such as `objectID` are always initialzed during object
+          construction, even if this init method is not called.
   -
     name: Creating a `JSObject` from a `JSSpec`
+    kind: topic
     members:
       - 
         name: initWithSpecName
@@ -81,6 +104,7 @@ tasks:
           object from a spec file
   -
     name: Class Inspection
+    kind: topic
     members:
       -
         name: $class
@@ -112,6 +136,7 @@ tasks:
             summary: The class for which this object may be an instance
   -
     name: Object Identification
+    kind: topic
     members:
       -
         name: objectID
@@ -123,6 +148,7 @@ tasks:
           No two objects will be assigned the same identifier.
   -
     name: Binding & Observing
+    kind: topic
     members:
       -
         name: addObserverForKeyPath

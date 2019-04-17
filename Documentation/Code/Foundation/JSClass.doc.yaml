@@ -2,22 +2,216 @@ kind: functionclass
 summary: A function that creates JSKit classes and serves as the base type\
   for all JSKit classes.
 description: |
-  `JSClass` is used to create new classes:
+
+  Background
+  ==========
+  
+  As a language, JavaScript has never had a full class syntax.  Even the advent
+  of `class` in EcmaScript 6 leaves a bit to be desired.
+
+  As a result, JSKit is designed with its own class model to help make it easier
+  to define and use classes in JavaScript.  Crucially, however, the JSKit class
+  model is designed work seamlessly with the standard class model in JavaScript.
+
+  For starters, `JSClass` itself is a function that is used to create new classes:
 
   ````
-  JSClass("MyObject", JSObject, {
+  JSClass("Person", JSObject, {
 
-    // ...
+    initWithFullName: function(name){
+      var names = name.split(' ');
+      this.initWithNames(names[0], names.slice(1).join(' '));
+    },
+
+    initWithNames: function(first, last){
+      this.firstName = first;
+      this.lastName = last;
+    },
+
+    firstName: null,
+    lastName: null,
+    fullName: JSReadOnlyProperty(),
+
+    getFullName: function(){
+      return this.firstName + ' ' + this.lastName;
+    }
 
   });
   ````
 
-  It also serves as the base of all JSKit classes, and contains functionaility
+  Here, we've defined a `Person` class that inherits from `JSObject`.  It includes:
+
+  * Two constructors, or "init methods" in JSKit-speak.
+  * Two regular properties (`firstName`, `lastName`)
+  * One read-only property, `fullName`, that is access via a getter, `getFullName`
+
+  Constructors
+  ============
+
+  Classes often have multiple ways of constructing instance objects, but JavaScript
+  `class` syntax only provides a single constructor for every class.
+
+  A common workaround is to have the constructor take an `options` object that
+  can have a varieity of properties depending on the desired construction.
+
+  `JSClass` takes a different approach by using "init methods" to construct
+  object instances.  The end result is more readable and understandable code,
+  both on the class declararation side and the calling side.
+
+  ````
+  var person = Person.initWithNames("Test", "User")
+  ````
+
+  *It's important to note that while init methods are declared just like any
+  other instance method, they are treated differently by `JSClass` and are
+  automatically added as static class methods that first create an object
+  from the class prototype and then call the init method as an instance method.*
+
+  Failable Constructors & Factories
+  ---------------------------------
+
+  Another advangate of init methods over standard constructors is that they can
+  return `null`, making them failable.
+
+  If an init method doesn't return anything (technically, if it's return value
+  is `undefined`) then the calling code receives the newly created object.
+
+  However, if an init method returns something, even `null`, that value will be
+  returned to the calling code.
+
+  This allows for not just failable constructors, but also for factory init methods,
+  useful for abstract base classes that return concrete subclasses.
+
+  Here's an example of an abstract image reader class with a failable factory
+  init method.
+
+  ````
+  JSClass("ImageReader", JSObject, {
+    ext: null,
+
+    initFromFile: function(file){
+      if (file.ext == '.png'){
+        return PNGReader.initWithFile(file);
+      }
+      if (file.ext == '.jpg'){
+        return JPGReader.initWithFile(file);
+      }
+      return null;
+    }
+  });
+
+  JSClass("PNGReader", ImageReader, {
+    ext: 'png',
+
+    initWithFile: function(file){
+      // ...
+    }
+  });
+
+  JSClass("JPGReader", ImageReader, {
+    ext: 'jpg',
+
+    initWithFile: function(file){
+      // ...
+    }
+  });
+  ````
+
+  Properties
+  ==========
+
+  Where JavaScript really falls down is with defining properties.
+
+  In JSKit, there are basic properties, which you define as simple name/default-value
+  pairs:
+
+  ````
+    firstName: null
+  ````
+
+  But there are also properies such as `JSDynamicProperty`, `JSReadOnlyProperty`,
+  and `JSLazyInitProperty` that are defined by calling a function like:
+
+  ````
+    fullName: JSReadOnlyProperty()
+  ````
+
+  When `JSClass` runs, it looks for these special properties and automatically
+  wires up getters, setters, or whatever else is needed.  It ends up being a lot
+  easier and cleaner than messing with `Object.defineProperty` yourself.
+
+  Super
+  =====
+
+  Calling methods from parent classes is a hassle if you're not using the `class`
+  syntax, so `JSClass` makes it easy to get a reference to the superclass:
+
+  ````
+  JSClass("Doctor", Person, {
+
+    getFullName: function(){
+      var name = Doctor.$super.getFullName.call(this);
+      return "Dr. " + name;
+    }
+
+  });
+  ````
+
+  The `.call(this)` business makes use of JavaScript's standard `Function.call`
+  feature, calling the superclass method with ourself as the `this` object.
+
+  If you need to pass arguments, just add them after the `this`:
+
+  ````
+  SomeClass.$super.someMethod.call(this, arg1, arg2);
+  ````
+
+  Using Native Class Syntax
+  =========================
+
+  The `JSClass` system is designed to be completely compatible with the native
+  `class` syntax in JavaScript.
+
+  Here's an example of the `Person` class from before, but rewritten using
+  native `class` sytax:
+
+  ````
+  class Person extends JSObject{
+
+    initWithFullName: function(name){
+      var names = name.split(' ');
+      this.initWithNames(names[0], names.slice(1).join(' '));
+    },
+
+    initWithNames: function(first, last){
+      this.firstName = first;
+      this.lastName = last;
+    },
+
+    get fullName(){
+      return this.firstName + ' ' + this.lastName;
+    }
+
+  }
+
+  Person.initialize()
+  ````
+
+  The one critical bit that ties it all together is the `Person.initialize()`
+  call at the end.  That one call allows you to use the init functions to
+  construct `Person` instances.  It also registers the class so it can be
+  found via `JSClass.FromName("Person")`.
+
+  And More
+  ========
+
+  `JSClass` also serves as the base of all JSKit classes, and contains functionaility
   for inspecting the class hierarchy, looking up classes by name, and extending
   existing classes with mixins.
-tasks:
+members:
   -
     name: Creating Classes
+    kind: topic
     members:
       -
         kind: constructor
@@ -108,6 +302,7 @@ tasks:
             summary: The extra properties and methods to add to the class
   -
     name: Class Identity
+    kind: topic
     members:
       -
         name: className
@@ -143,6 +338,7 @@ tasks:
             summary: The class to test against
   -
     name: Class Lookup
+    kind: topic
     members:
       -
         name: FromName
@@ -163,6 +359,7 @@ tasks:
             summary: The name of the class to lookup
   -
     name: Extending
+    kind: topic
     members:
       -
         name: $extend
@@ -183,7 +380,7 @@ tasks:
           JSClass("ImageReader", JSObject, {
             ext: null,
 
-            initFromFile:file){
+            initFromFile: function(file){
               var subclass = ImageReader.subclassesByExt[file.ext];
               if (!subclass){
                 return null;
