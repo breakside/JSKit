@@ -31,7 +31,7 @@ JSClass("SKHTTPResponder", JSObject, {
         if (!completion){
             completion = Promise.completion();
         }
-        completion.call(target, null);
+        completion.call(target, true, null);
         return completion.promise;
     },
 
@@ -135,8 +135,8 @@ JSClass("SKHTTPResponder", JSObject, {
         this.sendData(str.utf8(), contentType, status);
     },
 
-    sendObject: function(obj, status){
-        var json = JSON.stringify(obj);
+    sendObject: function(obj, status, indent){
+        var json = JSON.stringify(obj, null, indent ? 2 : 0);
         this.response.setHeader("Cache-Control", "no-cache");
         this.response.setHeader("Expires", "Thu, 01 Jan 1970 00:00:01 GMT");
         this.sendString(json + "\n", "application/json; charset=utf8", status);

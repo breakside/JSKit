@@ -41,6 +41,7 @@ JSClass("SKHTTPServer", JSObject, {
     },
 
     handleRequest: function(request){
+        this._fillInRequestURL(request);
         logger.info("%{public} %{public}", request.method, request.url.path);
         var responder = null;
         try{
@@ -143,6 +144,7 @@ JSClass("SKHTTPServer", JSObject, {
     },
 
     handleUpgrade: function(request){
+        this._fillInRequestURL(request);
         var product = request.headerMap.get('upgrade', '');
         logger.info("%{public} %{public} (upgrade: %{public})", request.method, request.url.path, product);
         var responder = null;
@@ -185,6 +187,15 @@ JSClass("SKHTTPServer", JSObject, {
             }else{
                 this._failRequest(request, e);
             }
+        }
+    },
+
+    _fillInRequestURL: function(request){
+        var host = request.headerMap.get('Host', null);
+        var scheme = request.headerMap.get('X-Forwarded-Proto', 'http');
+        if (host !== null){
+            request.url.host = host;
+            request.url.scheme = scheme;
         }
     },
 
