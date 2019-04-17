@@ -875,6 +875,20 @@ JSClass('JSURLTests', TKTestSuite, {
         baseURL = JSURL.initWithString("http://yahoo.com/one/two/three/");
         relativeString = url.encodedStringRelativeTo(baseURL);
         TKAssertEquals(relativeString, "//google.com/one/four");
+    },
+
+    testSetHost: function(){
+        var url = JSURL.initWithString('/test/path');
+        url.host = "google.com";
+        TKAssertEquals(url.host, "google.com");
+        TKAssertNull(url.port);
+        TKAssertEquals(url.encodedString, "//google.com/test/path");
+
+        url = JSURL.initWithString('/test/path');
+        url.host = "google.com:8081";
+        TKAssertEquals(url.host, "google.com");
+        TKAssertExactEquals(url.port, 8081);
+        TKAssertEquals(url.encodedString, "//google.com:8081/test/path");
     }
 
     // TODO: test modifying parts other than path

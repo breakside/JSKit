@@ -67,7 +67,7 @@ JSClass("JSURL", JSObject, {
             parser.parse(data);
         }catch (e){
             if (e.name == JSURLParserError){
-                logger.warn(e);
+                // logger.warn(e);
                 return null;
             }
             throw e;
@@ -120,6 +120,13 @@ JSClass("JSURL", JSObject, {
     },
 
     setHost: function(host){
+        if (host !== null){
+            var portIndex = host.indexOf(':');
+            if (portIndex >= 0){
+                this.port = parseInt(host.substr(portIndex + 1));
+                host = host.substr(0, portIndex);
+            }
+        }
         this._host = host;
         if (host === null){
             this._port = null;
