@@ -8,4 +8,7 @@ JSClass("Documentation", JSObject, {
     initWithDocumentURL: function(docURL){
     },
 
+    urlForMarkdownCode: function(markdown, code){
+    }
+
 });

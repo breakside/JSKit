@@ -1,11 +1,19 @@
 // #import Foundation
 // #import DOM
-/* global JSClass, JSObject, DOM, Markdown, MarkdownHTMLOptions */
+/* global JSClass, JSProtocol, JSObject, DOM, Markdown, MarkdownHTMLOptions */
 'use strict';
+
+JSProtocol("MarkdownDelegate", JSProtocol, {
+
+    urlForMarkdownCode: function(markdown, code){
+    }
+
+});
 
 JSClass("Markdown", JSObject, {
 
     source: null,
+    delegate: null,
 
     initWithString: function(string){
         this.source = string;
@@ -25,6 +33,7 @@ JSClass("Markdown", JSObject, {
         var blockElement = null;
         var listElement = null;
         var options = this.htmlOptions;
+        var markdown = this;
         var addText = function(element, escapedText){
             var i = 0;
             var l = escapedText.length;
@@ -47,12 +56,14 @@ JSClass("Markdown", JSObject, {
                             text = '';
                         }
                         let codeElement = document.createElement('code');
-                        // TODO: lookup code in link table
-                        let link = null;
-                        if (link){
+                        let url = null;
+                        if (markdown.delegate && markdown.delegate.urlForMarkdownCode){
+                            url = markdown.delegate.urlForMarkdownCode(markdown, code); 
+                        }
+                        if (url){
                             let a = codeElement.appendChild(document.createElement('a'));
                             a.appendChild(document.createTextNode(code));
-                            a.setAttribute("href", link);
+                            a.setAttribute("href", url.encodedString);
                         }else{
                             codeElement.appendChild(document.createTextNode(code));
                         }
@@ -191,19 +202,8 @@ JSClass("Markdown", JSObject, {
         for (let i = 0, l = lines.length; i < l; ++i){
             let line = lines[i];
             var trimmed = line.trim();
-            if (line.match(/^=+$/)){
-                addHeader(options.firstLevelHeaderTagName);
-            }else if (line.match(/^-+$/)){
-                addHeader(options.secondLevelHeaderTagName);
-            }else if (line.match(/^#{1,2}\s/)){
-                addATXHeader(line);
-            }else if (line.match(/^````+$/)){
-                if (!inCodeBlock){
-                    inOrderedList = false;
-                    inUnorderedList = false;
-                    inCodeBlock = true;
-                    finishBlock();
-                }else{
+            if (inCodeBlock){
+                if (line.match(/^````+$/)){
                     inCodeBlock = false;
                     let code = document.createElement(options.codeBlockTagName);
                     code.setAttribute("class", options.codeBlockClassName);
@@ -211,11 +211,26 @@ JSClass("Markdown", JSObject, {
                         let codeline = textLines[j];
                         let lineElement = document.createElement(options.codeLineTagName);
                         lineElement.setAttribute("class", options.codeLineClassName);
-                        line.appendChild(document.createTextNode(codeline));
-                        code.appendChild(line);
+                        lineElement.appendChild(document.createTextNode(codeline));
+                        code.appendChild(lineElement);
                     }
                     elements.push(code);
+                    textLines = [];
+                }else{
+                    textLines.push(line);
                 }
+            }else if (line.match(/^=+$/)){
+                addHeader(options.firstLevelHeaderTagName);
+            }else if (line.match(/^-+$/)){
+                addHeader(options.secondLevelHeaderTagName);
+            }else if (line.match(/^#{1,2}\s/)){
+                addATXHeader(line);
+            }else if (line.match(/^````+$/)){
+                finishBlock();
+                inOrderedList = false;
+                inUnorderedList = false;
+                inBlockquote = false;
+                inCodeBlock = true;
             }else if (line.startsWith("> ")){
                 if (!inBlockquote){
                     finishBlock();

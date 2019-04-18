@@ -26,7 +26,6 @@ JSClass("Builder", JSObject, {
         this.arguments = args;
         this.watchlist = [];
         this.commands = [];
-        this.builtURLs = {};
         this.fileManager = project.fileManager;
     },
 
@@ -46,7 +45,7 @@ JSClass("Builder", JSObject, {
 
     project: null,
     arguments: null,
-    builtURLs: null,
+    parentBuild: null,
 
     // -----------------------------------------------------------------------
     // MARK: - Status
@@ -98,28 +97,47 @@ JSClass("Builder", JSObject, {
 
     buildFrameworks: async function(imports, env){
         var frameworksByName = {};
-        var urls = [];
-        var names = [];
-        var seen = new Set();
-        for (let i = 0, l = imports.length; i < l; ++i){
-            let import_ = imports[i];
-            seen.add(import_.name);
-            urls.push(import_.url || import_.projectURL);
-            names.push(import_.name);
-        }
         var dependenciesByName = {};
-        for (let i = 0; i < urls.length; ++i){
-            let url = urls[i];
-            let name = names[i];
-            let builtURL = url;
-            if (url.fileExtension != '.jsframework'){
-                builtURL = this.builtURLs[name];
-                if (!builtURL){
-                    builtURL = await this.buildFramework(url);
-                    this.builtURLs[name] = builtURL;
+        var seen = new Set();
+
+        // Loop through the imports
+        // - build dependencies as necessary
+        // - add dependencies of dependencies as necessary
+        imports = JSCopy(imports);
+        for (let i = 0, l = imports.length; i < l; ++i){
+            seen.add(imports[i].name);
+        }
+
+        for (let i = 0; i < imports.length; ++i){
+            let import_ = imports[i];
+            let url = import_.url;
+            let name = import_.name;
+
+            // If the import points to a projectURL, it needs to be built.
+            //
+            // Because dependent builds are always framework builds, and
+            // because framework builds don't build their dependencies,
+            // and because we're careful to have unique items in the imports
+            // list, we will only ever build each dependency once.
+            if (import_.projectURL){
+                this.printer.print("\nBuilding %s\n".sprintf(import_.name));
+                let builder = await this.buildFramework(import_.projectURL);
+                url = builder.bundleURL;
+                // Add build dependencies
+                let dependencies = builder.dependencies(env);
+                for (let j = 0, k = dependencies.length; j < k; ++j){
+                    let dependency = dependencies[j];
+                    if (!seen.has(dependency.name)){
+                        this.printer.print("\nAdding build dependency %s\n".sprintf(dependency.name));
+                        seen.add(dependency.name);
+                        imports.push(dependency);
+                    }
                 }
             }
-            let framework = Framework.initWithURL(builtURL, this.fileManager);
+
+            // Load the built framework add add any of its dependencies that
+            // we haven't seen yet
+            let framework = Framework.initWithURL(url, this.fileManager);
             await framework.load();
             let dependencies = framework.dependencies(env);
             dependenciesByName[name] = dependencies;
@@ -127,24 +145,28 @@ JSClass("Builder", JSObject, {
             for (let j = 0, k = dependencies.length; j < k; ++j){
                 let name = dependencies[j];
                 if (!seen.has(name)){
-                    // FIXME: hack to get tests working; need real solution for dependent projects
-                    if (this.project.name == "jskitTests" && name == 'jsyaml'){
-                        seen.add(name);
-                        names.push(name);
-                        urls.push(this.fileManager.urlForPath('/Users/oshaw/Documents/JSKit/Command/jskit/jsyaml.jsframework'));
-                    }else{
-                        seen.add(name);
-                        let candidateURL = this.fileManager.urlForPath(JSKitRootDirectoryPath).appendingPathComponents(["Frameworks", name], true);
-                        let exists = await this.fileManager.itemExistsAtURL(candidateURL);
-                        if (!exists){
-                            throw new Error("Cannot find framework %s, (required by %s)".sprintf(name, url.lastPathComponent));
-                        }
-                        urls.push(candidateURL);
-                        names.push(name);
+                    seen.add(name);
+                    // If the framework was pre-built, then it can only have
+                    // dependencies on standard frameworks, so that's the only
+                    // place we'll look.
+                    //
+                    // If we built the framework, then we already added its
+                    // dependencies based on its build reuslts and won't get here.
+                    let candidateURL = this.fileManager.urlForPath(JSKitRootDirectoryPath).appendingPathComponents(["Frameworks", name], true);
+                    let exists = await this.fileManager.itemExistsAtURL(candidateURL);
+                    if (!exists){
+                        throw new Error("Cannot find framework %s, (required by %s)".sprintf(name, url.lastPathComponent));
                     }
+                    this.printer.print("\nAdding dependency %s\n".sprintf(name));
+                    imports.push({
+                        name: name,
+                        url: candidateURL
+                    });
                 }
             }
         }
+
+        // After everything is built, sort the frameworks in dependency order
         var frameworks = [];
         var added = new Set();
         var add = function(name){
@@ -161,6 +183,9 @@ JSClass("Builder", JSObject, {
         for (let name in frameworksByName){
             add(name);
         }
+
+        // Return the list of frameworks sorted in dependency order, allowing
+        // the caller to loop and include everything in the correct order.
         return frameworks;
     },
 
@@ -173,9 +198,9 @@ JSClass("Builder", JSObject, {
         builder.printer = this.printer;
         builder.buildsRootURL = this.buildsRootURL;
         builder.workingDirectoryURL = this.workingDirectoryURL;
-        builder.builtURLs = this.builtURLs;
+        builder.parentBuild = this;
         await builder.build();
-        return builder.bundleURL;
+        return builder;
     },
 
     replaceTemplateText: function(text, parameters){

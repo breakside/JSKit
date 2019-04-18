@@ -67,7 +67,6 @@ JSClass("MakeCommand", Command, {
         while (this.arguments.watch && this.builder.watchlist.length > 0){
             this.printer.setStatus("Done (build label: %s).  Watching for file changes...".sprintf(this.builder.buildLabel));
             await this.watchForChanges(this.builder.watchlist);
-            this.builder.builtURLs = {};
             await this.builder.build();
         }
         this.printer.print("");

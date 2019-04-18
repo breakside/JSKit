@@ -64,6 +64,7 @@ JSClass("FrameworkBuilder", Builder, {
     build: async function(){
         await this.setup();
         await this.bundleResources();
+        await this.findImports();
         await this.bundleJavascript();
         await this.copyInfo();
         await this.copyLicense();
@@ -99,6 +100,23 @@ JSClass("FrameworkBuilder", Builder, {
         await this.fileManager.createFileAtURL(manifestURL, json.utf8());
     },
 
+    importsByEnvironment: null,
+
+    findImports: async function(){
+        this.importsByEnvironment = {};
+        this.printer.setStatus("Finding imports...");
+        var genericFrameworks = new Set();
+        var genericFiles = new Set();
+        var genericFeatures = new Set();
+        var roots = this.environmentRoots;
+        var includeDirectoryURLs = await this.project.findIncludeDirectoryURLs();
+        for (let env in roots){
+            let root = roots[env];
+            let imports = await this.project.findJavascriptImports([root], includeDirectoryURLs);
+            this.importsByEnvironment[env] = imports;
+        }
+    },
+
     bundleJavascript: async function(){
         var manifest;
         if (this.debug){
@@ -118,11 +136,10 @@ JSClass("FrameworkBuilder", Builder, {
         var genericFeatures = new Set();
         var sources = {};
         var roots = this.environmentRoots;
-        var includeDirectoryURLs = await this.project.findIncludeDirectoryURLs();
         for (let env in roots){
             let root = roots[env];
             sources[env] = {frameworks: [], files: [], features: []};
-            let imports = await this.project.findJavascriptImports([root], includeDirectoryURLs);
+            let imports = this.importsByEnvironment[env];
             for (let i = 0, l = imports.frameworks.length; i < l; ++i){
                 let framework = imports.frameworks[i];
                 if (env == 'generic'){
@@ -166,7 +183,6 @@ JSClass("FrameworkBuilder", Builder, {
         var genericFeatures = new Set();
         var sources = {};
         var roots = this.environmentRoots;
-        var includeDirectoryURLs = await this.project.findIncludeDirectoryURLs();
         var licenseString = await this.project.licenseString();
         var header = "%s (%s)\n----\n%s".sprintf(this.project.info.JSBundleIdentifier, this.project.info.JSBundleVersion, licenseString);
         for (let env in roots){
@@ -174,7 +190,7 @@ JSClass("FrameworkBuilder", Builder, {
             let root = roots[env];
             let compilation = JavascriptCompilation.initWithName(root, this.sourcesURL, this.fileManager);
             compilation.writeComment(header);
-            let imports = await this.project.findJavascriptImports([root], includeDirectoryURLs);
+            let imports = this.importsByEnvironment[env];
             for (let i = 0, l = imports.files.length; i < l; ++i){
                 let file = imports.files[i];
                 let bundledPath = file.url.encodedStringRelativeTo(this.project.url);
@@ -223,6 +239,38 @@ JSClass("FrameworkBuilder", Builder, {
         if (exists){
             await this.fileManager.copyItemAtURL(originalURL, licenseURL);   
         }
+    },
+
+    dependencies: function(envs){
+        var imports = [];
+        var seen = new Set();
+        if (this.importsByEnvironment.generic.frameworks){
+            for (let i = 0, l = this.importsByEnvironment.generic.frameworks.length; i < l; ++i){
+                let import_ = this.importsByEnvironment.generic.frameworks[i];
+                imports.push(import_);
+                seen.add(import_.name);
+            }
+        }
+        if (!envs){
+            envs = [];
+        }else if (typeof(envs) == "string"){
+            envs = [envs];
+        }
+        for (let i = 0, l = envs.length; i < l; ++i){
+            let env = envs[i];
+            if (env in this.importsByEnvironment){
+                if (this.importsByEnvironment[env].frameworks){
+                    for (let i = 0, l = this.importsByEnvironment[env].frameworks.length; i < l; ++i){
+                        let import_ = this.importsByEnvironment[env].frameworks[i];
+                        if (!seen.has(import_.name)){
+                            imports.push(import_);
+                            seen.add(import_.name);
+                        }
+                    }
+                }
+            }
+        }
+        return imports;
     }
 
 });

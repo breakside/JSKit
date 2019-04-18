@@ -105,9 +105,9 @@ JSClass("NodeBuilder", Builder, {
     // MARK: - Frameworks
 
     buildFramework: async function(url){
-        let builtURL = await NodeBuilder.$super.buildFramework.call(this, url);
+        let result = await NodeBuilder.$super.buildFramework.call(this, url);
         this.watchlist.push(url);
-        return builtURL;
+        return result;
     },
 
     bundleFrameworks: async function(){

@@ -118,9 +118,9 @@ JSClass("TestBuilder", Builder, {
     // MARK: - Frameworks
 
     buildFramework: async function(url){
-        let builtURL = await TestBuilder.$super.buildFramework.call(this, url);
+        let result = await TestBuilder.$super.buildFramework.call(this, url);
         this.watchlist.push(url);
-        return builtURL;
+        return result;
     },
 
     bundleFrameworks: async function(){

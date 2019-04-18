@@ -126,9 +126,9 @@ JSClass("HTMLBuilder", Builder, {
     // MARK: - Frameworks
 
     buildFramework: async function(url){
-        let builtURL = await HTMLBuilder.$super.buildFramework.call(this, url);
+        let result = await HTMLBuilder.$super.buildFramework.call(this, url);
         this.watchlist.push(url);
-        return builtURL;
+        return result;
     },
 
     bundleFrameworks: async function(){
