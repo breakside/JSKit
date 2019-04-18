@@ -49,6 +49,7 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[1].childNodes.length, 1);
         TKAssertEquals(elements[1].childNodes[0].data, "This is a test of markdown headers");
 
+        // single line break
         str = "Testing 123\n=====\nThis is a test\nof markdown headers\nAnother header\n=";
         markdown = Markdown.initWithString(str);
         document = DOM.createDocument();
@@ -64,6 +65,7 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[2].childNodes.length, 1);
         TKAssertEquals(elements[2].childNodes[0].data, "Another header");
 
+        // leading hash
         str = "# Testing 123\nThis is a test\nof markdown headers";
         markdown = Markdown.initWithString(str);
         document = DOM.createDocument();
@@ -88,6 +90,7 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[1].childNodes.length, 1);
         TKAssertEquals(elements[1].childNodes[0].data, "This is a test of markdown headers");
 
+        // trailing hash
         str = "# Testing 123 #\nThis is a test\nof markdown headers";
         markdown = Markdown.initWithString(str);
         document = DOM.createDocument();
@@ -111,6 +114,19 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[1].tagName, "p");
         TKAssertEquals(elements[1].childNodes.length, 1);
         TKAssertEquals(elements[1].childNodes[0].data, "This is a test of markdown headers");
+
+        // inline styles
+        str = "Headers do not have *inline* **styles** or `code`\n=====\n\nThis is a test\nof markdown headers";
+        markdown = Markdown.initWithString(str);
+        document = DOM.createDocument();
+        elements = markdown.htmlElementsForDocument(document);
+        TKAssertEquals(elements.length, 2);
+        TKAssertEquals(elements[0].tagName, "h1");
+        TKAssertEquals(elements[0].childNodes.length, 1);
+        TKAssertEquals(elements[0].childNodes[0].data, "Headers do not have *inline* **styles** or `code`");
+        TKAssertEquals(elements[1].tagName, "p");
+        TKAssertEquals(elements[1].childNodes.length, 1);
+        TKAssertEquals(elements[1].childNodes[0].data, "This is a test of markdown headers");
     },
 
     testEmphasis: function(){
@@ -130,6 +146,7 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[0].childNodes[3].childNodes.length, 1);
         TKAssertEquals(elements[0].childNodes[3].childNodes[0].data, "markdown");
 
+        // strong at start
         str = "**This** is a *test* of markdown";
         markdown = Markdown.initWithString(str);
         document = DOM.createDocument();
@@ -146,6 +163,7 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[0].childNodes[2].childNodes[0].data, "test");
         TKAssertEquals(elements[0].childNodes[3].data, " of markdown");
 
+        // em at end
         str = "This is a **test** of *markdown*";
         markdown = Markdown.initWithString(str);
         document = DOM.createDocument();
@@ -162,6 +180,7 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[0].childNodes[3].childNodes.length, 1);
         TKAssertEquals(elements[0].childNodes[3].childNodes[0].data, "markdown");
 
+        // em at start
         str = "*This* is a **test** of markdown";
         markdown = Markdown.initWithString(str);
         document = DOM.createDocument();
@@ -195,6 +214,21 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[0].childNodes[3].tagName, "code");
         TKAssertEquals(elements[0].childNodes[3].childNodes.length, 1);
         TKAssertEquals(elements[0].childNodes[3].childNodes[0].data, "markdown");
+
+        str = "`This` is a test of `markdown`";
+        markdown = Markdown.initWithString(str);
+        document = DOM.createDocument();
+        elements = markdown.htmlElementsForDocument(document);
+        TKAssertEquals(elements.length, 1);
+        TKAssertEquals(elements[0].tagName, "p");
+        TKAssertEquals(elements[0].childNodes.length, 3);
+        TKAssertEquals(elements[0].childNodes[0].tagName, "code");
+        TKAssertEquals(elements[0].childNodes[0].childNodes.length, 1);
+        TKAssertEquals(elements[0].childNodes[0].childNodes[0].data, "This");
+        TKAssertEquals(elements[0].childNodes[1].data, " is a test of ");
+        TKAssertEquals(elements[0].childNodes[2].tagName, "code");
+        TKAssertEquals(elements[0].childNodes[2].childNodes.length, 1);
+        TKAssertEquals(elements[0].childNodes[2].childNodes[0].data, "markdown");
     },
 
     testBlockquote: function(){
@@ -280,6 +314,22 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[0].tagName, "blockquote");
         TKAssertEquals(elements[0].childNodes.length, 1);
         TKAssertEquals(elements[0].childNodes[0].data, "This example should include three...");
+
+        // single line breaks
+        str = "This is a test of our\nmarkdown parser's ability to\nparse & read paragraphs.\n> This example should\n> include three...\n\n...paragraphs";
+        markdown = Markdown.initWithString(str);
+        document = DOM.createDocument();
+        elements = markdown.htmlElementsForDocument(document);
+        TKAssertEquals(elements.length, 3);
+        TKAssertEquals(elements[0].tagName, "p");
+        TKAssertEquals(elements[0].childNodes.length, 1);
+        TKAssertEquals(elements[0].childNodes[0].data, "This is a test of our markdown parser's ability to parse & read paragraphs.");
+        TKAssertEquals(elements[1].tagName, "blockquote");
+        TKAssertEquals(elements[1].childNodes.length, 1);
+        TKAssertEquals(elements[1].childNodes[0].data, "This example should include three...");
+        TKAssertEquals(elements[2].tagName, "p");
+        TKAssertEquals(elements[2].childNodes.length, 1);
+        TKAssertEquals(elements[2].childNodes[0].data, "...paragraphs");
     },
 
     testUnorderedList: function(){
@@ -395,6 +445,30 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[1].childNodes[2].tagName, "li");
         TKAssertEquals(elements[1].childNodes[2].childNodes.length, 1);
         TKAssertEquals(elements[1].childNodes[2].childNodes[0].data, "Third item");
+
+        // single line breaks
+        str = "This is a test of our\nmarkdown parser's ability to\nparse & read lists.\n* First item\n* Second item\n* Third item\n\n...done";
+        markdown = Markdown.initWithString(str);
+        document = DOM.createDocument();
+        elements = markdown.htmlElementsForDocument(document);
+        TKAssertEquals(elements.length, 3);
+        TKAssertEquals(elements[0].tagName, "p");
+        TKAssertEquals(elements[0].childNodes.length, 1);
+        TKAssertEquals(elements[0].childNodes[0].data, "This is a test of our markdown parser's ability to parse & read lists.");
+        TKAssertEquals(elements[1].tagName, "ul");
+        TKAssertEquals(elements[1].childNodes.length, 3);
+        TKAssertEquals(elements[1].childNodes[0].tagName, "li");
+        TKAssertEquals(elements[1].childNodes[0].childNodes.length, 1);
+        TKAssertEquals(elements[1].childNodes[0].childNodes[0].data, "First item");
+        TKAssertEquals(elements[1].childNodes[1].tagName, "li");
+        TKAssertEquals(elements[1].childNodes[1].childNodes.length, 1);
+        TKAssertEquals(elements[1].childNodes[1].childNodes[0].data, "Second item");
+        TKAssertEquals(elements[1].childNodes[2].tagName, "li");
+        TKAssertEquals(elements[1].childNodes[2].childNodes.length, 1);
+        TKAssertEquals(elements[1].childNodes[2].childNodes[0].data, "Third item");
+        TKAssertEquals(elements[2].tagName, "p");
+        TKAssertEquals(elements[2].childNodes.length, 1);
+        TKAssertEquals(elements[2].childNodes[0].data, "...done");
     },
 
     testOrderedList: function(){
@@ -510,6 +584,111 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[1].childNodes[2].tagName, "li");
         TKAssertEquals(elements[1].childNodes[2].childNodes.length, 1);
         TKAssertEquals(elements[1].childNodes[2].childNodes[0].data, "Third item");
+
+        // single line breaks
+        str = "This is a test of our\nmarkdown parser's ability to\nparse & read lists.\n1. First item\n2. Second item\n3. Third item\n\n...done";
+        markdown = Markdown.initWithString(str);
+        document = DOM.createDocument();
+        elements = markdown.htmlElementsForDocument(document);
+        TKAssertEquals(elements.length, 3);
+        TKAssertEquals(elements[0].tagName, "p");
+        TKAssertEquals(elements[0].childNodes.length, 1);
+        TKAssertEquals(elements[0].childNodes[0].data, "This is a test of our markdown parser's ability to parse & read lists.");
+        TKAssertEquals(elements[1].tagName, "ol");
+        TKAssertEquals(elements[1].childNodes.length, 3);
+        TKAssertEquals(elements[1].childNodes[0].tagName, "li");
+        TKAssertEquals(elements[1].childNodes[0].childNodes.length, 1);
+        TKAssertEquals(elements[1].childNodes[0].childNodes[0].data, "First item");
+        TKAssertEquals(elements[1].childNodes[1].tagName, "li");
+        TKAssertEquals(elements[1].childNodes[1].childNodes.length, 1);
+        TKAssertEquals(elements[1].childNodes[1].childNodes[0].data, "Second item");
+        TKAssertEquals(elements[1].childNodes[2].tagName, "li");
+        TKAssertEquals(elements[1].childNodes[2].childNodes.length, 1);
+        TKAssertEquals(elements[1].childNodes[2].childNodes[0].data, "Third item");
+        TKAssertEquals(elements[2].tagName, "p");
+        TKAssertEquals(elements[2].childNodes.length, 1);
+        TKAssertEquals(elements[2].childNodes[0].data, "...done");
+    },
+
+    testCodeBlock: function(){
+        var str = "This is a test of\ncode blocks\n\n````\nclass Test extendsJSObject(){\n\n  init(){\n  }\n\n}\n````\n\n...done";
+        var markdown = Markdown.initWithString(str);
+        var document = DOM.createDocument();
+        var elements = markdown.htmlElementsForDocument(document);
+        TKAssertEquals(elements.length, 3);
+        TKAssertEquals(elements[0].tagName, "p");
+        TKAssertEquals(elements[0].childNodes.length, 1);
+        TKAssertEquals(elements[0].childNodes[0].data, "This is a test of code blocks");
+        TKAssertEquals(elements[1].tagName, "div");
+        TKAssertEquals(elements[1].getAttribute("class"), "code");
+        TKAssertEquals(elements[1].childNodes.length, 6);
+        TKAssertEquals(elements[1].childNodes[0].tagName, "div");
+        TKAssertEquals(elements[1].childNodes[0].getAttribute("class"), "line");
+        TKAssertEquals(elements[1].childNodes[0].childNodes.length, 1);
+        TKAssertExactEquals(elements[1].childNodes[0].childNodes[0].data, "class Test extendsJSObject(){");
+        TKAssertEquals(elements[1].childNodes[1].tagName, "div");
+        TKAssertEquals(elements[1].childNodes[1].getAttribute("class"), "line");
+        TKAssertEquals(elements[1].childNodes[1].childNodes.length, 1);
+        TKAssertExactEquals(elements[1].childNodes[1].childNodes[0].data, "");
+        TKAssertEquals(elements[1].childNodes[2].tagName, "div");
+        TKAssertEquals(elements[1].childNodes[2].getAttribute("class"), "line");
+        TKAssertEquals(elements[1].childNodes[2].childNodes.length, 1);
+        TKAssertExactEquals(elements[1].childNodes[2].childNodes[0].data, "  init(){");
+        TKAssertEquals(elements[1].childNodes[3].tagName, "div");
+        TKAssertEquals(elements[1].childNodes[3].getAttribute("class"), "line");
+        TKAssertEquals(elements[1].childNodes[3].childNodes.length, 1);
+        TKAssertExactEquals(elements[1].childNodes[3].childNodes[0].data, "  }");
+        TKAssertEquals(elements[1].childNodes[4].tagName, "div");
+        TKAssertEquals(elements[1].childNodes[4].getAttribute("class"), "line");
+        TKAssertEquals(elements[1].childNodes[4].childNodes.length, 1);
+        TKAssertExactEquals(elements[1].childNodes[4].childNodes[0].data, "");
+        TKAssertEquals(elements[1].childNodes[5].tagName, "div");
+        TKAssertEquals(elements[1].childNodes[5].getAttribute("class"), "line");
+        TKAssertEquals(elements[1].childNodes[5].childNodes.length, 1);
+        TKAssertExactEquals(elements[1].childNodes[5].childNodes[0].data, "}");
+        TKAssertEquals(elements[2].tagName, "p");
+        TKAssertEquals(elements[2].childNodes.length, 1);
+        TKAssertEquals(elements[2].childNodes[0].data, "...done");
+
+        // single line breaks
+        str = "This is a test of\ncode blocks\n````\nclass Test extendsJSObject(){\n\n  init(){\n  }\n\n}\n````\n...done";
+        markdown = Markdown.initWithString(str);
+        document = DOM.createDocument();
+        elements = markdown.htmlElementsForDocument(document);
+        TKAssertEquals(elements.length, 3);
+        TKAssertEquals(elements[0].tagName, "p");
+        TKAssertEquals(elements[0].childNodes.length, 1);
+        TKAssertEquals(elements[0].childNodes[0].data, "This is a test of code blocks");
+        TKAssertEquals(elements[1].tagName, "div");
+        TKAssertEquals(elements[1].getAttribute("class"), "code");
+        TKAssertEquals(elements[1].childNodes.length, 6);
+        TKAssertEquals(elements[1].childNodes[0].tagName, "div");
+        TKAssertEquals(elements[1].childNodes[0].getAttribute("class"), "line");
+        TKAssertEquals(elements[1].childNodes[0].childNodes.length, 1);
+        TKAssertExactEquals(elements[1].childNodes[0].childNodes[0].data, "class Test extendsJSObject(){");
+        TKAssertEquals(elements[1].childNodes[1].tagName, "div");
+        TKAssertEquals(elements[1].childNodes[1].getAttribute("class"), "line");
+        TKAssertEquals(elements[1].childNodes[1].childNodes.length, 1);
+        TKAssertExactEquals(elements[1].childNodes[1].childNodes[0].data, "");
+        TKAssertEquals(elements[1].childNodes[2].tagName, "div");
+        TKAssertEquals(elements[1].childNodes[2].getAttribute("class"), "line");
+        TKAssertEquals(elements[1].childNodes[2].childNodes.length, 1);
+        TKAssertExactEquals(elements[1].childNodes[2].childNodes[0].data, "  init(){");
+        TKAssertEquals(elements[1].childNodes[3].tagName, "div");
+        TKAssertEquals(elements[1].childNodes[3].getAttribute("class"), "line");
+        TKAssertEquals(elements[1].childNodes[3].childNodes.length, 1);
+        TKAssertExactEquals(elements[1].childNodes[3].childNodes[0].data, "  }");
+        TKAssertEquals(elements[1].childNodes[4].tagName, "div");
+        TKAssertEquals(elements[1].childNodes[4].getAttribute("class"), "line");
+        TKAssertEquals(elements[1].childNodes[4].childNodes.length, 1);
+        TKAssertExactEquals(elements[1].childNodes[4].childNodes[0].data, "");
+        TKAssertEquals(elements[1].childNodes[5].tagName, "div");
+        TKAssertEquals(elements[1].childNodes[5].getAttribute("class"), "line");
+        TKAssertEquals(elements[1].childNodes[5].childNodes.length, 1);
+        TKAssertExactEquals(elements[1].childNodes[5].childNodes[0].data, "}");
+        TKAssertEquals(elements[2].tagName, "p");
+        TKAssertEquals(elements[2].childNodes.length, 1);
+        TKAssertEquals(elements[2].childNodes[0].data, "...done");
     }
 
 });
