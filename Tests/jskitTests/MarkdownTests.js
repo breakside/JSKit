@@ -231,6 +231,38 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[0].childNodes[2].childNodes[0].data, "markdown");
     },
 
+    testLinks: function(){
+        var str = "This is a test of [markdown](https://daringfireball.net/projects/markdown/syntax) links";
+        var markdown = Markdown.initWithString(str);
+        var document = DOM.createDocument();
+        var elements = markdown.htmlElementsForDocument(document);
+        TKAssertEquals(elements.length, 1);
+        TKAssertEquals(elements[0].tagName, "p");
+        TKAssertEquals(elements[0].childNodes.length, 3);
+        TKAssertEquals(elements[0].childNodes[0].data, "This is a test of ");
+        TKAssertEquals(elements[0].childNodes[1].tagName, "a");
+        TKAssertEquals(elements[0].childNodes[1].childNodes.length, 1);
+        TKAssertEquals(elements[0].childNodes[1].childNodes[0].data, "markdown");
+        TKAssertEquals(elements[0].childNodes[1].getAttribute("href"), "https://daringfireball.net/projects/markdown/syntax");
+        TKAssertEquals(elements[0].childNodes[2].data, " links");
+    },
+
+    testImages: function(){
+        var str = "This is a test of ![markdown](https://daringfireball.net/projects/markdown/syntax) images";
+        var markdown = Markdown.initWithString(str);
+        var document = DOM.createDocument();
+        var elements = markdown.htmlElementsForDocument(document);
+        TKAssertEquals(elements.length, 1);
+        TKAssertEquals(elements[0].tagName, "p");
+        TKAssertEquals(elements[0].childNodes.length, 3);
+        TKAssertEquals(elements[0].childNodes[0].data, "This is a test of ");
+        TKAssertEquals(elements[0].childNodes[1].tagName, "img");
+        TKAssertEquals(elements[0].childNodes[1].childNodes.length, 0);
+        TKAssertEquals(elements[0].childNodes[1].getAttribute("alt"), "markdown");
+        TKAssertEquals(elements[0].childNodes[1].getAttribute("src"), "https://daringfireball.net/projects/markdown/syntax");
+        TKAssertEquals(elements[0].childNodes[2].data, " images");  
+    },
+
     testBlockquote: function(){
         var str = "This is a test of our\nmarkdown parser's ability to\nparse & read paragraphs.\n\n> This example should\n> include three...\n\n...paragraphs";
         var markdown = Markdown.initWithString(str);
