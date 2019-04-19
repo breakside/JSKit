@@ -1,4 +1,4 @@
-kind: functionclass
+kind: class
 summary: A two-dimensional index, useful for things like sectioned lists
 description: |
   An index path has two properties that together specify a lookup location
@@ -7,10 +7,9 @@ description: |
   For example, a common UI view is a list view with rows that are grouepd
   into sections.  A `JSIndexPath` can reference a particular row by specifying
   the top level `section` and `row` within the section.
-members:
+topics:
   -
     name: Creating an IndexPath
-    kind: topic
     members:
       -
         kind: constructor
@@ -26,6 +25,7 @@ members:
             summary: The row index within the section
       -
         kind: constructor
+        prefix: copy
         summary: Copy an index path
         arguments:
           -
@@ -34,7 +34,6 @@ members:
             summary: The index path to copy
   -
     name: Index values
-    kind: topic
     members:
       -
         name: section
@@ -46,7 +45,6 @@ members:
         summary: The row index within the section
   -
     name: Comparisons
-    kind: topic
     members:
       -
         name: isEqual
@@ -141,7 +139,7 @@ members:
       -
         name: incremented
         kind: method
-        summary: Return a new index path incremented by one row, rolling over to\
+        summary: Return a new index path incremented by one row, rolling over to
           the first row of the next section if necessary
         description: |
           Adds a single row to the index path, using the `numberOfRowsBySection`
@@ -149,19 +147,19 @@ members:
 
           If this index path is the final row in the final section, there is no
           incremented index path, and `null` is returned instead.
-        return: A new index path that is one row greater than this index path,\
+        return: A new index path that is one row greater than this index path,
           or `null` if we're the final row in the final section
         type: JSIndexPath
         arguments:
           -
             name: numberOfRowsBySection
             type: int[]
-            summary: An array of integers representing the number of rows in each section,\
+            summary: An array of integers representing the number of rows in each section,
               required in order to tell if this index path is the final row in its section.
       -
         name: decremented
         kind: method
-        summary: Return a new index path decremented by one row, rolling over to\
+        summary: Return a new index path decremented by one row, rolling over to
           the final row in of previous section if necessary
         description: |
           Subtracts a single row to the index path, using the `numberOfRowsBySection`
@@ -169,12 +167,12 @@ members:
 
           If this indexPath is 0,0 there is no decremented index path, and `null`
           is returned instead.
-        return: A new index path that is one row less than this index path,\
+        return: A new index path that is one row less than this index path,
           or `null` if we're the first row in the first section
         type: JSIndexPath
         arguments:
           -
             name: numberOfRowsBySection
             type: int[]
-            summary: An array of integers representing the number of rows in each section,\
+            summary: An array of integers representing the number of rows in each section,
               required in order to tell what the final row of the previous section is

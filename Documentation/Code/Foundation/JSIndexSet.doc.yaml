@@ -1,4 +1,4 @@
-kind: functionclass
+kind: class
 summary: A compact representation of a possibly large collection of indexes.
 description: |
   Tracking the selected items in a large list presents a challenge because

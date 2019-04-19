@@ -1,0 +1,56 @@
+kind: index
+description: |
+  JSKit is a collection of JavaScript frameworks that can be used to build
+  desktop-quality web applications and production server applications.
+
+  Web Applications
+  ================
+  
+  As described in detail in our [Goals](Goals) document, the web's underlying
+  technologies of HTML and CSS are fundamentally designed for writing documents,
+  not applications.
+
+  JSKit aims to provide an application-centered platform.  Instead of simply
+  augmenting interaction with the underlying HTML document, `UIKit` hides the
+  document-based paradigm completely so you can focus on building a great
+  application.
+
+  Server Applications
+  ===================
+
+  JSKit isn't limited to the browser.  With `ServerKit`, you can easily create
+  a robust http server while still leveraging many conveniences from JSKit.
+
+  In fact, you can even share the exact same code between the browser and the
+  server.  For example, code that draws to the screen in the browser using `UIKit`,
+  can draw to PDF files on the server with `PDFKit`.
+
+  Code, Document, Test, Deploy
+  ============================
+
+  The `jskit` command line utility supports the entire range of development,
+  tying documentation, testing, and deployment all together.
+
+topics:
+  -
+    name: Goals and Background
+    members:
+      - Goals
+  - 
+    name: Frameworks
+    members:
+      - Foundation/Foundation
+      - UIKit/UIKit
+      - ServerKit/ServerKit
+      - Dispatch/Dispatch
+      - SecurityKit/SecurityKit
+      - Hash/Hash
+      - ImageKit/ImageKit
+      - PDFKit/PDFKit
+      - FontKit/FontKit
+      - TestKit/TestKit
+  -
+    name: Command Line Utility
+    members:
+      - jskit/jskit
+      - GettingStarted

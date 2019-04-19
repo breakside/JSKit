@@ -1,16 +1,15 @@
 kind: class
-summary: The base class for all other JSKit classes, providing common\
+summary: The base class for all other JSKit classes, providing common
   functionality such as binding and observers.
 description: |
   `JSObject` the root class in the JSKit class hierarchy.
 
   All objects extending from `JSObject` inherit the ability to participate
   in value binding and observing, along with class inspection methods.
-members:
+topics:
   -
     name: Creating a JSObject
-    kind: topic
-    member:
+    members:
       -
         name: init
         kind: init
@@ -19,19 +18,18 @@ members:
           Every subclass inherits this default init method.
 
           However, since this method does absolutely nothing, subclasses
-          do not need to call `$super.init` if they override this method
+          *do not* need to call `$super.init` if they override this method
           or if they declare a different init method.
 
-          Properties such as `objectID` are always initialzed during object
+          Properties such as `objectID` are always initialized during object
           construction, even if this init method is not called.
   -
-    name: Creating a `JSObject` from a `JSSpec`
-    kind: topic
+    name: Creating objects from a JSSpec
     members:
       - 
         name: initWithSpecName
         kind: init
-        summary: Create any object by loading a spec resource and initializing\
+        summary: Create any object by loading a spec resource and initializing
           it's owner object
         arguments:
           - 
@@ -41,7 +39,7 @@ members:
       -
         name: initWithSpec
         kind: init
-        summary: Initialize an object with the values extracted from part of\
+        summary: Initialize an object with the values extracted from part of
           a spec file
         description: |
           A spec is a declarative dictionary of properties that describe how
@@ -94,7 +92,7 @@ members:
           - 
             name: values
             type: object
-            summary:The dictionary that the describes the object in the spec
+            summary: The dictionary that the describes the object in the spec
       - 
         name: awakeFromSpec
         kind: method
@@ -104,7 +102,6 @@ members:
           object from a spec file
   -
     name: Class Inspection
-    kind: topic
     members:
       -
         name: $class
@@ -114,7 +111,7 @@ members:
         name: isKindOfClass
         kind: method
         type: boolean
-        summary: Check if the object is an instance of the given class or one\
+        summary: Check if the object is an instance of the given class or one
           of its subclasses
         return: "`true` if the object is an instance of the given class, `false` otherwise"
         description: |
@@ -136,7 +133,6 @@ members:
             summary: The class for which this object may be an instance
   -
     name: Object Identification
-    kind: topic
     members:
       -
         name: objectID
@@ -148,12 +144,11 @@ members:
           No two objects will be assigned the same identifier.
   -
     name: Binding & Observing
-    kind: topic
     members:
       -
         name: addObserverForKeyPath
         kind: method
-        summary: Register the given observer object to receive notifications\
+        summary: Register the given observer object to receive notifications
           when the value for the given keyPath changes.
         arguments:
           -
@@ -173,8 +168,8 @@ members:
             name: context
             default: null
             type: any
-            summary: An object or value that will be provided in the notification\
-              callback, allowing the observer to identify and distinguish the\
+            summary: An object or value that will be provided in the notification
+              callback, allowing the observer to identify and distinguish the
               notification if needed
       -
         name: observeValueForKeyPath
@@ -220,5 +215,5 @@ members:
           -
             name: context
             type: any
-            summary: The exact `context` object/value that was provided in\
-              `addObserverForKeyPath`
+            summary: The exact `context` object/value that was provided in
+              \`addObserverForKeyPath`

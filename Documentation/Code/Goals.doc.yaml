@@ -1,0 +1,4 @@
+kind: document
+name: Goals
+summary: Motivations and design choices at the core of JSKit
+description: ../Goals.md

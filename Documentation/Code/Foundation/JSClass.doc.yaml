@@ -1,5 +1,5 @@
-kind: functionclass
-summary: A function that creates JSKit classes and serves as the base type\
+kind: class
+summary: A function that creates JSKit classes and serves as the base type
   for all JSKit classes.
 description: |
 
@@ -208,10 +208,9 @@ description: |
   `JSClass` also serves as the base of all JSKit classes, and contains functionaility
   for inspecting the class hierarchy, looking up classes by name, and extending
   existing classes with mixins.
-members:
+topics:
   -
     name: Creating Classes
-    kind: topic
     members:
       -
         kind: constructor
@@ -228,9 +227,19 @@ members:
             type: JSClass
             summary: The class from which the new class will inherit
           -
-            name: extensions,
-            type: MyObject
-            summary: A collection of properties and methods that the new class will contain
+            name: extensions
+            type: object
+            summary: |
+              A collection of properties and methods that the new class will contain
+
+              The keys/values of this object will become properties of the
+              class prototype, according to the following rules:
+
+              * `function`s will be added as instance methods
+              * `JSCustomProperty` values will be invoked to define their
+                desired instance properties/methods
+              * any other value will become an instance property with the
+                given value functioning as a default
       -
         name: initialize
         kind: method
@@ -299,10 +308,19 @@ members:
           -
             name: extensions
             type: object
-            summary: The extra properties and methods to add to the class
+            summary: |
+              The extra properties and methods to add to the class.
+
+              The keys/values of this object will become properties of the
+              class prototype, according to the following rules:
+
+              * `function`s will be added as instance methods
+              * `JSCustomProperty` values will be invoked to define their
+                desired instance properties/methods
+              * any other value will become an instance property with the
+                given value functioning as a default
   -
     name: Class Identity
-    kind: topic
     members:
       -
         name: className
@@ -322,9 +340,40 @@ members:
           ````
       -
         name: $super
-        type: string
-        summary: The superclass of this class
-        description:
+        type: object
+        summary: The `prototype` of the `JSClass` superclass of this class
+        description: |
+          In order to call superclass methods without this helper,
+          you essentially need to invoke:
+
+          ````
+          superclass.prototype.someMethod.call(this, arg1, arg2);
+          ````
+
+          But this presents a couple of problems:
+
+          * Where does the `superclass` reference come from?
+          * It seems silly to have that `.prototype` part in there
+
+          To work around these issues, JSKit defines a property on every
+          `JSClass` that is a direct reference to the class's superclass
+          prototype.
+
+          Since `$super` is a reference on the subclass, you never need to
+          hard-code the superclass name anywhere except when defining the
+          class itself, which helps make it easier to refactor code.
+
+          An example super call would look something like:
+
+          ````
+          JSClass("Person", JSObject, {
+             
+            initWithSpec: function(spec, values){
+              Person.$super.initWithSpec.call(this, spec, values);
+              // ...
+            }
+          });
+          ````
       -
         name: isSubclassOfClass
         kind: method
@@ -338,28 +387,31 @@ members:
             summary: The class to test against
   -
     name: Class Lookup
-    kind: topic
     members:
       -
         name: FromName
         kind: method
-        static: true
         summary: Find the class with a name matching the given name
         description: |
-          Sometimes, such as in cases like serialization, it is much easier to
-          pass around the name of a class rather than the class itself.
+          Sometimes, such as in cases like serialization or spec files, you'll
+          need to pass around the name of a class rather than the class itself.
 
-          This function provides a way to convert 
+          This function provides a way to convert from that `string` name to the
+          `JSClass` itself, so you can then call `init()` or whatever you need
+          to do.
         return: The class matching the given name
         type: JSClass
         arguments:
           -
             name: className
             type: string
-            summary: The name of the class to lookup
+            summary: The name of the class to lookup, which should match the
+              name given when you defined the class using `JSClass`.
+
+              If you instead defined the class using `class` syntax, you'll
+              need to call `initialize()` on your class to enable lookups.
   -
     name: Extending
-    kind: topic
     members:
       -
         name: $extend

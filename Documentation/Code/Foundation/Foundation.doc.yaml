@@ -1,21 +1,22 @@
 kind: framework
-summary: The foundational classes used to build JSKit-based applications
-description: |
-  Foundation provides the base functionality for any kind of of JSKit-based
+summary: Foundation provides the base functionality for any kind of of JSKit-based
   application, whether it's a UI app, a server app, or a command line utility.
-members:
+description: |
+  Foundation starts with a JavaScript class model and builds on that to provide
+  core functionality required by most applications.
+
+  The goal is to provide a framework that has all the basics without adding too
+  many frills.
+topics:
   - 
     name: Core Components
-    kind: topic
-    description: |
-      The most basic building blocks for JSKit-based applications
+    summary: The most basic building blocks for JSKit-based applications
     members:
       - JSClass
       - JSObject
       - JSProtocol
   - 
     name: Strings & Data
-    kind: topic
     summary: Dealing with strings, bytes, attributed strings, unicode, and encodings
     members:
       - String
@@ -24,7 +25,6 @@ members:
       - UnicodeChar
   - 
     name: Date & Time
-    kind: topic
     summary: Date & Time, including calendar, time zone, and localization
     members:
       - JSDate
@@ -34,7 +34,6 @@ members:
       - JSTimeZone
   -
     name: Indexes and Lookup
-    kind: topic
     summary: Simple types for specifying locations and selections in one- and two-dimensional lists
     members:
       - JSRange
@@ -45,7 +44,6 @@ members:
       - JSIndexSet
   -
     name: Drawing & Images
-    kind: topic
     summary: Basic kinds for use in coordinate systems such as points, rects, etc.
     members:
       - JSContext
@@ -59,14 +57,12 @@ members:
       - JSImage
   -
     name: Filesystem
-    kind: topic
     summary: Files and file system operations
     members:
       - JSFileManager
       - JSFile
   -
     name: Application
-    kind: topic
     summary: Common functionality shared across GUI and command line applications
     members:
       - JSBundle
@@ -78,13 +74,11 @@ members:
       - JSUndoManager
   -
     name: Logging
-    kind: topic
     summary: Logging, telemetry, and error reporting
     members:
       - JSLog
   -
     name: Web
-    kind: topic
     summary: Making web requests and handling common data kinds
     members:
       - JSURL
@@ -99,7 +93,6 @@ members:
       - JSMIMEHeaderMap
   -
     name: Text & Typesetting
-    kind: topic
     summary: Text layout & font management
     members:
       - JSFont
@@ -115,14 +108,12 @@ members:
       - JSTextTypesetter
   - 
     name: Zlib
-    kind: topic
     summary: Data compression with zlib
     members:
       - Zlib
       - Deflate
   -
     name: Utilities
-    kind: topic
     summary: Miscellaneous utilities such as timers and formatters
     members:
       - JSTimer
