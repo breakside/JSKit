@@ -17,15 +17,8 @@ DOM.createDocument = function(namespace, qualifiedName, doctype){
             value: Object.create({}, {
                 createDocumentType: {
                     value: function(name, publicId, systemId){
-                        var doctype = Object.create(DOM.DocumentType.prototype, {
-                            nodeType: {value: DOM.Node.DOCUMENT_TYPE_NODE},
-                            nodeName: {value: '#doctype'},
-                            childNodes: {value: []},
-                            name: {value: name},
-                            publicId: {value: (publicId !== undefined && publicId !== null) ? publicId : ''},
-                            systemId: {value: (systemId !== undefined && systemId !== null) ? systemId : ''},
-                            ownerDocument: {value: document}
-                        });
+                        var doctype = DOM.createDocumentType(name, publicId, systemId);
+                        Object.defineProperty(doctype, 'ownerDocument', {value: document});
                         return doctype;
                     }
                 }
@@ -33,6 +26,9 @@ DOM.createDocument = function(namespace, qualifiedName, doctype){
         }
     });
     if (doctype){
+        if (doctype.ownerDocument === null){
+            Object.defineProperty(doctype, 'ownerDocument', {value: document});
+        }
         document.appendChild(doctype);
     }
     if (qualifiedName){
@@ -40,6 +36,19 @@ DOM.createDocument = function(namespace, qualifiedName, doctype){
         document.appendChild(element);
     }
     return document;
+};
+
+DOM.createDocumentType = function(name, publicId, systemId){
+    var doctype = Object.create(DOM.DocumentType.prototype, {
+        nodeType: {value: DOM.Node.DOCUMENT_TYPE_NODE},
+        nodeName: {value: '#doctype'},
+        childNodes: {value: []},
+        name: {value: name},
+        publicId: {value: (publicId !== undefined && publicId !== null) ? publicId : ''},
+        systemId: {value: (systemId !== undefined && systemId !== null) ? systemId : ''},
+        ownerDocument: {value: null, configurable: true}
+    });
+    return doctype;
 };
 
 DOM.Document.prototype = Object.create(DOM.Node.prototype, {
@@ -76,6 +85,9 @@ DOM.Document.prototype = Object.create(DOM.Node.prototype, {
 
     createTextNode: {
         value: function DOMDocument_createTextNode(value){
+            if (value === undefined || value === null){
+                throw new Error("value must be a text string");
+            }
             var node = Object.create(DOM.Text.prototype, {
                 nodeType: {value: DOM.Node.TEXT_NODE},
                 nodeName: {value: '#text'},

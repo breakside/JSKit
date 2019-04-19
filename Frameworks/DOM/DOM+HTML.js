@@ -13,5 +13,6 @@ window.DOM = {
     Text: window.Text,
     CDATASection: window.CDATASection,
     Comment: window.Comment,
-    createDocument: document.implementation.createDocument
+    createDocument: document.implementation.createDocument,
+    createDocumentType: document.implementation.createDocumentType
 };

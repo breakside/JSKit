@@ -53,8 +53,11 @@ XMLSerializer.prototype = {
                     }
                 }
             }else if (node.nodeType == DOM.Node.ATTRIBUTE_NODE){
-                value = node.value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-                if (value !== null){
+                value = node.value;
+                if (value === null || value === undefined){
+                    value = "";
+                }else{
+                    value = value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
                     value = '="%s"'.sprintf(value);
                 }
                 if (node.namespaceURI){
