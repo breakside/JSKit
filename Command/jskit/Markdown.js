@@ -6,6 +6,12 @@
 JSProtocol("MarkdownDelegate", JSProtocol, {
 
     urlForMarkdownCode: function(markdown, code){
+    },
+
+    urlForMarkdownLink: function(markdown, link){
+    },
+
+    urlForMarkdownImage: function(markdown, image){
     }
 
 });
@@ -83,9 +89,12 @@ JSClass("Markdown", JSObject, {
                             text = '';
                         }
                         let href = escapedText.substr(hrefStart + 2, hrefEnd - hrefStart - 2);
+                        if (markdown.delegate && markdown.delegate.urlForMarkdownLink){
+                            href = markdown.delegate.urlForMarkdownLink(markdown, href);
+                        }
                         let linktext = escapedText.substr(i, hrefStart - i);
                         let a = element.appendChild(document.createElement('a'));
-                        a.setAttribute("href", href);
+                        a.setAttribute("href", href.encodedString);
                         a.appendChild(document.createTextNode(linktext));
                         i = hrefEnd + 1;
                     }else{
@@ -103,9 +112,12 @@ JSClass("Markdown", JSObject, {
                                 text = '';
                             }
                             let src = escapedText.substr(srcStart + 2, srcEnd - srcStart - 2);
+                            if (markdown.delegate && markdown.delegate.urlForMarkdownImage){
+                                src = markdown.delegate.urlForMarkdownImage(markdown, src);
+                            }
                             let alttext = escapedText.substr(i, srcStart - i);
                             let img = element.appendChild(document.createElement('img'));
-                            img.setAttribute("src", src);
+                            img.setAttribute("src", src.encodedString);
                             img.setAttribute("alt", alttext);
                             i = srcEnd + 1;
                         }else{

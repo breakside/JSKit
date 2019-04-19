@@ -1,0 +1,165 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto+Mono:400,400i,700,700i|Roboto:300,300i,400,400i,500,500i');
+
+article.doc{
+    font-family: 'Roboto', sans-serif;
+    font-weight: 300;
+    color: rgb(51,51,51);
+}
+
+article.doc h1,h2,h3,h4,h5,h5,b,strong{
+    font-weight: 500;
+}
+
+article.doc a{
+    text-decoration: none;
+    color: rgb(25,89,243);
+}
+
+article.doc a:visited{
+    color: rgb(122,159,248);
+}
+
+article.doc a:hover{
+    text-decoration: underline;
+}
+
+article.doc div.code{
+    overflow: auto;
+    border: 1px solid rgb(224,224,224);
+    background: rgb(253,253,253);
+    border-radius: 4px;
+    padding: 7px 0;
+    color: rgb(51,51,51);
+    font-size: 87.5%;
+}
+
+article.doc div.code > div.line{
+    font-family: 'Roboto Mono', monospace;
+    font-weight: 400;
+    white-space: pre;
+    padding: 0 7px;
+}
+
+article.doc code{
+    font-family: 'Roboto Mono', monospace;
+    font-weight: 400;
+    white-space: pre;
+    font-size: 87.5%;
+    color: rgb(0, 0, 0);
+}
+
+article.doc > header{
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgb(224,224,224);
+}
+
+article.doc > header > p.type{
+    color: rgb(164,164,164);
+    font-size: 87.5%;
+}
+
+article.doc > header, article.doc > section.description, article.doc > section.declaration, article.doc > section.parameters, article.doc > section.note, article.doc > section.important{
+    max-width: 800px;
+}
+
+article.doc > header > h1{
+    margin-bottom: 10px;
+}
+
+article.doc > header > h1 + p{
+    margin-top: 10px;
+}
+
+article.doc > section{
+    margin-bottom: 40px;
+}
+
+article.doc > section.description h2{
+    font-size: 1em;
+}
+
+article.doc > section.note{
+    display: flex;
+    flex-direction: row;
+}
+
+article.doc > section.note > header{
+    font-weight: 500;
+    margin-right: 10px;
+}
+
+article.doc > section.note > div{
+    flex: 1;
+}
+
+article.doc > section.important{
+    display: flex;
+    flex-direction: row;
+}
+
+article.doc > section.important > header{
+    font-weight: 500;
+    margin-right: 10px;
+}
+
+article.doc > section.important > div{
+    flex: 1;
+}
+
+article.doc > section.topics > section.topic{
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 20px;
+}
+
+article.doc > section.topics > section.topic > header{
+    width: 180px;
+    margin-right: 20px;
+}
+
+article.doc > section.topics > section.topic > header > h1{
+    margin: 0;
+}
+
+article.doc > section.topics > section.topic > div{
+    flex: 1;
+    font-size: 87.5%;
+}
+
+article.doc > section.topics > section.topic > div > p:first-child{
+    margin-top: 0
+}
+
+article.doc > section.topics > section.topic > div > ul{
+    padding: 0;
+    margin: 0;
+}
+
+article.doc > section.topics > section.topic > div > ul > li{
+    list-style-type: none;
+}
+
+article.doc > section.topics > section.topic > div > ul > li > code{
+    font-size: 1em;
+}
+
+article.doc > section.topics > section.topic > div > ul > li > a{
+    font-weight: 400;
+}
+
+article.doc > section.topics > section.topic > div > ul > li > p{
+    margin-top: 5px;
+    margin-left: 20px;
+}
+
+article.doc > section.parameters > dl > dt{
+    font-family: 'Roboto Mono', monospace;
+    font-weight: 400;
+    white-space: pre;
+    font-size: 87.5%;
+}
+
+article.doc > section.parameters > dl > dd > p{
+    margin-top: 0;
+}

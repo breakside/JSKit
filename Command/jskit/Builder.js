@@ -120,7 +120,6 @@ JSClass("Builder", JSObject, {
             // and because we're careful to have unique items in the imports
             // list, we will only ever build each dependency once.
             if (import_.projectURL){
-                this.printer.print("\nBuilding %s\n".sprintf(import_.name));
                 let builder = await this.buildFramework(import_.projectURL);
                 url = builder.bundleURL;
                 // Add build dependencies
@@ -128,7 +127,6 @@ JSClass("Builder", JSObject, {
                 for (let j = 0, k = dependencies.length; j < k; ++j){
                     let dependency = dependencies[j];
                     if (!seen.has(dependency.name)){
-                        this.printer.print("\nAdding build dependency %s\n".sprintf(dependency.name));
                         seen.add(dependency.name);
                         imports.push(dependency);
                     }

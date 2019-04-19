@@ -1,5 +1,4 @@
 // #import Foundation
-// #import jsyaml
 /* global JSClass, JSObject, JSDynamicProperty, Command, JSURL, JSFileManager, process */
 'use strict';
 
