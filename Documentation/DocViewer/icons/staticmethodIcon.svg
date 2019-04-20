@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.2 (72643) - https://sketchapp.com -->
+    <title>staticmethodIcon</title>
+    <desc>Created with Sketch.</desc>
+    <g id="staticmethod" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Background" fill="#FFFFFF" fill-rule="nonzero" stroke="#94979C">
+            <rect id="Rectangle" x="0.5" y="0.5" width="15" height="15" rx="2"></rect>
+        </g>
+        <polygon id="M" fill="#A9A9A9" fill-rule="nonzero" points="4.89160156 3.62597656 6.95410156 3.62597656 7.99707031 7.46386719 9.03417969 3.62597656 11.1083984 3.62597656 11.1083984 12.3740234 9.62011719 12.3740234 9.62011719 5.36621094 8.69433594 9.19238281 7.31738281 9.19238281 6.37988281 5.36621094 6.37988281 12.3740234 4.89160156 12.3740234"></polygon>
+    </g>
+</svg>

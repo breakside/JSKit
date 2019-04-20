@@ -1,0 +1,83 @@
+File's Owner: /AppDelegate
+
+AppDelegate:
+  class: ApplicationDelegate
+  outlets:
+    window: /MainWindow
+    mainViewController: /MainViewController
+
+LineColor:
+  class : JSColor
+  rgba: 164,164,164
+
+MainWindow:
+  class: UIRootWindow
+  contentViewController: /MainViewController
+
+MainViewController:
+  class: MainViewController
+  leadingPaneViewController: /SidebarViewController
+  mainContentViewController: /ContentViewController
+  view:
+    vertical: false
+    leadingSize: 240
+    leadingViewOpen: true
+    leadingDividerColor: /LineColor
+    autosaveName: MainView
+  outlets:
+    sidebarViewController: /SidebarViewController
+    contentViewController: /ContentViewController
+
+# -------------------------------------------------------------------------
+# Sidebar
+
+SidebarViewController:
+  class: SidebarViewController
+  view:
+    backgroundColor:
+      rgba: 193,197,203
+    subviews:
+      - /SidebarListView
+  outlets:
+    listView: /SidebarListView
+  delegate: /MainViewController
+
+SidebarListView:
+  class: UIListView
+  delegate: /SidebarViewController
+  dataSource: /SidebarViewController
+  contentInsets: 0,0,0,0
+  rowHeight: 24
+  headersStickToTop: true
+  reusableCellClasses:
+    - {identifier: item, className: "UIListViewCell"}
+  styler:
+    class: UIListViewDefaultStyler
+    showSeparators: false
+    imageSize: 16,16
+    cellFont:
+      size: detail
+
+# -------------------------------------------------------------------------
+# Content
+
+ContentViewController:
+  class: ContentViewController
+  view:
+    subviews:
+      - /WebView
+      - /BreadcrumbView
+  outlets:
+    webView: /WebView
+    breadcrumbView: /BreadcrumbView
+
+WebView:
+  class: UIWebView
+  delegate: /ContentViewController
+
+BreadcrumbView:
+  class: BreadcrumbView
+  borderColor:
+    rgba: 204,204,204
+  borderWidth: 1
+  maskedBorders: $UIView.Sides.maxY

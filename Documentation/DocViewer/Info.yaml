@@ -1,0 +1,10 @@
+JSBundleType:               html
+JSBundleIdentifier:         io.breakside.JSKit.DocViewer
+JSBundleVersion:            1.0.0
+UIMainSpec:                 MainWindow
+UIApplicationTitle:         .applicationTitle
+UIApplicationLaunchOptions:
+  uistate: {kind: positional, default: null}
+  others: {kind: unknown}
+UIApplicationSystemFont:    Roboto-Light
+JSDevelopmentLanguage:      en

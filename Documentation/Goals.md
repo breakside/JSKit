@@ -1,15 +1,15 @@
-Several motivations are behind the JSKit web application framework, but all have
+Several motivations are behind the `UIKit` web application framework, but all have
 a common theme: making absolutley great web apps!
 
 
 Write an Application, not a Document
 ====================================
 
-Most importantly, JSKit sees web applications as exactly that: applications.
+Most importantly, `UIKit` sees web applications as exactly that: applications.
 
 By contrast, web languages like HTML and CSS grew out of a desire to represent
 documents.  From their declariative style to their focus on text-markup (it's
-called hyper _text_ for a reason), what makes them great for desgining static
+called hyper*text* for a reason), what makes them great for desgining static
 documents isn't so great when what you really want to make is a rich interactive
 application.
 
@@ -19,7 +19,7 @@ still must live in a world  of the Document Object Model and often need to rig
 complex combinations of elements to represent concepts that aren't easily
 expressed by standard elements.
 
-JSKit strives to hide the document-specific concepts behind a coherent
+`UIKit` strives to hide the document-specific concepts behind a coherent
 application paradigm, similar to what's found on mobile or desktop development
 environments that never had the document-based legacy.
 
@@ -28,7 +28,7 @@ Javascript Only
 ===============
 
 Think about the coding required to add a simple feature in a typical web app.
-It requires editing at least three source files: HTML, CSS, and Javscript.
+It often involves editing at least three source files: HTML, CSS, and Javscript.
 
 Then you end up writing Javascript that generates HTML to fit in with
 already-written HTML.  Meanwhile, all the CSS styling goes into a separate file.
@@ -36,7 +36,7 @@ Styling rich application components can be a chore when the underlying HTML
 element structure is complicated and CSS has to refer to what are effectively
 private implementation details.
 
-By requiring only Javascript, JSKit allows developers to ignore HTML and CSS,
+By requiring only Javascript, `UIKit` allows developers to ignore HTML and CSS,
 and focus on one single language, one single view of an application.
 In turn, code can be better organized in one place with a straightforward API.
 
@@ -53,7 +53,7 @@ The DOM event system is a great example of a design that works just fine when
 a web page only needs a few little interactive elements, but becomes a pain
 when an application is more like a native desktop or mobile app.
 
-A goal of JSKit is to provide a much more straightfoward event system that
+A goal of `UIKit` is to provide a much more straightfoward event system that
 requires the minimal amount of implementation code to do the right thing, while
 additionally providing a hirearchy of classes that makes organizing the
 event handling code natural so it lives exactly where it should.
@@ -123,13 +123,16 @@ Whew, I think we're done.
 A Better Way
 ------------
 
-That's an awful lot of work to implement a button's events.  So how does JSKit
+That's an awful lot of work to implement a button's events.  So how does `UIKit`
 make this better?
 
-- First, it has the concept of a `View`, an object which can receive events
-- To make a button, you subclass `View`
-- To handle mouse events, you override the `mouseDown`, `mouseUp`, and 
-  `mouseMove` methods from `View`.
+- First, it has the concept of a `UIResponder`, an object which can receive events
+- Then it adds a `UIView` class to represent on screen elements (which is a subclass of `UIResponder`)
+
+To make a button, you:
+
+- subclass `UIView`
+- override the `mouseDown()`, `mouseUp()`, and  `mouseMove()` methods from `UIResponder`
 
 That's it.
 

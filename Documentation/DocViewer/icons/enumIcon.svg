@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.2 (72643) - https://sketchapp.com -->
+    <title>enumIcon</title>
+    <desc>Created with Sketch.</desc>
+    <g id="enum" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Background" fill="#FFFFFF" fill-rule="nonzero" stroke="#94979C">
+            <rect id="Rectangle" x="0.5" y="0.5" width="15" height="15" rx="2"></rect>
+        </g>
+        <polygon id="E" fill="#E99F57" fill-rule="nonzero" points="10.7246094 12.3740234 5.27539062 12.3740234 5.27539062 3.62597656 10.7246094 3.62597656 10.7246094 5.14941406 7.00390625 5.14941406 7.00390625 7.03613281 10.3730469 7.03613281 10.3730469 8.55957031 7.00390625 8.55957031 7.00390625 10.8505859 10.7246094 10.8505859"></polygon>
+    </g>
+</svg>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.2 (72643) - https://sketchapp.com -->
+    <title>frameworkIcon</title>
+    <desc>Created with Sketch.</desc>
+    <g id="framework" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Background" fill="#FFFFFF" fill-rule="nonzero" stroke="#94979C">
+            <rect id="Rectangle" x="0.5" y="0.5" width="15" height="15" rx="2"></rect>
+        </g>
+        <rect id="Rectangle" fill="#7C6742" fill-rule="nonzero" x="3.5" y="8.5" width="4" height="4"></rect>
+        <rect id="Rectangle-Copy" fill="#7C6742" fill-rule="nonzero" x="8.5" y="8.5" width="4" height="4"></rect>
+        <rect id="Rectangle-Copy-2" fill="#7C6742" fill-rule="nonzero" x="8.5" y="3.5" width="4" height="4"></rect>
+        <rect id="Rectangle-Copy-3" fill="#7C6742" fill-rule="nonzero" x="3.5" y="3.5" width="4" height="4"></rect>
+    </g>
+</svg>
