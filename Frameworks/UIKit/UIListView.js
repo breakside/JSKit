@@ -1919,6 +1919,9 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if (this.cellDetailFont === null && this.cellFont !== null){
             this.cellDetailFont = this.cellFont.fontWithPointSize(Math.round(this.cellFont.pointSize * 12.0 / 14.0));
         }
+        if (this.selectedCellBackgroundColor === null){
+            this.selectedCellBackgroundColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1);
+        }
         if (this.contextSelectedCellBorderColor === null){
             this.contextSelectedCellBorderColor = this.selectedCellBackgroundColor.colorDarkenedByPercentage(0.5);
         }
@@ -1936,9 +1939,6 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         }
         if (this.selectedCellDetailTextColor === null){
             this.selectedCellDetailTextColor = this.selectedCellTextColor;
-        }
-        if (this.selectedCellBackgroundColor === null){
-            this.selectedCellBackgroundColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1);
         }
         if (this.selectedCellSeparatorColor === null){
             this.selectedCellSeparatorColor = this.selectedCellBackgroundColor.colorLightenedByPercentage(0.2);
@@ -2042,15 +2042,15 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         cell._contentView.frame = cell.bounds;
         var size = JSSize(cell.bounds.size.width - cell._titleInsets.left - cell._titleInsets.right, 0);
         var origin = JSPoint(cell._titleInsets.left, 0);
-        if (cell._imageView !== null){
+        if (cell._imageView !== null && cell._imageView.image !== null){
             var imageSize = this.imageSize;
             if (imageSize === null){
                 var imageHeight = cell._contentView.bounds.size.height - cell._titleInsets.left * 2;
                 imageSize = JSSize(imageHeight, imageHeight);
             }
             cell._imageView.frame = JSRect(origin.x, (cell._contentView.bounds.size.height - imageSize.height) / 2, imageSize.width, imageSize.height);
-            origin.x += cell._titleInsets.left + imageSize.width;
-            size.width -= imageSize.width + cell._titleInsets.left;
+            origin.x += cell._titleSpacing + imageSize.width;
+            size.width -= imageSize.width + cell._titleSpacing;
         }
         if (cell._accessoryView !== null){
             var accessorySize = this.accessorySize;

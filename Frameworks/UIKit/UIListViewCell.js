@@ -10,7 +10,7 @@ JSClass("UIListViewCell", UIView, {
     indexPath: null,
     reuseIdentifier: null,
     titleInsets: JSDynamicProperty('_titleInsets', null),
-    titleSpacing: JSDynamicProperty('_titleSpacing', 2.0),
+    titleSpacing: JSDynamicProperty('_titleSpacing', 4.0),
     contentView: JSReadOnlyProperty('_contentView', null),
     titleLabel: JSLazyInitProperty('_createTitleLabel', '_titleLabel'),
     detailLabel: JSLazyInitProperty('_createDetailLabel', '_detailLabel'),
