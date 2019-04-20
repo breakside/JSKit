@@ -7,16 +7,6 @@ UIWebView.definePropertiesFromExtensions({
     _iframe: null,
     _url: null,
 
-    initWithFrame: function(frame){
-        UIWebView.$super.initWithFrame.call(this, frame);
-        this.setNeedsDisplay();
-    },
-
-    initWithSpec: function(spec, values){
-        UIWebView.$super.initWithSpec.call(this, spec, values);
-        this.setNeedsDisplay();
-    },
-
     loadURL: function(url){
         this._url = url;
         this._loadURL();
