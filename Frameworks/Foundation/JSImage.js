@@ -236,5 +236,23 @@ JSClass("_JSURLImage", JSImage, {
 
 });
 
+JSImage.resourceCache = function(names, bundle){
+    var cache = {};
+    var definePropertyFromName = function(name){
+        Object.defineProperty(cache, name, {
+            configurable: true,
+            get: function(){
+                var img = JSImage.initWithResourceName(name, bundle);
+                Object.defineProperty(this, name, {value: img});
+                return img;
+            }
+        });
+    };
+    for (var i = 0, l = names.length; i < l; ++i){
+        definePropertyFromName(names[i]);
+    }
+    return cache;
+};
+
 
 })();
