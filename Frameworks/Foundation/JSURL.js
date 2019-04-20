@@ -250,6 +250,21 @@ JSClass("JSURL", JSObject, {
         return url;
     },
 
+    removeFileExtension: function(){
+        if (this.pathComponents.length > 0 && !this._hasDirectoryPath){
+            var last = this._pathComponents.pop();
+            last = last.substr(0, last.length - last.fileExtension.length);
+            this._pathComponents.push(last);
+            this._updatePathFromComponents();
+        }
+    },
+
+    removingFileExtension: function(){
+        var url = this.copy();
+        url.removeFileExtension();
+        return url;
+    },
+
     setHasDirectoryPath: function(hasDirectoryPath){
         this._hasDirectoryPath = hasDirectoryPath;
     },
