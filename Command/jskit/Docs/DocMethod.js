@@ -38,6 +38,17 @@
             return ["static %s(%s)".sprintf(this.name, args.join(', '))];
         }
         return ["%s(%s)".sprintf(this.name, args.join(', '))];
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - JSON
+
+    jsonObject: function(baseURL){
+        let obj = DocMethod.$super.jsonObject.call(this, baseURL);
+        if (this.isStatic){
+            obj.static = true;
+        }
+        return obj;
     }
 
  });

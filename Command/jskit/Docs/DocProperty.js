@@ -58,6 +58,17 @@
             return ['static var %s'.sprintf(this.name)];
         }
         return ['var %s'.sprintf(this.name)];
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - JSON
+
+    jsonObject: function(baseURL){
+        let obj = DocProperty.$super.jsonObject.call(this, baseURL);
+        if (this.isStatic){
+            obj.static = true;
+        }
+        return obj;
     }
 
  });

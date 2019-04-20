@@ -35,6 +35,7 @@ JSClass("Documentation", JSObject, {
         let rootComponent = await this.loadSource(this.rootURL);
         rootComponent.outputURL = this.wwwURL.appendingPathComponent(rootComponent.uniqueName + '.html');
         await this.output([rootComponent]);
+        await this.outputComponentsJSON(rootComponent);
     },
 
     copyStyles: async function(){
@@ -105,6 +106,14 @@ JSClass("Documentation", JSObject, {
             let componentURL = await component.output(this);
             await this.output(component.children);
         }
+    },
+
+    outputComponentsJSON: async function(rootComponent){
+        var baseURL = this.wwwURL;
+        var obj = rootComponent.jsonObject(baseURL);
+        var json = JSON.stringify({components: [obj]}, null, 2);
+        var url = this.outputDirectoryURL.appendingPathComponent('components.json');
+        await this.fileManager.createFileAtURL(url, json.utf8());
     }
 
 });

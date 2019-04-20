@@ -239,10 +239,7 @@ JSClass("DocComponent", JSObject, {
         if (component === null || component === this){
             return null;
         }
-        var relative = component.outputURL.encodedStringRelativeTo(this.outputURL);
-        if (relative.endsWith(".html")){
-            relative = relative.substr(0, relative.length - 5);
-        }
+        var relative = component.outputURL.removingFileExtension().encodedStringRelativeTo(this.outputURL);
         return JSURL.initWithString(relative);
     },
 
@@ -300,6 +297,18 @@ JSClass("DocComponent", JSObject, {
         let markdown = Markdown.initWithString(string);
         markdown.delegate = this;
         return markdown;
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - JSON
+
+    jsonObject: function(baseURL){
+        let url = this.outputURL.removingFileExtension();
+        return {
+            name: this.name,
+            kind: this.kind,
+            url: url.encodedStringRelativeTo(baseURL)
+        };
     }
 
 

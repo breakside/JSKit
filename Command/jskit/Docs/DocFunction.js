@@ -114,6 +114,16 @@
             }
         }
         return strings;
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - JSON
+
+    jsonObject: function(baseURL){
+        let obj = DocFunction.$super.jsonObject.call(this, baseURL);
+        var args = this.argumentStrings();
+        obj.name += '(%s)'.sprintf(args.join(", "));
+        return obj;
     }
 
  });
