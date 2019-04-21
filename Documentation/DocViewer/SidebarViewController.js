@@ -50,7 +50,15 @@ JSClass("SidebarViewController", UIViewController, {
 
     setComponents: function(components){
         this.items = [];
-        this.addItems(components, 0);
+        if (components.length == 1){
+            this.items.push({
+                level: 0,
+                component: components[0]
+            });
+            this.addItems(components[0].children, 0);
+        }else{
+            this.addItems(components, 0);
+        }
         this.listView.reloadData();
     },
 

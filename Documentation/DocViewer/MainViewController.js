@@ -1,5 +1,5 @@
 // #import UIKit
-/* global window, JSClass, UIDualPaneViewController, MainViewController, JSBundle, JSURL, JSUserDefaults */
+/* global window, document, JSClass, UIDualPaneViewController, MainViewController, JSBundle, JSURL, JSUserDefaults */
 'use strict';
 
 JSClass("MainViewController", UIDualPaneViewController, {
@@ -53,11 +53,16 @@ JSClass("MainViewController", UIDualPaneViewController, {
 
     contentViewDidShowComponent: function(contentViewController, component){
         var url = JSURL.initWithString(component.url, this.baseURL);
+        var title;
         JSUserDefaults.shared.lastComponentPath = component.url;
+        title = JSBundle.mainBundle.localizedStringForInfoKey("UIApplicationTitle");
         if (component === this.components[0]){
-            window.history.replaceState(null, null, this.baseURL.path);
+            window.history.replaceState(null, title, this.baseURL.path);
+            document.title = title;
         }else{
-            window.history.replaceState(null, null, url.path);
+            title = "%s | %s".sprintf(component.title, title);
+            window.history.replaceState(null, title, url.path);
+            document.title = title;
         }
     },
 
