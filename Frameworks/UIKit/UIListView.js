@@ -52,6 +52,11 @@ JSClass("UIListView", UIScrollView, {
     // --------------------------------------------------------------------
     // MARK: - Creating a List View
 
+    initWithStyler: function(styler){
+        this._styler = styler;
+        this.init();
+    },
+
     initWithFrame: function(frame){
         UIListView.$super.initWithFrame.call(this, frame);
         this._commonListInit();
