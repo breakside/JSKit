@@ -19,10 +19,12 @@ JSClass("UIListViewCell", UIView, {
     separatorInsets: JSDynamicProperty('_separatorInsets', null),
     numberOfDetailLines: JSDynamicProperty('_numberOfDetailLines', 1),
     stylerProperties: null,
+    _styler: null,
 
-    initWithReuseIdentifier: function(identifier){
+    initWithReuseIdentifier: function(identifier, styler){
         this.init();
         this.reuseIdentifier = identifier;
+        this._styler = styler;
     },
 
     initWithFrame: function(frame){
@@ -75,7 +77,7 @@ JSClass("UIListViewCell", UIView, {
 
     layoutSubviews: function(){
         UIListViewCell.$super.layoutSubviews.call(this);
-        this.listView.styler.layoutCell(this);
+        (this._styler || this.listView._styler).layoutCell(this);
     },
 
     setNumberOfDetailLines: function(lines){
@@ -129,7 +131,7 @@ JSClass("UIListViewCell", UIView, {
     },
 
     _didChangeState: function(){
-        this.listView.styler.updateCell(this, this.indexPath);
+        (this._styler || this.listView._styler).updateCell(this, this.indexPath);
     },
 
     _toggleState: function(flag, on){

@@ -79,9 +79,17 @@ JSClass("UIListView", UIScrollView, {
             this.dataSource = spec.resolvedValue(values.dataSource);
         }
         var i, l;
+        var reuse;
+        var styler;
         if ('reusableCellClasses' in values){
             for (i = 0, l = values.reusableCellClasses.length; i < l; ++i){
-                this.registerCellClassForReuseIdentifier(JSClass.FromName(values.reusableCellClasses[i].className), spec.resolvedValue(values.reusableCellClasses[i].identifier));
+                reuse = values.reusableCellClasses[i];
+                if (reuse.styler){
+                    styler = spec.resolvedValue(reuse.styler);
+                }else{
+                    styler = null;
+                }
+                this.registerCellClassForReuseIdentifier(JSClass.FromName(reuse.className), spec.resolvedValue(reuse.identifier), styler);
             }
         }
         if ('reusableHeaderFooterClasses' in values){
@@ -143,8 +151,8 @@ JSClass("UIListView", UIScrollView, {
     // --------------------------------------------------------------------
     // MARK: - Cell Reuse
 
-    registerCellClassForReuseIdentifier: function(cellClass, identifier){
-        this._cellClassesByIdentifier[identifier] = cellClass;
+    registerCellClassForReuseIdentifier: function(cellClass, identifier, styler){
+        this._cellClassesByIdentifier[identifier] = {cellClass: cellClass, styler: styler || null};
     },
 
     dequeueReusableCellWithIdentifier: function(identifier, indexPath){
@@ -153,10 +161,11 @@ JSClass("UIListView", UIScrollView, {
         if (queue && queue.length > 0){
             cell = queue.pop();
         }else{
-            var cellClass = this._cellClassesByIdentifier[identifier];
-            if (cellClass){
-                cell = cellClass.initWithReuseIdentifier(identifier);
-                this._styler.initializeCell(cell, indexPath);
+            var info = this._cellClassesByIdentifier[identifier];
+            if (info){
+                cell = info.cellClass.initWithReuseIdentifier(identifier, info.styler);
+                var styler = info.styler || this._styler;
+                styler.initializeCell(cell, indexPath);
             }
         }
         return cell;
@@ -1064,7 +1073,8 @@ JSClass("UIListView", UIScrollView, {
         cell.active = false;
         cell.selected = this._selectedIndexPaths.contains(indexPath);
         cell.contextSelected = this._contextSelectedIndexPaths.contains(indexPath);
-        this._styler.updateCell(cell, indexPath);
+        var styler = cell._styler || this._styler;
+        styler.updateCell(cell, indexPath);
         return cell;
     },
 
@@ -1310,9 +1320,11 @@ JSClass("UIListView", UIScrollView, {
 
     _updateVisibleCellStyles: function(){
         var cell;
+        var styler;
         for (var i = 0, l = this._visibleCellViews.length; i < l; ++i){
             cell = this._visibleCellViews[i];
-            this._styler.updateCell(cell, cell.indexPath);
+            styler = cell._styler || this._styler;
+            styler.updateCell(cell, cell.indexPath);
         }
     },
 
