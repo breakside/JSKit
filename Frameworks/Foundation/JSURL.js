@@ -438,8 +438,19 @@ JSClass("JSURL", JSObject, {
             for (var i = 0; i < components.length && i < baseComponents.length && components[i] == baseComponents[i]; ++i){
             }
             components = components.slice(i);
+            var isAncestor = components.length === 0;
             for (; i < baseComponents.length; ++i){
                 components.unshift('..');
+            }
+            if (isAncestor){
+                if (this._hasDirectoryPath){
+                    if (components.length === 0){
+                        components.push('.');
+                    }
+                }else{
+                    components.push('..');
+                    components.push(this.lastPathComponent);
+                }
             }
             url.setPathComponents(components, url._hasDirectoryPath);
         }

@@ -854,7 +854,7 @@ JSClass('JSURLTests', TKTestSuite, {
         url = JSURL.initWithString("file:///one");
         baseURL = JSURL.initWithString("file:///one/two/three/");
         relativeString = url.encodedStringRelativeTo(baseURL);
-        TKAssertEquals(relativeString, "../..");
+        TKAssertEquals(relativeString, "../../../one");
 
         url = JSURL.initWithString("file:///one/four");
         baseURL = JSURL.initWithString("http://google.com");
@@ -875,6 +875,26 @@ JSClass('JSURLTests', TKTestSuite, {
         baseURL = JSURL.initWithString("http://yahoo.com/one/two/three/");
         relativeString = url.encodedStringRelativeTo(baseURL);
         TKAssertEquals(relativeString, "//google.com/one/four");
+
+        url = JSURL.initWithString("http://google.com/one/two/");
+        baseURL = JSURL.initWithString("http://google.com/one/two/three");
+        relativeString = url.encodedStringRelativeTo(baseURL);
+        TKAssertEquals(relativeString, "./");
+
+        url = JSURL.initWithString("http://google.com/one/two");
+        baseURL = JSURL.initWithString("http://google.com/one/two/three");
+        relativeString = url.encodedStringRelativeTo(baseURL);
+        TKAssertEquals(relativeString, "../two");
+
+        url = JSURL.initWithString("http://google.com/one/two/");
+        baseURL = JSURL.initWithString("http://google.com/one/two/three/four");
+        relativeString = url.encodedStringRelativeTo(baseURL);
+        TKAssertEquals(relativeString, "../");
+
+        url = JSURL.initWithString("http://google.com/one/two");
+        baseURL = JSURL.initWithString("http://google.com/one/two/three/four");
+        relativeString = url.encodedStringRelativeTo(baseURL);
+        TKAssertEquals(relativeString, "../../two");
     },
 
     testSetHost: function(){
