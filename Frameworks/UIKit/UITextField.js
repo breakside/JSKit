@@ -67,7 +67,7 @@ JSClass("UITextField", UIControl, {
             this.rightAccessoryInsets = JSInsets.apply(undefined, values.rightAccessoryInsets.parseNumberArray());
         }
         if ('rightAccessoryVisibility' in values){
-            this.rightAccessoryVisibility = spec.resolvedValue(values.rightAccessoryVisibility);
+            this.rightAccessoryVisibility = spec.resolvedEnum(values.rightAccessoryVisibility, UITextField.AccessoryVisibility);
         }
         if ('placeholder' in values){
             this.placeholder = spec.resolvedValue(values.placeholder);
@@ -120,6 +120,7 @@ JSClass("UITextField", UIControl, {
     text: JSDynamicProperty(),
     attributedText: JSDynamicProperty(),
     _didChange: false,
+    _isEmpty: true,
 
     setText: function(text){
         if (this._secureEntry){
@@ -127,7 +128,7 @@ JSClass("UITextField", UIControl, {
         }else{
             this._textLayer.text = text;
         }
-        this._updatePlaceholderHidden();
+        this._updateIsEmpty(!this._textLayer.hasText());
     },
 
     getText: function(){
@@ -140,7 +141,7 @@ JSClass("UITextField", UIControl, {
             return;
         }
         this._textLayer.attributedText = attributedText;
-        this._updatePlaceholderHidden();
+        this._updateIsEmpty(!this._textLayer.hasText());
     },
 
     getAttributedText: function(){
@@ -436,7 +437,7 @@ JSClass("UITextField", UIControl, {
         }
         this.setNeedsLayout();
         this._styler.updateControl(this);
-        view.hidden = (this._leftAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive) && !this.active;
+        this._updateAccessoryViewHidden(this._leftAccessoryView, this._leftAccessoryVisibility);
     },
 
     setRightAccessoryView: function(view){
@@ -463,20 +464,33 @@ JSClass("UITextField", UIControl, {
         }
         this.setNeedsLayout();
         this._styler.updateControl(this);
-        view.hidden = (this._rightAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive) && !this.active;
+        this._updateAccessoryViewHidden(this._rightAccessoryView, this._rightAccessoryVisibility);
     },
 
     setLeftAccessoryVisibility: function(visibility){
         this._leftAccessoryVisibility = visibility;
-        if (this._leftAccessoryView !== null){
-            this._leftAccessoryView.hidden = (this._leftAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive) && !this.active;
-        }
+        this._updateAccessoryViewHidden(this._leftAccessoryView, this._leftAccessoryVisibility);
     },
 
     setRightAccessoryVisibility: function(visibility){
         this._rightAccessoryVisibility = visibility;
-        if (this._rightAccessoryView !== null){
-            this._rightAccessoryView.hidden = (this._rightAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive) && !this.active;
+        this._updateAccessoryViewHidden(this._rightAccessoryView, this._rightAccessoryVisibility);
+    },
+
+    _updateAccessoryViewHidden: function(accessoryView, visibility){
+        if (accessoryView === null){
+            return;
+        }
+        switch (visibility){
+            case UITextField.AccessoryVisibility.onlyWhenActive:
+                accessoryView.hidden = !this.active;
+                break;
+            case UITextField.AccessoryVisibility.onlyWhenNotEmpty:
+                accessoryView.hidden = !this._textLayer.hasText();
+                break;
+            default:
+                accessoryView.hidden = false;
+                break;
         }
     },
 
@@ -660,19 +674,34 @@ JSClass("UITextField", UIControl, {
         }
     },
 
-    textEditorDidReplaceCharactersInRange: function(textEditor, range, insertedLength){
+    _updateIsEmpty: function(isEmpty){
         // This placeholder show/hide logic is a bit optimized compared to _updatePlaceholderHidden,
         // in order to perform the quickest checks while rapidly typing.
         // 1. Use insertedLength to tell if we have a non-empty field
         // 2. Only query the text storage if we might be empty
         if (this._placeholderTextLayer !== null){
-            if (this._isShowingPlaceholder && insertedLength > 0){
+            if (this._isShowingPlaceholder && !isEmpty){
                 this._placeholderTextLayer.hidden = true;
                 this._isShowingPlaceholder = false;
-            }else if (!this._isShowingPlaceholder && insertedLength === 0 && !this._textLayer.hasText()){
+            }else if (!this._isShowingPlaceholder && isEmpty){
                 this._placeholderTextLayer.hidden = false;
                 this._isShowingPlaceholder = true;
             }
+        }
+        if (this._leftAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenNotEmpty){
+            this._updateAccessoryViewHidden(this._leftAccessoryView, this._leftAccessoryVisibility);
+        }
+        if (this._rightAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenNotEmpty){
+            this._updateAccessoryViewHidden(this._rightAccessoryView, this._rightAccessoryVisibility);
+        }
+        this._isEmpty = isEmpty;
+    },
+
+    textEditorDidReplaceCharactersInRange: function(textEditor, range, insertedLength){
+        if (this._isEmpty && insertedLength > 0){
+            this._updateIsEmpty(false);
+        }else if (!this._isEmpty && insertedLength === 0 && !this._textLayer.hasText()){
+            this._updateIsEmpty(true);
         }
         if (this.delegate && this.delegate.textFieldDidChange){
             this.delegate.textFieldDidChange(this);
@@ -730,12 +759,8 @@ JSClass("UITextField", UIControl, {
 
     becomeFirstResponder: function(){
         this.active = true;
-        if (this._leftAccessoryView !== null && this._leftAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive){
-            this._leftAccessoryView.hidden = false;
-        }
-        if (this._rightAccessoryView !== null && this._rightAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive){
-            this._rightAccessoryView.hidden = false;
-        }
+        this._updateAccessoryViewHidden(this._leftAccessoryView, this._leftAccessoryVisibility);
+        this._updateAccessoryViewHidden(this._rightAccessoryView, this._rightAccessoryVisibility);
         this._localEditor.didBecomeFirstResponder(this.window && this.window.isKeyWindow, !this._isHandlingMouseDown);
         this._didChange = false;
         this.sendActionsForEvent(UIControl.Event.editingDidBegin);
@@ -743,12 +768,8 @@ JSClass("UITextField", UIControl, {
 
     resignFirstResponder: function(){
         this.active = false;
-        if (this._leftAccessoryView !== null && this._leftAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive){
-            this._leftAccessoryView.hidden = true;
-        }
-        if (this._rightAccessoryView !== null && this._rightAccessoryVisibility == UITextField.AccessoryVisibility.onlyWhenActive){
-            this._rightAccessoryView.hidden = true;
-        }
+        this._updateAccessoryViewHidden(this._leftAccessoryView, this._leftAccessoryVisibility);
+        this._updateAccessoryViewHidden(this._rightAccessoryView, this._rightAccessoryVisibility);
         this._localEditor.didResignFirstResponder();
         if (this._didChange){
             this.sendActionsForEvent(UIControl.Event.primaryAction);
@@ -988,7 +1009,8 @@ JSClass("UITextField", UIControl, {
 
 UITextField.AccessoryVisibility = {
     always: 0,
-    onlyWhenActive: 1
+    onlyWhenActive: 1,
+    onlyWhenNotEmpty: 2
 };
 
 UITextField.Styler = Object.defineProperties({}, {
