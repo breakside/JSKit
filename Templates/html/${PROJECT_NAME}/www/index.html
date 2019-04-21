@@ -119,6 +119,7 @@
           progress.style.display = 'none';
           break;
         case S.preflightFailedChecks:
+          progress.style.display = 'none';
           splash.className = 'error';
           statusLabel.innerHTML = "Before we can get started...";
           detailsLabel.innerHTML = "It looks like the browser you are using needs an upgrade.  Or, you can try a different browser.<br>To learn more, please visit __________";
@@ -128,6 +129,7 @@
         case S.appLoadError:
         case S.appRunError:
         case S.appLaunchFailure:
+          progress.style.display = 'none';
           splash.className = 'error';
           statusLabel.innerHTML = "Apologies, but we couldn't start the app";
           detailsLabel.innerHTML = "Don't worry, it wasn't anything you did, and it isn't something we expect to happen under normal usage.<br>We've notified our engineers of the problem, and the best thing you can do is try again soon.";
