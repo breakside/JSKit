@@ -45,6 +45,7 @@ JSClass("UIPopupButton", UIControl, {
     commonUIControlInit: function(){
         UIPopupButton.$super.commonUIControlInit.call(this);
         this._menu = UIMenu.init();
+        this._menu.automaticallyUpdates = false;
         this._imageView = UIImageView.initWithRenderMode(UIImageView.RenderMode.template);
         this._imageView.hidden = true;
         this._titleLabel = UILabel.init();
@@ -81,6 +82,7 @@ JSClass("UIPopupButton", UIControl, {
 
     addItemWithTitle: function(title, tag){
         var item = this.menu.addItemWithTitle(title, 'menuDidSelectItem', this);
+        item.enabled = true;
         if (tag){
             item.tag = tag;
         }

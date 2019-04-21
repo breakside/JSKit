@@ -150,13 +150,15 @@ JSClass("UIMenu", JSObject, {
 
     // MARK: - Updating
 
+    automaticallyUpdates: true,
+
     updateEnabled: function(){
         this._highlightedItem = null;
         var item;
         for (var i = 0, l = this._items.length; i < l; ++i){
             item = this._items[i];
             item.highlighted = false;
-            if (!item.submenu){
+            if (this.automaticallyUpdates && !item.submenu){
                 this._udpateItemEnabled(item);
             }
         }

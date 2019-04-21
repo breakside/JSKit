@@ -673,7 +673,7 @@ JSClass("UIMenuItemView", UIView, {
     },
 
     _createImageView: function(){
-        this._imageView = UIImageView.initWithRenderMode(UIImageView.RenderMode.template);
+        this._imageView = UIImageView.initWithRenderMode(UIImageView.RenderMode.original);
         this.insertSubviewBelowSibling(this._imageView, this.titleLabel);
         return this._imageView;
     },
