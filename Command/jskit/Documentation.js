@@ -28,6 +28,7 @@ JSClass("Documentation", JSObject, {
     documents: null,
     fileManager: null,
     printer: null,
+    title: null,
 
     run: async function(){
         this.wwwURL = this.outputDirectoryURL.appendingPathComponents(['www', 'docs'], true);

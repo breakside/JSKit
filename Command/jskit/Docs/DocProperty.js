@@ -24,6 +24,10 @@
         }
     },
 
+    getTitle: function(){
+        return "%s.%s".sprintf(this.parent.name, this.name);
+    },
+
     htmlArticleElements: function(document){
         let index = 1;
         var elements = DocProperty.$super.htmlArticleElements.call(this, document);

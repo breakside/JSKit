@@ -25,6 +25,10 @@
         }
     },
 
+    getTitle: function(){
+        return "%s.%s".sprintf(this.parent.name, this.name);
+    },
+
     getUniqueName: function(){
         if (this.uniquePrefix){
             return "%s-%s".sprintf(this.uniquePrefix, this.name.toLowerCase());

@@ -59,6 +59,12 @@ JSClass("DocComponent", JSObject, {
         return "Discussion";
     },
 
+    title: JSReadOnlyProperty(),
+
+    getTitle: function(){
+        return this.name;
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Basic info
 
@@ -84,9 +90,12 @@ JSClass("DocComponent", JSObject, {
         var meta = head.appendChild(document.createElement("meta"));
         meta.setAttribute("content", "text/html; charset=utf-8");
         meta.setAttribute("http-equiv", "Content-Type");
-        // TODO: figure out real title
         var title = head.appendChild(document.createElement("title"));
-        title.appendChild(document.createTextNode(this.name));
+        var titleText = this.title;
+        if (documentation.title){
+            titleText = "%s | %s".sprintf(titleText, documentation.title);
+        }
+        title.appendChild(document.createTextNode(titleText));
         if (documentation.stylesheetURL){
             let link = head.appendChild(document.createElement("link"));
             link.setAttribute("rel", "stylesheet");
@@ -336,6 +345,7 @@ JSClass("DocComponent", JSObject, {
         return {
             name: this.name,
             kind: this.kind,
+            title: this.title,
             url: url.encodedStringRelativeTo(baseURL)
         };
     }

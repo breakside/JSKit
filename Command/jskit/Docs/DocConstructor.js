@@ -1,5 +1,5 @@
 // #import "DocMethod.js"
-/* global JSClass, DocMethod, DocMethod */
+/* global JSClass, DocMethod, DocMethod, DocConstructor */
 'use strict';
 
  JSClass("DocConstructor", DocMethod, {
@@ -9,6 +9,13 @@
     declarationCode: function(){
         var args = this.argumentStrings();
         return ["function %s(%s)".sprintf(this.parent.name, args.join(', '))];
+    },
+
+    getTitle: function(){
+        if (this.uniquePrefix){
+            return "%s %s Constructor".sprintf(this.parent.name, this.uniquePrefix.ucFirst());
+        }
+        return "%s Constructor".sprintf(this.parent.name);
     },
 
     getUniqueName: function(){
