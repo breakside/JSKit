@@ -14,7 +14,7 @@ JSClass("UIPopupButton", UIControl, {
     imageView: JSReadOnlyProperty('_imageView', null),
     indicatorView: JSReadOnlyProperty('_indicatorView', null),
     menu: JSReadOnlyProperty('_menu', null),
-    selectedIndex: JSDynamicProperty('_selectedIndex', 0),
+    selectedIndex: JSDynamicProperty('_selectedIndex', -1),
     selectedTag: JSDynamicProperty(),
     _selectedItem: null,
     maxTitleWidth: JSDynamicProperty('_maxTitleWidth', null),
@@ -44,7 +44,7 @@ JSClass("UIPopupButton", UIControl, {
 
     commonUIControlInit: function(){
         UIPopupButton.$super.commonUIControlInit.call(this);
-        this._menu = UIMenu.init();
+        this._menu = UIMenu.initWithStyler(this._styler.menuStyler);
         this._menu.automaticallyUpdates = false;
         this._imageView = UIImageView.initWithRenderMode(UIImageView.RenderMode.template);
         this._imageView.hidden = true;
@@ -87,7 +87,7 @@ JSClass("UIPopupButton", UIControl, {
             item.tag = tag;
         }
         if (this.menu.items.length === 1){
-            this._selectedItem = item;
+            this.selectedIndex = 0;
             this._selectedItem.state = UIMenuItem.State.on;
             this._updateTitleForItem(this._selectedItem);
         }
@@ -98,7 +98,7 @@ JSClass("UIPopupButton", UIControl, {
     removeAllItems: function(){
         if (this.menu.items.length > 0){
             this.menu.removeAllItems();
-            this._selectedItem = null;
+            this.selectedIndex = -1;
             this._updateTitleForItem(null);
             this.invalidateIntrinsicSize();
         }
@@ -285,6 +285,8 @@ UIPopupButton.Styler = Object.create({}, {
 
 
 JSClass("UIPopupButtonStyler", UIControlStyler, {
+
+    menuStyler: UIMenu.Styler.default,
 
 });
 
