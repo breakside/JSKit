@@ -8,3 +8,5 @@ UIApplicationLaunchOptions:
   others: {kind: unknown}
 UIApplicationSystemFont:    Roboto-Light
 JSDevelopmentLanguage:      en
+HMTLManifestConfiguration:
+  - components-manifest.json

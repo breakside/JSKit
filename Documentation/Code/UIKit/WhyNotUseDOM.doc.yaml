@@ -1,0 +1,5 @@
+name: Why not use DOM Events?
+kind: document
+summary: A comparison of DOM events to JSKit events highlighting the motivations
+  for building a custom event system.
+description: WhyNotUseDOM.md

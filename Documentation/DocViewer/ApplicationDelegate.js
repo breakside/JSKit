@@ -10,13 +10,13 @@ JSClass("ApplicationDelegate", JSObject, {
     applicationDidFinishLaunching: function(application, launchOptions){
         this.setupDefaults();
         this.mainViewController.baseURL = application.baseURL;
-        this.mainViewController.setup();
+        this.mainViewController.setup(launchOptions.uistate);
         this.window.makeKeyAndOrderFront();
     },
 
     setupDefaults: function(){
         JSUserDefaults.shared.registerDefaults({
-            
+            lastComponentPath: null, 
         });
     }
 

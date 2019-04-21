@@ -1,0 +1,27 @@
+kind: framework
+summary: Create desktop-quality applications
+topics:
+  -
+    name: Applications
+    members:
+      - UIApplication
+  -
+    name: Events
+    summary: An event system designed for applications with complex user interaction
+    members:
+      - WhyNotUseDOM
+      - UIResponder
+      - UIEvent
+  -
+    name: Views & Windows
+    members:
+      - UILayer
+      - UIView
+      - UIWindow
+  -
+    name: Controls
+    members:
+      - UIControl
+      - UIButton
+      - UIPopupButton
+      - UITextField

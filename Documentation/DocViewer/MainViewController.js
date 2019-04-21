@@ -1,5 +1,5 @@
 // #import UIKit
-/* global JSClass, UIDualPaneViewController, MainViewController, JSBundle, JSURL */
+/* global window, JSClass, UIDualPaneViewController, MainViewController, JSBundle, JSURL, JSUserDefaults */
 'use strict';
 
 JSClass("MainViewController", UIDualPaneViewController, {
@@ -16,13 +16,35 @@ JSClass("MainViewController", UIDualPaneViewController, {
         MainViewController.$super.viewDidLoad.call(this);
     },
 
-    setup: function(){
+    setup: function(componentPath){
         this.components = JSBundle.mainBundle.metadataForResourceName('components').value.components;
         this.sidebarViewController.setComponents(this.components);
         this.contentViewController.baseURL = this.baseURL;
         this.contentViewController.setComponents(this.components);
-        // TODO: show last viewed component
-        this.contentViewController.showComponent(this.components[0]);
+
+        var path = componentPath || JSUserDefaults.shared.lastComponentPath || this.components[0].url;
+        if (path.startsWith('/')){
+            path = path.substr(1);
+        }
+        var component = this.componentForPath(this.components, path) || this.components[0];
+        this.contentViewController.showComponent(component);
+    },
+
+    componentForPath: function(components, path){
+        var candidate;
+        for (var i = 0, l = components.length; i < l; ++i){
+            candidate = components[i];
+            if (candidate.url == path){
+                return candidate;
+            }
+            if (candidate.children){
+                candidate = this.componentForPath(candidate.children, path);
+                if (candidate !== null){
+                    return candidate;
+                }
+            }
+        }
+        return null;
     },
 
     viewDidAppear: function(){
@@ -31,7 +53,12 @@ JSClass("MainViewController", UIDualPaneViewController, {
 
     contentViewDidShowComponent: function(contentViewController, component){
         var url = JSURL.initWithString(component.url, this.baseURL);
-        // window.history.replaceState(null, null, url.path);
+        JSUserDefaults.shared.lastComponentPath = component.url;
+        if (component === this.components[0]){
+            window.history.replaceState(null, null, this.baseURL.path);
+        }else{
+            window.history.replaceState(null, null, url.path);
+        }
     },
 
     sidebarViewDidSelectComponent: function(sidebarViewController, component){

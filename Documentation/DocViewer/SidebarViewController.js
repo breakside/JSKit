@@ -1,11 +1,13 @@
 // #import UIKit
-/* global JSClass, UIViewController, SidebarViewController, JSImage, JSInsets */
+/* global JSClass, UIViewController, SidebarViewController, JSImage, JSInsets, JSRect */
 'use strict';
 
 (function(){
 
 JSClass("SidebarViewController", UIViewController, {
 
+    headerView: null,
+    searchField: null,
     listView: null,
     delegate: null,
     items: null,
@@ -30,7 +32,12 @@ JSClass("SidebarViewController", UIViewController, {
     },
 
     viewDidLayoutSubviews: function(){
+        var searchSize = this.searchField.intrinsicSize;
+        var searchInsets = JSInsets(6, 7, 7, 7);
+        this.headerView.frame = JSRect(0, 0, this.view.bounds.size.width, searchSize.height + searchInsets.top + searchInsets.bottom);
+        this.searchField.frame = this.headerView.bounds.rectWithInsets(searchInsets);
         this.listView.frame = this.view.bounds;
+        this.listView.contentInsets = JSInsets(this.headerView.frame.size.height, 0, 0, 0);
     },
 
     setComponents: function(components){
@@ -63,9 +70,14 @@ JSClass("SidebarViewController", UIViewController, {
     cellForListViewAtIndexPath: function(listView, indexPath){
         var item = this.items[indexPath.row];
         var component = item.component;
-        var cell = listView.dequeueReusableCellWithIdentifier('item', indexPath);
+        var cell;
+        if (component.kind == 'topic'){
+            cell = listView.dequeueReusableCellWithIdentifier('topic', indexPath);
+        }else{
+            cell = listView.dequeueReusableCellWithIdentifier('item', indexPath);
+            cell.imageView.image = imageByKind[component.kind](component);
+        }
         cell.titleLabel.text = component.name;
-        cell.imageView.image = imageByKind[component.kind](component);
         cell.titleInsets = JSInsets(0, 4 + 20 * item.level, 0, 4);
         return cell;
     },
@@ -85,8 +97,7 @@ JSClass("SidebarViewController", UIViewController, {
 });
 
 var imageByKind = {
-    'topic': function(){ return null; },
-    'index': function(){ return null; },
+    'index': function(){ return images.frameworkIcon; },
     'class': function(){ return images.classIcon; },
     'constructor': function(){ return images.constructorIcon; },
     'document': function(){ return images.docIcon; },

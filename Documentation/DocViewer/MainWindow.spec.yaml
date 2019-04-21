@@ -31,16 +31,47 @@ MainViewController:
 # -------------------------------------------------------------------------
 # Sidebar
 
+SidebarColor:
+  rgba: 193,197,203
+
+HighlightColor:
+  rgba: 25,89,243
+
 SidebarViewController:
   class: SidebarViewController
   view:
-    backgroundColor:
-      rgba: 193,197,203
+    backgroundColor: /SidebarColor
     subviews:
       - /SidebarListView
+      - /SidebarHeaderView
   outlets:
     listView: /SidebarListView
+    headerView: /SidebarHeaderView
+    searchField: /SearchField
   delegate: /MainViewController
+
+
+SidebarHeaderView:
+  class: UIView
+  backgroundColor: /SidebarColor
+  borderWidth: 1
+  borderColor: /LineColor
+  maskedBorders: $UILayer.Sides.maxY
+  subviews:
+    - /SearchField
+
+SearchField:
+  class: UITextField
+  placeholder: .search.placeholder
+  leftImage: TextFieldAccessoryFilter
+  styler:
+    class: UITextFieldCustomStyler
+    localCursorColor: /HighlightColor
+    leftAccessoryColor: {blendBase: /SidebarColor, with: $JSColor.blackColor, percent: 40}
+    backgroundColor: {blendBase: /SidebarColor, with: $JSColor.whiteColor, percent: 40}
+    cornerRadius: 3
+    textColor: {blendBase: /SidebarColor, with: $JSColor.blackColor, percent: 80}
+    textInsets: 2,3
 
 SidebarListView:
   class: UIListView
@@ -50,19 +81,34 @@ SidebarListView:
   rowHeight: 24
   headersStickToTop: true
   reusableCellClasses:
-    - {identifier: item, className: "UIListViewCell"}
+    -
+      identifier: item
+      className: UIListViewCell
+    - 
+      identifier: topic
+      className: UIListViewCell
+      styler:
+        class: UIListViewDefaultStyler
+        showSeparators: false
+        cellFont:
+          size: detail
+          weight: bold
+        cellTextColor: {blendBase: /SidebarColor, with: $JSColor.blackColor, percent: 60}
+
   styler:
     class: UIListViewDefaultStyler
     showSeparators: false
     imageSize: 16,16
     cellFont:
       size: detail
+    selectedCellBackgroundColor: /HighlightColor
 
 # -------------------------------------------------------------------------
 # Content
 
 ContentViewController:
   class: ContentViewController
+  delegate: /MainViewController
   view:
     subviews:
       - /WebView

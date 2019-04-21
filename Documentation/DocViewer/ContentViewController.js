@@ -23,7 +23,7 @@ JSClass("ContentViewController", UIViewController, {
     },
 
     addComponentsByURLPath: function(components, ancestors){
-        var prefix = this.baseURL.path;
+        var prefix = this.baseURL.path + 'docs/';
         for (var i = 0, l = components.length; i < l; ++i){
             var component = components[i];
             var path = prefix + component.url;
@@ -57,7 +57,7 @@ JSClass("ContentViewController", UIViewController, {
     },
 
     showComponent: function(component){
-        var url = JSURL.initWithString(component.url, this.baseURL);
+        var url = JSURL.initWithString('docs/' + component.url);
         this.webView.loadURL(url);
         var components = this.componentsForURL(url);
         this.breadcrumbView.setComponents(components);
@@ -72,7 +72,7 @@ JSClass("ContentViewController", UIViewController, {
     },
 
     viewDidLayoutSubviews: function(){
-        var breadcrumbHeight = 32;
+        var breadcrumbHeight = 33;
         this.breadcrumbView.frame = JSRect(0, 0, this.view.bounds.size.width, breadcrumbHeight);
         this.webView.frame = JSRect(0, breadcrumbHeight, this.view.bounds.size.width, this.view.bounds.size.height - breadcrumbHeight);
     }
