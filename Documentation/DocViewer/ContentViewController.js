@@ -70,7 +70,7 @@ JSClass("ContentViewController", UIViewController, {
     },
 
     viewDidLayoutSubviews: function(){
-        var breadcrumbHeight = 33;
+        var breadcrumbHeight = 31;
         this.breadcrumbView.frame = JSRect(0, 0, this.view.bounds.size.width, breadcrumbHeight);
         this.webView.frame = JSRect(0, breadcrumbHeight, this.view.bounds.size.width, this.view.bounds.size.height - breadcrumbHeight);
     }

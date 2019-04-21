@@ -1,5 +1,5 @@
 // #import UIKit
-/* global JSClass, UIView, BreadcrumbView, UILabel, UIMenu, JSImage, JSRect, JSPoint, JSSize, JSInsets, JSColor, UIPopupButton, UIPopupButtonStyler, _BreadcrumbPopupButtonStyler, UIImageView, JSFont */
+/* global JSClass, UIView, BreadcrumbView, UILabel, UIMenu, JSImage, JSRect, JSPoint, JSSize, JSInsets, JSColor, UIPopupButton, UIPopupButtonStyler, _BreadcrumbPopupButtonStyler, UIImageView, JSFont, UIMenuDefaultStyler, _BreadcrumbMenuStyler */
 'use strict';
 
 JSClass("BreadcrumbView", UIView, {
@@ -78,7 +78,7 @@ JSClass("BreadcrumbView", UIView, {
                     }else{
                         item.image = imageByKind[sibling.kind](sibling);
                     }
-                    if (sibling === component){
+                    if (sibling.url === component.url){
                         button.selectedIndex = j;
                     }
                 }
@@ -123,6 +123,9 @@ JSClass("_BreadcrumbPopupButtonStyler", UIPopupButtonStyler, {
 
     init: function(){
         this.titleInsets = JSInsets(3, 7, 3, 4);
+        this.menuStyler = _BreadcrumbMenuStyler.init();
+        this.menuStyler.disabledTextColor = JSColor.initWithWhite(0.5);
+        this.menuStyler.itemPadding = JSInsets(4, 3, 4, 7);
     },
 
     initializeControl: function(button){
@@ -175,6 +178,17 @@ JSClass("_BreadcrumbPopupButtonStyler", UIPopupButtonStyler, {
     sizeControlToFitSize: function(button, size){
         button.bounds = JSRect(JSPoint.Zero, this.intrinsicSizeOfControl(button));
     },
+
+});
+
+JSClass("_BreadcrumbMenuStyler", UIMenuDefaultStyler, {
+
+    updateItemView: function(view, item){
+        _BreadcrumbMenuStyler.$super.updateItemView.call(this, view, item);
+        if (!item.enabled){
+            view.titleLabel.font = item.menu.font.fontWithWeight(JSFont.Weight.bold);
+        }
+    }
 
 });
 

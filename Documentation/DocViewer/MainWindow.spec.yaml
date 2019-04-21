@@ -64,14 +64,28 @@ SearchField:
   class: UITextField
   placeholder: .search.placeholder
   leftImage: TextFieldAccessoryFilter
+  rightAccessoryView:
+    frame: 0,0,16,16
+    class: UIButton
+    image: TextFieldAccessoryClear
+    target: /SidebarViewController
+    action: clearSearch
+    styler:
+      class: UIButtonCustomStyler
+      normalTitleColor: {blendBase: /SidebarColor, with: $JSColor.blackColor, percent: 30}
+  rightAccessoryVisibility: onlyWhenNotEmpty
+  font:
+    size: detail
   styler:
     class: UITextFieldCustomStyler
     localCursorColor: /HighlightColor
-    leftAccessoryColor: {blendBase: /SidebarColor, with: $JSColor.blackColor, percent: 40}
+    leftAccessoryColor: {blendBase: /SidebarColor, with: $JSColor.blackColor, percent: 30}
     backgroundColor: {blendBase: /SidebarColor, with: $JSColor.whiteColor, percent: 40}
     cornerRadius: 3
     textColor: {blendBase: /SidebarColor, with: $JSColor.blackColor, percent: 80}
-    textInsets: 2,3
+    textInsets: 3
+  actions:
+    - {target: /SidebarViewController, action: searchChanged, event: editingChanged}
 
 SidebarListView:
   class: UIListView
