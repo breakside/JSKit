@@ -1,3 +1,6 @@
 builds/*
 *.sublime-workspace
 node_modules/*
+Documentation/DocViewer/www/docs
+Documentation/DocViewer/components.json
+Documentation/DocViewer/components-manifest.json
