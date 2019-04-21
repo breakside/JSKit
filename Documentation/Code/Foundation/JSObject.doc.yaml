@@ -23,33 +23,33 @@ topics:
 
           Properties such as `objectID` are always initialized during object
           construction, even if this init method is not called.
-  -
-    name: Creating objects from a JSSpec
-    members:
-      - 
-        name: initWithSpecName
-        kind: init
-        summary: Create any object by loading a spec resource and initializing
-          it's owner object
-        arguments:
-          - 
-            name: specName
-            type: string
-            summary: The name of a resource contained in the main bundle
       -
         name: initWithSpec
         kind: init
         summary: Initialize an object with the values extracted from part of
           a spec file
         description: |
-          A spec is a declarative dictionary of properties that describe how
-          an object should be initialized.
+          A `JSSpec` is a serialized dictionary of properties that describes a
+          collection of objects.
 
-          Typically a subclass will implement its own version of this method
+          When an object is requested from the spec, via `JSSpec.resolveValue()`,
+          the object will be initialized using this init method.
+
+          Typically a class will implement its own version of this method
           to initialize properties from the spec, but first calling
           `$super.initWithSpec`.
 
-          A simple example is:
+          Given a spec file that looks like:
+
+          ````
+          File's Owner: /Object
+
+          Object:
+            class: MyObject
+            myProperty: 12
+          ````
+
+          A custom init method might look like this:
 
           ````
           JSClass("MyObject", JSObject, {
@@ -68,6 +68,15 @@ topics:
           using the spec to resolve more values.
 
           In this case, a color object is created.
+
+          ````
+          File's Owner: /Object
+
+          Object:
+            class: MyObject
+            myColor:
+              rgba: 123,234,12
+          ````
 
           ````
           JSClass("MyObject", JSObject, {
@@ -93,6 +102,29 @@ topics:
             name: values
             type: object
             summary: The dictionary that the describes the object in the spec
+      -
+        name: initWithSpecName
+        kind: init
+        summary: Loads a `JSSpec` resource for the given name, and returns its
+          `filesOwner` property.
+        description: |
+          While the name is similar to `initWithSpec`, this method is simply
+          a convenience method that loads a `JSSpec` and returns its `filesOwner`
+          document.
+
+          While you could always call this method on `JSObject`, for code clarity
+          we recommend using the class you intend to instantiate.  Doing so also helps
+          ensure you receive the correct object because the implementation includes
+          a check that the spec's file's owner is an instance of the class you use
+          to make the call.
+        type: JSObject
+        return: The file's owner from the given spec resource, or `null` if the owner
+          is not an instance of the calling class
+        arguments:
+          -
+            name: specName
+            type: string
+            summary: The name of the spec resource to load
       - 
         name: awakeFromSpec
         kind: method

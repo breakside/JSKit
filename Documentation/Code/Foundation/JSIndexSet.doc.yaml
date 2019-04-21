@@ -10,3 +10,22 @@ description: |
 
   For example, a selection set holding all items from a 10,000 item list simply
   holds one range: [0,10000].
+topics:
+  -
+    name: Creating an Index Set
+    members:
+      -
+        kind: constructor
+        summary: Create an empty index set
+      -
+        kind: constructor
+        prefix: copy
+        summary: Create an index set by copying another
+        arguments:
+          -
+            name: otherIndexSet
+            summary: The index set to copy
+      -
+        kind: constructor
+        prefix: range
+        summary: Create an i

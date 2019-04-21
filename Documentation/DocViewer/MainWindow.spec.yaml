@@ -127,3 +127,5 @@ BreadcrumbView:
     rgba: 204,204,204
   borderWidth: 1
   maskedBorders: $UIView.Sides.maxY
+  target: /ContentViewController
+  action: showComponent

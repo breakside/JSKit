@@ -59,8 +59,6 @@ JSClass("ContentViewController", UIViewController, {
     showComponent: function(component){
         var url = JSURL.initWithString('docs/' + component.url);
         this.webView.loadURL(url);
-        var components = this.componentsForURL(url);
-        this.breadcrumbView.setComponents(components);
     },
 
     componentsForURL: function(url){
