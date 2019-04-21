@@ -73,10 +73,10 @@ JSClass('UIApplication', UIResponder, {
                     case JSFileManager.State.success:
                         if (needsUserDefaults){
                             JSUserDefaults.shared.open(function UIApplication_userDefaultsDidOpen(){
-                                this._notifyDelegateOfLaunch(callback);
+                                this._launch(callback);
                             }, this);
                         }else{
-                            this._notifyDelegateOfLaunch(callback);
+                            this._launch(callback);
                         }
                         break;
                     case JSFileManager.State.genericFailure:
@@ -88,11 +88,12 @@ JSClass('UIApplication', UIResponder, {
                 }
             }, this);
         }else{
-            this._notifyDelegateOfLaunch(callback);
+            this._launch(callback);
         }
     },
 
-    _notifyDelegateOfLaunch: function(callback){
+    _launch: function(callback){
+        this.setup();
         var launchOptions = this.launchOptions();
         if (this.delegate && this.delegate.applicationDidFinishLaunching){
             try{

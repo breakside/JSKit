@@ -58,7 +58,6 @@ UIApplication.definePropertiesFromExtensions({
 JSGlobalObject.UIApplicationMain = function(rootElement, bootstrapper){
     var windowServer = UIHTMLWindowServer.initWithRootElement(rootElement);
     var application = UIApplication.initWithWindowServer(windowServer);
-    application.setup();
     application.run(function(success){
         if (bootstrapper){
             bootstrapper.applicationLaunchResult(success);
