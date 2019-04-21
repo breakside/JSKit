@@ -70,6 +70,10 @@ JSClass("Markdown", JSObject, {
                             let a = codeElement.appendChild(document.createElement('a'));
                             a.appendChild(document.createTextNode(code));
                             a.setAttribute("href", url.encodedString);
+                            if (url.isAbsolute){
+                                a.setAttribute("target", "_blank");
+                                a.setAttribute("rel", "noopener noreferrer");
+                            }
                         }else{
                             codeElement.appendChild(document.createTextNode(code));
                         }

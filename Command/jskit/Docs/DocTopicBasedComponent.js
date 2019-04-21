@@ -119,16 +119,20 @@
 
     jsonObject: function(baseURL){
         let obj = DocFunction.$super.jsonObject.call(this, baseURL);
-        obj.children = [];
-        for (let i = 0, l = this.topics.length; i < l; ++i){
-            let topic = this.topics[i];
-            obj.children.push({
-                name: topic.name,
-                kind: 'topic'
-            });
-            for (let j = 0, k = topic.members.length; j < k; ++j){
-                let child = topic.members[j].jsonObject(baseURL);
-                obj.children.push(child);
+        if (this.topics.length > 0){
+            obj.children = [];
+            for (let i = 0, l = this.topics.length; i < l; ++i){
+                let topic = this.topics[i];
+                if (topic.members.length > 0){
+                    obj.children.push({
+                        name: topic.name,
+                        kind: 'topic'
+                    });
+                    for (let j = 0, k = topic.members.length; j < k; ++j){
+                        let child = topic.members[j].jsonObject(baseURL);
+                        obj.children.push(child);
+                    }
+                }
             }
         }
         return obj;

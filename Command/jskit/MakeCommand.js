@@ -6,7 +6,7 @@
 // #import "HtmlBuilder.js"
 // #import "TestBuilder.js"
 // #import "Printer.js"
-/* global JSClass, JSObject, Command, MakeCommand, Project, Builder, Printer */
+/* global JSClass, JSObject, Command, MakeCommand, Project, Builder, Printer, JSTimer */
 'use strict';
 
 const fs = require('fs');
@@ -76,12 +76,19 @@ JSClass("MakeCommand", Command, {
         var fileManager = this.fileManager;
         return new Promise(function(resolve, reject){
             var watchers = [];
-            var handleChange = function(){
+            var timer = null;
+            var handleTimeout = function(){
                 for (var i = 0, l = watchers.length; i < l; ++i){
                     watchers[i].close();
                 }
                 watchers = [];
                 resolve();
+            };
+            var handleChange = function(){
+                if (timer !== null){
+                    timer.invalidate();
+                }
+                timer = JSTimer.scheduledTimerWithInterval(1, handleTimeout);
             };
             for (let i = 0, l = watchlist.length; i < l; ++i){
                 let url = watchlist[i];

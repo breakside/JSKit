@@ -44,7 +44,7 @@ JSClass("DocComponent", JSObject, {
     uniqueName: JSReadOnlyProperty(),
 
     getUniqueName: function(){
-        return this.name.toLowerCase();
+        return this.name.toLowerCase().replace(/\s/g, '-').replace(/[^\w\-]/g, '');
     },
 
     displayNameForKind: JSReadOnlyProperty(),
@@ -204,6 +204,14 @@ JSClass("DocComponent", JSObject, {
     },
 
     urlForMarkdownLink: function(markdown, link){
+        if (link.isAbsolute){
+            return JSURL.initWithString(link);
+        }
+        let sourceURL = JSURL.initWithString(link + '.doc.yaml', this.sourceURL).standardized();
+        let component = this.componentForSourceURL(sourceURL);
+        if (component){
+            return this.urlForComponent(component);
+        }
         let url = this.urlForName(link);
         if (url){
             return url;
@@ -287,6 +295,27 @@ JSClass("DocComponent", JSObject, {
             return this.parent.componentForName(name, this);
         }
 
+        return null;
+    },
+
+    componentForSourceURL: function(sourceURL){
+        if (this.parent !== null){
+            return this.parent.componentForSourceURL(sourceURL);
+        }
+        return this._componentForSourceURL(sourceURL);
+    },
+
+    _componentForSourceURL: function(sourceURL){
+        if (this.sourceURL && this.sourceURL.isEqual(sourceURL)){
+            return this;
+        }
+        for (let i = 0, l = this.children.length; i < l; ++i){
+            let child = this.children[i];
+            let component = child._componentForSourceURL(sourceURL);
+            if (component !== null){
+                return component;
+            }
+        }
         return null;
     },
 

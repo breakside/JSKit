@@ -30,12 +30,13 @@ JSClass("Documentation", JSObject, {
     printer: null,
 
     run: async function(){
-        this.wwwURL = this.outputDirectoryURL.appendingPathComponent('www', true);
+        this.wwwURL = this.outputDirectoryURL.appendingPathComponents(['www', 'docs'], true);
         await this.copyStyles();
         let rootComponent = await this.loadSource(this.rootURL);
         rootComponent.outputURL = this.wwwURL.appendingPathComponent(rootComponent.uniqueName + '.html');
         await this.output([rootComponent]);
         await this.outputComponentsJSON(rootComponent);
+        await this.outputManifestConfig(rootComponent);
     },
 
     copyStyles: async function(){
@@ -61,7 +62,6 @@ JSClass("Documentation", JSObject, {
         }
         let component = await this.createComponentFromInfo(info, url);
         component.sourceURL = url;
-        await component.extractPropertiesFromInfo(info, this);
         return component;
     },
 
@@ -113,6 +113,24 @@ JSClass("Documentation", JSObject, {
         var obj = rootComponent.jsonObject(baseURL);
         var json = JSON.stringify({components: [obj]}, null, 2);
         var url = this.outputDirectoryURL.appendingPathComponent('components.json');
+        await this.fileManager.createFileAtURL(url, json.utf8());
+    },
+
+    outputManifestConfig: async function(rootComponent){
+        var config = {};
+        let baseURL = this.wwwURL.removingLastPathComponent();
+        var stack = [rootComponent];
+        while (stack.length > 0){
+            let component = stack.shift();
+            let url = component.outputURL;
+            let path = url.encodedStringRelativeTo(baseURL);
+            config[path] = path.substr(0, path.length - path.fileExtension.length);
+            for (let i = 0, l = component.children.length; i < l; ++i){
+                stack.push(component.children[i]);
+            }
+        }
+        var json = JSON.stringify(config, null, 2);
+        var url = this.outputDirectoryURL.appendingPathComponent('components-manifest.json');
         await this.fileManager.createFileAtURL(url, json.utf8());
     }
 

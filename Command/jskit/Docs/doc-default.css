@@ -4,6 +4,7 @@ article.doc{
     font-family: 'Roboto', sans-serif;
     font-weight: 300;
     color: rgb(51,51,51);
+    padding: 0 20px;
 }
 
 article.doc h1,h2,h3,h4,h5,h5,b,strong{
@@ -158,6 +159,7 @@ article.doc > section.parameters > dl > dt{
     font-weight: 400;
     white-space: pre;
     font-size: 87.5%;
+    color: rgb(0,0,0);
 }
 
 article.doc > section.parameters > dl > dd > p{

@@ -325,6 +325,25 @@ JSClass("HTMLBuilder", Builder, {
         await this.buildCSS();
         await this.buildPreflight();
 
+        var manifestConfiguration = {};
+        var configFiles = this.project.info.HMTLManifestConfiguration || [];
+        if (!(configFiles instanceof Array)){
+            configFiles = [configFiles];
+        }
+
+        for (let i = 0, l = configFiles.length; i < l; ++i){
+            let config = configFiles[i];
+            if (typeof(config) == "string"){
+                let url = this.project.url.appendingPathComponent(configFiles[i]);
+                let contents = await this.fileManager.contentsAtURL(url);
+                let json = contents.stringByDecodingUTF8();
+                config = JSON.parse(json);
+            }
+            for (var k in config){
+                manifestConfiguration[k] = config[k];
+            }
+        }
+
         var projectWWWURL = this.project.url.appendingPathComponent('www');
         var entries = await this.fileManager.contentsOfDirectoryAtURL(projectWWWURL);
         var indexName = this.project.info.UIApplicationHTMLIndexFile || 'index.html';
@@ -337,14 +356,29 @@ JSClass("HTMLBuilder", Builder, {
             if (entry.name == indexName){
                 await this.buildIndex(entry.url, toURL);
             }else{
-                await this.fileManager.copyItemAtURL(entry.url, toURL);
-                if (entry.itemType != JSFileManager.ItemType.directory){
-                    this.wwwPaths.push(entry.name);
-                }
+                await this._copyWWWEntry(entry, entry.name, manifestConfiguration);
             }
         }
 
         await this.buildManifest();
+    },
+
+    _copyWWWEntry: async function(entry, wwwPath, manifestConfiguration){
+        let toURL = this.wwwURL.appendingPathComponent(wwwPath);
+        if (entry.itemType == JSFileManager.ItemType.directory){
+            let entries = await this.fileManager.contentsOfDirectoryAtURL(entry.url);
+            for (let i = 0, l = entries.length; i < l; ++i){
+                let child = entries[i];
+                if (child.name.startsWith('.')){
+                    continue;
+                }
+                await this._copyWWWEntry(child, wwwPath + '/' + child.name, manifestConfiguration);
+            }
+        }else{
+            let manifestEntry = manifestConfiguration[wwwPath] || wwwPath;
+            this.wwwPaths.push(manifestEntry);
+            await this.fileManager.copyItemAtURL(entry.url, toURL);
+        }
     },
 
     buildIndex: async function(sourceURL, toURL){
