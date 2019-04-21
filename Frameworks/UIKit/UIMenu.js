@@ -454,7 +454,7 @@ JSClass("UIMenu", JSObject, {
         if (origin.y < screen.safeFrame.origin.y){
             over = screen.safeFrame.origin.y - origin.y;
             origin.y = screen.safeFrame.origin.y;
-            if (locationInScreen.y >= screen.safeFrame.origin.y && size.height - over >= 60){
+            if (locationInScreen.y >= screen.safeFrame.origin.y + 40 && size.height - over >= 100){
                 offset.y = over;
                 size.height -= over;
             }
