@@ -26,13 +26,26 @@ JSClass("UIControl", UIView, {
             this._styler = spec.resolvedEnum(values.styler, this.$class.Styler || {});
         }
         this.commonUIControlInit();
+        var target;
+        var action;
+        var event;
         if (('target' in values) && ('action' in values)){
-            var target = spec.resolvedValue(values.target);
-            var action = target[spec.resolvedValue(values.action)];
+            target = spec.resolvedValue(values.target);
+            action = target[spec.resolvedValue(values.action)];
             if (!action){
                 throw new Error("Missing action on target: %s.%s".sprintf(values.target, values.action));
             }
             this.addTargetedAction(target, action);
+        }
+        if ('actions' in values){
+            var actionInfo;
+            for (var i = 0, l = values.actions.length; i < l; ++i){
+                actionInfo = values.actions[i];
+                target = spec.resolvedValue(actionInfo.target);
+                action = target[spec.resolvedValue(actionInfo.action)];
+                event = spec.resolvedEnum(actionInfo.event, this.$class.Event);
+                this.addTargetedActionForEvent(target, action, event);
+            }
         }
     },
 
