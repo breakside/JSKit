@@ -1,4 +1,4 @@
-// #import "UIKit/UIViewController.js"
+// #import "UIViewController.js"
 /* global JSClass, JSRect, JSColor, JSDeepCopy, JSUserDefaults, UICursor, JSReadOnlyProperty, JSDynamicProperty, UIViewController, UIDualPaneViewController, JSPoint, UIView, _UIDualPaneView, _UIDualPaneDividerView, UIViewPropertyAnimator */
 'use strict';
 

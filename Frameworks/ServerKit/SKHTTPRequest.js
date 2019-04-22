@@ -1,6 +1,6 @@
 // #import Foundation
-// #import "ServerKit/SKHTTPResponse.js"
-// #import "ServerKit/SKValidatingObject.js"
+// #import "SKHTTPResponse.js"
+// #import "SKValidatingObject.js"
 /* global JSClass, JSDate, JSLazyInitProperty, JSObject, JSData, JSReadOnlyProperty, JSURL, JSMIMEHeaderMap, SKHTTPResponse, JSLog, JSMediaType, SKValidatingObject */
 'use strict';
 

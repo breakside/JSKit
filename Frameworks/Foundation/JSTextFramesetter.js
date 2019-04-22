@@ -1,8 +1,8 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/CoreTypes.js"
-// #import "Foundation/JSTextTypesetter.js"
-// #import "Foundation/JSTextFrame.js"
-// #import "Foundation/JSAttributedString.js"
+// #import "JSObject.js"
+// #import "CoreTypes.js"
+// #import "JSTextTypesetter.js"
+// #import "JSTextFrame.js"
+// #import "JSAttributedString.js"
 /* global JSClass, JSObject, JSSize, JSReadOnlyProperty, JSDynamicProperty, JSTextTypesetter, JSTextFrame, JSPoint, JSLineBreakMode, JSRange, JSTextAlignment, JSAttributedString */
 'use strict';
 

@@ -1,4 +1,4 @@
-// #import "Foundation/JSArrayController.js"
+// #import "JSArrayController.js"
 /* global JSClass, JSArrayController, JSSparseArrayController */
 'use strict';
 

@@ -165,12 +165,8 @@ JSClass("Project", JSObject, {
             frameworks: new Set(),
             features: new Set()
         };
-        let prefix = "%s/".sprintf(this.url.lastPathComponent);
 
         var visit = async function(path, sourceURL, sourceLine){
-            if (this.info.JSBundleType == 'framework' && path.startsWith(prefix)){
-                path = path.substr(prefix.length);
-            }
             if (!visited.paths.has(path)){
                 visited.paths.add(path);
                 let found = false;

@@ -1,5 +1,5 @@
-// #import "Foundation/JSRunLoop.js"
-// #import "Foundation/Promise+JS.js"
+// #import "JSRunLoop.js"
+// #import "Promise+JS.js"
 /* global JSRunLoop */
 'use strict';
 

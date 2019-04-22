@@ -1,6 +1,6 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSDate.js"
-// #import "Foundation/JSTimeZone.js"
+// #import "JSObject.js"
+// #import "JSDate.js"
+// #import "JSTimeZone.js"
 /* global JSClass, JSObject, JSCalendar, JSGregorianCalendar, JSDynamicProperty, JSReadOnlyProperty, JSDate, JSTimeZone */
 'use strict';
 

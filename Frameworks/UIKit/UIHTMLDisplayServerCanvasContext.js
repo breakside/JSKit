@@ -1,5 +1,5 @@
 // #import Foundation
-// #import "UIKit/UIHTMLDisplayServerContext.js"
+// #import "UIHTMLDisplayServerContext.js"
 /* global JSClass, JSContext, JSReadOnlyProperty, JSSize, JSColor, JSCopy, JSAffineTransform, UIHTMLDisplayServerContext, JSRect, JSObject, UILayer, UIHTMLDisplayServerCanvasContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
 'use strict';
 

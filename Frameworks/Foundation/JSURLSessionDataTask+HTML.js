@@ -1,9 +1,9 @@
-// #import "Foundation/JSURL.js"
-// #import "Foundation/JSURLSessionDataTask.js"
-// #import "Foundation/JSURLRequest.js"
-// #import "Foundation/JSURLResponse.js"
-// #import "Foundation/JSRunLoop.js"
-// #import "Foundation/JSLog.js"
+// #import "JSURL.js"
+// #import "JSURLSessionDataTask.js"
+// #import "JSURLRequest.js"
+// #import "JSURLResponse.js"
+// #import "JSRunLoop.js"
+// #import "JSLog.js"
 // #feature XMLHttpRequest
 /* global JSClass, JSURLSessionDataTask, JSRunLoop, JSLazyInitProperty, XMLHttpRequest, JSLog, JSURLResponse, JSURLRequest, JSURL, setTimeout, JSData */
 'use strict';

@@ -1,6 +1,6 @@
 // #feature Uint8Array
-// #import "Foundation/Uint8Array+JS.js"
-// #import "Foundation/String+JS.js"
+// #import "Uint8Array+JS.js"
+// #import "String+JS.js"
 /* global JSGlobalObject, UUID */
 'use strict';
 

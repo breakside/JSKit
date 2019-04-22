@@ -1,5 +1,5 @@
 // #import Foundation
-// #import "TestKit/TKAssert.js"
+// #import "TKAssert.js"
 /* global JSObject, JSClass, JSBundle, TKAssertion, TKTestSuite, performance */
 'use strict';
 

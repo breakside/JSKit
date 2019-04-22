@@ -1,4 +1,4 @@
-// #import "UIKit/UIAnimation.js"
+// #import "UIAnimation.js"
 /* global JSClass, UIAnimation, JSDynamicProperty */
 'use strict';
 

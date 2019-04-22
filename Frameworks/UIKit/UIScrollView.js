@@ -1,5 +1,5 @@
-// #import "UIKit/UIView.js"
-// #import "UIKit/UIEvent.js"
+// #import "UIView.js"
+// #import "UIEvent.js"
 /* global JSClass, UIView, UIEvent, UIScrollView, JSDynamicProperty, JSDeepCopy, JSAffineTransform, JSInsets, JSProtocol, JSReadOnlyProperty, UIScroller, UIControl, JSPoint, JSRect, JSSize */
 'use strict';
 

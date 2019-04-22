@@ -1,7 +1,7 @@
 // #import Foundation
-// #import "PDFKit/PDFGraphicsState.js"
-// #import "PDFKit/PDFColorSpace.js"
-// #import "PDFKit/PDFImage.js"
+// #import "PDFGraphicsState.js"
+// #import "PDFColorSpace.js"
+// #import "PDFImage.js"
 /* global JSClass, JSObject, JSColor, JSContext, JSAffineTransform, JSSize, JSRect, JSPoint, JSRange, PDFImage, PDFGraphicsState, PDFColorSpace, PDFForm */
 'use strict';
 

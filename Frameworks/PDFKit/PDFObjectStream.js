@@ -1,4 +1,4 @@
-// #import "PDFKit/PDFStream.js"
+// #import "PDFStream.js"
 /* global JSGlobalObject, PDFStream, PDFObjectProperty, PDFObjectStream, PDFName, PDFTokenizer */
 'use strict';
 

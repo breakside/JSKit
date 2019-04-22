@@ -1,4 +1,4 @@
-// #import "UIKit/UILayer.js"
+// #import "UILayer.js"
 /* global JSClass, UILayer, UIImageLayer, UILayerAnimatedProperty, JSPoint, JSRect, JSSize, JSDynamicProperty */
 'use strict';
 

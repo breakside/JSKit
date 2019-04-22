@@ -1,4 +1,4 @@
-// #import "UIKit/UIView.js"
+// #import "UIView.js"
 /* global JSClass, JSProtocol, UIView, UIWebView */
 'use strict';
 

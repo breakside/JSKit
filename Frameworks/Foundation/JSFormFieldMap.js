@@ -1,6 +1,6 @@
-// #import "Foundation/CoreTypes.js"
-// #import "Foundation/String+JS.js"
-// #import "Foundation/JSData.js"
+// #import "CoreTypes.js"
+// #import "String+JS.js"
+// #import "JSData.js"
 /* global JSRange, JSData, JSGlobalObject, JSFormFieldMap, JSFormField */
 'use strict';
 

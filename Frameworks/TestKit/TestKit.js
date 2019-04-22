@@ -1,7 +1,7 @@
 // #import Foundation
 
-// #import "TestKit/TKAssert.js"
-// #import "TestKit/TKTestSuite.js"
-// #import "TestKit/TKTestResult.js"
-// #import "TestKit/TKTestRun.js"
-// #import "TestKit/TKExpectation.js"
+// #import "TKAssert.js"
+// #import "TKTestSuite.js"
+// #import "TKTestResult.js"
+// #import "TKTestRun.js"
+// #import "TKExpectation.js"

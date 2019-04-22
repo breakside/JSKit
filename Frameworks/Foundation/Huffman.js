@@ -1,4 +1,4 @@
-// #import "Foundation/JSLog.js"
+// #import "JSLog.js"
 /* global JSLog, JSGlobalObject */
 'use strict';
 

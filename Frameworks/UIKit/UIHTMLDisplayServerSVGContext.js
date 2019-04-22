@@ -1,7 +1,7 @@
 // #import Foundation
-// #import "UIKit/UIView.js"
-// #import "UIKit/UIHTMLDisplayServerContext.js"
-// #import "UIKit/SVGPathSegList.js"
+// #import "UIView.js"
+// #import "UIHTMLDisplayServerContext.js"
+// #import "SVGPathSegList.js"
 /* global SVGLength, JSClass, UILayer, JSContext, JSAffineTransform, JSColor, JSObject, UIHTMLDisplayServerContext, UIHTMLDisplayServerSVGContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView, _UIHTMLDisplayServerSVGContextDefs */
 'use strict';
 

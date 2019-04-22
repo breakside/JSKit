@@ -1,7 +1,7 @@
 // #import Foundation
-// #import "UIKit/UIHTMLTextLine.js"
-// #import "UIKit/UIHTMLDisplayServerContext.js"
-// #import "UIKit/UITextAttachmentView.js"
+// #import "UIHTMLTextLine.js"
+// #import "UIHTMLDisplayServerContext.js"
+// #import "UITextAttachmentView.js"
 /* global JSClass, JSTextFrame, UIHTMLTextFrame, UIHTMLTextLine, JSAttributedString, JSRange, JSFont, JSPoint, JSRect, JSSize, UIHTMLDisplayServerContext, UITextAttachmentView */
 'use strict';
 

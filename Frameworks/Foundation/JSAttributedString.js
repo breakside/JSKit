@@ -1,5 +1,5 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSTextAttachment.js"
+// #import "JSObject.js"
+// #import "JSTextAttachment.js"
 /* global JSClass, JSReadOnlyProperty, JSObject, JSAttributedString, JSRange, JSCopy, JSTextAttachment */
 'use strict';
 

@@ -1,4 +1,4 @@
-// #import "Foundation/JSAttributedString.js"
+// #import "JSAttributedString.js"
 /* global JSClass, JSAttributedString, JSTextStorage, JSReadOnlyProperty */
 'use strict';
 

@@ -1,4 +1,4 @@
-// #import "Foundation/JSObject.js"
+// #import "JSObject.js"
 // #feature setTimeout
 // #feature setInterval
 /* global JSClass, JSObject, JSReadOnlyProperty, JSTimer, JSGlobalObject */

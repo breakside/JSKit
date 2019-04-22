@@ -1,6 +1,6 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSLocale.js"
-// #import "Foundation/JSBundle.js"
+// #import "JSObject.js"
+// #import "JSLocale.js"
+// #import "JSBundle.js"
 /* global JSClass, JSObject, JSNumberFormatter, JSRange, JSLocale, JSCustomProperty, JSDynamicProperty, JSBundle */
 'use strict';
 

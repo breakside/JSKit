@@ -1,6 +1,6 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSMIMEHeaderMap.js"
-// #import "Foundation/JSMediaType.js"
+// #import "JSObject.js"
+// #import "JSMIMEHeaderMap.js"
+// #import "JSMediaType.js"
 /* global JSClass, JSObject, JSReadOnlyProperty, JSMediaType, JSLazyInitProperty, JSDynamicProperty, JSURLResponse, JSMIMEHeaderMap */
 'use strict';
 

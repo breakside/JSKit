@@ -1,5 +1,5 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSColor.js"
+// #import "JSObject.js"
+// #import "JSColor.js"
 /* global JSClass, JSObject, JSGradient, JSPoint */
 'use strict';
 

@@ -1,4 +1,4 @@
-// #import "FontKit/FNTFontDescriptor.js"
+// #import "FNTFontDescriptor.js"
 /* global FNTFontDescriptor */
 'use strict';
 

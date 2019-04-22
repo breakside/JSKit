@@ -1,6 +1,6 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSDate.js"
-// #import "Foundation/JSBinarySearcher.js"
+// #import "JSObject.js"
+// #import "JSDate.js"
+// #import "JSBinarySearcher.js"
 // #feature Intl
 /* global Intl, JSClass, JSObject, JSDate, JSReadOnlyProperty, JSTimeZone, JSBinarySearcher, JSGregorianCalendar */
 'use strict';

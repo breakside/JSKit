@@ -1,6 +1,6 @@
-// #import "UIKit/UIView.js"
-// #import "UIKit/UICustomAnimation.js"
-// #import "UIKit/UIImageLayer.js"
+// #import "UIView.js"
+// #import "UICustomAnimation.js"
+// #import "UIImageLayer.js"
 /* global JSClass, UIView, UIImageLayer, JSBundle, JSAffineTransform, JSImage, JSColor, UICustomAnimation, UIActivityIndicatorView, UIActivityIndicatorAnimator, JSReadOnlyProperty, JSDynamicProperty, JSRect, JSSize, JSPoint */
 'use strict';
 

@@ -1,4 +1,4 @@
-// #import "PDFKit/PDFObject.js"
+// #import "PDFObject.js"
 /* global JSGlobalObject, JSClass, JSData, PDFCMap, PDFObject, PDFName, PDFOperationIterator, PDFObjectProperty, PDFOperationItertor */
 'use strict';
 

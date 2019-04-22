@@ -1,11 +1,11 @@
-// #import "PDFKit/PDFObject.js"
-// #import "PDFKit/PDFName.js"
-// #import "PDFKit/PDFStream.js"
-// #import "PDFKit/PDFImage.js"
-// #import "PDFKit/PDFStreamOperation.js"
-// #import "PDFKit/PDFGraphicsState.js"
-// #import "PDFKit/PDFColorSpace.js"
-// #import "PDFKit/PDFDrawing.js"
+// #import "PDFObject.js"
+// #import "PDFName.js"
+// #import "PDFStream.js"
+// #import "PDFImage.js"
+// #import "PDFStreamOperation.js"
+// #import "PDFGraphicsState.js"
+// #import "PDFColorSpace.js"
+// #import "PDFDrawing.js"
 /* global JSGlobalObject, JSClass, JSObject, JSFont, JSData, JSPoint, JSSize, JSRect, JSColor, JSAffineTransform, JSContext, PDFObject, PDFColorSpace, PDFObjectProperty, PDFPage, PDFName, PDFResources, PDFStream, PDFStreamOperation, PDFGraphicsState, PDFOperationIterator, PDFDrawing, PDFImage */
 'use strict';
 

@@ -1,5 +1,5 @@
-// #import "Foundation/JSFont.js"
-// #import "Foundation/JSURL.js"
+// #import "JSFont.js"
+// #import "JSURL.js"
 /* global JSFont, JSURL, JSResourceFont, JSDataFont, JSReadOnlyProperty, document */
 'use strict';
 

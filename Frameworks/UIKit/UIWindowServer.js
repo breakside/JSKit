@@ -1,10 +1,10 @@
 // #import Foundation
-// #import "UIKit/UIEvent.js"
-// #import "UIKit/UICursor.js"
-// #import "UIKit/UILayer.js"
-// #import "UIKit/UIView.js"
-// #import "UIKit/UITooltipWindow.js"
-// #import "UIKit/UIDraggingSession.js"
+// #import "UIEvent.js"
+// #import "UICursor.js"
+// #import "UILayer.js"
+// #import "UIView.js"
+// #import "UITooltipWindow.js"
+// #import "UIDraggingSession.js"
 /* global JSClass, JSObject, JSRunLoop, JSDynamicProperty, JSReadOnlyProperty, UIWindowServer, UIWindow, UIEvent, JSPoint, UIWindowServerInit, UITouch, UICursor, UILayer, UIView, JSTimer, UITooltipWindow, JSSize, JSRect, UIDraggingSession, UIDragOperation, JSInsets, JSRange, JSLog */
 'use strict';
 

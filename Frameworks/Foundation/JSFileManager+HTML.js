@@ -1,8 +1,8 @@
-// #import "Foundation/JSFileManager.js"
-// #import "Foundation/JSBundle.js"
-// #import "Foundation/JSData.js"
-// #import "Foundation/JSURL.js"
-// #import "Foundation/JSLog.js"
+// #import "JSFileManager.js"
+// #import "JSBundle.js"
+// #import "JSData.js"
+// #import "JSURL.js"
+// #import "JSLog.js"
 /* global self, window, JSClass, JSObject, JSCopy, JSLazyInitProperty, JSFileManager, JSData, JSBundle, JSURL, JSLog */
 'use strict';
 

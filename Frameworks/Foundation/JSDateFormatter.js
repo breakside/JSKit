@@ -1,7 +1,7 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSLocale.js"
-// #import "Foundation/JSCalendar.js"
-// #import "Foundation/JSBundle.js"
+// #import "JSObject.js"
+// #import "JSLocale.js"
+// #import "JSCalendar.js"
+// #import "JSBundle.js"
 /* global JSClass, JSObject, JSDateFormatter, JSLocale, JSCustomProperty, JSCalendar, JSDynamicProperty, JSBundle */
 'use strict';
 

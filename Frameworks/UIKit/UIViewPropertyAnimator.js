@@ -1,5 +1,5 @@
-// #import "UIKit/UIAnimation.js"
-// #import "UIKit/UIAnimationTransaction.js"
+// #import "UIAnimation.js"
+// #import "UIAnimationTransaction.js"
 /* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, UIAnimation, UIAnimationTransaction */
 'use strict';
 

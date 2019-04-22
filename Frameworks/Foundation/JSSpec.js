@@ -1,7 +1,7 @@
-// #import "Foundation/Javascript.js"
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSPropertyList.js"
-// #import "Foundation/JSBundle.js"
+// #import "Javascript.js"
+// #import "JSObject.js"
+// #import "JSPropertyList.js"
+// #import "JSBundle.js"
 /* global JSClass, JSObject, JSLazyInitProperty, JSCopy, JSReadOnlyProperty, JSPropertyList, JSSpec, JSGlobalObject, JSResolveDottedName, JSBundle */
 'use strict';
 

@@ -1,4 +1,4 @@
-// #import "ServerKit/SKHTTPHeaders.js"
+// #import "SKHTTPHeaders.js"
 /* global JSClass, JSObject, JSDate, JSCustomProperty, JSDynamicProperty, JSReadOnlyProperty, JSURLResponse, SKHTTPResponse, SKHTTPHeaders*/
 'use strict';
 

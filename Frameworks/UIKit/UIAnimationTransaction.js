@@ -1,5 +1,5 @@
 // #import Foundation
-// #import "UIKit/UIDisplayServer.js"
+// #import "UIDisplayServer.js"
 /* global JSClass, JSObject, JSReadOnlyProperty, UIAnimationTransaction, UIDisplayServer */
 'use strict';
 

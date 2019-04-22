@@ -1,7 +1,7 @@
 // #import Foundation
-// #import "UIKit/UITextFramesetter.js"
-// #import "UIKit/UIHTMLTextFrame.js"
-// #import "UIKit/UIHTMLTextTypesetter.js"
+// #import "UITextFramesetter.js"
+// #import "UIHTMLTextFrame.js"
+// #import "UIHTMLTextTypesetter.js"
 /* global JSClass, JSReadOnlyProperty, UITextFramesetter, UIHTMLTextFramesetter, UIHTMLTextTypesetter, UIHTMLTextFrame, JSAttributedString, JSLineBreakMode */
 'use strict';
 

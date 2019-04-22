@@ -1,4 +1,4 @@
-// #import "Foundation/JSRunLoop.js"
+// #import "JSRunLoop.js"
 /* global JSRunLoop, process */
 'use strict';
 

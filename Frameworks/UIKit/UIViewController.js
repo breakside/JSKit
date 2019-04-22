@@ -1,5 +1,5 @@
 // #import Foundation
-// #import "UIKit/UIResponder.js"
+// #import "UIResponder.js"
 /* global JSClass, JSObject, UIResponder, JSCopy, UIView, JSDynamicProperty, UIViewController, JSReadOnlyProperty */
 'use strict';
 

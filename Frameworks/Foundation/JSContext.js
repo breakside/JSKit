@@ -1,5 +1,5 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSColor.js"
+// #import "JSObject.js"
+// #import "JSColor.js"
 /* global JSClass, JSObject, JSDynamicProperty, JSAffineTransform, JSPoint, JSColor, JSContext, JSCustomProperty */
 'use strict';
 

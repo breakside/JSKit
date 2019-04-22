@@ -1,5 +1,5 @@
-// #import "Foundation/JSURLSessionTask.js"
-// #import "Foundation/JSURLRequest.js"
+// #import "JSURLSessionTask.js"
+// #import "JSURLRequest.js"
 /* global JSClass, JSURLSessionTask, JSReadOnlyProperty */
 'use strict';
 

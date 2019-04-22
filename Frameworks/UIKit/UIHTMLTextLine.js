@@ -1,5 +1,5 @@
 // #import Foundation
-// #import "UIKit/UIHTMLTextRun.js"
+// #import "UIHTMLTextRun.js"
 /* global JSClass, JSTextLine, UIHTMLTextLine, JSSize, UIHTMLTextRun, JSAttributedString, JSFont, JSRect */
 'use strict';
 

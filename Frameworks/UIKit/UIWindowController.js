@@ -1,4 +1,4 @@
-// #import "UIKit/UIViewController.js"
+// #import "UIViewController.js"
 /* global JSClass, UIViewController, JSSize, JSReadOnlyProperty, JSCopy, UIWindowController, JSProtocol, JSSpec */
 'use strict';
 

@@ -1,6 +1,6 @@
-// #import "UIKit/UIControl.js"
-// #import "UIKit/UILabel.js"
-// #import "UIKit/UIImageView.js"
+// #import "UIControl.js"
+// #import "UILabel.js"
+// #import "UIImageView.js"
 /* global JSClass, JSObject, JSLazyInitProperty, UIControl, JSSize, JSImage, UIImageView, JSInsets, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSColor, UIButton, JSTextAlignment, JSPoint, UIView, JSFont, UIButtonStyler, UIButtonDefaultStyler, UIButtonCustomStyler, JSRect */
 'use strict';
 

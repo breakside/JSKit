@@ -1,4 +1,4 @@
-// #import "Foundation/JSObject.js"
+// #import "JSObject.js"
 /* global JSClass, JSObject, JSCustomProperty, JSColor, JSReadOnlyProperty */
 'use strict';
 

@@ -1,5 +1,5 @@
-// #import "PDFKit/PDFName.js"
-// #import "PDFKit/PDFStream.js"
+// #import "PDFName.js"
+// #import "PDFStream.js"
 /* global JSGlobalObject, JSLog, JSColor, PDFObject, PDFName, PDFStream */
 /* global PDFColorSpace, PDFColorSpaceCIEGray, PDFColorSpaceCIERGB, PDFColorSpaceCIELab, PDFColorSpaceIndexed, PDFColorSpaceDeviceN, PDFColorSpacePattern, PDFColorSpaceSeparation, PDFColorSpaceICCBased */
 'use strict';

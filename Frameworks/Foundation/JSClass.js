@@ -1,4 +1,4 @@
-// #import "Foundation/String+JS.js"
+// #import "String+JS.js"
 // #feature Object.create
 // #feature Object.defineProperty
 // #feature Object.getPrototypeOf

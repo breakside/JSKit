@@ -1,5 +1,5 @@
 // #import Foundation
-// #import "ServerKit/SKHTTPResponderContext.js"
+// #import "SKHTTPResponderContext.js"
 /* global JSClass, JSObject, JSDeepCopy, SKHTTPRoute, SKHTTPResourceRoute, JSCopy, JSSpec, SKHTTPResponderContext */
 'use strict';
 

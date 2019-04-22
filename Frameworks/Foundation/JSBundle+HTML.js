@@ -1,6 +1,6 @@
-// #import "Foundation/JSBundle.js"
-// #import "Foundation/JSURLSession.js"
-// #import "Foundation/JSURLResponse.js"
+// #import "JSBundle.js"
+// #import "JSURLSession.js"
+// #import "JSURLResponse.js"
 /* global JSBundle, JSURLSession, JSURLResponse, JSURL */
 'use strict';
 

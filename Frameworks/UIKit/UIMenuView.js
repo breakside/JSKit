@@ -1,10 +1,10 @@
-// #import "UIKit/UIMenu.js"
-// #import "UIKit/UIMenuItem.js"
-// #import "UIKit/UIView.js"
-// #import "UIKit/UILabel.js"
-// #import "UIKit/UIImageView.js"
-// #import "UIKit/UIEvent.js"
-// #import "UIKit/UIPlatform.js"
+// #import "UIMenu.js"
+// #import "UIMenuItem.js"
+// #import "UIView.js"
+// #import "UILabel.js"
+// #import "UIImageView.js"
+// #import "UIEvent.js"
+// #import "UIPlatform.js"
 /* global JSClass, JSLazyInitProperty, JSReadOnlyProperty, JSDynamicProperty, UIPlatform, UIEvent, UIWindow, UIMenu, UIView, JSColor, JSSize, JSRect, UILabel, UIImageView, UIMenuItem, JSTextAlignment, JSInsets, JSPoint, UILayer, UIMenuWindow, UIMenuView, UIMenuItemView, JSBinarySearcher, JSTimer, JSURL, JSImage, JSBundle, UIMenuItemSeparatorView, UIWindowCustomStyler */
 'use strict';
 

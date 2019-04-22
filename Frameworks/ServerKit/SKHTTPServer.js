@@ -1,7 +1,7 @@
 // #import Foundation
-// #import "ServerKit/SKHTTPRoute.js"
-// #import "ServerKit/SKHTTPError.js"
-// #import "ServerKit/SKHTTPResponder.js"
+// #import "SKHTTPRoute.js"
+// #import "SKHTTPError.js"
+// #import "SKHTTPResponder.js"
 /* global JSClass, JSObject, JSProtocol, JSDynamicProperty, JSMIMEHeaderMap, SKHTTPResponse, SKHTTPResponder, SKHTTPRoute, SKHTTPServer, SKHTTPError, JSLog */
 'use strict';
 

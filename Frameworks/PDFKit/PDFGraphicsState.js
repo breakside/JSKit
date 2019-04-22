@@ -1,7 +1,7 @@
 // #import Foundation
-// #import "PDFKit/PDFTypes.js"
-// #import "PDFKit/PDFColorSpace.js"
-// #import "PDFKit/PDFStreamOperation.js"
+// #import "PDFTypes.js"
+// #import "PDFColorSpace.js"
+// #import "PDFStreamOperation.js"
 /* global JSGlobalObject, JSPoint, JSColor, PDFColorSpace, PDFGraphicsState, JSAffineTransform, PDFName, PDFStreamOperation */
 'use strict';
 

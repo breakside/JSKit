@@ -1,5 +1,5 @@
-// #import "UIKit/UIView.js"
-// #import "UIKit/UITextLayer.js"
+// #import "UIView.js"
+// #import "UITextLayer.js"
 /* global JSClass, UIView, UITextLayer, JSDynamicProperty, UITextView, JSFont, UIViewLayerProperty */
 'use strict';
 

@@ -1,6 +1,6 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSFontDescriptor.js"
-// #import "Foundation/CoreTypes.js"
+// #import "JSObject.js"
+// #import "JSFontDescriptor.js"
+// #import "CoreTypes.js"
 /* global JSClass, JSObject, JSBundle, JSReadOnlyProperty, JSPoint, JSFont, JSFontDescriptor, JSResourceFontDescriptor, JSDataFontDescriptor */
 'use strict';
 

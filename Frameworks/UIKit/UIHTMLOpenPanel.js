@@ -1,4 +1,4 @@
-// #import "UIKit/UIOpenPanel.js"
+// #import "UIOpenPanel.js"
 /* global document, JSClass, UIOpenPanel, UIHTMLOpenPanel, JSHTMLFile, JSHTMLFileSystemEntryFileEnumerator, JSHTMLFileListFileEnumerator */
 'use strict';
 

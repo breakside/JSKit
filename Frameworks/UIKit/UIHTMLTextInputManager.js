@@ -1,4 +1,4 @@
-// #import "UIKit/UITextInputManager.js"
+// #import "UITextInputManager.js"
 // #feature 'key' in KeyboardEvent.prototype
 /* global JSClass, UITextInputManager, JSLog, JSRange, UIHTMLTextInputManager */
 'use strict';

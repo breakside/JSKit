@@ -1,4 +1,4 @@
-// #import "Foundation/JSLocale.js"
+// #import "JSLocale.js"
 /* global JSLocale, navigator */
 'use strict';
 

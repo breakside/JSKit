@@ -1,5 +1,5 @@
-// #import "UIKit/UIControl.js"
-// #import "UIKit/UIViewPropertyAnimator.js"
+// #import "UIControl.js"
+// #import "UIViewPropertyAnimator.js"
 /* global JSClass, UIView, JSDynamicProperty, JSReadOnlyProperty, UIScroller, UIControl, JSRect, UIControlStyler, UIScrollerStyler, UIScrollerDefaultStyler, JSInsets, JSSize, JSPoint, JSColor, UILayer, JSTimer, UIViewPropertyAnimator */
 'use strict';
 

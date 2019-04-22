@@ -1,4 +1,4 @@
-// #import "Dispatch/JSWorkerBasedDispatchQueue.js"
+// #import "JSWorkerBasedDispatchQueue.js"
 /* global require, process, JSClass, JSObject, JSDispatchQueue, JSWorkerBasedDispatchQueue, JSWorkerBasedDispatchQueueWorker, JSNodeDispatchQueue, JSBundle */
 'use strict';
 

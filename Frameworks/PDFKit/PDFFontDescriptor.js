@@ -1,5 +1,5 @@
 // #import FontKit
-// #import "PDFKit/PDFObject.js"
+// #import "PDFObject.js"
 /* global JSGlobalObject, JSCopy, PDFObject, PDFObjectProperty, PDFFontDescriptor, PDFName, PDFType1Font, PDFTrueTypeFont, FNTType1Font, FNTOpenTypeFont, FNTCompactFontFormat */
 'use strict';
 

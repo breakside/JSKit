@@ -1,7 +1,7 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSURL.js"
-// #import "Foundation/JSMIMEHeaderMap.js"
-// #import "Foundation/JSMediaType.js"
+// #import "JSObject.js"
+// #import "JSURL.js"
+// #import "JSMIMEHeaderMap.js"
+// #import "JSMediaType.js"
 /* global JSClass, JSObject, JSURL, JSReadOnlyProperty, JSMediaType, JSMIMEHeaderMap, JSDynamicProperty, JSURLRequest */
 'use strict';
 

@@ -1,6 +1,6 @@
-// #import "Foundation/CoreTypes.js"
-// #import "Foundation/UnicodeChar.js"
-// #import "Foundation/JSData.js"
+// #import "CoreTypes.js"
+// #import "UnicodeChar.js"
+// #import "JSData.js"
 /* global UnicodeChar, JSRange, JSData */
 'use strict';
 

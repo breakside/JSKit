@@ -1,6 +1,6 @@
-// #import "Foundation/JSFile.js"
-// #import "Foundation/JSData.js"
-// #import "Foundation/JSURL.js"
+// #import "JSFile.js"
+// #import "JSData.js"
+// #import "JSURL.js"
 /* global JSClass, JSFile */
 /* feature Blob */
 /* feature FileReader */

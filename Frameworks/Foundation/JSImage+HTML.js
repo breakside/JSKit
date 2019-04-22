@@ -1,4 +1,4 @@
-// #import "Foundation/JSImage.js"
+// #import "JSImage.js"
 /* global JSImage, _JSResourceImage, _JSDataImage, _JSURLImage */
 'use strict';
 

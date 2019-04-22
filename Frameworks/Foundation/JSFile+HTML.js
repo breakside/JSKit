@@ -1,5 +1,5 @@
-// #import "Foundation/JSFile.js"
-// #import "Foundation/JSURL.js"
+// #import "JSFile.js"
+// #import "JSURL.js"
 /* feature URL.revokeObjectURL */
 /* global URL, JSClass, JSFile, JSDataFile, JSURL */
 'use strict';

@@ -1,5 +1,5 @@
 // #import Foundation
-// #import "PDFKit/PDFPredictorFilter.js"
+// #import "PDFPredictorFilter.js"
 // #feature Uint8Array
 /* global JSClass, PDFPredictorFilter, JSData, PDFLZWFilter, JSLog, LZW, PDFLZWStream, JSGlobalObject */
 'use strict';

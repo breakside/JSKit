@@ -1,5 +1,5 @@
 // #import Foundation
-// #import "UIKit/UIApplication.js"
+// #import "UIApplication.js"
 /* global JSClass, JSObject, UIScene, UIApplication, JSSpec */
 'use strict';
 

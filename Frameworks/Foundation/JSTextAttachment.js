@@ -1,5 +1,5 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSImage.js"
+// #import "JSObject.js"
+// #import "JSImage.js"
 /* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSSize, JSRect, JSImage */
 'use strict';
 

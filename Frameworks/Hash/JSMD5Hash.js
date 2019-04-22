@@ -1,4 +1,4 @@
-// #import "Hash/JSIterativeHash.js"
+// #import "JSIterativeHash.js"
 /* global JSIterativeHash, JSGlobalObject, JSData, JSMD5Hash */
 'use strict';
 

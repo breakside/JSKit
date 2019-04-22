@@ -1,10 +1,10 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/CoreTypes.js"
-// #import "Foundation/JSAttributedString.js"
-// #import "Foundation/JSFont.js"
-// #import "Foundation/JSTextLine.js"
-// #import "Foundation/JSTextRun.js"
-// #import "Foundation/JSLog.js"
+// #import "JSObject.js"
+// #import "CoreTypes.js"
+// #import "JSAttributedString.js"
+// #import "JSFont.js"
+// #import "JSTextLine.js"
+// #import "JSTextRun.js"
+// #import "JSLog.js"
 /* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSTextTypesetter, JSAttachmentFont, JSSize, JSRange, JSTextAlignment, JSTextLine, JSTextRun, JSPoint, JSAttributedString, JSFont, JSLog, JSLineBreakMode */
 'use strict';
 

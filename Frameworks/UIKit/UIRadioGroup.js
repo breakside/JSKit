@@ -1,6 +1,6 @@
-// #import "UIKit/UIControl.js"
-// #import "UIKit/UILabel.js"
-// #import "UIKit/UIImageView.js"
+// #import "UIControl.js"
+// #import "UILabel.js"
+// #import "UIImageView.js"
 /* global JSClass, JSObject, UILayer, JSSize, UIControl, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSColor, UIRadioGroup, UIRadioButton, JSTextAlignment, JSPoint, UIView, JSFont, UIRadioButtonStyler, UIRadioButtonDefaultStyler, JSRect, UIImageView, JSBundle, JSImage */
 'use strict';
 

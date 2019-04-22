@@ -1,5 +1,5 @@
-// #import "PDFKit/PDFObject.js"
-// #import "PDFKit/PDFName.js"
+// #import "PDFObject.js"
+// #import "PDFName.js"
 /* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFDocument, PDFPageIterator, PDFName */
 'use strict';
 

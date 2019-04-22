@@ -1,5 +1,5 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSLocale.js"
+// #import "JSObject.js"
+// #import "JSLocale.js"
 /* global JSGlobalObject, JSClass, JSLazyInitProperty, JSObject, JSBundle, JSLocale */
 'use strict';
 

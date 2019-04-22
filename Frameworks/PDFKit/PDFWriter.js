@@ -1,5 +1,5 @@
 // #import Foundation
-// #import "PDFKit/PDFTypes.js"
+// #import "PDFTypes.js"
 /* global JSClass, JSReadOnlyProperty, JSObject, PDFDocument, PDFStream, PDFName, PDFIndirectObject, PDFObject, PDFWriter, PDFTrailer */
 'use strict';
 

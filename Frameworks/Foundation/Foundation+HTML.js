@@ -1,19 +1,19 @@
 // Extensions
-// #import "Foundation/JSColor+HTML.js"
-// #import "Foundation/JSData+HTML.js"
-// #import "Foundation/JSFont+HTML.js"
-// #import "Foundation/JSFontDescriptor+HTML.js"
-// #import "Foundation/JSImage+HTML.js"
-// #import "Foundation/JSBundle+HTML.js"
-// #import "Foundation/JSLocale+HTML.js"
-// #import "Foundation/JSRunLoop+HTML.js"
+// #import "JSColor+HTML.js"
+// #import "JSData+HTML.js"
+// #import "JSFont+HTML.js"
+// #import "JSFontDescriptor+HTML.js"
+// #import "JSImage+HTML.js"
+// #import "JSBundle+HTML.js"
+// #import "JSLocale+HTML.js"
+// #import "JSRunLoop+HTML.js"
 
 // Implementations
-// #import "Foundation/JSURLSessionDataTask+HTML.js"
-// #import "Foundation/JSURLSessionStreamTask+HTML.js"
-// #import "Foundation/JSFileManager+HTML.js"
-// #import "Foundation/JSFile+HTML.js"
+// #import "JSURLSessionDataTask+HTML.js"
+// #import "JSURLSessionStreamTask+HTML.js"
+// #import "JSFileManager+HTML.js"
+// #import "JSFile+HTML.js"
 
 // Subclasses
-// #import "Foundation/JSHTMLFile.js"
-// #import "Foundation/JSHTMLFileEnumerator.js"
+// #import "JSHTMLFile.js"
+// #import "JSHTMLFileEnumerator.js"

@@ -1,9 +1,9 @@
-// #import "UIKit/UIViewController.js"
-// #import "UIKit/UIStackView.js"
-// #import "UIKit/UILabel.js"
-// #import "UIKit/UIButton.js"
-// #import "UIKit/UIPopupWindow.js"
-// #import "UIKit/UIAlertAction.js"
+// #import "UIViewController.js"
+// #import "UIStackView.js"
+// #import "UILabel.js"
+// #import "UIButton.js"
+// #import "UIPopupWindow.js"
+// #import "UIAlertAction.js"
 /* global JSClass, JSObject, JSReadOnlyProperty, JSInsets, JSTextAlignment, JSSize, JSColor, JSFont, UIViewController, UIStackView, UILabel, UIButton, UIPopupWindow, UIAlertController, UIAlertAction */
 'use strict';
 

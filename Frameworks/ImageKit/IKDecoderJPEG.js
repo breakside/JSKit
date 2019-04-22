@@ -1,7 +1,7 @@
 // https://www.w3.org/TR/2003/REC-PNG-20031110/
-// #import "ImageKit/IKDecoder.js"
-// #import "ImageKit/IKBitmap.js"
-// #import "ImageKit/IKColorSpace.js"
+// #import "IKDecoder.js"
+// #import "IKBitmap.js"
+// #import "IKColorSpace.js"
 /* global IKDecoder, IKBitmap, JSClass, JSRange, JSData, JSSize, IKDecoderJPEG, JSBitmap */
 'use strict';
 

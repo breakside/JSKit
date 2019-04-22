@@ -1,4 +1,4 @@
-// #import "Foundation/JSFormFieldMap.js"
+// #import "JSFormFieldMap.js"
 /* global JSClass, JSObject, JSFormFieldMap */
 'use strict';
 

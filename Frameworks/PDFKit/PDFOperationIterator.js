@@ -1,7 +1,7 @@
 // #import Foundation
-// #import "PDFKit/PDFName.js"
-// #import "PDFKit/PDFTokenizer.js"
-// #import "PDFKit/PDFStreamOperation.js"
+// #import "PDFName.js"
+// #import "PDFTokenizer.js"
+// #import "PDFStreamOperation.js"
 /* global JSClass, JSObject, JSLog, JSReadOnlyProperty, PDFReader, PDFTokenizer, PDFOperationIterator, JSData, PDFStreamOperation, PDFName */
 'use strict';
 

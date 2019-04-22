@@ -1,8 +1,8 @@
-// #import "Foundation/CoreTypes.js"
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSData.js"
-// #import "Foundation/JSBundle.js"
-// #import "Foundation/JSURLSession.js"
+// #import "CoreTypes.js"
+// #import "JSObject.js"
+// #import "JSData.js"
+// #import "JSBundle.js"
+// #import "JSURLSession.js"
 /* global JSClass, JSReadOnlyProperty, JSSize, JSObject, JSBundle, JSImage, JSData, JSInsets, _JSResourceImage, _JSDataImage, _JSURLImage, JSURLSession, JSURLResponse */
 'use strict';
 

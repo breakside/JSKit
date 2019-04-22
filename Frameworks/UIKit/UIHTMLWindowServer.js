@@ -1,12 +1,12 @@
-// #import "UIKit/UIWindowServer.js"
-// #import "UIKit/UIEvent.js"
-// #import "UIKit/UIView.js"
-// #import "UIKit/UIScreen.js"
-// #import "UIKit/UIWindowServer.js"
-// #import "UIKit/UIHTMLDisplayServer.js"
-// #import "UIKit/UIHTMLTextInputManager.js"
-// #import "UIKit/UIPlatform.js"
-// #import "UIKit/UIOpenPanel.js"
+// #import "UIWindowServer.js"
+// #import "UIEvent.js"
+// #import "UIView.js"
+// #import "UIScreen.js"
+// #import "UIWindowServer.js"
+// #import "UIHTMLDisplayServer.js"
+// #import "UIHTMLTextInputManager.js"
+// #import "UIPlatform.js"
+// #import "UIOpenPanel.js"
 // #feature Element.prototype.addEventListener
 // #feature 'key' in KeyboardEvent.prototype
 // #feature File

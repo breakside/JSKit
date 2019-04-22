@@ -1,5 +1,5 @@
-// #import "ServerKit/SKHTTPServer.js"
-// #import "ServerKit/SKHTTPRequest+Node.js"
+// #import "SKHTTPServer.js"
+// #import "SKHTTPRequest+Node.js"
 /* global SKHTTPServer, require, SKHTTPRequest, JSLog */
 'use strict';
 

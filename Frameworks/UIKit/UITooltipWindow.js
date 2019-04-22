@@ -1,5 +1,5 @@
-// #import "UIKit/UIWindow.js"
-// #import "UIKit/UILabel.js"
+// #import "UIWindow.js"
+// #import "UILabel.js"
 /* global JSClass, UIWindow, UILabel, UIView, JSFont, JSRect, JSPoint, JSSize, JSInsets, JSColor, JSAttributedString, UITooltipWindow, UIWindowCustomStyler */
 'use strict';
 

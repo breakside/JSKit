@@ -1,5 +1,5 @@
 // #import Foundation
-// #import "PDFKit/PDFTypes.js"
+// #import "PDFTypes.js"
 /* global JSClass, JSObject, JSReadOnlyProperty, PDFTokenizer, PDFReaderStream, PDFReaderDataStream, JSData */
 /* global PDFIndirectObject, PDFName, PDFObject, PDFArray, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFMMType1Font, PDFType3Font, PDFType0Font, PDFCIDType0Font, PDFCIDType2Font, PDFTrueTypeFont, PDFFontDescriptor, PDFImage, PDFXrefStream, PDFObjectStream, PDFFunctionSampled, PDFFunctionExponential, PDFFunctionStitching, PDFFunctionCalculator, PDFForm */
 'use strict';

@@ -1,5 +1,5 @@
 // #import Foundation
-// #import "ServerKit/SKHTTPWebSocketParser.js"
+// #import "SKHTTPWebSocketParser.js"
 /* global JSClass, JSObject, JSTimer, JSData, SKHTTPWebSocketParser, SKHTTPWebSocket, JSLog */
 'use strict';
 

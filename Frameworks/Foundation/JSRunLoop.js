@@ -1,4 +1,4 @@
-// #import "Foundation/JSObject.js"
+// #import "JSObject.js"
 /* global JSClass, JSObject, JSRunLoop */
 'use strict';
 

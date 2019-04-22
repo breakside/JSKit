@@ -1,7 +1,7 @@
 // #import Foundation
-// #import "UIKit/UIResponder.js"
-// #import "UIKit/UIWindowServer.js"
-// #import "UIKit/UIPlatform.js"
+// #import "UIResponder.js"
+// #import "UIWindowServer.js"
+// #import "UIPlatform.js"
 /* global JSGlobalObject, JSClass, JSObject, JSFileManager, JSUserDefaults, UIPlatform, UIResponder, UIApplication, UIWindowServer, JSBundle, JSFont, JSSpec, JSDynamicProperty, JSReadOnlyProperty, UIEvent, JSLog  */
 'use strict';
 

@@ -1,4 +1,4 @@
-// #import "Foundation/JSFontDescriptor.js"
+// #import "JSFontDescriptor.js"
 /* global window, FontFace, JSFontDescriptor, JSResourceFontDescriptor, JSDataFontDescriptor */
 'use strict';
 

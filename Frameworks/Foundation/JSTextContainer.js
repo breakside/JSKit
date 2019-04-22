@@ -1,7 +1,7 @@
-// #import "Foundation/CoreTypes.js"
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSTextLayoutManager.js"
-// #import "Foundation/JSTextFramesetter.js"
+// #import "CoreTypes.js"
+// #import "JSObject.js"
+// #import "JSTextLayoutManager.js"
+// #import "JSTextFramesetter.js"
 /* global JSClass, JSObject, JSTextFramesetter, JSCustomProperty, JSDynamicProperty, JSTextLayoutManager, JSSize, JSRect, JSRange, JSPoint, JSReadOnlyProperty, JSLineBreakMode, JSTextAlignment, JSAttributedString */
 'use strict';
 

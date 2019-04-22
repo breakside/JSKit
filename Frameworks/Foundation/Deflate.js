@@ -1,8 +1,8 @@
 // https://tools.ietf.org/html/rfc1951
-// #import "Foundation/Huffman.js"
-// #import "Foundation/JSLog.js"
-// #import "Foundation/JSData.js"
-// #import "Foundation/CoreTypes.js"
+// #import "Huffman.js"
+// #import "JSLog.js"
+// #import "JSData.js"
+// #import "CoreTypes.js"
 /* global JSLog, HuffmanTree, JSGlobalObject, Deflate, DeflateStream, JSData, JSRange */
 'use strict';
 

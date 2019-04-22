@@ -1,4 +1,4 @@
-// #import "Foundation/JSURLSessionDataTask.js"
+// #import "JSURLSessionDataTask.js"
 /* global JSClass, JSURLSessionDataTask */
 'use strict';
 

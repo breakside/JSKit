@@ -1,4 +1,4 @@
-// #import "UIKit/UIView.js"
+// #import "UIView.js"
 /* global JSClass, UIView, UIStackView, JSSize, JSRect, JSDynamicProperty, JSInsets */
 'use strict';
 

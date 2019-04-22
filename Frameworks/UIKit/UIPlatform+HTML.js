@@ -1,4 +1,4 @@
-// #import "UIKit/UIPlatform.js"
+// #import "UIPlatform.js"
 /* global navigator, UIPlatform */
 'use strict';
 

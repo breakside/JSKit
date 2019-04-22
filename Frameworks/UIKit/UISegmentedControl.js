@@ -1,6 +1,6 @@
-// #import "UIKit/UIControl.js"
-// #import "UIKit/UILabel.js"
-// #import "UIKit/UIImageView.js"
+// #import "UIControl.js"
+// #import "UILabel.js"
+// #import "UIImageView.js"
 /* global JSClass, JSObject, JSTextAlignment, JSImage, JSFont, JSColor, JSInsets, JSPoint, JSSize, JSRect, JSLazyInitProperty, JSReadOnlyProperty, JSDynamicProperty, UILayer, UIView, UIControl, UILabel, UIImageView, UIControlStyler, UISegmentedControl, UISegmentedControlStyler, UISegmentedControlDefaultStyler, UISegmentedControlCustomStyler, UISegmentedControlItemView, UISegmentedControlItem */
 'use strict';
 

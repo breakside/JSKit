@@ -1,6 +1,6 @@
 // #import Foundation
-// #import "ImageKit/IKDecoder.js"
-// #import "ImageKit/IKEncoder.js"
+// #import "IKDecoder.js"
+// #import "IKEncoder.js"
 /* global JSClass, JSObject, IKBitmap, JSReadOnlyProperty, JSImage, JSSize, IKDecoder, IKEncoder */
 'use strict';
 

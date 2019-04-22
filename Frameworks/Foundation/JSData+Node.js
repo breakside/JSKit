@@ -1,4 +1,4 @@
-// #import "Foundation/JSData.js"
+// #import "JSData.js"
 /* global JSData, Buffer*/
 'use strict';
 

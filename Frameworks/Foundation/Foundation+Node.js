@@ -1,7 +1,7 @@
 // Extensions
-// #import "Foundation/JSData+Node.js"
-// #import "Foundation/JSBundle+Node.js"
-// #import "Foundation/JSRunLoop+Node.js"
-// #import "Foundation/JSFileManager+Node.js"
-// #import "Foundation/JSLocale+Node.js"
-// #import "Foundation/JSURLSessionDataTask+Node.js"
+// #import "JSData+Node.js"
+// #import "JSBundle+Node.js"
+// #import "JSRunLoop+Node.js"
+// #import "JSFileManager+Node.js"
+// #import "JSLocale+Node.js"
+// #import "JSURLSessionDataTask+Node.js"

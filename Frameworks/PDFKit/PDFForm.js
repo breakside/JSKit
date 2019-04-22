@@ -1,7 +1,7 @@
-// #import "PDFKit/PDFXObject.js"
-// #import "PDFKit/PDFColorSpace.js"
-// #import "PDFKit/PDFDrawing.js"
-// #import "PDFKit/PDFOperationIterator.js"
+// #import "PDFXObject.js"
+// #import "PDFColorSpace.js"
+// #import "PDFDrawing.js"
+// #import "PDFOperationIterator.js"
 /* global JSGlobalObject, JSLog, JSData, JSRect, JSAffineTransform, JSRange, PDFStream, PDFXObject, PDFObjectProperty, PDFName, PDFForm, JSSize, PDFDrawing, PDFOperationIterator */
 'use strict';
 

@@ -1,8 +1,8 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSURLSessionDataTask.js"
-// #import "Foundation/JSURLSessionUploadTask.js"
-// #import "Foundation/JSURLSessionStreamTask.js"
-// #import "Foundation/JSURLRequest.js"
+// #import "JSObject.js"
+// #import "JSURLSessionDataTask.js"
+// #import "JSURLSessionUploadTask.js"
+// #import "JSURLSessionStreamTask.js"
+// #import "JSURLRequest.js"
 /* global JSObject, JSClass, JSURLSession, JSURLSessionDataTask, JSURLSessionUploadTask, JSURLRequest, JSURLSessionStreamTask */
 'use strict';
 

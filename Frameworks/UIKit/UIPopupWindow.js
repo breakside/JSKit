@@ -1,5 +1,5 @@
-// #import "UIKit/UIWindow.js"
-// #import "UIKit/UIViewPropertyAnimator.js"
+// #import "UIWindow.js"
+// #import "UIViewPropertyAnimator.js"
 /* global JSClass, JSDynamicProperty, UIWindow, UIAnimation, UIPopupWindow, UIWindowStyler, UIView, UIViewPropertyAnimator, UIWindowDefaultStyler, JSInsets, JSPoint, JSRect, JSAffineTransform, JSColor, JSContext, UIPopupWindowStyler */
 'use strict';
 

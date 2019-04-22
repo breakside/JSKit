@@ -1,12 +1,12 @@
-// #import "UIKit/UIView.js"
-// #import "UIKit/UIApplication.js"
-// #import "UIKit/UITouch.js"
-// #import "UIKit/UIButton.js"
-// #import "UIKit/UILabel.js"
-// #import "UIKit/UIImageView.js"
-// #import "UIKit/UIToolbar.js"
-// #import "UIKit/UIToolbarItem.js"
-// #import "UIKit/UIViewPropertyAnimator.js"
+// #import "UIView.js"
+// #import "UIApplication.js"
+// #import "UITouch.js"
+// #import "UIButton.js"
+// #import "UILabel.js"
+// #import "UIImageView.js"
+// #import "UIToolbar.js"
+// #import "UIToolbarItem.js"
+// #import "UIViewPropertyAnimator.js"
 /* global JSClass, JSObject, JSGradient, JSTimer, UIView, JSColor, JSBundle, JSImage, JSUserDefaults, JSFont, UIImageView, UILabel, JSSize, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, UIWindowStyler, UIWindowDefaultStyler, UIWindowCustomStyler, UIControl, UIButton, UIButtonCustomStyler, JSPoint, UIApplication, UIEvent, UITouch, UIToolbar, UIToolbarView, UIToolbarItem, UIViewPropertyAnimator */
 'use strict';
 

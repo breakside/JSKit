@@ -1,7 +1,7 @@
 // #import Foundation
-// #import "UIKit/UIPasteboard.js"
-// #import "UIKit/UIDraggingSource.js"
-// #import "UIKit/UIDraggingDestination.js"
+// #import "UIPasteboard.js"
+// #import "UIDraggingSource.js"
+// #import "UIDraggingDestination.js"
 /* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSPoint, UIPasteboard, UIDragOperation */
 'use strict';
 

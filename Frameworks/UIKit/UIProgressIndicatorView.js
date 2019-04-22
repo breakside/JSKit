@@ -1,4 +1,4 @@
-// #import "UIKit/UIView.js"
+// #import "UIView.js"
 /* global JSClass, JSColor, JSSize, JSRect, JSInsets, JSDynamicProperty, UIView, UIProgressIndicatorView */
 'use strict';
 

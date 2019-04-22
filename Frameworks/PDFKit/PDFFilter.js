@@ -1,5 +1,5 @@
 // #import Foundation
-// #import "PDFKit/PDFName.js"
+// #import "PDFName.js"
 /* global JSClass, JSObject, PDFFilter, PDFName */
 /* global PDFASCIIHexFilter, PDFASCII85Filter, PDFLZWFilter, PDFDeflateFilter, PDFRunLengthFilter, PDFCCITTFaxFilter, PDFJBIG2Filter, PDFDCTFilter, PDFJPXFilter, PDFCryptFilter */
 'use strict';

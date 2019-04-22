@@ -1,4 +1,4 @@
-// #import "Dispatch/JSWorkerBasedDispatchQueue.js"
+// #import "JSWorkerBasedDispatchQueue.js"
 // #feature window.Worker
 /* global self, Worker, JSClass, JSObject, JSDispatchQueue, JSWorkerBasedDispatchQueue, JSWorkerBasedDispatchQueueWorker, JSHTMLDispatchQueue, JSBundle */
 'use strict';

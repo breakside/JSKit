@@ -1,5 +1,5 @@
-// #import "Foundation/CoreTypes.js"
-// #import "Foundation/JSMath.js"
+// #import "CoreTypes.js"
+// #import "JSMath.js"
 /* global JSGlobalObject, JSCubicBezier, JSPoint, JSMath */
 'use strict';
 

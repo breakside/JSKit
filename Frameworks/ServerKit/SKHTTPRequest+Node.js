@@ -1,6 +1,6 @@
-// #import "ServerKit/SKHTTPRequest.js"
-// #import "ServerKit/SKHTTPWebSocket+Node.js"
-// #import "ServerKit/SKHTTPResponse+Node.js"
+// #import "SKHTTPRequest.js"
+// #import "SKHTTPWebSocket+Node.js"
+// #import "SKHTTPResponse+Node.js"
 /* global require, SKHTTPRequest, SKHTTPResponse, JSURL, JSData, JSMIMEHeaderMap, SKHTTPWebSocket */
 'use strict';
 

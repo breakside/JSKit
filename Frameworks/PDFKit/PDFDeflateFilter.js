@@ -1,4 +1,4 @@
-// #import "PDFKit/PDFPredictorFilter.js"
+// #import "PDFPredictorFilter.js"
 /* global JSClass, PDFPredictorFilter, Zlib, JSData */
 'use strict';
 

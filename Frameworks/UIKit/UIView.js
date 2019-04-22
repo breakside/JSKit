@@ -1,9 +1,9 @@
 // #import Foundation
-// #import "UIKit/UIResponder.js"
-// #import "UIKit/UILayer.js"
-// #import "UIKit/UIAnimation.js"
-// #import "UIKit/UIDraggingDestination.js"
-// #import "UIKit/UILayoutConstraint.js"
+// #import "UIResponder.js"
+// #import "UILayer.js"
+// #import "UIAnimation.js"
+// #import "UIDraggingDestination.js"
+// #import "UILayoutConstraint.js"
 /* global JSGlobalObject, JSClass, JSObject, JSCopy, JSInsets, JSSize, UIViewLayerProperty, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSDynamicProperty, JSRect, JSPoint, JSColor, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty, UIWindowServer, UIDragOperation, UILayoutConstraint, UILayoutAttribute, UILayoutRelation, UILayoutPriority */
 'use strict';
 

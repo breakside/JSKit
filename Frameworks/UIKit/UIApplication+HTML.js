@@ -1,5 +1,5 @@
-// #import "UIKit/UIApplication.js"
-// #import "UIKit/UIHTMLWindowServer.js"
+// #import "UIApplication.js"
+// #import "UIHTMLWindowServer.js"
 /* global JSGlobalObject, JSReadOnlyProperty, UIApplication, JSURL, window, UIHTMLWindowServer, JSArguments */
 'use strict';
 

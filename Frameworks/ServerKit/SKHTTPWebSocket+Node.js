@@ -1,4 +1,4 @@
-// #import "ServerKit/SKHTTPWebSocket.js"
+// #import "SKHTTPWebSocket.js"
 /* global SKHTTPWebSocket, JSData, JSLog */
 'use strict';
 

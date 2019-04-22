@@ -1,4 +1,4 @@
-// #import "Foundation/JSColor.js"
+// #import "JSColor.js"
 /* global JSColor */
 'use strict';
 

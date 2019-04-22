@@ -1,6 +1,6 @@
-// #import "UIKit/UIButton.js"
-// #import "UIKit/UIImageView.js"
-// #import "UIKit/UILabel.js"
+// #import "UIButton.js"
+// #import "UIImageView.js"
+// #import "UILabel.js"
 /* global JSClass, UIView, UIImageView, UIControl, JSObject, JSSize, JSDynamicProperty, JSLazyInitProperty, JSImage, UIButton, UIToolbarItem, UIToolbarItemView, UIToolbarItemSpaceView, UILabel, JSTextAlignment */
 'use strict';
 

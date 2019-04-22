@@ -1,6 +1,6 @@
-// #import "Foundation/JSURL.js"
-// #import "Foundation/JSURLSessionStreamTask.js"
-// #import "Foundation/JSLog.js"
+// #import "JSURL.js"
+// #import "JSURLSessionStreamTask.js"
+// #import "JSLog.js"
 // #feature WebSocket
 // #feature Uint8Array
 /* global JSClass, JSURLSessionStreamTask, JSLazyInitProperty, WebSocket, JSLog, JSURLResponse, JSURLRequest, JSURL, JSData, Uint8Array */

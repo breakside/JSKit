@@ -1,4 +1,4 @@
-// #import "Foundation/JSData.js"
+// #import "JSData.js"
 // #feature Blob
 // #feature URL.createObjectURL
 /* global JSData, Blob, URL */

@@ -1,9 +1,9 @@
 // https://tools.ietf.org/html/rfc1950
-// #import "Foundation/Deflate.js"
-// #import "Foundation/Adler32.js"
-// #import "Foundation/JSLog.js"
-// #import "Foundation/JSData.js"
-// #import "Foundation/CoreTypes.js"
+// #import "Deflate.js"
+// #import "Adler32.js"
+// #import "JSLog.js"
+// #import "JSData.js"
+// #import "CoreTypes.js"
 /* global JSGlobalObject, Deflate, DeflateStream, JSLog, Adler32, Zlib, ZlibStream, JSData, JSRange */
 'use strict';
 

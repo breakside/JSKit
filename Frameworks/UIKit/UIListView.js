@@ -1,7 +1,7 @@
-// #import "UIKit/UIScrollView.js"
-// #import "UIKit/UIEvent.js"
-// #import "UIKit/UIPlatform.js"
-// #import "UIKit/UIImageView.js"
+// #import "UIScrollView.js"
+// #import "UIEvent.js"
+// #import "UIPlatform.js"
+// #import "UIImageView.js"
 /* global JSClass, JSObject, JSCopy, JSInsets, JSFont, JSColor, UILayer, UIView, UIImageView, UIScrollView, UIPlatform, JSProtocol, JSReadOnlyProperty, JSDynamicProperty, UIListView, JSSize, JSIndexPath, JSRect, UIEvent, JSIndexPathSet, JSIndexPathRange, JSBinarySearcher, JSPoint, UIListViewHeaderFooterView, UIListViewStyler, UIListViewDefaultStyler */
 'use strict';
 

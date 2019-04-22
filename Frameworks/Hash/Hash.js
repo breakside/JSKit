@@ -1,4 +1,4 @@
 // #import Foundation
 
-// #import "Hash/JSMD5Hash.js"
-// #import "Hash/JSSHA1Hash.js"
+// #import "JSMD5Hash.js"
+// #import "JSSHA1Hash.js"

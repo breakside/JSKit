@@ -1,5 +1,5 @@
-// #import "UIKit/UIView.js"
-// #import "UIKit/UILabel.js"
+// #import "UIView.js"
+// #import "UILabel.js"
 /* global JSClass, UIView, UILabel, JSReadOnlyProperty, JSDynamicProperty, JSLazyInitProperty, UIListViewHeaderFooterView, JSInsets, JSPoint, JSSize, JSRect, JSColor */
 'use strict';
 

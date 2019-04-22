@@ -1,10 +1,10 @@
 // #import Foundation
-// #import "PDFKit/PDFTypes.js"
-// #import "PDFKit/PDFFilter.js"
-// #import "PDFKit/PDFEncryption.js"
-// #import "PDFKit/PDFTokenizer.js"
-// #import "PDFKit/PDFReaderStream.js"
-// #import "PDFKit/PDFStreamOperation.js"
+// #import "PDFTypes.js"
+// #import "PDFFilter.js"
+// #import "PDFEncryption.js"
+// #import "PDFTokenizer.js"
+// #import "PDFReaderStream.js"
+// #import "PDFStreamOperation.js"
 /* global JSClass, JSObject, JSLog, JSReadOnlyProperty, PDFReader, PDFTokenizer, PDFReaderStream, PDFReaderDataStream, PDFStreamOperationIterator, JSData, PDFFilter, PDFEncryption, PDFStreamOperation */
 /* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFTrueTypeFont, PDFImage, PDFXrefStream */
 'use strict';

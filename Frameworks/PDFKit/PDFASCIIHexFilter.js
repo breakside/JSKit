@@ -1,5 +1,5 @@
-// #import "PDFKit/PDFFilter.js"
-// #import "PDFKit/PDFTokenizer.js"
+// #import "PDFFilter.js"
+// #import "PDFTokenizer.js"
 /* global JSClass, PDFFilter, JSData, PDFTokenizer */
 'use strict';
 

@@ -1,4 +1,4 @@
-// #import "Foundation/JSBundle.js"
+// #import "JSBundle.js"
 /* global JSBundle, require, JSData */
 'use strict';
 

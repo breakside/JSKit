@@ -1,4 +1,4 @@
-// #import "ServerKit/SKHTTPResponder.js"
+// #import "SKHTTPResponder.js"
 /* global require, JSDate, SKHTTPResponder, SKHTTPResponse */
 'use strict';
 

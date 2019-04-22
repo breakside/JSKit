@@ -1,4 +1,4 @@
-// #import "UIKit/UIPropertyAnimation.js"
+// #import "UIPropertyAnimation.js"
 /* global JSClass, UIPropertyAnimation, UIBasicAnimation, UIAnimation, JSDynamicProperty, JSResolveDottedName, JSPoint, JSSize, JSRect, JSAffineTransform, JSColor */
 'use strict';
 

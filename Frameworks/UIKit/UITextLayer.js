@@ -1,5 +1,5 @@
-// #import "UIKit/UILayer.js"
-// #import "UIKit/UITextFramesetter.js"
+// #import "UILayer.js"
+// #import "UITextFramesetter.js"
 /* global JSClass, JSDynamicProperty, JSCustomProperty, JSReadOnlyProperty, JSRect, JSPoint, JSSize, JSInsets, UILayer, UITextLayer, JSAttributedString, JSTextLayoutManager, JSTextContainer, JSTextStorage, JSFont, UITextFramesetter */
 'use strict';
 

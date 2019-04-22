@@ -1,4 +1,4 @@
-// #import "Foundation/JSBinarySearcher.js"
+// #import "JSBinarySearcher.js"
 /* global JSGlobalObject, JSIndexPath, JSIndexPathRange, JSIndexPathSet, JSBinarySearcher */
 'use strict';
 

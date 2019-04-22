@@ -1,4 +1,4 @@
-// #import "UIKit/UISavePanel.js"
+// #import "UISavePanel.js"
 /* global document, Blob, URL, JSClass, UISavePanel, UIHTMLSavePanel */
 'use strict';
 

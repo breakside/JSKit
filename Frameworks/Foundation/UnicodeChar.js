@@ -1,4 +1,4 @@
-// #import "Foundation/UnicodeProperties.js"
+// #import "UnicodeProperties.js"
 /* global JSGlobalObject, UnicodeProperties, UnicodeChar */
 'use strict';
 

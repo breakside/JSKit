@@ -1,5 +1,5 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSBundle.js"
+// #import "JSObject.js"
+// #import "JSBundle.js"
 /* global JSClass, JSObject, JSPropertyList, JSBundle */
 'use strict';
 

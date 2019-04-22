@@ -1,5 +1,5 @@
-// #import "Foundation/JSBinarySearcher.js"
-// #import "Foundation/Javascript.js"
+// #import "JSBinarySearcher.js"
+// #import "Javascript.js"
 /* global JSGlobalObject, JSIndexSet, JSIndexRange, JSBinarySearcher, JSCopy, JSDeepCopy */
 'use strict';
 

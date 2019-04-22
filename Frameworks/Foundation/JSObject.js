@@ -1,5 +1,5 @@
-// #import "Foundation/JSClass.js"
-// #import "Foundation/JSValueTransformer.js"
+// #import "JSClass.js"
+// #import "JSValueTransformer.js"
 /* global JSGlobalObject, JSObject, JSClass, JSClassForName, JSIsNullValueTransformer, JSIsNotNullValueTransformer, JSIsEmptyValueTransformer, JSIsNotEmptyValueTransformer, JSNegateBooleanValueTransformer */
 'use strict';
 

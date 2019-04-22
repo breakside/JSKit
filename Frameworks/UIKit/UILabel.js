@@ -1,6 +1,6 @@
-// #import "UIKit/UIView.js"
-// #import "UIKit/UITextLayer.js"
-// #import "UIKit/UIPasteboard.js"
+// #import "UIView.js"
+// #import "UITextLayer.js"
+// #import "UIPasteboard.js"
 /* global JSClass, UIView, UILayer, JSColor, JSDynamicProperty, UIViewLayerProperty, JSInsets, JSRange, UITextLayer, UILabel, JSFont, UIPasteboard, UICursor */
 'use strict';
 

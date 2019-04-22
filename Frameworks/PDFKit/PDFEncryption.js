@@ -1,8 +1,8 @@
 // #import Foundation
 // #import Hash
 // #import SecurityKit
-// #import "PDFKit/PDFCryptFilter.js"
-// #import "PDFKit/PDFTypes.js"
+// #import "PDFCryptFilter.js"
+// #import "PDFTypes.js"
 /* global JSClass, JSData, JSObject, PDFEncryption, JSMD5Hash, SECCipher, PDFName */
 'use strict';
 

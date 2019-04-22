@@ -1,5 +1,5 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/CoreTypes.js"
+// #import "JSObject.js"
+// #import "CoreTypes.js"
 /* global JSClass, JSObject, JSSize, JSRange, JSRect, JSPoint, JSDynamicProperty, JSReadOnlyProperty, JSTextAlignment */
 'use strict';
 

@@ -1,6 +1,6 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/CoreTypes.js"
-// #import "Foundation/JSAttributedString.js"
+// #import "JSObject.js"
+// #import "CoreTypes.js"
+// #import "JSAttributedString.js"
 /* global JSClass, JSTextRun, JSObject, JSAttributedString, JSSize, JSRange, JSRect, JSPoint, JSDynamicProperty, JSReadOnlyProperty, JSAffineTransform */
 'use strict';
 

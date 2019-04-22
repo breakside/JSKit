@@ -1,7 +1,7 @@
 // #import Foundation
-// #import "UIKit/UIAnimationTransaction.js"
-// #import "UIKit/UIBasicAnimation.js"
-// #import "UIKit/UIDisplayServer.js"
+// #import "UIAnimationTransaction.js"
+// #import "UIBasicAnimation.js"
+// #import "UIDisplayServer.js"
 // #feature Math.min
 // #feature Math.max
 /* global JSGlobalObject, UILayerAnimatedProperty, JSCustomProperty, JSReadOnlyProperty, JSDynamicProperty, JSClass, JSObject, JSInsets, UILayer, UIDisplayServer, JSRect, JSPoint, JSSize, JSAffineTransform, UIAnimationTransaction, UIBasicAnimation, JSSetDottedName, JSResolveDottedName, JSContext */

@@ -1,5 +1,5 @@
-// #import "Foundation/JSObject.js"
-// #import "Foundation/JSCalendar.js"
+// #import "JSObject.js"
+// #import "JSCalendar.js"
 /* global JSClass, JSObject, JSReadOnlyProperty, JSLocale, JSCalendar */
 'use strict';
 

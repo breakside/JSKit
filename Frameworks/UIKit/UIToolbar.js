@@ -1,7 +1,7 @@
-// #import "UIKit/UIView.js"
-// #import "UIKit/UIToolbarItem.js"
-// #import "UIKit/UIButton.js"
-// #import "UIKit/UIImageView.js"
+// #import "UIView.js"
+// #import "UIToolbarItem.js"
+// #import "UIButton.js"
+// #import "UIImageView.js"
 /* global JSClass, JSObject, JSInsets, JSRect, JSPoint, JSSize, JSReadOnlyProperty, JSDynamicProperty, JSLazyInitProperty, UIToolbar, UIView, UIToolbarView, UIToolbarItem, UIToolbarItemView, UIButton, UIMenu, UIPopupButton, UIImageView, UIButtonCustomStyler */
 'use strict';
 

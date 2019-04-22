@@ -1,9 +1,9 @@
-// #import "UIKit/UIControl.js"
-// #import "UIKit/UITextLayer.js"
-// #import "UIKit/UITextEditor.js"
-// #import "UIKit/UICursor.js"
-// #import "UIKit/UITextAttachmentView.js"
-// #import "UIKit/UIImageView.js"
+// #import "UIControl.js"
+// #import "UITextLayer.js"
+// #import "UITextEditor.js"
+// #import "UICursor.js"
+// #import "UITextAttachmentView.js"
+// #import "UIImageView.js"
 /* global JSClass, JSProtocol, UIControl, UIView, UICursor, JSInsets, JSRect, JSSize, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard, JSTimer, JSTextRun, JSAttributedString, UITextAttachmentView, UIControlStyler, UITextFieldStyler, UITextFieldDefaultStyler, UIImageView, JSImage, UITextFieldCustomStyler */
 
 'use strict';
