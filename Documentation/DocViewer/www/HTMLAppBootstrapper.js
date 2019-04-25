@@ -8,30 +8,24 @@ var logger = console;
 window.HTMLAppBootstrapper = function(rootElement, jskitapp){
     if (this === undefined){
         return new HTMLAppBootstrapper(rootElement, jskitapp);
-    }else{
-        if (HTMLAppBootstrapper.mainBootstrapper !== null){
-            throw Error("Only one bootstrapper can be started");
-        }
-        HTMLAppBootstrapper.mainBootstrapper = this;
-        this.rootElement = rootElement;
-        this.preflightID = jskitapp.preflightID;
-        this.preflightSrc = jskitapp.preflightSrc;
-        this.appSrc = jskitapp.appSrc;
-        this.appCss = jskitapp.appCss;
-        this.status = HTMLAppBootstrapper.STATUS.notstarted;
-        this.statusDispatchTimeoutID = null;
-        this.preflightChecks = [];
-        this.minStatusInterval = 30;
-        this.scriptConfigs = {};
-        this.preflightStorageKey = this.preflightID;
-        this.preflightStorageValue = navigator.userAgent;
-        this.caughtErrors = [];
-        this._isInstalled = false;
-        window.JSGlobalObject = window;
     }
+    this.rootElement = rootElement;
+    this.preflightID = jskitapp.preflightID;
+    this.preflightSrc = jskitapp.preflightSrc;
+    this.serviceWorkerSrc = jskitapp.serviceWorkerSrc;
+    this.appSrc = jskitapp.appSrc;
+    this.appCss = jskitapp.appCss;
+    this.status = HTMLAppBootstrapper.STATUS.notstarted;
+    this.statusDispatchTimeoutID = null;
+    this.preflightChecks = [];
+    this.minStatusInterval = 30;
+    this.scriptConfigs = {};
+    this.preflightStorageKey = this.preflightID;
+    this.preflightStorageValue = navigator.userAgent;
+    this.caughtErrors = [];
+    this._isInstalled = false;
+    window.JSGlobalObject = window;
 };
-
-HTMLAppBootstrapper.mainBootstrapper = null;
 
 HTMLAppBootstrapper.STATUS = {
     notstarted: 'notstarted',
@@ -62,16 +56,10 @@ HTMLAppBootstrapper.prototype = {
     },
 
     run: function(){
-        if (window.applicationCache){
-            this._isInstalled = window.applicationCache.status !== window.applicationCache.UNCACHED;
-            window.applicationCache.addEventListener('checking', this);
-            window.applicationCache.addEventListener('downloading', this);
-            window.applicationCache.addEventListener('noupdate', this);
-            window.applicationCache.addEventListener('progress', this);
-            window.applicationCache.addEventListener('error', this);
-            window.applicationCache.addEventListener('updateready', this);
-            window.applicationCache.addEventListener('cached', this);
-            window.applicationCache.addEventListener('obsoleted', this);
+        if (this.serviceWorkerSrc && window.navigator.serviceWorker){
+            this._installUsingServiceWorker(window.navigator.serviceWorker);
+        }else if (document.documentElement.getAttribute("manifest") && window.applicationCache){
+            this._installUsingAppcache(window.applicationCache);
         }else{
             this.load();
         }
@@ -253,19 +241,84 @@ HTMLAppBootstrapper.prototype = {
         }
     },
 
+    // MARK: - Service Worker
+
+    _installUsingServiceWorker: function(container){
+        var bootstrapper = this;
+        container.getRegistration().then(function(registration){
+            if (registration){
+                bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.checkingForUpdate);
+                registration.update().then(function(registration){
+                    if (registration.installing){
+                        bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.updating);
+                        container.addEventListener('message', bootstrapper);
+                        registration.installing.addEventListener('statechange', bootstrapper);
+                    }else{
+                        bootstrapper.load();
+                    }
+                });
+            }else{
+                bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.installing);
+                container.register(bootstrapper.serviceWorkerSrc).then(function(registration){
+                    if (registration.installing){
+                        container.addEventListener('message', bootstrapper);
+                        registration.installing.addEventListener('statechange', bootstrapper);
+                    }else{
+                        bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.updateError);
+                    }
+                }, function(error){
+                    logger.error(error);
+                    bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.updateError);
+                });
+            }
+        });
+    },
+
+    statechange: function(e){
+        var worker = e.target;
+        switch (worker.state){
+            case "installed":
+                worker.postMessage({type: "activate"});
+                break;
+            case "activated":
+                this.load();
+                break;
+        }
+    },
+
+    message: function(e){
+        if (e.data.type == 'progress'){
+            this.onprogress(e.data.loaded, e.data.total);
+        }
+    },
+
+    // MARK: - Appcache
+
+    _installUsingAppcache: function(appcache){
+        this._isInstalled = window.applicationCache.status !== window.applicationCache.UNCACHED;
+        appcache.addEventListener('checking', this);
+        appcache.addEventListener('downloading', this);
+        appcache.addEventListener('noupdate', this);
+        appcache.addEventListener('progress', this);
+        appcache.addEventListener('error', this);
+        appcache.addEventListener('updateready', this);
+        appcache.addEventListener('cached', this);
+        appcache.addEventListener('obsoleted', this);
+    },
+
     checking: function(e){
         logger.info('checking app cache...');
         this.setStatus(HTMLAppBootstrapper.STATUS.checkingForUpdate);
     },
 
-    noupdate: function(e){
-        logger.info('no update');
-        this.load();
-    },
-
     downloading: function(e){
         logger.info('cache downloading...');
         this.setStatus(this._isInstalled ? HTMLAppBootstrapper.STATUS.updating : HTMLAppBootstrapper.STATUS.installing);
+    },
+
+    noupdate: function(e){
+        logger.info('no update');
+        this.load();
     },
 
     progress: function(e){
@@ -282,8 +335,10 @@ HTMLAppBootstrapper.prototype = {
     },
 
     updateready: function(e){
-        logger.info('new version available...reloading page');
-        window.location.reload();
+        logger.info('new version available');
+        // TODO: communicate to app
+        // window.location.reload();
+        this.load();
     },
 
     obsoleted: function(e){

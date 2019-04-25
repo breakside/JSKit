@@ -147,6 +147,7 @@
     bootstrapper.onprogress = function(loaded, total){
       progressBar.style.width = (loaded * 100 / total) + '%';
     };
+    window.JSKIT_PREFLIGHT_CONTEXT = bootstrapper;
     bootstrapper.run();
   })();
   </script>

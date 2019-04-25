@@ -28,7 +28,8 @@ JSClass("HTMLBuilder", Builder, {
         'http-port': {valueType: "integer", default: null, help: "The port on which the static http server will be configured (defaults: debug=8080, release=Info.HTTPPort [80])"},
         'workers': {valueType: "integer", default: null, help: "The port on which the static http server will be configured (defaults: debug=1, release=Info.HTTPWorkerCount [3])"},
         'connections': {valueType: "integer", default: 1024, help: "The port on which the static http server will be configured"},
-        'docker-owner': {default: null, help: "The docker repo prefix to use when building a docker image"}
+        'docker-owner': {default: null, help: "The docker repo prefix to use when building a docker image"},
+        'no-docker': {kind: "flag", help: "Don't build the docker image"}
     },
 
     needsDockerBuild: true,
@@ -72,6 +73,7 @@ JSClass("HTMLBuilder", Builder, {
         this.frameworksURL = this.cacheBustingURL.appendingPathComponent("Frameworks");
         this.resourcesURL = this.wwwURL.appendingPathComponent('Resources', true);
         this.workerURL = this.cacheBustingURL.appendingPathComponent("JSDispatch-worker.js");
+        // this.serviceWorkerURL = this.wwwURL.appendingPathComponent("service-worker.js");
         var exists = await this.fileManager.itemExistsAtURL(this.wwwURL);
         if (exists){
             this.printer.setStatus("Cleaning old build...");
@@ -102,6 +104,7 @@ JSClass("HTMLBuilder", Builder, {
             await this.buildWorker();
         }
         await this.bundleWWW();
+        await this.buildServiceWorker();
         await this.bundleConf();
         await this.copyLicense();
         await this.copyInfo();
@@ -413,7 +416,8 @@ JSClass("HTMLBuilder", Builder, {
                             appSrc: this.wwwJavascriptPaths,
                             appCss: this.wwwCSSPaths,
                             preflightId: this.preflightId,
-                            preflightSrc: this.preflightURL.encodedStringRelativeTo(this.wwwURL)
+                            preflightSrc: this.preflightURL.encodedStringRelativeTo(this.wwwURL),
+                            serviceWorkerSrc: this.serviceWorkerURL ? this.serviceWorkerURL.encodedStringRelativeTo(this.wwwURL) : null
                         }, null, 2)
                     };
                     element.removeAttribute("jskit");
@@ -498,17 +502,95 @@ JSClass("HTMLBuilder", Builder, {
         await this.fileManager.createFileAtURL(this.workerURL, js.utf8());
     },
 
+    buildServiceWorker: async function(){
+        if (!this.serviceWorkerURL){
+            return;
+        }
+        this.printer.setStatus("Creating service worker...");
+        var cachedPaths = [];
+        for (let i = 0, l = this.wwwPaths.length; i < l; ++i){
+            cachedPaths.push(this.wwwPaths[i]);
+        }
+        for (let i = 0, l = this.wwwJavascriptPaths.length; i < l; ++i){
+            cachedPaths.push(this.wwwJavascriptPaths[i]);
+        }
+        if (this.preflightURL !== null){
+            let path = this.preflightURL.encodedStringRelativeTo(this.wwwURL);
+            cachedPaths.push(path);
+        }
+        if (this.workerURL !== null && this.hasLinkedDispatchFramework){
+            let path = this.workerURL.encodedStringRelativeTo(this.wwwURL);
+            cachedPaths.push(path);
+        }
+        for (let i = 0, l = this.wwwResourcePaths.length; i < l; ++i){
+            cachedPaths.push(this.wwwResourcePaths[i]);
+        }
+        for (let i = 0, l = this.wwwCSSPaths.length; i < l; ++i){
+            cachedPaths.push(this.wwwCSSPaths[i]);
+        }
+        var js = [
+            "'use strict';",
+            "var cacheKey = 'build-%s';".sprintf(this.buildId),
+            "var sources = %s;".sprintf(JSON.stringify(cachedPaths, null, 2)),
+            "var total = sources.length;",
+            "var loaded = 0;",
+            "self.addEventListener('install', function(event){",
+            "  event.waitUntil(clients.matchAll({includeUncontrolled: true}).then(function(clients){",
+            "    var client = clients[0];",
+            "    return caches.open(cacheKey).then(function(cache){",
+            "      return Promise.all(sources.map(function(source){",
+            "        return cache.add(source).then(function(){",
+            "          ++loaded;",
+            "          client.postMessage({type: 'progress', loaded: loaded, total: total});",
+            "        });",
+            "      }));",
+            "    });",
+            "  }));",
+            "});",
+            "self.addEventListener('activate', function(event){",
+            "  event.waitUntil(clients.claim().then(function(){",
+            "    return caches.keys().then(function(keys){",
+            "      return Promise.all(keys.map(function(key){",
+            "        if (key.startsWith('build-') && key != cacheKey){",
+            "          return caches.delete(key);",
+            "        }",
+            "      }));",
+            "    });",
+            "  }));",
+            "});",
+            "self.addEventListener('fetch', function(event){",
+            "  event.respondWith(caches.match(event.request).then(function(response){",
+            "    return response || fetch(event.request);",
+            "  }));",
+            "});",
+            "self.addEventListener('message', function(event){",
+            "  if (event.data.type == 'activate'){",
+            "    self.skipWaiting();",
+            "  }",
+            "});"
+        ].join("\n");
+        await this.fileManager.createFileAtURL(this.serviceWorkerURL, js.utf8());
+    },
+
     buildPreflight: async function(){
         this.printer.setStatus("Creating preflight js...");
         var features = Array.from(this.preflightFeatures.values()).sort();
         var checks = [];
-        var js = "'use strict';\nHTMLAppBootstrapper.mainBootstrapper.preflightChecks = [\n";
+        var lines = [
+            "'use strict';",
+            "(function(context){",
+            "  if (!context) return;",
+            "  context.preflightChecks = [",
+        ];
         for (let i = 0, l = features.length; i < l; ++i){
             let feature = features[i];
             let name = JSON.stringify("feature %s".sprintf(feature));
-            js += '  {name: %s, fn: function(){ return !!(%s); }},\n'.sprintf(name, feature);
+            lines.push('    {name: %s, fn: function(){ return !!(%s); }},'.sprintf(name, feature));
         }
-        js += '];\n';
+        lines.push("  ];");
+        lines.push("})(JSKIT_PREFLIGHT_CONTEXT)");
+        lines.push("");
+        var js = lines.join("\n");
         var contents = js.utf8();
         this.preflightId = JSSHA1Hash(contents).hexStringRepresentation();
         this.preflightURL = this.wwwURL.appendingPathComponent('preflight-%s.js'.sprintf(this.preflightId));
@@ -516,6 +598,9 @@ JSClass("HTMLBuilder", Builder, {
     },
 
     buildManifest: async function(){
+        if (!this.manifestURL){
+            return;
+        }
         this.printer.setStatus("Creating manifest.appcache...");
         let lines = [
             "CACHE MANIFEST",
@@ -636,6 +721,9 @@ JSClass("HTMLBuilder", Builder, {
     // MARK: - Docker
 
     buildDocker: async function(){
+        if (this.arguments['no-docker']){
+            return;
+        }
         if (!this.needsDockerBuild){
             return;
         }

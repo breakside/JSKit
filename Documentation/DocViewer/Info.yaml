@@ -11,3 +11,18 @@ JSDevelopmentLanguage:      en
 UIApplicationIcon:          Icon
 HMTLManifestConfiguration:
   - components-manifest.json
+UIRoutes:
+  -
+    name: workspace
+    url: "*workspace"
+    children:
+      -
+        name: settings
+        url: "_/settings"
+      -
+        name: project
+        url: "*project"
+        children:
+          -
+            name: settings
+            url: settings
