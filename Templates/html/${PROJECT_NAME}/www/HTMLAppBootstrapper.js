@@ -278,7 +278,11 @@ HTMLAppBootstrapper.prototype = {
         var worker = e.target;
         switch (worker.state){
             case "installed":
-                worker.postMessage({type: "activate"});
+                if (this._hasLoaded){
+                    // TODO: communicate to app
+                }else{
+                    worker.postMessage({type: "activate"});
+                }
                 break;
             case "activated":
                 this.load();
@@ -336,9 +340,12 @@ HTMLAppBootstrapper.prototype = {
 
     updateready: function(e){
         logger.info('new version available');
-        // TODO: communicate to app
-        // window.location.reload();
-        this.load();
+        if (this._hasLoaded){
+            // TODO: communicate to app
+        }else{
+            e.target.swapCache();
+            this.load();
+        }
     },
 
     obsoleted: function(e){
