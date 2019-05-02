@@ -6,6 +6,5 @@ AppDelegate:
 
 HTTPServer:
     class: SKHTTPServer
-    include: Responders/*
     routes:
         /: {responder: RootResponder}
