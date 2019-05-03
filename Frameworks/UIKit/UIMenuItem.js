@@ -1,5 +1,6 @@
 // #import Foundation
-/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, UIMenuSeparatorItemView, UIMenuItem, UIMenu */
+// #import "UIEvent.js"
+/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, UIMenuSeparatorItemView, UIMenuItem, UIMenu, UIEvent */
 'use strict';
 
 JSClass("UIMenuItem", JSObject, {
@@ -55,7 +56,7 @@ JSClass("UIMenuItem", JSObject, {
                 this.keyEquivalent = spec.resolvedValue(values.keyEquivalent);
             }
             if ('keyModifiers' in values){
-                this._keyModifiers = spec.resolvedValue(values.keyModifiers);
+                this._keyModifiers = spec.resolvedEnum(values.keyModifiers, UIEvent.Modifier);
             }
             if ('alternate' in values){
                 this._isAlternate = !!values.alternate;

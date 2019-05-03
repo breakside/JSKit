@@ -585,7 +585,7 @@ JSClass("UIMenuBarItem", JSObject, {
             this.image = JSImage.initWithResourceName(spec.resolvedValue(values.image), spec.bundle);
         }
         if ('imagePosition' in values){
-            this.imagePosition = spec.resolvedValue(values.imagePosition);
+            this.imagePosition = spec.resolvedEnum(values.imagePosition, UIMenuBarItem.ImagePosition);
         }
         if ('target' in values){
             this.target = spec.resolvedValue(values.target);
@@ -603,7 +603,7 @@ JSClass("UIMenuBarItem", JSObject, {
             this.menu = spec.resolvedValue(values.menu, "UIMenu");
         }
         if ('windowControllerClass' in values){
-            this.windowControllerClass = spec.resolvedValue(values.windowControllerClass);
+            this.windowControllerClass = JSClass.FromName(values.windowControllerClass);
         }
     },
 
