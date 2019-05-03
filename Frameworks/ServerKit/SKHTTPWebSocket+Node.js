@@ -14,9 +14,9 @@ SKHTTPWebSocket.definePropertiesFromExtensions({
         this._setupEventListeners();
     },
 
-    _write: function(bytes){
-        logger.info("Sending: %{public}", bytes.hexStringRepresentation());
-        this._nodeSocket.write(bytes);
+    _write: function(data){
+        logger.info("Sending: %{public}", data.hexStringRepresentation());
+        this._nodeSocket.write(data.nodeBuffer());
     },
 
     _cleanup: function(){

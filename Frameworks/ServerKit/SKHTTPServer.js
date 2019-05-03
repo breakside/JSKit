@@ -159,24 +159,34 @@ JSClass("SKHTTPServer", JSObject, {
                 throw new SKHTTPError(SKHTTPResponse.StatusCode.notFound);
             }
 
-            // NOTE: Browsers don't send authentication or custom headers
-            // as part of a websocket request, so we cannot do any
-            // authentication automatically.  It's up to each websocket
-            // responder to do its own authentication.  Suggest using a
-            // one-time-use token in the query string.
-
-            // 3. Open the context
-            responder.context.open(function(status){
-                if (status){
-                    responder.fail(new SKHTTPError(status));
-                }else{
-                    try{
-                        // 4. Call the request method to open a socket
-                        method.call(responder);
-                    }catch (e){
-                        responder.fail(e);
+            // 3. Authenticate the request
+            responder.authenticate(function(authorized, authenticated, statusCode){
+                if (!authorized){
+                    if (authenticated !== null){
+                        responder.fail(new SKHTTPError(statusCode || SKHTTPResponse.StatusCode.forbidden));
+                        return;
                     }
+                    responder.fail(new SKHTTPError(statusCode || SKHTTPResponse.StatusCode.unauthorized));
+                    return;
                 }
+                responder.context.authenticated = authenticated;
+
+                // 4. Open the context
+                responder.context.open(function(status){
+                    if (status){
+                        responder.fail(new SKHTTPError(status));
+                    }else{
+                        try{
+                            // 5. Call the request method to open a socket
+                            method.call(responder);
+                        }catch (e){
+                            if (e instanceof Error){
+                                logger.error(e);
+                            }
+                            responder.fail(e);
+                        }
+                    }
+                }, this);
             }, this);
         }catch (e){
             if (!(e instanceof SKHTTPError)){

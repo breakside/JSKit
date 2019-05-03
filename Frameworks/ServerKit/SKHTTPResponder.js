@@ -91,7 +91,7 @@ JSClass("SKHTTPResponder", JSObject, {
         return this.objectMethodForRequestMethod(product);
     },
 
-    acceptWebSocketUpgrade: function(allowedProtocols){
+    acceptWebsocketUpgrade: function(allowedProtocols){
         var requestHeaders = this._request.headerMap;
         var version = requestHeaders.get('Sec-WebSocket-Version');
         if (version !== "13"){

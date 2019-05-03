@@ -13,7 +13,7 @@ JSClass('SKHTTPWebsocketResponder', SKHTTPResponder, {
 
     websocket: function(){
         logger.info("calling websocket responder");
-        this._socket = this.acceptWebSocketUpgrade(this._protocols);
+        this._socket = this.acceptWebsocketUpgrade(this._protocols);
         if (this._socket !== null){
             logger.info("got a socket");
             this._socket.delegate = this;
@@ -27,6 +27,9 @@ JSClass('SKHTTPWebsocketResponder', SKHTTPResponder, {
     },
 
     socketDidReceiveMessage: function(socket, chunks){
+    },
+
+    socketDidClose: function(socket){
     }
 
 });
