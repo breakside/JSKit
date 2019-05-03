@@ -646,9 +646,9 @@ Object.defineProperties(String.prototype, {
         }
     },
 
-    ucFirst: {
+    capitalizedString: {
         enumerable: false,
-        value: function String_ucFirst(){
+        value: function String_capitalizedString(){
             var iterator = this.userPerceivedCharacterIterator();
             return this.substr(0, iterator.range.length).toUpperCase() + this.substr(iterator.range.length);
         }

@@ -789,33 +789,33 @@ JSClass('StringTests', TKTestSuite, {
         });
     },
 
-    testUCFirst: function(){
+    testCapitalizedString: function(){
         var str = "test";
-        var upper = str.ucFirst();
+        var upper = str.capitalizedString();
         TKAssertEquals(upper, "Test");
 
         str = "TEST";
-        upper = str.ucFirst();
+        upper = str.capitalizedString();
         TKAssertEquals(upper, "TEST");
 
         str = " test";
-        upper = str.ucFirst();
+        upper = str.capitalizedString();
         TKAssertEquals(upper, " test");
 
         str = " test";
-        upper = str.ucFirst();
+        upper = str.capitalizedString();
         TKAssertEquals(upper, " test");
 
         str = "😀";
-        upper = str.ucFirst();
+        upper = str.capitalizedString();
         TKAssertEquals(upper, "😀");
 
         str = "ümlat";
-        upper = str.ucFirst();
+        upper = str.capitalizedString();
         TKAssertEquals(upper, "Ümlat");
 
         str = "u\u0308mlat";
-        upper = str.ucFirst();
+        upper = str.capitalizedString();
         TKAssertEquals(upper, "U\u0308mlat");
     },
 
