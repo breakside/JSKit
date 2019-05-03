@@ -56,7 +56,7 @@ JSClass("JSLocale", JSObject, {
                 allowed.script = false;
                 allowed.region = false;
             }else if (part.length == 4 && allowed.script){
-                this._scriptCode = part.toLowerCase().ucFirst();
+                this._scriptCode = part.toLowerCase().capitalizedString();
                 allowed.script = false;
             }else{
                 return null;

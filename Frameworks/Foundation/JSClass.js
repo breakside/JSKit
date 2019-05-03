@@ -168,15 +168,15 @@ JSClass.prototype = {
     // MARK: - Name Resolvers
 
     nameOfSetMethodForKey: function(key){
-        return 'set' + key.ucFirst();
+        return 'set' + key.capitalizedString();
     },
 
     nameOfGetMethodForKey: function(key){
-        return 'get' + key.ucFirst();
+        return 'get' + key.capitalizedString();
     },
 
     nameOfBooleanGetMethodForKey: function(key){
-        return 'is' + key.ucFirst();
+        return 'is' + key.capitalizedString();
     },
 
     nameOfSilentSetMethodForKey: function(key){
@@ -184,7 +184,7 @@ JSClass.prototype = {
     },
 
     nameOfInsertMethodForKey: function(key){
-        return 'insertObjectIn' + key.ucFirst() + 'AtIndex';
+        return 'insertObjectIn' + key.capitalizedString() + 'AtIndex';
     },
 
     nameOfSilentInsertMethodForKey: function(key){
@@ -192,7 +192,7 @@ JSClass.prototype = {
     },
 
     nameOfRemoveMethodForKey: function(key){
-        return 'removeObjectFrom' + key.ucFirst() + 'AtIndex';
+        return 'removeObjectFrom' + key.capitalizedString() + 'AtIndex';
     },
 
     nameOfSilentRemoveMethodForKey: function(key){
@@ -200,7 +200,7 @@ JSClass.prototype = {
     },
 
     nameOfReplaceMethodForKey: function(key){
-        return 'replaceObjectIn' + key.ucFirst() + 'AtIndexWithObject';
+        return 'replaceObjectIn' + key.capitalizedString() + 'AtIndexWithObject';
     },
 
     nameOfSilentReplaceMethodForKey: function(key){

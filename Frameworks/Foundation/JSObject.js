@@ -246,7 +246,7 @@ JSObject.definePropertiesFromExtensions({
                 keyPath = keyPath.substr(0, keyPath.length - 11);
                 options.valueTransformer = JSIsEmptyValueTransformer;
             }
-            if (options.valueTransformer && !options.valueTransformer.canReverseTransform){
+            if (options.valueTransformer && !options.valueTransformer.reverseTransformValue){
                 options.readOnly = true;
             }
             var bindingInfo = {
@@ -407,7 +407,7 @@ JSObject.definePropertiesFromExtensions({
     // MARK: To-Many Properties
 
     countOfKey: function(key){
-        var countMethodName = 'countOf' + key.ucFirst();
+        var countMethodName = 'countOf' + key.capitalizedString();
         if (this[countMethodName]){
             return this[countMethodName]();
         }
@@ -419,7 +419,7 @@ JSObject.definePropertiesFromExtensions({
     },
 
     objectInKeyAtIndex: function(key, index){
-        var objectMethodName = 'objectIn' + key.ucFirst() + 'AtIndex';
+        var objectMethodName = 'objectIn' + key.capitalizedString() + 'AtIndex';
         if (this[objectMethodName]){
             return this[objectMethodName](index);
         }
@@ -430,7 +430,7 @@ JSObject.definePropertiesFromExtensions({
     },
 
     getKeyRange: function(key, range){
-        var rangeMethodName = 'get' + key.ucFirst() + 'Range';
+        var rangeMethodName = 'get' + key.capitalizedString() + 'Range';
         if (this[rangeMethodName]){
             return this[rangeMethodName]();
         }
