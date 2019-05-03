@@ -5,6 +5,7 @@
  JSClass("DocTopicBasedComponent", DocComponent, {
 
     topics: null,
+    defaultChildKind: null,
 
     getTitleForDescriptionSection: function(){
         return "Overview";
@@ -32,7 +33,7 @@
                 if (sourceTopic.members){
                     for (let j = 0, k = sourceTopic.members.length; j < k; ++j){
                         let sourceMember = sourceTopic.members[j];
-                        let member = await documentation.createComponentFromInfo(sourceMember, this.sourceURL);
+                        let member = await documentation.createComponentFromInfo(sourceMember, this.sourceURL, this.defaultChildKind);
                         if (member){
                             member.parent = this;
                             if (member.kind == 'constructor' && !member.name){

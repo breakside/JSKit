@@ -5,6 +5,7 @@
  JSClass("DocClass", DocTopicBasedComponent, {
 
     kind: 'class',
+    defaultChildKind: 'property',
 
     // --------------------------------------------------------------------
     // MARK: - Creating and populating

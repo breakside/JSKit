@@ -11,6 +11,8 @@
 // #import "DocProperty.js"
 // #import "DocEnum.js"
 // #import "DocDocument.js"
+// #import "DocSpec.js"
+// #import "DocSpecProperty.js"
 /* global JSClass, JSObject, JSCopy, jsyaml, JSURL, DocComponent, JSBundle */
 'use strict';
 
@@ -66,14 +68,14 @@ JSClass("Documentation", JSObject, {
         return component;
     },
 
-    createComponentFromInfo: async function(info, baseURL){
+    createComponentFromInfo: async function(info, baseURL, defaultKind){
         if (typeof(info) === 'string'){
             let url = JSURL.initWithString(info + '.doc.yaml', baseURL);
             url.standardize();
             let component = await this.loadSource(url);
             return component;
         }
-        let component = DocComponent.initWithKind(info.kind || 'property');
+        let component = DocComponent.initWithKind(info.kind || defaultKind);
         if (info.name){
             component.name = info.name;
         }

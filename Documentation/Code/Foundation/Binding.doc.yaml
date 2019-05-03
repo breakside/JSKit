@@ -1,0 +1,5 @@
+kind: document
+name: Binding & Observing
+summary: Observing changes to object properties and automatically updating
+  related objects or components
+description: Binding.md

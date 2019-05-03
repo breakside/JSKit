@@ -44,7 +44,7 @@ JSClass("DocComponent", JSObject, {
     uniqueName: JSReadOnlyProperty(),
 
     getUniqueName: function(){
-        return this.name.toLowerCase().replace(/\s/g, '-').replace(/[^\w\-]/g, '');
+        return this.name.toLowerCase().replace(/\s/g, '-').replace(/[^\w\-]/g, '').replace(/\-+/g,'-');
     },
 
     displayNameForKind: JSReadOnlyProperty(),

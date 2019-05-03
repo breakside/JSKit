@@ -507,7 +507,7 @@ JSClass("HTMLBuilder", Builder, {
             return;
         }
         this.printer.setStatus("Creating service worker...");
-        var cachedPaths = [];
+        var cachedPaths = ['./'];
         for (let i = 0, l = this.wwwPaths.length; i < l; ++i){
             cachedPaths.push(this.wwwPaths[i]);
         }

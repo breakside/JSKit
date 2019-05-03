@@ -203,8 +203,9 @@ var imageByKind = {
     'init': function(){ return images.initIcon; },
     'method': function(component){ return component.static ? images.staticmethodIcon : images.methodIcon; },
     'property': function(component){ return component.static ? images.staticpropertyIcon : images.propertyIcon; },
-    'protocol': function(){ return images.protocolIcon; }
-
+    'protocol': function(){ return images.protocolIcon; },
+    'spec': function(){ return images.specIcon; },
+    'specproperty': function(){ return images.specpropertyIcon; }
 };
 
 var images = JSImage.resourceCache([
@@ -219,5 +220,7 @@ var images = JSImage.resourceCache([
     'propertyIcon',
     'protocolIcon',
     'staticmethodIcon',
-    'staticpropertyIcon'
+    'staticpropertyIcon',
+    'specIcon',
+    'specpropertyIcon'
 ]);

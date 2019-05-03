@@ -227,7 +227,11 @@ JSClass("Markdown", JSObject, {
                         let codeline = textLines[j];
                         let lineElement = document.createElement(options.codeLineTagName);
                         lineElement.setAttribute("class", options.codeLineClassName);
-                        lineElement.appendChild(document.createTextNode(codeline));
+                        if (codeline === ''){
+                            lineElement.appendChild(document.createTextNode("\n"));
+                        }else{
+                            lineElement.appendChild(document.createTextNode(codeline));
+                        }
                         code.appendChild(lineElement);
                     }
                     elements.push(code);

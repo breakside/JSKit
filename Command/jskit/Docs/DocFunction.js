@@ -108,7 +108,7 @@
         for (let i = 0, l = this.arguments.length; i < l; ++i){
             let arg = this.arguments[i];
             if (arg.default){
-                strings.push("%s = %s".sprintf(arg.name, arg.default));
+                strings.push("%s=%s".sprintf(arg.name, arg.default));
             }else{
                 strings.push(arg.name);
             }

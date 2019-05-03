@@ -132,6 +132,141 @@ topics:
         description: |
           Can be used to perform extra intialization tasks when creating an
           object from a spec file
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: Description of properties that can be included in a spec file
+        description: |
+          The base `JSObject` class can initialize only generic "outlet" properties,
+          which are arbitrary objects, and bindings to other objects.
+
+          More sophisticated intialization from spec files is left to subclasses
+          to implement given their own needs.
+
+          Often property names and types in the spec file will match property names
+          and types on the class itself, but occasionally special cases can be
+          made in the spec properties that makes writing specs faster and clearer.
+        topics:
+          -
+            name: Generic
+            members:
+              -
+                name: outlets
+                type: dictionary
+                summary: Create links between objects without custom init code, typically reserved for
+                  things like properties on your custom view controllers.
+                description: |
+                  Using `outlets` is a shortcut instead of requiring subclasses
+                  to implement `initWithSpec()` to do special spec inspection for simple
+                  property sets.
+
+                  Common reusable components will typically not make use of `outlets`, in
+                  favor of defining their own custom spec properties and providing a
+                  custom `initWithSpec()` implementation to read those properties.
+
+                  Often used for setting properties on custom view controllers, as in:
+
+                  ````
+                  File's Owner: /ViewController
+
+                  ViewController:
+                    class: MyViewController
+                    view:
+                      subviews:
+                        - /NameField
+                        - /AvatarImageView
+                        - /HelpLabel
+                    outlets:
+                      nameField: /NameField
+                      avatarView: /AvatarImageView
+
+                  NameField:
+                    class: UITextField
+
+                  AvatarImageView:
+                    class: UIImageView
+
+                  HelpLabel:
+                    class: UILabel
+                    text: Help
+                  ````
+
+                  `nameField` and `avatarView` will be automatically set during
+                  spec initialization, without any need for `MyViewController`
+                  to code its own `initWithSpec()` method.
+
+                  Assuming a view controller class such as
+
+                  ````
+                  JSClass("MyViewController", UIViewController, {
+
+                    nameField: null,
+                    avatarView: null
+
+                  });
+                  ````
+                note: |
+                  While it may seem tempting to always use `outlets` instead of
+                  writing custom `initWithSpec()` methods, custom intialization
+                  is useful:
+
+                  1. When the names/values in the spec need to be maniuplated to match the class's properties
+                  1. For documentation purposes, so custom spec properties are clearly listed and described
+          -
+            name: Bindings
+            members:
+              -
+                name: bindings
+                type: dictionary
+                summary: Create bindings between this object and others
+                description: |
+                  Each key in the `dictionary` is passed as the first agument (`binding`) in a `bind()` call.
+
+                  If the value for a key is an object, a single binding is made.
+
+                  If the value for a key is an array, multiple binding calls are made,
+                  as described in [Binding & Observing](Binding).
+
+                  Each binding is specified by an object with these properties:
+
+                  * `to`: A `JSObject` that will be passed as the second argument
+                    (`toObject`) in the `bind()` call
+                  * `value`: A `string` that will be passed as the third argument
+                    (`keyPath`) in the `bind()` call.  Can include shorthand prefix
+                    or suffix for specifying a value transformer (see [Binding & Observing](Binding)).
+                  * `transformer`: An optional `object` representing a value transformer instance,
+                    if the transformer cannot be specified via the shorthand syntax in `value`
+
+                  An example binding could be:
+
+                  ````
+                  File's Owner: /ViewController
+
+                  ViewController:
+                    class: MyViewController
+                    view:
+                      subviews:
+                        - /NameField
+
+                  NameField:
+                    class: UITextField
+                    bindings:
+                      text: {to: /ViewController, value: "person.name"}
+                      enabled:
+                        - {to: /ViewController, value: "person !== null"}
+                        - {to: /ViewController, value: "!isSaving"}
+                  ````
+
+                  Assuming a view controller class such as
+
+                  ````
+                  JSClass("MyViewController", UIViewController, {
+
+                    person: null,
+                    isSaving: false
+
+                  });
+                  ````
   -
     name: Class Inspection
     members:
@@ -174,14 +309,81 @@ topics:
           You can use an object's unique identifier as a key in dictionaries.
 
           No two objects will be assigned the same identifier.
+      -
+        name: isEqual
+        kind: method
+        summary: Test if the object is equal to another
+        description: |
+          The default behavior returns `true` only if the given object is
+          identical, `===`, to this object.
+
+          Subclasses may override this method to provide a less strict equality
+          comparison based on properties of the objects.
+        type: bool
+        return: \`true` if the objects are identical, `false` otherwise
+        arguments:
+          -
+            name: other
+            type: JSObject
+            summary: The object to compare with
   -
     name: Binding & Observing
     members:
+      - Binding
+      -
+        name: bind
+        kind: method
+        summary: Bind a local property to the given object + keyPath
+        description: |
+          Create a one- or two-way link between a property on this object and
+          the property on another object.
+
+          See [Binding & Observing](Binding) for an introduction to binding.
+
+          Typically you'll call this method on something like a UI component,
+          and bind to the property of an object held by a controller.
+        arguments:
+          -
+            name: binding
+            type: string
+            summary: The name of the binding, which is typically a property name
+              of this object
+          -
+            name: toObject
+            type: JSObject
+            summary: The object from which to read a value, often a controller
+              object that in turn holds a data model.
+          -
+            name: keyPath
+            type: string
+            summary: A dot-separated key path that specifies which property
+              to read on `toObject` (or one of its child objects)
+          -
+            name: options
+            type: dictionary
+            default: undefined
+            summary: |
+              Options for the binding
+
+              * `valueTransformer` - A simple `object` that contains a
+                `transformedValue()` method.  Several standard options
+                exist such as `JSIsNullValueTransformer` or `JSIsNotEmptyValueTransformer` 
       -
         name: addObserverForKeyPath
         kind: method
         summary: Register the given observer object to receive notifications
           when the value for the given keyPath changes.
+        description: |
+          A keyPath is a simple property name referring to a property on this
+          object, or a dot-separated property name referring to a property on
+          a descendant object.
+
+          If a dot-separated keypath is provided, an observer will be registered
+          on each object down the chain, and will be automatically adjusted
+          if any object in the chain changes.
+        note: |
+          Calling multiple times with the same observer and keyPath will result
+          in mutliple callbacks to the observer when the keyPath changes.
         arguments:
           -
             name: observer
@@ -193,16 +395,43 @@ topics:
             summary: The dot-separated keyPath corresponding to the observed value
           -
             name: options
-            default: null
+            default: "undefined"
             type: object
             summary: Options that control how the observation behaves
           -
             name: context
-            default: null
+            default: "undefined"
             type: any
             summary: An object or value that will be provided in the notification
               callback, allowing the observer to identify and distinguish the
               notification if needed
+      -
+        name: removeObserverForKeyPath
+        kind: method
+        summary: Deregister the given observer from receiving notifications when
+          then value of the given keyPath changes.
+        description: |
+          Should be called with an observer that was previously registered using
+          `addObserverForKeyPath()`
+        note: |
+          If an observer+keyPath pair was registered multiple times, all will be
+          de-registered if `context` is not given.  If `context` is given, only
+          the registration with the matching context will be removed.
+        arguments:
+          -
+            name: observer
+            type: JSObject
+            summary: The object that is receiving change notifications
+          -
+            name: keyPath
+            type: string
+            summary: The dot-separated keyPath corresponding to the observed value
+          -
+            name: context
+            default: "undefined"
+            summary: An object that was passed to addObserverForKeyPath, only
+              required to deregister a single matching observer+keyPath pair,
+              if there are multiple.
       -
         name: observeValueForKeyPath
         kind: method
