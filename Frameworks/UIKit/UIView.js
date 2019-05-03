@@ -154,6 +154,11 @@ JSClass('UIView', UIResponder, {
     subviewIndex: null,
 
     // -------------------------------------------------------------------------
+    // MARK: - Identity
+
+    tag: 0,
+
+    // -------------------------------------------------------------------------
     // MARK: - Adding and Removing Subviews
 
     subviews: null,
@@ -240,6 +245,15 @@ JSClass('UIView', UIResponder, {
     },
 
     subviewsDidChange: function(){
+    },
+
+    subviewWithTag: function(tag){
+        for (var i = 0, l = this.subviews.length; i < l; ++i){
+            if (this.subviews[i].tag === tag){
+                return this.subviews[i];
+            }
+        }
+        return null;
     },
 
     // -------------------------------------------------------------------------
