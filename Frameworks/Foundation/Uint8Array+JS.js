@@ -34,6 +34,12 @@ Object.defineProperties(Uint8Array, {
 
     initWithChunks: {
         value: function Uint8Array_initWithChunks(chunks){
+            if (chunks.length === 0){
+                return new Uint8Array(0);
+            }
+            if (chunks.length === 1){
+                return chunks[0];
+            }
             var length = 0;
             var i, l;
             for (i = 0, l = chunks.length; i < l; ++i){

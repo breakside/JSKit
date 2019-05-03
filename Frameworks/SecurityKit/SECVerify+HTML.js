@@ -37,7 +37,7 @@ SECVerify.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        var data = this.chunks.length === 1 ? this.chunks[0] : JSData.initWithChunks(this.chunks);
+        var data = JSData.initWithChunks(this.chunks);
         crypto.subtle.verify(this.htmlAlgorithm, key, signature, data).then(function(verified){
             completion.call(target, verified);
         }, function(error){

@@ -30,7 +30,7 @@ SECHash.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        var data = this.chunks.length === 1 ? this.chunks[0] : JSData.initWithChunks(this.chunks);
+        var data = JSData.initWithChunks(this.chunks);
         crypto.subtle.digest(this.htmlAlgorithm, data, function(computed){
             completion.call(target, computed);
         }, function(error){
@@ -44,7 +44,7 @@ SECHash.definePropertiesFromExtensions({
             completion = Promise.completion(Promise.resolveNonNull);
         }
         var algorithm = this.htmlAlgorithm;
-        var data = this.chunks.length === 1 ? this.chunks[0] : JSData.initWithChunks(this.chunks);
+        var data = JSData.initWithChunks(this.chunks);
         crypto.subtle.importKey("raw", this.keyData, algorithm, true, ["sign"]).then(function(key){
             crypto.subtle.sign(algorithm, key, data).then(function(computed){
                 completion.call(target, JSData.initWithBuffer(computed));
