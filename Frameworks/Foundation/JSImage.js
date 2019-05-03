@@ -189,6 +189,9 @@ JSClass("_JSDataImage", JSImage, {
     data: null,
 
     initWithData: function(data, scale){
+        if (data === null){
+            return null;
+        }
         this.data = data;
         var size = JSSize.Zero;
         _JSDataImage.$super._initWithPixelSize.call(this, size, scale);
@@ -212,6 +215,9 @@ JSClass("_JSURLImage", JSImage, {
     url: null,
 
     initWithURL: function(url, size, scale){
+        if (url === null){
+            return null;
+        }
         _JSURLImage.$super._initWithPixelSize.call(this, size, scale);
         this.url = url;
     },
