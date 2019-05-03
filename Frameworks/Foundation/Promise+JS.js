@@ -231,7 +231,7 @@ if (!PromiseClass.prototype.finally){
 Object.defineProperties(PromiseClass, {
 
     completion: {
-        value: function(thenfn){
+        value: function(thenfn, errorMessage){
             var completion = function Promise_handleCompletion(){
                 var values = Array.prototype.slice.call(arguments, 0);
                 completion.resolve(values.length == 1 ? values[0] : values);
@@ -242,6 +242,16 @@ Object.defineProperties(PromiseClass, {
             });
             if (thenfn){
                 completion.promise = completion.promise.then(thenfn);
+                if (errorMessage){
+                    completion.promise = completion.promise.then(function(r){
+                        return r;
+                    }, function(e){
+                        if (!e){
+                            e = new Error(errorMessage);
+                        }
+                        return Promise.reject(e);
+                    });
+                }
             }
             return completion;
         }
