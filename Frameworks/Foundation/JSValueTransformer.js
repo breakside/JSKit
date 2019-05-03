@@ -7,28 +7,16 @@
 
 JSGlobalObject.JSIsNullValueTransformer = {
 
-    canReverseTransform: false,
-
     transformValue: function(value){
         return value === null;
-    },
-
-    reverseTransformValue: function(value){
-        throw new Error("JSIsNullValueTranformer cannot reverseTranform value");
     }
 
 };
 
 JSGlobalObject.JSIsNotNullValueTransformer = {
 
-    canReverseTransform: false,
-
     transformValue: function(value){
         return value !== null;
-    },
-
-    reverseTransformValue: function(value){
-        throw new Error("JSIsNullValueTranformer cannot reverseTranform value");
     }
 
 };
@@ -37,8 +25,6 @@ JSGlobalObject.JSIsNotNullValueTransformer = {
 // MARK: - Dealing with empty
 
 JSGlobalObject.JSIsEmptyValueTransformer = {
-
-    canReverseTransform: false,
 
     transformValue: function(value){
         if (value === null || value === undefined){
@@ -50,17 +36,11 @@ JSGlobalObject.JSIsEmptyValueTransformer = {
             }
         }
         return !value;
-    },
-
-    reverseTransformValue: function(value){
-        throw new Error("JSIsEmptyValueTranformer cannot reverseTranform value");
     }
 
 };
 
 JSGlobalObject.JSIsNotEmptyValueTransformer = {
-
-    canReverseTransform: false,
 
     transformValue: function(value){
         if (value === null || value === undefined){
@@ -72,10 +52,6 @@ JSGlobalObject.JSIsNotEmptyValueTransformer = {
             }
         }
         return !!value;
-    },
-
-    reverseTransformValue: function(value){
-        throw new Error("JSIsEmptyValueTranformer cannot reverseTranform value");
     }
 
 };
@@ -84,8 +60,6 @@ JSGlobalObject.JSIsNotEmptyValueTransformer = {
 // MARK: - Booleans
 
 JSGlobalObject.JSNegateBooleanValueTransformer = {
-
-    canReverseTransform: true,
 
     transformValue: function(value){
         return !value;
@@ -101,8 +75,6 @@ JSGlobalObject.JSNegateBooleanValueTransformer = {
 // MARK: - Lists
 
 JSGlobalObject.JSCommaSeparatedListValueTransformer = {
-
-    canReverseTransform: true,
 
     transformValue: function(value){
         if (value === null || value === undefined){
