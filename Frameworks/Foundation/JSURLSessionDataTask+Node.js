@@ -89,7 +89,7 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
     },
 
     _handleEnd: function(){
-        var data = this._chunks.length == 1 ? this._chunks[0] : JSData.initWithChunks(this._chunks);
+        var data = JSData.initWithChunks(this._chunks);
         this._currentRequest._response.data = data;
         this._complete();
     },
