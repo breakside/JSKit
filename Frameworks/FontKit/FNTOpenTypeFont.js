@@ -408,7 +408,7 @@ DataBackedProperty.prototype = Object.create(JSCustomProperty.prototype);
 
 DataBackedProperty.prototype.define = function(C, publicKey, extensions){
     var privateKey = "_" + publicKey;
-    var upperType = this.dataType.ucFirst();
+    var upperType = this.dataType.capitalizedString();
     var dataGetter = DataView.prototype['get' + upperType];
     var dataSetter = DataView.prototype['set' + upperType];
     var offset = this.offset;
