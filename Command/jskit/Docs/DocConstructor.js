@@ -13,7 +13,7 @@
 
     getTitle: function(){
         if (this.uniquePrefix){
-            return "%s %s Constructor".sprintf(this.parent.name, this.uniquePrefix.ucFirst());
+            return "%s %s Constructor".sprintf(this.parent.name, this.uniquePrefix.capitalizedString());
         }
         return "%s Constructor".sprintf(this.parent.name);
     },

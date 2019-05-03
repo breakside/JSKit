@@ -87,7 +87,6 @@ description: |
 
   ````
   JSClass("ImageReader", JSObject, {
-    ext: null,
 
     initFromFile: function(file){
       if (file.ext == '.png'){
@@ -98,22 +97,23 @@ description: |
       }
       return null;
     }
+
   });
 
   JSClass("PNGReader", ImageReader, {
-    ext: 'png',
 
     initWithFile: function(file){
       // ...
     }
+
   });
 
   JSClass("JPGReader", ImageReader, {
-    ext: 'jpg',
 
     initWithFile: function(file){
       // ...
     }
+
   });
   ````
 
@@ -178,12 +178,12 @@ description: |
   ````
   class Person extends JSObject{
 
-    initWithFullName: function(name){
+    initWithFullName(name){
       var names = name.split(' ');
       this.initWithNames(names[0], names.slice(1).join(' '));
     },
 
-    initWithNames: function(first, last){
+    initWithNames(first, last){
       this.firstName = first;
       this.lastName = last;
     },
@@ -220,7 +220,7 @@ topics:
         arguments:
           -
             name: className
-            type: string
+            type: String
             summary: The name of the new class to create
           -
             name: superclass
@@ -324,7 +324,7 @@ topics:
     members:
       -
         name: className
-        type: string
+        type: String
         summary: The name of the class
         description: |
           Sometimes, such as in cases like serialization, it is much easier to
@@ -404,7 +404,7 @@ topics:
         arguments:
           -
             name: className
-            type: string
+            type: String
             summary: The name of the class to lookup, which should match the
               name given when you defined the class using `JSClass`.
 
@@ -477,6 +477,6 @@ topics:
             summary: A collection of properties and methods for the subclass
           -
             name: className
-            type: string
+            type: String
             summary: The name for the new subclass
 

@@ -1,0 +1,425 @@
+kind: class
+summary: Additions to the standard JavaScript String class
+description: |
+  JavaScript already contains a string class, and there's no need to use something
+  else entirely, but some additions do make certain tasks easier.
+
+  Encoding & Decoding
+  ===================
+  A common need is to convert between data bytes and unicode strings.
+
+  The bytes could be UTF-8, UTF-16, or possibly even a non-unicode encoding
+  such as ISO-8859-1 (commonly known as Latin-1).
+
+  To support such operations, JSKit adds:
+
+  * Init methods such as `initWithData()` to go from bytes -> unicode
+  * Encoding methods such as `dataUsingEncoding()` to go from unicode -> bytes
+
+  Unicode Awareness
+  =================
+  Standard JavaScript strings are actually a sequence of UTF-16 codepoints.
+
+  Most of the time, a UTF-16 codepoint represents a Unicode codepoint exactly,
+  but some Unicode characters require a "surrogate pair" of UTF-16 codepoints,
+  meaning that two characters in the JavaScript string really should be interpreted
+  together as a single Unicode character.
+
+  The difference is often easy to overlook, and can lead to mistakes.  For example,
+  The emoji character 😀 is one character, but a JavaScript string made from that
+  character will have a `length` of `2`.  Iterating through the string will result
+  in two codes `0xD83D` followed by `0xDE00`.
+
+  JSKit adds an layer of unicode awareness that makes it easy to tell that you're
+  really dealing with a single character, not two.
+
+  Unicode Iterators
+  -----------------
+
+  User-Perceived Characters
+  -------------------------
+
+  Word Boundaries
+  ===============
+
+topics:
+  -
+    name: Creating a String
+    members:
+      -
+        name: initWithFormat
+        kind: init
+        summary: Create a string with a `printf`-style format string
+        description: |
+          Given a format string with `printf`-style placeholders, replace each
+          placeholder with a given argument.
+
+          ````
+          var text = String.initWithFormat("hello, %s", "world!");
+          // text === "hello, world!"
+          ````
+
+          Placeholder Types
+          =================
+          While JSKit doesn't support the entire set of placeholders that
+          `printf` supports in `C`, the basics are all here:
+
+          * `%s` - the string representation of the argument
+          * `%d` - The base-10 integer representation of the argument
+          * `%x` - The base-16 (hexadecimal) integer representation of the argument
+          * `%X` - Same as `%x`, but uppercased
+          * `%f` - The decimal representation of the argument
+          * `%b` - The boolean representation of the argument (`true` or `false`)
+
+
+          Positional arguments
+          ====================
+
+          Unless otherwise specified, the placeholders will be replaced by
+          arguments in the order the placeholders and arguments are specified.
+
+          You can override this behavior by prefixing each placeholder with
+          a `n$`, where `n` is the argument number to use, starting with 1.
+
+          ````
+          var text = String.initWithFormat("%2$d %1$s", "hello", 12);
+          // text === "12 hello"
+          ````
+
+          This kind of positional specification is especially useful for
+          internationalization, where different languages may put placeholders
+          in different orders.
+
+
+          Alignment
+          =========
+
+          Values can be aligned by prefixing the placeholder with a number,
+          such as:
+
+          ````
+          var text = String.initWithFormat("%4d %4d", 5, 42);
+          // text === "   5   42"
+          ````
+
+          Left-justification can be specified with a negative sign:
+
+          ````
+          var text = String.initWithFormat("%-4d %-4d", 5, 42);
+          // text === "5    42  "
+          ````
+
+          Zero-Padding
+          ============
+
+          Numberic placeholders can specify a `0` along with the padding prefix
+          to indicate that padding should be done with zeros instead of spaces.
+
+          ````
+          var text = String.initWithFormat("%04d %04d", 5, 42);
+          // text === "0005 0042"
+          ````
+
+          Zero-padding is especially useful when writing hexadecimal numbers:
+
+          ````
+          var text = String.initWithFormat("%02x%02x", 0x5, 0x42);
+          // text === "0542"
+          ````
+
+
+          Alternates
+          ==========
+
+          Hexadecimal placeholders also support alternate versions, which
+          automatically include a leading `0x`
+
+          ````
+          var text = String.initWithFormat("%#02x %#02x", 0x5, 0x42);
+          // text === "0x05 0x42"
+          ````
+
+        arguments:
+          -
+            name: format
+            type: String
+            summary: The `printf`-style format string with `%` placeholders
+          -
+            name: args
+            type: any
+            variable: true
+            summary: The values to use as replacements in format string
+      -
+        name: initWithData
+        kind: init
+        summary: Create a string by decoding data
+        description: |
+          Since UTF-8 is by far the most common representation of unicode strings
+          on the web, we'll use it as an example of how to convert that UTF-8 byte
+          representation to a unicode string.
+
+          ````
+          var utf8 = JSData.initWithArray([0x48, 0x65, 0x6C, 0x6C, 0x6F]);
+          var str = String.initWithData(utf8, String.Encoding.utf8);
+          // str === "hello"
+          ````
+        note: Decoders are designed to fail gracefully rather than throw errors, 
+          so there's no guarantee the decoded string is valid if the data isn't valid
+          to begin with.
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The data to decode
+          -
+            name: encoding
+            type: String.Encoding
+            summary: The expected encoding of the data
+      -
+        name: fromUnicode
+        kind: method
+        static: true
+        summary: Create a single-character string from a unicode code point
+        note: Single-character means the string will contain one unicode character,
+          but the resulting `String` may have a `length` of 2 since JavaScript
+          strings are stored as UTF-16.  
+        arguments:
+          -
+            name: code
+            type: UnicodeChar | int
+            summary: The code point from which to create the string
+  -
+    name: Encoding to Data
+    summary: Convert the unicode string to bytes, often required when sending
+      over a network connection.
+    members:
+      -
+        name: Encoding
+        summary: Supported data encodings for strings
+        kind: enum
+        options:
+          -
+            name: utf8
+            summary: An identifier for the UTF-8 encoding scheme, where each
+              character is represented by 1-4 bytes.
+          -
+            name: utf16be
+            summary: An identifier for the UTF-16 Big Endian (BE) scheme, where
+              each character is represented by 2 or 4 bytes, ordered with the
+              most significant byte first.
+          -
+            name: utf16le
+            summary: An identifier for the UTF-16 Little Endian (LE) scheme, where
+              each character is represented by 2 or 4 bytes, ordered with the
+              least significant byte first.
+          -
+            name: iso8859_1
+            summary: An identifier for the ISO-8859-1 scheme, which only supports
+              unicode characters < 256.  Since this is not a unicode encoding, use
+              caution when encoding strings that may have non-encodable characters.
+
+              Typically used for decoding only, when the source data is known to 
+              be in the ISO-8859-1 encoding.
+          -
+            name: latin1
+            summary: An alais for `iso8859_1`
+      -
+        name: dataUsingEncoding
+        kind: method
+        type: JSData
+        return: The byte representation of this string according to the given encoding
+        summary: Encode this string into data using the given encoding
+        arguments:
+          -
+            name: encoding
+            type: Encoding
+            summary: The desired encoding of the output data
+      -
+        name: utf8
+        kind: method
+        type: JSData
+        return: The UTF-8 encoded byte representation of this string
+        summary: Encode this string into data using the UTF-8 Encoding
+        description: |
+          UTF-8 is by far the most common encoding you'll encounter on the web
+          these days, so we made a convenience function to get utf8 data from
+          a string.
+
+          Equivalent to calling `dataUsingEncoding(String.Encoding.utf8)`
+      -
+        name: latin1
+        kind: method
+        type: JSData
+        return: The Latin-1 (ISO-8859-1) encoded byte representation of this string
+        summary: Encode this string into data using the ISO-8859-1 Encoding
+        description: |
+          Equivalent to calling `dataUsingEncoding(String.Encoding.latin1)`
+  -
+    name: Characters & Words
+    summary: Dealing with Unicode characters, user-perceived characters, and
+      word ranges
+    members:
+      -
+        name: unicodeIterator
+        kind: method
+        summary: Get an iterator that steps through each unicode character in the
+          string, handling the underlying surrogate pairs as single characters
+        type: UnicodeIterator
+        arguments:
+          -
+            name: startIndex
+            summary: The optional index within this string to use as the starting point
+            default: "0"
+            type: int
+      -
+        name: userPerceivedCharacterIterator
+        kind: method
+        summary: Get an iterator that steps through each user-perceived character
+          in the string, handling characters with combining marks as a single character
+        type: UserPerceivedCharacterIterator
+        arguments:
+          -
+            name: startIndex
+            summary: The optional index within this string to use as the starting point
+            default: "0"
+            type: int
+      -
+        name: unicodeAtIndex
+        kind: method
+        summary: Get the unicode character at the given index
+        description: If the given index lands in the middle of a surrogate pair,
+          this method will back up one index and return the unicode code point
+          found by decoding the surrogate pair.
+        type: UnicodeChar
+        arguments:
+          -
+            name: index
+            summary: The index within this string to inspect
+            type: int
+      -
+        name: rangeForUserPerceivedCharacterAtIndex
+        kind: method
+        summary: Get the entire range for the user perceived character that spans the given index
+        description:
+          User perceived characters can take up 1 or more UTF-16 code points in the
+          underlying JavaScript string.
+
+          This method returns the full range of the user perceived charater that
+          spans the given index.
+        type: JSRange
+        arguments:
+          -
+            name: index
+            summary: The index within this string
+            type: int
+      -
+        name: rangeForWordAtIndex
+        kind: method
+        summary: Get the entire range for the word that spans the given index
+        type: JSRange
+        arguments:
+          -
+            name: index
+            summary: The index within this string
+            type: int
+      -
+        name: stringForWordAtIndex
+        kind: method
+        summary: Get the word located at the given index
+        description: |
+          Equivalent to
+
+          ````
+          var range = str.rangeForWordAtIndex(i);
+          var word = str.substringInRange(range);
+          ````
+        type: String
+        arguments:
+          -
+            name: index
+            summary: The index within this string
+            type: int
+      -
+        name: indexOfWordEndAfterIndex
+        kind: method
+      -
+        name: indexOfWordStartBeforeIndex
+        kind: method
+      -
+        name: rangeForLineAtIndex
+        kind: method
+  - name: Modified Strings
+    members:
+      -
+        name: stringByAppendingString
+        kind: method
+      -
+        name: stringByReplacingCharactersInRangeWithString
+        kind: method
+      -
+        name: stringByDeletingCharactersInRange
+        kind: method
+      -
+        name: stringByMaskingWithCharacter
+        kind: method
+      -
+        name: uppercaseString
+        kind: method
+      -
+        name: lowercaseString
+        kind: method
+      -
+        name: capitalizedString
+        kind: method
+  - name: Substrings & Variants
+    members:
+      -
+        name: substringInRange
+        kind: method
+      -
+        name: trimmedSplit
+        kind: method
+      -
+        name: splitAtIndex
+        kind: method
+  -
+    name: Formatting
+    members:
+      -
+        name: sprintf
+        kind: method
+      -
+        name: format
+        kind: method
+      -
+        name: leftPaddedString
+        kind: method
+      -
+        name: rightPaddedString
+        kind: method
+  -
+    name: Templates
+    members:
+      -
+        name: replacingTemplateParameters
+        kind: method
+  -
+    name: Files
+    members:
+      -
+        name: fileExtension
+        kind: method
+  -
+    name: Base64 & Hex
+    members:
+      -
+        name: dataByDecodingBase64
+        kind: method
+      -
+        name: dataByDecodingBase64URL
+        kind: method
+      -
+        name: dataByDecodingHex
+        kind: method
+
+

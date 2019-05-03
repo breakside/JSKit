@@ -46,7 +46,11 @@
                 let arg = this.arguments[i];
                 let dt = dl.appendChild(document.createElement("dt"));
                 let dd = dl.appendChild(document.createElement("dd"));
-                dt.appendChild(document.createTextNode(arg.name));
+                if (arg.variable){
+                    dt.appendChild(document.createTextNode("%s...".sprintf(arg.name)));
+                }else{
+                    dt.appendChild(document.createTextNode(arg.name));
+                }
                 if (arg.type){
                     let code = dd.appendChild(document.createElement("code"));
                     let url = this.urlForCode(arg.type);
@@ -109,6 +113,8 @@
             let arg = this.arguments[i];
             if (arg.default){
                 strings.push("%s=%s".sprintf(arg.name, arg.default));
+            }else if (arg.variable){
+                strings.push("%s...".sprintf(arg.name));
             }else{
                 strings.push(arg.name);
             }

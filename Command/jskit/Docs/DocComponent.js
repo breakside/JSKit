@@ -239,7 +239,7 @@ JSClass("DocComponent", JSObject, {
         if (parenIndex > 0){
             name = name.substr(0, parenIndex);
         }
-        var parts = code.split('.');
+        var parts = name.split('.');
         var component = this.componentForName(parts.shift());
         while (parts.length > 0 && component !== null){
             component = component.childForName(parts.shift());

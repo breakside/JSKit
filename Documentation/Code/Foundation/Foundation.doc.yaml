@@ -15,6 +15,9 @@ topics:
       - JSClass
       - JSObject
       - JSProtocol
+      - JSDynamicProperty
+      - JSReadOnlyProperty
+      - JSLazyInitProperty
   - 
     name: Strings & Data
     summary: Dealing with strings, bytes, attributed strings, unicode, and encodings
@@ -23,6 +26,8 @@ topics:
       - JSAttributedString
       - JSData
       - UnicodeChar
+      - UnicodeIterator
+      - UserPerceivedCharacterIterator
   - 
     name: Date & Time
     summary: Date & Time, including calendar, time zone, and localization
