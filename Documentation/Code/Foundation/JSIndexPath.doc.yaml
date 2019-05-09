@@ -1,10 +1,9 @@
 kind: class
-summary: A two-dimensional index, useful for things like sectioned lists
+summary: An n-dimensional index, useful for things like nested lists
 description: |
-  An index path has two properties that together specify a lookup location
-  in a two-dimensional list.
+  An index path specifies a location in a nested set of a arrays.
 
-  For example, a common UI view is a list view with rows that are grouepd
+  For example, `UIListView` displays rows that are grouepd
   into sections.  A `JSIndexPath` can reference a particular row by specifying
   the top level `section` and `row` within the section.
 topics:
@@ -13,7 +12,11 @@ topics:
     members:
       -
         kind: constructor
-        summary: Create an index path with the given section and row components
+        summary: Create a two-dimensional index path with the given section and row components
+        description: |
+          Since a two-dimensional list is common in UI components, such as
+          `UIListView`, we have a special constructor that takes just two
+          index components.
         arguments:
           -
             name: section
@@ -23,6 +26,15 @@ topics:
             name: row
             type: int
             summary: The row index within the section
+      -
+        kind: constructor
+        prefix: array
+        summary: Create an index path of arbirary dimension with the given components
+        arguments:
+          -
+            name: components
+            type: int[]
+            summary: The index components for this index path
       -
         kind: constructor
         prefix: copy
@@ -39,10 +51,34 @@ topics:
         name: section
         type: int
         summary: The top level section index for this index path
+        description: |
+          Eqivalent to `this[0]`.
+
+          Common UI components such as `UIListView` make heavy use of two-dimensional
+          lists, so it can be convenient to have a special named property here on
+          `JSIndexPath` to access the first index component.
       -
         name: row
         type: int
-        summary: The row index within the section
+        summary: The row index within the section for this index path
+        description: |
+          Eqivalent to `this[1]`.
+
+          Common UI components such as `UIListView` make heavy use of two-dimensional
+          lists, so it can be convenient to have a special named property here on
+          `JSIndexPath` to access the second index component.
+      -
+        name: "[n]"
+        type: int
+        summary: The `n`th level index in this index path
+        description: |
+          While we have special property names like `section` and `row` for
+          the first two indexes, all others must be accessed via a subscript
+          operation, where `n` is the desired level.
+        note: |
+          * `0` is the first level, equivalent to the `section` property
+          * `1` is the second level, equivalent to the `row` property
+          * `2` is the third level, and is the first level after `row`
   -
     name: Comparisons
     members:
@@ -51,8 +87,8 @@ topics:
         kind: method
         summary: Check if this index path is equal to another
         description: |
-          Two index paths are equal if their `section` and `row` properties
-          are both equal.
+          Two index paths are equal if they have the same number of components
+          and all components are equal
         return: \`true` if the index path's properties match ours, `false` otherwise
         type: bool
         arguments:
@@ -65,9 +101,9 @@ topics:
         kind: method
         summary: Check if this index path is less than another index path
         description: |
-          And index path is less than another if its `section` is less than the other's
-          `section`, or if the two sections are equal and its `row` is less than the
-          other's `row`
+          For example, a two-dimensional index path is less than another if its
+          `section` is less than the other's `section`, or if the two sections
+          are equal and its `row` is less than the other's `row`
         return: \`true` if this index path is less than the other, `false` otherwise
         type: bool
         arguments:
@@ -80,9 +116,9 @@ topics:
         kind: method
         summary: Check if this index path is less than or equal to another index path
         description: |
-          And index path is less than or equal to another if its `section` is less than the other's
-          `section`, or if the two sections are equal and its `row` is less than or equal to the
-          other's `row`
+          For example, a two-dimensional index path is less than another if its
+          `section` is less than the other's `section`, or if the two sections
+          are equal and its `row` is less than or equal to the other's `row`
         return: \`true` if this index path is less than or equal to the other, `false` otherwise
         type: bool
         arguments:
@@ -95,9 +131,9 @@ topics:
         kind: method
         summary: Check if this index path is greater than another index path
         description: |
-          And index path is greater than another if its `section` is greater than the other's
-          `section`, or if the two sections are equal and its `row` is greater than the
-          other's `row`
+          For example, a two-dimensional index path is greater than another if its
+          `section` is greater than the other's `section`, or if the two sections
+          are equal and its `row` is greater than the other's `row`
         return: \`true` if this index path is greater than the other, `false` otherwise
         type: bool
         arguments:
@@ -110,9 +146,9 @@ topics:
         kind: method
         summary: Check if this index path is greater than or equal to another index path
         description: |
-          And index path is greater than or equal to another if its `section` is greater than the other's
-          `section`, or if the two sections are equal and its `row` is greater than or equal to the
-          other's `row`
+          For example, a two-dimensional index path is greater than another if its
+          `section` is greater than the other's `section`, or if the two sections
+          are equal and its `row` is greater than or equal to the other's `row`
         return: \`true` if this index path is greater than or equal to the other, `false` otherwise
         type: bool
         arguments:
@@ -139,40 +175,27 @@ topics:
       -
         name: incremented
         kind: method
-        summary: Return a new index path incremented by one row, rolling over to
-          the first row of the next section if necessary
-        description: |
-          Adds a single row to the index path, using the `numberOfRowsBySection`
-          argument to rollover into the next section if necessary.
-
-          If this index path is the final row in the final section, there is no
-          incremented index path, and `null` is returned instead.
-        return: A new index path that is one row greater than this index path,
-          or `null` if we're the final row in the final section
+        summary: Return a new index path with the final component incremented by one
+        note: |
+          This kind of simple incrementing is of limited use without instructions
+          on when the final component should rollover to `0` and the previous component
+          should be incremented, like when incrementing from the final row in a section
+          to the first row of the next section.  Such instructions are specific to the
+          caller and cannot be easily baked into `JSIndexPath`.
+        return: A new index path with a final component that is one greater than this index path
         type: JSIndexPath
-        arguments:
-          -
-            name: numberOfRowsBySection
-            type: int[]
-            summary: An array of integers representing the number of rows in each section,
-              required in order to tell if this index path is the final row in its section.
       -
         name: decremented
         kind: method
-        summary: Return a new index path decremented by one row, rolling over to
-          the final row in of previous section if necessary
+        summary: Return a new index path with the final component decremented by one
         description: |
-          Subtracts a single row to the index path, using the `numberOfRowsBySection`
-          argument to rollover into the previous section if necessary.
-
-          If this indexPath is 0,0 there is no decremented index path, and `null`
-          is returned instead.
-        return: A new index path that is one row less than this index path,
-          or `null` if we're the first row in the first section
+          Subtracts one from the final component of the index path, possibly resulting in `-1`
+          if the final component is `0`.
+        note: |
+          This kind of simple decremeting is of limited use without instructions
+          on what to do when the final component is 0.  While it's obvious that the
+          previous component should be decremented, it's not obvious what value the
+          final component should have.  Such instructions are specific to the
+          caller and cannot be easily baked into `JSIndexPath`.
+        return: A new index path with a final compnent one less than this index path
         type: JSIndexPath
-        arguments:
-          -
-            name: numberOfRowsBySection
-            type: int[]
-            summary: An array of integers representing the number of rows in each section,
-              required in order to tell what the final row of the previous section is
