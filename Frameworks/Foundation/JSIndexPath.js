@@ -1,5 +1,5 @@
 // #import "JSBinarySearcher.js"
-/* global JSGlobalObject, JSIndexPath, JSIndexPathRange, JSIndexPathSet, JSBinarySearcher */
+/* global JSGlobalObject, JSCopy, JSIndexPath, JSIndexPathRange, JSIndexPathSet, JSBinarySearcher */
 'use strict';
 
 (function(){
@@ -8,78 +8,174 @@ JSGlobalObject.JSIndexPath = function(section, row){
     if (this === undefined){
         return new JSIndexPath(section, row);
     }
-    if (section instanceof JSIndexPath){
-        this.section = section.section;
-        this.row = section.row;
+    if ((section instanceof JSIndexPath) || (section instanceof Array)){
+        for (var i = 0, l = section.length; i < l; ++i){
+            this[i] = section[i];
+        }
+        this.length = section.length;
     }else{
         if (section === undefined || row === undefined){
-            throw new Error("JSIndexPath constructor requires a JSIndexPath to copy, or both section and row values");
+            throw new Error("JSIndexPath constructor requires a JSIndexPath to copy, an array of components, or both section and row values");
         }
-        this.section = section;
-        this.row = row;
+        this[0] = section;
+        this[1] = row;
+        this.length = 2;
     }
 };
 
-JSIndexPath.prototype = {
+Object.defineProperties(JSIndexPath.prototype, {
 
-    isEqual: function(other){
-        return this.section === other.section && this.row === other.row;
+    length: {
+        writable: true,
+        value: 0
     },
 
-    isLessThan: function(other){
-        return this.section < other.section || (this.section === other.section && this.row < other.row);
-    },
-
-    isLessThanOrEqual: function(other){
-        return this.section < other.section || (this.section === other.section && this.row <= other.row);
-    },
-
-    isGreaterThan: function(other){
-        return !this.isLessThanOrEqual(other);
-    },
-
-    isGreaterThanOrEqual: function(other){
-        return !this.isLessThan(other);
-    },
-
-    compare: function(other){
-        if (this.isLessThan(other)){
-            return -1;
+    section: {
+        get: function(){
+            return this[0];
+        },
+        set: function(section){
+            this[0] = section;
         }
-        if (this.isEqual(other)){
-            return 0;
-        }
-        return 1;
     },
 
-    incremented: function(numberOfRowsBySection){
-        var next = new JSIndexPath(this);
-        next.row += 1;
-        while (next !== null && next.row >= numberOfRowsBySection[next.section]){
-            next.section += 1;
-            next.row = 0;
-            if (next.section >= numberOfRowsBySection.length){
-                next = null;
+    row: {
+        get: function(){
+            return this[1];
+        },
+        set: function(row){
+            this[1] = row;
+        }
+    },  
+
+    isEqual: {
+        value: function JSIndexPath_isEqual(other){
+            if (this.length != other.length){
+                return false;
+            }
+            var equal = true;
+            for (var i = 0, l = this.length; i < l && equal; ++i){
+                equal = this[i] == other[i];
+            }
+            return equal;
+        }
+    },
+
+    compare: {
+        value: function JSIndexPath_compare(other){
+            if (this.isLessThan(other)){
+                return -1;
+            }
+            if (this.isEqual(other)){
+                return 0;
+            }
+            return 1;
+        }
+    },
+
+    isGreaterThan: {
+        value: function JSIndexPath_isGreaterThan(other){
+            return !this.isLessThanOrEqual(other);
+        }
+    },
+
+    isGreaterThanOrEqual: {
+        value: function JSIndexPath_isGreaterThanOrEqual(other){
+            return !this.isLessThan(other);
+        }
+    },
+
+    isLessThan: {
+        value: function JSIndexPath_isLessThan(other){
+            var i = 0;
+            var l = this.length;
+            var ol = other.length;
+            while (i < l && i < ol){
+                if (this[i] < other[i]){
+                    return true;
+                }
+                if (this[i] > other[i]){
+                    return false;
+                }
+                ++i;
+            }
+            if (ol > l){
+                return true;
+            }
+            return false;
+        }
+    },
+
+    isLessThanOrEqual: {
+
+        value: function JSIndexPath_isLessThanOrEqual(other){
+            var i = 0;
+            var l = this.length;
+            var ol = other.length;
+            while (i < l && i < ol){
+                if (this[i] < other[i]){
+                    return true;
+                }
+                if (this[i] > other[i]){
+                    return false;
+                }
+                ++i;
+            }
+            if (ol >= l){
+                return true;
+            }
+            return false;
+        }
+    },
+
+    incremented: {
+        value: function JSIndexPath_incremented(numberOfRowsBySection){
+            var next = new JSIndexPath(this);
+            next[next.length - 1] += 1;
+            return next;
+        }
+    },
+
+    decremented: {
+        value: function JSIndexPath_decremented(numberOfRowsBySection){
+            var prev = new JSIndexPath(this);
+            prev[prev.length - 1] -= 1;
+            return prev;
+        }
+    },
+
+    appendingIndex: {
+        value: function JSIndexPath_appending(index){
+            var copy = JSIndexPath(this);
+            copy.appendIndex(index);
+            return copy;
+        }
+    },
+
+    appendIndex: {
+        value: function JSIndexPath_append(index){
+            this[this.length++] = index;
+        }
+    },
+
+    removeLastIndex: {
+        value: function JSIndexPath_removeLastIndex(){
+            if (this.length > 1){
+                --this.length;
+                delete this[this.length];
             }
         }
-        return next;
     },
 
-    decremented: function(numberOfRowsBySection){
-        var prev = new JSIndexPath(this);
-        prev.row -= 1;
-        while (prev !== null && prev.row < 0){
-            prev.section -= 1;
-            if (prev.section < 0){
-                prev = null;
-            }else{
-                prev.row = numberOfRowsBySection[prev.section] - 1;
-            }
+    removingLastIndex: {
+        value: function JSIndexPath_removingLastIndex(){
+            var copy = JSIndexPath(this);
+            copy.removeLastIndex();
+            return copy;
         }
-        return prev;
     }
 
-};
+});
 
 JSGlobalObject.JSIndexPathRange = function(start, end){
     if (this === undefined){
@@ -138,12 +234,14 @@ JSGlobalObject.JSIndexPathSet = function(obj){
 
 JSIndexPathSet.prototype = {
 
+    delegate: null,
+
     addIndexPath: function(indexPath){
         this.addRange(JSIndexPathRange(indexPath, indexPath));
     },
 
-    removeIndexPath: function(indexPath, numberOfRowsBySection){
-        this.removeRange(JSIndexPathRange(indexPath, indexPath), numberOfRowsBySection);
+    removeIndexPath: function(indexPath){
+        this.removeRange(JSIndexPathRange(indexPath, indexPath));
     },
 
     addRange: function(range){
@@ -154,9 +252,15 @@ JSIndexPathSet.prototype = {
         var startIndex = searcher.insertionIndexForValue(range.start);
         var endIndex = range.start.isEqual(range.end) ? startIndex : searcher.insertionIndexForValue(range.end);
         var other;
+        var comparison;
         if (endIndex < this.ranges.length){
             other = this.ranges[endIndex];
-            if (range.end.isGreaterThanOrEqual(other.start) || (range.end.section == other.start.section && range.end.row == other.start.row - 1)){
+            if (this.delegate && this.delegate.indexPathBefore){
+                comparison = this.delegate.indexPathBefore(other.start);
+            }else{
+                comparison = other.start.decremented();
+            }
+            if (comparison && range.end.isGreaterThanOrEqual(comparison)){
                 range.end = other.end;
                 endIndex += 1;
             }
@@ -169,7 +273,12 @@ JSIndexPathSet.prototype = {
         }
         if (startIndex > 0){
             other = this.ranges[startIndex - 1];
-            if (range.start.isLessThanOrEqual(other.end) || (range.start.section == other.end.section && range.start.row == other.end.row + 1)){
+            if (this.delegate && this.delegate.indexPathAfter){
+                comparison = this.delegate.indexPathAfter(other.end);
+            }else{
+                comparison = other.end.incremented();
+            }
+            if (comparison && range.start.isLessThanOrEqual(comparison)){
                 range.start = other.start;
                 startIndex -= 1;
             }
@@ -177,7 +286,7 @@ JSIndexPathSet.prototype = {
         this.ranges.splice(startIndex, endIndex - startIndex, range);
     },
 
-    removeRange: function(range, numberOfRowsBySection){
+    removeRange: function(range){
         var searcher = JSBinarySearcher(this.ranges, function(indexPath, b){
             return indexPath.compare(b.end);
         });
@@ -197,23 +306,47 @@ JSIndexPathSet.prototype = {
         if (startIndex === endIndex){
             if (splitsStart && splitsEnd){
                 var newRange = JSIndexPathRange(this.ranges[startIndex]);
-                newRange.end = range.start.decremented(numberOfRowsBySection);
-                this.ranges[startIndex].start = range.end.incremented(numberOfRowsBySection);
+                if (this.delegate && this.delegate.indexPathBefore){
+                    newRange.end = this.delegate.indexPathBefore(range.start);
+                }else{
+                    newRange.end = range.start.decremented();
+                }
+                if (this.delegate && this.delegate.indexPathAfter){
+                    this.ranges[startIndex].start = this.delegate.indexPathAfter(range.end);
+                }else{
+                    this.ranges[startIndex].start = range.end.incremented();
+                }
                 spliceArgs.push(newRange);
             }else if (splitsStart){
-                this.ranges[startIndex].end = range.start.decremented(numberOfRowsBySection);
+                if (this.delegate && this.delegate.indexPathBefore){
+                    this.ranges[startIndex].end = this.delegate.indexPathBefore(range.start);
+                }else{
+                    this.ranges[startIndex].end = range.start.decremented();
+                }
             }else if (splitsEnd){
-                this.ranges[endIndex].start = range.end.incremented(numberOfRowsBySection);
+                if (this.delegate && this.delegate.indexPathAfter){
+                    this.ranges[endIndex].start = this.delegate.indexPathAfter(range.end);
+                }else{
+                    this.ranges[endIndex].start = range.end.incremented();
+                }
             }else if (this.ranges[startIndex].start.isEqual(range.start) && this.ranges[startIndex].end.isEqual(range.end)){
                 endIndex += 1;
             }
         }else{
             if (splitsStart){
-                this.ranges[startIndex].end = range.start.decremented(numberOfRowsBySection);
+                if (this.delegate && this.delegate.indexPathBefore){
+                    this.ranges[startIndex].end = this.delegate.indexPathBefore(range.start);
+                }else{
+                    this.ranges[startIndex].end = range.start.decremented();
+                }
                 startIndex += 1;
             }
             if (splitsEnd){
-                this.ranges[endIndex].start = range.end.incremented(numberOfRowsBySection);
+                if (this.delegate && this.delegate.indexPathAfter){
+                    this.ranges[endIndex].start = this.delegate.indexPathAfter(range.end);
+                }else{
+                    this.ranges[endIndex].start = range.end.incremented();
+                }
             }else if (endIndex < this.ranges.length && this.ranges[endIndex].end.isEqual(range.end)){
                 endIndex += 1;
             }
@@ -285,38 +418,7 @@ JSIndexPathSet.prototype = {
             return 0;
         });
         return searcher.itemMatchingValue(indexPath);
-    },
-
-    enumerate: function(rowCountCallback, callback, target){
-        var range;
-        var indexPath;
-        var section, row;
-        var rowCount;
-        for (var i = 0, l = this.ranges.length; i < l; ++i){
-            range = this.ranges[i];
-            section = range.start.section;
-            if (range.start.section == range.end.section){
-                for (row = range.start.row; row <= range.end.row; ++row){
-                    callback.call(target, JSIndexPath(section, row));
-                }
-            }else{
-                rowCount = rowCountCallback(section);
-                for (row = range.start.row; row < rowCount; ++row){
-                    callback.call(target, JSIndexPath(section, row));
-                }
-                for (section = section + 1; section < range.end.section; ++section){
-                    rowCount = rowCountCallback(section);
-                    for (row = 0; row < rowCount; ++row){
-                        callback.call(target, JSIndexPath(section, row));
-                    }
-                }
-                rowCount = rowCountCallback(section);
-                for (row = 0; row <= range.end.row; ++row){
-                    callback.call(target, JSIndexPath(section, row));
-                }
-            }
-        }
-    },
+    }
 };
 
 Object.defineProperties(JSIndexPathSet.prototype, {

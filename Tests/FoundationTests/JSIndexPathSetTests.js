@@ -172,9 +172,43 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
     },
 
     testRemoveRange: function(){
-        var numberOfRowsBySection = [5,10,20,30,40,0,60,0,80,90];
         var set = JSIndexPathSet();
         var range = JSIndexPathRange(JSIndexPath(0, 0), JSIndexPath(9, 10));
+        set.delegate = {
+            numberOfRowsBySection: [5,10,20,30,40,0,60,0,80,90],
+            indexPathAfter: function(indexPath){
+                if (indexPath === null){
+                    return null;
+                }
+                var next = new JSIndexPath(indexPath);
+                next.row += 1;
+                while (next !== null && next.row >= this.numberOfRowsBySection[next.section]){
+                    next.section += 1;
+                    next.row = 0;
+                    if (next.section >= this.numberOfRowsBySection.length){
+                        next = null;
+                    }
+                }
+                return next;
+            },
+
+            indexPathBefore: function(indexPath){
+                if (indexPath === null){
+                    return null;
+                }
+                var prev = new JSIndexPath(indexPath);
+                prev.row -= 1;
+                while (prev !== null && prev.row < 0){
+                    prev.section -= 1;
+                    if (prev.section < 0){
+                        prev = null;
+                    }else{
+                        prev.row = this.numberOfRowsBySection[prev.section] - 1;
+                    }
+                }
+                return prev;
+            }
+        };
         set.addRange(range);
         TKAssertEquals(set.ranges.length, 1);
         TKAssertEquals(set.ranges[0].start.section, 0);
@@ -184,7 +218,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // remove range not on section boundaries
         range = JSIndexPathRange(JSIndexPath(4, 12), JSIndexPath(4, 15));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 2);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 0);
@@ -197,7 +231,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // remove range on section boundaries
         range = JSIndexPathRange(JSIndexPath(3, 0), JSIndexPath(3, 29));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 3);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 0);
@@ -214,7 +248,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // remove index path on low side of zero-length section
         range = JSIndexPathRange(JSIndexPath(4,39), JSIndexPath(4,39));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 4);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 0);
@@ -235,7 +269,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // remove index path on high side of zero-length section
         range = JSIndexPathRange(JSIndexPath(8,0), JSIndexPath(8,0));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 5);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 0);
@@ -260,7 +294,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // remove range that starts before a selected range
         range = JSIndexPathRange(JSIndexPath(3,15), JSIndexPath(4,2));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 5);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 0);
@@ -285,7 +319,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // remove range that ends after a selected range
         range = JSIndexPathRange(JSIndexPath(2,12), JSIndexPath(3,5));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 5);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 0);
@@ -310,7 +344,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // remove range that spans a gap
         range = JSIndexPathRange(JSIndexPath(2,5), JSIndexPath(4,6));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 5);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 0);
@@ -335,7 +369,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // remove range that matches span
         range = JSIndexPathRange(JSIndexPath(4,16), JSIndexPath(4,38));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 4);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 0);
@@ -356,7 +390,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // remove range that splits at the start and end, and cuts out another range entirely
         range = JSIndexPathRange(JSIndexPath(4,9), JSIndexPath(8,5));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 3);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 0);
@@ -373,7 +407,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // remove range at very start
         range = JSIndexPathRange(JSIndexPath(0,0), JSIndexPath(0,3));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 3);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 4);
@@ -390,7 +424,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // remove range at end
         range = JSIndexPathRange(JSIndexPath(9,0), JSIndexPath(9,10));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 3);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 4);
@@ -407,7 +441,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // remove range at very end
         range = JSIndexPathRange(JSIndexPath(8,10), JSIndexPath(8,79));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 3);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 4);
@@ -424,7 +458,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // remove unselected range at start
         range = JSIndexPathRange(JSIndexPath(0,1), JSIndexPath(0,2));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 3);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 4);
@@ -441,7 +475,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // remove unselected range in middle
         range = JSIndexPathRange(JSIndexPath(2,10), JSIndexPath(2,12));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 3);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 4);
@@ -458,7 +492,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // remove unselected range after end
         range = JSIndexPathRange(JSIndexPath(8,20), JSIndexPath(8,30));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 3);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 4);
@@ -475,7 +509,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // remove multiple ranges
         range = JSIndexPathRange(JSIndexPath(0,1), JSIndexPath(4,20));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 1);
         TKAssertEquals(set.ranges[0].start.section, 8);
         TKAssertEquals(set.ranges[0].start.row, 6);
@@ -484,11 +518,11 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // remove final range
         range = JSIndexPathRange(JSIndexPath(8,0), JSIndexPath(8,79));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 0);
 
         // reset
-        numberOfRowsBySection = [20,20,20,20];
+        set.delegate.numberOfRowsBySection = [20,20,20,20];
         range = JSIndexPathRange(JSIndexPath(0, 4), JSIndexPath(0, 10));
         set.addRange(range);
         range = JSIndexPathRange(JSIndexPath(1, 2), JSIndexPath(1, 7));
@@ -500,7 +534,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // removal range at start
         range = JSIndexPathRange(JSIndexPath(0, 4), JSIndexPath(0, 6));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 4);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 7);
@@ -521,7 +555,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // removal range at start, splitting next range
         range = JSIndexPathRange(JSIndexPath(0, 6), JSIndexPath(1, 4));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 3);
         TKAssertEquals(set.ranges[0].start.section, 1);
         TKAssertEquals(set.ranges[0].start.row, 5);
@@ -538,7 +572,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // removal range at start, matching end of next range
         range = JSIndexPathRange(JSIndexPath(1, 5), JSIndexPath(2, 11));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 1);
         TKAssertEquals(set.ranges[0].start.section, 3);
         TKAssertEquals(set.ranges[0].start.row, 0);
@@ -547,7 +581,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // removal of final range
         range = JSIndexPathRange(JSIndexPath(3, 0), JSIndexPath(3, 5));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 0);
 
         // reset
@@ -562,7 +596,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // removal range at end
         range = JSIndexPathRange(JSIndexPath(3, 2), JSIndexPath(3, 5));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 4);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 4);
@@ -583,7 +617,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // removal range at end, splitting previous range
         range = JSIndexPathRange(JSIndexPath(2, 8), JSIndexPath(3, 1));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 3);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 4);
@@ -600,7 +634,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // removal range at end, matching start of prev range
         range = JSIndexPathRange(JSIndexPath(1, 2), JSIndexPath(2, 7));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 1);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 4);
@@ -609,7 +643,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
 
         // removal of final range
         range = JSIndexPathRange(JSIndexPath(0, 4), JSIndexPath(0, 10));
-        set.removeRange(range, numberOfRowsBySection);
+        set.removeRange(range);
         TKAssertEquals(set.ranges.length, 0);
 
         // single index path operations
@@ -629,7 +663,7 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
         TKAssertEquals(set.ranges[2].start.row, 5);
         TKAssertEquals(set.ranges[2].end.section, 0);
         TKAssertEquals(set.ranges[2].end.row, 5);
-        set.removeIndexPath(JSIndexPath(0, 3), numberOfRowsBySection);
+        set.removeIndexPath(JSIndexPath(0, 3));
         TKAssertEquals(set.ranges.length, 2);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 1);
@@ -639,13 +673,13 @@ JSClass("JSIndexPathSetTests", TKTestSuite, {
         TKAssertEquals(set.ranges[1].start.row, 5);
         TKAssertEquals(set.ranges[1].end.section, 0);
         TKAssertEquals(set.ranges[1].end.row, 5);
-        set.removeIndexPath(JSIndexPath(0, 1), numberOfRowsBySection);
+        set.removeIndexPath(JSIndexPath(0, 1));
         TKAssertEquals(set.ranges.length, 1);
         TKAssertEquals(set.ranges[0].start.section, 0);
         TKAssertEquals(set.ranges[0].start.row, 5);
         TKAssertEquals(set.ranges[0].end.section, 0);
         TKAssertEquals(set.ranges[0].end.row, 5);
-        set.removeIndexPath(JSIndexPath(0, 5), numberOfRowsBySection);
+        set.removeIndexPath(JSIndexPath(0, 5));
         TKAssertEquals(set.ranges.length, 0);
     },
 

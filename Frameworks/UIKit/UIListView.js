@@ -1280,14 +1280,33 @@ JSClass("UIListView", UIScrollView, {
         if (indexPath === null){
             return null;
         }
-        return indexPath.decremented(this._cachedData.numberOfRowsBySection);
+        var prev = new JSIndexPath(indexPath);
+        prev.row -= 1;
+        while (prev !== null && prev.row < 0){
+            prev.section -= 1;
+            if (prev.section < 0){
+                prev = null;
+            }else{
+                prev.row = this._cachedData.numberOfRowsBySection[prev.section] - 1;
+            }
+        }
+        return prev;
     },
 
     indexPathAfter: function(indexPath){
         if (indexPath === null){
             return null;
         }
-        return indexPath.incremented(this._cachedData.numberOfRowsBySection);
+        var next = new JSIndexPath(indexPath);
+        next.row += 1;
+        while (next !== null && next.row >= this._cachedData.numberOfRowsBySection[next.section]){
+            next.section += 1;
+            next.row = 0;
+            if (next.section >= this._cachedData.numberOfRowsBySection.length){
+                next = null;
+            }
+        }
+        return next;
     },
 
     selectableIndexPathAfter: function(indexPath){
@@ -1424,6 +1443,37 @@ JSClass("UIListView", UIScrollView, {
         this.setSelectedIndexPaths(JSIndexPathSet());
     },
 
+    enumerateSelectedIndexPaths: function(callback, target){
+        var range;
+        var indexPath;
+        var section, row;
+        var rowCount;
+        for (var i = 0, l = this.ranges.length; i < l; ++i){
+            range = this.ranges[i];
+            section = range.start.section;
+            if (range.start.section == range.end.section){
+                for (row = range.start.row; row <= range.end.row; ++row){
+                    callback.call(target, JSIndexPath(section, row));
+                }
+            }else{
+                rowCount = this._cachedData.numberOfRowsBySection[section];
+                for (row = range.start.row; row < rowCount; ++row){
+                    callback.call(target, JSIndexPath(section, row));
+                }
+                for (section = section + 1; section < range.end.section; ++section){
+                    rowCount = this._cachedData.numberOfRowsBySection[section];
+                    for (row = 0; row < rowCount; ++row){
+                        callback.call(target, JSIndexPath(section, row));
+                    }
+                }
+                rowCount = this._cachedData.numberOfRowsBySection[section];
+                for (row = 0; row <= range.end.row; ++row){
+                    callback.call(target, JSIndexPath(section, row));
+                }
+            }
+        }
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Mouse Events
 
@@ -1515,9 +1565,7 @@ JSClass("UIListView", UIScrollView, {
                 var cellItems = [];
                 if (this.allowsMultipleSelection && this._selectedIndexPaths.contains(cell.indexPath)){
                     if (this.delegate && this.delegate.pasteboardItemsForListViewAtIndexPath){
-                        this._selectedIndexPaths.enumerate(function(section){
-                           return this._cachedData.numberOfRowsBySection[section];
-                        }, function(indexPath){
+                        this.enumerateSelectedIndexPaths(function(indexPath){
                             cellItems = this.delegate.pasteboardItemsForListViewAtIndexPath(this, indexPath);
                             if (cellItems !== null){
                                 dragItems = dragItems.concat(cellItems);

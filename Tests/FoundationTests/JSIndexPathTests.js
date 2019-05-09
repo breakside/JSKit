@@ -180,64 +180,26 @@ JSClass("JSIndexPathTests", TKTestSuite, {
     },
 
     testIncremented: function(){
-        var a = JSIndexPath(0,0);
-        var b = a.incremented([10,11,12]);
-        TKAssertEquals(b.section, 0);
-        TKAssertEquals(b.row, 1);
-
-        // across section boundary
-        a = JSIndexPath(0,8);
-        b = a.incremented([10,11,12]);
-        TKAssertEquals(b.section, 0);
-        TKAssertEquals(b.row, 9);
-        b = b.incremented([10,11,12]);
+        var a = JSIndexPath(1, 2);
+        var b = a.incremented();
         TKAssertEquals(b.section, 1);
-        TKAssertEquals(b.row, 0);
+        TKAssertEquals(b.row, 3);
 
-        // end of list
-        a = JSIndexPath(2,11);
-        b = a.incremented([10,11,12]);
-        TKAssertNull(b);
-
-        // skip empty section
-        a = JSIndexPath(1,4);
-        b = a.incremented([5,5,0,2]);
-        TKAssertEquals(b.section, 3);
-        TKAssertEquals(b.row, 0);
-
-        // skip multiple empty sections
-        a = JSIndexPath(1,4);
-        b = a.incremented([5,5,0,0,2]);
-        TKAssertEquals(b.section, 4);
-        TKAssertEquals(b.row, 0);
+        a = JSIndexPath([1, 2, 3]);
+        b = a.incremented();
+        TKAssertEquals(b[0], 1);
+        TKAssertEquals(b[1], 2);
+        TKAssertEquals(b[2], 4);
     },
 
     testDecremented: function(){
-        // begining of list
-        var a = JSIndexPath(0,0);
-        var b = a.decremented([10,11,12]);
-        TKAssertNull(b);
-
-        // across section boundary
-        a = JSIndexPath(1,1);
-        b = a.decremented([10,11,12]);
+        var a = JSIndexPath(1, 1);
+        var b = a.decremented();
         TKAssertEquals(b.section, 1);
         TKAssertEquals(b.row, 0);
-        b = b.decremented([10,11,12]);
-        TKAssertEquals(b.section, 0);
-        TKAssertEquals(b.row, 9);
-
-        // skip empty section
-        a = JSIndexPath(3,0);
-        b = a.decremented([5,5,0,2]);
-        TKAssertEquals(b.section, 1);
-        TKAssertEquals(b.row, 4);
-
-        // skip multiple empty sections
-        a = JSIndexPath(4,0);
-        b = a.decremented([5,5,0,0,2]);
-        TKAssertEquals(b.section, 1);
-        TKAssertEquals(b.row, 4);
+        var c = b.decremented();
+        TKAssertEquals(c.section, 1);
+        TKAssertEquals(c.row, -1);
     }
 
 
