@@ -1,7 +1,7 @@
 // #import "UIControl.js"
 // #import "UILabel.js"
 // #import "UIImageView.js"
-/* global JSClass, JSObject, JSLazyInitProperty, UIControl, JSSize, JSImage, UIImageView, JSInsets, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSColor, UIButton, JSTextAlignment, JSPoint, UIView, JSFont, UIButtonStyler, UIButtonDefaultStyler, UIButtonCustomStyler, JSRect */
+/* global JSClass, JSObject, JSLazyInitProperty, UIControl, JSSize, JSImage, UIImageView, JSInsets, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSColor, UIButton, JSTextAlignment, JSPoint, UIView, JSFont, UIButtonStyler, UIButtonDefaultStyler, UIButtonCustomStyler, JSRect, UIButtonImageStyler */
 'use strict';
 
 JSClass("UIButton", UIControl, {
@@ -509,6 +509,46 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
             if (button._imageView !== null){
                 button._imageView.templateColor = this.normalTitleColor;
             }
+        }
+    }
+
+});
+
+JSClass("UIButtonImageStyler", UIButtonStyler, {
+
+    color: JSDynamicProperty('_color', null),
+    activeColor: null,
+    disabledColor: null,
+
+    initWithColor: function(color){
+        this.color = color;
+    },
+
+    setColor: function(color){
+        if (color === this._color){
+            return;
+        }
+        this._color = color;
+        this.activeColor = this._color.colorDarkenedByPercentage(0.2);
+        this.disabledTitleColor = this._color.colorWithAlpha(0.5);
+    },
+
+    initializeControl: function(button){
+        UIButtonImageStyler.$super.initializeControl.call(this, button);
+        this.updateControl(button);
+    },
+
+    updateControl: function(button){
+        UIButtonImageStyler.$super.updateControl.call(this, button);
+        if (button._imageView === null){
+            return;
+        }
+        if (!button.enabled){
+            button._imageView.templateColor = this.disabledColor;
+        }else if (button.active){
+            button._imageView.templateColor = this.activeColor;
+        }else{
+            button._imageView.templateColor = this.color;
         }
     }
 

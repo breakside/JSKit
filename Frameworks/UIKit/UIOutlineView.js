@@ -246,10 +246,14 @@ UIOutlineView.Styler = Object.create({}, {
 JSClass("UIOutlineViewDefaultStyler", UIListViewDefaultStyler, {
 
     disclosureButtonImage: null,
+    disclosureColor: null,
+    selectedDisclosureColor: null,
 
     _commonStylerInit: function(){
         UIOutlineViewDefaultStyler.$super._commonStylerInit.call(this);
         this.disclosureButtonImage = images.disclosure;
+        this.disclosureColor = this.cellDetailTextColor;
+        this.selectedDisclosureColor = this.selectedCellTextColor;
     },
 
     initializeCell: function(cell, indexPath){
@@ -271,7 +275,13 @@ JSClass("UIOutlineViewDefaultStyler", UIListViewDefaultStyler, {
                 cell.stylerProperties.expanded = false;
             }
         }
+        if (cell.selected){
+            cell.disclosureButton.styler.color = this.selectedDisclosureColor;
+        }else{
+            cell.disclosureButton.styler.color = this.disclosureColor;
+        }
         cell.disclosureButton.hidden = !cell.expandable;
+        cell.disclosureButton.styler.updateControl(cell.disclosureButton);
     },
 
     _indentationForCell: function(cell){

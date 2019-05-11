@@ -1,6 +1,6 @@
 // #import "UIListViewCell.js"
 // #import "UIButton.js"
-/* global JSClass, UIListViewCell, UIOutlineViewCell, UIButton, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, _UIOutlineViewCellDisclosureButton, JSInsets */
+/* global JSClass, UIListViewCell, UIOutlineViewCell, UIButton, UIButtonImageStyler, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, JSInsets, JSColor */
 'use strict';
 
 JSClass("UIOutlineViewCell", UIListViewCell, {
@@ -13,7 +13,8 @@ JSClass("UIOutlineViewCell", UIListViewCell, {
 
     _commonCellInit: function(){
         UIOutlineViewCell.$super._commonCellInit.call(this);
-        this._disclosureButton = UIButton.initWithStyler(UIButton.Styler.custom);
+        var buttonStyler = UIButtonImageStyler.initWithColor(JSColor.blackColor);
+        this._disclosureButton = UIButton.initWithStyler(buttonStyler);
         this._contentView.addSubview(this._disclosureButton);
         this._titleInsets = JSInsets(0, 5, 0, 10);
     },
