@@ -1761,7 +1761,7 @@ JSClass("UIListView", UIScrollView, {
             start = -1;
         }
         
-        for (iterator = this._indexPathIteratorForSection(targetIndexPath.section, -1); iterator.indexPath != null && iterator.indexPath.isGreaterThanOrEqual(targetIndexPath); iterator.decrement()){
+        for (iterator = this._indexPathIteratorForSection(targetIndexPath.section, start); iterator.indexPath != null && iterator.indexPath.isGreaterThanOrEqual(targetIndexPath); iterator.decrement()){
             rect.size.height = this._heightForCellAtIndexPath(iterator.indexPath);
             rect.origin.y -= rect.size.height;
         }
@@ -1773,6 +1773,7 @@ JSClass("UIListView", UIScrollView, {
         // - Faster than starting all the way at the top
         // - Fastest when scrolling one row, like when using the down arrow key
         var rect = JSRect(cell.frame);
+        rect.origin.y -= rect.size.height;
         var iterator;
         var start = cell.indexPath;
         var section = cell.indexPath.section;
@@ -1788,7 +1789,7 @@ JSClass("UIListView", UIScrollView, {
             rect.size.height = this._heightForHeaderInSection(section);
             start = 0;
         }
-        for (iterator = this._indexPathIteratorForSection(targetIndexPath.section, 0); iterator.indexPath != null && iterator.indexPath.isLessThanOrEqual(targetIndexPath); iterator.increment()){
+        for (iterator = this._indexPathIteratorForSection(targetIndexPath.section, start); iterator.indexPath != null && iterator.indexPath.isLessThanOrEqual(targetIndexPath); iterator.increment()){
             rect.origin.y += rect.size.height;
             rect.size.height = this._heightForCellAtIndexPath(iterator.indexPath);
         }

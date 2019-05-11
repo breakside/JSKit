@@ -309,9 +309,9 @@ JSClass('UIScrollView', UIView, {
             if (position === UIScrollView.ScrollPosition.auto){
                 // Auto position means choose top if the target is above the current offset,
                 // bottom if the target is below the offset, or nothing if the target is fully visible
-                if (rect.origin.y < this.contentView.bounds.origin.y){
+                if (rect.origin.y - this._contentInsets.top < this.contentView.bounds.origin.y){
                     position = UIScrollView.ScrollPosition.top;
-                }else if (rect.origin.y + rect.size.height > this.contentView.bounds.origin.y + this.contentView.bounds.size.height){
+                }else if (rect.origin.y + this._contentInsets.bottom + rect.size.height > this.contentView.bounds.origin.y + this.contentView.bounds.size.height){
                     position = UIScrollView.ScrollPosition.bottom;
                 }
             }
@@ -320,10 +320,10 @@ JSClass('UIScrollView', UIView, {
                     // Only get here if the target is fully visible, in which case we don't move at all
                     break;
                 case UIScrollView.ScrollPosition.top:
-                    scrollPoint = JSPoint(scrollPoint.x, rect.origin.y);
+                    scrollPoint = JSPoint(scrollPoint.x, rect.origin.y - this._contentInsets.top);
                     break;
                 case UIScrollView.ScrollPosition.bottom:
-                    scrollPoint = JSPoint(scrollPoint.x, rect.origin.y + rect.size.height - this.contentView.bounds.size.height);
+                    scrollPoint = JSPoint(scrollPoint.x, rect.origin.y + this._contentInsets.bottom + rect.size.height - this.contentView.bounds.size.height);
                     break;
                 case UIScrollView.ScrollPosition.middle:
                     scrollPoint = JSPoint(scrollPoint.x, rect.origin.y + rect.size.height / 2.0 - this.contentView.bounds.size.height / 2.0);

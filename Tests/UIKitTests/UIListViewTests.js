@@ -322,6 +322,82 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertExactEquals(calls.cellForListViewAtIndexPath[4].listView, listView);
         TKAssertObjectEquals(calls.cellForListViewAtIndexPath[4].indexPath, JSIndexPath(0,0));
         TKAssertExactEquals(calls.CustomCellInit.length, 4);
+    },
+
+    testRectForCell: function(){
+        var CustomCell = UIListViewCell.$extend({
+            initWithReuseIdentifier: function(identifier, styler){
+                CustomCell.$super.initWithReuseIdentifier.call(this, identifier, styler);
+            }
+        }, "CustomCell1");
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 100));
+        listView.registerCellClassForReuseIdentifier(CustomCell, "test");
+        listView.rowHeight = 40;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return 3;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                switch (sectionIndex){
+                    case 0:
+                        return 3;
+                    case 1:
+                        return 0;
+                    case 2:
+                        return 5;
+                }
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = listView.dequeueReusableCellWithIdentifier("test", indexPath);
+                return cell;
+            },
+        };
+
+        this.window.contentView.addSubview(listView);
+        this.windowServer.displayServer.updateDisplay();
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay();
+
+        var rect = listView.rectForCellAtIndexPath(JSIndexPath(0, 0));
+        TKAssertObjectEquals(rect, JSRect(0, 0, 300, 40));
+        rect = listView.rectForCellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertObjectEquals(rect, JSRect(0, 40, 300, 40));
+        rect = listView.rectForCellAtIndexPath(JSIndexPath(0, 2));
+        TKAssertObjectEquals(rect, JSRect(0, 80, 300, 40));
+        rect = listView.rectForCellAtIndexPath(JSIndexPath(2, 0));
+        TKAssertObjectEquals(rect, JSRect(0, 120, 300, 40));
+        rect = listView.rectForCellAtIndexPath(JSIndexPath(2, 1));
+        TKAssertObjectEquals(rect, JSRect(0, 160, 300, 40));
+        rect = listView.rectForCellAtIndexPath(JSIndexPath(2, 2));
+        TKAssertObjectEquals(rect, JSRect(0, 200, 300, 40));
+        rect = listView.rectForCellAtIndexPath(JSIndexPath(2, 3));
+        TKAssertObjectEquals(rect, JSRect(0, 240, 300, 40));
+        rect = listView.rectForCellAtIndexPath(JSIndexPath(2, 4));
+        TKAssertObjectEquals(rect, JSRect(0, 280, 300, 40));
+
+        listView.contentOffset = JSPoint(0, 150);
+        rect = listView.rectForCellAtIndexPath(JSIndexPath(0, 0));
+        TKAssertObjectEquals(rect, JSRect(0, -150, 300, 40));
+        rect = listView.rectForCellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertObjectEquals(rect, JSRect(0, -110, 300, 40));
+        rect = listView.rectForCellAtIndexPath(JSIndexPath(0, 2));
+        TKAssertObjectEquals(rect, JSRect(0, -70, 300, 40));
+        rect = listView.rectForCellAtIndexPath(JSIndexPath(2, 0));
+        TKAssertObjectEquals(rect, JSRect(0, -30, 300, 40));
+        rect = listView.rectForCellAtIndexPath(JSIndexPath(2, 1));
+        TKAssertObjectEquals(rect, JSRect(0, 10, 300, 40));
+        rect = listView.rectForCellAtIndexPath(JSIndexPath(2, 2));
+        TKAssertObjectEquals(rect, JSRect(0, 50, 300, 40));
+        rect = listView.rectForCellAtIndexPath(JSIndexPath(2, 3));
+        TKAssertObjectEquals(rect, JSRect(0, 90, 300, 40));
+        rect = listView.rectForCellAtIndexPath(JSIndexPath(2, 4));
+        TKAssertObjectEquals(rect, JSRect(0, 130, 300, 40));
+
     }
 
 });
