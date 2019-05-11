@@ -67,6 +67,8 @@
 // #import "UIListViewCell.js"
 // #import "UIListViewHeaderFooterView.js"
 // #import "UIListViewController.js"
+// #import "UIOutlineView.js"
+// #import "UIOutlineViewCell.js"
 
 // Specialized View Controllers
 // #import "UIDualPaneViewController.js"

@@ -46,6 +46,15 @@ Object.defineProperties(JSIndexPath.prototype, {
         set: function(row){
             this[1] = row;
         }
+    },
+
+    lastIndex: {
+        get: function(){
+            return this[this.length - 1];
+        },
+        set: function(row){
+            this[this.length - 1] = row;
+        }
     },  
 
     isEqual: {
@@ -144,15 +153,15 @@ Object.defineProperties(JSIndexPath.prototype, {
         }
     },
 
-    appendingIndex: {
+    appending: {
         value: function JSIndexPath_appending(index){
             var copy = JSIndexPath(this);
-            copy.appendIndex(index);
+            copy.append(index);
             return copy;
         }
     },
 
-    appendIndex: {
+    append: {
         value: function JSIndexPath_append(index){
             this[this.length++] = index;
         }
@@ -172,6 +181,12 @@ Object.defineProperties(JSIndexPath.prototype, {
             var copy = JSIndexPath(this);
             copy.removeLastIndex();
             return copy;
+        }
+    },
+
+    toString: {
+        value: function JSIndexPath_toString(){
+            return Array.prototype.join.call(this, '.');
         }
     }
 

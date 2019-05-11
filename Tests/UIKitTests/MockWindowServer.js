@@ -4,7 +4,7 @@
 
 JSClass("MockWindowServer", UIWindowServer, {
 
-    init: function(rootElement){
+    init: function(){
         MockWindowServer.$super.init.call(this);
         this.displayServer = MockDisplayServer.init();
         this.textInputManager = MockTextInputManager.init();

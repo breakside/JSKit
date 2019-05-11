@@ -40,10 +40,7 @@ JSProtocol("UIListViewDelegate", JSProtocol, {
 JSProtocol("UIListViewDataSource", JSProtocol, {
 
     numberOfSectionsInListView: function(listView){},
-    numberOfRowsInListViewSection: function(listView, sectionIndex){},
-
-    // Editing
-    listViewCommitDeletionOfRowAtIndexPath: function(listView, indexPath){}
+    numberOfRowsInListViewSection: function(listView, sectionIndex){}
 
 });
 
@@ -121,10 +118,11 @@ JSClass("UIListView", UIScrollView, {
         this._headerFooterClassesByIdentifier = {};
         this._cellsContainerView = UIView.init();
         this._selectedIndexPaths = JSIndexPathSet();
+        this._selectedIndexPaths.delegate = this;
         this._contextSelectedIndexPaths = JSIndexPathSet();
         this.contentView.addSubview(this._cellsContainerView);
         if (this._styler === null){
-            this._styler = UIListView.Styler.default;
+            this._styler = this.$class.Styler.default;
         }
         this._styler.initializeListView(this);
     },
@@ -309,6 +307,9 @@ JSClass("UIListView", UIScrollView, {
     _cachedData: null,
     _needsReload: false,
 
+    _resetCachedData: function(){
+    },
+
     _reloadDuringLayout: function(){
         // First, remove all visible views so _updateVisibleCells will be forced to load all new cells
         var cell, view;
@@ -331,24 +332,28 @@ JSClass("UIListView", UIScrollView, {
 
         // Cache some of the count and layout data so it only has to be queried once
         this._cachedData = {
-            numberOfSections: this.dataSource.numberOfSectionsInListView(this),
+            numberOfSections: this._numberOfSections(),
             numberOfRowsBySection: [],
             expectedHeaderYOrigins: [],
         };
+        this._resetCachedData();
 
         // Figure out the content size based on row heights
         // NOTE: For large tables this is much faster if the delegate does NOT use heightForListViewRowAtIndexPath,
         // unless the delegate also uses estimatedHeightForListViewRows
         var numberOfSections = this._cachedData.numberOfSections;
         var numberOfRows = 0;
-        var indexPath = JSIndexPath(0, 0);
+        var section = 0;
         var y = 0;
+        var iterator;
         if (this.delegate && this.delegate.heightForListViewRowAtIndexPath && !this.delegate.estimatedHeightForListViewRows){
-            for (indexPath.section = 0; indexPath.section < numberOfSections; ++indexPath.section){
-                numberOfRows = this.dataSource.numberOfRowsInListViewSection(this, indexPath.section);
+            for (section = 0; section < numberOfSections; ++section){
+                numberOfRows = this._numberOfRowsInSection(section);
                 this._cachedData.numberOfRowsBySection.push(numberOfRows);
-                for (indexPath.row = 0; indexPath.row < numberOfRows; ++indexPath.row){
-                    y += this.delegate.heightForListViewRowAtIndexPath(this, indexPath);
+                if (numberOfRows > 0){
+                    for (iterator = this._indexPathIteratorForSection(section); iterator.indexPath !== null; iterator.increment()){
+                        y += this.delegate.heightForListViewRowAtIndexPath(this, iterator.indexPath);
+                    }
                 }
             }
         }else{
@@ -356,8 +361,8 @@ JSClass("UIListView", UIScrollView, {
             if (this.delegate && this.delegate.estimatedHeightForListViewRows){
                 rowHeight = this.delegate.estimatedHeightForListViewRows(this);
             }
-            for (indexPath.section = 0; indexPath.section < numberOfSections; ++indexPath.section){
-                numberOfRows = this.dataSource.numberOfRowsInListViewSection(this, indexPath.section);
+            for (section = 0; section < numberOfSections; ++section){
+                numberOfRows = this._numberOfRowsInSection(section);
                 this._cachedData.numberOfRowsBySection.push(numberOfRows);
                 y += numberOfRows * rowHeight;
             }
@@ -370,7 +375,6 @@ JSClass("UIListView", UIScrollView, {
         // Increase the content size based on header/footer heights
         // NOTE: For large number of sections this is much faster if the delegate does NOT use heightForListView(Header|Footer)InSection
         // unless the delegate also uses estimatedHeightForListView(Headers|Footers)
-        var section;
         if (this.delegate && (this.delegate.heightForListViewHeaderInSection && !this.delegate.estimatedHeightForListViewHeaders)){
             for (section = 0; section < numberOfSections; ++section){
                 y += this.delegate.heightForListViewHeaderInSection(this, section);
@@ -419,6 +423,14 @@ JSClass("UIListView", UIScrollView, {
         this._hasLoadedOnce = true;
     },
 
+    _numberOfSections: function(){
+        return this.dataSource.numberOfSectionsInListView(this);
+    },
+
+    _numberOfRowsInSection: function(section){
+        return this.dataSource.numberOfRowsInListViewSection(this, section);
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Inserting and Deleting Rows
 
@@ -461,7 +473,7 @@ JSClass("UIListView", UIScrollView, {
                 this._deleteVisibleCellAtIndexPath(indexPath, height);
             }
             if (this._selectedIndexPaths.contains(indexPath)){
-                this._selectedIndexPaths.removeIndexPath(indexPath, this._cachedData.numberOfRowsBySection);
+                this._selectedIndexPaths.removeIndexPath(indexPath);
                 changedSelection = true;
             }
         }
@@ -710,38 +722,21 @@ JSClass("UIListView", UIScrollView, {
     },
 
     _createViewsForRectBeforeFirstVisibleView: function(rect){
-        var visibleHeadersBySection = {};
-        var visibleFootersBySection = {};
-        var cell = null;
-        var header = null;
-        var footer = null;
-        var i, l;
-        // Looping backwards so the header var will hold the first header, if any
-        for (i = this._visibleHeaderViews.length - 1; i >= 0; --i){
-            header = this._visibleHeaderViews[i];
-            visibleHeadersBySection[header.section] = header;
-        }
-        // Looping backwards so the footer var will hold the first footer, if any
-        for (i = this._visibleFooterViews.length - 1; i >= 0; --i){
-            footer = this._visibleFooterViews[i];
-            visibleFootersBySection[footer.section] = footer;
-        }
+        var cell = this._visibleCellViews.length > 0 ? this._visibleCellViews[0] : null;
+        var header = this._visibleHeaderViews.length > 0 ? this._visibleHeaderViews[0] : null;
+        var footer = this._visibleFooterViews.length > 0 ? this._visibleFooterViews[0] : null;
 
-        if (this._visibleCellViews.length){
-            cell = this._visibleCellViews[0];
-        }
-
-        // Figure out the index path and y origin of the first visible cell.
-        // If there is no visible cell, but there is a header or a footer,
-        // fake the index path of the would-be first visual cell by guessing an index
-        // path that comes immediately after the header or footer.  Note that the
-        // guess may not represent an actual index path if the guessed section
-        // is empty, but that doesn't matter since the first operation on the
-        // index path will be to decrement it.
-        var indexPath = null;
+        // Figure out the starting point based on visible views
+        var section;
+        var start;
+        var decrementOnce = false;
+        var skipFooter = true;
         var y;
         if (cell){
-            indexPath = JSIndexPath(cell.indexPath);
+            // If we have visible cells, start just before the first one
+            section = cell.indexPath.section;
+            start = cell.indexPath;
+            decrementOnce = true;
             y = cell.frame.origin.y;
         }else{
             // If we don't have a visible cell, then it means we only have headers and/or footers.
@@ -749,7 +744,9 @@ JSClass("UIListView", UIScrollView, {
             // thing showing. Or perhaps if there are sections without cells, we have a few headers
             // and/or footers that run together.
             if ((header && footer && header.section <= footer.section) || (header && !footer)){
-                indexPath = JSIndexPath(header.section, 0);
+                section = header.section - 1;
+                start = -1;
+                skipFooter = false;
                 if (this._headersStickToTop){
                     // Note: in sticky mode we want to still use non-stuck y origin of the header,
                     // but it might be UNKNOWN_Y_ORIGIN, which means we aren't scrolled enough
@@ -758,17 +755,10 @@ JSClass("UIListView", UIScrollView, {
                 }else{
                     y = header.frame.origin.y;
                 }
-                // The y origin we want is actually the origin of the cell after the header, so
-                // add in the header height
-                y += header.frame.size.height;
             }else if (footer){
-                indexPath = JSIndexPath(footer.section + 1, 0);
-                y = footer.frame.origin.y + footer.frame.size.height;
-                // The y origin we want is actually the origin of the next cell, which may be offset
-                // by a header in the next section, so add that in if availble.
-                if (indexPath.section < this._cachedData.numberOfSections - 1){
-                    y += this._heightForHeaderInSection(indexPath.section + 1);
-                }
+                section = footer.section;
+                start = -1;
+                y = footer.frame.origin.y;
             }else{
                 // No visible cell, header, or footer...we shouldn't be called
                 // if this is the state of things, so this block should never
@@ -783,13 +773,34 @@ JSClass("UIListView", UIScrollView, {
         // or footer twice, which is why we keep track of which sections have
         // visible headers and footers.
         var height;
-        while (y > rect.origin.y && indexPath.section >= 0){
+        var iterator;
+        for (; section >= 0 && y > rect.origin.y; --section){
+            // Footer
+            if (!skipFooter){
+                height = this._heightForFooterInSection(section);
+                if (height > 0){
+                    footer = this._createFooterAtSection(section, y, true);
+                    if (this._visibleFooterViews.length > 0){
+                        this._cellsContainerView.insertSubviewBelowSibling(footer, this._visibleFooterViews[0]);
+                    }else if (this._visibleHeaderViews.length > 0){
+                        this._cellsContainerView.insertSubviewBelowSibling(footer, this._visibleHeaderViews[0]);
+                    }else{
+                        this._cellsContainerView.addSubview(footer);
+                    }
+                    this._visibleFooterViews.unshift(footer);
+                }
+                y -= height;
+            }
+            skipFooter = false;
 
-            // Remaining section cells.  Note how the first step is to increment
-            // because we start with an index path that is already visible.
-            while (y > rect.origin.y && indexPath.row > 0){
-                indexPath.row -= 1;
-                cell = this._createCellAtIndexPath(indexPath, y, true);
+            // Cells
+            iterator = this._indexPathIteratorForSection(section, start);
+            if (decrementOnce){
+                iterator.decrement();
+                decrementOnce = false;
+            }
+            for (; iterator.indexPath !== null && y > rect.origin.y; iterator.decrement()){
+                cell = this._createCellAtIndexPath(iterator.indexPath, y, true);
                 y = cell.frame.origin.y;
                 if (this._visibleCellViews.length > 0){
                     this._cellsContainerView.insertSubviewBelowSibling(cell, this._visibleCellViews[0]);
@@ -804,14 +815,10 @@ JSClass("UIListView", UIScrollView, {
             }
 
             // Section header
-            // NOTE: if we're only showing the footer for the very last section,
-            // our index path will be for an invalid section
-            if (y > rect.origin.y && indexPath.section < this._cachedData.numberOfSections){
-                height = this._heightForHeaderInSection(indexPath.section);
-                this._cachedData.expectedHeaderYOrigins[indexPath.section] = y - height;
-                if (height > 0 && !(indexPath.section in visibleHeadersBySection)){
-                    header = this._createHeaderAtSection(indexPath.section, y, true);
-                    visibleHeadersBySection[indexPath.section] = header;
+            if (y > rect.origin.y || this._headersStickToTop){
+                height = this._heightForHeaderInSection(section);
+                if (height > 0){
+                    header = this._createHeaderAtSection(section, iterator.indexPath === null ? y : UNKNOWN_Y_ORIGIN, true);
                     if (this._visibleHeaderViews.length > 0){
                         this._cellsContainerView.insertSubviewBelowSibling(header, this._visibleHeaderViews[0]);
                     }else{
@@ -822,101 +829,51 @@ JSClass("UIListView", UIScrollView, {
                 y -= height;
             }
 
-            // Previous section footer
-            indexPath.section -= 1;
-            if (y > rect.origin.y && indexPath.section >= 0){
-                height = this._heightForFooterInSection(indexPath.section);
-                if (height > 0 && !(indexPath.section in visibleFootersBySection)){
-                    footer = this._createFooterAtSection(indexPath.section, y, true);
-                    visibleFootersBySection[indexPath.section] = footer;
-                    if (this._visibleFooterViews.length > 0){
-                        this._cellsContainerView.insertSubviewBelowSibling(footer, this._visibleFooterViews[0]);
-                    }else if (this._visibleHeaderViews.length > 0){
-                        this._cellsContainerView.insertSubviewBelowSibling(footer, this._visibleHeaderViews[0]);
-                    }else{
-                        this._cellsContainerView.addSubview(footer);
-                    }
-                    this._visibleFooterViews.unshift(footer);
-                }
-                y-= height;
-                indexPath.row = this._cachedData.numberOfRowsBySection[indexPath.section];
-
-                // Sicky previous section header
-                if (this._headersStickToTop && !(indexPath.section in visibleHeadersBySection)){
-                    height = this._heightForHeaderInSection(indexPath.section);
-                    if (height > 0){
-                        header = this._createHeaderAtSection(indexPath.section, UNKNOWN_Y_ORIGIN);
-                        visibleHeadersBySection[indexPath.section] = header;
-                        if (this._visibleHeaderViews.length > 0){
-                            this._cellsContainerView.insertSubviewBelowSibling(header, this._visibleHeaderViews[0]);
-                        }else{
-                            this._cellsContainerView.addSubview(header);
-                        }
-                        this._visibleHeaderViews.unshift(header);
-                    }
-                }
-            }
+            start = -1;
         }
     },
 
     _createViewsForRectAfterLastVisibleView: function(rect){
-        var visibleHeadersBySection = {};
-        var visibleFootersBySection = {};
-        var cell = null;
-        var header = null;
-        var footer = null;
-        var i, l;
-        // Looping forwards so the header var will hold the first header, if any
-        for (i = 0, l = this._visibleHeaderViews.length; i < l; ++i){
-            header = this._visibleHeaderViews[i];
-            visibleHeadersBySection[header.section] = header;
-        }
-        // Looping forwards so the footer var will hold the first footer, if any
-        for (i = 0, l = this._visibleFooterViews.length; i < l; ++i){
-            footer = this._visibleFooterViews[i];
-            visibleFootersBySection[footer.section] = footer;
-        }
+        var cell = this._visibleCellViews.length > 0 ? this._visibleCellViews[this._visibleCellViews.length - 1] : null;
+        var header = this._visibleHeaderViews.length > 0 ? this._visibleHeaderViews[this._visibleHeaderViews.length - 1] : null;
+        var footer = this._visibleFooterViews.length > 0 ? this._visibleFooterViews[this._visibleFooterViews.length - 1] : null;
 
-        if (this._visibleCellViews.length){
-            cell = this._visibleCellViews[this._visibleCellViews.length - 1];
-        }
-
-        // Figure out the index path and bottom of the last visible cell.
-        // If there is no visible cell, but there is a header or a footer,
-        // fake the index path of the would-be last visual cell by guessing an index
-        // path that comes immediately before the header or footer.  Note that the
-        // guess may not represent an actual index path if the guessed section
-        // is empty, but that doesn't matter since the first operation on the
-        // index path will be to increment it.
-        var indexPath = null;
+        // Figure out the starting point, based on the visible views
+        var section;
+        var start;
         var y;
+        var iterator;
+        var incrementOnce = false;
+        var skipHeader = true;
         if (cell){
-            indexPath = JSIndexPath(cell.indexPath);
+            // If we have visible cells, we start right after the last one
+            section = cell.indexPath.section;
+            start = cell.indexPath;
             y = cell.frame.origin.y + cell.frame.size.height;
+            incrementOnce = true;
         }else{
             // If we don't have a visible cell, then it means we only have headers and/or footers.
             // This can happen if a header or footer is taller than our bounds, so it's the only
             // thing showing. Or perhaps if there are sections without cells, we have a few headers
             // and/or footers that run together.
-            if ((header && footer && header.section <= footer.section) || (header && !footer)){
-                if (header.section > 0){
-                    indexPath = JSIndexPath(header.section - 1, this._cachedData.numberOfRowsBySection[header.section - 1] - 1);
-                }else{
-                    indexPath = JSIndexPath(header.section - 1, 0);
-                }
+            if ((header && footer && header.section > footer.section) || (header && !footer)){
+                // If the last visible header is for a later section than the last visible footer,
+                // start at the first row of that section
+                section = header.section;
+                start = 0;
                 if (this._headersStickToTop){
                     y = this._cachedData.expectedHeaderYOrigins[header.section];
                 }else{
                     y = header.frame.origin.y;
                 }
-                // We really want the bottom of the cell before this header, which means we need
-                // to subtract out any preceding footer height.
-                if (indexPath.section >= 0){
-                    y -= this._heightForFooterInSection(indexPath.section);
-                }
+                y += header.frame.size.height;
             }else if (footer){
-                indexPath = JSIndexPath(footer.section, this._cachedData.numberOfRowsBySection[footer.section] - 1);
-                y = footer.frame.origin.y;
+                // If the last visible item is a footer, start at the beginning
+                // of the next section
+                section = footer.section + 1;
+                start = 0;
+                y = footer.frame.origin.y + footer.frame.size.height;
+                skipHeader = false;
             }else{
                 // No visible cell, header, or footer...we shouldn't be called
                 // if this is the state of things, so this block should never
@@ -928,23 +885,33 @@ JSClass("UIListView", UIScrollView, {
         // Loop forward and fill in any cells, headers, and footers that have
         // come on screen.  Note that since the loop is based off of cell index
         // path iteration, we need to be careful to NOT insert the same header
-        // or footer twice, which is why we keep track of which sections have
-        // visible headers and footers.
+        // or twice, which is why we keep track of which sections have
+        // visible headers.
         var height;
         var bottom = rect.origin.y + rect.size.height;
-        while (y < bottom && indexPath.section < this._cachedData.numberOfSections){
+        for (;section < this._cachedData.numberOfSections && y < bottom; ++section){
+            // Section header
+            if (!skipHeader){
+                height = this._heightForHeaderInSection(section);
+                if (height > 0){
+                    header = this._createHeaderAtSection(section, y);
+                    this._cellsContainerView.addSubview(header);
+                    this._visibleHeaderViews.push(header);
+                }
+                y += height;
+            }
+            skipHeader = false;
 
-            // Remaining section cells.  Note how the first step is to increment
-            // because we start with an index path that is already visible.
-            // Note that if all we currently have is the first section header, our indexPath
-            // will have an invalid section of -1, so we need to watch out and skip if necessary
-            while (indexPath.section >= 0 && y < bottom && indexPath.row < this._cachedData.numberOfRowsBySection[indexPath.section] - 1){
-                indexPath.row += 1;
-                cell = this._createCellAtIndexPath(indexPath, y);
+            // Section cells
+            iterator = this._indexPathIteratorForSection(section, start);
+            if (incrementOnce){
+                iterator.increment();
+                incrementOnce = false;
+            }
+            for (; iterator.indexPath !== null && y < bottom; iterator.increment()){
+                cell = this._createCellAtIndexPath(iterator.indexPath, y);
                 y = cell.frame.origin.y + cell.frame.size.height;
-                if (this._visibleCellViews.length > 0){
-                    this._cellsContainerView.insertSubviewAboveSibling(cell, this._visibleCellViews[this._visibleCellViews.length - 1]);
-                }else if (this._visibleFooterViews.length > 0){
+                if (this._visibleFooterViews.length > 0){
                     this._cellsContainerView.insertSubviewBelowSibling(cell, this._visibleFooterViews[0]);
                 }else if (this._visibleHeaderViews.length > 0){
                     this._cellsContainerView.insertSubviewBelowSibling(cell, this._visibleHeaderViews[0]);
@@ -955,13 +922,10 @@ JSClass("UIListView", UIScrollView, {
             }
 
             // Section footer
-            // NOTE: if we're only showing the header for the very first section,
-            // our index path will be for an invalid section
-            if (indexPath.section >= 0 && y < bottom){
-                height = this._heightForFooterInSection(indexPath.section);
-                if (height > 0 && !(indexPath.section in visibleFootersBySection)){
-                    footer = this._createFooterAtSection(indexPath.section, y);
-                    visibleFootersBySection[indexPath.section] = footer;
+            if (y < bottom){
+                height = this._heightForFooterInSection(section);
+                if (height > 0){
+                    footer = this._createFooterAtSection(section, y);
                     if (this._visibleFooterViews.length > 0){
                         this._cellsContainerView.insertSubviewAboveSibling(footer, this._visibleFooterViews[this._visibleFooterViews.length - 1]);
                     }else if (this._visibleHeaderViews.length > 0){
@@ -974,19 +938,7 @@ JSClass("UIListView", UIScrollView, {
                 y += height;
             }
 
-            // Next section header
-            indexPath.section += 1;
-            if (y < bottom && indexPath.section < this._cachedData.numberOfSections){
-                height = this._heightForHeaderInSection(indexPath.section);
-                if (height > 0 && !(indexPath.section in visibleHeadersBySection)){
-                    header = this._createHeaderAtSection(indexPath.section, y);
-                    visibleHeadersBySection[indexPath.section] = header;
-                    this._cellsContainerView.addSubview(header);
-                    this._visibleHeaderViews.push(header);
-                }
-                y += height;
-                indexPath.row = -1;
-            }
+            start = 0;
         }
     },
 
@@ -995,7 +947,6 @@ JSClass("UIListView", UIScrollView, {
         // NOTE: optimizations are possible here if we have a constant row height, but generally this loop
         // will only be called when the table first loads and is scrolled to the top, in which case no
         // optimizations are necessary.
-        var indexPath = JSIndexPath(0, 0);
         var height;
         var i, l;
         var y = 0;
@@ -1003,29 +954,32 @@ JSClass("UIListView", UIScrollView, {
         var cell, header, footer;
         var sectionHasHeader = false;
         var sectionHasVisibleHeader = false;
-        for (indexPath.section = 0; y < bottom && indexPath.section < this._cachedData.numberOfSections; ++indexPath.section){
+        var section;
+        var iterator;
+        for (section = 0; section < this._cachedData.numberOfSections && y < bottom; ++section){
             // Section header
-            height = this._heightForHeaderInSection(indexPath.section);
+            height = this._heightForHeaderInSection(section);
             sectionHasHeader = height > 0;
             sectionHasVisibleHeader = false;
             if (sectionHasHeader && y + height > rect.origin.y){
                 sectionHasVisibleHeader = true;
-                header = this._createHeaderAtSection(indexPath.section, y);
+                header = this._createHeaderAtSection(section, y);
                 this._visibleHeaderViews.push(header);
             }
             y += height;
+
             // Section Cells
-            for (indexPath.row = 0, l = this._cachedData.numberOfRowsBySection[indexPath.section]; y < bottom && indexPath.row < l; ++indexPath.row){
-                height = this._heightForCellAtIndexPath(indexPath);
+            for (iterator = this._indexPathIteratorForSection(section, 0); iterator.indexPath !== null && y < bottom; iterator.increment()){
+                height = this._heightForCellAtIndexPath(iterator.indexPath);
                 if (y + height > rect.origin.y){
-                    cell = this._createCellAtIndexPath(indexPath, y);
+                    cell = this._createCellAtIndexPath(iterator.indexPath, y);
                     this._visibleCellViews.push(cell);
                     // If we're using sticky headers, and the section has a header, but it's not
                     // visible because our bounds start in the middle of the section, go ahead
                     // and make the header visible so it can be stuck at the top
                     if (this._headersStickToTop && sectionHasHeader && !sectionHasVisibleHeader){
                         sectionHasVisibleHeader = true;
-                        header = this._createHeaderAtSection(indexPath.section, UNKNOWN_Y_ORIGIN);
+                        header = this._createHeaderAtSection(section, UNKNOWN_Y_ORIGIN);
                         this._visibleHeaderViews.push(header);
                     }
                 }
@@ -1033,16 +987,16 @@ JSClass("UIListView", UIScrollView, {
             }
             // Section footer
             if (y < bottom){
-                height = this._heightForFooterInSection(indexPath.section);
+                height = this._heightForFooterInSection(section);
                 if (height > 0 && y + height > rect.origin.y){
-                    footer = this._createFooterAtSection(indexPath.section, y);
+                    footer = this._createFooterAtSection(section, y);
                     this._visibleFooterViews.push(footer);
                     // If we're using sticky headers, and the section has a header, but it's not
                     // visible because our bounds start in the middle of the section, go ahead
                     // and make the header visible so it can be stuck at the top
                     if (this._headersStickToTop && sectionHasHeader && !sectionHasVisibleHeader){
                         sectionHasVisibleHeader = true;
-                        header = this._createHeaderAtSection(indexPath.section, UNKNOWN_Y_ORIGIN);
+                        header = this._createHeaderAtSection(section, UNKNOWN_Y_ORIGIN);
                         this._visibleHeaderViews.push(header);
                     }
                 }
@@ -1064,22 +1018,23 @@ JSClass("UIListView", UIScrollView, {
     },
 
     _createCellAtIndexPath: function(indexPath, y, yOffsetByHeight){
+        indexPath = JSIndexPath(indexPath);
         var cell = this.delegate.cellForListViewAtIndexPath(this, indexPath);
         if (cell === null || cell === undefined){
-            throw new Error("Got null/undefined cell for indexPath: %d.%d".sprintf(indexPath.section, indexPath.row));
+            throw new Error("Got null/undefined cell for indexPath: %s".sprintf(indexPath));
         }
         cell.listView = this;
-        cell.indexPath = JSIndexPath(indexPath);
+        cell.indexPath = indexPath;
         var height = this._heightForCellAtIndexPath(indexPath);
         if (yOffsetByHeight){
             y -= height;
         }
         cell.frame = JSRect(0, y, this._cellsContainerView.bounds.size.width, height);
         cell.active = false;
-        cell.selected = this._selectedIndexPaths.contains(indexPath);
-        cell.contextSelected = this._contextSelectedIndexPaths.contains(indexPath);
+        this._updateCellState(cell);
         var styler = cell._styler || this._styler;
         styler.updateCell(cell, indexPath);
+        cell.setNeedsLayout();
         return cell;
     },
 
@@ -1091,7 +1046,7 @@ JSClass("UIListView", UIScrollView, {
         header.kind = UIListViewHeaderFooterView.Kind.header;
         header.section = section;
         var height = this._heightForHeaderInSection(section);
-        if (yOffsetByHeight){
+        if (yOffsetByHeight && y !== UNKNOWN_Y_ORIGIN){
             y -= height;
         }
         this._cachedData.expectedHeaderYOrigins[section] = y;
@@ -1238,6 +1193,7 @@ JSClass("UIListView", UIScrollView, {
 
     setSelectedIndexPaths: function(selectedIndexPaths){
         this._selectedIndexPaths = JSIndexPathSet(selectedIndexPaths);
+        this._selectedIndexPaths.delegate = this;
         this._updateVisibleCellStates();
         if (this.delegate && this.delegate.listViewSelectionDidChange){
             this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
@@ -1269,7 +1225,7 @@ JSClass("UIListView", UIScrollView, {
     },
 
     removeIndexPathFromSelection: function(indexPath){
-        this._selectedIndexPaths.removeIndexPath(indexPath, this._cachedData.numberOfRowsBySection);
+        this._selectedIndexPaths.removeIndexPath(indexPath);
         this._updateVisibleCellStates();
         if (this.delegate && this.delegate.listViewSelectionDidChange){
             this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
@@ -1277,36 +1233,55 @@ JSClass("UIListView", UIScrollView, {
     },
 
     indexPathBefore: function(indexPath){
-        if (indexPath === null){
-            return null;
+        var section = indexPath.section;
+        var iterator = this._indexPathIteratorForSection(section, indexPath);
+        iterator.decrement();
+        while (section > 0 && iterator.indexPath === null){
+            --section;
+            iterator = this._indexPathIteratorForSection(section, -1);
         }
-        var prev = new JSIndexPath(indexPath);
-        prev.row -= 1;
-        while (prev !== null && prev.row < 0){
-            prev.section -= 1;
-            if (prev.section < 0){
-                prev = null;
-            }else{
-                prev.row = this._cachedData.numberOfRowsBySection[prev.section] - 1;
-            }
-        }
-        return prev;
+        return iterator.indexPath;
     },
 
     indexPathAfter: function(indexPath){
-        if (indexPath === null){
+        var section = indexPath.section;
+        var iterator = this._indexPathIteratorForSection(section, indexPath);
+        iterator.increment();
+        while ((section < this._cachedData.numberOfSections - 1) && iterator.indexPath === null){
+            ++section;
+            iterator = this._indexPathIteratorForSection(section, 0);
+        }
+        return iterator.indexPath;
+    },
+
+    _indexPathIteratorForSection: function(section, start){
+        return new SectionIndexPathIterator(section, this._cachedData.numberOfRowsBySection[section], start);
+    },
+
+    _firstIndexPath: function(){
+        if (this._cachedData.numberOfSections === 0){
             return null;
         }
-        var next = new JSIndexPath(indexPath);
-        next.row += 1;
-        while (next !== null && next.row >= this._cachedData.numberOfRowsBySection[next.section]){
-            next.section += 1;
-            next.row = 0;
-            if (next.section >= this._cachedData.numberOfRowsBySection.length){
-                next = null;
-            }
+        var section = 0;
+        var iterator = this._indexPathIteratorForSection(section, 0);
+        while ((section < this._cachedData.numberOfSections - 1) && iterator.indexPath === null){
+            ++section;
+            iterator = this._indexPathIteratorForSection(section, 0);
         }
-        return next;
+        return iterator.indexPath;
+    },
+
+    _lastIndexPath: function(){
+        if (this._cachedData.numberOfSections === 0){
+            return null;
+        }
+        var section = this._cachedData.numberOfSections - 1;
+        var iterator = this._indexPathIteratorForSection(section, -1);
+        while (section > 0 && iterator.indexPath === null){
+            --section;
+            iterator = this._indexPathIteratorForSection(section, -1);
+        }
+        return iterator.indexPath;
     },
 
     selectableIndexPathAfter: function(indexPath){
@@ -1333,13 +1308,17 @@ JSClass("UIListView", UIScrollView, {
         var cell;
         for (var i = 0, l = this._visibleCellViews.length; i < l; ++i){
             cell = this._visibleCellViews[i];
-            // FIXME: don't select unless the cell is allowed to be selected
-            // If the selected range(s) cover both selectable and unselectable rows,
-            // as might be the case with a cheap select-all, just because an index path
-            // is contained in the range(s) doesn't mean it can be selected
-            cell.selected = this._selectedIndexPaths.contains(cell.indexPath);
-            cell.contextSelected = this._contextSelectedIndexPaths.contains(cell.indexPath);
+            this._updateCellState(cell);
         }
+    },
+
+    _updateCellState: function(cell){
+        // FIXME: don't select unless the cell is allowed to be selected
+        // If the selected range(s) cover both selectable and unselectable rows,
+        // as might be the case with a cheap select-all, just because an index path
+        // is contained in the range(s) doesn't mean it can be selected
+        cell.selected = this._selectedIndexPaths.contains(cell.indexPath);
+        cell.contextSelected = this._contextSelectedIndexPaths.contains(cell.indexPath);
     },
 
     _updateVisibleCellStyles: function(){
@@ -1428,11 +1407,16 @@ JSClass("UIListView", UIScrollView, {
         // could be very expensive
         // Maybe allow an unselectableIndexPathSet to be set or queried from the delegate, and
         // do the subtraction automatically 
-        var start = JSIndexPath(0, 0);
-        var end = JSIndexPath(this._cachedData.numberOfSections - 1, this._cachedData.numberOfRowsBySection[this._cachedData.numberOfSections - 1] - 1);
-        var allRange = JSIndexPathRange(start, end);
-        var allIndexes = JSIndexPathSet(allRange);
-        this._selectedIndexPaths = allIndexes;
+        var start = this._firstIndexPath();
+        var end = this._lastIndexPath();
+        if (start !== null && end !== null){
+            var allRange = JSIndexPathRange(start, end);
+            var allIndexes = JSIndexPathSet(allRange);
+            this._selectedIndexPaths = allIndexes;
+        }else{
+            this._selectedIndexPaths = JSIndexPathSet();
+        }
+        this._selectedIndexPaths.delegate = this;
         this._updateVisibleCellStates();
         if (this.delegate && this.delegate.listViewSelectionDidChange){
             this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
@@ -1443,32 +1427,42 @@ JSClass("UIListView", UIScrollView, {
         this.setSelectedIndexPaths(JSIndexPathSet());
     },
 
-    enumerateSelectedIndexPaths: function(callback, target){
+    enumerateSelectedIndexPaths: function(callback){
         var range;
         var indexPath;
         var section, row;
         var rowCount;
+        var handle;
+        if (this.delegate && this.delegate.listViewShouldSelectCellAtIndexPath){
+            handle = function(indexPath){
+                if (this.delegate.listViewShouldSelectCellAtIndexPath(this, indexPath)){
+                    callback.call(this, indexPath);
+                }
+            };
+        }else{
+            handle = callback;
+        }
         for (var i = 0, l = this.ranges.length; i < l; ++i){
             range = this.ranges[i];
             section = range.start.section;
             if (range.start.section == range.end.section){
                 for (row = range.start.row; row <= range.end.row; ++row){
-                    callback.call(target, JSIndexPath(section, row));
+                    handle.call(this, JSIndexPath(section, row));
                 }
             }else{
                 rowCount = this._cachedData.numberOfRowsBySection[section];
                 for (row = range.start.row; row < rowCount; ++row){
-                    callback.call(target, JSIndexPath(section, row));
+                    handle.call(this, JSIndexPath(section, row));
                 }
                 for (section = section + 1; section < range.end.section; ++section){
                     rowCount = this._cachedData.numberOfRowsBySection[section];
                     for (row = 0; row < rowCount; ++row){
-                        callback.call(target, JSIndexPath(section, row));
+                        handle.call(this, JSIndexPath(section, row));
                     }
                 }
                 rowCount = this._cachedData.numberOfRowsBySection[section];
                 for (row = 0; row <= range.end.row; ++row){
-                    callback.call(target, JSIndexPath(section, row));
+                    handle.call(this, JSIndexPath(section, row));
                 }
             }
         }
@@ -1570,7 +1564,7 @@ JSClass("UIListView", UIScrollView, {
                             if (cellItems !== null){
                                 dragItems = dragItems.concat(cellItems);
                             }
-                        }, this);
+                        });
                     }
                 }else{
                     if (this.delegate && this.delegate.pasteboardItemsForListViewAtIndexPath){
@@ -1749,26 +1743,27 @@ JSClass("UIListView", UIScrollView, {
     _rectForCellAtIndexPathBeforeVisibleCell: function(targetIndexPath, cell){
         // Start at first visible cell and iterate up to target indexPath to get new rect
         // - Fastest when scrolling one row, like when using the up arrow key
-        var indexPath = this.indexPathBefore(cell.indexPath);
         var rect = JSRect(cell.frame);
-        var minRow;
-        while (indexPath.section >= targetIndexPath.section){
-            minRow = indexPath.section > targetIndexPath.section ? 0 : targetIndexPath.row;
-            while (indexPath.row >= minRow){
-                rect.size.height = this._heightForCellAtIndexPath(indexPath);
+        rect.origin.y += rect.size.height;
+        var section = cell.indexPath.section;
+        var iterator;
+        var start = cell.indexPath;
+        while (section > targetIndexPath.section){
+            for (iterator = this._indexPathIteratorForSection(section, start); iterator.indexPath !== null; iterator.decrement()){
+                rect.size.height = this._heightForCellAtIndexPath(iterator.indexPath);
                 rect.origin.y -= rect.size.height;
-                indexPath.row -= 1;
             }
-            if (indexPath.isGreaterThan(targetIndexPath)){
-                rect.size.height = this._heightForHeaderInSection(indexPath.section);
-                rect.origin.y -= rect.size.height;
-                indexPath.section -= 1;
-                indexPath.row = this._cachedData.numberOfRowsBySection[indexPath.section] - 1;
-                rect.size.height = this._heightForFooterInSection(indexPath.section);
-                rect.origin.y -= rect.size.height;
-            }else{
-                indexPath.section -= 1;
-            }
+            rect.size.height = this._heightForHeaderInSection(section);
+            rect.origin.y -= rect.size.height;
+            section -= 1;
+            rect.size.height = this._heightForFooterInSection(section);
+            rect.origin.y -= rect.size.height;
+            start = -1;
+        }
+        
+        for (iterator = this._indexPathIteratorForSection(targetIndexPath.section, -1); iterator.indexPath != null && iterator.indexPath.isGreaterThanOrEqual(targetIndexPath); iterator.decrement()){
+            rect.size.height = this._heightForCellAtIndexPath(iterator.indexPath);
+            rect.origin.y -= rect.size.height;
         }
         return this.convertRectFromView(rect, this._cellsContainerView);
     },
@@ -1777,26 +1772,25 @@ JSClass("UIListView", UIScrollView, {
         // Start at last visible cell and iterate down to target indexPath to get new rect
         // - Faster than starting all the way at the top
         // - Fastest when scrolling one row, like when using the down arrow key
-        var indexPath = this.indexPathAfter(cell.indexPath);
         var rect = JSRect(cell.frame);
-        var maxRow;
-        while (indexPath.section <= targetIndexPath.section){
-            maxRow = indexPath.section < targetIndexPath.section ? this._cachedData.numberOfRowsBySection[indexPath.section] - 1 : targetIndexPath.row;
-            while (indexPath.row <= maxRow){
+        var iterator;
+        var start = cell.indexPath;
+        var section = cell.indexPath.section;
+        while (section < targetIndexPath.section){
+            for (iterator = this._indexPathIteratorForSection(section, start); iterator.indexPath != null; iterator.increment()){
                 rect.origin.y += rect.size.height;
-                rect.size.height = this._heightForCellAtIndexPath(indexPath);
-                indexPath.row += 1;
+                rect.size.height = this._heightForCellAtIndexPath(iterator.indexPath);
             }
-            if (indexPath.isLessThan(targetIndexPath)){
-                rect.size.height = this._heightForFooterInSection(indexPath.section);
-                rect.origin.y -= rect.size.height;
-                indexPath.section += 1;
-                indexPath.row = 0;
-                rect.size.height = this._heightForHeaderInSection(indexPath.section);
-                rect.origin.y -= rect.size.height;
-            }else{
-                indexPath.section += 1;
-            }
+            rect.origin.y += rect.size.height;
+            rect.size.height = this._heightForFooterInSection(section);
+            section += 1;
+            rect.origin.y += rect.size.height;
+            rect.size.height = this._heightForHeaderInSection(section);
+            start = 0;
+        }
+        for (iterator = this._indexPathIteratorForSection(targetIndexPath.section, 0); iterator.indexPath != null && iterator.indexPath.isLessThanOrEqual(targetIndexPath); iterator.increment()){
+            rect.origin.y += rect.size.height;
+            rect.size.height = this._heightForCellAtIndexPath(iterator.indexPath);
         }
         return this.convertRectFromView(rect, this._cellsContainerView);
     },
@@ -1901,6 +1895,8 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     headerTextColor: null,
     headerBackgroundColor: null,
     headerBorderColor: null,
+
+    indentSize: 20,
 
     init: function(){
         this._commonStylerInit();
@@ -2099,14 +2095,21 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             }
         }
         if (cell.stylerProperties.separatorLayer){
-            cell.stylerProperties.separatorLayer.hidden = indexPath.row === 0;
+            cell.stylerProperties.separatorLayer.hidden = indexPath.length == 2 && indexPath.row === 0;
         }
+    },
+
+    _indentationForCell: function(cell){
+        return 0;
     },
 
     layoutCell: function(cell){
         cell._contentView.frame = cell.bounds;
         var size = JSSize(cell.bounds.size.width - cell._titleInsets.left - cell._titleInsets.right, 0);
         var origin = JSPoint(cell._titleInsets.left, 0);
+        var indent = this._indentationForCell(cell);
+        origin.x += indent;
+        size.width -= indent;
         if (cell._imageView !== null && cell._imageView.image !== null){
             var imageSize = this.imageSize;
             if (imageSize === null){
@@ -2176,5 +2179,45 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     }
 
 });
+
+var SectionIndexPathIterator = function(section, numberOfRows, start){
+    if (this === undefined){
+        return new SectionIndexPathIterator(section, numberOfRows, start);
+    }
+    this.section = section;
+    this.numberOfRows = numberOfRows;
+    if (this.numberOfRows === 0){
+        this.indexPath = null;
+    }else if (typeof(start) === "number"){
+        this.indexPath = JSIndexPath(section, (numberOfRows + start) % numberOfRows);
+    }else if (start instanceof JSIndexPath){
+        this.indexPath = JSIndexPath(start);
+    }else{
+        this.indexPath = JSIndexPath(section, 0);
+    }
+};
+
+SectionIndexPathIterator.prototype = {
+
+    increment: function(){
+        if (this.indexPath !== null){
+            if (this.indexPath.row < this.numberOfRows - 1){
+                this.indexPath.row += 1;
+            }else{
+                this.indexPath = null;
+            }
+        }
+    },
+
+    decrement: function(){
+        if (this.indexPath !== null){
+            if (this.indexPath.row > 0){
+                this.indexPath.row -= 1;
+            }else{
+                this.indexPath = null;
+            }
+        }
+    }
+};
 
 })();

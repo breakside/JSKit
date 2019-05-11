@@ -60,9 +60,11 @@ JSClass("UIImageView", UIView, {
     },
 
     setImage: function(image){
-        this.layer.image = image;
-        this._previousSize = JSSize.Zero;
-        this._scaleImage();
+        if (image !== this.layer.image){
+            this.layer.image = image;
+            this._previousSize = JSSize.Zero;
+            this._scaleImage();
+        }
     },
 
     _scaleImage: function(){

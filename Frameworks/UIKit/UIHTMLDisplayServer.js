@@ -173,6 +173,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     setLayerNeedsDisplay: function(layer){
         var context = this.contextForLayer(layer);
         context.needsCustomDisplay = true;
+        layer._UIHTMLDisplayServerCustomDrawing = true;
         UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
     },
 
@@ -385,6 +386,10 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     _removeLayerFromDOM: function(layer){
         layer._displayServer = null;
+        if (layer._UIHTMLDisplayServerCustomDrawing){
+            // So the layer will redraw if it's ever re-added
+            layer.setNeedsDisplay();
+        }
         var context = this.contextsByObjectID[layer.objectID];
         if (context){
             if (context.element.isConnected){
@@ -400,9 +405,6 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         }
         var context = this.contextsByObjectID[layer.objectID];
         if (context){
-            if (layer.delegate && layer.delegate.destroyLayerHTMLContext){
-                layer.delegate.destroyLayerHTMLContext(layer, context);
-            }
             context.destroy();
             context.displayServer = null;
             delete this.contextsByObjectID[layer.objectID];

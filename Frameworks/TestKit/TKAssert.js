@@ -61,7 +61,7 @@ TKAssertion.LineForCurrentCaseInError = function(error){
                 caller = caller.substr(7);
                 prefix = nodePrefix;
             }else{
-                continue;
+                prefix = firefoxPrefix;
             }
             if (caller.substr(0, prefix.length) == prefix){
                 caller = caller.substr(prefix.length);

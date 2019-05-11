@@ -42,10 +42,10 @@ SidebarViewController:
   view:
     backgroundColor: /SidebarColor
     subviews:
-      - /SidebarListView
+      - /SidebarOutlineView
       - /SidebarHeaderView
   outlets:
-    listView: /SidebarListView
+    outlineView: /SidebarOutlineView
     headerView: /SidebarHeaderView
     searchField: /SearchField
   delegate: /MainViewController
@@ -87,8 +87,8 @@ SearchField:
   actions:
     - {target: /SidebarViewController, action: searchChanged, event: editingChanged}
 
-SidebarListView:
-  class: UIListView
+SidebarOutlineView:
+  class: UIOutlineView
   delegate: /SidebarViewController
   dataSource: /SidebarViewController
   contentInsets: 0,0,0,0
@@ -97,12 +97,12 @@ SidebarListView:
   reusableCellClasses:
     -
       identifier: item
-      className: UIListViewCell
+      className: UIOutlineViewCell
     - 
       identifier: topic
-      className: UIListViewCell
+      className: UIOutlineViewCell
       styler:
-        class: UIListViewDefaultStyler
+        class: UIOutlineViewDefaultStyler
         showSeparators: false
         cellFont:
           size: detail
@@ -110,7 +110,7 @@ SidebarListView:
         cellTextColor: {blendBase: /SidebarColor, with: $JSColor.blackColor, percent: 60}
 
   styler:
-    class: UIListViewDefaultStyler
+    class: UIOutlineViewDefaultStyler
     showSeparators: false
     imageSize: 16,16
     cellFont:

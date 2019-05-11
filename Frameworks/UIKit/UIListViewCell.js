@@ -174,5 +174,6 @@ UIListViewCell.State = {
     normal:   0,
     active:   1 << 1,
     selected: 1 << 2,
-    contextSelected: 1 << 3
+    contextSelected: 1 << 3,
+    firstUserState: 1 << 4
 };

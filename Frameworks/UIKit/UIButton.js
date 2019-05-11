@@ -442,6 +442,10 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
         this._commonInit();
     },
 
+    init: function(){
+        this.initWithColor(JSColor.blackColor);
+    },
+
     initWithSpec: function(spec, values){
         UIButtonCustomStyler.$super.initWithSpec.call(this, spec, values);
         if ('normalBackgroundColor' in values){

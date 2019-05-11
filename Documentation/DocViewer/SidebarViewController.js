@@ -8,16 +8,17 @@ JSClass("SidebarViewController", UIViewController, {
 
     headerView: null,
     searchField: null,
-    listView: null,
+    outlineView: null,
     delegate: null,
-    items: null,
+    root: null,
+    components: null,
 
     initWithSpec: function(spec, values){
         SidebarViewController.$super.initWithSpec.call(this, spec, values);
         if ('delegate' in values){
             this.delegate = spec.resolvedValue(values.delegate);
         }
-        this.items = [];
+        this.components = [];
     },
 
     // --------------------------------------------------------------------
@@ -36,11 +37,11 @@ JSClass("SidebarViewController", UIViewController, {
         var searchInsets = JSInsets(5, 6, 6, 6);
         this.headerView.frame = JSRect(0, 0, this.view.bounds.size.width, searchSize.height + searchInsets.top + searchInsets.bottom);
         this.searchField.frame = this.headerView.bounds.rectWithInsets(searchInsets);
-        this.listView.frame = this.view.bounds;
-        this.listView.contentInsets = JSInsets(this.headerView.frame.size.height, 0, 0, 0);
+        this.outlineView.frame = this.view.bounds;
+        this.outlineView.contentInsets = JSInsets(this.headerView.frame.size.height, 0, 0, 0);
         if (this.searchListView){
-            this.searchListView.frame = this.listView.frame;
-            this.searchListView.contentInsets = this.listView.contentInsets;
+            this.searchListView.frame = this.outlineView.frame;
+            this.searchListView.contentInsets = this.outlineView.contentInsets;
         }
     },
 
@@ -49,41 +50,47 @@ JSClass("SidebarViewController", UIViewController, {
 
 
     setComponents: function(components){
-        this.items = [];
-        if (components.length == 1){
-            this.items.push({
-                level: 0,
-                component: components[0]
-            });
-            this.addItems(components[0].children, 0);
-        }else{
-            this.addItems(components, 0);
-        }
-        this.listView.reloadData();
+        this.root = components[0];
+        this.components = this.root.children;
+        this.outlineView.reloadData();
     },
 
-    addItems: function(components, level){
-        for (var i = 0, l = components.length; i < l; ++i){
-            var component = components[i];
-            this.items.push({
-                level: level,
-                component: component
-            });
-            if (component.children){
-                this.addItems(component.children, level + 1);
-            }
+    componentAtIndexPath: function(indexPath){
+        if (indexPath.section === 0){
+            return this.root;
         }
+        var component = this.components[indexPath.row];
+        for (var i = 2, l = indexPath.length; i < l; ++i){
+            component = component.children[indexPath[i]];
+        }
+        return component;
     },
 
-    numberOfSectionsInListView: function(listView){
-        return 1;
+    numberOfSectionsInOutlineView: function(outlineView){
+        return 2;
     },
 
-    numberOfRowsInListViewSection: function(listView, sectionIndex){
-        if (listView === this.searchListView){
-            return this.searchResults.length;
+    outlineViewNumberOfChildrenAtIndexPath: function(outlineView, indexPath){
+        if (indexPath.section === 0){
+            return 1;
         }
-        return this.items.length;
+        if (indexPath.length === 1){
+            return this.components.length;
+        }
+        var component = this.componentAtIndexPath(indexPath);
+        return component.children.length;
+    },
+
+    outlineViewIsExandableAtIndexPath: function(outlineView, indexPath){
+        if (indexPath.section === 0){
+            return false;
+        }
+        var component = this.componentAtIndexPath(indexPath);
+        return component.children && component.children.length > 0;
+    },
+
+    outlineViewIsExpandedAtIndexPath: function(outlineView, indexPath){
+        return true;
     },
 
     cellForListViewAtIndexPath: function(listView, indexPath){
@@ -97,9 +104,7 @@ JSClass("SidebarViewController", UIViewController, {
             cell.imageView.image = imageByKind[component.kind](component);
             return cell;
         }
-
-        var item = this.items[indexPath.row];
-        component = item.component;
+        component = this.componentAtIndexPath(indexPath);
         if (component.kind == 'topic'){
             cell = listView.dequeueReusableCellWithIdentifier('topic', indexPath);
         }else{
@@ -107,7 +112,6 @@ JSClass("SidebarViewController", UIViewController, {
             cell.imageView.image = imageByKind[component.kind](component);
         }
         cell.titleLabel.text = component.name;
-        cell.titleInsets = JSInsets(0, 4 + 20 * item.level, 0, 4);
         return cell;
     },
 
@@ -115,7 +119,7 @@ JSClass("SidebarViewController", UIViewController, {
         if (listView === this.searchListView){
             return true;
         }
-        var component = this.items[indexPath.row].component;
+        var component = this.componentAtIndexPath(indexPath);
         return component.kind !== 'topic';
     },
 
@@ -124,7 +128,7 @@ JSClass("SidebarViewController", UIViewController, {
         if (listView === this.searchListView){
             component = this.searchResults[indexPath.row];
         }else{
-            component = this.items[indexPath.row].component;
+            component = this.componentAtIndexPath(indexPath);
         }
         if (this.delegate && this.delegate.sidebarViewDidSelectComponent){
             this.delegate.sidebarViewDidSelectComponent(this, component);
@@ -156,19 +160,19 @@ JSClass("SidebarViewController", UIViewController, {
             this.searchListView = null;
             this.searchResults = null;
         }
-        this.listView.hidden = false;
+        this.outlineView.hidden = false;
     },
 
     showSearchResults: function(){
         this.view.setNeedsLayout();
-        this.listView.hidden = true;
+        this.outlineView.hidden = true;
         if (!this.searchListView){
-            this.searchListView = UIListView.initWithStyler(this.listView.styler);
+            this.searchListView = UIListView.initWithStyler(this.outlineView.styler);
             this.searchListView.delegate = this;
             this.searchListView.dataSource = this;
             this.searchListView.rowHeight = 24;
             this.searchListView.registerCellClassForReuseIdentifier(UIListViewCell, "result");
-            this.listView.superview.insertSubviewAboveSibling(this.searchListView, this.listView);
+            this.outlineView.superview.insertSubviewAboveSibling(this.searchListView, this.outlineView);
             this.searchResults = [];
         }
     },
