@@ -129,11 +129,11 @@ JSClass("UIControl", UIView, {
         }
     },
 
-    sendActionsForEvent: function(controlEvent){
+    sendActionsForEvent: function(controlEvent, uiEvent){
         var actions = this._actionsByEvent[controlEvent];
         if (actions){
             for (var i = 0; i < actions.length; ++i){
-                actions[i](this);
+                actions[i](this, uiEvent);
             }
         }
     },
