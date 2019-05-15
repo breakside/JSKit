@@ -66,6 +66,11 @@ JSClass("UIViewPropertyAnimator", JSObject, {
         this._transaction.stop();
         this._percentComplete = this._transaction.percentComplete;
         this._transaction = null;
+    },
+
+    stopAndCallCompletions: function(){
+        this.stop();
+        this._completeAnimations();
     }
 
 });
