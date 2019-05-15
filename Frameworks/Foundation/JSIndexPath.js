@@ -184,6 +184,20 @@ Object.defineProperties(JSIndexPath.prototype, {
         }
     },
 
+    startsWith: {
+        value: function JSIndexPath_startsWith(indexPath){
+            if (this.length < indexPath.length){
+                return false;
+            }
+            for (var i = 0, l = indexPath.length; i < l; ++i){
+                if (this[i] != indexPath[i]){
+                    return false;
+                }
+            }
+            return true;
+        }
+    },
+
     toString: {
         value: function JSIndexPath_toString(){
             return Array.prototype.join.call(this, '.');
