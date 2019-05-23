@@ -259,6 +259,9 @@ JSClass('UIScrollView', UIView, {
     },
 
     setContentSize: function(contentSize){
+        if (this._contentSize.isEqual(contentSize)){
+            return;
+        }
         this._contentSize = JSSize(contentSize);
         this._updateScrollers();
         // After setting the content size, our offset may be invalid, so re-sanitize it.
@@ -302,10 +305,10 @@ JSClass('UIScrollView', UIView, {
         if (position === undefined){
             position = UIScrollView.ScrollPosition.auto;
         }
+        rect = this.convertRectToView(rect, this.contentView);
         if (scrollsVertically && scrollsHorizontally){
             // TODO:
         }else if (scrollsVertically){
-            rect = this.convertRectToView(rect, this.contentView);
             if (position === UIScrollView.ScrollPosition.auto){
                 // Auto position means choose top if the target is above the current offset,
                 // bottom if the target is below the offset, or nothing if the target is fully visible
@@ -330,7 +333,6 @@ JSClass('UIScrollView', UIView, {
                     break;
             }
         }else if (scrollsHorizontally){
-            rect = this.convertRectToView(rect, this.contentView);
             if (position === UIScrollView.ScrollPosition.auto){
                 // Auto position means choose top if the target is above the current offset,
                 // bottom if the target is below the offset, or nothing if the target is fully visible
@@ -359,7 +361,7 @@ JSClass('UIScrollView', UIView, {
     },
 
     scrollToView: function(view, position){
-        var rect = this.convertRectFromView(view.bounds, view);
+        var rect = this.contentView.convertRectFromView(view.bounds, view);
         this.scrollToRect(rect, position);
     },
 

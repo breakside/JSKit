@@ -134,10 +134,11 @@ JSClass("UILayer", JSObject, {
         // When the bounds origin changes, it's like a scrolling view, and we need to update the sublayers
         // When the bounds change size, the position and frame both need to be recalculated accordingly
         var oldBounds = this.model.bounds;
-        this.model.bounds = JSRect(bounds);
-        if (!bounds.size.isEqual(oldBounds.size)){
+        var changedSize = !bounds.size.isEqual(oldBounds.size);
+        if (changedSize){
             this._addImplicitAnimationForKey('bounds');
             this._addImplicitAnimationForKey('position');
+            this.model.bounds = JSRect(bounds);
             this._recalculatePosition();
             // Frame calculation depends on the recaculated position, so it must be done second
             this._recalculateFrame();
@@ -147,7 +148,11 @@ JSClass("UILayer", JSObject, {
             this.didChangeSize();
         }
         if (!bounds.origin.isEqual(oldBounds.origin)){
-            this.boundsOriginDidChange();
+            if (!changedSize){
+                this._addImplicitAnimationForKey('bounds');
+                this.model.bounds = JSRect(bounds);
+            }
+            this.didChangeProperty('bounds.origin');
         }
     },
 
@@ -158,10 +163,6 @@ JSClass("UILayer", JSObject, {
     setClipsToBounds: function(clipsToBounds){
         this._clipsToBounds = clipsToBounds;
         this.didChangeProperty('clipsToBounds');
-    },
-
-    boundsOriginDidChange: function(){
-        this.didChangeProperty('bounds.origin');
     },
 
     setTransform: function(transform){
@@ -228,6 +229,9 @@ JSClass("UILayer", JSObject, {
     insertSublayerAtIndex: function(sublayer, index){
         var i, l;
         if (sublayer.superlayer === this){
+            if (sublayer.sublayerIndex === index || sublayer.sublayerIndex === index - 1){
+                return sublayer;
+            }
             for (i = sublayer.sublayerIndex + 1, l = this.sublayers.length; i < l; ++i){
                 this.sublayers[i].sublayerIndex -= 1;
             }
@@ -460,29 +464,33 @@ JSClass("UILayer", JSObject, {
             ++this.animationCount;
         }
         var parts = key.split('.');
-        // If we have a sub-property, we need to make sure we're updating a copy on the presentation, so we don't
+        // We need to make sure we're updating a copy on the presentation, so we don't
         // inadvertently update the model too
-        if (parts > 1 && parts[0] in this.presentation && this.presentation[parts[0]] && !this.presentation.hasOwnProperty(parts[0])){
+        if (parts[0] in this.presentation && !this.presentation.hasOwnProperty(parts[0])){
             var value = this.presentation[parts[0]];
-            if (value instanceof JSPoint){
-                this.presentation[parts[0]] = JSPoint(value.x, value.y);
-            }else if (value instanceof JSSize){
-                this.presentation[parts[0]] = JSSize(value.width, value.height);
-            }else if (value instanceof JSRect){
-                this.presentation[parts[0]] = JSRect(value.origin.x, value.origin.y, value.size.width, value.size.height);
-            }else if (value instanceof JSAffineTransform){
-                this.presentation[parts[0]] = JSAffineTransform(value.a, value.b, value.c, value.d, value.tx, value.ty);
-            }else{
-                this.presentationLayer[parts[0]] = this.copyOfProperty(parts[0]);
-            }
-        }else if (key in this.presentation && !this.presentation.hasOwnProperty(key)){
-            this.presentation[key] = this.model[key];
+            this.presentation[parts[0]] = this.copyOfValue(value);
         }
         this.animationsByKey[key] = animation;
         animation.layer = this;
         if (!UIAnimationTransaction.currentTransaction){
             this.setNeedsAnimation();
         }
+    },
+
+    copyOfValue: function(value){
+        if (value instanceof JSPoint){
+            return JSPoint(value);
+        }
+        if (value instanceof JSSize){
+            return JSSize(value);
+        }
+        if (value instanceof JSRect){
+            return JSRect(value);
+        }
+        if (value instanceof JSAffineTransform){
+            JSAffineTransform(value.a, value.b, value.c, value.d, value.tx, value.ty);
+        }
+        return value;
     },
 
     setNeedsAnimation: function(){

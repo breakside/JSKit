@@ -222,6 +222,9 @@ JSClass('UIView', UIResponder, {
     _insertSubviewAtIndex: function(subview, index, layerIndex){
         var i, l;
         if (subview.superview === this){
+            if (subview.subviewIndex === index || subview.subviewIndex === index - 1){
+                return subview;
+            }
             for (i = subview.subviewIndex + 1, l = this.subviews.length; i < l; ++i){
                 this.subviews[i].subviewIndex -= 1;
             }

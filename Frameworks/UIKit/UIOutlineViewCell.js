@@ -1,6 +1,7 @@
 // #import "UIListViewCell.js"
 // #import "UIButton.js"
-/* global JSClass, UIListViewCell, UIOutlineViewCell, UIButton, UIButtonImageStyler, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, JSInsets, JSColor */
+// #import "UIEvent.js"
+/* global JSClass, UIListViewCell, UIOutlineViewCell, UIButton, UIButtonImageStyler, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, JSInsets, JSColor, UIEvent */
 'use strict';
 
 JSClass("UIOutlineViewCell", UIListViewCell, {
@@ -15,6 +16,7 @@ JSClass("UIOutlineViewCell", UIListViewCell, {
         UIOutlineViewCell.$super._commonCellInit.call(this);
         var buttonStyler = UIButtonImageStyler.initWithColor(JSColor.blackColor);
         this._disclosureButton = UIButton.initWithStyler(buttonStyler);
+        this._disclosureButton.addTargetedAction(this, this._toggleExpanded);
         this._contentView.addSubview(this._disclosureButton);
         this._titleInsets = JSInsets(0, 5, 0, 10);
     },
@@ -34,6 +36,18 @@ JSClass("UIOutlineViewCell", UIListViewCell, {
 
     setExpanded: function(isExpanded){
         this._toggleState(UIOutlineViewCell.State.expanded, isExpanded && this._expandable);
+    },
+
+    _toggleExpanded: function(button, event){
+        if (!this.outlineView){
+            return;
+        }
+        var recursive = event.hasModifier(UIEvent.Modifier.option);
+        if (this.expanded){
+            this.outlineView._collapseCell(this, recursive);
+        }else{
+            this.outlineView._expandCell(this, recursive);
+        }
     }
 
 });

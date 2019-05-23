@@ -5,6 +5,9 @@
 (function(){
 
 JSGlobalObject.JSIndexPath = function(section, row){
+    if (section === null){
+        return null;
+    }
     if (this === undefined){
         return new JSIndexPath(section, row);
     }
@@ -169,7 +172,7 @@ Object.defineProperties(JSIndexPath.prototype, {
 
     removeLastIndex: {
         value: function JSIndexPath_removeLastIndex(){
-            if (this.length > 1){
+            if (this.length > 0){
                 --this.length;
                 delete this[this.length];
             }
@@ -204,6 +207,14 @@ Object.defineProperties(JSIndexPath.prototype, {
         }
     }
 
+});
+
+Object.defineProperties(JSIndexPath, {
+    compare: {
+        value: function JSIndexPath_staticCompare(a, b){
+            return a.compare(b);
+        }
+    }
 });
 
 JSGlobalObject.JSIndexPathRange = function(start, end){
@@ -429,6 +440,10 @@ JSIndexPathSet.prototype = {
 
     replace: function(indexPath){
         this.ranges = [JSIndexPathRange(indexPath, indexPath)];
+    },
+
+    clear: function(){
+        this.ranges = [];
     },
 
     contains: function(indexPath){

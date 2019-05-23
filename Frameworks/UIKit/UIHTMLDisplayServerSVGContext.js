@@ -72,7 +72,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         this._usedShadowFiltersById = {};
         this._usedClipPaths = [];
         this._propertiesNeedingUpdate = {
-            bounds: true,
+            size: true,
             transform: true,
             hidden: true,
             clipsToBounds: true,
@@ -330,7 +330,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
 
     _propertiesNeedingUpdate: null,
 
-    updateSVG_bounds: function(layer){
+    updateSVG_size: function(layer){
         var size = layer.presentation.bounds.size;
         if (this._boundsClipPathContents){
             this._updateBoundsClipPath(layer);

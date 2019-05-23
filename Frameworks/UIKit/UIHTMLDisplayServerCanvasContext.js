@@ -29,7 +29,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this.layerManagedNodeCount = this.element.childNodes.length;
         this.firstSublayerNodeIndex = this.layerManagedNodeCount;
         this.propertiesNeedingUpdate = {
-            bounds: true,
+            size: true,
             transform: true,
             hidden: true,
             clipsToBounds: true,
@@ -245,7 +245,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         }
     },
 
-    updateHTMLProperty_bounds: function(layer){
+    updateHTMLProperty_size: function(layer){
         this.bounds = layer.presentation.bounds;
         var size = layer.presentation.bounds.size;
         this.style.width = size.width + 'px';

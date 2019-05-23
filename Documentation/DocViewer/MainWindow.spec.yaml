@@ -108,6 +108,7 @@ SidebarOutlineView:
           size: detail
           weight: bold
         cellTextColor: {blendBase: /SidebarColor, with: $JSColor.blackColor, percent: 60}
+        cellBackgroundColor: /SidebarColor
 
   styler:
     class: UIOutlineViewDefaultStyler
@@ -116,6 +117,7 @@ SidebarOutlineView:
     cellFont:
       size: detail
     selectedCellBackgroundColor: /HighlightColor
+    cellBackgroundColor: /SidebarColor
 
 # -------------------------------------------------------------------------
 # Content

@@ -29,6 +29,11 @@ JSClass("JSIndexPathTests", TKTestSuite, {
         TKAssertEquals(b.row, 2);
     },
 
+    testNullConstructor: function(){
+        var a = JSIndexPath(null);
+        TKAssertNull(a);
+    },
+
     testIsEqual: function(){
         var a = JSIndexPath(0, 0);
         var b = JSIndexPath(0, 0);

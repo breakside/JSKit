@@ -77,7 +77,11 @@ JSClass("UIListViewCell", UIView, {
 
     layoutSubviews: function(){
         UIListViewCell.$super.layoutSubviews.call(this);
-        (this._styler || this.listView._styler).layoutCell(this);
+        var styler = (this._styler || (this.listView && this.listView._styler));
+        if (!styler){
+            return;
+        }
+        styler.layoutCell(this);
     },
 
     setNumberOfDetailLines: function(lines){
@@ -131,7 +135,11 @@ JSClass("UIListViewCell", UIView, {
     },
 
     _didChangeState: function(){
-        (this._styler || this.listView._styler).updateCell(this, this.indexPath);
+        var styler = (this._styler || (this.listView && this.listView._styler));
+        if (!styler){
+            return;
+        }
+        styler.updateCell(this, this.indexPath);
     },
 
     _toggleState: function(flag, on){

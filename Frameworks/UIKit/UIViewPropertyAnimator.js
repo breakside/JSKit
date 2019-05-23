@@ -29,10 +29,16 @@ JSClass("UIViewPropertyAnimator", JSObject, {
     },
 
     addAnimations: function(animations){
+        if (this._transaction !== null){
+            throw new Error("Cannot add animations after animator has started");
+        }
         this.animationBlocks.push(animations);
     },
 
     addCompletion: function(completion){
+        if (this._transaction !== null){
+            throw new Error("Cannot add completion block after animator has started");
+        }
         this.completionBlocks.push(completion);
     },
 

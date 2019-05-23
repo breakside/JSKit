@@ -90,7 +90,7 @@ JSClass("SidebarViewController", UIViewController, {
     },
 
     outlineViewIsExpandedAtIndexPath: function(outlineView, indexPath){
-        return true;
+        return false;
     },
 
     cellForListViewAtIndexPath: function(listView, indexPath){

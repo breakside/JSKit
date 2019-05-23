@@ -153,14 +153,27 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     layerDidChangeProperty: function(layer, keyPath){
         var parts = keyPath.split('.');
         var context;
-        if (parts.length > 1 && parts[0] == 'bounds' && parts[1] == 'origin'){
-            this._layerDidChangeBoundsOrigin(layer);
-            return;
-        }
         switch (parts[0]){
             case 'position':
             case 'anchorPoint':
                 this.setLayerNeedsReposition(layer);
+                break;
+            case 'bounds':
+                if (parts.length === 1){
+                    this.layerDidChangeProperty(layer, 'bounds.origin');
+                    this.layerDidChangeProperty(layer, 'bounds.size');
+                }else{
+                    switch (parts[1]){
+                        case 'origin':
+                            this._layerDidChangeBoundsOrigin(layer);
+                            break;
+                        case 'size':
+                            context = this.contextForLayer(layer);
+                            context.layerDidChangeProperty(layer, 'size');
+                            UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
+                            break;
+                    }
+                }
                 break;
             default:
                 context = this.contextForLayer(layer);
