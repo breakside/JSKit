@@ -9,7 +9,7 @@ JSClass("OASession", JSObject, {
     initWithService: function(service, clientId){
         this.service = service;
         this.clientId = clientId;
-        this.scopes = ['openid profile email'];
+        this.scopes = ['openid', 'profile',  'email'];
         this.responseTypes = ['code'];
         this.state = JSSHA1Hash(SECCipher.getRandomData(20)).hexStringRepresentation();
     },
