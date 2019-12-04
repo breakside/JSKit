@@ -65,7 +65,7 @@ JSClass("FNTCompactFontFormatTests", TKTestSuite, {
                 var name = String.initWithData(font.tables.name.getName([1, 0, 0, 6]), String.Encoding.latin1);
                 TKAssertEquals(name, "UMEYOP+HelveticaNeueLTStd-Roman");
                 TKAssertEquals(font.tables.maxp.numberOfGlyphs, 75);
-                TKAssertEquals(font.tables.hhea.numberOfHMetrics, 75);
+                TKAssertEquals(font.tables.hhea.numberOfHMetrics, 76);
                 TKAssertObjectEquals(font.tables.CFF.data, data);
                 TKAssertEquals(font.tables.hhea.ascender, 1400);
                 TKAssertEquals(font.tables.hhea.descender, -300);
