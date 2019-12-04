@@ -13,6 +13,10 @@ window.DOM = {
     Text: window.Text,
     CDATASection: window.CDATASection,
     Comment: window.Comment,
-    createDocument: document.implementation.createDocument,
-    createDocumentType: document.implementation.createDocumentType
+    createDocument: function(namespace, qualifiedName, doctype){
+        return document.implementation.createDocument(namespace, qualifiedName, doctype);
+    },
+    createDocumentType: function(name, publicId, systemId){
+        return document.implementation.createDocumentType(name, publicId, systemId);
+    }
 };
