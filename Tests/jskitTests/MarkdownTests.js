@@ -661,7 +661,7 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[1].childNodes[1].tagName, "div");
         TKAssertEquals(elements[1].childNodes[1].getAttribute("class"), "line");
         TKAssertEquals(elements[1].childNodes[1].childNodes.length, 1);
-        TKAssertExactEquals(elements[1].childNodes[1].childNodes[0].data, "");
+        TKAssertExactEquals(elements[1].childNodes[1].childNodes[0].data, "\n");
         TKAssertEquals(elements[1].childNodes[2].tagName, "div");
         TKAssertEquals(elements[1].childNodes[2].getAttribute("class"), "line");
         TKAssertEquals(elements[1].childNodes[2].childNodes.length, 1);
@@ -673,7 +673,7 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[1].childNodes[4].tagName, "div");
         TKAssertEquals(elements[1].childNodes[4].getAttribute("class"), "line");
         TKAssertEquals(elements[1].childNodes[4].childNodes.length, 1);
-        TKAssertExactEquals(elements[1].childNodes[4].childNodes[0].data, "");
+        TKAssertExactEquals(elements[1].childNodes[4].childNodes[0].data, "\n");
         TKAssertEquals(elements[1].childNodes[5].tagName, "div");
         TKAssertEquals(elements[1].childNodes[5].getAttribute("class"), "line");
         TKAssertEquals(elements[1].childNodes[5].childNodes.length, 1);
@@ -701,7 +701,7 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[1].childNodes[1].tagName, "div");
         TKAssertEquals(elements[1].childNodes[1].getAttribute("class"), "line");
         TKAssertEquals(elements[1].childNodes[1].childNodes.length, 1);
-        TKAssertExactEquals(elements[1].childNodes[1].childNodes[0].data, "");
+        TKAssertExactEquals(elements[1].childNodes[1].childNodes[0].data, "\n");
         TKAssertEquals(elements[1].childNodes[2].tagName, "div");
         TKAssertEquals(elements[1].childNodes[2].getAttribute("class"), "line");
         TKAssertEquals(elements[1].childNodes[2].childNodes.length, 1);
@@ -713,7 +713,7 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[1].childNodes[4].tagName, "div");
         TKAssertEquals(elements[1].childNodes[4].getAttribute("class"), "line");
         TKAssertEquals(elements[1].childNodes[4].childNodes.length, 1);
-        TKAssertExactEquals(elements[1].childNodes[4].childNodes[0].data, "");
+        TKAssertExactEquals(elements[1].childNodes[4].childNodes[0].data, "\n");
         TKAssertEquals(elements[1].childNodes[5].tagName, "div");
         TKAssertEquals(elements[1].childNodes[5].getAttribute("class"), "line");
         TKAssertEquals(elements[1].childNodes[5].childNodes.length, 1);
