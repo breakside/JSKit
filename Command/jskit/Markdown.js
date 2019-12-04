@@ -98,7 +98,7 @@ JSClass("Markdown", JSObject, {
                         }
                         let linktext = escapedText.substr(i, hrefStart - i);
                         let a = element.appendChild(document.createElement('a'));
-                        a.setAttribute("href", href.encodedString);
+                        a.setAttribute("href", href);
                         a.appendChild(document.createTextNode(linktext));
                         i = hrefEnd + 1;
                     }else{
@@ -121,7 +121,7 @@ JSClass("Markdown", JSObject, {
                             }
                             let alttext = escapedText.substr(i, srcStart - i);
                             let img = element.appendChild(document.createElement('img'));
-                            img.setAttribute("src", src.encodedString);
+                            img.setAttribute("src", src);
                             img.setAttribute("alt", alttext);
                             i = srcEnd + 1;
                         }else{
