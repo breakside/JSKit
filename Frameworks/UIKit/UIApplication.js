@@ -50,14 +50,16 @@ JSClass('UIApplication', UIResponder, {
     },
 
     setupDelegate: function(){
-        if (this.bundle.info[UIApplication.InfoKeys.mainSpec]){
-            var mainUIFile = JSSpec.initWithResource(this.bundle.info[UIApplication.InfoKeys.mainSpec]);
-            this.delegate = mainUIFile.filesOwner;
-        }else if (this.bundle.info[UIApplication.InfoKeys.applicationDelegate]){
-            var delegateClass = JSClass.FromName(this.bundle.info[UIApplication.InfoKeys.applicationDelegate]);
-            this.delegate = delegateClass.init();
-        }else{
-            throw new Error("UIApplication: Info is missing required key '%s' or '%s'".sprintf(UIApplication.InfoKeys.mainSpec, UIApplication.InfoKeys.applicationDelegate));
+        if (!this.delegate){
+            if (this.bundle.info[UIApplication.InfoKeys.mainSpec]){
+                var mainUIFile = JSSpec.initWithResource(this.bundle.info[UIApplication.InfoKeys.mainSpec]);
+                this.delegate = mainUIFile.filesOwner;
+            }else if (this.bundle.info[UIApplication.InfoKeys.applicationDelegate]){
+                var delegateClass = JSClass.FromName(this.bundle.info[UIApplication.InfoKeys.applicationDelegate]);
+                this.delegate = delegateClass.init();
+            }else{
+                throw new Error("UIApplication: Info is missing required key '%s' or '%s'".sprintf(UIApplication.InfoKeys.mainSpec, UIApplication.InfoKeys.applicationDelegate));
+            }
         }
     },
 
