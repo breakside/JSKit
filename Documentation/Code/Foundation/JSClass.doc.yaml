@@ -391,6 +391,7 @@ topics:
       -
         name: FromName
         kind: method
+        static: true
         summary: Find the class with a name matching the given name
         description: |
           Sometimes, such as in cases like serialization or spec files, you'll

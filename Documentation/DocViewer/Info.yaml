@@ -6,7 +6,7 @@ UIApplicationTitle:         .applicationTitle
 UIApplicationLaunchOptions:
   uistate: {kind: positional, default: null}
   others: {kind: unknown}
-UIApplicationSystemFont:    Roboto-Light
+UIApplicationSystemFont:    SourceSansPro-Light
 JSDevelopmentLanguage:      en
 UIApplicationIcon:          Icon
 HMTLManifestConfiguration:

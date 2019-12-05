@@ -1,5 +1,5 @@
 // #import UIKit
-/* global JSClass, UIViewController, SidebarViewController, JSImage, JSInsets, JSRect, UIListView, UIListViewCell */
+/* global JSClass, UIViewController, SidebarViewController, JSImage, JSInsets, JSRect, UIListView, UIListViewCell, JSIndexPath */
 'use strict';
 
 (function(){
@@ -34,11 +34,11 @@ JSClass("SidebarViewController", UIViewController, {
 
     viewDidLayoutSubviews: function(){
         var searchSize = this.searchField.intrinsicSize;
-        var searchInsets = JSInsets(5, 6, 6, 6);
+        var searchInsets = JSInsets(5, 5, 5, 5);
         this.headerView.frame = JSRect(0, 0, this.view.bounds.size.width, searchSize.height + searchInsets.top + searchInsets.bottom);
         this.searchField.frame = this.headerView.bounds.rectWithInsets(searchInsets);
         this.outlineView.frame = this.view.bounds;
-        this.outlineView.contentInsets = JSInsets(this.headerView.frame.size.height, 0, 0, 0);
+        this.outlineView.contentInsets = JSInsets(this.headerView.frame.size.height, 0, 5, 0);
         if (this.searchListView){
             this.searchListView.frame = this.outlineView.frame;
             this.searchListView.contentInsets = this.outlineView.contentInsets;
@@ -47,7 +47,6 @@ JSClass("SidebarViewController", UIViewController, {
 
     // --------------------------------------------------------------------
     // MARK: - Managing Compnents
-
 
     setComponents: function(components){
         this.root = components[0];
@@ -64,6 +63,38 @@ JSClass("SidebarViewController", UIViewController, {
             component = component.children[indexPath[i]];
         }
         return component;
+    },
+
+    indexPathForComponent: function(component){
+        if (component.url == this.root.url){
+            return JSIndexPath(0, 0);
+        }
+        var paths = component.url.split('/');
+        var indexPath = JSIndexPath([1]);
+        var components = this.components;
+        var path;
+        var url = '';
+        for (var i = 0, l = paths.length; i < l; ++i){
+            path = paths[i];
+            if (url !== ''){
+                url += '/';
+            }
+            url += path;
+            for (var j = 0, k = components.length; j < k; ++j){
+                if (components[j].url == url){
+                    components = components[j].children;
+                    indexPath.append(j);
+                    break;
+                }
+            }
+        }
+        return indexPath;
+    },
+
+    selectComponent: function(component){
+        var indexPath = this.indexPathForComponent(component);
+        this.outlineView.selectedIndexPath = indexPath;
+        this.outlineView.scrollToRowAtIndexPath(indexPath);
     },
 
     numberOfSectionsInOutlineView: function(outlineView){
@@ -89,8 +120,13 @@ JSClass("SidebarViewController", UIViewController, {
         return component.children && component.children.length > 0;
     },
 
-    outlineViewIsExpandedAtIndexPath: function(outlineView, indexPath){
-        return false;
+    outlineViewExpandedIndexPaths: function(outlineView){
+        return [
+            JSIndexPath([1, 3]),
+            JSIndexPath([1, 3, 1]),
+            JSIndexPath([1, 3, 2]),
+            JSIndexPath([1, 4]),
+        ];
     },
 
     cellForListViewAtIndexPath: function(listView, indexPath){
@@ -113,6 +149,16 @@ JSClass("SidebarViewController", UIViewController, {
         }
         cell.titleLabel.text = component.name;
         return cell;
+    },
+
+    numberOfSectionsInListView: function(listView){
+        // only called for search list view
+        return 1;
+    },
+
+    numberOfRowsInListViewSection: function(listView){
+        // only called for search list view
+        return this.searchResults.length;
     },
 
     listViewShouldSelectCellAtIndexPath: function(listView, indexPath){
@@ -167,7 +213,16 @@ JSClass("SidebarViewController", UIViewController, {
         this.view.setNeedsLayout();
         this.outlineView.hidden = true;
         if (!this.searchListView){
-            this.searchListView = UIListView.initWithStyler(this.outlineView.styler);
+            var styler = UIListViewDefaultStyler.init();
+            styler.showSeparators = this.outlineView.styler.showSeparators;
+            styler.imageSize = this.outlineView.styler.imageSize;
+            styler.imageSize = this.outlineView.styler.imageSize;
+            styler.cellFont = this.outlineView.styler.cellFont;
+            styler.selectedCellBackgroundColor = this.outlineView.styler.selectedCellBackgroundColor;
+            styler.cellBackgroundColor = this.outlineView.styler.cellBackgroundColor;
+            styler.cellContentInsets = JSInsets(this.outlineView.styler.cellContentInsets);
+            styler.cellContentCornerRadius = this.outlineView.styler.cellContentCornerRadius;
+            this.searchListView = UIListView.initWithStyler(styler);
             this.searchListView.delegate = this;
             this.searchListView.dataSource = this;
             this.searchListView.rowHeight = 24;
@@ -181,11 +236,17 @@ JSClass("SidebarViewController", UIViewController, {
         this.searchResults = [];
         var component;
         search = search.toLowerCase();
-        for (var i = 0, l = this.items.length; i < l; ++i){
-            component = this.items[i].component;
+        var stack = [this.root];
+        while (stack.length > 0){
+            component = stack.shift();
             if (component.kind !== 'topic'){
                 if (component.name.toLowerCase().indexOf(search) >= 0){
                     this.searchResults.push(component);
+                }
+            }
+            if (component.children){
+                for (var i = 0, l = component.children.length; i < l; ++i){
+                    stack.push(component.children[i]);
                 }
             }
         }

@@ -18,12 +18,18 @@ JSClass("BreadcrumbView", UIView, {
                 this.action = this.target[values.action];
             }
         }
+        if ('highlightColor' in values){
+            this._menuHighlightColor = spec.resolvedValue(values.highlightColor);
+        }
     },
 
     awakeFromSpec: function(){
         this.popupButtons = [];
         this.componentsByButtonIndex = [];
         this.popupStyler = _BreadcrumbPopupButtonStyler.init();
+        if (this._menuHighlightColor){
+            this.popupStyler.menuStyler.highlightColor = this._menuHighlightColor;
+        }
         this.setNeedsLayout();
     },
 

@@ -26,9 +26,10 @@ JSClass("MainViewController", UIDualPaneViewController, {
         if (path.startsWith('/')){
             path = path.substr(1);
         }
-        var component = this.componentForPath(this.components, path) || this.components[0];
-        this.contentViewController.showComponent(component);
+        this._initialComponent = this.componentForPath(this.components, path) || this.components[0];
     },
+
+    _initialComponent: null,
 
     componentForPath: function(components, path){
         var candidate;
@@ -49,6 +50,10 @@ JSClass("MainViewController", UIDualPaneViewController, {
 
     viewDidAppear: function(){
         MainViewController.$super.viewDidAppear.call(this);
+        if (this._initialComponent){
+            this.sidebarViewController.selectComponent(this._initialComponent);
+            this._initialComponent = null;
+        }
     },
 
     contentViewDidShowComponent: function(contentViewController, component){
