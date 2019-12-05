@@ -95,6 +95,9 @@ JSClass("Markdown", JSObject, {
                         let href = escapedText.substr(hrefStart + 2, hrefEnd - hrefStart - 2);
                         if (markdown.delegate && markdown.delegate.urlForMarkdownLink){
                             href = markdown.delegate.urlForMarkdownLink(markdown, href);
+                            if (href){
+                                href = href.encodedString;
+                            }
                         }
                         let linktext = escapedText.substr(i, hrefStart - i);
                         let a = element.appendChild(document.createElement('a'));
@@ -118,6 +121,9 @@ JSClass("Markdown", JSObject, {
                             let src = escapedText.substr(srcStart + 2, srcEnd - srcStart - 2);
                             if (markdown.delegate && markdown.delegate.urlForMarkdownImage){
                                 src = markdown.delegate.urlForMarkdownImage(markdown, src);
+                                if (src){
+                                    src = src.encodedString;
+                                }
                             }
                             let alttext = escapedText.substr(i, srcStart - i);
                             let img = element.appendChild(document.createElement('img'));
