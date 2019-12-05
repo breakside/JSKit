@@ -135,7 +135,7 @@ Object.defineProperties(Uint8Array.prototype, {
         enumerable: false,
         value: function Uint8Array__base64StringRepresentation(map, maxLineWidth){
             if (maxLineWidth === undefined){
-                maxLineWidth = this.length * 2;
+                maxLineWidth = this.length * 2 + 4;
             }
             var str = '';
             var i, l;
