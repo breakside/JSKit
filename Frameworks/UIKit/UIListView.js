@@ -1201,12 +1201,12 @@ JSClass("UIListView", UIScrollView, {
 
         // Create views before the first view
         var result;
-        result = this._createViewsBefore(section, start, startIsVisible, preEdit.y, preEdit.contentOffset.y, preEdit.exactHeightMinY, function(view){
+        result = this._createViewsBefore(section, start, startIsVisible, preEdit.y, preEdit.y - (postEdit.y - postEdit.contentOffset.y), preEdit.exactHeightMinY, function(view){
             editingViews.unshift({
                 view: view,
                 added: true
             });
-            // view.position = JSPoint(view.position.x, view.position.y - deletedHeightAtTop);
+            view.position = JSPoint(view.position.x, view.position.y - deletedHeightAtTop);
             ++editingViewIndex;
             if (view.isKindOfClass(UIListViewCell)){
                 ++visibleCellIndex;
@@ -1481,7 +1481,7 @@ JSClass("UIListView", UIScrollView, {
         for (i = 0, l = edit.insertedIndexPaths.length; i < l; ++i){
             info = edit.insertedIndexPaths[i];
             parent = info.indexPath.removingLastIndex();
-            while (cellIndex < cellCount && (edit.cells[i].deleted || edit.cells[cellIndex].indexPath.isLessThan(info.indexPath))){
+            while (cellIndex < cellCount && (edit.cells[cellIndex].deleted || edit.cells[cellIndex].indexPath.isLessThan(info.indexPath))){
                 ++cellIndex;
             }
             for (j = cellIndex; j < cellCount && edit.cells[j].indexPath.length > parent.length && edit.cells[j].indexPath.startsWith(parent); ++j){
