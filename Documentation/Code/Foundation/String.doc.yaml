@@ -11,7 +11,7 @@ description: |
   The bytes could be UTF-8, UTF-16, or possibly even a non-unicode encoding
   such as ISO-8859-1 (commonly known as Latin-1).
 
-  To support such operations, JSKit adds:
+  To support such operations, `Foundation` adds:
 
   * Init methods such as `initWithData()` to go from bytes -> unicode
   * Encoding methods such as `dataUsingEncoding()` to go from unicode -> bytes
@@ -30,12 +30,12 @@ description: |
   character will have a `length` of `2`.  Iterating through the string will result
   in two codes `0xD83D` followed by `0xDE00`.
 
-  JSKit adds an layer of unicode awareness that makes it easy to tell that you're
-  really dealing with a single character, not two.
+  `Foundation` adds an layer of unicode awareness that makes it easy to tell
+  that you're really dealing with a single character, not two.
 
   Unicode Iterators
   -----------------
-  If you need to iterate through a string character by character, these `JSKit`
+  If you need to iterate through a string character by character, these `String`
   additions provide a way to iterate in a unicode-aware way with the
   `unicodeIterator()` method.
 
@@ -48,7 +48,7 @@ description: |
   would perceive as a character.  For example, an `é` could be created using
   and `e` and a combining mark, `´`, which are two distinct unicode characters.
 
-  Therefore, `JSKit` also provides the `userPerceivedCharacterIterator()` method
+  Therefore, `String` also provides the `userPerceivedCharacterIterator()` method
   that will combine any number of JavaScript UTF-16 codepoints together.
 
   Word Boundaries
@@ -80,7 +80,7 @@ topics:
 
           Placeholder Types
           =================
-          While JSKit doesn't support the entire set of placeholders that
+          While `String` doesn't support the entire set of placeholders that
           `printf` supports in `C`, the basics are all here:
 
           * `%s` - the string representation of the argument

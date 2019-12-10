@@ -1,0 +1,255 @@
+kind: class
+summary: Extensions to the standard `Uint8Array` class
+description: |
+  The standard way to hold and access and array of bytes in JavaScript is with
+  the `Uint8Array` class.  `JSData` builds on this standard class to add
+  functionality and convenince.
+
+  Because `JSData` is implemented as a set of extensions on `Uint8Array`, any
+  `Uint8Array` is a full `JSData` object.  In other words, `JSData` is an alias
+  for `Uint8Array`.
+topics:
+  -
+    name: Creating a JSData
+    members:
+      -
+        name: initWithLength
+        kind: init
+        summary: Create a `0`-filled byte array with the given `length`
+        description: |
+          This is the standard way to create a buffer of bytes.
+        note: All buffers are `0`-filled by default
+        arguments:
+          -
+            name: length
+            type: Number
+            summary: The length, in bytes, of the new byte array
+      -
+        name: initWithBuffer
+        kind: init
+        summary: Create a byte array based on a standard `ArrayBuffer`
+        description: |
+          When dealing with non-`JSKit` based code, you may end up receiving
+          a standard `ArrayBuffer`.  In such a case, this initializer will
+          wrap the buffer in a `JSData` object.
+        important: This initializer does not copy the bytes, it points directly
+          to the given buffer.
+        arguments:
+          -
+            name: buffer
+            type: ArrayBuffer
+            summary: The native JavaScript byte buffer
+      -
+        name: initWithChunks
+        kind: init
+        summary: Create a byte array from a list of other byte arrays
+        description: |
+          In situations like network operations, it's common to receive data in
+          separate chunks.  This initializer can take a list of chunks and
+          copy them into a new single byte array.
+        important: This initializer copies the bytes from each chunk into a new
+          underlying buffer, which can be expensive if the chunks are large.
+        arguments:
+          -
+            name: chunks
+            type: JSData[]
+            summary: The list of data chunks that should be combined into one
+              new byte array
+      -
+        name: initWithArray
+        kind: init
+        summary: Create a byte array from a list of numbers
+        description: |
+          Most useful when hard-coding fixed byte arrays, this initializer takes
+          an array of numbers and creates an array of bytes.
+
+          The numbers should be between 0-255, inclusive.
+  -
+    name: Accessing Bytes
+    members:
+      -
+        name: length
+        type: Number
+        summary: The number of bytes in this array
+      -
+        name: "[i]"
+        type: Uint8
+        summary: Subscript access to any element from `0...length - 1`
+  -
+    name: Alternate Representations
+    members:
+      -
+        name: hexStringRepresentation
+        kind: method
+        type: String
+        return: The entire byte array in hex form
+        summary: Get a string of hex codes representing the bytes in this array
+      -
+        name: base64StringRepresentation
+        kind: method
+        type: String
+        return: The entire byte array in base64 form
+        summary: Get a string of base64 representing the bytes in this array
+      -
+        name: base64URLStringRepresentation
+        kind: method
+        type: String
+        return: The entire byte array in base64 url-safe form
+        summary: Get a string of base64 url-safe representing the bytes in this
+          array
+      -
+        name: dataView
+        kind: method
+        type: DataView
+        return: A native JavaScript `DataView` object covering the bytes
+        summary: Get a `DataView` object for easier extraction of varying
+          types of embedded data.
+        description: |
+          `DataView` is a handy JavaScript feature that provides an easy
+          interface for extracting higher-level data than simply byte values.
+  -
+    name: String Decoding 
+    members:
+      -
+        name: stringByDecodingUTF8
+        kind: method
+        type: String
+        return: A `String` from the UTF-8 data in this byte array
+        summary: Convert this byte array containing UTF-8 data to a `String`
+      -
+        name: stringByDecodingUTF16BE
+        kind: method
+        type: String
+        return: A `String` from the UTF-16 BE data in this byte array
+        summary: Convert this byte array containing UTF-16 BE data to a `String`
+      -
+        name: stringByDecodingUTF16LE
+        kind: method
+        type: String
+        return: A `String` from the UTF-16 LE data in this byte array
+        summary: Convert this byte array containing UTF-16 LE data to a `String`
+      -
+        name: stringByDecodingLatin1
+        kind: method
+        type: String
+        return: A `String` from the Latin-1 data in this byte array
+        summary: Convert this byte array containing Latin-1 data to a `String`
+  -
+    name: Comparisons
+    members:
+      -
+        name: isEqual
+        kind: method
+        type: boolean
+        return: \`true` if the given array is equal to this one, `false`
+          otherwise
+        summary: Check if this array is exactly the same sequence of bytes as
+          another
+        arguments:
+          -
+            name: other
+            type: JSData
+            summary: The other array to compare to
+  -
+    name: Transformations
+    members:
+      -
+        name: dataByDecodingPercentEscapes
+        kind: method
+        type: JSData
+        return: A new byte array that decodes `%`-escaped sequences
+        summary: Decode `%`-escaped sequences, like those found in URLs
+        arguments:
+          -
+            name: decodePlusAsSpace
+            type: boolean
+            default: "false"
+            summary: Should plus signs, `0x2B`, be decoded as spaces, `0x20`
+      -
+        name: dataByEncodingPercentEscapes
+        kind: method
+        type: JSData
+        return: A new byte array that decodes `%`-escaped sequences
+        summary: Decode `%`-escaped sequences, like those found in URLs
+        arguments:
+          -
+            name: reserved
+            type: dictionary
+            default: "{}"
+            summary: A dictionary of `byte:boolean` pairs that indicate if a
+              particular byte value should be percent escaped
+          -
+            name: encodeSpaceAsPlus
+            type: boolean
+            default: "false"
+            summary: Should spaces, `0x20`, be encoded as plus signs, `0x2B`
+  -
+    name: Clearing
+    summary: Change the byte array in-place
+    members:
+      -
+        name: zero
+        kind: method
+        summary: Set all bytes to `0`
+  -
+    name: Copying
+    summary: Copy the array
+    members:
+      -
+        name: copyTo
+        kind: method
+        summary: Copy this array's bytes to another array
+        note: Copying will stop when the end of either array (source or
+          destination) is reached.
+        arguments:
+          -
+            name: other
+            type: JSData
+            summary: The target array that will be overwritten with the bytes
+              from this array
+          -
+            name: index
+            type: Number
+            summary: The starting point in the target array for the copied bytes
+      -
+        name: increasedByLength
+        summary: Create a new, longer, array that begins with the same bytes
+        kind: method
+        return: A copy of this byte array that contains more bytes
+        arguments:
+          -
+            name: length
+            type: Number
+            summary: The length that should be added to this array's existing
+              length
+  -
+    name: Subdata
+    summary: Extract slices of the array
+    members:
+      -
+        name: subdataInRange
+        kind: method
+        type: JSData
+        summary: Extract a new sub-array from a given range 
+        return: A byte array that points to the same underlying buffer, but
+          only covers the given range.
+        important: The returned array is not a copy of bytes, so modifications
+          to the returned array will modify this original array, too.
+        arguments:
+          -
+            name: range
+            type: JSRange
+            summary: The range to extract
+      -
+        name: truncatedToLength
+        kind: method
+        type: JSData
+        summary: Extract a sub-array from the start of this array to a new
+          length
+        important: The returned array is not a copy of bytes, so modifications
+          to the returned array will modify this original array, too.
+        arguments:
+          -
+            name: length
+            type: Number
+            summary: The length to extract from the beginning of this array

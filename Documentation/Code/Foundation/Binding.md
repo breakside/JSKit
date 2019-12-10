@@ -171,7 +171,7 @@ Note the final two lines we've added from the previous example.  We're using the
 fourth argument (`options`) of `bind()` to pass a value transformer that turns `null` into `false` and
 anything else into `true`.
 
-`JSKit` comes with a few standard value transformers:
+`Foundation` comes with a few standard value transformers:
 
 * `JSIsNullValueTransformer`
 * `JSIsNotNullValueTransformer`

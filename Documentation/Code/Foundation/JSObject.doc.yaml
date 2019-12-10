@@ -361,7 +361,7 @@ topics:
           -
             name: options
             type: dictionary
-            default: undefined
+            default: "undefined"
             summary: |
               Options for the binding
 

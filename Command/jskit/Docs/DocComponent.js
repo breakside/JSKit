@@ -239,6 +239,10 @@ JSClass("DocComponent", JSObject, {
         if (parenIndex > 0){
             name = name.substr(0, parenIndex);
         }
+        var bracketIndex = name.indexOf('[');
+        if (bracketIndex > 0){
+            name = name.substr(0, bracketIndex);
+        }
         var parts = name.split('.');
         var component = this.componentForName(parts.shift());
         while (parts.length > 0 && component !== null){
