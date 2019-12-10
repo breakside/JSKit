@@ -1068,7 +1068,7 @@ Object.defineProperties(UnicodeIterator.prototype, {
         enumerable: true,
         configurable: false,
         get: function UnicodeIterator_isWhiteSpace(){
-            return this.character !== null && (this.character.code == 0x20 || this.character.code == 0x0A || this.character.code == 0x0B || this.character.code == 0x0C || this.character.code == 0x0D);
+            return this.character !== null && (this.character.code == 0x20 || this.character.code == 0x09 || this.character.code == 0x0A || this.character.code == 0x0B || this.character.code == 0x0C || this.character.code == 0x0D);
             // TODO: consider other whitespace
         }
     }
