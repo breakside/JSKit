@@ -1,0 +1,93 @@
+kind: class
+summary: A `String`-derivied iterator for user-perceived characters
+description: |
+  While `UnicodeIterator` is a way to handle the UTF-16 surrogate pairs found in
+  standard JavaScript strings, sometimes multiple Unicode codepoints combine
+  to form a single user-perceived character, such as when an `e` (`0x65`) is
+  follwed by a combining mark `´` (`0x301`) to form the equivalent of an
+  `é` (`0xE9`)
+
+  A `UserPerceivedCharacterIterator` is aware of these special marks and
+  automatically combines them into a single user perceived substring while
+  iterating.
+topics:
+  -
+    name: Iteration
+    members:
+      -
+        name: range
+        type: JSRange
+        summary: The range into the JavaScript string that represents the
+          single user-perceived character at the iteration point.
+        important: This will be `null` if we have reached the end of iteration
+      -
+        name: utf16
+        type: String
+        summary: The substring that represents the single user-perceived
+          character at the iteration point.
+        important: This will be `null` if we have reached the end of iteration
+      -
+        name: firstCharacter
+        type: UnicodeChar
+        summary: The unicode character at the start of the user-perceived string
+          at the iteration point
+        important: This will be `null` if we have reached the end of iteration
+      -
+        name: increment
+        kind: method
+        summary: Increment the iterator by one user-perceived character,
+          combining any number of unicode characters if needed
+      -
+        name: decrement
+        kind: method
+        summary: Decrement the iterator by one user-perceived character,
+          combining any number of unicode characters if needed
+  -
+    name: Location
+    members:
+      -
+        name: index
+        type: Number
+        summary: The starting index of the user-perceived character in the 
+          underlying JavaScript string
+      -
+        name: nextIndex
+        type: Number
+        summary: The index immediately after the end of the user-perceived
+          character in the underlying JavaScript string
+  -
+    name: Checks
+    members:
+      -
+        name: isWordBoundary
+        type: boolean
+        summary: Check if the is iterator currently at a word boundary
+        description: |
+          Word boundaries are calculated based on the algorithms defined
+          in the [Unicode standard](https://www.unicode.org/reports/tr29/#Word_Boundaries).
+        note: This checks if the start of the user-perceived character is at a
+          word boundary, not the end.
+      -
+        name: isWhiteSpace
+        type: boolean
+        summary: Check if the is iterator currently at a white space character
+        description: |
+          White space characters are:
+          - `0x20` Space
+          - `0x09` Tab
+          - `0x0A` Newline
+          - `0x0B` Vertical Tab
+          - `0x0C` Form Feed
+          - `0x0D` Carriage Return
+      -
+        name: isMandatoryLineBreak
+        type: boolean
+        summary: Check if the is iterator currently at a hard line break
+        description: |
+          Line break characters are:
+          - `0x000A` Newline
+          - `0x000C` Form Feed
+          - `0x000D` Carriage Return
+          - `0x0085` Next Line
+          - `0x2028` Line Separator
+          - `0x2029` Paragraph Separator

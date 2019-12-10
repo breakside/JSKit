@@ -37,7 +37,7 @@
 
         if (this.inherits){
             let inherits = document.createElement('section');
-            elements.append(inherits);
+            elements.push(inherits);
             inherits.setAttribute("class", "inherits");
             let header = inherits.appendChild(document.createElement("header"));
             let h1 = header.appendChild(document.createElement("h1"));

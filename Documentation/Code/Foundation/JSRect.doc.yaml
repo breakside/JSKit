@@ -1,0 +1,161 @@
+kind: class
+summary: A rectangle useful for graphics and user interface elements
+description: |
+  `JSRect` is a building block for various graphics-related tasks.  It is made
+  by combining a `JSPoint` origin with a `JSSize` extent.
+
+  `UIKit` makes extensive use of `JSRect` in view positioning, text layout,
+  and other UI elements.
+topics:
+  -
+    name: Creating Rectangles
+    members:
+      -
+        kind: constructor
+        prefix: expanded
+        summary: Create a new rectangle
+        return: The new rectangle
+        type: JSRect
+        arguments:
+          -
+            name: x
+            type: Number
+            summary: The `x` coordinate of the rectangle's origin
+          -
+            name: y
+            type: Number
+            summary: The `y` coordinate of the rectangle's origin
+          -
+            name: width
+            type: Number
+            summary: The `width` component of the rectangle's size
+          -
+            name: height
+            type: Number
+            summary: The `height` component of the rectangle's size
+      -
+        kind: constructor
+        summary: Create a new rectangle
+        return: The new rectangle
+        type: JSRect
+        arguments:
+          -
+            name: origin
+            type: JSPoint
+            summary: The origin point of the rectangle
+          -
+            name: size
+            type: JSSize
+            summary: The size of the rectangle
+      -
+        kind: constructor
+        prefix: copy
+        summary: Copy a rectangle
+        description: |
+          Rectangles should be copied anytime before making modifications if the
+          original rectangle should remain the same.
+
+          For exmaple, a function might make a copy of a passed argument before
+          modifying it:
+
+          ````
+          function constrainedRect(rect){
+            rect = JSRect(rect);
+            if (rect.size.width > 100){
+              // Since we're modifying the rect here, but only want to affect
+              // the return value, we need to first do a copy of the rect
+              rect.size.width = 100;
+            }
+            if (rect.size.height > 100){
+              rect.size.height = 100;
+            }
+            return rect;
+          }
+          ````
+        return: A new rectangle that is an exact copy of the other
+        type: JSRect
+        arguments:
+          -
+            name: other
+            type: JSRect
+            summary: The rectangle to copy
+      -
+        kind: property
+        static: true
+        name: Zero
+        type: JSRect
+        summary: A rectangle with a 0,0 origin and a 0x0 size
+        description: |
+          A shortcut for
+          ````
+          JSRect(0, 0, 0, 0)
+          ````
+          that can be used as a default starting point or as a comparison as in:
+          ````
+          var rect = rectFromSomewhere();
+          if (rect.isEqual(JSRect.Zero)){
+            // 
+          }else{
+            // 
+          }
+          ````
+        note: Even though this looks like a property, it will always return a
+          new `JSRect` each time it is invoked, ensuring that nothing can
+          accidentally modify or overwrite the `Zero` property.
+  -
+    name: Location
+    members:
+      -
+        name: origin
+        type: JSPoint
+        summary: The origin point of the rectangle
+      -
+        name: size
+        type: JSSize
+        summary: The size of the rectangle
+      -
+        name: center
+        type: JSPoint
+        summary: The center point of the rectangle
+        description: |
+          Sometimes it's more conveient to query or specify the center point of
+          a rectangle than its `origin`.
+
+          This property is calculated based on the `origin` and `size`
+  -
+    name: Hit Testing
+    members:
+      -
+        name: containsPoint
+        kind: method
+        type: boolean
+        return: \`true` if the rectangle contains the given point, `false` otherwise
+        summary: Check if the given point is within this rectangle
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: The point to check
+  -
+    name: Calculations
+    members:
+      -
+        name: rectWithInsets
+        kind: method
+        type: JSRect
+        return: A new rectangle inset from this rectangle by the given amount
+        summary: Create a new rectangle based off of this one and a given set of
+          insets
+        arguments:
+          -
+            name: insets
+            type: JSInsets
+            summary: The insets that should be combined with this rectangle to
+              create a new rectangle
+            description: |
+              Positive insets will result in a rectangle smaller than this
+              rectangle, while negative insets will result in a larger
+              rectangle.
+
+              This method can be especially useful when dealing with a
+              padding-like property.

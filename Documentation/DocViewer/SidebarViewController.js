@@ -94,7 +94,7 @@ JSClass("SidebarViewController", UIViewController, {
     selectComponent: function(component){
         var indexPath = this.indexPathForComponent(component);
         this.outlineView.selectedIndexPath = indexPath;
-        this.outlineView.scrollToRowAtIndexPath(indexPath);
+        // this.outlineView.scrollToRowAtIndexPath(indexPath);
     },
 
     numberOfSectionsInOutlineView: function(outlineView){
@@ -121,12 +121,16 @@ JSClass("SidebarViewController", UIViewController, {
     },
 
     outlineViewExpandedIndexPaths: function(outlineView){
-        return [
-            JSIndexPath([1, 3]),
-            JSIndexPath([1, 3, 1]),
-            JSIndexPath([1, 3, 2]),
-            JSIndexPath([1, 4]),
-        ];
+        if (outlineView.selectedIndexPath !== null){
+            return [outlineView.selectedIndexPath];
+        }
+        return [];
+        // return [
+        //     JSIndexPath([1, 3]),
+        //     JSIndexPath([1, 3, 1]),
+        //     JSIndexPath([1, 3, 2]),
+        //     JSIndexPath([1, 4]),
+        // ];
     },
 
     cellForListViewAtIndexPath: function(listView, indexPath){

@@ -73,7 +73,7 @@ description: |
   Another advangate of init methods over standard constructors is that they can
   return `null`, making them failable.
 
-  If an init method doesn't return anything (technically, if it's return value
+  If an init method doesn't return anything (technically, if its return value
   is `undefined`) then the calling code receives the newly created object.
 
   However, if an init method returns something, even `null`, that value will be

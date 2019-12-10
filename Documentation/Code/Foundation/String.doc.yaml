@@ -35,12 +35,31 @@ description: |
 
   Unicode Iterators
   -----------------
+  If you need to iterate through a string character by character, these `JSKit`
+  additions provide a way to iterate in a unicode-aware way with the
+  `unicodeIterator()` method.
+
+  A unicode iterator will automatically combine two JavaScript UTF-16 codepoints
+  if they represent a single unicode character.
 
   User-Perceived Characters
   -------------------------
+  Individual unicode characters, however, don't always line up with what a user
+  would perceive as a character.  For example, an `é` could be created using
+  and `e` and a combining mark, `´`, which are two distinct unicode characters.
+
+  Therefore, `JSKit` also provides the `userPerceivedCharacterIterator()` method
+  that will combine any number of JavaScript UTF-16 codepoints together.
 
   Word Boundaries
   ===============
+  Advanced string parsing is also available in the form of word boundary
+  awareness.
+
+  Methods such as `rangeForWordAtIndex()` will provide a range of indexes into
+  the JavaScript string that cover the extend of a word.
+
+  This can be useful for token parsing and word wrapping logic.
 
 topics:
   -
@@ -264,6 +283,37 @@ topics:
         kind: method
         summary: Get an iterator that steps through each unicode character in the
           string, handling the underlying surrogate pairs as single characters
+        description: |
+          Standard JavaScript strings are actually a sequence of UTF-16 codepoints.
+
+          Most of the time, a UTF-16 codepoint represents a Unicode codepoint exactly,
+          but some Unicode characters require a "surrogate pair" of UTF-16 codepoints,
+          meaning that two characters in the JavaScript string really should be interpreted
+          together as a single Unicode character.
+
+          The difference is often easy to overlook, and can lead to mistakes.  For example,
+          The emoji character 😀 is one character, but a JavaScript string made from that
+          character will have a `length` of `2`.
+
+          Iterating through the string with a simple `for` loop will result in
+          two codes `0xD83D` followed by `0xDE00`.
+
+          Unicode Iteration
+          -----------------
+          Using `unicodeIterator()`, however, will result in only a single code
+          `0x1F600` representing the 😀 emoji.
+
+          ````
+          var str = "😀"
+          str.length; // 2
+          str.charAt(0); // 0xD83D
+          str.charAt(1); // 0xDE00
+
+          var iterator = str.unicodeIterator();
+          iterator.character.code; // 0x1F600
+          iterator.increment();
+          iterator.character; // null
+          ````
         type: UnicodeIterator
         arguments:
           -

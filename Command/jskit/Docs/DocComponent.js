@@ -275,13 +275,13 @@ JSClass("DocComponent", JSObject, {
         for (let i = 0, l = this.children.length; i < l && component === null; ++i){
             let child = this.children[i];
             if (child !== excludingChild){
-                component = child.descendantForName(name);
+                component = child.componentForNameExcludingParent(name);
             }
         }
         return component;
     },
 
-    componentForName: function(name, excludingChild){
+    componentForNameExcludingParent: function(name, excludingChild){
         // Self
         if (this.name == name){
             return this;
@@ -295,6 +295,15 @@ JSClass("DocComponent", JSObject, {
 
         // Descendants
         component = this.descendantForName(name, excludingChild);
+        if (component !== null){
+            return component;
+        }
+
+        return null;
+    },
+
+    componentForName: function(name, excludingChild){
+        var component = this.componentForNameExcludingParent(name, excludingChild);
         if (component !== null){
             return component;
         }

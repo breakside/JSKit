@@ -1,0 +1,49 @@
+kind: class
+inherits: JSObject
+summary: Manage a list of jobs to be executed in sequential order
+topics:
+  -
+    name: Preset Queues
+    members:
+      -
+        name: background
+        static: true
+        type: JSDispatchQueue
+        summary: The default queue for background jobs
+        description: |
+          Background jobs do not block the user interface or main application
+          loop.
+
+          This is useful for computationally expensive jobs that would otherwise
+          take too much time on the main loop, preventing anything else from
+          running.
+
+          While you can create your own queues, the `background` queue is the
+          simplest way to get started with dispatched jobs.
+  -
+    name: Running Jobs
+    members:
+      -
+        name: enqueue
+        kind: method
+        type: JSDispatchJob
+        arguments:
+          -
+            name: jobClass
+            type: JSClass
+            summary: The `JSDispatchJob` subclass that will be created by the
+              queue when it's time to run the job
+          -
+            name: args
+            type: any[]
+            summary: The arguments that will be passed to the `jobClass`
+              instanace when it is initiated
+          -
+            name: successCallback
+            type: function
+          -
+            name: errorCallback
+            type: function
+          -
+            name: target
+            type: Object

@@ -1,0 +1,167 @@
+kind: class
+summary: A two-dimensional coordinate with `x` and `y` values, useful for graphics
+  and user interface elements
+description: |
+  `JSPoint` is a building block for various graphics-related tasks.  Along with
+  `JSRect`, it can define a rectangle like `JSRect`.
+
+  `UIKit` makes extensive use of `JSPoint` in view positioning, text layout, and other
+  UI elements.
+topics:
+  -
+    name: Creating Points
+    members:
+      -
+        kind: constructor
+        summary: Create a new point
+        return: The new point
+        type: JSPoint
+        arguments:
+          -
+            name: x
+            type: Number
+            summary: The x or horizontal component of the new point
+          -
+            name: y
+            type: Number
+            summary: The y or vertical component of the new point
+      -
+        kind: constructor
+        prefix: copy
+        summary: Copy a point
+        description: |
+          Points should be copied anytime before making modifications if the
+          original point should remain the same.
+
+          For exmaple, a function might make a copy of a passed argument before
+          modifying it:
+
+          ````
+          function constrainedPoint(point){
+            point = JSPoint(point);
+            if (point.x < 0){
+              // Since we're modifying the point here, but only want to affect
+              // the return value, we need to first do a copy of the point
+              point.x = 0;
+            }
+            if (point.y < 0){
+              point.y = 0;
+            }
+            return point;
+          }
+          ````
+        return: A new point that is an exact copy of the other
+        type: JSPoint
+        arguments:
+          -
+            name: other
+            type: JSPoint
+            summary: The point to copy
+      -
+        kind: property
+        static: true
+        name: Zero
+        type: JSPoint
+        summary: A point with x and y components set to 0
+        description: |
+          A shortcut for
+          ````
+          JSPoint(0, 0)
+          ````
+          that can be used as a default starting point or as a comparison as in:
+          ````
+          var point = pointFromSomewhere();
+          if (point.isEqual(JSPoint.Zero)){
+            // 
+          }else{
+            // 
+          }
+          ````
+        note: Even though this looks like a property, it will always return a
+          new `JSPoint` each time it is invoked, ensuring that nothing can
+          accidentally modify or overwrite the `Zero` property.
+      -
+        kind: property
+        static: true
+        name: UnitCenter
+        type: JSPoint
+        summary: A point with x and y components set to 0.5
+        description: |
+          A shortcut for
+          ````
+          JSPoint(0.5, 0.5)
+          ````
+          that can be used as a default starting point as in:
+          ````
+          var view = UIView.init()
+          view.anchorPoint = JSPoint.UnitCenter;
+          ````
+        note: Even though this looks like a property, it will always return a
+          new `JSPoint` each time it is invoked, ensuring that nothing can
+          accidentally modify or overwrite the `UnitCenter` property.
+  -
+    name: Coordinates
+    members:
+      -
+        name: x
+        type: Number
+        summary: The x or horizontal component of the point
+      -
+        name: y
+        type: Number
+        summary: The y or vertical component of the point
+  -
+    name: Calculations
+    members:
+      -
+        name: add
+        kind: method
+        type: JSPoint
+        return: A new point that is the sum of the `x` and `y` coordinates of
+          the two points
+        summary: Add the components of another point to this one
+        description: Add this point to another and return the result without
+          modifying either of the original points.
+        arguments:
+          -
+            name: other
+            type: JSPoint
+            summary: The point to add
+      -
+        name: subtract
+        kind: method
+        type: JSPoint
+        return: A new point that is the difference of the `x` and `y`
+          coordinates of the two points
+        summary: Subtract the components of another point from this one
+        description: Subtract another point from this one and return the result
+          without modifying either of the original points.
+        arguments:
+          -
+            name: other
+            type: JSPoint
+            summary: The point to subtract
+      -
+        name: distanceToPoint
+        kind: method
+        type: Number
+        return: The one-dimensional distance between the two points
+        summary: Calculate the line distance from this point to another
+        arguments:
+          -
+            name: other
+            type: JSPoint
+            summary: The point to which a distance will be calculated
+      -
+        name: angleToPoint
+        kind: method
+        type: Number
+        return: The angle created by a line between the two points
+        summary: Calculate the angle created by a line going from this point to
+          the specified point
+        arguments:
+          -
+            name: other
+            type: JSPoint
+            summary: The point to which a line will be drawn to determine an
+              angle

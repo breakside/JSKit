@@ -1,0 +1,373 @@
+kind: class
+summary: A single Unicode codeopint
+description: |
+  `Strings` are made of unicode codepoints.
+
+  In JavaScript, strings are encoded in UTF-16, which uses "surrogate pairs" to
+  represent any unicode codepoint that can't fit into 16 bytes.
+
+  `Foundation` ehchances the standard `String` class to handle surrogate pairs so
+  developers can deal with unicode codepoints insead.
+
+  Since unicode codepoints have many properties, `Foundation` represents them
+  as objects instead of simply as numbers.
+topics:
+  -
+    name: Creating Unicode Characters
+    members: 
+      -
+        name: UnicodeChar
+        kind: constructor
+        summary: Create or lookup a Unicode Character
+        description: |
+          Since `UnicodeChar`s will be created often, and since most
+          applications will only deal with small subset of all possible
+          characters, the `UnicodeChar()` constructor lazily populates a
+          lookup table of instantiated objects.  Subsequent calls with the same
+          `code` will not construct another object, but will instead return
+          the first created object from the lookup table.
+        important: You must call the function version of `UnicodeChar`.  You
+          will get an error if you try to call `new UnicodeChar()`.
+        arguments:
+          -
+            name: code
+            type: Number
+            summary: The unicode codepoint for the character
+  -
+    name: Representations
+    summary: Alternate ways to represent this codepoint than an object
+    members:
+      -
+        name: code
+        type: Number
+        summary: The Unicode codepoint for this character
+      -
+        name: utf16
+        type: String
+        summary: A string that represents this unicode code point.
+        description: |
+          Since `String`s are composed of UTF-16 codepoints, the result
+          may be a string with `length`` == 2` in cases where a surrogate pair
+          is required.
+  -
+    name: Basic
+    summary: Properties related to basic Unicode properties.  Refer to the
+      Unicode Standard for more information
+    members:
+      -
+        name: alphabetic
+        type: boolean
+        summary: Is this codepoint alphabetic?
+      -
+        name: ideographic
+        type: boolean
+        summary: Is this codepoint ideographic?
+      -
+        name: graphemeExtend
+        type: boolean
+        summary: Is this codepoint a grapheme extend?
+      -
+        name: defaultIgnorableCodePoint
+        type: boolean
+        summary: Is this codepoint a default ignorable?
+  -
+    name: General Category
+    summary: Properties related to the Unicode "General Category" properties.
+      Refer to the Unicode Standard for more information
+    members:
+      -
+        name: generalCategoryIsOtherLetter
+        type: boolean
+        summary: Is this codepoint in the "Other Letter" category?
+      -
+        name: generalCategoryIsConnectorPunctuation
+        type: boolean
+        summary: Is this codepoint in the "Connector Punctuation" category?
+      -
+        name: generalCategoryIsSpacingMark
+        type: boolean
+        summary: Is this codepoint in the "Spacing Mark" category?
+      -
+        name: generalCategoryIsFormat
+        type: boolean
+        summary: Is this codepoint in the "Format" category?
+      -
+        name: generalCategoryIsLineSeparator
+        type: boolean
+        summary: Is this codepoint in the "Line Separator" category?
+      -
+        name: generalCategoryIsParagraphSeparator
+        type: boolean
+        summary: Is this codepoint in the "Paragraph Separator" category?
+      -
+        name: generalCategoryIsControl
+        type: boolean
+        summary: Is this codepoint in the "Control" category?
+      -
+        name: generalCategoryIsUnassigned
+        type: boolean
+        summary: Is this codepoint in the "Unassigned" category?
+      -
+        name: generalCategoryIsSurrogate
+        type: boolean
+        summary: Is this codepoint in the "Surrogate" category?
+  -
+    name: Line Breaks
+    summary: Properties related to Unicode Line Break logic.  Refer to the
+      Unicode Standard for more information
+    members:
+      -
+        name: lineBreakIsComplexContext
+        type: boolean
+        summary: Is the codepoint a "complex context" when considering line
+          breaks?
+      -
+        name: lineBreakIsInfixNumeric
+        type: boolean
+        summary: Is the codepoint a "infix numeric" when considering line
+          breaks?
+      -
+        name: lineBreakIsNumeric
+        type: boolean
+        summary: Is the codepoint a "numeric" when considering line
+          breaks?
+      -
+        name: lineBreakIsQuotation
+        type: boolean
+        summary: Is the codepoint a "quotation" when considering line
+          breaks?
+      -
+        name: isLineBreak
+        type: boolean
+        summary: A `Foundation`-specific determination of whether this codepoint
+          is a hard line break
+        description: |
+          Line break characters are:
+          - `0x000A` Newline
+          - `0x000C` Form Feed
+          - `0x000D` Carriage Return
+          - `0x0085` Next Line
+          - `0x2028` Line Separator
+          - `0x2029` Paragraph Separator
+  -
+    name: Word Breaks
+    summary: Properties related to Unicode Word Break logic.  Refer to the
+      Unicode Standard for more information
+    members:
+      -
+        name: wordBreakIsKatakana
+        type: boolean
+        summary: Is the codepoint a "katakana" when considering word
+          breaks?
+      -
+        name: wordBreakIsExtend
+        type: boolean
+        summary: Is the codepoint a "extend" when considering word
+          breaks?
+      -
+        name: wordBreakIsHebrewLetter
+        type: boolean
+        summary: Is the codepoint a "hebrew letter" when considering word
+          breaks?
+      -
+        name: wordBreakCR
+        type: boolean
+        summary: Is the codepoint a "carriage return" when considering word
+          breaks?
+      -
+        name: wordBreakLF
+        type: boolean
+        summary: Is the codepoint a "line feed" when considering word
+          breaks?
+      -
+        name: wordBreakNewline
+        type: boolean
+        summary: Is the codepoint a "newline" when considering word
+          breaks?
+      -
+        name: wordBreakAHLetter
+        type: boolean
+        summary: Is the codepoint a "AH letter" when considering word
+          breaks?
+      -
+        name: wordBreakALetter
+        type: boolean
+        summary: Is the codepoint a "A letter" when considering word
+          breaks?
+      -
+        name: wordBreakHebrewLetter
+        type: boolean
+        summary: Is the codepoint a "hebrew letter" when considering word
+          breaks?
+      -
+        name: wordBreakKatakana
+        type: boolean
+        summary: Is the codepoint a "katakana" when considering word
+          breaks?
+      -
+        name: wordBreakRegionalIndicator
+        type: boolean
+        summary: Is the codepoint a "regional indicator" when considering word
+          breaks?
+      -
+        name: wordBreakSingleQuote
+        type: boolean
+        summary: Is the codepoint a "single quote" when considering word
+          breaks?
+      -
+        name: wordBreakDoubleQuote
+        type: boolean
+        summary: Is the codepoint a "double quote" when considering word
+          breaks?
+      -
+        name: wordBreakNumeric
+        type: boolean
+        summary: Is the codepoint a "numeric" when considering word
+          breaks?
+      -
+        name: wordBreakExtendedNumLet
+        type: boolean
+        summary: Is the codepoint a "extended number letter" when considering
+          word breaks?
+      -
+        name: wordBreakMidLetter
+        type: boolean
+        summary: Is the codepoint a "mid letter" when considering
+          word breaks?
+      -
+        name: wordBreakMidNumLet
+        type: boolean
+        summary: Is the codepoint a "mid number letter" when considering
+          word breaks?
+      -
+        name: wordBreakMidNumLetQ
+        type: boolean
+        summary: Is the codepoint a "mid number letter Q" when considering
+          word breaks?
+      -
+        name: wordBreakMidNum
+        type: boolean
+        summary: Is the codepoint a "mid number" when considering
+          word breaks?
+      -
+        name: wordBreakExtend
+        type: boolean
+        summary: Is the codepoint a "extend" when considering
+          word breaks?
+      -
+        name: wordBreakFormat
+        type: boolean
+        summary: Is the codepoint a "format" when considering
+          word breaks?
+      -
+        name: wordBreakFormat
+        type: boolean
+        summary: Is the codepoint a "format" when considering
+          word breaks?
+  -
+    name: Grapheme Clusters
+    summary: Properties related to the Unicode Grapheme Clusters logic.  Refer
+      to the Unicode Standard for more information
+    members:
+      -
+        name: graphemeClusterBreakCR
+        type: boolean
+        summary: Is the codepoint a "carriage return" when considering
+          grapheme clusters?
+      -
+        name: graphemeClusterBreakLF
+        type: boolean
+        summary: Is the codepoint a "line feed" when considering
+          grapheme clusters?
+      -
+        name: graphemeClusterBreakControl
+        type: boolean
+        summary: Is the codepoint a "control" when considering
+          grapheme clusters?
+      -
+        name: graphemeClusterBreakExtend
+        type: boolean
+        summary: Is the codepoint a "extend" when considering
+          grapheme clusters?
+      -
+        name: graphemeClusterBreakRegionalIndicator
+        type: boolean
+        summary: Is the codepoint a "regional indicator" when considering
+          grapheme clusters?
+      -
+        name: graphemeClusterBreakPrepend
+        type: boolean
+        summary: Is the codepoint a "prepend" when considering
+          grapheme clusters?
+      -
+        name: graphemeClusterBreakSpacingMark
+        type: boolean
+        summary: Is the codepoint a "spacing mark" when considering
+          grapheme clusters?
+      -
+        name: graphemeClusterBreakL
+        type: boolean
+        summary: Is the codepoint a "Hangul L" when considering
+          grapheme clusters?
+      -
+        name: graphemeClusterBreakV
+        type: boolean
+        summary: Is the codepoint a "Hangul V" when considering
+          grapheme clusters?
+      -
+        name: graphemeClusterBreakT
+        type: boolean
+        summary: Is the codepoint a "Hangul T" when considering
+          grapheme clusters?
+      -
+        name: graphemeClusterBreakLV
+        type: boolean
+        summary: Is the codepoint a "Hangul LV" when considering
+          grapheme clusters?
+      -
+        name: graphemeClusterBreakLVT
+        type: boolean
+        summary: Is the codepoint a "Hangul LVT" when considering
+          grapheme clusters?
+  -
+    name: Script
+    summary: Properties related to the Unicode "Script" properties.  Refer to
+      the Unicode Standard for more information
+    members:
+      -
+        name: scriptIsHiragana
+        type: boolean
+        summary: Is the codepoint in the "Hiragana" script?
+      -
+        name: scriptIsHebrew
+        type: boolean
+        summary: Is the codepoint in the "Hebrew" script?
+      -
+        name: scriptIsKatakana
+        type: boolean
+        summary: Is the codepoint in the "Katakana" script?
+  -
+    name: Hangul
+    summary: Properties related to the Unicode "Hangul" properties.  Refer to
+      the Unicode Standard for more information
+    members:
+      -
+        name: hangulSyllableTypeIsL
+        type: boolean
+        summary: Is this codepoint in the Hangul "L" syllable category?
+      -
+        name: hangulSyllableTypeIsV
+        type: boolean
+        summary: Is this codepoint in the Hangul "V" syllable category?
+      -
+        name: hangulSyllableTypeIsT
+        type: boolean
+        summary: Is this codepoint in the Hangul "T" syllable category?
+      -
+        name: hangulSyllableTypeIsLV
+        type: boolean
+        summary: Is this codepoint in the Hangul "LV" syllable category?
+      -
+        name: hangulSyllableTypeIsLVT
+        type: boolean
+        summary: Is this codepoint in the Hangul "LVT" syllable category?

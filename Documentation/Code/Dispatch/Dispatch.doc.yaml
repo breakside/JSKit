@@ -1,0 +1,32 @@
+kind: framework
+summary: Run background tasks in the UI or on a server
+description: |
+  Applications will often have a need to run computationally expensive
+  operations.  For `UIKit` based applications, an important requirement is to
+  never block the user's ability to interact with the application (i.e., never
+  cause the UI to hang).  Running an expensive computation on the UI loop is
+  therefore unacceptable.  For `ServerKit` based applications, a similar
+  requirement exists for the main request handling loop.
+
+  The solution is to run expensive jobs in the background.  `JSDispatchQueue`
+  provides an easy and consistent way to invoke background jobs regardless of
+  the underlying application type (UI or server).
+
+  Serial Queues
+  =============
+  Aside from offloading jobs to the background, another common goal is to
+  ensure the exact ordering of asynchronous operations.  Serial queues execute
+  jobs one at a time in the background regardless of how many are queued up at a
+  given time.
+
+  Typically serial queues can be used in situations where you'd otherwise have
+  to use a locking mechanism, often leading to simpler and less error-prone
+  code.
+
+  `JSDispatchQueue` is a serial queue by default.
+topics:
+  -
+    name: Job Queues
+    members:
+      - JSDispatchQueue
+      - JSDispatchJob

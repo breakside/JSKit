@@ -1,0 +1,18 @@
+kind: framework
+summary: Encryption and secure user storage
+topics:
+  -
+    name: Encryption
+    members:
+      - SECCipher
+      - SECKey
+      - SEKHash
+      - SECVerify
+  -
+    name: Secure storage
+    members:
+      - SECKeychain
+  -
+    name: JSON Web Tokens
+    members:
+      - SECJSONWebToken

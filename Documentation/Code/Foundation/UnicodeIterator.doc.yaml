@@ -1,0 +1,79 @@
+kind: class
+summary: A `String`-derivied iterator for unicode characters
+description: |
+  JavaScript strings are a sequence of UTF-16 codepoints, which typically, but
+  not always, are equivalent to Unicode codepoints.  Sometimes a Unicode
+  codepoint cannot be represented with 16 bytes, so UTF-16 uses a
+  "surrogate pair" of two UTF-16 codepoints that represent a single Unicode
+  codepoint.
+
+  A `UnicodeIterator` is aware of these surrogate pairs and automatically
+  combines & decodes them into a single unicode codepoint during iteration.
+
+  ````
+  var string = "I always end my strings with a 😀";
+  var codepoints = [];
+  for (var iterator = string.unicodeIterator(); iterator.character !== null; iterator.increment()){
+    codepoints.push(iterator.character.code);
+  }
+  ````
+topics:
+  -
+    name: Iteration
+    members:
+      -
+        name: character
+        type: UnicodeChar
+        summary: The character at the current iteration point
+        important: This will be `null` if we have reached the end of iteration
+        note: The value is a `UnicodeChar`, on which you'll need to access
+          the `code` property to get the numeric codepoint.
+      -
+        name: increment
+        kind: method
+        summary: Increment the iterator by one unicode character, combining a
+          UTF-16 surrogate pair if needed
+      -
+        name: decrement
+        kind: method
+        summary: Decrement the iterator by one unicode character, combining a
+          UTF-16 surrogate pair if needed
+  -
+    name: Location
+    members:
+      -
+        name: index
+        type: Number
+        summary: The starting index of the `character` in the underlying
+          JavaScript string
+      -
+        name: nextIndex
+        type: Number
+        summary: The index immediately after the end of `character` in the
+          underlying JavaScript string
+        description: |
+          For non surrogate pairs, `nextIndex` should be `index`` + 1`.  For
+          surrogate pairs, `nextIndex` should be `index`` + 2`.
+  -
+    name: Checks
+    members:
+      -
+        name: isWordBoundary
+        type: boolean
+        summary: Check if the is iterator currently at a word boundary
+        description: |
+          Word boundaries are calculated based on the algorithms defined
+          in the [Unicode standard](https://www.unicode.org/reports/tr29/#Word_Boundaries).
+      -
+        name: isWhiteSpace
+        type: boolean
+        summary: Check if the is iterator currently at a white space character
+        description: |
+          White space characters are:
+          - `0x20` Space
+          - `0x09` Tab
+          - `0x0A` Newline
+          - `0x0B` Vertical Tab
+          - `0x0C` Form Feed
+          - `0x0D` Carriage Return
+

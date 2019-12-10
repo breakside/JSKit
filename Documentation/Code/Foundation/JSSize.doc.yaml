@@ -1,0 +1,95 @@
+kind: class
+summary: A two-dimensional size with `width` and `height`, useful for graphics
+  and user interface elements
+description: |
+  `JSSize` is a building block for various graphics-related tasks.  Along with
+  `JSPoint`, it can define a rectangle like `JSRect`.
+
+  `UIKit` makes extensive use of `JSSize` in view sizing, text layout, and other
+  UI elements.
+
+  Every `JSImage` has a width and height specified via a `JSSize` object.
+topics:
+  -
+    name: Creating Sizes
+    members:
+      -
+        kind: constructor
+        summary: Create a new size
+        return: The new size
+        type: JSSize
+        arguments:
+          -
+            name: width
+            type: Number
+            summary: The width or horizontal component of the new size
+          -
+            name: height
+            type: Number
+            summary: The height or vertical component of the new size
+      -
+        kind: constructor
+        prefix: copy
+        summary: Copy a size
+        description: |
+          Sizes should be copied anytime before making modifications if the
+          original size should remain the same.
+
+          For exmaple, a function might make a copy of a passed argument before
+          modifying it:
+
+          ````
+          function constrainedSize(size){
+            size = JSSize(size);
+            if (size.width > 100){
+              // Since we're modifying the size here, but only want to affect
+              // the return value, we need to first do a copy of the size
+              size.width = 100;
+            }
+            if (size.height > 100){
+              size.height = 100;
+            }
+            return size;
+          }
+          ````
+        return: A new size that is an exact copy of the other
+        type: JSSize
+        arguments:
+          -
+            name: other
+            type: JSSize
+            summary: The size to copy
+      -
+        kind: property
+        static: true
+        name: Zero
+        type: JSSize
+        summary: A size with width and height components set to 0
+        description: |
+          A shortcut for
+          ````
+          JSSize(0, 0)
+          ````
+          that can be used as a default starting point or as a comparison as in:
+          ````
+          var size = sizeFromSomewhere();
+          if (size.isEqual(JSSize.Zero)){
+            // 
+          }else{
+            // 
+          }
+          ````
+        note: Even though this looks like a property, it will always return a
+          new `JSSize` each time it is invoked, ensuring that nothing can
+          accidentally modify or overwrite the `Zero` property.
+  -
+    name: Dimensions
+    members:
+      -
+        name: width
+        type: Number
+        summary: The width or horizontal component of the size
+      -
+        name: height
+        type: Number
+        summary: The height or vertical component of the size

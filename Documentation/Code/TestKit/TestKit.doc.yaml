@@ -1,0 +1,37 @@
+kind: framework
+summary: Create and run automated tests of `JSKit` based code.
+topics:
+  -
+    name: Test Suites
+    members:
+      - TKTestSuite
+      - TKTestCase
+  -
+    name: Asynchronous Tests
+    members:
+      - TKExpectation
+  - 
+    name: Test Runs
+    members:
+      - TKTestRun
+  - 
+    name: Assertions
+    members:
+      - TKAssert
+      - TKAssertEquals
+      - TKAssertNotEquals
+      - TKAssertFloatEquals
+      - TKAssertExactEquals
+      - TKAssertNotExactEquals
+      - TKAssertObjectEquals
+      - TKAssertObjectNotEquals
+      - TKAssertNotNull
+      - TKAssertNull
+      - TKAssertUndefined
+      - TKAssertNotUndefined
+      - TKAssertThrows
+      - TKAssertLessThan
+      - TKAssertLessThanOrEquals
+      - TKAssertGreaterThan
+      - TKAssertGreaterThanOrEquals
+      - TKAssertArrayEquals

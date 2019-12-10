@@ -1,0 +1,28 @@
+kind: framework
+summary: Simple hash functions
+description: |
+  A minimal set of simple hash functions that can be used synchronously for
+  use cases where security is *not required*.
+
+  Compared to the `SecurityKit` framework, the hash functions here can be called
+  without an asynchronous interface.  However, the algoritms supported here are
+  not considered secure.
+
+  This `Hash` framework should only be used for identity hashing and checking,
+  which is often a convenient way to create `id` values for objects, but does
+  not require security.
+
+  For example, when a `UIApplication` is created for the web, a bundle of
+  resources (like images) is created and each resource is given a filename based
+  on the `SHA1` hash of its contents.  This ensures unique names for each
+  resource, and provides easy cache-busting if a resource changes.  At no point
+  are the resource names required for security.
+important: If you are hashing data for secure purposes, then use the `SECHash`
+  class from the `SecurityKit` framework.  The `MD5` and `SHA1` hash functions
+  are not secure.
+topics:
+  -
+    name: Hash Functions
+    members:
+      - JSMD5Hash
+      - JSSHA1Hash
