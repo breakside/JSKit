@@ -169,6 +169,10 @@ Object.defineProperty(JSRect.prototype, 'center', {
 
     get: function JSRect_getCenter(){
         return JSPoint(this.origin.x + this.size.width / 2, this.origin.y + this.size.height / 2);
+    },
+
+    set: function JSRect_setCenter(center){
+        this.origin = JSPoint(center.x - this.size.width / 2, center.y - this.size.height / 2);
     }
 
 });
