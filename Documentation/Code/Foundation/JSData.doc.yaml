@@ -185,7 +185,6 @@ topics:
             summary: Should spaces, `0x20`, be encoded as plus signs, `0x2B`
   -
     name: Clearing
-    summary: Change the byte array in-place
     members:
       -
         name: zero
@@ -193,7 +192,6 @@ topics:
         summary: Set all bytes to `0`
   -
     name: Copying
-    summary: Copy the array
     members:
       -
         name: copyTo
@@ -224,7 +222,6 @@ topics:
               length
   -
     name: Subdata
-    summary: Extract slices of the array
     members:
       -
         name: subdataInRange

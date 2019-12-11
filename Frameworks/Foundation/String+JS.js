@@ -603,11 +603,11 @@ Object.defineProperties(String.prototype, {
 
     leftPaddedString: {
         enumerable: false,
-        value: function String_leftPaddedString(pad_char, width){
+        value: function String_leftPaddedString(padding, width){
             var padded = '';
             var chars = Math.max(0, width - this.length);
             for (var i = 0; i < chars; ++i){
-                padded += pad_char;
+                padded += padding;
             }
             padded += this;
             return padded;
@@ -616,11 +616,11 @@ Object.defineProperties(String.prototype, {
 
     rightPaddedString: {
         enumerable: false,
-        value: function String_rightPaddedString(pad_char, width){
+        value: function String_rightPaddedString(padding, width){
             var padded = this;
             var chars = Math.max(0, width - this.length);
             for (var i = 0; i < chars; ++i){
-                padded += pad_char;
+                padded += padding;
             }
             return padded;
         }

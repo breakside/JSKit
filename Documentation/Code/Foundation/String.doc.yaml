@@ -392,84 +392,506 @@ topics:
       -
         name: indexOfWordEndAfterIndex
         kind: method
+        type: Number
+        summary: Get the index corresponding to the end of the word found at the
+          given index
+        arguments:
+          -
+            name: index
+            type: Number
+            summary: The index at which to begin an end-of-word search
       -
         name: indexOfWordStartBeforeIndex
         kind: method
+        type: Number
+        summary: Get the index corresponding to the start of the word found at
+          the given index
+        arguments:
+          -
+            name: index
+            type: Number
+            summary: The index at which to begin a start-of-word search
       -
         name: rangeForLineAtIndex
         kind: method
+        type: JSRange
+        summary: Get the range for the line that contains the given index
+        description: |
+          For the purposes of this method a line is deliniated by hard line
+          breaks.
+        arguments:
+          -
+            name: index
+            type: Number
+            summary: The index at which to begin a line search
   - name: Modified Strings
     members:
       -
         name: stringByAppendingString
         kind: method
+        type: String
+        summary: Create a new string by concatenating this string with the given
+          string
+        return: A new string, leaving the original unmodified
+        arguments:
+          -
+            name: string
+            type: String
+            summary: The string to add onto the end of this string
       -
         name: stringByReplacingCharactersInRangeWithString
         kind: method
+        type: String
+        summary: Create a new string by replacing a section of this string with
+          the given string
+        return: A new string, leaving the original unmodified
+        arguments:
+          -
+            name: range
+            type: JSRange
+            summary: The range to delete from this string
+          -
+            name: string
+            type: String
+            summary: The string to insert at the deletion point
       -
         name: stringByDeletingCharactersInRange
         kind: method
+        type: String
+        summary: Create a new string by removing a section of this string
+        return: A new string, leaving the original unmodified
+        arguments:
+          -
+            name: range
+            type: JSRange
+            summary: The range to delete from this string
       -
         name: stringByMaskingWithCharacter
         kind: method
+        type: String
+        summary: Create a new string the same length as this string, but with
+          every character replaced by the same new character
+        return: A new string, laving the original unmodified
+        arguments:
+          -
+            name: mask
+            type: String
+            summary: A single-character string that will be used in place of
+              every character in the original string
+          -
+            name: userPerceived
+            type: boolean
+            default: "false"
+            summary: Whether the length of the new string should equal the
+              number of user-perceived characters in the original string.  If
+              \`false`, the returned string will simply use the number of
+              UTF-16 codepoints insead.
+        description: |
+          Useful for situations like password display where the UI should show
+          the same number of characters as the user typed, but should show a dot
+          or star instead of the actual password.
       -
         name: uppercaseString
         kind: method
+        type: String
+        return: A new string, leaving the original unmodified
+        summary: Create a new string with every character converted to its
+          upper case counterpart.
       -
         name: lowercaseString
         kind: method
+        type: String
+        return: A new string, leaving the original unmodified
+        summary: Create a new string with every character converted to its
+          lower case counterpart.
       -
         name: capitalizedString
         kind: method
+        type: String
+        return: A new string, leaving the original unmodified
+        summary: Create a new string with the first character converted to its
+          upper case counterpart.
+        note: Unlike `uppercaseString()`, this does not convert every character,
+          but instead only turns the first character to uppercase.
   - name: Substrings & Variants
     members:
       -
         name: substringInRange
         kind: method
+        type: String
+        return: A new string, leaving the original unmodified
+        summary: Create a new string from a range within this string
+        arguments:
+          -
+            name: range
+            type: JSRange
+            summary: The range to etract from this string
       -
         name: trimmedSplit
         kind: method
+        type: String[]
+        return: An array of strings, each trimmed of leading and trailing
+          whitespace
+        summary: Create an array of strings by splitting this string on the
+          given separator, and then trimming each component of its leading and
+          trailing whitespace.
+        arguments:
+            -
+              name: splitOn
+              type: String
+              summary: The separator that deleniates components
       -
         name: splitAtIndex
         kind: method
+        type: String[]
+        return: A two-component array of strings
+        summary: Create two strings by splitting this string at the given index
+        arguments:
+          -
+            name: index
+            type: Number
+            summary: The index at which to split this string
   -
     name: Formatting
     members:
       -
         name: sprintf
         kind: method
+        type: String
+        return: A new string, created by replacing placeholders with arguments
+        summary: Create a new string by replacing placeholders in this string
+          with the arguments
+        description: |
+          Using this string as a format string with `printf`-style placeholders,
+          create a new string by replacing each placeholder with a given
+          argument.
+
+          ````
+          var format = "hello, %s";
+          var text = format.sprintf("world!");
+          // text === "hello, world!"
+          ````
+
+          Placeholder Types
+          =================
+          While `String` doesn't support the entire set of placeholders that
+          `printf` supports in `C`, the basics are all here:
+
+          * `%s` - the string representation of the argument
+          * `%d` - The base-10 integer representation of the argument
+          * `%x` - The base-16 (hexadecimal) integer representation of the argument
+          * `%X` - Same as `%x`, but uppercased
+          * `%f` - The decimal representation of the argument
+          * `%b` - The boolean representation of the argument (`true` or `false`)
+
+
+          Positional arguments
+          ====================
+
+          Unless otherwise specified, the placeholders will be replaced by
+          arguments in the order the placeholders and arguments are specified.
+
+          You can override this behavior by prefixing each placeholder with
+          a `n$`, where `n` is the argument number to use, starting with 1.
+
+          ````
+          var format = "%2$d %1$s";
+          var text = format.sprintf("hello", 12);
+          // text === "12 hello"
+          ````
+
+          This kind of positional specification is especially useful for
+          internationalization, where different languages may put placeholders
+          in different orders.
+
+
+          Alignment
+          =========
+
+          Values can be aligned by prefixing the placeholder with a number,
+          such as:
+
+          ````
+          var format = "%4d %4d";
+          var text = format.sprintf(5, 42);
+          // text === "   5   42"
+          ````
+
+          Left-justification can be specified with a negative sign:
+
+          ````
+          var format = "%-4d %-4d";
+          var text = format.sprintf(5, 42);
+          // text === "5    42  "
+          ````
+
+          Zero-Padding
+          ============
+
+          Numberic placeholders can specify a `0` along with the padding prefix
+          to indicate that padding should be done with zeros instead of spaces.
+
+          ````
+          var format = "%04d %04d";
+          var text = format.sprintf(5, 42);
+          // text === "0005 0042"
+          ````
+
+          Zero-padding is especially useful when writing hexadecimal numbers:
+
+          ````
+          var format = "%02x%02x";
+          var text = format.sprintf0x5, 0x42);
+          // text === "0542"
+          ````
+
+
+          Alternates
+          ==========
+
+          Hexadecimal placeholders also support alternate versions, which
+          automatically include a leading `0x`
+
+          ````
+          var format = "%#02x %#02x";
+          var text = format.sprintf(0x5, 0x42);
+          // text === "0x05 0x42"
+          ````          
+        arguments:
+          -
+            name: args
+            type: any
+            variable: true
+            summary: The values that will be inserted into format placeholders
+        note:
+          The number of arguments must match the number of placeholders
+
       -
         name: format
         kind: method
+        type: String
+        return: A new string, created by replacing placeholders with arguments
+        summary: Create a new string by replacing placeholders in this string
+          with the arguments
+        arguments:
+          -
+            name: formatter
+            type: dictionary
+            summary: A formatter that includes methods for formatting arguments
+              based on placeholder specifications
+          -
+            name: args
+            type: any[]
+            summary: An array of aguments that will be formatted
+        description: |
+          A general form of `sprintf()`, this method takes a formatter object
+          that handles the details of converting arguments into strings.
+
+          In fact, `sprintf` uses this method with a private formatter object
+          that looks something like:
+
+          ````
+          {
+            flag_map: {
+              "'": 'thousands',
+              '-': 'left_justified',
+              '+': 'signed',
+              '#': 'alternate',
+              '0': 'zero'
+            },
+
+            d: function(arg, options){
+              // ...
+            },
+
+            x: function(arg, options){
+              // ...
+            },
+
+            X: function(arg, options){
+              // ...
+            },
+
+            s: function(arg, options){
+              // ...
+            },
+
+            f: function(arg, options){
+              // ...
+            },
+
+            b: function(arg, options){
+              // ...
+            }
+          }
+          ````
+
+          First, the formatter contains a special property named `flag_map` that
+          is a `dictionary` of option flags to option names.  Option flags are
+          used in the format string, while option names are populated in the
+          `options` dictionary that is sent to each of the remaining methods in
+          the formatter.
+
+          Next, the remaining methods are all named after the placeholders
+          that can be used in the format string.  For example, the `d()` method
+          is called for any `%d` in the format string.  `arg` is the
+          corresponding argument for the placeholder.
       -
         name: leftPaddedString
         kind: method
+        type: String
+        return: A new string, leaving the original unmodified
+        summary: Create a string by adding padding to the left of this string
+        arguments:
+          -
+            name: padding
+            type: String
+            summary: The padding string to use, typically `" "`
+          -
+            name: width
+            type: Number
+            summary: The length the new string should be padded to.  If less
+              than the current string, the returned string will be identical to
+              the original string
       -
         name: rightPaddedString
         kind: method
+        type: String
+        return: A new string, leaving the original unmodified
+        summary: Create a string by adding padding to the right of this string
+        arguments:
+          -
+            name: padding
+            type: String
+            summary: The padding string to use, typically `" "`
+          -
+            name: width
+            type: Number
+            summary: The length the new string should be padded to.  If less
+              than the current string, the returned string will be identical to
+              the original string
   -
     name: Templates
     members:
       -
         name: replacingTemplateParameters
         kind: method
+        type: String
+        return: A new string, leaving the original unmodified
+        summary: Create a string by replacing placeholders with values
+        arguments:
+          -
+            name: parameters
+            type: dictionary
+            summary: A name/value map for parameters
+          -
+            name: open
+            type: String
+            default: "'{{'"
+            summary: The start-of-placeholder sequence
+          -
+            name: close
+            type: String
+            default: "(open == '${' ? '}' : '}}')"
+            summary: The end-of-placeholder sequence
+        description: |
+          Useful for making bulk replacements in template strings when no
+          special formatting is required.
+
+          By default, template placeholders are enclosed in double curly braces,
+          like `{{PLACEHOLDER_NAME}}`.  But this is customizable if your
+          particular template needs to include double curly braces that should
+          not be replaced.
+
+          ````
+          var template = "Hello, {{thing}}!  You're such a great {{thing}}!"
+          var text = template.replacingTemplateParameters({thing: "world"});
+          // text == "Hello, world!  You're such a great world!"
+          ````
+          An alternate placeholder opener can be specified, that automatically
+          changes the placeholder closing:
+
+          ````
+          var template = "Hello, ${thing}!  You're such a great {{thing}}!"
+          var text = template.replacingTemplateParameters({thing: "world"}, '${');
+          // text == "Hello, world!  You're such a great {{thing}}!"
+          ````
+          Or you could use custom parameter openers and closers
+
+          ````
+          var template = "Hello, <<thing>>!  You're such a great {{thing}}!"
+          var text = template.replacingTemplateParameters({thing: "world"}, '<<', '>>');
+          // text == "Hello, world!  You're such a great {{thing}}!"
+          ````
   -
     name: Files
     members:
       -
         name: fileExtension
-        kind: method
+        type: String
+        summary: The file extension, including its leading `"."`, or an empty
+          string if no extension is found
+        description: |
+          A file extension is considered to be anything from the final `"."`
+          forward (unless the final dot is at the very beginning of the
+          string, which denotes a hidden file rather than an extension).
+
+          Here's an example with no extension:
+
+          ````
+          var filename = "README";
+          var ext = filename.fileExtension;
+          // ext === "";
+          ````
+
+          With an extension:
+
+          ````
+          var filename = "README.txt";
+          var ext = filename.fileExtension;
+          // ext === ".txt";
+          ````
+
+          With two extensions, we only care about the final one:
+
+          ````
+          var filename = "README.txt.zip";
+          var ext = filename.fileExtension;
+          // ext === ".zip";
+          ````
+
+          With only leading dot (hidden file), we don't want to mistake it
+          as an extension:
+
+          ````
+          var filename = ".readme";
+          var ext = filename.fileExtension;
+          // ext === "";
+          ````
+        note: This property will never be `null` or `undefined`.  If no
+          extension is found, it will be an empty string `""`.
   -
     name: Base64 & Hex
     members:
       -
         name: dataByDecodingBase64
         kind: method
+        type: JSData
+        return: A byte array created by decoding the base64 in this string
+        summary: Create a byte array by decoding this string's base64 contents
       -
         name: dataByDecodingBase64URL
         kind: method
+        type: JSData
+        return: A byte array created by decoding the base64 (url variant) in
+          this string
+        summary: Create a byte array by decoding this string's base64
+          (url variant) contents
       -
         name: dataByDecodingHex
         kind: method
+        type: JSData
+        return: A byte array created by decoding the hex in this string
+        summary: Create a byte array by decoding this string's hex contents
 
 
