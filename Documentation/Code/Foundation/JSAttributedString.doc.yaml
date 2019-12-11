@@ -1,0 +1,422 @@
+kind: class
+inherits: JSObject
+introduced: "1.0.0"
+summary: A `String` with associated properties for various ranges, suitable for
+  specifying complex formatting.
+description: |
+  An attributed string is a way of specifying formatting such as font, color,
+  background, and more.
+
+  Rather than a `HTML` or `XML`-like tag based approach, where runs of text are
+  surrouded by formatting markup, attributed strings have a plain string along
+  side a parallel data structure that specifies which ranges of the string have
+  which attributes.
+topics:
+  -
+    name: Creating Attributed Strings
+    members:
+      -
+        name: init
+        kind: init
+        summary: Create an empty attributed string
+      -
+        name: initWithString
+        kind: init
+        summary: Create with a given string an optional attributes
+        arguments:
+          -
+            name: string
+            type: String
+            summary: The plain string
+          -
+            name: attributes
+            type: dictionary
+            default: "{}"
+            summary: The initial attributes for the entire string
+      -
+        name: initWithAttributedString
+        kind: init
+        summary: Create a copy of another attributed string, optionally adding
+          default attributes
+        arguments:
+          -
+            name: attributedString
+            type: JSAttributedString
+            summary: The attributed string to copy 
+          -
+            name: defaultAttributes
+            type: dictionary
+            default: "{}"
+            summary: Attributes to use as defaults for the entire string
+      -
+        name: initWithAttachment
+        kind: init
+        summary: Create an attribute string representing a single attachment
+          character
+        arguments:
+          -
+            name: attachment
+            type: JSTextAttachment
+            summary: The attachment
+        description:
+          Attributed strings can contain attachments, which internally are
+          represented by a single `0xFFFC` character that has an associated
+          \`JSAttributedString.Attribute.attachment` attribute with a
+          \`JSTextAttachment` value.
+
+          This initializer turns a `JSTextAttachment` into a such a
+          single-character attributed string
+      -
+        name: initWithAttachmentName
+        kind: init
+        summary: Create an attribute string representing a single attachment
+          character pointing to a resource image of the given name and size.
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of an image resource in the application's main
+              bundle
+          -
+            name: size
+            type: JSSize
+            summary: The intrinsic size of the attachment
+        description:
+          Attributed strings can contain attachments, which internally are
+          represented by a single `0xFFFC` character that has an associated
+          \`JSAttributedString.Attribute.attachment` attribute with a
+          \`JSTextAttachment` value.
+
+          This initializer uses an image name and size to create a
+          image-based `JSTextAttachment`
+  -
+    name: Underlying String
+    members:
+      -
+        name: string
+        type: String
+        summary: The underlying plain text of this attributed string
+
+  -
+    name: Text runs
+    summary: Text runs are stretches of consecutive text with identical
+      attributes
+    members:
+      -
+        name: rangeOfRunAtIndex
+        kind: method
+        type: JSRange
+        summary: Get the range of a run at the given index
+        arguments:
+          -
+            name: index
+            type: Number
+            summary: The index at which to lookup a run range
+  -
+    name: Attributes
+    members:
+      -
+        name: Attribute
+        summary: Standard attribute names
+        description: Attribute dictionaries are keyed by strings, which can
+          be anything you want.
+
+          The following options resolve to standard names used by
+          \`JSAttributedString`, and their descriptions reference what kind 
+          of values are expected to be in an attributes dictionary for each
+          option.
+        kind: enum
+        options:
+          -
+            name: font
+            summary: Points to a `JSFont` value that should be applied to the
+              text run
+          -
+            name: textColor
+            summary: Points to a `JSColor` value that should be applied to the
+              text run
+          -
+            name: backgroundColor
+            summary: Points to a `JSColor` that should be applied to the
+              background of the text run
+          -
+            name: bold
+            summary: Points to a `boolean` that indicates the font should be
+              converted to its bolded counterpart
+          -
+            name: italic
+            summary: Points to a `boolean` that indicates the font should be
+              converted to its italicized counterpart
+          -
+            name: underline
+            summary: Points to a `boolean` that indicates the text in the run
+              should be underlined
+          -
+            name: strike
+            summary: Points to a `boolean` that indicates the text in the run
+              should be struck through with a single line
+          -
+            name: attachment
+            summary: Points to a `JSTextAttachment` that should replace the
+              text in the run.  This attribute should only be used for single
+              character runs containing a `0xFFFC` character.
+          -
+            name: lineHeight
+            summary: Points to a `Number` that should adjust the line height for
+              the text in the run
+          -
+            name: lineSpacing
+            summary: Points to a `Number` that should adjust the line spacing
+              for the text in the run
+          -
+            name: textAlignment
+            summary: Points to a `JSTextAlignment` that should adjust the text
+              alginment for the run
+          -
+            name: lineBreakMode
+            summary: Points to a `JSLineBreakMode` that should adjust the line
+              break mode for the run
+          -
+            name: maskCharacter
+            summary: Points to a `String` that should be used to replace all
+              characters in the run
+      -
+        name: attributesAtIndex
+        kind: method
+        summary: Get the attribute dictionary at the given index
+        return: A dictionary of attributes that are in effect at the given index
+        type: dictionary
+        arguments:
+          -
+            name: index
+            type: Number
+            summary: The string index to query for attributes
+      -
+        name: attributeAtIndex
+        kind: method
+        summary: Get the attribute value for given attribute at the given index
+        return: A value that is in effect for an attribute name at the given
+          index
+        type: dictionary
+        arguments:
+          -
+            name: attribute
+            type: String
+            summary: The attribute to lookup.  Can be a predefined `Attribute`
+              or a custom user-defined string.
+          -
+            name: index
+            type: Number
+            summary: The string index to query for attributes
+  -
+    name: Modifying Attributes
+    members:
+      -
+        name: setAttributesInRange
+        kind: method
+        summary: Replace all the attributes in the range with the given
+          attributes
+        arguments:
+          -
+            name: attributes
+            type: dictionary
+            summary: The attributes that should be set for the given range
+          -
+            name: range
+            type: JSRange
+            summary: The range in which to change the attributes
+      -
+        name: addAttributeInRange
+        kind: method
+        summary: Add a single attribute to the given range
+        arguments:
+          - 
+            name: attributeName
+            type: String
+            summary: The attribute to add.  Can be a predefined `Attribute`
+              or a custom user-defined string.
+          -
+            name: value
+            type: any
+            summary: The value for the attribute
+          -
+            name: range
+            type: JSRange
+            summary: The range in which to add the attribute/value pair
+      -
+        name: addAttributesInRange
+        kind: method
+        summary: Add several attributes to the given range
+        arguments:
+          -
+            name: attributes
+            type: dictionary
+            summary: The attributes to add
+          -
+            name: range
+            type: JSRange
+            summary: The range in which to add the attributes
+      -
+        name: removeAttributeInRange
+        kind: method
+        summary: Remove a single attribute from the given range
+        arguments:
+          - 
+            name: attributeName
+            type: String
+            summary: The attribute to remove.  Can be a predefined `Attribute`
+              or a custom user-defined string.
+          -
+            name: range
+            type: JSRange
+            summary: The range from which to remove the attribute/value pair
+      -
+        name: removeAttributesInRange
+        kind: method
+        summary: Remove several attributes to the given range
+        arguments:
+          -
+            name: attributeNames
+            type: String[]
+            summary: The attributes to remove
+          -
+            name: range
+            type: JSRange
+            summary: The range from which to remove the attributes
+      -
+        name: removeAllAttributesInRange
+        kind: method
+        summary: Remove all attributes to the given range
+        arguments:
+          -
+            name: range
+            type: JSRange
+            summary: The range from which to remove the attributes
+  -
+    name: Altering the Attributed String
+    members:
+      -
+        name: appendString
+        kind: method
+        summary: Append the given string to the end of this string
+        note: The appended string will take on all attributes that are
+          currently in place at the end of the string
+        arguments:
+          -
+            name: string
+            type: String
+            summary: The string to append
+      -
+        name: appendAttributedString
+        kind: method
+        summary: Append the given attributed string to the end of this string
+        note: The appended string will preserve its original attributes
+        arguments:
+          -
+            name: attributedString
+            type: JSAttributedString
+            summary: The attributed string to append
+      -
+        name: appendAttachment
+        kind: method
+        summary: Append the given attachment to the end of this string
+        note: The appended attachment's attributes will be set automatically
+        arguments:
+          -
+            name: attachment
+            type: JSTextAttachment
+            summary: The attachment to append
+      -
+        name: insertString
+        kind: method
+        summary: Insert the given string at the given index
+        note: The inserted string will take on all attributes that are
+          currently in place at the insertion point
+        arguments:
+          -
+            name: string
+            type: String
+            summary: The string to insert
+          -
+            name: index
+            type: Number
+            summary: The index at which to insert the string
+      -
+        name: insertAttributedString
+        kind: method
+        summary: Insert the given attributed string at the given index
+        note: The inserted string will preserve its original attributes
+        arguments:
+          -
+            name: attributedString
+            type: JSAttributedString
+            summary: The attributed string to insert
+          -
+            name: index
+            type: Number
+            summary: The index at which to insert the attributed string
+      -
+        name: insertAttachment
+        kind: method
+        summary: Insert the given attachment at the given index
+        note: The inserted attachment's attributes will be set automatically
+        arguments:
+          -
+            name: attachment
+            type: JSTextAttachment
+            summary: The attachment to insert
+          -
+            name: index
+            type: Number
+            summary: The index at which to insert the attachment
+      -
+        name: deleteCharactersInRange
+        kind: method
+        summary: Remove the characters and attributes in the given range
+        arguments:
+          -
+            name: range
+            type: JSRange
+            summary: The range to delete from this string
+      -
+        name: replaceCharactersInRangeWithString
+        kind: method
+        summary: Replace the characters in the given range with the given string
+        arguments:
+          -
+            name: range
+            type: JSRange
+            summary: The range to replace
+          -
+            name: string
+            type: JSRange
+            summary: The new string to put in the place of the removed range
+      -
+        name: replaceCharactersInRangeWithAttributedString
+        kind: method
+        summary: Replace the characters in the given range with the given
+          attributed string
+        arguments:
+          -
+            name: range
+            type: JSRange
+            summary: The range to replace
+          -
+            name: attributedString
+            type: JSRange
+            summary: The new string and attributes to put in the place of the
+              removed range
+  -
+    name: Substrings
+    members:
+      -
+        name: attributedSubstringInRange
+        kind: method
+        type: JSAttributedString
+        summary: Create a new attributed string by copying a range of this
+          string
+        arguments:
+          -
+            name: range
+            type: JSRange
+            summary: The range to extract

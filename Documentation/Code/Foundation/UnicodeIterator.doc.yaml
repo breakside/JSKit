@@ -1,4 +1,5 @@
 kind: class
+introduced: "1.0.0"
 summary: A `String`-derivied iterator for unicode characters
 description: |
   JavaScript strings are a sequence of UTF-16 codepoints, which typically, but
@@ -11,11 +12,28 @@ description: |
   combines & decodes them into a single unicode codepoint during iteration.
 
   ````
-  var string = "I always end my strings with a 😀";
+  var string = "Hello 😀";
+
+  // First, here's what the UTF-16 codepoints look like
+  // This is the kind of character iteration that JavaScript
+  // supports out of the box
+  var utf16 = [];
+  for (var i = 0, l = string.length; i < l; ++i){
+    utf16.push(string.charCodeAt(i));
+  }
+  // utf16.length == 8
+  // utf16 == [0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0xD83D, 0xDE00]
+
+
+  // Next, here's what the unicode codepoints look like
+  // This is the kind of character iteration that Foundation
+  // makes possible
   var codepoints = [];
   for (var iterator = string.unicodeIterator(); iterator.character !== null; iterator.increment()){
     codepoints.push(iterator.character.code);
   }
+  // codepoints.length == 7
+  // codepoints == [0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x1F600]
   ````
 topics:
   -

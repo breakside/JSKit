@@ -1,4 +1,5 @@
 kind: class
+introduced: "1.0.0"
 summary: A `String`-derivied iterator for user-perceived characters
 description: |
   While `UnicodeIterator` is a way to handle the UTF-16 surrogate pairs found in

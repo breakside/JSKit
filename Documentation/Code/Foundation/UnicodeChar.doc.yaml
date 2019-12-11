@@ -1,4 +1,5 @@
 kind: class
+introduced: "1.0.0"
 summary: A single Unicode codeopint
 description: |
   `Strings` are made of unicode codepoints.
@@ -6,7 +7,7 @@ description: |
   In JavaScript, strings are encoded in UTF-16, which uses "surrogate pairs" to
   represent any unicode codepoint that can't fit into 16 bytes.
 
-  `Foundation` ehchances the standard `String` class to handle surrogate pairs so
+  `Foundation` enhances the standard `String` class to handle surrogate pairs so
   developers can deal with unicode codepoints insead.
 
   Since unicode codepoints have many properties, `Foundation` represents them
@@ -25,7 +26,7 @@ topics:
           characters, the `UnicodeChar()` constructor lazily populates a
           lookup table of instantiated objects.  Subsequent calls with the same
           `code` will not construct another object, but will instead return
-          the first created object from the lookup table.
+          the already-created object from the lookup table.
         important: You must call the function version of `UnicodeChar`.  You
           will get an error if you try to call `new UnicodeChar()`.
         arguments:

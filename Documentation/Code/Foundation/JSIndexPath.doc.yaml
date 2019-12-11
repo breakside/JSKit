@@ -1,4 +1,5 @@
 kind: class
+introduced: "1.0.0"
 summary: An n-dimensional index, useful for things like nested lists
 description: |
   An index path specifies a location in a nested set of a arrays.

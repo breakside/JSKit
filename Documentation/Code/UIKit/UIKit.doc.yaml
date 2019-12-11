@@ -1,4 +1,5 @@
 kind: framework
+environment: html
 summary: Create desktop-quality applications
 topics:
   -

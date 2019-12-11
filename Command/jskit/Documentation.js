@@ -88,6 +88,18 @@ JSClass("Documentation", JSObject, {
         if (info.important){
             component.important = info.important;
         }
+        if (info.environment){
+            component.environment = info.environment;
+        }
+        if (info.introduced){
+            component.introduced = info.introduced;
+        }
+        if (info.deprecated){
+            component.deprecated = info.deprecated;
+        }
+        if (info.see){
+            component.see = info.see;
+        }
         if (info.description){
             if (info.description.length < 64 && info.description.endsWith('.md')){
                 let mdURL = JSURL.initWithString(info.description, baseURL);

@@ -1,4 +1,5 @@
 kind: class
+introduced: "1.0.0"
 summary: A function that creates JSKit classes and serves as the base type
   for all JSKit classes.
 description: |

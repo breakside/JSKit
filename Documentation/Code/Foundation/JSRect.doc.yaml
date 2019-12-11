@@ -1,4 +1,5 @@
 kind: class
+introduced: "1.0.0"
 summary: A rectangle useful for graphics and user interface elements
 description: |
   `JSRect` is a building block for various graphics-related tasks.  It is made

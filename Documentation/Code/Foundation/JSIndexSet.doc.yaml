@@ -1,4 +1,5 @@
 kind: class
+introduced: "1.0.0"
 summary: A compact representation of a possibly large collection of indexes.
 description: |
   Tracking the selected items in a large list presents a challenge because

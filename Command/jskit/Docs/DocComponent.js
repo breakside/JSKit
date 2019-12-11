@@ -76,6 +76,38 @@ JSClass("DocComponent", JSObject, {
     // --------------------------------------------------------------------
     // MARK: - Relationships
 
+    environment: null,
+    introduced: null,
+    deprecated: null,
+    see: null,
+
+    inheritedFramework: function(){
+        var component = this.parent;
+        while (component !== null && component.kind != 'framework'){
+            component = component.parent;
+        }
+        return component;
+    },
+
+    inheritedIntroduced: function(){
+        var component = this;
+        while (component !== null && component.introduced === null){
+            component = component.parent;
+        }
+        return component ? component.introduced : null;
+    },
+
+    inheritedEnvironment: function(){
+        var component = this;
+        while (component !== null && component.environment === null){
+            component = component.parent;
+        }
+        return component ? component.environment : null;
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Relationships
+
     parent: null,
     children: null,
 
@@ -106,8 +138,43 @@ JSClass("DocComponent", JSObject, {
         var content = body.appendChild(document.createElement("article"));
         content.setAttribute("class", "doc " + this.kind);
         var elements = this.htmlArticleElements(document);
+
+        if (this.see){
+            let section = document.createElement('section');
+            section.setAttribute('class', 'see');
+            let header = document.createElement('header');
+            let h1 = header.appendChild(document.createElement("h1"));
+            h1.appendChild(document.createTextNode('See Also'));
+            let p = document.createElement('p');
+            section.appendChild(header);
+            section.appendChild(p);
+            elements.push(section);
+            for (let i = 0, l = this.see.length; i < l; ++i){
+                let name = this.see[i];
+                let code = document.createElement('code');
+                let url = this.urlForCode(name);
+                if (url){
+                    let a = document.createElement('a');
+                    a.setAttribute('href', url.encodedString);
+                    a.appendChild(document.createTextNode(name));
+                    code.appendChild(a);
+                }else{
+                    code.appendChild(document.createTextNode(name));
+                }
+                p.appendChild(code);
+                if (i < l - 1){
+                    p.appendChild(document.createTextNode(', '));
+                }
+            }
+        }
+
+        var aside = null;
         for (let i = 0, l = elements.length; i < l; ++i){
-            content.appendChild(elements[i]);
+            let element = elements[i];
+            content.appendChild(element);
+            if (element.tagName == 'aside' && element.getAttribute('class') == 'availability'){
+                element.setAttribute('style', 'grid-row-end: %d;'.sprintf(i + 1));
+            }
         }
         return document;
     },
@@ -174,6 +241,73 @@ JSClass("DocComponent", JSObject, {
             let children = markdown.htmlElementsForDocument(document);
             for (let i = 0, l = children.length; i < l; ++i){
                 div.appendChild(children[i]);
+            }
+        }
+
+        if (this.kind != 'document' && this.kind != 'index'){
+            let aside = document.createElement("aside");
+            aside.setAttribute("class", "availability");
+            elements.push(aside);
+
+            var environment = this.inheritedEnvironment();
+            var framework = this.inheritedFramework();
+            var introduced = this.inheritedIntroduced();
+
+            let title = document.createElement('header');
+            title.appendChild(document.createTextNode('Environments'));
+            aside.appendChild(title);
+            let table = document.createElement('table');
+            table.setAttribute('class', 'environments');
+            let tbody = document.createElement('tbody');
+            table.appendChild(tbody);
+            aside.appendChild(table);
+            let env;
+            for (let i = 0, l = DocComponent.Environments.length; i < l; ++i){
+                let row = document.createElement('tr');
+                tbody.appendChild(row);
+                env = DocComponent.Environments[i];
+                let cell = document.createElement('td');
+                cell.setAttribute('class', 'name');
+                row.appendChild(cell);
+                cell.appendChild(document.createTextNode(env.name));
+                cell = document.createElement('td');
+                row.appendChild(cell);
+                let div = document.createElement('div');
+                cell.appendChild(div);
+                if (environment && env.id != environment){
+                    div.appendChild(document.createTextNode('unavailable'));
+                    cell.setAttribute('class', 'status unavailable');
+                }else{
+                    if (this.deprecated){
+                        div.appendChild(document.createTextNode('deprecated'));
+                        cell.setAttribute('class', 'status deprecated');
+                    }else{
+                        div.appendChild(document.createTextNode('available'));
+                        cell.setAttribute('class', 'status available');
+                    }
+                }
+            }
+
+            if (framework){
+                title = document.createElement('header');
+                title.appendChild(document.createTextNode('Framework'));
+                title.setAttribute('class', 'framework');
+                aside.appendChild(title);
+                let line = document.createElement('div');
+                line.setAttribute('class', 'framework');
+                line.appendChild(document.createTextNode(framework.name));
+                aside.appendChild(line);
+
+                if (introduced){
+                    line = document.createElement('div');
+                    line.setAttribute('class', 'versions');
+                    line.appendChild(document.createTextNode(introduced));
+                    if (this.deprecated){
+                        line.appendChild(document.createTextNode('-'));
+                        line.appendChild(document.createTextNode(this.deprecated));
+                    }
+                    aside.appendChild(line);
+                }
             }
         }
 
@@ -365,6 +499,8 @@ JSClass("DocComponent", JSObject, {
 
 
 });
+
+DocComponent.Environments = [{id: 'html', name: 'HTML'}, {id: 'node', name: 'Node'}];
 
 DocComponent.subclassesByKind = {};
 
