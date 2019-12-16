@@ -66,6 +66,101 @@ JSClass('JSRectTests', TKTestSuite, {
         rect.origin.x = 1;
         var rect2 = JSRect.Zero;
         TKAssertExactEquals(rect2.origin.x, 0);
+    },
+
+    testIntersectsRect: function(){
+        var a = JSRect(0, 0, 100, 100);
+
+        // exact overlap
+        var b = JSRect(0, 0, 100, 100);
+        var intersects = a.intersectsRect(b);
+        TKAssert(intersects);
+        intersects = b.intersectsRect(a);
+        TKAssert(intersects);
+
+        // zero width
+        b = JSRect(0, 0, 0, 100);
+        intersects = a.intersectsRect(b);
+        TKAssert(!intersects);
+        intersects = b.intersectsRect(a);
+        TKAssert(!intersects);
+
+        // zero height
+        b = JSRect(0, 0, 100, 0);
+        intersects = a.intersectsRect(b);
+        TKAssert(!intersects);
+        intersects = b.intersectsRect(a);
+        TKAssert(!intersects);
+
+        // fully inside
+        b = JSRect(10, 10, 10, 10);
+        intersects = a.intersectsRect(b);
+        TKAssert(intersects);
+        intersects = b.intersectsRect(a);
+        TKAssert(intersects);
+
+        // up to left edge
+        b = JSRect(-10, 0, 10, 10);
+        intersects = a.intersectsRect(b);
+        TKAssert(!intersects);
+        intersects = b.intersectsRect(a);
+        TKAssert(!intersects);
+
+        // up to right edge
+        b = JSRect(100, 10, 10, 10);
+        intersects = a.intersectsRect(b);
+        TKAssert(!intersects);
+        intersects = b.intersectsRect(a);
+        TKAssert(!intersects);
+
+        // up to bottom edge
+        b = JSRect(10, 100, 10, 10);
+        intersects = a.intersectsRect(b);
+        TKAssert(!intersects);
+        intersects = b.intersectsRect(a);
+        TKAssert(!intersects);
+
+        // up to top edge
+        b = JSRect(0, -10, 10, 10);
+        intersects = a.intersectsRect(b);
+        TKAssert(!intersects);
+        intersects = b.intersectsRect(a);
+        TKAssert(!intersects);
+
+        // overlap left edge
+        b = JSRect(-10, 10, 20, 10);
+        intersects = a.intersectsRect(b);
+        TKAssert(intersects);
+        intersects = b.intersectsRect(a);
+        TKAssert(intersects);
+
+        // overlap right edge
+        b = JSRect(90, 10, 20, 10);
+        intersects = a.intersectsRect(b);
+        TKAssert(intersects);
+        intersects = b.intersectsRect(a);
+        TKAssert(intersects);
+
+        // overlap top edge
+        b = JSRect(10, -10, 10, 20);
+        intersects = a.intersectsRect(b);
+        TKAssert(intersects);
+        intersects = b.intersectsRect(a);
+        TKAssert(intersects);
+
+        // overlap bottom edge
+        b = JSRect(10, 90, 10, 20);
+        intersects = a.intersectsRect(b);
+        TKAssert(intersects);
+        intersects = b.intersectsRect(a);
+        TKAssert(intersects);
+
+        // larger
+        b = JSRect(-10, -10, 120, 120);
+        intersects = a.intersectsRect(b);
+        TKAssert(intersects);
+        intersects = b.intersectsRect(a);
+        TKAssert(intersects);
     }
 
 });

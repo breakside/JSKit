@@ -74,13 +74,14 @@ JSClass("UIOutlineView", UIListView, {
         var iterator;
         this._expandedIndexPaths.add(indexPath.toString());
         this._beginEditIfNeeded(this.expandRowAnimation);
+        this._edit.expandingIndexPath = indexPath;
         iterator = this._indexPathIteratorForSection(indexPath.section, indexPath);
         iterator.increment();
         for (; iterator.indexPath !== null && iterator.indexPath.length > indexPath.length; iterator.increment()){
             if (recursive){
                 expandable = this.dataSource.outlineViewIsExandableAtIndexPath(this, iterator.indexPath);
                 if (expandable){
-                    this._expandedIndexPaths.add(indexPath.toString());
+                    this._expandedIndexPaths.add(iterator.indexPath.toString());
                 }
             }
             this._edit.insertedIndexPaths.push({indexPath: JSIndexPath(iterator.indexPath), animation:this.expandRowAnimation});
@@ -113,10 +114,11 @@ JSClass("UIOutlineView", UIListView, {
         }
         this._expandedIndexPaths.delete(indexPath.toString());
         this._beginEditIfNeeded(this.collapseRowAnimation);
-        for (i = 0, l = this._visibleCellViews.length; i < l; ++i){
-            if (this._visibleCellViews[i].indexPath.length > indexPath.length && this._visibleCellViews[i].indexPath.startsWith(indexPath)){
-                this._edit.cells[i].deleted = true;
-                this._edit.cells[i].animation = this.collapseRowAnimation;
+        this._edit.collapsingIndexPath = indexPath;
+        for (i = 0, l = this._visibleItems.length; i < l; ++i){
+            if (this._visibleItems[i].indexPath.length > indexPath.length && this._visibleItems[i].indexPath.startsWith(indexPath)){
+                this._visibleItems[i].state = UIListView.VisibleItemState.deleting;
+                this._visibleItems[i].animation = this.collapseRowAnimation;
             }
         }
         if (visibleCell){
@@ -138,6 +140,15 @@ JSClass("UIOutlineView", UIListView, {
         if (this.delegate && this.delegate.outlineViewDidCollapseIndexPath){
             this.delegate.outlineViewDidCollapseIndexPath(this, indexPath);
         }
+    },
+
+    _stopAnimationsForEdit: function(animatingEdit, newEdit){
+        var isReversingCollapse = animatingEdit.collapsingIndexPath && newEdit.expandingIndexPath && animatingEdit.collapsingIndexPath.isEqual(newEdit.expandingIndexPath);
+        var isReversingExpand = animatingEdit.expandingIndexPath && newEdit.collapsingIndexPath && animatingEdit.expandingIndexPath.isEqual(newEdit.collapsingIndexPath);
+        if (isReversingCollapse || isReversingExpand){
+            newEdit.animationStartPercentage = 1 - animatingEdit.animator.percentComplete;
+        }
+        UIOutlineView.$super._stopAnimationsForEdit.call(this, animatingEdit, newEdit);
     },
 
     // _indexPathIteratorForSection: function(section, start){
@@ -173,10 +184,11 @@ JSClass("UIOutlineView", UIListView, {
         var singleIndexPath = this._selectedIndexPaths.singleIndexPath;
         var extend;
         if (singleIndexPath){
+            var recursive = event.hasModifier(UIEvent.Modifier.option);
             if (event.key == UIEvent.Key.right){
-                this.expandRowAtIndexPath(singleIndexPath);
+                this.expandRowAtIndexPath(singleIndexPath, recursive);
             }else if (event.key == UIEvent.Key.left){
-                this.collapseRowAtIndexPath(singleIndexPath);
+                this.collapseRowAtIndexPath(singleIndexPath, recursive);
             }else{
                 UIOutlineView.$super.keyDown.call(this, event);
             }
@@ -219,185 +231,7 @@ JSClass("UIOutlineView", UIListView, {
         }
         --row;
         return row;
-    },
-
-    // _collapseRowAtIndexPath: function(indexPath, visibleCell, recursive){
-    //     var caches = this._cachesForIndexPath(indexPath);
-    //     if (!caches){
-    //         return;
-    //     }
-    //     var cache = caches[caches.length - 1];
-    //     if (cache.expanded){
-    //         var indexPaths = [];
-    //         var iterator = this._indexPathIteratorForSection(indexPath.section, indexPath);
-    //         iterator.increment();
-    //         for (; iterator.indexPath !== null && iterator.indexPath.length > indexPath.length; iterator.increment()){
-    //             indexPaths.push(JSIndexPath(iterator.indexPath));
-    //         }
-    //         if (recursive){
-    //             var stack = [cache];
-    //             while (stack.length > 0){
-    //                 cache = stack.shift();
-    //                 cache.expanded = false;
-    //                 for (var i = 0, l = cache.children.length; i < l; ++i){
-    //                     stack.push(cache.children[i]);
-    //                 }
-    //             }
-    //         }else{
-    //             cache.expanded = false;
-    //         }
-    //         this._enqueueEdit('deleteIndexPaths', indexPaths, this.collapseRowAnimation, {collapse: true});
-    //     }
-    //     if (visibleCell){
-    //         this._updateCellState(visibleCell);
-    //     }
-    // },
-
-    // _expandRowAtIndexPath: function(indexPath, visibleCell, recursive){
-    //     var caches = this._cachesForIndexPath(indexPath);
-    //     if (!caches){
-    //         return;
-    //     }
-    //     var cache = caches[caches.length - 1];
-    //     if (cache.expandable && !cache.expanded){
-    //         if (cache.children.length === 0 || recursive){
-    //             cache = this._cacheOutlineAtIndexPath(indexPath, caches.splice(0, caches.length - 1), true, recursive);
-    //         }else{
-    //             cache.expanded = true;
-    //         }
-    //         var indexPaths = [];
-    //         var iterator = this._indexPathIteratorForSection(indexPath.section, indexPath);
-    //         iterator.increment();
-    //         for (; iterator.indexPath !== null && iterator.indexPath.length > indexPath.length; iterator.increment()){
-    //             indexPaths.push(JSIndexPath(iterator.indexPath));
-    //         }
-    //         this._enqueueEdit('insertIndexPaths', indexPaths, this.expandRowAnimation, {expand: true});
-    //     }
-    //     if (visibleCell){
-    //         this._updateCellState(visibleCell);
-    //     }
-    // },
-
-    // _numberOfRowsInCache: function(cache){
-    //     if (!cache.expanded){
-    //         return cache.numberOfRows;
-    //     }
-    //     var rows = cache.numberOfRows;
-    //     for (var i = 0, l = cache.children.length; i < l; ++i){
-    //         rows += this._numberOfRowsInCache(cache.children[i]);
-    //     }
-    //     return rows;
-    // },
-
-    // _sectionRowForIndexPath: function(indexPath){
-    //     var row = 0;
-    //     var cache = this._cache.outline.children[indexPath.section];
-    //     var child;
-    //     var n;
-    //     for (var i = 1, l = indexPath.length; i < l; ++i){
-    //         n = indexPath[i];
-    //         row += cache.numberOfRows;
-    //         for (var j = 0; j < n; ++j){
-    //             child = cache.children[j];
-    //             row += this._numberOfRowsInCache(child);
-    //         }
-    //         cache = cache.children[n];
-    //     }
-    //     return row;
-    // },
-
-    // _resetCachedData: function(){
-    //     this._cache.outline = {expandable: true, expanded: true, numberOfRows: 0, children: []};
-    // },
-
-    // _deleteCacheForIndexPath: function(indexPath, context){
-    //     UIOutlineView.$super._deleteCacheForIndexPath.call(this, indexPath, context);
-    //     if (context && context.collapse){
-    //         return;
-    //     }
-    //     var caches = this._cachesForIndexPath(indexPath);
-    //     var parentCache = caches[caches.length - 2];
-    //     parentCache.children.splice(indexPath.lastIndex, 1);
-    // },
-
-    // _deleteCacheForSection: function(section){
-    //     UIOutlineView.$super._deleteCacheForSection.call(this, section);
-    //     this._cache.outline.children.splice(section, 1);
-    // },
-
-    // _insertCacheForSection: function(section){
-    //     this._cache.outline.children.splice(section, 0, undefined);
-    //     // super will call _numberOfRowsInSection, which will populate the cache
-    //     UIOutlineView.$super._insertCacheForSection(this, section);
-    // },
-
-    // _insertCacheForIndexPath: function(indexPath, context){
-    //     if (!context || !context.expand){
-    //         var parent = indexPath.removingLastIndex();
-    //         var caches = this._cachesForIndexPath(parent);
-    //         var parentCache = caches[caches.length - 1];
-    //         parentCache.children.splice(indexPath.lastIndex, 0, undefined);
-    //         this._cacheOutlineAtIndexPath(indexPath, caches);
-    //     }
-    //     UIOutlineView.$super._insertCacheForIndexPath.call(this, indexPath, context);
-    // },
-    // _numberOfRowsInSection: function(section){
-    //     var indexPath = JSIndexPath([section]);
-    //     var cache = this._cacheOutlineAtIndexPath(indexPath, [this._cache.outline]);
-    //     var rows = this._numberOfRowsInCache(cache);
-    //     return rows;
-    // },
-
-    // _cacheOutlineAtIndexPath: function(indexPath, ancestors, forceExpanded, recursive){
-    //     forceExpanded = forceExpanded === true;
-    //     var parentCache = ancestors[ancestors.length - 1];
-    //     var existingCache = parentCache.children[indexPath.lastIndex];
-    //     var cache = {
-    //         expandable: indexPath.length === 1 || (existingCache && existingCache.expandable) || (this.dataSource.outlineViewIsExandableAtIndexPath(this, indexPath) === true),
-    //         expanded: false,
-    //         children: existingCache ? existingCache.children : [],
-    //         numberOfRows: indexPath.length > 1 ? 1 : 0
-    //     };
-    //     var i, l;
-    //     var childCache;
-    //     var childAncestors = ancestors.concat([cache]);
-    //     var previousNumberOfDescendants;
-    //     if (cache.expandable){
-    //         cache.expanded = forceExpanded || indexPath.length === 1 || (this.dataSource.outlineViewIsExpandedAtIndexPath && this.dataSource.outlineViewIsExpandedAtIndexPath(this, indexPath));
-    //         if (cache.expanded){
-    //             l = this.dataSource.outlineViewNumberOfChildrenAtIndexPath(this, indexPath);
-    //             for (i = 0; i < l; ++i){
-    //                 childCache = this._cacheOutlineAtIndexPath(indexPath.appending(i), childAncestors, forceExpanded && recursive, recursive);
-    //             }
-    //         }
-    //     }
-    //     parentCache.children[indexPath.lastIndex] = cache;
-    //     return cache;
-    // },
-
-    // _cachesForIndexPath: function(indexPath){
-    //     if (this._cache === null){
-    //         return null;
-    //     }
-    //     var cache = this._cache.outline;
-    //     var caches = [cache];
-    //     for (var i = 0, l = indexPath.length; i < l && cache !== undefined; ++i){
-    //         cache = cache.children[indexPath[i]];
-    //         caches.push(cache);
-    //     }
-    //     if (cache === undefined){
-    //         return null;
-    //     }
-    //     return caches;
-    // },
-
-    // _updateCellState: function(cell){
-    //     UIOutlineView.$super._updateCellState.call(this, cell);
-    //     var caches = this._cachesForIndexPath(cell.indexPath);
-    //     var cache = caches[caches.length - 1];
-    //     cell.expandable = cache && cache.expandable;
-    //     cell.expanded = cache && cache.expanded;
-    // },
+    }
 
 });
 
@@ -488,87 +322,6 @@ SectionIndexPathIterator.prototype = {
         }
     }
 };
-
-// var SectionIndexPathIterator = function(section, cache, start){
-//     if (this === undefined){
-//         return new SectionIndexPathIterator(section, cache, start);
-//     }
-//     this.section = section;
-//     this.cache = cache;
-//     if (cache.children.length === 0){
-//         this.indexPath = null;
-//     }else{
-//         this.lastIndexPath = JSIndexPath([section]);
-//         do{
-//             this.lastIndexPath.append(cache.children.length - 1);
-//             cache = cache.children[this.lastIndexPath.lastIndex];
-//         } while (cache.expanded && cache.children.length > 0);
-//         if (start === -1){
-//             this.indexPath = JSIndexPath(this.lastIndexPath);
-//         }else if (start instanceof JSIndexPath){
-//             if (start.isLessThanOrEqual(this.lastIndexPath)){
-//                 this.indexPath = JSIndexPath(start);
-//             }else{
-//                 this.indexPath = null;
-//             }
-//         }else{
-//             this.indexPath = JSIndexPath(section, 0);
-//         }
-//     }
-// };
-
-// SectionIndexPathIterator.prototype = {
-
-//     lastIndexPath: null,
-
-//     increment: function(){
-//         if (this.indexPath !== null){
-//             if (this.indexPath.isEqual(this.lastIndexPath)){
-//                 this.indexPath = null;
-//             }else{
-//                 var cacheStack = [];
-//                 var cache = this.cache;
-//                 for (var i = 1, l = this.indexPath.length; i < l; ++i){
-//                     cacheStack.push(cache);
-//                     cache = cache.children[this.indexPath[i]];
-//                 }
-//                 if (cache.expanded && cache.children.length > 0){
-//                     this.indexPath.append(0);
-//                 }else{
-//                     cache = cacheStack.pop();
-//                     this.indexPath.lastIndex += 1;
-//                     while (this.indexPath.lastIndex == cache.children.length){
-//                         this.indexPath.removeLastIndex();
-//                         this.indexPath.lastIndex += 1;
-//                         cache = cacheStack.pop();
-//                     }
-//                 }
-//             }
-//         }
-//     },
-
-//     decrement: function(){
-//         if (this.indexPath !== null){
-//             if (this.indexPath.length == 2 && this.indexPath.row === 0){
-//                 this.indexPath = null;
-//             }else{
-//                 if (this.indexPath.lastIndex > 0){
-//                     this.indexPath.lastIndex -= 1;
-//                     var cache = this.cache;
-//                     for (var i = 1, l = this.indexPath.length; i < l; ++i){
-//                         cache = cache.children[this.indexPath[i]];
-//                     }
-//                     while (cache.expanded && cache.children.length > 0){
-//                         this.indexPath.append(cache.children.length - 1);
-//                         cache = cache.children[this.indexPath.lastIndex];
-//                     }
-//                 }else{
-//                     this.indexPath.removeLastIndex();
-//                 }
-//             }
-//         }
-//     }
-// };
 
 UIOutlineView.Styler = Object.create({}, {
     default: {

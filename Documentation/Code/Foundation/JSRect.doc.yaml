@@ -137,6 +137,24 @@ topics:
             name: point
             type: JSPoint
             summary: The point to check
+      -
+        name: intersectsRect
+        kind: method
+        type: boolean
+        return: \`true` if this rectangle intersects with the other rectangle
+          given, `false` otherwise
+        summary: Check if two rectangles intersect
+        arguments:
+          -
+            name: other
+            type: JSRect
+            summary: The other rectangle
+        description:
+          Two rectangles intersect if there is a non-zero area created by their
+          overlap.
+        note: If either rect has a `width` or `height` of `0`, this function
+          will always return false.
+
   -
     name: Calculations
     members:

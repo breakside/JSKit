@@ -93,11 +93,11 @@ JSPoint.prototype = {
         return a;
     },
 
-    add: function(other){
+    adding: function(other){
         return JSPoint(this.x + other.x, this.y + other.y);
     },
 
-    subtract: function(other){
+    subtracting: function(other){
         return JSPoint(this.x - other.x, this.y - other.y);
     }
 };
@@ -154,6 +154,12 @@ JSRect.prototype = {
 
     containsPoint: function(point){
         return point.x >= this.origin.x && point.y >= this.origin.y && point.x < (this.origin.x + this.size.width) && point.y < (this.origin.y + this.size.height);
+    },
+
+    intersectsRect: function(other){
+        var xIntersects = (other.origin.x < (this.origin.x + this.size.width) && (other.origin.x + other.size.width) > this.origin.x);
+        var yIntersects = (other.origin.y < (this.origin.y + this.size.height) && (other.origin.y + other.size.height) > this.origin.y);
+        return xIntersects && yIntersects;
     },
 
     isEqual: function(other){

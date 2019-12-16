@@ -115,7 +115,7 @@ topics:
     name: Calculations
     members:
       -
-        name: add
+        name: adding
         kind: method
         type: JSPoint
         return: A new point that is the sum of the `x` and `y` coordinates of
@@ -129,7 +129,7 @@ topics:
             type: JSPoint
             summary: The point to add
       -
-        name: subtract
+        name: subtracting
         kind: method
         type: JSPoint
         return: A new point that is the difference of the `x` and `y`

@@ -389,7 +389,7 @@ JSClass('UIScrollView', UIView, {
             this._zoomScale = scale;
             view.transform = JSAffineTransform.Scaled(this._zoomScale, this._zoomScale);
             var newLocation = this.convertPointFromView(p0, view);
-            var newOffset = newLocation.add(offsetDelta);
+            var newOffset = newLocation.adding(offsetDelta);
             if (scale >= 1){
                 this._zoomSpecifiedOffset = null;
             }else{

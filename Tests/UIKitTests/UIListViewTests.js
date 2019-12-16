@@ -587,7 +587,373 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell2.position.y, 60);
         TKAssertFloatEquals(cell3.position.y, 100);
         TKAssertFloatEquals(cell4.position.y, 140);
-        TKAssertFloatEquals(cell1.alpha, 0.0);
+        TKAssertFloatEquals(cell1.alpha, 1);
+        TKAssertFloatEquals(listView.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.bounds.origin.y, 0);
+    },
+
+    testDeleteSingleVisibleRowCover: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 150));
+        listView.rowHeight = 40;
+        var numberOfRows = 10;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return 1;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return numberOfRows;
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        listView.editAnimationDuration = 1.0;
+
+        this.window.contentView.addSubview(listView);
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay(1.0);
+
+        // initial cells
+        var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell0);
+        TKAssertNotNull(cell1);
+        TKAssertNotNull(cell2);
+        TKAssertNotNull(cell3);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 400);
+
+        numberOfRows = 9;
+        listView.deleteRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.cover);
+
+        // first update triggers the list view edit prep
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // second update kicks off the animations
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // new visible cell should appear at end
+        var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell4);
+        TKAssertNotExactEquals(cell4, cell3);
+        TKAssertNotExactEquals(cell4, cell1);
+        TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
+        TKAssertObjectEquals(cell1.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell2.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell3.indexPath, JSIndexPath(0, 2));
+        TKAssertObjectEquals(cell4.indexPath, JSIndexPath(0, 3));
+        // cells should be in pre-animation positions
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 180);
+        TKAssertFloatEquals(cell1.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 360);
+
+        this.windowServer.displayServer.updateDisplay(2.5);
+        // cells should be mid-animation
+        // (cell1 moving to the left, all following cells moving up)
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 80);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 120);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 160);
+        TKAssertFloatEquals(cell1.layer.presentation.alpha, 1.0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+
+        this.windowServer.displayServer.updateDisplay(3.0);
+
+        // final positions
+        TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
+        TKAssertNull(cell1.indexPath);
+        TKAssertObjectEquals(cell2.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell3.indexPath, JSIndexPath(0, 2));
+        TKAssertObjectEquals(cell4.indexPath, JSIndexPath(0, 3));
+        var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        TKAssertExactEquals(cell, cell0);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertExactEquals(cell, cell2);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        TKAssertExactEquals(cell, cell3);
+
+        TKAssertNull(cell1.superview);
+        TKAssertFloatEquals(cell0.position.x, 150);
+        TKAssertFloatEquals(cell1.position.x, 150);
+        TKAssertFloatEquals(cell2.position.x, 150);
+        TKAssertFloatEquals(cell3.position.x, 150);
+        TKAssertFloatEquals(cell4.position.x, 150);
+        TKAssertFloatEquals(cell0.position.y, 20);
+        TKAssertFloatEquals(cell1.position.y, 60);
+        TKAssertFloatEquals(cell2.position.y, 60);
+        TKAssertFloatEquals(cell3.position.y, 100);
+        TKAssertFloatEquals(cell4.position.y, 140);
+        TKAssertFloatEquals(cell1.alpha, 1.0);
+        TKAssertFloatEquals(listView.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.bounds.origin.y, 0);
+    },
+
+    testDeleteSingleVisibleRowPush: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 150));
+        listView.rowHeight = 40;
+        var numberOfRows = 10;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return 1;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return numberOfRows;
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        listView.editAnimationDuration = 1.0;
+
+        this.window.contentView.addSubview(listView);
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay(1.0);
+
+        // initial cells
+        var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell0);
+        TKAssertNotNull(cell1);
+        TKAssertNotNull(cell2);
+        TKAssertNotNull(cell3);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 400);
+
+        numberOfRows = 9;
+        listView.deleteRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.push);
+
+        // first update triggers the list view edit prep
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // second update kicks off the animations
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // new visible cell should appear at end
+        var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell4);
+        TKAssertNotExactEquals(cell4, cell3);
+        TKAssertNotExactEquals(cell4, cell1);
+        TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
+        TKAssertObjectEquals(cell1.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell2.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell3.indexPath, JSIndexPath(0, 2));
+        TKAssertObjectEquals(cell4.indexPath, JSIndexPath(0, 3));
+        // cells should be in pre-animation positions
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 180);
+        TKAssertFloatEquals(cell1.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 360);
+
+        this.windowServer.displayServer.updateDisplay(2.5);
+        // cells should be mid-animation
+        // (cell1 moving to the left, all following cells moving up)
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 40);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 80);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 120);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 160);
+        TKAssertFloatEquals(cell1.layer.presentation.alpha, 1.0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+
+        this.windowServer.displayServer.updateDisplay(3.0);
+
+        // final positions
+        TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
+        TKAssertNull(cell1.indexPath);
+        TKAssertObjectEquals(cell2.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell3.indexPath, JSIndexPath(0, 2));
+        TKAssertObjectEquals(cell4.indexPath, JSIndexPath(0, 3));
+        var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        TKAssertExactEquals(cell, cell0);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertExactEquals(cell, cell2);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        TKAssertExactEquals(cell, cell3);
+
+        TKAssertNull(cell1.superview);
+        TKAssertFloatEquals(cell0.position.x, 150);
+        TKAssertFloatEquals(cell1.position.x, 150);
+        TKAssertFloatEquals(cell2.position.x, 150);
+        TKAssertFloatEquals(cell3.position.x, 150);
+        TKAssertFloatEquals(cell4.position.x, 150);
+        TKAssertFloatEquals(cell0.position.y, 20);
+        TKAssertFloatEquals(cell1.position.y, 20);
+        TKAssertFloatEquals(cell2.position.y, 60);
+        TKAssertFloatEquals(cell3.position.y, 100);
+        TKAssertFloatEquals(cell4.position.y, 140);
+        TKAssertFloatEquals(cell1.alpha, 1.0);
+        TKAssertFloatEquals(listView.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.bounds.origin.y, 0);
+    },
+
+    testDeleteSingleVisibleRowFold: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 150));
+        listView.rowHeight = 40;
+        var numberOfRows = 10;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return 1;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return numberOfRows;
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        listView.editAnimationDuration = 1.0;
+
+        this.window.contentView.addSubview(listView);
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay(1.0);
+
+        // initial cells
+        var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell0);
+        TKAssertNotNull(cell1);
+        TKAssertNotNull(cell2);
+        TKAssertNotNull(cell3);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 400);
+
+        numberOfRows = 9;
+        listView.deleteRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.fold);
+
+        // first update triggers the list view edit prep
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // second update kicks off the animations
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // new visible cell should appear at end
+        var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell4);
+        TKAssertNotExactEquals(cell4, cell3);
+        TKAssertNotExactEquals(cell4, cell1);
+        TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
+        TKAssertObjectEquals(cell1.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell2.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell3.indexPath, JSIndexPath(0, 2));
+        TKAssertObjectEquals(cell4.indexPath, JSIndexPath(0, 3));
+        // cells should be in pre-animation positions
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 180);
+        TKAssertFloatEquals(cell1.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 360);
+
+        this.windowServer.displayServer.updateDisplay(2.5);
+        // cells should be mid-animation
+        // (cell1 moving to the left, all following cells moving up)
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 40);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 80);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 120);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 160);
+        TKAssertFloatEquals(cell1.layer.presentation.alpha, 0.5);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+
+        this.windowServer.displayServer.updateDisplay(3.0);
+
+        // final positions
+        TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
+        TKAssertNull(cell1.indexPath);
+        TKAssertObjectEquals(cell2.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell3.indexPath, JSIndexPath(0, 2));
+        TKAssertObjectEquals(cell4.indexPath, JSIndexPath(0, 3));
+        var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        TKAssertExactEquals(cell, cell0);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertExactEquals(cell, cell2);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        TKAssertExactEquals(cell, cell3);
+
+        TKAssertNull(cell1.superview);
+        TKAssertFloatEquals(cell0.position.x, 150);
+        TKAssertFloatEquals(cell1.position.x, 150);
+        TKAssertFloatEquals(cell2.position.x, 150);
+        TKAssertFloatEquals(cell3.position.x, 150);
+        TKAssertFloatEquals(cell4.position.x, 150);
+        TKAssertFloatEquals(cell0.position.y, 20);
+        TKAssertFloatEquals(cell1.position.y, 20);
+        TKAssertFloatEquals(cell2.position.y, 60);
+        TKAssertFloatEquals(cell3.position.y, 100);
+        TKAssertFloatEquals(cell4.position.y, 140);
+        TKAssertFloatEquals(cell1.alpha, 1.0);
         TKAssertFloatEquals(listView.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.bounds.origin.y, 0);
     },
@@ -724,8 +1090,422 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell3.position.y, 60);
         TKAssertFloatEquals(cell4.position.y, 100);
         TKAssertFloatEquals(cell5.position.y, 140);
-        TKAssertFloatEquals(cell1.alpha, 0.0);
-        TKAssertFloatEquals(cell2.alpha, 0.0);
+        TKAssertFloatEquals(cell1.alpha, 1.0);
+        TKAssertFloatEquals(cell2.alpha, 1.0);
+        TKAssertFloatEquals(listView.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.bounds.origin.y, 0);
+    },
+
+    testDeleteConsecutiveVisibleRowsCover: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 150));
+        listView.rowHeight = 40;
+        var numberOfRows = 10;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return 1;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return numberOfRows;
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        listView.editAnimationDuration = 1.0;
+
+        this.window.contentView.addSubview(listView);
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay(1.0);
+
+        // initial cells
+        var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell0);
+        TKAssertNotNull(cell1);
+        TKAssertNotNull(cell2);
+        TKAssertNotNull(cell3);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 400);
+
+        numberOfRows = 8;
+        listView.deleteRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.cover);
+        listView.deleteRowAtIndexPath(JSIndexPath(0, 2), UIListView.RowAnimation.cover);
+
+        // first update triggers the list view edit prep
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // second update kicks off the animations
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // new visible cell should appear at end
+        var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell4);
+        TKAssertNotNull(cell5);
+        TKAssertNotExactEquals(cell4, cell3);
+        TKAssertNotExactEquals(cell4, cell1);
+        TKAssertNotExactEquals(cell5, cell3);
+        TKAssertNotExactEquals(cell5, cell2);
+        TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
+        TKAssertObjectEquals(cell1.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell2.indexPath, JSIndexPath(0, 2));
+        TKAssertObjectEquals(cell3.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell4.indexPath, JSIndexPath(0, 2));
+        TKAssertObjectEquals(cell5.indexPath, JSIndexPath(0, 3));
+        // cells should be in pre-animation positions
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 180);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 220);
+        TKAssertFloatEquals(cell1.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell2.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 320);
+
+        this.windowServer.displayServer.updateDisplay(2.5);
+        // cells should be mid-animation
+        // (cell1 moving to the left, all following cells moving up)
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell5.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 180);
+        TKAssertFloatEquals(cell1.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell2.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+
+        this.windowServer.displayServer.updateDisplay(3.0);
+
+        // final positions
+        TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
+        TKAssertNull(cell1.indexPath);
+        TKAssertNull(cell2.indexPath);
+        TKAssertObjectEquals(cell3.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell4.indexPath, JSIndexPath(0, 2));
+        TKAssertObjectEquals(cell5.indexPath, JSIndexPath(0, 3));
+        var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        TKAssertExactEquals(cell, cell0);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertExactEquals(cell, cell3);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        TKAssertExactEquals(cell, cell4);
+
+        TKAssertNull(cell1.superview);
+        TKAssertNull(cell2.superview);
+        TKAssertFloatEquals(cell0.position.x, 150);
+        TKAssertFloatEquals(cell1.position.x, 150);
+        TKAssertFloatEquals(cell2.position.x, 150);
+        TKAssertFloatEquals(cell3.position.x, 150);
+        TKAssertFloatEquals(cell4.position.x, 150);
+        TKAssertFloatEquals(cell5.position.x, 150);
+        TKAssertFloatEquals(cell0.position.y, 20);
+        TKAssertFloatEquals(cell1.position.y, 60);
+        TKAssertFloatEquals(cell2.position.y, 100);
+        TKAssertFloatEquals(cell3.position.y, 60);
+        TKAssertFloatEquals(cell4.position.y, 100);
+        TKAssertFloatEquals(cell5.position.y, 140);
+        TKAssertFloatEquals(cell1.alpha, 1);
+        TKAssertFloatEquals(cell2.alpha, 1);
+        TKAssertFloatEquals(listView.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.bounds.origin.y, 0);
+    },
+
+    testDeleteConsecutiveVisibleRowsPush: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 150));
+        listView.rowHeight = 40;
+        var numberOfRows = 10;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return 1;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return numberOfRows;
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        listView.editAnimationDuration = 1.0;
+
+        this.window.contentView.addSubview(listView);
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay(1.0);
+
+        // initial cells
+        var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell0);
+        TKAssertNotNull(cell1);
+        TKAssertNotNull(cell2);
+        TKAssertNotNull(cell3);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 400);
+
+        numberOfRows = 8;
+        listView.deleteRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.push);
+        listView.deleteRowAtIndexPath(JSIndexPath(0, 2), UIListView.RowAnimation.push);
+
+        // first update triggers the list view edit prep
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // second update kicks off the animations
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // new visible cell should appear at end
+        var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell4);
+        TKAssertNotNull(cell5);
+        TKAssertNotExactEquals(cell4, cell3);
+        TKAssertNotExactEquals(cell4, cell1);
+        TKAssertNotExactEquals(cell5, cell3);
+        TKAssertNotExactEquals(cell5, cell2);
+        TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
+        TKAssertObjectEquals(cell1.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell2.indexPath, JSIndexPath(0, 2));
+        TKAssertObjectEquals(cell3.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell4.indexPath, JSIndexPath(0, 2));
+        TKAssertObjectEquals(cell5.indexPath, JSIndexPath(0, 3));
+        // cells should be in pre-animation positions
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 180);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 220);
+        TKAssertFloatEquals(cell1.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell2.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 320);
+
+        this.windowServer.displayServer.updateDisplay(2.5);
+        // cells should be mid-animation
+        // (cell1 moving to the left, all following cells moving up)
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell5.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 180);
+        TKAssertFloatEquals(cell1.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell2.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+
+        this.windowServer.displayServer.updateDisplay(3.0);
+
+        // final positions
+        TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
+        TKAssertNull(cell1.indexPath);
+        TKAssertNull(cell2.indexPath);
+        TKAssertObjectEquals(cell3.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell4.indexPath, JSIndexPath(0, 2));
+        TKAssertObjectEquals(cell5.indexPath, JSIndexPath(0, 3));
+        var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        TKAssertExactEquals(cell, cell0);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertExactEquals(cell, cell3);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        TKAssertExactEquals(cell, cell4);
+
+        TKAssertNull(cell1.superview);
+        TKAssertNull(cell2.superview);
+        TKAssertFloatEquals(cell0.position.x, 150);
+        TKAssertFloatEquals(cell1.position.x, 150);
+        TKAssertFloatEquals(cell2.position.x, 150);
+        TKAssertFloatEquals(cell3.position.x, 150);
+        TKAssertFloatEquals(cell4.position.x, 150);
+        TKAssertFloatEquals(cell5.position.x, 150);
+        TKAssertFloatEquals(cell0.position.y, 20);
+        TKAssertFloatEquals(cell1.position.y, -20);
+        TKAssertFloatEquals(cell2.position.y, 20);
+        TKAssertFloatEquals(cell3.position.y, 60);
+        TKAssertFloatEquals(cell4.position.y, 100);
+        TKAssertFloatEquals(cell5.position.y, 140);
+        TKAssertFloatEquals(cell1.alpha, 1);
+        TKAssertFloatEquals(cell2.alpha, 1);
+        TKAssertFloatEquals(listView.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.bounds.origin.y, 0);
+    },
+
+    testDeleteConsecutiveVisibleRowsFold: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 150));
+        listView.rowHeight = 40;
+        var numberOfRows = 10;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return 1;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return numberOfRows;
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        listView.editAnimationDuration = 1.0;
+
+        this.window.contentView.addSubview(listView);
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay(1.0);
+
+        // initial cells
+        var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell0);
+        TKAssertNotNull(cell1);
+        TKAssertNotNull(cell2);
+        TKAssertNotNull(cell3);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 400);
+
+        numberOfRows = 8;
+        listView.deleteRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.fold);
+        listView.deleteRowAtIndexPath(JSIndexPath(0, 2), UIListView.RowAnimation.fold);
+
+        // first update triggers the list view edit prep
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // second update kicks off the animations
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // new visible cell should appear at end
+        var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell4);
+        TKAssertNotNull(cell5);
+        TKAssertNotExactEquals(cell4, cell3);
+        TKAssertNotExactEquals(cell4, cell1);
+        TKAssertNotExactEquals(cell5, cell3);
+        TKAssertNotExactEquals(cell5, cell2);
+        TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
+        TKAssertObjectEquals(cell1.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell2.indexPath, JSIndexPath(0, 2));
+        TKAssertObjectEquals(cell3.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell4.indexPath, JSIndexPath(0, 2));
+        TKAssertObjectEquals(cell5.indexPath, JSIndexPath(0, 3));
+        // cells should be in pre-animation positions
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 180);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 220);
+        TKAssertFloatEquals(cell1.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell2.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 320);
+
+        this.windowServer.displayServer.updateDisplay(2.5);
+        // cells should be mid-animation
+        // (cell1 moving to the left, all following cells moving up)
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell5.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 40);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 180);
+        TKAssertFloatEquals(cell1.layer.presentation.alpha, 0.5);
+        TKAssertFloatEquals(cell2.layer.presentation.alpha, 0.5);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+
+        this.windowServer.displayServer.updateDisplay(3.0);
+
+        // final positions
+        TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
+        TKAssertNull(cell1.indexPath);
+        TKAssertNull(cell2.indexPath);
+        TKAssertObjectEquals(cell3.indexPath, JSIndexPath(0, 1));
+        TKAssertObjectEquals(cell4.indexPath, JSIndexPath(0, 2));
+        TKAssertObjectEquals(cell5.indexPath, JSIndexPath(0, 3));
+        var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        TKAssertExactEquals(cell, cell0);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertExactEquals(cell, cell3);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        TKAssertExactEquals(cell, cell4);
+
+        TKAssertNull(cell1.superview);
+        TKAssertNull(cell2.superview);
+        TKAssertFloatEquals(cell0.position.x, 150);
+        TKAssertFloatEquals(cell1.position.x, 150);
+        TKAssertFloatEquals(cell2.position.x, 150);
+        TKAssertFloatEquals(cell3.position.x, 150);
+        TKAssertFloatEquals(cell4.position.x, 150);
+        TKAssertFloatEquals(cell5.position.x, 150);
+        TKAssertFloatEquals(cell0.position.y, 20);
+        TKAssertFloatEquals(cell1.position.y, 20);
+        TKAssertFloatEquals(cell2.position.y, 20);
+        TKAssertFloatEquals(cell3.position.y, 60);
+        TKAssertFloatEquals(cell4.position.y, 100);
+        TKAssertFloatEquals(cell5.position.y, 140);
+        TKAssertFloatEquals(cell1.alpha, 1.0);
+        TKAssertFloatEquals(cell2.alpha, 1.0);
         TKAssertFloatEquals(listView.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.bounds.origin.y, 0);
     },
@@ -862,8 +1642,8 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell3.position.y, 60);
         TKAssertFloatEquals(cell4.position.y, 100);
         TKAssertFloatEquals(cell5.position.y, 140);
-        TKAssertFloatEquals(cell0.alpha, 0.0);
-        TKAssertFloatEquals(cell2.alpha, 0.0);
+        TKAssertFloatEquals(cell0.alpha, 1.0);
+        TKAssertFloatEquals(cell2.alpha, 1.0);
         TKAssertFloatEquals(listView.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.bounds.origin.y, 0);
     },
@@ -1238,9 +2018,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell5.layer.presentation.position.y, 140);
         TKAssertFloatEquals(cell6.layer.presentation.position.y, 100);
         TKAssertFloatEquals(cell7.layer.presentation.position.y, 140);
-        TKAssertFloatEquals(cell2.layer.presentation.alpha, 0);
-        TKAssertFloatEquals(cell4.layer.presentation.alpha, 0);
-        TKAssertFloatEquals(cell5.layer.presentation.alpha, 0);
+        TKAssertFloatEquals(cell2.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell4.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell5.layer.presentation.alpha, 1);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
     },
@@ -1297,7 +2077,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         this.windowServer.displayServer.updateDisplay(2.0);
         // second update kicks off the animations
         this.windowServer.displayServer.updateDisplay(2.0);
-        // new visible cell should appear at end
+        // new visible cell should appear at start & end
         var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
         var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
         var cell9 = listView.cellAtIndexPath(JSIndexPath(0, 5));
@@ -1393,9 +2173,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell5.layer.presentation.position.y, 220);
         TKAssertFloatEquals(cell6.layer.presentation.position.y, 260);
         TKAssertFloatEquals(cell7.layer.presentation.position.y, 300);
-        TKAssertFloatEquals(cell5.layer.presentation.alpha, 0);
-        TKAssertFloatEquals(cell6.layer.presentation.alpha, 0);
-        TKAssertFloatEquals(cell7.layer.presentation.alpha, 0);
+        TKAssertFloatEquals(cell5.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell6.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell7.layer.presentation.alpha, 1);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 90);
     },
@@ -1463,8 +2243,8 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
         TKAssertFloatEquals(cell4.layer.presentation.position.y, 60);
         TKAssertFloatEquals(cell4.layer.presentation.alpha, 1);
-        TKAssertFloatEquals(listView.layer.bounds.origin.x, 0);
-        TKAssertFloatEquals(listView.layer.bounds.origin.y, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 400);
 
@@ -1505,6 +2285,1208 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell3.position.y, 180);
         TKAssertFloatEquals(cell4.position.y, 60);
         TKAssertFloatEquals(cell4.alpha, 1);
-    }
+    },
+
+    testInsertSingleVisibleRowPush: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 150));
+        listView.rowHeight = 40;
+        var numberOfRows = 9;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return 1;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return numberOfRows;
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        listView.editAnimationDuration = 1.0;
+
+        this.window.contentView.addSubview(listView);
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay(1.0);
+
+        // initial cells
+        var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell0);
+        TKAssertNotNull(cell1);
+        TKAssertNotNull(cell2);
+        TKAssertNotNull(cell3);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 360);
+
+        numberOfRows = 10;
+        listView.insertRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.push);
+
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // second update kicks off the animations
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // new visible cell should appear at end
+        var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertNotNull(cell4);
+        TKAssertNotExactEquals(cell4, cell3);
+        TKAssertNotExactEquals(cell4, cell1);
+        // cells should be in pre-animation positions
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell4.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 400);
+
+        this.windowServer.displayServer.updateDisplay(2.5);
+        // cells should be mid-animation
+        // (cell4 moving and everything following pushing down)
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 80);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 120);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 160);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 40);
+        TKAssertFloatEquals(cell4.layer.presentation.alpha, 1);
+
+        this.windowServer.displayServer.updateDisplay(3.0);
+
+        // final positions
+        var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        TKAssertExactEquals(cell, cell0);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        TKAssertExactEquals(cell, cell1);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertExactEquals(cell, cell2);
+
+        TKAssertNull(cell3.superview);
+        TKAssertFloatEquals(cell0.position.x, 150);
+        TKAssertFloatEquals(cell1.position.x, 150);
+        TKAssertFloatEquals(cell2.position.x, 150);
+        TKAssertFloatEquals(cell3.position.x, 150);
+        TKAssertFloatEquals(cell4.position.x, 150);
+        TKAssertFloatEquals(cell0.position.y, 20);
+        TKAssertFloatEquals(cell1.position.y, 100);
+        TKAssertFloatEquals(cell2.position.y, 140);
+        TKAssertFloatEquals(cell3.position.y, 180);
+        TKAssertFloatEquals(cell4.position.y, 60);
+        TKAssertFloatEquals(cell4.alpha, 1);
+    },
+
+    testInsertSingleVisibleRowFold: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 150));
+        listView.rowHeight = 40;
+        var numberOfRows = 9;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return 1;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return numberOfRows;
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        listView.editAnimationDuration = 1.0;
+
+        this.window.contentView.addSubview(listView);
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay(1.0);
+
+        // initial cells
+        var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell0);
+        TKAssertNotNull(cell1);
+        TKAssertNotNull(cell2);
+        TKAssertNotNull(cell3);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 360);
+
+        numberOfRows = 10;
+        listView.insertRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.fold);
+
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // second update kicks off the animations
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // new visible cell should appear at end
+        var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertNotNull(cell4);
+        TKAssertNotExactEquals(cell4, cell3);
+        TKAssertNotExactEquals(cell4, cell1);
+        // cells should be in pre-animation positions
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell4.layer.presentation.alpha, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 400);
+
+        this.windowServer.displayServer.updateDisplay(2.5);
+        // cells should be mid-animation
+        // (cell4 moving and everything following pushing down)
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 80);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 120);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 160);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 40);
+        TKAssertFloatEquals(cell4.layer.presentation.alpha, 0.5);
+
+        this.windowServer.displayServer.updateDisplay(3.0);
+
+        // final positions
+        var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        TKAssertExactEquals(cell, cell0);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        TKAssertExactEquals(cell, cell1);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertExactEquals(cell, cell2);
+
+        TKAssertNull(cell3.superview);
+        TKAssertFloatEquals(cell0.position.x, 150);
+        TKAssertFloatEquals(cell1.position.x, 150);
+        TKAssertFloatEquals(cell2.position.x, 150);
+        TKAssertFloatEquals(cell3.position.x, 150);
+        TKAssertFloatEquals(cell4.position.x, 150);
+        TKAssertFloatEquals(cell0.position.y, 20);
+        TKAssertFloatEquals(cell1.position.y, 100);
+        TKAssertFloatEquals(cell2.position.y, 140);
+        TKAssertFloatEquals(cell3.position.y, 180);
+        TKAssertFloatEquals(cell4.position.y, 60);
+        TKAssertFloatEquals(cell4.alpha, 1);
+    },
+
+    testInsertSingleVisibleRowRight: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 150));
+        listView.rowHeight = 40;
+        var numberOfRows = 9;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return 1;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return numberOfRows;
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        listView.editAnimationDuration = 1.0;
+
+        this.window.contentView.addSubview(listView);
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay(1.0);
+
+        // initial cells
+        var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell0);
+        TKAssertNotNull(cell1);
+        TKAssertNotNull(cell2);
+        TKAssertNotNull(cell3);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 360);
+
+        numberOfRows = 10;
+        listView.insertRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.right);
+
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // second update kicks off the animations
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // new visible cell should appear at end
+        var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertNotNull(cell4);
+        TKAssertNotExactEquals(cell4, cell3);
+        TKAssertNotExactEquals(cell4, cell1);
+        // cells should be in pre-animation positions
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 450);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell4.layer.presentation.alpha, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 400);
+
+        this.windowServer.displayServer.updateDisplay(2.5);
+        // cells should be mid-animation
+        // (cell4 moving and everything following pushing down)
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 300);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 80);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 120);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 160);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell4.layer.presentation.alpha, 0.5);
+
+        this.windowServer.displayServer.updateDisplay(3.0);
+
+        // final positions
+        var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        TKAssertExactEquals(cell, cell0);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        TKAssertExactEquals(cell, cell1);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertExactEquals(cell, cell2);
+
+        TKAssertNull(cell3.superview);
+        TKAssertFloatEquals(cell0.position.x, 150);
+        TKAssertFloatEquals(cell1.position.x, 150);
+        TKAssertFloatEquals(cell2.position.x, 150);
+        TKAssertFloatEquals(cell3.position.x, 150);
+        TKAssertFloatEquals(cell4.position.x, 150);
+        TKAssertFloatEquals(cell0.position.y, 20);
+        TKAssertFloatEquals(cell1.position.y, 100);
+        TKAssertFloatEquals(cell2.position.y, 140);
+        TKAssertFloatEquals(cell3.position.y, 180);
+        TKAssertFloatEquals(cell4.position.y, 60);
+        TKAssertFloatEquals(cell4.alpha, 1);
+    },
+
+    testInsertSingleInvisibleRowBefore: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 150));
+        listView.rowHeight = 40;
+        var numberOfRows = 9;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return 1;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return numberOfRows;
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        listView.editAnimationDuration = 1.0;
+
+        this.window.contentView.addSubview(listView);
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay(1.0);
+        listView.contentOffset = JSPoint(0, 100);
+        this.windowServer.displayServer.updateDisplay(1.1);
+
+        // initial cells
+        var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 4));
+        var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 5));
+        TKAssertNotNull(cell2);
+        TKAssertNotNull(cell3);
+        TKAssertNotNull(cell4);
+        TKAssertNotNull(cell5);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 360);
+
+        numberOfRows = 10;
+        listView.insertRowAtIndexPath(JSIndexPath(0, 1));
+
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // second update kicks off the animations
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // new visible cell should appear at end
+        var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertNull(cell1);
+        // cells should be in pre-animation positions
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell5.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 180);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 220);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 100);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 400);
+
+        this.windowServer.displayServer.updateDisplay(2.5);
+        // cells should be mid-animation
+        // (cell4 moving and everything following pushing down)
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell5.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 120);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 160);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 200);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 240);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 120);
+
+        this.windowServer.displayServer.updateDisplay(3.0);
+
+        // final positions
+        var cell = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertExactEquals(cell, cell2);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 4));
+        TKAssertExactEquals(cell, cell3);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 5));
+        TKAssertExactEquals(cell, cell4);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 6));
+        TKAssertExactEquals(cell, cell5);
+
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell5.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 180);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 220);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 260);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 140);
+    },
+
+    testInsertSingleInvisibleRowAfter: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 150));
+        listView.rowHeight = 40;
+        var numberOfRows = 9;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return 1;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return numberOfRows;
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        listView.editAnimationDuration = 1.0;
+
+        this.window.contentView.addSubview(listView);
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay(1.0);
+        listView.contentOffset = JSPoint(0, 100);
+        this.windowServer.displayServer.updateDisplay(1.1);
+
+        // initial cells
+        var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 4));
+        var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 5));
+        TKAssertNotNull(cell2);
+        TKAssertNotNull(cell3);
+        TKAssertNotNull(cell4);
+        TKAssertNotNull(cell5);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 360);
+
+        numberOfRows = 10;
+        listView.insertRowAtIndexPath(JSIndexPath(0, 8));
+
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // second update kicks off the animations
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // new visible cell should appear at end
+        var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertNull(cell1);
+        // cells should be in pre-animation positions
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell5.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 180);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 220);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 100);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 400);
+
+        this.windowServer.displayServer.updateDisplay(2.5);
+        // cells should be mid-animation
+        // (cell4 moving and everything following pushing down)
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell5.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 180);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 220);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 100);
+        this.windowServer.displayServer.updateDisplay(3.0);
+
+        // final positions
+        var cell = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        TKAssertExactEquals(cell, cell2);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertExactEquals(cell, cell3);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 4));
+        TKAssertExactEquals(cell, cell4);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 5));
+        TKAssertExactEquals(cell, cell5);
+
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell5.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 180);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 220);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 100);
+    },
+
+    testInsertConsecutiveVisibleRows: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 150));
+        listView.rowHeight = 40;
+        var numberOfRows = 9;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return 1;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return numberOfRows;
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        listView.editAnimationDuration = 1.0;
+
+        this.window.contentView.addSubview(listView);
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay(1.0);
+
+        // initial cells
+        var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell0);
+        TKAssertNotNull(cell1);
+        TKAssertNotNull(cell2);
+        TKAssertNotNull(cell3);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 360);
+
+        numberOfRows = 13;
+        listView.insertRowAtIndexPath(JSIndexPath(0, 1));
+        listView.insertRowAtIndexPath(JSIndexPath(0, 2));
+        listView.insertRowAtIndexPath(JSIndexPath(0, 3));
+        listView.insertRowAtIndexPath(JSIndexPath(0, 4));
+
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // second update kicks off the animations
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // new visible cell should appear at end
+        var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell6 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        var cell7 = listView.cellAtIndexPath(JSIndexPath(0, 4));
+        TKAssertNotNull(cell4);
+        TKAssertNotNull(cell5);
+        TKAssertNotNull(cell6);
+        TKAssertNull(cell7);
+        TKAssertNotExactEquals(cell4, cell3);
+        TKAssertNotExactEquals(cell4, cell1);
+        TKAssertNotExactEquals(cell5, cell3);
+        TKAssertNotExactEquals(cell5, cell1);
+        TKAssertNotExactEquals(cell6, cell3);
+        TKAssertNotExactEquals(cell6, cell1);
+        // cells should be in pre-animation positions
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell6.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell5.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell6.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 520);
+
+        this.windowServer.displayServer.updateDisplay(2.5);
+        // cells should be mid-animation
+        // (cell4 moving and everything following pushing down)
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 120);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 160);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 200);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell6.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell5.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell6.layer.presentation.alpha, 1);
+
+        this.windowServer.displayServer.updateDisplay(3.0);
+
+        // final positions
+        var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        TKAssertExactEquals(cell, cell0);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertExactEquals(cell, cell4);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        TKAssertExactEquals(cell, cell5);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertExactEquals(cell, cell6);
+
+        TKAssertNull(cell3.superview);
+        TKAssertFloatEquals(cell0.position.x, 150);
+        TKAssertFloatEquals(cell1.position.x, 150);
+        TKAssertFloatEquals(cell2.position.x, 150);
+        TKAssertFloatEquals(cell3.position.x, 150);
+        TKAssertFloatEquals(cell4.position.x, 150);
+        TKAssertFloatEquals(cell0.position.y, 20);
+        TKAssertFloatEquals(cell1.position.y, 180);
+        TKAssertFloatEquals(cell2.position.y, 220);
+        TKAssertFloatEquals(cell3.position.y, 260);
+        TKAssertFloatEquals(cell4.position.y, 60);
+        TKAssertFloatEquals(cell5.position.y, 100);
+        TKAssertFloatEquals(cell6.position.y, 140);
+        TKAssertFloatEquals(cell4.alpha, 1);
+        TKAssertFloatEquals(cell5.alpha, 1);
+        TKAssertFloatEquals(cell6.alpha, 1);
+    },
+
+    testInsertConsecutiveVisibleRowsPush: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 150));
+        listView.rowHeight = 40;
+        var numberOfRows = 9;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return 1;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return numberOfRows;
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        listView.editAnimationDuration = 1.0;
+
+        this.window.contentView.addSubview(listView);
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay(1.0);
+
+        // initial cells
+        var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell0);
+        TKAssertNotNull(cell1);
+        TKAssertNotNull(cell2);
+        TKAssertNotNull(cell3);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 360);
+
+        numberOfRows = 13;
+        listView.insertRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.push);
+        listView.insertRowAtIndexPath(JSIndexPath(0, 2), UIListView.RowAnimation.push);
+        listView.insertRowAtIndexPath(JSIndexPath(0, 3), UIListView.RowAnimation.push);
+        listView.insertRowAtIndexPath(JSIndexPath(0, 4), UIListView.RowAnimation.push);
+
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // second update kicks off the animations
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // new visible cell should appear at end
+        var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell6 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        var cell7 = listView.cellAtIndexPath(JSIndexPath(0, 4));
+        TKAssertNotNull(cell4);
+        TKAssertNotNull(cell5);
+        TKAssertNotNull(cell6);
+        TKAssertNull(cell7);
+        TKAssertNotExactEquals(cell4, cell3);
+        TKAssertNotExactEquals(cell4, cell1);
+        TKAssertNotExactEquals(cell5, cell3);
+        TKAssertNotExactEquals(cell5, cell1);
+        TKAssertNotExactEquals(cell6, cell3);
+        TKAssertNotExactEquals(cell6, cell1);
+        // cells should be in pre-animation positions
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell5.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell6.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, -60);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, -20);
+        TKAssertFloatEquals(cell6.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell4.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell5.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell6.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 520);
+
+        this.windowServer.displayServer.updateDisplay(2.5);
+        // cells should be mid-animation
+        // (cell4 moving and everything following pushing down)
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell5.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell6.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 120);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 160);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 200);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 0);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 40);
+        TKAssertFloatEquals(cell6.layer.presentation.position.y, 80);
+        TKAssertFloatEquals(cell4.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell5.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell6.layer.presentation.alpha, 1);
+
+        this.windowServer.displayServer.updateDisplay(3.0);
+
+        // final positions
+        var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        TKAssertExactEquals(cell, cell0);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertExactEquals(cell, cell4);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        TKAssertExactEquals(cell, cell5);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertExactEquals(cell, cell6);
+
+        TKAssertNull(cell3.superview);
+        TKAssertFloatEquals(cell0.position.x, 150);
+        TKAssertFloatEquals(cell1.position.x, 150);
+        TKAssertFloatEquals(cell2.position.x, 150);
+        TKAssertFloatEquals(cell3.position.x, 150);
+        TKAssertFloatEquals(cell4.position.x, 150);
+        TKAssertFloatEquals(cell5.position.x, 150);
+        TKAssertFloatEquals(cell6.position.x, 150);
+        TKAssertFloatEquals(cell0.position.y, 20);
+        TKAssertFloatEquals(cell1.position.y, 180);
+        TKAssertFloatEquals(cell2.position.y, 220);
+        TKAssertFloatEquals(cell3.position.y, 260);
+        TKAssertFloatEquals(cell4.position.y, 60);
+        TKAssertFloatEquals(cell5.position.y, 100);
+        TKAssertFloatEquals(cell6.position.y, 140);
+        TKAssertFloatEquals(cell4.alpha, 1);
+        TKAssertFloatEquals(cell5.alpha, 1);
+        TKAssertFloatEquals(cell6.alpha, 1);
+    },
+
+    testInsertConsecutiveVisibleRowsFold: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 150));
+        listView.rowHeight = 40;
+        var numberOfRows = 9;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return 1;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return numberOfRows;
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        listView.editAnimationDuration = 1.0;
+
+        this.window.contentView.addSubview(listView);
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay(1.0);
+
+        // initial cells
+        var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell0);
+        TKAssertNotNull(cell1);
+        TKAssertNotNull(cell2);
+        TKAssertNotNull(cell3);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 360);
+
+        numberOfRows = 13;
+        listView.insertRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.fold);
+        listView.insertRowAtIndexPath(JSIndexPath(0, 2), UIListView.RowAnimation.fold);
+        listView.insertRowAtIndexPath(JSIndexPath(0, 3), UIListView.RowAnimation.fold);
+        listView.insertRowAtIndexPath(JSIndexPath(0, 4), UIListView.RowAnimation.fold);
+
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // second update kicks off the animations
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // new visible cell should appear at end
+        var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell6 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        var cell7 = listView.cellAtIndexPath(JSIndexPath(0, 4));
+        TKAssertNotNull(cell4);
+        TKAssertNotNull(cell5);
+        TKAssertNotNull(cell6);
+        TKAssertNull(cell7);
+        TKAssertNotExactEquals(cell4, cell3);
+        TKAssertNotExactEquals(cell4, cell1);
+        TKAssertNotExactEquals(cell5, cell3);
+        TKAssertNotExactEquals(cell5, cell1);
+        TKAssertNotExactEquals(cell6, cell3);
+        TKAssertNotExactEquals(cell6, cell1);
+        // cells should be in pre-animation positions
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell5.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell6.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell6.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell4.layer.presentation.alpha, 0);
+        TKAssertFloatEquals(cell5.layer.presentation.alpha, 0);
+        TKAssertFloatEquals(cell6.layer.presentation.alpha, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 520);
+
+        this.windowServer.displayServer.updateDisplay(2.5);
+        // cells should be mid-animation
+        // (cell4 moving and everything following pushing down)
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell5.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell6.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 120);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 160);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 200);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 40);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell6.layer.presentation.position.y, 80);
+        TKAssertFloatEquals(cell4.layer.presentation.alpha, 0.5);
+        TKAssertFloatEquals(cell5.layer.presentation.alpha, 0.5);
+        TKAssertFloatEquals(cell6.layer.presentation.alpha, 0.5);
+
+        this.windowServer.displayServer.updateDisplay(3.0);
+
+        // final positions
+        var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        TKAssertExactEquals(cell, cell0);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertExactEquals(cell, cell4);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        TKAssertExactEquals(cell, cell5);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertExactEquals(cell, cell6);
+
+        TKAssertNull(cell3.superview);
+        TKAssertFloatEquals(cell0.position.x, 150);
+        TKAssertFloatEquals(cell1.position.x, 150);
+        TKAssertFloatEquals(cell2.position.x, 150);
+        TKAssertFloatEquals(cell3.position.x, 150);
+        TKAssertFloatEquals(cell4.position.x, 150);
+        TKAssertFloatEquals(cell5.position.x, 150);
+        TKAssertFloatEquals(cell6.position.x, 150);
+        TKAssertFloatEquals(cell0.position.y, 20);
+        TKAssertFloatEquals(cell1.position.y, 180);
+        TKAssertFloatEquals(cell2.position.y, 220);
+        TKAssertFloatEquals(cell3.position.y, 260);
+        TKAssertFloatEquals(cell4.position.y, 60);
+        TKAssertFloatEquals(cell5.position.y, 100);
+        TKAssertFloatEquals(cell6.position.y, 140);
+        TKAssertFloatEquals(cell4.alpha, 1);
+        TKAssertFloatEquals(cell5.alpha, 1);
+        TKAssertFloatEquals(cell6.alpha, 1);
+    },
+
+    testInsertConsecutiveVisibleRowsRight: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 150));
+        listView.rowHeight = 40;
+        var numberOfRows = 9;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return 1;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return numberOfRows;
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        listView.editAnimationDuration = 1.0;
+
+        this.window.contentView.addSubview(listView);
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay(1.0);
+
+        // initial cells
+        var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell0);
+        TKAssertNotNull(cell1);
+        TKAssertNotNull(cell2);
+        TKAssertNotNull(cell3);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 360);
+
+        numberOfRows = 13;
+        listView.insertRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.right);
+        listView.insertRowAtIndexPath(JSIndexPath(0, 2), UIListView.RowAnimation.right);
+        listView.insertRowAtIndexPath(JSIndexPath(0, 3), UIListView.RowAnimation.right);
+        listView.insertRowAtIndexPath(JSIndexPath(0, 4), UIListView.RowAnimation.right);
+
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // second update kicks off the animations
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // new visible cell should appear at end
+        var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell6 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        var cell7 = listView.cellAtIndexPath(JSIndexPath(0, 4));
+        TKAssertNotNull(cell4);
+        TKAssertNotNull(cell5);
+        TKAssertNotNull(cell6);
+        TKAssertNull(cell7);
+        TKAssertNotExactEquals(cell4, cell3);
+        TKAssertNotExactEquals(cell4, cell1);
+        TKAssertNotExactEquals(cell5, cell3);
+        TKAssertNotExactEquals(cell5, cell1);
+        TKAssertNotExactEquals(cell6, cell3);
+        TKAssertNotExactEquals(cell6, cell1);
+        // cells should be in pre-animation positions
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 450);
+        TKAssertFloatEquals(cell5.layer.presentation.position.x, 450);
+        TKAssertFloatEquals(cell6.layer.presentation.position.x, 450);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell6.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.alpha, 0);
+        TKAssertFloatEquals(cell5.layer.presentation.alpha, 0);
+        TKAssertFloatEquals(cell6.layer.presentation.alpha, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 520);
+
+        this.windowServer.displayServer.updateDisplay(2.5);
+        // cells should be mid-animation
+        // (cell4 moving and everything following pushing down)
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 300);
+        TKAssertFloatEquals(cell5.layer.presentation.position.x, 300);
+        TKAssertFloatEquals(cell6.layer.presentation.position.x, 300);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 120);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 160);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 200);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell6.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.alpha, 0.5);
+        TKAssertFloatEquals(cell5.layer.presentation.alpha, 0.5);
+        TKAssertFloatEquals(cell6.layer.presentation.alpha, 0.5);
+
+        this.windowServer.displayServer.updateDisplay(3.0);
+
+        // final positions
+        var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        TKAssertExactEquals(cell, cell0);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertExactEquals(cell, cell4);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        TKAssertExactEquals(cell, cell5);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertExactEquals(cell, cell6);
+
+        TKAssertNull(cell3.superview);
+        TKAssertFloatEquals(cell0.position.x, 150);
+        TKAssertFloatEquals(cell1.position.x, 150);
+        TKAssertFloatEquals(cell2.position.x, 150);
+        TKAssertFloatEquals(cell3.position.x, 150);
+        TKAssertFloatEquals(cell4.position.x, 150);
+        TKAssertFloatEquals(cell5.position.x, 150);
+        TKAssertFloatEquals(cell6.position.x, 150);
+        TKAssertFloatEquals(cell0.position.y, 20);
+        TKAssertFloatEquals(cell1.position.y, 180);
+        TKAssertFloatEquals(cell2.position.y, 220);
+        TKAssertFloatEquals(cell3.position.y, 260);
+        TKAssertFloatEquals(cell4.position.y, 60);
+        TKAssertFloatEquals(cell5.position.y, 100);
+        TKAssertFloatEquals(cell6.position.y, 140);
+        TKAssertFloatEquals(cell4.alpha, 1);
+        TKAssertFloatEquals(cell5.alpha, 1);
+        TKAssertFloatEquals(cell6.alpha, 1);
+    },
+
+    testInsertNonConsecutiveVisibleRows: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 150));
+        listView.rowHeight = 40;
+        var numberOfRows = 9;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return 1;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return numberOfRows;
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        listView.editAnimationDuration = 1.0;
+
+        this.window.contentView.addSubview(listView);
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay(1.0);
+
+        // initial cells
+        var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell0);
+        TKAssertNotNull(cell1);
+        TKAssertNotNull(cell2);
+        TKAssertNotNull(cell3);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 360);
+
+        numberOfRows = 11;
+        listView.insertRowAtIndexPath(JSIndexPath(0, 0));
+        listView.insertRowAtIndexPath(JSIndexPath(0, 3));
+
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // second update kicks off the animations
+        this.windowServer.displayServer.updateDisplay(2.0);
+        // new visible cell should appear at end
+        var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertNotNull(cell4);
+        TKAssertNotNull(cell5);
+        TKAssertNotExactEquals(cell4, cell3);
+        TKAssertNotExactEquals(cell4, cell0);
+        TKAssertNotExactEquals(cell5, cell3);
+        // cells should be in pre-animation positions
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell5.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 60);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 100);
+        TKAssertFloatEquals(cell4.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell5.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
+        TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
+        TKAssertFloatEquals(listView.contentSize.width, 300);
+        TKAssertFloatEquals(listView.contentSize.height, 440);
+
+        this.windowServer.displayServer.updateDisplay(2.5);
+        // cells should be mid-animation
+        // (cell4 moving and everything following pushing down)
+        TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell1.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell3.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell4.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell5.layer.presentation.position.x, 150);
+        TKAssertFloatEquals(cell0.layer.presentation.position.y, 40);
+        TKAssertFloatEquals(cell1.layer.presentation.position.y, 80);
+        TKAssertFloatEquals(cell2.layer.presentation.position.y, 140);
+        TKAssertFloatEquals(cell3.layer.presentation.position.y, 180);
+        TKAssertFloatEquals(cell4.layer.presentation.position.y, 20);
+        TKAssertFloatEquals(cell5.layer.presentation.position.y, 120);
+        TKAssertFloatEquals(cell4.layer.presentation.alpha, 1);
+        TKAssertFloatEquals(cell5.layer.presentation.alpha, 1);
+
+        this.windowServer.displayServer.updateDisplay(3.0);
+
+        // final positions
+        var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
+        TKAssertExactEquals(cell, cell4);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 1));
+        TKAssertExactEquals(cell, cell0);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 2));
+        TKAssertExactEquals(cell, cell1);
+        cell = listView.cellAtIndexPath(JSIndexPath(0, 3));
+        TKAssertExactEquals(cell, cell5);
+
+        TKAssertNull(cell3.superview);
+        TKAssertFloatEquals(cell0.position.x, 150);
+        TKAssertFloatEquals(cell1.position.x, 150);
+        TKAssertFloatEquals(cell2.position.x, 150);
+        TKAssertFloatEquals(cell3.position.x, 150);
+        TKAssertFloatEquals(cell4.position.x, 150);
+        TKAssertFloatEquals(cell5.position.x, 150);
+        TKAssertFloatEquals(cell0.position.y, 60);
+        TKAssertFloatEquals(cell1.position.y, 100);
+        TKAssertFloatEquals(cell2.position.y, 180);
+        TKAssertFloatEquals(cell3.position.y, 220);
+        TKAssertFloatEquals(cell4.position.y, 20);
+        TKAssertFloatEquals(cell5.position.y, 140);
+        TKAssertFloatEquals(cell4.alpha, 1);
+        TKAssertFloatEquals(cell5.alpha, 1);
+    },
 
 });
