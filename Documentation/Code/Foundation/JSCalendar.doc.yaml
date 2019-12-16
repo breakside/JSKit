@@ -1,0 +1,273 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Perform calendar type calculations to `JSDate` objects
+description: |
+  While `JSDate` provides a simple timestamp, it doesn't provide any awareness
+  of days, weeks, months, or years.
+
+  `JSCalendar` is designed to provide that kind of calendar awareness that many
+  applications require.
+topics:
+  -
+    name: Calendar Types and Units
+    members:
+      -
+        name: Identifier
+        kind: enum
+        summary: Distinguish between different calendar systems
+        description: |
+          Different regions and cultures have developed different calendars
+          throught history and several are still common today.
+
+          For example, the Gregroian calendar has 12 months a year and 29, 30,
+          or 31 days per month.  It's the familar January - December yearly
+          calendar that aligns closely with the solar year.
+        options:
+          -
+            name: gregorian
+            summary: The Gregroian calendar, commonly used throught the world.
+              It has 12 months a year and 29, 30, or 31 days per month.  It's
+              the familar January - December yearly calendar that aligns closely
+              with the solar year.
+      -
+        name: Unit
+        kind: enum
+        summary: The various components of a calendar date
+        description: |
+          Used in many of the `JSCalendar` functions, this provides a
+          generic way to ask for the date components of a specific calendar
+          type.
+
+          Calendar units can be combined with bitwise operations like
+          `JSCalendar.Unit.day | JSCalendar.unit.month`
+        options:
+          -
+            name: none
+            summary: A value representing no components
+          -
+            name: calendar
+            summary: The calendar being used, represented as a `JSCalendar`
+          -
+            name: era
+            summary: The era represented as a `Number`.  For the gregorian
+              calendar, `0` means B.C. and `1` means A.D.
+          -
+            name: year
+            summary: The year represented as a `Number` such as `2020`
+          -
+            name: month
+            summary: The month represented as a `Number`.  For the gregorian
+              calendar, valid months are `1` - `12` with `1` equal to January
+          -
+            name: day
+            summary: The day of the month represented as a `Number`
+          -
+            name: hour
+            summary: The hour of the day represented as a `Number` from `0`
+              through `23`
+          -
+            name: minute
+            summary: The minute of the hour represented as a `Number` from `0`
+              through `59`
+          -
+            name: second
+            summary: The second of the minute represented as a `Number` from `0`
+              through `59`
+          -
+            name: millisecond
+            summary: The millisecond of the second represented as a `Number`
+              from `0` through `999`
+          -
+            name: weekday
+            summary: The day of the week represented as a `Number`
+              from `1` through `7` where `1` equals Sunday
+          -
+            name: timezone
+            summary: The timezone represented as a `JSTimeZone`
+      -
+        name: Components
+        summary: A simple `Object` that contains properties corresponding to
+          the `Unit` options.
+        kind: class
+        topics:
+          -
+            name: Properties
+            members:
+              -
+                name: calendar
+                type: JSCalendar
+                summary: The calendar
+              -
+                name: era
+                type: Number
+                summary: The era.  For the gregorian
+                  calendar, `0` means B.C. and `1` means A.D.
+              -
+                name: year
+                type: Number
+                summary: The year such as `2020`
+              -
+                name: month
+                type: Number
+                summary: The month.  For the gregorian
+                  calendar, valid months are `1` - `12` with `1` equal to January
+              -
+                name: day
+                type: Number
+                summary: The day of the month from `1` through `31` in the
+                  gregorian calendar.
+              -
+                name: hour
+                type: Number
+                summary: The hour of the day from `0`
+                  through `23`
+              -
+                name: minute
+                type: Number
+                summary: The minute of the hour from `0`
+                  through `59`
+              -
+                name: second
+                type: Number
+                summary: The second of the minute from `0`
+                  through `59`
+              -
+                name: millisecond
+                type: Number
+                summary: The millisecond of the second
+                  from `0` through `999`
+              -
+                name: weekday
+                type: Number
+                summary: The day of the week
+                  from `1` through `7` where `1` equals Sunday
+              -
+                name: timezone
+                type: JSTimeZone
+                summary: The timezone
+
+  -
+    name: Creating a Calendar
+    members:
+      -
+        name: initWithIdentifier
+        summary: Create a calendar with the given identifier
+        description: |
+          Different regions and cultures have developed different calendars
+          throught history and several are still common today.
+
+          For example, the Gregroian calendar has 12 months a year and 29, 30,
+          or 31 days per month.  It's the familar January - December yearly
+          calendar that aligns closely with the solar year.
+
+          `JSCalendar` was designed to support any calendar, so this
+          `initWithIdentifier` method is they way to create any of the supported
+          calendars.
+        arguments:
+          -
+            name: identifier
+            type: Identifier
+            summary: The kind of calendar to create
+  -
+    name: Time Zone
+    members:
+      -
+        name: timezone
+        type: JSTimeZone
+        summary: The default timezone for calendar calculations
+        description: |
+          If a timezone is not provided to calculation methods, this timezone
+          will be used.
+
+          Initially, this will be set to `JSTimeZone.local`, but can be
+          overwritten at any point.
+  -
+    name: Creating Dates
+    members:
+      -
+        name: dateFromComponents
+        kind: method
+        type: JSDate
+        return: A date created from the given components
+        summary: Create a date by calculating the exact instant specified by the
+          given calendar components
+        description: |
+          You can specific as many or as few components as you'd like.
+          Unspecified components will typically default to their minimum vales
+        arguments:
+          -
+            name: components
+            type: Components
+            summary: The calendar components that specify a date
+      -
+        name: dateByAddingComponents
+        kind: method
+        type: JSDate
+        return: A date created by adding the given components to another date
+        summary: Create a date by adding calendar components to another date
+        description: |
+          You can specific as many or as few components as you'd like.
+          Unspecified components will effectively be zero.
+        arguments:
+          -
+            name: components
+            type: Components
+            summary: The calendar components that should be added to the
+              given date
+          -
+            name: toDate
+            type: JSDate
+            summary: The initial date to which the components should be added
+  -
+    name: Extracting Components
+    members:
+      -
+        name: componentsFromDate
+        kind: method
+        summary: Extract the requested components from the given date
+        type: Components
+        return: Calendar components matching the requested units for the
+          given date
+        arguments:
+          -
+            name: units
+            type: Unit
+            summary: The units specifying the components that should be returned
+          -
+            name: date
+            type: JSDate
+            summary: The date from which to extract components
+          -
+            name: timezone
+            type: JSTimeZone
+            default: "this.timezone"
+            summary: The optional timezone to use for the purposes of this
+              calculation
+      -
+        name: componentsBetweenDates
+        kind: method
+        summary: Extract the requested components that represent the difference
+          between two dates
+        type: Components
+        return: Calendar components matching the requested units for the
+          difference between two dates
+        arguments:
+          -
+            name: units
+            type: Unit
+            summary: The units specifying the components that should be returned
+          -
+            name: date1
+            type: JSDate
+            summary: The first date from which to caclulate a difference
+          -
+            name: date2
+            type: JSDate
+            summary: The second date from which to caclulate a difference
+          -
+            name: timezone
+            type: JSTimeZone
+            default: "this.timezone"
+            summary: The optional timezone to use for the purposes of this
+              calculation

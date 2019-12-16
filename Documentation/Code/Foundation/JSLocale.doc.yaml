@@ -1,0 +1,94 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Localization information
+description: |
+  Localization is used for things like number formatting, date formatting, and
+  language selection for internationalized strings.
+see:
+  - JSBundle.localizedString()
+topics:
+  -
+    name: Creating a Locale
+    members:
+      -
+        name: initWithIdentifier
+        kind: init
+        summary: Create a locale based on a standard identifier
+        description: |
+          A locale identifier is typically a two letter language sequence like
+          `"en"` followed by a region specifier like "`-US`", resulting in a
+          string like `"en-US"`.
+
+          Less commonly, an identifier has an additional 4 letter script code.
+          And it can finally have any number of dash-separated extensions after
+          a `"-u-"` sequence.
+        note: Sometimes identifiers are specified with underscores instead of
+          dashes, like `"en_US"`.  This init method will accept underscores in
+          place of dashes.
+      -
+        name: current
+        kind: property
+        type: JSLocale
+        static: true
+        summary: The locale for the current system
+        description: |
+          Automatically chosen on first access by using the most preferred
+          language
+        see:
+          - preferredLanguages
+  -
+    name: Supported Languages
+    members:
+      -
+        name: preferredLanguages
+        type: String[]
+        summary: A list of locale identifiers in order of user preference
+  -
+    name: Identification
+    members:
+      -
+        name: identifier
+        type: String
+        summary: The full identifier for this locale including script and
+          extensions
+      -
+        name: identifierWithoutExtensions
+        type: String
+        summary: The identifier for this locale excluding any extensions
+      -
+        name: languageCode
+        type: String
+        summary: The two-letter language code
+      -
+        name: regionCode
+        type: String
+        summary: The two-letter region code
+      -
+        name: scriptCode
+        type: String
+        summary: The four-letter region code
+      -
+        name: extensions
+        type: String[]
+        summary: A list of any extensions
+  -
+    name: Formatting
+    members:
+      -
+        name: decimalSeparator
+        type: String
+        summary: A character or string to use to as a decimal point in number
+          formatting
+      -
+        name: groupingSeparator
+        type: String
+        summary: A character or string to use to as a group separator in number
+          formatting, like a comma for groups of thousands
+  -
+    name: Calendar
+    members:
+      -
+        name: calendarIdentifier
+        type: Calendar.Identifier
+        summary: The identifier for the default calendar in this locale

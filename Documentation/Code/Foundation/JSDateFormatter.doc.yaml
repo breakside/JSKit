@@ -1,0 +1,282 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Utility for highly customizable date formatting
+description: |
+  Based on the [Unicode Date Formatting](http://www.unicode.org/reports/tr35/tr35-31/tr35-dates.html#Date_Format_Patterns)
+  standard, this class formats dates according to date patterns.
+
+  Using a formatter object allows code like a `UIViewController` to create the
+  formatter once, and use it over and over again on dates that need formatting.
+
+  Since the formatter carries information like a `locale`, `calendar` and labels,
+  it's much more convenient to create once than to pass all of those parameters
+  around when formatting dates.
+note: |
+  While all of the common format specifiers are implemented, `JSDateFormatter`
+  has not yet implemented the following less common aspects of the Unicode
+  standard:
+
+  - Missing `Y` - Year in "Week of Year"
+  - Missing `u` - Extended Year
+  - Missing `U` - Cylic Year Name
+  - Missing `Q` - Quarter
+  - Missing `q` - Standalone Quarter
+  - Missing `w` - Week of Year
+  - Missing `W` - Week of Month
+  - Missing `F` - Day of Week in Month
+  - Missing `g` - Modified Julian day
+  - Missing `j` - template hour
+  - Missing `A` - milliseconds in day
+  - Missing `Z.4` - Full Timezone name
+  - Missing `v`, `V`, `x`, and `X` - Various timezone labels
+topics:
+  -
+    name: Creating a Formatter
+    members:
+      -
+        name: init
+        kind: init
+        summary: Create a formatter using the current locale
+        description: |
+          A shortcut for `JSDateFormatter.initWithLocale(JSLocale.current)`
+      -
+        name: initWithLocale
+        kind: init
+        summary: Create a formatter using the given locale
+        arguments:
+          -
+            name: locale
+            type: JSLocale
+            summary: The locale to use when formatting
+  -
+    name: Locale & Time Zone
+    members:
+      -
+        name: locale
+        type: JSLocale
+        summary: The locale to use for this formatter
+        description: |
+          The locale determines which calendar to use by default and which
+          language to use for things like month and weekday names. 
+      -
+        name: calendar
+        type: JSCalendar
+        summary: The calendar to use for this formatter
+        description: |
+          By default, the formatter will use whichever calendar is specified
+          by `locale`.
+
+          Setting this property will override that locale-based behavior.
+      -
+        name: timezone
+        type: JSTimeZone
+        summary: The timezone to use for this formatter
+        description: |
+          By default, the formatter will use whichever time zone is specified
+          by `calendar`.
+
+          Setting this property will override that calendar-based behavior.
+  -
+    name: Date Formatting
+    members:
+      -
+        name: stringFromDate
+        kind: method
+        type: String
+        return: A formatted date based on this formatter's `dateFormat` pattern
+        summary: Create a string for the given date based the format defined by
+          this formatter
+        arguments:
+          -
+            name: date
+            type: JSDate
+            summary: The date to format into a string
+        see:
+          - dateFormat
+      -
+        name: dateFormat
+        type: String
+        summary: The date format pattern to use when generating a string
+        description: |
+          See [Unicode Date Formatting](http://www.unicode.org/reports/tr35/tr35-31/tr35-dates.html#Date_Format_Patterns)
+          for format pattern syntax.
+  -
+    name: Labels
+    members:
+      -
+        name: narrowEraSymbols
+        type: String[]
+        summary: A list of lables corresponding to eras
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+      -
+        name: abbreviatedEraSymbols
+        type: String[]
+        summary: A list of lables corresponding to eras
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+      -
+        name: fullEraSymbols
+        type: String[]
+        summary: A list of lables corresponding to the full names of eras
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+
+      -
+        name: narrowMonthSymbols
+        type: String[]
+        summary: A list of lables corresponding to the first letter of each month
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+      -
+        name: abbreviatedMonthSymbols
+        type: String[]
+        summary: A list of lables corresponding to the abbreviations for months
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+      -
+        name: fullMonthSymbols
+        type: String[]
+        summary: A list of lables corresponding to the full names of months
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+
+      -
+        name: narrowStandaloneMonthSymbols
+        type: String[]
+        summary: A list of lables corresponding to the first letter of each month
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+      -
+        name: abbreviatedStandaloneMonthSymbols
+        type: String[]
+        summary: A list of lables corresponding to the abbreviations for months
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+      -
+        name: fullStandaloneMonthSymbols
+        type: String[]
+        summary: A list of lables corresponding to the full names of months
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+
+      -
+        name: narrowWeekdaySymbols
+        type: String[]
+        summary: A list of lables corresponding to the first letters of weekdays
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+      -
+        name: shortWeekdaySymbols
+        type: String[]
+        summary: A list of lables corresponding to abbreviations of weekdays
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+      -
+        name: abbreviatedWeekdaySymbols
+        type: String[]
+        summary: A list of lables corresponding to abbreviations of weekdays
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+      -
+        name: fullWeekdaySymbols
+        type: String[]
+        summary: A list of lables corresponding to full names for weekdays
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+
+      -
+        name: narrowStandaloneWeekdaySymbols
+        type: String[]
+        summary: A list of lables corresponding to the first letters of weekdays
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+      -
+        name: shortStandaloneWeekdaySymbols
+        type: String[]
+        summary: A list of lables corresponding to the abbreviations of weekdays
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+      -
+        name: abbreviatedStandaloneWeekdaySymbols
+        type: String[]
+        summary: A list of lables corresponding to the abbreviations of weekdays
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+      -
+        name: fullStandaloneWeekdaySymbols
+        type: String[]
+        summary: A list of lables corresponding to the full names of weekdays
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+
+      -
+        name: amSymbol
+        type: String[]
+        summary: A list of lables corresponding to the symbol for AM
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.
+      -
+        name: pmSymbol
+        type: String[]
+        summary: A list of lables corresponding to the symbol for PM
+        description: |
+          By default these labels will correspond to the localized names for
+          the language specified by `locale`.
+
+          You can override with custom names as desired.

@@ -1,0 +1,117 @@
+kind: class
+introduced: "1.0.0"
+summary: A Unix timestamp based date that represents a unique momemnt in time
+description: |
+  A `JSDate` is a fundamental measure of time using seconds.  It is basically
+  a wrapper around a `Number` that provides a few convenience methods.
+
+  Often it is useful to store dates as this kind of simple timestamp to
+  remove any complications or confusions around time zones.
+
+  For calendar operations, see `JSCalendar`.  For time zone operations, see
+  `JSTimeZone`.
+topics:
+  -
+    name: Creating a Date
+    members:
+      -
+        name: initWithTimeIntervalSince1970
+        kind: init
+        summary: Create a date using the number of seconds since the UNIX epoch,
+          which is at the start of 1970 UTC.
+        arguments:
+          -
+            name: timeInterval
+            type: Number
+            summary: The number of seconds since 1970
+        note: The `timeInterval` argument can be either an integer or a decimal,
+          with the fractional part representing the number of milliseconds.
+      -
+        name: initWithTimeIntervalSinceNow
+        kind: init
+        summary: Create a date using the number of seconds from now
+        arguments:
+          -
+            name: timeInterval
+            type: Number
+            summary: The number of seconds since now, either positive or
+              negative
+      -
+        name: now
+        kind: property
+        type: JSDate
+        static: true
+        summary: A date that represents the current instant
+        description: |
+          Equivalent to calling `initWithTimeIntervalSinceNow(0)`.
+        note: While this is implemented as a property, it will be different
+          and return a unique `JSDate` object each time it is accessed.
+      -
+        name: distantPast
+        kind: property
+        type: JSDate
+        static: true
+        summary: A date that represents the farthest possible point in the past
+        note: While this is implemented as a property, a unique `JSDate` object
+          each time it is accessed.
+      -
+        name: distantFuture
+        kind: property
+        type: JSDate
+        static: true
+        summary: A date that represents the farthest possible point in the
+          future
+        note: While this is implemented as a property, a unique `JSDate` object
+          each time it is accessed.
+  -
+    name: Calculations
+    members:
+      -
+        name: addingTimeInterval
+        kind: method
+        type: JSDate
+        summary: Add a time interval to this date
+        return: A new date with the given difference from this date
+        arguments:
+          -
+            name: timeInterval
+            type: Number
+            summary: The number of seconds to add to this date, either positive
+              or negative.
+  -
+    name: Comparisons
+    members:
+      -
+        name: isEqual
+        kind: method
+        type: boolean
+        summary: Check if two dates are equal
+        return: \`true` if the dates are less than 1ms apart, `false` otherwise
+        arguments:
+          -
+            name: other
+            type: JSDate
+            summary: The other date to compare against
+      -
+        name: compare
+        kind: method
+        type: Number
+        summary: Compare two dates in a manner compatible with a `sort()`
+          function
+        return: A positive number if this date is larger than the other,
+          a negative number if this date is smaller, and `0` if they are
+          exactly equal.
+        arguments:
+          -
+            name: other
+            type: JSDate
+            summary: The other date to compare against
+      -
+        name: isPast
+        kind: method
+        type: boolean
+        summary: Check if this date is before the current time
+        return: \`true` if this date is less than `now`, `false` otherwise
+
+
+
