@@ -28,7 +28,7 @@ description: |
   Test projects are automatically created for you when you call `init` for a
   `framework`, `html`, or `http` project type.
 invocations:
-  - framework|html|http|test <project-name>
+  - <project-type:framework|html|http|test> <project-name>
 topics:
   -
     name: Project Info
