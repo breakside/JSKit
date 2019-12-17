@@ -17,8 +17,6 @@ description: |
   $ npm install jskit
   $ npx jskit init framework MessengerKit
   $ npx jskit init html MessengerWeb
-  $ npx jskit init test MessengerKitTests
-  $ npx jskit init test MessengerWebTests
   ````
 
   While the exact organization is entirely up to you, it is generally
@@ -27,8 +25,8 @@ description: |
   framework. This allows you to reuse the non-UI code for other clients or even
   for server applications.
 
-  It's also useful to create a matching test project for each non-test project,
-  so you can keep all of your code up to date.
+  Test projects are automatically created for you when you call `init` for a
+  `framework`, `html`, or `http` project type.
 invocations:
   - framework|html|http|test <project-name>
 topics:

@@ -61,4 +61,4 @@ topics:
       -
         name: --title
         type: String
-        summary: A projet title that will be appended to all HTML page titles
+        summary: A project title that will be appended to all HTML page titles

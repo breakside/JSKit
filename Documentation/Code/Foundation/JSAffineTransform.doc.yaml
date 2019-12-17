@@ -1,0 +1,287 @@
+kind: class
+introduced: "1.0.0"
+summary: A matrix transform for scaling, rotating, and translating coordinate
+  systems
+description: |
+  An [affine transform](https://en.wikipedia.org/wiki/Affine_transformation) is
+  used in 2D graphics to perform scaling, rotation, and tranlation operations.
+
+  The data structure consists of six numeric components that correspond to
+  six entries in a 3x3 matrix (the other 3 matrix entries never change).
+topics:
+  -
+    name: Creating Transforms
+    members:
+      -
+        kind: constructor
+        summary: Create a new affine transform
+        return: The new affine transform
+        type: JSAffineTransform
+        arguments:
+          -
+            name: a
+            type: Number
+            summary: The first component, representing the `x` coordinate scale
+              factor
+          -
+            name: b
+            type: Number
+            summary: The second component, representing the `x` coordinate shear
+              factor
+          -
+            name: c
+            type: Number
+            summary: The third component, representing the `y` coordinate shear
+              factor
+          -
+            name: d
+            type: Number
+            summary: The fourth component, representing the `y` coordinate scale
+              factor
+          -
+            name: tx
+            type: Number
+            summary: The `x` coordinate translation
+          -
+            name: tx
+            type: Number
+            summary: The `y` coordinate translation
+      -
+        kind: constructor
+        prefix: copy
+        summary: Copy a transform
+        description: |
+          Transforms should be copied anytime before making modifications if the
+          original transform should remain the unmodified.
+
+          For exmaple, a function might make a copy of a passed argument before
+          modifying it.
+        return: A new transform that is an exact copy of the other
+        type: JSAffineTransform
+        arguments:
+          -
+            name: other
+            type: JSAffineTransform
+            summary: The transform to copy
+      -
+        kind: property
+        static: true
+        name: Identity
+        type: JSAffineTransform
+        summary: The identity transform, which has no effect when applied to
+          something
+        description: |
+          A shortcut for
+          ````
+          JSAffineTransform(1, 0, 0, 1, 0, 0)
+          ````
+          that can be used as a default starting point or as a comparison as in:
+          ````
+          var transform = transformFromSomewhere();
+          if (transform.isEqual(JSRect.Identity)){
+            // 
+          }else{
+            // 
+          }
+          ````
+        note: Even though this looks like a property, it will always return a
+          new `JSAffineTransform` each time it is invoked, ensuring that nothing
+          can accidentally modify or overwrite the `Identity` property.
+      -
+        kind: method
+        static: true
+        name: Scaled
+        type: JSAffineTransform
+        summary: Create a transform with the given scale factors
+        arguments:
+          -
+            name: sx
+            type: Number
+            summary: The `x` coordinate scale factor
+          -
+            name: sy
+            type: Number
+            summary: The `y` coordinate scale factor
+        description: |
+          A shortcut for
+          ````
+          JSAffineTransform(sx, 0, 0, sy, 0, 0)
+          ````
+      -
+        kind: method
+        static: true
+        name: Translated
+        type: JSAffineTransform
+        summary: Create a transform with the given translation factors
+        arguments:
+          -
+            name: tx
+            type: Number
+            summary: The `x` coordinate translation factor
+          -
+            name: ty
+            type: Number
+            summary: The `y` coordinate translation factor
+        description: |
+          A shortcut for
+          ````
+          JSAffineTransform(1, 0, 0, 1, tx, ty)
+      -
+        kind: method
+        static: true
+        name: Rotated
+        type: JSAffineTransform
+        summary: Create a transform with the given rotation in radians
+        arguments:
+          -
+            name: radians
+            type: Number
+            summary: The radians by which to rotate the transform
+        description: |
+          A shortcut for
+          ````
+          JSAffineTransform(Math.cos(rads), Math.sin(rads), -Math.sin(rads), Math.cos(rads), 0, 0);
+          ````
+      -
+        kind: method
+        static: true
+        name: RotatedDegrees
+        type: JSAffineTransform
+        summary: Create a transform with the given rotation in degrees
+        arguments:
+          -
+            name: degrees
+            type: Number
+            summary: The degrees by which to rotate the transform
+        description: |
+          A shortcut for
+          ````
+          JSAffineTransform.Rotated(degs * Math.PI / 180.0);
+          ````
+  -
+    name: Coordinate Transformations
+    members:
+      -
+        name: convertPointFromTransform
+        kind: method
+        type: JSPoint
+        return: A point in un-transformed coordinate space that corresponds to
+          the given point in transformed space
+        summary: Convert a point from transformed space to un-transformed space
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: The point in transformed space to convert
+      -
+        name: convertPointToTransform
+        kind: method
+        type: JSPoint
+        return: A point in transformed coordinate space that corresponds to
+          the given point in un-transformed space
+        summary: Convert a point from un-transformed space to transformed space
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: The point in un-transformed space to convert
+  -
+    name: Operations
+    members:
+      -
+        name: scaledBy
+        kind: method
+        type: JSAffineTransform
+        return: A new transform that is this one scaled by the given factors
+        summary: Create new transform by scaling this one by the given factors
+        arguments:
+          -
+            name: sx
+            type: Number
+            summary: The `x` scaling factor
+          -
+            name: sy
+            type: Number
+            summary: The `y` scaling factor
+      -
+        name: translatedBy
+        kind: method
+        type: JSAffineTransform
+        return: A new transform that is this one translated by the given amounts
+        summary: Create new transform by translating this one by the given amounts
+        arguments:
+          -
+            name: tx
+            type: Number
+            summary: The `x` translation factor
+          -
+            name: ty
+            type: Number
+            summary: The `y` translation factor
+      -
+        name: rotatedBy
+        kind: method
+        type: JSAffineTransform
+        return: A new transform that is this one rotated by the given radians
+        summary: Create new transform by rotating this one by the given radians
+        arguments:
+          -
+            name: radians
+            type: Number
+            summary: The angle of rotation
+      -
+        name: rotatedByDegrees
+        kind: method
+        type: JSAffineTransform
+        return: A new transform that is this one rotated by the given degrees
+        summary: Create new transform by rotating this one by the given degrees
+        arguments:
+          -
+            name: degrees
+            type: Number
+            summary: The angle of rotation
+      -
+        name: concatenatedWith
+        kind: method
+        type: JSAffineTransform
+        return: A new transform that is this one concatenated with the given transform
+        summary: Create new transform by concatenating this one with the given transform
+        description: |
+          Transform concatenation is a matrix multiplication operation that
+          combines the two transforms
+        arguments:
+          -
+            name: transform
+            type: JSAffineTransform
+            summary: The transform to concatenate
+      -
+        name: inverse
+        kind: method
+        type: JSAffineTransform
+        return: A new transform that is the inverse of this one
+        summary: Create new transform by inverting this one
+        description: |
+          Transform inverse is a matrix inverse operation
+  -
+    name: Comparisons
+    members:
+      -
+        name: isEqual
+        kind: method
+        type: boolean
+        summary: Check if two transforms are equal
+        arguments:
+          -
+            name: other
+            type: JSAffineTransform
+            summary: The tranform to compare with
+      -
+        name: isIdentity
+        kind: method
+        type: boolean
+        summary: Check if the transform is the identity transform
+      -
+        name: isRotated
+        kind: method
+        type: boolean
+        summary: Check if the transform has any rotation applied

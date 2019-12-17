@@ -37,8 +37,6 @@ description: |
   ````
   $ npx jskit init framework MessengerKit
   $ npx jskit init html MessengerWeb
-  $ npx jskit init test MessengerKitTests
-  $ npx jskit init test MessengerWebTests
   ````
 
   See `init` for more information about project initialization

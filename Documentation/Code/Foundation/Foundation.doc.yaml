@@ -1,6 +1,5 @@
 kind: framework
-summary: Foundation provides the base functionality for any kind of of JSKit-based
-  application, whether it's a UI app, a server app, or a command line utility.
+summary: The base functionality for any kind of of JSKit-based application
 description: |
   Foundation starts with a JavaScript class model and builds on that to provide
   core functionality required by most applications.
