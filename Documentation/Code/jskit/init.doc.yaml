@@ -1,0 +1,55 @@
+kind: command
+summary: Create a new `JSKit` based project
+description: |
+  Ceates and populates a folder named after `project-name` in the current
+  directory.
+
+  Typically for a single application you'll have several `JSKit` based projects
+  in one workspace directory.
+
+  For example, if your project is named **Messenger**, you might create things
+  like this:
+
+  ````
+  $ cd ~/Documents
+  $ mkdir Messenger
+  $ cd Messenger
+  $ npm install jskit
+  $ npx jskit init framework MessengerKit
+  $ npx jskit init html MessengerWeb
+  $ npx jskit init test MessengerKitTests
+  $ npx jskit init test MessengerWebTests
+  ````
+
+  While the exact organization is entirely up to you, it is generally
+  advantageous to keep most non-UI code in a framework (`MessengerKit`) and then
+  have a web front end client (`MessengerWeb`) that leverages code from the
+  framework. This allows you to reuse the non-UI code for other clients or even
+  for server applications.
+
+  It's also useful to create a matching test project for each non-test project,
+  so you can keep all of your code up to date.
+invocations:
+  - framework|html|http|test <project-name>
+topics:
+  -
+    name: Project Info
+    members:
+      -
+        name: project-type
+        summary: The type of project to initialize
+        type: String
+        description: |
+          Allowed values are:
+          - `html` - for `UIKit` based front end web apps
+          - `http` - for `ServerKit` based http server applications
+          - `test` - for `TestKit` based unit test projects
+          - `framework`- for shared code projects
+      -
+        name: project-name
+        summary: The name of the project to initialize
+        type: String
+        description: |
+          The name of the project will be used as the name of the newly created
+          project dirctory, with appropriate sanization of non-filesystem-safe
+          characters

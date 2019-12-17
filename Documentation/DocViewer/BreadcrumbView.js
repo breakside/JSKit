@@ -70,6 +70,7 @@ JSClass("BreadcrumbView", UIView, {
                 button.removeAllItems();
             }else{
                 button = UIPopupButton.initWithStyler(this.popupStyler);
+                button.sendsActionForSelectedItem = true;
                 button.addTargetedAction(this, this.selectComponent);
                 this.popupButtons.push(button);
                 this.addSubview(button);
@@ -211,7 +212,9 @@ var imageByKind = {
     'property': function(component){ return component.static ? images.staticpropertyIcon : images.propertyIcon; },
     'protocol': function(){ return images.protocolIcon; },
     'spec': function(){ return images.specIcon; },
-    'specproperty': function(){ return images.specpropertyIcon; }
+    'specproperty': function(){ return images.specpropertyIcon; },
+    'command': function(){ return images.commandIcon; },
+    'argv': function(){ return images.argvIcon; }
 };
 
 var images = JSImage.resourceCache([
@@ -228,5 +231,7 @@ var images = JSImage.resourceCache([
     'staticmethodIcon',
     'staticpropertyIcon',
     'specIcon',
-    'specpropertyIcon'
+    'specpropertyIcon',
+    'commandIcon',
+    'argvIcon'
 ]);

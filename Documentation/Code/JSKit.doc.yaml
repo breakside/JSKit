@@ -1,3 +1,4 @@
+name: JSKit
 kind: index
 description: |
   JSKit is a collection of JavaScript frameworks that can be used to build
@@ -36,6 +37,10 @@ topics:
     name: Getting Started
     members:
       - Goals
+  -
+    name: Command Line Utility
+    members:
+      - jskit/jskit
   - 
     name: Frameworks
     members:
@@ -49,8 +54,3 @@ topics:
       - PDFKit/PDFKit
       - FontKit/FontKit
       - TestKit/TestKit
-  -
-    name: Command Line Utility
-    members:
-      - jskit/jskit
-      - GettingStarted

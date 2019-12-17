@@ -1,0 +1,43 @@
+kind: command
+summary: Build and run tests from a `TestKit` project
+environment: node
+description: |
+  While it is possible to build a `TestKit` project with `make` and then
+  run the tests with the resulting commands, the `test` command does this
+  all at once.
+invocations:
+  - <project-dir> [--suite test-suite] [--case test-case]
+topics:
+  -
+    name: Project Info
+    members:
+      -
+        name: project-dir
+        type: String
+        summary: The test project directory to build and run
+  -
+    name: Test Selection
+    members:
+      -
+        name: --suite
+        type: String
+        summary: The name of single test suite to run
+        description: |
+          Specifying a suite name will only run that suite.
+
+          The `--suite` option can be specified multiple times in order
+          to run more than one suite.
+        see:
+          - --case
+      -
+        name: --case
+        type: String
+        summary: The name of single test case to run
+        description: |
+          Specifying a case name will only run that case.
+
+          The `--case` option can be specified multiple times in order
+          to run more than one case.
+        note: You must also specify the `--suite` for the test case
+        see:
+          - --suite

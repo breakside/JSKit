@@ -1,0 +1,64 @@
+kind: command
+summary: Create HTML documentation for project code
+environment: node
+description: |
+  Javascript doesn't lend itself to quality code documentation due to its lack
+  of strong typing.
+
+  It can also be annoying as a developer to sort through large doc comment
+  blocks in code, and a desire to avoid large blocks of documentation in code
+  could lead to limited unhelpful documentation.
+
+  Additionally, `JSKit` introduces some features that wouldn't be understood
+  by generic javascript documentation engines.
+
+  So `JSKit` has its own documentation format:
+  - In separate files from source
+  - Uses an easy to write `yaml` markup
+  - Allows for `Markdown` syntax in blocks of text
+  - Understands `JSKit` concepts
+
+  This `doc` command is what turns the `yaml` documentation into pretty `HTML` 
+  files.
+
+  ````
+  $ npx jskit doc docs/Messages.doc.yaml ~/Desktop/MessagesDocs
+  ````
+invocations:
+  - <root-doc> <output-dir> --title <page-title>
+topics:
+  -
+    name: Input
+    members:
+      -
+        name: root-doc
+        type: String
+        summary: The `.doc.yaml` file that serves as the root of your
+          documentation tree
+        description: |
+          All documentation must be summarized in a root index.  This is where
+          the documentation engine starts as it traverses the documentation
+          hierarchy.
+  -
+    name: Output
+    members:
+      -
+        name: output-dir
+        type: String
+        summary: The location to output the HTML files
+        description: |
+          Inside `output-dir` will be a `www/docs` folder that contains
+          all of the HTML.
+
+          Also inside `output-dir` will be a `components.json` file that
+          contains a JSON list of all the documented components.
+
+          Also inside `output-dir` will be a `components-manifest.json` file 
+          that maps html files to their expected URL path (sans-`.html`)
+  -
+    name: Customization
+    members:
+      -
+        name: --title
+        type: String
+        summary: A projet title that will be appended to all HTML page titles

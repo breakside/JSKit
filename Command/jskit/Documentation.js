@@ -13,6 +13,8 @@
 // #import "DocDocument.js"
 // #import "DocSpec.js"
 // #import "DocSpecProperty.js"
+// #import "DocCommandLine.js"
+// #import "DocCommandArgument.js"
 /* global JSClass, JSObject, JSCopy, jsyaml, JSURL, DocComponent, JSBundle */
 'use strict';
 
@@ -36,7 +38,7 @@ JSClass("Documentation", JSObject, {
         this.wwwURL = this.outputDirectoryURL.appendingPathComponents(['www', 'docs'], true);
         await this.copyStyles();
         let rootComponent = await this.loadSource(this.rootURL);
-        rootComponent.outputURL = this.wwwURL.appendingPathComponent(rootComponent.uniqueName + '.html');
+        rootComponent.outputURL = this.wwwURL.appendingPathComponent('index.html');
         await this.output([rootComponent]);
         await this.outputComponentsJSON(rootComponent);
         await this.outputManifestConfig(rootComponent);

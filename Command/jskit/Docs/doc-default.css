@@ -63,7 +63,7 @@ article.doc > header > p.type{
     font-size: 87.5%;
 }
 
-article.doc > header, article.doc > section.description, article.doc > section.declaration, article.doc > section.parameters, article.doc > section.options, article.doc > section.note, article.doc > section.important{
+article.doc > header, article.doc > section.description, article.doc > section.declaration, article.doc > section.invocation, article.doc > section.parameters, article.doc > section.options, article.doc > section.note, article.doc > section.important{
     grid-column: 1;
 }
 

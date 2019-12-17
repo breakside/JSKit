@@ -1,0 +1,109 @@
+kind: command
+summary: Command line utility for creating, building, testing, and documenting
+  \`JSKit` based projects and code
+environment: node
+description: |
+  Installation
+  ============
+
+  `jskit` is installed via the `npm` package management system for node.js, so
+  the first step is to [download & install node.js](https://nodejs.org/en/download/)
+  if you haven't already.
+
+  In keeping with the usual way of installing node packages on a per-project
+  basis, you'll want to do an `npm install` after you've created a workspace
+  for your project.  Most `JSKit` based applications will actually contain
+  multiple projects, like one for the front end client and one for tests, so
+  we recommend creating a project workspace folder that contains everything.
+
+  If your app is named `Messenger`, you'd do something like this:
+
+  ````
+  $ cd ~/Documents
+  $ mkdir Messenger
+  $ cd Messenger
+  $ npm install jskit
+  ````
+
+  Project Initialization
+  ======================
+
+  Once you've got a workspace setup and `jskit` installed, the next step is
+  to initialize your related projects.
+
+  *Note that `npx` is just a node.js way of invoking an installed executable
+  without worrying about `$PATH`*
+
+  ````
+  $ npx jskit init framework MessengerKit
+  $ npx jskit init html MessengerWeb
+  $ npx jskit init test MessengerKitTests
+  $ npx jskit init test MessengerWebTests
+  ````
+
+  See `init` for more information about project initialization
+
+  Building
+  ========
+
+  In order to build your application, you'll invoke a command like:
+
+  ````
+  $ npx jskit build --debug MessengerWeb
+  ````
+
+  This creates an appliation bundle in the `builds` folder.
+
+  Check the output of the build command for further commands that will
+  actually run your application.
+
+  See `build` for more information about project building
+
+
+  Testing
+  =======
+
+  When it comes to testing code, you need to build and run a test project.
+  `jskit` provides a shortcut command called `test` that does all of that
+  in one go.
+
+  ````
+  $ npx jskit test MessengerKitTests
+  ````
+
+  See `test` for more information about project testing
+
+
+  Documentation
+  =============
+
+  `jskit` has its own `yaml`-based documentation format for javascript code.
+  These are separate files from your code that describe the details like
+  type information that isn't specified in javascript.
+
+  A root documentation file serves as a starting point, and HTML files are
+  output as a result.
+
+  ````
+  $ npx jskit doc docs/Messenger.doc.yaml ~/Desktop/MessengerDocs
+  ````
+
+  See `doc` for more information about code documentation
+
+invocations:
+  - init|make|test|doc
+  - -h
+topics:
+  -
+    name: Project Management
+    members:
+      - init
+      - make
+      - test
+      - doc
+  -
+    name: Help
+    members:
+      -
+        name: -h
+        summary: Display help documentation in standard out

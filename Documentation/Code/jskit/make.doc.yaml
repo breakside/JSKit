@@ -1,0 +1,115 @@
+kind: command
+summary: Build a `JSKit` based project
+description: |
+  Builds a `JSKit` based project into the `builds` directory.
+
+  Production builds are identified by their project's `JSBundleIdentifier` and
+  a timestamp.
+
+  Debug builds are always rebuilt over the same `"debug"` identifier.
+
+  While there is no need to compile code, all `JSKit` based applications are
+  collected into a bundle that places code, resources, and bootstrap files
+  into a common format intended for distribution and delivery.
+
+  The bundle organization isn't necessarily easy to develop in, so `JSKit`
+  allows for a flexible development files organization.
+
+  The build system also does a small amount of work to extract metadata from
+  bundled resources, making that metadata available to code in the running
+  application.  Web distribution bundles additionally name resources in a
+  way to ensure changed files are always downloaded while unchanged files are
+  cached forever.
+invocations:
+  - "[--debug] [--watch] <project-dir>"
+topics:
+  -
+    name: Project Info
+    members:
+      -
+        name: project-dir
+        summary: The directory of project to build
+        type: String
+      -
+        name: --include
+        type: String
+        summary: Additional directory to look for included files and frameworks
+        description: |
+          `--include` may be specified multiple times to add multiple directories
+          to the include search paths.
+        note: This should not often be necessary, since `jskit` is designed to
+          look in all the expected places related to your project.
+  -
+    name: Debugging
+    members:
+      -
+        name: --debug
+        type: flag
+        summary: Build in debug mode
+        description: |
+          Debug builds do not combine or minify javascript code, allowing for
+          debuggers to show exactly the same source files that you develop in,
+          making the debug process easier and more straightforward.
+
+        note: Without the `--debug` flag, a production build is assumed, and
+          javascript files will be combined and minified
+        see:
+          - --watch
+      -
+        name: --watch
+        type: flag
+        summary: Instead of exiting after a successful build, watch for file
+          changes and automatically rebuild
+        description: |
+          Useful when debugging, the `--watch` flag will keep rebuilding the
+          project as you save changes, so you don't even have to think about
+          running a new build before running the new code.
+        see:
+          - --debug
+  -
+    name: HTML Specific Arguments
+    summary: For use when calling `make` on projects that have an `html` type
+    members:
+      -
+        name: --http-port
+        type: Number
+        summary: The HTTP port on which to run
+        description: |
+          Defaults
+          ========
+
+          - `8080` - for debug builds
+          - `80` - for production builds without an `HTTPPort` entry in `Info.json`
+          - `HTTPPort` value from `Info.json` - for production builds with an entry
+      -
+        name: --workers
+        type: Number
+        summary: The number of HTTP Server worker processes
+        description: |
+          Defaults
+          ========
+
+          - `1` - for debug builds
+          - `3` - for production builds without an `HTTPWorkerCount` entry in `Info.json`
+          - `HTTPWorkerCount` value from `Info.json` - for production builds with an entry
+      -
+        name: --connections
+        type: Number
+        summary: The maximum number of HTTP Server connections allowed
+        description: |
+          Defaults
+          ========
+
+          - `1024` - for all builds
+      -
+        name: --docker-owner
+        type: String
+        summary: The Docker owner prefix to place before the docker image name
+        description: |
+          Defaults
+          ========
+          - `DockerOwner` value from `Info.json` - for all builds
+      -
+        name: --no-docker
+        type: flag
+        summary: Don't build a docker image

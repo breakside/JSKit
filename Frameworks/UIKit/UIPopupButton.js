@@ -173,9 +173,11 @@ JSClass("UIPopupButton", UIControl, {
         this.active = this.containsPoint(location);
     },
 
+    sendsActionForSelectedItem: false,
+
     menuDidSelectItem: function(item){
         this._updateTitleForItem(item);
-        if (this._selectedIndex != item.index){
+        if (this._selectedIndex != item.index || this.sendsActionForSelectedItem){
             this.selectedIndex = item.index;
             this.sendActionsForEvent(UIControl.Event.primaryAction);
             this.sendActionsForEvent(UIControl.Event.valueChanged);
