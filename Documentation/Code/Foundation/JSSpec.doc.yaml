@@ -1,0 +1,159 @@
+name: JSSpec
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Creates objects from a serialized "spec" format
+description: |
+  `JSKit` focuses development on Javascript code only, but sometimes a
+  declarative form of coding is more appropriate.
+
+  When specifying user interfaces, for example, declaring the UI elements
+  can often be clearer, easier, and faster than building up objects directly
+  in Javascript.
+
+  This is where spec files come in.  Spec is short for specification.
+
+  `JSSpec` loads a spec file and reads out the instructions about which objects
+  to instantiate and how to hook up their relationships.
+
+  Specs are really just special dictionaries, and any `JSObject` can implement
+  an `initWithSpec` method that extracts information from arbitrary properties.
+
+  The underlying languages of spec files is YAML, but the property names and
+  values are all defined by the classes in `JSKit` and the classes you create.
+
+  For example, to create a simple view controller with a view and a button
+  that says test, a spec might look like:
+
+  ````
+  File's Owner: /ViewController
+
+  ViewController:
+    class: TestButtonViewController
+    view: /View
+    outlets:
+      testButton: /Button
+
+  View:
+    subviews:
+      - /Button
+
+  Button:
+    class: UIButton
+    title: Test
+    action: runTest
+    target: /ViewController
+  ````
+topics:
+  -
+    name: Loading a Spec File
+    members:
+      -
+        name: initWithResource
+        kind: init
+        summary: Load a spec file resource from a bundle
+        arguments:
+          -
+            name: resource
+            type: String
+            summary: The name of the spec file in the bundle, excluding any
+              \`.spec.yaml` extension
+          -
+            name: bundle
+            type: JSBundle
+            default: JSBundle.mainBundle
+            summary: The optional bundle to load from.  Will default to the main
+              application bundle if not specified.
+  -
+    name: Initializing Objects
+    members:
+      -
+        name: filesOwner
+        type: JSObject
+        summary: Instantiate the object referened by the `File's Owner` key.
+        description: |
+          Every spec file defines an object graph, and there must be a starting
+          point, an object that is at the root of the graph.
+
+          In spec files, that root is always the value of a key named
+          `File's Owner`.
+
+          This property looks up that key and instantiates the entire graph,
+          returning the root object.
+      -
+        name: resolvedValue
+        kind: method
+        type: any
+        summary: Parse a value from the spec file and return the actual value
+          it represents.
+        description: |
+          Values in spec files can be simple things like strings or numbers,
+          or they can have special meaning.
+
+          - `String` beginning with `/` - Named reference to a top level
+            object in the spec file
+          - `String` beginning with `$` - Global Javascript variable (can
+            include `.` to specify nested properties)
+          - `String` beginning with `.` - Localized string table key
+          - `Object` of any kind could be turned into a `JSObject` via
+             `initWithSpec`.
+        note: This method is typically only called from within `initWithSpec`
+          to populate instance properties from spec values.
+        arguments:
+          -
+            name: value
+            type: any
+            summary: The raw value from the spec file
+          -
+            name: defaultClassName
+            type: String
+            default: "undefined"
+            summary: The optional class name to use implicitly if no `class`
+              property is given in the value
+      -
+        name: resolvedEnum
+        kind: method
+        type: any
+        summary: Parse a value from the spec file, using a given `Enum` as
+          an initial lookup candidate.
+        description: |
+          Like `resolvedValue()`, but with an initial lookup to see if the
+          given string `value` is an option in the given `enum`.  If so,
+          return the value for that enum option.  Otherwise, continue on
+          to calling `resolvedValue()` as normal.
+
+          Useful for resolving values that should be set from enumerations.
+
+          Makes is so instead of having to specify enum values with the
+          `$` global variable lookup:
+
+          ````
+          Label:
+            class: UILabel
+            textAlignment: $JSTextAlignment.center
+          ````
+
+          The same thing can be specified more consisely:
+
+          ````
+          Label:
+            class: UILabel
+            textAlignment: center
+          ````
+        arguments:
+          -
+            name: value
+            type: any
+            summary: The raw value from the spec file
+          -
+            name: enum
+            type: Enum
+            summary: The enum map to use as an initial lookup candidate
+          -
+            name: defaultClassName
+            type: String
+            default: "undefined"
+            summary: The optional class name to use implicitly if no `class`
+              property is given in the value
+        note: This method is typically only called from within `initWithSpec`
+          to populate instance properties from spec values.
