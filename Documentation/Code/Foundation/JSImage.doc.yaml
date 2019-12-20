@@ -1,0 +1,95 @@
+name: JSImage
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Represents an image resource, either vector or bitmap
+topics:
+  -
+    name: Creating an Image
+    members:
+      -
+        name: initWithResourceName
+        kind: init
+        summary: Create an image from a named resource within a bundle
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the image within the bundle
+          -
+            name: bundle
+            type: JSBundle
+            default: JSBundle.mainBundle
+            summary: The bundle that contains the image resource
+      -
+        name: initWithData
+        kind: init
+        summary: Create an image from a set of bytes in memory
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The data that specifies the image
+          -
+            name: scale
+            type: Number
+            default: "1"
+            summary: The inherit resolution scale of the image
+            description: |
+              The size of the image is specified within its data, but
+              the scale indicates how that size should map to the screen.
+      -
+        name: initWithURL
+        kind: init
+        summary: Create an image from a URL
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The location of the image
+          -
+            name: size
+            type: JSSize
+            summary: The size of the image
+          -
+            name: scale
+            type: Number
+            default: "1"
+            summary: The inherit resolution scale of the image
+            description: |
+              The size of the image is specified within its data, but
+              the scale indicates how that size should map to the screen.
+
+              For example, say you have a high resolution screen that renders
+              everything at 2x scale.
+
+              On such a screen, you would need a 100x100 image to fill a 50x50
+              area.  Such an image would be at a scale of `2`.
+
+              Essentially, the image's resolution gets divided by `scale` to
+              indicate how large the image should appear on a screen.
+  -
+    name: Image Data
+    members:
+      -
+        name: getData
+        kind: method
+        summary: Get the image data asynchronously with a callback
+        arguments:
+          -
+            name: completion
+            summary: A function that is called when the data is loaded
+            type:
+              arguments:
+                -
+                  name: data
+                  type: JSData
+                  summary: The image data, or `null` if the data could not be
+                    loaded
+      -
+        name: getData
+        suffix: promise
+        kind: method
+        summary: Get the image data asynchronously with a promise
+        type: Promise
+        return: A promise that will resolve with a `JSData` of the image data

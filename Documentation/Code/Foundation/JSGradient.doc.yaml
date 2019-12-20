@@ -1,0 +1,124 @@
+name: JSGradient
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: A color gradient
+topics:
+  -
+    name: Creating a Gradient
+    members:
+      -
+        name: initWithStops
+        kind: init
+        summary: Create a gradient with alternating positions and colors
+        description: |
+          Any number of colors can be specified simply by adding another
+          two arguments to the call.
+
+          A traditional two-color gradient might look like:
+          ````
+          var color1 = JSColor.redColor;
+          var color2 = JSColor.blueColor;
+          var gradient = JSGradient.initWithStops(0, color1, 1, color2);
+          ````
+
+          A three color gradient could be:
+          ````
+          var color1 = JSColor.blackColor;
+          var color2 = JSColor.redColor;
+          var color2 = JSColor.blueColor;
+          var gradient = JSGradient.initWithStops(0, color1, 0.2, color2, 0.7, color3);
+          ````
+        arguments:
+          -
+            name: position1
+            type: Number
+            summary: The percentage position between `start` and `end` for the
+              first color
+          -
+            name: color1
+            type: JSColor
+            summary: The color at the first position
+      -
+        name: gradientBetweenColors
+        kind: method
+        static: true
+        type: JSGradient
+        summary: Create a two-color gradient from positions `0` to `1`
+        description: |
+          Shortcut for:
+
+          ````
+          var gradient = JSGradient.initWithStops(0, JSColor.redColor, 1, JSColor.blueColor);
+          ````
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: Description of properties that can be included in a spec file
+        description: |
+          Only a two-color `JSGradient` can be specified in a spec.  The stop
+          positions are `0` and `1` for the two colors.
+
+          ````
+          MainView:
+            class: UIView
+            backgroundGradient:
+              from: $JSColor.redColor
+              to: $JSColor.blueColor
+          ````
+
+          Is equivalent to:
+
+          ````
+          var view = UIView.init();
+          view.backgroundGradient = JSGradient.initWithStops(0, JSColor.redColor, 1, JSColor.blueColor);
+          ````
+        topics:
+          -
+            name: Colors
+            members:
+              -
+                name: from
+                type: JSColor
+                summary: The color to place at postiion `0`
+              -
+                name: to
+                type: JSColor
+                summary: The color to place at postiion `1`
+  -
+    name: Color Stops
+    members:
+      -
+        name: addStop
+        kind: method
+        summary: Add another color stop to the gradient at the given position
+        arguments:
+          -
+            name: position
+            type: Number
+            summary: The percentage position for the color stop, from `0` to `1`
+          -
+            name: color
+            type: JSColor
+            summary: The color to add
+  -
+    name: Direction
+    members:
+      -
+        name: start
+        type: JSPoint
+        summary: The starting point for the gradient
+        description: |
+          Set in the unit square, the starting point defaults to JSPoint(0, 0).
+
+          A line drawn from here to `end` indicates the direction of the
+          gradient.
+      -
+        name: end
+        type: JSPoint
+        summary: The ending point for the gradient
+        description: |
+          Set in the unit square, the ending point defaults to JSPoint(0, 1).
+
+          A line drawn from `start` to here indicates the direction of the
+          gradient

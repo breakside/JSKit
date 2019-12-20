@@ -28,21 +28,45 @@ description: |
   Test projects are automatically created for you when you call `init` for a
   `framework`, `html`, or `http` project type.
 invocations:
-  - <project-type:framework|html|http|test> <project-name>
+  - framework|html|http|test <project-name>
 topics:
   -
-    name: Project Info
+    name: Project Type
     members:
       -
-        name: project-type
-        summary: The type of project to initialize
-        type: String
+        name: framework
+        summary: Create a project for a shared code framework
         description: |
-          Allowed values are:
-          - `html` - for `UIKit` based front end web apps
-          - `http` - for `ServerKit` based http server applications
-          - `test` - for `TestKit` based unit test projects
-          - `framework`- for shared code projects
+          A companion `TestKit` project will be automatically created along side
+          the new project.  For example, if you create a framework project
+          called `MessageKit`, a `MessageKitTests` project will also be created.
+      -
+        name: html
+        summary: Create a `UIKit` based front end web application
+        description: |
+          A companion `TestKit` project will be automatically created along side
+          the new project.  For example, if you create a framework project
+          called `MessagesWeb`, a `MessagesWebTests` project will also be
+          created.
+      -
+        name: http
+        summary: Create a `ServerKit` based back end application
+        description: |
+          A companion `TestKit` project will be automatically created along side
+          the new project.  For example, if you create a framework project
+          called `MessagesServer`, a `MessagesServerTests` project will also be
+          created.
+      -
+        name: test
+        summary: Create a `TestKit` based unit test project
+        description: |
+          Test projects are automatically created for the `framework`, `http`,
+          and `html` project types, reducing the need to initialize a `test`
+          project directly, but the option is still available should you need
+          to create a standalone test project.
+  -
+    name: Naming
+    members:
       -
         name: project-name
         summary: The name of the project to initialize

@@ -152,6 +152,81 @@ topics:
             name: Generic
             members:
               -
+                name: class
+                type: String
+                summary: The name of the class to instantiate
+                description: |
+                  The class name lets the spec file parser know which kind
+                  of class to instantiate.
+
+                  The name must be resolvable by `JSClass.FromName()`.
+
+                  Implicit Classes
+                  ----------------
+                  When instantiating objects from a spec file, it's often
+                  clear what the classes of many objects should be.
+
+                  For example, when a `UIView` is looking at its spec properties
+                  it knows that the `backgroundColor` property should resovle
+                  to a `JSColor`.
+
+                  ````
+                  MainView:
+                    class: UIView
+                    backgroundColor:
+                      class: JSColor
+                      rgba: 245,245,250
+                  ````
+
+                  Since the view knows to expect only a `JSColor`, it tells
+                  tell the spec parser to assume `JSColor` unless otherwise
+                  specified.
+
+                  So the spec could instead be written without an explicit
+                  `class` for the `backgroundColor` property.
+
+                  ````
+                  MainView:
+                    class: UIView
+                    backgroundColor:
+                      rgba: 245,245,250
+                  ````
+
+                  Custom Subclasses
+                  -----------------
+                  If most views know what classes their properties should be,
+                  why do we even need the `class` entry in the spec file?
+
+                  So you can specify a custom subclass.
+
+                  Expanding the example above, lets add a view controller:
+
+                  ````
+                  ViewController:
+                    view: /MainView
+
+                  MainView:
+                    backgroundColor:
+                      rgba: 245,245,250
+                  ````
+
+                  This works perfectly fine without specifying the `class` for
+                  `MainView`, because `UIViewController` knows to use `UIView`
+                  as the default class for its `UIViewController.view` property.
+
+                  But if `MainView` is actually a view subclass, like a
+                  scroll view, then `class` must be specified:
+
+                  ````
+                  ViewController:
+                    view: /MainView
+
+                  MainView:
+                    class: UIScrollView
+                    backgroundColor:
+                      rgba: 245,245,250
+                  ````
+              -
                 name: outlets
                 type: dictionary
                 summary: Create links between objects without custom init code, typically reserved for

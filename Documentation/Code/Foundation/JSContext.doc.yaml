@@ -1,0 +1,657 @@
+name: JSContext
+kind: class
+inherits: JSObject
+introducted: "1.0.0"
+summary: Common interface for drawing 2D images
+description: |
+  A drawing context is an abstraction of 2D drawing operations that allows
+  for code that doesn't have to be concerned with what kind of backing
+  its actually drawing to.
+
+  For example, `UIKit` uses a custom `JSContext` subclass to draw to HTML
+  elements, while `PDFKit` uses a custom `JSContext` subclass to generate
+  a PDF document.
+
+  Paths
+  =====
+
+  Painting starts by defining a path using a combination of lines, curves, arcs,
+  and moves.
+
+  Lines, curves, and arcs all create segments that can be painted, while moves
+  are like picking up a pen and putting it down elsewhere.
+
+  Starting with `beginPath()`, calls to `moveToPoint()`, `addLineToPoint()`,
+  `addCurveToPoint()`, and `addArc()` add segments to the path.
+
+  States
+  ======
+
+  Each context has a current state that defines things like which colors to
+  use will painting, how thick lines should be, what font to use for text, etc.
+
+  Methods like `setFillColor()`, `setLineWidth()`, `setFont()` all change the
+  current state.
+
+  In addition to the current state, however, is a state stack.  The current
+  state can be pushed to the stack with a call to `save()`.
+
+  Saving a state allows you make modifications to the current state, but then
+  easily return to the saved state with a call to `restore()`.
+
+  Painting
+  ========
+
+  After configuring the state as desired, a call to `drawPath()`, `fillPath()`,
+  or `strokePath()` will do the actual painting.
+
+topics:
+  -
+    name: Constructing Paths
+    members:
+      -
+        name: beginPath
+        kind: method
+        summary: Begins a new path, clearing any current path
+      -
+        name: closePath
+        kind: method
+        summary: Closes the current path
+      -
+        name: moveToPoint
+        kind: method
+        summary: Moves to the given point without making a line
+        arguments:
+          -
+            name: x
+            type: Number
+            summary: The `x` coordinate to move to
+          -
+            name: "y"
+            type: Number
+            summary: The `y` coordinate to move to
+      -
+        name: addLineToPoint
+        kind: method
+        summary: Moves to the given point by making a line
+        arguments:
+          -
+            name: x
+            type: Number
+            summary: The `x` coordinate to move to
+          -
+            name: "y"
+            type: Number
+            summary: The `y` coordinate to move to
+      -
+        name: addRect
+        kind: method
+        summary: Adds a rectangle and closes the current path
+        description: |
+          This effectively performs the following operations:
+          - `moveToPoint` at the rectangle's `origin`
+          - `addLineToPoint` clockwise around the rectangle
+          - `closePath`
+        arguments:
+          -
+            name: rect
+            type: JSRect
+            summary: The rectangle to add
+      -
+        name: addRoundedRect
+        kind: method
+        summary: Adds a rectangle with rounded corners.  Closes the current path.
+        arguments:
+          -
+            name: rect
+            type: JSRect
+            summary: The rectangle to add
+          -
+            name: cornerRadius
+            type: Number
+            summary: The radius for the roundness of the rectangle's corners
+      -
+        name: addEllipseInRect
+        kind: method
+        summary: Adds a ellipse that fits inside the rectangle. Closes the current path.
+        arguments:
+          -
+            name: rect
+            type: JSRect
+            summary: The bounding rectangle for the ellipse
+      -
+        name: addArc
+        kind: method
+        summary: Add an arc to the current path based on a center point and
+          radius
+        arguments:
+          -
+            name: center
+            type: JSPoint
+            summary: The center of the circle contains the arc
+          -
+            name: radius
+            type: Number
+            summary: The radius of the circle contains the arc
+          -
+            name: startAngle
+            type: Number
+            summary: An angle in radians that defines the starting point of the arc
+          -
+            name: endAngle
+            type: Number
+            summary: An angle in radians that defines the ending point of the arc
+          -
+            name: clockwise
+            type: boolean
+            default: "false"
+            summary: Indicates which direction the arc should sweep from start
+              to end angles
+      -
+        name: addArcUsingTangents
+        kind: method
+        summary: Add an arc to the current path by using two line segments as
+          tangent lines for the arc
+        arguments:
+          -
+            name: tangent1End
+            type: JSPoint
+            summary: A point that defines the end of a line segment starting
+              at the current path's most recent point.
+          -
+            name: tangent2End
+            type: JSPoint
+            summary: A point that defines the end of a line segment starting
+              at `tangent1End`
+          -
+            name: radius
+            type: Number
+            summary: The radius of the arc
+      -
+        name: addCurveToPoint
+        kind: method
+        summary: Add a Bézier curve to the current path starting at the most
+          recent point on the path.
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: The ending point of the curve
+          -
+            name: control1
+            type: JSPoint
+            summary: The first control point for the curve
+          -
+            name: control2
+            type: JSPoint
+            summary: The second control point for the curve
+      -
+        name: addQuadraticCurveToPoint
+        kind: method
+        summary: Add a quadratic curve to the current path starting at the most
+          recent point on the path.
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: The ending point of the curve
+          -
+            name: control
+            type: JSPoint
+            summary: The single control point for the curve
+  -
+    name: Painting
+    members:
+      -
+        name: DrawingMode
+        kind: enum
+        summary: The different ways of painting a path
+        options:
+          -
+            name: fill
+            summary: Fill the inside of the path using the `winding` rule
+          -
+            name: evenOddFill
+            summary: Fill the inside of the path using the `evenOdd` rule
+          -
+            name: stroke
+            summary: Paint the path's line
+          -
+            name: fillStroke
+            summary: Fill the inside of the path using the `winding` rule and
+              paint the path's line
+          -
+            name: evenOddFillStroke
+            summary: Fill the inside of the path using the `evenOdd` rule and
+              paint the path's line
+      -
+        name: FillRule
+        kind: enum
+        summary: The different ways of determining which areas are inside
+          a path
+        options:
+          -
+            name: winding
+          -
+            name: evenOdd
+      -
+        name: LineCap
+        kind: enum
+        summary: The different styles of line caps
+        options:
+          -
+            name: butt
+            summary: Lines have square ends that stop exactly at the line end
+              point
+          -
+            name: round
+            summary: Line ends are semi-circles rounded about the line end point
+          -
+            name: square
+            summary: Line ends are squares centered about the line end point
+      -
+        name: LineJoin
+        kind: enum
+        summary: The different styles of line joints
+        options:
+          -
+            name: round
+            summary: Line joints are rounded about the joint point
+          -
+            name: bevel
+            summary: Line joints are beveled
+          -
+            name: miter
+            summary: Line joints are pointy up a limit specified by
+              `setMiterLimit()`
+      -
+        name: setFillColor
+        kind: method
+        summary: Set the color for fill operations
+        arguments:
+          -
+            name: fillColor
+            type: JSColor
+            summary: The color to use for fill operations
+      -
+        name: setStrokeColor
+        kind: method
+        summary: Set the color for stroke operations
+        arguments:
+          -
+            name: strokeColor
+            type: JSColor
+            summary: The color to use for stroke operations
+      -
+        name: setShadow
+        kind: method
+        summary: Set the shadow parameters
+        arguments:
+          -
+            name: offset
+            type: JSPoint
+            summary: The shadow offset
+          -
+            name: blur
+            type: Number
+            summary: The shadow blur
+          -
+            name: color
+            type: JSColor
+            summary: The shadow color
+      -
+        name: setAlpha
+        kind: method
+        summary: Set the global transparency level
+        arguments:
+          -
+            name: alpha
+            type: Number
+            summary: The transparency percentage
+      -
+        name: setLineWidth
+        kind: method
+        summary: Set the size of lines for stroke operations
+        arguments:
+          -
+            name: lineWidth
+            type: Number
+            summary: The line size for stroke operations
+      -
+        name: setLineCap
+        kind: method
+        summary: Set style of line caps for stroke operations
+        arguments:
+          -
+            name: lineCap
+            type: LineCap
+            summary: The style of line caps for stroke operations
+      -
+        name: setLineJoin
+        kind: method
+        summary: Set style of line joins for stroke operations
+        arguments:
+          -
+            name: lineJoin
+            type: LineJoin
+            summary: The style of line joins for stroke operations
+      -
+        name: setMiterLimit
+        kind: method
+        summary: Set limit for line joins that use the `miter` style
+        arguments:
+          -
+            name: miterLimit
+            type: Number
+            summary: The limit for line joins that use the `miter` style
+      -
+        name: setLineDash
+        kind: method
+        summary: Set the line dash style
+        arguments:
+          -
+            name: phase
+            type: Number
+            summary: The starting offset for dashes
+          -
+            name: lengths
+            type: Number[]
+            summary: The alternating dash and gap lengths
+      -
+        name: drawPath
+        kind: method
+        summary: Apply the given stroke and fill operations
+        arguments:
+          -
+            name: drawingMode
+            type: DrawingMode
+            summary: The painting operations to perform
+      -
+        name: fillPath
+        kind: method
+        summary: Fill the path using the given fill rule
+        arguments:
+          -
+            name: fillRule
+            type: FillRule
+            default: "FillRule.winding"
+            summary: The rule to use when determining what counts as inside the
+              path
+      -
+        name: strokePath
+        kind: method
+        summary: Paint the path's lines
+      -
+        name: clip
+        kind: method
+        summary: Use the path as a clipping path
+        arguments:
+          -
+            name: fillRule
+            type: FillRule
+            default: "FillRule.winding"
+            summary: The rule to use when determining what counts as inside the
+              path
+  -
+    name: Text
+    members:
+      -
+        name: setTextMatrix
+        kind: method
+        summary: Set the text transformation matrix
+        arguments:
+          -
+            name: textMatrix
+            type: JSAffineTransform
+            summary: The additional transformation to use for text drawing
+      -
+        name: setCharacterSpacing
+        kind: method
+        summary: Set the extra spacing to place between characters
+        arguments:
+          -
+            name: spacing
+            type: Number
+            summary: The extra spacing to place between characters
+      -
+        name: setFont
+        kind: method
+        summary: Set the font to use for text drawing
+        arguments:
+          -
+            name: font
+            type: JSFont
+            summary: The font to use for text operations
+      -
+        name: setTextDrawingMode
+        kind: method
+        summary: Set the drawing mode to use for text
+        arguments:
+          -
+            name: textDrawingMode
+            type: DrawingMode
+            summary: The drawing mode to use for text operations
+      -
+        name: showText
+        kind: method
+        summary: Draw the text
+        arguments:
+          -
+            name: text
+            type: String
+            summary: The text to draw
+      -
+        name: showGlyphs
+        kind: method
+        summary: Draw the glyphs
+        arguments:
+          -
+            name: glyphs
+            type: Number[]
+            summary: The glyphs to draw
+  -
+    name: Coordinate Transformations
+    members:
+      -
+        name: scaleBy
+        kind: method
+        summary: Scale the current transformation matrix
+        arguments:
+          -
+            name: sx
+            type: Number
+            summary: The `x` scale factor
+          -
+            name: sy
+            type: Number
+            summary: The `y` scale factor
+      -
+        name: rotateBy
+        kind: method
+        summary: Rotate the current transformation matrix by radians
+        arguments:
+          -
+            name: radians
+            type: Number
+            summary: The radians to rotate by
+      -
+        name: rotateByDegrees
+        kind: method
+        summary: Rotate the current transformation matrix by degrees
+        arguments:
+          -
+            name: degrees
+            type: Number
+            summary: The degrees to rotate by
+      -
+        name: translateBy
+        kind: method
+        summary: Translate the current transformation matrix
+        arguments:
+          -
+            name: tx
+            type: Number
+            summary: The `x` translation factor
+          -
+            name: ty
+            type: Number
+            summary: The `y` translation factor
+      -
+        name: concatenate
+        kind: method
+        summary: Concatenate the given transform with the current transform
+        arguments:
+          -
+            name: transform
+            type: JSAffineTransform
+            summary: The transform to concatenate
+  -
+    name: Images & Gradients
+    members:
+      -
+        name: drawImage
+        kind: method
+        summary: Draw the image in the given rectangle
+        note: The image will be stretched to fill the rectangle
+        arguments:
+          -
+            name: image
+            type: JSImage
+            summary: The image to draw
+          -
+            name: rect
+            type: JSRect
+            summary: The rectangle in which to draw the image
+      -
+        name: drawLinearGradient
+        kind: method
+        summary: Draw a linear gradient
+        arguments:
+          -
+            name: gradient
+            type: JSGradient
+            summary: The gradient colors and positioning
+          -
+            name: start
+            type: JSPoint
+            summary: The starting point
+          -
+            name: end
+            type: JSPoint
+            summary: The ending point
+      -
+        name: drawRadialGradient
+        kind: method
+        summary: Draw a radial gradient
+        arguments:
+          -
+            name: gradient
+            type: JSGradient
+            summary: The gradient colors and positioning
+          -
+            name: startCenter
+            type: JSPoint
+            summary: The starting center point
+          -
+            name: startRadius
+            type: Number
+            summary: The starting radius
+          -
+            name: endCenter
+            type: JSPoint
+            summary: The ending center point
+          -
+            name: endRadius
+            type: Number
+            summary: The ending radius
+  -
+    name: State Management
+    members:
+      -
+        name: save
+        kind: method
+        summary: Save the current drawing state, so it can be later restored
+      -
+        name: restore
+        kind: method
+        summary: Discard the current drawing state and restore the most recently
+          saved state
+  -
+    name: Drawing Shortcuts
+    members:
+      -
+        name: fillRect
+        kind: method
+        summary: Begin a new path, add a rectangle, then fill it
+        arguments:
+          -
+            name: rect
+            type: JSRect
+            summary: The rectangle to fill
+      -
+        name: strokeRect
+        kind: method
+        summary: Begin a new path, add a rectangle, then stroke it
+        arguments:
+          -
+            name: rect
+            type: JSRect
+            summary: The rounded rectangle to stroke
+      -
+        name: fillRoundedRect
+        kind: method
+        summary: Begin a new path, add a rounded rectangle, then fill it
+        arguments:
+          -
+            name: rect
+            type: JSRect
+            summary: The rectangle to fill
+          -
+            name: radius
+            type: Number
+            summary: The radius for the rounded corners
+      -
+        name: strokeRoundedRect
+        kind: method
+        summary: Begin a new path, add a rounded rectangle, then stroke it
+        arguments:
+          -
+            name: rect
+            type: JSRect
+            summary: The rounded rectangle to stroke
+          -
+            name: radius
+            type: Number
+            summary: The radius for the rounded corners
+      -
+        name: fillEllipseInRect
+        kind: method
+        summary: Begin a new path, add an ellipse in the rectangle, then fill it
+        arguments:
+          -
+            name: rect
+            type: JSRect
+            summary: The bounding rectangle for the ellipse
+      -
+        name: strokeEllipseRect
+        kind: method
+        summary: Begin a new path, add an ellipse in the rectangle, then stroke it
+        arguments:
+          -
+            name: rect
+            type: JSRect
+            summary: The bounding rectangle for the ellipse
+      -
+        name: fillMaskedRect
+        kind: method
+        summary: Place an image in the given rectangle and use its alpha
+          channel as a guide for which pixels to fill
+        arguments:
+          -
+            name: rect
+            type: JSRect
+            summary: The bounding rectangle for the image mask
+          -
+            name: maskImage
+            type: JSImage
+            summary: The image to use as an alpha mask

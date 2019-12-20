@@ -1,0 +1,422 @@
+name: JSColor
+kind: class
+inherits: JSObject
+introduced: "1.0.0"
+summary: Represent a color by specifying a color space and components
+topics:
+  -
+    name: Creating a Color
+    members:
+      -
+        name: initWithRGBA
+        kind: init
+        summary: Create a color using RGB components
+        description: |
+          Components are specified as percentages from `0.0` to `1.1`
+          rather than the 8-bit integers from `0` to `255` that might
+          be familiar from other programming contexts.
+
+          If you have 8-bit RGB values the conversion can be easily
+          programmed in the init call by dividing each number by `255`
+
+          ````
+          // Say you're given rgb components in 8-bit form like 128,204,64...
+          var color = JSColor.initWithRGBA(128/255, 204/255, 64/255);
+
+          // or perhaps you have components in hex form like #12ABFE
+          var color = JSColor.initWithRGBA(0x12/255, 0xAB/255, 0xFE/255);
+          ````
+        arguments:
+          -
+            name: red
+            type: Number
+            summary: The percentage of red, from `0.0` to `1.0`
+          -
+            name: green
+            type: Number
+            summary: The percentage of green, from `0.0` to `1.0`
+          -
+            name: blue
+            type: Number
+            summary: The percentage of blue, from `0.0` to `1.0`
+          -
+            name: alpha
+            type: Number
+            default: "1.0"
+            summary: The percentage of opaqueness, from `0.0` to `1.0`
+      -
+        name: initWithWhite
+        kind: init
+        summary: Create a color using a single grayscale components
+        arguments:
+          -
+            name: white
+            type: Number
+            summary: The percentage of white, from `0.0` to `1.0`
+          -
+            name: alpha
+            type: Number
+            default: "1.0"
+            summary: The percentage of opaqueness, from `0.0` to `1.0`
+      -
+        name: initWithBlendedColor
+        kind: init
+        summary: Create a color by blending two other colors
+        arguments:
+          -
+            name: base
+            type: JSColor
+            summary: The base color to blend
+          -
+            name: other
+            type: JSColor
+            summary: The other color to blend into the base color
+          -
+            name: blendPercentage
+            type: Number
+            summary: The amount to blend, from `0.0` to `1.0`
+      -
+        name: initWithSpaceAndComponents
+        kind: init
+        summary: Create a color using the given color space and components
+        arguments:
+          -
+            name: colorSpace
+            type: SpaceIdentifier
+            summary: The color space to use
+          -
+            name: components
+            type: Number[]
+            summary: The ordered components applicable to the given space
+      -
+        name: clearColor
+        static: true
+        type: JSColor
+        summary: A `0` alpha color
+      -
+        name: whiteColor
+        static: true
+        type: JSColor
+        summary: A fully white color
+      -
+        name: blackColor
+        static: true
+        type: JSColor
+        summary: A fully black color
+      -
+        name: redColor
+        static: true
+        type: JSColor
+        summary: A fully red color
+      -
+        name: greenColor
+        static: true
+        type: JSColor
+        summary: A fully green color
+      -
+        name: blueColor
+        static: true
+        type: JSColor
+        summary: A fully blue color
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: Description of properties that can be included in a spec file
+        description: |
+          A `JSColor` can be specified in a few different ways:
+
+          1. As an RGBA color with the `rgba` property
+          2. As a grayscale color with the `white` property
+          3. As a blending of colors with the `blendBase`, `with`, and `percent`
+             properties.
+
+          Implicit Class
+          --------------
+          In most cases, colors in spec files do not need to include the
+          `class` property because their parent object will know to
+          instantiate a `JSColor`.
+
+          For example, a `UIView` knows to make its `backgroundColor` a
+          `JSColor`, so `class` is unecessary.
+
+          ````
+          MainView:
+            class: UIView
+            backgroundColor:
+              rgba: 245,245,250
+          ````
+        topics:
+          -
+            name: RGBA
+            members:
+              -
+                name: rgba
+                type: String
+                summary: A comma-separated list of r,g,b,a components
+                description: |
+                  Creates a color in the RGBA color space with the given
+                  components.  Any missing components default to `0`.
+
+                  ````
+                  ErrorColor:
+                    class: JSColor
+                    rgba: 204,24,0
+                  ````
+                note: Components in the spec file are written as integers
+                  between `0` and `255`, in contrast to how components are
+                  specified in Javascript code between `0.0` and `1.0`.
+
+                  This is intentional to make spec programming more familar
+                  to CSS programming.
+          -
+            name: Grayscale
+            members:
+              -
+                name: white
+                type: Number
+                summary: A whiteness percentage from `0.0` to `1.0`
+                description: |
+                  Creates a color in the grayscale color space with the given
+                  whiteness percentage.
+
+                  ````
+                  ErrorColor:
+                    class: JSColor
+                    white: 0.75
+                  ````
+          -
+            name: Blending
+            members:
+              -
+                name: blendBase
+                type: JSColor
+                summary: The base color to use for blending
+                description: |
+                  One of three required components to create a blended color.
+
+                  ````
+                  ButtonColor:
+                    class: JSColor
+                    rgba: 204,24,0
+
+                  PressedButtonColor:
+                    class: JSColor
+                    blendBase: /ButtonColor
+                    with: $JSColor.black
+                    percent: 20
+                  ````
+                see:
+                  - with
+                  - percent
+              -
+                name: with
+                type: JSColor
+                summary: The color to blend into `blendBase`
+                description: |
+                  One of three required components to create a blended color.
+
+                  ````
+                  ButtonColor:
+                    class: JSColor
+                    rgba: 204,24,0
+
+                  PressedButtonColor:
+                    class: JSColor
+                    blendBase: /ButtonColor
+                    with: $JSColor.black
+                    percent: 20
+                  ````
+                see:
+                  - blendBase
+                  - percent
+              -
+                name: percent
+                type: Number
+                summary: The percentage to blend, as a number between `0` and
+                  \`100`
+                description: |
+                  One of three required components to create a blended color.
+
+                  ````
+                  ButtonColor:
+                    class: JSColor
+                    rgba: 204,24,0
+
+                  PressedButtonColor:
+                    class: JSColor
+                    blendBase: /ButtonColor
+                    with: $JSColor.black
+                    percent: 20
+                  ````
+                see:
+                  - blendBase
+                  - with
+  -
+    name: Color Spaces
+    members:
+      -
+        name: SpaceIdentifier
+        kind: enum
+        summary: The supported color spaces
+        options:
+          -
+            name: rgb
+            summary: The red, green, and blue color space without an alpha channel
+          -
+            name: rgba
+            summary: The red, green, and blue color space with an alpha channel
+          -
+            name: hsl
+            summary: The hue, saturation, and lightness color space without an
+              alpha channel
+          -
+            name: hsla
+            summary: The hue, saturation, and lightness color space with an
+              alpha channel
+          -
+            name: gray
+            summary: The grayscale color space without an alpha channel
+          -
+            name: graya
+            summary: The grayscale color space with an alpha channel
+      -
+        name: colorSpace
+        type: SpaceIdentifier
+        summary: The color space for this color
+  -
+    name: Color Components
+    members:
+      -
+        name: components
+        type: Number[]
+        summary: The ordered components for this color
+        description: |
+          The number and meaning of components depend on the `colorSpace` in
+          use:
+
+          - `rgb` - `[red, green, blue]`
+          - `rgba` - `[red, green, blue, alpha]`
+          - `hsl` - `[hue, saturation, lightness]`
+          - `hsla` - `[hue, saturation, lightness, alpha]`
+          - `gray` - `[white]`
+          - `graya` - `[white, alpha]`
+      -
+        name: red
+        type: Number
+        summary: The red color percentage from `0.0` to `1.0` for colors that are
+          in an RGB color space
+      -
+        name: green
+        type: Number
+        summary: The green color percentage from `0.0` to `1.0` for colors that are
+          in an RGB color space
+      -
+        name: blue
+        type: Number
+        summary: The blue color percentage from `0.0` to `1.0` for colors that are
+          in an RGB color space
+      -
+        name: hue
+        type: Number
+        summary: The hue color percentage from `0.0` to `1.0` for colors that are
+          in an HSL color space
+      -
+        name: saturation
+        type: Number
+        summary: The saturation color percentage from `0.0` to `1.0` for colors that are
+          in an HSL color space
+      -
+        name: lightness
+        type: Number
+        summary: The lightness color percentage from `0.0` to `1.0` for colors that are
+          in an HSL color space
+      -
+        name: white
+        type: Number
+        summary: The white color percentage from `0.0` to `1.0` for colors that are
+          in an grayscale color space
+      -
+        name: alpha
+        type: Number
+        summary: The opaqueness from `0.0` to `1.0` for colors that are
+          in an alpha supporting color space
+  -
+    name: Conversions
+    members:
+      -
+        name: rgbaColor
+        kind: method
+        summary: Create a matching color in the `rgba` color space
+        type: JSColor
+        return: A color that matches this one, but is converted to the `rgba`
+          color space
+      -
+        name: grayColor
+        kind: method
+        summary: Create a matching color in the `graya` color space
+        type: JSColor
+        return: A color that matches this one, but is converted to the `graya`
+          color space
+        note: Converting to grayscale loses information
+  -
+    name: Variations
+    members:
+      -
+        name: colorWithAlpha
+        kind: method
+        summary: Create a matching color except for alpha, using the given alpha
+          in the new color
+        type: JSColor
+        return: A color that is this color, but with a different transparency
+        note: If this color's color space is a non-alpha space, the returned
+          color will be in the alpha-supporting space corresponding to this
+          color's space.  For example, an `rgb` color will return an `rgba`
+          color.
+        arguments:
+          -
+            name: alpha
+            type: Number
+            summary: The alpha value to use in the returned color
+      -
+        name: colorDarkenedByPercentage
+        kind: method
+        summary: Create a darker version of this color
+        type: JSColor
+        return: This color blended with black by the given percentage
+        note: This method always returns an `rgba` color regardless of this
+          color's color space.
+        arguments:
+          -
+            name: darkenPercentage
+            type: Number
+            summary: The amount to darken
+      -
+        name: colorLightenedByPercentage
+        kind: method
+        summary: Create a lighter version of this color
+        type: JSColor
+        return: This color blended with white by the given percentage
+        note: This method always returns an `rgba` color regardless of this
+          color's color space.
+        arguments:
+          -
+            name: lightenPercentage
+            type: Number
+            summary: The amount to lighten
+      -
+        name: colorByBlendingColor
+        kind: method
+        summary: Create a mix of this color with another
+        type: JSColor
+        return: This color blended with the other by the given percentage
+        note: This method always returns an `rgba` color regardless of this
+          color's color space.
+        arguments:
+          -
+            name: other
+            type: JSColor
+            summary: The other color to blend in
+          -
+            name: blendPercentage
+            type: Number
+            summary: The amount to blend in the other color

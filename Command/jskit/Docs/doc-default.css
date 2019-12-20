@@ -246,6 +246,18 @@ article.doc > section.parameters > dl > dd > p{
     margin-top: 0;
 }
 
+article.doc > section.parameters > dl > dd > dl > dt{
+    font-family: 'Inconsolata', monospace;
+    font-weight: 400;
+    white-space: pre;
+    font-size: 80%;
+    color: rgb(0,0,0);
+}
+
+article.doc > section.parameters > dl > dd > dl > dd > p{
+    margin-top: 0;
+}
+
 article.doc > section.options > dl > dt{
     font-family: 'Inconsolata', monospace;
     font-weight: 400;
