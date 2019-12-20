@@ -1,0 +1,235 @@
+name: JSBundle
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: A collection of resources
+description: |
+  Bundles are made automatically for applications and frameworks.
+
+  They contain:
+  - Basic application information like identifiers and versions
+  - Resources like images and other data files
+  - User interface strings
+
+  Bundles are also the primary way to localize applications by specifying
+  language-specific resources and strings.
+
+  Each application can can reference its `mainBundle`
+topics:
+  -
+    name: Accessing a Bundle
+    members:
+      -
+        name: mainBundle
+        static: true
+        type: JSBundle
+        summary: The bundle associated with the running application
+        description: |
+          The running application can always access its bundle resources via
+          `mainBundle`.
+        important: You should never use `mainBundle` in a framework, because
+          it will not reference the framework's bundle since the framework
+          isn't ever the current running application.
+      -
+        name: initWithIdentifier
+        kind: init
+        summary: Load a bundle that has the given unique identifier
+        arguments:
+          -
+            name: identifier
+            type: String
+            summary: A unqiue bundle identifier, as specified in the
+              \`JSBundleIdentifier` field in the bundle's `Info` dictionary
+        description: |
+          Every bundle has an `Info` dictionary, specified either in an
+          `Info.yaml` or `Info.json` file.
+
+          An `Info` dictionary is required to have a `JSBundleIdentifier`
+          entry, which must be unique throught an application.  Typically a
+          bundle identifier is written in reverse domain syntax to avoid
+          collisions.
+
+          Every application has at least one bundle, the `mainBundle` that
+          represents the app bundle itself.
+
+          There's also a bundle for every framework that the application
+          imports.
+  -
+    name: Bundle Info
+    members:
+      -
+        name: info
+        type: dictionary
+        summary: The bundle's `Info` dictionary, extracted from `Info.(yaml|json)`
+  -
+    name: Resources
+    members:
+      -
+        name: Metadata
+        kind: class
+        summary: A simple data structure to hold resource metadata
+        topics:
+          - 
+            name: Common Fields
+            members:
+              -
+                name: byte_size
+                type: Number
+                summary: The size in bytes of the full resource data
+              -
+                name: mimetype
+                type: String
+                summary: The mimetype of the resource, like `"image/png"`
+              -
+                name: hash
+                type: String
+                summary: A hex-encoded SHA1 hash of the resource data
+      -
+        name: metadataForResourceName
+        kind: method
+        type: Metadata
+        summary: Get the metadata associated with the given resource name
+        note: Will return localized metadata if available
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the resource, excluding any file extension
+      -
+        name: metadataForResourceName
+        kind: method
+        suffix: ext
+        type: Metadata
+        summary: Get the metadata associated with the given resource name and
+          file extension
+        note: Will return localized metadata if available
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the resource, excluding any file extension
+          -
+            name: ext
+            type: String
+            summary: The file extension to uniquely identify the resource. 
+              A leading dot is expected, but not required.
+      -
+        name: metadataForResourceName
+        suffix: subdirectory
+        kind: method
+        type: Metadata
+        summary: Get the metadata associated with the given resource name
+        note: Will return localized metadata if available
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the resource, excluding any file extension
+          -
+            name: ext
+            type: String
+            summary: The file extension for the resource, if needed to
+              uniquely identify the resource.  Pass `undefined` if not needed.
+              A leading dot is expected, but not required.
+          -
+            name: subdirectory
+            type: String
+            summary: The bundle subdirectory that contains the resource
+      -
+        name: getResourceData
+        kind: method
+        summary: Get the data for a resource asynchronously with a callback
+        arguments:
+          -
+            name: metadata
+            type: Metadata
+            summary: The metadata for the resource
+          -
+            name: completion
+            summary: A function to call when the resource data is available
+            type:
+              arguments:
+                -
+                  name: data
+                  type: JSData
+                  summary: The data for the resource, or `null` if an error
+                    occurred
+          -
+            name: target
+            type: Object
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+      -
+        name: getResourceData
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: JSData
+            summary: The resource data
+        summary: Get the data for a resource asynchronously with a promise
+        arguments:
+          -
+            name: metadata
+            type: Metadata
+            summary: The metadata for the resource
+  -
+    name: Localization
+    members:
+      -
+        name: localizedString
+        kind: method
+        type: String
+        summary: Get the localized string for the given key
+        arguments:
+          -
+            name: key
+            type: String
+            summary: A unique identifying key for the string
+          -
+            name: table
+            type: String
+            summary: The optional name of the string lookup table to use
+            default: '"Localizable"'
+          -
+            name: locale
+            type: JSLocale
+            summary: The optional locale to use instead of the current locale
+            default: JSLocale.current
+        description: |
+          Strings are organized into tables.  The default table is named
+          `"Localizable"`, and typically there is a table named to match each UI
+          `.spec.yaml` file.
+      -
+        name: localizedStringForInfoKey
+        kind: method
+        type: String
+        summary: Get the localized string for an `Info` entry
+        arguments:
+          -
+            name: infoKey
+            type: String
+            summary: An `Info` entry key, like `UIApplicationTitle`
+        description: |
+          Some strings in `Info` need to be localized.
+
+          In such a case, `Info.yaml` will contain a value that is the
+          key to lookup in the `Info.strings` table.
+
+          Info.yaml:
+          ````
+          UIApplicationTitle: .applicationTitle
+          ````
+
+          en.lproj/Info.strings.yaml
+          ````
+          en:
+            applicationTitle: Messages
+          ````
+
+          es.lproj/Info.strings.yaml
+          ````
+          es:
+            applicationTitle: Mensajes
+          ````

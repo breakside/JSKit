@@ -86,10 +86,18 @@ topics:
                   type: JSData
                   summary: The image data, or `null` if the data could not be
                     loaded
+          -
+            name: target
+            summary: The object to use as `this` when calling `completion`
+            type: Object
+            default: "undefined"
       -
         name: getData
         suffix: promise
         kind: method
         summary: Get the image data asynchronously with a promise
         type: Promise
-        return: A promise that will resolve with a `JSData` of the image data
+        promise:
+          resolve:
+            type: JSData
+            summary: The image data

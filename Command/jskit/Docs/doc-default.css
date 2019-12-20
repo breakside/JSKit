@@ -269,3 +269,15 @@ article.doc > section.options > dl > dt{
 article.doc > section.options > dl > dd > p{
     margin-top: 0;
 }
+
+article.doc > section.return > dl.promise > dt{
+    font-family: 'Inconsolata', monospace;
+    font-weight: 400;
+    white-space: pre;
+    font-size: 87.5%;
+    color: rgb(0,0,0);
+}
+
+article.doc > section.return > dl.promise > dd > p{
+    margin-top: 0;
+}

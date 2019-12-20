@@ -62,8 +62,12 @@ JSClass('JSImage', JSObject, {
         return 1;
     },
 
-    getData: function(callback){
-        callback(null);
+    getData: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        completion.call(target, null);
+        return completion.promise;
     }
 
 });
@@ -178,8 +182,8 @@ JSClass("_JSResourceImage", JSImage, {
         return image;
     },
 
-    getData: function(callback){
-        this.bundle.getResourceData(this.metadata, callback);
+    getData: function(completion, target){
+        this.bundle.getResourceData(this.metadata, completion, target);
     }
 
 });
@@ -204,8 +208,12 @@ JSClass("_JSDataImage", JSImage, {
         return image;
     },
 
-    getData: function(callback){
-        callback(this.data);
+    getData: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        completion.call(target, this.data);
+        return completion.promise;
     }
 
 });
@@ -229,15 +237,19 @@ JSClass("_JSURLImage", JSImage, {
         return image;
     },
 
-    getData: function(callback){
+    getData: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var session = JSURLSession.shared;
         var task = session.dataTaskWithURL(this.url, function(error){
             if (error !== null || task.response.statusClass != JSURLResponse.StatusClass.success){
-                callback(null);
+                completion.call(target, null);
             }
-            callback(task.response.data);
+            completion.call(target, task.response.data);
         });
         task.resume();
+        return completion.promise;
     }
 
 });

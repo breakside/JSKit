@@ -41,10 +41,15 @@ topics:
               instanace when it is initiated
           -
             name: successCallback
-            type: function
+            type: {}
+            summary: Called when the job completes successfully
           -
             name: errorCallback
-            type: function
+            type: {}
+            summary: Called when the job fails to complete due to an error
           -
             name: target
             type: Object
+            default: "undefined"
+            summary: The object to use as `this` when calling `successCallback`
+              or `errorCallback`

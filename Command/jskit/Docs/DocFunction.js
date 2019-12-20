@@ -8,6 +8,7 @@
     arguments: null,
     returnValue: null,
     valueType: null,
+    promise: null,
 
     getDisplayNameForKind: function(){
         return "Function";
@@ -24,6 +25,9 @@
         }
         if (info.type){
             this.valueType = info.type;
+        }
+        if (info.promise){
+            this.promise = info.promise;
         }
     },
 
@@ -64,6 +68,13 @@
                     code.appendChild(document.createTextNode(this.valueType));
                 }
             }
+            if (this.promise){
+                let dl = returnSection.appendChild(document.createElement('dl'));
+                dl.setAttribute('class', 'promise');
+                if (this.promise.resolve){
+                    this.appendArgumentElements(dl, "resolve", this.promise.resolve.type, this.promise.resolve.summary, this);
+                }
+            }
             if (this.returnValue){
                 let markdown = this.createMarkdownWithString(this.returnValue);
                 let children = markdown.htmlElementsForDocument(document);
@@ -80,66 +91,46 @@
         let dl = document.createElement("dl");
         for (let i = 0, l = this.arguments.length; i < l; ++i){
             let arg = this.arguments[i];
-            let dt = dl.appendChild(document.createElement("dt"));
-            let dd = dl.appendChild(document.createElement("dd"));
-            if (arg.variable){
-                dt.appendChild(document.createTextNode("%s...".sprintf(arg.name)));
-            }else{
-                dt.appendChild(document.createTextNode(arg.name));
-            }
-            if (arg.type){
-                if (typeof(arg.type) === 'object'){
-                    var fn = DocFunction.init();
-                    fn.extractPropertiesFromInfo(arg.type);
-                    let code = dd.appendChild(document.createElement("code"));
-                    code.appendChild(document.createTextNode(fn.declarationCode()[0]));
-                    let callbackDL = fn.argumentListElement(document, resolver);
-                    dd.appendChild(callbackDL);
+            this.appendArgumentElements(dl, arg.variable ? "%s...".sprintf(arg.name) : arg.name, arg.type, arg.summary, resolver);
+        }
+        return dl;
+    },
 
-                    if (fn.returnValue || fn.valueType){
-                        let returnDT = callbackDL.appendChild(document.createElement("dt"));
-                        let returnDD = callbackDL.appendChild(document.createElement("dd"));
-                        returnDT.appendChild(document.createTextNode("Return Value"));
-                        if (fn.valueType){
-                            let code = returnDD.appendChild(document.createElement("code"));
-                            let url = resolver.urlForCode(fn.valueType);
-                            if (url){
-                                let a = code.appendChild(document.createElement("a"));
-                                a.setAttribute("href", url.encodedString);
-                                a.appendChild(document.createTextNode(fn.valueType));
-                            }else{
-                                code.appendChild(document.createTextNode(fn.valueType));
-                            }
-                        }
-                        if (fn.returnValue){
-                            let markdown = resolver.createMarkdownWithString(fn.returnValue);
-                            let children = markdown.htmlElementsForDocument(document);
-                            for (let i = 0, l = children.length; i < l; ++i){
-                                returnDD.appendChild(children[i]);
-                            }
-                        }
-                    }
-                }else{
-                    let code = dd.appendChild(document.createElement("code"));
-                    let url = resolver.urlForCode(arg.type);
-                    if (url !== null){
-                        let a = code.appendChild(document.createElement("a"));
-                        a.setAttribute("href", url.encodedString);
-                        a.appendChild(document.createTextNode(arg.type));
-                    }else{
-                        code.appendChild(document.createTextNode(arg.type));
-                    }
+    appendArgumentElements: function(dl, name, type, summary, resolver){
+        var document = dl.ownerDocument;
+        let dt = dl.appendChild(document.createElement("dt"));
+        let dd = dl.appendChild(document.createElement("dd"));
+        dt.appendChild(document.createTextNode(name));
+        if (type){
+            if (typeof(type) === 'object'){
+                var fn = DocFunction.init();
+                fn.extractPropertiesFromInfo(type);
+                let code = dd.appendChild(document.createElement("code"));
+                code.appendChild(document.createTextNode(fn.declarationCode()[0]));
+                let callbackDL = fn.argumentListElement(document, resolver);
+                dd.appendChild(callbackDL);
+                if (fn.returnValue || fn.valueType){
+                    this.appendArgumentElements(callbackDL, "Return Value", fn.valueType, fn.returnValue, resolver);
                 }
-            }
-            if (arg.summary){
-                let markdown = resolver.createMarkdownWithString(arg.summary);
-                let children = markdown.htmlElementsForDocument(document);
-                for (let i = 0, l = children.length; i < l; ++i){
-                    dd.appendChild(children[i]);
+            }else{
+                let code = dd.appendChild(document.createElement("code"));
+                let url = resolver.urlForCode(type);
+                if (url !== null){
+                    let a = code.appendChild(document.createElement("a"));
+                    a.setAttribute("href", url.encodedString);
+                    a.appendChild(document.createTextNode(type));
+                }else{
+                    code.appendChild(document.createTextNode(type));
                 }
             }
         }
-        return dl;
+        if (summary){
+            let markdown = resolver.createMarkdownWithString(summary);
+            let children = markdown.htmlElementsForDocument(document);
+            for (let i = 0, l = children.length; i < l; ++i){
+                dd.appendChild(children[i]);
+            }
+        }
     },
 
     declarationCode: function(){
