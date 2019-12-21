@@ -1315,6 +1315,18 @@ if (!String.prototype.trim) {
     };
 }
 
+if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function (prefix) {
+        return this.substr(0, prefix.length) === prefix;
+    };
+}
+
+if (!String.prototype.endsWith) {
+    String.prototype.endsWith = function (suffix) {
+        return this.substr(this.length - suffix.length, suffix.length) === suffix;
+    };
+}
+
 if (!String.fromCodePoint){
     String.fromCodePoint = function(){
         var code;

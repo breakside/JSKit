@@ -2,7 +2,7 @@
 // #feature Object.create
 // #feature Object.defineProperty
 // #feature Object.getPrototypeOf
-// #feature Object.hasOwnProperty
+// #feature Object.prototype.hasOwnProperty
 /* global JSGlobalObject, JSClass, JSResolveDottedName, JSDynamicProperty, JSCustomProperty, JSReadOnlyProperty, JSLazyInitProperty */
 'use strict';
 
@@ -72,7 +72,7 @@ JSClass.prototype = {
                 value: Object.getPrototypeOf(this.prototype)
             }
         });
-        if (!Object.hasOwnProperty('className')){
+        if (!this.hasOwnProperty('className')){
             Object.defineProperties(this, {
                 className: {
                     value: this.name
@@ -107,7 +107,7 @@ JSClass.prototype = {
                     // for a custom dynamic property.  For the the override to work properly,
                     // the original property needs to be redefined on our new class.
                     if (superclassMethod._JSCustomProperty){
-                        if (!extensions[superclassMethod._JSCustomPropertyKey] && !Object.hasOwnProperty(this.prototype, superclassMethod._JSCustomPropertyKey)){
+                        if (!extensions[superclassMethod._JSCustomPropertyKey] && !this.prototype.hasOwnProperty(superclassMethod._JSCustomPropertyKey)){
                             superclassMethod._JSCustomProperty.define(this, superclassMethod._JSCustomPropertyKey, extensions);
                         }
                     }
