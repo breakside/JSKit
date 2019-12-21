@@ -292,9 +292,15 @@ JSClass("HTMLBuilder", Builder, {
         let compilation = JavascriptCompilation.initWithName("%s.js".sprintf(this.project.name), this.sourcesURL, this.fileManager);
         var licenseString = await this.project.licenseString();
         var header = "%s (%s)\n----\n%s".sprintf(this.project.info.JSBundleIdentifier, this.project.info.JSBundleVersion, licenseString);
+        var fullSourcesURL = this.sourcesURL.appendingPathComponent("_debug", true);
+        compilation.sourceRoot = fullSourcesURL.encodedStringRelativeTo(this.sourcesURL);
         compilation.writeComment(header);
         for (let i = 0, l = this.imports.files.length; i < l; ++i){
             let file = this.imports.files[i];
+            let bundledPath = file.url.encodedStringRelativeTo(this.project.url);
+            let bundledURL = JSURL.initWithString(bundledPath, fullSourcesURL);
+            compilation.sources.push(bundledPath);
+            await this.fileManager.copyItemAtURL(file.url, bundledURL);
             await compilation.writeJavascriptAtURL(file.url);
         }
         await compilation.finish();

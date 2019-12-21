@@ -236,6 +236,20 @@ JSClass("JSURL", JSObject, {
         return url;
     },
 
+    appendFileExtension: function(ext){
+        if (!ext.startsWith('.')){
+            ext = ".%s".sprintf(ext);
+        }
+        this._path += ext;
+        this._pathComponents = null;
+    },
+
+    appendingFileExtension: function(ext){
+        var url = this.copy();
+        url.appendFileExtension(ext);
+        return url;
+    },
+
     removeLastPathComponent: function(){
         if (this.pathComponents.length > 0){
             this._pathComponents.pop();

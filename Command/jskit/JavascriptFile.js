@@ -16,6 +16,7 @@ JSClass("JavascriptFile", JSObject, {
     offset: 0,
     context: 0,
     lineNumber: 0,
+    lineOffset: 0,
 
     imports: function(){
         var imports = {
@@ -48,100 +49,151 @@ JSClass("JavascriptFile", JSObject, {
     },
 
     next: function(){
-        var code = "";
-        while (code === ""){
-            var line = this.nextLine();
-            if (line === null){
-                return null;
-            }
-            if (line.startsWith("// #")){
-                let spaceIndex = line.indexOf(" ", 4);
-                let command;
-                let args;
-                if (spaceIndex < 0){
-                    command = line.substr(4);
-                    args = null;
-                }else{
-                    command = line.substr(4, spaceIndex - 4);
-                    args = line.substr(spaceIndex + 1).trim();
+        while (this.offset < this.length){
+            let start = this.offset;
+            let end = start;
+            let b;
+            var trimLeadingWhitespace = this.context === JavascriptFile.Context.js;
+            var skipNext = false;
+            for (; this.offset < this.length; ++this.offset){
+                b = this.data[this.offset];
+                if (b === 0x0A){
+                    skipNext = false;
+                    break;
                 }
-                let handler = commands[command];
-                let scan = {command: command, args: args};
-                if (handler){
-                    let parsed = handler(args);
-                    for (let k in parsed){
-                        scan[k] = parsed[k];
+                if (this.context === JavascriptFile.Context.js){
+                    if (b == 0x27){
+                        this.context = JavascriptFile.Context.singleQuoteString;
+                        ++end;
+                    }else if (b == 0x22){
+                        this.context = JavascriptFile.Context.doubleQuoteString;
+                        ++end;
+                    }else if (b == 0x2F && this.offset < this.length - 1 && this.data[this.offset + 1] == 0x2A){
+                        this.context = JavascriptFile.Context.blockComment;
+                        this.offset += 2;
+                        break;
+                    }else if (b == 0x2F && this.offset < this.length - 1 && this.data[this.offset + 1] == 0x2F){
+                        this.context = JavascriptFile.Context.lineComment;
+                        this.offset += 2;
+                        break;
+                    }else{
+                        ++end;
                     }
+                }else if (this.context === JavascriptFile.Context.singleQuoteString){
+                    if (b == 0x5C){
+                        skipNext = true;
+                    }else if (b == 0x27){
+                        this.context = JavascriptFile.Context.js;
+                    }else{
+                        skipNext = false;
+                    }
+                    ++end;
+                }else if (this.context === JavascriptFile.Context.doubleQuoteString){
+                    if (b == 0x5C){
+                        skipNext = true;
+                    }else if (b == 0x22){
+                        this.context = JavascriptFile.Context.js;
+                    }else{
+                        skipNext = false;
+                    }
+                    ++end;
+                }else if (this.context === JavascriptFile.Context.blockComment){
+                    if (b == 0x2F && this.data[this.offset - 1] == 0x2A){
+                        this.context = JavascriptFile.Context.js;
+                    }
+                    start = this.offset + 1;
+                    end = start;
+                    trimLeadingWhitespace = true;
+                }else if (this.context === JavascriptFile.Context.lineComment){
+                    ++end;
                 }
-                return scan;
             }
-            var index = 0;
-            while (index >= 0){
-                let result = findToken(line, index);
-                index = result.index;
-                if (result.token == "'" || result.token == '"'){
-                    index = line.indexOf(result.token, index + 1);
-                    while (index > 0 && line[index - 1] == '\\'){
-                        index = line.indexOf(result.token, index + 1);
+
+            var startedAtLineOffset = start === this.lineOffset;
+
+            // ignore leading whitespace
+            if (trimLeadingWhitespace){
+                while (start < end && (this.data[start] == 0x20 || this.data[start] == 0x09)){
+                    ++start;
+                }
+            }
+
+            // decode the part of the line between start and end
+            var line = this.data.subdataInRange(JSRange(start, end - start)).stringByDecodingUTF8();
+            let lineNumber = this.lineNumber;
+            let columnNumber = start - this.lineOffset;
+
+            // We've stopped at a new line
+            if (this.offset < this.length && b == 0x0A){
+
+                // Update offset and line/column counters
+                ++this.offset;
+                ++this.lineNumber;
+                this.lineOffset = this.offset;
+
+                // remove any trailing carriage return
+                if (line.endsWith("\r")){
+                    line = line.substr(0, line.length - 1);
+                    --end;
+                }
+
+                // If we're at the end of a line, but still in a multi-line string,
+                // make sure to add back the trailing newline.
+                if (this.context === JavascriptFile.Context.singleQuoteString || this.context === JavascriptFile.Context.doubleQuoteString){
+                    line += "\n";
+                    ++end;
+                }
+            }
+
+            // Single line comments automatically end at the end of the line
+            if (this.context === JavascriptFile.Context.lineComment && (this.offset === this.length || b === 0x0A)){
+                this.context = JavascriptFile.Context.js;
+
+                // We might have a single line command, which has to start
+                // at the beginning of the line
+                if (columnNumber === 2 && line.startsWith(' #')){
+                    let spaceIndex = line.indexOf(" ", 2);
+                    let command;
+                    let args;
+                    if (spaceIndex < 0){
+                        command = line.substr(2);
+                        args = null;
+                    }else{
+                        command = line.substr(2, spaceIndex - 2);
+                        args = line.substr(spaceIndex + 1).trim();
                     }
-                    while (index < 0 && line[line.length - 1] == "\\"){
-                        code += line + "\n";
-                        line = this.nextLine();
-                        index = line.indexOf(result.token);
-                        while (index > 0 && line[index - 1] == '\\'){
-                            index = line.indexOf(result.token, index + 1);
+                    let handler = commands[command];
+                    let scan = {command: command, args: args, lineNumber: lineNumber, columnNumber: columnNumber};
+                    if (handler){
+                        let parsed = handler(args);
+                        for (let k in parsed){
+                            scan[k] = parsed[k];
                         }
                     }
-                    if (index >= 0){
-                        index += 1;
-                    }
-                }else if (result.token == "//"){
-                    line = line.substr(0, index);
-                    index = -1;
-                }else if (result.token == "/*"){
-                    code += line.substr(0, index);
-                    index = line.indexOf('*/', index + 2);
-                    while (index < 0){
-                        line = this.nextLine();
-                        index = line.indexOf('*/');
-                    }
-                    line = line.substr(index + 2);
-                    index = 0;
-                }else{
-                    index = -1;
+                    return scan;
                 }
-            }
-            code += line;
-            code = code.trim();
-            if (code == "'use strict';"){
-                return {strict: true};
-            }
-        }
-        return {code: code};
-    },
 
-    nextLine: function(){
-        ++this.lineNumber;
-        var startingOffset = this.offset;
-        while (this.offset < this.length && this.data[this.offset] != 0x0A){
-            ++this.offset;
-        }
-        var endingOffset = this.offset;
-        if (this.data[this.offset] == 0x0A){
-            if (this.offset > startingOffset){
-                if (this.data[this.offset - 1] == 0x0D){
-                    --endingOffset;
-                }
+                // If this isn't a command comment, ignore it
+                start = end;
             }
-            ++this.offset;
+
+            // If we have anything to return, do it
+            if (start < end){
+                if (startedAtLineOffset && (line == "'use strict';" || line == '"use strict";')){
+                    return {
+                        strict: true,
+                        lineNumber: lineNumber,
+                        columnNumber: columnNumber
+                    };
+                }
+                return {
+                    code: line,
+                    lineNumber: lineNumber,
+                    columnNumber: columnNumber
+                };
+            }
         }
-        if (endingOffset > startingOffset){
-            return this.data.subdataInRange(JSRange(startingOffset, endingOffset - startingOffset)).stringByDecodingUTF8();
-        }
-        if (this.offset == this.length){
-            return null;
-        }
-        return "";
+        return null;
     }
 
 });
@@ -184,7 +236,8 @@ var findToken = function(line, index){
 
 JavascriptFile.Context = {
     js: 0,
-    comment: 0,
-    singleString: 0,
-    doubleString: 0
+    lineComment: 1,
+    blockComment: 2,
+    singleQuoteString: 3,
+    doubleQuoteString: 4
 };

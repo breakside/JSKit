@@ -189,15 +189,20 @@ JSClass("FrameworkBuilder", Builder, {
             sources[env] = {frameworks: [], files: [], features: []};
             let root = roots[env];
             let compilation = JavascriptCompilation.initWithName(root, this.sourcesURL, this.fileManager);
+            var fullSourcesURL = this.sourcesURL.appendingPathComponent("_debug", true);
+            compilation.sourceRoot = fullSourcesURL.encodedStringRelativeTo(this.sourcesURL);
             compilation.writeComment(header);
             let imports = this.importsByEnvironment[env];
             for (let i = 0, l = imports.files.length; i < l; ++i){
                 let file = imports.files[i];
                 let bundledPath = file.url.encodedStringRelativeTo(this.project.url);
+                let bundledURL = JSURL.initWithString(bundledPath, fullSourcesURL);
                 if (env == 'generic'){
                     genericFiles.add(bundledPath);
                 }
                 if (env == 'generic' || !genericFiles.has(bundledPath)){
+                    compilation.sources.push(bundledPath);
+                    await this.fileManager.copyItemAtURL(file.url, bundledURL);
                     await compilation.writeJavascriptAtURL(file.url);
                 }
             }
