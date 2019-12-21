@@ -1,0 +1,4 @@
+kind: document
+name: Features
+summary: An overview of everything that `JSKit` supports out of the box
+description: ../Features.md

@@ -21,12 +21,12 @@ expressed by standard elements.
 Without a true application toolkit, web applications tend to rely on under-
 coded UI elements that function good enough instead of great.
 
-`JSKit` strives to
+`JSKit` strives to:
 
-- **Provide a common foundation** on which UI or server applications can be built
+- **Provide a common foundation** on which advanced UI or server applications can be built
 - **Hide document-specific concepts** behind a coherent application paradigm
 - **Provide a rich UI toolkit** of desktop-quality interface elements
-- **Integrate with deployment** systems by automatically creating containers
+- **Support the entire development cycle** including testing, packaging, and deployment
 
 
 A Common Foundation
@@ -146,6 +146,9 @@ A robust build system can create Docker images for debug or for production.
 Debug builds keep all the source files separate exactly as code for easy
 debugging, while production builds automatically combine and minify the
 Javascript for efficient distribution.
+
+See our [Features](Features) list for a complete description of everything
+that's built directly into `JSKit`.
 
 
 Familiarity

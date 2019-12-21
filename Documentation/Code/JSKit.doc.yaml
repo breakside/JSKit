@@ -37,6 +37,7 @@ topics:
     name: Getting Started
     members:
       - Goals
+      - Features
   -
     name: Command Line Utility
     members:
