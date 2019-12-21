@@ -14,7 +14,6 @@ JSClass("UIListViewHeaderFooterView", UIView, {
     titleLabel: JSLazyInitProperty('_createTitleLabel', '_titleLabel'),
     detailLabel: JSLazyInitProperty('_createDetailLabel', '_detailLabel'),
     stylerProperties: null,
-    expectedPosition: null,
 
     initWithReuseIdentifier: function(identifier){
         this.init();

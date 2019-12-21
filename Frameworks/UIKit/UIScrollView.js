@@ -382,7 +382,7 @@ JSClass('UIScrollView', UIView, {
         scale = Math.min(Math.max(scale, this._minimumZoomScale), this._maximumZoomScale);
         if (view !== null && Math.abs(scale - this._zoomScale) >= this._minimumZoomIncrement){
             var p0 = view.convertPointFromView(location, this);
-            var offsetDelta = this.contentOffset.subtract(location);
+            var offsetDelta = this.contentOffset.subtracting(location);
             if (Math.abs(scale - 1) < this._minimumZoomIncrement){
                 scale = 1;
             }

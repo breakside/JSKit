@@ -119,19 +119,25 @@ JSClass("Resources", JSObject, {
     _resourceId: 0,
 
     _addLocalization: async function(url){
-        var entries = await this.fileManager.contentsOfDirectoryAtURL(url);
-        var entry;
         var lang = url.lastPathComponent.substr(0, url.lastPathComponent.length - 6); // stripping .lproj
         this.lookup[lang] = {};
-        for (let i = 0, l = entries.length; i < l; ++i){
-            entry = entries[i];
-            if (entry.name.startsWith(".")) continue;
-            if (entry.itemType == JSFileManager.ItemType.directory){
-                if (entry.name.fileExtension == '.imageset'){
-                    this._addImageset(entry.url, lang);
+        var stack = [url];
+        while (stack.length > 0){
+            let url = stack.shift();
+            let entries = await this.fileManager.contentsOfDirectoryAtURL(url);
+            let entry;
+            for (let i = 0, l = entries.length; i < l; ++i){
+                entry = entries[i];
+                if (entry.name.startsWith(".")) continue;
+                if (entry.itemType == JSFileManager.ItemType.directory){
+                    if (entry.name.fileExtension == '.imageset'){
+                        this._addImageset(entry.url, lang);
+                    }else{
+                        stack.push(entry.url);
+                    }
+                }else{
+                    await this._addResource(entry.url, lang);
                 }
-            }else{
-                await this._addResource(entry.url, lang);
             }
         }
     },

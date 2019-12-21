@@ -259,6 +259,7 @@ JSClass("UIListView", UIScrollView, {
     _headerFooterClassesByIdentifier: null,
 
     _enqueueReusableHeaderFooter: function(headerFooter){
+        headerFooter.transform = JSAffineTransform.Identity;
         var identifier = headerFooter.reuseIdentifier;
         if (!(identifier in this._reusableHeaderFootersByIdentifier)){
             this._reusableHeaderFootersByIdentifier[identifier] = [];
@@ -652,7 +653,7 @@ JSClass("UIListView", UIScrollView, {
         // Resize the width of all visible views
         var i, l;
         for (i = 0, l = this._visibleItems.length; i < l; ++i){
-            this._visibleItems[i].view.bounds = JSRect(0, 0, this._cellsContainerView.bounds.size.width, this._visibleItems[i].view.bounds.size.height);
+            this._visibleItems[i].view.bounds = JSRect(0, 0, this.bounds.size.width, this._visibleItems[i].view.bounds.size.height);
         }
         if (this._needsReload){
             this._reloadDuringLayout();
@@ -783,22 +784,22 @@ JSClass("UIListView", UIScrollView, {
             }
             var height = this._heightForHeaderInSection(section);
             if (height > 0){
-                this._stickyHeader = this._createHeaderAtSection(section, JSRect(0, 0, this._cellsContainerView.bounds.size.width, height));
+                this._stickyHeader = this._createHeaderAtSection(section, JSRect(0, 0, this.bounds.size.width, height));
                 this._cellsContainerView.addSubview(this._stickyHeader);
 
-                // position to line up with bottom of final item in section
+                // position to line up no lower than the bottom of final item in section
                 var i = 1;
                 for (var l = this._visibleItems.length; i < l && this._visibleItems[i].indexPath.section === section; ++i){
                 }
                 var item = this._visibleItems[i - 1];
-                this._stickyHeader.position = JSPoint(this._stickyHeader.position.x, item.view.position.y + (1 - item.view.anchorPoint.y) * item.view.bounds.size.height - (1 - this._stickyHeader.anchorPoint.y) * this._stickyHeader.bounds.size.height);
+                this._stickyHeader.position = JSPoint(this._stickyHeader.position.x, Math.min(y + this._stickyHeader.anchorPoint.y * this._stickyHeader.bounds.size.height, item.view.position.y + (1 - item.view.anchorPoint.y) * item.view.bounds.size.height - (1 - this._stickyHeader.anchorPoint.y) * this._stickyHeader.bounds.size.height));
             }else{
                 this._stickyHeader = null;
             }
         }else{
             // Our visible first item is a header, make sure it sticks to the top.
             // Use .transform instead of .position so other logic can still rely on the original position when placing adjacent items
-            firstVisibleItem.transform = JSAffineTransform.Translated(0, Math.max(0, y - (firstVisibleItem.position.y - firstVisibleItem.anchorPoint.y * firstVisibleItem.bounds.size.height)));
+            firstVisibleItem.view.transform = JSAffineTransform.Translated(0, Math.max(0, y - (firstVisibleItem.view.position.y - firstVisibleItem.view.anchorPoint.y * firstVisibleItem.view.bounds.size.height)));
         }
     },
 
@@ -917,6 +918,13 @@ JSClass("UIListView", UIScrollView, {
 
     _updateVisibleItemsNormal: function(){
         var visibleRect = this.contentView.convertRectToView(this.contentView.bounds, this._cellsContainerView);
+
+        if (this._visibleItems.length > 0){
+            var firstVisibleItem = this._visibleItems[0];
+            if (firstVisibleItem.kind === VisibleItem.Kind.header){
+                firstVisibleItem.view.transform = JSAffineTransform.Identity;
+            }
+        }
         
         // 1. Enqueue reusable views before creating new views, so the enqueued views can be dequeued during the create step
         this._enqueueReusableViewsOutsideOfRect(visibleRect);
@@ -1430,17 +1438,16 @@ JSClass("UIListView", UIScrollView, {
         if (this._stickyHeader !== null && section === this._stickyHeader.section){
             header = this._stickyHeader;
             this._stickyHeader = null;
-            return header;
-        }
-        header = this.delegate.headerViewForListViewSection(this, section);
-        if (header === null || header === undefined){
-            throw new Error("Got null/undefined header for section: %d".sprintf(section));
+        }else{
+            header = this.delegate.headerViewForListViewSection(this, section);
+            if (header === null || header === undefined){
+                throw new Error("Got null/undefined header for section: %d".sprintf(section));
+            }
         }
         header.kind = UIListViewHeaderFooterView.Kind.header;
         header.section = section;
         header.bounds = JSRect(JSPoint.Zero, rect.size);
         header.position = JSPoint(rect.origin.x + header.bounds.size.width * header.anchorPoint.x, rect.origin.y + header.bounds.size.height * header.anchorPoint.y);
-        header.expectedPosition = JSPoint(header.position);
         this._styler.updateHeader(header, section);
         return header;
     },
@@ -2210,6 +2217,31 @@ JSClass("UIListView", UIScrollView, {
         return null;
     },
 
+    headerAtSection: function(section){
+        if (this._stickyHeader && this._stickyHeader.section === section){
+            return this._stickyHeader;
+        }
+        var item;
+        for (var i = 0, l = this._visibleItems.length; i < l; ++i){
+            item = this._visibleItems[i];
+            if (item.kind == VisibleItem.Kind.header && item.state !== VisibleItem.State.deleted && item.indexPath.section === section){
+                return item.view;
+            }
+        }
+        return null;
+    },
+
+    footerAtSection: function(section){
+        var item;
+        for (var i = 0, l = this._visibleItems.length; i < l; ++i){
+            item = this._visibleItems[i];
+            if (item.kind == VisibleItem.Kind.footer && item.state !== VisibleItem.State.deleted && item.indexPath.section === section){
+                return item.view;
+            }
+        }
+        return null;
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Scrolling
 
@@ -2342,7 +2374,7 @@ var VisibleItemIterator = function(listView, start){
         return new VisibleItemIterator(listView, start);
     }
     this.listView = listView;
-    this.width = listView._cellsContainerView.bounds.size.width;
+    this.width = listView.bounds.size.width;
     this.cellIterator = null;
     if (start){
         this.item = start;

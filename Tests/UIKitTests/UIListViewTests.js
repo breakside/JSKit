@@ -1,7 +1,7 @@
 // #import UIKit
 // #import TestKit
 // #import "MockWindowServer.js"
-/* global JSClass, TKTestSuite, UIListView, UIListViewCell, MockWindowServer, UIApplication, UIRootWindow, JSFont, JSRect, JSIndexPath, JSPoint */
+/* global JSClass, TKTestSuite, UIListView, UIListViewCell, UIListViewHeaderFooterView, MockWindowServer, UIApplication, UIRootWindow, JSFont, JSRect, JSIndexPath, JSPoint */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals, TKAssertArrayEquals */
 'use strict';
 
@@ -3487,6 +3487,286 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell5.position.y, 140);
         TKAssertFloatEquals(cell4.alpha, 1);
         TKAssertFloatEquals(cell5.alpha, 1);
+    },
+
+    testStickyHeaders: function(){
+        var CustomCell = UIListViewCell.$extend({
+            initWithReuseIdentifier: function(identifier, styler){
+                calls.CustomCellInit.push({identifier: identifier, styler: styler});
+                CustomCell.$super.initWithReuseIdentifier.call(this, identifier, styler);
+            }
+        }, "CustomCell1");
+        var CustomHeader = UIListViewHeaderFooterView.$extend({
+            initWithReuseIdentifier: function(identifier){
+                calls.CustomHeaderInit.push({identifier: identifier});
+                CustomHeader.$super.initWithReuseIdentifier.call(this, identifier);
+            }
+        }, "CustomHeader1");
+        var calls = {
+            CustomCellInit: [],
+            CustomHeaderInit: [],
+            headerViewForListViewSection: [],
+            numberOfSectionsInListView: [],
+            numberOfRowsInListViewSection: [],
+            cellForListViewAtIndexPath: []
+        };
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 120));
+        listView.registerCellClassForReuseIdentifier(CustomCell, "test");
+        listView.registerHeaderFooterClassForReuseIdentifier(CustomHeader, "header");
+        listView.rowHeight = 40;
+        listView.headerHeight = 20;
+        listView.headersStickToTop = true;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                calls.numberOfSectionsInListView.push({listView: listView});
+                return 3;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                calls.numberOfRowsInListViewSection.push({listView: listView, sectionIndex: sectionIndex});
+                return 3;
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                calls.cellForListViewAtIndexPath.push({listView: listView, indexPath: indexPath});
+                var cell = listView.dequeueReusableCellWithIdentifier("test", indexPath);
+                return cell;
+            },
+
+            headerViewForListViewSection: function(listView, section){
+                calls.headerViewForListViewSection.push({listView: listView, section: section});
+                var header = listView.dequeueReusableHeaderWithIdentifier("header", section);
+                return header;
+            }
+        };
+
+        this.window.contentView.addSubview(listView);
+        this.windowServer.displayServer.updateDisplay();
+        TKAssert(!listView.layer.needsLayout());
+        listView.reloadData();
+        TKAssert(listView.layer.needsLayout());
+        TKAssertExactEquals(calls.numberOfSectionsInListView.length, 0);
+        TKAssertExactEquals(calls.numberOfRowsInListViewSection.length, 0);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 0);
+        TKAssertExactEquals(calls.headerViewForListViewSection.length, 0);
+        this.windowServer.displayServer.updateDisplay();
+        TKAssert(!listView.layer.needsLayout());
+        TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
+        TKAssertExactEquals(calls.numberOfSectionsInListView[0].listView, listView);
+        TKAssertGreaterThanOrEquals(calls.numberOfRowsInListViewSection.length, 3);
+        TKAssertLessThanOrEquals(calls.numberOfRowsInListViewSection.length, 6);
+        TKAssertExactEquals(calls.numberOfRowsInListViewSection[0].listView, listView);
+        TKAssertExactEquals(calls.numberOfRowsInListViewSection[0].sectionIndex, 0);
+        TKAssertExactEquals(calls.numberOfRowsInListViewSection[1].listView, listView);
+        TKAssertExactEquals(calls.numberOfRowsInListViewSection[1].sectionIndex, 1);
+        TKAssertExactEquals(calls.numberOfRowsInListViewSection[2].listView, listView);
+        TKAssertExactEquals(calls.numberOfRowsInListViewSection[2].sectionIndex, 2);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 3);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath[0].listView, listView);
+        TKAssertObjectEquals(calls.cellForListViewAtIndexPath[0].indexPath, JSIndexPath(0,0));
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath[1].listView, listView);
+        TKAssertObjectEquals(calls.cellForListViewAtIndexPath[1].indexPath, JSIndexPath(0,1));
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath[2].listView, listView);
+        TKAssertObjectEquals(calls.cellForListViewAtIndexPath[2].indexPath, JSIndexPath(0,2));
+        TKAssertExactEquals(calls.CustomCellInit.length, 3);
+        TKAssertExactEquals(calls.headerViewForListViewSection.length, 1);
+        TKAssertExactEquals(calls.headerViewForListViewSection[0].listView, listView);
+        TKAssertExactEquals(calls.headerViewForListViewSection[0].section, 0);
+        TKAssertExactEquals(calls.CustomHeaderInit.length, 1);
+
+        var header0 = listView.headerAtSection(0);
+        TKAssertNotNull(header0);
+        var header1 = listView.headerAtSection(1);
+        TKAssertNull(header1);
+        TKAssertFloatEquals(header0.frame.origin.x, 0);
+        TKAssertFloatEquals(header0.frame.origin.y, 0);
+
+        listView.contentOffset = JSPoint(0, 10);
+        TKAssert(!listView.layer.needsLayout());
+        TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 3);
+        TKAssertExactEquals(calls.CustomCellInit.length, 3);
+        TKAssertExactEquals(calls.headerViewForListViewSection.length, 1);
+        TKAssertExactEquals(calls.CustomHeaderInit.length, 1);
+        header0 = listView.headerAtSection(0);
+        TKAssertNotNull(header0);
+        TKAssertFloatEquals(header0.frame.origin.x, 0);
+        TKAssertFloatEquals(header0.frame.origin.y, 10);
+
+        listView.contentOffset = JSPoint(0, 30);
+        TKAssert(!listView.layer.needsLayout());
+        TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 3);
+        TKAssertExactEquals(calls.CustomCellInit.length, 3);
+        TKAssertExactEquals(calls.headerViewForListViewSection.length, 3);
+        TKAssertExactEquals(calls.headerViewForListViewSection[1].listView, listView);
+        TKAssertExactEquals(calls.headerViewForListViewSection[1].section, 1);
+        TKAssertExactEquals(calls.headerViewForListViewSection[2].listView, listView);
+        TKAssertExactEquals(calls.headerViewForListViewSection[2].section, 0);
+        TKAssertExactEquals(calls.CustomHeaderInit.length, 2);
+        header0 = listView.headerAtSection(0);
+        TKAssertNotNull(header0);
+        TKAssertFloatEquals(header0.frame.origin.x, 0);
+        TKAssertFloatEquals(header0.frame.origin.y, 30);
+        header1 = listView.headerAtSection(1);
+        TKAssertNotNull(header1);
+        TKAssertFloatEquals(header1.frame.origin.x, 0);
+        TKAssertFloatEquals(header1.frame.origin.y, 140);
+
+        listView.contentOffset = JSPoint(0, 110);
+        TKAssert(!listView.layer.needsLayout());
+        TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 5);
+        TKAssertExactEquals(calls.CustomCellInit.length, 3);
+        TKAssertExactEquals(calls.headerViewForListViewSection.length, 3);
+        TKAssertExactEquals(calls.CustomHeaderInit.length, 2);
+        header0 = listView.headerAtSection(0);
+        TKAssertNotNull(header0);
+        TKAssertFloatEquals(header0.frame.origin.x, 0);
+        TKAssertFloatEquals(header0.frame.origin.y, 110);
+        header1 = listView.headerAtSection(1);
+        TKAssertNotNull(header1);
+        TKAssertFloatEquals(header1.frame.origin.x, 0);
+        TKAssertFloatEquals(header1.frame.origin.y, 140);
+
+        listView.contentOffset = JSPoint(0, 130);
+        TKAssert(!listView.layer.needsLayout());
+        TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 6);
+        TKAssertExactEquals(calls.CustomCellInit.length, 4);
+        TKAssertExactEquals(calls.headerViewForListViewSection.length, 3);
+        TKAssertExactEquals(calls.CustomHeaderInit.length, 2);
+        header0 = listView.headerAtSection(0);
+        TKAssertNotNull(header0);
+        TKAssertFloatEquals(header0.frame.origin.x, 0);
+        TKAssertFloatEquals(header0.frame.origin.y, 120);
+        header1 = listView.headerAtSection(1);
+        TKAssertNotNull(header1);
+        TKAssertFloatEquals(header1.frame.origin.x, 0);
+        TKAssertFloatEquals(header1.frame.origin.y, 140);
+
+        listView.contentOffset = JSPoint(0, 200);
+        TKAssert(!listView.layer.needsLayout());
+        TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 7);
+        TKAssertExactEquals(calls.CustomCellInit.length, 4);
+        TKAssertExactEquals(calls.headerViewForListViewSection.length, 5);
+        TKAssertExactEquals(calls.CustomHeaderInit.length, 2);
+        header0 = listView.headerAtSection(0);
+        TKAssertNull(header0);
+        header1 = listView.headerAtSection(1);
+        TKAssertNotNull(header1);
+        var header2 = listView.headerAtSection(2);
+        TKAssertNotNull(header2);
+        TKAssertFloatEquals(header1.frame.origin.x, 0);
+        TKAssertFloatEquals(header1.frame.origin.y, 200);
+        TKAssertFloatEquals(header2.frame.origin.x, 0);
+        TKAssertFloatEquals(header2.frame.origin.y, 280);
+
+        listView.contentOffset = JSPoint(0, 190);
+        TKAssert(!listView.layer.needsLayout());
+        TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 8);
+        TKAssertExactEquals(calls.CustomCellInit.length, 4);
+        TKAssertExactEquals(calls.headerViewForListViewSection.length, 5);
+        TKAssertExactEquals(calls.CustomHeaderInit.length, 2);
+        header0 = listView.headerAtSection(0);
+        TKAssertNull(header0);
+        header1 = listView.headerAtSection(1);
+        TKAssertNotNull(header1);
+        header2 = listView.headerAtSection(2);
+        TKAssertNotNull(header2);
+        TKAssertFloatEquals(header1.frame.origin.x, 0);
+        TKAssertFloatEquals(header1.frame.origin.y, 190);
+        TKAssertFloatEquals(header2.frame.origin.x, 0);
+        TKAssertFloatEquals(header2.frame.origin.y, 280);
+
+        listView.contentOffset = JSPoint(0, 150);
+        TKAssert(!listView.layer.needsLayout());
+        TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 8);
+        TKAssertExactEquals(calls.CustomCellInit.length, 4);
+        TKAssertExactEquals(calls.headerViewForListViewSection.length, 5);
+        TKAssertExactEquals(calls.CustomHeaderInit.length, 2);
+        header0 = listView.headerAtSection(0);
+        TKAssertNull(header0);
+        header1 = listView.headerAtSection(1);
+        TKAssertNotNull(header1);
+        header2 = listView.headerAtSection(2);
+        TKAssertNull(header2);
+        TKAssertFloatEquals(header1.frame.origin.x, 0);
+        TKAssertFloatEquals(header1.frame.origin.y, 150);
+
+        listView.contentOffset = JSPoint(0, 130);
+        TKAssert(!listView.layer.needsLayout());
+        TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 9);
+        TKAssertExactEquals(calls.CustomCellInit.length, 4);
+        TKAssertExactEquals(calls.headerViewForListViewSection.length, 6);
+        TKAssertExactEquals(calls.CustomHeaderInit.length, 2);
+        header0 = listView.headerAtSection(0);
+        TKAssertNotNull(header0);
+        header1 = listView.headerAtSection(1);
+        TKAssertNotNull(header1);
+        header2 = listView.headerAtSection(2);
+        TKAssertNull(header2);
+        TKAssertFloatEquals(header0.frame.origin.x, 0);
+        TKAssertFloatEquals(header0.frame.origin.y, 120);
+        TKAssertFloatEquals(header1.frame.origin.x, 0);
+        TKAssertFloatEquals(header1.frame.origin.y, 140);
+
+        listView.contentOffset = JSPoint(0, 70);
+        TKAssert(!listView.layer.needsLayout());
+        TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 10);
+        TKAssertExactEquals(calls.CustomCellInit.length, 4);
+        TKAssertExactEquals(calls.headerViewForListViewSection.length, 6);
+        TKAssertExactEquals(calls.CustomHeaderInit.length, 2);
+        header0 = listView.headerAtSection(0);
+        TKAssertNotNull(header0);
+        header1 = listView.headerAtSection(1);
+        TKAssertNotNull(header1);
+        header2 = listView.headerAtSection(2);
+        TKAssertNull(header2);
+        TKAssertFloatEquals(header0.frame.origin.x, 0);
+        TKAssertFloatEquals(header0.frame.origin.y, 70);
+        TKAssertFloatEquals(header1.frame.origin.x, 0);
+        TKAssertFloatEquals(header1.frame.origin.y, 140);
+
+        listView.contentOffset = JSPoint(0, 20);
+        TKAssert(!listView.layer.needsLayout());
+        TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 11);
+        TKAssertExactEquals(calls.CustomCellInit.length, 4);
+        TKAssertExactEquals(calls.headerViewForListViewSection.length, 6);
+        TKAssertExactEquals(calls.CustomHeaderInit.length, 2);
+        header0 = listView.headerAtSection(0);
+        TKAssertNotNull(header0);
+        header1 = listView.headerAtSection(1);
+        TKAssertNull(header1);
+        header2 = listView.headerAtSection(2);
+        TKAssertNull(header2);
+        TKAssertFloatEquals(header0.frame.origin.x, 0);
+        TKAssertFloatEquals(header0.frame.origin.y, 20);
+
+        listView.contentOffset = JSPoint(0, 0);
+        TKAssert(!listView.layer.needsLayout());
+        TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 11);
+        TKAssertExactEquals(calls.CustomCellInit.length, 4);
+        TKAssertExactEquals(calls.headerViewForListViewSection.length, 6);
+        TKAssertExactEquals(calls.CustomHeaderInit.length, 2);
+        header0 = listView.headerAtSection(0);
+        TKAssertNotNull(header0);
+        header1 = listView.headerAtSection(1);
+        TKAssertNull(header1);
+        header2 = listView.headerAtSection(2);
+        TKAssertNull(header2);
+        TKAssertFloatEquals(header0.frame.origin.x, 0);
+        TKAssertFloatEquals(header0.frame.origin.y, 0);
     },
 
 });

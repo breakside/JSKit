@@ -97,7 +97,7 @@ JSClass('UILabel', UIView, {
                 attachment = attributes[JSAttributedString.Attribute.attachment];
                 if (attachment && attachment.isKindOfClass(UITextAttachmentView)){
                     rect = this.layer.textLayoutManager.rectForCharacterAtIndex(index);
-                    attachmentLocation = location.subtract(rect.origin);
+                    attachmentLocation = location.subtracting(rect.origin);
                     attachmentHit = attachment.view.hitTest(attachmentLocation);
                     if (attachmentHit !== null){
                         return attachmentHit;
@@ -111,7 +111,7 @@ JSClass('UILabel', UIView, {
             attachment = attributes[JSAttributedString.Attribute.attachment];
             if (attachment && attachment.isKindOfClass(UITextAttachmentView)){
                 rect = this.layer.textLayoutManager.rectForCharacterAtIndex(index);
-                attachmentLocation = location.subtract(rect.origin);
+                attachmentLocation = location.subtracting(rect.origin);
                 attachmentHit = attachment.view.hitTest(attachmentLocation);
                 if (attachmentHit !== null){
                     return attachmentHit;

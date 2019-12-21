@@ -355,7 +355,7 @@ JSClass("UITextField", UIControl, {
                 attachment = attributes[JSAttributedString.Attribute.attachment];
                 if (attachment && attachment.isKindOfClass(UITextAttachmentView)){
                     rect = this._textLayer.textLayoutManager.rectForCharacterAtIndex(index);
-                    attachmentLocation = locationInText.subtract(rect.origin);
+                    attachmentLocation = locationInText.subtracting(rect.origin);
                     attachmentHit = attachment.view.hitTest(attachmentLocation);
                     if (attachmentHit !== null){
                         return attachmentHit;
@@ -369,7 +369,7 @@ JSClass("UITextField", UIControl, {
             attachment = attributes[JSAttributedString.Attribute.attachment];
             if (attachment && attachment.isKindOfClass(UITextAttachmentView)){
                 rect = this._textLayer.textLayoutManager.rectForCharacterAtIndex(index);
-                attachmentLocation = locationInText.subtract(rect.origin);
+                attachmentLocation = locationInText.subtracting(rect.origin);
                 attachmentHit = attachment.view.hitTest(attachmentLocation);
                 if (attachmentHit !== null){
                     return attachmentHit;
