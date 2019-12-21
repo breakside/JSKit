@@ -73,7 +73,7 @@ JSClass("HTMLBuilder", Builder, {
         this.frameworksURL = this.cacheBustingURL.appendingPathComponent("Frameworks");
         this.resourcesURL = this.wwwURL.appendingPathComponent('Resources', true);
         this.workerURL = this.cacheBustingURL.appendingPathComponent("JSDispatch-worker.js");
-        // this.serviceWorkerURL = this.wwwURL.appendingPathComponent("service-worker.js");
+        this.serviceWorkerURL = this.wwwURL.appendingPathComponent("service-worker.js");
         var exists = await this.fileManager.itemExistsAtURL(this.wwwURL);
         if (exists){
             this.printer.setStatus("Cleaning old build...");
@@ -329,7 +329,17 @@ JSClass("HTMLBuilder", Builder, {
     bundleWWW: async function(){
         this.wwwCSSPaths = [];
         this.wwwPaths = [];
-        this.manifestURL = this.wwwURL.appendingPathComponent("manifest.appcache");
+        // As of Dec 2019...
+        // Browsers are in the process of removing the appcache API soon (Chrome
+        // says it'll be gone by April 2020), so there's no point to contunue
+        // supporting it.  Keeping this `manifestURL` `null` will disable the
+        // appcache behavior in the built application, but has the advantage of
+        // keeping our builder code otherwise as-is should we need to reference
+        // it or turn it back on (like for IE 11 support).  The way we use
+        // service workers (the appcache replacement API) is to essentially
+        // mimic the way appcache worked because although others didn't like it,
+        // appcache was perfect for our use case.
+        // this.manifestURL = this.wwwURL.appendingPathComponent("manifest.appcache");
 
         await this.buildCSS();
         await this.buildPreflight();
