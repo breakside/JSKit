@@ -10,7 +10,7 @@ window.HTMLAppBootstrapper = function(rootElement, jskitapp){
         return new HTMLAppBootstrapper(rootElement, jskitapp);
     }
     this.rootElement = rootElement;
-    this.preflightID = jskitapp.preflightID;
+    this.preflightID = jskitapp.preflightId;
     this.preflightSrc = jskitapp.preflightSrc;
     this.serviceWorkerSrc = jskitapp.serviceWorkerSrc;
     this.appSrc = jskitapp.appSrc;
@@ -271,6 +271,9 @@ HTMLAppBootstrapper.prototype = {
                     bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.updateError);
                 });
             }
+        }, function(error){
+            logger.error(error);
+            bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.updateError);
         });
     },
 
