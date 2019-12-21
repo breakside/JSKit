@@ -133,7 +133,6 @@ JSClass("JavascriptCompilation", JSObject, {
         var mapJSON = JSON.stringify(map, null, 2);
         await this.fileManager.createFileAtURL(mapURL, mapJSON.utf8());
         this.outputChunks.push("\n//# sourceMappingURL=%s".sprintf(mapURL.lastPathComponent).utf8());
-        await this.fileManager.createFileAtURL(mapURL.appendingFileExtension('.json'), JSON.stringify(this.mappings, null, 2).utf8());
 
         // write
         var data = JSData.initWithChunks(this.outputChunks);
@@ -182,7 +181,7 @@ var vlq = function(n){
     }
     n = (n << 1) | negative;
     var b64 = "";
-    while (n > 32){
+    while (n >= 32){
         b64 += base64EncodingMap[0x20 | (n & 0x1F)];
         n = n >> 5;
     }
