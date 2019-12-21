@@ -8,20 +8,15 @@ For an in-depth explanation of motivation and rationale, consult the
 [Goals Document](Documenation/Goals.md).
 
 
-Creating a JSKit-based Project
-==============================
+Developer Install
+=================
 
-# `$ mkdir MyProject; cd MyProject`
-# `$ npm install jskit`
-# `$ npx jskit init <project-type>`
-# `$ npx jskit make MyProject --debug`
-# Follow the instructions output by `jskit make` to run the application
+If you're interested in developing `JSKit`, feel free to grab the code and
+get started!
 
-
-Development Install
-==============================
-
-# `$ git clone url/to/JSKit.git`
+# `$ git clone https://github.com/breakside/JSKit.git`
 # `$ cd JSKit`
 # `$ npm install`
 
+The `npm install` line will do a bootstrap build, using the `JSKit` sources
+to conduct the first build of the `jskit` command line utility.
