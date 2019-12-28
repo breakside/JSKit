@@ -1,48 +1,39 @@
 // #import "DocTopicBasedComponent.js"
-/* global JSClass, DocTopicBasedComponent, DocClass */
+/* global JSClass, DocTopicBasedComponent, DocProtocol */
 'use strict';
 
- JSClass("DocClass", DocTopicBasedComponent, {
+ JSClass("DocProtocol", DocTopicBasedComponent, {
 
-    kind: 'class',
-    defaultChildKind: 'property',
+    kind: 'protocol',
+    defaultChildKind: 'method',
 
     // --------------------------------------------------------------------
     // MARK: - Creating and populating
 
     extractPropertiesFromInfo: async function(info, documentation){
-        await DocClass.$super.extractPropertiesFromInfo.call(this, info, documentation);
+        await DocProtocol.$super.extractPropertiesFromInfo.call(this, info, documentation);
         if (info.inherits){
             this.inherits = info.inherits;
-        }
-        if (info.anonymous){
-            this.anonymous = info.anonymous;
         }
     },
     
     inherits: null,
-    anonymous: false,
 
     // --------------------------------------------------------------------
     // MARK: - Naming
 
     getDisplayNameForKind: function(){
-        if (this.anonymous){
-            return 'Anonymous Class';
-        }
-        return 'Class';
+        return 'Protocol';
     },
 
     // --------------------------------------------------------------------
     // MARK: - Generating HTML
 
     htmlArticleElements: function(document){
-        var elements = DocClass.$super.htmlArticleElements.call(this, document);
-        if (!this.anonymous){
-            var declaration = this.codeSectionElement(document, "Declaration", this.declarationCode());
-            declaration.setAttribute("class", "declaration");
-            elements.splice(1, 0, declaration);
-        }
+        var elements = DocProtocol.$super.htmlArticleElements.call(this, document);
+        var declaration = this.codeSectionElement(document, "Declaration", this.declarationCode());
+        declaration.setAttribute("class", "declaration");
+        elements.splice(1, 0, declaration);
 
         if (this.inherits){
             let inherits = document.createElement('section');
@@ -66,10 +57,11 @@
     },
 
     declarationCode: function(){
+        var parent = 'JSProtocol';
         if (this.inherits){
-            return ["class %s extends %s".sprintf(this.name, this.inherits)];
+            parent = this.inherits;
         }
-        return ["class %s".sprintf(this.name)];
+        return ['JSProtocol("%s", %s, { ... })'.sprintf(this.name, parent)];
     }
 
  });

@@ -1,0 +1,41 @@
+kind: protocol
+introduced: "1.0.0"
+summary: A WebSocket stream delegate that receives data an connection events
+toipcs:
+  -
+    name: Data
+    members:
+      -
+        name: taskDidOpenStream
+        arguments:
+          -
+            name: task
+            type: JSURLSessionStreamTask
+            summary: The task that opened a connection
+      -
+        name: taskDidCloseStream
+        arguments:
+          -
+            name: task
+            type: JSURLSessionStreamTask
+            summary: The task that closed a connection
+      -
+        name: taskDidReceiveStreamData
+        arguments:
+          -
+            name: task
+            type: JSURLSessionStreamTask
+            summary: The task that received data
+          -
+            name: data
+            type: JSData
+            summary: The data that was received
+            description: |
+              The stream data is completely user-defined
+      -
+        name: taskDidReceiveStreamError
+        arguments:
+          -
+            name: task
+            type: JSURLSessionStreamTask
+            summary: The task that received an error

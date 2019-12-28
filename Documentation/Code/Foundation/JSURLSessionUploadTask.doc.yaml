@@ -1,0 +1,13 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSURLSessionDataTask
+summary: A URL sesssion task for uploading data
+description: |
+  An upload task is functionally identical to a `JSURLSessionDataTask`, but
+  is created with the `JSURLSession.uploadTaskWithRequest()` as a convenience.
+
+  It's possible that future versions will differentiate this upload task from
+  a regular data task.
+
+  Also see `JSURLSessionTask` for properties and methods defined on the base
+  task class that apply here.

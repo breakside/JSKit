@@ -260,7 +260,9 @@ HTMLAppBootstrapper.prototype = {
             }else{
                 bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.installing);
                 container.register(bootstrapper.serviceWorkerSrc).then(function(registration){
-                    if (registration.installing){
+                    if (registration.active){
+                        bootstrapper.load();
+                    }else if (registration.installing){
                         container.addEventListener('message', bootstrapper);
                         registration.installing.addEventListener('statechange', bootstrapper);
                     }else{

@@ -1,5 +1,5 @@
 // #import "JSFormFieldMap.js"
-/* global JSClass, JSObject, JSFormFieldMap */
+/* global JSClass, JSObject, JSFormFieldMap, JSArguments */
 'use strict';
 
 (function(){
@@ -362,6 +362,13 @@ var wrapLine = function(line, maxLength, indent){
         lines.push(line);
     }
     return lines.join("\n" + indent);
+};
+
+JSArguments.Kind = {
+    deafult: undefined,
+    flag: "flag",
+    positional: "positional",
+    unknown: "unknown"
 };
 
 })();

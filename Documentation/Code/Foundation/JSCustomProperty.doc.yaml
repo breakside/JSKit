@@ -1,0 +1,115 @@
+kind: class
+introduced: "1.0.0"
+summary: Abstract base class for custom properties
+description: |
+  When defining a class with `JSClass()`, a dynamic getter/setter property
+  can be created using subclasses of `JSCustomProperty()`.
+
+  ````
+  JSClass("Person", JSObject, {
+
+    firstName: null,
+    lastName: null,
+    fullName: JSDynamicProperty(),
+
+    getFullName: function(){
+      return this.firstName + ' ' + this.lastName;
+    }
+
+    setFullName: function(name){
+      var parts = name.split(" ");
+      this.lastName = parts.pop();
+      this.lastName = parts.join(' ');
+    }
+
+  })
+  ````
+
+  Examples of custom properties are:
+  - `JSReadOnlyProperty`
+  - `JSDynamicProperty`
+  - `JSLazyInitProperty`
+
+  Creating a Subclass
+  ===================
+  While `Foundation` provides a few common custom property types, you can
+  also create your own custom properties by subclassing `JSCustomProperty`.
+
+  The subclassing procedure is very primitive compared to how `JSClass` works.
+
+  Here's a simple read-only property that calls a getter method
+
+  ````
+  JSGlobalObject.ReadOnlyProperty = function(){
+      if (this === undefined){
+          return new ReadOnlyProperty();
+      }
+  };
+
+  ReadOnlyProperty.prototype = Object.create(JSCustomProperty.prototype);
+
+  ReadOnlyProperty.prototype.define = function(cls, propertyName, extensions){
+      var getterName = cls.nameOfGetMethodForKey(propertyName);
+      var getter = extensions[getterName];
+      Object.defineProperty(cls.prototype, propertyName, {
+          configurable: true,
+          enumerable: false,
+          get: getter
+      });
+  };
+  ````
+
+  1. First a constructor is defined.  Your constructor may take any aguments
+     necessary.
+  2. Next, the subclass prototype is created by extending
+     `JSCustomProperty.prototype` via `Object.create()`
+  3. Finally, a `define()` method is added to the subclass
+topics:
+  -
+    name: Required Subclass Methods
+    members:
+      -
+        name: define
+        kind: method
+        summary: Hook up actual class prototype properties
+        description: |
+          During `JSClass` initialization, custom properties are recognized and
+          this `define()` method is called on each as a way of letting the
+          custom property do whatever it needs to do in order to hook up
+          the class prototype properties.
+
+          You'll probably end up calling
+          ````
+          Object.defineProperty(cls.prototype, propertyName, { ... })
+          ````
+          at some point.
+
+          For example, `JSReadOnlyProperty`'s `define` method adds a property
+          to the class prototype that calls the getter for the property name.
+
+          Here is a simplfied version:
+          ````
+          JSReadOnlyProperty.prototype.define = function(cls, propertyName, extensions){
+              var getterName = cls.nameOfGetMethodForKey(propertyName);
+              var getter = extensions[getterName];
+              Object.defineProperty(cls.prototype, propertyName, {
+                  configurable: true,
+                  enumerable: false,
+                  get: getter
+              });
+          };
+          ````
+        arguments:
+          -
+            name: cls
+            type: JSClass
+            summary: The class on which we're defining a property
+          -
+            name: propertyName
+            type: String
+            summary: The name of the property being defined
+          -
+            name: extensions
+            type: dictionary
+            summary: The other properties being created on `cls`, which may be
+              referenced when defining this property.

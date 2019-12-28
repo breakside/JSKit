@@ -6,6 +6,7 @@
 
     kind: 'enum',
     options: null,
+    uniqueSuffix: null,
 
     extractPropertiesFromInfo: async function(info, documentation){
         if (info.options){
@@ -13,6 +14,20 @@
         }else{
             this.options = [];
         }
+        if (info.suffix){
+            this.uniqueSuffix = info.suffix;
+        }
+    },
+
+    getTitle: function(){
+        return "%s.%s".sprintf(this.parent.name, this.name);
+    },
+
+    getUniqueName: function(){
+        if (this.uniqueSuffix){
+            return "%s-%s".sprintf(this.name.toLowerCase(), this.uniqueSuffix);
+        }
+        return this.name.toLowerCase();
     },
 
     htmlArticleElements: function(document){
@@ -35,6 +50,10 @@
                 let dt = dl.appendChild(document.createElement("dt"));
                 let dd = dl.appendChild(document.createElement("dd"));
                 dt.appendChild(document.createTextNode(option.name));
+                if (option.value){
+                    dt.appendChild(document.createTextNode(" = "));
+                    dt.appendChild(document.createTextNode(option.value));
+                }
                 if (option.summary){
                     let markdown = this.createMarkdownWithString(option.summary);
                     let children = markdown.htmlElementsForDocument(document);

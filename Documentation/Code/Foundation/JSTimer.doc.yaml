@@ -1,0 +1,121 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Run actions after a timeout interval, repeating if desired
+topics:
+  -
+    name: Creating a Timer
+    members:
+      -
+        name: scheduledTimerWithInterval
+        kind: method
+        static: true
+        type: JSTimer
+        return: A timer that has already been scheduled to run
+        summary: Create and schedule a non-repeating timer
+        arguments:
+          -
+            name: interval
+            type: Number
+            summary: The timeout, in seconds, before the `action` runs
+          -
+            name: action
+            type: function()
+            summary: The function to call when the interval has passed
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling `action`
+        description: |
+          Almost always you'll want to schedule a timer immedately after
+          creating it.
+
+          This factory method is precicely that shortcut for:
+
+          ````
+          var timer = JSTimer.initWithInterval(interval, false, action, target);
+          timer.schedule()
+          ````
+      -
+        name: scheduledRepeatingTimerWithInterval
+        kind: method
+        static: true
+        type: JSTimer
+        return: A timer that has already been scheduled to run
+        summary: Create and schedule a repeating timer
+        arguments:
+          -
+            name: interval
+            type: Number
+            summary: The timeout, in seconds, between invocations of `action`
+          -
+            name: action
+            type: function()
+            summary: The function to call each time the interval has passed
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling `action`
+        description: |
+          Almost always you'll want to schedule a timer immedately after
+          creating it.
+
+          This factory method is precicely that shortcut for:
+
+          ````
+          var timer = JSTimer.initWithInterval(interval, true, action, target);
+          timer.schedule()
+          ````
+      -
+        name: initWithInterval
+        kind: init
+        summary: Create a timer without scheduling it to run yet
+        arguments:
+          -
+            name: interval
+            type: Number
+            summary: The timeout, in seconds, between invocations of `action`\
+          -
+            name: repeats
+            type: boolean
+            summary: Whether the timer should repeat or run only once
+          -
+            name: action
+            type: function()
+            summary: The function to call each time the interval has passed
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling `action`
+        description: |
+          Creates a timer, but does not schedule it.
+
+          For the timer to actually run, you'll need to call `schedule()`
+
+          It is often simpler to call the shortcut methods:
+          - `scheduledTimerWithInterval()`
+          - `scheduledRepeatingTimerWithInterval()`
+  -
+    name: Scheduling
+    members:
+      -
+        name: schedule
+        kind: method
+        summary: Schedule an initialized timer to run
+        description: |
+          You only need to call this if you created a timer using
+          `initWithInterval()`.
+
+          If instead you used `scheduledTimerWithInterval()` or
+          `scheduledRepeatingTimerWithInterval()`, the returned timer already
+          has called `schedule()`
+      -
+        name: invalidate
+        kind: method
+        summary: Cancel a timer from firing
+        description: |
+          Once a timer is schedule, a call to `invalidate()` will prevent the
+          timer from firing again (or at all if it has not yet fired).

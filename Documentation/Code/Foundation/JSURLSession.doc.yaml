@@ -1,0 +1,479 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Create and manage asynchronous HTTP requests and responses
+description: |
+  A URL session manages HTTP requests and responses with common settings and
+  cookies.
+
+  Requests are encapuslated in `JSURLRequest` objects while responses are in the
+  form of `JSURLResponse` objects.
+
+  A session can launch request tasks that:
+  - Return data, via a `JSURLSessionDataTask`
+  - Upload data, via a `JSURLSessionUploadTask`
+  - Connect to a WebSocket, via a `JSURLSessionStreamTask`
+topics:
+  -
+    name: Creating a Session
+    members:
+      - 
+        name: shared
+        static: true
+        type: JSURLSession
+        summary: The default session to use
+  -
+    name: Session Delegate
+    members:
+      - JSURLSessionDelegate
+      -
+        name: delegate
+        type: JSURLSessionDelegate
+        summary: The optional delegate object to receive calls when certain
+          events occur.
+        description: |
+          The delegate can be used instead of providing task callbacks or
+          checking task promises.
+
+          Most of the time, you'll be better served by the callbacks and
+          promises than a delegate.
+  -
+    name: Making Requests
+    members:
+      -
+        name: dataTaskWithURL
+        kind: method
+        type: JSURLSessionDataTask
+        return: A paused task for the request.  Call `resume()` on the task
+          to start the request.
+        summary: Create a basic HTTP request task that uses a callback when
+          it's done.
+        description: |
+          A messaging app that needs to load messages from the server might
+          look something like this:
+          ````
+          // #import Foundation
+          'use strict';
+
+          var baseURL = JSURL.initWithString("http://api.breakside.io/1.0/");
+
+          JSClass("MessagesViewController", UIViewController, {
+
+            loadTask: null,
+            messages: null,
+
+            loadMessages: function(){
+              if (this.loadTask !== null){
+                return;
+              }
+              var url = baseURL.appendingPathComponent("messages");
+              this.loadTask = JSURLSession.shared.dataTaskWithURL(url, this.handleLoadResponse, this);
+              this.loadTask.resume();
+            },
+
+            handleLoadResponse: function(error){
+              var task = this.loadTask;
+              this.loadTask = null;
+              if (error !== null){
+                // indicate error in UI
+                return;
+              }
+              var response = task.response;
+              if (respose.statusClass !== JSURLResponse.StatusClass.success){
+                // indicate error in UI
+                return;
+              }
+              this.messages = response.object;
+            }
+
+          });
+          ````
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The URL to request
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: error
+                  type: Error
+                  summary: If not `null`, indicates that an error occurrred
+                    during the request.
+            summary: |
+              A completion handler that is called when the request
+              is done.  If there's no error, this task's `response` property
+              holds the HTTP response information.
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+      -
+        name: dataTaskWithURL
+        suffix: promise
+        kind: method
+        type: JSURLSessionDataTask
+        return: A paused task for the request.  Call `resume()` on the task
+          to start the request.
+        summary: Create a basic HTTP request task that uses a promise when
+          it's done.
+        description: |
+          A promise-based task will return a `Promise` when calling `resume`
+          instead of relying on a callback function.
+
+          A messaging app that needs to load messages from the server might
+          look something like this:
+          ````
+          // #import Foundation
+          'use strict';
+
+          var baseURL = JSURL.initWithString("http://api.breakside.io/1.0/");
+
+          JSClass("MessagesViewController", UIViewController, {
+
+            messages: null,
+
+            loadMessages: function(){
+              var url = baseURL.appendingPathComponent("messages");
+              var task = JSURLSession.shared.dataTaskWithURL(url);
+              var controller = this;
+              task.resume().then(function(response){
+                if (respose.statusClass !== JSURLResponse.StatusClass.success){
+                  // indicate error in UI
+                  return;
+                }
+                controller.messages = response.object;
+              }, function(error){
+                // indicate error in UI
+              });
+            },
+
+          });
+          ````
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The URL to request
+      -
+        name: dataTaskWithRequest
+        kind: method
+        type: JSURLSessionDataTask
+        return: A paused task for the request.  Call `resume()` on the task
+          to start the request.
+        summary: Create a basic HTTP request task that uses a callback when
+          it's done.
+        description: |
+          A messaging app that needs to load messages from the server might
+          look something like this:
+          ````
+          // #import Foundation
+          'use strict';
+
+          var baseURL = JSURL.initWithString("http://api.breakside.io/");
+
+          JSClass("MessagesViewController", UIViewController, {
+
+            loadTask: null,
+            messages: null,
+
+            loadMessages: function(){
+              if (this.loadTask !== null){
+                return;
+              }
+              var url = baseURL.appendingPathComponent("messages");
+              var request = JSURLRequest.initWithURL(url);
+              request.headerMap.add('X-Breakside-Version', "1.0")
+              this.loadTask = JSURLSession.shared.dataTaskWithRequest(request, this.handleLoadResponse, this);
+              this.loadTask.resume();
+            },
+
+            handleLoadResponse: function(error){
+              var task = this.loadTask;
+              this.loadTask = null;
+              if (error !== null){
+                // indicate error in UI
+                return;
+              }
+              var response = task.response;
+              if (respose.statusClass !== JSURLResponse.StatusClass.success){
+                // indicate error in UI
+                return;
+              }
+              this.messages = response.object;
+            }
+
+          });
+          ````
+        arguments:
+          -
+            name: request
+            type: JSURLRequest
+            summary: The request object
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: error
+                  type: Error
+                  summary: If not `null`, indicates that an error occurrred
+                    during the request.
+            summary: |
+              A completion handler that is called when the request
+              is done.  If there's no error, this task's `response` property
+              holds the HTTP response information.
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+      -
+        name: dataTaskWithRequest
+        suffix: promise
+        kind: method
+        type: JSURLSessionDataTask
+        return: A paused task for the request.  Call `resume()` on the task
+          to start the request.
+        summary: Create a basic HTTP request task that uses a promise when
+          it's done.
+        description: |
+          A promise-based task will return a `Promise` when calling `resume`
+          instead of relying on a callback function.
+
+          A messaging app that needs to load messages from the server might
+          look something like this:
+          ````
+          // #import Foundation
+          'use strict';
+
+          var baseURL = JSURL.initWithString("http://api.breakside.io/");
+
+          JSClass("MessagesViewController", UIViewController, {
+
+            messages: null,
+
+            loadMessages: function(){
+              var url = baseURL.appendingPathComponent("messages");
+              var request = JSURLRequest.initWithURL(url);
+              request.headerMap.add("X-Breakside-Version", "1.0");
+              var task = JSURLSession.shared.dataTaskWithRequest(url);
+              var controller = this;
+              task.resume().then(function(response){
+                if (respose.statusClass !== JSURLResponse.StatusClass.success){
+                  // indicate error in UI
+                  return;
+                }
+                controller.messages = response.object;
+              }, function(error){
+                // indicate error in UI
+              });
+            },
+
+          });
+          ````
+        arguments:
+          -
+            name: request
+            type: JSURLRequest
+            summary: The request object
+      -
+        name: uploadTaskWithRequest
+        kind: method
+        type: JSURLSessionUploadTask
+        return: A paused task for the request.  Call `resume()` on the task
+          to start the request.
+        summary: Create an HTTP request task with a data payload that uses a callback when
+          it's done.
+        description: |
+          A messaging app that needs to upload a file to a server
+          look something like this:
+          ````
+          // #import Foundation
+          'use strict';
+
+          var baseURL = JSURL.initWithString("http://api.breakside.io/");
+
+          JSClass("MessagesViewController", UIViewController, {
+
+            sendFile: function(name, data){
+              var id = UUID();
+              var url = baseURL.appendingPathComponents(["messages", "files", id]);
+              var request = JSURLRequest.initWithURL(url);
+              request.method = JSURLRequest.Method.PUT;
+              request.headerMap.add("X-Breakside-Filename", name);
+              var task = JSURLSession.shared.uploadTaskWithRequest(request, data, function(error){
+                if (error !== null){
+                  // indicate error in UI
+                  return;
+                }
+                var response = task.response;
+                if (response.statusClass !== JSURLResponse.StatusClass.success){
+                  // indicate error in UI
+                  return;
+                }
+              }, this);
+              task.progressDelegate = this;
+              task.resume();
+              // Show progress UI
+            },
+
+            taskDidSendBodyData: function(task, totalSent, totalExpected){
+              // update progress bar UI
+            },
+
+          });
+          ````
+        arguments:
+          -
+            name: request
+            type: JSURLRequest
+            summary: The request object
+          -
+            name: data
+            type: JSData
+            summary: The request data
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: error
+                  type: Error
+                  summary: If not `null`, indicates that an error occurrred
+                    during the request.
+            summary: |
+              A completion handler that is called when the request
+              is done.  If there's no error, this task's `response` property
+              holds the HTTP response information.
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+      -
+        name: uploadTaskWithRequest
+        suffix: promise
+        kind: method
+        type: JSURLSessionUploadTask
+        return: A paused task for the request.  Call `resume()` on the task
+          to start the request.
+        summary: Create an HTTP request task with a data payload that uses a promise when
+          it's done.
+        description: |
+          A messaging app that needs to upload a file to a server
+          look something like this:
+          ````
+          // #import Foundation
+          'use strict';
+
+          var baseURL = JSURL.initWithString("http://api.breakside.io/");
+
+          JSClass("MessagesViewController", UIViewController, {
+
+            sendFile: function(name, data){
+              var id = UUID();
+              var url = baseURL.appendingPathComponents(["messages", "files", id]);
+              var request = JSURLRequest.initWithURL(url);
+              request.method = JSURLRequest.Method.PUT;
+              request.headerMap.add("X-Breakside-Filename", name);
+              var task = JSURLSession.shared.uploadTaskWithRequest(request, data);
+              task.progressDelegate = this;
+              var controller = this;
+              task.resume().then(function(response){
+                if (response.statusClass !== JSURLResponse.StatusClass.success){
+                  // indicate error in UI
+                  return;
+                }
+              }, function(error){
+                // indicate error in UI
+              });
+              // Show progress UI
+            },
+
+            taskDidSendBodyData: function(task, totalSent, totalExpected){
+              // update progress bar UI
+            },
+
+          });
+          ````
+        arguments:
+          -
+            name: request
+            type: JSURLRequest
+            summary: The request object
+          -
+            name: data
+            type: JSData
+            summary: The request body data
+      -
+        name: streamTaskWithURL
+        kind: method
+        type: JSURLSessionStreamTask
+        return: A paused WebSocket stream task.  Call `resume()` on the task
+          to initiate the connection
+        summary: Create a WebSocket stream task over HTTP using the given URL
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The WebSocket URL
+          -
+            name: requestedProtocols
+            type: String[]
+            summary: A list of private protocols this client can communicate
+              using
+        description: |
+          A messaging app that does real time communication might make a
+          stream connection.
+          ````
+          // #import Foundation
+          'use strict';
+
+          var baseURL = JSURL.initWithString("http://api.breakside.io/1.0/");
+
+          JSClass("MessagesViewController", UIViewController, {
+
+            streamTask: null,
+            messages: null,
+
+            connect: function(){
+              if (this.streamTask !== null){
+                return;
+              }
+              var url = baseURL.appendingPathComponent("messages");
+              this.streamTask = JSURLSession.shared.streamTaskWithURL(url, ["messages"]);
+              this.streamTask.streamDelegate = this;
+              this.streamTask.resume();
+            },
+
+            sendMessage: function(text){
+              var payload = {message: text};
+              var json = JSON.stringify(payload);
+              this.streamTask.sendMessage(json.utf8());
+            },
+
+            taskDidOpenStream: function(task){
+              // indicate connection in UI
+            },
+
+            taskDidCloseStream: function(task){
+              this.streamTask = null;
+              // indicate disconnect in UI
+            },
+
+            taskDidReceiveStreamData: function(task, data){
+              var json = String.initWithData(data, String.Encoding.utf8);
+              var payload = JSON.parse(json);
+              // extract info from payload and update UI
+            },
+
+            taskDidReceiveStreamError: function(task){  
+              // indicate error in UI
+            }
+
+          });
+          ````

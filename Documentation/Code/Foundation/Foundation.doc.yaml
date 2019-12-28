@@ -14,6 +14,7 @@ topics:
       - JSClass
       - JSObject
       - JSProtocol
+      - JSCustomProperty
       - JSDynamicProperty
       - JSReadOnlyProperty
       - JSLazyInitProperty
@@ -74,26 +75,29 @@ topics:
       - JSUserDefaults
       - JSArguments
       - JSRunLoop
-      - JSPasteboard
       - JSUndoManager
   -
     name: Logging
     summary: Logging, telemetry, and error reporting
     members:
       - JSLog
+      - CustomLogHandlers
   -
     name: Web
     summary: Making web requests and handling common data kinds
     members:
       - JSURL
       - JSURLSession
+      - JSURLSessionTask
       - JSURLSessionDataTask
       - JSURLSessionStreamTask
       - JSURLSessionUploadTask
       - JSURLRequest
       - JSURLResponse
       - JSFormFieldMap
+      - JSFormField
       - JSMediaType
+      - JSMIMEHeader
       - JSMIMEHeaderMap
   -
     name: Text & Typesetting

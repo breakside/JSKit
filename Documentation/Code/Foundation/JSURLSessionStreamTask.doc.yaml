@@ -1,0 +1,66 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSURLSessionTask
+summary: A URL sesssion task for making WebSocket connections 
+description: |
+  WebSocket is a technology that allows for persistent connections to web
+  servers with completely custom message streaming instead of the standard
+  request/response messaging.
+topics:
+  -
+    name: URLs
+    members:
+      -
+        name: originalURL
+        type: JSURL
+        summary: The url that started the task
+        description: |
+          The original url always stays the same regardless of any
+          HTTP redirects.
+
+          If you need to get the url that was last requested, including
+          redirects, use `currentURL`
+        see:
+          - currentURL
+      -
+        name: currentURL
+        type: JSURL
+        summary: The request that was last made
+        description: |
+          The current url may change if any HTTP redirects are encountered.
+
+          If you need to get the url that was orignally requested before any
+          redirects, use `originalURL`
+        see:
+          - originalURL
+  -
+    name: WebSocket Protocols
+    members:
+      -
+        name: requestedProtocols
+        type: String[]
+        summary: The list of protocols requested by the task
+      -
+        name: protocol
+        type: String
+        summary: The protocol chosen by the server
+  -
+    name: Sending Data
+    members:
+      -
+        name: sendMessage
+        type: JSData
+        summary: Send a chunk of data as a WebSocket message
+        description: |
+          The format of the data is completely user defined.
+  -
+    name: Delegate
+    members:
+      - JSURLSessionStreamTaskDelegate
+      -
+        name: streamDelegate
+        type: JSURLSessionStreamTaskDelegate
+        summary: The delegate that receives calls when stream events occur
+        description: |
+          You will need to set a stream delegate in order to receive events
+          and data from the WebSocket connection.

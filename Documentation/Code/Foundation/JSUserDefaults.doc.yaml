@@ -1,0 +1,216 @@
+name: JSUserDefaults
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Storage and retrieval of user-level preferences
+description: |
+  User defaults are a way to save and retrieve key/value preferences and
+  application state information for a user.
+
+  Persistent storage is done automatically by saving a JSON file to a known
+  location using `JSFileManager`, although since the details of the file storage
+  are handled entirely within `JSUserDefaults`, the specifics can change without
+  affecting code that utilizes `JSUserDefaults`.
+
+  Typically on startup, an application provides a list of default keys and
+  values for various user settings and preferences.  Those defaults are used as
+  fallback values if no actual values are saved for the user.
+
+  User defaults can be used for preferences exposed to the user, but can also
+  be used for more implicit settings like the last size of a sidebar or which
+  windows are open.
+
+  Many `UIKit` elements manage their own state persistence automatically by
+  saving special keys in `JSUserDefaults`.  For example, `UIWindow` can remember
+  its size and position so it always opens as the user prefers.
+
+  Since `JSUserDefaults` utlimately uses a serialized data format, the kind of
+  values that can be saved are limited to primitive `String`s, `Number`s,
+  `boolean`s, `null`s.  `Array`s and `object`s that only contain the primitives
+  or themselves are also allowed.
+topics:
+  -
+    name: Creating a Defaults Set
+    members:
+      -
+        name: shared
+        static: true
+        type: JSUserDefaults
+        summary: The primary set of defaults for an application
+        description: |
+          Every application comes with its own defaults identified by the
+          application's `JSBundleIdentifier`.
+
+          This `shared` property always references the preferences for the
+          currently running application.
+      -
+        name: initWithIdentifier
+        kind: init
+        summary: Create a new set of defaults with the given unique identifier
+        description: |
+          Since `shared` is always available, creating a different set of
+          defaults is not typically necessary.  However, if a separate set of
+          defaults is needed for some reason, it can be created with this
+          method.
+        arguments:
+          -
+            name: identifier
+            type: String
+            summary: The unique identifier for these defaults
+  -
+    name: Opening & Closing
+    members:
+      -
+        name: open
+        kind: method
+        summary: Open the serialized file an read any saved values using a
+          callback
+        description: |
+          After creating a defaults with `initWithIdentifier()`, you must then
+          open the file and load its contents by calling `open()`.
+        note: You do not need to call this for the `shared` user defaults
+          because that is automatically taken care of by the application
+          during initialization.
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: \`true` if the defaults opened successfully, `false`
+                    otherwise
+          -
+            name: target
+            type: any
+            summary: The object to use as `this` when calling `completion`
+      -
+        name: open
+        suffix: promise
+        kind: method
+        summary: Open the serialized file an read any saved values using a
+          promise
+        description: |
+          After creating a defaults with `initWithIdentifier()`, you must then
+          open the file and load its contents by calling `open()`.
+        note: You do not need to call this for the `shared` user defaults
+          because that is automatically taken care of by the application
+          during initialization.
+        type: Promise
+        return: A promise that will resolve with no argument if the open
+          succeeded, or will be rejected otherwise.
+      -
+        name: close
+        kind: method
+        summary: Close the defaults and save to peristent storage immediately.
+        description: |
+          After creating a defaults with `initWithIdentifier()`, you must then
+          open the file and load its contents by calling `open()`.
+
+          When you're done, call `close()` to ensure that everything is saved.
+        note: You do not need to call this for the `shared` user defaults
+          because that is automatically taken care of by the application
+          during its shutdown process.
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: \`true` if the defaults closed successfully, `false`
+                    otherwise
+          -
+            name: target
+            type: any
+            summary: The object to use as `this` when calling `completion`
+      -
+        name: close
+        kind: method
+        suffix: promise
+        summary: Close the defaults and save to peristent storage immediately,
+          using a promise
+        description: |
+          After creating a defaults with `initWithIdentifier()`, you must then
+          open the file and load its contents by calling `open()`.
+
+          When you're done, call `close()` to ensure that everything is saved.
+        note: You do not need to call this for the `shared` user defaults
+          because that is automatically taken care of by the application
+          during its shutdown process.
+        type: Promise
+        return: A promise that will resolve with no object if the defaults
+          closed successfully, or will be rejected otherwise.
+  -
+    name: Registering Fallback Values
+    members:
+      -
+        name: registerDefaults
+        kind: method
+        summary: Define the values that should be used when requesting a key
+          that does not have a saved value for the user.
+        description: |
+          Typically called during application startup before any attempt is
+          made to access any of the user's saved values, this method sets
+          a list of key/value pairs to function as fallback default values
+          for keys that have no saved value for the user.
+
+          ````
+          class ApplicationDelegate extends JSObject{
+
+            applicationDidFinishLaunching(application, launchOptions){
+              this.setupDefaults();
+            },
+
+            setupDefaults(){
+              JSUserDefaults.shared.registerDefaults({
+                hasSeenWelcomeScreen: false,
+                backgroundColorComponents: [0, 0.2, 0.95, 1.0]
+              });
+            }
+
+          }
+
+          ApplicationDelegate.initialize();
+          ````
+        arguments:
+          -
+            name: defaults
+            type: dictionary
+            summary: A set of key/value pairs that will act as fallback values
+  -
+    name: Accessing Saved Values
+    members:
+      -
+        name: valueForKey
+        kind: method
+        type: any
+        return: The value saved for the given key or the default for that key.
+        summary: Retrieve the value saved for the given key or, if missing, the
+          default value registered for the key.
+        arguments:
+          -
+            name: key
+            type: String
+            summary: The key to lookup
+      -
+        name: setValueForKey
+        kind: method
+        type: any
+        summary: Set the value for the given key.
+        description: |
+          Setting a value will trigger an automatic file save call in the near
+          future.  The save is not done immedately so mutliple calls to
+          `setValueForKey` in rapid succession will result in only one save
+          to the filesystem.
+        arguments:
+          -
+            name: value
+            type: any
+            summary: The value to save
+          -
+            name: key
+            type: String
+            summary: The key to for the value

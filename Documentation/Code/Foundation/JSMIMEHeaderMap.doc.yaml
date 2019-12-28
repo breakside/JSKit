@@ -1,0 +1,125 @@
+kind: class
+introduced: "1.0.0"
+summary: A collection of MIME headers that allows for multiple occurrances of
+  a header name
+description: |
+  Emails and HTTP messages contain a collection of key/value headers.
+
+  The mapping works almost like a dictionary, except multiple headers may have
+  the same value.  So we have a custom mapping class that can handle multiple
+  values for the same header.
+topics:
+  -
+    name: Creating a Map
+    members:
+      -
+        name: JSMIMEHeaderMap
+        kind: constructor
+        summary: Create a new empty collection of headers
+      -
+        name: JSMIMEHeaderMap
+        kind: constructor
+        prefix: copy
+        summary: Copy an existing collection of headers
+        arguments:
+          -
+            name: map
+            type: JSMIMEHeaderMap
+            summary: The map to copy
+  -
+    name: Parsing
+    members:
+      -
+        name: parse
+        kind: method
+        summary: Parse a string of CRLF seprated headers
+        arguments:
+          -
+            name: headers
+            type: String
+            summary: A single string of headers seprated by `"\r\n"`
+  -
+    name: Getting Headers
+    members:
+      -
+        name: get
+        kind: method
+        type: String
+        return: The value for the given header name
+        summary: Get the value for the given header name
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The header name
+      -
+        name: get
+        suffix: default
+        kind: method
+        type: String
+        return: The value for the given header name, or the given default
+          value
+        summary: Get the value for the given header name, or return a default
+          value if no such header exists
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The header name
+          -
+            name: defaultValue
+            type: String
+            summary: The default value to return if no header exists for the
+              given `name`
+      -
+        name: getAll
+        kind: method
+        type: String[]
+        return: A list of values for all occurrances of the header
+        summary: Get all the values for a header that may appear multiple times
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The header name
+  -
+    name: Setting Headers
+    members:
+      -
+        name: add
+        kind: method
+        summary: Add a header for the given name and value
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The header name
+          -
+            name: value
+            type: String
+            summary: The header value
+      -
+        name: set
+        kind: method
+        summary: Set a header to the given name and value
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The header name
+          -
+            name: value
+            type: String
+            summary: The header value
+        description: |
+          Clears any existing values for the header name, then adds the single
+          value given.
+      -
+        name: unset
+        kind: method
+        summary: Removes all headers for the given name
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The header name

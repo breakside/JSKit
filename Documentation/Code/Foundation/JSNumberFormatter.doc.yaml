@@ -1,0 +1,272 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Format a number according to style and locale properties
+description: |
+  Based on the [Unicode Number Formatting](http://www.unicode.org/reports/tr35/tr35-numbers.html#Number_Format_Patterns)
+  standard, this class formats numbers according to format patterns.
+
+  Using a formatter object allows code like a `UIViewController` to create the
+  formatter once, and use it over and over again on numbers that need formatting.
+
+  Since the formatter carries information like a `locale` and various symbols,
+  it's much more convenient to create once than to pass all of those parameters
+  around when formatting numbers.
+note: |
+  While all of the common format specifiers are implemented, `JSNumberFormatter`
+  has not yet implemented the following less common aspects of the Unicode
+  standard:
+  - Missing support for scientific/exponental representations
+  - Missing support for padding
+  - Missing support for significant digits
+topics:
+  -
+    name: Creating a Number Formatter
+    members:
+      -
+        name: init
+        kind: init
+        summary: Create a formatter using the current locale
+        description: |
+          A shortcut for `JSNumberFormatter.initWithLocale(JSLocale.current)`
+      -
+        name: initWithLocale
+        kind: init
+        summary: Create a formatter using the given locale
+        arguments:
+          -
+            name: locale
+            type: JSLocale
+            summary: The locale to use when formatting
+  -
+    name: Locale
+    members:
+      -
+        name: locale
+        type: JSLocale
+        summary: The locale to use for this formatter
+        description: |
+          The locale determines which symbols to use by default.
+  -
+    name: Format Strings
+    members:
+      -
+        name: format
+        type: String
+        summary: The format string that specifies how the number should be
+          converted into a string
+        description: |
+          See [Unicode Number Formatting](http://www.unicode.org/reports/tr35/tr35-numbers.html#Number_Format_Patterns)
+          for a complete description of format strings.
+      -
+        name: Style
+        kind: enum
+        suffix: enum
+        summary: The stanard format styles
+        options:
+          -
+            name: none
+            summary: 'Equivalent to setting `format = "#"`'
+          -
+            name: decimal
+            summary: 'Equivalent to setting `format = "#,##0.###"`'
+          -
+            name: percent
+            summary: 'Equivalent to setting `format = "#,##0%"`'
+          -
+            name: currency
+            summary: 'Equivalent to setting `format = "¤#,##0.00"`'
+          -
+            name: currencyAccounting
+            summary: 'Equivalent to setting `format = "¤#,##0.00;(¤#)"`'
+          -
+            name: currencyISOCode
+            summary: 'Equivalent to setting `format = "¤¤ #,##0.00;¤¤ -#"`'
+      -
+        name: style
+        type: Style
+        summary: A shortcut for setting `format` to common values
+      -
+        name: positiveFormat
+        type: String
+        summary: The format to use for positive numbers only
+        description: |
+          See [Unicode Number Formatting](http://www.unicode.org/reports/tr35/tr35-numbers.html#Number_Format_Patterns)
+          for a complete description of format strings.
+      -
+        name: negativeFormat
+        type: String
+        summary: The format to use for negative numbers only
+        description: |
+          See [Unicode Number Formatting](http://www.unicode.org/reports/tr35/tr35-numbers.html#Number_Format_Patterns)
+          for a complete description of format strings.
+  -
+    name: Creating a String
+    members:
+      -
+        name: stringFromNumber
+        kind: method
+        summary: Create a string from a number based on this formatter's format
+        arguments:
+          -
+            name: number
+            type: Number
+            summary: The number to format
+  -
+    name: Number of Digits
+    summary:
+      -
+        name: minimumIntegerDigits
+        type: Number
+        summary: The minimum number of integer digits to show
+      -
+        name: minimumDecimalDigits
+        type: Number
+        summary: The minimum number of decimal digits to show
+      -
+        name: maximumDecimalDigits
+        type: Number
+        summary: The maximum number of decimal digits to show
+      -
+        name: decimalSeparator
+        type: String
+        summary: The symbol to use as a decimal seprator
+        description: |
+          Defaults to the `locale`'s decimal separator
+  -
+    name: Prefix & Suffix
+    members:
+      -
+        name: positivePrefix
+        type: String
+        summary: The prefix to show on positive numbers
+      -
+        name: positiveSuffix
+        type: Number
+        summary: The suffix to show on positive numbers
+      -
+        name: negativePrefix
+        type: String
+        summary: The prefix to show on negative numbers
+
+      -
+        name: negativeSuffix
+        type: Number
+        summary: The suffix to show on negative numbers
+  -
+    name: Grouping
+    members:
+      -
+        name: usesGroupingSeparator
+        type: boolean
+        summary: Indicates if a grouping separator should be used
+        description: |
+          A grouping separator is like the comma that is used to group
+          every three digits in the US.
+
+          ````
+          1,234,567.89
+          ````
+      -
+        name: groupingSeparator
+        type: String
+        summary: The symbol to use as a grouping seprator
+        description: |
+          Defaults to the `locale`'s grouping separator
+      -
+        name: groupingSize
+        type: Number
+        summary: The number of digits between each grouping separator
+        description: |
+          A grouping separator is like the comma that is used to group
+          every three digits in the US.
+
+          ````
+          1,234,567.89
+          ````
+          In this case, the `groupingSize` is `3`
+      -
+        name: secondaryGroupingSize
+        type: Number
+        summary: The number of digits between each secondary grouping separator
+  -
+    name: Scaling
+    members:
+      -
+        name: multiplier
+        type: Number
+        summary: A multiplier to apply to the number before formatting
+        description: |
+          Defaults to `1`
+  -
+    name: Symbols
+    members:
+      -
+        name: percentSymbol
+        type: String
+        summary: A symbol to indicate a percentage
+        description: |
+          Defaults to `"%"`
+      -
+        name: perMilleSymbol
+        type: String
+        summary: A symbol to indicate a per mille
+        description: |
+          Defaults to `"‰"`
+      -
+        name: minusSign
+        type: String
+        summary: A symbol to indicate a negative
+        description: |
+          Defaults to `"-"`
+      -
+        name: plusSign
+        type: String
+        summary: A symbol to indicate a positive
+        description: |
+          Defaults to `"+"`
+      -
+        name: zeroSymbol
+        type: String
+        summary: A symbol to use instead of `0`
+        description: |
+          Defaults to `null`, meaning a `0` digit will be shown.
+      -
+        name: notANumberSymbol
+        type: String
+        summary: A symbol to indicate the value is not a valid number
+        description: |
+          Defaults to `"NaN"`
+      -
+        name: nullSymbol
+        type: String
+        summary: A symbol to indicate the value is `null`
+        description: |
+          Defaults to `""`
+      -
+        name: positiveInfinitySymbol
+        type: String
+        summary: A symbol to indicate the value is positive infinity
+        description: |
+          Defaults to `"+∞"`
+      -
+        name: negativeInfinitySymbol
+        type: String
+        summary: A symbol to indicate the value is positive infinity
+        description: |
+          Defaults to `"-∞"`
+  -
+    name: Currency
+    members:
+      -
+        name: currencySymbol
+        type: String
+        summary: The symbol to indcate a currency value
+        description: |
+          Defaults to `"$"`
+      -
+        name: currencyCode
+        type: String
+        summary: The string to indcate a currency code
+        description: |
+          Defaults to `"USD"`

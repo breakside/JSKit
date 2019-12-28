@@ -25,6 +25,9 @@ JSClass("JSUserDefaults", JSObject, {
     },
 
     open: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
         JSFileManager.shared.contentsAtURL(this._url, function(data){
             try{
                 if (data !== null){
@@ -33,8 +36,9 @@ JSClass("JSUserDefaults", JSObject, {
                 }
             }catch (e){
             }
-            completion.call(target);
+            completion.call(target, true);
         }, this);
+        return completion.promise;
     },
 
     _open: function(){
@@ -46,7 +50,11 @@ JSClass("JSUserDefaults", JSObject, {
     },
 
     close: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
         this._persist(completion, target);
+        return completion.promise;
     },
 
     // MARK: - Getting and Setting values

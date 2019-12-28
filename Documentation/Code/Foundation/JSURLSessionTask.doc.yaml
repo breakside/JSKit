@@ -1,0 +1,63 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: The abstract base class for `JSURLSession` tasks
+description: |
+  `JSURLSession` can create tasks for HTTP requests like a
+  `JSURLSessionDataTask`, `JSURLSessionUploadTask`, or a
+  `JSURLSessionStreamTask`.
+
+  This class is the base class for all of those concrete subclasses.
+topics:
+  -
+    name: Session
+    members:
+      -
+        name: session
+        type: JSURLSession
+        summary: The session that created this task
+  -
+    name: Starting and Canceling
+    members:
+      -
+        name: resume
+        kind: method
+        type: Promise?
+        promise:
+          resolve:
+            type: JSURLResponse
+            summary: The response received from the server
+          reject:
+            type: Error
+            summary: An error that occurred during the request
+        return: If you provided a callback when creating the task from a
+          `JSURLSession`, that callback will be invoked when the request
+          completes or errors out, and nothing will be returned here.
+          Otherwise, a `Promise` will be returned as a way of monitoring task
+          completion.
+        summary: Start the task
+        description: |
+          After a task is created, you must call `resume()` in order to start
+          the actual HTTP request.
+
+          This gives you an opportunity to set any task delgate before starting.
+      -
+        name: cancel
+        kind: method
+        summary: Cancel the task
+  -
+    name: Delegate
+    members:
+      - JSURLSessionTaskProgressDelegate
+      -
+        name: progressDelegate
+        type: JSURLSessionTaskProgressDelegate
+        summary: The optional delegate that receives notifications about
+          upload & download progress.
+  -
+    name: Error
+    members:
+      -
+        name: error
+        type: Error
+        summary: The error, if any, that occurred when running this task

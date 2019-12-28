@@ -1,0 +1,112 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSCustomProperty
+summary: Create a read-only `JSClass` property with a getters
+description: |
+  When defining a class with `JSClass()`, a dynamic getter property
+  can be created using `JSReadOnlyProperty()`.
+
+  ````
+  JSClass("Person", JSObject, {
+
+    firstName: null,
+    lastName: null,
+    fullName: JSReadOnlyProperty(),
+
+    getFullName: function(){
+      return this.firstName + ' ' + this.lastName;
+    }
+
+  })
+  ````
+topics:
+  -
+    name: Defining a Read Only Property
+    members:
+      -
+        name: JSReadOnlyProperty
+        kind: constructor
+        summary: Define a read-only property
+        description: |
+          A read-only property will automatically hook up a getter
+          based on the name of the property.
+
+          For a property named `fullName`:
+          - The getter is `getFullName`
+
+          For a boolean property named `enabled`
+          - The getter may be `isEnabled` instead of `getEnabled`
+        see:
+          - JSClass.nameOfGetMethodForKey
+      -
+        name: JSReadOnlyProperty
+        kind: constructor
+        prefix: private
+        summary: Define a read-only property based on a private property
+        description: |
+          A read-only property will automatically define a getter
+          to return the private property value.
+
+          If a getter is already defined, it will be used instead,
+          and it may reference the private property.
+
+          This is often used when a property needs to be public read-only, but
+          private read/write.
+
+          ````
+          JSClass("Downloder", JSObject, {
+            state: JSReadOnlyProperty('_state', 'notstarted'),
+
+            start: function(){
+              this._state = 'started';
+              // start a process that calls _handleDownload on completion
+            },
+
+            _handleDownload: function(){
+              this._state = 'complete';
+            }
+
+          })
+          ````
+
+          In this case, a `state` property needs to be accessible to outside
+          code, but should only be writable by internal code.  So all the
+          internal code changes in the private property `_state`, while
+          the outside accesss the public property `state`.  A getter is
+          automatically created for `state` that returns `_state`.
+        note: Properties in Javascript are not really private, but the leading
+          underscore is a convention that indicates a property should be treated
+          as if it was private.
+        arguments:
+          -
+            name: privateName
+            type: String
+            summary: The name of the private property to create
+          -
+            name: intialValue
+            type: any
+            summary: The initial value to give the private property
+      -
+        name: JSReadOnlyProperty
+        kind: constructor
+        prefix: full
+        summary: Define a read-only property with custom getter name
+        description: |
+          A read-only property will automatically name its getter.
+
+          But with this constructor, you can name your own getter.
+        arguments:
+          -
+            name: privateName
+            type: String
+            summary: The name of the private property to create.  Use
+              \`undefined` if you don't want a private property created
+          -
+            name: intialValue
+            type: any
+            summary: The initial value to give the private property.  Use
+              \`undefined` if you aren't creating a private property.
+          -
+            name: getterName
+            type: String
+            summary: The name of the getter method

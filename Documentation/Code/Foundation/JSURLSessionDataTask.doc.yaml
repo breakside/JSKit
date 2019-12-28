@@ -1,0 +1,46 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSURLSessionTask
+summary: A URL sesssion task for downloading data
+description: |
+  Most HTTP requests will use this task or its subclass,
+  `JSURLSessionUploadTask`.
+
+  See `JSURLSessionTask` for inherited properites and methods.
+topics:
+  -
+    name: Request
+    members:
+      -
+        name: originalRequest
+        type: JSURLRequest
+        summary: The request that started the task
+        description: |
+          The original request always stays the same regardless of any
+          HTTP redirects.
+
+          If you need to get the request that was last made, including
+          redirects, use `currentRequest`
+        see:
+          - currentRequest
+      -
+        name: currentRequest
+        type: JSURLRequest
+        summary: The request that was last made
+        description: |
+          The current request may change if any HTTP redirects are encountered.
+
+          If you need to get the request that was orignally made before any
+          redirects, use `originalRequest`
+        see:
+          - originalRequest
+  -
+    name: Response
+    members:
+      -
+        name: response
+        type: JSURLResponse
+        summary: The final response received from the server
+        description: |
+          This is a shortcut to the `JSURLRequest.response` propertuy on
+          `currentRequest`.

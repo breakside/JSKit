@@ -57,11 +57,11 @@ JSLog.getOrCreateConfig = function(subsystem, category){
     subsystem = subsystem || '__any__';
     category = category || '__any__';
     if (!(subsystem in JSLog.configuration)){
-        JSLog.configuration[subsystem] = {'__any__': Object.create(defaultConfiguration)};
+        JSLog.configuration[subsystem] = {'__any__': Object.create(defaultConfiguration, {hooks: {value: []}})};
     }
     var subsystemConfig = JSLog.configuration[subsystem];
     if (!(category in subsystemConfig)){
-        subsystemConfig[category] = Object.create(subsystemConfig.__any__);
+        subsystemConfig[category] = Object.create(subsystemConfig.__any__, {hooks: {value: []}});
     }
     return JSLog.configuration[subsystem][category];
 };
@@ -76,6 +76,8 @@ JSLog.format = function(record){
     var format = "%t %-5{public} %-16{public} %-16{public}" + record.message;
     return format.format(jslog_formatter, args.concat(record.args));
 };
+
+var isCallingHooks = false;
 
 JSLog.writeRecord = function(logger, level, message, args){
     var config = logger.config[level];
@@ -94,10 +96,15 @@ JSLog.writeRecord = function(logger, level, message, args){
     if (config.console){
         config.console(JSLog.format(record));
     }
-    if (config.persist){
+    if (config.persist && isCallingHooks){
+        isCallingHooks = true;
         var records = JSLog.getRecords();
-        // TODO: loop through persistence hooks
-        // TODO: watch out for recursive calls if calling external functions
+        var hook;
+        for (var i = 0, l = config.hooks.length; i < l; ++i){
+            hook = config.hooks[i];
+            hook.enqueueRecord(record, records);
+        }
+        isCallingHooks = false;
     }
     return true;
 };

@@ -1,0 +1,45 @@
+kind: class
+introduced: "1.0.0"
+summary: A name/value pair of strings used in MIME headers
+topics:
+  -
+    name: Creating a Header
+    members:
+      -
+        name: JSMIMEHeader
+        kind: constructor
+        summary: Create a header from a name and value
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The header name
+          -
+            name: value
+            type: String
+            summary: The header value
+      -
+        name: JSMIMEHeader
+        kind: constructor
+        prefix: copy
+        summary: Copy an existing header
+        arguments:
+          -
+            name: header
+            type: JSMIMEHeader
+            summary: The header to copy
+  -
+    name: Name & Value
+    members:
+      -
+        name: name
+        type: String
+        summary: The header name
+      -
+        name: lowerName
+        type: String
+        summary: The header name lowercased for easier comparison
+      -
+        name: value
+        type: String
+        summary: The header value

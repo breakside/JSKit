@@ -1,0 +1,214 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Define and parse command-line style arguments
+description: |
+  Argument parsing is very useful once a command line utility moves beyond a
+  very basic level.
+
+  1. Define the allowed arguments for a given command
+  2. Parse and validate the raw argument input
+  3. Use the resulting values
+
+  ````
+  // 1. Defining options
+  var options = {
+      help:    {kind: "flag", shortcut: "h", hidden: true},
+      command: {kind: "positional", help: "The jskit sub-command to run", allowed: Command.names},
+      subargs: {kind: "unknown", help: "Additional arguments for the sub-command"}
+  };
+  var args = JSArguments.initWithOptions(options);
+
+  // 2. Parsing raw input
+  args.parse(process.argv.slice(1));
+
+  // 3. Using the values
+  if (args.help){
+    showHelp();
+  }else{
+    runSubcommand(args.command, args.subargs);
+  }
+  ````
+
+  URL-based argument parsing
+  --------------------------
+  Argument parsing isn't limited to just the command line.
+
+  `JSArguments` can take a query string and parse it against an allowed set of
+  options just like command line arguments.
+topics:
+  -
+    name: Creating Arguments
+    members:
+      -
+        name: initWithOptions
+        kind: init
+        summary: Create an arguments object prepared for parsing based on the
+          given options
+        arguments:
+          -
+            name: options
+            kind: dictionary
+            summary: A map of `String:``Option` where the keys are argument
+              names and the values are option definitions
+        description: |
+          In order to inform
+
+          Here's how the `jskit` command defines and parses its top level
+          arguments:
+
+          ````
+          var options = {
+              help:    {kind: "flag", shortcut: "h", hidden: true},
+              command: {kind: "positional", help: "The jskit sub-command to run", allowed: Command.names},
+              subargs: {kind: "unknown", help: "Additional arguments for the sub-command"}
+          };
+          var args = JSArguments.initWithOptions(options);
+          args.parse(process.argv.slice(1));
+          ````
+      -
+        name: Option
+        kind: class
+        anonymous: true
+        summary: Defines the way a particular argument should behave
+        topics:
+          -
+            name: Properties
+            members:
+              -
+                name: kind
+                type: Kind
+                summary: The kind of argument being defined.  If unspecified,
+                  will default to `Kind.default`.
+              -
+                name: multiple
+                type: boolean
+                summary: Indicates if the argument may be specified more than
+                  once.  If so, the resulting value is an `Array`.  If
+                  unspecified, will default to `false`
+              -
+                name: default
+                type: any
+                summary: A fallback value for when the argument is not
+                  specified.  If unspecified, implies the argument is required.
+              -
+                name: valueType
+                type: ValueType
+                summary: Indicates how the value `String` should be parsed.
+                  If unspecified, will default to `ValueType.string`.
+              -
+                name: shortcut
+                type: String
+                summary: A single-character string that can be used as a
+                  shortcut argument name.
+                description: |
+                  For example, an argument named `"help"` is specified on the
+                  command line with `--help`.  If it also has a shortcut of
+                  `"h"`, it can be specified with `-h`. 
+              -
+                name: help
+                type: String
+                summary: A line of help documentation that will be used in the
+                  auto-generated `helpString()` method.
+      -
+        name: Kind
+        kind: enum
+        options:
+          -
+            name: default
+            summary: A name/value argument
+          -
+            name: flag
+            summary: A `boolean` that is set to `true` if the argument is
+              present or `false` if the argument is missing.  No value is
+              necessary.
+            value: '"flag"'
+          -
+            name: positional
+            summary: An argument that doesn't have a name, often used for things
+              like subcommands, filenames, etc., that are implicit in the
+              command and don't require a name.
+            value: '"positional"'
+          -
+            name: unknown
+            summary: A catch-all for any unknown argument, typically used to
+              collect arguments that are passed to a subcommand
+            value: '"unknown"'
+      -
+        name: ValueType
+        kind: enum
+        options:
+          -
+            name: string
+            summary: A `String` exactly as provided
+          -
+            name: integer
+            summary: The value should be parsed with `parseInt`
+            value: '"integer"'
+  -
+    name: Parsing
+    members:
+      -
+        name: parse
+        kind: method
+        summary: Parse command line arguments according to the options given
+          at intialization
+        description: |
+          After parsing the arguments will be available as properties on this
+          `JSArguments` instance corrsponding to the keys given in the options
+          dictionary.
+        arguments:
+          -
+            name: argv
+            type: String[]
+            summary: The raw arguments from the command line
+            description: |
+              In a system like node.js, you can typically get argument values
+              from `process.argv`.
+            note: The command name is expected as the first argument.
+      -
+        name: parseQueryString
+        kind: method
+        summary: Parse a URL query string according to the options given at
+          initialization
+        description: |
+          After parsing the arguments will be available as properties on this
+          `JSArguments` instance corrsponding to the keys given in the options
+          dictionary.
+        arguments:
+          -
+            name: queryString
+            type: String
+            summary: The query string from a URL
+          -
+            name: positional
+            type: String[]
+            summary: A list of arguments to be treated as positional
+            description: |
+              URL query strings only include key/value pairs, so there's no
+              way to parse out positional arguments.  But if positional
+              arguments come from another part of the URL like the path, they
+              can be extracted prior to calling parse and passed here so the
+              parser can validate them.
+  -
+    name: Help
+    members:
+      -
+        name: helpString
+        kind: method
+        type: String
+        summary: Generate help documenation for the command based on the options
+          provided at initialization.
+  -
+    name: Argument Values
+    members:
+      -
+        name: "[name]"
+        type: any
+        summary: Get an argument's value for the given name
+        description: |
+          After parsing the arguments will be available as properties on this
+          `JSArguments` instance corrsponding to the keys given in the options
+          dictionary.
+        note: You can also use the `.name` syntax for accessing argument values,
+          provided the name is valid JS syntax.

@@ -1,0 +1,277 @@
+kind: class
+introduced: "1.0.0"
+summary: A logger that can be used for error reporting, telemetry, and debugging
+description: |
+  A robust logger that can capture critical information to help you find and
+  fix bugs.
+
+  Every logger starts with a unique identifier called a `subsystem`.  An
+  optional `category` within the subsystem can also be specified to allow for
+  further filtering of log events.
+
+  Typically you'll create a logger in each file, but mutliple files can use the
+  same `subsystem` and `category`.
+
+  ````
+  // #import UIKit
+  'use strict';
+
+  (function(){
+
+  var logger = JSLog("io.breakside.MessagesWeb", "views");
+
+  class MessagesViewController extends UIViewController{
+
+    viewWillAppear(animated){
+      logger.debug("View will appear: %b", animated);
+    }
+
+    sendMessage(message){
+      logger.info("Sending message: %d", message.id);
+      try{
+        // call API to send message...
+      }catch (e){
+        logger.error("Failed to send message: %{error}", e);
+      }
+    }
+
+  }
+
+  MessagesViewController.initialize();
+
+  })();
+
+  ````
+
+  *Note: in this example we've created a private function scope in order to
+  create the file-wide variable named `logger`.  This is only necessary in
+  a browser context.  Node.js automatically scopes each file.*
+
+  Log Levels
+  ==========
+
+  A log message can be sent at one of five `Level`s:
+
+  1. error
+  2. warn
+  3. log
+  4. info
+  5. debug
+
+  There are methods on a `JSLog` object corresponding to each level.
+
+  Formatting Log Messages
+  =======================
+
+  Log messages can include format strings similar in concept, but not exactly
+  like `String.sprintf`.
+
+  The format is not calculated immediately, which helps ensure that the log
+  handler affects code performance by as little as possible.
+
+  To prevent unintentional logging of personal information, `JSLog` uses
+  a custom formatter that doesn't have the standard `%s` placeholder,
+  which could easily leak things like names and passwords.
+
+  Logging methods support the following format placeholders:
+
+  - `%d` - An integer number
+  - `%x` - An integer number in hex
+  - `%d` - An integer number in uppercase hex
+  - `%f` - An decimal number
+  - `%b` - An boolean value
+  - `%t` - A timestamp in seconds
+  - `%{error}` - An exception with message and backtrace
+  - `%{public}` - A string, emphasizing that only public information
+    should be logged
+
+  Log Messages Handlers
+  =====================
+
+  Each log level can have its own set of custom log handlers.
+
+  For example, error log messages could be sent to a service like Rollbar
+  to coordinate and consolidate errors across all users.
+topics:
+  -
+    name: Creating a Logger
+    members:
+      -
+        name: JSLog
+        kind: constructor
+        summary: Create a logger with identification information
+        description: |
+          Typically you'll create a logger variable within the scope of a file.
+          Multiple files can reference the same `subsystem` and `category`.
+        arguments:
+          -
+            name: subsystem
+            type: String
+            summary: A unique identifier for the part of the application the
+              logger applies to
+          -
+            name: category
+            type: String
+            summary: A more specific identifier within the `subsystem`
+  -
+    name: Logging
+    members:
+      -
+        name: debug
+        kind: method
+        summary: Log a message at the lowest priority level
+        description: |
+          If `message` is a format string, the following format placeholders
+          are supported:
+
+          - `%d` - An integer number
+          - `%x` - An integer number in hex
+          - `%d` - An integer number in uppercase hex
+          - `%f` - An decimal number
+          - `%b` - An boolean value
+          - `%t` - A timestamp in seconds
+          - `%{error}` - An exception with message and backtrace
+          - `%{public}` - A string, emphasizing that only public information
+            should be logged
+        arguments:
+          -
+            name: message
+            type: String
+            summary: The log message, perhaps with format placeholders
+          -
+            name: args
+            type: any
+            variable: true
+            summary: The values to format, if any
+      -
+        name: info
+        kind: method
+        summary: Log a message at the `Level.info` priority
+        description: |
+          If `message` is a format string, the following format placeholders
+          are supported:
+
+          - `%d` - An integer number
+          - `%x` - An integer number in hex
+          - `%d` - An integer number in uppercase hex
+          - `%f` - An decimal number
+          - `%b` - An boolean value
+          - `%t` - A timestamp in seconds
+          - `%{error}` - An exception with message and backtrace
+          - `%{public}` - A string, emphasizing that only public information
+            should be logged
+        arguments:
+          -
+            name: message
+            type: String
+            summary: The log message, perhaps with format placeholders
+          -
+            name: args
+            type: any
+            variable: true
+            summary: The values to format, if any
+      -
+        name: log
+        kind: method
+        summary: Log a message at the normal priority level
+        description: |
+          If `message` is a format string, the following format placeholders
+          are supported:
+
+          - `%d` - An integer number
+          - `%x` - An integer number in hex
+          - `%d` - An integer number in uppercase hex
+          - `%f` - An decimal number
+          - `%b` - An boolean value
+          - `%t` - A timestamp in seconds
+          - `%{error}` - An exception with message and backtrace
+          - `%{public}` - A string, emphasizing that only public information
+            should be logged
+        arguments:
+          -
+            name: message
+            type: String
+            summary: The log message, perhaps with format placeholders
+          -
+            name: args
+            type: any
+            variable: true
+            summary: The values to format, if any
+      -
+        name: warn
+        kind: method
+        summary: Log a message at the `Level.warn`
+        description: |
+          If `message` is a format string, the following format placeholders
+          are supported:
+
+          - `%d` - An integer number
+          - `%x` - An integer number in hex
+          - `%d` - An integer number in uppercase hex
+          - `%f` - An decimal number
+          - `%b` - An boolean value
+          - `%t` - A timestamp in seconds
+          - `%{error}` - An exception with message and backtrace
+          - `%{public}` - A string, emphasizing that only public information
+            should be logged
+        arguments:
+          -
+            name: message
+            type: String
+            summary: The log message, perhaps with format placeholders
+          -
+            name: args
+            type: any
+            variable: true
+            summary: The values to format, if any
+      -
+        name: debug
+        kind: method
+        summary: Log a message at the highest priority level
+        description: |
+          If `message` is a format string, the following format placeholders
+          are supported:
+
+          - `%d` - An integer number
+          - `%x` - An integer number in hex
+          - `%d` - An integer number in uppercase hex
+          - `%f` - An decimal number
+          - `%b` - An boolean value
+          - `%t` - A timestamp in seconds
+          - `%{error}` - An exception with message and backtrace
+          - `%{public}` - A string, emphasizing that only public information
+            should be logged
+        arguments:
+          -
+            name: message
+            type: String
+            summary: The log message, perhaps with format placeholders
+          -
+            name: args
+            type: any
+            variable: true
+            summary: The values to format, if any
+      -
+        name: Level
+        kind: enum
+        summary: The logging priority levels
+        options:
+          -
+            name: debug
+            summary: The lowest priority.  Only recommended for development
+              debugging.
+          -
+            name: info
+            summary: The second-lowest priority.
+          -
+            name: log
+            summary: The default priority.
+          -
+            name: warn
+            summary: The second-highest priority.  Recommended for log messages
+              that require attention but are not critical.
+          -
+            name: error
+            summary: The highest priority.  Used for logging exceptions or
+              other critical error conditions.
+

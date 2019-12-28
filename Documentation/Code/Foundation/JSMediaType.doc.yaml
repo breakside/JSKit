@@ -1,0 +1,75 @@
+kind: class
+introduced: "1.0.0"
+summary: Parse or construct a mime type
+description: |
+  A media type is normally a fairly simple string like `"image/png"`,
+  but it can also include extra parameters like `"text/html; charset=utf-8".
+
+  This class can parse or construct a mime type and all its componentss.
+topics:
+  -
+    name: Creating a Media Type
+    members:
+      -
+        name: JSMediaType
+        kind: constructor
+        summary: Create a media type from a string
+        arguments:
+          -
+            name: string
+            type: string
+            summary: The string representation of the media type, including
+              optional parameters
+      -
+        name: JSMediaType
+        kind: constructor
+        prefix: full
+        summary: Create a media type from a string and parameters
+        arguments:
+          -
+            name: string
+            type: string
+            summary: The `"type/subtype"` string of the media type
+          -
+            name: parameters
+            type: dictionary
+            summary: A dictionary of key/value strings representing the type's
+              extra parameters.
+      -
+        name: JSMediaType
+        kind: constructor
+        prefix: copy
+        summary: Copy an existing media type
+        arguments:
+          -
+            name: mediaType
+            type: JSMediaType
+            summary: The media type to copy
+  -
+    name: Types
+    members:
+      -
+        name: mime
+        type: String
+        summary: The media type excluding any parameters
+      -
+        name: type
+        type: String
+        summary: The primary type of the media, like `"image"` for `"image/png"`
+      -
+        name: subtype
+        type: String
+        summary: The secondary type of the media, like `"png"` for `"image/png"`
+  -
+    name: Parameters
+    members:
+      -
+        name: parameters
+        type: dictionary
+        summary: A key/value mapping of strings that reprenent the media type's
+          parameters.
+        description: |
+          ````
+          var media = JSMediaType("text/html; charset=utf-8");
+          // media.parameters.charset === 'utf-8'
+          ````

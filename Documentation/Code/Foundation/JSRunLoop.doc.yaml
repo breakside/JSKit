@@ -1,0 +1,52 @@
+kind: class
+introducted: "1.0.0"
+inherits: JSObject
+summary: Add tasks to the main application run loop
+description: |
+  Javascript applications have an internal "run loop" that is constantly
+  checking for events and executing code.
+
+  Sometimes it's helpful to execute code not immediately, but on the next
+  iteration of the run loop.
+
+  Rather than set a short timeout, run loop exection is clearer in intent and
+  faster in execution.
+important: |
+  `JSRunLoop` is not suitable for long-running tasks because they will
+  block the application's main thread, like UI drawing.  Use `Dispatch`
+  instead for expensive tasks.
+topics:
+  -
+    name: The Main Run Loop
+    members:
+      -
+        name: main
+        static: true
+        type: JSRunLoop
+        summary: The application's main run loop
+        description: |
+          The main run loop is always available and represents the main
+          execution thread of the application.
+
+          For UI applications, it is the same thread that draws the UI.
+  -
+    name: Scheduling Jobs
+    members:
+      -
+        name: schedule
+        kind: method
+        summary: Add a job to be executed on the next iteration of the run loop
+        arguments:
+          -
+            name: action
+            type: function
+            summary: The function to call on the next iteration of the run loop
+          -
+            name: target
+            type: object
+            summary: The object to use as `this` in the function call
+          -
+            name: args
+            type: any
+            variable: true
+            summary: The arguments that should be passed to the function

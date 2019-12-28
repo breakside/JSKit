@@ -5,7 +5,7 @@
 JSProtocol("JSURLSessionDelegate", JSProtocol, {
 
     urlSessionTaskDidSendBodyData: function(session, task, totalSent, totalExpected){},
-    urlSessoinTaskDidReceiveBodyData: function(session, task, totalReceived, totalExpected){},
+    urlSessionTaskDidReceiveBodyData: function(session, task, totalReceived, totalExpected){},
     urlSessionTaskDidComplete: function(session, task, error){},
     urlSessionTaskDidOpenStream: function(session, task){},
     urlSessionTaskDidCloseStream: function(session, task){},

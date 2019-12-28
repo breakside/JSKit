@@ -5,6 +5,7 @@
 // #import "DocIndex.js"
 // #import "DocFramework.js"
 // #import "DocClass.js"
+// #import "DocProtocol.js"
 // #import "DocMethod.js"
 // #import "DocInit.js"
 // #import "DocConstructor.js"

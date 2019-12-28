@@ -369,13 +369,16 @@ JSClass("DocComponent", JSObject, {
 
     urlForCode: function(code){
         var name = code;
+        var bracketIndex = name.indexOf('[');
+        if (bracketIndex > 0){
+            name = name.substr(0, bracketIndex);
+        }
         var parenIndex = name.indexOf('(');
         if (parenIndex > 0){
             name = name.substr(0, parenIndex);
         }
-        var bracketIndex = name.indexOf('[');
-        if (bracketIndex > 0){
-            name = name.substr(0, bracketIndex);
+        if (name.endsWith('?')){
+            name = name.substr(0, name.length - 1);
         }
         var parts = name.split('.');
         var component = this.componentForName(parts.shift());

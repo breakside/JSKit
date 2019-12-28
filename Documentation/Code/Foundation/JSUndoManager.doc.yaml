@@ -1,0 +1,253 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObect
+summary: Manage a stack of undo and redo operations
+description: |
+  Applications supporting undo and redo use `JSUndoManager` to keep track of the
+  operations that can be undone or redone.
+
+  An undo manager can also be used to get the appropriate names for menu items
+  that provide undo and redo functionality.
+
+  Mutliple undo managers allow an application to have different scopes of
+  undo history.
+
+  How it works
+  ------------
+  Typically a user interface controller will handle a user interaction by
+  changing some underlying data model value.
+
+  With an undo manager, that ineraction handler does one more step: registers
+  an undo action that changes the data model back to its original value.
+
+  Often it's easy to design functions that register themselves as the undo
+  handler because that conviently does the right thing when an `undo()` is
+  actually invoked.  Any undo registrations during an `undo()` operation
+  are considered to be redo actions.
+
+  ````
+  JSClass("PersonViewController", UIViewController, {
+
+    init: function(){
+      this.undoManager = JSUndoManager.init();
+    },
+
+    undoManager: null,
+    person: null,
+
+    // An action called with the user changes a text field
+    setPersonName: function(name){
+      this.undoManager.registerUndo(this, this.setPersonName, this.person.name);
+      this.person.name = name;
+    },
+
+    // An action called when the user hits an undo button
+    undo: function(){
+      this.undoManager.undo();
+    },
+
+    // An action called when the user hits an redo button
+    redo: function(){
+      this.undoManager.redo();
+    }
+
+  });
+  ````
+topics:
+  -
+    name: Creating an Undo Manager
+    members:
+      -
+        name: init
+        kind: init
+        summary: Create a new undo manager
+        description: |
+          Creates an empty stack of operations
+  -
+    name: Checking Undo Status
+    members:
+      -
+        name: canUndo
+        type: boolean
+        summary: Check if there are any operations to undo
+        description: |
+          Useful for enabling and disabling user interface elements like
+          buttons or menu items.
+      -
+        name: canRedo
+        type: boolean
+        summary: Check if there are any operations to redo
+        description: |
+          Useful for enabling and disabling user interface elements like
+          buttons or menu items.
+  -
+    name: Register Undo Actions
+    members:
+      -
+        name: registerUndo
+        kind: method
+        summary: Add an action to the undo stack
+        arguments:
+          -
+            name: target
+            kind: object
+            summary: The object to use as `this` when invoking `action`
+          -
+            name: action
+            kind: function
+            summary: The function to call when and `undo()` or `redo()` is invoked
+              for this item
+          -
+            name: args
+            type: any
+            variable: true
+            summary: The arguments to pass to `action` when it's invoked
+        description: |
+          Often it's easy to design functions that register themselves as the undo
+          handler:
+
+          ````
+          JSClass("PersonViewController", UIViewController, {
+
+            init: function(){
+              this.undoManager = JSUndoManager.init();
+            },
+
+            undoManager: null,
+            person: null,
+
+            // A simple setter can just register itself as its undo action
+            setPersonName: function(name){
+              this.undoManager.registerUndo(this, this.setPersonName, this.person.name);
+              this.person.name = name;
+            },
+
+            // A list add and remove methods can add each other as undo actions
+            addChildAtIndex: function(child, index){
+              this.undoManager.registerUndo(this, this.removeChildAtIndex, index);
+              this.person.children.splice(index, 0, child);
+            },
+
+            removeChildAtIndex: function(index){
+              var child = this.person.children[index];
+              this.undoManager.registerUndo(this, this.addChildAtIndex, child, index);
+              this.person.children.splice(index, 1);
+            }
+
+          });
+          ````
+      -
+        name: beginUndoGrouping
+        kind: method
+        summary: Begin a block of operations that should be undone or redone
+          all together
+        description: |
+          Sometimes it's not easy to add a single operation that undoes
+          everything at once.  This is where grouping comes in.
+
+          After calling `beginUndoGrouping()`, you can call `registerUndo()`
+          as many times as you need before calling `endUndoGrouping()` and
+          all of those actions will be undone together when `undo()` is invoked.
+      -
+        name: endUndoGrouping
+        kind: method
+        summary: End a block of operations that should be undone or redone
+          all together
+        description: |
+          Sometimes it's not easy to add a single operation that undoes
+          everything at once.  This is where grouping comes in.
+
+          After calling `beginUndoGrouping()`, you can call `registerUndo()`
+          as many times as you need before calling `endUndoGrouping()` and
+          all of those actions will be undone together when `undo()` is invoked.
+      -
+        name: clear
+        kind: method
+        summary: Completely empty the undo and redo stacks
+        description: |
+          While clearing the undo stack is generally undesireable for the user,
+          there may be times where the user takes an action that simply cannot
+          be undone and therefore the stack needs to be cleared to prevent the
+          user from going back.
+      -
+        name: maximumNumberOfUndos
+        type: Number
+        summary: The maximum number of actions that can be on an undo stack
+        description: |
+          To avoid situations where memory usage can get out of control, you
+          can set a limit to the number of items that can be undone.
+        note: A value of `0` means there is no limit to the number of undo
+          actions that can be added to the stack.
+  -
+    name: Performing Actions
+    members:
+      -
+        name: undo
+        kind: method
+        summary: Perform the top item on the undo stack
+        description: |
+          While the undo is in progress, any undo registrations will be added
+          to the *redo* stack.
+      -
+        name: redo
+        kind: method
+        summary: Perform the top item on the redo stack
+  -
+    name: Undo Menu Items
+    members:
+      -
+        name: setActionName
+        kind: method
+        summary: Set the action name for the top item on the stack
+        description: |
+          The action name can be displayed in a menu item so the item says
+          more than simply `"Undo"`.
+
+          For example, if the action name is `"Change Name"`, the 
+          `titleForUndoMenuItem` property will read `"Undo Change Name"`
+
+          ````
+          JSClass("PersonViewController", UIViewController, {
+
+            init: function(){
+              this.undoManager = JSUndoManager.init();
+            },
+
+            undoManager: null,
+            person: null,
+
+            setPersonName: function(name){
+              this.undoManager.registerUndo(this, this.setPersonName, this.person.name);
+              this.undoManager.setActionName("Change Name");
+              this.person.name = name;
+            },
+
+          });
+          ````
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The action name to display
+      -
+        name: undoActionName
+        type: String
+        summary: The action name for the top item in the undo stack
+      -
+        name: redoActionName
+        type: String
+        summary: The action name for the top item in the redo stack
+      -
+        name: titleForUndoMenuItem
+        type: String
+        summary: The full title for an undo menu item
+        description: |
+          Includes the localized string for `"Undo"` plus the action name set via
+          `setActionName()`, if any
+      -
+        name: titleForRedoMenuItem
+        type: String
+        summary: The full title for an redo menu item
+        description: |
+          Includes the localized string for `"Redo"` plus the action name set via
+          `setActionName()`, if any

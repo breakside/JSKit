@@ -1,0 +1,148 @@
+kind: class
+introduced: "1.0.0"
+summary: A collection of form fields that allows for multiple occurrances of
+  a field
+description: |
+  Query strings and HTTP POST form submissions include name/value strings.
+
+  The mapping works almost like a dictionary, except multiple fields may have
+  the same value.  So we have a custom mapping class that can handle multiple
+  values for the same field name.
+topics:
+  -
+    name: Creating a Map
+    members:
+      -
+        name: JSFormFieldMap
+        kind: constructor
+        summary: Create a new empty collection of fields
+      -
+        name: JSFormFieldMap
+        kind: constructor
+        prefix: copy
+        summary: Copy an existing collection of fields
+        arguments:
+          -
+            name: map
+            type: JSFormFieldMap
+            summary: The map to copy
+  -
+    name: Decoding & Encoding
+    members:
+      -
+        name: decode
+        kind: method
+        summary: Parse a string fields
+        arguments:
+          -
+            name: urlEncodedData
+            type: String
+            summary: A single string of fields
+          -
+            name: decodeSpaceAsPlus
+            type: boolean
+            default: "false"
+            summary: Should a `+` be decoded as a space character?
+      -
+        name: encode
+        type: JSData
+        return: A byte array representing a utf-8 and percent encoded set of
+          fields
+        kind: method
+        summary: Encode the map's fields into a byte array
+        arguments:
+          -
+            name: reserved
+            type: dictionary
+            summary: A mapping of reserved character codes that should be
+              percent encoded.
+          -
+            name: encodeSpaceAsPlus
+            type: boolean
+            default: "false"
+            summary: Should a space be encoded as a `+`?
+  -
+    name: Getting Field Values
+    members:
+      -
+        name: get
+        kind: method
+        type: String
+        return: The value for the given field name
+        summary: Get the value for the given field name
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The field name
+      -
+        name: get
+        suffix: default
+        kind: method
+        type: String
+        return: The value for the given field name, or the given default
+          value
+        summary: Get the value for the given field name, or return a default
+          value if no such field exists
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The field name
+          -
+            name: defaultValue
+            type: String
+            summary: The default value to return if no field exists for the
+              given `name`
+      -
+        name: getAll
+        kind: method
+        type: String[]
+        return: A list of values for all occurrances of the field
+        summary: Get all the values for a field that may appear multiple times
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The field name
+  -
+    name: Setting Headers
+    members:
+      -
+        name: add
+        kind: method
+        summary: Add a field for the given name and value
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The field name
+          -
+            name: value
+            type: String
+            summary: The field value
+      -
+        name: set
+        kind: method
+        summary: Set a field to the given name and value
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The field name
+          -
+            name: value
+            type: String
+            summary: The field value
+        description: |
+          Clears any existing values for the field name, then adds the single
+          value given.
+      -
+        name: unset
+        kind: method
+        summary: Removes all fields for the given name
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The field name

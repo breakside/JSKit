@@ -1,0 +1,122 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSCustomProperty
+summary: Create a read/write `JSClass` property with getters and setters
+description: |
+  When defining a class with `JSClass()`, a dynamic getter/setter property
+  can be created using `JSDynamicProperty()`.
+
+  ````
+  JSClass("Person", JSObject, {
+
+    firstName: null,
+    lastName: null,
+    fullName: JSDynamicProperty(),
+
+    getFullName: function(){
+      return this.firstName + ' ' + this.lastName;
+    }
+
+    setFullName: function(name){
+      var parts = name.split(" ");
+      this.lastName = parts.pop();
+      this.lastName = parts.join(' ');
+    }
+
+  })
+  ````
+topics:
+  -
+    name: Defining a Dynamic Property
+    members:
+      -
+        name: JSDynamicProperty
+        kind: constructor
+        summary: Define a dynamic property
+        description: |
+          A dynamic property will automatically hook up getters and setters
+          based on the name of the property.
+
+          For a property named `fullName`:
+          - The getter is `getFullName`
+          - The setter is `setFullName`
+
+          For a boolean property named `enabled`
+          - The getter may be `isEnabled` instead of `getEnabled`
+        see:
+          - JSClass.nameOfGetMethodForKey
+          - JSClass.nameOfSetMethodForKey
+      -
+        name: JSDynamicProperty
+        kind: constructor
+        prefix: private
+        summary: Define a dynamic property based on a private property
+        description: |
+          A dynamic property will automatically define getters and setters
+          to return and set the private property.
+
+          If a getter or setter is already defined, it will be used instead,
+          and it may reference the private property.
+
+          This is often used when setting a property has a side effect.
+
+          ````
+          JSClass("Square", JSObject, {
+            length: JSDynamicProperty('_length', 0),
+            area: 0,
+
+            initWithLength: function(length){
+              this.length = length;
+            },
+
+            setLength: function(length){
+              this._length = length;
+              this.area = length * length;
+            }
+
+          })
+          ````
+
+          In this case, a private `_length` property is defined along with the
+          dynamic `length` property.  The getter for `length` is created
+          automatically.
+        note: Properties in Javascript are not really private, but the leading
+          underscore is a convention that indicates a property should be treated
+          as if it was private.
+        arguments:
+          -
+            name: privateName
+            type: String
+            summary: The name of the private property to create
+          -
+            name: intialValue
+            type: any
+            summary: The initial value to give the private property
+      -
+        name: JSDynamicProperty
+        kind: constructor
+        prefix: full
+        summary: Define a dynamic property with custom getter and setter names
+        description: |
+          A dynamic property will automatically name its getter and setter.
+
+          But with this constructor, you can name your own getter and setter.
+        arguments:
+          -
+            name: privateName
+            type: String
+            summary: The name of the private property to create.  Use
+              \`undefined` if you don't want a private property created
+          -
+            name: intialValue
+            type: any
+            summary: The initial value to give the private property.  Use
+              \`undefined` if you aren't creating a private property.
+          -
+            name: getterName
+            type: String
+            summary: The name of the getter method
+          -
+            name: setterName
+            type: String
+            summary: The name of the setter method

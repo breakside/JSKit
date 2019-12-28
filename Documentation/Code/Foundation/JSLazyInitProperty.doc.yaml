@@ -1,0 +1,77 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSCustomProperty
+summary: Create a property that is lazily created the first time it is accessed
+description: |
+  When defining a class with `JSClass()`, a dynamic getter property
+  can be created using `JSLazyInitProperty()`.  But instead of always calling
+  the getter on each access, the value is intialized only once on the first
+  access, and that value is then set as the property going forward, eliminating
+  the getter.
+
+  ````
+  JSClass("PersonView", UIView, {
+
+    nameLabel: JSLazyInitProperty('_createNameLabel', '_nameLabel'),
+    companyLabel: JSLazyInitProperty('_createCompanyLabel', '_companyLabel'),
+
+    _createNameLabel: function(){
+      return UILabel.init();
+    },
+
+    _createCompanyLabel: function(){
+      return UILabel.init();
+    },
+
+    layoutSubviews: function(){
+      if (this._nameLabel !== null){
+        this._nameLabel.frame = JSRect(0, 0, this.bounds.size.width, 20);
+      }
+      if (this._companyLabel !== null){
+        this._companyLabel.frame = JSRect(0, 20, this.bounds.size.width, 20);
+      }
+    }
+
+  })
+  ````
+
+  In this example, a `PersonView` doesn't bother creating its subviews unless
+  they're actually used by calling code.
+topics:
+  -
+    name: Defining a Lazy Init Property
+    members:
+      -
+        name: JSLazyInitProperty
+        kind: constructor
+        summary: Define a lazy init property
+        arguments:
+          -
+            name: createMethodName
+            kind: String
+            summary: The name of the method that will create the property value
+              on first access
+      -
+        name: JSLazyInitProperty
+        kind: constructor
+        prefix: full
+        summary: Define a lazy init property that also sets a private property
+        description: |
+          Setting a private property on value construction is helpful when you
+          want to check if the lazy property value has been constructed.
+
+          Without a private property, you'd only be able to access the public
+          property, but doing so would construct the value and would be of
+          no use in determining if the value has not yet been constructed.
+        arguments:
+          -
+            name: createMethodName
+            kind: String
+            summary: The name of the method that will create the property value
+              on first access
+          -
+            name: privatePropertyName
+            kind: String
+            summary: The name of the private property that should also be
+              assigned the value upon first construction, but should not cause
+              the value to be constructed

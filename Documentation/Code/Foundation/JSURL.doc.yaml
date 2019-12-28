@@ -1,0 +1,481 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Parse and construct URL strings from basic components
+description: |
+  While it's easy to pass URLs around as strings, `JSURL` provides a way to
+  easily change or extract parts of the URL such as the `host`, `path`, and
+  `query`, among others.
+
+  Advanced query string reading and maniuplation via a `JSFormFieldMap` is
+  additionally useful when reading or constructing URLs.
+note: Most `JSKit` APIs that take URLs expect a `JSURL` instead of a simple
+  \`String`.
+topics:
+  -
+    name: Creating URLs
+    members:
+      -
+        name: initWithString
+        kind: init
+        summary: Parse a string into its URL components
+        arguments:
+          -
+            name: string
+            type: String
+            summary: The URL's encoded string representation
+      -
+        name: initWithString
+        suffix: relative
+        kind: init
+        summary: Reslove a relative URL string to a base URL
+        arguments:
+          -
+            name: string
+            type: String
+            summary: The relative URL's encoded string representation
+          -
+            name: baseURL
+            type: JSURL
+            summary: The URL to use as a base for the relative `string`
+      -
+        name: initWithURL
+        kind: init
+        summary: Create a copy of an existing URL
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The URL to copy
+      -
+        name: initWithData
+        kind: init
+        summary: Create a URL from a UTF-8 encoded byte array
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The UTF-8 byte array that represents the URL
+  -
+    name: String Representation
+    members:
+      -
+        name: encodedString
+        type: String
+        summary: The percent-encoded string of this URL
+        description: |
+          Useful when an API requires a URL as a string instead of as an
+          object.
+  -
+    name: Components
+    members:
+      -
+        name: scheme
+        type: String
+        summary: The scheme of the URL, before the `:`, like `"http"`
+        note: Will be `null` for relative URLs
+      -
+        name: host
+        type: String
+        summary: The host of the URL, like `"google.com"`
+        note: Can be `null` for relative URLs or schemes that don't require a
+          host
+      -
+        name: port
+        type: Number
+        summary: The port number into the host
+        note: |
+          A `null` port often implies a default port, like `80` for `"http"`.
+      -
+        name: path
+        type: String
+        summary: The path of the URL
+        note: Can be `null` for relative URLs or schemes that don't require a
+          path.
+
+          For URLs with a `host`, the path must be an absolute path.
+        see:
+          - pathComponents
+          - lastPathComponent
+          - fileExtension
+          - hasDirectoryPath
+      -
+        name: pathComponents
+        type: String[]
+        summary: The `/` separated components of the URL's path
+        description: |
+          Created by splitting the path on the slash (`"/"`) character.
+
+          For absolute paths, the first component will be `"/"`.
+
+          For directory paths that end with a `"/"`, the `hasDirectoryPath`
+          property will be set to `true`.
+        see:
+          - path
+          - lastPathComponent
+          - hasDirectoryPath
+      -
+        name: lastPathComponent
+        type: String
+        summary: The path component at the end of the `pathComponents` list
+        description: |
+          A shortcut for `url.pathComponents[url.pathComponents.length - 1]`.
+
+          The last path component is often a filename and is sometimes
+          convenient to access quickly.
+
+          ````
+          var url = JSURL.initWithString("http://breakside.io");
+          var component = url.lastPathComponent;
+          // component === null;
+          ````
+
+          ````
+          var url = JSURL.initWithString("http://breakside.io/");
+          var component = url.lastPathComponent;
+          // component === "/";
+          ````
+
+          ````
+          var url = JSURL.initWithString("http://breakside.io/demo/one");
+          var component = url.lastPathComponent;
+          // component === "one";
+          ````
+
+          // Still the same even with a trailing slash=
+          ````
+          var url = JSURL.initWithString("http://breakside.io/demo/one/");
+          var component = url.lastPathComponent;
+          // component === "one";
+          ````
+
+          // Still the same even with a trailing slash=
+          ````
+          var url = JSURL.initWithString("http://breakside.io/demo/one/two.html");
+          var component = url.lastPathComponent;
+          // component === "two.html";
+          ````
+        see:
+          - path
+          - pathComponents
+          - fileExtension
+          - hasDirectoryPath
+      -
+        name: fileExtension
+        type: String
+        summary: The file extension, if any, of the `lastPathComponent`
+        description: |
+          A file extension is considered to be anything from the final `"."`
+          forward (unless the final dot is at the very beginning of the
+          string, which denotes a hidden file rather than an extension).
+
+          Here's an example with no extension:
+
+          ````
+          var url = JSURL.initWithString("http://breakside.io/demo/README");
+          var ext = url.fileExtension;
+          // ext === "";
+          ````
+
+          With an extension:
+
+          ````
+          var url = JSURL.initWithString("http://breakside.io/demo/README.txt");
+          var ext = url.fileExtension;
+          // ext === ".txt";
+          ````
+
+          With two extensions, we only care about the final one:
+
+          ````
+          var url = JSURL.initWithString("http://breakside.io/demo/README.txt.zip");
+          var ext = url.fileExtension;
+          // ext === ".zip";
+          ````
+
+          With only leading dot (hidden file), we don't want to mistake it
+          as an extension:
+
+          ````
+          var url = JSURL.initWithString("http://breakside.io/demo/.readme");
+          var ext = url.fileExtension;
+          // ext === "";
+          ````
+
+          A directory URL
+
+          ````
+          var url = JSURL.initWithString("http://breakside.io/demo/readme/");
+          var ext = url.fileExtension;
+          // ext === "";
+          ````
+        note: This property will never be `null` or `undefined`.  If no
+          extension is found, it will be an empty string `""`.
+        see:
+          - String.fileExtension
+          - path
+          - pathComponents
+          - lastPathComponent
+          - hasDirectoryPath
+      -
+        name: hasDirectoryPath
+        type: boolean
+        summary: Indicates that the `lastPathComponent` should be treated as a
+          directory and followed by a `"/"` when generating a URL string
+        see:
+          - path
+          - pathComponents
+          - lastPathComponent
+      -
+        name: encodedQuery
+        type: JSData
+        summary: A byte array of the query string with all percent escaping in
+          place and a user-defined string encoding.
+        description: |
+          The raw query is anything in the URL from after the `"?"` to the
+          `"#"` or end.
+
+          Available as a byte array so any string decoding can be applied.
+        see:
+          - query
+      -
+        name: query
+        type: JSFormFieldMap
+        summary: The name/value pairs parsed from a standard HTTP query string
+        description: |
+          While generic URLs can have any kind of query string they want, by far
+          the most common is the HTTP query string made of name/value pairs.
+
+          The name/value pairs are almost like a dictionary, except this mapping
+          can contain multiple values for the same name, which is why we use
+          a `JSFormFieldMap` value type that is capable of handling mutliple
+          values for a single name.
+
+        note: When parsing the `encodedQuery`, a UTF-8 string encoding is
+          assumed for names and values.
+        see:
+          - encodedQuery
+      -
+        name: encodedFragment
+        type: JSData
+        summary: A byte array of the fragment string with all percent escaping in
+          place and a user-defined string encoding.
+        description: |
+          The raw fragment is anything in the URL from after the `"#"` to the
+          end.
+
+          Available as a byte array so any string decoding can be applied.
+        see:
+          - fragment
+      -
+        name: fragment
+        type: String
+        summary: The `encodedFragment` with percent escapes decoded and UTF-8
+          encoding assumed.
+        see:
+          - fragment
+      -
+        name: encodedUserInfo
+        type: JSData
+        summary: A byte array of the user info portion of the URL that comes
+          before the host.
+  -
+    name: Relative URLs
+    members:
+      -
+        name: isAbsolute
+        type: boolean
+        summary: Indicates if the URL is an absolute or relative URL
+      -
+        name: resolveToBaseURL
+        kind: method
+        summary: Add missing properties from the given URL to convert this URL
+          from a relative URL to an absolute URL.
+        arguments:
+          -
+            name: baseURL
+            type: JSURL
+            summary: The URL from which to pull missing properties
+      -
+        name: resolvingToBaseURL
+        kind: method
+        type: JSURL
+        return: A copy of this relative url resolved to the the base URL
+        summary: Make a copy of this URL by adding missing properties from the
+          given URL to create an absolute URL.
+        arguments:
+          -
+            name: baseURL
+            type: JSURL
+            summary: The URL from which to pull missing properties
+      -
+        name: encodedStringRelativeTo
+        kind: method
+        type: String
+        return: A percent-encoded string of the relative URL from the baseURL to
+          this URL
+        arguments:
+          -
+            name: baseURL
+            type: JSURL
+            summary: The URL from which to make a relative URL to here
+  -
+    name: Path Maniuplation
+    members:
+      -
+        name: appendPathCompoment
+        kind: method
+        summary: Add a single component to the end of this URL
+        arguments:
+          -
+            name: component
+            type: String
+            summary: The path component to add
+          -
+            name: isDirectory
+            type: boolean
+            default: "false"
+            summary: Is the component a directory?
+      -
+        name: appendingPathCompoment
+        kind: method
+        summary: Create a new URL by adding a single component to the end of
+          this URL
+        type: JSURL
+        return: A copy of this URL with the added component
+        arguments:
+          -
+            name: component
+            type: String
+            summary: The path component to add
+          -
+            name: isDirectory
+            type: boolean
+            default: "false"
+            summary: Is the component a directory?
+      -
+        name: appendPathCompoments
+        kind: method
+        summary: Add several components to the end of this URL
+        arguments:
+          -
+            name: components
+            type: String[]
+            summary: The path components to add
+          -
+            name: isFinalDirectory
+            type: boolean
+            default: "false"
+            summary: Is the final component a directory?
+      -
+        name: appendingPathCompoments
+        kind: method
+        summary: Create a new URL by adding several components to the end of
+          this URL
+        type: JSURL
+        return: A copy of this URL with the added components
+        arguments:
+          -
+            name: components
+            type: String[]
+            summary: The path components to add
+          -
+            name: isFinalDirectory
+            type: boolean
+            default: "false"
+            summary: Is the final component a directory?
+      -
+        name: appendFileExtension
+        kind: method
+        summary: Add a file extension to the end of this URL
+        arguments:
+          -
+            name: ext
+            type: String
+            summary: The extension to add
+      -
+        name: appendingFileExtension
+        kind: method
+        summary: Create a new URL by adding a file extension to the end of
+          this URL
+        type: JSURL
+        return: A copy of this URL with the added file extension
+        arguments:
+          -
+            name: ext
+            type: String
+            summary: The extension to add
+      -
+        name: removeFileExtension
+        kind: method
+        summary: Remove the file extension from this URL
+      -
+        name: removingFileExtension
+        kind: method
+        summary: Create a new URL by removing the file extension from
+          this URL
+        type: JSURL
+        return: A copy of this URL with the file extension removed
+      -
+        name: removeLastPathComponent
+        kind: method
+        summary: Remove the last path component from this URL
+      -
+        name: removingLastPathComponent
+        kind: method
+        summary: Create a new URL by removing the last path component from
+          this URL
+        type: JSURL
+        return: A copy of this URL with the last path component removed
+      -
+        name: setPathComponents
+        kind: method
+        summary: Set the path components to a new list
+        arguments:
+          -
+            name: components
+            type: String[]
+
+            summary: The new path components
+          -
+            name: isFinalDirectory
+            type: boolean
+            summary: Is the final component a directory?
+  -
+    name: Standardizing
+    members:
+      -
+        name: standardize
+        kind: method
+        summary: Reslove path components like `".."` and `"."`
+      -
+        name: standardized
+        kind: method
+        summary: Create a new URL by resloving path components like `".."`
+          and `"."`
+        type: JSURL
+        return: A standardized copy of this URL
+        see:
+          - standardize
+  -
+    name: Copying
+    members:
+      -
+        name: copy
+        kind: method
+        type: JSURL
+        return: A copy of this URL
+        summary: Create a new URL by copying this URL
+  -
+    name: Comparisons
+    members:
+      -
+        name: isEqual
+        kind: method
+        type: boolean
+        summary: Check if this URL is equal to another
+        arguments:
+          -
+            name: other
+            type: JSURL
+            summary: The URL to compare to

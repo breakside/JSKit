@@ -26,7 +26,10 @@ JSClass("JSURLSession", JSObject, {
         return task;
     },
 
-    uploadTaskWithRequest: function(request, completion, target){
+    uploadTaskWithRequest: function(request, data, completion, target){
+        if (data !== null && data !== undefined){
+            request.data = data;
+        }
         var task = JSURLSessionUploadTask.initWithRequest(request);
         task.session = this;
         task.completion = completion;
@@ -35,12 +38,7 @@ JSClass("JSURLSession", JSObject, {
     },
 
     streamTaskWithURL: function(url, requestedProtocols){
-        var request = JSURLRequest.initWithURL(url);
-        return this.streamTaskWithRequest(request, requestedProtocols);
-    },
-
-    streamTaskWithRequest: function(request, requestedProtocols){
-        var task = JSURLSessionStreamTask.initWithRequest(request, requestedProtocols);
+        var task = JSURLSessionStreamTask.initWithURL(url, requestedProtocols);
         task.session = this;
         return task;
     },

@@ -1,0 +1,126 @@
+kind: protocol
+introduced: "1.0.0"
+summary: A delegate protocol for a `JSURLSession` to handle various session
+  events.
+description: |
+  A url session delegate can be used instead of task-based callbacks or
+  promises.
+important: Session-level delegation is not recommend if you have more than a
+  handful of tasks to deal with.  Use task callbacks or promises instead.
+topics:
+  -
+    name: Task Events
+    members:
+      -
+        name: urlSessionTaskDidSendBodyData
+        summary: Called when a task from the session sends a chunk of body data
+          to the server
+        arguments:
+          -
+            name: session
+            type: JSURLSession
+            summary: The session making this call
+          -
+            name: task
+            type: JSURLSessionTask
+            summary: The task that sent the data
+          -
+            name: totalSent
+            type: Number
+            summary: The number of bytes sent so far.  Divide by `totalExpected`
+              to get an upload percentage.
+          -
+            name: totalExpected
+            type: Number
+            summary: The total number of bytes to send
+      -
+        name: urlSessionTaskDidReceiveBodyData
+        summary: Called when a task from the session receives a chunk of body
+          data from the server
+        arguments:
+          -
+            name: session
+            type: JSURLSession
+            summary: The session making this call
+          -
+            name: task
+            type: JSURLSessionTask
+            summary: The task that sent the data
+          -
+            name: totalReceived
+            type: Number
+            summary: The number of bytes received so far.  Divide by `totalExpected`
+              to get a download percentage.
+          -
+            name: totalExpected
+            type: Number
+            summary: The total number of bytes to send
+      -
+        name: urlSessionTaskDidComplete
+        summary: Called when a task completes
+        arguments:
+          -
+            name: session
+            type: JSURLSession
+            summary: The session making this call
+          -
+            name: task
+            type: JSURLSessionTask
+            summary: The task that sent the data
+          -
+            name: error
+            type: Error
+            summary: If not `null`, the error encountered during the request.
+              If `null`, the task completed successfully.
+      -
+        name: urlSessionTaskDidOpenStream
+        summary: Called when a WebSocket stream task is opened 
+        arguments:
+          -
+            name: session
+            type: JSURLSession
+            summary: The session making this call
+          -
+            name: task
+            type: JSURLSessionStreamTask
+            summary: The task that sent the data
+      -
+        name: urlSessionTaskDidCloseStream
+        summary: Called when a WebSocket stream task is closed
+        arguments:
+          -
+            name: session
+            type: JSURLSession
+            summary: The session making this call
+          -
+            name: task
+            type: JSURLSessionStreamTask
+            summary: The task that sent the data
+      -
+        name: urlSessionTaskDidReceiveStreamData
+        summary: Called when a WebSocket stream task receives data
+        arguments:
+          -
+            name: session
+            type: JSURLSession
+            summary: The session making this call
+          -
+            name: task
+            type: JSURLSessionTask
+            summary: The task that sent the data
+          -
+            name: data
+            type: JSData
+            summary: The stream data received
+      -
+        name: urlSessionTaskDidReceiveStreamError
+        summary: Caled when a WebSocket stream task encounters an error
+        arguments:
+          -
+            name: session
+            type: JSURLSession
+            summary: The session making this call
+          -
+            name: task
+            type: JSURLSessionTask
+            summary: The task that sent the data

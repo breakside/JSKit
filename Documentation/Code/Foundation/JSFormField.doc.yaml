@@ -1,0 +1,50 @@
+kind: class
+introduced: "1.0.0"
+summary: A name/value pair of strings used in query strings and POST requests
+topics:
+  -
+    name: Creating a Field
+    members:
+      -
+        name: JSFormField
+        kind: constructor
+        summary: Create a field from a name and value
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The field name
+          -
+            name: value
+            type: String
+            summary: The field value
+      -
+        name: JSFormField
+        kind: constructor
+        summary: Create a field from a name and `null` value
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The field name
+      -
+        name: JSFormField
+        kind: constructor
+        prefix: copy
+        summary: Copy an existing field
+        arguments:
+          -
+            name: field
+            type: JSFormField
+            summary: The field to copy
+  -
+    name: Name & Value
+    members:
+      -
+        name: name
+        type: String
+        summary: The field name
+      -
+        name: value
+        type: String
+        summary: The field value

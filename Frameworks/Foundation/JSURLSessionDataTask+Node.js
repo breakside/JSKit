@@ -17,6 +17,13 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
     _sent: false,
 
     resume: function(){
+        if (!this.completion){
+            this.completion = Promise.completion(Promise.resolveNull);
+            var task = this;
+            this.completion.promise = this.completion.promise.then(function(){
+                return task.currentRequest.response;
+            });
+        }
         var request = this._currentRequest;
         var data = null;
         var url = request.url.encodedString;
@@ -49,6 +56,7 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
         }else{
             JSRunLoop.main.schedule(this._complete, this);
         }
+        return this.completion.promise;
     },
 
     cancel: function(){

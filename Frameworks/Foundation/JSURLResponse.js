@@ -51,7 +51,13 @@ JSClass("JSURLResponse", JSObject, {
         }catch (e){
             return null;
         }
-    }
+    },
+    
+    headers: JSReadOnlyProperty(),
+
+    getHeaders: function(){
+        return this._headerMap.headers;
+    },
 
 });
 
