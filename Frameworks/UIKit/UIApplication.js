@@ -222,7 +222,7 @@ JSClass('UIApplication', UIResponder, {
         this.windowServer.createMouseEvent(UIEvent.Type.leftMouseUp, event.timestamp, location);
     },
 
-    openURL: function(url){
+    openURL: function(url, options){
     }
 
 });

@@ -1,2 +1,4 @@
 en:
   helloWorld: Hello, world!
+  testButton:
+    title: Test

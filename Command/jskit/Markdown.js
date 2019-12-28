@@ -57,14 +57,25 @@ JSClass("Markdown", JSObject, {
                         ++i;
                     }
                     if (i < l){
+                        ++i;
                         if (text !== ''){
                             element.appendChild(document.createTextNode(text));
                             text = '';
                         }
                         let codeElement = document.createElement('code');
                         let url = null;
+                        let src = code;
+                        if (i < l && escapedText[i] == '('){
+                            ++i;
+                            src = '';
+                            while (i < l && escapedText[i] != ')'){
+                                src += escapedText[i];
+                                ++i;
+                            }
+                            ++i;
+                        }
                         if (markdown.delegate && markdown.delegate.urlForMarkdownCode){
-                            url = markdown.delegate.urlForMarkdownCode(markdown, code); 
+                            url = markdown.delegate.urlForMarkdownCode(markdown, src); 
                         }
                         if (url){
                             let a = codeElement.appendChild(document.createElement('a'));
@@ -78,7 +89,6 @@ JSClass("Markdown", JSObject, {
                             codeElement.appendChild(document.createTextNode(code));
                         }
                         element.appendChild(codeElement);
-                        ++i;
                     }else{
                         text += c;
                         i = checkpoint;
@@ -119,16 +129,24 @@ JSClass("Markdown", JSObject, {
                                 text = '';
                             }
                             let src = escapedText.substr(srcStart + 2, srcEnd - srcStart - 2);
+                            let srcset = [];
                             if (markdown.delegate && markdown.delegate.urlForMarkdownImage){
                                 src = markdown.delegate.urlForMarkdownImage(markdown, src);
                                 if (src){
+                                    var basename = src.lastPathComponent.removingFileExtension();
                                     src = src.encodedString;
+                                    if (basename.endsWith("@2x")){
+                                        srcset.push("%s 2x".sprintf(src));
+                                    }
                                 }
                             }
                             let alttext = escapedText.substr(i, srcStart - i);
                             let img = element.appendChild(document.createElement('img'));
                             img.setAttribute("src", src);
                             img.setAttribute("alt", alttext);
+                            if (srcset.length > 0){
+                                img.setAttribute("srcset", srcset.join(','));
+                            }
                             i = srcEnd + 1;
                         }else{
                             text += c + '[';

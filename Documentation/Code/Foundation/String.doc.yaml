@@ -873,6 +873,15 @@ topics:
           ````
         note: This property will never be `null` or `undefined`.  If no
           extension is found, it will be an empty string `""`.
+      -
+        name: removingFileExtension
+        type: String
+        return: A copy of this string with any file extension removed
+        kind: method
+        summary: Create a new string by removing the file extension, if any,
+          from this string
+        see:
+          - fileExtension
   -
     name: Base64 & Hex
     members:

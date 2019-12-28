@@ -1,0 +1,232 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: The single application that runs all of the user interface
+description: |
+  A `UIApplication` is created automatically by the `UIKit` boostrap code.
+
+  Your responsibility is to create a class that impelements the
+  `UIApplicationDelegate` protocol, which receives calls when the application
+  launches.
+topics:
+  -
+    name: Info File
+    members:
+      - UIApplicationInfo
+  -
+    name: Delegate
+    members:
+      -
+        name: UIApplicationDelegate
+        kind: protocol
+        summary: A delgate for important application events like launch
+        topics:
+          -
+            name: Application Launch
+            members:
+              -
+                name: applicationDidFinishLaunching
+                summary: Called when the application launches successfully
+                arguments:
+                  -
+                    name: application
+                    type: UIApplication
+                    summary: The application that launched
+                  -
+                    name: launchOptions
+                    type: JSArguments
+                    summary: Any arguments passed to the application
+                description: |
+                  For web-based `UIApplication`s, `launchOptions` are passed
+                  via the URL fragment.
+
+                  The allowed options are specified in the
+                  `UIApplicationLaunchOptions` entry in the application's
+                  [Info](UIApplicationInfo) file.
+              -
+                name: applicationDidFailLaunching
+                summary: Called when the application launches successfully
+                arguments:
+                  -
+                    name: application
+                    type: UIApplication
+                    summary: The application that launched
+                  -
+                    name: reason
+                    type: LaunchFailureReason
+                    summary: The reason the application failed to launch
+      -
+        name: delegate
+        type: UIApplicationDelegate
+        summary: The application's delegate
+        description: |
+          The application delegate is set via the [Info](UIApplicationInfo)
+          file, either via the `UIApplicationDelegate` property or as the
+          `File's Owner` in the `UIMainSpec` specfile.
+
+          An application delegate typically directs and manages the top level
+          application functions like
+
+          - Establishing a root window to display
+          - Setting up `JSUserDefaults`
+      -
+        name: LaunchFailureReason
+        kind: enum
+        summary: Various reasons an application launch can fail
+        options:
+          -
+            name: exception
+            summary: An exception was thrown during application
+              initialization
+          -
+            name: filestyemNotAvailable
+            summary: The filesystem could not be accessed or
+              initialized
+          -
+            name: upgradeRequiresNoOtherInstances
+            summary: An upgrade is available, but cannot be installed
+              until other windows/tabs running the same application are
+              closed
+  -
+    name: Windows
+    members:
+      -
+        name: mainWindow
+        type: UIWindow
+        summary: The application's current "main window"
+        description: |
+          The main window is the active window.  It is usually styled
+          differently than inactive windows.
+      -
+        name: keyWindow
+        type: UIWindow
+        summary: The application's current "key window"
+        description: |
+          The key window receives keyboard input and is often the same as the
+          `mainWindow`, although the two can be different in cases where the
+          key window is not allowed to become a main window.
+      -
+        name: windows
+        type: UIWindow[]
+        summary: The application's window stack
+        description: |
+          The window stack is ordered in the same manner as the windows are
+          visible, with the top visible window at the end of the stack.
+  -
+    name: Menus
+    members:
+      -
+        name: mainMenu
+        type: UIMenu
+        summary: The application's menu that gets shown in the main menu bar
+  -
+    name: Opening URLs
+    members:
+      -
+        name: openURL
+        kind: method
+        summary: Open the URL
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url to open
+        description: |
+          For web based applications, the URL will open in a new browser window
+          and the browser's default behavior for that resource type will be
+          invoked.
+  -
+    name: Events
+    members:
+      -
+        name: sendEvent
+        kind: method
+        summary: Send an event to the application
+        arguments:
+          -
+            name: event
+            type: UIEvent
+            summary: The event that occurred
+        description: |
+          Called by lower level platform managers when an event relevant to the
+          application occurs.
+
+          The application inspects the event using the following steps:
+          1. If the event is a keyboard shortcut for a main menu item,
+             the event is sent to the `mainMenu`
+          2. Otherwise, the event is sent to each window in its
+             `windows`(UIEvent.windows) property.
+        note: Typically not called manually
+      -
+        name: sendAction
+        kind: method
+        summary: Send an action to the best responder
+        arguments:
+          -
+            name: action
+            type: String
+            summary: The method name to invoke on the responder
+        description: |
+          The action will be forwarded to the `firstTargetForAction(action)`.
+
+          The sender of the action will be this `UIApplication`.
+      -
+        name: sendAction
+        kind: method
+        summary: Send an action to the target
+        arguments:
+          -
+            name: action
+            type: String
+            summary: The method name to invoke on the responder
+          -
+            name: target
+            type: UIResponder
+            summary: The responder for the action
+        description: |
+          The sender of the action will be this `UIApplication`
+      -
+        name: sendAction
+        kind: method
+        summary: Send an action to the target
+        arguments:
+          -
+            name: action
+            type: String
+            summary: The method name to invoke on the responder
+          -
+            name: target
+            type: UIResponder
+            summary: The responder for the action.  If `null`, use the result
+              of `firstTargetForAction(action)`
+          -
+            name: sender
+            type: any
+            summary: The sender of the action
+      -
+        name: firstTargetForAction
+        kind: method
+        summary: Find the first target in the responder chain for the action
+        type: UIResponder
+        return: The top responder in the responder chain that handles the action
+        arguments:
+          -
+            name: action
+            type: String
+            summary: The method name to invoke on the responder
+          -
+            name: target
+            type: UIResponder
+            summary: |
+              The responder for the action.  If `null`, the start of the
+              responder chain will be the `mainWindow`'s 
+              `firstResponder`(UIWindow.firstResponder) or the
+              `mainWindow` itself.  Othewise, the responder chain will start
+              with `target`.
+          -
+            name: sender
+            type: any
+            summary: The sender of the action
+        description: |
+          Loop up the responder chain starting from `target` until a responder
+          is found that responds to the `action`.

@@ -967,6 +967,36 @@ JSClass('StringTests', TKTestSuite, {
         TKAssertExactEquals(ext, ".reallylongextension");
     },
 
+    testRemovingFileExtension: function(){
+        var str = "";
+        str = str.removingFileExtension();
+        TKAssertExactEquals(str, "");
+
+        str = "test";
+        str = str.removingFileExtension();
+        TKAssertExactEquals(str, "test");
+
+        str = ".test";
+        str = str.removingFileExtension();
+        TKAssertExactEquals(str, ".test");
+
+        str = "test.";
+        str = str.removingFileExtension();
+        TKAssertExactEquals(str, "test");
+
+        str = "test.a";
+        str = str.removingFileExtension();
+        TKAssertExactEquals(str, "test");
+
+        str = "test.a.b";
+        str = str.removingFileExtension();
+        TKAssertExactEquals(str, "test.a");
+
+        str = "test.reallylongextension";
+        str = str.removingFileExtension();
+        TKAssertExactEquals(str, "test");
+    },
+
     testReplacingTemplateParameters: function(){
         var template = "This is a {{test}} of template {{test2}} params {{test3}}";
         var params = {

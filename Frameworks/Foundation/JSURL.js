@@ -267,7 +267,7 @@ JSClass("JSURL", JSObject, {
     removeFileExtension: function(){
         if (this.pathComponents.length > 0 && !this._hasDirectoryPath){
             var last = this._pathComponents.pop();
-            last = last.substr(0, last.length - last.fileExtension.length);
+            last = last.removingFileExtension();
             this._pathComponents.push(last);
             this._updatePathFromComponents();
         }

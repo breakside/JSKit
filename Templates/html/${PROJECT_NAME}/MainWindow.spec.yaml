@@ -4,6 +4,7 @@ AppDelegate:
   class: ApplicationDelegate
   outlets:
     window: /MainWindow
+    mainViewController: /MainViewController
 
 DarkColor:
   class : JSColor
@@ -22,6 +23,10 @@ MainView:
   backgroundColor: /DarkColor
   subviews:
     - /Label
+    - /TestButton
+  outlets:
+    label: /Label
+    testButton: /TestButton
 
 Label:
   class: UILabel
@@ -31,3 +36,10 @@ Label:
     size: detail
   textColor:
     rgba: 204,0,0
+
+TestButton:
+  class: UIButton
+  frame: 10,40,100,23
+  title: .testButton.title
+  target: /MainViewController
+  action: test

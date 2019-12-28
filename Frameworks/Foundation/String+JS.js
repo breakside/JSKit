@@ -682,6 +682,13 @@ Object.defineProperties(String.prototype, {
         }
     },
 
+    removingFileExtension: {
+        value: function String_removingFileExtension(){
+            var ext = this.fileExtension;
+            return this.substr(0, this.length - ext.length);
+        }
+    },
+
     replacingTemplateParameters: {
         value: function String_replacingTemplateParameters(parameters, open, close){
             if (open === undefined){

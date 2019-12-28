@@ -1,7 +1,7 @@
 // #import jskit
 // #import TestKit
 // #import DOM
-/* global JSClass, TKTestSuite, Markdown, DOM */
+/* global JSClass, TKTestSuite, Markdown, DOM, JSURL */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals, TKAssertArrayEquals */
 'use strict';
 
@@ -229,6 +229,65 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[0].childNodes[2].tagName, "code");
         TKAssertEquals(elements[0].childNodes[2].childNodes.length, 1);
         TKAssertEquals(elements[0].childNodes[2].childNodes[0].data, "markdown");
+    },
+
+    testInlineCodeLink: function(){
+        var str = "This is a `test` of `markdown`(Test.markdown)";
+        var markdown = Markdown.initWithString(str);
+        var delegate = {
+            urlForMarkdownCode: function(markdown, code){
+                if (code === 'test'){
+                    return JSURL.initWithString('../test.html');
+                }
+                if (code === 'markdown'){
+                    return JSURL.initWithString('../markdown.html');
+                }
+                if (code === 'Test.markdown'){
+                    return JSURL.initWithString('../Test/markdown.html');
+                }
+                return null;
+            }
+        };
+        markdown.delegate = delegate;
+        var document = DOM.createDocument();
+        var elements = markdown.htmlElementsForDocument(document);
+        TKAssertEquals(elements.length, 1);
+        TKAssertEquals(elements[0].tagName, "p");
+        TKAssertEquals(elements[0].childNodes.length, 4);
+        TKAssertEquals(elements[0].childNodes[0].data, "This is a ");
+        TKAssertEquals(elements[0].childNodes[1].tagName, "code");
+        TKAssertEquals(elements[0].childNodes[1].childNodes.length, 1);
+        TKAssertEquals(elements[0].childNodes[1].childNodes[0].tagName, "a");
+        TKAssertEquals(elements[0].childNodes[1].childNodes[0].getAttribute("href"), "../test.html");
+        TKAssertEquals(elements[0].childNodes[1].childNodes[0].childNodes.length, 1);
+        TKAssertEquals(elements[0].childNodes[1].childNodes[0].childNodes[0].data, "test");
+        TKAssertEquals(elements[0].childNodes[2].data, " of ");
+        TKAssertEquals(elements[0].childNodes[3].tagName, "code");
+        TKAssertEquals(elements[0].childNodes[3].childNodes.length, 1);
+        TKAssertEquals(elements[0].childNodes[3].childNodes[0].tagName, "a");
+        TKAssertEquals(elements[0].childNodes[3].childNodes[0].getAttribute("href"), "../Test/markdown.html");
+        TKAssertEquals(elements[0].childNodes[3].childNodes[0].childNodes.length, 1);
+        TKAssertEquals(elements[0].childNodes[3].childNodes[0].childNodes[0].data, "markdown");
+
+        str = "`This` is a test of `markdown`(Test.markdown) links in code";
+        markdown = Markdown.initWithString(str);
+        markdown.delegate = delegate;
+        document = DOM.createDocument();
+        elements = markdown.htmlElementsForDocument(document);
+        TKAssertEquals(elements.length, 1);
+        TKAssertEquals(elements[0].tagName, "p");
+        TKAssertEquals(elements[0].childNodes.length, 4);
+        TKAssertEquals(elements[0].childNodes[0].tagName, "code");
+        TKAssertEquals(elements[0].childNodes[0].childNodes.length, 1);
+        TKAssertEquals(elements[0].childNodes[0].childNodes[0].data, "This");
+        TKAssertEquals(elements[0].childNodes[1].data, " is a test of ");
+        TKAssertEquals(elements[0].childNodes[2].tagName, "code");
+        TKAssertEquals(elements[0].childNodes[2].childNodes.length, 1);
+        TKAssertEquals(elements[0].childNodes[2].childNodes[0].tagName, "a");
+        TKAssertEquals(elements[0].childNodes[2].childNodes[0].getAttribute("href"), "../Test/markdown.html");
+        TKAssertEquals(elements[0].childNodes[2].childNodes[0].childNodes.length, 1);
+        TKAssertEquals(elements[0].childNodes[2].childNodes[0].childNodes[0].data, "markdown");
+        TKAssertEquals(elements[0].childNodes[3].data, " links in code");
     },
 
     testLinks: function(){

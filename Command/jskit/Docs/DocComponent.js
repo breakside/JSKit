@@ -1,7 +1,7 @@
 // #import Foundation
 // #import DOM
 // #import "Markdown.js"
-/* global JSClass, JSObject, JSDynamicProperty, JSReadOnlyProperty, DocComponent, DOM, Markdown, JSURL, XMLSerializer */
+/* global JSClass, JSObject, JSCopy, JSDynamicProperty, JSReadOnlyProperty, DocComponent, DOM, Markdown, JSURL, XMLSerializer */
 'use strict';
 
 JSClass("DocComponent", JSObject, {
@@ -16,6 +16,7 @@ JSClass("DocComponent", JSObject, {
         }
         var instance = subclass.init();
         instance.children = [];
+        instance.images = [];
         return instance;
     },
 
@@ -44,7 +45,11 @@ JSClass("DocComponent", JSObject, {
     uniqueName: JSReadOnlyProperty(),
 
     getUniqueName: function(){
-        return this.name.toLowerCase().replace(/\s/g, '-').replace(/[^\w\-]/g, '').replace(/\-+/g,'-').replace(/^\-/, '').replace(/\-$/, '');
+        return this.sanitizedString(this.name);
+    },
+
+    sanitizedString: function(str){
+        return str.toLowerCase().replace(/\s/g, '-').replace(/[^\w\-]/g, '').replace(/\-+/g,'-').replace(/^\-/, '').replace(/\-$/, '');
     },
 
     displayNameForKind: JSReadOnlyProperty(),
@@ -110,6 +115,7 @@ JSClass("DocComponent", JSObject, {
 
     parent: null,
     children: null,
+    images: null,
 
     // --------------------------------------------------------------------
     // MARK: - Generating HTML
@@ -173,10 +179,66 @@ JSClass("DocComponent", JSObject, {
             let element = elements[i];
             content.appendChild(element);
             if (element.tagName == 'aside' && element.getAttribute('class') == 'availability'){
-                element.setAttribute('style', 'grid-row-end: %d;'.sprintf(i + 1));
+                aside = element;
+                aside.setAttribute('style', 'grid-row-end: %d;'.sprintf(i + 1));
+            }
+        }
+
+        if (aside !== null){
+            var outline = this.outlineElements(elements);
+            if (outline.length > 1){
+                let title = document.createElement('header');
+                title.appendChild(document.createTextNode('On This Page'));
+                title.setAttribute('class', 'outline');
+                aside.appendChild(title);
+                let ul = aside.appendChild(document.createElement('ul'));
+                ul.setAttribute('class', 'outline');
+                let listStack = [ul];
+                for (let i = 0, l = outline.length; i < l; ++i){
+                    let element = outline[i];
+                    let level = parseInt(element.getAttribute("outline-level"));
+                    if (level > listStack.length){
+                        listStack.push(ul);
+                        ul = ul.childNodes[ul.childNodes.length - 1].appendChild(document.createElement('ul'));
+                    }else if (level < listStack.length){
+                        while (level < listStack.length){
+                            ul = listStack.pop();
+                        }
+                    }
+                    element.removeAttribute("outline-level");
+                    let title = element.childNodes[0].data;
+                    let id = this.sanitizedString(title);
+                    element.setAttribute("id", id);
+                    let li = ul.appendChild(document.createElement('li'));
+                    let a = li.appendChild(document.createElement('a'));
+                    a.appendChild(document.createTextNode(title));
+                    a.setAttribute("href", "#%s".sprintf(id));
+                }
+            }
+            if (aside.childNodes.length === 0){
+                aside.parentNode.removeChild(aside);
             }
         }
         return document;
+    },
+
+    outlineElements: function(elements){
+        var stack = JSCopy(elements);
+        var outline = [];
+        while (stack.length > 0){
+            let element = stack.shift();
+            if (element.nodeType === DOM.Node.ELEMENT_NODE){
+                let level = element.getAttribute("outline-level");
+                if (level !== null){
+                    outline.push(element);
+                }
+                for (let i = 0, l = element.childNodes.length; i < l; ++i){
+                    let node = element.childNodes[i];
+                    stack.push(node);
+                }   
+            }
+        }
+        return outline;
     },
 
     htmlArticleElements: function(document){
@@ -208,9 +270,16 @@ JSClass("DocComponent", JSObject, {
             if (children.length === 0 || children[0].tagName != markdown.htmlOptions.firstLevelHeaderTagName){
                 let h1 = description.appendChild(document.createElement("h1"));
                 h1.appendChild(document.createTextNode(this.titleForDescriptionSection));
+                h1.setAttribute("outline-level", "1");
             }
             for (let i = 0, l = children.length; i < l; ++i){
-                description.appendChild(children[i]);
+                let child = children[i];
+                if (child.tagName == markdown.htmlOptions.firstLevelHeaderTagName){
+                    child.setAttribute("outline-level", "1");
+                }else if (child.tagName == markdown.htmlOptions.secondLevelHeaderTagName){
+                    child.setAttribute("outline-level", "2");
+                }
+                description.appendChild(child);
             }
         }
 
@@ -244,11 +313,11 @@ JSClass("DocComponent", JSObject, {
             }
         }
 
-        if (this.kind != 'document' && this.kind != 'index'){
-            let aside = document.createElement("aside");
-            aside.setAttribute("class", "availability");
-            elements.push(aside);
+        let aside = document.createElement("aside");
+        aside.setAttribute("class", "availability");
+        elements.push(aside);
 
+        if (this.kind != 'document' && this.kind != 'index'){
             var environment = this.inheritedEnvironment();
             var framework = this.inheritedFramework();
             var introduced = this.inheritedIntroduced();
@@ -336,7 +405,12 @@ JSClass("DocComponent", JSObject, {
         let html = serializer.serializeToString(document);
         await documentation.fileManager.createFileAtURL(indexURL, html.utf8());
 
-        // TODO: copy images as needed
+        for (let i = 0, l = this.images.length; i < l; ++i){
+            let image = this.images[i];
+            let sourceURL = JSURL.initWithString(image, this.sourceURL);
+            let destinationURL = JSURL.initWithString(image, indexURL);
+            await documentation.fileManager.copyItemAtURL(sourceURL, destinationURL);
+        }
     },
 
     // --------------------------------------------------------------------
@@ -363,7 +437,7 @@ JSClass("DocComponent", JSObject, {
     },
 
     urlForMarkdownImage: function(markdown, image){
-        // TODO: track images so they can be copied
+        this.images.push(image);
         return JSURL.initWithString(image);
     },
 

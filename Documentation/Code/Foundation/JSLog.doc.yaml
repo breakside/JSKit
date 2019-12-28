@@ -225,7 +225,7 @@ topics:
             variable: true
             summary: The values to format, if any
       -
-        name: debug
+        name: error
         kind: method
         summary: Log a message at the highest priority level
         description: |

@@ -87,7 +87,7 @@ article.doc > aside.availability > header{
     font-weight: bold;
 }
 
-article.doc > aside.availability > header.framework{
+article.doc > aside.availability > header.framework:not(:first-child){
     margin-top: 15px;
 }
 
@@ -142,6 +142,31 @@ article.doc > aside.availability > table.environments > tbody > tr > td.deprecat
     padding: 0 5px;
     font-size: 80%;
     color: rgb(204,102,0);
+}
+
+article.doc > aside.availability > header.outline:not(:first-child){
+    margin-top: 15px;
+}
+
+article.doc > aside.availability > ul.outline{
+    font-size: 80%;
+    margin: 0;
+    padding: 0;
+}
+
+article.doc > aside.availability > ul.outline > li{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+article.doc > aside.availability > ul.outline > li ul{
+    margin: 0;
+    padding: 0 0 0 15px;
+}
+
+article.doc > aside.availability > ul.outline > li li{
+    list-style: none;
 }
 
 article.doc > header > h1{

@@ -56,6 +56,7 @@
             topicsSection.setAttribute("class", "topics");
             let header = topicsSection.appendChild(document.createElement("header"));
             let h1 = header.appendChild(document.createElement("h1"));
+            h1.setAttribute("outline-level", "1");
             h1.appendChild(document.createTextNode("Topics"));
             for (let i = 0, l = this.topics.length; i < l; ++i){
                 let topic = this.topics[i];
@@ -65,6 +66,7 @@
                 let header = section.appendChild(document.createElement("header"));
                 let h1 = header.appendChild(document.createElement("h1"));
                 h1.appendChild(document.createTextNode(topic.name));
+                h1.setAttribute("outline-level", "2");
                 let div = section.appendChild(document.createElement('div'));
                 if (topic.summary){
                     let markdown = this.createMarkdownWithString(topic.summary);

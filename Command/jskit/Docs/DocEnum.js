@@ -67,7 +67,7 @@
     },
 
     declarationCode: function(){
-        if (this.parent && this.parent.kind == 'class'){
+        if (this.parent && this.parent.kind == 'class' || this.parent.kind == 'protocol'){
             return ["%s.%s = { ... }".sprintf(this.parent.name, this.name)];
         }
         return ["%s = { ... }".sprintf(this.name)];

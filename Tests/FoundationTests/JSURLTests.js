@@ -815,6 +815,40 @@ JSClass('JSURLTests', TKTestSuite, {
         TKAssertExactEquals(ext, '.reallylongext');
     },
 
+    testRemoveFileExtension: function(){
+        var url = JSURL.initWithString("http://google.com");
+        url.removeFileExtension();
+        TKAssertExactEquals(url.encodedString, 'http://google.com');
+
+        url = JSURL.initWithString("http://google.com/");
+        url.removeFileExtension();
+        TKAssertExactEquals(url.encodedString, 'http://google.com/');
+
+        url = JSURL.initWithString("http://google.com/test");
+        url.removeFileExtension();
+        TKAssertExactEquals(url.encodedString, 'http://google.com/test');
+
+        url = JSURL.initWithString("http://google.com/.test");
+        url.removeFileExtension();
+        TKAssertExactEquals(url.encodedString, 'http://google.com/.test');
+
+        url = JSURL.initWithString("http://google.com/test.");
+        url.removeFileExtension();
+        TKAssertExactEquals(url.encodedString, 'http://google.com/test');
+
+        url = JSURL.initWithString("http://google.com/test.a");
+        url.removeFileExtension();
+        TKAssertExactEquals(url.encodedString, 'http://google.com/test');
+
+        url = JSURL.initWithString("http://google.com/test.a.b");
+        url.removeFileExtension();
+        TKAssertExactEquals(url.encodedString, 'http://google.com/test.a');
+
+        url = JSURL.initWithString("http://google.com/test.a.reallylongext");
+        url.removeFileExtension();
+        TKAssertExactEquals(url.encodedString, 'http://google.com/test.a');
+    },
+
     testEncodedStringRelativeTo: function(){
         var url = JSURL.initWithString("file:///one/two/three/four");
         var baseURL = JSURL.initWithString("file:///one/two/three");
