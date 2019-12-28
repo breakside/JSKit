@@ -7,11 +7,9 @@
 JSClass("InitCommand", Command, {
 
     name: "init",
-    help: "Initialize a workspace with a project",
+    help: "Initialize a workspace",
 
     options: {
-        template: {kind: "positional", help: "The project template to use as a starting point", allowed: ["html", "http", "node", "framework"]},
-        name: {kind: "positional", default: null, help: "The name for your initial project"}
     },
 
     run: async function(){
@@ -26,27 +24,18 @@ JSClass("InitCommand", Command, {
         }
         if (!isEmpty){
             process.stdout.write("jskit init can only be used in an empty directory\n");
-            process.stdout.write("Use jskit add to add projects to an existing workspace\n");
             return;
         }
         var printer = Printer.initWithLabel('init');
-        printer.setStatus("Initializing %s workspace...".sprintf(this.arguments.template));
-        var projectName = this.arguments.name || workspaceURL.lastPathComponent;
+        printer.setStatus("Initializing workspace...");
+        var workspaceName = workspaceURL.lastPathComponent;
         var templatesURL = this.fileManager.urlForPath(JSKitRootDirectoryPath).appendingPathComponent("Templates", true);
 
         var workspaceTemplateURL = templatesURL.appendingPathComponent("workspace");
         var workspaceTemplate = Template.initWithURL(workspaceTemplateURL, this.fileManager);
-        await workspaceTemplate.addToWorkspace(workspaceURL, projectName);
+        await workspaceTemplate.addToWorkspace(workspaceURL, workspaceName);
 
-        var templateURL = templatesURL.appendingPathComponent(this.arguments.template);
-        var template = Template.initWithURL(templateURL, this.fileManager);
-        await template.addToWorkspace(workspaceURL, projectName);
-
-        var testsTemplateURL = templatesURL.appendingPathComponent("project-tests");
-        var testsTemplate = Template.initWithURL(testsTemplateURL, this.fileManager);
-        await testsTemplate.addToWorkspace(workspaceURL, projectName);
-
-        printer.setStatus("%s workspace initialized".sprintf(this.arguments.template));
+        printer.setStatus("workspace initialized");
         printer.print("");
     },
 

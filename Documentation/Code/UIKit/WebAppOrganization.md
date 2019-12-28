@@ -4,27 +4,24 @@ Creating a Web-based UIApplication
 *Throughout this document, we'll use the example of a Messages application.*
 
 Using the `jskit` command line utilty, a web-based application is created
-with the `jskit init`(jskit.init) subcommand.
+with the `jskit add`(jskit.add) subcommand.
 
-The first step is to create a workspace for your applications various
+The first step is to create a workspace for your application's various
 projects.  Even this simplest web application has two projects: the `UIKit` app
 itself and a companion `TestKit` project.
 ````
-$ cd ~/Document
+$ cd ~/Documents
 $ mkdir Messages
 $ cd Messages
-````
-
-Once you're in in the empty workspace folder, you'll need install `jskit`:
-````
 $ npm install jskit
+$ npx jskit init
 ````
 
-Now it's time to initialize the workspace with its first project.  Note that
-we're creating an `html`(jskit.init.html) project, which will result in a
+With the workspace initialized, you can add a project.  Note that
+we're creating an `html`(jskit.add.html) project, which will result in a
 web-based `UIKit` project:
 ````
-$ npx jskit init html MessagesWeb
+$ npx jskit add html MessagesWeb
 ````
 
 Workspace Organization
@@ -34,17 +31,17 @@ At this point, your workspace includes a few folders and files:
 
 ![Workspace Folders](WebAppOrganization/Workspace@2x.png)
 
-- `package-lock.json` and `node_modules/` are created by `npm` and are related
-  to how node.js manages intalled modules.
+- `package-lock.json` and `node_modules/` are created by `npm install` and are
+  related to how node.js manages intalled modules.
 - `.gitignore` is created by `jskit init` with defaults for items that should
   be ignored by `git`
 - `.jshintrc` is created by `jskit init` to include a list of globals that
-  are availble to a `JSKit` based project
+  are availble to `JSKit` based projects
+- `Messages.sublime-project` is created by `jskit init` to provide a project
+  organization for the SublimeText editor
 - `MessagesWeb/` is your `UIKit` based project
 - `MessagesWebTests/` is your `TestKit` based project, automatically created by
-  `jskit init`
-- `MessagesWeb.sublime-project` is created by `jskit init` to provide defaults
-  for the SublimeText editor
+  `jskit add`
 
 The files you'll be most intersted in editing are inside the `MessagesWeb/`
 and `MessagesWebTests/` folders, the two projects in the workspace.
@@ -52,7 +49,7 @@ and `MessagesWebTests/` folders, the two projects in the workspace.
 Project Organization
 ===========
 
-Each project created by `jskit init` comes from a template that includes
+Each project created by `jskit add` comes from a template that includes
 a few basic things to get the project going.
 
 Taking a look inside the `MessagesWeb/` project, we see
@@ -245,7 +242,7 @@ can easly accomodate other languages saves major headaches down the road.
 Every `UIKit` based app contains one or more `.lproj` folders.  By default,
 an `en.lproj` folder is created as part of your project template.
 
-Inside `en.lproj` are `.string.yaml` files that define a mapping of keys to
+Inside `en.lproj` are `.strings.yaml` files that define a mapping of keys to
 values:
 
 ![en.lproj folder contents](WebAppOrganization/lproj@2x.png)

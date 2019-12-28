@@ -8,21 +8,5 @@
     ],
     "build_systems":
     [
-        {
-            "name": "${PROJECT_NAME}",
-            "cmd": ["npx", "jskit", "make", "${PROJECT_NAME}"],
-            "working_dir": "${project_path}",
-            "variants": [
-                {
-                    "name": "debug",
-                    "cmd": ["npx", "jskit", "make", "--debug", "${PROJECT_NAME}"]
-                }
-            ]
-        },
-        {
-            "name": "${PROJECT_NAME} Tests",
-            "cmd": ["npx", "jskit", "test", "${PROJECT_NAME}Tests"],
-            "working_dir": "${project_path}"
-        }
     ]
 }

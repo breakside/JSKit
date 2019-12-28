@@ -35,8 +35,8 @@ description: |
   without worrying about `$PATH`*
 
   ````
-  $ npx jskit init framework MessengerKit
   $ npx jskit init html MessengerWeb
+  $ npx jskit add framework MessengerKit
   ````
 
   See `init` for more information about project initialization
@@ -89,13 +89,14 @@ description: |
   See `doc` for more information about code documentation
 
 invocations:
-  - init|make|test|doc
+  - init|add|make|test|doc
   - -h
 topics:
   -
     name: Project Management
     members:
       - init
+      - add
       - make
       - test
       - doc

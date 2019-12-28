@@ -26,10 +26,44 @@ JSClass("AddCommand", Command, {
         var template = Template.initWithURL(templateURL, this.fileManager);
         await template.addToWorkspace(workspaceURL, projectName);
 
+        var sublimeURL = workspaceURL.appendingPathComponent(workspaceURL.lastPathComponent);
+        sublimeURL = sublimeURL.appendingFileExtension('sublime-project');
+        var projectJSON = await this.fileManager.contentsAtURL(sublimeURL);
+        var projectSettings = null;
+        if (projectJSON !== null){
+            projectSettings = JSON.parse(String.initWithData(projectJSON, String.Encoding.utf8));
+            if (!projectSettings.build_systems){
+                projectSettings.build_systems = [];
+            }
+            projectSettings.build_systems.push({
+                "name": projectName,
+                "cmd": ["npx", "jskit", "make", projectName],
+                "working_dir": "${project_path}",
+                "variants": [
+                    {
+                        "name": "debug",
+                        "cmd": ["npx", "jskit", "make", "--debug", projectName]
+                    }
+                ]
+            });
+        }
+
         if (this.arguments.template !== 'tests'){
             var testsTemplateURL = templatesURL.appendingPathComponent("project-tests");
             var testsTemplate = Template.initWithURL(testsTemplateURL, this.fileManager);
             await testsTemplate.addToWorkspace(workspaceURL, projectName);
+            if (projectSettings !== null){
+                projectSettings.build_systems.push({
+                    "name": "%s Tests".sprintf(projectName),
+                    "cmd": ["npx", "jskit", "test", "%sTests".sprintf(projectName)],
+                    "working_dir": "${project_path}"
+                });
+            }
+        }
+
+        if (projectSettings !== null){
+            projectJSON = JSON.stringify(projectSettings).utf8();
+            await this.fileManager.createFileAtURL(sublimeURL, projectJSON);
         }
 
         printer.setStatus("%s added".sprintf(this.arguments.template));

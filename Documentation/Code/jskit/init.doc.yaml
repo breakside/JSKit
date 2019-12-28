@@ -1,77 +1,33 @@
 kind: command
-summary: Create a new `JSKit` based project
+summary: Initialize an empty `JSKit` workspace
 description: |
-  Ceates and populates a folder named after `project-name` in the current
-  directory.
+  Initializes a workspace for a `JSKit` based project.
 
   Typically for a single application you'll have several `JSKit` based projects
   in one workspace directory.
 
-  For example, if your project is named **Messenger**, you might create things
-  like this:
+  For example, if your project is named **Messages**, you might create a
+  workspace like this:
 
   ````
   $ cd ~/Documents
-  $ mkdir Messenger
-  $ cd Messenger
+  $ mkdir Messages
+  $ cd Messages
   $ npm install jskit
-  $ npx jskit init framework MessengerKit
-  $ npx jskit init html MessengerWeb
+  $ npx jskit init
+  ````
+
+  Now you can add projects to the workspace with `jskit add`(add):
+
+  ````
+  $ npx jskit add framework MessagesKit
+  $ npx jskit add html MessagesWeb
   ````
 
   While the exact organization is entirely up to you, it is generally
-  advantageous to keep most non-UI code in a framework (`MessengerKit`) and then
-  have a web front end client (`MessengerWeb`) that leverages code from the
+  advantageous to keep most non-UI code in a framework (`MessagesKit`) and then
+  have a web front end client (`MessagesWeb`) that leverages code from the
   framework. This allows you to reuse the non-UI code for other clients or even
   for server applications.
-
-  Test projects are automatically created for you when you call `init` for a
-  `framework`, `html`, or `http` project type.
-invocations:
-  - framework|html|http|test <project-name>
-topics:
-  -
-    name: Project Type
-    members:
-      -
-        name: framework
-        summary: Create a project for a shared code framework
-        description: |
-          A companion `TestKit` project will be automatically created along side
-          the new project.  For example, if you create a framework project
-          called `MessageKit`, a `MessageKitTests` project will also be created.
-      -
-        name: html
-        summary: Create a `UIKit` based front end web application
-        description: |
-          A companion `TestKit` project will be automatically created along side
-          the new project.  For example, if you create a framework project
-          called `MessagesWeb`, a `MessagesWebTests` project will also be
-          created.
-      -
-        name: http
-        summary: Create a `ServerKit` based back end application
-        description: |
-          A companion `TestKit` project will be automatically created along side
-          the new project.  For example, if you create a framework project
-          called `MessagesServer`, a `MessagesServerTests` project will also be
-          created.
-      -
-        name: test
-        summary: Create a `TestKit` based unit test project
-        description: |
-          Test projects are automatically created for the `framework`, `http`,
-          and `html` project types, reducing the need to initialize a `test`
-          project directly, but the option is still available should you need
-          to create a standalone test project.
-  -
-    name: Naming
-    members:
-      -
-        name: project-name
-        summary: The name of the project to initialize
-        type: String
-        description: |
-          The name of the project will be used as the name of the newly created
-          project dirctory, with appropriate sanization of non-filesystem-safe
-          characters
+see:
+  - add
