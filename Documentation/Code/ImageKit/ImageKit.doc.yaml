@@ -1,2 +1,20 @@
 kind: framework
 summary: Read and write bitmap images like PNGs and JPEGs
+topics:
+  -
+    name: Bitmap Images
+    members:
+      - IKBitmap
+      - JSImage+IKBitmap
+  -
+    name: Bitmap Decoders
+    members:
+      - IKDecoder
+      - IKDecoderPNG
+      - IKDecoderJPEG
+  -
+    name: Bitmap Encoders
+    members:
+      - IKEncoder
+      - IKEncoderPNG
+      - IKEncoderJPEG

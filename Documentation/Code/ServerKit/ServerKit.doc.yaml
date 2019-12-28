@@ -1,2 +1,25 @@
 kind: framework
 summary: A plaform for HTTP based server applications
+topics:
+  -
+    name: Application
+    members:
+      - SKApplication
+  -
+    name: HTTP Server
+    members:
+      - SKHTTPServer
+      - SKHTTPRoute
+      - SKHTTPRequest
+      - SKHTTPResponse
+      - SKHTTPResponder
+      - SKHTTPResponderContext
+      - SKHTTPResourceResponder
+      - SKHTTPWebSocket
+      - SKHTTPWebSocketResponder
+      - SKHTTPHeaders
+      - SKHTTPError
+  -
+    name: Input Validation
+    members:
+      - SKValidatingObject

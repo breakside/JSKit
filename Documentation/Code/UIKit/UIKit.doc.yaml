@@ -1,11 +1,26 @@
 kind: framework
 environment: html
 summary: Create desktop-quality applications on the web
+description: |
+  `UIKit` is designed to
+  - Feel like coding an application instead of a DOM document
+  - Provide a toolkit of UI elements to build desktop-quality applications
+
+  Views & Windows
+  ===============
+
+  Event System
+  ============
+
+  Animations
+  ==========
 topics:
   -
     name: Applications
     members:
       - UIApplication
+      - UIState
+      - UIPlatform
   -
     name: Events
     summary: An event system designed for applications with complex user interaction
@@ -13,16 +28,107 @@ topics:
       - WhyNotUseDOM
       - UIResponder
       - UIEvent
+      - UITouch
   -
     name: Views & Windows
     members:
       - UILayer
       - UIView
+      - UIViewController
       - UIWindow
+      - UIWindowController
+      - UIToolbar
+      - UIToolbarItem
+      - UIScene
+      - UIScreen
+      - UIStackView
+  -
+    name: Scrolling
+    members:
+      - UIScrollView
+      - UIScroller
+  -
+    name: Animations
+    members:
+      - UIViewPropertyAnimator
+      - UIAnimation
+      - UIAnimationGroup
+      - UIAnimationTransaction
+      - UIBasicAnimation
+      - UIPropertyAnimation
+      - UICustomAnimation
   -
     name: Controls
     members:
       - UIControl
       - UIButton
       - UIPopupButton
+      - UICheckbox
+      - UIRadioGroup
+      - UISegmentedControl
+  -
+    name: Text Controls
+    members:
+      - UILabel
+      - UITextView
+      - UITextLayer
       - UITextField
+      - UITokenField
+      - UITextEditor
+      - UITextInput
+      - UITextAttachmentView
+  -
+    name: Image Views
+    members:
+      - UIImageLayer
+      - UIImageView
+  -
+    name: List Views
+    members:
+      - UIListView
+      - UIListViewCell
+      - UIListViewHeaderFooterView
+      - UIListViewController
+      - UIOutlineView
+      - UIBrowserView
+      - UIBrowserViewController
+  -
+    name: Tab Views
+    members:
+      - UITabView
+      - UITabViewController
+  -
+    name: Pasteboard & Dragging
+    members:
+      - UIPasteboard
+      - UIDraggingSession
+      - UIDraggingSource
+      - UIDraggingDestination
+  -
+    name: Alerts & Dialogs
+    members:
+      - UIAlertAtion
+      - UIAlertController
+      - UIOpenPanel
+      - UISavePanel
+      - UIPopupWindow
+  -
+    name: Activity & Progress
+    members:
+      - UIActivityIndicatorView
+      - UIProgressIndicatorView
+  -
+    name: Menus
+    members:
+      - UIMenu
+      - UIMenuItem
+      - UIMenuBar
+      - UIMenuView
+  -
+    name: Paned Views
+    members:
+      - UIDualPaneViewController
+  -
+    name: Web Views
+    members:
+      - UIWebView

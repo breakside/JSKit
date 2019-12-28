@@ -1,6 +1,8 @@
 kind: function
 introduced: "1.0.0"
 summary: Create a UUID version 4 string
+type: String
+return: A UUID-formatted string `"XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"`
 description: |
   A UUID is a random identifier that should be globally unique because it based
   on the current time and large random number.

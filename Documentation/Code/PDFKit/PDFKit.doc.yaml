@@ -1,2 +1,13 @@
 kind: framework
 summary: Read and write PDF files
+topics:
+  -
+    name: PDF Reading & Writing
+    members:
+      - PDFReader
+      - PDFWriter
+      - PDFContext
+  -
+    name: PDF Objects
+      - PDFDocument
+      - PDFPage
