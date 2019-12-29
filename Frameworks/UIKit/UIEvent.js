@@ -20,7 +20,7 @@ JSClass('UIEvent', JSObject, {
     scrollingDelta: JSReadOnlyProperty('_scrollingDelta', null),
     phase: JSReadOnlyProperty('_phase', 0),
     magnification: JSReadOnlyProperty('_magnification', 1),
-    rotation: JSReadOnlyProperty('_rotation', 1),
+    rotation: JSReadOnlyProperty('_rotation', 0),
 
     initMouseEventWithType: function(type, timestamp, window, location, modifiers, clickCount){
         this._category = UIEvent.Category.mouse;

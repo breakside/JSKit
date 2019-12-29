@@ -1,0 +1,67 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Provides platform-specific behaviors
+description: |
+  Since web applications can run on any platform such as Mac or Windows,
+  there are situations where it is helpful to the user if `UIKit` can
+  provide a behavior that matches the platform they're running.
+
+  For example, keyboard shortcuts on a Mac are typically done with the
+  Command Key as a modifier, while on Windows the same shortcuts would
+  be done with the Control Key.
+
+  `UIPlatform` understands these differences among platforms and provides
+  an API for calling code do what's right for the platform.
+topics:
+  -
+    name: Getting the User's Platform
+    members:
+      -
+        name: shared
+        static: true
+        type: UIPlatform
+        summary: The platform object corresponding to what the user is running
+        description: |
+          The user's platform is detected during application initialization
+  -
+    name: Key Modifiers
+    members:
+      -
+        name: commandModifier
+        type: UIEvent.Modifier
+        summary: The modifier that is typically used for command shortcuts
+        description: |
+          On Mac, this will take the value of `UIEvent.Modifier.command`
+
+          On Windows, this will take the value of `UIEvent.Modifier.control`
+      -
+        name: stringForKeyModifiers
+        kind: method
+        type: String
+        summary: Return a string for display to the user that represents
+          the given keyboard modifiers
+        arguments:
+          -
+            name: modifiers
+            type: UIEvent.Modifier
+            summary: The modifier mask
+        description: |
+          When display keyboard shortcuts in menus, Mac applications show
+          symbols such as ⌘ for Command and ⇧ for Shift, but Windows
+          applications show abbreviations like `Ctrl` for Control.
+
+          This method takes the given modifiers, adds the platform's
+          `commandModifier`, and returns a string appropriate for the platform.
+
+          This method also considers the typical order that mutliple modifiers
+          are listed in.
+
+          For example:
+
+          ````
+          var modifiers = UIEvent.Modifier.shift | UIEvent.Modifer.option;
+          var shortcut = UIPlatform.shared.stringForKeyModifiers(modifiers);
+          // on mac, shortcut === "⌥⇧⌘" 
+          // on win, shortcut === "Alt+Shift+Ctrl+"
+          ````

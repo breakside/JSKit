@@ -1,0 +1,426 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Can represent any kind of user interface event
+description: |
+  `UIEvent`s are created by low level managers and sent to an application
+  via `sendEvent()`(UIApplication.sendEvent).
+
+  From there, events are inspected and routed to the appropriate `UIResponder`,
+  which handles the event by updating the UI in some way.
+
+  For example, a mouse down creates a `UIEvent` that ultimate reaches a
+  `UIResponder` via its `mouseDown()`(UIResponder.mouseDown) method.
+topics:
+  -
+    name: Event Type
+    members:
+      -
+        name: Category
+        kind: enum
+        suffix: enum
+        summary: The possible categories of an event
+        options:
+          -
+            name: mouse
+            summary: Any mouse event
+          -
+            name: key
+            summary: Any mouse event
+          -
+            name: touches
+            summary: Any mouse event
+          -
+            name: scroll
+            summary: Any mouse event
+          -
+            name: gesture
+            summary: Any mouse event
+      -
+        name: Type
+        kind: enum
+        suffix: enum
+        summary: The possible types of events
+        options:
+          -
+            name: leftMouseDown
+            summary: A left mouse down
+          -
+            name: leftMouseUp
+            summary: A left mouse up
+          -
+            name: leftMouseDragged
+            summary: A left mouse move while down
+          -
+            name: rightMouseDown
+            summary: A right mouse down
+          -
+            name: rightMouseUp
+            summary: A right mose up
+          -
+            name: rightMouseDragged
+            summary: A right mouse move while down
+          -
+            name: mouseMoved
+            summary: A tracking of a mouse move while no button is down 
+          -
+            name: mouseEntered
+            summary: A tracking of a mouse enter while no button is down 
+          -
+            name: mouseExited
+            summary: A tracking of a mouse exit while no button is down 
+          -
+            name: keyDown
+            summary: A keyboard key down
+          -
+            name: keyUp
+            summary: A keyboard key up
+          -
+            name: touchesBegan
+            summary: Touches began
+          -
+            name: touchesMoved
+            summary: Touches moved
+          -
+            name: touchesEnded
+            summary: Touches ended
+          -
+            name: touchesCanceled
+            summary: Touches canceled
+          -
+            name: scrollWheel
+            summary: A scroll wheel scrolled
+          -
+            name: magnify
+            summary: A magnify gesture
+          -
+            name: rotate
+            summary: A rotate gesture
+      -
+        name: category
+        type: Category
+        summary: The general category of the event
+      -
+        name: type
+        type: Type
+        summary: The type of event this is
+  -
+    name: Windows & Location
+    members:
+      -
+        name: window
+        type: UIWindow
+        summary: The window to which this event applies
+        description: |
+          Most event types except for touch events apply to a single window,
+          which can be accessed via this property.
+
+          For events that don't have an associated window or that have
+          multiple windows, this will return `null`.
+        see:
+          - windows
+          - locationInWindow
+      -
+        name: windows
+        type: UIWindow[]
+        summary: The windows to which this event applies
+        description: |
+          Most event types except for touch events apply to a single window.
+          Touch events can have more than one window.
+
+          In order to support mutli-window events, this property returns the
+          full list of windows to which this event applies
+        see:
+          - window
+          - locationInWindow
+      -
+        name: locationInWindow
+        type: JSPoint
+        summary: The point at which the event occurred in its window
+        description: |
+          For location-specific single-window events (mouse, scroll, gesture),
+          this location can be used to tell where the event occurred.
+      -
+        name: locationInView
+        kind: method
+        type: JSPoint
+        return: The location of the event in the given view's coordinate system
+        summary: Convert the event's location to the view's coordinate system
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The view to which the event's location should be converted
+      -
+        name: timestamp
+        type: Number
+        summary: The timestamp, in seconds, of the event
+        description: |
+          The timestamp is useful for comparison between two events, but does
+          not represent any absolute time.
+  -
+    name: Modifier Keys
+    members:
+      -
+        name: Modifier
+        kind: enum
+        summary: The possible modifier keys that can be pressed during events
+        description: |
+          The possible modifier values can be combined with bitwise operators
+          to create a value with multiple modifiers.
+
+          For example:
+
+          ````
+          var modifiers = UIEvent.Modifier.shift | UIEvent.Modifier.control;
+          ````
+
+          Means that both the shift and control modifiers are pressed.
+        options:
+          -
+            name: none
+            summary: No modifier is pressed
+          -
+            name: command
+            summary: The command key is pressed
+          -
+            name: control
+            summary: The control key is pressed
+          -
+            name: shift
+            summary: The shift key is pressed
+          -
+            name: option
+            summary: The option/alt key is pressed
+      -
+        name: modifiers
+        type: Modifier
+        summary: The modifiers that are in effect for this event
+        description: |
+          More than one `Modifier` value can be combined with bitwise operators
+          to create a value with multiple modifiers.
+
+          For example:
+
+          ````
+          var modifiers = UIEvent.Modifier.shift | UIEvent.Modifier.control;
+          ````
+
+          Means that both the shift and control modifiers are pressed.
+
+          Insted of checking this value directly, you should use
+          `hasModifier()`, which takes care of performing the bitwise operations
+          for you.
+      -
+        name: hasModifier
+        kind: method
+        type: boolean
+        return: \`true` if the `modifiers` property includes the given modifier,
+          \`false` otherwise.
+        summary: Check if the given modifier is in effect
+        arguments:
+          -
+            name: modifier
+            type: Modifier
+            summary: The modifier to compare with `modifiers`
+        description: |
+          This method performs the bitwise operations neccessary to check if
+          a single modifier in part of the `modifiers` value.
+
+          It is recommended you use this method rather than perform bitwise
+          operations directly on the `modifiers` property.
+  -
+    name: Mouse Events
+    members:
+      -
+        name: clickCount
+        type: Number
+        summary: The number of clicks
+        description: |
+          Will be `1` for the first down, but increment on each successive down
+          that happens within a `doubleClickInterval` from the previous down.
+
+          For a double click, this will read `2`.
+
+          For a triple click, this will read `3`. 
+      -
+        name: doubleClickInterval
+        static: true
+        type: Number
+        summary: The number of seconds that can elapse before a mouse down
+          \`clickCount` resets.
+        description: |
+          Essentially, how quickly does the user have to click for two clicks
+          to register as a double click.
+  -
+    name: Scroll Events
+    members:
+      -
+        name: scrollingDelta
+        type: JSPoint
+        summary: The amount of scroll in the event
+        description: |
+          This is the amount of scroll from the previous related event.
+  -
+    name: Key Events
+    members:
+      -
+        name: Key
+        kind: enum
+        suffix: enum
+        summary: The possible special key values
+        options:
+          -
+            name: unidentified
+          -
+            name: option
+          -
+            name: control
+          -
+            name: command
+          -
+            name: shift
+          -
+            name: function
+          -
+            name: enter
+          -
+            name: tab
+          -
+            name: backspace
+          -
+            name: delete
+          -
+            name: down
+          -
+            name: left
+          -
+            name: right
+          -
+            name: up
+          -
+            name: escape
+          -
+            name: redo
+          -
+            name: undo
+          -
+            name: end
+          -
+            name: home
+          -
+            name: pageDown
+          -
+            name: pageUp
+          -
+            name: capsLock
+          -
+            name: functionLock
+          -
+            name: numberLock
+          -
+            name: scrollLock
+          -
+            name: symbol
+          -
+            name: symbolLock
+          -
+            name: clear
+          -
+            name: copy
+          -
+            name: cut
+          -
+            name: eraseToEndOfField
+          -
+            name: extendSelection
+          -
+            name: insert
+          -
+            name: paste
+          -
+            name: cursorSelect
+      -
+        name: key
+        type: Key
+        summary: The special key that was pressed
+        description: |
+          The special keys are non-character generating keys that can
+          vary from keyboard to keyboard.
+      -
+        name: keyCode
+        type: Number
+        summary: The character code of the key that was pressed
+  -
+    name: Touch Events
+    members:
+      -
+        name: touches
+        type: UITouch[]
+        summary: The touches involved in this event
+      -
+        name: touchForIdentifier
+        kind: method
+        type: UITouch
+        summary: Get the touch that matches the given identifier
+        arguments:
+          -
+            name: identifier
+            type: Number
+            summary: The identifier to match with a touch 
+      -
+        name: touchesInWindow
+        kind: method
+        type: UITouch[]
+        summary: Get the touches associated with the given window
+        arguments:
+          -
+            name: window
+            type: UIWindow
+            summary: The window to compare with the event's touches
+  -
+    name: Gesture Events
+    members:
+      -
+        name: Phase
+        kind: enum
+        suffix: enum
+        summary: The phase of a gesture event
+        options:
+          -
+            name: none
+            summary: Default value for non-gesture events
+          -
+            name: began
+            summary: The gesture began
+          -
+            name: changed
+            summary: The gesture changed
+          -
+            name: ended
+            summary: The gesture ended
+      -
+        name: phase
+        type: Phase
+        summary: The phase of the guesture event
+      -
+        name: magnification
+        type: Number
+        summary: The magnification value of the gesture event
+        description: |
+          This is the current magnification of the gesture, not a delta from the
+          previous related event.
+
+          For example, a value of `1` indicates the original scale, a value of
+          `2` is twice the original scale and a value of `0.5` is half the
+          original scale.
+      -
+        name: rotation
+        type: Number
+        summary: The rotation value in radians of the gesture event
+        description: |
+          This is the current magnification of the gesture, not a delta from the
+          previous related event.
+
+          For example, a value of `0` is the original rotation.  A value of
+          `Math.PI` is a 180 degree rotation.

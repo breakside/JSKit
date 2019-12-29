@@ -1,0 +1,377 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: An object that can receive and forward events
+description: |
+  Events and actions in `UIKit` are typically sent through a chain of
+  `UIResponder` objects until one of them handles the event or action.
+
+  The most common kind of responder is a `UIView`, although `UIViewController`s,
+  and `UIApplication`s are also responders.
+
+  First Responder
+  ===============
+  Each `UIWindow` has a `firstResponder` property that it uses when receiving
+  certain events like keyboard input.  Since key events don't contain location
+  information like mouse events, the window uses `firstResponder` as the place
+  to send key events.
+
+  In DOM terminology, the `firstResponder` has focus.  However, the similarity
+  to DOM focus ends there.  Mutliple `UIWindow`s may be visible at any time,
+  and each has its own concept of a child view that is its `firstResponder`.
+  In the DOM model, there can only be one focused element on the entire page.
+  First responders can also refuse to give up focus in certain situations,
+  which is not easy to acheive with DOM focus.
+
+  When a `UIApplication` receives a key event, it forwards it to its `mainWindow`,
+  which in turn forwards the event to that window's `firstResponder`.
+topics:
+  -
+    name: Becoming a First Responder
+    members:
+      -
+        name: canBecomeFirstResponder
+        kind: method
+        type: boolean
+        return: \`true` if the object can become a first reponder, `false`
+          otherwise
+        summary: Indicates if this responder can become a window's
+          \`firstResponder`(UIWindow.firstResponder)
+        description: |
+          The first responder is the one that will receive key events that are
+          sent to a window.
+
+          Most responders return `false` here because they don't handle key
+          events.
+
+          However, views like `UITextField` override this method and return
+          `true` because they do want to handle key events.
+      -
+        name: canResignFirstResponder
+        kind: method
+        type: boolean
+        return: \`false` to prevent the window from changing first responders,
+          \`true` otherwise.
+        summary: Indicates if this responder can resign its status as a window's
+          \`firstResponder`(UIWindow.firstResponder)
+        description: |
+          The first responder is the one that will receive key events that are
+          sent to a window.
+
+          This method can only be called for an object that returned `true`
+          to `canBecomeFirstResponder()` and is currently the window's
+          `firstResponder`(UIWindow.firstResponder).
+
+          Generally a window asks a responder to resign its first responder
+          status when the user clicks on another view that 
+          `canBecomeFirstResponder()`.
+
+          By default, `UIResponder` returns `true` here, allowing the window
+          to change responders, but subclasses may override and return `false`
+          in situations where the user is not allowed to leave the field, like
+          when an invalid value is entered into a text field.
+      -
+        name: becomeFirstResponder
+        kind: method
+        summary: Called when this object becomes a first responder
+        description: |
+          Typically overridden by subclasses to provide custom styling that
+          indicates to the user this view is focused.
+      -
+        name: resignFirstResponder
+        kind: method
+        summary: Called when this object stops being a first responder
+        description: |
+          Typically overridden by subclasses to provide custom styling that
+          indicates to the user this view is no longer focused.
+  -
+    name: Responder Chain
+    members:
+      -
+        name: getNextResponder
+        kind: method
+        type: UIResponder
+        return: The next responder in the chain, or `null` if no next responder
+          exists
+        summary: Return the next responder in the responder chain
+        description: |
+          When handling events and actions, responders may choose to foward
+          the event or action to the next responder in the responder chain.
+
+          For example, `UIView` defines its next responder as its `superview`.
+  -
+    name: Mouse Events
+    members:
+      -
+        name: mouseDown
+        kind: method
+        summary: Handle a mouse down event
+        description: |
+          The default implementation forwards the event to the next responder
+        arguments:
+          -
+            name: event
+            type: UIEvent
+            summary: The mouse event information
+      -
+        name: mouseUp
+        kind: method
+        summary: Handle a mouse up event
+        description: |
+          The default implementation forwards the event to the next responder
+        arguments:
+          -
+            name: event
+            type: UIEvent
+            summary: The mouse event information
+      -
+        name: mouseDragged
+        kind: method
+        summary: Handle a mouse dragged event
+        description: |
+          A mouse drag event is fired when a mouse down is followed by a
+          mouse move until a mouse up occurrs.
+
+          The default implementation forwards the event to the next responder
+        arguments:
+          -
+            name: event
+            type: UIEvent
+            summary: The mouse event information
+      -
+        name: rightMouseDown
+        kind: method
+        summary: Handle a right mouse down event
+        description: |
+          The default implementation forwards the event to the next responder
+        arguments:
+          -
+            name: event
+            type: UIEvent
+            summary: The mouse event information
+      -
+        name: rightMouseUp
+        kind: method
+        summary: Handle a right mouse up event
+        description: |
+          The default implementation forwards the event to the next responder
+        arguments:
+          -
+            name: event
+            type: UIEvent
+            summary: The mouse event information
+      -
+        name: rightMouseDragged
+        kind: method
+        summary: Handle a right mouse dragged event
+        description: |
+          A mouse drag event is fired when a mouse down is followed by a
+          mouse move until a mouse up occurrs.
+          
+          The default implementation forwards the event to the next responder
+        arguments:
+          -
+            name: event
+            type: UIEvent
+            summary: The mouse event information
+      -
+        name: mouseEntered
+        kind: method
+        summary: Handle a mouse tracking event when the mouse enters
+        description: |
+          A mouse entered event is when the mouse moves into this responder
+          when the mouse is not down.
+          
+          The default implementation forwards the event to the next responder
+        arguments:
+          -
+            name: event
+            type: UIEvent
+            summary: The mouse event information
+      -
+        name: mouseExited
+        kind: method
+        summary: Handle a mouse tracking event when the mouse exits
+        description: |
+          A mouse exited event is when the mouse moves out of this responder
+          when the mouse is not down.
+          
+          The default implementation forwards the event to the next responder
+        arguments:
+          -
+            name: event
+            type: UIEvent
+            summary: The mouse event information
+      -
+        name: mouseMoved
+        kind: method
+        summary: Handle a mouse tracking event
+        description: |
+          A mouse moved event is when the mouse moves over this responder
+          when the mouse is not down.
+          
+          The default implementation forwards the event to the next responder
+        arguments:
+          -
+            name: event
+            type: UIEvent
+            summary: The mouse event information
+      -
+        name: scrollWheel
+        kind: method
+        summary: Handle a scroll wheel even
+        description: |
+          The default implementation forwards the event to the next responder
+        arguments:
+          -
+            name: event
+            type: UIEvent
+            summary: The mouse event information
+  -
+    name: Touch Events
+    members:
+      -
+        name: touchesBegan
+        kind: method
+        summary: Handle an event when touches begin
+        arguments:
+          -
+            name: touches
+            type: UITouch[]
+            summary: The touches
+          -
+            name: event
+            type: UIEvent
+            summary: The touch event information
+        description: |
+          Only fires for touch-input devices.
+
+          The default implementation forwards the event to the next responder.
+      -
+        name: touchesEnded
+        kind: method
+        summary: Handle an event when touches end
+        arguments:
+          -
+            name: touches
+            type: UITouch[]
+            summary: The touches
+          -
+            name: event
+            type: UIEvent
+            summary: The touch event information
+        description: |
+          Only fires for touch-input devices.
+
+          The default implementation forwards the event to the next responder.
+      -
+        name: touchesMoved
+        kind: method
+        summary: Handle an event when touches move
+        arguments:
+          -
+            name: touches
+            type: UITouch[]
+            summary: The touches
+          -
+            name: event
+            type: UIEvent
+            summary: The touch event information
+        description: |
+          Only fires for touch-input devices.
+
+          The default implementation forwards the event to the next responder.
+      -
+        name: touchesCanceled
+        kind: method
+        summary: Handle an event when touches are canceled
+        arguments:
+          -
+            name: touches
+            type: UITouch[]
+            summary: The touches
+          -
+            name: event
+            type: UIEvent
+            summary: The touch event information
+        description: |
+          Only fires for touch-input devices.
+
+          The default implementation forwards the event to the next responder.
+  -
+    name: Keyboard Events
+    members:
+      -
+        name: keyDown
+        kind: method
+        summary: Handle an event when a key is pressed down
+        arguments:
+          -
+            name: event
+            type: UIEvent
+            summary: The key event information
+        description: |
+          The default implementation forwards the event to the next responder.
+      -
+        name: keyUp
+        kind: method
+        summary: Handle an event when a key is released
+        arguments:
+          -
+            name: event
+            type: UIEvent
+            summary: The key event information
+        description: |
+          The default implementation forwards the event to the next responder.
+  -
+    name: Gesture Events
+    members:
+      -
+        name: magify
+        kind: method
+        summary: Handle an event when a magnfication is requested
+        arguments:
+          -
+            name: event
+            type: UIEvent
+            summary: The magnify event information
+        description: |
+          The default implementation forwards the event to the next responder.
+      -
+        name: rotate
+        kind: method
+        summary: Handle an event when a rotation is requested
+        arguments:
+          -
+            name: event
+            type: UIEvent
+            summary: The rotate event information
+        description: |
+          The default implementation forwards the event to the next responder.
+  -
+    name: Undo & Redo
+    members:
+      -
+        name: undo
+        kind: method
+        summary: Handle an action to undo the last operation
+        arguments:
+        description: |
+          The default implementation calls `undo`(JSUndoManager.undo) on
+          `getUndoManager()` if not `null`.
+      -
+        name: redo
+        kind: method
+        summary: Handle an action to redo the last operation
+        arguments:
+        description: |
+          The default implementation calls `redo`(JSUndoManager.redo) on
+          `getUndoManager()` if not `null`.
+      -
+        name: getUndoManager
+        kind: method
+        type: JSUndoManager
+        return: The undo manager that applies for this responder
+        summary: Get the undo manager for this responder
+        description: |
+          The default implementation forwards the call to  the next responder.

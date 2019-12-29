@@ -83,7 +83,7 @@ UIApplicationLaunchOptions:
 # UIApplicationSystemFont:    Roboto-Light
 ````
 
-The details of the Info file are specifie elsewhere, but the important property
+The details of the Info file are specified in [UIApplication Info](UIApplicationInfo), but the important property
 for our purposes here is the `UIMainSpec` property, which tells the application
 to load a spec file named `MainWindow` on startup.
 
@@ -151,7 +151,7 @@ TestButton:
 ````
 
 
-Details of spec file programming can be found elsewhere, but the important
+Details of spec file programming can be found in the `JSSpec` documentation, but the important
 part for our purposes is noticing how the spec returns an instance of
 `ApplicationDelegate` via its `File's Owner` key.
 
@@ -298,7 +298,7 @@ Not having to interact much with the HTML and HTTP layers is by design.  In
 fact, you could stop now and still have an app that works great because of the
 default bootstrapping behavior.
 
-The details of bootstrapping are defined elsewhere, but a few key concepts are
+The details of bootstrapping aren't important to know, but a few key concepts are
 important:
 
 - The application will be bundled into a single-page html app

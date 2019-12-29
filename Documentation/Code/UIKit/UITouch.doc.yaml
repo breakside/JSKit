@@ -1,0 +1,71 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Represents a touch on a touch user interface
+topics:
+  -
+    name: Identification
+    members:
+      -
+        name: identifier
+        type: Number
+        summary: A unique identifier for this touch
+        description: |
+          You can use the touch's identifier to compare touches between
+          events.
+  -
+    name: Windows & Location
+    members:
+      -
+        name: window
+        type: UIWindow
+        summary: The window to which this touch applies
+        see:
+          - locationInWindow
+      -
+        name: locationInWindow
+        type: JSPoint
+        summary: The point at which the touch occurred in its window
+      -
+        name: locationInView
+        kind: method
+        type: JSPoint
+        return: The location of the touch in the given view's coordinate system
+        summary: Convert the touch's location to the view's coordinate system
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The view to which the touch's location should be converted
+      -
+        name: timestamp
+        type: Number
+        summary: The timestamp, in seconds, of the touch
+        description: |
+          The timestamp is useful for comparison between two touches, but does
+          not represent any absolute time.
+  -
+    name: Touch Phase
+    members:
+      -
+        name: Phase
+        kind: enum
+        suffix: enum
+        summary: The phase of a touch
+        options:
+          -
+            name: began
+            summary: The touch began
+          -
+            name: moved
+            summary: The touch moved
+          -
+            name: ended
+            summary: The touch ended
+          -
+            name: canceled
+            summary: The touch canceled
+      -
+        name: phase
+        type: Phase
+        summary: The phase of the touch
