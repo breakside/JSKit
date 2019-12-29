@@ -83,7 +83,7 @@ topics:
       - JSLog
       - CustomLogHandlers
   -
-    name: Web
+    name: Web Requests
     summary: Making web requests and handling common data kinds
     members:
       - JSURL

@@ -91,8 +91,8 @@ to load a spec file named `MainWindow` on startup.
 extensions are implied and therefore not included*
 
 *It's also possible to create an application without a spec file, using the
-`UIApplicationDelegate`() property instead of `UIMainSpec`.  In this case, an
-instance of the class specified in the `UIApplicationDelegate`() property will
+`UIApplicationDelegate`(UIApplication Info.UIApplicationDelegate) property instead of `UIMainSpec`.  In this case, an
+instance of the class specified in the `UIApplicationDelegate`(UIApplication Info.UIApplicationDelegate) property will
 be created during application startup.*
 
 Main Spec

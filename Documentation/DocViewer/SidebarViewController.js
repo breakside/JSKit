@@ -279,7 +279,9 @@ var imageByKind = {
     'spec': function(){ return images.specIcon; },
     'specproperty': function(){ return images.specpropertyIcon; },
     'command': function(){ return images.commandIcon; },
-    'argv': function(){ return images.argvIcon; }
+    'argv': function(){ return images.argvIcon; },
+    'dictionary': function(){ return images.docIcon; },
+    'dictproperty': function(component){ return images.propertyIcon; },
 };
 
 var images = JSImage.resourceCache([

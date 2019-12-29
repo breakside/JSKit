@@ -16,17 +16,17 @@ description: |
   multiple projects, like one for the front end client and one for tests, so
   we recommend creating a project workspace folder that contains everything.
 
-  If your app is named `Messenger`, you'd do something like this:
+  If your app is named `Messages`, you'd do something like this:
 
   ````
   $ cd ~/Documents
-  $ mkdir Messenger
-  $ cd Messenger
+  $ mkdir Messages
+  $ cd Messages
   $ npm install jskit
   ````
 
-  Project Initialization
-  ======================
+  Project Creation
+  ================
 
   Once you've got a workspace setup and `jskit` installed, the next step is
   to initialize your related projects.
@@ -35,11 +35,13 @@ description: |
   without worrying about `$PATH`*
 
   ````
-  $ npx jskit init html MessengerWeb
-  $ npx jskit add framework MessengerKit
+  $ npx jskit init
+  $ npx jskit add framework MessagesKit
+  $ npx jskit add html MessagesWeb
   ````
 
-  See `init` for more information about project initialization
+  See `init` and `add` for more information about workspace initialization and
+  project creation
 
   Building
   ========
@@ -47,7 +49,7 @@ description: |
   In order to build your application, you'll invoke a command like:
 
   ````
-  $ npx jskit build --debug MessengerWeb
+  $ npx jskit build --debug MessagesWeb
   ````
 
   This creates an appliation bundle in the `builds` folder.
@@ -66,7 +68,7 @@ description: |
   in one go.
 
   ````
-  $ npx jskit test MessengerKitTests
+  $ npx jskit test MessagesKitTests
   ````
 
   See `test` for more information about project testing
@@ -83,7 +85,7 @@ description: |
   output as a result.
 
   ````
-  $ npx jskit doc docs/Messenger.doc.yaml ~/Desktop/MessengerDocs
+  $ npx jskit doc docs/Messages.doc.yaml ~/Desktop/MessagesDocs
   ````
 
   See `doc` for more information about code documentation
