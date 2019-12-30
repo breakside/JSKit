@@ -89,6 +89,9 @@ JSClass('UIView', UIResponder, {
         if ("hidden" in values){
             this.hidden = values.hidden;
         }
+        if ("alpha" in values){
+            this.alpha = values.alpha;
+        }
         if ("userInteractionEnabled" in values){
             this.userInteractionEnabled = values.userInteractionEnabled;
         }
@@ -619,18 +622,18 @@ JSClass('UIView', UIResponder, {
 
     registeredDraggedTypes: JSDynamicProperty('_registeredDraggedTypes', null),
 
-    draggingEntered: function(){
+    draggingEntered: function(session){
         return UIDragOperation.none;
     },
 
-    draggingUpdated: function(){
+    draggingUpdated: function(session){
         return UIDragOperation.none;
     },
 
-    draggingExited: function(){
+    draggingExited: function(session){
     },
 
-    performDragOperation: function(){
+    performDragOperation: function(session, operation){
     },
 
     // -------------------------------------------------------------------------

@@ -15,6 +15,11 @@
     },
 
     extractPropertiesFromInfo: async function(info, documentation){
+        await DocFunction.$super.extractPropertiesFromInfo.call(this, info, documentation);
+        this._extractPropertiesFromInfo(info, documentation);
+    },
+
+    _extractPropertiesFromInfo: function(info, documentation){
         if (info.arguments){
             this.arguments = info.arguments;
         }else{
@@ -104,7 +109,7 @@
         if (type){
             if (typeof(type) === 'object'){
                 var fn = DocFunction.init();
-                fn.extractPropertiesFromInfo(type);
+                fn._extractPropertiesFromInfo(type);
                 let code = dd.appendChild(document.createElement("code"));
                 code.appendChild(document.createTextNode(fn.declarationCode()[0]));
                 let callbackDL = fn.argumentListElement(document, resolver);

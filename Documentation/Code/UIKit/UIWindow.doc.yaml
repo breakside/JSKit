@@ -1,0 +1,773 @@
+kind: class
+introduced: "1.0.0"
+inherits: UIView
+summary: A window on the screen
+description: |
+  A window serves as the root of a tree of views.
+
+  It represents a set of related informatin or tasks.
+
+  Windows can be moved, sized, and reorderd by the user.
+
+  Every `UIApplication` has a stack of windows, one of which is considered the
+  `mainWindow`.  An application's main window is the active window, typically
+  the most visible and styled in a distinct manner.
+
+  The `mainWindow` is often the application's `keyWindow`, which will receive
+  keyboard events (mouse events, by comparison, come with a location so we know
+  which window it hit).
+
+  First Responders
+  ================
+  Any view in a window that `canBecomeFirstResponder()` can be set as the
+  window's `firstResponder`.
+
+  A first responder will be sent keyboard events.  Another way to say it is that
+  the first responder has "focus".
+
+  Each window has its own first responder, although only the application's
+  `keyWindow` will receive events.  When switching to another window, its
+  `firstResponder` will be remembered.
+topics:
+  -
+    name: Creating a Window
+    members:
+      -
+        name: initWithStyler
+        kind: init
+        summary: Create a window using the given styler 
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: Description of properties that can be included in a spec file
+          for a `UIWindow`
+        description: |
+          In addition to the properties that can be provided to any
+          `UIView`(UIView.Spec File Properties), a `UIWidow` allows these
+          additional properties.
+        topics:
+          -
+            name: Controls
+            members:
+              -
+                name: title
+                type: String
+                summary: The window's title
+              -
+                name: icon
+                type: String
+                summary: The name of an image resource to use as the window's
+                  icon
+              -
+                name: toolbar
+                type: UIToolbar
+                summary: The toolbar for the window
+          -
+            name: Content View
+            members:
+              -
+                name: contentView
+                type: UIView
+                summary: The root view to use in this window
+                description: |
+                  Each window has a single content view that is root of all
+                  other views within the window.
+
+                  It's often helpful to use a `UIViewController` to manage
+                  the window's content.  In such a case, you should use
+                  `contentViewController` instead.
+              -
+                name: contentViewController
+                type: UIViewController
+                summary: The view controller to create an manage the window's
+                  root view
+              -
+                name: contentInsets
+                type: String
+                summary: The amount that the content view should be inset
+                  from the window's edges.
+                description: |
+                  Insets are provided as a string of comma-separated integers
+                  that correspond to the arguments for the `JSInsets`
+                  constructor.
+
+                  ````
+                  Window:
+                    class: UIWindow
+                    contentInsets: 7,0
+                  ````
+              -
+                name: showsContentSeparator
+                type: boolean
+                summary: Indicates whether a separator line is present between
+                  the window's styling and the content view.
+          -
+            name: Behaviors
+            members:
+              -
+                name: isUserMovable
+                type: boolean
+                summary: Indicates if the window can be moved around the screen
+                  by a user
+              -
+                name: isMovableByContent
+                type: boolean
+                summary: Indicates if the window can be moved by clicking
+                  and dragging anywhere, or only on the window's styling
+              -
+                name: escapeClosesWindow
+                type: boolean
+                summary: Does pressing the escape key close the window?
+          -
+            name: Sizing
+            members:
+              -
+                name: heightTracksContent
+                type: boolean
+                summary: Does the window's height change automatically to fit
+                  its contents?
+              -
+                name: widthTracksContent
+                type: boolean
+                summary: Does the window's width change automatically to fit
+                  its contents?
+          -
+            name: Autosaving
+            members:
+              -
+                name: autosaveName
+                type: String
+                summary: The name to use when autosaving the window's size and
+                  position.
+          -
+            name: Responder
+            members:
+              -
+                name: firstResponder
+                type: UIResponder
+                summary: The responder to set as the window's
+                  \`initialFirstResponder`
+  -
+    name: Styling
+    members:
+      -
+        name: styler
+        type: UIWindowStyler
+        summary: The styler that will draw the window's controls
+        description: |
+          Stylers allow for separation between the window's model and its
+          presentation.
+
+          One styler can be resused for many windows, reducing the need to
+          subclass `UIWindow` to apply a custom style.
+
+          `UIWindowDefaultStyler` is provided by `UIKit` as a basic way to
+          present a window, but you can feel free to make your own
+          `UIWindowStyler` subclass.
+      -
+        name: stylerProperties
+        type: dictionary
+        summary: A dictionary that a styler can use to store properties
+          relating to styling
+        description: |
+          Often a styler will need to create views or layers to help its
+          styling.  Since a single styler is used for multiple windows,
+          the styler can't store those window-specific properties on its own.
+
+          So, `stylerProperties` is a place on each `UIWindow` that a styler
+          can store window-specific objects.
+      -
+        name: Styler
+        kind: enum
+        type: UIWindowStyler
+        suffix: presets
+        summary: A collection of preset stylers
+        options:
+          -
+            name: default
+            summary: An instance of `UIWindowDefaultStyler` with `UIKit` default
+              colors and options
+          -
+            name: custom
+            summary: The default blank window styler, an instance of
+              \`UIWindowCustomStyler`
+      -
+        name: UIWindowStyler
+        kind: class
+        inherits: JSObject
+        summary: The abstract base class for a window styler
+        description: |
+          While much of the window drawing is left to subclasses, this
+          base class does provide standard toolbar layout that most
+          subclasses won't need to override.
+        topics:
+          -
+            name: Creating a Styler
+            members:
+              -
+                name: init
+                kind: init
+                summary: Establish defaults for toolbar properties
+          -
+            name: Window Drawing
+            members:
+              -
+                name: initializeWindow
+                kind: method
+                summary: Called during window initialization to give the styler
+                  a chance to create views required for styling
+              -
+                name: updateWindow
+                kind: method
+                summary: Called when something changes that requires the styler
+                  to redaw
+          -
+            name: Window Layout
+            members:
+              -
+                name: layoutWindow
+                kind: method
+                summary: Called as part of a `UIWindow`'s `layoutSubviews`
+                  routine, to give the styler a change to adjust its layout.
+          -
+            name: Toolbar
+            members:
+              -
+                name: toolbarTitleFont
+                type: JSFont
+                summary: The font to use for toolbar item titles
+              -
+                name: toolbarTitleColor
+                type: JSFont
+                summary: The color to use for toolbar item titles
+              -
+                name: toolbarDisabledTitleColor
+                type: JSFont
+                summary: The color to use for disabled toolbar item titles
+              -
+                name: toolbarInsets
+                type: JSFont
+                summary: The insets to use for the toolbar items
+              -
+                name: toolbarItemSpacing
+                type: JSFont
+                summary: The default spacing between toolbar items
+              -
+                name: heightOfToolbarView
+                kind: method
+                summary: Provides a standard calculation for toolbar height
+              -
+                name: layoutToolbarView
+                kind: method
+                summary: Provides a standard way of doing a toolbar layout
+              -
+                name: layoutToolbarItemView
+                kind: method
+                summary: Provides a standard way of doing a toolbar item layout
+              -
+                name: updateToolbarItemView
+                kind: method
+                summary: Provides a standard way of displaying toolbar items
+      -
+        name: UIWindowDefaultStyler
+        kind: class
+        inherits: UIWindowStyler
+        summary: The default `UIKit` window styling
+        description: |
+          While much of the window drawing is left to subclasses, this
+          base class does provide standard toolbar layout that most
+          subclasses won't need to override.
+        topics:
+          -
+            name: Title Bar
+            members:
+              -
+                name: activeTitleColor
+                type: JSColor
+                summary: The color to use for an active window's title
+              -
+                name: inactiveTitleColor
+                type: JSColor
+                summary: The color to use for an inactive window's title
+              -
+                name: titleBackgroundColor
+                type: JSColor
+                summary: The color to use for the title bar's background
+              -
+                name: titleBackgroundGradient
+                type: JSColor
+                summary: The gradient to use for the title bar's background
+          -
+            name: Controls
+            members:
+              -
+                name: ControlButtonImages
+                kind: class
+                anonymous: true
+                topics:
+                  -
+                    name: Image States
+                    members:
+                      -
+                        name: inactive
+                        type: JSImage
+                        summary: The image to use when the control is inactive
+                      -
+                        name: normal
+                        type: JSImage
+                        summary: The image to use when the control is normal
+                      -
+                        name: over
+                        type: JSImage
+                        summary: The image to use when the control is hovered over
+                      -
+                        name: active
+                        type: JSImage
+                        summary: The image to use when the control is active
+              -
+                name: closeButtonImages
+                type: ControlButtonImages
+                summary: The images to use for the window's close button
+          -
+            name: Window Frame
+            members:
+              -
+                name: cornerRadius
+                type: Number
+                summary: The amount of roundness of corners the window should have
+              -
+                name: backgroundColor
+                type: JSColor
+                summary: The window's background color
+              -
+                name: shadowColor
+                type: JSColor
+                summary: The window's shadow color
+              -
+                name: shadowRadius
+                type: Number
+                summary: The amount of shadow blur the window should have
+          -
+            name: Content
+            members:
+              -
+                name: contentSeparatorColor
+                type: JSColor
+                summary: The color of the content separator
+              -
+                name: contentSeparatorSize
+                type: Number
+                summary: The thickness of the content separator
+      -
+        name: UIWindowCustomStyler
+        kind: class
+        inherits: UIWindowStyler
+        summary: A blank window styler
+  -
+    name: Controls
+    members:
+      -
+        name: title
+        type: String
+        summary: The window's visible title
+        description: |
+          The `styler` is in charge of the title's look including color and
+          font.
+      -
+        name: icon
+        type: JSImage
+        summary: The window's visible icon
+        description: |
+          The `styler` is in charge of the icon's look including placement
+          and size.
+      -
+        name: allowsClose
+        type: boolean
+        summary: Whether or not the window allows the user to close it
+        description: |
+          If the window allows the user to close it, the `styler` will
+          show a close button.
+  -
+    name: Toolbar
+    members:
+      -
+        name: toolbar
+        type: UIToolbar
+        summary: The toolbar to show for this window
+        description: |
+          A window's toolbar is optional, but if present can provide the user
+          with a set of commonly used controls.
+
+          The `styler` is in charge of toolbar layout.
+  -
+    name: Content View
+    members:
+      -
+        name: contentView
+        type: UIView
+        summary: The root view for the window
+        description: |
+          Every window has a `contentView` that provides the bulk of the
+          window's presentation (aside from the window controls and toolbar
+          that are managed directly by the window).
+
+          It is often helpful to use `contentViewController` intead, beause
+          using a view controller provides a way to manage the window's user
+          interface.
+
+          A `contentViewController` will set this property automatically.
+        see:
+          - contentViewController
+      -
+        name: contentViewController
+        type: UIViewController
+        summary: The root view controller for this window
+        description: |
+          In addition to setting the `contentView`, the content view controller
+          is typically a `UIViewController` subclass that is used to manage
+          the custom content view for the window.
+      -
+        name: showsContentSeparator
+        type: boolean
+        summary: Indicates if a separator line should be visible between
+          the window's UI and the content view.
+        description: |
+          Sometimes it's nice to have a seamless transition between the
+          window's title bar or toolbar to the content view.
+
+          Other times it's nice to have a clear line of separation.
+
+          This setting allows for both options.
+
+          The specific styling of the content separator is handled by
+          the `styler`.
+      -
+        name: contentInsets
+        type: JSInsets
+        summary: The distance that the content view should be inset from
+          the window's edges.
+      -
+        name: heightTracksContent
+        type: boolean
+        summary: Indicates whether the window's height should be automatically
+          set to fit the content
+      -
+        name: widthTracksContent
+        type: boolean
+        summary: Indicates whether the window's width should be automatically
+          set to fit the content
+  -
+    name: Main Window Status
+    members:
+      -
+        name: canBecomeMainWindow
+        kind: method
+        type: boolean
+        return: |
+          `true` if the window can be a main window, `false` otherwise
+        summary: Tell the window manager if this window can become a main window
+        description: |
+          A main window is considered active and is typically styled to be
+          visually distinct from inactive windows.
+
+          Most windows can become main windows.  The rare cases that typically
+          aren't main windows are things like floating panels.
+      -
+        name: isMainWindow
+        type: boolean
+        summary: Check if this window is the main window
+      -
+        name: makeMain
+        kind: method
+        summary: Tell the window manager to make this window the main window
+      -
+        name: becomeMain
+        kind: method
+        summary: Called when the window becomes the main window
+        description: |
+          This call gives the window an opportunity to re-style itself as the
+          main window.
+      -
+        name: resignMain
+        kind: method
+        summary: Called when the window resigns from being the main window
+        description: |
+          This call gives the window an opportunity to re-style itself as an
+          inactive window.
+  -
+    name: Key Window Status
+    members:
+      -
+        name: canBecomeKeyWindow
+        kind: method
+        type: boolean
+        return: |
+          `true` if the window can be a key window, `false` otherwise
+        summary: Tell the window manager if this window can become a key window
+        description: |
+          A key window is one that can receive key events.
+
+          Typically a window becomes the main window and key window at the
+          same time.
+
+          However, there are cases where window can become a key window
+          without becoming a main window, like with floating panels that
+          take keyboard input, but return `false` in `canBecomeMainWindow`.
+      -
+        name: isKeyWindow
+        type: boolean
+        summary: Check if this window is the key window
+      -
+        name: makeKey
+        kind: method
+        summary: Tell the window manager to make this window the key window
+      -
+        name: makeKeyAndOrderFront
+        kind: method
+        summary: Tell the window manager to make this window the key window,
+          the main window, and move it to the top of the window stack.
+        description: |
+          This method is often called instead of `open` because in addition
+          to opening the window and moving it to the front of the stack,
+          it also makes the window the key window, which is typically
+          the desired behavior when opening a new window.
+      -
+        name: becomeKey
+        kind: method
+        summary: Called when the window becomes the key window
+        description: |
+          This call gives the window an opportunity to re-style itself as the
+          key window.
+      -
+        name: resignKey
+        kind: method
+        summary: Called when the window resigns from being the key window
+        description: |
+          This call gives the window an opportunity to re-style itself as an
+          inactive window.
+  -
+    name: Opening & Closing
+    members:
+      -
+        name: open
+        kind: method
+        summary: Open the window and place it at the top of the window stack
+        description: |
+          When you create a `UIWindow`, it isn't visible until you open it.
+        important: This method will not make a window the main or key window.
+          Therefore, you should typically use `makeKeyAndOrderFront()` when
+          opening a new window.
+      -
+        name: openAnimator
+        type: UIViewPropertyAnimator
+        summary: An animator that creates an animated effect of the window
+          opening
+        description: |
+          Often the best way to animate a window is to apply a `transform`
+          during window prep, and then erase the `transform` during the
+          animation block.
+
+          ````
+          var window = UIWindow.init();
+          window.frame = JSRect(100,200,300,400);
+          var source = JSRect(10,20,30,40);
+          var scale = Math.min(source.size.width / window.bounds.size.width, source.size.height / window.bounds.size.height) / 2;
+          var transform = JSAffineTransform.Translated(source.center.x - window.position.x, source.center.y - window.position.y).scaledBy(scale, scale);
+          window.transform = transform;
+          var animator = UIViewPropertyAnimator.initWithDuration(0.2);
+          animator.addAnimations(function(){
+              window.transform = JSAffineTransform.Identity;
+          });
+          window.openAnimator = animator;
+          window.makeKeyAndOrderFront();
+          ````
+      -
+        name: orderFront
+        kind: method
+        summary: Open the window and place it at the top of the window stack
+        description: |
+          Move a window to the top of the stack
+        important: This method will not make a window the main or key window.
+          Therefore, you should typically use `makeKeyAndOrderFront()` when
+          ordering a window to the front.
+      -
+        name: close
+        kind: method
+        summary: Close a window
+      -
+        name: closeAnimator
+        type: UIViewPropertyAnimator
+        summary: An animator that creates an animated effect of the window
+          opening
+        description: |
+          Often the best way to animate a window is to apply a `transform`
+          during animation block.
+
+          ````
+          // opening a window without animation 
+          var window = UIWindow.init();
+          window.frame = JSRect(100,200,300,400);
+          window.makeKeyAndOrderFront();
+
+          // closing with animation
+          var destination = JSRect(10,20,30,40);
+          var scale = Math.min(destination.size.width / window.bounds.size.width, destination.size.height / window.bounds.size.height) / 2;
+          var transform = JSAffineTransform.Translated(destination.center.x - window.position.x, destination.center.y - window.position.y).scaledBy(scale, scale);
+          var animator = UIViewPropertyAnimator.initWithDuration(0.2);
+          animator.addAnimations(function(){
+              window.transform = transform;
+          });
+          window.closeAnimator = animator;
+          window.close();
+          ````
+      -
+        name: escapeClosesWindow
+        type: boolean
+        summary: Indicates if an escape key press will close the window
+        description: |
+          Escape will only close the window if nothing in the window's
+          responder chain handles the key event, meaning text fields or
+          other controls can handle the escape event without worrying about
+          the window closing too.
+  -
+    name: First Responder
+    members:
+      -
+        name: firstResponder
+        type: UIResponder
+        summary: The responder that will receive key events and menu actions
+      -
+        name: setFirstResponderToKeyViewAfterView
+        kind: method
+        summary: Move forward through the key view loop to the next available
+          responder
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The view to use as a starting point before moving
+        description: |
+          Used when the user presses `Tab` to move from one field to another.
+
+          Each view can specify its `nextKeyView`, which creates a loop
+          of views that get cycled through when the user tabs.
+      -
+        name: setFirstResponderToKeyViewBeforeView
+        kind: method
+        summary: Move backward through the key view loop to the next available
+          responder
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The view to use as a starting point before moving
+        description: |
+          Used when the user presses `Shift+Tab` to move from one field to another.
+
+          Each view can specify its `nextKeyView`, which creates a loop
+          of views that get cycled through when the user tabs.
+      -
+        name: getNextReponder
+        kind: method
+        type: UIResponder
+        return: The window's `UIWindowController`, if any, or the window's
+          \`application`
+        summary: Provide a suitable next responder in the resopnder chain
+        description: |
+          Overrides the behavior inherited from `UIView`
+  -
+    name: Screen
+    members:
+      -
+        name: application
+        type: UIApplication
+        summary: The application to which this window belongs
+      -
+        name: screen
+        type: UIScreen
+        summary: The screen on which this window appears
+      -
+        name: level
+        type: Level
+        summary: The general class of level in which the window should stack
+        description: |
+          `UIKit` defines three major levels of windows.  Most windows will
+          be in the `normal` level.
+
+          Special windows like menus will be in the `front` level.
+
+          Windows can only move within their level.  So if a window has a
+          `normal` level, it can never appear in front of a window with a
+          `front` level.
+      -
+        name: Level
+        kind: enum
+        suffix: enum
+        summary: The classes of window leveling available
+        options:
+          -
+            name: back
+            summary: The backmost level.  Windows in this level can never appear
+              in front of any `normal` window
+          -
+            name: normal
+            summary: The level for most windows.  Windows in this level can
+              never appear in front of any `front` window
+          -
+            name: front
+            summary: The frontmost level.  Windows in this level will always
+              be in front of other windows at lower levels.
+  -
+    name: Modal Windows
+    members:
+      -
+        name: modal
+        type: UIWindow
+        summary: The modal window, if any, that must be acknowledged before
+          the user can interact with this window
+        description: |
+          Modal windows receive all the events sent to the underlying window
+          until they are dismissed.
+  -
+    name: Moving Windows
+    members:
+      -
+        name: isUserMovable
+        type: boolean
+        summary: Indicates if the user can move the window by dragging it
+      -
+        name: isMovableByContent
+        type: boolean
+        summary: Indicates if the user can move the window by dragging on
+          the content area.
+        description: |
+          By default, a user can only move a window by dragging on its title
+          bar.
+
+          However, if this property is set to `true` and nothing it the content
+          area handle the moues events, the user can move the window from
+          anywhere.
+  -
+    name: Event Dispatch
+    members:
+      -
+        name: sendEvent
+        kind: method
+        summary: Dispatch an event to an appropriate responder
+        description: |
+          For mouse down events, the responder is typically chosen based on the
+          location of the event.
+
+          For key events the, the responder is the `firstResponder`
+  -
+    name: Autosaving
+    members:
+      -
+        name: autosaveName
+        type: String
+        summary: The `JSUserDefaults` name under which this window's information
+          should be saved.
+        description: |
+          Setting a non-`null` value instructs the window to automatically save
+          its size and position in `JSUserDefaults` so it can be placed in the
+          same spot the next time it opens.

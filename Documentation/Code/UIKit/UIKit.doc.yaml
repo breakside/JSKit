@@ -127,7 +127,7 @@ topics:
       - UIEvent
       - UITouch
   -
-    name: Views & Windows
+    name: Layers, Views, & Windows
     members:
       - UILayer
       - UIView
@@ -139,6 +139,7 @@ topics:
       - UIScene
       - UIScreen
       - UIStackView
+      - UICursor
   -
     name: Scrolling
     members:
@@ -201,6 +202,8 @@ topics:
       - UIDraggingSession
       - UIDraggingSource
       - UIDraggingDestination
+      - UIDragOperation
+      - UIDragItem
   -
     name: Alerts & Dialogs
     members:

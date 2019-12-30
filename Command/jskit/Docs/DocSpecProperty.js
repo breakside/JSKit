@@ -12,6 +12,7 @@
     },
 
     extractPropertiesFromInfo: async function(info, documentation){
+        await DocSpecProperty.$super.extractPropertiesFromInfo.call(this, info, documentation);
         if (info.type){
             this.valueType = info.type;
         }

@@ -6,28 +6,22 @@
 
     kind: 'enum',
     options: null,
-    uniqueSuffix: null,
+    valueType: null,
 
     extractPropertiesFromInfo: async function(info, documentation){
+        await DocEnum.$super.extractPropertiesFromInfo.call(this, info, documentation);
         if (info.options){
             this.options = info.options;
         }else{
             this.options = [];
         }
-        if (info.suffix){
-            this.uniqueSuffix = info.suffix;
+        if (info.type){
+            this.valueType = info.type;
         }
     },
 
     getTitle: function(){
         return "%s.%s".sprintf(this.parent.name, this.name);
-    },
-
-    getUniqueName: function(){
-        if (this.uniqueSuffix){
-            return "%s-%s".sprintf(this.name.toLowerCase(), this.uniqueSuffix);
-        }
-        return this.name.toLowerCase();
     },
 
     htmlArticleElements: function(document){
@@ -74,6 +68,9 @@
     },
 
     getDisplayNameForKind: function(){
+        if (this.valueType){
+            return "%s Enum".sprintf(this.valueType);
+        }
         return 'Enum';
     }
 

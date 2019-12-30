@@ -1,0 +1,882 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: The core UI component that draws to the screen
+description: |
+  At the most basic level, a `UILayer` is used to draw in rectangles on the
+  screen.
+
+  Every `UIView` is backed by a `UILayer`, allowing the views to draw to
+  the screen.  (Views additionally have `UIResponder` features allowing them
+  to handle events).
+
+  Layer Positioning
+  =================
+
+  Four properties work together to define exactly where a layer should be
+  placed within its `superlayer`.
+
+  - `bounds` - gives the layer its size
+  - `position` - a point in the `superlayer` coordinate space that lines up
+    with a point in the layer's coordinate space
+  - `anchorPoint` - a "unit point" that when multiplied by the layer's width
+    and height, defines a point in the layer's coordinate system that lines
+    up with `position`
+  - `transform` - An affine transform that is applied after positioning the
+    layer that can cause a translation, rotation, or scaling of the layer
+    from its untransformed position.
+
+  An additional property, `frame`, can be used to get or set the layer's
+  rectangle in its `superlayer`'s coordinate space.  However, once a
+  `transform` is applied to a layer, its `frame` property will not function
+  as expected, so it is best to be in the habit of using `bounds` and
+  `position`.
+
+  Layer Animations
+  ================
+
+  Most display properties of a layer can be animated.
+
+  Generally, layer animations are set implicitly when changing a layer
+  property inside of a `UIAnimationTransaction`.
+
+  ````
+  var layer = UILayer.init();
+  // ... add layer to some superlayer
+  layer.position = JSPoint(100, 100);
+  UIAnimationTransaction.begin();
+  layer.position = JSPoint(200, 300);
+  UIAnimationTransaction.end();
+  ````
+  In this example, once the transaction `begin()`(UIAnimationTransaction.begin)
+  is called, changes to the layer properties will create animations definitions
+  automatically, and the layer will not visually change until the transaction
+  `end()`(UIAnimationTransaction.end) is called, at which point it will animate
+  to its new position.
+
+  While this is in principle how layer animations work, you'll typically be
+  deailing with `UIView` animations using objects such as
+  `UIViewPropertyAnimator`.
+
+  Model vs. Presentation
+  ----------------------
+
+  When animating, a layer has two sets of properties:
+
+  - The model
+  - The `presentation`
+
+  The model contains the values that you get when inspecting the layer's
+  properties directly, like `layer.position` or `layer.backgroundColor`.
+
+  In the example above, the layer's model changes immediately when its
+  position is set to `JSPoint(200, 300)`.
+
+  However, the layer's `presentation` holds the values that will actually be
+  used to display the layer.  These are the properties that change on every
+  tick of the animation clock and are used by the display system.
+
+  Most of the time, you'll only care about the layer's model, but occasionally
+  you may need to inspect the layer's `presentation` to understand what is
+  being displayed right at that instant.
+topics:
+  -
+    name: Creating a Layer
+    members:
+      -
+        name: init
+        kind: init
+        summary: Create a new layer with default properties
+        description: |
+          Typically you'll interact with the layers that are created and
+          owned by `UIView`s, and therefore won't have much need to create
+          a layer yourself.
+
+          However, in some use cases it may be more appropriate to create a
+          layer than a view.  If the user doesn't need to interact with the
+          layer, and if the overhead of a `UIView` causes performance issues,
+          creating a layer directly is an option.
+  -
+    name: Delegate
+    members:
+      -
+        name: UILayerDelegate
+        kind: protocol
+        summary: A protocol for layer delegates to implement
+        topics:
+          -
+            name: Sizing
+            members:
+              -
+                name: layerDidChangeSize
+                summary: Called when the layer's bounds change size
+                arguments:
+                  -
+                    name: layer
+                    type: UILayer
+                    summary: The layer that changed
+                description: |
+                  Notification of layer's size change may be useful to its
+                  delegate, which may request redraw.
+          -
+            name: Layout
+            members:
+              -
+                name: layoutSublayersOfLayer
+                summary: Called if present as an override to the layer's own
+                  \`layoutSublayers` method
+                arguments:
+                  -
+                    name: layer
+                    type: UILayer
+                    summary: The layer that changed
+          -
+            name: Drawing
+            members:
+              -
+                name: drawLayerInContext
+                summary: Called if present as an override to the layer's own
+                  \`drawInContext` method
+                arguments:
+                  -
+                    name: layer
+                    type: UILayer
+                    summary: The layer that changed
+                  -
+                    name: context
+                    type: JSContext
+                    summary: The drawing context to use
+                description: |
+                  Drawing is one of the layer's primary functions.
+
+                  If the delegate implements this method, it will be used
+                  instead of the layer's default `drawInContext` method.
+                  This is normally exactly what you want since `UILayer` doesn't
+                  do any drawing itself.
+
+                  Using a delegate pattern saves you the trouble of having
+                  to subclass `UILayer` just to accomplish the drawing task.
+
+                  When drawing to the context, you'll want to use the layer's
+                  bounds as a guide for the rectangle to draw in.
+      -
+        name: delegate
+        type: UILayerDelegate
+        summary: The layer's delegate
+        description: |
+          For layers created and owned by `UIView` (i.e., the 
+          `layer`(UIView.layer) of the view), the view registers itself as
+          the layer's delegate.
+
+          Changing the delegate of a view's layer is not recommended.
+
+          However, `UIView` does not implement any of the delegate methods,
+          leaving it up to customized view subclasses to implement if needed.
+
+          Often, views do not need to do any custom drawing, so the
+          `drawLayerInContext` method can remain unimplemented without issue.
+
+          If you're creating your own layers, then you can provide
+          whatever delegate is appropriate for your use case.
+  -
+    name: Size & Layout
+    members:
+      -
+        name: position
+        type: JSPoint
+        summary: The position of this layer's `anchorPoint` in its `superlayer`
+          coordinates
+        description: |
+          Layers are positioned within their `superlayer` based on the
+          combination of several properties.
+
+          ![layer positioning](UILayer/positioning@2x.png)
+
+          The `position` is a point in `superlayer` coordinate space that
+          lines up with this layer's `anchorPoint`.
+
+          By default, the `anchorPoint` is the center of the layer, but it can
+          be anywhere within the layer's size.
+
+          ![layer positioning](UILayer/anchorPoint1@2x.png)
+
+          ![layer positioning](UILayer/anchorPoint2@2x.png)
+
+          ![layer positioning](UILayer/anchorPoint3@2x.png)
+
+          Notice how the `position` and `anchorPoint` are related.
+        important: |
+          While it is possible to position and size a layer using its `frame` in
+          `superlayer` coordinate space, `frame` will not function properly
+          if any `transform` is applied to the layer.  Therefore, when
+          transforms are involved, updating `position` and `bounds` are the
+          recommend ways to move a layer.
+      -
+        name: anchorPoint
+        type: JSPoint
+        summary: The unit point that defines where in the layer's position
+          applies, and about which transformations are performed.
+        description: |
+          Layers are positioned within their `superlayer` based on the
+          combination of several properties.
+
+          ![layer positioning](UILayer/positioning@2x.png)
+
+          The `anchorPoint` is a unit-space point with values ranging from
+          `0` to `1` that will be scaled to the size of the layer.
+
+          The `anchorPoint` determines the point about which transformations
+          such as rotations are made.
+
+          By default, the `anchorPoint` is the center of the layer, which is
+          specified with a `JSPoint(0.5, 0.5)` value.
+
+          The layer's `position` is a point in `superlayer` coordinate space
+          that lines up with this layer's `anchorPoint`.
+
+          ![layer positioning](UILayer/anchorPoint1@2x.png)
+
+          ![layer positioning](UILayer/anchorPoint2@2x.png)
+
+          ![layer positioning](UILayer/anchorPoint3@2x.png)
+
+          Notice how the `position` and `anchorPoint` are related.
+        see:
+          - position
+          - transform
+          - bounds
+      -
+        name: bounds
+        type: JSRect
+        summary: The size and scroll offset of the layer, in its own coordinates
+        description: |
+          A layer's `bounds` determines the size of the layer and the visible
+          window into sublayers, which can be used as a scrolling mechanism.
+
+          To acheive a scroll effect, simply adjust the bounds's origin.
+
+          For example, the following images demonstrate how to do a vertical
+          scroll to expose more sublayers that were originally outside
+          the bounds of the layer.
+          
+          ![bounds unscrolled](UILayer/boundsOrigin1@2x.png)
+
+          ![bounds unscrolled](UILayer/boundsOrigin2@2x.png)
+
+        note: Most layers don't scroll, and therefore always have a bounds
+          origin of `0,0`.
+        see:
+          - position
+          - anchorPoint
+          - clipsToBounds
+          - UIScrollView
+      -
+        name: transform
+        type: JSAffineTransform
+        summary: Any transformation applied to the layer
+        description: |
+          A transformation causes a layer to be displaced, rotated, or scaled
+          about its `anchorPoint`.
+
+          The layer maintains its own coordinate space, so sublayer positioning
+          and drawing is still done within `bounds`.
+        important: When applying a transform, the `frame` property will not
+          function as expected.  Use the `position` instead to move a
+          transformed layer.
+        see:
+          - anchorPoint
+          - position
+          - convertPointToLayer
+          - convertPointFromLayer
+          - convertRectToLayer
+          - convertRectFromLayer
+      -
+        name: frame
+        type: JSRect
+        summary: The rectangle the layer occupies in its `superlayer`
+          coordinates
+        description: |
+          The layer's frame represents its rectangle in `superlayer` coordinate
+          space.
+
+          The `frame` is linked to the layer's `bounds` and `position`.  Changing
+          one of the three will cause changes in the others.
+        important: |
+          If the layer has a `transform` applied, do not use the `frame`
+          property. Its behavior is not well defined for transformed layers.
+      -
+        name: sizeToFit
+        kind: method
+        summary: Size this layer to fit its contents as tightly as possible
+        description: |
+          Implemented in subclasses that undertand their content's size
+          and can size themselves to match.
+      -
+        name: sizeToFitSize
+        kind: method
+        summary: Size this layer to fit inside the given maximum size
+        arguments:
+          -
+            name: maxSize
+            type: JSSize
+            summary: The maximum size to make this layer
+        description: |
+          Implemented in subclasses that undertand their content's size
+          and can size themselves to match, up to the given maximum.
+  -
+    name: Visibility
+    members:
+      -
+        name: hidden
+        type: boolean
+        summary: Indicates if the layer is hidden or visible
+        description: |
+          Hidden layers are not drawn, but still exist in the layer tree.
+      -
+        name: alpha
+        type: Number
+        summary: The percentage of opaqueness of the layer
+        description: |
+          Ranging from `0` (meaning completely transparent) to `1` (meaning
+          completely opaque), the layer's `alpha` controls how "see-through"
+          the layer is to any content behind it. 
+      -
+        name: clipsToBounds
+        type: boolean
+        summary: Indciates if the layer drawing is clipped at its bounds or can
+          continue outside the layer.
+        description: |
+          If set to `true`, any sublayers or drawing that go outside the
+          layer's `bounds` are invisible.
+
+          Defaults to `false`.
+        see:
+          - bounds
+  -
+    name: Background
+    members:
+      -
+        name: backgroundColor
+        type: JSColor
+        summary: The solid background color of the layer
+        description: |
+          If set, a layer's background color is automatically drawn within
+          the layer's `bounds` and under any border.
+      -
+        name: backgroundGradient
+        type: JSGradient
+        summary: The gradient, if any, of the layer's background
+        description: |
+          If set, a layer's background gradient is automatically drawn within
+          the layer's `bounds` above any `backgroundColor` and under any border.
+  -
+    name: Borders
+    members:
+      -
+        name: borderColor
+        type: JSColor
+        summary: The color of the layer's border
+        description: |
+          If set in conjunction with a non-zero `borderWidth`, a border will
+          be drawn around the layer's bounds, covering any drawing or sublayer.
+
+          To draw a border on only some sides, set `maskedBorders` as desired.
+        see:
+          - borderWidth
+          - maskedBorders
+      -
+        name: borderWidth
+        type: Number
+        summary: The width of the border's line
+        description: |
+          If set in conjunction with a non-`null` `borderColor`, a border will
+          be drawn around the layer's bounds, covering any drawing or sublayer.
+
+          The `borderWidth` extends from the edge of the layer towards the
+          inside.
+
+          To draw a border on only some sides, set `maskedBorders` as desired.
+        see:
+          - borderColor
+          - maskedBorders
+      -
+        name: maskedBorders
+        type: Sides
+        summary: The sides of the layer that should have a border
+        description: |
+          Control which borders are drawn around the layer.
+
+          Defaults to `Sides.all`
+
+          Any sides can be combined with bitwise operators to create a value
+          with multiple sides.
+
+          For example
+          ````
+          layer.maskedBorders = UILayer.Sides.minX | UILayer.Sides.minY;
+          ````
+          will paint the top and left borders.
+        see:
+          - borderColor
+          - borderWidth
+      -
+        name: cornerRadius
+        type: Number
+        summary: The size of the rounded radius of the layer's corners
+        description: |
+          The amount to round the corners of the layer.
+
+          Rounded corners apply to any background, border, and shadow drawing.
+
+          The size is in the coordinate space of the layer.
+
+          To round only some sides, set `maskedCorners` as desired.
+        see:
+          - maskedCorners
+          - borderColor
+          - borderWidth
+          - backgroundColor
+      -
+        name: maskedCorners
+        type: Corners
+        summary: The corners that should be rounded
+        description: |
+          The corners to round.
+
+          Defaults to `Corners.all`.
+
+          Any corners can be combined with bitwise operators to create a value
+          with multiple corners.
+
+          For example
+          ````
+          layer.maskedCorners = UILayer.Corners.minX | UILayer.Corners.maxX;
+          ````
+          will paint both vertical borders (left and right)
+        see:
+          - cornerRadius
+      -
+        name: Sides
+        kind: enum
+        summary: The possible sides
+        description: |
+          Any sides can be combined with bitwise operators to create a value
+          with multiple sides.
+
+          For example
+          ````
+          layer.maskedBorders = UILayer.Sides.minX | UILayer.Sides.minY;
+          ````
+          will paint the top and left borders.
+        options:
+          -
+            name: none
+            summary: No sides
+          -
+            name: minX
+            summary: The vertical side with the smaller `x` value
+          -
+            name: maxX
+            summary: The vertical side with the larger `x` value
+          -
+            name: minY
+            summary: The horizontal side with the smaller `y` value
+          -
+            name: maxY
+            summary: The horizontal side with the larger `y` value
+          -
+            name: minXmaxX
+            summary: Both vertical sides
+          -
+            name: minYmaxY
+            summary: Both horizontal sides
+          -
+            name: all
+            summary: All sides
+      -
+        name: Corners
+        kind: enum
+        summary: The possible corners
+        description: |
+          Any corners can be combined with bitwise operators to create a value
+          with multiple corners.
+
+          For example
+          ````
+          layer.maskedCorners = UILayer.Corners.minX | UILayer.Corners.maxX;
+          ````
+          will paint both vertical borders (left and right)
+        options:
+          -
+            name: none
+            summary: No corners
+          -
+            name: minXminY
+            summary: The corner at the smaller `x` and `y` values
+          -
+            name: minXmaxY
+            summary: The corner at the smaller `x` and larger `y` values
+          -
+            name: maxXminY
+            summary: The corner at the larger `x` and smaller `y` values
+          -
+            name: maxXmaxY
+            summary: The corner at the larger `x` and larger `y` values
+          -
+            name: minX
+            summary: The two corners with the smaller `x` value
+          -
+            name: maxX
+            summary: The two corners with the larger `x` value
+          -
+            name: minY
+            summary: The two corners with the smaller `y` value
+          -
+            name: maxY
+            summary: The two corners with the larger `y` value
+          -
+            name: all
+            summary: All corners
+  -
+    name: Shadow
+    members:
+      -
+        name: shadowColor
+        type: JSColor
+        summary: The color of the layer's shadow
+        description: |
+          A non-`null` shadow color will cause a shadow to be drawn behind the
+          layer.
+
+          Typically used in coordination with a `backgroundColor` so the
+          shadow is only seen around the outside of the layer.
+        see:
+          - shadowOffset
+          - shadowRadius
+      -
+        name: shadowOffset
+        type: JSPoint
+        summary: The amount the shadow is offset from the layer
+        description: |
+          The distance to offset the shadow from the layer's rectangle, which
+          can create a sense that lighting is coming from the opposite
+          direction.
+      -
+        name: shadowRadius
+        type: Number
+        summary: How much the shadow is blurred
+        description: |
+          The shadow radius controls how far out the shadow extends, which
+          is the distance over which the shadow will be blurred.
+  -
+    name: Superlayer & Sublayers
+    members:
+      -
+        name: superlayer
+        type: UILayer
+        summary: The parent of this layer
+      -
+        name: sublayers
+        type: UILayer[]
+        summary: The children of this layer
+      -
+        name: sublayerIndex
+        type: Number
+        summary: The position of this layer within its list of siblings (its
+          supelayer's sublayers)
+      -
+        name: addSublayer
+        kind: method
+        summary: Add a child layer at the end of the `sublayers` list
+        arguments:
+          -
+            name: sublayer
+            type: UILayer
+            description: The layer to add
+      -
+        name: insertSublayerAtIndex
+        kind: method
+        summary: Add a child layer at specified location in the `sublayers` list
+        arguments:
+          -
+            name: sublayer
+            type: UILayer
+            description: The layer to add
+          -
+            name: index
+            type: Number
+            description: The index into `sublayers` where the new layer goes
+      -
+        name: insertSublayerBelowSibling
+        kind: method
+        summary: Add a child layer visually below the given sibling
+        arguments:
+          -
+            name: sublayer
+            type: UILayer
+            description: The layer to add
+          -
+            name: sibling
+            type: UILayer
+            description: The existing sublayer
+      -
+        name: insertSublayerAboveSibling
+        kind: method
+        summary: Add a child layer visually above the given sibling
+        arguments:
+          -
+            name: sublayer
+            type: UILayer
+            description: The layer to add
+          -
+            name: sibling
+            type: UILayer
+            description: The existing sublayer
+      -
+        name: removeSublayer
+        kind: method
+        summary: Remove a child layer
+        arguments:
+          -
+            name: sublayer
+            type: UILayer
+            description: The layer to remove
+      -
+        name: removeAllSublayers
+        kind: method
+        summary: Remove all child layers
+      -
+        name: removeFromSuperlayer
+        kind: method
+        summary: Remove this layer from its parent
+  -
+    name: Coordinate Transformations
+    members:
+      -
+        name: convertPointToLayer
+        kind: method
+        type: JSPoint
+        return: A point in the layer's coordinate space
+        summary: Convert a point from the `superlayer`'s coordinate space to
+          this layer's coordinate space
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: The point in the `superlayer`'s coordinate space
+      -
+        name: convertPointFromLayer
+        kind: method
+        type: JSPoint
+        return: A point in the `superlayer`'s coordinate space
+        summary: Convert a point from this layer's coordinate space to
+          the `superlayer`'s coordinate space
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: The point in this layer's coordinate space
+      -
+        name: convertRectToLayer
+        kind: method
+        type: JSRect
+        return: A rectangle in the layer's coordinate space
+        summary: Convert a rectangle from the `superlayer`'s coordinate space to
+          this layer's coordinate space
+        arguments:
+          -
+            name: rectangle
+            type: JSRect
+            summary: The rectangle in the `superlayer`'s coordinate space
+      -
+        name: convertRectFromLayer
+        kind: method
+        type: JSRect
+        return: A rectangle in the `superlayer`'s coordinate space
+        summary: Convert a rectangle from this layer's coordinate space to
+          the `superlayer`'s coordinate space
+        arguments:
+          -
+            name: rectangle
+            type: JSRect
+            summary: The rectangle in this layer's coordinate space
+  -
+    name: Hit Testing
+    members:
+      -
+        name: containsPoint
+        kind: method
+        type: boolean
+        return: |
+          `true` if the point is within the layer's bounds, `false` otherwise
+        summary: Check if a point is within the layer's bounds
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: A point in the layer's coordinate space
+      -
+        name: hitTest
+        kind: method
+        type: UILayer
+        return: The topmost visible layer in this layer's tree that contains
+          the point.  Possibly a descendant layer, this layer, or `null`
+        summary: Get the topmost layer that contains the given point
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: A point in the layer's coordinate space
+  -
+    name: Animations
+    members:
+      -
+        name: addAnimationForKey
+        kind: method
+        summary: Add a custom animation with a unqiue identification key
+        arguments:
+          -
+            name: animation
+            type: UIAnimation
+            summary: The animation to add
+          -
+            name: key
+            type: String
+            summary: A unique name to identify the animation
+      -
+        name: removeAnimation
+        kind: method
+        summary: Remove an animation
+        arguments:
+          -
+            name: animation
+            type: UIAnimation
+            summary: The animation to remove
+          -
+            name: updatingModel
+            type: boolean
+            summary: Indicates whether the layer's model should be updated
+              to match the current presentation values for the animation's
+              properties
+      -
+        name: removeAnimationForKey
+        kind: method
+        summary: Remove an animation based on its identifier
+        arguments:
+          -
+            name: key
+            type: String
+            summary: The key for the animation to remove
+      -
+        name: presentation
+        type: Properties
+        summary: The properties to use for display purposes, possibly including
+          in-progress animation values.
+      -
+        name: Properties
+        kind: class
+        summary: The animatable layer properties that serve as the backing
+          for the layer's model and presentation
+        topics:
+          -
+            name: All
+            members:
+              -
+                name: frame
+                type: JSRect
+              -
+                name: bounds
+                type: JSRect
+              -
+                name: position
+                type: JSRect
+              -
+                name: anchorPoint
+                type: JSRect
+              -
+                name: transform
+                type: JSRect
+              -
+                name: hidden
+                type: JSRect
+              -
+                name: alpha
+                type: JSRect
+              -
+                name: backgroundColor
+                type: JSRect
+              -
+                name: backgroundGradient
+                type: JSRect
+              -
+                name: borderWidth
+                type: JSRect
+              -
+                name: borderColor
+                type: JSRect
+              -
+                name: maskedBorders
+                type: JSRect
+              -
+                name: cornerRadius
+                type: JSRect
+              -
+                name: maskedCorners
+                type: JSRect
+              -
+                name: shadowColor
+                type: JSRect
+              -
+                name: shadowOffset
+                type: JSRect
+              -
+                name: shadowRadius
+                type: JSRect
+  -
+    name: Layout
+    members:
+      -
+        name: setNeedsLayout
+        kind: method
+        summary: Tell the layout manager that this layer needs to layout its
+          sublayers
+      -
+        name: needsLayout
+        kind: method
+        type: boolean
+        summary: Check if the layer needs to layout its sublayers
+      -
+        name: layoutIfNeeded
+        kind: method
+        summary: Layout immediately
+      -
+        name: layoutSublayers
+        kind: method
+        summary: Called by the layout manager as an opportunity for this layer
+          to layout its sublayers
+  -
+    name: Drawing
+    members:
+      -
+        name: setNeedsDisplay
+        kind: method
+        summary: Tell the display manager that this layer needs to draw
+      -
+        name: needsDisplay
+        kind: method
+        type: boolean
+        summary: Check if the layer needs to draw
+      -
+        name: displayIfNeeded
+        kind: method
+        summary: Display immediately
+      -
+        name: drawInContext
+        kind: method
+        summary: Called by the display manager as an opportunity for this layer
+          to draw itself
+        arguments:
+          -
+            name: context
+            type: JSContext
+            summary: The drawing context in which to draw this layer

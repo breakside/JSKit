@@ -1,0 +1,1335 @@
+kind: class
+introduced: "1.0.0"
+inherits: UIResponder
+summary: The base element to draw and respond to events
+description: |
+  At the most basic level, a `UIView` is used to draw in rectangles on the
+  screen and respond to user events.
+
+  Every `UIView` is backed by a `UILayer` that is in charge of the drawing.
+
+  In addition, every view is a `UIResponder` capable of handling mouse, key,
+  and touch events.
+
+  View Positioning
+  =================
+
+  Four properties work together to define exactly where a view should be
+  placed within its `superview`.
+
+  These all are equivalent to the identical properties found on `UILayer`
+
+  - `bounds` - gives the view its size
+  - `position` - a point in the `superview` coordinate space that lines up
+    with a point in the view's coordinate space
+  - `anchorPoint` - a "unit point" that when multiplied by the view's width
+    and height, defines a point in the view's coordinate system that lines
+    up with `position`
+  - `transform` - An affine transform that is applied after positioning the
+    view that can cause a translation, rotation, or scaling of the view
+    from its untransformed position.
+
+  An additional property, `frame`, can be used to get or set the view's
+  rectangle in its `superview`'s coordinate space.  However, once a
+  `transform` is applied to a view, its `frame` property will not function
+  as expected, so it is best to be in the habit of using `bounds` and
+  `position`.
+
+  View Animations
+  ================
+
+  Most display properties of a view can be animated.
+
+  Generally, view animations are set implicitly when changing a view
+  property inside of a `UIAnimationTransaction`.
+
+  ````
+  var view = UIView.init();
+  // ... add view to some superview
+  view.position = JSPoint(100, 100);
+  UIAnimationTransaction.begin();
+  view.position = JSPoint(200, 300);
+  UIAnimationTransaction.end();
+  ````
+  In this example, once the transaction `begin()`(UIAnimationTransaction.begin)
+  is called, changes to the view properties will create animations definitions
+  automatically, and the view will not visually change until the transaction
+  `end()`(UIAnimationTransaction.end) is called, at which point it will animate
+  to its new position.
+
+  While this is in principle how view animations work, you'll typically be
+  deailing with animations using objects such as
+  `UIViewPropertyAnimator`.
+
+  Model vs. Presentation
+  ----------------------
+
+  When animating, a view has two sets of properties:
+
+  - The model
+  - The `presentation`
+
+  The model contains the values that you get when inspecting the view's
+  properties directly, like `view.position` or `view.backgroundColor`.
+
+  In the example above, the view's model changes immediately when its
+  position is set to `JSPoint(200, 300)`.
+
+  However, the view's layer has `presentation` property that holds the values
+  that will actually be used to display the view.  These are the properties that
+  change on every tick of the animation clock and are used by the display system.
+
+  Most of the time, you'll only care about the view's model, but occasionally
+  you may need to inspect the view's layer's `presentation` to understand what
+  is being displayed right at that instant.
+
+  Event Handling
+  ==============
+
+  As a `UIResponder`, all that's need for `UIView` subclass to handle events is
+  to implement methods like `mouseDown`:
+
+  ````
+  JSClass("SimpleButton", UIView, {
+
+    isPressed: false,
+    onclick: null,  // a function
+
+    mouseDown: function(event){
+      this.isPressed = true;
+    },
+
+    mouseDragged: function(event){
+      var location = event.locationInView(this);
+      this.isPressed = this.containsPoint(location);
+    },
+
+    mouseUp: function(event){
+      if (this.isPressed){
+        this.isPressed = false;
+        this.onclick.call(undefined);
+      }
+    }
+
+  });
+
+  ````
+topics:
+  -
+    name: Creating a View
+    members:
+      -
+        name: initWithFrame
+        kind: init
+        summary: Create a new view with the given frame
+        arguments:
+          -
+            name: frame
+            type: JSRect
+            summary: The initial size and position of the view
+        description: |
+          The frame sets the view's initial size and the `position`
+          it will take when added to a `superview`.
+
+          Often when calling this method the frame's origin is not important
+          and the caller just uses `0,0` for lack of a better default.
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: Description of properties that can be included in a spec file
+          for a `UIView`
+        description: |
+          Most of the view's display properties can be provided in a spec file.
+
+          In addition to visible attributes, subviews can also be provided in
+          the spec file.
+        topics:
+          -
+            name: Layout
+            members:
+              -
+                name: frame
+                type: String
+                summary: The view's frame
+                description: |
+                  A frame can be specified as a string of comma-separated
+                  integers that correspond to the `JSRect` constructor
+                  arguments.
+
+                  ````
+                  View:
+                    class: UIView
+                    frame: 10,20,300,400
+                  ````
+          -
+            name: Visibility
+            members:
+              -
+                name: hidden
+                type: boolean
+                summary: Whether the view is hidden
+              -
+                name: alpha
+                type: Number
+                summary: A number from `0` to `1` indicating how opaque the view
+                  is
+          -
+            name: Background
+            members:
+              -
+                name: backgroundColor
+                type: JSColor
+                summary: The view's background color
+                description: |
+                  Can be specified using an implicit type without mentioning
+                  the `JSColor` class.
+
+                  ````
+                  View:
+                    class: UIView
+                    backgroundColor:
+                      rgba: 0,64,128
+                  ````
+              -
+                name: backgroundGradient
+                type: JSGradient
+                summary: The view's background gradient
+                description: |
+                  Can be specified using an implicit type without mentioning
+                  the `JSColor` class.
+
+                  ````
+                  View:
+                    class: UIView
+                    backgroundGradient:
+                      from: 0,64,128
+                      to: 0,128,255
+                  ````
+          -
+            name: Border
+            members:
+              -
+                name: borderColor
+                type: JSColor
+                summary: The view's border color
+                description: |
+                  Can be specified using an implicit type without mentioning
+                  the `JSColor` class.
+
+                  ````
+                  View:
+                    class: UIView
+                    borderColor:
+                      rgba: 0,64,128
+                  ````
+              -
+                name: borderWidth
+                type: Number
+                summary: The view's border width
+              -
+                name: maskedBorders
+                type: Sides
+                summary: The sides that should have a border
+                description: |
+                  The `Sides` enum values can be referenced in the spec using
+                  their names only.
+
+                  ````
+                  View:
+                    class: UIView
+                    maskedBorders: minX
+                  ````
+                note: The spec does not support bitwise operators
+              -
+                name: cornerRadius
+                type: Number
+                summary: The view's rounded corner radius
+              -
+                name: maskedCorners
+                type: Corners
+                summary: The corners that should be rounded
+                description: |
+                  The `Corners` enum values can be referenced in the spec using
+                  their names only.
+
+                  ````
+                  View:
+                    class: UIView
+                    maskedCorners: minXminY
+                  ````
+                note: The spec does not support bitwise operators
+          -
+            name: Shadow
+            members:
+              -
+                name: shadowColor
+                type: JSColor
+                summary: The view's border color
+                description: |
+                  Can be specified using an implicit type without mentioning
+                  the `JSColor` class.
+
+                  ````
+                  View:
+                    class: UIView
+                    shadowColor:
+                      rgba: 0,0,0,0.4
+                  ````
+              -
+                name: shadowRadius
+                type: Number
+                summary: The view's shadow blur radius
+              -
+                name: shadowOffset
+                type: String
+                summary: The view's shadow offset
+                description: |
+                  A point can be specified as a string of comma-separated
+                  integers that correspond to the `JSPoint` constructor
+                  arguments.
+
+                  ````
+                  View:
+                    class: UIView
+                    shadowOffset: 2,4
+                  ````
+          -
+            name: Events
+            members:
+              -
+                name: tooltip
+                type: String
+                summary: The help text that should be shown if the user hovers
+                  over this view for a short period of time.
+              -
+                name: userInteractionEnabled
+                type: boolean
+                summary: If `false`, disables all events for this view
+              -
+                name: nextKeyView
+                type: UIView
+                summary: The view that should be the next to receive key events
+                description: |
+                  When the user presses `Tab`, the `UIWindow` cycles through
+                  its list of "Key Views" that can receive key events.
+
+                  The next key view is the one that should be cycled to when
+                  the user presses `Tab` while in this view.
+          -
+            name: Subviews
+            members:
+              -
+                name: subviews
+                type: UIView[]
+                summary: The child views of this view, in the order they
+                  should be stacked
+  -
+    name: Layer
+    members:
+      -
+        name: layer
+        type: UILayer
+        summary: The layer backing this view
+        description: |
+          The layer is automatically created when the view is created, and
+          the view sets itself as the layer's `delegate`(UILayer.delegate).
+
+          Many of the view's properties are actually pass-through properties
+          to the layer.
+      -
+        name: layerClass
+        type: JSClass
+        static: true
+        summary: The layer class to use when creating views of this class
+        description: |
+          Can be overridden on subclasses.
+  -
+    name: Size & Layout
+    members:
+      -
+        name: position
+        type: JSPoint
+        summary: The position of this view's `anchorPoint` in its `superview`
+          coordinates
+        description: |
+          Views are positioned within their `superview` based on the
+          combination of several properties.
+
+          ![view positioning](UIView/positioning@2x.png)
+
+          The `position` is a point in `superview` coordinate space that
+          lines up with this view's `anchorPoint`.
+
+          By default, the `anchorPoint` is the center of the view, but it can
+          be anywhere within the view's size.
+
+          ![view positioning](UIView/anchorPoint1@2x.png)
+
+          ![view positioning](UIView/anchorPoint2@2x.png)
+
+          ![view positioning](UIView/anchorPoint3@2x.png)
+
+          Notice how the `position` and `anchorPoint` are related.
+        important: |
+          While it is possible to position and size a view using its `frame` in
+          `superview` coordinate space, `frame` will not function properly
+          if any `transform` is applied to the view.  Therefore, when
+          transforms are involved, updating `position` and `bounds` are the
+          recommend ways to move a view.
+      -
+        name: anchorPoint
+        type: JSPoint
+        summary: The unit point that defines where in the view's position
+          applies, and about which transformations are performed.
+        description: |
+          Views are positioned within their `superview` based on the
+          combination of several properties.
+
+          ![view positioning](UIView/positioning@2x.png)
+
+          The `anchorPoint` is a unit-space point with values ranging from
+          `0` to `1` that will be scaled to the size of the view.
+
+          The `anchorPoint` determines the point about which transformations
+          such as rotations are made.
+
+          By default, the `anchorPoint` is the center of the view, which is
+          specified with a `JSPoint(0.5, 0.5)` value.
+
+          The view's `position` is a point in `superview` coordinate space
+          that lines up with this view's `anchorPoint`.
+
+          ![view positioning](UIView/anchorPoint1@2x.png)
+
+          ![view positioning](UIView/anchorPoint2@2x.png)
+
+          ![view positioning](UIView/anchorPoint3@2x.png)
+
+          Notice how the `position` and `anchorPoint` are related.
+        see:
+          - position
+          - transform
+          - bounds
+      -
+        name: bounds
+        type: JSRect
+        summary: The size and scroll offset of the view, in its own coordinates
+        description: |
+          A view's `bounds` determines the size of the view and the visible
+          window into subviews, which can be used as a scrolling mechanism.
+
+          To acheive a scroll effect, simply adjust the bounds's origin.
+
+          For example, the following images demonstrate how to do a vertical
+          scroll to expose more subviews that were originally outside
+          the bounds of the view.
+          
+          ![bounds unscrolled](UIView/boundsOrigin1@2x.png)
+
+          ![bounds unscrolled](UIView/boundsOrigin2@2x.png)
+
+        note: Most views don't scroll, and therefore always have a bounds
+          origin of `0,0`.
+        see:
+          - position
+          - anchorPoint
+          - clipsToBounds
+          - UIScrollView
+      -
+        name: transform
+        type: JSAffineTransform
+        summary: Any transformation applied to the view
+        description: |
+          A transformation causes a view to be displaced, rotated, or scaled
+          about its `anchorPoint`.
+
+          The view maintains its own coordinate space, so subview positioning
+          and drawing is still done within `bounds`.
+        important: When applying a transform, the `frame` property will not
+          function as expected.  Use the `position` instead to move a
+          transformed view.
+        see:
+          - anchorPoint
+          - position
+          - convertPointToView
+          - convertPointFromView
+          - convertRectToView
+          - convertRectFromView
+      -
+        name: frame
+        type: JSRect
+        summary: The rectangle the view occupies in its `superview`
+          coordinates
+        description: |
+          The view's frame represents its rectangle in `superview` coordinate
+          space.
+
+          The `frame` is linked to the view's `bounds` and `position`.  Changing
+          one of the three will cause changes in the others.
+        important: |
+          If the view has a `transform` applied, do not use the `frame`
+          property. Its behavior is not well defined for transformed views.
+      -
+        name: sizeToFit
+        kind: method
+        summary: Size this view to fit its contents as tightly as possible
+        description: |
+          Implemented in subclasses that undertand their content's size
+          and can size themselves to match.
+      -
+        name: sizeToFitSize
+        kind: method
+        summary: Size this view to fit inside the given maximum size
+        arguments:
+          -
+            name: maxSize
+            type: JSSize
+            summary: The maximum size to make this view
+        description: |
+          Implemented in subclasses that undertand their content's size
+          and can size themselves to match, up to the given maximum.
+      -
+        name: intrinsicSize
+        type: JSSize
+        summary: The view's sense of its size
+        description: |
+          For example, a `UIButton` knows its size based on the size of the
+          title label it contains.
+
+          Subclasses should override `getIntrinsicSize()`
+      -
+        name: getIntrinsicSize
+        kind: method
+        type: JSSize
+        summary: The getter for `intrinsicSize` that subclasses should override
+      # -
+      #   name: invalidateIntrinsicSize
+      #   kind: method
+      #   summary: Tell the view to reconsider its intrinsic size for auto-layout
+      #     purposes
+      -
+        name: noIntrinsicSize
+        type: Number
+        static: true
+        summary: A value to return in `getIntrinsicSize()` when the view has
+           no intrinsic size in that dimension.
+  -
+    name: Visibility
+    members:
+      -
+        name: hidden
+        type: boolean
+        summary: Indicates if the view is hidden or visible
+        description: |
+          Hidden views are not drawn, but still exist in the view tree.
+      -
+        name: alpha
+        type: Number
+        summary: The percentage of opaqueness of the view
+        description: |
+          Ranging from `0` (meaning completely transparent) to `1` (meaning
+          completely opaque), the view's `alpha` controls how "see-through"
+          the view is to any content behind it. 
+      -
+        name: clipsToBounds
+        type: boolean
+        summary: Indciates if the view drawing is clipped at its bounds or can
+          continue outside the view.
+        description: |
+          If set to `true`, any subviews or drawing that go outside the
+          view's `bounds` are invisible.
+
+          Defaults to `false`.
+        see:
+          - bounds
+  -
+    name: Background
+    members:
+      -
+        name: backgroundColor
+        type: JSColor
+        summary: The solid background color of the view
+        description: |
+          If set, a view's background color is automatically drawn within
+          the view's `bounds` and under any border.
+      -
+        name: backgroundGradient
+        type: JSGradient
+        summary: The gradient, if any, of the view's background
+        description: |
+          If set, a view's background gradient is automatically drawn within
+          the view's `bounds` above any `backgroundColor` and under any border.
+  -
+    name: Borders
+    members:
+      -
+        name: borderColor
+        type: JSColor
+        summary: The color of the view's border
+        description: |
+          If set in conjunction with a non-zero `borderWidth`, a border will
+          be drawn around the view's bounds, covering any drawing or subview.
+
+          To draw a border on only some sides, set `maskedBorders` as desired.
+        see:
+          - borderWidth
+          - maskedBorders
+      -
+        name: borderWidth
+        type: Number
+        summary: The width of the border's line
+        description: |
+          If set in conjunction with a non-`null` `borderColor`, a border will
+          be drawn around the view's bounds, covering any drawing or subview.
+
+          The `borderWidth` extends from the edge of the view towards the
+          inside.
+
+          To draw a border on only some sides, set `maskedBorders` as desired.
+        see:
+          - borderColor
+          - maskedBorders
+      -
+        name: maskedBorders
+        type: Sides
+        summary: The sides of the view that should have a border
+        description: |
+          Control which borders are drawn around the view.
+
+          Defaults to `Sides.all`
+
+          Any sides can be combined with bitwise operators to create a value
+          with multiple sides.
+
+          For example
+          ````
+          view.maskedBorders = UIView.Sides.minX | UIView.Sides.minY;
+          ````
+          will paint the top and left borders.
+        see:
+          - borderColor
+          - borderWidth
+      -
+        name: cornerRadius
+        type: Number
+        summary: The size of the rounded radius of the view's corners
+        description: |
+          The amount to round the corners of the view.
+
+          Rounded corners apply to any background, border, and shadow drawing.
+
+          The size is in the coordinate space of the view.
+
+          To round only some sides, set `maskedCorners` as desired.
+        see:
+          - maskedCorners
+          - borderColor
+          - borderWidth
+          - backgroundColor
+      -
+        name: maskedCorners
+        type: Corners
+        summary: The corners that should be rounded
+        description: |
+          The corners to round.
+
+          Defaults to `Corners.all`.
+
+          Any corners can be combined with bitwise operators to create a value
+          with multiple corners.
+
+          For example
+          ````
+          view.maskedCorners = UIView.Corners.minX | UIView.Corners.maxX;
+          ````
+          will paint both vertical borders (left and right)
+        see:
+          - cornerRadius
+      -
+        name: Sides
+        kind: enum
+        summary: The possible sides
+        description: |
+          Any sides can be combined with bitwise operators to create a value
+          with multiple sides.
+
+          For example
+          ````
+          view.maskedBorders = UIView.Sides.minX | UIView.Sides.minY;
+          ````
+          will paint the top and left borders.
+        options:
+          -
+            name: none
+            summary: No sides
+          -
+            name: minX
+            summary: The vertical side with the smaller `x` value
+          -
+            name: maxX
+            summary: The vertical side with the larger `x` value
+          -
+            name: minY
+            summary: The horizontal side with the smaller `y` value
+          -
+            name: maxY
+            summary: The horizontal side with the larger `y` value
+          -
+            name: minXmaxX
+            summary: Both vertical sides
+          -
+            name: minYmaxY
+            summary: Both horizontal sides
+          -
+            name: all
+            summary: All sides
+      -
+        name: Corners
+        kind: enum
+        summary: The possible corners
+        description: |
+          Any corners can be combined with bitwise operators to create a value
+          with multiple corners.
+
+          For example
+          ````
+          view.maskedCorners = UIView.Corners.minX | UIView.Corners.maxX;
+          ````
+          will paint both vertical borders (left and right)
+        options:
+          -
+            name: none
+            summary: No corners
+          -
+            name: minXminY
+            summary: The corner at the smaller `x` and `y` values
+          -
+            name: minXmaxY
+            summary: The corner at the smaller `x` and larger `y` values
+          -
+            name: maxXminY
+            summary: The corner at the larger `x` and smaller `y` values
+          -
+            name: maxXmaxY
+            summary: The corner at the larger `x` and larger `y` values
+          -
+            name: minX
+            summary: The two corners with the smaller `x` value
+          -
+            name: maxX
+            summary: The two corners with the larger `x` value
+          -
+            name: minY
+            summary: The two corners with the smaller `y` value
+          -
+            name: maxY
+            summary: The two corners with the larger `y` value
+          -
+            name: all
+            summary: All corners
+  -
+    name: Shadow
+    members:
+      -
+        name: shadowColor
+        type: JSColor
+        summary: The color of the view's shadow
+        description: |
+          A non-`null` shadow color will cause a shadow to be drawn behind the
+          view.
+
+          Typically used in coordination with a `backgroundColor` so the
+          shadow is only seen around the outside of the view.
+        see:
+          - shadowOffset
+          - shadowRadius
+      -
+        name: shadowOffset
+        type: JSPoint
+        summary: The amount the shadow is offset from the view
+        description: |
+          The distance to offset the shadow from the view's rectangle, which
+          can create a sense that lighting is coming from the opposite
+          direction.
+      -
+        name: shadowRadius
+        type: Number
+        summary: How much the shadow is blurred
+        description: |
+          The shadow radius controls how far out the shadow extends, which
+          is the distance over which the shadow will be blurred.
+  -
+    name: Superview & Subviews
+    members:
+      -
+        name: tag
+        type: Int
+        summary: An optional unique tag that identifies this view among its
+          sibling views
+      -
+        name: superview
+        type: UIView
+        summary: The parent of this view
+      -
+        name: subviews
+        type: UIView[]
+        summary: The children of this view
+      -
+        name: subviewIndex
+        type: Number
+        summary: The position of this view within its list of siblings (its
+          supeview's subviews)
+      -
+        name: addSubview
+        kind: method
+        summary: Add a child view at the end of the `subviews` list
+        arguments:
+          -
+            name: subview
+            type: UIView
+            description: The view to add
+      -
+        name: insertSubviewAtIndex
+        kind: method
+        summary: Add a child view at specified location in the `subviews` list
+        arguments:
+          -
+            name: subview
+            type: UIView
+            description: The view to add
+          -
+            name: index
+            type: Number
+            description: The index into `subviews` where the new view goes
+      -
+        name: insertSubviewBelowSibling
+        kind: method
+        summary: Add a child view visually below the given sibling
+        arguments:
+          -
+            name: subview
+            type: UIView
+            description: The view to add
+          -
+            name: sibling
+            type: UIView
+            description: The existing subview
+      -
+        name: insertSubviewAboveSibling
+        kind: method
+        summary: Add a child view visually above the given sibling
+        arguments:
+          -
+            name: subview
+            type: UIView
+            description: The view to add
+          -
+            name: sibling
+            type: UIView
+            description: The existing subview
+      -
+        name: removeSubview
+        kind: method
+        summary: Remove a child view
+        arguments:
+          -
+            name: subview
+            type: UIView
+            description: The view to remove
+      -
+        name: removeAllSubviews
+        kind: method
+        summary: Remove all child views
+      -
+        name: removeFromSuperview
+        kind: method
+        summary: Remove this view from its parent
+      -
+        name: subviewWithTag
+        kind: method
+        type: UIView
+        return: The subview with the given tag
+        summary: Find the immediate subview that matches the given tag
+        arguments:
+          -
+            name: tag
+            type: Number
+            summary: The tag to search for
+      -
+        name: subviewsDidChange
+        kind: method
+        summary: Called when any subviews are added or removed
+        description: |
+          Available for subclasses to override
+  -
+    name: Window
+    members:
+      -
+        name: window
+        type: UIWindow
+        summary: The window to which this view belongs
+      -
+        name: windowDidChangeKeyStatus
+        kind: method
+        summary: Called when the window gains or loses key window status
+        description: |
+          Gives subclasses a chance to update their styling.
+
+          For example, `UIListView` will dim its selected item color when
+          its window loses key status.
+  -
+    name: Key View Loop
+    members:
+      -
+        name: nextKeyView
+        type: UIView
+        summary: The view to select next when tabbing through key views
+      -
+        name: previousKeyView
+        type: UIView
+        summary: The view to select next when reverse-tabbing through key views
+        description: |
+          This is set automatically when another view sets this view as its
+          `nextKeyView`.
+  -
+    name: View Controller
+    members:
+      -
+        name: viewController
+        type: UIViewController
+        summary: The view controller, if any, that owns this view
+        description: |
+          The `viewController` is only set for the view that is immedately
+          owned by the view controller.  It is set automatically by the
+          view controller.
+  -
+    name: Cursor
+    members:
+      -
+        name: cursor
+        type: UICursor
+        summary: The cursor to use when tracking over this view
+        description: |
+          A value of `null` indicates that the view uses the default
+          cursor and there is no need to monitor the mouse movements to
+          change the cursor.
+  -
+    name: Help
+    members:
+      -
+        name: tooltip
+        type: String
+        summary: The help text to show when the user hovers over this view
+  -
+    name: Text Baseline Alignmen
+    members:
+      -
+        name: firstBaselineOffsetFromTop
+        type: Number
+        summary: The offset from the top of this view to the baseline of the
+          first line of text
+        description: |
+          Helps control how this view is auto-aligned next to views that
+          contain text.
+
+          Typically only used for views that contain text.
+
+          Subclasses should override `getFirstBaselineOffsetFromTop()`
+      -
+        name: getFirstBaselineOffsetFromTop
+        kind: method
+        type: Number
+        summary: The getter for `firstBaselineOffsetFromTop` that subclasses
+          should override.
+      -
+        name: lastBaselineOffsetFromBottom
+        type: Number
+        summary: The offset from the bottom of this view to the baseline of the
+          last line of text
+        description: |
+          Helps control how this view is auto-aligned next to views that
+          contain text.
+
+          Typically only used for views that contain text.
+
+          Subclasses should override `getLastBaselineOffsetFromBottom()`
+      -
+        name: getLastBaselineOffsetFromBottom
+        kind: method
+        type: Number
+        summary: The getter for `lastBaselineOffsetFromBottom` that subclasses
+          should override.
+  -
+    name: Coordinate Transformations
+    members:
+      -
+        name: convertPointToView
+        kind: method
+        type: JSPoint
+        return: A point in the view's coordinate space
+        summary: Convert a point from the `superview`'s coordinate space to
+          this view's coordinate space
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: The point in the `superview`'s coordinate space
+      -
+        name: convertPointFromView
+        kind: method
+        type: JSPoint
+        return: A point in the `superview`'s coordinate space
+        summary: Convert a point from this view's coordinate space to
+          the `superview`'s coordinate space
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: The point in this view's coordinate space
+      -
+        name: convertRectToView
+        kind: method
+        type: JSRect
+        return: A rectangle in the view's coordinate space
+        summary: Convert a rectangle from the `superview`'s coordinate space to
+          this view's coordinate space
+        arguments:
+          -
+            name: rectangle
+            type: JSRect
+            summary: The rectangle in the `superview`'s coordinate space
+      -
+        name: convertRectFromView
+        kind: method
+        type: JSRect
+        return: A rectangle in the `superview`'s coordinate space
+        summary: Convert a rectangle from this view's coordinate space to
+          the `superview`'s coordinate space
+        arguments:
+          -
+            name: rectangle
+            type: JSRect
+            summary: The rectangle in this view's coordinate space
+      -
+        name: convertPointToScreen
+        kind: method
+        type: JSPoint
+        return: A point in the screen's coordinate space
+        summary: Convert a point from the `windows`'s `screen`(UIWindow.screen)
+          coordinate space to this view's coordinate space
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: The point in the `screen`(UIWindow.screen)'s coordinate space
+      -
+        name: convertPointFromScreen
+        kind: method
+        type: JSPoint
+        return: A point in the `screen`(UIWindow.screen)'s coordinate space
+        summary: Convert a point from this view's coordinate space to
+          the `screen`(UIWindow.screen)'s coordinate space
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: The point in this view's coordinate space
+      -
+        name: convertRectToScreen
+        kind: method
+        type: JSRect
+        return: A rectangle in the view's coordinate space
+        summary: Convert a rectangle from the `screen`(UIWindow.screen)'s coordinate space to
+          this view's coordinate space
+        arguments:
+          -
+            name: rectangle
+            type: JSRect
+            summary: The rectangle in the `screen`(UIWindow.screen)'s coordinate space
+      -
+        name: convertRectFromScreen
+        kind: method
+        type: JSRect
+        return: A rectangle in the `screen`(UIWindow.screen)'s coordinate space
+        summary: Convert a rectangle from this view's coordinate space to
+          the `screen`(UIWindow.screen)'s coordinate space
+        arguments:
+          -
+            name: rectangle
+            type: JSRect
+            summary: The rectangle in this view's coordinate space
+  -
+    name: Hit Testing
+    members:
+      -
+        name: userInteractionEnabled
+        type: boolean
+        summary: A way of disabling all events for this view
+      -
+        name: containsPoint
+        kind: method
+        type: boolean
+        return: |
+          `true` if the point is within the view's bounds, `false` otherwise
+        summary: Check if a point is within the view's bounds
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: A point in the view's coordinate space
+      -
+        name: hitTest
+        kind: method
+        type: UIView
+        return: The topmost visible view in this view's tree that contains
+          the point.  Possibly a descendant view, this view, or `null`
+        summary: Get the topmost view that contains the given point
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: A point in the view's coordinate space
+  -
+    name: Events
+    members:
+      -
+        name: isFirstResponder
+        kind: method
+        type: boolean
+        return: |
+          `true` if this view is its window's `firstResponder`, `false`
+          otherwise
+        summary: Check if this view is its window's first responder
+      -
+        name: getNextResponder
+        kind: method
+        type: UIResponder
+        return: The `viewController`, if any, or `superview` otherwise.
+        summary: Overrides the default `UIResponder` behavior to typically
+          use `superview` as a view's next responder
+      -
+        name: startMouseTracking
+        kind: method
+        summary: Tells the window manager to track mouse movements related
+          to this view.
+        arguments:
+          -
+            name: trackingType
+            type: MouseTracking
+            summary: The types of tracking to perform
+        description: |
+          Mouse tracking is disabled by default because most views don't
+          need it.  But for those that do, such as views that change their
+          style when a pointer enters the view, this method can selectively
+          enable tracking.
+      -
+        name: stopMouseTracking
+        kind: method
+        summary: Tells the window manager to stop tracking mouse events
+      -
+        name: MouseTracking
+        kind: enum
+        summary: The types of mouse tracking that can be used
+        options:
+          -
+            name: none
+            summary: No tracking
+          -
+            name: move
+            summary: Tracks mouse movements withing the view's bounds
+          -
+            name: enterAndExit
+            summary: Tracks only when the mouse entres and exits a view's bounds
+          -
+            name: all
+            summary: All tracking
+  -
+    name: Drag & Drop Source
+    members:
+      -
+        name: beginDraggingSessionWithItems
+        kind: method
+        type: UIDraggingSession
+        return: A dragging session for the given items
+        summary: Called by views to initiate a dragging session when dragging
+          starts
+        arguments:
+          -
+            name: items
+            kind: UIDragItem[]
+            summary: The items to add to a `UIPasteboard` for the dragging
+              session
+          -
+            name: event
+            kind: UIEvent
+            summary: The event that started the dragging
+        description: |
+          Typically called by a view when handling a `mouseDragged` event.
+      -
+        name: draggingSessionEnded
+        kind: method
+        summary: Called when a user drops dragged items from this view onto
+          another view
+        arguments:
+          -
+            name: session
+            type: UIDraggingSession
+            summary: The session that was started for the drag
+          -
+            name: operation
+            type: UIDragOperation
+            summary: The operation performed by the user
+        description: |
+          This is a callback to the view that began a dragging session with
+          `beginDraggingSessionWithItems()`.
+
+          It gives the view a change to update itself with the knowledge of
+          what happend on drop.
+  -
+    name: Drag & Drop Destination
+    members:
+      -
+        name: registerForDraggedTypes
+        kind: method
+        summary: Indicate that this view can receive the given content types from
+          a drag
+        arguments:
+          -
+            name: pasteboardTypes
+            type: String[]
+            summary: The list of content types that this view can accept
+        description: |
+          Typically called by a `UIView` subclass during its init process.
+
+          The types can be from `UIPasteboard.ContentType`, or can be
+          custom application-specific types.
+      -
+        name: unregisterDraggedTypes
+        kind: method
+        summary: Clear all registered drag types
+      -
+        name: registeredDraggedTypes
+        type: String[]
+        description: |
+          The combined result of every call to `registerForDraggedTypes()`
+
+          The types can be from `UIPasteboard.ContentType`, or can be
+          custom application-specific types.
+      -
+        name: draggingEntered
+        kind: method
+        type: UIDragOperation
+        return: The drag operations this view supports
+        summary: Called when a dragged items enter this view
+        arguments:
+          -
+            name: session
+            type: UIDraggingSession
+            summary: The drag sesson
+        description: |
+          Subclasses can override this method to inpect the session and return
+          which drag operations are supported given the items in the session.
+        note: This is only called if the session contains items with content
+          types that are registered on this view.
+      -
+        name: draggingUpdated
+        kind: method
+        type: UIDragOperation
+        return: The drag operations this view supports
+        summary: Called when a dragged session changes, even if only in position
+        arguments:
+          -
+            name: session
+            type: UIDraggingSession
+            summary: The drag sesson
+        description: |
+          Subclasses can override this method to inpect the session and return
+          which drag operations are supported given the items in the session.
+        note: This is only called if the session contains items with content
+          types that are registered on this view.
+      -
+        name: draggingExited
+        kind: method
+        summary: Called when a dragged items exit this view
+        arguments:
+          -
+            name: session
+            type: UIDraggingSession
+            summary: The drag sesson
+        description: |
+          Subclasses can override this method to update their styling to
+          indicate they are no longer an active drop target.
+        note: This is only called if the session contains items with content
+          types that are registered on this view.
+      -
+        name: performDragOperation
+        kind: method
+        summary: Called when dragged items are dropped on this view
+        arguments:
+          -
+            name: session
+            type: UIDraggingSession
+            summary: The drag sesson
+          -
+            name: operation
+            type: UIDragOperation
+            summary: The operation to perform
+        description: |
+          Subclasses can override this method to update their styling to
+          indicate they are no longer an active drop target.
+        note: |
+          This is only called if the view has previously indicated
+          support for the operation in the most recent call to
+          `draggingEntered()` or `draggingUpdated()`, and the user drops items
+          on the view.
+  -
+    name: Layout
+    members:
+      -
+        name: setNeedsLayout
+        kind: method
+        summary: Tell the layout manager that this view needs to layout its
+          subviews
+      -
+        name: needsLayout
+        kind: method
+        type: boolean
+        summary: Check if the view needs to layout its subviews
+      -
+        name: layoutIfNeeded
+        kind: method
+        summary: Layout immediately
+      -
+        name: layoutSubviews
+        kind: method
+        summary: Called by the layout manager as an opportunity for this view
+          to layout its subviews
+  -
+    name: Drawing
+    members:
+      -
+        name: setNeedsDisplay
+        kind: method
+        summary: Tell the display manager that this view needs to draw
+      -
+        name: needsDisplay
+        kind: method
+        type: boolean
+        summary: Check if the view needs to draw
+      -
+        name: displayIfNeeded
+        kind: method
+        summary: Display immediately
+      -
+        name: drawLayerInContext
+        kind: method
+        summary: Can be implemented in subclasses to perform custom drawing
+        arguments:
+          -
+            name: layer
+            type: UILayer
+            summary: The layer to draw
+          -
+            name: context
+            type: JScontext
+            summary: The context to use for drawing

@@ -6,8 +6,6 @@
 
     kind: 'method',
     isStatic: false,
-    uniquePrefix: null,
-    uniqueSuffix: null,
 
     getDisplayNameForKind: function(){
         if (this.isStatic){
@@ -21,31 +19,12 @@
         if (info.static){
             this.isStatic = true;
         }
-        if (info.prefix){
-            this.uniquePrefix = info.prefix;
-        }
-        if (info.suffix){
-            this.uniqueSuffix = info.suffix;
-        }
     },
 
     getTitle: function(){
         return "%s.%s".sprintf(this.parent.name, this.name);
     },
-
-    getUniqueName: function(){
-        if (this.uniquePrefix && this.uniqueSuffix){
-            return "%s-%s-%s".sprintf(this.uniquePrefix, this.name.toLowerCase(), this.uniqueSuffix);
-        }
-        if (this.uniquePrefix){
-            return "%s-%s".sprintf(this.uniquePrefix, this.name.toLowerCase());
-        }
-        if (this.uniqueSuffix){
-            return "%s-%s".sprintf(this.name.toLowerCase(), this.uniqueSuffix);
-        }
-        return this.name.toLowerCase();
-    },
-
+    
     declarationCode: function(){
         var args = this.argumentStrings();
         if (this.isStatic){

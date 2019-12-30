@@ -20,6 +20,7 @@
     },
 
     extractPropertiesFromInfo: async function(info, documentation){
+        await DocTopicBasedComponent.$super.extractPropertiesFromInfo.call(this, info, documentation);
         this.topics = [];
         if (info.topics){
             for (let i = 0, l = info.topics.length; i < l; ++i){

@@ -39,6 +39,10 @@ JSClass("Documentation", JSObject, {
 
     run: async function(){
         this.wwwURL = this.outputDirectoryURL.appendingPathComponents(['www', 'docs'], true);
+        let exists = await this.fileManager.itemExistsAtURL(this.wwwURL);
+        if (exists){
+            await this.fileManager.removeItemAtURL(this.wwwURL);
+        }
         await this.copyStyles();
         let rootComponent = await this.loadSource(this.rootURL);
         rootComponent.outputURL = this.wwwURL.appendingPathComponent('index.html');

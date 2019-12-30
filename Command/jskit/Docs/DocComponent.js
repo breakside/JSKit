@@ -21,6 +21,12 @@ JSClass("DocComponent", JSObject, {
     },
 
     extractPropertiesFromInfo: async function(info, documentation){
+        if (info.prefix){
+            this.uniquePrefix = info.prefix;
+        }
+        if (info.suffix){
+            this.uniqueSuffix = info.suffix;
+        }
     },
 
     sourceURL: null,
@@ -43,9 +49,23 @@ JSClass("DocComponent", JSObject, {
 
     name: null,
     uniqueName: JSReadOnlyProperty(),
+    uniquePrefix: null,
+    uniqueSuffix: null,
 
     getUniqueName: function(){
-        return this.sanitizedString(this.name);
+        var str = "";
+        if (this.uniquePrefix !== null){
+            str += this.uniquePrefix + '-';
+        }
+        str += this.sanitizedString(this.getBaseName());
+        if (this.uniqueSuffix !== null){
+            str += '-' + this.uniqueSuffix;
+        }
+        return str;
+    },
+
+    getBaseName: function(){
+        return this.name;
     },
 
     sanitizedString: function(str){

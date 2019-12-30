@@ -18,10 +18,7 @@
         return "%s Constructor".sprintf(this.parent.name);
     },
 
-    getUniqueName: function(){
-        if (this.uniquePrefix){
-            return "%s-constructor".sprintf(this.uniquePrefix);
-        }
+    getBaseName: function(){
         return "constructor";
     },
 
