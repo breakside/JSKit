@@ -238,6 +238,12 @@ JSClass("UIMenuWindow", UIWindow, {
         }
     },
 
+    scrollWheel: function(event){
+        var delta = JSPoint(event.scrollingDelta);
+        delta.x = 0;
+        this.contentOffset = this.contentOffset.adding(delta);
+    },
+
     // -----------------------------------------------------------------------
     // MARK: - Mouse Tracking
 
