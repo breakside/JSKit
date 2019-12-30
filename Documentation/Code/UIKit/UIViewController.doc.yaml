@@ -1,0 +1,364 @@
+kind: class
+introduced: "1.0.0"
+inherits: UIResponder
+summary: A view controller connects a data model to a set of views
+description: |
+  `UIKit` is designed to facilitate Model-View-Controller (MVC) programming.
+
+  The glue between the model and view is the controller, which populates
+  views from model data and updates model data based on user interaction
+  with views.
+
+  [Binding](Binding) data models to views through a controller continues
+  this MVC style, but elimites the need for a lot of "glue code" in the
+  controller because bindings pass the data automatically.
+
+  Of course, bindings can't solve every problem, and so it's still important
+  to have controller in the middle to dictate exactly what should happen.
+
+  Understanding the View Lifecycle
+  ============
+  A view controller's view is loaded on demand.  After loading, the view
+  can appear and disappear any number of times, depending on how the view
+  controller manages views.
+
+  In the simplest case these view controller methods are called in this
+  order to load, show, and then destroy a view.
+
+  1. `viewDidLoad()`
+  1. `viewWillAppear(animated)`
+  1. `viewDidAppear(animated)`
+  1. `viewWillDisappear(animated)`
+  1. `viewDidDisappear(animated)`
+  1. `viewDidUnload()`
+
+  Note that after a view disappears, it may reappear, and steps 2-5 can cycle
+  multiple times.  For example, a `UITabViewController` will cause the views of
+  its child view controllers to disappear and reappear as tabs are selected.
+
+  View Controller Relationships
+  ===========
+  A view controller may contain child view controllers.
+
+  For example, a `UITabViewController` contains a child view controller
+  for each tab.
+
+  These relationships between view controllers are connected with the
+  `addChildViewController()`, `removeFromParentViewController() methods,
+  and available for inpection via the  `parentViewController` property.
+
+  When a view controller is added to a parent, it will receive the pair of
+  calls `willMoveToParentViewController()` and
+  `didMoveToParentViewController()`.
+
+  Subclassing UIViewController
+  ===========
+  `UIViewController` is designed to be subclassed.
+
+  Many views in your application will be backed by custom `UIViewController`
+  subclasses that
+
+  1. Handle lifecyle events
+  1. Load data from files or servers
+  1. Update and arrange views
+  1. Respond to user actions
+
+  Common View Controllers
+  ==========
+  `UIViewController` is a generic base class, but `UIKit` comes packaged
+  with a few view controller subclasses for common views.
+
+  - `UIListViewController` is great for showing lists of items.  Even very long
+    lists perform great due to view recycling.
+  - `UITabViewController` is for switching between several different
+    views
+  - `UIWindowController` has features relevant to showing and managing windows
+  - `UIBrowserViewController` can show mutliple columns of list views
+  - `UIDualPaneViewController` manages 1 or 2 sidebars along with a main
+    content view
+topics:
+  -
+    name: Creating a View Controller
+    members:
+      -
+        name: init
+        kind: init
+        summary: Create a view controller programatically
+        description: |
+          View controllers can be created in Javascript, or they can
+          be created from a spec file.
+
+          This default init method should be called by subclasses during
+          their initialization.
+
+          When a view controller is created, nothing much happens.  The view
+          itself gets created on-demand, so typically a view controller's `init`
+          method will setup any initial state or defaults and that's it.
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available to use in a spec file for
+          \`UIViewController` objects
+        description: |
+          In addition to the properties available to any
+          `JSObject`(JSObject.Spec File Properties), a view controller allows
+          for these additional properties.
+        topics:
+          -
+            name: The View
+            members:
+              -
+                name: view
+                type: UIView
+                summary: The view for this controller
+                description: |
+                  The view will not be constructed until first accessed on the
+                  view controller.
+
+                  A view specification may looks something like this:
+
+                  ````
+                  ViewController:
+                    class: UIViewController
+                    view:
+                      backgroundColor: white
+                      subviews:
+                        - /Button
+
+                  Button:
+                    class: UIButton
+                    title: Test
+                  ````
+          -
+            name: Tab View
+            members:
+              -
+                name: tabViewItem
+                value: UITabViewItem
+                summary: A small set of identifying properties that allows
+                  a `UITabViewController` to create a tab for this view
+                  controller without loading the view.
+  -
+    name: Accessing the View
+    members:
+      -
+        name: view
+        type: UIView
+        summary: The view for this controller
+      -
+        name: isViewLoaded
+        type: boolean
+        summary: Indicates if the view has been loaded
+      -
+        name: loadView
+        kind: method
+        summary: Called with the `view` property is accessed and `isViewLoaded`
+          is `false`
+        description: |
+          Can be overridden by subclasses to provide a custom view loading
+          behavior.
+
+          Subclasses should set the `view` property during this call.
+        note: This method should not be called directly.  It will be invoked
+          automatically if the view is accessed but has not yet been loaded.
+        important: If the view controller was created from a spec file, do not
+          override this method.
+  -
+    name: View Lifecycle
+    members:
+      -
+        name: viewDidLoad
+        kind: method
+        summary: Called after the view is loaded for the first time
+        description: |
+          Typically used to adjust and configure subviews after they are 
+          instantiated from a spec file.
+
+          If you are providing your own implementation of `loadView()`, there
+          is little difference between configuring views there or here.
+
+          The base implementation of this method does nothing, so immediate
+          subclasses do not need to call the `$super` method.
+      -
+        name: viewWillAppear
+        kind: method
+        summary: Called just before the view will appear
+        arguments:
+          -
+            name: animated
+            type: boolean
+            summary: Indicates if the view's appearance will be animated
+        description: |
+          Gives the view controller a chance to get things ready for the
+          view's appearance.
+
+          Subclasses should call `$super.viewWillAppear`.
+      -
+        name: viewDidAppear
+        kind: method
+        summary: Called just after the view appeared
+        arguments:
+          -
+            name: animated
+            type: boolean
+            summary: Indicates if the view's appearance was animated
+        description: |
+          Gives the view controller a chance to get things started that need
+          to wait until the view is fully presented before beginning.
+
+          Subclasses should call `$super.viewDidAppear`.
+      -
+        name: viewWillDisappear
+        kind: method
+        summary: Called just before the view will disappear
+        arguments:
+          -
+            name: animated
+            type: boolean
+            summary: Indicates if the view's disappearance will be animated
+        description: |
+          Gives the view controller a chance to get things ready for the
+          view's disappearance.
+
+          Subclasses should call `$super.viewWillDisappear`.
+      -
+        name: viewDidDisappear
+        kind: method
+        summary: Called just after the view disappears
+        arguments:
+          -
+            name: animated
+            type: boolean
+            summary: Indicates if the view's disappearance was animated
+        description: |
+          Gives the view controller a chance to shut things down that need
+          to wait until the view is fully gone before being destroyed.
+
+          Subclasses should call `$super.viewDidDisappear`.
+  -
+    name: Layout & Size
+    members:
+      -
+        name: viewDidLayoutSubviews
+        kind: method
+        summary: Called by the view after it finishes its `layoutSubviews()`
+          routine
+        description: |
+          Gives the view controller a chance to further adjust the layout of
+          subviews.
+
+          Can be a convenient alternative to creating special `UIView`
+          subclasses just for the purpose of implementing custom
+          `layoutSubviews()` logic.
+      -
+        name: sizeViewToFitSize
+        kind: method
+        summary: Try to size the view to fit within the given maximum size
+        arguments:
+          -
+            name: maxSize
+            type: JSSize
+            summary: The maximum size allowed for the view
+  -
+    name: Child View Controllers
+    members:
+      -
+        name: parentViewController
+        type: UIViewController
+        summary: This view controller's parent
+        description: |
+          Set by `addChildViewController()`
+      -
+        name: addChildViewController
+        kind: method
+        summary: Add a view controller as a child of this view controller
+        arguments:
+          -
+            name: viewController
+            type: UIViewController
+            summary: The view controller to add as a child
+        description: |
+          This method will call `willMoveToParentViewController()` on the child,
+          then set the child's `parentViewController`, the call
+          `didMoveToParentViewController()` on the child.
+      -
+        name: removeFromParentViewController
+        kind: method
+        summary: Unlink this view controller from its `parentViewController`
+      -
+        name: willMoveToParentViewController
+        kind: method
+        summary: Called just before changing the `parentViewController`
+          property
+        arguments:
+          -
+            name: parentViewController
+            kind: UIViewController
+            summary: The new parent
+        description: |
+          Gives this view controller a chance to make any adjustments
+          necessary before changing parent view controllers.
+      -
+        name: didMoveToParentViewController
+        kind: method
+        summary: Called just after changing the `parentViewController`
+          property
+        arguments:
+          -
+            name: parentViewController
+            kind: UIViewController
+            summary: The new parent
+        description: |
+          Gives this view controller a chance to make any adjustments
+          necessary after changing parent view controllers.
+  -
+    name: Scene
+    members:
+      -
+        name: window
+        type: UIWindow
+        summary: The window this view controller belongs to
+        description: |
+          The view controller's window is identical to its `view`'s
+          `window`(UIView.window) property
+      -
+        name: scene
+        type: UIScene
+        summary: The scene this view controller belongs to
+        description: |
+          The view controller's scene is identical to its `windows`'s
+          `scene`(UIWindow.scene) property
+  -
+    name: Responder
+    members:
+      -
+        name: getNextResponder
+        kind: method
+        type: UIResponder
+        return: The `view`'s `superview`
+        summary: Make the `superview` of this controller's `view` the next
+          responder
+        description: |
+          Overrides the default `UIResponder` behavior.
+
+          A `UIView` returns its `superview` as its next responder except when
+          the view is owned by a `UIViewController`, in which case it returns
+          the view controller.
+
+          In order to keep forwarding up the view tree, a view controller
+          needs to make its `view`'s `superview` the next responder.
+
+          Basically, the responder chain goes through the a view's
+          `viewController`(UIView.viewController) before continuing on to its
+          `superview`.
+
+          This gives the view controller an opportunity to respond to actions
+          and events that aren't handled by the view.
+  -
+    name: Tab View Item
+    members:
+      -
+        name: tabViewItem
+        type: UITabViewItem
+        summary: An item that informs a parent `UITabViewController` what to
+          put on this controller's tab

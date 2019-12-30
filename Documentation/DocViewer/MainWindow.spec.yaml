@@ -7,7 +7,6 @@ AppDelegate:
     mainViewController: /MainViewController
 
 LineColor:
-  class : JSColor
   rgba: 152,152,203
 
 MainWindow:

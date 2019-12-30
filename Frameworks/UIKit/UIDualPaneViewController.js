@@ -36,21 +36,16 @@ JSClass("UIDualPaneViewController", UIViewController, {
         }
     },
 
-    _loadViewFromSpec: function(spec, viewValue){
-        var leadingView = null;
-        var trailingView = null;
-        var mainView = null;
-        if (this._leadingPaneViewController !== null){
-            leadingView = this._leadingPaneViewController.view;
+    viewDidLoad: function(){
+        if (this._mainContentViewController && this._view.mainView === null){
+            this._view.mainView = this._mainContentViewController.view;
         }
-        if (this._trailingPaneViewController){
-            trailingView = this._trailingPaneViewController.view;
+        if (this._leadingPaneViewController && this._view.leadingView === null){
+            this._view.leadingView = this._leadingPaneViewController.view;
         }
-        if (this._mainContentViewController){
-            mainView = this._mainContentViewController.view;
+        if (this._trailingPaneViewController && this._view.trailingView === null){
+            this._view.trailingView = this._trailingPaneViewController.view;
         }
-        var overrides = {leadingView: leadingView, trailingView: trailingView, mainView: mainView};
-        this._view = spec.resolvedValue(viewValue, this._defaultViewClass, overrides);
     },
 
     setLeadingPaneViewController: function(leadingPaneViewController){
@@ -357,34 +352,34 @@ JSClass("_UIDualPaneView", UIView, {
         if (this._leadingView !== null){
             this._leadingView.clipsToBounds = true;
             this.addSubview(this._leadingView);
-        }else{
-            this._leadingViewOpen = false;
         }
         if (this._trailingView !== null){
             this._trailingView.clipsToBounds = true;
             this.addSubview(this._trailingView);
-        }else{
-            this._trailingViewOpen = false;
         }
         this.addSubview(this._leadingDividerView);
         this.addSubview(this._trailingDividerView);
     },
 
     setLeadingViewOpen: function(isOpen){
-        if (isOpen != this._leadingViewOpen && this._leadingView !== null){
+        if (isOpen != this._leadingViewOpen){
             this._leadingViewOpen = isOpen;
-            this.setNeedsLayout();
-            this.viewController.didTogglePane();
-            this._autosaveToUserDefaults();
+            if (this._leadingView !== null){
+                this.setNeedsLayout();
+                this.viewController.didTogglePane();
+                this._autosaveToUserDefaults();
+            }
         }
     },
 
     setTrailingViewOpen: function(isOpen){
-        if (isOpen != this._trailingViewOpen && this._trailingView !== null){
+        if (isOpen != this._trailingViewOpen){
             this._trailingViewOpen = isOpen;
-            this.setNeedsLayout();
-            this.viewController.didTogglePane();
-            this._autosaveToUserDefaults();
+            if (this._trailingView !== null){
+                this.setNeedsLayout();
+                this.viewController.didTogglePane();
+                this._autosaveToUserDefaults();
+            }
         }
     },
 
@@ -468,7 +463,14 @@ JSClass("_UIDualPaneView", UIView, {
         if (this._mainView !== null){
             this._mainView.removeFromSuperview();
         }
-        this.insertSubviewBelowSibling(mainView, this._leadingView);
+        var sibling = this._leadingView;
+        if (!sibling){
+            sibling = this._trailingView;
+        }
+        if (!sibling){
+            sibling = this._leadingDividerView;
+        }
+        this.insertSubviewBelowSibling(mainView, sibling);
         this._mainView = mainView;
         this.setNeedsLayout();
     },
@@ -490,7 +492,7 @@ JSClass("_UIDualPaneView", UIView, {
         var mainSize = this._minimumMainSize;
         var size = 0;
         if (!this._leadingFloats){
-            if (this._leadingViewOpen){
+            if (this._leadingViewOpen && this._leadingView !== null){
                 leadingFlex = leadingSize - this._minimumLeadingSize;
                 size += this._leadingSize + this._leadingDividerView.layoutSize;
             }else if (this._leadingCollapsedSize > 0){
@@ -498,7 +500,7 @@ JSClass("_UIDualPaneView", UIView, {
             }
         }
         if (!this._trailingFloats){
-            if (this._trailingViewOpen){
+            if (this._trailingViewOpen && this._trailingView !== null){
                 trailingFlex = trailingSize - this._minimumTrailingSize;
                 size += this._trailingSize + this._trailingDividerView.layoutSize;
             }else if (this._trailingCollapsedSize > 0){
@@ -521,7 +523,7 @@ JSClass("_UIDualPaneView", UIView, {
         }
 
         var offset = 0;
-        if (!this._leadingViewOpen){
+        if (!this._leadingViewOpen && this._leadingView !== null){
             offset -= leadingSize + this._leadingDividerView.layoutSize;
             if (this._leadingCollapsedSize > 0){
                 offset += this._leadingCollapsedSize + this._leadingDividerView.layoutSize;
@@ -534,7 +536,7 @@ JSClass("_UIDualPaneView", UIView, {
             offset += leadingSize + this._leadingDividerView.layoutSize;
         }
         var mainOffset = offset;
-        if (this.trailingFloats && this._trailingViewOpen){
+        if (this.trailingFloats && this._trailingViewOpen && this._trailingView !== null){
             offset -= this._trailingSize;
         }else{
             offset += mainSize + this._trailingDividerView.layoutSize;

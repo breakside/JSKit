@@ -90,8 +90,19 @@ JSObject.definePropertiesFromExtensions({
 
     _initSpecOutlets: function(spec, outlets){
         for (var key in outlets){
-            this.setValueForKey(key, spec.resolvedValue(outlets[key]));
+            this._defineGetterForOutlet(spec, outlets, key);
         }
+    },
+
+    _defineGetterForOutlet: function(spec, outlets, key){
+        Object.defineProperty(this, key, {
+            configurable: true,
+            get: function(){
+                var value = spec.resolvedValue(outlets[key]);
+                Object.defineProperty(this, key, {configurable: true, writable: true, value: value});
+                return value;
+            }
+        });
     },
 
     implementsProtocol: function(protocol){

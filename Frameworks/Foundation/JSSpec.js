@@ -41,7 +41,7 @@ JSClass('JSSpec', JSObject, {
         return this.resolvedValue(value, defaultClassName);
     },
 
-    resolvedValue: function(value, defaultClassName, overrides){
+    resolvedValue: function(value, defaultClassName){
         var i, l;
         if (value !== null && value !== undefined){
             if (typeof(value) == 'string'){
@@ -55,7 +55,7 @@ JSClass('JSSpec', JSObject, {
                                     this._keysForNextObjectInit = [];
                                 }
                                 this._keysForNextObjectInit.push(key);
-                                this._objectMap[key] = this.resolvedValue(this._plist[key], defaultClassName, overrides);
+                                this._objectMap[key] = this.resolvedValue(this._plist[key], defaultClassName);
                             }
                             value = this._objectMap[key];
                             break;
@@ -78,12 +78,6 @@ JSClass('JSSpec', JSObject, {
                     className = value[JSSpec.Keys.ObjectClass];
                 }
                 if (className){
-                    if (overrides !== null && overrides !== undefined){
-                        value = JSCopy(value);
-                        for (var k in overrides){
-                            value[k] = overrides[k];
-                        }
-                    }
                     var cls = JSClass.FromName(className);
                     var obj = cls.allocate();
                     // Since initWithSpec may resolve objects that reference back

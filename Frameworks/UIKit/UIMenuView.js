@@ -242,6 +242,7 @@ JSClass("UIMenuWindow", UIWindow, {
         var delta = JSPoint(event.scrollingDelta);
         delta.x = 0;
         this.contentOffset = this.contentOffset.adding(delta);
+        this._adjustHighlightForLocation(this._lastMoveLocation);
     },
 
     // -----------------------------------------------------------------------
