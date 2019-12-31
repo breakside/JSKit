@@ -267,7 +267,7 @@ JSClass("DocComponent", JSObject, {
         var header = document.createElement("header");
         elements.push(header);
         var h1 = header.appendChild(document.createElement("h1"));
-        h1.appendChild(document.createTextNode(this.name));
+        h1.appendChild(document.createTextNode(this.title));
         if (this.summary){
             let markdown = this.createMarkdownWithString(this.summary);
             let children = markdown.htmlElementsForDocument(document);
@@ -462,7 +462,16 @@ JSClass("DocComponent", JSObject, {
     },
 
     urlForCode: function(code){
-        var name = code;
+        var name = this.nameExcludingCodeSuffixes(code);
+        var parts = name.split('.');
+        var component = this.componentForName(parts.shift());
+        while (parts.length > 0 && component !== null){
+            component = component.childForName(parts.shift());
+        }
+        return this.urlForComponent(component);
+    },
+
+    nameExcludingCodeSuffixes: function(name){
         var bracketIndex = name.indexOf('[');
         if (bracketIndex > 0){
             name = name.substr(0, bracketIndex);
@@ -474,12 +483,7 @@ JSClass("DocComponent", JSObject, {
         if (name.endsWith('?')){
             name = name.substr(0, name.length - 1);
         }
-        var parts = name.split('.');
-        var component = this.componentForName(parts.shift());
-        while (parts.length > 0 && component !== null){
-            component = component.childForName(parts.shift());
-        }
-        return this.urlForComponent(component);
+        return name;
     },
 
     urlForName: function(name){
@@ -506,24 +510,30 @@ JSClass("DocComponent", JSObject, {
     },
 
     descendantForName: function(name, excludingChild){
-        let component = null;
+        // Immediate Children
+        var component = this.childForName(name, excludingChild);
+        if (component !== null){
+            return component;
+        }
+
+        // Grandchildren or greater
         for (let i = 0, l = this.children.length; i < l && component === null; ++i){
             let child = this.children[i];
             if (child !== excludingChild){
-                component = child.componentForNameExcludingParent(name);
+                component = child.descendantForName(name);
             }
         }
         return component;
     },
 
-    componentForNameExcludingParent: function(name, excludingChild){
+    componentForName: function(name, excludingChild){
         // Self
         if (this.name == name){
             return this;
         }
 
-        // Immediate Children
-        var component = this.childForName(name, excludingChild);
+        // Inherited
+        var component = this.inhertitedComponentForName(name);
         if (component !== null){
             return component;
         }
@@ -534,20 +544,15 @@ JSClass("DocComponent", JSObject, {
             return component;
         }
 
-        return null;
-    },
-
-    componentForName: function(name, excludingChild){
-        var component = this.componentForNameExcludingParent(name, excludingChild);
-        if (component !== null){
-            return component;
-        }
-
         // Parent
         if (this.parent){
             return this.parent.componentForName(name, this);
         }
 
+        return null;
+    },
+
+    inhertitedComponentForName: function(name){
         return null;
     },
 

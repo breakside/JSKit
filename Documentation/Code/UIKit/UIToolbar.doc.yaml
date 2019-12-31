@@ -1,0 +1,218 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: A bar along the top of `UIWindow` containing common button and actions
+description: |
+  A toolbar is typically used to provide the user with buttons and views for
+  frequent actions related to a window's content.
+
+  Conceptually, a toolbar is a list of `UIToolbarItem`s.  Items have a
+  `view`(UIToolbarItem.view) and a `title`(UIToolbarItem.title), one or both
+  of which may be shown depending on the toolbar's configuration.
+
+  Since a toolbars only exists within windows, a toolbar is styled through the 
+  `styler`(UIWindow.styler) of the window that contains the toolbar.  Items that
+  don't fit in the window width will automatically overflow to a menu.
+
+  Toolbar Item Actions
+  ====================
+  Toolbar items perform `action`(UIToolbarItem.action)s by name, via the
+  `sendAction()`(UIApplication.sendAction) call to the running `UIApplication`.
+
+  If a specific `target`(UIToolbarItem.target) for the action is not set,
+  the action will go to the window's `firstResponder`(UIWindow.firstResponder),
+  and iterate through the responder chain until a responder handles the action.
+
+  A responder handles an action if it has a method that is named the same as
+  the `action`(UIToolbarItem.action) string.
+
+  In this way, toolbar actions are simiar to `UIMenu` actions, and in many
+  cases can call the same action.
+
+  *Note, this action behavior is different from how things work in `UIControl`s
+  like `UIButton`s, which use `function` objects instead of a function names
+  as their actions and always have specified targets*
+
+  Automatic Item Enabling
+  =======================
+  Because `UIToolbar` uses the `UIApplication` and `UIResponder`
+  `sendAction()`(UIApplication.sendAction) system, the toolbar is able to
+  automatically enable and disable toolbar items whenever the responder chain
+  changes.
+topics:
+  -
+    name: Creating a Toolbar
+    members:
+      -
+        name: init
+        kind: init
+        summary: Create an empty toobar
+        description: |
+          After creating a toolbar, you'll need to add items via `addItem()` or
+          by setting the `items`(UIToolbar.items) property.
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties that can be included a spec file for a toolbar
+        description: |
+          Since a toolbar is instantiated by its owning `UIWindow`, its class
+          is implicit and doesn't have to be specified in the spec file.
+
+          ````
+          Window:
+            class: UIWindow
+            toolbar:
+              items:
+                -
+                  # ...
+          ````
+        topics:
+          -
+            name: Items
+            members:
+              -
+                name: items
+                type: UIToolbarItem[]
+                summary: The toolbar items to show on this toolbar
+                description: |
+                  ````
+                  Window:
+                    class: UIWindow
+                    toolbar:
+                      items:
+                        -
+                          title: .toolbar.saveTitle
+                          tooltip: .tooblar.saveTooltip
+                          image: ToolbarSaveIcon
+                          action: save
+                        -
+                          title: .toolbar.undoTitle
+                          tooltip: .tooblar.undoTooltip
+                          image: ToolbarUndoIcon
+                          action: undo
+                        -
+                          title: .toolbar.redoTitle
+                          tooltip: .tooblar.redoTooltip
+                          image: ToolbarRedoIcon
+                          action: redo
+                  ````
+              -
+                name: imageSize
+                type: Number
+                summary: The enum value indicating which standard sizing
+                  toolbar item images should have
+                description: |
+                  This value can be specified by simply using the name of
+                  the desired `ImageSize` enum value.
+
+                  ````
+                  Window:
+                    class: UIWindow
+                    toolbar:
+                      items:
+                      imageSize: small
+                  ````
+
+                  Alternatively, you can specify any size
+
+                  ````
+                  Window:
+                    class: UIWindow
+                    toolbar:
+                      items:
+                      imageSize: 40
+                  ````
+  -
+    name: Items
+    members:
+      -
+        name: items
+        type: UIToolbarItem[]
+        summary: The items for this toolbar
+      -
+        name: addItem
+        kind: method
+        summary: Add an item to the end of the toolbar's item list
+        arguments:
+          -
+            name: item
+            type: UIToolbarItem
+            summary: The item to add
+      -
+        name: addItemAtIndex
+        kind: method
+        summary: Add an item to the specified location in the toolbar's item
+          list
+        arguments:
+          -
+            name: item
+            type: UIToolbarItem
+            summary: The item to add
+          -
+            name: index
+            type: Number
+            summary: The location to add the new item
+      -
+        name: removeItem
+        kind: method
+        summary: Remove the given item from the toolbar
+        arguments:
+          -
+            name: item
+            type: UIToolbarItem
+            summary: The item to remove
+      -
+        name: removeItemAtIndex
+        kind: method
+        summary: Remove the item at the given location in the items list
+        arguments:
+          -
+            name: index
+            type: Number
+            summary: The location of the item to remove
+  -
+    name: Display Options
+    members:
+      -
+        name: showsTitles
+        type: boolean
+        summary: Indicates if item titles should be shown or not
+      -
+        name: imageSize
+        type: Number
+        summary: Specifies the size of the images on items
+        description: |
+          Can be specified using the `ImageSize` enum, or any arbitrary number.
+      -
+        name: ImageSize
+        kind: enum
+        suffix: enum
+        type: Number
+        summary: The possible sizes for toolbar item images
+        options:
+          -
+            name: default
+            summary: The default size for images
+            value: "32"
+          -
+            name: small
+            summary: A small size for images
+            value: "24"
+  -
+    name: Window
+    members:
+      -
+        name: window
+        type: UIWindow
+        summary: The window that contains this toolbar
+  -
+    name: Item Validation
+    members:
+      -
+        name: validateItems
+        kind: method
+        summary: Make items enabled or disabled based on the current responder
+          chain's ability to handle the action
+        description: |
+          Called automatically by the `window` as necessary.  You should not
+          need to invoke this method directly.

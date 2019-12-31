@@ -1,0 +1,173 @@
+kind: class
+introduced: "1.0.0"
+inherits: UIViewController
+summary: Adds window management features to `UIViewController`
+description: |
+  A window controller manages a window much like a view controller manages
+  a view.
+
+  Sometimes a window controller is all you need to manage a window and its
+  content view.  This is often the case for relatively simple windows.
+note: |
+  Because a `UIWindow` is a `UIView`, and because a `UIWindowController`
+  is a `UIViewController`, the inherted use of **view** in method names such
+  as `loadView()` or `viewWillAppear()` can be read to mean **window** in the
+  context of a `UIWindowController`.
+topics:
+  -
+    name: Creating a Window Controller
+    members:
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties that can be included in a spec file for a
+          \`UIWindowController`
+        description: |
+          In addition to the properties that can be defined in
+          any `UIViewController`, the following properties are allowed for
+          `UIWindowController`s in spec files.
+        topics:
+          -
+            name: Window
+            members:
+              -
+                name: window
+                type: UIWindow
+                summary: The window for this window controller
+              -
+                name: view
+                type: UIView
+                summary: If `window` is not specified, the window's
+                  \`contentView`.
+                description: |
+                  If a `view` is specified, a generic `UIWindow` will be
+                  created automatically and `view` will be used as that
+                  window's `contentView`.
+          -
+            name: Delegate
+            members:
+              -
+                name: delegate
+                type: UIWindowControllerDelegate
+                summary: The window controller's
+                  \`delegate`(UIWindowController.delegate)
+  -
+    name: Window
+    members:
+      -
+        name: window
+        type: UIWindow
+        summary: The window owned by this controller
+        note: Identical to the `view`(UIViewController.view) property, but
+          given a more appropriate name.
+  -
+    name: Delegate
+    members:
+      -
+        name: UIWindowControllerDelegate
+        kind: protocol
+        summary: A window controller delegate is notified about window actions
+        topics:
+          -
+            name: Opening & Closing
+            members:
+              -
+                name: windowControllerWillClose
+                summary: Called with the window is about to close
+                arguments:
+                  -
+                    name: windowController
+                    type: UIWindowController
+                    summary: The window controller making the call
+              -
+                name: windowControllerDidClose
+                summary: Called after the window is closes
+                arguments:
+                  -
+                    name: windowController
+                    type: UIWindowController
+                    summary: The window controller making the call
+      -
+        name: delegate
+        type: UIWindowControllerDelegate
+        summary: A delegate that will be called when certain window related
+          actions take place
+  -
+    name: Opening & Closing
+    members:
+      -
+        name: open
+        kind: method
+        summary: Open the window and place it at the top of the window stack
+        description: |
+          When you create a `UIWindowController`, its window isn't visible until
+          you open it.
+        important: This method will not make a window the main or key window.
+          Therefore, you should typically use `makeKeyAndOrderFront()` when
+          opening a new window.
+        see:
+          - UIWindow.openAnimator
+      -
+        name: orderFront
+        kind: method
+        summary: Open the window and place it at the top of the window stack
+        description: |
+          Move a window to the top of the stack
+        important: This method will not make a window the main or key window.
+          Therefore, you should typically use `makeKeyAndOrderFront()` when
+          ordering a window to the front.
+        see:
+          - UIWindow.openAnimator
+      -
+        name: makeKeyAndOrderFront
+        kind: method
+        summary: Tell the window manager to make this controller's window the
+          key window, the main window, and move it to the top of the window
+          stack.
+        description: |
+          This method is often called instead of `open` because in addition
+          to opening the window and moving it to the front of the stack,
+          it also makes the window the key window, which is typically
+          the desired behavior when opening a new window.
+        see:
+          - UIWindow.openAnimator
+      -
+        name: close
+        kind: method
+        summary: Close this controller's window window
+        see:
+          - UIWindow.closeAnimator
+          - UIWindowControllerDelegate.windowControllerWillClose
+          - UIWindowControllerDelegate.windowControllerDidClose
+  -
+    name: Sizing
+    members:
+      -
+        name: contentSizeThatFitsSize
+        kind: method
+        type: JSSize
+        summary: Determines the size of the content that fits within the given
+          maximum size
+        arguments:
+          -
+            name: maxSize
+            type: JSSize
+            summary: Limits the size that can be returned
+  -
+    name: Responder
+    members:
+      -
+        name: getNextResponder
+        kind: method
+        type: UIResponder
+        return: The owned window's `application`(UIWindow.application)
+        summary: Get the next responder in the responder chain
+        description: |
+          Overrides `UIViewController`'s implementation to return the
+          window's `application`(UIWindow.application).
+
+          When a window doesn't have a window controller, its next responder
+          is its application.  When a window does have a controller, the
+          controller becomes the window's next responder.  Therefore,
+          the controller should continue to the chain to the window's
+          application.

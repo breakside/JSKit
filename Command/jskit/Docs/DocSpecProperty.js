@@ -18,15 +18,12 @@
         }
     },
 
-    getTitle: function(){
-        return "%s spec.%s".sprintf(this.parent.parent.name, this.name);
-    },
-
     htmlArticleElements: function(document){
         let index = 1;
         var elements = DocSpecProperty.$super.htmlArticleElements.call(this, document);
 
         if (this.valueType){
+            let valueType = this.nameExcludingCodeSuffixes(this.valueType);
             let typeSection = document.createElement("section");
             elements.splice(index++, 0, typeSection);
             typeSection.setAttribute("class", "return");
@@ -35,7 +32,10 @@
             h1.appendChild(document.createTextNode("Resolved Value Type"));
             let p = typeSection.appendChild(document.createElement("p"));
             let code = p.appendChild(document.createElement("code"));
-            let url = this.urlForCode(this.valueType);
+            let url = this.urlForCode(valueType + ".Spec File Properties");
+            if (!url){
+                url = this.urlForCode(valueType);
+            }
             if (url){
                 let a = code.appendChild(document.createElement("a"));
                 a.setAttribute("href", url.encodedString);

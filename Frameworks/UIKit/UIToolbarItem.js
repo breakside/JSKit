@@ -24,17 +24,17 @@ JSClass("UIToolbarItem", JSObject, {
         this._commonItemInit();
     },
 
-    initWithImage: function(image, target, action){
+    initWithImage: function(image, action, target){
         this._image = image;
         this._target = target;
         this._action = action;
         this._commonItemInit();
     },
 
-    initWithView: function(view, target, action){
+    initWithView: function(view, action, target){
         this._view = view;
-        this._target = target;
-        this._action = action;
+        this._target = target || null;
+        this._action = action || null;
         this._commonItemInit();
     },
 
@@ -59,10 +59,10 @@ JSClass("UIToolbarItem", JSObject, {
             this._enabled = spec.resolvedValue(values.enabled);
         }
         if ('minimumSize' in values){
-            this._minimumSize = spec.resolvedValue(values.minimumSize);
+            this._minimumSize = JSSize.call(undefined, values.minimumSize.parseNumberArray());
         }
         if ('maximumSize' in values){
-            this._maximumSize = spec.resolvedValue(values.maximumSize);
+            this._maximumSize = JSSize.call(undefined, values.maximumSize.parseNumberArray());
         }
         if ('target' in values){
             this._target = spec.resolvedValue(values.target);
@@ -95,7 +95,9 @@ JSClass("UIToolbarItem", JSObject, {
     },
 
     performAction: function(){
-        this.toolbar.window.application.sendAction(this._action, this._target, this);
+        if (this._action !== null){
+            this.toolbar.window.application.sendAction(this._action, this._target, this);
+        }
     },
 
     validate: function(){

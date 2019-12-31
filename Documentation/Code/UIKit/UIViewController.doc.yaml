@@ -134,7 +134,7 @@ topics:
             members:
               -
                 name: tabViewItem
-                value: UITabViewItem
+                type: UITabViewItem
                 summary: A small set of identifying properties that allows
                   a `UITabViewController` to create a tab for this view
                   controller without loading the view.
@@ -235,6 +235,13 @@ topics:
           to wait until the view is fully gone before being destroyed.
 
           Subclasses should call `$super.viewDidDisappear`.
+      -
+        name: viewDidUnload
+        kind: method
+        summary: Called after the view is completely unloaded and destroyed
+        description: |
+          View controller subclasses can use this method to perform extra
+          cleanup of view-releated resources.
   -
     name: Layout & Size
     members:

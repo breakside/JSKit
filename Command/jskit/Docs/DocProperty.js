@@ -26,7 +26,10 @@
     },
 
     getTitle: function(){
-        return "%s.%s".sprintf(this.parent.name, this.name);
+        if (this.isStatic){
+            return "%s.%s".sprintf(this.parent.name, this.name);
+        }
+        return this.name;
     },
 
     htmlArticleElements: function(document){

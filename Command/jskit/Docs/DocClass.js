@@ -70,6 +70,17 @@
             return ["class %s extends %s".sprintf(this.name, this.inherits)];
         }
         return ["class %s".sprintf(this.name)];
-    }
+    },
+
+    inhertitedComponentForName: function(name){
+        let component = null;
+        if (this.inherits){
+            var inherits = this.parent.componentForName(this.inherits, this);
+            if (inherits !== null){
+                component = inherits.childForName(name);
+            }
+        }
+        return component;
+    },
 
  });

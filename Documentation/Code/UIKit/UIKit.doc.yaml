@@ -12,6 +12,19 @@ description: |
   environment at times demand unqiue classes and behaviors.  Some names and
   concepts may be similar, but others will be distinct.
 
+  View Controllers
+  ===============
+  `UIKit` is designed to facilitate Model-View-Controller (MVC) programming.
+
+  The glue between the model and view is the `UIViewController`, which populates
+  views from model data and updates model data based on user interaction
+  with views.
+
+  [Binding](Binding) data models to views through a controller continues
+  this MVC style, but elimites the need for a lot of "glue code" in the
+  controller because bindings pass the data automatically between model and
+  view.
+
   Views & Windows
   ===============
   At the heart of `UIKit` are views, represented by the `UIView` class.  Views

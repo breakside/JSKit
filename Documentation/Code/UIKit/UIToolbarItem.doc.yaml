@@ -1,0 +1,551 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: A item on a toolbar
+decription: |
+  Toolbar items are often buttons, but can also be any view at all such as a
+  search field.
+
+  For button-like items, `title` and `image` are the most relevant properties.
+
+  For custom items, `title` and `view` are the properties to set.
+topics:
+  -
+    name: Creating an Item
+    members:
+      -
+        name: initWithImage
+        kind: init
+        summary: Create a button-like item with an image
+        arguments:
+          -
+            name: image
+            type: JSImage
+            summary: The image to show on the item
+          -
+            name: action
+            type: String
+            summary: The named action to perform when the item is clicked
+          -
+            name: target
+            type: UIResponder
+            default: "null"
+            summary: The intended `action` target, if any.  Use `null` if the
+              \`action` should be sent to the window's
+              \`firstResponder`(UIWindow.firstResponder)
+        description: |
+          If a specific `target` for the action is not set,
+          the action will go to the window's
+          `firstResponder`(UIWindow.firstResponder), and iterate through the
+          responder chain until a responder handles the action.
+
+          A responder handles an action if it has a method that is named the
+          same as the `action`(UIToolbarItem.action) string.
+
+          In this way, toolbar actions are simiar to `UIMenu` actions, and
+          in many cases can call the same action.
+
+        note: |
+          This action behavior is different from how things work in
+          `UIControl`s like `UIButton`s, which use `function` objects
+          instead of a function names as their actions and always have
+          specified target
+      -
+        name: initWithView
+        kind: init
+        summary: Create a custom item with the given view
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The view to show on the item
+        description: |
+          View items can be things like search fields or other controls that
+          aren't regular buttons.
+
+          For example, you can use a text field for a search item.
+
+          ````
+          JSClass("MainWindowController", UIWindowController, {
+
+            loadWindow: function(){
+              // Creating search field
+              var field = UITextField.init();
+              field.placeholder = "Search"
+              field.addTargetedAction(this, this.search);
+
+              // Creating an item from the field
+              var searchItem = UIToolbarItem.initWithView(field)
+
+              var window = UIWindow.init();
+              window.toolbar = UIToolbar.init();
+              toolbar.items = [searchItem];
+              this.window = window;
+            },
+
+            search: function(field){
+              // do search and update view
+            }
+
+          });
+          ````
+      -
+        name: initWithView
+        kind: init
+        summary: Create a custom item with the given view and action
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The view to show on the item
+          -
+            name: action
+            type: String
+            summary: The named action to perform when the item is activated
+          -
+            name: target
+            type: UIResponder
+            default: "null"
+            summary: The intended `action` target, if any.  Use `null` if the
+              \`action` should be sent to the window's
+              \`firstResponder`(UIWindow.firstResponder)
+        description: |
+          View items can be things like search fields or other controls that
+          aren't regular buttons.
+
+          For example, you can use a text field for a search item.
+
+          ````
+          JSClass("MainWindowController", UIWindowController, {
+
+            loadWindow: function(){
+              // Creating search field
+              var field = UITextField.init();
+              field.placeholder = "Search"
+              field.addTargetedAction(this, this.search);
+
+              // Creating an item from the field
+              var searchItem = UIToolbarItem.initWithView(field)
+
+              var window = UIWindow.init();
+              window.toolbar = UIToolbar.init();
+              toolbar.items = [searchItem];
+              this.window = window;
+            },
+
+            search: function(field){
+              // do search and update view
+            }
+
+          });
+          ````
+
+          If the view is a `UIControl`, which is commonly the case,
+          the control will be configured to perform the specified `action`.
+
+          If a specific `target` for the action is not set,
+          the action will go to the window's
+          `firstResponder`(UIWindow.firstResponder), and iterate through the
+          responder chain until a responder handles the action.
+
+          A responder handles an action if it has a method that is named the
+          same as the `action`(UIToolbarItem.action) string.
+
+          In this way, toolbar actions are simiar to `UIMenu` actions, and
+          in many cases can call the same action.
+
+        note: |
+          This action behavior is different from how things work in
+          `UIControl`s like `UIButton`s, which use `function` objects
+          instead of a function names as their actions and always have
+          specified targets
+      -
+        name: initWithIdentifier
+        kind: init
+        summary: Create a special item with a predefined identifier
+        arguments:
+          -
+            name: identifier
+            type: Identifier
+            summary: An identifier that specifies a special item, like a space
+        description: |
+          Special item are things like spaces, which don't carry any information
+          or perform any action.
+
+          ````
+          var item = UIToolbarItem.initWithIdentifier(UIToolbarItem.Identifier.space);
+          ````
+
+          Spacing items simply add spacing between other items in the toolbar.
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties that can be specified in a spec file for a
+          toolbar item
+        description: |
+          Since toolbar items are always instantiated by their owning
+          `UIToolbar`, their class is implicit and doesn't have to be specified
+          in the spec.
+          ````
+          Window:
+            class: UIWindow
+            toolbar:
+              items:
+                -
+                  title: .toolbar.saveTitle
+                  tooltip: .tooblar.saveTooltip
+                  image: ToolbarSaveIcon
+                  action: save
+                -
+                  title: .toolbar.undoTitle
+                  tooltip: .tooblar.undoTooltip
+                  image: ToolbarUndoIcon
+                  action: undo
+                -
+                  title: .toolbar.redoTitle
+                  tooltip: .tooblar.redoTooltip
+                  image: ToolbarRedoIcon
+                  action: redo
+          ````
+        topics:
+          -
+            name: Button Items
+            members:
+              -
+                name: image
+                type: String
+                summary: The name of an image resource to use as the button's
+                  icon
+                description: |
+                  ````
+                  Window:
+                    class: UIWindow
+                    toolbar:
+                      items:
+                        -
+                          image: ToolbarSaveIcon
+                  ````
+          -
+            name: Custom Items
+            members:
+              -
+                name: view
+                type: UIView
+                summary: The view to use as the item's custom view
+                description: |
+                  ````
+                  Window:
+                    class: UIWindow
+                    toolbar:
+                      items:
+                        -
+                          view:
+                            class: UIPopupButton
+                            # ...
+                  ````
+              -
+                name: minimumSize
+                type: String
+                summary: Specifies how small a custom view item can be
+                description: |
+                  Use a string of comma-separated integers to specify
+                  values that will be passed to the `JSSize` constructor.
+
+                  ````
+                  Window:
+                    class: UIWindow
+                    toolbar:
+                      items:
+                        -
+                          view:
+                            class: UITextField
+                            # ...
+                          minimumSize: 80,24
+                          maximumSize: 300,24
+                  ````
+              -
+                name: maximumSize
+                type: String
+                summary: Specifies how large a custom view item can be
+                description: |
+                  Use a string of comma-separated integers to specify
+                  values that will be passed to the `JSSize` constructor.
+
+                  ````
+                  Window:
+                    class: UIWindow
+                    toolbar:
+                      items:
+                        -
+                          view:
+                            class: UITextField
+                            # ...
+                          minimumSize: 80,24
+                          maximumSize: 300,24
+                  ````
+          -
+            name: Special Items
+            members:
+              -
+                name: identifier
+                type: Identifier
+                summary: The identifier of a special item type, like a space
+                description: |
+                  Special items are completely defined by their `identifier`
+
+                  ````
+                  Window:
+                    class: UIWindow
+                    toolbar:
+                      items:
+                        -
+                          identifier: space
+                  ````
+          -
+            name: Title & Help
+            members:
+              -
+                name: title
+                type: String
+                summary: The title to show for the item
+              -
+                name: tooltip
+                type: String
+                summary: The help text to show when the user hovers over the
+                  item
+              -
+                name: menuFormRepresentation
+                type: UIMenuItem
+                summary: The custom menu item to use if this item is shown in
+                  the toolbar's overflow menu.
+                description: |
+                  Whe not all items can fit on the toolbar, the toolbar
+                  automatically creates an overflow menu.
+
+                  By default the toolbar creates menu items based on the
+                  toolbar item's `title` and `action`.
+
+                  This `menuFormRepresentation` property allows you to specify
+                  a custom menu item to use instead.
+
+                  In this example, a menu item will normally display a search
+                  field.  But in the overflow case, it will show menu item
+                  that opens a search window instead.
+
+                  ````
+                  WindowController:
+                    class: MainWindowController
+                    window: /Window
+
+                  Window:
+                    class: UIWindow
+                    toolbar:
+                      items:
+                        -
+                          title: Search
+                          view:
+                            class: UITextField
+                            placeholder: Search
+                            leftImage: SearchIcon
+                            target: /WindowController
+                            action: search
+                          menuFormRepresentation:
+                            title: Show Search
+                            image: SearchIcon
+                            target: /WindowController
+                            action: showSearchWindow
+                  ````
+          -
+            name: Action
+            members:
+              -
+                name: action
+                type: String
+                summary: The name of the action that will be sent to
+                  \`UIApplication.sendAction()` when the item is triggered.
+                description: |
+                  The action name is simply a method name that some
+                  `UIResponder` in the responder chain implements.
+
+                  If you want the action to go to a specific object, then
+                  specify that object in the `target` property.
+              -
+                name: target
+                type: UIResponder
+                summary: The specific responder that should always handle
+                  this item's action
+                description: |
+                  If not specified, the responder chain will be walked,
+                  starting with `firstResponder`(UIWindow.firstResponder)
+
+                  In this case, the search action is always handled by the
+                  `MainWindowController`
+
+                  ````
+                  WindowController:
+                    class: MainWindowController
+                    window: /Window
+
+                  Window:
+                    class: UIWindow
+                    toolbar:
+                      items:
+                        -
+                          title: Search
+                          view:
+                            class: UITextField
+                            placeholder: Search
+                            leftImage: SearchIcon
+                            target: /WindowController
+                            action: search
+                  ````
+          -
+            name: State
+            members:
+              -
+                name: enabled
+                type: boolean
+                summary: Indicates if the item is enabled (defaults to `true`)
+                description: |
+                  Not normally necessary to implement because toolbar items
+                  are automatically enabled or disabled by the owning `window`
+                  when the responder chain changes.
+
+                  If an item does not have an action, it cannot be automatically
+                  enabled/disabled.
+
+                  For items that are manually enabled, you can use this to make
+                  an item intially disabled by setting to `false`.
+  -
+    name: Button Items
+    members:
+      -
+        name: image
+        type: JSImage
+        summary: The image to show on the button
+        decription: |
+          Images only apply to button-like items that don't have a custom
+          `view` or a special `identifer`.
+
+          The image will be automatically dimmed when the item is disabled.
+  -
+    name: Custom Items
+    members:
+      -
+        name: view
+        type: UIView
+        summary: The view to use as the item's custom view
+        description: |
+          If you need a toolbar item that works differently than a standard
+          button, you can specify any `UIView` here and it will be used to
+          display the toolbar.
+
+          If you specify a `UIControl` the control's action will be
+          automatically setup to call the toolbar item's action, so you don't
+          have to specify it twice.
+
+          An example of a custom view would be to use a text field for
+          a search item.
+      -
+        name: minimumSize
+        type: JSSize
+        summary: Specifies the minimum size a custom view can be
+        decription: |
+          When trying to fit all items on a toolbar, this indicates how small
+          a custom `view` item can be.
+      -
+        name: maximumSize
+        type: JSSize
+        summary: Specifies the maximum size a custom view can be
+        decription: |
+          When trying to fit all items on a toolbar, this indicates how large
+          a custom `view` item can be.
+  -
+    name: Special Items
+    members:
+      -
+        name: Identifier
+        kind: enum
+        suffix: enum
+        summary: The possible predefiend special items that can be added to
+          a toolbar
+        description: |
+          Special items are more like instructions than actual items.
+        options:
+          -
+            name: custom
+            summary: Identifies an item that isn't a special item
+          -
+            name: space
+            summary: An item that makes a single space between other items
+          -
+            name: flexibleSpace
+            summary: An item that makes as large of a space as possible between
+              other items
+            description: |
+              A single flexible space in a toolbar has the effect of
+              right-algining items that come after the space.
+      -
+        name: identifer
+        type: Identifier
+        summary: The identifier for this item
+  -
+    name: Title & Help
+    members:
+      -
+        name: title
+        type: String
+        summary: The title that will be displayed for this item
+      -
+        name: tooltip
+        type: String
+        summary: The help text that will be shown when the user hovers over
+          this item
+      -
+        name: menuFormRepresentation
+        type: UIMenuItem
+        summary: The custom menu item to show for this item when it appears
+          in the toolbar's overflow menu
+        description: |
+          `UIToolbar` automatically creates menu items for toolbar items
+          using `title` and `action`.
+
+          If you need a menu item other than the default, use this property.
+  -
+    name: Action
+    members:
+      -
+        name: action
+        type: String
+        summary: The action name to peform when the item is interacted with
+        description: |
+          The action will be sent to `UIApplication.sendAction()` along with
+          any `target`, if specified.
+        note: This is a method *name* in the form of a string, not a `function`
+          object like `UIControl` takes.
+      -
+        name: target
+        type: UIResponder
+        summary: The specific responder that should always handle this item's
+          \`action`
+        description: |
+          If `null` the action will be sent to the window's `firstResponder`
+          and work its way through the responder chain until a responder
+          handles the action.
+  -
+    name: Validation
+    members:
+      -
+        name: enabled
+        type: boolean
+        summary: Indicates if this item is enabled or not
+        description: |
+          Items with `action`s are automatically enabled and disabled by the
+          owning window whenver the responder chain changes.
+      -
+        name: validate
+        kind: method
+        summary: Request the item update its `enabled` state
+        description: |
+          Called by the owning window during the automatic validation of items
+          when the responder chain changes.

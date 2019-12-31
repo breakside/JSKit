@@ -1,6 +1,6 @@
 // #import Foundation
 // #import "UIEvent.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, UIMenuSeparatorItemView, UIMenuItem, UIMenu, UIEvent */
+/* global JSClass, JSObject, JSReadOnlyProperty, JSImage, JSDynamicProperty, UIMenuSeparatorItemView, UIMenuItem, UIMenu, UIEvent */
 'use strict';
 
 JSClass("UIMenuItem", JSObject, {
@@ -61,8 +61,10 @@ JSClass("UIMenuItem", JSObject, {
             if ('alternate' in values){
                 this._isAlternate = !!values.alternate;
             }
+            if ('image' in values){
+                this._image = JSImage.initWithResourceName(values.image, spec.bundle);
+            }
         }
-        // TODO: image
     },
 
     initWithTitle: function(title, action, target){

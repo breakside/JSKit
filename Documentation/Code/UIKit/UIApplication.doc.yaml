@@ -10,6 +10,14 @@ description: |
   launches.
 topics:
   -
+    name: Running Application
+    members:
+      -
+        name: shared
+        static: true
+        type: UIApplication
+        summary: The instance of the running application
+  -
     name: Info File
     members:
       - UIApplicationInfo

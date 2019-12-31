@@ -62,6 +62,19 @@ topics:
                 name: toolbar
                 type: UIToolbar
                 summary: The toolbar for the window
+                description: |
+                  Since a toolbar is instantiated by its owning `UIWindow`, its
+                  class is implicit and doesn't have to be specified in the spec
+                  file.
+
+                  ````
+                  Window:
+                    class: UIWindow
+                    toolbar:
+                      items:
+                        -
+                          # ...
+                  ````
           -
             name: Content View
             members:
