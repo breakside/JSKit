@@ -1,0 +1,140 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Create sophisticated animations of views
+description: |
+  `UIViewPropertyAnimator` builds on the `UIAnimation` and
+  `UIAnimationTransaction` primites to make creating great `UIView` animations
+  easy.
+
+  In addional, `UIViewPropertyAnimator` makes it easy to stop an animation
+  in progress, to respond to the user's interaction.
+
+  Bascially, `UIViewPropertyAnimator` does the work of creating and configuring
+  a `UIAnimationTransaction` with a simplified interface.
+topics:
+  -
+    name: Creating an Animator
+    members:
+      -
+        name: initWithDuration
+        kind: init
+        summary: Create a animator that will last for the given duration
+        arguments:
+          -
+            name: duration
+            type: Number
+            summary: The duration of the animations, in seconds
+          -
+            name: timingFunction
+            type: UIAnimation.Timing
+            summary: The timing function to use
+            default: UIAnimation.Timing.linear
+        description: |
+          The timing function can create effects like
+          `easeIn`(UIAnimation.Timing.easeIn) or
+          `easeOut`(UIAnimation.Timing.easeOut).
+
+          In addition to the predefined timing function in `UIAnimation.Timing`,
+          you can provide any function that takes number from `0` to `1` and
+          returns another number between `0` and `1`.
+
+          After creating an animator, you'll want to use `addAnimations()` to
+          define what animated changes should happen.
+  -
+    name: Animations
+    members:
+      -
+        name: addAnimations
+        kind: method
+        summary: Add a block of animations to run when this animator starts
+        arguments:
+          -
+            name: animations
+            type: function
+            summary: A function that moves views to their final states
+        description: |
+          The provided function will be called in a `UIAnimationTransaction`
+          when `start()` is called.
+
+          ````
+          var view = UIView.init();
+          view.position = JSPoint(50,50);
+          // ... add view to a window
+
+          var animator = UIViewPropertyAnimator.initWithDuration(0.2);
+          animator.addAnimations(function(){
+            view.position = JSPoint(100,100)
+          });
+          animator.start();
+          ````
+        note: You can call `addAnimations()` multiple times, and each function
+          will be called in the order it was added.
+      -
+        name: addCompletion
+        kind: method
+        summary: Add a callback function that will be called when the animation
+          completes
+        arguments:
+          -
+            name: completion
+            type: function
+            summary: A function that will be called at the end of the animation
+        description: |
+          The provided function will be called after the animation completes.
+
+          It can be a good time to cleanup resources that are no longer needed.
+
+          For example, when fading out a view, it can be removed from its
+          `superview` during the completion block.
+
+          ````
+          var view = UIView.init();
+          // ... add view to a window
+
+          // ... later on
+          var animator = UIViewPropertyAnimator.initWithDuration(0.2);
+          animator.addAnimations(function(){
+            view.alpha = 0;
+          });
+          animator.addCompletion(function(){
+            view.removeFromSuperview();
+          });
+          animator.start();
+          ````
+        note: You can call `addCompletion()` multiple times, and each callback
+          will be made int the order it was added.
+      -
+        name: timingFunction
+        type: UIAnimation.Timing
+        summary: The timing function provided during init
+      -
+        name: duration
+        type: Number
+        summary: The duration in seconds provided during init
+      -
+        name: percentComplete
+        type: Number
+        summary: The percentage of the animations that have been performed
+  -
+    name: Starting & Stopping
+    members:
+      -
+        name: start
+        kind: method
+        summary: Start the animations
+        arguments:
+          -
+            name: delay
+            type: Number
+            summary: The number of seconds to keep animations paused at their
+              initial state
+            default: "0"
+      -
+        name: stop
+        kind: method
+        summary: Stop the animations
+      -
+        name: stopAndCallCompletions
+        kind: method
+        summary: Stop the animations early, but still call completion callbacks

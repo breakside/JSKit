@@ -1,5 +1,5 @@
 // #import "DocComponent.js"
-/* global JSClass, DocComponent, DocEnum */
+/* global JSClass, DocComponent, DocEnum, DocFunction */
 'use strict';
 
  JSClass("DocEnum", DocComponent, {
@@ -45,8 +45,16 @@
                 let dd = dl.appendChild(document.createElement("dd"));
                 dt.appendChild(document.createTextNode(option.name));
                 if (option.value){
-                    dt.appendChild(document.createTextNode(" = "));
-                    dt.appendChild(document.createTextNode(option.value));
+                    if (typeof(option.value) == 'object'){
+                        var fn = DocFunction.init();
+                        fn._extractPropertiesFromInfo(option.value);
+                        dt.appendChild(document.createTextNode("(%s)".sprintf(fn.argumentStrings().join(', '))));
+                        var args = fn.argumentListElement(document, this);
+                        dd.appendChild(args);
+                    }else{
+                        dt.appendChild(document.createTextNode(" = "));
+                        dt.appendChild(document.createTextNode(option.value));
+                    }
                 }
                 if (option.summary){
                     let markdown = this.createMarkdownWithString(option.summary);

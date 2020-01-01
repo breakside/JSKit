@@ -1,0 +1,49 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Represents the screen in which windows are displayed
+description: |
+  The screen is simply a collection of metrics that define what available
+  space exists to place windows.
+topics:
+  -
+    name: Sizing
+    members:
+      -
+        name: frame
+        type: JSRect
+        summary: The screen's frame
+        description: |
+          Defines the screen's origin and size.
+
+          For a single screen application, the screen's origin is
+          `JSPoint.Zero`, and the only useful information is the frame's size.
+
+          The window manager uses the screen size to determine where windows
+          can be placed.
+      -
+        name: availableInsets
+        type: JSInsets
+        summary: The distance from the edges of the screen that are not
+          available for windows.
+      -
+        name: availableFrame
+        type: JSRect
+        summary: The frame in which windows can be placed
+        description: |
+          The result of subtracting `availableInsets` from the full `frame`
+  -
+    name: Resolution
+    members:
+      -
+        name: scale
+        type: Number
+        summary: The device pixel ratio of the screen
+        description: |
+          High resolution screens will have values greater than `1`.
+
+          For example, a value of `2` indicates that each display system
+          coordinate unit maps to 2 device pixels.
+
+          Objects such as `JSImage` use the screen's scale to determine whether
+          high resolution images should be loaded.

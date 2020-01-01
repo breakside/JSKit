@@ -1,0 +1,153 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Display a collection of related windows all at once
+description: |
+  Typically used to replace one set of windows with another set when a major
+  application state change occurrs.
+
+  An example might be an application with two scenes:
+
+  1. Login Scene
+  1. Main Scene
+
+  When the application starts, the login scene is displayed.  Then, when the
+  user logs in, the login scene is replaced by the main scene.  Finally,
+  when the user logs out, all windows are closed and replaced back by the login
+  scene.
+topics:
+  -
+    name: Creating a Scene
+    members:
+      -
+        name: init
+        summary: Create an empty scene
+        description: |
+          After creating a scene, you'll need to add windows via `addWindow()`.
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available to a `UIScene` in a spec file
+        topics:
+          -
+            name: Menu
+            members:
+              -
+                name: menuBar
+                type: UIMenuBar
+                summary: The menu bar, if any, to display at the top of the
+                  screen for this scene.
+                description: |
+                  ````
+                  MainScene:
+                    class: UIScene
+                    menuBar:
+                      menu: /MainMenu
+
+                  MainMenu:
+                    class: UIMenu
+                    items:
+                      # ...
+                  ````
+          -
+            name: Windows
+            members:
+              -
+                name: windowStack
+                type: UIWindow[]
+                summary: The ordered stack of windows to display when this
+                  scene appears.
+                description: |
+                  The windows will be visibily stacked in the order specified,
+                  and the topmoost window will be made the key window.
+
+                  ````
+                  MainScene:
+                    class: UIScene
+                    windowStack:
+                      - /BackgroundWindow
+                      - /LoginWindow
+
+                  BackgroundWindow:
+                    class: UIRootWindow
+                    # ...
+
+                  LoginWindow:
+                    class: UIWindow
+                    # ...
+                  ````
+  -
+    name: Menu
+    members:
+      -
+        name: menuBar
+        type: UIMenuBar
+        summary: The main menu bar to show at the top top of the screen
+        description: |
+          Every scene can show a single menu bar at the top of the screen.
+        important: The menu bar must be set before calling `show()`.  Setting
+          after displaying the scene has no effect.
+  -
+    name: Windows
+    members:
+      -
+        name: windowStack
+        type: UIWindow[]
+        summary: The initially visible windows for the scene
+      -
+        name: addWindow
+        kind: method
+        summary: Add a window to the top of the stack
+        arguments:
+          -
+            name: window
+            type: UIWindow
+            summary: The window to add
+        description: |
+          Used when preparing a scene:
+
+          ````
+          var backgroundWindow = UIRootWindow.init();
+          var loginWindow = LoginWindow.init();
+
+          var scene = UIScene.init();
+          scene.addWindow(backgroundWindow);
+          scene.addWindow(loginWindow);
+          scene.show();
+          ````
+        note: Adding a window to a scene will cause its `scene`(UIWindow.scene)
+          property to refer back to this scene.
+        important: Windows must be added before calling `show()`.  Adding after
+          displaying the scene has no effect.
+  -
+    name: Showing the Scene
+    members:
+      -
+        name: show
+        kind: method
+        summary: Causes all scene elements to display immediately
+        description: |
+          The scene's menu bar, if set, will be added to the top of the screen.
+
+          The scene's windows will be opened in order.
+
+          The scene's top window will be made the key window.
+      -
+        name: close
+        kind: method
+        summary: Clears the application to a blank screen
+        description: |
+          Removes the main menu bar.
+
+          Closes all open windows.
+        
+          All windows will be closed, regardless of if they were intially
+          specified in this scene.  This ensures all windows opened by the
+          user will close.
+  -
+    name: Application
+    members:
+      -
+        name: application
+        type: UIApplication
+        summary: The application that this scene belongs to

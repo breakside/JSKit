@@ -1,0 +1,293 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObect
+summary: Represents a visual cursor that moves with the user's mouse
+description: |
+  `UIKit` supports two ways of setting the current cursor:
+
+  1. Set the `UIView.cursor` property to automatically show that cursor
+     when the user is over that view
+  1. Use `UICursor.push()` and `UICursor.pop()` in response to user interaction
+
+  Dynamic Cursor Changes
+  -----
+  The ability to push and pop the current cursor is helpful when the cursor
+  needs to change in response to keyboard or button presses.
+
+  Consider a case of a drawing program that shows a normal pointer when the
+  user is selecting items, but shows a crosshair when drawing a new shape.
+
+  In such a case, the `UIView` representing the drawing canvas doesn't have
+  just one cursor it shows, so using `UIView.cursor` won't be of much help.
+
+  Instead, when the user enters a drawing mode, a
+  `UICursor.crosshair.push()`(UICursor.push) call will override any view's
+  cursor setting and always show the crosshair. After the drawing is complete,
+  a `UICursor.pop()` call will restore default cursor behavior.
+
+  Curshor Hiding
+  ---------
+  In a similar manner, the cursor can be hidden with `UICursor.hide()` and
+  shown again with `UICursor.unhide()`.  This is useful for applications that
+  need to get the cursor out of the way at certian times, like during a 
+  presentation.
+topics:
+  -
+    name: Creating a Cursor
+    members:
+      -
+        name: initWithImage
+        kind: init
+        summary: Create a custom cursor from a resource with the given image 
+        arguments:
+          -
+            name: image
+            type: JSImage
+            summary: The image to use a cursor
+          -
+            name: hotSpot
+            type: JSPoint
+            summary: The point within the image's bounds that is the exact
+              clicking point
+        description: |
+          Creating a cursor from an image will not necessarily scale sharply to
+          high resolution screen.
+
+          If you want complete control over resolutions, use
+          `initWithImageNamed()` to load an imageset resource. 
+      -
+        name: initWithImageNamed
+        kind: init
+        summary: Create a custom cursor from a resource with the given image
+          name that can scale to various resolutions
+        arguments:
+          -
+            name: imageName
+            type: String
+            summary: The name of an `.imageset` resource with a cursor
+              definition
+          -
+            name: hotSpot
+            type: JSPoint
+            summary: The point within the image's bounds that is the exact
+              clicking point
+          -
+            name: bundle
+            type: JSBundle
+            default: JSBundle.mainBundle
+            summary: The bundle from which to pull the cursor
+        description: |
+          Cursor images require semi-special image sets in order to render
+          correctly in browsers.
+
+          Intead of using a single SVG image, you need a separate image for
+          each scale.  This is because browsers don't handle cursor scaling
+          in a common way, so even vector images show up differently in
+          different browsers.
+
+          The <imageName>.imageset resource should look something like:
+          ````
+          {
+              "images": [
+                  {
+                      "filename": "cursor.svg"
+                  },
+                  {
+                      "filename": "cursor@2x.svg",
+                      "scale": 2
+                  }
+              ]
+          }
+          ````
+
+          If you're using SVG images, the need to be two separate files coded
+          to different sizes:
+
+          As long as your images have a `viewBox`() attribute, you can make the
+          change by simply editing the `width`() and `height`() attributes:
+
+          cursor.svg:
+          ````
+          <?xml version="1.0" encoding="UTF-8"?>
+          <svg width="16" height="16" version="1.1" viewBox="0 0 16 16" ...>
+            <!-- ... -->
+          </svg>
+          ````
+
+          cursor@2x.svg:
+          ````
+          <?xml version="1.0" encoding="UTF-8"?>
+          <svg width="32" height="32" version="1.1" viewBox="0 0 16 16" ...>
+            <!-- ... -->
+          </svg>
+          ````
+  -
+    name: System Cursors
+    members:
+      -
+        name: none
+        summary: A hidden cursor
+        static: true
+        type: UICursor
+        note: The exact cursor image is platform-dependant
+      -
+        name: arrow
+        summary: A standard arrow cursor
+        static: true
+        type: UICursor
+        note: The exact cursor image is platform-dependant
+      -
+        name: iBeam
+        summary: A text selection cursor
+        static: true
+        type: UICursor
+        note: The exact cursor image is platform-dependant
+      -
+        name: pointingHand
+        summary: A hand cursor, like for links
+        static: true
+        type: UICursor
+        note: The exact cursor image is platform-dependant
+      -
+        name: operationNotAllowed
+        summary: A cursor that looks like a "do not enter" sign, a circle with
+          a line through it
+        static: true
+        type: UICursor
+        note: The exact cursor image is platform-dependant
+      -
+        name: resizeLeftRight
+        summary: A resize cursor for a vertical line
+        static: true
+        type: UICursor
+        note: The exact cursor image is platform-dependant
+      -
+        name: resizeUpDown
+        summary: A resize cursor for a horizontal line
+        static: true
+        type: UICursor
+        note: The exact cursor image is platform-dependant
+      -
+        name: openHand
+        summary: An open hand, typically indicating an element can be grabbed
+        static: true
+        type: UICursor
+        note: The exact cursor image is platform-dependant
+      -
+        name: closedHand
+        summary: A closed hand, typically indicating an element has been grabbed
+        static: true
+        type: UICursor
+        note: The exact cursor image is platform-dependant
+      -
+        name: dragLink
+        summary: Used during drag and drop when dropping will create a link to
+          the original item
+        static: true
+        type: UICursor
+        note: The exact cursor image is platform-dependant
+      -
+        name: dragCopy
+        summary: Used during drag and drop when dropping will create a copy of
+          the original item
+        static: true
+        type: UICursor
+        note: The exact cursor image is platform-dependant
+      -
+        name: crosshair
+        summary: Used for precision selection or drawing
+        static: true
+        type: UICursor
+        note: The exact cursor image is platform-dependant
+  -
+    name: Push & Pop
+    members:
+      -
+        name: push
+        prefix: class
+        kind: method
+        static: true
+        summary: Push the given cursor on the override stack
+        arguments:
+          -
+            name: cursor
+            type: UICursor
+            summary: The cursor to set as the current override
+        description: |
+          Call to make the given cursor the one shown everywhere in the
+          application until a corresponding `pop()` is called.
+
+          Cursor overrides are implemented as a stack so no information is
+          lost about what cursor was showing before the last `push()`.
+      -
+        name: pop
+        prefix: class
+        kind: method
+        static: true
+        summary: Pop the current cursor off the override stack
+        arguments:
+        description: |
+          Call to remove the cursor from the overrid stack and return to
+          whatever was displayed previously.
+
+          Cursor overrides are implemented as a stack so no information is
+          lost about what cursor was showing before the last `push()`.
+      -
+        name: push
+        kind: method
+        summary: Push this given cursor on the override stack
+        description: |
+          Call to make this cursor the one shown everywhere in the
+          application until a corresponding `pop()` is called.
+
+          Cursor overrides are implemented as a stack so no information is
+          lost about what cursor was showing before the last `push()`.
+      -
+        name: pop
+        kind: method
+        summary: Pop the current cursor off the override stack
+        arguments:
+        description: |
+          Call to remove the cursor from the overrid stack and return to
+          whatever was displayed previously.
+
+          Cursor overrides are implemented as a stack so no information is
+          lost about what cursor was showing before the last `push()`.
+        note: This will pop *any* cursor off the stack, not just the instance
+          it is called on.  It is identical to the static version.
+  -
+    name: Hiding the Cursor
+    members:
+      -
+        name: hide
+        kind: method
+        static: true
+        summary: Hide the cursor everywhere
+        description: |
+          Can be used to ensure the cursor is invisible until a corresponding
+          `unhide()` call is made.
+        note: Each call to `hide()` must be balanced by a call to `unhide()`.
+          This allows for nested calls that don't need to be aware of whether
+          the cursor is hidden when called.
+      -
+        name: unhide
+        kind: method
+        static: true
+        summary: Show the cursor everywhere
+        description: |
+          Can be used to return the cursor to visible after a previous call to
+          `hide()`.
+        note: Each call to `hide()` must be balanced by a call to `unhide()`.
+          This allows for nested calls that don't need to be aware of whether
+          the cursor is hidden when called.
+  -
+    name: Current Cursor
+    members:
+      -
+        name: currentCursor
+        static: true
+        type: UICursor
+        summary: The currently visible cursor
+        description: |
+          Will return a the cursor that *would be* visible in the case where
+          `hide()` has been called.

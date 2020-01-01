@@ -730,6 +730,10 @@ topics:
             name: front
             summary: The frontmost level.  Windows in this level will always
               be in front of other windows at lower levels.
+      -
+        name: scene
+        type: UIScene
+        summary: The scene, if any, that originally displayed this window
   -
     name: Modal Windows
     members:

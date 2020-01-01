@@ -1,12 +1,12 @@
 // #import Foundation
 // #import "UIApplication.js"
-/* global JSClass, JSObject, UIScene, UIApplication, JSSpec */
+/* global JSClass, JSObject, JSReadOnlyProperty, UIScene, UIApplication, JSSpec */
 'use strict';
 
 JSClass("UIScene", JSObject, {
 
     menuBar: null,
-    windowStack: null,
+    windowStack: JSReadOnlyProperty('_windowStack'),
     application: null,
 
     init: function(){
@@ -30,12 +30,12 @@ JSClass("UIScene", JSObject, {
 
     addWindow: function(window){
         window._scene = this;
-        this.windowStack.push(window);
+        this._windowStack.push(window);
     },
 
     _commonInit: function(){
         this.application = UIApplication.shared;
-        this.windowStack = [];
+        this._windowStack = [];
     },
 
     show: function(){
@@ -43,8 +43,8 @@ JSClass("UIScene", JSObject, {
             this.application.windowServer.menuBar = this.menuBar;
         }
         var window = null;
-        for (var i = 0, l = this.windowStack.length; i < l; ++i){
-            window = this.windowStack[i];
+        for (var i = 0, l = this._windowStack.length; i < l; ++i){
+            window = this._windowStack[i];
             window.orderFront();
         }
         if (window !== null){

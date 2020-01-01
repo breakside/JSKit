@@ -1,14 +1,24 @@
 // #import Foundation
-/* global JSClass, JSObject, JSReadOnlyProperty, JSCubicBezier, UIAnimation, JSPoint, JSSize, JSRect, JSAffineTransform, JSColor */
+/* global JSClass, JSObject, JSDynamicProperty, JSCubicBezier, UIAnimation, JSPoint, JSSize, JSRect, JSAffineTransform, JSColor */
 'use strict';
 
 JSClass('UIAnimation', JSObject, {
     completionFunction: null,
     isComplete: false,
-    percentComplete: JSReadOnlyProperty('_percentComplete', 0),
+    percentComplete: JSDynamicProperty('_percentComplete', 0),
 
     updateForTime: function(t){
+    },
+
+    pause: function(){
+    },
+
+    resume: function(){
+    },
+
+    reverse: function(){
     }
+
 });
 
 UIAnimation.Timing = Object.create({}, {
@@ -51,6 +61,43 @@ Object.defineProperties(UIAnimation.Timing, {
     }
 
 });
+
+UIAnimation.interpolationForValues = function(from, to){
+    if (from === undefined || to === undefined || from === null || to === null){
+        return UIAnimation.interpolateNull;
+    }
+    if (typeof(from) === 'number'){
+        return UIAnimation.interpolateNumber;
+    }
+    if (from instanceof JSPoint){
+        return UIAnimation.interpolatePoint;
+    }
+    if (from instanceof JSSize){
+        return UIAnimation.interpolateSize;
+    }
+    if (from instanceof JSRect){
+        return UIAnimation.interpolateRect;
+    }
+    if (from instanceof JSAffineTransform){
+        return UIAnimation.interpolateAffineTransform;
+    }
+    if (from.isKindOfClass && from.isKindOfClass(JSColor)){
+        if (from.components.length == 1){
+            return UIAnimation.interpolate1Color;
+        }
+        if (from.components.length == 2){
+            return UIAnimation.interpolate2Color;
+        }
+        if (from.components.length == 3){
+            return UIAnimation.interpolate3Color;
+        }
+        if (from.components.length == 4){
+            return UIAnimation.interpolate4Color;
+        }
+        return UIAnimation.interpolateNull;
+    }
+    return UIAnimation.interpolateNull;
+};
 
 UIAnimation.interpolateNull = function(from, to, progress){
     return from;

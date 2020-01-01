@@ -6,7 +6,7 @@ JSClass('UIPropertyAnimation', UIAnimation, {
     keyPath: null,
     updateContext: JSReadOnlyProperty('_updateContext', null),
     updateProperty: JSReadOnlyProperty('_updateProperty', null),
-    layer: JSDynamicProperty('_layer', null),  // FIXME: need to redeclare because setLayer is overwritten
+    layer: JSDynamicProperty('_layer', null),
 
     initWithKeyPath: function(keyPath){
         this.keyPath = keyPath;

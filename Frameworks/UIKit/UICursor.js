@@ -128,6 +128,7 @@ UICursor.SystemIdentifier = {
     closedHand: 'grabbing',
     dragLink: 'alias',
     dragCopy: 'copy',
+    crosshair: 'crosshair'
 };
 
 UICursor.none = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.none);
@@ -141,6 +142,7 @@ UICursor.openHand = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.
 UICursor.closedHand = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.closedHand);
 UICursor.dragLink = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.dragLink);
 UICursor.dragCopy = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.dragCopy);
+UICursor.crosshair = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.crosshair);
 
 UICursor._hideCount = 0;
 UICursor._stack = [UICursor.arrow];

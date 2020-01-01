@@ -1,0 +1,95 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: The abstract base class for `UIKit` animations
+description: |
+  Concrete base classes such as `UIPropertyAnimation` are built on top of this
+  base class that only defines the abstract interface for animation objects
+topics:
+  -
+    name: Updating
+    members:
+      -
+        name: updateForTime
+        kind: method
+        summary: Update the animation for the given timestamp
+        arguments:
+          -
+            name: time
+            type: Number
+            summary: The global time in seconds kept by the display server
+        description: |
+          Called by the display system on every frame to udpate the animation
+
+          The time provided is only useful as a comparison to a previous time
+          and does not represent any calendar time.
+      -
+        name: percentComplete
+        type: Number
+        summary: How far the animation is along its duration
+      -
+        name: isComplete
+        type: boolean
+        summary: Indicates the animation is complete
+  -
+    name: Timing Functions
+    members:
+      -
+        name: Timing
+        kind: enum
+        summary: The predefined timing functions available for animations
+        description: |
+          Anywhere a timing function is required, you can either:
+
+          1. Use one of these predefined functions
+          2. Define your own function
+
+          Custom Timing Functions
+          -----------------------
+          You can define your own timing function by creating a `function`
+          that takes a number from `0` to `1` and returns any number, although
+          the returned number shouldn't stray too far from the `0` to `1` range.
+
+          ````
+          function linearTimingFunction(x){
+            return x;
+          }
+
+          function stepTimingFunction(x){
+            return Math.floor(x * 10) / 10;
+          }
+          ````
+        options:
+          -
+            name: linear
+            summary: Makes animations appear to move at a constant velocity
+          -
+            name: easeIn
+            summary: Starts off slower and speeds up
+          -
+            name: easeOut
+            summary: Starts off normal and slows down at the end
+          -
+            name: easeInOut
+            summary: Starts off slow and ends slow, but speeds up in the middle
+          -
+            name: bounds
+            summary: Appears mostly linear, but bounces at the end by
+              overshooting the final value breifly before returning there
+          -
+            name: cubicBezier
+            summary: Creates a timing function based on a  cubic bezier that
+              has a starting point at `(0,0)`, ending point at `(1,1)`, and
+              control points as specified.
+            value:
+              arguments:
+                -
+                  name: controlPoint1
+                  type: JSPoint
+                  summary: A point in unit-space that defines the position of
+                    the cubic bezier's first control point
+                -
+                  name: controlPoint2
+                  type: JSPoint
+                  summary: A point in unit-space that defines the position of
+                    the cubic bezier's second control point

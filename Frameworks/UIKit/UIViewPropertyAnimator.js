@@ -9,7 +9,7 @@ JSClass("UIViewPropertyAnimator", JSObject, {
     timingFunction: JSReadOnlyProperty('_timingFunction', null),
     animationBlocks: null,
     completionBlocks: null,
-    percentComplete: JSReadOnlyProperty(),
+    percentComplete: JSDynamicProperty(),
     _transaction: null,
     _percentComplete: 0,
 
@@ -26,6 +26,13 @@ JSClass("UIViewPropertyAnimator", JSObject, {
             return this._percentComplete;
         }
         return this._transaction.percentComplete;
+    },
+
+    setPercentComplete: function(percentComplete){
+        if (this._transaction === null){
+            this._percentComplete = percentComplete;
+        }
+        this._transaction.percentComplete = percentComplete;
     },
 
     addAnimations: function(animations){
@@ -63,6 +70,24 @@ JSClass("UIViewPropertyAnimator", JSObject, {
         }
         this._transaction = transaction;
         UIAnimationTransaction.commit();
+    },
+
+    pause: function(){
+        if (this._transaction !== null){
+            this._transaction.pause();
+        }
+    },
+
+    resume: function(){
+        if (this._transaction !== null){
+            this._transaction.resume();
+        }
+    },
+
+    reverse: function(){
+        if (this._transaction !== null){
+            this._transaction.reverse();
+        }
     },
 
     stop: function(){

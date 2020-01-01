@@ -19,25 +19,25 @@ JSClass("UIMenuBar", UIWindow, {
         UIMenuBar.$super.initWithSpec.call(this, spec, values);
         this._commonInit();
         if ('highlightColor' in values){
-            this._highlightColor = spec.resolvedValue(values.highlightColor);
+            this._highlightColor = spec.resolvedValue(values.highlightColor, "JSColor");
         }
         if ('textColor' in values){
-            this._textColor = spec.resolvedValue(values.textColor);
+            this._textColor = spec.resolvedValue(values.textColor, "JSColor");
         }
         if ('highlightedTextColor' in values){
-            this._highlightedTextColor = spec.resolvedValue(values.highlightedTextColor);
+            this._highlightedTextColor = spec.resolvedValue(values.highlightedTextColor, "JSColor");
         }
         if ('font' in values){
             this._font = JSFont.initWithSpec(spec, values.font);
         }
         if ('menu' in values){
-            this.menu = spec.resolvedValue(values.menu);
+            this.menu = spec.resolvedValue(values.menu, "UIMenu");
         }
         var i, l, item;
         if ('leftBarItems' in values){
             var leftBarItems = [];
             for (i = 0, l = values.leftBarItems.length; i < l; ++i){
-                item = spec.resolvedValue(values.leftBarItems[i]);
+                item = spec.resolvedValue(values.leftBarItems[i], "UIMenuBarItem");
                 leftBarItems.push(item);
             }
             this.leftBarItems = leftBarItems;
@@ -45,7 +45,7 @@ JSClass("UIMenuBar", UIWindow, {
         if ('rightBarItems' in values){
             var rightBarItems = [];
             for (i = 0, l = values.rightBarItems.length; i < l; ++i){
-                item = spec.resolvedValue(values.rightBarItems[i]);
+                item = spec.resolvedValue(values.rightBarItems[i], "UIMenuBarItem");
                 rightBarItems.push(item);
             }
             this.rightBarItems = rightBarItems;

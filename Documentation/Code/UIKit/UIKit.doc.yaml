@@ -151,13 +151,7 @@ topics:
       - UIToolbarItem
       - UIScene
       - UIScreen
-      - UIStackView
       - UICursor
-  -
-    name: Scrolling
-    members:
-      - UIScrollView
-      - UIScroller
   -
     name: Animations
     members:
@@ -194,6 +188,11 @@ topics:
       - UIImageLayer
       - UIImageView
   -
+    name: Scrolling
+    members:
+      - UIScrollView
+      - UIScroller
+  -
     name: List Views
     members:
       - UIListView
@@ -203,6 +202,7 @@ topics:
       - UIOutlineView
       - UIBrowserView
       - UIBrowserViewController
+      - UIStackView
   -
     name: Tab Views
     members:

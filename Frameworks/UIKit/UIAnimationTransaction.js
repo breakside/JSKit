@@ -1,6 +1,6 @@
 // #import Foundation
 // #import "UIDisplayServer.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, UIAnimationTransaction, UIDisplayServer */
+/* global JSClass, JSObject, JSDynamicProperty, UIAnimationTransaction, UIDisplayServer */
 'use strict';
 
 JSClass('UIAnimationTransaction', JSObject, {
@@ -10,7 +10,7 @@ JSClass('UIAnimationTransaction', JSObject, {
     timingFunction: null,
     animationCount: 0,
     animations: null,
-    percentComplete: JSReadOnlyProperty(),
+    percentComplete: JSDynamicProperty(),
 
     initPrivate: function(){
         this._animationCompleteBound = this._animationComplete.bind(this);
@@ -24,6 +24,14 @@ JSClass('UIAnimationTransaction', JSObject, {
         return this.animations[0].percentComplete;
     },
 
+    setPercentComplete: function(percentComplete){
+        var animation;
+        for (var i = 0, l = this.animations.length; i < l; ++i){
+            animation = this.animations[i];
+            animation.percentComplete = percentComplete;
+        }
+    },
+
     addAnimation: function(animation){
         animation.completionFunction = this._animationCompleteBound;
         ++this.animationCount;
@@ -34,6 +42,30 @@ JSClass('UIAnimationTransaction', JSObject, {
         --this.animationCount;
         if (this.animationCount === 0 && this.completionFunction){
             this.completionFunction();
+        }
+    },
+
+    pause: function(){
+        var animation;
+        for (var i = 0, l = this.animations.length; i < l; ++i){
+            animation = this.animations[i];
+            animation.pause();
+        }
+    },
+
+    resume: function(){
+        var animation;
+        for (var i = 0, l = this.animations.length; i < l; ++i){
+            animation = this.animations[i];
+            animation.resume();
+        }
+    },
+
+    reverse: function(){
+        var animation;
+        for (var i = 0, l = this.animations.length; i < l; ++i){
+            animation = this.animations[i];
+            animation.reverse();
         }
     },
 
