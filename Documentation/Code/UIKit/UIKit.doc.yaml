@@ -156,12 +156,10 @@ topics:
     name: Animations
     members:
       - UIViewPropertyAnimator
-      - UIAnimation
-      - UIAnimationGroup
       - UIAnimationTransaction
+      - UIAnimation
       - UIBasicAnimation
       - UIPropertyAnimation
-      - UICustomAnimation
   -
     name: Controls
     members:

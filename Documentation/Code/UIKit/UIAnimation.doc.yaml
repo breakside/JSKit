@@ -4,7 +4,12 @@ inherits: JSObject
 summary: The abstract base class for `UIKit` animations
 description: |
   Concrete base classes such as `UIPropertyAnimation` are built on top of this
-  base class that only defines the abstract interface for animation objects
+  base class that only defines the abstract interface for animation objects.
+
+  You typically won't need to deal with these kind of animation classes directly,
+  as they are created implicitly by `UILayer`.
+
+  Higher level animators like `UIViewPropertyAnimator` are easier to use.
 topics:
   -
     name: Updating
@@ -27,10 +32,45 @@ topics:
         name: percentComplete
         type: Number
         summary: How far the animation is along its duration
+        description: |
+          You can set the percent complete at any time to skip around in the
+          animation.
+        see:
+          - pause
+          - resume
+          - reverse
+      -
+        name: pause
+        kind: method
+        summary: Pause the animation at its current point
+        description: |
+          The animation will stay frozen at the current point until a
+          balancing `resume()` is called.
+        note: |
+          `pause()` and `resume()` calls can be nested.  Only the outermost
+          `resume()` call will actually resume the animation.
+      -
+        name: resume
+        kind: method
+        summary: Resume the animation from its current point
+        description: |
+          Called to balance a previous `pause()` call.
+        note: |
+          `pause()` and `resume()` calls can be nested.  Only the outermost
+          `resume()` call will actually resume the animation.
+      -
+        name: reverse
+        kind: method
+        summary: Reverse the animation from its current point back to its
+          original starting point.
       -
         name: isComplete
         type: boolean
         summary: Indicates the animation is complete
+      -
+        name: completionFunction
+        type: function
+        summary: The function to call when the animation completes
   -
     name: Timing Functions
     members:

@@ -1,5 +1,5 @@
 // #import "UIPropertyAnimation.js"
-/* global JSClass, UIPropertyAnimation, JSLazyInitProperty, UIBasicAnimation, UIAnimation, JSDynamicProperty, JSResolveDottedName, JSSetDottedName, JSPoint, JSSize, JSRect, JSAffineTransform, JSColor */
+/* global JSClass, UIPropertyAnimation, UIAnimationTransaction, JSLazyInitProperty, UIBasicAnimation, UIAnimation, JSDynamicProperty, JSResolveDottedName, JSSetDottedName, JSPoint, JSSize, JSRect, JSAffineTransform, JSColor */
 'use strict';
 
 (function(){
@@ -18,6 +18,12 @@ JSClass('UIBasicAnimation', UIPropertyAnimation, {
         UIBasicAnimation.$super.initWithKeyPath.call(this, keyPath);
         this.timingFunction = UIAnimation.Timing.linear;
         this._state = new AnimationState();
+        var transaction = UIAnimationTransaction.currentTransaction;
+        if (transaction){
+            this.duration = transaction.duration;
+            this.delay = transaction.delay;
+            this.timingFunction = transaction.timingFunction;
+        }
     },
 
     getPercentComplete: function(){

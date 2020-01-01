@@ -1,0 +1,176 @@
+kind: class
+introduced: "1.0.0"
+inherits: JSObject
+summary: Collects a batch of `UIAnimation`s to perform together
+description: |
+  `UILayer` uses the precense of an active animation transaction as a sign to
+  create animations for property changes and add them to the transaction.
+
+  Implicit Animations
+  ===================
+  Anytime you change a `UILayer` property when a `UIAnimationTransaction` is
+  active, the layer will create an `UIBasicAnimation` automatically for the
+  property change.
+
+  ````
+  var layer = UILayer.init();
+  layer.position = JSPoint(0, 0);
+  // ... add layer to display tree
+
+  UIAnimationTransaction.begin();
+  layer.position = JSPoint()
+  UIAnimationTransaction.commit();
+  ````
+
+  Transaction Nesting
+  ===================
+  Animation trasactions can be nested.  Only the outermost `commit()` call will
+  cause animations to begin.
+
+  ````
+  var layer = UILayer.init();
+  layer.position = JSPoint(0, 0);
+  layer.bounds = JSRect(100, 100);
+  // ... add layer to display tree
+
+  UIAnimationTransaction.begin();
+  layer.bounds = JSRect(0, 0, 200, 200);
+  UIAnimationTransaction.begin();
+  layer.position = JSPoint()
+  UIAnimationTransaction.commit();
+  UIAnimationTransaction.commit();
+  ````
+topics:
+  -
+    name: Starting A Transaction
+    members:
+      -
+        name: begin
+        kind: method
+        static: true
+        type: UIAnimationTransaction
+        return: The newly created transaction
+        summary: Begin and return a new transaction.
+        description: |
+          When you begin a transaction, the returned value can be used to
+          modify the default settings for animations in the transaction:
+
+          ````
+          var layer = UILayer.init();
+          layer.position = JSPoint(0, 0);
+          // ... add layer to display tree
+
+          var transaction = UIAnimationTransaction.begin();
+          transaction.duration = 1.0
+          transaction.timingFunction = UIAnimation.Timing.easeIn.
+          layer.position = JSPoint()
+          UIAnimationTransaction.commit();
+          ````
+        note: |
+          Calls to `begin()` and `commit()` can be nested.  Only the outermost
+          call to `commit()` will cause animations to start
+      -
+        name: commit
+        kind: method
+        static: true
+        summary: Commit the current transaction
+        description: |
+          Committing a transaction will start animations, provided the
+          transaction is not nested.
+        note: |
+          Calls to `begin()` and `commit()` can be nested.  Only the outermost
+          call to `commit()` will cause animations to start
+  -
+    name: Timing
+    members:
+      -
+        name: timingFunction
+        type: UIAnimation.Timing
+        summary: The default timing function to use for this transaction's
+          animations
+        description: |
+          The timing function controls how the animation progresses.
+
+          For example, a linear timing function (the default) makes it look
+          like things move at a constant speed.  Other functions can cause
+          things to move slowly at first and then speed up, or start fast and
+          then slow down.
+        note: In addition to the predefined timing functions, you can also
+          provide your own. Can be overridden on each `UIBasicAnimation` in the
+          transaction
+      -
+        name: duration
+        type: Number
+        summary: The default duration of transaction animations, in seconds
+        note: Can be overridden on each `UIBasicAnimation` in the transaction
+      -
+        name: delay
+        type: Number
+        summary: The default time in seconds to wait before starting transaction
+          animations
+        note: Can be overridden on each `UIBasicAnimation` in the transaction
+  -
+    name: Updating
+    members:
+      -
+        name: percentComplete
+        type: Number
+        summary: How far the transaction is along its duration
+        description: |
+          You can set the percent complete at any time to skip around in the
+          animations.
+        see:
+          - pause
+          - resume
+          - reverse
+      -
+        name: pause
+        kind: method
+        summary: Pause the transaction's animations at their current points
+        description: |
+          The animations will stay frozen at their current points until a
+          balancing `resume()` is called.
+        note: |
+          `pause()` and `resume()` calls can be nested.  Only the outermost
+          `resume()` call will actually resume the animations.
+      -
+        name: resume
+        kind: method
+        summary: Resume the transaction's animations from their current points
+        description: |
+          Called to balance a previous `pause()` call.
+        note: |
+          `pause()` and `resume()` calls can be nested.  Only the outermost
+          `resume()` call will actually resume the animations.
+      -
+        name: reverse
+        kind: method
+        summary: Reverse the transaction's animations from their current points
+          back to their original starting points.
+      -
+        name: stop
+        kind: method
+        summary: Stop all animations in the transaction and remove them from
+          their layers.
+        description: |
+          This cancels the transaction.
+      -
+        name: completionFunction
+        type: function
+        summary: The function to call when the final animation completes
+  -
+    name: Animations
+    members:
+      -
+        name: animations
+        type: UIAnimation[]
+        summary: The animations that have been added to this transaction
+      -
+        name: addAnimation
+        kind: method
+        summary: Add an animation to the transaction
+        arguments:
+          -
+            name: animation
+            type: UIAnimation
+            summary: The animation to add

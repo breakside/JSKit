@@ -12,6 +12,21 @@ description: |
 
   Bascially, `UIViewPropertyAnimator` does the work of creating and configuring
   a `UIAnimationTransaction` with a simplified interface.
+
+  For example, this will move a `UIView`'s `position`(UIView.position)
+  from `(50,50)` to `(100,100)` using the default animation settings:
+
+  ````
+  var view = UIView.init();
+  view.position = JSPoint(50,50);
+  // ... add view to a window
+
+  var animator = UIViewPropertyAnimator.initWithDuration(0.2);
+  animator.addAnimations(function(){
+    view.position = JSPoint(100,100)
+  });
+  animator.start();
+  ````
 topics:
   -
     name: Creating an Animator
@@ -116,6 +131,13 @@ topics:
         name: percentComplete
         type: Number
         summary: The percentage of the animations that have been performed
+        description: |
+          You can set the percent complete at any time to skip around in the
+          animation.
+        see:
+          - pause
+          - resume
+          - reverse
   -
     name: Starting & Stopping
     members:
@@ -138,3 +160,31 @@ topics:
         name: stopAndCallCompletions
         kind: method
         summary: Stop the animations early, but still call completion callbacks
+      -
+        name: pause
+        kind: method
+        summary: Pause the animations at their current points
+        description: |
+          The animation will stay frozen at the current point until a
+          balancing `resume()` is called.
+        note: |
+          `pause()` and `resume()` calls can be nested.  Only the outermost
+          `resume()` call will actually resume the animation.
+      -
+        name: resume
+        kind: method
+        summary: Resume the animations from their current points
+        description: |
+          Called to balance a previous `pause()` call.
+        note: |
+          `pause()` and `resume()` calls can be nested.  Only the outermost
+          `resume()` call will actually resume the animation.
+      -
+        name: reverse
+        kind: method
+        summary: Reverse the animations from their current points back to its
+          original starting point.
+        description: |
+          Reversing will also update the underlying `layer` models so they match
+          the new animation ending values, which were the original starting
+          values.

@@ -547,9 +547,6 @@ JSClass("UILayer", JSObject, {
         if (transaction && !(key in this.animationsByKey)){
             var animation = UIBasicAnimation.initWithKeyPath(key);
             animation.fromValue = this[key];
-            animation.duration = transaction.duration;
-            animation.delay = transaction.delay;
-            animation.timingFunction = transaction.timingFunction;
             this.addAnimationForKey(animation, key);
             transaction.addAnimation(animation);
         }

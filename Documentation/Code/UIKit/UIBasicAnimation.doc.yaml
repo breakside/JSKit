@@ -1,0 +1,139 @@
+kind: class
+introduced: "1.0.0"
+inherits: UIPropertyAnimation
+summary: The main animation class used by `UILayer` when it creates animations of
+  property changes.
+description: |
+  You typically won't need to create these kind of animation classes directly,
+  as they are created implicitly by `UILayer`.
+
+  Higher level animators like `UIViewPropertyAnimator` are easier to use.
+
+  Implicit Animations
+  ===================
+  Anytime you change a `UILayer` property when a `UIAnimationTransaction` is
+  active, the layer will create an `UIBasicAnimation` automatically for the
+  property change.
+
+  ````
+  var layer = UILayer.init();
+  layer.position = JSPoint(0, 0);
+  // ... add layer to display tree
+
+  UIAnimationTransaction.begin();
+  layer.position = JSPoint()
+  UIAnimationTransaction.commit();
+  ````
+topics:
+  -
+    name: Creating a Basic Animation
+    members:
+      -
+        name: initWithKeyPath
+        kind: init
+        summary: Create an animator for the given `UILayer` key path
+        arguments:
+          -
+            name: keyPath
+            type: String
+            summary: The layer property name, possibly including dots to refer
+              to properties of layer properties, like `"position.x"`.
+
+              Defaults `timingFunction` to `UIAnimation.Timing.linear`.
+  -
+    name: Timing
+    members:
+      -
+        name: timingFunction
+        type: UIAnimation.Timing
+        summary: The timing function to use for this animation
+        description: |
+          The timing function controls how the animation progresses.
+
+          For example, a linear timing function (the default) makes it look
+          like things move at a constant speed.  Other functions can cause
+          things to move slowly at first and then speed up, or start fast and
+          then slow down.
+        note: In addition to the predefined timing functions, you can also
+          provide your own.
+      -
+        name: duration
+        type: Number
+        summary: The duration of the animation, in seconds
+      -
+        name: delay
+        type: Number
+        summary: The time in seconds to wait before starting the animation
+  -
+    name: Values
+    members:
+      -
+        name: fromValue
+        type: any
+        summary: The starting value of the property being animated
+      -
+        name: toValue
+        type: any
+        summary: The ending value of the property being animated
+        description: |
+          If the `toValue` is `null` when the animation starts, it will be
+          automatically pulled from the layer using the propertie's current
+          value.
+  -
+    name: Updating
+    members:
+      -
+        name: updateForTime
+        kind: method
+        summary: Update the layer's property based on the current time
+        arguments:
+          -
+            name: time
+            type: Number
+            summary: The global time in seconds kept by the display server
+        description: |
+          A basic animation take the current time and calculates a percentage of
+          how much of the animation's timeline has elapsed.
+
+          That percentage is then passed to the `timingFunction` for a number
+          that can be used to interpolate between `fromValue` and `toValue`.
+      -
+        name: percentComplete
+        type: Number
+        summary: How far the animation is along its duration
+        description: |
+          You can set the percent complete at any time to skip around in the
+          animation.
+        see:
+          - pause
+          - resume
+          - reverse
+      -
+        name: pause
+        kind: method
+        summary: Pause the animation at its current point
+        description: |
+          The animation will stay frozen at the current point until a
+          balancing `resume()` is called.
+        note: |
+          `pause()` and `resume()` calls can be nested.  Only the outermost
+          `resume()` call will actually resume the animation.
+      -
+        name: resume
+        kind: method
+        summary: Resume the animation from its current point
+        description: |
+          Called to balance a previous `pause()` call.
+        note: |
+          `pause()` and `resume()` calls can be nested.  Only the outermost
+          `resume()` call will actually resume the animation.
+      -
+        name: reverse
+        kind: method
+        summary: Reverse the animation from its current point back to its
+          original starting point.
+        description: |
+          Reversing a basic animation will swap the `fromValue` and `toValue`.
+
+          It will also update the underlying `layer` model so it matches the 
+          new `toValue` (which was the original `fromValue`).
