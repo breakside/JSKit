@@ -96,6 +96,9 @@ UIAnimation.interpolationForValues = function(from, to){
         }
         return UIAnimation.interpolateNull;
     }
+    if (from.animationInterpolation){
+        return from.animationInterpolation;
+    }
     return UIAnimation.interpolateNull;
 };
 

@@ -372,6 +372,65 @@ JSClass("UIAnimationTests", TKTestSuite, {
         TKAssertFloatEquals(color3.components[1], 0.5);
         TKAssertFloatEquals(color3.components[2], 0.75);
         TKAssertFloatEquals(color3.components[3], 0.0);
+    },
+
+    testInterpolationForValues: function(){
+        var interpolation = UIAnimation.interpolationForValues(null, null);
+        TKAssertExactEquals(interpolation, UIAnimation.interpolateNull);
+
+        interpolation = UIAnimation.interpolationForValues(1, null);
+        TKAssertExactEquals(interpolation, UIAnimation.interpolateNull);
+
+        interpolation = UIAnimation.interpolationForValues(null, 1);
+        TKAssertExactEquals(interpolation, UIAnimation.interpolateNull);
+
+        interpolation = UIAnimation.interpolationForValues(undefined, undefined);
+        TKAssertExactEquals(interpolation, UIAnimation.interpolateNull);
+
+        interpolation = UIAnimation.interpolationForValues(1, undefined);
+        TKAssertExactEquals(interpolation, UIAnimation.interpolateNull);
+
+        interpolation = UIAnimation.interpolationForValues(undefined, 1);
+        TKAssertExactEquals(interpolation, UIAnimation.interpolateNull);
+
+        interpolation = UIAnimation.interpolationForValues(1, 2);
+        TKAssertExactEquals(interpolation, UIAnimation.interpolateNumber);
+
+        interpolation = UIAnimation.interpolationForValues(JSPoint(0,0), JSPoint(1,1));
+        TKAssertExactEquals(interpolation, UIAnimation.interpolatePoint);
+
+        interpolation = UIAnimation.interpolationForValues(JSSize(0,0), JSSize(1,1));
+        TKAssertExactEquals(interpolation, UIAnimation.interpolateSize);
+
+        interpolation = UIAnimation.interpolationForValues(JSRect(0,0,10,10), JSRect(1,1,20,20));
+        TKAssertExactEquals(interpolation, UIAnimation.interpolateRect);
+
+        interpolation = UIAnimation.interpolationForValues(JSAffineTransform(1,0,0,1,0,0), JSAffineTransform(2,0,0,2,20,30));
+        TKAssertExactEquals(interpolation, UIAnimation.interpolateAffineTransform);
+
+        interpolation = UIAnimation.interpolationForValues(JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.gray, [1]), JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.gray, [0]));
+        TKAssertExactEquals(interpolation, UIAnimation.interpolate1Color);
+
+        interpolation = UIAnimation.interpolationForValues(JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.graya, [1,0]), JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.graya, [0,0.5]));
+        TKAssertExactEquals(interpolation, UIAnimation.interpolate2Color);
+
+        interpolation = UIAnimation.interpolationForValues(JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [1,0,1]), JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0,1,0.5]));
+        TKAssertExactEquals(interpolation, UIAnimation.interpolate3Color);
+
+        interpolation = UIAnimation.interpolationForValues(JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgba, [1,0,1,1]), JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgba, [0,1,0.5,1]));
+        TKAssertExactEquals(interpolation, UIAnimation.interpolate4Color);
+
+        var fn = function(from, to, progress){ return from; };
+        var from = {animationInterpolation: fn};
+        var to = {animationInterpolation: fn};
+
+        interpolation = UIAnimation.interpolationForValues(from, to);
+        TKAssertExactEquals(interpolation, fn);
+
+        from = {};
+        to = {};
+        interpolation = UIAnimation.interpolationForValues(from, to);
+        TKAssertExactEquals(interpolation, UIAnimation.interpolateNull);
     }
 
 });

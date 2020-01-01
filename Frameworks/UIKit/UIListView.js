@@ -1205,9 +1205,9 @@ JSClass("UIListView", UIScrollView, {
                 listView._animatingEdit = null;
             });
             animator.start();
-            // if (edit.animationStartPercentage){
-            //     animator.percentComplete = edit.animationStartPercentage;
-            // }
+            if (edit.animationStartPercentage){
+                animator.percentComplete = edit.animationStartPercentage;
+            }
         }else{
             animations();
             completion();
