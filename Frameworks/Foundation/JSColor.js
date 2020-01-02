@@ -1,5 +1,6 @@
 // #import "JSObject.js"
-/* global JSClass, JSObject, JSCustomProperty, JSColor, JSReadOnlyProperty */
+// #import "CoreTypes.js"
+/* global JSClass, JSObject, JSCustomProperty, JSColor, JSRange, JSReadOnlyProperty */
 'use strict';
 
 (function(){
@@ -89,8 +90,18 @@ JSClass('JSColor', JSObject, {
     },
 
     initWithSpec: function(spec, values){
+        var components;
         if (values.rgba){
-            var components = values.rgba.parseNumberArray();
+            if (values.rgba.startsWith("#")){
+                components = [
+                    parseInt(values.rgba.substringInRange(JSRange(1,2)) || "0", 16),
+                    parseInt(values.rgba.substringInRange(JSRange(3,2)) || "0", 16),
+                    parseInt(values.rgba.substringInRange(JSRange(5,2)) || "0", 16),
+                    (parseInt(values.rgba.substringInRange(JSRange(7,2)) || "FF", 16)) / 255
+                ];
+            }else{
+                components = values.rgba.parseNumberArray();
+            }
             if (components.length > 0){
                 components[0] = components[0] / 255;
             }
