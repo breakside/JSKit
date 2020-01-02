@@ -330,3 +330,24 @@ article.doc > section.return > dl.promise > dt{
 article.doc > section.return > dl.promise > dd > p{
     margin-top: 0;
 }
+
+article.doc > section.variations > ul{
+    padding: 0;
+}
+
+article.doc > section.variations > ul > li{
+    list-style-type: none;
+}
+
+article.doc > section.variations > ul > li > code{
+    font-size: 1em;
+}
+
+article.doc > section.variations > ul > li > a{
+    font-weight: 400;
+}
+
+article.doc > section.variations > ul > li > p{
+    margin-top: 5px;
+    margin-left: 20px;
+}

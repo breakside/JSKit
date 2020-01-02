@@ -22,7 +22,8 @@ topics:
       -
         name: resume
         kind: method
-        type: Promise?
+        type: Promise
+        nullable: true
         promise:
           resolve:
             type: JSURLResponse

@@ -229,11 +229,21 @@ topics:
                 kind: method
                 summary: Called during window initialization to give the styler
                   a chance to create views required for styling
+                arguments:
+                  -
+                    name: window
+                    type: UIWindow
+                    summary: The window to style
               -
                 name: updateWindow
                 kind: method
                 summary: Called when something changes that requires the styler
                   to redaw
+                arguments:
+                  -
+                    name: window
+                    type: UIWindow
+                    summary: The window to style
           -
             name: Window Layout
             members:
@@ -242,6 +252,11 @@ topics:
                 kind: method
                 summary: Called as part of a `UIWindow`'s `layoutSubviews`
                   routine, to give the styler a change to adjust its layout.
+                arguments:
+                  -
+                    name: window
+                    type: UIWindow
+                    summary: The window to layout
           -
             name: Toolbar
             members:

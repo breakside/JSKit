@@ -16,7 +16,7 @@ JSClass("UIOutlineViewCell", UIListViewCell, {
         UIOutlineViewCell.$super._commonCellInit.call(this);
         var buttonStyler = UIButtonImageStyler.initWithColor(JSColor.blackColor);
         this._disclosureButton = UIButton.initWithStyler(buttonStyler);
-        this._disclosureButton.addTargetedAction(this, this._toggleExpanded);
+        this._disclosureButton.addAction("_toggleExpanded", this);
         this._contentView.addSubview(this._disclosureButton);
         this._titleInsets = JSInsets(0, 5, 0, 10);
     },

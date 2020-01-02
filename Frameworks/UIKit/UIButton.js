@@ -194,7 +194,7 @@ JSClass("UIButton", UIControl, {
     mouseUp: function(event){
         if (this.enabled){
             if (this.active){
-                this.sendActionsForEvent(UIControl.Event.primaryAction, event);
+                this.sendActionsForEvents(UIControl.Event.primaryAction, event);
                 this.active = false;
             }
             var location = event.locationInView(this);

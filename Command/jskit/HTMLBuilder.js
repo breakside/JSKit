@@ -384,6 +384,7 @@ JSClass("HTMLBuilder", Builder, {
 
     _copyWWWEntry: async function(entry, wwwPath, manifestConfiguration){
         let toURL = this.wwwURL.appendingPathComponent(wwwPath);
+        this.printer.setStatus("Copying %s...".sprintf(toURL.lastPathComponent));
         if (entry.itemType == JSFileManager.ItemType.directory){
             let entries = await this.fileManager.contentsOfDirectoryAtURL(entry.url);
             for (let i = 0, l = entries.length; i < l; ++i){
@@ -686,6 +687,7 @@ JSClass("HTMLBuilder", Builder, {
     // MARK: - Nginx Conf
 
     bundleConf: async function(){
+        this.printer.setStatus("Copying nginx conf...");
         var params = {
             BUILD_ID: this.buildId,
             WORKER_PROCESSES: this.arguments.workers,
@@ -718,12 +720,14 @@ JSClass("HTMLBuilder", Builder, {
     // MARK: - Info & License
 
     copyInfo: async function(){
+        this.printer.setStatus("Copying Info...");
         var infoName = this.project.infoURL.lastPathComponent;
         var infoURL = this.bundleURL.appendingPathComponent(infoName);
         await this.fileManager.copyItemAtURL(this.project.infoURL, infoURL);
     },
 
     copyLicense: async function(){
+        this.printer.setStatus("Copying license...");
         var licenseName = this.project.licenseFilename;
         var originalURL = this.project.url.appendingPathComponent(licenseName);
         var licenseURL = this.bundleURL.appendingPathComponent(licenseName);

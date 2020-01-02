@@ -165,6 +165,9 @@ JSClass("UIMenu", JSObject, {
     },
 
     _udpateItemEnabled: function(item){
+        if (typeof(item.action) === 'function'){
+            return;
+        }
         var target = item.target;
         if (target === null){
             target = UIApplication.shared.firstTargetForAction(item.action, this._contextTarget, item);

@@ -172,7 +172,7 @@ JSClass("UIToolbarView", UIView, {
         var button = UIButton.initWithStyler(styler);
         button.imageRenderMode = UIImageView.RenderMode.template;
         button.image = images.toolbarOverflow;
-        button.addTargetedAction(this, this._showOverflowMenu);
+        button.addAction("_showOverflowMenu", this);
         this.addSubview(button);
         return button;
     },

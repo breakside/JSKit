@@ -174,43 +174,57 @@ topics:
             name: action
             type: String
             summary: The method name to invoke on the responder
-        description: |
-          The action will be forwarded to the `firstTargetForAction(action)`.
-
-          The sender of the action will be this `UIApplication`.
-      -
-        name: sendAction
-        kind: method
-        summary: Send an action to the target
-        arguments:
-          -
-            name: action
-            type: String
-            summary: The method name to invoke on the responder
           -
             name: target
             type: UIResponder
-            summary: The responder for the action
-        description: |
-          The sender of the action will be this `UIApplication`
-      -
-        name: sendAction
-        kind: method
-        summary: Send an action to the target
-        arguments:
-          -
-            name: action
-            type: String
-            summary: The method name to invoke on the responder
-          -
-            name: target
-            type: UIResponder
-            summary: The responder for the action.  If `null`, use the result
-              of `firstTargetForAction(action)`
+            default: "null"
+            summary: The optional responder for the action.  If `null`, use the result
+              of `firstTargetForAction(action)`.
           -
             name: sender
             type: any
-            summary: The sender of the action
+            default: "this"
+            summary: The optional sender of the action.  If unspecified, use 
+              this `UIApplication`.
+          -
+            name: event
+            type: UIEvent
+            default: "null"
+            summary: The optional event that triggered the action.
+        description: |
+          If no target is specified, the application will search the responder
+          chain to find a suitable target responder.  This search is done
+          via `firstTargetForAction()`.
+      -
+        name: sendAction
+        kind: method
+        suffix: function
+        summary: Invoke an action function with the given target
+        arguments:
+          -
+            name: action
+            type: function
+            summary: The action function to invoke
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when inoking the action
+          -
+            name: sender
+            type: any
+            default: "this"
+            summary: The optional sender of the action.  If unspecified, use 
+              this `UIApplication`.
+          -
+            name: event
+            type: UIEvent
+            default: "null"
+            summary: The optional event that triggered the action.
+        description: |
+          In addition to accepting actions in the form of method names,
+          `UIApplication` also accepts `function` objects that can be invoked
+          directly.  In this case, the responder chain is not considered.
       -
         name: firstTargetForAction
         kind: method

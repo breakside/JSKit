@@ -707,7 +707,7 @@ JSClass("UITextField", UIControl, {
             this.delegate.textFieldDidChange(this);
         }
         this._didChange = true;
-        this.sendActionsForEvent(UIControl.Event.editingChanged);
+        this.sendActionsForEvents(UIControl.Event.editingChanged);
         this.didChangeValueForBinding('text');
         this.didChangeValueForBinding('attributedText');
     },
@@ -763,7 +763,7 @@ JSClass("UITextField", UIControl, {
         this._updateAccessoryViewHidden(this._rightAccessoryView, this._rightAccessoryVisibility);
         this._localEditor.didBecomeFirstResponder(this.window && this.window.isKeyWindow, !this._isHandlingMouseDown);
         this._didChange = false;
-        this.sendActionsForEvent(UIControl.Event.editingDidBegin);
+        this.sendActionsForEvents(UIControl.Event.editingDidBegin);
     },
 
     resignFirstResponder: function(){
@@ -771,11 +771,11 @@ JSClass("UITextField", UIControl, {
         this._updateAccessoryViewHidden(this._leftAccessoryView, this._leftAccessoryVisibility);
         this._updateAccessoryViewHidden(this._rightAccessoryView, this._rightAccessoryVisibility);
         this._localEditor.didResignFirstResponder();
+        var events = UIControl.Event.editingDidEnd;
         if (this._didChange){
-            this.sendActionsForEvent(UIControl.Event.primaryAction);
-            this.sendActionsForEvent(UIControl.Event.valueChanged);
+            events |= UIControl.Event.primaryAction | UIControl.Event.valueChanged;
         }
-        this.sendActionsForEvent(UIControl.Event.editingDidEnd);
+        this.sendActionsForEvents(events);
     },
 
     windowDidChangeKeyStatus: function(){
@@ -874,8 +874,7 @@ JSClass("UITextField", UIControl, {
                 this.delegate.textFieldDidReceiveEnter(this);
             }
             if (this._didChange){
-                this.sendActionsForEvent(UIControl.Event.primaryAction);
-                this.sendActionsForEvent(UIControl.Event.valueChanged);
+                this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
                 this._didChange = false;
             }
         }

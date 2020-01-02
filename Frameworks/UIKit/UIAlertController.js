@@ -85,12 +85,12 @@ JSClass("UIAlertController", UIViewController, {
         insets.left += this._padding;
         insets.right += this._padding;
         button.titleInsets = insets;
-        button.addTargetedAction(this, function(){
+        button.addAction(function(){
             if (action.action){
                 action.action.call(action.target);
             }
             this.dismiss();
-        });
+        }, this);
         switch (action.style){
             case UIAlertAction.Style.destructive:
                 button.titleLabel.font = button.titleLabel.font.fontWithWeight(JSFont.Weight.bold);

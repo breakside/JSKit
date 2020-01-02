@@ -16,8 +16,9 @@ description: |
 
   Toolbar Item Actions
   ====================
-  Toolbar items perform `action`(UIToolbarItem.action)s by name, via the
-  `sendAction()`(UIApplication.sendAction) call to the running `UIApplication`.
+  Typically, toolbar items perform `action`(UIToolbarItem.action)s by name, via
+  the `sendAction()`(UIApplication.sendAction) call to the running
+  `UIApplication`.
 
   If a specific `target`(UIToolbarItem.target) for the action is not set,
   the action will go to the window's `firstResponder`(UIWindow.firstResponder),
@@ -26,12 +27,9 @@ description: |
   A responder handles an action if it has a method that is named the same as
   the `action`(UIToolbarItem.action) string.
 
-  In this way, toolbar actions are simiar to `UIMenu` actions, and in many
-  cases can call the same action.
-
-  *Note, this action behavior is different from how things work in `UIControl`s
-  like `UIButton`s, which use `function` objects instead of a function names
-  as their actions and always have specified targets*
+  Alternatively, an `action`(UIToolbarItem.action) can be provided as a
+  anonymous `function` object that gets invoked directly without considering
+  the responder chain.
 
   Automatic Item Enabling
   =======================

@@ -500,11 +500,20 @@ JSClass("DocComponent", JSObject, {
     },
 
     childForName: function(name, excludingChild){
+        var candidates = [];
         for (let i = 0, l = this.children.length; i < l; ++i){
             let child = this.children[i];
-            if (child !== excludingChild && child.name == name){
-                return child;
+            if (child !== excludingChild){
+                if (child.uniqueName === name){
+                    return child;
+                }
+                if (child.name == name){
+                    candidates.push(child);
+                }
             }
+        }
+        if (candidates.length > 0){
+            return candidates[0];
         }
         return null;
     },
@@ -575,6 +584,18 @@ JSClass("DocComponent", JSObject, {
             }
         }
         return null;
+    },
+
+    variations: function(){
+        var siblings = this.parent.children;
+        var variations = [];
+        for (let i = 0, l = siblings.length; i < l; ++i){
+            let sibling = siblings[i];
+            if (sibling !== this && sibling.name === this.name){
+                variations.push(sibling);
+            }
+        }
+        return variations;
     },
 
     // --------------------------------------------------------------------

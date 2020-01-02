@@ -1097,7 +1097,7 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
         closeButton.setImageForState(this.closeButtonImages.normal, UIControl.State.normal);
         closeButton.setImageForState(this.closeButtonImages.over, UIControl.State.over);
         closeButton.setImageForState(this.closeButtonImages.active, UIControl.State.active);
-        closeButton.addTargetedAction(window, window.close);
+        closeButton.addAction("close", window);
 
         var titleBacking = UIView.init();
         titleBacking.borderWidth = 1;

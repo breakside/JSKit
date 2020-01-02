@@ -179,8 +179,7 @@ JSClass("UIPopupButton", UIControl, {
         this._updateTitleForItem(item);
         if (this._selectedIndex != item.index || this.sendsActionForSelectedItem){
             this.selectedIndex = item.index;
-            this.sendActionsForEvent(UIControl.Event.primaryAction);
-            this.sendActionsForEvent(UIControl.Event.valueChanged);
+            this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
         }
         this.active = false;
         this.menu.delegate = null;

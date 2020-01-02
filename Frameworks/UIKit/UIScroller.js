@@ -131,8 +131,7 @@ JSClass("UIScroller", UIControl, {
             maxOrigin = this.bounds.size.width - this._knob.frame.size.width;
         }
         this.value = Math.min(1, Math.max(0, (origin / maxOrigin)));
-        this.sendActionsForEvent(UIControl.Event.primaryAction);
-        this.sendActionsForEvent(UIControl.Event.valueChanged);
+        this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
     },
 
     _endScrubbing: function(){
@@ -186,14 +185,12 @@ JSClass("UIScroller", UIControl, {
 
     _pageBefore: function(){
         this.value = Math.max(0, this._value - this._knobProportion);
-        this.sendActionsForEvent(UIControl.Event.primaryAction);
-        this.sendActionsForEvent(UIControl.Event.valueChanged);
+        this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
     },
 
     _pageAfter: function(){
         this.value = Math.min(1, this._value + this._knobProportion);
-        this.sendActionsForEvent(UIControl.Event.primaryAction);
-        this.sendActionsForEvent(UIControl.Event.valueChanged);
+        this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
     },
 
     getFloats: function(){
@@ -207,7 +204,7 @@ JSClass("UIScroller", UIControl, {
     },
 
     _setKnobActive: function(isKnobActive){
-        this._toggleState(UIScroller.State.knobActive, isKnobActive);
+        this.toggleStates(UIScroller.State.knobActive, isKnobActive);
     }
 
 });

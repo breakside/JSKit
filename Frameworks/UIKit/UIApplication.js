@@ -180,16 +180,23 @@ JSClass('UIApplication', UIResponder, {
         return target;
     },
 
-    sendAction: function(action, target, sender){
-        if (sender === undefined){
+    sendAction: function(action, target, sender, event){
+        if (sender === undefined || sender === null){
             sender = this;
         }
-        if (target === undefined){
-            target = null;
-        }
-        target = this.firstTargetForAction(action, target, sender);
-        if (target !== null){
-            target[action](sender);
+        if (typeof(action) === 'function'){
+            if (target === null){
+                target = undefined;
+            }
+            action.call(target, sender, event);
+        }else{
+            if (target === undefined){
+                target = null;
+            }
+            target = this.firstTargetForAction(action, target, sender);
+            if (target !== null){
+                target[action](sender, event);
+            }
         }
     },
 

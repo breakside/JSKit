@@ -90,7 +90,7 @@ JSClass("UIToolbarItem", JSObject, {
             }
         }
         if (this._view && this._view.isKindOfClass(UIControl)){
-            this._view.addTargetedAction(this, this.performAction);
+            this._view.addAction("performAction", this);
         }
     },
 
@@ -101,7 +101,7 @@ JSClass("UIToolbarItem", JSObject, {
     },
 
     validate: function(){
-        if (!this.action){
+        if (this.action === null || typeof(this.action) === 'function'){
             return;
         }
         var target = this.toolbar.window.application.firstTargetForAction(this.action, this.target, this);

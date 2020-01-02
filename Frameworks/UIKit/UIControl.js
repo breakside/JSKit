@@ -1,5 +1,5 @@
 // #import "UIView.js"
-/* global JSClass, JSObject, UIView, UIControl, JSReadOnlyProperty, JSDynamicProperty, JSRect, JSSize */
+/* global JSClass, JSObject, UIView, UIResponder, UIControl, JSReadOnlyProperty, JSDynamicProperty, JSRect, JSSize */
 'use strict';
 
 JSClass("UIControl", UIView, {
@@ -31,20 +31,24 @@ JSClass("UIControl", UIView, {
         var event;
         if (('target' in values) && ('action' in values)){
             target = spec.resolvedValue(values.target);
-            action = target[spec.resolvedValue(values.action)];
-            if (!action){
-                throw new Error("Missing action on target: %s.%s".sprintf(values.target, values.action));
+            action = spec.resolvedValue(values.action);
+            if (!target.isKindOfClass(UIResponder)){
+                throw new Error("Action target must be a UIResponder: %s.%s".sprintf(values.target, values.action));
             }
-            this.addTargetedAction(target, action);
+            this.addAction(action, target);
         }
         if ('actions' in values){
             var actionInfo;
             for (var i = 0, l = values.actions.length; i < l; ++i){
                 actionInfo = values.actions[i];
-                target = spec.resolvedValue(actionInfo.target);
-                action = target[spec.resolvedValue(actionInfo.action)];
+                if (actionInfo.target){
+                    target = spec.resolvedValue(actionInfo.target);   
+                }else{
+                    target = null;
+                }
+                action = spec.resolvedValue(actionInfo.action);
                 event = spec.resolvedEnum(actionInfo.event, this.$class.Event);
-                this.addTargetedActionForEvent(target, action, event);
+                this.addAction(action, target, event);
             }
         }
     },
@@ -96,45 +100,73 @@ JSClass("UIControl", UIView, {
 
     _actionsByEvent: null,
 
-    addTargetedAction: function(target, action){
-        this.addTargetedActionForEvent(target, action, UIControl.Event.primaryAction);
-    },
-
-    addAction: function(action){
-        this.addActionForEvent(action, UIControl.Event.primaryAction);
-    },
-
-    addTargetedActionForEvent: function(target, action, controlEvent){
-        return this.addActionForEvent(action.bind(target), controlEvent);
-    },
-
-    addActionForEvent: function(action, controlEvent){
-        var actions = this._actionsByEvent[controlEvent];
-        if (!actions){
-            actions = [];
-            this._actionsByEvent[controlEvent] = actions;
+    addAction: function(action, target, controlEvents){
+        if (target === undefined){
+            target = null;
         }
-        actions.push(action);
-        return action;
+        if (controlEvents === undefined){
+            controlEvents = UIControl.Event.primaryAction;
+        }
+        var event = 0x1;
+        while (controlEvents > 0){
+            if (controlEvents & 0x1){
+                var actions = this._actionsByEvent[event];
+                if (!actions){
+                    actions = [];
+                    this._actionsByEvent[event] = actions;
+                }
+                actions.push({action: action, target: target});
+            }
+            controlEvents >>>= 1;
+            event <<= 1;
+        }
     },
 
-    removeActionForEvent: function(action, controlEvent){
-        var actions = this._actionsByEvent[controlEvent];
-        if (actions){
-            for (var i = actions.length - 1; i >= 0; --i){
-                if (actions[i] === action){
-                    actions.splice(i, 1);
+    removeAction: function(action, target, controlEvents){
+        if (target === undefined){
+            target = null;
+        }
+        if (controlEvents === undefined){
+            controlEvents = UIControl.Event.primaryAction;
+        }
+        var event = 0x1;
+        while (controlEvents > 0){
+            if (controlEvents & 0x1){
+                var actions = this._actionsByEvent[event];
+                if (actions){
+                    for (var i = actions.length - 1; i >= 0; --i){
+                        if (actions[i] === action && actions[i].target === target){
+                            actions.splice(i, 1);
+                        }
+                    }
                 }
             }
+            controlEvents >>>= 1;
+            event <<= 1;
         }
     },
 
-    sendActionsForEvent: function(controlEvent, uiEvent){
-        var actions = this._actionsByEvent[controlEvent];
-        if (actions){
-            for (var i = 0; i < actions.length; ++i){
-                actions[i](this, uiEvent);
+    sendActionsForEvents: function(controlEvents, uiEvent){
+        var event = 0x1;
+        while (controlEvents > 0){
+            if (controlEvents & 0x1){
+                var actions = this._actionsByEvent[event];
+                if (actions){
+                    for (var i = 0; i < actions.length; ++i){
+                        this.sendAction(actions[i].action, actions[i].target, uiEvent);
+                    }
+                }
             }
+            controlEvents >>>= 1;
+            event <<= 1;
+        }
+    },
+
+    sendAction: function(action, target, uiEvent){
+        if (typeof(action) === 'function'){
+            action.call(target, this, uiEvent);
+        }else{
+            this.window.application.sendAction(action, target, this, uiEvent);
         }
     },
 
@@ -168,7 +200,7 @@ JSClass("UIControl", UIView, {
         }
     },
 
-    _toggleState: function(flag, on){
+    toggleStates: function(flag, on){
         var newState = this._state;
         if (on){
             newState |= flag;
@@ -183,7 +215,7 @@ JSClass("UIControl", UIView, {
     },
 
     setEnabled: function(isEnabled){  
-        this._toggleState(UIControl.State.disabled, !isEnabled);
+        this.toggleStates(UIControl.State.disabled, !isEnabled);
         if (!isEnabled && this.window && this.window.firstResponder === this){
             this.window.firstResponder = null;
         }
@@ -194,7 +226,7 @@ JSClass("UIControl", UIView, {
     },
 
     setOver: function(isOver){
-        this._toggleState(UIControl.State.over, isOver);
+        this.toggleStates(UIControl.State.over, isOver);
     },
 
     isActive: function(){
@@ -202,7 +234,7 @@ JSClass("UIControl", UIView, {
     },
 
     setActive: function(isActive){
-        this._toggleState(UIControl.State.active, isActive);
+        this.toggleStates(UIControl.State.active, isActive);
     },
 
     isDropTarget: function(){
@@ -210,7 +242,7 @@ JSClass("UIControl", UIView, {
     },
 
     setDropTarget: function(isDropTarget){
-        this._toggleState(UIControl.State.dropTarget, isDropTarget);
+        this.toggleStates(UIControl.State.dropTarget, isDropTarget);
     },
 
     // MARK: - Mouse Tracking

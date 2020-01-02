@@ -224,8 +224,7 @@ JSClass("UISegmentedControl", UIControl, {
             return;
         }
         this.selectedSegmentIndex = segmentIndex;
-        this.sendActionsForEvent(UIControl.Event.primaryAction);
-        this.sendActionsForEvent(UIControl.Event.valueChanged);
+        this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
     },
 
     // --------------------------------------------------------------------

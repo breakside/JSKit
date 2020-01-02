@@ -260,11 +260,6 @@ topics:
         type: boolean
         summary: Is the codepoint a "format" when considering
           word breaks?
-      -
-        name: wordBreakFormat
-        type: boolean
-        summary: Is the codepoint a "format" when considering
-          word breaks?
   -
     name: Grapheme Clusters
     summary: Properties related to the Unicode Grapheme Clusters logic.  Refer

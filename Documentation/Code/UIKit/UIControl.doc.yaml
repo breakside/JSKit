@@ -1,0 +1,773 @@
+kind: class
+introduced: "1.0.0"
+inherits: UIView
+summary: The abstract base class for UI controls like buttons and text fields
+description: |
+  Controls share a common set of features like sending actions and changing
+  states.
+
+  These similarities are included in `UIControl` so subclasses can pick them up
+  without re-implementing them.
+
+  Some of the standard controls include:
+
+  - `UIButton` - a basic button
+  - `UIPopupButton` - a button with a popup menu
+  - `UICheckbox` - A multi-selection control
+  - `UIRadioButton` and `UIRadioGroup` - a single selection control
+  = `UISegmentedControl` - A tab-like control
+  - `UITextField` - a single line text field
+
+  Performing Actions
+  ==================
+  Controls are designed for user interaction, and therefore have a concept
+  of "actions" that the user can perform.
+
+  Actions functions that get called when the user interacts
+  with a control in a certain way.  For example, `UIButton` fires an action
+  when it is clicked.
+
+  Actions can take one of two forms:
+
+  1. A method name to call on a `UIResponder`
+  2. An `function` object to invoke directly
+
+  Actions are sent through `UIApplication.sendAction()`, which can take either
+  form.
+
+  Calling code registers actions via the `addAction()` method.
+
+  Control States
+  ==============
+  All controls share the concept of states, such as `enabled`, hovered `over`,
+  and `active`.
+
+  As these states change, the control's visual style changes to make the user
+  aware of the control's state.
+
+  Styling Controls
+  ================
+  Controls are styled via a `UIControlStyler` instance.
+
+  The `styler` of each control separates out the look of the control from its
+  behaviors, allowing a `UIButton`, for example, to be styled completely
+  differently in differnet places, but still behave the same.
+
+  A single styler can be used for multiple controls of the same type, making
+  it possible to style a set of `UIButtons`, for example, without having to
+  resort to creating `UIButton` subclasses for styling.
+topics:
+  -
+    name: Creating a Control
+    members:
+      -
+        name: initWithStyler
+        kind: init
+        summary: Create a control that uses the given styler
+        arguments:
+          -
+            name: styler
+            type: UIControlStyler
+            summary: The styler to use
+        description: |
+          Since `UIControl` is an abstract class, this init method should only
+          be called on concrete subclasses like `UIButton`.
+      -
+        name: commonControlInit
+        kind: method
+        summary: Overridden by subclasses to provide specific initialization
+        description: |
+          Subclasses should always call the `$super` implementation.
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties that can be included in spec files for any
+          `UIControl`
+        topics:
+          -
+            name: Styling
+            members:
+              -
+                name: styler
+                type: UIControlStyler
+                summary: The styler to use
+                description: |
+                  ````
+                  TestButton:
+                    class: UIButton
+                    title: Test
+                    styler: /PrimaryButtonStyler
+
+                  PrimaryButtonStyler:
+                    class: UIButtonCustomStyler
+                    normalBackgroundColor:
+                      rgba: 54,163,250
+                  ````
+          -
+            name: Actions
+            members:
+              -
+                name: action
+                type: String
+                summary: The method name to call on `target` when the control's
+                  \`primaryAction` is performed
+                description: |
+                  ````
+                  MainViewController:
+                    class: MainViewController
+                    view:
+                      subviews:
+                        - /TestButton
+
+                  TestButton:
+                    class: UIButton
+                    title: Test
+                    target: /MainViewController
+                    action: test
+                  ````
+
+                  ````
+                  JSClass("MainViewController", UIViewController, {
+
+                    test: function(sender){
+                      test.run!
+                    }
+
+                  });
+                  ````
+
+                  If a target is not provided, the application will search the
+                  responder chain for an object that handles to the action. See
+                  `UIApplication.sendAction()` for more information.
+                note: If you need to specify multiple actions, or actions for events
+                  other than `primaryAction`, use `actions`.
+              -
+                name: target
+                type: UIResponder
+                summary: The object on which to call the `action` method
+                description: |
+                  If a target is not provided, the application will search the
+                  responder chain for an object that handles to the action. See
+                  `UIApplication.sendAction()` for more information.
+              -
+                name: ActionSpec
+                kind: dictionary
+                summary: Describes a control action in a spec file
+                topics:
+                  -
+                    name: Properties
+                    members:
+                      -
+                        name: action
+                        type: String
+                        summary: The method name to call on `target` when the
+                          control's `event` is performed
+                      -
+                        name: target
+                        type: UIResponder
+                        summary: The object on which to call the `action` method
+                        description: |
+                          If a target is not provided, the application will search the
+                          responder chain for an object that handles to the action. See
+                          `UIApplication.sendAction()` for more information.
+                      -
+                        name: event
+                        type: Event
+                        summary: The even that triggers this action
+                        description: |
+                          Can be specified with just the name of the enum value:
+
+                          ````
+                          MainViewController:
+                            class: MainViewController
+                            view:
+                              subviews:
+                                - /SearchField
+
+                          SearchField:
+                            class: UITextField
+                            placeholder: Search
+                            target: /MainViewController
+                            actions:
+                              - {action: searchEntered, event: editingDidBegin, target: /MainViewController}
+                              - {action: searchExited, event: editingDidEnd, target: /MainViewController}
+                              - {action: search, event: primaryAction, target: /MainViewController}
+                          ````
+                        note: The spec file does not support bitwise operations,
+                          so you must specify one line for each event, even if
+                          the actions and targets are identical.
+              -
+                name: actions
+                type: ActionSpec[]
+                summary: A list of actions to add to the control
+                description: |
+                  If the shorthand registration of a single `action` is
+                  insufficient, you can register multiple actions with this
+                  property.
+
+                  This is also the property you need to use if you want to register
+                  an action for an event other than `primaryAction`.
+
+                  ````
+                  MainViewController:
+                    class: MainViewController
+                    view:
+                      subviews:
+                        - /SearchField
+
+                  SearchField:
+                    class: UITextField
+                    placeholder: Search
+                    target: /MainViewController
+                    actions:
+                      - {action: searchEntered, event: editingDidBegin, target: /MainViewController}
+                      - {action: searchExited, event: editingDidEnd, target: /MainViewController}
+                      - {action: search, event: primaryAction, target: /MainViewController}
+                  ````
+  -
+    name: Styling
+    members:
+      -
+        name: UIControlStyler
+        kind: class
+        summary: The abstract base class for all control stylers
+        topics:
+          -
+            name: Initializing
+            members:
+              -
+                name: initializeControl
+                kind: method
+                summary: Called when a control is created
+                arguments:
+                  -
+                    name: control
+                    type: UIControl
+                    summary: The control to style
+                description: |
+                  Gives the styler an opportunity to create views or layers
+                  needed for styling and attach them to the control.
+          -
+            name: Updating
+            members:
+              -
+                name: updateControl
+                kind: method
+                summary: Called when a control's needs to be updated
+                arguments:
+                  -
+                    name: control
+                    type: UIControl
+                    summary: The control to style
+                description: |
+                  For a control, an update is typically required anytime its
+                  `state` changes.
+              -
+                name: drawControlLayerInContext
+                kind: method
+                summary: Called when the control needs to do cutsom drawing
+                arguments:
+                  -
+                    name: control
+                    type: UIControl
+                    summary: The control to style
+                  -
+                    name: context
+                    type: JSContext
+                    summary: The drawing context to use
+                description: |
+                  Called by the control's `drawLayerInContext()` method to give
+                  the styler a chance to provide any custom drawing.
+                note: Many times a control can accomplish all the drawing it
+                  needs simply by creating views/layers and setting properties
+                  like `backgroundColor`(UIView.backgroundColor).
+          -
+            name: Layout & Sizing
+            members:
+              -
+                name: layoutControl
+                kind: method
+                summary: Called when the controls subviews need layout
+                arguments:
+                  -
+                    name: control
+                    type: UIControl
+                    summary: The control to layout
+                description: |
+                  Called by the control's `layoutSubviews` method to give the
+                  styler a chance to arrange subviews as needed.
+              -
+                name: intrinsicSizeOfControl
+                kind: method
+                type: JSSize
+                return: The size the control prefers to take
+                summary: Get the intrinsic size of the control, given this
+                  styler's layout requirements
+                arguments:
+                  -
+                    name: control
+                    type: UIControl
+                    summary: The control to size
+                description: |
+                  A control's intrinsic size depends on the style it has, which
+                  is why `UIControl` delgates to the styler for this
+                  information.
+                see:
+                  - UIView.intrinsicSize
+              -
+                name: sizeControlToFitSize
+                kind: method
+                summary: Size the control to fit within the given maximum size
+                arguments:
+                  -
+                    name: control
+                    type: UIControl
+                    summary: The control to size
+                  -
+                    name: maxSize
+                    type: JSSize
+                    summary: The constraints to consider when sizing the control
+      -
+        name: styler
+        type: UIControlStyler
+        summary: The styler that will draw the control
+        description: |
+          Stylers allow for separation between the control's model and its
+          presentation.
+
+          One styler can be resused for many controls of the same type,
+          reducing the need to subclass a control like `UIButton` to apply a
+          custom style.
+
+          `UIControlStyler` is provided as an abstract base class for subclasses
+          to extend into specific stylers for their needs.
+      -
+        name: stylerProperties
+        type: dictionary
+        summary: A dictionary that a styler can use to store properties
+          relating to styling
+        description: |
+          Often a styler will need to create views or layers to help its
+          styling.  Since a single styler is used for multiple controls,
+          the styler can't store those control-specific properties on its own.
+
+          So, `stylerProperties` is a place on each `UIControl` that a styler
+          can store control-specific objects.
+  -
+    name: Actions
+    members:
+      -
+        name: Event
+        kind: enum
+        summary: The possible events that a control can send
+        description: |
+          Control events can be combined with bitwise operations to represent
+          multiple events in a single value
+
+          ````
+          var event = UIControl.Event.primaryAction | UIControl.Event.valueChanged;
+          ````
+
+          Custom Events
+          =============
+          Subclasses can create custom events, but should be careful to
+          correctly set the new event values.
+
+          The first custom event for a subclass should start with
+          `firstUserEvent`.  The next should be `firstUserEvent << 1`, followed
+          by `firstUserEvent << 2`, and so on.
+
+          For example, a drawing control might define an event for each time
+          a point is added.
+          ````
+          JSClass("DrawingControl", UIControl, {
+            // ...
+          });
+
+          DrawingControl.State = {
+            pointAdded: UIControl.Event.firstUserEvent
+          };
+          ````
+
+          And if it needed more events, it might look like:
+
+          ````
+          UIScroller.State = {
+            pointAdded:   UIControl.State.firstUserEvent,
+            pointRemoved: UIControl.State.firstUserEvent << 1,
+            pointMoved:   UIControl.State.firstUserEvent << 2,
+          };
+          ````
+        options:
+          -
+            name: primaryAction
+            summary: Used for a control's main action, like a click for a button
+          -
+            name: valueChanged
+            summary: Indicates the control changed the value of the data it is
+              representing.  For something like a text field, `valueChanged`
+              may only be called when the user exits the field and the
+              value differs from when the user entered the field.
+          -
+            name: editingDidBegin
+            summary: Used when the control has an editing session, like when
+              a text field becomes the first responder and has the user's
+              focus
+          -
+            name: editingChanged
+            summary: Used when the control has an editing session, like each
+              time a character is typed in a text field
+          -
+            name: editingDidEnd
+            summary: Used when the control has an editing session, like when
+              a user leaves a text field
+          -
+            name: firstUserEvent
+            summary: The first value subclasses can use for custom events.
+              Subsequent values should be made by shifting this value left by
+              one bit.
+      -
+        name: addAction
+        kind: method
+        summary: Add an action that will be called when this control performs
+          the given event
+        arguments:
+          -
+            name: action
+            type: String
+            summary: The name of the method to invoke on a `UIResponder`
+          -
+            name: target
+            type: UIResponder
+            default: "null"
+            summary: The specific responder to call `action` on
+          -
+            name: events
+            type: Event
+            default: UIControl.Event.primaryAction
+            summary: The events that will trigger the `action`
+        description: |
+          If no `target` is specified, the application will send the action
+          to the first responder in the responder chain that can handle the
+          action.
+
+          ````
+          JSClass("MainViewController", UIViewController, {
+
+            loadView: function(){
+              var view = UIView.init();
+              var button = UIButton.init();
+              button.addAction('test', this);
+              view.addSubview(button)
+              this.view = view;
+            },
+
+            test: function(sender){
+              // called when the button is clicked
+            }
+
+          });
+          ````
+      -
+        name: addAction
+        suffix: function
+        kind: method
+        summary: Add an action function that will be called when this control
+          performs the given event
+        arguments:
+          -
+            name: action
+            type:
+              arguments:
+                -
+                  name: sender
+                  type: UIControl
+                  summary: The control that triggered the action
+                -
+                  name: event
+                  type: UIEvent
+                  summary: The UI event, if any, that triggered the action.
+                    May be null.
+            summary: A function to invoke when one of the `events` occurs
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling `action`
+          -
+            name: events
+            type: Event
+            default: UIControl.Event.primaryAction
+            summary: The events that will trigger the `action`
+        description: |
+          An alternative form of `addAction` that allows for a `function`
+          object to be used instead of a method name.
+
+          ````
+          JSClass("MainViewController", UIViewController, {
+
+            loadView: function(){
+              var view = UIView.init();
+              var button = UIButton.init();
+              button.addAction(function(){
+                // called when the button is pressed
+              }, this);
+              view.addSubview(button)
+              this.view = view;
+            }
+            
+          });
+          ````
+      -
+        name: removeAction
+        kind: method
+        summary: Remove an action that was previous added
+        arguments:
+          -
+            name: action
+            type: String
+            summary: The action name
+          -
+            name: target
+            type: UIResponder
+            default: "null"
+            summary: The target that was specified during `addAction()`
+          -
+            name: events
+            type: Event
+            default: UIControl.Event.primaryAction
+            summary: The events from which to remove the action
+      -
+        name: removeAction
+        suffix: function
+        kind: method
+        summary: Remove an action function that was previous added
+        arguments:
+          -
+            name: action
+            type: function
+            summary: The action function object
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The target that was specified during `addAction()`(addAction-function)
+          -
+            name: events
+            type: Event
+            default: UIControl.Event.primaryAction
+            summary: The events from which to remove the action
+      -
+        name: sendActionsForEvents
+        kind: method
+        summary: Call all the actions registered for the given events
+        arguments:
+          -
+            name: controlEvents
+            type: Event
+            summary: The control events that occurred
+          -
+            name: uiEvent
+            type: UIEvent
+            summary: The UI event, if any, that triggered the control event.
+              May be `null`
+        description: |
+          Calls `sendAction()` for each registered action
+      -
+        name: sendAction
+        kind: method
+        summary: Invoke an action for a target
+        arguments:
+          -
+            name: action
+            type: String
+            summary: The method name to call
+          -
+            name: target
+            type: UIResponder
+            summary: The specific responder, if any, to call `action` on
+          -
+            name: event
+            type: UIEvent
+            summary: The UI Event, if any, that triggered this action.  May be
+              \`null`
+        description: |
+          Called by `sendActionsForEvents()` for each action that was registered
+          for the event.
+
+          Uses `UIApplication.sendAction()` to inoke the action.
+      -
+        name: sendAction
+        suffix: function
+        kind: method
+        summary: Invoke an action for a target
+        arguments:
+          -
+            name: action
+            type:
+              arguments:
+                -
+                  name: sender
+                  type: UIControl
+                  summary: The control that triggered the action
+                -
+                  name: event
+                  type: UIEvent
+                  summary: The UI event, if any, that triggered the action.
+                    May be null.
+            summary: The function to invoke
+          -
+            name: target
+            type: object
+            summary: The object to use as `this` during the call
+          -
+            name: event
+            type: UIEvent
+            summary: The UI Event, if any, that triggered this action. May be
+              \`null`.
+        description: |
+          Called by `sendActionsForEvents()` for each action that was registered
+          for the event.
+
+          Uses `UIApplication.sendAction()` to inoke the action.
+  -
+    name: State
+    members:
+      -
+        name: State
+        kind: enum
+        suffix: enum
+        summary: The possible states a control can be in
+        description: |
+          Control states can be combined with bitwise operations to represent
+          multiple states in a single value
+
+          ````
+          var state = UIControl.State.over | UIControl.State.active;
+          ````
+
+          Custom States
+          =============
+          Subclasses can create custom states, but should be careful to
+          correctly set the new state values.
+
+          The first custom state for a subclass should start with
+          `firstUserState`.  The next should be `firstUserState << 1`, followed
+          by `firstUserState << 2`, and so on.
+
+          For example, here's how `UIScroller` defines a custom state of when
+          the scroll knob is active:
+          ````
+          JSClass("UIScroller", UIControl, {
+            // ...
+          });
+
+          UIScroller.State = {
+            knobActive: UIControl.State.firstUserState
+          };
+          ````
+
+          If `UIScroller` ever changed to include up and down buttons, it
+          might need more states:
+
+          ````
+          UIScroller.State = {
+            knobActive: UIControl.State.firstUserState,
+            upActive:   UIControl.State.firstUserState << 1,
+            downActive: UIControl.State.firstUserState << 2,
+          };
+          ````
+        options:
+          -
+            name: normal
+            summary: A control without any other state
+          -
+            name: over
+            summary: Set when the mouse moves over a control
+          -
+            name: active
+            summary: Set when the control is active, like when a button is
+              pressed down
+          -
+            name: disabled
+            summary: When a control is disabled and the user cannot interact
+              with it
+          -
+            name: dropTarget
+            summary: When the control is able to accept of drop during a
+              drag and drop session
+          -
+            name: firstUserState
+            summary: The first value a custom control can use for a custom
+              state.  Subsequent values shoulde be made by shifting this
+              value left by one bit.
+      -
+        name: enabled
+        type: boolean
+        summary: Is the control in an enabled state
+        description: |
+          Set this property to `false` to make a control disabled so the user
+          cannot interact with it.
+      -
+        name: over
+        type: boolean
+        summary: Is the control in an over state
+        description: |
+          Typically only read to determine if the mouse is currently over this
+          control.
+        important: The control will never set the `over` state unless
+          \`hasOverState` is `true`.
+      -
+        name: hasOverState
+        type: boolean
+        summary: Controls whether the `over` state will be tracked
+        description: |
+          By default, `UIControl` does not track mouse movements to update
+          the `over` state.
+
+          Set this to `true` if you want the control to set the `over` state.
+
+          Typically set by `styler`s automatically depending on whether or not
+          they need to style the control differently when the mouse moves over.
+        see:
+          - over
+      -
+        name: active
+        type: boolean
+        summary: Is the control in an active state
+        description:
+          Read to determine if the control is currently active, like when a
+          button is pressed or a text field is focused.
+      -
+        name: dropTarget
+        type: boolean
+        summary: Is the control in an drop target state
+        description:
+          Read to determine if the control is currently a valid drop target for
+          whatever is being dragged by the user.
+      -
+        name: state
+        type: State
+        summary: The current state of the control
+        description: |
+          The value may include multiple states combined via bitwise OR.
+
+          Typically you will not need to read or write this property
+          directly, but will instead use the named properties corresponding
+          to states like `enabled` and `active`.
+      -
+        name: toggleStates
+        kind: method
+        summary: Change the `state` by turning the given states on or off
+        arguments:
+          -
+            name: states
+            type: State
+            summary: The states to turn on or off
+          -
+            name: "on"
+            type: boolean
+            summary: Whether the states should be turned on or off
+        description: |
+          Convenience method subclasses can call to turn their custom states
+          on or off without having to perform bitwise operations themselves.

@@ -99,8 +99,8 @@ JSClass('UIScrollView', UIView, {
         this._contentInsets = JSInsets.Zero;
         this._minContentOffset = JSPoint.Zero;
         this._maxContentOffset = JSPoint.Zero;
-        this._horizontalScroller.addTargetedActionForEvent(this, this._horizontalScrollerValueChanged, UIControl.Event.valueChanged);
-        this._verticalScroller.addTargetedActionForEvent(this, this._verticalScrollerValueChanged, UIControl.Event.valueChanged);
+        this._horizontalScroller.addAction("_horizontalScrollerValueChanged", this, UIControl.Event.valueChanged);
+        this._verticalScroller.addAction("_verticalScrollerValueChanged", this, UIControl.Event.valueChanged);
         this.addSubview(this._contentView);
         this.addSubview(this._verticalScroller);
         this.addSubview(this._horizontalScroller);

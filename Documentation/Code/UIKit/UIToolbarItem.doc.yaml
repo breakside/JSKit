@@ -33,23 +33,30 @@ topics:
             summary: The intended `action` target, if any.  Use `null` if the
               \`action` should be sent to the window's
               \`firstResponder`(UIWindow.firstResponder)
+      -
+        name: initWithImage
+        kind: init
+        suffix: function
+        summary: Create a button-like item with an image using a function action
+        arguments:
+          -
+            name: image
+            type: JSImage
+            summary: The image to show on the item
+          -
+            name: action
+            type: function
+            summary: The function to call when the item is triggered
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling `action`
         description: |
-          If a specific `target` for the action is not set,
-          the action will go to the window's
-          `firstResponder`(UIWindow.firstResponder), and iterate through the
-          responder chain until a responder handles the action.
+          An alternative to specifying an `action` as a method name.
 
-          A responder handles an action if it has a method that is named the
-          same as the `action`(UIToolbarItem.action) string.
-
-          In this way, toolbar actions are simiar to `UIMenu` actions, and
-          in many cases can call the same action.
-
-        note: |
-          This action behavior is different from how things work in
-          `UIControl`s like `UIButton`s, which use `function` objects
-          instead of a function names as their actions and always have
-          specified target
+          The given `action` function will be invoked directly when the
+          item is triggered.
       -
         name: initWithView
         kind: init
@@ -72,7 +79,7 @@ topics:
               // Creating search field
               var field = UITextField.init();
               field.placeholder = "Search"
-              field.addTargetedAction(this, this.search);
+              field.addAction("search", this);
 
               // Creating an item from the field
               var searchItem = UIToolbarItem.initWithView(field)
@@ -122,7 +129,7 @@ topics:
               // Creating search field
               var field = UITextField.init();
               field.placeholder = "Search"
-              field.addTargetedAction(this, this.search);
+              field.addAction("search", this);
 
               // Creating an item from the field
               var searchItem = UIToolbarItem.initWithView(field)
@@ -153,12 +160,30 @@ topics:
 
           In this way, toolbar actions are simiar to `UIMenu` actions, and
           in many cases can call the same action.
+      -
+        name: initWithView
+        suffix: function
+        kind: init
+        summary: Create a custom item with the given view and action function
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The view to show on the item
+          -
+            name: action
+            type: function
+            summary: The function to call when the item is triggered
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling `action`
+        description: |
+          An alternative to specifying an `action` as a method name.
 
-        note: |
-          This action behavior is different from how things work in
-          `UIControl`s like `UIButton`s, which use `function` objects
-          instead of a function names as their actions and always have
-          specified targets
+          The given `action` function will be invoked directly when the
+          item is triggered.
       -
         name: initWithIdentifier
         kind: init
@@ -512,7 +537,7 @@ topics:
 
           If you need a menu item other than the default, use this property.
   -
-    name: Action
+    name: Named Actions
     members:
       -
         name: action
@@ -521,8 +546,6 @@ topics:
         description: |
           The action will be sent to `UIApplication.sendAction()` along with
           any `target`, if specified.
-        note: This is a method *name* in the form of a string, not a `function`
-          object like `UIControl` takes.
       -
         name: target
         type: UIResponder
@@ -532,6 +555,22 @@ topics:
           If `null` the action will be sent to the window's `firstResponder`
           and work its way through the responder chain until a responder
           handles the action.
+  -
+    name: Function Actions
+    members:
+      -
+        name: action
+        suffix: function
+        type: function
+        summary: A function to call when the the item is interacted with
+        description: |
+          The action will be sent to `UIApplication.sendAction()` along with
+          any `target`, if specified.
+      -
+        name: target
+        suffix: function
+        type: object
+        summary: The object to use as `this` when calling `action`(action-function)
   -
     name: Validation
     members:
