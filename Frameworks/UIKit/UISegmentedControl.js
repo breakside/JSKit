@@ -29,10 +29,10 @@ JSClass("UISegmentedControl", UIControl, {
                     item.title = spec.resolvedValue(specItem.title);
                 }
                 if (specItem.image){
-                    item.image = JSImage.initWithResourceName(specItem.image, spec.bundle);
+                    item.image = spec.resolvedValue(specItem.image, "JSImage");
                 }
                 if (specItem.selectedImage){
-                    item.selectedImage = JSImage.initWithResourceName(specItem.selectedImage, spec.bundle);
+                    item.selectedImage = spec.resolvedValue(specItem.selectedImage, "JSImage");
                 }
                 if (specItem.tooltip){
                     item.tooltip = spec.resolvedValue(specItem.tooltip);
@@ -514,7 +514,6 @@ JSClass("UISegmentedControlDefaultStyler", UISegmentedControlStyler, {
             itemView._titleLabel.textColor = titleColor;
         }
         if (itemView._imageView !== null){
-            itemView._imageView.renderMode = UIImageView.RenderMode.template;
             itemView._imageView.templateColor = titleColor;
         }
         if (itemView.isFirst()){

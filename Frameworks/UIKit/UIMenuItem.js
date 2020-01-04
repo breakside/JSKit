@@ -62,7 +62,7 @@ JSClass("UIMenuItem", JSObject, {
                 this._isAlternate = !!values.alternate;
             }
             if ('image' in values){
-                this._image = JSImage.initWithResourceName(values.image, spec.bundle);
+                this._image = spec.resolvedValue(values.image, "JSImage");
             }
         }
     },

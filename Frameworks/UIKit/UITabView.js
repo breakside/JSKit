@@ -216,10 +216,10 @@ JSClass("UITabViewItem", JSObject, {
             this.title = spec.resolvedValue(values.title);
         }
         if ('image' in values){
-            this.image = JSImage.initWithResourceName(spec.resolvedValue(values.image), spec.bundle);
+            this.image = spec.resolvedValue(values.image, "JSImage");
         }
         if ('selectedImage' in values){
-            this.selectedImage = JSImage.initWithResourceName(spec.resolvedValue(values.selectedImage), spec.bundle);
+            this.selectedImage = spec.resolvedValue(values.selectedImage, "JSImage");
         }
     },
 
@@ -631,7 +631,6 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
             itemView._titleLabel.textColor = defaultStateTitleColors[item.state];
         }
         if (itemView._imageView !== null){
-            itemView._imageView.renderMode = UIImageView.RenderMode.template;
             itemView._imageView.templateColor = defaultStateTitleColors[item.state];
         }
         if (itemView.isFirst()){
@@ -811,7 +810,6 @@ JSClass("UITabViewImagesStyler", UITabViewStyler, {
     },
 
     initializeItemView: function(itemView){
-        itemView.imageView.renderMode = UIImageView.RenderMode.template;
     },
 
     sizeItemViewToFit: function(itemView){

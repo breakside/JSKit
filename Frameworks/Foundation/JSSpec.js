@@ -42,7 +42,6 @@ JSClass('JSSpec', JSObject, {
     },
 
     resolvedValue: function(value, defaultClassName){
-        var i, l;
         if (value !== null && value !== undefined){
             if (typeof(value) == 'string'){
                 if (value.length > 0){
@@ -71,38 +70,47 @@ JSClass('JSSpec', JSObject, {
                             value = key;
                             break;
                     }
+                    if (defaultClassName !== undefined && typeof(value) === 'string'){
+                        value = this._createObject(defaultClassName, value);
+                    }
                 }
             }else if (typeof(value) == 'object'){
-                var className = defaultClassName;
-                if (JSSpec.Keys.ObjectClass in value){
-                    className = value[JSSpec.Keys.ObjectClass];
-                }
-                if (className){
-                    var cls = JSClass.FromName(className);
-                    var obj = cls.allocate();
-                    // Since initWithSpec may resolve objects that reference back
-                    // to us, we need to set our entry in the object map before
-                    // calling init.
-                    // NOTE: If there's a double-refeference like /File's Owner: /SomeObject,
-                    // we'll add this newly allocated object under both names.
-                    if (this._keysForNextObjectInit !== null){
-                        for (i = 0, l = this._keysForNextObjectInit.length; i < l; ++i){
-                            this._objectMap[this._keysForNextObjectInit[i]] = obj;
-                        }
-                        this._keysForNextObjectInit = null;
-                    }
-                    var result = obj.initWithSpec(this, value);
-                    if (result !== undefined){
-                        obj = result;
-                    }
-                    // Set the bindings after the object has been initialized
-                    if ('bindings' in value){
-                        this._setObjectBindings(obj, value.bindings);
-                    }
-                    obj.awakeFromSpec();
-                    value = obj;
-                }
+                value = this._createObject(defaultClassName, value);
             }
+        }
+        return value;
+    },
+
+    _createObject: function(defaultClassName, value){
+        var i, l;
+        var className = defaultClassName;
+        if (typeof(value) === 'object' && (JSSpec.Keys.ObjectClass in value)){
+            className = value[JSSpec.Keys.ObjectClass];
+        }
+        if (className){
+            var cls = JSClass.FromName(className);
+            var obj = cls.allocate();
+            // Since initWithSpec may resolve objects that reference back
+            // to us, we need to set our entry in the object map before
+            // calling init.
+            // NOTE: If there's a double-refeference like /File's Owner: /SomeObject,
+            // we'll add this newly allocated object under both names.
+            if (this._keysForNextObjectInit !== null){
+                for (i = 0, l = this._keysForNextObjectInit.length; i < l; ++i){
+                    this._objectMap[this._keysForNextObjectInit[i]] = obj;
+                }
+                this._keysForNextObjectInit = null;
+            }
+            var result = obj.initWithSpec(this, value);
+            if (result !== undefined){
+                obj = result;
+            }
+            // Set the bindings after the object has been initialized
+            if (typeof(value) === 'object' && ('bindings' in value)){
+                this._setObjectBindings(obj, value.bindings);
+            }
+            obj.awakeFromSpec();
+            return obj;
         }
         return value;
     },

@@ -74,7 +74,7 @@ JSClass('UIWindow', UIView, {
             this.title = spec.resolvedValue(values.title);
         }
         if ('icon' in values){
-            this.icon = JSImage.initWithResourceName(spec.resolvedValue(values.icon));
+            this.icon = spec.resolvedValue(values.icon, "JSImage");
         }
         if ('autosaveName' in values){
             this.autosaveName = spec.resolvedValue(values.autosaveName);
@@ -1093,7 +1093,6 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
 
     initializeWindow: function(window){
         var closeButton = UIButton.initWithStyler(UIButton.Styler.custom);
-        closeButton.imageRenderMode = UIImageView.RenderMode.original;
         closeButton.setImageForState(this.closeButtonImages.normal, UIControl.State.normal);
         closeButton.setImageForState(this.closeButtonImages.over, UIControl.State.over);
         closeButton.setImageForState(this.closeButtonImages.active, UIControl.State.active);
@@ -1195,7 +1194,7 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
 
         if (window.icon){
             if (!iconView){
-                iconView = UIImageView.initWithRenderMode(UIImageView.RenderMode.template);
+                iconView = UIImageView.init();
                 titleBar.insertSubviewBelowSibling(iconView, titleLabel);
                 window.stylerProperties.iconView = iconView;
             }

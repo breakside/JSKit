@@ -2,7 +2,7 @@
 // #import "UIToolbarItem.js"
 // #import "UIButton.js"
 // #import "UIImageView.js"
-/* global JSClass, JSObject, JSInsets, JSRect, JSPoint, JSSize, JSReadOnlyProperty, JSDynamicProperty, JSLazyInitProperty, UIToolbar, UIView, UIToolbarView, UIToolbarItem, UIToolbarItemView, UIButton, UIMenu, UIPopupButton, UIImageView, UIButtonCustomStyler */
+/* global JSClass, JSObject, JSInsets, JSRect, JSImage, JSBundle, JSPoint, JSSize, JSReadOnlyProperty, JSDynamicProperty, JSLazyInitProperty, UIToolbar, UIView, UIToolbarView, UIToolbarItem, UIToolbarItemView, UIButton, UIMenu, UIPopupButton, UIImageView, UIButtonCustomStyler */
 'use strict';
 
 (function(){
@@ -170,7 +170,6 @@ JSClass("UIToolbarView", UIView, {
         var windowStyler = this._toolbar.window._styler;
         var styler = UIButtonCustomStyler.initWithColor(windowStyler.toolbarTitleColor);
         var button = UIButton.initWithStyler(styler);
-        button.imageRenderMode = UIImageView.RenderMode.template;
         button.image = images.toolbarOverflow;
         button.addAction("_showOverflowMenu", this);
         this.addSubview(button);
@@ -240,7 +239,8 @@ var images = Object.create({}, {
     toolbarOverflow: {
         configurable: true,
         get: function(){
-            Object.defineProperty(this, 'toolbarOverflow', {value: JSImage.initWithResourceName("UIToolbarOverflow", this.bundle) });
+            var image = JSImage.initWithResourceName("UIToolbarOverflow", this.bundle);
+            Object.defineProperty(this, 'toolbarOverflow', {value: image.imageWithRenderingMode(JSImage.RenderMode.template) });
             return this.toolbarOverflow;
         }
     },

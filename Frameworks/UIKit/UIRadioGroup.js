@@ -234,7 +234,8 @@ var images = Object.create({}, {
     radioOn: {
         configurable: true,
         get: function(){
-            Object.defineProperty(this, 'radioOn', {value: JSImage.initWithResourceName("UIRadioButtonOn", this.bundle) });
+            var image = JSImage.initWithResourceName("UIRadioButtonOn", this.bundle);
+            Object.defineProperty(this, 'radioOn', {value: image.imageWithRenderMode(JSImage.RenderMode.template) });
             return this.radioOn;
         }
     },

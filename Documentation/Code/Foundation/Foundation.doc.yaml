@@ -55,6 +55,7 @@ topics:
       - JSPoint
       - JSSize
       - JSRect
+      - JSInsets
       - JSAffineTransform
       - JSColor
       - JSCubicBezier
@@ -124,9 +125,14 @@ topics:
     name: Utilities
     summary: Miscellaneous utilities such as timers and formatters
     members:
+      - JSGlobalObject
       - JSTimer
       - JSNumberFormatter
       - JSBinarySearcher
       - JSValueTransformer
       - JSMath
       - UUID
+      - JSCopy
+      - JSDeepCopy
+      - JSResolveDottedName
+      - JSSetDottedName

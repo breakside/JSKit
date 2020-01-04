@@ -1,0 +1,11 @@
+kind: property
+introduced: "1.0.0"
+summary: A platform-independent reference to the Javascript global object
+description: |
+  In a browser context, the global object is called `window`().
+
+  In a node.js context, the global object is called `global`().
+
+  This `JSGlobalObject` variable is an alias for either, depending on which
+  plaform an application is running.  It allows code to be written that works
+  on either platform without modification.

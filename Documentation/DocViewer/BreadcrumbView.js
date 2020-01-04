@@ -140,7 +140,6 @@ JSClass("_BreadcrumbPopupButtonStyler", UIPopupButtonStyler, {
         button.titleLabel.font = JSFont.systemFontOfSize(JSFont.Size.detail);
         button.layer.borderWidth = 0;
         button._titleLabel.textColor = JSColor.initWithWhite(51/255.0);
-        button._imageView.renderMode = UIImageView.RenderMode.original;
         button._indicatorView.templateColor = JSColor.initWithWhite(0.8);
         button._indicatorView.image = JSImage.initWithResourceName("BreadcrumbSeparator");
         this.updateControl(button);

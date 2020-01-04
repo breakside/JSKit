@@ -238,9 +238,8 @@ topics:
             members:
               -
                 name: image
-                type: String
-                summary: The name of an image resource to use as the button's
-                  icon
+                type: JSImage
+                summary: The image to use as the button's icon
                 description: |
                   ````
                   Window:

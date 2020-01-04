@@ -33,7 +33,7 @@ JSClass("UIPopupButton", UIControl, {
             this._titleLabel.text = spec.resolvedValue(values.title);
         }
         if ('image' in values){
-            this._imageView.image = JSImage.initWithResourceName(values.image, spec.bundle);
+            this._imageView.image = spec.resolvedValue(values.image, "JSImage");
         }
         if ('options' in values){
             for (var i = 0, l = values.options.length; i < l; ++i){
@@ -46,13 +46,12 @@ JSClass("UIPopupButton", UIControl, {
         UIPopupButton.$super.commonUIControlInit.call(this);
         this._menu = UIMenu.initWithStyler(this._styler.menuStyler);
         this._menu.automaticallyUpdates = false;
-        this._imageView = UIImageView.initWithRenderMode(UIImageView.RenderMode.template);
+        this._imageView = UIImageView.init();
         this._imageView.hidden = true;
         this._titleLabel = UILabel.init();
         this._titleLabel.backgroundColor = JSColor.clearColor;
         this._titleLabel.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
         this._indicatorView = UIImageView.init();
-        this._indicatorView.renderMode = UIImageView.RenderMode.template;
         this._updateIndicatorView();
         this._titleInsets = JSInsets.Zero;
         this.addSubview(this._indicatorView);
@@ -431,7 +430,8 @@ var images = Object.create({}, {
     popupIndicator: {
         configurable: true,
         get: function(){
-            Object.defineProperty(this, 'popupIndicator', {value: JSImage.initWithResourceName("UIPopupButtonIndicator", this.bundle) });
+            var image = JSImage.initWithResourceName("UICheckboxMixed", this.bundle);
+            Object.defineProperty(this, 'popupIndicator', {value: image.imageWithRenderMode(JSImage.RenderMode.template) });
             return this.popupIndicator;
         }
     },
@@ -439,7 +439,8 @@ var images = Object.create({}, {
     pulldownIndicator: {
         configurable: true,
         get: function(){
-            Object.defineProperty(this, 'pulldownIndicator', {value: JSImage.initWithResourceName("UIPopupButtonPullsDownIndicator", this.bundle) });
+            var image = JSImage.initWithResourceName("UIPopupButtonPullsDownIndicator", this.bundle);
+            Object.defineProperty(this, 'pulldownIndicator', {value: image.imageWithRenderMode(JSImage.RenderMode.template) });
             return this.pulldownIndicator;
         }
     }

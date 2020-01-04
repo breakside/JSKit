@@ -53,11 +53,23 @@ topics:
                 name: title
                 type: String
                 summary: The window's title
+                description: |
+                  ````
+                  Window:
+                    class: UIWindow
+                    title: Main Window
+                  ````
               -
                 name: icon
-                type: String
-                summary: The name of an image resource to use as the window's
-                  icon
+                type: JSImage
+                summary: The image to use as the window's icon
+                description: |
+                  ````
+                  Window:
+                    class: UIWindow
+                    title: Main Window
+                    icon: MainWindowIcon
+                  ````
               -
                 name: toolbar
                 type: UIToolbar

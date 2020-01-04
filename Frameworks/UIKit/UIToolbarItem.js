@@ -50,7 +50,7 @@ JSClass("UIToolbarItem", JSObject, {
             this._tooltip = spec.resolvedValue(values.tooltip);
         }
         if ('image' in values){
-            this._image = JSImage.initWithResourceName(spec.resolvedValue(values.image));
+            this._image = spec.resolvedValue(values.image, "JSImage");
         }
         if ('view' in values){
             this._view = spec.resolvedValue(values.view, "UIView");

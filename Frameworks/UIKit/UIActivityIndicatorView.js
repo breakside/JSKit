@@ -26,7 +26,6 @@ JSClass("UIActivityIndicatorView", UIView, {
 
     initWithColor: function(color){
         this.initWithSpriteImage(images.defaultSprite);
-        this._imageLayer.renderMode = UIImageLayer.RenderMode.template;
         this._imageLayer.templateColor = color;
     },
 
@@ -40,7 +39,7 @@ JSClass("UIActivityIndicatorView", UIView, {
             var color = spec.resolvedValue(values.color, "JSColor");
             this.initWithColor(color);
         }else if ('spriteImage' in values){
-            var image = JSImage.initWithResourceName(spec.resolvedValue(values.spriteImage));
+            var image = spec.resolvedValue(values.spriteImage, "JSImage");
             var singleFrameHeight;
             if ('singleFrameHeight' in values){
                 singleFrameHeight = spec.resolvedValue(values.singleFrameHeight);
@@ -183,7 +182,8 @@ var images = Object.create({}, {
     defaultSprite: {
         configurable: true,
         get: function(){
-            Object.defineProperty(this, 'defaultSprite', {value: JSImage.initWithResourceName("UIActivityIndicatorViewDefaultSprite", this.bundle) });
+            var image = JSImage.initWithResourceName("UIActivityIndicatorViewDefaultSprite", this.bundle);
+            Object.defineProperty(this, 'defaultSprite', {value: image.imageWithRenderMode(JSImage.RenderMode.template) });
             return this.defaultSprite;
         }
     },

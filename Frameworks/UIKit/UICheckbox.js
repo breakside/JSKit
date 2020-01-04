@@ -150,7 +150,6 @@ JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
         checkbox.stylerProperties.boxLayer.shadowOffset = JSPoint(0, 1);
         checkbox.stylerProperties.boxLayer.shadowRadius = 1;
         checkbox.stylerProperties.indicatorView = UIImageView.init();
-        checkbox.stylerProperties.indicatorView.renderMode = UIImageView.RenderMode.template;
         checkbox.insertSubviewAtIndex(checkbox.stylerProperties.indicatorView, 0);
         checkbox.layer.insertSublayerAtIndex(checkbox.stylerProperties.boxLayer, 0);
         checkbox.setNeedsLayout();
@@ -234,7 +233,8 @@ var images = Object.create({}, {
     checkboxOn: {
         configurable: true,
         get: function(){
-            Object.defineProperty(this, 'checkboxOn', {value: JSImage.initWithResourceName("UICheckboxOn", this.bundle) });
+            var image = JSImage.initWithResourceName("UICheckboxOn", this.bundle);
+            Object.defineProperty(this, 'checkboxOn', {value: image.imageWithRenderMode(JSImage.RenderMode.template) });
             return this.checkboxOn;
         }
     },
@@ -242,7 +242,8 @@ var images = Object.create({}, {
     checkboxMixed: {
         configurable: true,
         get: function(){
-            Object.defineProperty(this, 'checkboxMixed', {value: JSImage.initWithResourceName("UICheckboxMixed", this.bundle) });
+            var image = JSImage.initWithResourceName("UICheckboxMixed", this.bundle);
+            Object.defineProperty(this, 'checkboxMixed', {value: image.imageWithRenderMode(JSImage.RenderMode.template) });
             return this.checkboxMixed;
         }
     },

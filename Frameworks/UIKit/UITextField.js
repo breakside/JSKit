@@ -42,7 +42,7 @@ JSClass("UITextField", UIControl, {
             this.multiline = values.multiline;
         }
         if ('leftImage' in values){
-            this.leftImage = JSImage.initWithResourceName(values.leftImage, spec.bundle);
+            this.leftImage = spec.resolvedValue(values.leftImage, "JSImage");
         }else if ('leftAccessoryView' in values){
             this.leftAccessoryView = spec.resolvedValue(values.leftAccessoryView);
         }
@@ -56,7 +56,7 @@ JSClass("UITextField", UIControl, {
             this.leftAccessoryVisibility = spec.resolvedValue(values.leftAccessoryVisibility);
         }
         if ('rightImage' in values){
-            this.rightImage = JSImage.initWithResourceName(values.rightImage, spec.bundle);
+            this.rightImage = spec.resolvedValue(values.rightImage, "JSImage");
         }else if ('rightAccessoryView' in values){
             this.rightAccessoryView = spec.resolvedValue(values.rightAccessoryView);
         }
@@ -396,20 +396,16 @@ JSClass("UITextField", UIControl, {
     setLeftImage: function(image){
         var templateColor = this._styler.leftAccessoryColor;
         var imageView = UIImageView.initWithImage(image);
-        if (templateColor !== null){
-            imageView.renderMode = UIImageView.RenderMode.template;
-            imageView.templateColor = templateColor;
-        }
+        imageView.automaticRenderMode = JSImage.RenderMode.template;
+        imageView.templateColor = templateColor;
         this.leftAccessoryView = imageView;
     },
 
     setRightImage: function(image){
         var templateColor = this._styler.rightAccessoryColor;
         var imageView = UIImageView.initWithImage(image);
-        if (templateColor !== null){
-            imageView.renderMode = UIImageView.RenderMode.template;
-            imageView.templateColor = templateColor;
-        }
+        imageView.automaticRenderMode = JSImage.RenderMode.template;
+        imageView.templateColor = templateColor;
         this.rightAccessoryView = imageView;
     },
 

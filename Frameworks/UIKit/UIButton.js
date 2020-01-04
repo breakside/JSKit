@@ -7,7 +7,6 @@
 JSClass("UIButton", UIControl, {
 
     image: JSReadOnlyProperty(),
-    imageRenderMode: JSDynamicProperty(),
     backgroundImage: JSReadOnlyProperty(),
     titleLabel: JSLazyInitProperty('_createTitleLabel', '_titleLabel'),
     titleInsets: JSDynamicProperty('_titleInsets', null),
@@ -32,29 +31,26 @@ JSClass("UIButton", UIControl, {
         if ('image' in values){
             var image;
             if (typeof(values.image) == "string"){
-                image = JSImage.initWithResourceName(values.image, spec.bundle);
+                image = spec.resolvedValue(values.image, "JSImage");
                 this.setImageForState(image, UIControl.State.normal);
             }else{
                 if ('normal' in values.image){
-                    image = JSImage.initWithResourceName(values.image.normal, spec.bundle);
+                    image = spec.resolvedValue(values.image.normal, "JSImage");
                     this.setImageForState(image, UIControl.State.normal);
                 }
                 if ('over' in values.image){
-                    image = JSImage.initWithResourceName(values.image.over, spec.bundle);
+                    image = spec.resolvedValue(values.image.over, "JSImage");
                     this.setImageForState(image, UIControl.State.over);
                 }
                 if ('active' in values.image){
-                    image = JSImage.initWithResourceName(values.image.active, spec.bundle);
+                    image = spec.resolvedValue(values.image.active, "JSImage");
                     this.setImageForState(image, UIControl.State.active);
                 }
                 if ('disabled' in values.image){
-                    image = JSImage.initWithResourceName(values.image.disabled, spec.bundle);
+                    image = spec.resolvedValue(values.image.disabled, "JSImage");
                     this.setImageForState(image, UIControl.State.disabled);
                 }
             }
-        }
-        if ('imageRenderMode' in values){
-            this.imageRenderMode = spec.resolvedValue(values.imageRenderMode);
         }
     },
 
@@ -126,7 +122,7 @@ JSClass("UIButton", UIControl, {
     },
 
     _createImageView: function(){
-        var imageView = UIImageView.initWithRenderMode(UIImageView.RenderMode.template);
+        var imageView = UIImageView.init();
         this.addSubview(imageView);
         this.setNeedsLayout();
         return imageView;
@@ -145,20 +141,6 @@ JSClass("UIButton", UIControl, {
         if (state & UIControl.State.over){
             this.hasOverState = true;
         }
-    },
-
-    setImageRenderMode: function(renderMode){
-        if (this._imageView === null){
-            this._imageView = this._createImageView();
-        }
-        this._imageView.renderMode = renderMode;
-    },
-
-    getImageRenderMode: function(){
-        if (this._imageView === null){
-            return UIImageView.RenderMode.template;
-        }
-        return this._imageView.renderMode;
     },
 
     _createBackgroundImageView: function(){
@@ -543,6 +525,7 @@ JSClass("UIButtonImageStyler", UIButtonStyler, {
         if (button._imageView === null){
             return;
         }
+        button._imageView.automaticRenderMode = JSImage.RenderMode.template;
         if (!button.enabled){
             button._imageView.templateColor = this.disabledColor;
         }else if (button.active){

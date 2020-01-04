@@ -1,0 +1,144 @@
+kind: class
+introduced: "1.0.0"
+summary: A set of numbers that specify insets from edges of a rectangle
+description: |
+  Insets can be used to specify padding-like values and calculate a rectangle
+  that is inside another rectangle, offset from the each edge by the
+  corresponding `JSInsets` property.
+topics:
+  -
+    name: Creating Insets
+    members:
+      -
+        name: JSInsets
+        kind: constructor
+        summary: Create insets with the specified edges
+        arguments:
+          -
+            name: top
+            type: Number
+            summary: The distance to insest from the top edge
+          -
+            name: left
+            type: Number
+            summary: The distance to insest from the left edge
+          -
+            name: bottom
+            type: Number
+            summary: The distance to insest from the bottom edge
+          -
+            name: right
+            type: Number
+            summary: The distance to insest from the right edge
+      -
+        name: JSInsets
+        kind: constructor
+        prefix: single-value
+        summary: Create insets with the specified edges
+        arguments:
+          -
+            name: all
+            type: Number
+            summary: The distance to insest from the all edges
+      -
+        name: JSInsets
+        kind: constructor
+        prefix: mirrored
+        summary: Create insets with the specified top and left edges,
+          mirroring their values to bottom and right.
+        arguments:
+          -
+            name: topAndBottom
+            type: Number
+            summary: The distance to insest from the top and bottom edges
+          -
+            name: leftAndRight
+            type: Number
+            summary: The distance to insest from the left and right edges
+      -
+        name: JSInsets
+        kind: constructor
+        prefix: copy
+        summary: Create insets by copying another insets
+        arguments:
+          -
+            name: other
+            type: JSInsets
+            summary: The insets to copy
+      -
+        kind: property
+        static: true
+        name: Zero
+        type: JSInsets
+        summary: Insets with `0` on all sides
+        description: |
+          A shortcut for
+          ````
+          JSInsets(0)
+          ````
+          that can be used as a default starting point or as a comparison as in:
+          ````
+          var insets = insetsFromSomewhere();
+          if (insets.isEqual(JSInsets.Zero)){
+            // 
+          }else{
+            // 
+          }
+          ````
+        note: Even though this looks like a property, it will always return a
+          new `JSInsets` each time it is invoked, ensuring that nothing can
+          accidentally modify or overwrite the `Zero` property.
+  -
+    name: Edges
+    members:
+      -
+        name: top
+        type: Number
+        summary: The distance to insest from the top edge
+      -
+        name: left
+        type: Number
+        summary: The distance to insest from the left edge
+      -
+        name: bottom
+        type: Number
+        summary: The distance to insest from the bottom edge
+      -
+        name: right
+        type: Number
+        summary: The distance to insest from the right edge
+  -
+    name: Calculations
+    members:
+      -
+        name: width
+        type: Number
+        summary: The total distance of insets in the horizontal direction
+        description: |
+          Adds `left` and `right` together.  Useful when figuring how much
+          space insets will need.
+      -
+        name: height
+        type: Number
+        summary: The total distance of insets in the vertical direction
+        description: |
+          Adds `top` and `bottom` together.  Useful when figuring how much
+          space insets will need.
+      -
+        name: insetsWithInsets
+        kind: method
+        type: JSInsets
+        return: A new insets created by adding the given insets to this
+        summary: Create new insets by extending this insets by the given
+          amounts
+        arguments:
+          -
+            name: insets
+            type: JSInsets
+            summary: The amounts to inset this object's values by
+      -
+        name: negative
+        kind: method
+        type: JSInsets
+        return: The negative values for this insets
+        summary: Reverse this insets by making all edges their negative value

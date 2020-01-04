@@ -42,10 +42,10 @@ JSClass("UIMenuWindow", UIWindow, {
         this._menuStyler = menu.styler;
         this.contentView = UIView.init();
         this.upIndicatorView = UIView.init();
-        this.upIndicatorImageView = UIImageView.initWithImage(images.scrollUp, UIImageView.RenderMode.template);
+        this.upIndicatorImageView = UIImageView.initWithImage(images.scrollUp);
         this.upIndicatorView.addSubview(this.upIndicatorImageView);
         this.downIndicatorView = UIView.init();
-        this.downIndicatorImageView = UIImageView.initWithImage(images.scrollDown, UIImageView.RenderMode.template);
+        this.downIndicatorImageView = UIImageView.initWithImage(images.scrollDown);
         this.downIndicatorView.addSubview(this.downIndicatorImageView);
         this.clipView = UIView.init();
         this.menuView = UIMenuView.init();
@@ -680,19 +680,19 @@ JSClass("UIMenuItemView", UIView, {
     },
 
     _createImageView: function(){
-        this._imageView = UIImageView.initWithRenderMode(UIImageView.RenderMode.original);
+        this._imageView = UIImageView.init();
         this.insertSubviewBelowSibling(this._imageView, this.titleLabel);
         return this._imageView;
     },
 
     _createStateImageView: function(){
-        this._stateImageView = UIImageView.initWithRenderMode(UIImageView.RenderMode.template);
+        this._stateImageView = UIImageView.init();
         this.insertSubviewBelowSibling(this._stateImageView, this.titleLabel);
         return this._stateImageView;
     },
 
     _createSubmenuImageView: function(){
-        this._submenuImageView = UIImageView.initWithImage(images.submenu, UIImageView.RenderMode.template);
+        this._submenuImageView = UIImageView.initWithImage(images.submenu);
         this.insertSubviewAboveSibling(this._submenuImageView, this.titleLabel);
         return this._submenuImageView;
     },
@@ -775,7 +775,8 @@ var images = Object.create({}, {
     submenu: {
         configurable: true,
         get: function(){
-            Object.defineProperty(this, 'submenu', {value: JSImage.initWithResourceName("UIMenuItemSubmenu", this.bundle) });
+            var image = JSImage.initWithResourceName("UIMenuItemSubmenu", this.bundle);
+            Object.defineProperty(this, 'submenu', {value: image.imageWithRenderMode(JSImage.RenderMode.template) });
             return this.submenu;
         }
     },
@@ -783,7 +784,8 @@ var images = Object.create({}, {
     stateOn: {
         configurable: true,
         get: function(){
-            Object.defineProperty(this, 'stateOn', {value: JSImage.initWithResourceName("UIMenuItemOn", this.bundle) });
+            var image = JSImage.initWithResourceName("UIMenuItemOn", this.bundle);
+            Object.defineProperty(this, 'stateOn', {value: image.imageWithRenderMode(JSImage.RenderMode.template) });
             return this.stateOn;
         }
     },
@@ -791,7 +793,8 @@ var images = Object.create({}, {
     stateMixed: {
         configurable: true,
         get: function(){
-            Object.defineProperty(this, 'stateMixed', {value: JSImage.initWithResourceName("UIMenuItemMixed", this.bundle) });
+            var image = JSImage.initWithResourceName("UIMenuItemMixed", this.bundle);
+            Object.defineProperty(this, 'stateMixed', {value: image.imageWithRenderMode(JSImage.RenderMode.template) });
             return this.stateMixed;
         }
     },
@@ -799,7 +802,8 @@ var images = Object.create({}, {
     scrollUp: {
         configurable: true,
         get: function(){
-            Object.defineProperty(this, 'scrollUp', {value: JSImage.initWithResourceName("UIMenuUp", this.bundle) });
+            var image = JSImage.initWithResourceName("UIMenuUp", this.bundle);
+            Object.defineProperty(this, 'scrollUp', {value:  image.imageWithRenderMode(JSImage.RenderMode.template)});
             return this.scrollUp;
         }
     },
@@ -807,7 +811,8 @@ var images = Object.create({}, {
     scrollDown: {
         configurable: true,
         get: function(){
-            Object.defineProperty(this, 'scrollDown', {value: JSImage.initWithResourceName("UIMenuDown", this.bundle) });
+            var image = JSImage.initWithResourceName("UIMenuDown", this.bundle);
+            Object.defineProperty(this, 'scrollDown', {value:  image.imageWithRenderMode(JSImage.RenderMode.template)});
             return this.scrollDown;
         }
     }

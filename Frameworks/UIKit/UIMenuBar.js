@@ -582,7 +582,7 @@ JSClass("UIMenuBarItem", JSObject, {
             this._title = spec.resolvedValue(values.title);
         }
         if ('image' in values){
-            this.image = JSImage.initWithResourceName(spec.resolvedValue(values.image), spec.bundle);
+            this.image = spec.resolvedValue(values.image, "JSImage");
         }
         if ('imagePosition' in values){
             this.imagePosition = spec.resolvedEnum(values.imagePosition, UIMenuBarItem.ImagePosition);
@@ -691,7 +691,7 @@ JSClass("UIMenuBarItemView", UIView, {
     },
 
     _createImageView: function(){
-        this._imageView = UIImageView.initWithRenderMode(UIImageView.RenderMode.template);
+        this._imageView = UIImageView.init();
         this.addSubview(this._imageView);
         return this._imageView;
     },

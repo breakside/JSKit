@@ -1,4 +1,4 @@
-/* global JSGlobalObject, JSResolveDottedName */
+/* global JSGlobalObject, JSResolveDottedName, JSSize, JSPoint, JSRect, JSRange, JSAffineTransform, JSInsets, JSIndexPath, JSCopy */
 'use strict';
 
 // -----------------------------------------------------------------------------
@@ -21,6 +21,27 @@ JSGlobalObject.JSCopy = function JSCopy(obj){
         return obj;
     }
     if (typeof(obj) == 'object'){
+        if (obj instanceof JSSize){
+            return JSSize(obj);
+        }
+        if (obj instanceof JSPoint){
+            return JSPoint(obj);
+        }
+        if (obj instanceof JSRect){
+            return JSRect(obj);
+        }
+        if (obj instanceof JSRange){
+            return JSRange(obj);
+        }
+        if (obj instanceof JSAffineTransform){
+            return JSAffineTransform(obj);
+        }
+        if (obj instanceof JSInsets){
+            return JSInsets(obj);
+        }
+        if (obj instanceof JSIndexPath){
+            return JSIndexPath(obj);
+        }
         var i, l;
         var _copy;
         if (obj instanceof Array){
@@ -28,11 +49,11 @@ JSGlobalObject.JSCopy = function JSCopy(obj){
             for (i = 0, l = obj.length; i < l; ++i){
                 _copy.push(obj[i]);
             }
-        }else{
-            _copy = {};
-            for (i in obj){
-                _copy[i] = obj[i];
-            }
+            return _copy;
+        }
+        _copy = {};
+        for (i in obj){
+            _copy[i] = obj[i];
         }
         return _copy;
     }
@@ -54,21 +75,18 @@ JSGlobalObject.JSDeepCopy = function JSDeepCopy(obj){
     if (obj === null || obj === undefined){
         return obj;
     }
+    obj = JSCopy(obj);
     if (typeof(obj) == 'object'){
         var i, l;
-        var _copy;
         if (obj instanceof Array){
-            _copy = [];
             for (i = 0, l = obj.length; i < l; ++i){
-                _copy.push(JSDeepCopy(obj[i]));
+                obj[i] = JSDeepCopy(obj[i]);
             }
         }else{
-            _copy = {};
             for (i in obj){
-                _copy[i] = JSDeepCopy(obj[i]);
+                obj[i] = JSDeepCopy(obj[i]);
             }
         }
-        return _copy;
     }
     return obj;
 };

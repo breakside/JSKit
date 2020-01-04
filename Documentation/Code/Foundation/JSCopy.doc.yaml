@@ -1,0 +1,21 @@
+kind: function
+introduced: "1.0.0"
+summary: Make a shallow copy of an array or dictionary
+arguments:
+  -
+    name: obj
+    type: any
+    summary: The object or array to copy
+description: |
+  A shallow copy of an array or object allows you to modify which elements are
+  in the copy without modifying the original object.
+
+  The elements themselves will not be copied.  Therefore, changing an element's
+  property in the copy will change the element in the original becuase they are
+  the exact same element.
+  
+  If you need a recursive copy that also copies the elements, see
+  `JSDeepCopy()`.
+important: |
+  `JSCopy` only works with primitive javascript values.  If you try to
+  copy a `JSObject`, the copy will not function as expected.

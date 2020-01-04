@@ -1,17 +1,18 @@
 // #import "UILayer.js"
-/* global JSClass, UILayer, UIImageLayer, UILayerAnimatedProperty, JSPoint, JSRect, JSSize, JSDynamicProperty */
+/* global JSClass, UILayer, JSImage, JSColor, UIImageLayer, UILayerAnimatedProperty, JSPoint, JSRect, JSSize, JSDynamicProperty */
 'use strict';
 
 JSClass("UIImageLayer", UILayer, {
 
     image: JSDynamicProperty('_image', null),
     imageFrame: JSDynamicProperty('_imageFrame', null),
-    renderMode: JSDynamicProperty('_renderMode', 0),
     templateColor: JSDynamicProperty('_templateColor', null),
+    automaticRenderMode: JSDynamicProperty('_automaticRenderMode', JSImage.RenderMode.original),
 
     init: function(){
         UIImageLayer.$super.init.call(this);
         this._imageFrame = JSRect.Zero;
+        this._templateColor = JSColor.blackColor;
     },
 
     getImage: function(){
@@ -33,7 +34,7 @@ JSClass("UIImageLayer", UILayer, {
 
     drawInContext: function(context){
         if (this._image !== null && this._imageFrame.size.width > 0 && this._imageFrame.size.height > 0){
-            if (this.renderMode == UIImageLayer.RenderMode.template){
+            if (this._image.renderMode === JSImage.RenderMode.template || (this._image.renderMode === JSImage.RenderMode.automatic && this._automaticRenderMode === JSImage.RenderMode.template)){
                 context.setFillColor(this._templateColor);
                 context.fillMaskedRect(this._imageFrame, this._image);
             }else{
@@ -42,11 +43,11 @@ JSClass("UIImageLayer", UILayer, {
         }
     },
 
-    setRenderMode: function(renderMode){
-        if (renderMode === this._renderMode){
+    setAutomaticRenderMode: function(renderMode){
+        if (renderMode === this._automaticRenderMode){
             return;
         }
-        this._renderMode = renderMode;
+        this._automaticRenderMode = renderMode;
         this.setNeedsDisplay();
     },
 
@@ -68,8 +69,3 @@ JSClass("UIImageLayer", UILayer, {
     }
 
 });
-
-UIImageLayer.RenderMode = {
-    original: 0,
-    template: 1
-};

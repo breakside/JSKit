@@ -6,8 +6,8 @@
 JSClass("UIImageView", UIView, {
 
     scaleMode: JSDynamicProperty('_scaleMode', 0),
-    renderMode: UIViewLayerProperty(),
     templateColor: UIViewLayerProperty(),
+    automaticRenderMode: UIViewLayerProperty(),
     image: JSDynamicProperty(),
 
     _previousSize: null,
@@ -19,14 +19,11 @@ JSClass("UIImageView", UIView, {
 
     initWithSpec: function(spec, values){
         UIImageView.$super.initWithSpec.call(this, spec, values);
-        if ('renderMode' in values){
-            this.renderMode = spec.resolvedValue(values.renderMode);
-        }
         if ('templateColor' in values){
             this.templateColor = spec.resolvedValue(values.templateColor, "JSColor");
         }
         if ('image' in values){
-            this.image = JSImage.initWithResourceName(values.image, spec.bundle);
+            this.image = spec.resolvedValue(values.image, "JSImage");
         }
         if ('scaleMode' in values){
             this.scaleMode = spec.resolvedValue(values.scaleMode);
@@ -42,16 +39,10 @@ JSClass("UIImageView", UIView, {
         this.clipsToBounds = true;
     },
 
-    initWithRenderMode: function(renderMode){
-        UIImageView.$super.init.call(this);
-        this.renderMode = renderMode || UIImageView.RenderMode.original;
-    },
-
-    initWithImage: function(image, renderMode){
+    initWithImage: function(image){
         var frameThatFits = JSRect(0, 0, image.size.width, image.size.height);
         UIImageView.$super.initWithFrame.call(this, frameThatFits);
         this.image = image;
-        this.renderMode = renderMode || UIImageView.RenderMode.original;
         this._scaleImage();
     },
 
@@ -135,5 +126,3 @@ UIImageView.ScaleMode = {
     aspectFill: 2,
     center: 3
 };
-
-UIImageView.RenderMode = UIImageLayer.RenderMode;

@@ -3,7 +3,7 @@
 // #import "JSData.js"
 // #import "JSBundle.js"
 // #import "JSURLSession.js"
-/* global JSClass, JSReadOnlyProperty, JSSize, JSObject, JSBundle, JSImage, JSData, JSInsets, _JSResourceImage, _JSDataImage, _JSURLImage, JSURLSession, JSURLResponse */
+/* global JSClass, JSReadOnlyProperty, JSReadOnlyProperty, JSSize, JSObject, JSBundle, JSImage, JSData, JSInsets, _JSResourceImage, _JSDataImage, _JSURLImage, JSURLSession, JSURLResponse */
 'use strict';
 
 (function(){
@@ -13,6 +13,7 @@ JSClass('JSImage', JSObject, {
     size: JSReadOnlyProperty('_size', null),
     scale: JSReadOnlyProperty('_scale', 1),
     capInsets: JSReadOnlyProperty('_capInsets', null),
+    renderMode: JSReadOnlyProperty('_renderMode', 0),
 
     init: function(){
         this._initWithPixelSize(JSSize.Zero, 1);
@@ -34,12 +35,27 @@ JSClass('JSImage', JSObject, {
         return _JSURLImage.initWithURL(url, size, scale);
     },
 
-    _initWithPixelSize: function(size, scale){
+    initWithSpec: function(spec, values){
+        if (typeof(values) === 'string'){
+            return this.initWithResourceName(values, spec.bundle);
+        }
+        var image = null;
+        if ('name' in values){
+            image = this.initWithResourceName(values.name, spec.bundle);
+        }
+        if (image !== null && 'renderMode' in values){
+            image = image.imageWithRenderMode(spec.resolvedEnum(values.renderMode, JSImage.RenderMode));
+        }
+        return image;
+    },
+
+    _initWithPixelSize: function(size, scale, renderMode){
         if (scale === undefined){
             scale = 1;
         }
         this._size = JSSize(size.width / scale, size.height / scale);
         this._scale = scale;
+        this._renderMode = renderMode || JSImage.RenderMode.automatic;
     },
 
     copy: function(image){
@@ -49,6 +65,13 @@ JSClass('JSImage', JSObject, {
         image._size = JSSize(this._size);
         image._scale = this._scale;
         image._capInsets = JSInsets(this._capInsets);
+        image._renderMode = this._renderMode;
+        return image;
+    },
+
+    imageWithRenderMode: function(renderMode){
+        var image = this.copy();
+        image._renderMode = renderMode;
         return image;
     },
 
@@ -83,10 +106,23 @@ JSClass("_JSResourceImage", JSImage, {
     bundle: null,
     metadata: null,
 
+    _renderModeFromMetadata: function(metadata){
+        if (metadata.properties){
+            if (metadata.properties['template-rendering-intent'] == 'template'){
+                return JSImage.RenderMode.template;
+            }
+            if (metadata.properties['template-rendering-intent'] == 'original'){
+                return JSImage.RenderMode.original;
+            }
+        }
+        return JSImage.RenderMode.automatic;
+    },
+
     initWithResourceMetadata: function(metadata, bundle){
         this.metadata = metadata;
         this.bundle = bundle;
-        _JSResourceImage.$super._initWithPixelSize.call(this, JSSize(this.metadata.image.width, this.metadata.image.height), metadata.scale || 1);
+        var renderMode = this._renderModeFromMetadata(metadata);
+        _JSResourceImage.$super._initWithPixelSize.call(this, JSSize(this.metadata.image.width, this.metadata.image.height), metadata.scale || 1, renderMode);
     },
 
     initWithResourceName: function(name, bundle){
@@ -171,7 +207,8 @@ JSClass("_JSResourceImage", JSImage, {
         if (this.metadata === null){
             return null;
         }
-        _JSResourceImage.$super._initWithPixelSize.call(this, JSSize(this.metadata.image.width, this.metadata.image.height), scale);
+        var renderMode = this._renderModeFromMetadata(this.metadata);
+        _JSResourceImage.$super._initWithPixelSize.call(this, JSSize(this.metadata.image.width, this.metadata.image.height), scale, renderMode);
     },
 
     copy: function(){
@@ -272,5 +309,10 @@ JSImage.resourceCache = function(names, bundle){
     return cache;
 };
 
+JSImage.RenderMode = {
+    automatic: 0,
+    original: 1,
+    template: 2
+};
 
 })();

@@ -13,7 +13,11 @@
 
     getTitle: function(){
         if (this.uniquePrefix){
-            return "%s %s Constructor".sprintf(this.parent.name, this.uniquePrefix.capitalizedString());
+            var words = this.uniquePrefix.split('-');
+            for (let i = 0, l = words.length; i < l; ++i){
+                words[i] = words[i].capitalizedString();
+            }
+            return "%s %s Constructor".sprintf(this.parent.name, words.join(" "));
         }
         return "%s Constructor".sprintf(this.parent.name);
     },

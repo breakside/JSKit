@@ -230,6 +230,7 @@ topics:
       -
         name: UIControlStyler
         kind: class
+        inherits: JSObject
         summary: The abstract base class for all control stylers
         topics:
           -

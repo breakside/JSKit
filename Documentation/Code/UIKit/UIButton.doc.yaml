@@ -1,0 +1,677 @@
+kind: class
+introduced: "1.0.0"
+inherits: UIControl
+summary: A button control for user actions
+description: |
+  Buttons are perhaps the most commonly used controls in an application.
+
+  Actions
+  =======
+  `UIButton` inherits its action API from `UIControl`.
+
+  Using the `addAction()` method, you can use specify an action by name, as is
+  typically done for actions that are sent through the `UIResponder` responder
+  chain.
+
+  ````
+  JSClass("MainViewController", UIViewController, {
+
+    loadView: function(){
+      var view = UIView.init();
+      var button = UIButton.init();
+      button.addAction('test', this);
+      view.addSubview(button)
+      this.view = view;
+    },
+
+    test: function(sender){
+      // called when the button is clicked
+    }
+
+  });
+  ````
+
+  Alternatively, you can provide an anonymous function directly:
+
+  ````
+  JSClass("MainViewController", UIViewController, {
+
+    loadView: function(){
+      var view = UIView.init();
+      var button = UIButton.init();
+      button.addAction(function(){
+        // called when the button is pressed
+      }, this);
+      view.addSubview(button)
+      this.view = view;
+    }
+    
+  });
+  ````
+topics:
+  -
+    name: Creating a Button
+    members:
+      -
+        name: initWithStyler
+        kind: init
+        summary: Create a button that uses the given styler
+        arguments:
+          -
+            name: styler
+            type: UIButtonStyler
+            summary: The styler to use
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available for `UIButton`s in spec files
+        topics:
+          -
+            name: Title
+            members:
+              -
+                name: title
+                type: String
+                summary: The text for the button's title label
+                description: |
+                  ````
+                  TestButton:
+                    class: UIButton
+                    title: Test
+                  ````
+
+                  Alternatively, you can use a localizable string:
+
+                  `MainWindow.spec.yaml`
+                  ````
+                  TestButton:
+                    class: UIButton
+                    title: .testButton.title
+                  ````
+
+                  `en.lproj/MainWindow.strings.yaml`
+                  ````
+                  en:
+                    testButton:
+                      title: Test
+                  ````
+              -
+                name: titleInsets
+                type: String
+                summary: The amounts the title should be inset from the button's
+                  edges
+                description: |
+                  A string of comma-separated integers, that when parsed will be
+                  pased to the `JSInsets` constructor.
+
+                  ````
+                  TestButton:
+                    class: UIButton
+                    title: Test
+                    titleInsets: 4,7
+                  ````
+              -
+                name: titleInsets
+                suffix: number
+                type: Number
+                summary: The amount the title should be inset all from the button's
+                  edges
+                description: |
+                  A single number that will be passed to the `JSInsets` constructor
+                  and used for all sides.
+
+                  ````
+                  TestButton:
+                    class: UIButton
+                    title: Test
+                    titleInsets: 4
+                  ````
+          -
+            name: Image
+            members:
+              -
+                name: image
+                type: JSImage
+                summary: The the image to use as the button's image for all
+                  states
+                description: |
+                  Assuming there's an image called `TestIcon` in the same bundle
+                  as the spec:
+
+                  ````
+                  TestButton:
+                    class: UIButton
+                    title: Test
+                    image: TestIcon
+                  ````
+              -
+                name: image
+                suffix: states
+                type: ImageStates
+                summary: The images to use for various states
+                description: |
+                  All states are optional.
+
+                  ````
+                  TestButton:
+                    class: UIButton
+                    title: Test
+                    image:
+                      normal: TestIcon
+                      active: TestIconActive
+                  ````
+              -
+                name: ImageStates
+                kind: dictionary
+                summary: A object that specifies images for multiple button states
+                description: |
+                  All states are optional.
+
+                  ````
+                  TestButton:
+                    class: UIButton
+                    title: Test
+                    image:
+                      normal: TestIcon
+                      active: TestIconActive
+                  ````
+                topics:
+                  -
+                    name: Properties
+                    members:
+                      -
+                        name: normal
+                        type: JSImage
+                        summary: The image to use as the
+                          button's image for the `normal` control state.
+                      -
+                        name: over
+                        type: JSImage
+                        summary: The image to use as the
+                          button's image for the `over` control state.
+                      -
+                        name: active
+                        type: JSImage
+                        summary: The image to use as the
+                          button's image for the `active` control state.
+                      -
+                        name: disabled
+                        type: JSImage
+                        summary: The image to use as the
+                          button's image for the `disabled` control state.
+  -
+    name: Title
+    members:
+      -
+        name: titleLabel
+        type: UILabel
+        summary: The label that displays the button's title
+        description: |
+          To set a button's title, simply set the `text`(UILabel.text) property
+          of its `titleLabel`.
+
+          ````
+          var button = UIButton.init();
+          button.titleLabel.text = "Test";
+          ````
+        see:
+          - titleInsets
+      -
+        name: titleInsets
+        type: JSInsets
+        summary: The distance the title label should be from each edge of the
+          button
+        description: |
+          While the button's `styler` determines exactly how the button is
+          displayed, the `titleInsets` property gives the styler a layout
+          instruction that it should consider.
+        see:
+          - styler
+  -
+    name: Image
+    members:
+      -
+        name: setImageForState
+        kind: method
+        summary: Specify the image that the button should display for the
+          given state
+        arguments:
+          -
+            name: image
+            type: JSImage
+            summary: The image to display when the button is in the given state
+          -
+            name: state
+            type: UIControl.State
+            summary: The state when the button should display the image
+        description: |
+          A button can show a different image for each state.
+
+          For example, it can show a faded image in the `disabled` state,
+          and a darkened image in the `active` state.
+
+          ````
+          var button = UIButton.init();
+          button.setImageForState(JSImage.initWithResourceName("TestIcon"), UIControl.State.normal);
+          button.setImageForState(JSImage.initWithResourceName("TestIconPressed"), UIControl.State.active);
+          button.setImageForState(JSImage.initWithResourceName("TestIconDisabled"), UIControl.State.disabled);
+          ````
+      -
+        name: getImageForState
+        kind: method
+        type: JSImage
+        nullable: true
+        return: The image for the state, if one has been registered
+        summary: Get the image registered for the given state
+        arguments:
+          -
+            name: state
+            type: UIControl.State
+            summary: The state when the button should display the image
+      -
+        name: image
+        type: JSImage
+        nullable: true
+        summary: The image for the button's current state, or a suitable
+          fallback
+        description: |
+          If an image is registered for the button's exact state, that image
+          will be used.
+
+          Otherwise, the following states and images are checked in this order:
+          1. `disabled`
+          2. `active`
+          3. `over`
+
+          If no image has been found, the `normal` image is returned.
+      -
+        name: setBackgroundImageForState
+        kind: method
+        summary: Specify the background image that the button should display for
+          the given state
+        arguments:
+          -
+            name: image
+            type: JSImage
+            summary: The background image to display when the button is in the
+              given state
+          -
+            name: state
+            type: UIControl.State
+            summary: The state when the button should display the background
+              image
+        description: |
+          The background image can be used to create a decorative edge to the
+          button.
+
+          Typically you'll use a stretchable image created by
+          `JSImage.stretchableImageWithCapSizes()` so the corners of the
+          button won't distort as the button changes size.
+
+          A button can show a different background image for each state.
+
+          For example, it can show a faded image in the `disabled` state,
+          and a darkened image in the `active` state.
+
+          ````
+          var button = UIButton.init();
+          button.setBackgroundImageForState(JSImage.initWithResourceName("Button"), UIControl.State.normal);
+          button.setBackgroundImageForState(JSImage.initWithResourceName("ButtonPressed"), UIControl.State.active);
+          button.setBackgroundImageForState(JSImage.initWithResourceName("ButtonDisabled"), UIControl.State.disabled);
+          ````
+      -
+        name: getBackgroundImageForState
+        kind: method
+        type: JSImage
+        nullable: true
+        return: The background image for the state, if one has been registered
+        summary: Get the background image registered for the given state
+        arguments:
+          -
+            name: state
+            type: UIControl.State
+            summary: The state when the button should display the background image
+      -
+        name: backgroundImage
+        type: JSImage
+        nullable: true
+        summary: The background image for the button's current state, or a
+          suitable fallback
+        description: |
+          If an image is registered for the button's exact state, that image
+          will be used.
+
+          Otherwise, the following states and images are checked in this order:
+          1. `disabled`
+          2. `active`
+          3. `over`
+
+          If no image has been found, the `normal` image is returned.
+  -
+    name: Styling
+    members:
+      -
+        name: UIButtonStyler
+        kind: class
+        inherits: UIControlStyler
+        summary: The abstract base class for button stylers
+        topics:
+          -
+            name: Creating a Button Styler
+            members:
+              -
+                name: Spec File Properties
+                kind: spec
+                summary: The properties available in a button styler spec
+                topics:
+                  -
+                    name: Title
+                    members:
+                      -
+                        name: titleInsets
+                        type: String
+                        summary: The default insets for this styler
+                        description: |
+                          A comma-separated list of integers that when parsed
+                          can be passed to a `JSInsets` constructor.
+                      -
+                        name: titleInsets
+                        type: Number
+                        summary: The default inset for all sides
+                        description: |
+                          A single number that will be used as the inset
+                          for all sides of the `JSInsets`
+      -
+        name: UIButtonDefaultStyler
+        kind: class
+        inherits: UIButtonStyler
+        summary: The styler `UIKit` uses by default
+        description: |
+          `UIButton` creates a default styler instance using its own colors, but
+          you can always create your own instance and override the colors to
+          get a button that shares a look, but not colors, with the `UIKit`
+          default.
+        topics:
+          -
+            name: Background
+            members:
+              -
+                name: normalBackgroundColor
+                type: JSColor
+                summary: The background color to use when the button is in
+                  its normal state
+              -
+                name: disabledBackgroundColor
+                type: JSColor
+                summary: The background color to use when the button is in
+                  its disabled state
+              -
+                name: activeBackgroundColor
+                type: JSColor
+                summary: The background color to use when the button is in
+                  its active state
+              -
+                name: normalBackgroundGradient
+                type: JSGradient
+                summary: The background gradient to use when the button is in
+                  its normal state
+              -
+                name: disabledBackgroundGradient
+                type: JSGradient
+                summary: The background gradient to use when the button is in
+                  its disabled state
+              -
+                name: activeBackgroundGradient
+                type: JSGradient
+                summary: The background gradient to use when the button is in
+                  its active state
+          -
+            name: Border
+            members:
+              -
+                name: borderWidth
+                type: Number
+                summary: The width of the button's border
+              -
+                name: normalBorderColor
+                type: JSColor
+                summary: The border color to use when the button is in
+                  its normal state
+              -
+                name: disabledBorderColor
+                type: JSColor
+                summary: The border color to use when the button is in
+                  its disabled state
+              -
+                name: activeBorderColor
+                type: JSColor
+                summary: The border color to use when the button is in
+                  its active state
+          -
+            name: Title Text
+            members:
+              -
+                name: normalTitleColor
+                type: JSColor
+                summary: The title text color to use when the button is in
+                  its normal state
+              -
+                name: disabledTitleColor
+                type: JSColor
+                summary: The title text color to use when the button is in
+                  its disabled state
+              -
+                name: activeTitleColor
+                type: JSColor
+                summary: The title text color to use when the button is in
+                  its active state
+          -
+            name: Shadow
+            members:
+              -
+                name: shadowColor
+                type: JSColor
+                summary: The color of the button's shadow
+      -
+        name: UIButtonCustomStyler
+        kind: class
+        inherits: UIButtonStyler
+        summary: A basic button style that can adapt to any color
+        topics:
+          -
+            name: Creating a Custom Styler
+            members:
+              -
+                name: initWithBackgroundColor
+                kind: init
+                summary: Create a basic colored button
+                arguments:
+                  -
+                    name: normalBackgroundColor
+                    type: JSColor
+                    summary: The background color to use in the button's normal
+                      state
+                  -
+                    name: normalTitleColor
+                    type: JSColor
+                    summary: The title text color to use in the button's normal
+                      state
+                description: |
+                  The active state colors will be created by darkening the
+                  normal colors by 20%.
+
+                  The disabled state colors will be created by making the
+                  normal colors 50% transparent.
+              -
+                name: Spec File Properties
+                kind: spec
+                summary: The properties that can be specified in a spec file
+                  for a custom button styler
+                description: |
+                  ````
+                  TestButton:
+                    class: UIButton
+                    title: Test
+                    styler:
+                      class: UIButtonCustomStyler
+                      normalBackgroundColor:
+                        rgba: 0,24,204
+                      normalTitleColor:
+                        rgba: 255,255,255
+                      cornerRadius: 5
+                  ````
+                topics:
+                  -
+                    name: Background
+                    members:
+                      -
+                        name: normalBackgroundColor
+                        type: JSColor
+                        summary: The background color to use for normal states
+                        description: |
+                          The active state color will be created by darkening the
+                          normal color by 20%.
+
+                          The disabled state color will be created by making the
+                          normal color 50% transparent.
+                  -
+                    name: Border
+                    members:
+                      -
+                        name: cornerRadius
+                        type: Number
+                        summary: The amount to round corners of the button
+                  -
+                    name: Title
+                    members:
+                      -
+                        name: normalTitleColor
+                        type: JSColor
+                        summary: The title text color to use for normal states
+                        description: |
+                          The active state color will be created by darkening the
+                          normal color by 20%.
+
+                          The disabled state color will be created by making the
+                          normal color 50% transparent.
+          -
+            name: Background
+            members:
+              -
+                name: normalBackgroundColor
+                type: JSColor
+                summary: The background color to use when the button is in
+                  its normal state
+              -
+                name: disabledBackgroundColor
+                type: JSColor
+                summary: The background color to use when the button is in
+                  its disabled state
+              -
+                name: activeBackgroundColor
+                type: JSColor
+                summary: The background color to use when the button is in
+                  its active state
+          -
+            name: Border
+            members:
+              -
+                name: cornerRadius
+                type: Number
+                summary: The amount to round corners of the button
+          -
+            name: Title Text
+            members:
+              -
+                name: normalTitleColor
+                type: JSColor
+                summary: The title text color to use when the button is in
+                  its normal state
+              -
+                name: disabledTitleColor
+                type: JSColor
+                summary: The title text color to use when the button is in
+                  its disabled state
+              -
+                name: activeTitleColor
+                type: JSColor
+                summary: The title text color to use when the button is in
+                  its active state
+      -
+        name: UIButtonImageStyler
+        kind: class
+        summary: A button styler that will render template images with
+          different colors depending on state.
+        topics:
+          -
+            name: Creating an Image Styler
+            members:
+              -
+                name: initWithColor
+                kind: init
+                summary: Create a styler with the given color
+                arguments:
+                  -
+                    name: color
+                    type: JSColor
+                    summary: The color to use for normal button states
+                description: |
+                  Sets `activeColor` to the normal state color darkened by
+                  20%.
+
+                  Sets `disabledColor` to the normal color with 50%
+                  transparency.
+          -
+            name: State Colors
+            members:
+              -
+                name: color
+                type: JSColor
+                summary: The color to use when the button is in its normal state
+                description: |
+                  Sets `activeColor` to the normal state color darkened by
+                  20%.
+
+                  Sets `disabledColor` to the normal color with 50%
+                  transparency.
+              -
+                name: activeColor
+                type: JSColor
+                summary: The color to use when the button is in its active state
+              -
+                name: disabledColor
+                type: JSColor
+                summary: The color to use when the button is in its disabled state
+      -
+        name: Styler
+        kind: enum
+        suffix: enum
+        summary: The default styler instances created by `UIButton`
+        options:
+          -
+            name: default
+            type: UIButtonDefaultStyler
+            summary: The default `UIKit` button styler
+            description: |
+              You can set this property to any styler
+          -
+            name: custom
+            type: UIButtonCustomStyler
+            summary: A blank styler
+            description: |
+              Creates buttons that have no styles at all
+      -
+        name: styler
+        type: UIButtonStyler
+        summary: The styler used for this button
+        description: |
+          Stylers allow for separation between the button's model and its
+          presentation.
+
+          One styler can be resused for many buttons,
+          reducing the need to subclass `UIButton` just to apply a
+          custom style.
+        see:
+          - UIButtonDefaultStyler
+          - UIButtonCustomStyler
+          - UIButtonImageStyler

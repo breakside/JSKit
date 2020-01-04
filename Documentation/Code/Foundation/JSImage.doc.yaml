@@ -3,6 +3,101 @@ kind: class
 introduced: "1.0.0"
 inherits: JSObject
 summary: Represents an image resource, either vector or bitmap
+description: |
+  Images represented by a `JSImage` can be either bitmap or vector.
+
+  Typically, images are loaded from the application's bundle with
+  the `initWithResourceName()` init method.
+
+  Image Resources
+  ===============
+  `JSKit` recommends using vector `.svg` images whenever possible.
+
+  Simply include the image anywhere in your project's folder and it will be
+  bundled as an application resource when the application is built.
+
+  When loading an image by name, use the image's filename excluding any
+  file extension.
+
+  For example, if your image is named `TestIcon.svg`, you can load the image
+  with:
+
+  ````
+  var image = JSImage.initWithResourceName('TestIcon');
+  ````
+
+  Image Scales
+  ------------
+  If you are using bitmap images, you can provide multiple versions for
+  different scales.  The scales correspond to `UIScreen.scale`, which is a
+  measure of how high the screen's DPI is.
+
+  Simply add a `@<scale>x` suffix to each file.  For example, if you want to
+  provide a bitmap image at 1x and 2x scales, name the two files:
+
+  - `TestIcon.png`
+  - `TestIcon@2x.png`
+
+  ````
+  var image = JSImage.initWithResourceName('TestIcon');
+  ````
+
+  Will load the correct scale image for the screen.
+
+  Image Sets
+  ----------
+  Image sets are a way to be extra specific about image scales and properties.
+
+  An image set is a folder with a `.imageset` extension, `Contents.json` file
+  inside, and whatever images you need, named whatever you want.
+
+  A `Contents.json` file looks like:
+
+  ````
+  {
+    "images": [
+      {
+        "filename": "Icon.png",
+        "scale": 1
+      },
+      {
+        "filename": "Icon-2x.png",
+        "scale": 2
+      },
+      {
+        "filename": "Icon-3x.png",
+        "scale": 3
+      }
+    ]
+  }
+  ````
+
+  You can also specify a `renderMode` in `Contents.json`
+
+  ````
+  {
+    "images": [
+      {
+        "filename": "Icon.png",
+        "scale": 1
+      },
+      {
+        "filename": "Icon-2x.png",
+        "scale": 2
+      },
+      {
+        "filename": "Icon-3x.png",
+        "scale": 3
+      }
+    ],
+    "properties": {
+      "template-rendering-intent": "template"
+    }
+  }
+  ````
+
+  Rendering Mode
+  ==============
 topics:
   -
     name: Creating an Image
@@ -15,7 +110,8 @@ topics:
           -
             name: name
             type: String
-            summary: The name of the image within the bundle
+            summary: The name of the image within the bundle, excluding any
+              filename
           -
             name: bundle
             type: JSBundle
@@ -68,6 +164,89 @@ topics:
 
               Essentially, the image's resolution gets divided by `scale` to
               indicate how large the image should appear on a screen.
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The ways to specify an image in a spec file
+        description: |
+          There are two ways to specify an image in  spec file:
+
+          1. As a simple `String`, matching the name of an image resource
+          2. Using an object with the properties defined below.
+
+          Name Only
+          ````
+          TestButton:
+            class: UIButton
+            image: TestIcon
+          ````
+
+          As an object:
+          ````
+          TestButton:
+            class: UIButton
+            image:
+              name: TestIcon
+              renderMode: template
+          ````
+        topics:
+          -
+            name: Resource Name
+            members:
+              -
+                name: name
+                type: String
+                summary: The name of the image resource
+                description: |
+                  When using the object form, a `name` is required.
+
+                  It should match the name of an image resource, excluding
+                  any file extension.
+
+                  ````
+                  TestButton:
+                    class: UIButton
+                    image:
+                      name: TestIcon
+                      renderMode: template
+                  ````
+              -
+                name: renderMode
+                type: RenderMode
+                summary: The way the image should be rendered
+                description: |
+                  Indicates if the image should always be rendered as originally
+                  drawn or as a single-color template.
+
+                  You can use simply the name of the `RenderMode` enum value:
+
+                  ````
+                  TestButton:
+                    class: UIButton
+                    image:
+                      name: TestIcon
+                      renderMode: template
+                  ````
+  -
+    name: Size
+    members:
+      -
+        name: size
+        type: JSSize
+        summary: The size of the image
+        description: |
+          The size is in scaled units, meaning a `100x100` image at `1x` scale
+          will report as `100x100`, but so will a `200x200` image at `2x` scale.
+
+          Essentially, the reported width is the number of pixel columns in the
+          image divided by the `scale`.  The reported height is the number of
+          pixel rows in the image divided by the `scale`.
+      -
+        name: scale
+        type: Number
+        summary: The scale of the image
+        description: |
+          A higher scale image can display crisply on a high resolution screen.
   -
     name: Image Data
     members:
@@ -101,3 +280,86 @@ topics:
           resolve:
             type: JSData
             summary: The image data
+  -
+    name: Rendering Mode
+    members:
+      -
+        name: RenderMode
+        kind: enum
+        suffix: enum
+        summary: The possible rendering modes
+        options:
+          -
+            name: automatic
+            summary: Render the image using whichver method is appropriate for
+              the context
+          -
+            name: original
+            summary: Render the image as it was originally drawn
+          -
+            name: template
+            summary: Render the image as a alpha-mask, taking on a color from
+              the context.  Great for rendering single-color shapes and icons
+              in any color.
+      -
+        name: renderMode
+        type: RenderMode
+        summary: The render mode for this image
+      -
+        name: imageWithRenderMode
+        kind: method
+        type: JSImage
+        return: A copy of this image with the given render mode
+        summary: Create a copy of this image with the given render mode
+        arguments:
+          -
+            name: renderMode
+            type: RenderMode
+            summary: The new render mode
+        description: |
+          Often used when loading an image that doesn't come from an image
+          set with a specified render mode:
+
+          ````
+          var image = JSImage.initWithResourceName("TestIcon")
+          var template = image.imageWithRenderMode(JSImage.RenderMode.template);
+          ````
+  -
+    name: Stretchable Images
+    members:
+      -
+        name: stretchableImageWithCapSizes
+        kind: method
+        summary: Get an image with fixed corners and a stretchable middle
+        arguments:
+          -
+            name: leftCapWidth
+            type: Number
+            summary: The distance from the left edge that should not stretch
+              horizontally
+          -
+            name: topCapWidth
+            type: Number
+            default: leftCapWidth
+            summary: The distance from the top edge that should not stretch
+              horizontally
+          -
+            name: rightCapWidth
+            type: Number
+            default: leftCapWidth
+            summary: The distance from the right edge that should not stretch
+              horizontally
+          -
+            name: bottomCapWidth
+            type: Number
+            default: topCapWidth
+            summary: The distance from the bottom edge that should not stretch
+              horizontally
+        description: |
+          A strechable image, also known as a 9-grid, is a way of keeping the
+          corners of an image fixed while allowing the center to stretch.
+
+          ![Stretchable Image Diagram](JSImage/stretchableImage@2x.png)
+
+          Typically you'll design an image so the center is exactly 1x1 pixels
+          of a solid color so the stretching isn't visible.

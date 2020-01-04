@@ -1,0 +1,22 @@
+kind: function
+introduced: "1.0.0"
+summary: Make a deep recursive copy of an array or dictionary
+arguments:
+  -
+    name: obj
+    type: any
+    summary: The object or array to copy
+description: |
+  A deep copy of an array or object will not just make a new collection, but
+  will recursively copy each element in the collection.
+
+  Therefore, changing an element's property in the copy will not affect the
+  element in the original becuase they are not the exact same element.
+
+  A deep copy can be expensive if the collection is large.  Use only when
+  absolutely necessary.
+  
+  If you need a copy that doesn't copy the elements, see `JSCopy()`.
+important: |
+  `JSDeepCopy` only works with primitive javascript values.  If you try to
+  copy a `JSObject`, the copy will not function as expected.
