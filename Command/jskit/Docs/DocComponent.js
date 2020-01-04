@@ -27,10 +27,14 @@ JSClass("DocComponent", JSObject, {
         if (info.suffix){
             this.uniqueSuffix = info.suffix;
         }
+        if (info.copyright){
+            this.copyright = info.copyright;
+        }
     },
 
     sourceURL: null,
     outputURL: JSDynamicProperty('_outputURL'),
+    copyright: null,
 
     setOutputURL: function(outputURL){
         this._outputURL = outputURL;
@@ -164,8 +168,8 @@ JSClass("DocComponent", JSObject, {
         var content = body.appendChild(document.createElement("article"));
         content.setAttribute("class", "doc " + this.kind);
         var elements = this.htmlArticleElements(document);
-        if (documentation.copyright){
-            elements.push(this.footerElement(document, documentation.copyright));
+        if (this.copyright){
+            elements.push(this.footerElement(document, this.copyright));
         }
 
         if (this.see){

@@ -1,3 +1,4 @@
+copyright: Copyright © 2020 Breakside Inc.
 kind: class
 introduced: "1.0.0"
 summary: A function that creates JSKit classes and serves as the base type

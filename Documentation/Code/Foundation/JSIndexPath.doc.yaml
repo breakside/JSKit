@@ -1,3 +1,4 @@
+copyright: Copyright © 2020 Breakside Inc.
 kind: class
 introduced: "1.0.0"
 summary: An n-dimensional index, useful for things like nested lists

@@ -1,3 +1,4 @@
+copyright: Copyright © 2020 Breakside Inc.
 kind: document
 name: Binding & Observing
 summary: Observing changes to object properties and automatically updating

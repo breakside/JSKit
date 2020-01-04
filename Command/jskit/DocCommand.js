@@ -12,8 +12,7 @@ JSClass("DocCommand", Command, {
     options: {
         input: {kind: "positional", help: "The root documentation file to start with"},
         output: {kind: "positional", help: "The directory in which to output the generated documentation"},
-        title: {default: null, help: "The title to include on all pages"},
-        copyright: {default: null, help: "The copyright to include on all pages"}
+        title: {default: null, help: "The title to include on all pages"}
         // style: {default: null, help: "The stylesheet to use"}
     },
 
@@ -23,7 +22,6 @@ JSClass("DocCommand", Command, {
         var printer = Printer.initWithLabel('doc');
         var documentation = Documentation.initWithRootURL(rootURL, this.fileManager);
         documentation.title = this.arguments.title;
-        documentation.copyright = this.arguments.copyright;
         documentation.printer = printer;
         documentation.outputDirectoryURL = this.fileManager.urlForPath(this.arguments.output, workspaceURL);
 
