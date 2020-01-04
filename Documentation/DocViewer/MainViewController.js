@@ -1,3 +1,4 @@
+// Copyright © 2020 Breakside Inc.  MIT License.
 // #import UIKit
 /* global window, document, JSClass, UIDualPaneViewController, MainViewController, JSBundle, JSURL, JSUserDefaults */
 'use strict';

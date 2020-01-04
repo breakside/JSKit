@@ -1,3 +1,4 @@
+// Copyright © 2020 Breakside Inc.  MIT License.
 // #import UIKit
 /* global JSClass, UIViewController, SidebarViewController, JSImage, JSInsets, JSRect, UIListView, UIListViewCell, JSIndexPath */
 'use strict';
