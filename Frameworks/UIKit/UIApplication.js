@@ -94,6 +94,9 @@ JSClass('UIApplication', UIResponder, {
         }
     },
 
+    update: function(){
+    },
+
     _launch: function(callback){
         this.setup();
         var launchOptions = this.launchOptions();

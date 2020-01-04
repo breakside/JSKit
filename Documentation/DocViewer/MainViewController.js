@@ -74,6 +74,10 @@ JSClass("MainViewController", UIDualPaneViewController, {
 
     sidebarViewDidSelectComponent: function(sidebarViewController, component){
         this.contentViewController.showComponent(component);
+    },
+
+    indicateUpdateAvailable: function(){
+        this.sidebarViewController.indicateUpdateAvailable();
     }
 
 });

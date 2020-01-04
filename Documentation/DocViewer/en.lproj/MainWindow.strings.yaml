@@ -1,3 +1,5 @@
 en:
   search:
     placeholder: Search
+  updateButton:
+    title: Get Latest Docs

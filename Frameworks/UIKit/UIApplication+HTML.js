@@ -46,6 +46,17 @@ UIApplication.definePropertiesFromExtensions({
         }
     },
 
+    update: function(){
+        var reload = function(){
+            window.location.reload();
+        };
+        if (this.delegate && this.delegate.applicationWillTerminate){
+            this.delegate.applicationWillTerminate(reload);
+        }else{
+            reload();
+        }
+    },
+
     baseURL: JSReadOnlyProperty(),
 
     getBaseURL: function(){
@@ -60,7 +71,7 @@ JSGlobalObject.UIApplicationMain = function(rootElement, bootstrapper){
     var application = UIApplication.initWithWindowServer(windowServer);
     application.run(function(success){
         if (bootstrapper){
-            bootstrapper.applicationLaunchResult(success);
+            bootstrapper.applicationLaunchResult(application, success);
         }
     });
 };

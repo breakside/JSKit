@@ -21,7 +21,6 @@ JSClass("JSUserDefaults", JSObject, {
         this._identifier = identifier;
         this._url = JSFileManager.shared.persistentContainerURL.appendingPathComponents(['Preferences', '%s.prefs.json'.sprintf(this._identifier)]);
         this._defaults = {};
-        this._values = {};
     },
 
     open: function(completion, target){
@@ -33,6 +32,8 @@ JSClass("JSUserDefaults", JSObject, {
                 if (data !== null){
                     var json = String.initWithData(data, String.Encoding.utf8);
                     this._values = JSON.parse(json);
+                }else{
+                    this._values = {};
                 }
             }catch (e){
             }
@@ -124,15 +125,19 @@ JSClass("JSUserDefaults", JSObject, {
             this._persistTimer.invalidate();
         }
         this._persistTimer = null;
-        var data = JSON.stringify(this._values).utf8();
-        JSFileManager.shared.createFileAtURL(this._url, data, function(success){
-            if (!success){
-                logger.error("Failed to write preferences to %{public}", this._url);
-            }
-            if (completion){
-                completion.call(target, success);
-            }
-        }, this);
+        if (this._values === null){
+            completion.call(target, true);
+        }else{
+            var data = JSON.stringify(this._values).utf8();
+            JSFileManager.shared.createFileAtURL(this._url, data, function(success){
+                if (!success){
+                    logger.error("Failed to write preferences to %{public}", this._url);
+                }
+                if (completion){
+                    completion.call(target, success);
+                }
+            }, this);
+        }
     }
 
 });

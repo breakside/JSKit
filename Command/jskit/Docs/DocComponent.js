@@ -134,6 +134,14 @@ JSClass("DocComponent", JSObject, {
         return component ? component.environment : null;
     },
 
+    inheritedCopyright: function(){
+        var component = this;
+        while (component !== null && component.copyright === null){
+            component = component.parent;
+        }
+        return component ? component.copyright : null;
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Relationships
 
@@ -150,8 +158,7 @@ JSClass("DocComponent", JSObject, {
         var html = document.documentElement;
         var head = html.appendChild(document.createElement("head"));
         var meta = head.appendChild(document.createElement("meta"));
-        meta.setAttribute("content", "text/html; charset=utf-8");
-        meta.setAttribute("http-equiv", "Content-Type");
+        meta.setAttribute("charset", "utf-8");
         var title = head.appendChild(document.createElement("title"));
         var titleText = this.title;
         if (documentation.title){
@@ -168,8 +175,9 @@ JSClass("DocComponent", JSObject, {
         var content = body.appendChild(document.createElement("article"));
         content.setAttribute("class", "doc " + this.kind);
         var elements = this.htmlArticleElements(document);
-        if (this.copyright){
-            elements.push(this.footerElement(document, this.copyright));
+        var copyright = this.inheritedCopyright();
+        if (copyright){
+            elements.push(this.footerElement(document, copyright));
         }
 
         if (this.see){

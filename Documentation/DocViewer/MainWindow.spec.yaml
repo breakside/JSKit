@@ -48,6 +48,7 @@ SidebarViewController:
     outlineView: /SidebarOutlineView
     headerView: /SidebarHeaderView
     searchField: /SearchField
+    updateButton: /UpdateButton
   delegate: /MainViewController
 
 
@@ -58,7 +59,23 @@ SidebarHeaderView:
   borderColor: /LineColor
   maskedBorders: $UILayer.Sides.maxY
   subviews:
+    - /UpdateButton
     - /SearchField
+
+UpdateButton:
+  class: UIButton
+  title: .updateButton.title
+  hidden: true
+  titleInsets: 4,3
+  font:
+    size: detail
+  styler:
+    class: UIButtonCustomStyler
+    normalTitleColor: $JSColor.whiteColor
+    normalBackgroundColor: /HighlightColor
+    cornerRadius: 3
+  target: /SidebarViewController
+  action: update
 
 SearchField:
   class: UITextField

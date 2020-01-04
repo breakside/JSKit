@@ -1,6 +1,6 @@
 // Copyright © 2020 Breakside Inc.  MIT License.
 // #import UIKit
-/* global JSClass, UIViewController, SidebarViewController, JSImage, JSInsets, JSRect, UIListView, UIListViewCell, JSIndexPath */
+/* global JSClass, UIViewController, UIApplication, UIViewPropertyAnimator, SidebarViewController, JSImage, JSInsets, JSRect, UIListView, UIListViewCell, JSIndexPath */
 'use strict';
 
 (function(){
@@ -34,10 +34,19 @@ JSClass("SidebarViewController", UIViewController, {
     },
 
     viewDidLayoutSubviews: function(){
+        var buttonSize = this.updateButton.intrinsicSize;
         var searchSize = this.searchField.intrinsicSize;
         var searchInsets = JSInsets(5, 5, 5, 5);
+        var buttonSpacing = searchInsets.top;
+        if (!this.updateButton.hidden){
+            searchInsets.top += buttonSize.height + buttonSpacing;
+        }
         this.headerView.frame = JSRect(0, 0, this.view.bounds.size.width, searchSize.height + searchInsets.top + searchInsets.bottom);
         this.searchField.frame = this.headerView.bounds.rectWithInsets(searchInsets);
+        var buttonFrame = JSRect(this.searchField.frame);
+        buttonFrame.size.height = buttonSize.height;
+        buttonFrame.origin.y -= buttonSize.height + buttonSpacing;
+        this.updateButton.frame = buttonFrame;
         this.outlineView.frame = this.view.bounds;
         this.outlineView.contentInsets = JSInsets(this.headerView.frame.size.height, 0, 5, 0);
         if (this.searchListView){
@@ -261,6 +270,30 @@ JSClass("SidebarViewController", UIViewController, {
     clearSearch: function(){
         this.searchField.text = "";
         this.searchChanged(this.searchField);
+    },
+
+    // MARK: - Update Available
+
+    updateButton: null,
+
+    indicateUpdateAvailable: function(){
+        if (!this.updateButton.hidden){
+            return;
+        }
+        this.updateButton.hidden = false;
+        this.updateButton.alpha = 0;
+        var animator = UIViewPropertyAnimator.initWithDuration(0.2);
+        this.view.setNeedsLayout();
+        var sidebar = this;
+        animator.addAnimations(function(){
+            sidebar.view.layoutIfNeeded();
+            sidebar.updateButton.alpha = 1;
+        });
+        animator.start();
+    },
+
+    update: function(){
+        UIApplication.shared.update();
     }
 
 });

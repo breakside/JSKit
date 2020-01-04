@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
   <title></title>
   <base href="/">
@@ -149,6 +149,7 @@
     bootstrapper.onprogress = function(loaded, total){
       progressBar.style.width = (loaded * 100 / total) + '%';
     };
+    bootstrapper.setLogger(console);
     window.JSKIT_PREFLIGHT_CONTEXT = bootstrapper;
     bootstrapper.run();
   })();

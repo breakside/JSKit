@@ -1,7 +1,7 @@
 // #import "UIView.js"
 // #import "UITextLayer.js"
 // #import "UIPasteboard.js"
-/* global JSClass, UIView, UILayer, JSColor, JSDynamicProperty, UIViewLayerProperty, JSInsets, JSRange, UITextLayer, UILabel, JSFont, UIPasteboard, UICursor */
+/* global JSClass, UIView, UILayer, JSColor, JSRect, JSSize, JSDynamicProperty, UIViewLayerProperty, JSInsets, JSRange, UITextLayer, UILabel, JSFont, UIPasteboard, UICursor */
 'use strict';
 
 JSClass('UILabel', UIView, {
@@ -49,10 +49,13 @@ JSClass('UILabel', UIView, {
     },
 
     getIntrinsicSize: function(){
-        this.sizeToFit();
         // FIXME: can we do this without sizing first?
         // (probably not a real big issue since the intrinsic size will be used to size the view)
-        return this.bounds.size;
+        var bounds = JSRect(this.bounds);
+        this.sizeToFit();
+        var size = JSSize(this.bounds.size);
+        this.bounds = bounds;
+        return size;
     },
 
     getFirstBaselineOffsetFromTop: function(){

@@ -31,7 +31,7 @@ topics:
         summary: A delgate for important application events like launch
         topics:
           -
-            name: Application Launch
+            name: Application Lifecyle
             members:
               -
                 name: applicationDidFinishLaunching
@@ -64,6 +64,41 @@ topics:
                     name: reason
                     type: LaunchFailureReason
                     summary: The reason the application failed to launch
+              -
+                name: applicationWillTerminate
+                summary: Called when the application will terminate
+                arguments:
+                  -
+                    name: completion
+                    type: function()
+                    summary: You must call the completion function when
+                      your `applicationWillTerminate` method is done saving
+                      anything that needs to be saved.
+                description: |
+                  Gives the application delegate a chance to perform tasks
+                  like saving data, before the application closes.
+
+                  ````
+                  JSClass("ApplicationDelegate", JSObject, {
+
+                    applicationWillTerminate: function(completion){
+                      saveApplicationData().then(completion);
+                    }
+
+                  });
+                  ````
+          -
+            name: Application Updates
+            members:
+              -
+                name: applicationUpdateAvailable
+                kind: method
+                summary: Called when an update is available
+                description: |
+                  Gives the application a change to notify the user ang give
+                  them a choice of when to update.
+
+                  Call `UIApplication.update()` to install the update.
       -
         name: delegate
         type: UIApplicationDelegate
@@ -144,6 +179,15 @@ topics:
           For web based applications, the URL will open in a new browser window
           and the browser's default behavior for that resource type will be
           invoked.
+  -
+    name: Updates
+    members:
+      -
+        name: update
+        kind: method
+        summary: Update the application
+        description: |
+          Will call `applicationWillTerminate()` on the `delegate`.
   -
     name: Events
     members:

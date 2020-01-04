@@ -19,6 +19,10 @@ JSClass("ApplicationDelegate", JSObject, {
         JSUserDefaults.shared.registerDefaults({
             lastComponentPath: null, 
         });
+    },
+
+    applicationUpdateAvailable: function(application){
+        this.mainViewController.indicateUpdateAvailable();
     }
 
 });
