@@ -164,6 +164,9 @@ JSClass("DocComponent", JSObject, {
         var content = body.appendChild(document.createElement("article"));
         content.setAttribute("class", "doc " + this.kind);
         var elements = this.htmlArticleElements(document);
+        if (documentation.copyright){
+            elements.push(this.footerElement(document, documentation.copyright));
+        }
 
         if (this.see){
             let section = document.createElement('section');
@@ -259,6 +262,13 @@ JSClass("DocComponent", JSObject, {
             }
         }
         return outline;
+    },
+
+    footerElement: function(document, copyright){
+        var footer = document.createElement('footer');
+        var p = footer.appendChild(document.createElement('p'));
+        p.appendChild(document.createTextNode(copyright));
+        return footer;
     },
 
     htmlArticleElements: function(document){

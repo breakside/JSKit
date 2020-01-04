@@ -351,3 +351,13 @@ article.doc > section.variations > ul > li > p{
     margin-top: 5px;
     margin-left: 20px;
 }
+
+article.doc > footer {
+    margin-top: 20px;
+    text-align: right;
+}
+
+article.doc > footer > p {
+    font-size: 60%;
+    color: rgb(128,128,128);
+}
