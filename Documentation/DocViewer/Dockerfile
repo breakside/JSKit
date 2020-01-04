@@ -1,6 +1,6 @@
 FROM ubuntu:18.04
 
-RUN apt-get update && apt-get install -y nginx=1.10.3-0ubuntu0.16.04.3
+RUN apt-get update && apt-get install -y nginx
 
 COPY DocViewer /DocViewer
 
