@@ -1,0 +1,94 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: UILayer
+implements:
+  - JSTextLayoutManagerDelegate
+summary: A layer displays text
+descriptions: |
+  This low level text layer is what `UILabel` uses to draw its text.
+
+  Most of the time, `UILabel` is what you' should use, but in cases where the
+  event overhead of a `UIView` is too much, and you just need text,
+  `UITextLayer` could be appropriate.
+topics:
+  -
+    name: Text
+    members:
+      -
+        name: text
+        type: String
+        summary: The text this layer displays
+      -
+        name: attributedText
+        type: JSAttributedString
+        summary: The rich text this layer displays
+        description: |
+          Attributed strings contain styling instructing for ranges within the
+          full text string.
+      -
+        name: textInsets
+        type: JSInsets
+        summary: The amount to inset the text from the labels edges
+      -
+        name: textAlignment
+        type: JSTextAlignment
+        summary: The way to align text
+      -
+        name: hasText
+        kind: method
+        type: boolean
+        summary: Checks if the layer is empty or not
+  -
+    name: Lines
+    members:
+      -
+        name: maximumNumberOfLines
+        type: Number
+        summary: The maximum number of lines to display in this layer
+        description: |
+          Set to `0` for unlimted lines.
+      -
+        name: lineBreakMode
+        type: JSLineBreakMode
+        summary: The line breaking strategy to use for this layer
+  -
+    name: Style
+    members:
+      -
+        name: textColor
+        type: JSColor
+        summary: The color to use for the text
+        description: |
+          If using `attributedText`, this will only serve as a fallback color
+          for ranges that don't have a specified color.
+      -
+        name: font
+        type: JSFont
+        summary: The font to use for the text
+        description: |
+          If using `attributedText`, this will only serve as a fallback font
+          for ranges that don't have a specified font.
+  -
+    name: Sizing
+    members:
+      -
+        name: widthTracksText
+        type: boolean
+        summary: Indicates that the layer size should change to match the
+          width of the text
+      -
+        name: heightTracksText
+        type: boolean
+        summary: Indicates that the layer size should change to match the
+          height of the text
+  -
+    name: Coordinates
+    members:
+      - 
+        name: convertPointToTextContainer
+        kind: method
+        type: JSPoint
+        summary: Convert's the given point from the layer's coordinate space
+          to its inernal text container's coordinate space
+        description: |
+          The internal text container is affected by `textInsets`.

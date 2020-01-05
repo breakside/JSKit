@@ -9,7 +9,7 @@ description: |
   many frills.
 topics:
   - 
-    name: Core Components
+    name: Class Model
     summary: The most basic building blocks for JSKit-based applications
     members:
       - JSClass

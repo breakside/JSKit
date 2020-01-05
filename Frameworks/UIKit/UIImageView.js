@@ -26,7 +26,7 @@ JSClass("UIImageView", UIView, {
             this.image = spec.resolvedValue(values.image, "JSImage");
         }
         if ('scaleMode' in values){
-            this.scaleMode = spec.resolvedValue(values.scaleMode);
+            this.scaleMode = spec.resolvedEnum(values.scaleMode, JSImage.ScaleMode);
         }else{
             this._scaleImage();
         }

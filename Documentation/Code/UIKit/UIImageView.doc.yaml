@@ -1,0 +1,126 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: "1.0.0"
+inherits: UIView
+summary: A view for displaying images
+description: |
+  An image view displays a `JSImage`.
+topics:
+  -
+    name: Creating an Image View
+    members:
+      -
+        name: initWithImage
+        kind: init
+        summary: Create an image for for the given image
+        arguments:
+          -
+            name: image
+            type: JSImage
+            summary: The image to display in this view
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available to set in a spec file for a
+          \`UIImageView`
+        topics:
+          -
+            name: Image
+            members:
+              -
+                name: image
+                type: JSImage
+                summary: The image to display in the view
+                description: |
+                  ````
+                  IconView
+                    class: UIImageView
+                    image: SettingsIcon
+                  ````
+              -
+                name: templateColor
+                type: JSColor
+                summary: The color to use if the image's
+                  \`renderMode`(JSImage.renderMode) is set to `template`
+                description: |
+                  ````
+                  IconView
+                    class: UIImageView
+                    templateColor:
+                      rgba: 164,164,164
+                  ````
+              -
+                name: scaleMode
+                type: ScaleMode
+                summary: The way to stretch or crop the image
+                description: |
+                  You can simply use the name of the `ScaleMode` option:
+
+                  ````
+                  PhotoView:
+                    class: UIImageView
+                    image: DefaultPhoto
+                    scaleMode: aspectFill
+                  ````
+  -
+    name: Image
+    members:
+      -
+        name: image
+        type: JSImage
+        nullable: true
+        summary: The image to display in the view
+  -
+    name: Template Images
+    members:
+      -
+        name: templateColor
+        type: JSColor
+        summary: The color to use if the image's
+          \`renderMode`(JSImage.renderMode) is set to `template`
+      -
+        name: automaticRenderMode
+        type: JSImage.RenderMode
+        summary: How to treat images that have thier `renderMode`(JSImage.renderMode)
+          set to `automatic`
+        description: |
+          Images that have their `renderMode`(JSImage.renderMode)
+          set to `automatic` should be rendered according to the context
+          they're in.
+
+          This `automaticRenderMode` property allows you sepcify the default
+          rendering mode for this image view's context.
+
+          For example, an image view that sets `automaticRenderMode` to
+          `template` will display images with either `template` or `automatic`
+          render modes as template images, but will still display `original`
+          images as non-template images in their original form.
+  -
+    name: Scaling
+    members:
+      -
+        name: ScaleMode
+        kind: enum
+        suffix: enum
+        summary: The various ways to stretch or crop an image in the view
+        options:
+          -
+            name: fit
+            summary: The image should fit the view, distorting if necessary
+          -
+            name: aspectFit
+            summary: The image should fit the view in one direction, but
+              but preserve its aspect ratio without cropping the other
+              direction.
+          -
+            name: aspectFill
+            summary: The image should fill the view, but
+              but preserve its aspect ratio by cropping.
+          -
+            name: center
+            summary: The image should maintain its inherent size and always
+              stay centered in the view.
+      - 
+        name: scaleMode
+        type: ScaleMode
+        summary: The way to stretch or crop the image

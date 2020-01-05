@@ -1,0 +1,52 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: "1.0.0"
+inherits: UILayer
+summary: A layer for displaying images
+description: |
+  This is the low level layer that `UIImageView` uses to draw images.
+
+  Most of the time, `UIImageView` is what you' should use, but in cases where the
+  event overhead of a `UIView` is too much, and you just need text,
+  `UIImageLayer` could be appropriate.
+topics:
+  -
+    name: Image
+    members:
+      -
+        name: image
+        type: JSImage
+        nullable: true
+        summary: The image to display in the layer
+      -
+        name: imageFrame
+        type: JSRect
+        summary: The frame in which to draw the image
+        description: |
+          `UIImageView` translates its `scaleMode`(UIImageView.scaleMode)
+          into an image frame on this lower level layer.
+  -
+    name: Template Images
+    members:
+      -
+        name: templateColor
+        type: JSColor
+        summary: The color to use if the image's
+          \`renderMode`(JSImage.renderMode) is set to `template`
+      -
+        name: automaticRenderMode
+        type: JSImage.RenderMode
+        summary: How to treat images that have thier `renderMode`(JSImage.renderMode)
+          set to `automatic`
+        description: |
+          Images that have their `renderMode`(JSImage.renderMode)
+          set to `automatic` should be rendered according to the context
+          they're in.
+
+          This `automaticRenderMode` property allows you sepcify the default
+          rendering mode for this image layer's context.
+
+          For example, an image layer that sets `automaticRenderMode` to
+          `template` will display images with either `template` or `automatic`
+          render modes as template images, but will still display `original`
+          images as non-template images in their original form.

@@ -3,6 +3,7 @@ kind: class
 introduced: "1.0.0"
 inherits: UIResponder
 implements:
+  - UILayerDelegate
   - UIDraggingSource
   - UIDraggingDestination
 summary: The base element to draw and respond to events

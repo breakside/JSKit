@@ -184,8 +184,8 @@ topics:
   -
     name: Image Views
     members:
-      - UIImageLayer
       - UIImageView
+      - UIImageLayer
   -
     name: Scrolling
     members:
