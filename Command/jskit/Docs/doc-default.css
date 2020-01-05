@@ -76,7 +76,7 @@ article.doc > footer{
     grid-column-start: 1;
 }
 
-article.doc > section.inherits, article.doc > section.see{
+article.doc > section.inherits, article.doc > section.see, article.doc > section.implements{
     grid-column-start: 1;
 }
 
@@ -354,6 +354,12 @@ article.doc > section.variations > ul > li > a{
 article.doc > section.variations > ul > li > p{
     margin-top: 5px;
     margin-left: 20px;
+}
+
+article.doc > section.implements > ul{
+    margin-left: 0;
+    padding-left: 0;
+    list-style: none;
 }
 
 article.doc > footer {

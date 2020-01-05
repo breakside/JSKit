@@ -268,9 +268,9 @@ JSClass("DocComponent", JSObject, {
                 if (level !== null){
                     outline.push(element);
                 }
-                for (let i = 0, l = element.childNodes.length; i < l; ++i){
+                for (let i = element.childNodes.length - 1; i >= 0; --i){
                     let node = element.childNodes[i];
-                    stack.push(node);
+                    stack.unshift(node);
                 }   
             }
         }
@@ -434,11 +434,43 @@ JSClass("DocComponent", JSObject, {
         var code = section.appendChild(document.createElement("div"));
         code.setAttribute("class", "code");
         for (let i = 0, l = lines.length; i < l; ++i){
-            let lineElement = code.appendChild(document.createElement("div"));
-            lineElement.appendChild(document.createTextNode(lines[i]));
-            lineElement.setAttribute("class", "line");
+            let line = lines[i];
+            if (line instanceof DOM.Element){
+                code.appendChild(line);
+            }else{
+                let lineElement = code.appendChild(document.createElement("div"));
+                lineElement.appendChild(document.createTextNode(line));
+                lineElement.setAttribute("class", "line");
+            }
         }
         return section;
+    },
+
+    codeLineFromTokens: function(document, tokens){
+        let line = document.createElement("div");
+        line.setAttribute("class", "line");
+        for (let i = 0, l = tokens.length; i < l; ++i){
+            let token = tokens[i];
+            let span = null;
+            if (token.link){
+                let url = this.urlForCode(token.value);
+                if (url !== null){
+                    span = line.appendChild(document.createElement('a'));
+                    span.setAttribute("href", url.encodedString);
+                }
+            }
+            if (span === null){
+                span = line.appendChild(document.createElement('span'));
+            }
+            span.appendChild(document.createTextNode(token.value));
+            if (token.className){
+                span.setAttribute("class", token.className);
+            }
+            if (i < l - 1 && tokens[i + 1].value != ','){
+                line.appendChild(document.createTextNode(' '));
+            }
+        }
+        return line;
     },
 
     output: async function(documentation){
