@@ -2,6 +2,9 @@ copyright: Copyright © 2020 Breakside Inc.
 kind: class
 introduced: "1.0.0"
 inherits: UIResponder
+implements:
+  - UIDraggingSource
+  - UIDraggingDestination
 summary: The base element to draw and respond to events
 description: |
   At the most basic level, a `UIView` is used to draw in rectangles on the

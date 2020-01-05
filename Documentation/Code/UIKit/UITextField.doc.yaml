@@ -1,0 +1,486 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: UIControl
+implements:
+  - UITextInput
+summary: A single- or multi-line text-editing field
+topics:
+  -
+    name: Creating a Text Field
+    members:
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties that can be included in a spec file for a
+          \`UITextField`
+        topics:
+          -
+            name: Delegate
+            members:
+              -
+                name: delegate
+                type: UITextFieldDelegate
+                summary: The text field's delegate
+                description: |
+                  ````
+                  MainViewController:
+                    class: UIViewController
+
+                  SearchField:
+                    class: UITextField
+                    delegate: /MainViewController
+                  ````
+          -
+            name: Text
+            members:
+              -
+                name: text
+                type: String
+                summary: The text to display in the field
+                description: |
+                  You can specify text directly:
+                  
+                  ````
+                  NameField:
+                    class: UITextField
+                    text: New Item
+                  ````
+
+                  However, using localized strings is strongly encouraged:
+
+                  `MainWindow.spec.yaml`
+                  ````
+                  NameField:
+                    class: UITextField
+                    text: .newItem
+                  ````
+
+                  `en.lproj/MainWindow.strings.yaml`
+                  ````
+                  en:
+                    newItem: New Item
+                  ````
+              -
+                name: placeholder
+                type: String
+                summary: The text to display when the field is empty
+                description: |
+                  You can specify text directly:
+                  
+                  ````
+                  SearchField:
+                    class: UITextField
+                    placeholder: Search
+                  ````
+
+                  However, using localized strings is strongly encouraged:
+
+                  `MainWindow.spec.yaml`
+                  ````
+                  SearchField:
+                    class: UITextField
+                    text: .searchField.placeholder
+                  ````
+
+                  `en.lproj/MainWindow.strings.yaml`
+                  ````
+                  en:
+                    searchField:
+                      placeholder: Hello, world!
+                  ````
+              -
+                name: textInsets
+                type: String
+                summary: The amounts the text should be inset from the field's
+                  edges, overriding any styler setting
+                description: |
+                  A string of comma-separated integers, that when parsed will be
+                  pased to the `JSInsets` constructor.
+
+                  ````
+                  WelcomeLabel:
+                    class: UITextField
+                    text: Hello, world!
+                    textInsets: 4,7
+                  ````
+              -
+                name: textInsets
+                suffix: number
+                type: Number
+                summary: The amount the text should be inset all from the field's
+                  edges, overriding any styler setting
+                description: |
+                  A single number that will be passed to the `JSInsets` constructor
+                  and used for all sides.
+
+                  ````
+                  WelcomeLabel:
+                    class: UITextField
+                    text: Hello, world!
+                    textInsets: 4
+                  ````
+              -
+                name: textAlignment
+                type: JSTextAlignment
+                summary: The way to align text in the field
+              -
+                name: secureEntry
+                type: boolean
+                summary: Indicates the field should not reveal what is being
+                  typed, showing dots instead.
+                description: |
+                  Typically used for password fields.
+          -
+            name: Lines
+            members:
+              -
+                name: multiline
+                type: boolean
+                summary: Indicates if the field shows mutliple lines
+          -
+            name: Style
+            members:
+              -
+                name: styler
+                type: UITextFieldStyler
+                summary: The styler for this field
+              -
+                name: textColor
+                type: JSColor
+                summary: The color to use for the text, overriding any value
+                  the `styler` sets.
+              -
+                name: placeholderColor
+                type: JSColor
+                summary: The color to use for the text, overriding any value
+                  the `styler` sets.
+              -
+                name: font
+                type: JSFont
+                summary: The font to use for the text, overriding any value
+                  the `styler` sets.
+          -
+            name: Accessory Views
+            members:
+              -
+                name: leftImage
+                type: JSImage
+                summary: An image to show as the field's left accessory
+                description: |
+                  Automatically creates a `UIImageView` to use as the
+                  `leftAccessoryView`(UITextField.leftAccessoryView)
+              -
+                name: leftAccessoryView
+                type: UIView
+                summary: An view to use as the field's left accessory
+              -
+                name: leftAccessorySize
+                type: String
+                summary: The size of the left accessory
+                description: |
+                  A string of comma-separated integers, that when parsed will be
+                  pased to the `JSInsets` constructor.
+              -
+                name: leftAccessorySize
+                suffix: number
+                type: Number
+                summary: The identical width and height of the left accessory
+                description: |
+                  A number that will be used for the left accessory's width and
+                  height.
+              -
+                name: leftAccessoryInsets
+                type: String
+                summary: The amounts the left accessory should be spaced from the
+                  field's left/top/bottom edges and the text
+                description: |
+                  A string of comma-separated integers, that when parsed will be
+                  pased to the `JSInsets` constructor.
+              -
+                name: leftAccessoryInsets
+                suffix: number
+                type: Number
+                summary: The equal amount the left accessory should be spaced
+                  from the field's left/top/bottom edges and the text
+              -
+                name: leftAccessoryVisibility
+                type: AccessoryVisibility
+                summary: Controls when the left accessory is visible
+              -
+                name: rightImage
+                type: JSImage
+                summary: An image to show as the field's right accessory
+                description: |
+                  Automatically creates a `UIImageView` to use as the
+                  `rightAccessoryView`(UITextField.rightAccessoryView)
+              -
+                name: rightAccessoryView
+                type: UIView
+                summary: An view to use as the field's right accessory
+              -
+                name: rightAccessorySize
+                type: String
+                summary: The size of the right accessory
+                description: |
+                  A string of comma-separated integers, that when parsed will be
+                  pased to the `JSInsets` constructor.
+              -
+                name: rightAccessorySize
+                suffix: number
+                type: Number
+                summary: The identical width and height of the right accessory
+                description: |
+                  A number that will be used for the right accessory's width and
+                  height.
+              -
+                name: rightAccessoryInsets
+                type: String
+                summary: The amounts the right accessory should be spaced from the
+                  field's right/top/bottom edges and the text
+                description: |
+                  A string of comma-separated integers, that when parsed will be
+                  pased to the `JSInsets` constructor.
+              -
+                name: rightAccessoryInsets
+                suffix: number
+                type: Number
+                summary: The equal amount the right accessory should be spaced
+                  from the field's right/top/bottom edges and the text
+              -
+                name: rightAccessoryVisibility
+                type: AccessoryVisibility
+                summary: Controls when the right accessory is visible
+  -
+    name: Delegate
+    members:
+      -
+        name: UITextFieldDelegate
+        kind: protocol
+        summary: An interface that text field delegates can implement
+        members:
+          -
+            name: Field Changes
+            members:
+              -
+                name: textFieldDidChange
+                summary: Called anytime the field changes while the user types
+                arguments:
+                  -
+                    name: textField
+                    type: UITextField
+                    summary: The field that changed
+              -
+                name: textFieldDidReceiveEnter
+                summary: Called when the user presses the enter key
+                arguments:
+                  -
+                    name: textField
+                    type: UITextField
+                    summary: The field making the call
+      -
+        name: delegate
+        type: UITextFieldDelegate
+        summary: This field's delegate
+  -
+    name: Text
+    members:
+      -
+        name: text
+        type: String
+        summary: The text in this field
+      -
+        name: attributedText
+        type: JSAttributedString
+        summary: The rich text in this field
+        description: |
+          Attributed strings contain styling instructing for ranges within the
+          full text string.
+      -
+        name: textInsets
+        type: JSInsets
+        summary: The amount to inset the text from the fields edges
+      -
+        name: placeholder
+        type: String
+        summary: The text to show when the field is empty
+      -
+        name: isEmpty
+        kind: method
+        type: boolean
+        summary: Check if the field is empty
+      -
+        name: secureEntry
+        type: boolean
+        summary: Indicates the field should not reveal what is being
+          typed, showing dots instead.
+        description: |
+          Typically used for password fields.
+  -
+    name: Number Content
+    members:
+      -
+        name: integerValue
+        type: Number
+        nullable: true
+        summary: The integer in this field
+  -
+    name: Lines
+    members:
+      -
+        name: multiline
+        type: boolean
+        summary: Indicates if this is a multi-line field
+      -
+        name: minimumHeight
+        type: Number
+        summary: The minimum height for this field
+  -
+    name: Style
+    members:
+      -
+        name: font
+        type: JSFont
+        summary: The font to use for the text
+        description: |
+          If using `attributedText`, this will only serve as a fallback font
+          for ranges that don't have a specified font.
+      -
+        name: textColor
+        type: JSColor
+        summary: The color to use for the text
+        description: |
+          If using `attributedText`, this will only serve as a fallback color
+          for ranges that don't have a specified color.
+      -
+        name: placeholderColor
+        type: JSColor
+        summary: The color to use for the placeholder
+      -
+        name: localCursorColor
+        type: JSColor
+        summary: The color to use for the cursor
+  -
+    name: Accessory Views
+    members:
+      -
+        name: leftImage
+        type: JSImage
+        summary: An image to show as the field's left accessory
+        description: |
+          Automatically creates a `UIImageView` to use as the
+          `leftAccessoryView`
+      -
+        name: leftAccessoryView
+        type: UIView
+        summary: An view to use as the field's left accessory
+      -
+        name: leftAccessorySize
+        type: JSSize
+        summary: The size of the left accessory
+      -
+        name: leftAccessoryInsets
+        type: JSInsets
+        summary: The amounts the left accessory should be spaced from the
+          field's left/top/bottom edges and the text
+      -
+        name: leftAccessoryVisibility
+        type: AccessoryVisibility
+        summary: Controls when the left accessory is visible
+      -
+        name: rightImage
+        type: JSImage
+        summary: An image to show as the field's right accessory
+        description: |
+          Automatically creates a `UIImageView` to use as the
+          `rightAccessoryView`(UITextField.rightAccessoryView)
+      -
+        name: rightAccessoryView
+        type: UIView
+        summary: An view to use as the field's right accessory
+      -
+        name: rightAccessorySize
+        type: JSSize
+        summary: The size of the right accessory
+      -
+        name: rightAccessoryInsets
+        type: JSInsets
+        summary: The amounts the right accessory should be spaced from the
+          field's right/top/bottom edges and the text
+      -
+        name: rightAccessoryVisibility
+        type: AccessoryVisibility
+        summary: Controls when the right accessory is visible
+      -
+        name: AccessoryVisibility
+        kind: enum
+        summary: Options for when an accessory view may be visible
+        options:
+          -
+            name: always
+            summary: Always show the accessory
+          -
+            name: onlyWhenActive
+            summary: Only show the accessory when the field has focus
+          -
+            name: onlyWhenNotEmpty
+            summary: Only show the accessory when the field has text
+  -
+    name: Selection
+    members:
+      -
+        name: selections
+        type: UITextEditorSelection[]
+        summary: The ranges of text that are currently selected
+      -
+        name: setSelectionRange
+        kind: method
+        summary: Set the range of selected text
+        arguments:
+          -
+            name: range
+            type: JSRange
+            summary: The range of the text to select
+          -
+            name: insertionPoint
+            type: UITextEditor.SelectionInsertionPoint
+            summary: Where the cursor should be placed in the selection
+          -
+            name: affinity
+            type: UITextEditor.SelectionAffinity
+            summary: Controls how the selection behaves at line breaks
+      -
+        name: setSelectionRanges
+        kind: method
+        summary: Set the ranges of selected text
+        arguments:
+          -
+            name: ranges
+            type: JSRange[]
+            summary: The ranges of the text to select
+          -
+            name: insertionPoint
+            type: UITextEditor.SelectionInsertionPoint
+            summary: Where the cursor should be placed in the selection
+          -
+            name: affinity
+            type: UITextEditor.SelectionAffinity
+            summary: Controls how the selection behaves at line breaks
+  -
+    name: Actions
+    members:
+      -
+        name: cut
+        kind: method
+        summary: Cut the selected text and place it on the general pasteboard
+      -
+        name: copy
+        kind: method
+        summary: Copy the selected text and place it on the general pasteboard
+      -
+        name: paste
+        kind: method
+        summary: Paste plain text from the general pasteboard
+      -
+        name: pasteAndMatchStyle
+        kind: method
+        summary: Paste attributed text from the general pasteboard

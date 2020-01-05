@@ -1,0 +1,152 @@
+kind: protocol
+summary: An interface for any text editing control to implement
+description: |
+  The low level text input manager will recognize input events and translate
+  them into method calls on the `firstResponder` if that responder implements
+  this `UITextInput` interface.
+
+  All methods are optional.
+topics:
+  -
+    name: Inserting
+    members:
+      -
+        name: insertText
+        summary: Insert the given text
+        arguments:
+          -
+            name: text
+            type: String
+            summary: The text to insert
+        description: |
+          Typical implementations will insert the text at their current
+          insertion point, replacing any selections with the text. 
+      -
+        name: insertNewline
+        summary: Insert a newline, or otherwise handle an `Enter`() keypress
+        description: |
+          Implementations can treat a newline request as an `Enter`() key press,
+          which may result in some action other than a newline insertion.
+      -
+        name: insertTab
+        summary: Insert a horizontal tab, or otherwise handle a `Tab`() keypress
+        description: |
+          Implementations can treat a tab request as an `Tab` key press,
+          which may result in some action other than a newline insertion.
+
+          For example, `UITextField` treats a tab as an indication to
+          have the window make its `nextKeyView` the `firstResponder`.
+
+          Other implementations may treat a tab as an indentation request
+      -
+        name: insertBacktab
+        summary: Insert a backtab, or otherwise handle a `Shift+Tab`() keypress
+        description: |
+          Implementations can treat a tab request as an `Shift+Tab` key press,
+          which may result in some action other than a newline insertion.
+
+          For example, `UITextField` treats a tab as an indication to
+          have the window make its `previousKeyView` the `firstResponder`.
+
+          Other implementations may treat a backtab as an outdentation request
+  -
+    name: Deletion
+    members:
+      -
+        name: deleteBackward
+        summary: Delete the previous character
+      -
+        name: deleteWordBackward
+        summary: Delete the previous word
+      -
+        name: deleteToBeginningOfLine
+        summary: Delete back to the beginning of the line
+      -
+        name: deleteToBeginningOfDocument
+        summary: Delete back to the beginning of the document
+      -
+        name: deleteForward
+        summary: Delete the next character
+      -
+        name: deleteWordForward
+        summary: Delete the next word
+      -
+        name: deleteToEndOfLine
+        summary: Delete to the end of the line
+      -
+        name: deleteToEndOfDocument
+        summary: Delete to the end of the document
+      -
+        name: deleteAll
+        summary: Delete everything
+  -
+    name: Moving
+    members:
+      -
+        name: moveBackward
+        summary: Move one character backwards
+      -
+        name: moveWordBackward
+        summary: Move one word backwards
+      -
+        name: moveToBeginningOfLine
+        summary: Move to the start of the line
+      -
+        name: moveUp
+        summary: Move up one line
+      -
+        name: moveToBeginningOfDocument
+        summary: Move to the start of the document
+      -
+        name: moveForward
+        summary: Move one character forward
+      -
+        name: moveWordForward
+        summary: Move one word forward
+      -
+        name: moveToEndOfLine
+        summary: Move to the end of the line
+      -
+        name: moveDown
+        summary: Move down one line
+      -
+        name: moveToEndOfDocument
+        summary: Move to the end of the document
+  -
+    name: Selection
+    members:  
+      -
+        name: moveBackwardAndModifySelection
+        summary: Move back and extend the selection to include the previous
+          character
+      -
+        name: moveWordBackwardAndModifySelection
+        summary: Move back and extend the selection to include the previous word
+      -
+        name: moveToBeginningOfLineAndModifySelection
+        summary: Move back and extend the section to the start of the line
+      -
+        name: moveUpAndModifySelection
+        summary: Move up and extend the selection one line above
+      -
+        name: moveToBeginningOfDocumentAndModifySelection
+        summary: Move and extend the selection to the beginning of the document
+      -
+        name: moveForwardAndModifySelection
+        summary: Move forward and extend the selection to include the next
+          character
+      -
+        name: moveWordForwardAndModifySelection
+        summary: Move forward and extend the selection to include the next word
+      -
+        name: moveToEndOfLineAndModifySelection
+        summary: Move forward and extend the selection to the end of the line
+      -
+        name: moveDownAndModifySelection
+        summary: Move down and extend the selection one line below
+      -
+        name: moveToEndOfDocumentAndModifySelection
+        summary: Move and extend the selection to the end of the document
+      -
+        name: selectAll
+        summary: Select everything

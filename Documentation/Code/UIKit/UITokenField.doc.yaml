@@ -1,0 +1,115 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: UITextField
+summary: A text field that turns input into tokens that act like single
+  characters
+description: |
+  A common example of token fields is the To field in an email compose window,
+  where an address you've typed turns into a little bubble that acts like
+  it is only one character big.
+
+  Strings typed by the user get converted into data objects, which are shown
+  in the field as tokens.
+topics:
+  -
+    name: Creating a Token Field
+    members:
+      -
+        name: Spec File Properties
+        kind: spec
+        topics:
+          -
+            name: tokenDelegate
+            type: UITokenFieldDelegate
+            summary: The field's delegate
+            description: |
+              ````
+              ComposeViewController:
+                class: EmailComposeViewController
+
+              ToField:
+                class: UITokenField
+                delegate: /ComposeViewController
+              ````
+  -
+    name: Delegate
+    members:
+      -
+        name: UITokenFieldDelegate
+        kind: protocol
+        summary: A protocol that allows token field customization
+        topics:
+          -
+            name: Converting Strings to Tokens
+            members:
+              -
+                name: tokenFieldRepresentedObjectForString
+                summary: Get the data object for a given string
+                type: object
+                return: An data object that will be represented as a token
+                arguments:
+                  -
+                    name: tokenField
+                    type: UITokenField
+                    summary: The field making this call
+                  -
+                    name: string
+                    type: String
+                    summary: The string typed by the user
+                description: |
+                  The data object for a string is what will be used to
+                  create a token view with
+                  `tokenFieldViewForRepresentedObject()`.
+
+                  It can be whatever is meaningful to the `delegate`.
+
+                  For an email To field, the represented object may be
+                  a `Contact`() record.
+              -
+                name: tokenFieldStringForRepresentedObject
+                summary: Get the string for a data object
+                arguments:
+                  -
+                    name: tokenField
+                    type: UITokenField
+                    summary: The field making this call
+                  -
+                    name: representedObject
+                    type: object
+                    summary: The data object
+                description: |
+                  Used to create a generic token view if
+                  `tokenFieldViewForRepresentedObject()` is not implemented.
+          -
+            name: Token Views
+            members:
+              -
+                name: tokenFieldViewForRepresentedObject
+                summary: Get the view that will be used as the token
+                arguments:
+                  -
+                    name: tokenField
+                    type: UITokenField
+                    summary: The field making this call
+                  -
+                    name: representedObject
+                    type: object
+                    summary: The data object
+                description: |
+                  The view will replace a string in the field, and will act
+                  like a single character.
+                note: If unimplemented, the token field will create a generic
+                  token view using `tokenFieldStringForRepresentedObject()`
+      -
+        name: tokenDelegate
+        type: UITokenFieldDelegate
+        summary: This field's delegate for token operations
+  -
+    name: Represented Objects
+    members:
+      -
+        name: representedObjects
+        type: object[]
+        summary: The objects that are represented by tokens in the field
+        description: |
+          Excludes any text that has not been turned into a valid token

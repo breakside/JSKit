@@ -175,13 +175,12 @@ topics:
     name: Text Controls
     members:
       - UILabel
-      - UITextView
-      - UITextLayer
       - UITextField
       - UITokenField
       - UITextEditor
       - UITextInput
       - UITextAttachmentView
+      - UITextLayer
   -
     name: Image Views
     members:

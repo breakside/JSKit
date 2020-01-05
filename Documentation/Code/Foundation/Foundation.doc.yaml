@@ -116,6 +116,35 @@ topics:
       - JSTextRun
       - JSTextStorage
       - JSTextTypesetter
+      -
+        name: JSTextAlignment
+        kind: enum
+        summary: Text alignment options
+        options:
+          -
+            name: left
+            summary: Left-justify text
+          -
+            name: center
+            summary: Center text
+          -
+            name: right
+            summary: Right-justify text
+      -
+        name: JSLineBreakMode
+        kind: enum
+        summary: Line break strategies
+        options:
+          -
+            name: truncateTail
+            summary: No line breaks.  Truncate the line and and ellipses if
+              necessary.
+          -
+            name: wordWrap
+            summary: Break lines at word boundaries
+          -
+            name: characterWrap
+            summary: Break lines at any character
   - 
     name: Zlib
     summary: Data compression with zlib
