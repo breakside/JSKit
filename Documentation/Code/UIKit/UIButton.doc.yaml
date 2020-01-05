@@ -86,6 +86,14 @@ topics:
                       rgba: 0,24,204
                     normalTitleColor: $JSColor.whiteColor
                   ````
+
+                  You can also use any value from `UIButton.Styler` by name:
+
+                  ````
+                  TestButton:
+                    class: UIButton
+                    styler: custom
+                  ````
           -
             name: Title
             members:

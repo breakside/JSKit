@@ -241,8 +241,11 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
     knobInsets: null,
     minimumKnobLength: null,
     knobColor: null,
+    knobGradient: null,
     trackColor: null,
+    trackGradient: null,
     trackBorderColor: null,
+    trackBorderWidth: 1,
 
     init: function(){
         this.knobInsets = JSInsets(2, 3, 2, 2);
@@ -278,7 +281,7 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
         scroller.layer.insertSublayerBelowSibling(scroller.stylerProperties.trackLayer, scroller._knob.layer);
         scroller.stylerProperties.trackLayer.backgroundColor = this.trackColor;
         scroller.stylerProperties.trackLayer.borderColor = this.trackBorderColor;
-        scroller.stylerProperties.trackLayer.borderWidth = 1.0;
+        scroller.stylerProperties.trackLayer.borderWidth = this.trackBorderWidth;
         scroller.stylerProperties.trackLayer.maskedBorders = scroller.direction === UIScroller.Direction.vertical ? UILayer.Sides.minX : UILayer.Sides.minY;
         scroller.stylerProperties.knobIndicatorLayer = UILayer.init();
         scroller.stylerProperties.knobIndicatorLayer.backgroundColor = this.knobColor;
@@ -286,7 +289,15 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
         scroller._knob.layer.addSublayer(scroller.stylerProperties.knobIndicatorLayer);
         if (scroller.direction === UIScroller.Direction.vertical){
             scroller.bounds = JSRect(0, 0, this.expandedSize, 0);
+            scroller.stylerProperties.knobIndicatorLayer.backgroundGradient = this.knobGradient;
+            scroller.stylerProperties.trackLayer.backgroundGradient = this.trackGradient;
         }else{
+            if (this.knobGradient !== null){
+                scroller.stylerProperties.knobIndicatorLayer.backgroundGradient = this.knobGradient.rotated(-Math.PI / 2);
+            }
+            if (this.trackGradient !== null){
+                scroller.stylerProperties.trackLayer.backgroundGradient = this.trackGradient.rotated(-Math.PI / 2);
+            }
             scroller.bounds = JSRect(0, 0, 0, this.expandedSize);
         }
         this.setExpanded(scroller, false);

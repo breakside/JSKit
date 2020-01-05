@@ -1,6 +1,7 @@
 // #import "JSObject.js"
 // #import "JSColor.js"
-/* global JSClass, JSObject, JSGradient, JSPoint */
+// #import "CoreTypes.js"
+/* global JSClass, JSObject, JSGradient, JSPoint, JSCopy, JSAffineTransform */
 'use strict';
 
 JSClass('JSGradient', JSObject, {
@@ -56,6 +57,17 @@ JSClass('JSGradient', JSObject, {
         }
         angle = angle * 180 / Math.PI;
         return 'linear-gradient(%fdeg, %s)'.sprintf(angle, cssStops.join(', '));
+    },
+
+    rotated: function(radians){
+        var transform = JSAffineTransform.Translated(0.5, 0.5);
+        transform = transform.rotatedBy(radians);
+        transform = transform.translatedBy(-0.5, -0.5);
+        var gradient = JSGradient.init();
+        gradient.start = transform.convertPointFromTransform(this.start);
+        gradient.end = transform.convertPointFromTransform(this.end);
+        gradient.stops = JSCopy(this.stops);
+        return gradient;
     }
 
 });

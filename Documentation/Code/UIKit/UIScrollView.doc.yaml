@@ -1,0 +1,322 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: UIView
+summary: A view that shows a portion of larger content at a time, allowing
+  the user to adjust what is visible
+description: |
+  While any `UIView` can scroll by adjusting its `bounds` origin, a
+  `UIScrollView` provides convenient properties and methods that handle
+  common scrolling behaviors and situations.
+
+  `UIScrollView` also provides controls in the form of `UIScroller`s for the
+  user to scroll with.
+topics:
+  -
+    name: Creating a Scroll View
+    members:
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The allowed properties in a spec file for a `UIScrollView`
+        topics:
+          -
+            name: Content Views
+            members:
+              -
+                name: contentView
+                type: UIView
+                summary: The view that contains the large content and actually
+                  scrolls
+                description: |
+                  Typically, you don't need to specify a speical `contentView`,
+                  and can instead simply specify `subviews` that will be
+                  added to the scroll view's automatically-created
+                  `contentView`(UIScrollView.contentView).
+
+                  ````
+                  SrollView:
+                    class: UIScrollView
+                    contentView:
+                      class: SpecialContentView
+                      subviews: 
+                        - /View1
+                        - /View2
+                        - /View3
+                  ````
+              -
+                name: subviews
+                type: UIView[]
+                summary: Views to add to the scroll view's content view
+                description: |
+                  Overrides the default meaning of `subviews` from `UIView`.
+
+                  Insetad of adding these views directly onto the scroll view
+                  itself, the views will be added to an automatically-created
+                  `contentView`.
+
+                  ````
+                  SrollView:
+                    class: UIScrollView
+                    subviews: 
+                      - /View1
+                      - /View2
+                      - /View3
+                  ````
+              -
+                name: contentInsets
+                type: String
+                summary: The amount to inset the content view from the edge of
+                  the scroll view
+                description: |
+                  A string of comma-separated integers that when parsed will
+                  be passed to a `JSInsets` constructor.
+
+                  ````
+                  SrollView:
+                    class: UIScrollView
+                    contentInests: 10,0
+                  ````
+              -
+                name: contentInsets
+                type: Number
+                suffix: number
+                summary: The equal amount to inset the content view from all
+                  edges of the scroll view
+                description: |
+                  A single number that will be used to create a JSInsets of
+                  equal value on every side.
+
+                  ````
+                  SrollView:
+                    class: UIScrollView
+                    contentInests: 5
+                  ````
+              -
+                name: contentSize
+                type: String
+                summary: The fixed size of the content
+                description: |
+                  A string of comma-separated integers that when parsed will
+                  be passed to a `JSSize` constructor.
+
+                  Scroll view subclasses such as `UIListView` often manage
+                  `contentSize` automatically.
+
+                  ````
+                  SrollView:
+                    class: UIScrollView
+                    contentSize: 300,1000
+                  ````
+          -
+            name: Scrollers
+            members:
+              -
+                name: verticalScroller
+                type: UIScroller
+                summary: The scroller contorol to use for vertical scrolling
+                description: |
+                  Typically the default scrollers will be sufficient, especially
+                  after using applying a custom style via `scrollStyler`, but
+                  if you need to use a specific scroller subclass, you can
+                  specify it here.
+              -
+                name: horizfontalScroller
+                type: UIScroller
+                summary: The scroller contorol to use for horizontal scrolling
+                description: |
+                  Typically the default scrollers will be sufficient, especially
+                  after using applying a custom style via `scrollStyler`, but
+                  if you need to use a specific scroller subclass, you can
+                  specify it here.
+              -
+                name: scrollStyler
+                type: UIScrollerStyler
+                summary: The styler to use for the scrollers
+                description: |
+                  Used only if you don't specify specific scrollers.
+
+                  You can use any instance of `UIScroller.Styler` by name.
+
+                  ````
+                  SrollView:
+                    class: UIScrollView
+                    scrollStyler: darkContent
+                  ````
+              -
+                name: scrollsVertically
+                type: boolean
+                summary: Indiacates if the scroll view can scroll vertically
+              -
+                name: scrollsHorizontally
+                type: boolean
+                summary: Indiacates if the scroll view can scroll horizontally
+  -
+    name: Content View
+    members:
+      -
+        name: contentView
+        type: UIView
+        summary: The view that contains the large content and actually
+          scrolls
+        description: |
+          When adding views to the scoll view, you should always add them
+          here, on the `contentView`.
+      -
+        name: contentInsets
+        type: JSInsets
+        summary: The amount to inset the content view from the edge of
+          the scroll view
+  -
+    name: Scrolling Area
+    members:
+      -
+        name: contentSize
+        type: JSSize
+        summary: The size of the content
+        description: |
+          The content size controls how much the scroll view can scroll.
+
+          Subclasses like `UIListView` update this size automatically.
+      -
+        name: contentOffset
+        type: JSPoint
+        summary: The amount the view is scrolled
+        description: |
+          The content offset is limited by the `contentSize` and the size
+          of the scroll view.
+  -
+    name: Delegate
+    members:
+      -
+        name: UIScrollViewDelegate
+        kind: protocol
+        summary: The interface that scroll view delegates may impelment
+        topics:
+          -
+            name: scrollViewDidScroll
+            summary: Called whenever the scroll view's `contentOffset` changes
+      -
+        name: delegate
+        type: UIScrollViewDelegate
+        summary: This scroll view's delegate
+  -
+    name: Scrollers
+    members:
+      -
+        name: verticalScroller
+        type: UIScroller
+        summary: The scroller contorol used for vertical scrolling
+      -
+        name: horizontalScroller
+        type: UIScroller
+        summary: The scroller contorol used for horizontal scrolling
+      -
+        name: scrollsVertically
+        type: boolean
+        summary: Indiacates if the scroll view can scroll vertically
+      -
+        name: scrollsHorizontally
+        type: boolean
+        summary: Indiacates if the scroll view can scroll horizontally
+  -
+    name: Scrolling
+    members:
+      -
+        name: setContentOffsetAnimated
+        kind: method
+        summary: Set the content offset an animate any scrolling to the new
+          point
+        arguments:
+          -
+            name: contentOffset
+            type: JSPoint
+            summary: The new content offset
+      -
+        name: scrollToRect
+        kind: method
+        summary: Scroll to the given rectangle
+        arguments:
+          -
+            name: rect
+            type: JSRect
+            summary: The rectangle to scroll to
+          -
+            name: position
+            type: ScrollPosition
+            summary: Where the rectangle should appear within the view after
+              scrolling
+      -
+        name: scrollToView
+        kind: method
+        summary: Scroll to the given view
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The view to scroll to
+          -
+            name: position
+            type: ScrollPosition
+            summary: Where the view should appear within the scroll view after
+              scrolling
+      -
+        name: ScrollPosition
+        kind: enum
+        summary: The various ways to align a rectangle after scrolling
+        options:
+          -
+            name: auto
+            summary: Automatically align the rectangle depending on which
+              direction the scroll is moving
+          -
+            name: top
+            summary: Align the top of the rectangle with the top of the scroll
+              view
+          -
+            name: bottom
+            summary: Align the bottom of the rectangle with the bottom of the
+              scroll view
+          -
+            name: middle
+            summary: Align the middle of the rectangle with the middle of the
+              scroll view
+  -
+    name: Zooming
+    members:
+      -
+        name: minimumZoomScale
+        type: Number
+        summary: The minimum allowed scale while zooming
+      -
+        name: maximumZoomScale
+        type: Number
+        summary: The maximum allowed scale while zooming
+      -
+        name: zoomScale
+        type: Number
+        summary: The current zoom scale
+      -
+        name: setZoomScaleAtLocation
+        kind: method
+        summary: Set the zoom scale, keeping the given point centered
+        arguments:
+          -
+            name: scale
+            type: Number
+            summary: The new zoom scale
+          -
+            name: location
+            type: JSPoint
+            summary: The point to keep centered
+      -
+        name: zoomIn
+        kind: method
+        summary: Zoom in by one step
+      -
+        name: zoomOut
+        kind: method
+        summary: Zoom out by one step
+      -
+        name: zoomDefault
+        kind: method
+        summary: Zoom to the default scale, typically `1`

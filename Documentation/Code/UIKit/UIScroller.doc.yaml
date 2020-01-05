@@ -1,0 +1,245 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: "1.0.0"
+inherits: UIControl
+summary: A control for scrolling in a `UIScrollView`
+description: |
+  Scrollers are the little tracks on the side of a scroll view that allow
+  the user to move the scroll location, while simultaneously indicating
+  the scroll location and content size.
+topics:
+  -
+    name: Creating a Scroller
+    members:
+      -
+        name: initWithDirection
+        kind: init
+        summary: Create a scroller that uses the given styler
+        arguments:
+          -
+            name: direction
+            type: Direction
+            summary: The direction of the scroller
+          -
+            name: styler
+            type: UIScrollerStyler
+            summary: The styler to use
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available for `UIScroller`s in spec files
+        topics:
+          -
+            name: Direction
+            members:
+              -
+                name: direction
+                type: Direction
+                summary: The direction of this scroller
+                description: |
+                  ````
+                  SrollView:
+                    class: UIScrollView
+                    horizontalScroller:
+                      direction: horizontal
+                  ````
+  -
+    name: Direction
+    members:
+      -
+        name: Direction
+        kind: enum
+        suffix: enum
+        summary: The possible directions for scrollers
+        options:
+          -
+            name: vertical
+            summary: A vertical scroller
+          -
+            name: horizontal
+            summary: A horizontal scroller
+      -
+        name: direction
+        type: Direction
+        summary: The direction of this scroller
+  -
+    name: Value
+    members:
+      -
+        name: value
+        type: Number
+        summary: A percentage of how far the scroller is along its allowed
+          distance
+  -
+    name: Knob
+    members:
+      -
+        name: knob
+        type: UIView
+        summary: The part of the scroller that the user can grab and drag to
+          scroll
+        description: |
+          The knob also indicates where the current `value` is.
+        see:
+          - knobProportion
+      -
+        name: knobProportion
+        type: Number
+        summary: A percentage of how large the knob part of the control should
+          be compared to the full track.
+        description: |
+          The knob proportion typically is used to give the user an indication
+          of how large the visible area is relative to the entire scrollable
+          area.
+        see:
+          - knob
+  -
+    name: States
+    members:
+      -
+        name: State
+        kind: enum
+        summary: The custom control states for a `UIScroller`
+        options:
+          -
+            name: knobActive
+            summary: Indicates the `knob` is currently being pressed
+      -
+        name: knobActive
+        type: boolean
+        summary: Indicates if the `knobActive` state is on
+  -
+    name: Styling
+    members:
+      -
+        name: floats
+        type: boolean
+        summary: Indicates if the scroller floats above the content, or if it
+          is always visible next to the content
+      -
+        name: UIScrollerStyler
+        kind: class
+        inherits: UIControlStyler
+        summary: The abstract base class for scroller stylers
+        topics:
+          -
+            name: Floats
+            members:
+              -
+                name: floats
+                type: boolean
+                summary: Indicates if the scroller should float over the content
+                  or always be visible next to it
+      -
+        name: UIScrollerDefaultStyler
+        kind: class
+        inherits: UIScrollerStyler
+        summary: The styler `UIKit` uses by default
+        description: |
+          `UIScroller` creates a default styler instance using its own colors, but
+          you can always create your own instance and override the colors to
+          get a scroller that shares a look, but not colors, with the `UIKit`
+          default.
+
+          The default scroller floats over the content and is invisible
+          until the user scrolls.
+
+          When scrolling the scroller is in a collapsed state that shows
+          a mimimal indicator.
+
+          If the user moves over the collapsed scroller, it expands into
+          a larger control that the user can interact with.
+        topics:
+          -
+            name: Size
+            members:
+              -
+                name: collapsedSize
+                type: Number
+                summary: The size of the scroller when it is collapsed
+              -
+                name: expandedSize
+                type: Number
+                summary: The size of the scroller when it is expanded
+          -
+            name: Knob
+            members:
+              -
+                name: knobInsets
+                type: JSInsets
+                summary: The amount the knob is inset from the edges of the
+                  scroller
+                description: |
+                  The insets are always specified as if the scroller is in the
+                  vertical direction.
+              -
+                name: minimumKobLength
+                type: Number
+                summary: The smallest size the knob can be
+                description: |
+                  Without a minimun, `knobProportion` could be so small that
+                  the knob isn't big enough to click
+              -
+                name: knobColor
+                type: JSColor
+                summary: The color to use for the knob
+              -
+                name: knobGradient
+                type: JSGradient
+                summary: The gradient to use for the knob
+                description: |
+                  The gradient is always specified as if the scroller is in the
+                  vertical direction.
+          -
+            name: Track
+            members:
+              -
+                name: trackColor
+                type: JSColor
+                summary: The color of the track
+              -
+                name: trackGradient
+                type: JSGradient
+                summary: The gradient to use for the track
+                description: |
+                  The gradient is always specified as if the scroller is in the
+                  vertical direction.
+              -
+                name: trackBorderWidth
+                type: Number
+                summary: The width of the track border
+              -
+                name: trackBorderColor
+                type: JSColor
+                summary: The color of the track border
+      -
+        name: Styler
+        kind: enum
+        suffix: enum
+        type: UIScrollerStyler
+        summary: The default styler instances created by `UIScroller`
+        description: |
+          You can override the `default` option with a styler of your choosing,
+          typically during `applicationDidFinishLaunching()`.
+        options:
+          -
+            name: lightContent
+            summary: The default `UIKit` scroller styler for use on a light
+              background
+          -
+            name: darkContent
+            summary: The default `UIKit` scroller styler for use on a dark
+              background
+      -
+        name: styler
+        type: UIScrollerStyler
+        summary: The styler used for this scroller
+        description: |
+          Stylers allow for separation between the scroller's model and its
+          presentation.
+
+          One styler can be resused for many scrollers,
+          reducing the need to subclass `UIScroller` just to apply a
+          custom style.
+        see:
+          - UIScrollerDefaultStyler
