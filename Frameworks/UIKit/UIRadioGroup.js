@@ -1,7 +1,7 @@
 // #import "UIControl.js"
 // #import "UILabel.js"
 // #import "UIImageView.js"
-/* global JSClass, JSObject, UILayer, JSSize, UIControl, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSColor, UIRadioGroup, UIRadioButton, JSTextAlignment, JSPoint, UIView, JSFont, UIRadioButtonStyler, UIRadioButtonDefaultStyler, JSRect, UIImageView, JSBundle, JSImage */
+/* global JSClass, JSObject, UILayer, JSSize, UIControl, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSColor, UIRadioGroup, UIRadioButton, JSTextAlignment, JSPoint, UIView, JSFont, UIRadioButtonStyler, UIRadioButtonDefaultStyler, UIRadioGroupStyler, UIRadioGroupDefaultStyler, JSRect, UIImageView, JSBundle, JSImage */
 'use strict';
 
 (function(){
@@ -22,11 +22,15 @@ JSClass("UIRadioGroup", UIControl, {
 
     commonUIControlInit: function(){
         UIRadioGroup.$super.commonUIControlInit.call(this);
+        if (this._styler === null){
+            this._styler = UIRadioGroup.Styler.default;
+        }
         this.buttons = [];
     },
 
     addItemWithTitle: function(title){
-        var button = UIRadioButton.initWithTitle(title);
+        var button = UIRadioButton.initWithStyler(this._styler.buttonStyler);
+        button.titleLabel.text = title;
         button._index = this.buttons.length;
         button._group = this;
         this.buttons.push(button);
@@ -54,17 +58,45 @@ JSClass("UIRadioGroup", UIControl, {
                 this.buttons[i].enabled = isEnabled;
             }
         }
-    },
+    }
 
-    layoutSubviews: function(){
-        UIRadioGroup.$super.layoutSubviews.call(this);
+});
+
+UIRadioGroup.Styler = Object.create({}, {
+    default: {
+        configurable: true,
+        get: function UIRadioGroup_getDefaultStyler(){
+            var styler = UIRadioGroupDefaultStyler.init();
+            Object.defineProperty(this, 'default', {writable: true, value: styler});
+            return styler;
+        },
+        set: function UIRadioGroup_setDefaultStyler(styler){
+            Object.defineProperty(this, 'default', {writable: true, value: styler});
+        }
+    }
+});
+
+JSClass("UIRadioGroupStyler", UIControlStyler, {
+
+    buttonStyler: null,
+    lineHeight: 1.2,
+
+    layoutControl: function(group){
         var y = 0;
         var button;
-        for (var i = 0, l = this.buttons.length; i < l; ++i){
-            button = this.buttons[i];
-            button.frame = JSRect(0, y, this.bounds.size.width, button.titleLabel.font.displayLineHeight);
-            y += Math.floor(button.frame.size.height * 1.2);
+        for (var i = 0, l = group.buttons.length; i < l; ++i){
+            button = group.buttons[i];
+            button.frame = JSRect(0, y, group.bounds.size.width, button.titleLabel.font.displayLineHeight);
+            y += Math.floor(button.frame.size.height * this.lineHeight);
         }
+    }
+
+});
+
+JSClass("UIRadioGroupDefaultStyler", UIRadioGroupStyler, {
+
+    init: function(){
+        this.buttonStyler = UIRadioButton.Styler.default;
     }
 
 });
@@ -164,14 +196,43 @@ JSClass("UIRadioButtonStyler", UIControlStyler, {
 JSClass("UIRadioButtonDefaultStyler", UIRadioButtonStyler, {
 
     showsOverState: false,
-    labelPadding: 3,
+    titleSpacing: 3,
+    normalBackgroundColor: null,
+    disabledBackgroundColor: null,
+    activeBackgroundColor: null,
+    normalBackgroundGradient: null,
+    disabledBackgroundGradient: null,
+    activeBackgroundGradient: null,
+    normalBorderColor: null,
+    disabledBorderColor: null,
+    activeBorderColor: null,
+    normalTitleColor: null,
+    disabledTitleColor: null,
+    activeTitleColor: null,
+    shadowColor: null,
+    shadowOffset: null,
+    shadowRadius: 1,
+
+    init: function(){
+        this.normalBackgroundColor = UIRadioButtonDefaultStyler.NormalBackgroundColor;
+        this.disabledBackgroundColor = UIRadioButtonDefaultStyler.DisabledBackgroundColor;
+        this.activeBackgroundColor = UIRadioButtonDefaultStyler.ActiveBackgroundColor;
+        this.normalBorderColor = UIRadioButtonDefaultStyler.NormalBorderColor;
+        this.disabledBorderColor = UIRadioButtonDefaultStyler.DisabledBorderColor;
+        this.activeBorderColor = UIRadioButtonDefaultStyler.ActiveBorderColor;
+        this.normalTitleColor = UIRadioButtonDefaultStyler.NormalTitleColor;
+        this.disabledTitleColor = UIRadioButtonDefaultStyler.DisabledTitleColor;
+        this.activeTitleColor = UIRadioButtonDefaultStyler.ActiveTitleColor;
+        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
+        this.shadowOffset = JSPoint(0, 1);
+    },
 
     initializeControl: function(button){
         button.stylerProperties.boxLayer = UILayer.init();
-        button.stylerProperties.boxLayer.borderWidth = 1;
-        button.stylerProperties.boxLayer.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
-        button.stylerProperties.boxLayer.shadowOffset = JSPoint(0, 1);
-        button.stylerProperties.boxLayer.shadowRadius = 1;
+        button.stylerProperties.boxLayer.borderWidth = this.borderWidth;
+        button.stylerProperties.boxLayer.shadowColor = this.shadowColor;
+        button.stylerProperties.boxLayer.shadowOffset = this.shadowOffset;
+        button.stylerProperties.boxLayer.shadowRadius = this.shadowRadius;
         button.stylerProperties.indicatorView = UIImageView.initWithImage(images.radioOn);
         button.insertSubviewAtIndex(button.stylerProperties.indicatorView, 0);
         button.layer.insertSublayerAtIndex(button.stylerProperties.boxLayer, 0);
@@ -181,17 +242,20 @@ JSClass("UIRadioButtonDefaultStyler", UIRadioButtonStyler, {
 
     updateControl: function(button){
         if (!button.enabled){
-            button.stylerProperties.boxLayer.backgroundColor    = UIRadioButtonDefaultStyler.DisabledBackgroundColor;
-            button.stylerProperties.boxLayer.borderColor        = UIRadioButtonDefaultStyler.DisabledBorderColor;
-            button.titleLabel.textColor                         = UIRadioButtonDefaultStyler.DisabledTitleColor;
+            button.stylerProperties.boxLayer.backgroundColor    = this.disabledBackgroundColor;
+            button.stylerProperties.boxLayer.backgroundGradient = this.disabledBackgroundGradient;
+            button.stylerProperties.boxLayer.borderColor        = this.disabledBorderColor;
+            button.titleLabel.textColor                         = this.disabledTitleColor;
         }else if (button.active){
-            button.stylerProperties.boxLayer.backgroundColor    = UIRadioButtonDefaultStyler.ActiveBackgroundColor;
-            button.stylerProperties.boxLayer.borderColor        = UIRadioButtonDefaultStyler.ActiveBorderColor;
-            button.titleLabel.textColor                         = UIRadioButtonDefaultStyler.ActiveTitleColor;
+            button.stylerProperties.boxLayer.backgroundColor    = this.activeBackgroundColor;
+            button.stylerProperties.boxLayer.backgroundGradient = this.activeBackgroundGradient;
+            button.stylerProperties.boxLayer.borderColor        = this.activeBorderColor;
+            button.titleLabel.textColor                         = this.activeTitleColor;
         }else{
-            button.stylerProperties.boxLayer.backgroundColor    = UIRadioButtonDefaultStyler.NormalBackgroundColor;
-            button.stylerProperties.boxLayer.borderColor        = UIRadioButtonDefaultStyler.NormalBorderColor;
-            button.titleLabel.textColor                         = UIRadioButtonDefaultStyler.NormalTitleColor;
+            button.stylerProperties.boxLayer.backgroundColor    = this.normalBackgroundColor;
+            button.stylerProperties.boxLayer.backgroundGradient = this.normalBackgroundGradient;
+            button.stylerProperties.boxLayer.borderColor        = this.normalBorderColor;
+            button.titleLabel.textColor                         = this.normalTitleColor;
         }
         button.stylerProperties.indicatorView.templateColor = button.titleLabel.textColor;
         button.stylerProperties.indicatorView.hidden = !button.on;
@@ -203,7 +267,7 @@ JSClass("UIRadioButtonDefaultStyler", UIRadioButtonStyler, {
         button.stylerProperties.boxLayer.cornerRadius = boxSize.width / 2;
         button.stylerProperties.boxLayer.frame = JSRect(JSPoint.Zero, boxSize);
         button.stylerProperties.indicatorView.frame = button.stylerProperties.boxLayer.frame;
-        var x = boxSize.width + this.labelPadding;
+        var x = boxSize.width + this.titleSpacing;
         button.titleLabel.frame = JSRect(x, 0, button.bounds.size.width - x, height);
     }
 

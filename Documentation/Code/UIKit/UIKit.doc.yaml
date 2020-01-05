@@ -169,6 +169,7 @@ topics:
       - UIPopupButton
       - UICheckbox
       - UIRadioGroup
+      - UIRadioButton
       - UISegmentedControl
   -
     name: Text Controls

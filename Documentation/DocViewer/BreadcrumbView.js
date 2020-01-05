@@ -71,7 +71,7 @@ JSClass("BreadcrumbView", UIView, {
                 button.removeAllItems();
             }else{
                 button = UIPopupButton.initWithStyler(this.popupStyler);
-                button.sendsActionForSelectedItem = true;
+                button.sendsActionForReselect = true;
                 button.addAction("selectComponent", this);
                 this.popupButtons.push(button);
                 this.addSubview(button);

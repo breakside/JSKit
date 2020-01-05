@@ -1,0 +1,371 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: "1.0.0"
+summary: Represents a font that can be used to draw text
+description: |
+  Fonts are used extensively throughout `Foundation`, `UIKit`, and other
+  frameworks.
+
+  A font is a combination of:
+
+  1. A `descriptor`
+  2. A `pointSize`
+
+  Font Descriptors
+  ================
+
+  A font descriptor, represented by `JSFontDescriptor` is a combination of
+  properties like:
+
+  1. Family (e.g., Helvetica)
+  1. Weight (e.g., Bold)
+  1. Style (e.g., Italic)
+  1. Metrics (e.g., ascender, descender)
+
+  Font Resources
+  ==============
+  `JSKit` based apps require any referenced font to be bundled as a resource.
+
+  This allows the build system to extract and bundle font metadata that is
+  helpful for advanced text layout.
+
+  Simply drop `.ttf` of `.otf` files in your project's folder, and they'll
+  be inclued as resources.
+
+  Once a font is bundled as a resource, it can be referenced by its family
+  name and specific descriptor.
+topics:
+  -
+    name: Getting a Font
+    members:
+      -
+        name: initWithDescriptor
+        kind: init
+        summary: Get the font matching the given descriptor and point size
+        arguments:
+          -
+            name: descriptor
+            type: JSFontDescriptor
+            summary: The font descriptor to use
+          -
+            name: pointSize
+            type: Number
+            summary: The size of the font
+      -
+        name: fontWithFamily
+        kind: method
+        static: true
+        summary: Get the font matching the given family and properties
+        arguments:
+          -
+            name: family
+            type: String
+            summary: The family name for font in your application's bundle
+          -
+            name: pointSize
+            type: Number
+            summary: The size of the font
+          -
+            name: weight
+            type: Weight
+            summary: The weight to choose from the family
+          -
+            name: style
+            type: Style
+            summary: The style to choose from the family
+      -
+        name: systemFontOfSize
+        kind: method
+        static: true
+        summary: Get the system font with the specified size
+        arguments:
+          -
+            name: pointSize
+            type: Number
+            summary: The size of the font
+        description: |
+          Every `UIApplication` must register a system font using the
+          `UIApplicationSystemFont` property in the application's [Info](UIApplicationInfo)
+          file.
+        note: Many controls use the stystem font as a default.
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties to use when referencing a font in a spec file
+        topics:
+          -
+            name: Descriptor
+            members:
+              -
+                name: family
+                type: String
+                summary: The family name for font in your application's bundle
+              -
+                name: weight
+                type: Weight
+                summary: The weight to choose from the family
+              -
+                name: style
+                type: Style
+                summary: The style to choose from the family
+              -
+                name: size
+                type: Number
+                summary: The point size of the font
+  -
+    name: Descriptor
+    members:
+      -
+        name: descriptor
+        type: JSFontDescriptor
+        summary: The underlying descriptor for this font
+      -
+        name: fullName
+        type: String
+        summary: The font's full name
+        description: |
+          An examle is `"Source Sans Pro Light Italic"`
+      -
+        name: postScriptName
+        type: String
+        summary: The font's postScript name
+        description: |
+          An examle is `"SourceSansPro-LightItalic"`
+      -
+        name: familyName
+        type: String
+        summary: The font's family name
+        description: |
+          An examle is `"Source Sans Pro"`
+      -
+        name: faceName
+        type: String
+        summary: The font's face name
+        description: |
+          An examle is `"Light Italic"`
+  -
+    name: Sizes
+    members:
+      -
+        name: pointSize
+        type: Number
+        summary: The font's size
+      -
+        name: ascender
+        type: Number
+        summary: The font's ascender
+        description: |
+          In the same units as `pointSize`
+      -
+        name: descender
+        type: Number
+        summary: The font's descender
+        description: |
+          In the same units as `pointSize`
+      -
+        name: lineHeight
+        type: Number
+        summary: The font's lineHeight
+        description: |
+          In the same units as `pointSize`
+      -
+        name: leading
+        type: Number
+        summary: The font's leading
+        description: |
+          In the same units as `pointSize`
+      -
+        name: Size
+        kind: enum
+        summary: Common sizes based text style
+        description: |
+          These sizes may take different values on different platforms or
+          devices.
+        options:
+          -
+            name: normal
+            summary: The size to use for normal body text
+          -
+            name: detail
+            summary: The size to use for detail text
+          -
+            name: heading
+            summary: The size to use for heading text
+  -
+    name: Style
+    members:
+      -
+        name: Weight
+        kind: enum
+        summary: The possible font weights  
+        options:
+          -
+            name: ultraLight
+            summary: The thinnest font weight
+          -
+            name: thin
+            summary: A thin font weight
+          -
+            name: light
+            summary: A lighter font weight
+          -
+            name: regular
+            summary: The normal font weight
+          -
+            name: medium
+            summary: Heavier than normal
+          -
+            name: semibold
+            summary: Nearly bold
+          -
+            name: bold
+            summary: The bold font weight
+          -
+            name: heavy
+            summary: Heavier than bold
+          -
+            name: black
+            summary: The heaviest font weight
+      -
+        name: Style
+        kind: enum
+        summary: The possible font styles
+        options:
+          -
+            name: normal
+            summary: The normal upright font style
+          -
+            name: italic
+            summary: An italic slanted font style
+  -
+    name: Variants
+    members:
+      -
+        name: fontWithPointSize
+        kind: method
+        type: JSFont
+        return: A font with the given size
+        summary: Get a new font matching this one, but with the specified size
+        arguments:
+          -
+            name: pointSize
+            type: Number
+            summary: The size for the returned font
+      -
+        name: fontWithWeight
+        kind: method
+        type: JSFont
+        return: A font with the given weight, if available
+        summary: Get a new font matching this one, but with the specified weight
+        arguments:
+          -
+            name: weight
+            type: Weight
+            summary: The font weight for the returned font
+        description: |
+          Returns the closest match to the request if the specific weight
+          doesn't exist
+      -
+        name: fontWithStyle
+        kind: method
+        type: JSFont
+        return: A font with the given style, if available
+        summary: Get a new font matching this one, but with the specified style
+        arguments:
+          -
+            name: style
+            type: Style
+            summary: The font style for the returned font
+        description: |
+          Returns the closest match to the request if the specific style
+          doesn't exist
+  -
+    name: Glyphs
+    members:
+      -
+        name: glyphsForString
+        kind: method
+        type: Number[]
+        summary: Return the array of glyph identifiers that make up the given
+          string
+        arguments:
+          -
+            name: string
+            type: String
+            summary: The string to convert to glyph identifiers
+      -
+        name: glyphForCharacter
+        kind: method
+        type: Number
+        summary: Return the glyph identifier for the given unicode character
+        arguments:
+          -
+            name: character
+            type: UnicodeChar
+            summary: The character to convert to a glyph
+      -
+        name: characterForGlyph
+        kind: method
+        type: UnicodeChar
+        summary: Return the character for the given glyph identifier
+        arguments:
+          -
+            name: glyph
+            type: Number
+            summary: The glyph identifier
+      -
+        name: charactersForGlyphs
+        kind: method
+        type: UnicodeChar[]
+        summary: Return the characters for the given glyph identifiers
+        arguments:
+          -
+            name: glyphs
+            type: Number[]
+            summary: The glyph identifiers
+      -
+        name: stringForGlyphs
+        kind: method
+        type: String
+        summary: Return the string for the given glyph identifiers
+        arguments:
+          -
+            name: glyphs
+            type: Number[]
+            summary: The glyph identifiers
+      -
+        name: widthOfGlyph
+        kind: method
+        type: Number
+        summary: Return the width of the given glyph
+        arguments:
+          -
+            name: glyph
+            type: Number
+            summary: The glyph identifier
+        description: |
+          The width value is in the same units as `pointSize`
+      -
+        name: widthOfCharacter
+        kind: method
+        type: Number
+        summary: Return the width of the given character
+        arguments:
+          -
+            name: character
+            type: UnicodeChar
+            summary: The character
+        description: |
+          The width value is in the same units as `pointSize`
+      -
+        name: widthOfString
+        kind: method
+        type: Number
+        summary: Return the width of the given string
+        arguments:
+          -
+            name: string
+            type: String
+            summary: The string to measure
+        description: |
+          The width value is in the same units as `pointSize`

@@ -84,7 +84,10 @@ SearchField:
   rightAccessoryView:
     frame: 0,0,16,16
     class: UIButton
-    image: TextFieldAccessoryClear
+    image:
+      normal:
+        name: TextFieldAccessoryClear
+        renderMode: template
     target: /SidebarViewController
     action: clearSearch
     styler:

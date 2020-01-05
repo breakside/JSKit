@@ -119,16 +119,22 @@ JSClass("UICheckboxStyler", UIControlStyler, {
 JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
 
     showsOverState: false,
-    labelPadding: 3,
+    titleSpacing: 3,
     normalBackgroundColor: null,
     disabledBackgroundColor: null,
     activeBackgroundColor: null,
+    normalBackgroundGradient: null,
+    disabledBackgroundGradient: null,
+    activeBackgroundGradient: null,
     normalBorderColor: null,
     disabledBorderColor: null,
     activeBorderColor: null,
     normalTitleColor: null,
     disabledTitleColor: null,
     activeTitleColor: null,
+    shadowColor: null,
+    shadowOffset: null,
+    shadowRadius: 1,
 
     init: function(){
         this.normalBackgroundColor = UICheckboxDefaultStyler.NormalBackgroundColor;
@@ -140,15 +146,17 @@ JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
         this.normalTitleColor = UICheckboxDefaultStyler.NormalTitleColor;
         this.disabledTitleColor = UICheckboxDefaultStyler.DisabledTitleColor;
         this.activeTitleColor = UICheckboxDefaultStyler.ActiveTitleColor;
+        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
+        this.shadowOffset = JSPoint(0, 1);
     },
 
     initializeControl: function(checkbox){
         checkbox.stylerProperties.boxLayer = UILayer.init();
         checkbox.stylerProperties.boxLayer.borderWidth = 1;
         checkbox.stylerProperties.boxLayer.cornerRadius = 3;
-        checkbox.stylerProperties.boxLayer.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
-        checkbox.stylerProperties.boxLayer.shadowOffset = JSPoint(0, 1);
-        checkbox.stylerProperties.boxLayer.shadowRadius = 1;
+        checkbox.stylerProperties.boxLayer.shadowColor = this.shadowColor;
+        checkbox.stylerProperties.boxLayer.shadowOffset = this.shadowOffset;
+        checkbox.stylerProperties.boxLayer.shadowRadius = this.shadowRadius;
         checkbox.stylerProperties.indicatorView = UIImageView.init();
         checkbox.insertSubviewAtIndex(checkbox.stylerProperties.indicatorView, 0);
         checkbox.layer.insertSublayerAtIndex(checkbox.stylerProperties.boxLayer, 0);
@@ -159,14 +167,17 @@ JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
     updateControl: function(checkbox){
         if (!checkbox.enabled){
             checkbox.stylerProperties.boxLayer.backgroundColor    = this.disabledBackgroundColor;
+            checkbox.stylerProperties.boxLayer.backgroundGradient = this.disabledBackgroundGradient;
             checkbox.stylerProperties.boxLayer.borderColor        = this.disabledBorderColor;
             checkbox.titleLabel.textColor                         = this.disabledTitleColor;
         }else if (checkbox.active){
             checkbox.stylerProperties.boxLayer.backgroundColor    = this.activeBackgroundColor;
+            checkbox.stylerProperties.boxLayer.backgroundGradient = this.activeBackgroundGradient;
             checkbox.stylerProperties.boxLayer.borderColor        = this.activeBorderColor;
             checkbox.titleLabel.textColor                         = this.activeTitleColor;
         }else{
             checkbox.stylerProperties.boxLayer.backgroundColor    = this.normalBackgroundColor;
+            checkbox.stylerProperties.boxLayer.backgroundGradient = this.normalBackgroundGradient;
             checkbox.stylerProperties.boxLayer.borderColor        = this.normalBorderColor;
             checkbox.titleLabel.textColor                         = this.normalTitleColor;
         }
@@ -187,14 +198,14 @@ JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
         var boxSize = JSSize(height, height);
         checkbox.stylerProperties.boxLayer.frame = JSRect(JSPoint.Zero, boxSize);
         checkbox.stylerProperties.indicatorView.frame = checkbox.stylerProperties.boxLayer.frame;
-        var x = boxSize.width + this.labelPadding;
+        var x = boxSize.width + this.titleSpacing;
         checkbox._titleLabel.frame = JSRect(x, 0, checkbox.bounds.size.width - x, height);
     },
 
     sizeControlToFitSize: function(checkbox, maxSize){
         var height = checkbox._titleLabel.font.displayLineHeight;
         var maxTitleSize = JSSize(maxSize);
-        var boxWidth = height + this.labelPadding;
+        var boxWidth = height + this.titleSpacing;
         maxTitleSize.width -= boxWidth;
         checkbox._titleLabel.sizeToFitSize(maxTitleSize);
         checkbox.bounds = JSRect(0, 0, boxWidth + checkbox._titleLabel.frame.size.width, height);
@@ -202,7 +213,7 @@ JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
 
     intrinsicSizeOfControl: function(checkbox){
         var size = JSSize(checkbox._titleLabel.intrinsicSize);
-        size.width += size.height + this.labelPadding;
+        size.width += size.height + this.titleSpacing;
         return size;
     }
 

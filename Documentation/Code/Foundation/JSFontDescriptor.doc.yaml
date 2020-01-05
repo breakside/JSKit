@@ -1,0 +1,203 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: "1.0.0"
+summary: Represents a font family, weight, style, and metrics
+description: |
+  A font descriptor, represented by `JSFontDescriptor` is a combination of
+  properties like:
+
+  1. Family (e.g., Helvetica)
+  1. Weight (e.g., Bold)
+  1. Style (e.g., Italic)
+  1. Metrics (e.g., ascender, descender)
+
+  Basically, a `JSFontDescriptor` is a `JSFont` without a defined `pointSize`.
+topics:
+  -
+    name: Names
+    members:
+      -
+        name: name
+        type: String
+        summary: The font's full name
+        description: |
+          An examle is `"Source Sans Pro Light Italic"`
+      -
+        name: postScriptName
+        type: String
+        summary: The font's postScript name
+        description: |
+          An examle is `"SourceSansPro-LightItalic"`
+      -
+        name: family
+        type: String
+        summary: The font's family name
+        description: |
+          An examle is `"Source Sans Pro"`
+      -
+        name: face
+        type: String
+        summary: The font's face name
+        description: |
+          An examle is `"Light Italic"`
+  -
+    name: Style
+    members:
+      -
+        name: weight
+        type: JSFont.Weight
+        summary: The weight for this font descriptor
+      -
+        name: style
+        type: JSFont.Style
+        summary: The style for this font descriptor
+  -
+    name: Metrics
+    members:
+      -
+        name: ascender
+        type: Number
+        summary: The font's ascender
+        description: |
+          In `unitsPerEM` units
+      -
+        name: descender
+        type: Number
+        summary: The font's descender
+        description: |
+          In `unitsPerEM` units
+      -
+        name: unitsPerEM
+        type: Number
+        summary: The number of units in 1 EM
+  -
+    name: Variants
+    members:
+      -
+        name: descriptorWithWeight
+        kind: method
+        type: JSFontDescriptor
+        return: A descriptor with the given weight, if available
+        summary: Get a new descriptor matching this one, but with the specified weight
+        arguments:
+          -
+            name: weight
+            type: Weight
+            summary: The descriptor weight for the returned descriptor
+        description: |
+          Returns the closest match to the request if the specific weight
+          doesn't exist
+      -
+        name: descriptorWithStyle
+        kind: method
+        type: JSFontDescriptor
+        return: A descriptor with the given style, if available
+        summary: Get a new descriptor matching this one, but with the specified style
+        arguments:
+          -
+            name: style
+            type: Style
+            summary: The descriptor style for the returned font
+        description: |
+          Returns the closest match to the request if the specific style
+          doesn't exist
+  -
+    name: Glyphs
+    members:
+      -
+        name: glyphForCharacter
+        kind: method
+        type: Number
+        summary: Return the glyph identifier for the given unicode character
+        arguments:
+          -
+            name: character
+            type: UnicodeChar
+            summary: The character to convert to a glyph
+      -
+        name: characterForGlyph
+        kind: method
+        type: UnicodeChar
+        summary: Return the character for the given glyph identifier
+        arguments:
+          -
+            name: glyph
+            type: Number
+            summary: The glyph identifier
+      -
+        name: charactersForGlyphs
+        kind: method
+        type: UnicodeChar[]
+        summary: Return the characters for the given glyph identifiers
+        arguments:
+          -
+            name: glyphs
+            type: Number[]
+            summary: The glyph identifiers
+      -
+        name: stringForGlyphs
+        kind: method
+        type: String
+        summary: Return the string for the given glyph identifiers
+        arguments:
+          -
+            name: glyphs
+            type: Number[]
+            summary: The glyph identifiers
+      -
+        name: widthOfGlyph
+        kind: method
+        type: Number
+        summary: Return the width of the given glyph
+        arguments:
+          -
+            name: glyph
+            type: Number
+            summary: The glyph identifier
+        description: |
+          The width value is in `unitsPerEM` units
+      -
+        name: widthOfCharacter
+        kind: method
+        type: Number
+        summary: Return the width of the given character
+        arguments:
+          -
+            name: character
+            type: UnicodeChar
+            summary: The character
+        description: |
+          The width value is in `unitsPerEM` units
+  -
+    name: Font Data
+    members:
+      -
+        name: getData
+        kind: method
+        summary: Get the font data asynchronously with a callback
+        arguments:
+          -
+            name: completion
+            summary: A function that is called when the data is loaded
+            type:
+              arguments:
+                -
+                  name: data
+                  type: JSData
+                  summary: The font data, or `null` if the data could not be
+                    loaded
+          -
+            name: target
+            summary: The object to use as `this` when calling `completion`
+            type: Object
+            default: "undefined"
+      -
+        name: getData
+        suffix: promise
+        kind: method
+        summary: Get the font data asynchronously with a promise
+        type: Promise
+        promise:
+          resolve:
+            type: JSData
+            summary: The font data

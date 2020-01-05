@@ -1,0 +1,138 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: "1.0.0"
+inherits: UIControl
+summary: A group of `UIRadioButton`s
+description: |
+  Radio buttons are grouped into a `UIRadioGroup` to indicate which sets of
+  buttons are mutually exclusive.
+
+  Radio buttons are used when the user can select one out of many options.
+
+  It is an alternative interface to a `UIPopupButton`.
+topics:
+  -
+    name: Creating a Radio Group
+    members:
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available for `UIRadioGroup`s in spec files
+        topics:
+          -
+            name: Buttons
+            members:
+              -
+                name: options
+                type: String[]
+                summary: The radio button options for this group
+                description: |
+                  A `UIRadioButton` will be created for each item.
+
+                  ````
+                  PlanetRadioGroup:
+                    class: UIRadioGroup
+                    options:
+                      - Mercury
+                      - Venus
+                      - Earth
+                      - Mars
+                      - Jupiter
+                      - Saturn
+                      - Uranus
+                      - Neptune
+                  ````
+  -
+    name: Buttons
+    members:
+      -
+        name: buttons
+        type: UIRadioButton[]
+        summary: The buttons in this group
+      -
+        name: addItemWithTitle
+        kind: method
+        summary: Add a radio button with the given title
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title for the added button
+  -
+    name: Selection
+    members:
+      -
+        name: selectedIndex
+        type: Number
+        summary: The index of the currently selected button
+        description: |
+          Will be `-1` if no item is selected
+  -
+    name: Styling
+    members:
+      -
+        name: UIRadioGroupStyler
+        kind: class
+        inherits: UIControlStyler
+        summary: The abstract base class for radio group stylers
+        topics:
+          -
+            name: Buttons
+            members:
+              -
+                name: buttonStyler
+                type: UIRadioButtonStyler
+                summary: The styler to use for radio buttons in this group
+              -
+                name: lineHeight
+                type: Number
+                summary: The line height to use for calculating spacing between
+                  buttons
+                description: |
+                  Line height is specified as a percentage of a button's
+                  intrinsic size.
+
+                  Therefore, it is typically a number greater than `1`.
+
+                  For example, if buttons are 20px tall and `lineHeight` is
+                  `1.5`, the distance between consecutive button tops will
+                  be `20px * 1.5 = 30px`.  The spacing between items is `10px`.
+      -
+        name: UIRadioGroupDefaultStyler
+        kind: class
+        inherits: UIRadioGroupStyler
+        summary: The styler `UIKit` uses by default
+        description: |
+          `UIRadioGroup` creates a default styler instance using its own colors, but
+          you can always create your own instance and override the colors to
+          get a radio button that shares a look, but not colors, with the `UIKit`
+          default.
+
+          This styler simply uses the `UIRadioButton.Styler.default`(UIRadioButton.Styler)
+          for its `buttonStyler`.
+      -
+        name: Styler
+        kind: enum
+        suffix: enum
+        type: UIRadioGroupStyler
+        summary: The default styler instances created by `UIRadioGroup`
+        description: |
+          You can override the `default` option with a styler of your choosing,
+          typically during `applicationDidFinishLaunching()`.
+        options:
+          -
+            name: default
+            summary: The default `UIKit` radio button styler
+      -
+        name: styler
+        type: UIRadioGroupStyler
+        summary: The styler used for this radio group
+        description: |
+          Stylers allow for separation between the radio groups's model and its
+          presentation.
+
+          One styler can be resused for many radio groups,
+          reducing the need to subclass `UIRadioGroup` just to apply a
+          custom style.
+        see:
+          - UIRadioGroupDefaultStyler

@@ -1,0 +1,454 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: "1.0.0"
+inherits: UIControl
+summary: A segmented control provides a mutually exclusive selector in the
+  general form of tabs
+topics:
+  -
+    name: Creating a Segmented Control
+    members:
+      -
+        name: initWithStyler
+        kind: init
+        summary: Create a segmented control that uses the given styler
+        arguments:
+          -
+            name: styler
+            type: UISegmentedControlStyler
+            summary: The styler to use
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties that can be set in a spec file for
+          \`UISegmentedControl`
+        topics:
+          -
+            name: Titles
+            members:
+              -
+                name: titleInsets
+                type: String
+                summary: The amounts the title should be inset from the button's
+                  edges, overriding any styler setting
+                description: |
+                  A string of comma-separated integers, that when parsed will be
+                  pased to the `JSInsets` constructor.
+
+                  ````
+                  SortControl:
+                    class: UISegmentedControl
+                    titleInsets: 4,7
+                  ````
+              -
+                name: titleInsets
+                suffix: number
+                type: Number
+                summary: The amount the title should be inset all from the button's
+                  edges, overriding any styler setting
+                description: |
+                  A single number that will be passed to the `JSInsets` constructor
+                  and used for all sides.
+
+                  ````
+                  SortControl:
+                    class: UISegmentedControl
+                    titleInsets: 4
+                  ````
+              -
+                name: font
+                type: JSFont
+                summary: The font to use, overriding the styler
+          -
+            name: Segments
+            members:
+              -
+                name: items
+                type: UISegmentedControlItem[]
+                summary: The segments to show
+                description: |
+                  ````
+                  SortControl:
+                    class: UISegmentedControl
+                    items:
+                      -
+                        title: By First Name
+                        tooltip: Sort the list using each contact's first name
+                          as the primary sort criteria
+                      -
+                        title: By Last Name
+                        tooltip: Sort the list using each contact's last name
+                          as the primary sort criteria
+                  ````
+  -
+    name: Segments
+    members:
+      -
+        name: UISegmentedControlItem
+        kind: class
+        inherits: JSObject
+        summary: Represents a segment in a `UISegmentedControl`
+        topics:
+          -
+            name: Creating a Segment
+            members:
+              -
+                name: Spec File Properties
+                kind: spec
+                summary: The properties that can be included in a spec file
+                  for a segment
+                topics:
+                  -
+                    name: Title & Image
+                    members:
+                      -
+                        name: title
+                        type: String
+                        summary: The title to use for this segment
+                      -
+                        name: image
+                        type: JSImage
+                        summary: The image to use for this segment
+                      -
+                        name: selectedImage
+                        type: JSImage
+                        summary: The image to use for this segment when it is
+                          selected
+                  -
+                    name: Help
+                    members:
+                      -
+                        name: tooltip
+                        type: String
+                        summary: The help text to use when the user hovers over
+                          the segment
+          -
+            name: Title & Image
+            members:
+              -
+                name: title
+                type: String
+                summary: The title to use for this segment
+              -
+                name: image
+                type: JSImage
+                summary: The image to use for this segment
+              -
+                name: selectedImage
+                type: JSImage
+                summary: The image to use for this segment when it is
+                  selected
+          -
+            name: Help
+            members:
+              -
+                name: tooltip
+                type: String
+                summary: The help text to use when the user hovers over
+                  the segment
+          -
+            name: State
+            members:
+              -
+                name: enabled
+                type: boolean
+                summary: Whether the segment is enabled or not
+              -
+                name: active
+                type: boolean
+                summary: Whether the segment is actively being pressed
+              -
+                name: selected
+                type: boolean
+                summary: Whether the segment is selected
+      -
+        name: insertTextSegmentAtIndex
+        kind: method
+        summary: Add a new segment with the given title
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title of the new segment
+          -
+            name: index
+            type: Number
+            summary: The placement of the new segment in the list of existing
+              segments
+      -
+        name: insertImageSegmentAtIndex
+        kind: method
+        summary: Add a new segment with the given image
+        arguments:
+          -
+            name: image
+            type: JSImage
+            summary: The image for the new segment
+          -
+            name: index
+            type: Number
+            summary: The placement of the new segment in the list of existing
+              segments
+      -
+        name: removeSegmentAtIndex
+        kind: method
+        summary: Remove the segment at the given index
+        arguments:
+          -
+            name: index
+            type: Number
+            summary: The location of the segment in the list of existing
+              segments
+      -
+        name: removeAllSegments
+        kind: method
+        summary: Remove all segments
+      -
+        name: setSegmentTooltipAtIndex
+        kind: method
+        summary: Set the tooltip for the segment at the given index
+        arguments:
+          -
+            name: tooltip
+            type: String
+            summary: The toolip for the segment
+          -
+            name: index
+            type: Number
+            summary: The location of the segment in the list of existing
+              segments
+      -
+        name: setSegmentEnabledAtIndex
+        kind: method
+        summary: Set the enabled statementfor the segment at the given index
+        arguments:
+          -
+            name: enabled
+            type: boolean
+            summary: Whether the segment is enabled
+          -
+            name: index
+            type: Number
+            summary: The location of the segment in the list of existing
+              segments
+  -
+    name: Selection
+    members:
+      -
+        name: selectedSegmentIndex
+        type: Number
+        summary: The index of the selected segment
+  -
+    name: Styling
+    members:
+      -
+        name: UISegmentedControlStyler
+        kind: class
+        inherits: UIControlStyler
+        summary: The abstract base class for segmented control stylers
+        topics:
+          -
+            name: Creating a Segmented Control Styler
+            members:
+              -
+                name: Spec File Properties
+                kind: spec
+                summary: The properties available in a segmented control styler spec
+                topics:
+                  -
+                    name: Title
+                    members:
+                      -
+                        name: titleInsets
+                        type: String
+                        summary: The default insets for this styler
+                        description: |
+                          A comma-separated list of integers that when parsed
+                          can be passed to a `JSInsets` constructor.
+                      -
+                        name: titleInsets
+                        type: Number
+                        summary: The default inset for all sides
+                        description: |
+                          A single number that will be used as the inset
+                          for all sides of the `JSInsets`
+          -
+            name: Title
+            members:
+              -
+                name: titleInsets
+                type: JSInsets
+                summary: The default insets for the segmented control's title
+                description: |
+                  The title insets are only set when the segmented control is
+                  created, so calling code can set the `UISegmentedControl.titleInsets`
+                  after to override the default styler insets.
+      -
+        name: UISegmentedControlDefaultStyler
+        kind: class
+        inherits: UISegmentedControlStyler
+        summary: The styler `UIKit` uses by default
+        description: |
+          `UISegmentedControl` creates a default styler instance using its own colors, but
+          you can always create your own instance and override the colors to
+          get a button that shares a look, but not colors, with the `UIKit`
+          default.
+        topics:
+          -
+            name: Background
+            members:
+              -
+                name: normalBackgroundColor
+                type: JSColor
+                summary: The background color to use when a segment is in
+                  its normal state
+              -
+                name: disabledBackgroundColor
+                type: JSColor
+                summary: The background color to use when a segment is in
+                  its disabled state
+              -
+                name: activeBackgroundColor
+                type: JSColor
+                summary: The background color to use when a segment is in
+                  its active state
+              -
+                name: selectedBackgroundColor
+                type: JSColor
+                summary: The background color to use when a segment is in
+                  its selected state
+              -
+                name: selectedActiveBackgroundColor
+                type: JSColor
+                summary: The background color to use when a segment is in
+                  its selected & active state
+              -
+                name: normalBackgroundGradient
+                type: JSGradient
+                summary: The background gradient to use when a segment is in
+                  its normal state
+              -
+                name: disabledBackgroundGradient
+                type: JSGradient
+                summary: The background gradient to use when a segment is in
+                  its disabled state
+              -
+                name: activeBackgroundGradient
+                type: JSGradient
+                summary: The background gradient to use when a segment is in
+                  its active state
+              -
+                name: selectedBackgroundGradient
+                type: JSGradient
+                summary: The background gradient to use when a segment is in
+                  its selected state
+              -
+                name: selectedActiveBackgroundGradient
+                type: JSGradient
+                summary: The background gradient to use when a segment is in
+                  its selected & active state
+          -
+            name: Border
+            members:
+              -
+                name: borderWidth
+                type: Number
+                summary: The width of the control's border
+              -
+                name: normalBorderColor
+                type: JSColor
+                summary: The border color to use when a segment is in
+                  its normal state
+              -
+                name: disabledBorderColor
+                type: JSColor
+                summary: The border color to use when a segment is in
+                  its disabled state
+              -
+                name: activeBorderColor
+                type: JSColor
+                summary: The border color to use when a segment is in
+                  its active state
+              -
+                name: selectedBorderColor
+                type: JSColor
+                summary: The border color to use when a segment is in
+                  its selected state
+              -
+                name: selectedActiveBorderColor
+                type: JSColor
+                summary: The border color to use when a segment is in
+                  its selected state
+          -
+            name: Title Text
+            members:
+              -
+                name: normalTitleColor
+                type: JSColor
+                summary: The title text color to use when a segment is in
+                  its normal state
+              -
+                name: disabledTitleColor
+                type: JSColor
+                summary: The title text color to use when a segment is in
+                  its disabled state
+              -
+                name: activeTitleColor
+                type: JSColor
+                summary: The title text color to use when a segment is in
+                  its active state
+              -
+                name: selectedTitleColor
+                type: JSColor
+                summary: The title text color to use when a segment is in
+                  its selected state
+              -
+                name: selectedActiveTitleColor
+                type: JSColor
+                summary: The title text color to use when a segment is in
+                  its selected & active state
+              -
+                name: titleSpacing
+                type: Number
+                summary: The spacing between the image and title
+          -
+            name: Shadow
+            members:
+              -
+                name: shadowColor
+                type: JSColor
+                summary: The color of the control's shadow
+              -
+                name: shadowOffset
+                type: JSPoint
+                summary: The offset of the control's shadow
+              -
+                name: shadowRadius
+                type: Number
+                summary: The radius of the control's shadow
+      -
+        name: Styler
+        kind: enum
+        suffix: enum
+        type: UISegmentedControlStyler
+        summary: The default styler instances created by `UISegmentedControl`
+        description: |
+          You can override the `default` option with a styler of your choosing,
+          typically during `applicationDidFinishLaunching()`.
+        options:
+          -
+            name: default
+            summary: The default `UIKit` segmented control styler
+      -
+        name: styler
+        type: UISegmentedControlStyler
+        summary: The styler used for this segmented control
+        description: |
+          Stylers allow for separation between the segmented control's model and its
+          presentation.
+
+          One styler can be resused for many buttons,
+          reducing the need to subclass `UISegmentedControl` just to apply a
+          custom style.
+        see:
+          - UISegmentedControlDefaultStyler

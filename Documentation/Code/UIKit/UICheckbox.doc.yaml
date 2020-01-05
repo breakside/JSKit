@@ -1,0 +1,222 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: "1.0.0"
+inherits: UIControl
+summary: A checkbox control for toggling a value on or off
+topics:
+  -
+    name: Creating a Checkbox
+    members:
+      -
+        name: initWithStyler
+        kind: init
+        summary: Create a checkbox that uses the given styler
+        arguments:
+          -
+            name: styler
+            type: UICheckboxStyler
+            summary: The styler to use
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available for `UICheckbox`s in spec files
+        topics:
+          -
+            name: Title
+            members:
+              -
+                name: title
+                type: String
+                summary: The text for the checkbox's title label
+                description: |
+                  ````
+                  TestCheckbox:
+                    class: UICheckbox
+                    title: Test
+                  ````
+
+                  Alternatively, you can use a localizable string:
+
+                  `MainWindow.spec.yaml`
+                  ````
+                  TestCheckbox:
+                    class: UICheckbox
+                    title: .testCheckbox.title
+                  ````
+
+                  `en.lproj/MainWindow.strings.yaml`
+                  ````
+                  en:
+                    testCheckbox:
+                      title: Test
+                  ````
+              -
+                name: font
+                type: JSFont
+                summary: The font to use, overriding the styler
+  -
+    name: Title
+    members:
+      -
+        name: titleLabel
+        type: UILabel
+        summary: The label that displays the checkbox's title
+        description: |
+          To set a checkbox's title, simply set the `text`(UILabel.text) property
+          of its `titleLabel`.
+
+          ````
+          var checkbox = UICheckbox.init();
+          checkbox.titleLabel.text = "Test";
+          ````
+  -
+    name: State
+    members:
+      -
+        name: "on"
+        type: boolean
+        summary: Indicates if the checkbox is checked
+      -
+        name: mixed
+        type: boolean
+        summary: Indicates if the checkbox is in a mixed state
+        description: |
+          A mixed state can occur when a checkbox represents the common value
+          of mutliple selected items, and the items have mixed values.
+  -
+    name: Styling
+    members:
+      -
+        name: UICheckboxStyler
+        kind: class
+        inherits: UIControlStyler
+        summary: The abstract base class for checkbox stylers
+      -
+        name: UICheckboxDefaultStyler
+        kind: class
+        inherits: UICheckboxStyler
+        summary: The styler `UIKit` uses by default
+        description: |
+          `UICheckbox` creates a default styler instance using its own colors, but
+          you can always create your own instance and override the colors to
+          get a checkbox that shares a look, but not colors, with the `UIKit`
+          default.
+        topics:
+          -
+            name: Background
+            members:
+              -
+                name: normalBackgroundColor
+                type: JSColor
+                summary: The background color to use when the checkbox is in
+                  its normal state
+              -
+                name: disabledBackgroundColor
+                type: JSColor
+                summary: The background color to use when the checkbox is in
+                  its disabled state
+              -
+                name: activeBackgroundColor
+                type: JSColor
+                summary: The background color to use when the checkbox is in
+                  its active state
+              -
+                name: normalBackgroundGradient
+                type: JSGradient
+                summary: The background gradient to use when the checkbox is in
+                  its normal state
+              -
+                name: disabledBackgroundGradient
+                type: JSGradient
+                summary: The background gradient to use when the checkbox is in
+                  its disabled state
+              -
+                name: activeBackgroundGradient
+                type: JSGradient
+                summary: The background gradient to use when the checkbox is in
+                  its active state
+          -
+            name: Border
+            members:
+              -
+                name: borderWidth
+                type: Number
+                summary: The width of the checkbox's border
+              -
+                name: normalBorderColor
+                type: JSColor
+                summary: The border color to use when the checkbox is in
+                  its normal state
+              -
+                name: disabledBorderColor
+                type: JSColor
+                summary: The border color to use when the checkbox is in
+                  its disabled state
+              -
+                name: activeBorderColor
+                type: JSColor
+                summary: The border color to use when the checkbox is in
+                  its active state
+          -
+            name: Title Text
+            members:
+              -
+                name: normalTitleColor
+                type: JSColor
+                summary: The title text color to use when the checkbox is in
+                  its normal state
+              -
+                name: disabledTitleColor
+                type: JSColor
+                summary: The title text color to use when the checkbox is in
+                  its disabled state
+              -
+                name: activeTitleColor
+                type: JSColor
+                summary: The title text color to use when the checkbox is in
+                  its active state
+              -
+                name: titleSpacing
+                type: Number
+                summary: The spacing between the checkbox and the title label
+          -
+            name: Shadow
+            members:
+              -
+                name: shadowColor
+                type: JSColor
+                summary: The color of the checkbox's shadow
+              -
+                name: shadowOffset
+                type: JSPoint
+                summary: The offset of the checkbox's shadow
+              -
+                name: shadowRadius
+                type: Number
+                summary: The radius of the checkbox's shadow
+      -
+        name: Styler
+        kind: enum
+        suffix: enum
+        type: UICheckboxStyler
+        summary: The default styler instances created by `UICheckbox`
+        description: |
+          You can override the `default` option with a styler of your choosing,
+          typically during `applicationDidFinishLaunching()`.
+        options:
+          -
+            name: default
+            summary: The default `UIKit` checkbox styler
+      -
+        name: styler
+        type: UICheckboxStyler
+        summary: The styler used for this checkbox
+        description: |
+          Stylers allow for separation between the checkbox's model and its
+          presentation.
+
+          One styler can be resused for many checkboxs,
+          reducing the need to subclass `UICheckbox` just to apply a
+          custom style.
+        see:
+          - UICheckboxDefaultStyler

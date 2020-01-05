@@ -32,6 +32,9 @@ JSClass("UIPopupButton", UIControl, {
         if ('title' in values){
             this._titleLabel.text = spec.resolvedValue(values.title);
         }
+        if ('titleInsets' in values){
+            this._titleInsets = JSInsets.call(undefined, values.titleInsets.parseNumberArray());
+        }
         if ('image' in values){
             this._imageView.image = spec.resolvedValue(values.image, "JSImage");
         }
@@ -172,11 +175,11 @@ JSClass("UIPopupButton", UIControl, {
         this.active = this.containsPoint(location);
     },
 
-    sendsActionForSelectedItem: false,
+    sendsActionForReselect: false,
 
     menuDidSelectItem: function(item){
         this._updateTitleForItem(item);
-        if (this._selectedIndex != item.index || this.sendsActionForSelectedItem){
+        if (this._selectedIndex != item.index || this.sendsActionForReselect){
             this.selectedIndex = item.index;
             this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
         }
@@ -297,6 +300,9 @@ JSClass("UIPopupButtonDefaultStyler", UIPopupButtonStyler, {
     normalBackgroundColor: null,
     disabledBackgroundColor: null,
     activeBackgroundColor: null,
+    normalBackgroundGradient: null,
+    disabledBackgroundGradient: null,
+    activeBackgroundGradient: null,
     normalBorderColor: null,
     disabledBorderColor: null,
     activeBorderColor: null,
@@ -305,6 +311,8 @@ JSClass("UIPopupButtonDefaultStyler", UIPopupButtonStyler, {
     activeTitleColor: null,
     borderWidth: 1,
     cornerRadius: 3,
+    shadowColor: null,
+    shadowOffset: null,
     shadowRadius: 1,
     indicatorSpacing: 0,
 
@@ -319,14 +327,16 @@ JSClass("UIPopupButtonDefaultStyler", UIPopupButtonStyler, {
         this.normalTitleColor = UIPopupButtonDefaultStyler.NormalTitleColor;
         this.disabledTitleColor = UIPopupButtonDefaultStyler.DisabledTitleColor;
         this.activeTitleColor = UIPopupButtonDefaultStyler.ActiveTitleColor;
+        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
+        this.shadowOffset = JSPoint(0, 1);
     },
 
     initializeControl: function(button){
         button.titleInsets = this.titleInsets;
         button.layer.borderWidth = this.borderWidth;
         button.layer.cornerRadius = this.cornerRadius;
-        button.layer.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
-        button.layer.shadowOffset = JSPoint(0, 1);
+        button.layer.shadowColor = this.shadowColor;
+        button.layer.shadowOffset = this.shadowOffset;
         button.layer.shadowRadius = this.shadowRadius;
         this.updateControl(button);
     },
@@ -334,18 +344,21 @@ JSClass("UIPopupButtonDefaultStyler", UIPopupButtonStyler, {
     updateControl: function(button){
         if (!button.enabled){
             button.layer.backgroundColor = this.disabledBackgroundColor;
+            button.layer.backgroundGradient = this.disabledBackgroundGradient;
             button.layer.borderColor = this.disabledBorderColor;
             button._titleLabel.textColor = this.disabledTitleColor;
             button._imageView.templateColor = this.disabledTitleColor;
             button._indicatorView.templateColor = this.disabledTitleColor;
         }else if (button.active){
             button.layer.backgroundColor = this.activeBackgroundColor;
+            button.layer.backgroundGradient = this.activeBackgroundGradient;
             button.layer.borderColor = this.activeBorderColor;
             button._titleLabel.textColor = this.activeTitleColor;
             button._imageView.templateColor = this.activeTitleColor;
             button._indicatorView.templateColor = this.activeTitleColor;
         }else{
             button.layer.backgroundColor = this.normalBackgroundColor;
+            button.layer.backgroundGradient = this.normalBackgroundGradient;
             button.layer.borderColor = this.normalBorderColor;
             button._titleLabel.textColor = this.normalTitleColor;
             button._imageView.templateColor = this.normalTitleColor;

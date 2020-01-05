@@ -72,6 +72,10 @@ article.doc > section.topics{
     grid-column-end: 3;
 }
 
+article.doc > footer{
+    grid-column-start: 1;
+}
+
 article.doc > section.inherits, article.doc > section.see{
     grid-column-start: 1;
 }

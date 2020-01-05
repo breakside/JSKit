@@ -1,0 +1,377 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: "1.0.0"
+inherits: UIControl
+summary: A button that opens a popup menu for selecting among multiple options
+topics:
+  -
+    name: Creating a Popup Button
+    members:
+      -
+        name: initWithStyler
+        kind: init
+        summary: Create a popup button that uses the given styler
+        arguments:
+          -
+            name: styler
+            type: UIPopupButtonStyler
+            summary: The styler to use
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available for `UIPopupButton`s in spec files
+        topics:
+          -
+            name: Menu Options
+            members:
+              -
+                name: options
+                type: String[]
+                summary: The menu options for this popup button
+                description: |
+                  ````
+                  PlanetPopup:
+                    class: UIPopupButton
+                    options:
+                      - Mercury
+                      - Venus
+                      - Earth
+                      - Mars
+                      - Jupiter
+                      - Saturn
+                      - Uranus
+                      - Neptune
+                  ````
+          -
+            name: Style
+            members:
+              -
+                name: font
+                type: JSFont
+                summary: The font to use, overriding any styler font
+              -
+                name: titleInsets
+                type: String
+                summary: The amounts the title should be inset from the button's
+                  edges, overriding any styler setting
+                description: |
+                  A string of comma-separated integers, that when parsed will be
+                  pased to the `JSInsets` constructor.
+
+                  ````
+                  PlanetPopup:
+                    class: UIPopupButtonButton
+                    titleInsets: 4,7
+                  ````
+              -
+                name: titleInsets
+                suffix: number
+                type: Number
+                summary: The amount the title should be inset all from the button's
+                  edges, overriding any styler setting
+                description: |
+                  A single number that will be passed to the `JSInsets` constructor
+                  and used for all sides.
+
+                  ````
+                  PlanetPopup:
+                    class: UIPopupButtonButton
+                    titleInsets: 4
+                  ````
+          -
+            name: Pull Down Menu
+            members:
+              -
+                name: pullsDown
+                type: boolean
+                summary: Indicates the menu should appear below the button
+                  instead of popping up over the button
+                description: |
+                  If a popup button is configured with `pullsDown` set to
+                  `true`, you should set a `title` or an `image` that will
+                  always be displayed on the button.
+
+                  ````
+                  ActionButton:
+                    class: UIPopupButton
+                    pullsDown: true
+                    image: ActionIcon
+                  ````
+                see:
+                  - title
+                  - image
+              -
+                name: title
+                type: String
+                summary: A title to use regardless of selection when
+                  \`pullsDown` is `true`
+                description: |
+                  Usually a popup button displays the title of the selected
+                  item.
+
+                  However, if `pullsDown` is `true`, the popup button will show
+                  a static title.
+                see:
+                  - pullsDown
+              -
+                name: image
+                type: JSImage
+                summary: An image to use regardless of selection when
+                  \`pullsDown` is `true`
+                description: |
+                  Usually a popup button displays the image of the selected
+                  item.
+
+                  However, if `pullsDown` is `true`, the popup button will show
+                  a static image.
+                see:
+                  - pullsDown
+  -
+    name: Menu Items
+    members:
+      -
+        name: menu
+        type: UIMenu
+        summary: The menu to display when the button is clicked
+      -
+        name: addItemWithTitle
+        kind: method
+        summary: Add a menu item with the given title
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title for the item in the popup menu
+      -
+        name: addItemWithTitle
+        suffix: tag
+        kind: method
+        summary: Add a menu item with the given title and tag
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title for the item in the popup menu
+          -
+            name: tag
+            type: String
+            summary: A unique identifier for the item
+      -
+        name: removeAllItems
+        kind: method
+        summary: Clear the popup menu of all items
+  -
+    name: Styling
+    members:
+      -
+        name: UIPopupButtonStyler
+        kind: class
+        inherits: UIControlStyler
+        summary: The abstract base class for popup button stylers
+        topics:
+          -
+            name: Menu Styling
+            members:
+              -
+                name: menuStyler
+                type: UIMenuStyler
+                summary: The styler to use for the button's menu
+      -
+        name: UIPopupButtonDefaultStyler
+        kind: class
+        inherits: UIPopupButtonStyler
+        summary: The default popup button styler for `UIKit`
+        topics:
+          -
+            name: Background
+            members:
+              -
+                name: normalBackgroundColor
+                type: JSColor
+                summary: The background color to use when the button is in
+                  its normal state
+              -
+                name: disabledBackgroundColor
+                type: JSColor
+                summary: The background color to use when the button is in
+                  its disabled state
+              -
+                name: activeBackgroundColor
+                type: JSColor
+                summary: The background color to use when the button is in
+                  its active state
+              -
+                name: normalBackgroundGradient
+                type: JSGradient
+                summary: The background gradient to use when the button is in
+                  its normal state
+              -
+                name: disabledBackgroundGradient
+                type: JSGradient
+                summary: The background gradient to use when the button is in
+                  its disabled state
+              -
+                name: activeBackgroundGradient
+                type: JSGradient
+                summary: The background gradient to use when the button is in
+                  its active state
+          -
+            name: Border
+            members:
+              -
+                name: borderWidth
+                type: Number
+                summary: The width of the button's border
+              -
+                name: normalBorderColor
+                type: JSColor
+                summary: The border color to use when the button is in
+                  its normal state
+              -
+                name: disabledBorderColor
+                type: JSColor
+                summary: The border color to use when the button is in
+                  its disabled state
+              -
+                name: activeBorderColor
+                type: JSColor
+                summary: The border color to use when the button is in
+                  its active state
+          -
+            name: Title Text
+            members:
+              -
+                name: normalTitleColor
+                type: JSColor
+                summary: The title text color to use when the button is in
+                  its normal state
+              -
+                name: disabledTitleColor
+                type: JSColor
+                summary: The title text color to use when the button is in
+                  its disabled state
+              -
+                name: activeTitleColor
+                type: JSColor
+                summary: The title text color to use when the button is in
+                  its active state
+              -
+                name: titleInsets
+                type: JSInsets
+                summary: The default insets for the button's title
+                description: |
+                  The title insets are only set when the button is created, so
+                  calling code can set the `UIButton.titleInsets` after to
+                  override the default styler insets.
+          -
+            name: Shadow
+            members:
+              -
+                name: shadowColor
+                type: JSColor
+                summary: The color of the button's shadow
+              -
+                name: shadowOffset
+                type: JSPoint
+                summary: The offset of the button's shadow
+              -
+                name: shadowRadius
+                type: Number
+                summary: The radius of the button's shadow
+          -
+            name: Indicator
+            members:
+              -
+                name: indicatorSpacing
+                type: Number
+                summary: The spacing between the title and and the indicator
+                  image view.
+                description: |
+                  The indicator image view is arrow that indicates either a
+                  popup or a pull down menu.
+      -
+        name: Styler
+        kind: enum
+        suffix: enum
+        type: UIPopupButtonStyler
+        summary: The predefined styler instances for popup buttons
+        description: |
+          You can override the `default` option with a styler of your choosing,
+          typically during `applicationDidFinishLaunching()`.
+        options:
+          -
+            name: default
+            summary: The `UIKit` default styler for popup buttons
+      -
+        name: styler
+        type: UIPopupButtonStyler
+        summary: The styler for this button
+      -
+        name: titleInsets
+        type: JSInsets
+        summary: The distance the title label should be from each edge of the
+          button
+        description: |
+          While the button's `styler` determines exactly how the button is
+          displayed, the `titleInsets` property gives the styler a layout
+          instruction that it should consider.
+        see:
+          - styler
+  -
+    name: Selection
+    members:
+      -
+        name: selectedIndex
+        type: Number
+        summary: The index of the currently selected menu item
+        description: |
+          Will be `-1` if no item is selected
+      -
+        name: selectedTag
+        type: String
+        nullable: true
+        summary: The tag of the selected item
+      -
+        name: sendsActionForReselect
+        type: boolean
+        summary: Indicates an action should be sent when selecting an already
+          selected item
+  -
+    name: Pull Down Menu
+    members:
+      -
+        name: pullsDown
+        type: boolean
+        summary: Indicates the menu should appear below the button
+          instead of popping up over the button
+        description: |
+          If a popup button is configured with `pullsDown` set to
+          `true`, you should set `titleLabel``.text` or an `imageView``.image`
+          that will always be displayed on the button.
+        see:
+          - titleLabel
+          - imageView
+      -
+        name: titleLabel
+        type: UILabel
+        summary: A label used for the button's title
+        description: |
+          Usually a popup button automatically displays the title of the
+          selected item.
+
+          However, if `pullsDown` is `true`, the popup button will show
+          a static title that you can set using this label.
+        see:
+          - pullsDown
+      -
+        name: imageView
+        type: UIImageView
+        summary: An image view to use for the button's icon
+        description: |
+          Usually a popup button automatically displays the image of the
+          selected item.
+
+          However, if `pullsDown` is `true`, the popup button will show
+          a static image that you can set using this view.
+        see:
+          - pullsDown

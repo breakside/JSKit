@@ -1,0 +1,217 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: "1.0.0"
+inherits: UIControl
+summary: A radio button control for selecting among multiple items
+description: |
+  Typically used within a `UIRadioGroup` control.
+topics:
+  -
+    name: Creating a Radio Button
+    members:
+      -
+        name: initWithStyler
+        kind: init
+        summary: Create a radio button that uses the given styler
+        arguments:
+          -
+            name: styler
+            type: UIRadioButtonStyler
+            summary: The styler to use
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available for `UIRadioButton`s in spec files
+        topics:
+          -
+            name: Title
+            members:
+              -
+                name: title
+                type: String
+                summary: The text for the radio button's title label
+                description: |
+                  ````
+                  TestRadioButton:
+                    class: UIRadioButton
+                    title: Test
+                  ````
+
+                  Alternatively, you can use a localizable string:
+
+                  `MainWindow.spec.yaml`
+                  ````
+                  TestRadioButton:
+                    class: UIRadioButton
+                    title: .testRadioButton.title
+                  ````
+
+                  `en.lproj/MainWindow.strings.yaml`
+                  ````
+                  en:
+                    testRadioButton:
+                      title: Test
+                  ````
+              -
+                name: font
+                type: JSFont
+                summary: The font to use, overriding the styler
+  -
+    name: Title
+    members:
+      -
+        name: titleLabel
+        type: UILabel
+        summary: The label that displays the radio button's title
+        description: |
+          To set a radio button's title, simply set the `text`(UILabel.text) property
+          of its `titleLabel`.
+
+          ````
+          var radio button = UIRadioButton.init();
+          radio button.titleLabel.text = "Test";
+          ````
+  -
+    name: State
+    members:
+      -
+        name: "on"
+        type: boolean
+        summary: Indicates if the radio button is selected
+  -
+    name: Styling
+    members:
+      -
+        name: UIRadioButtonStyler
+        kind: class
+        inherits: UIControlStyler
+        summary: The abstract base class for radio button stylers
+      -
+        name: UIRadioButtonDefaultStyler
+        kind: class
+        inherits: UIRadioButtonStyler
+        summary: The styler `UIKit` uses by default
+        description: |
+          `UIRadioButton` creates a default styler instance using its own colors, but
+          you can always create your own instance and override the colors to
+          get a radio button that shares a look, but not colors, with the `UIKit`
+          default.
+        topics:
+          -
+            name: Background
+            members:
+              -
+                name: normalBackgroundColor
+                type: JSColor
+                summary: The background color to use when the radio button is in
+                  its normal state
+              -
+                name: disabledBackgroundColor
+                type: JSColor
+                summary: The background color to use when the radio button is in
+                  its disabled state
+              -
+                name: activeBackgroundColor
+                type: JSColor
+                summary: The background color to use when the radio button is in
+                  its active state
+              -
+                name: normalBackgroundGradient
+                type: JSGradient
+                summary: The background gradient to use when the radio button is in
+                  its normal state
+              -
+                name: disabledBackgroundGradient
+                type: JSGradient
+                summary: The background gradient to use when the radio button is in
+                  its disabled state
+              -
+                name: activeBackgroundGradient
+                type: JSGradient
+                summary: The background gradient to use when the radio button is in
+                  its active state
+          -
+            name: Border
+            members:
+              -
+                name: borderWidth
+                type: Number
+                summary: The width of the radio button's border
+              -
+                name: normalBorderColor
+                type: JSColor
+                summary: The border color to use when the radio button is in
+                  its normal state
+              -
+                name: disabledBorderColor
+                type: JSColor
+                summary: The border color to use when the radio button is in
+                  its disabled state
+              -
+                name: activeBorderColor
+                type: JSColor
+                summary: The border color to use when the radio button is in
+                  its active state
+          -
+            name: Title Text
+            members:
+              -
+                name: normalTitleColor
+                type: JSColor
+                summary: The title text color to use when the radio button is in
+                  its normal state
+              -
+                name: disabledTitleColor
+                type: JSColor
+                summary: The title text color to use when the radio button is in
+                  its disabled state
+              -
+                name: activeTitleColor
+                type: JSColor
+                summary: The title text color to use when the radio button is in
+                  its active state
+              -
+                name: titleSpacing
+                type: Number
+                summary: The spacing between the radio button and the title label
+          -
+            name: Shadow
+            members:
+              -
+                name: shadowColor
+                type: JSColor
+                summary: The color of the radio button's shadow
+              -
+                name: shadowOffset
+                type: JSPoint
+                summary: The offset of the radio button's shadow
+              -
+                name: shadowRadius
+                type: Number
+                summary: The radius of the radio button's shadow
+      -
+        name: Styler
+        kind: enum
+        suffix: enum
+        type: UIRadioButtonStyler
+        summary: The default styler instances created by `UIRadioButton`
+        description: |
+          You can override the `default` option with a styler of your choosing,
+          typically during `applicationDidFinishLaunching()`.
+        options:
+          -
+            name: default
+            summary: The default `UIKit` radio button styler
+      -
+        name: styler
+        type: UIRadioButtonStyler
+        summary: The styler used for this radio button
+        description: |
+          Stylers allow for separation between the radio button's model and its
+          presentation.
+
+          One styler can be resused for many radio buttons,
+          reducing the need to subclass `UIRadioButton` just to apply a
+          custom style.
+        see:
+          - UIRadioButtonDefaultStyler

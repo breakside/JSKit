@@ -327,8 +327,10 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
     normalTitleColor: null,
     disabledTitleColor: null,
     activeTitleColor: null,
-    shadowColor: null,
     borderWidth: 1,
+    shadowColor: null,
+    shadowRadius: 1,
+    shadowOffset: null,
 
     init: function(){
         this.normalBackgroundColor = UIButtonDefaultStyler.NormalBackgroundColor;
@@ -341,6 +343,7 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
         this.disabledTitleColor = UIButtonDefaultStyler.DisabledTitleColor;
         this.activeTitleColor = UIButtonDefaultStyler.ActiveTitleColor;
         this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
+        this.shadowOffset = JSPoint(0, 1);
         this.titleInsets = JSInsets(3, 7);
     },
 
@@ -348,8 +351,8 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
         UIButtonDefaultStyler.$super.initializeControl.call(this, button);
         button.layer.cornerRadius = 3;
         button.layer.shadowColor = this.shadowColor;
-        button.layer.shadowOffset = JSPoint(0, 1);
-        button.layer.shadowRadius = 1;
+        button.layer.shadowOffset = this.shadowOffset;
+        button.layer.shadowRadius = this.shadowRadius;
         button.layer.borderWidth = this.borderWidth;
         this.updateControl(button);
     },

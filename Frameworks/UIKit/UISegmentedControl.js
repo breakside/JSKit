@@ -19,24 +19,10 @@ JSClass("UISegmentedControl", UIControl, {
         UISegmentedControl.$super.initWithSpec.call(this, spec, values);
         var i, l;
         if ('items' in values){
-            var specItem;
             var item;
             var image;
             for (i = 0, l = values.items.length; i < l; ++i){
-                specItem = spec.resolvedValue(values.items[i]);
-                item = UISegmentedControlItem.init();
-                if (specItem.title){
-                    item.title = spec.resolvedValue(specItem.title);
-                }
-                if (specItem.image){
-                    item.image = spec.resolvedValue(specItem.image, "JSImage");
-                }
-                if (specItem.selectedImage){
-                    item.selectedImage = spec.resolvedValue(specItem.selectedImage, "JSImage");
-                }
-                if (specItem.tooltip){
-                    item.tooltip = spec.resolvedValue(specItem.tooltip);
-                }
+                item = spec.resolvedValue(values.items[i], "UISegmentedControlItem");
                 this._insertItemAtIndex(item, i);
             }
         }
@@ -273,7 +259,23 @@ JSClass("UISegmentedControlItem", JSObject, {
     tooltip: null,
     active: false,
     selected: false,
-    enabled: true
+    enabled: true,
+
+    initWithSpec: function(spec, values){
+        UISegmentedControlItem.$super.initWithSpec.call(this, spec, values);
+        if ('title' in values){
+            this.title = spec.resolvedValue(values.title);
+        }
+        if ('image' in values){
+            this.image = spec.resolvedValue(values.image, "JSImage");
+        }
+        if ('selectedImage' in values){
+            this.selectedImage = spec.resolvedValue(values.selectedImage, "JSImage");
+        }
+        if ('tooltip' in values){
+            this.tooltip = spec.resolvedValue(values.tooltip);
+        }
+    }
 });
 
 JSClass("UISegmentedControlItemView", UIView, {
@@ -424,8 +426,10 @@ JSClass("UISegmentedControlDefaultStyler", UISegmentedControlStyler, {
     selectedTitleColor: null,
     selectedActiveTitleColor: null,
     shadowColor: null,
+    shadowOffset: null,
+    shadowRadius: 1,
     borderWidth: 1,
-    imageSpacing: 2,
+    titleSpacing: 2,
     cornerRadius: 3,
 
     init: function(){
@@ -445,6 +449,7 @@ JSClass("UISegmentedControlDefaultStyler", UISegmentedControlStyler, {
         this.selectedTitleColor = JSColor.initWithRGBA(240/255,240/255,240/255);
         this.selectedActiveTitleColor = this.selectedTitleColor;
         this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
+        this.shadowOffset = JSPoint(0, 1);
         this.titleInsets = JSInsets(3, 7);
     },
 
@@ -452,8 +457,8 @@ JSClass("UISegmentedControlDefaultStyler", UISegmentedControlStyler, {
         UISegmentedControlDefaultStyler.$super.initializeControl.call(this, control);
         control.cornerRadius = this.cornerRadius;
         control.shadowColor = this.shadowColor;
-        control.shadowOffset = JSPoint(0, 1);
-        control.shadowRadius = 1;
+        control.shadowOffset = this.shadowOffset;
+        control.shadowRadius = this.shadowRadius;
         this.updateControl(control);
     },
 
@@ -558,7 +563,7 @@ JSClass("UISegmentedControlDefaultStyler", UISegmentedControlStyler, {
             titleSize = JSSize(itemView._titleLabel.intrinsicSize);
             titleSize.width = Math.ceil(titleSize.width);
             if (image !== null){
-                size.width += image.size.width + this.imageSpacing + titleSize.width;
+                size.width += image.size.width + this.titleSpacing + titleSize.width;
                 size.height += Math.max(image.size.height, titleSize.height);
             }else{
                 size.width += titleSize.width;
@@ -614,7 +619,7 @@ JSClass("UISegmentedControlDefaultStyler", UISegmentedControlStyler, {
                 var contentRect = itemView.bounds.rectWithInsets(itemView.segmentControl.titleInsets);
                 var imageSize = Math.min(contentRect.size.width, contentRect.size.height);
                 itemView._imageView.frame = JSRect(contentRect.origin, JSSize(imageSize, imageSize));
-                var x = contentRect.origin.x + imageSize + this.imageSpacing;
+                var x = contentRect.origin.x + imageSize + this.titleSpacing;
                 var w = Math.max(0, contentRect.origin.x + contentRect.size.width - x);
                 var titleSize = itemView._titleLabel.intrinsicSize;
                 var y = (contentRect.size.height - titleSize.height) / 2;

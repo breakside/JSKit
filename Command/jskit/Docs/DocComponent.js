@@ -175,10 +175,6 @@ JSClass("DocComponent", JSObject, {
         var content = body.appendChild(document.createElement("article"));
         content.setAttribute("class", "doc " + this.kind);
         var elements = this.htmlArticleElements(document);
-        var copyright = this.inheritedCopyright();
-        if (copyright){
-            elements.push(this.footerElement(document, copyright));
-        }
 
         if (this.see){
             let section = document.createElement('section');
@@ -207,6 +203,11 @@ JSClass("DocComponent", JSObject, {
                     p.appendChild(document.createTextNode(', '));
                 }
             }
+        }
+
+        var copyright = this.inheritedCopyright();
+        if (copyright){
+            elements.push(this.footerElement(document, copyright));
         }
 
         var aside = null;

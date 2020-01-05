@@ -34,9 +34,9 @@ JSClass("JSFont", JSObject, {
         var style;
         var size;
         var defaults = JSFont._systemFontDescriptor;
-        if ('descriptor' in values){
-            values = values.descriptor;
-        }
+        // if ('descriptor' in values){
+        //     values = values.descriptor;
+        // }
         if ('family' in values){
             family = values.family;
         }else if (defaults){

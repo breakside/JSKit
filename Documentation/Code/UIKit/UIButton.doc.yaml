@@ -68,6 +68,25 @@ topics:
         summary: The properties available for `UIButton`s in spec files
         topics:
           -
+            name: Style
+            members:
+              -
+                name: styler
+                type: UIButtonStyler
+                summary: The button styler to use
+                description: |
+                  ````
+                  TestButton:
+                    class: UIButton
+                    styler: /BasicButtonStyler
+
+                  BasicButtonStyler:
+                    class: UIButtonCustomStyler
+                    normalBackgroundColor:
+                      rgba: 0,24,204
+                    normalTitleColor: $JSColor.whiteColor
+                  ````
+          -
             name: Title
             members:
               -
@@ -100,7 +119,7 @@ topics:
                 name: titleInsets
                 type: String
                 summary: The amounts the title should be inset from the button's
-                  edges
+                  edges, overriding any styler setting
                 description: |
                   A string of comma-separated integers, that when parsed will be
                   pased to the `JSInsets` constructor.
@@ -116,7 +135,7 @@ topics:
                 suffix: number
                 type: Number
                 summary: The amount the title should be inset all from the button's
-                  edges
+                  edges, overriding any styler setting
                 description: |
                   A single number that will be passed to the `JSInsets` constructor
                   and used for all sides.
@@ -127,6 +146,10 @@ topics:
                     title: Test
                     titleInsets: 4
                   ````
+              -
+                name: font
+                type: JSFont
+                summary: The font to use, overriding the styler
           -
             name: Image
             members:
@@ -382,6 +405,17 @@ topics:
                         description: |
                           A single number that will be used as the inset
                           for all sides of the `JSInsets`
+          -
+            name: Title
+            members:
+              -
+                name: titleInsets
+                type: JSInsets
+                summary: The default insets for the button's title
+                description: |
+                  The title insets are only set when the button is created, so
+                  calling code can set the `UIButton.titleInsets` after to
+                  override the default styler insets.
       -
         name: UIButtonDefaultStyler
         kind: class
@@ -473,6 +507,14 @@ topics:
                 name: shadowColor
                 type: JSColor
                 summary: The color of the button's shadow
+              -
+                name: shadowOffset
+                type: JSPoint
+                summary: The offset of the button's shadow
+              -
+                name: shadowRadius
+                type: Number
+                summary: The radius of the button's shadow
       -
         name: UIButtonCustomStyler
         kind: class
@@ -647,20 +689,18 @@ topics:
         name: Styler
         kind: enum
         suffix: enum
+        type: UIButtonStyler
         summary: The default styler instances created by `UIButton`
+        description: |
+          You can override the `default` option with a styler of your choosing,
+          typically during `applicationDidFinishLaunching()`.
         options:
           -
             name: default
-            type: UIButtonDefaultStyler
             summary: The default `UIKit` button styler
-            description: |
-              You can set this property to any styler
           -
             name: custom
-            type: UIButtonCustomStyler
             summary: A blank styler
-            description: |
-              Creates buttons that have no styles at all
       -
         name: styler
         type: UIButtonStyler
