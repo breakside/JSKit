@@ -240,6 +240,13 @@ HTMLAppBootstrapper.prototype = {
             this.setStatus(HTMLAppBootstrapper.STATUS.updateError);
             return;
         }
+        if (e.target === this.serviceWorker){
+            if (!this._hasLoaded){
+                logger.error(e);
+                this.setStatus(HTMLAppBootstrapper.STATUS.updateError);
+                return;
+            }
+        }
         var src;
         for (src in this.scriptConfigs){
             if (src.length <= e.filename.length){
@@ -248,31 +255,33 @@ HTMLAppBootstrapper.prototype = {
                     this.caughtErrors.push(e);
                     this.scriptConfigs[src].compileError = e;
                     logger.error(e);
-                    break;
+                    return;
                 }
             }
         }
+        logger.debug("Error from unknown source");
+        logger.error(e);
     },
 
     // MARK: - Service Worker
 
     _installUsingServiceWorker: function(container){
         var bootstrapper = this;
-        logger.debug("[Service Worker] Getting registration...");
+        logger.debug("[Service Worker] Getting registration");
         container.addEventListener('message', bootstrapper);
         container.getRegistration().then(function(registration){
             if (registration){
-                logger.debug("[Service Worker] Found registration...");
-                logger.debug("[Service Worker] Checking for update...");
+                logger.debug("[Service Worker] Found registration");
+                logger.debug("[Service Worker] Checking for update");
                 bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.checkingForUpdate);
                 registration.addEventListener('updatefound', bootstrapper);
-                registration.update().then(function(registration){
+                return registration.update().then(function(registration){
                     if (registration.installing){
-                        logger.debug("[Service Worker] Installing Update...");
+                        logger.debug("[Service Worker] Installing Update");
                         bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.updating);
                         bootstrapper.serviceWorker = registration.installing;
                     }else if (registration.waiting){
-                        logger.debug("[Service Worker] Waiting registration found.  Activating...");
+                        logger.debug("[Service Worker] Waiting registration found.  Activating");
                         bootstrapper.serviceWorker = registration.waiting;
                         bootstrapper.serviceWorker.addEventListener('statechange', bootstrapper);
                         bootstrapper.serviceWorker.postMessage({type: "activate"});
@@ -280,7 +289,7 @@ HTMLAppBootstrapper.prototype = {
                         bootstrapper.serviceWorker = registration.active;
                         logger.debug("[Service Worker] Active registration found");
                         if (bootstrapper.serviceWorker.state == 'activating'){
-                            logger.debug("[Service Worker] Activating...");
+                            logger.debug("[Service Worker] Activating");
                             bootstrapper.serviceWorker.addEventListener('statechange', bootstrapper);
                         }else{
                             logger.debug("[Service Worker] Activated.");
@@ -291,42 +300,47 @@ HTMLAppBootstrapper.prototype = {
                         throw new Error("No service worker found on registration");
                     }
                     bootstrapper.serviceWorker.addEventListener('statechange', bootstrapper);
-                });
-            }else{
-                logger.debug("[Service Worker] No registration found...");
-                bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.installing);
-                logger.debug("[Service Worker] Registering...");
-                container.register(bootstrapper.serviceWorkerSrc).then(function(registration){
-                    registration.addEventListener('updatefound', bootstrapper);
-                    if (registration.installing){
-                        logger.debug("[Service Worker] Installing for the first time...");
-                        bootstrapper.serviceWorker = registration.installing;
-                    }else if (registration.waiting){
-                        logger.warn("[Service Worker] Waiting registration found.  Activating...");
-                        bootstrapper.serviceWorker = registration.waiting;
-                        bootstrapper.serviceWorker.postMessage({type: "activate"});
-                    }else if (registration.active){
-                        logger.warn("[Service Worker] Active registration found???");
-                        bootstrapper.serviceWorker = registration.active;
-                        if (bootstrapper.serviceWorker.state == 'activating'){
-                            logger.warn("[Service Worker] Already activating...");
-                        }else{
-                            logger.warn("[Service Worker] Already activated???");
-                            bootstrapper.load();
-                        }
-                    }else{
-                        logger.error("[Service Worker] Nothing to install???");
-                        throw new Error("No service worker found on registration");
-                    }
-                    bootstrapper.serviceWorker.addEventListener('statechange', bootstrapper);
-                }, function(error){
-                    logger.error(error);
-                    bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.updateError);
+                    bootstrapper.serviceWorker.addEventListener('error', bootstrapper);
                 });
             }
-        }, function(error){
-            logger.error(error);
-            bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.updateError);
+            logger.debug("[Service Worker] No registration found");
+            bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.installing);
+            logger.debug("[Service Worker] Registering");
+            return container.register(bootstrapper.serviceWorkerSrc).then(function(registration){
+                registration.addEventListener('updatefound', bootstrapper);
+                if (registration.installing){
+                    logger.debug("[Service Worker] Installing for the first time");
+                    bootstrapper.serviceWorker = registration.installing;
+                }else if (registration.waiting){
+                    logger.warn("[Service Worker] Waiting registration found.  Activating");
+                    bootstrapper.serviceWorker = registration.waiting;
+                    bootstrapper.serviceWorker.postMessage({type: "activate"});
+                }else if (registration.active){
+                    logger.warn("[Service Worker] Active registration found???");
+                    bootstrapper.serviceWorker = registration.active;
+                    if (bootstrapper.serviceWorker.state == 'activating'){
+                        logger.warn("[Service Worker] Already activating");
+                    }else{
+                        logger.warn("[Service Worker] Already activated???");
+                        bootstrapper.load();
+                    }
+                }else{
+                    logger.error("[Service Worker] Nothing to install???");
+                    throw new Error("No service worker found on registration");
+                }
+                bootstrapper.serviceWorker.addEventListener('statechange', bootstrapper);
+                bootstrapper.serviceWorker.addEventListener('error', bootstrapper);
+            });
+        }).catch(function(error){
+            logger.warn("[Service Worker] Error with registration");
+            if (container.controller){
+                logger.warn(error);
+                logger.debug("[Service Worker] Proceeding with cached version");
+                bootstrapper.load();
+            }else{
+                logger.error(error);
+                bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.updateError);
+            }
         });
     },
 
@@ -334,7 +348,7 @@ HTMLAppBootstrapper.prototype = {
         var worker = e.target;
         if (worker === this.serviceWorker){
             if (worker.state === "installed"){
-                logger.debug("[Service Worker] Installed.  Activating...");
+                logger.debug("[Service Worker] Installed.  Activating");
                 worker.postMessage({type: "activate"});
             }else if (worker.state === "activated"){
                 logger.debug("[Service Worker] Activated");
@@ -345,7 +359,7 @@ HTMLAppBootstrapper.prototype = {
                 logger.debug("[Service Worker] Update Installed");
                 if (this.application !== null){
                     if (this.application.delegate && this.application.delegate.applicationUpdateAvailable){
-                        logger.debug("[Service Worker] Notifying application delegate...");
+                        logger.debug("[Service Worker] Notifying application delegate");
                         this.application.delegate.applicationUpdateAvailable(this.application);
                     }
                 }
@@ -356,20 +370,51 @@ HTMLAppBootstrapper.prototype = {
     message: function(e){
         var container = e.target;
         var worker = e.source;
+        var d = Math.round(e.data.total / 10);
         if (worker === this.serviceWorker){
             if (e.data.type == 'progress'){
+                if (e.data.loaded % d === 0){
+                    logger.debug("[Service Worker] Progress " + e.data.loaded + '/' + e.data.total);
+                }
                 this.onprogress(e.data.loaded, e.data.total);
             }else if (e.data.type == 'error'){
-                logger.error(e.data.message);
-                this.setStatus(HTMLAppBootstrapper.STATUS.updateError);
+                logger.warn("[Service Worker] Install error");
+                if (container.controller){
+                    logger.debug("[Service Worker] Proceeding with cached version");
+                    this.load();
+                }else{
+                    logger.error(e.data.message);
+                    this.setStatus(HTMLAppBootstrapper.STATUS.updateError);
+                }
+            }
+        }else{
+            if (e.data.type == 'progress'){
+                if (e.data.loaded % d === 0){
+                    logger.debug("[Service Worker] Progress from new worker " + e.data.loaded + '/' + e.data.total);
+                }
+                this.onprogress(e.data.loaded, e.data.total);
             }
         }
     },
 
     updatefound: function(e){
         var registration = e.target;
-        if (registration.installing){
-            registration.installing.addEventListener('statechange', this);
+        var worker = registration.installing;
+        if (worker === this.serviceWorker){
+            return;
+        }
+        logger.debug("[Service Worker] Update found");
+        if (worker){
+            worker.addEventListener('statechange', this);
+            worker.addEventListener('error', this);
+        }
+        if (!this._hasLoaded){
+            logger.debug("[Service Worker] Adopting new worker");
+            this.serviceWorker = worker;
+            if (!this.serviceWorker){
+                logger.warn("[Service Worker] null installer");
+                this.setStatus(HTMLAppBootstrapper.STATUS.updateError);
+            }
         }
     },
 
@@ -388,12 +433,12 @@ HTMLAppBootstrapper.prototype = {
     },
 
     checking: function(e){
-        logger.info('checking app cache...');
+        logger.info('checking app cache');
         this.setStatus(HTMLAppBootstrapper.STATUS.checkingForUpdate);
     },
 
     downloading: function(e){
-        logger.info('cache downloading...');
+        logger.info('cache downloading');
         this.setStatus(this._isAppcacheInstalled ? HTMLAppBootstrapper.STATUS.updating : HTMLAppBootstrapper.STATUS.installing);
     },
 

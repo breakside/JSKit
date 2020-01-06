@@ -1,0 +1,74 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: UIScrollView
+summary: Display and interact with a vertical list of items
+description: |
+  A `UIListView` is one of the most versatile componets of `UIKit`, and it
+  makes use of several key concepts found throughout `UIKit`.
+
+  Delegate & Data Source
+  =========
+  The delegate and/or data source pattern is used often in `UIKit` as a way
+  to separate generic control behaviors from an application's specific data.
+
+  In the case of a `UIListView`, the `delegate` and `dataSource` combine to
+  1. Populate the list's cells
+  2. Respond to user interaction with cells
+
+  Typically, your `delegate` and `dataSource` are the same controller object,
+  often a subclass of `UIListViewController.  Anything that implements the
+  `UIListViewDelegate` and `UIListViewDataSource` protocols will do.
+
+  The important delegate methods are:
+  1. `cellForListViewAtIndexPath()`, which creates a cell for the list view to
+     display.
+  2. `listViewDidSelectCellAtIndexPath()`, which is called when a user clicks a
+     cell
+
+  The important data source methods are:
+  1. `numberOfSectionsInListView()`
+  2. `numberOfRowsInListViewSection()`
+
+  which, when combined, tell the list view how many items are included.
+
+  Reusing Cells
+  ==========
+  Very long lists would cause perforance issues if `UIListView` created a view
+  for each cell in the entire list.
+
+  Instead, `UIListView` creates only those cells that are visible in its scroll
+  window.  As the user scrolls, cells that become invisible can be reused for
+  cells that become visible.
+
+  Typically you'll register cell classes with `registerCellClassForReuseIdentifier()`,
+  when creating the list view.
+
+  Then, when the list view calls for `cellForListViewAtIndexPath()`, your
+  delegate asks for a reusable cell with `dequeueReusableCellWithIdentifier()`,
+  which will either return a reusable cell or create a new one if none are
+  available for reuse.
+topics:
+  -
+    name: Creating a List View
+  -
+    name: Delegate & Data Source
+  -
+    name: Styling
+  -
+    name: Cell Sizing
+  -
+    name: Cell Reuse
+  -
+    name: Accessing Cells
+  -
+    name: Header & Footer Sizing
+  -
+    name: Header & Footer Reuse
+  -
+    name: Loading List Data
+  -
+    name: List Editing
+  -
+    name: Selection
+  -
+    name: Scrolling

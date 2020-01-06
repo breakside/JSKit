@@ -85,9 +85,10 @@
   </div>
   <script type="text/javascript" src="HTMLAppBootstrapper.js"></script>
   <script type="text/javascript" jskit>
+  /* global document, window, console, HTMLAppBootstrapper */
   'use strict';
   (function(){
-    var app = {{JSKIT_APP}};
+    var app = {TEMPLATE: "JSKIT_APP"};
     var splash = document.getElementById('splash');
     var statusLabel = document.getElementById('status');
     var detailsLabel = document.getElementById('details');

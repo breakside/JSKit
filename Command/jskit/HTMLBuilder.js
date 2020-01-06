@@ -73,7 +73,6 @@ JSClass("HTMLBuilder", Builder, {
         this.frameworksURL = this.cacheBustingURL.appendingPathComponent("Frameworks");
         this.resourcesURL = this.wwwURL.appendingPathComponent('Resources', true);
         this.workerURL = this.cacheBustingURL.appendingPathComponent("JSDispatch-worker.js");
-        this.serviceWorkerURL = this.wwwURL.appendingPathComponent("service-worker.js");
         var exists = await this.fileManager.itemExistsAtURL(this.wwwURL);
         if (exists){
             this.printer.setStatus("Cleaning old build...");
@@ -366,6 +365,12 @@ JSClass("HTMLBuilder", Builder, {
         var projectWWWURL = this.project.url.appendingPathComponent('www');
         var entries = await this.fileManager.contentsOfDirectoryAtURL(projectWWWURL);
         var indexName = this.project.info.UIApplicationHTMLIndexFile || 'index.html';
+        var serviceWorkerName = this.project.info.UIApplicationHTMLServiceWorkerFile || 'service-worker.js';
+        this.serviceWorkerSourceURL = projectWWWURL.appendingPathComponent(serviceWorkerName);
+        var serviceWorkerExists = await this.fileManager.itemExistsAtURL(this.serviceWorkerSourceURL);
+        if (serviceWorkerExists){
+            this.serviceWorkerURL = this.wwwURL.appendingPathComponent(serviceWorkerName);
+        }
         for (let i = 0, l = entries.length; i < l; ++i){
             let entry = entries[i];
             if (entry.name.startsWith('.')){
@@ -374,6 +379,8 @@ JSClass("HTMLBuilder", Builder, {
             let toURL = this.wwwURL.appendingPathComponent(entry.url.lastPathComponent);
             if (entry.name == indexName){
                 await this.buildIndex(entry.url, toURL);
+            }else if (entry.name == serviceWorkerName){
+                // do nothing...will build service worker afer all of www has been inspected
             }else{
                 await this._copyWWWEntry(entry, entry.name, manifestConfiguration);
             }
@@ -443,7 +450,7 @@ JSClass("HTMLBuilder", Builder, {
                         let child = element.childNodes[i];
                         js += child.data;
                     }
-                    js = js.replacingTemplateParameters(params);
+                    js = js.replacingTemplateParameters(params, '{TEMPLATE: "', '"}');
                     for (let i = element.childNodes.length - 1; i > 0; --i){
                         let child = element.childNodes[i];
                         element.removeChild(child);
@@ -519,8 +526,10 @@ JSClass("HTMLBuilder", Builder, {
         await this.fileManager.createFileAtURL(this.workerURL, js.utf8());
     },
 
+    serviceWorkerSourceURL: null,
+
     buildServiceWorker: async function(){
-        if (!this.serviceWorkerURL){
+        if (!this.serviceWorkerURL || !this.serviceWorkerSourceURL){
             return;
         }
         this.printer.setStatus("Creating service worker...");
@@ -545,57 +554,15 @@ JSClass("HTMLBuilder", Builder, {
         for (let i = 0, l = this.wwwCSSPaths.length; i < l; ++i){
             cachedPaths.push(this.wwwCSSPaths[i]);
         }
-        var js = [
-            "'use strict';",
-            "var cacheKey = 'build-%s';".sprintf(this.buildId),
-            "var sources = %s;".sprintf(JSON.stringify(cachedPaths, null, 2)),
-            "var total = sources.length;",
-            "var loaded = 0;",
-            "self.addEventListener('install', function(event){",
-            "  console.debug('Installing ' + cacheKey + '...');",
-            "  event.waitUntil(clients.matchAll({includeUncontrolled: true}).then(function(clients){",
-            "    var client = clients[0];",
-            "    return caches.open(cacheKey).then(function(cache){",
-            "      return Promise.all(sources.map(function(source){",
-            "        return cache.add(source).then(function(){",
-            "          ++loaded;",
-            "          client.postMessage({type: 'progress', loaded: loaded, total: total});",
-            "        });",
-            "      }));",
-            "    });",
-            "  }, function(error){",
-            "    console.error(error);",
-            "    client.postMessage({type: 'error', message: error ? error.toString() : ''});",
-            "  }));",
-            "});",
-            "self.addEventListener('activate', function(event){",
-            "  console.debug('Activating ' + cacheKey + '...');",
-            "  event.waitUntil(clients.claim().then(function(){",
-            "    return caches.keys().then(function(keys){",
-            "      return Promise.all(keys.map(function(key){",
-            "        if (key.startsWith('build-') && key != cacheKey){",
-            "          console.debug('Deleting ' + key + '...');",
-            "          return caches.delete(key);",
-            "        }",
-            "      }));",
-            "    });",
-            "  }, function(error){",
-            "    console.error(error);",
-            "    client.postMessage({type: 'error', message: error ? error.toString() : ''});",
-            "  }));",
-            "});",
-            "self.addEventListener('fetch', function(event){",
-            "  event.respondWith(caches.match(event.request).then(function(response){",
-            "    return response || fetch(event.request);",
-            "  }));",
-            "});",
-            "self.addEventListener('message', function(event){",
-            "  if (event.data.type == 'activate'){",
-            "    console.log('Client message to activate ' + cacheKey);",
-            "    self.skipWaiting();",
-            "  }",
-            "});"
-        ].join("\n");
+        var params = {
+            JSKIT_APP: JSON.stringify({
+                buildId: this.buildId,
+                sources: cachedPaths
+            }, null, 2)
+        };
+        var workerConents = await this.fileManager.contentsAtURL(this.serviceWorkerSourceURL);
+        var js = String.initWithData(workerConents, String.Encoding.utf8);
+        js = js.replacingTemplateParameters(params, '{TEMPLATE: "', '"}');
         await this.fileManager.createFileAtURL(this.serviceWorkerURL, js.utf8());
     },
 
