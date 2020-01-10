@@ -4,3 +4,5 @@ node_modules/*
 Documentation/DocViewer/www/docs
 Documentation/DocViewer/components.json
 Documentation/DocViewer/components-manifest.json
+Documentation/DocViewer/conf/debug/*.crt
+Documentation/DocViewer/conf/debug/*.key

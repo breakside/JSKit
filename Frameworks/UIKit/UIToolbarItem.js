@@ -133,6 +133,9 @@ JSClass("UIToolbarItemView", UIView, {
         this._item = item;
         if (item.view){
             this.contentView = item.view;
+            if (this.contentView.isKindOfClass(UIButton) && this.contentView._imageView){
+                this.contentView._imageView.automaticRenderMode = JSImage.RenderMode.template;
+            }
         }else{
             switch (item.identifier){
                 case UIToolbarItem.Identifier.space:
@@ -145,6 +148,7 @@ JSClass("UIToolbarItemView", UIView, {
                     break;
                 default:
                     this.contentView = UIImageView.initWithImage(item.image);
+                    this.contentView.automaticRenderMode = JSImage.RenderMode.template;
                     this._handlesEvents = true;
                     break;
             }

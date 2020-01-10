@@ -9,7 +9,6 @@ JSClass("UIListViewHeaderFooterView", UIView, {
     kind: 0,
     section: 0,
     titleInsets: JSDynamicProperty('_titleInsets', null),
-    titleSpacing: JSDynamicProperty('_titleSpacing', 2.0),
     contentView: JSReadOnlyProperty('_contentView', null),
     titleLabel: JSLazyInitProperty('_createTitleLabel', '_titleLabel'),
     detailLabel: JSLazyInitProperty('_createDetailLabel', '_detailLabel'),
@@ -51,11 +50,6 @@ JSClass("UIListViewHeaderFooterView", UIView, {
 
     setTitleInsets: function(titleInsets){
         this._titleInsets = JSInsets(titleInsets);
-        this.setNeedsLayout();
-    },
-
-    setTitleSpacing: function(titleSpacing){
-        this._titleSpacing = titleSpacing;
         this.setNeedsLayout();
     },
 

@@ -692,6 +692,7 @@ JSClass("UIMenuBarItemView", UIView, {
 
     _createImageView: function(){
         this._imageView = UIImageView.init();
+        this._imageView.automaticRenderMode = JSImage.RenderMode.template;
         this.addSubview(this._imageView);
         return this._imageView;
     },

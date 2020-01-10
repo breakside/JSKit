@@ -302,6 +302,7 @@ JSClass("UITabViewItemView", UIView, {
 
     _createImageView: function(){
         var imageView = UIImageView.init();
+        imageView.automaticRenderMode = JSImage.RenderMode.template;
         this.addSubview(imageView);
         return imageView;
     },

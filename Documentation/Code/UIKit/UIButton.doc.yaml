@@ -400,6 +400,10 @@ topics:
                     name: Title
                     members:
                       -
+                        name: font
+                        type: JSFont
+                        summary: The font to use for the button's title
+                      -
                         name: titleInsets
                         type: String
                         summary: The default insets for this styler

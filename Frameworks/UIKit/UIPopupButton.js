@@ -443,7 +443,7 @@ var images = Object.create({}, {
     popupIndicator: {
         configurable: true,
         get: function(){
-            var image = JSImage.initWithResourceName("UICheckboxMixed", this.bundle);
+            var image = JSImage.initWithResourceName("UIPopupButtonIndicator", this.bundle);
             Object.defineProperty(this, 'popupIndicator', {value: image.imageWithRenderMode(JSImage.RenderMode.template) });
             return this.popupIndicator;
         }

@@ -70,7 +70,7 @@ JSClass("UIButton", UIControl, {
         var titleLabel = UILabel.init();
         titleLabel.textAlignment = JSTextAlignment.center;
         titleLabel.backgroundColor = JSColor.clearColor;
-        titleLabel.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
+        titleLabel.font = this.styler.font;
         this.addSubview(titleLabel);
         this.setNeedsLayout();
         this._titleLabel = titleLabel;
@@ -238,11 +238,22 @@ UIButton.Styler = Object.create({}, {
 JSClass("UIButtonStyler", UIControlStyler, {
 
     titleInsets: null,
+    font: null,
+
+    init: function(){
+        UIButtonStyler.$super.init.call(this);
+        this.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
+    },
 
     initWithSpec: function(spec, values){
         UIButtonStyler.$super.initWithSpec.call(this, spec, values);
         if ('titleInsets' in values){
             this.titleInsets = JSInsets.apply(undefined, values.titleInsets.parseNumberArray());
+        }
+        if ('font' in values){
+            this.font = spec.resolvedValue(values.font, "JSFont");
+        }else{
+            this.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
         }
     },
 
@@ -331,8 +342,10 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
     shadowColor: null,
     shadowRadius: 1,
     shadowOffset: null,
+    font: null,
 
     init: function(){
+        UIButtonDefaultStyler.$super.init.call(this);
         this.normalBackgroundColor = UIButtonDefaultStyler.NormalBackgroundColor;
         this.disabledBackgroundColor = UIButtonDefaultStyler.DisabledBackgroundColor;
         this.activeBackgroundColor = UIButtonDefaultStyler.ActiveBackgroundColor;
@@ -417,17 +430,20 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
     cornerRadius: 0,
 
     initWithBackgroundColor: function(normalBackgroundColor, normalTitleColor){
+        UIButtonCustomStyler.$super.init.call(this);
         this.normalBackgroundColor = normalBackgroundColor;
         this.normalTitleColor = normalTitleColor;
         this._commonInit();
     },
 
     initWithColor: function(color){
+        UIButtonCustomStyler.$super.init.call(this);
         this.normalTitleColor = color;
         this._commonInit();
     },
 
     init: function(){
+        UIButtonCustomStyler.$super.init.call(this);
         this.initWithColor(JSColor.blackColor);
     },
 

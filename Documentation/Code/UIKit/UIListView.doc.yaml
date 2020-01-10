@@ -8,7 +8,7 @@ description: |
 
   Delegate & Data Source
   =========
-  The delegate and/or data source pattern is used often in `UIKit` as a way
+  The delegate and data source pattern is used often in `UIKit` as a way
   to separate generic control behaviors from an application's specific data.
 
   In the case of a `UIListView`, the `delegate` and `dataSource` combine to
@@ -16,7 +16,7 @@ description: |
   2. Respond to user interaction with cells
 
   Typically, your `delegate` and `dataSource` are the same controller object,
-  often a subclass of `UIListViewController.  Anything that implements the
+  often a subclass of `UIListViewController`.  Anything that implements the
   `UIListViewDelegate` and `UIListViewDataSource` protocols will do.
 
   The important delegate methods are:

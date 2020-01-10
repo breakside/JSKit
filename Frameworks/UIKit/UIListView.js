@@ -117,9 +117,8 @@ JSClass("UIListView", UIScrollView, {
         this._reusableHeaderFootersByIdentifier = {};
         this._headerFooterClassesByIdentifier = {};
         this._cellsContainerView = UIView.init();
-        this._selectedIndexPaths = JSIndexPathSet();
-        this._selectedIndexPaths.delegate = this;
-        this._contextSelectedIndexPaths = JSIndexPathSet();
+        this._selectedIndexPaths = [];
+        this._contextSelectedIndexPaths = [];
         this.contentView.addSubview(this._cellsContainerView);
         if (this._styler === null){
             this._styler = this.$class.Styler.default;
@@ -510,8 +509,11 @@ JSClass("UIListView", UIScrollView, {
         if (this._edit === null){
             this._edit = {
                 animator: null,
+                deletedSections: [],
+                deletedIndexPaths: [],
                 insertedSections: [],
                 insertedIndexPaths: [],
+                didDeleteSelectedItem: false,
             };
             this._needsUpdate = true;
             this.setNeedsLayout();
@@ -555,6 +557,8 @@ JSClass("UIListView", UIScrollView, {
         var j;
         for (i = 0, l = indexPaths.length; i < l; ++i){
             indexPath = indexPaths[i];
+            this._edit.deletedIndexPaths.push({indexPath: JSIndexPath(indexPath), animation: animation});
+            this._edit.didDeleteSelectedItem = this._edit.didDeleteSelectedItem || this._selectionContainsIndexPath(indexPath);
             parent = indexPath.removingLastIndex();
             while (itemIndex < itemCount && VisibleItem.cellIndexPathCompare(indexPath, items[itemIndex]) > 0){
                 ++itemIndex;
@@ -604,6 +608,7 @@ JSClass("UIListView", UIScrollView, {
         var itemCount = items.length;
         for (i = 0, l = sections.length; i < l; ++i){
             section = sections[i];
+            this._edit.deletedSections.push({section: section, animation: animation});
             while (itemIndex < itemCount && VisibleItem.sectionCompare(section, items[itemIndex]) > 0){
                 ++itemIndex;
             }
@@ -1058,6 +1063,12 @@ JSClass("UIListView", UIScrollView, {
         var i, l;
 
         // Prepare the edit
+        edit.deletedSections.sort(function(a, b){
+            return a.section - b.section;
+        });
+        edit.deletedIndexPaths.sort(function(a, b){
+            return a.indexPath.compare(b.indexPath);
+        });
         edit.insertedSections.sort(function(a, b){
             return a.section - b.section;
         });
@@ -1066,6 +1077,10 @@ JSClass("UIListView", UIScrollView, {
         });
 
         this._updateVisibleIndexPathsForEdit(edit);
+        this._updateSelectedIndexPathsForEdit(edit);
+        if (edit.didDeleteSelectedItem && this.delegate && this.delegate.listViewSelectionDidChange){
+            this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
+        }
 
         // Figure out how our scrolling size and offset will change
         var contentSize = this._approximateContentSize();
@@ -1161,6 +1176,8 @@ JSClass("UIListView", UIScrollView, {
                 item.state = VisibleItem.State.normal;
             }
         }
+
+        this._updateVisibleCellStates();
 
         // Animate changes
         var listView = this;
@@ -1300,6 +1317,52 @@ JSClass("UIListView", UIScrollView, {
         }
     },
 
+    _updateSelectedIndexPathsForEdit: function(edit){
+        var i, l;
+        var section, indexPath;
+        var index;
+        var searcher = JSBinarySearcher(this._selectedIndexPaths, JSIndexPath.compare);
+        var parent;
+        var selectedLength = this._selectedIndexPaths.length;
+        for (i = edit.deletedIndexPaths.length - 1; i >= 0; --i){
+            indexPath = edit.deletedIndexPaths[i].indexPath;
+            parent = indexPath.removingLastIndex();
+            index = searcher.insertionIndexForValue(indexPath);
+            if (index < selectedLength && this._selectedIndexPaths[index].isEqual(indexPath)){
+                this._selectedIndexPaths.splice(index, 1);
+                --selectedLength;
+            }
+            for (; index < selectedLength && this._selectedIndexPaths[index].startsWith(parent); ++index){
+                this._selectedIndexPaths[index][parent.length]--;
+            }
+        }
+        for (i = edit.deletedSections.length - 1; i >= 0; --i){
+            section = edit.deletedSections[i].section;
+            index = searcher.insertionIndexForValue(JSIndexPath(section, 0));
+            for (; index < selectedLength && this._selectedIndexPaths[index].section == section; --selectedLength){
+                this._selectedIndexPaths.splice(index, 1);
+            }
+            for (; index < selectedLength; ++index){
+                this._selectedIndexPaths[index].section--;
+            }
+        }
+        for (i = 0, l = edit.insertedSections.length; i < l; ++i){
+            section = edit.insertedSections[i].section;
+            index = searcher.insertionIndexForValue(JSIndexPath(section, 0));
+            for (; index < selectedLength && this._selectedIndexPaths[index].section >= section; ++index){
+                this._selectedIndexPaths[index].section++;
+            }
+        }
+        for (i = 0, l = edit.insertedIndexPaths.length; i < l; ++i){
+            indexPath = edit.insertedIndexPaths[i].indexPath;
+            parent = indexPath.removingLastIndex();
+            index = searcher.insertionIndexForValue(indexPath);
+            for (; index < selectedLength && this._selectedIndexPaths[index].startsWith(parent); ++index){
+                this._selectedIndexPaths[index][parent.length]++;
+            }
+        }
+    },
+
     _createViewsForEdit: function(edit, anchorIndex, anchorY, rect){
         var diff = {offset: 0, height: 0};
         var items = this._visibleItems;
@@ -1307,6 +1370,7 @@ JSClass("UIListView", UIScrollView, {
         var i, l;
         var iterator;
         var exactRange = JSRange.Zero;
+        var adjustment;
         if (anchorIndex >= 0){
             // Working from an anchor item...
             var anchorItem = items[anchorIndex];
@@ -1334,7 +1398,6 @@ JSClass("UIListView", UIScrollView, {
                 iterator.item.rect.origin.y -= heightDeletedAtTop;
             }
             var itemIndex = 0;
-            var adjustment;
             for (; iterator.item !== null && iterator.item.rect.intersectsRect(rect); iterator.decrement()){
                 this._createViewForVisibleItem(iterator.item);
                 items.splice(itemIndex, 0, iterator.item);
@@ -1374,7 +1437,13 @@ JSClass("UIListView", UIScrollView, {
         }else{
             // FIXME: need to adjust the rect
             iterator = VisibleItemIterator(this);
-            for (; iterator.item !== null && !iterator.item.rect.intersectsRect(rect); iterator.increment()){
+            for (; iterator.item !== null && iterator.item.rect.intersectsRect(rect); iterator.increment()){
+                this._createViewForVisibleItem(iterator.item);
+                items.push(iterator.item);
+                this._pushVisibleItemInContainer(iterator.item);
+                adjustment = this._heightAdjustmentFromApproximationForItem(iterator.item, exactRange);
+                diff.offset += adjustment;
+                diff.height += adjustment;
             }
         }
         return diff;
@@ -1537,7 +1606,7 @@ JSClass("UIListView", UIScrollView, {
     },
 
     keyDown: function(event){
-        var hasSelection = this._selectedIndexPaths.start !== null;
+        var hasSelection = this._selectedIndexPaths.length > 0;
         var extend;
         if (hasSelection){
             if (event.key == UIEvent.Key.up){
@@ -1548,7 +1617,7 @@ JSClass("UIListView", UIScrollView, {
                 this.selectNextRow(extend);
             }else if (event.key == UIEvent.Key.enter){
                 if (this.delegate && this.delegate.listViewDidOpenCellAtIndexPath){
-                    var indexPath = this._selectedIndexPaths.singleIndexPath;
+                    var indexPath = this.selectedIndexPath;
                     if (indexPath !== null){
                         this.delegate.listViewDidOpenCellAtIndexPath(this, indexPath);
                     }
@@ -1585,8 +1654,9 @@ JSClass("UIListView", UIScrollView, {
     _handledSelectionOnDown: false,
 
     setSelectedIndexPaths: function(selectedIndexPaths){
-        this._selectedIndexPaths = JSIndexPathSet(selectedIndexPaths);
-        this._selectedIndexPaths.delegate = this;
+        var indexPaths = JSCopy(selectedIndexPaths);
+        indexPaths.sort(JSIndexPath.compare);
+        this._selectedIndexPaths = indexPaths;
         this._updateVisibleCellStates();
         if (this.delegate && this.delegate.listViewSelectionDidChange){
             this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
@@ -1594,7 +1664,10 @@ JSClass("UIListView", UIScrollView, {
     },
 
     getSelectedIndexPath: function(){
-        return this._selectedIndexPaths.singleIndexPath;
+        if (this._selectedIndexPaths.length === 1){
+            return this._selectedIndexPaths[0];
+        }
+        return null;
     },
 
     setSelectedIndexPath: function(indexPath){
@@ -1602,11 +1675,11 @@ JSClass("UIListView", UIScrollView, {
     },
 
     _selectSingleIndexPath: function(indexPath){
-        var existing = this._selectedIndexPaths.singleIndexPath;
+        var existing = this.selectedIndexPath;
         if (existing && indexPath && existing.isEqual(indexPath)){
             return;
         }
-        this._selectedIndexPaths.replace(indexPath);
+        this._selectedIndexPaths = [indexPath];
         this._updateVisibleCellStates();
         this._selectionAnchorIndexPath = indexPath;
         if (this.delegate && this.delegate.listViewDidSelectCellAtIndexPath){
@@ -1618,7 +1691,12 @@ JSClass("UIListView", UIScrollView, {
     },
 
     addIndexPathToSelection: function(indexPath){
-        this._selectedIndexPaths.addIndexPath(indexPath);
+        var searcher = JSBinarySearcher(this._selectedIndexPaths, JSIndexPath.compare);
+        var index = searcher.insertionIndexForValue(indexPath);
+        if (index < this._selectedIndexPaths.length && this._selectedIndexPaths[index].isEqual(indexPath)){
+            return;
+        }
+        this._selectedIndexPaths.splice(index, 0, JSIndexPath(indexPath));
         this._updateVisibleCellStates();
         if (this.delegate && this.delegate.listViewSelectionDidChange){
             this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
@@ -1626,7 +1704,12 @@ JSClass("UIListView", UIScrollView, {
     },
 
     removeIndexPathFromSelection: function(indexPath){
-        this._selectedIndexPaths.removeIndexPath(indexPath);
+        var searcher = JSBinarySearcher(this._selectedIndexPaths, JSIndexPath.compare);
+        var index = searcher.indexMatchingValue(indexPath);
+        if (index === null){
+            return;
+        }
+        this._selectedIndexPaths.splice(index, 1);
         this._updateVisibleCellStates();
         if (this.delegate && this.delegate.listViewSelectionDidChange){
             this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
@@ -1635,6 +1718,9 @@ JSClass("UIListView", UIScrollView, {
 
     indexPathBefore: function(indexPath){
         var section = indexPath.section;
+        if (section >= this.__numberOfSections){
+            return this._lastIndexPath();
+        }
         var iterator = this._indexPathIteratorForSection(section, indexPath);
         iterator.decrement();
         while (section > 0 && iterator.indexPath === null){
@@ -1687,6 +1773,26 @@ JSClass("UIListView", UIScrollView, {
         return iterator.indexPath;
     },
 
+    _firstSelectableIndexPath: function(){
+        var indexPath = this._firstIndexPath();
+        if (this.delegate && this.delegate.listViewShouldSelectCellAtIndexPath){
+            while (indexPath !== null && !this.delegate.listViewShouldSelectCellAtIndexPath(this, indexPath)){
+                indexPath = this.indexPathAfter(indexPath);
+            }
+        }
+        return indexPath;
+    },
+
+    _lastSelectableIndexPath: function(){
+        var indexPath = this._lastIndexPath();
+        if (this.delegate && this.delegate.listViewShouldSelectCellAtIndexPath){
+            while (indexPath !== null && !this.delegate.listViewShouldSelectCellAtIndexPath(this, indexPath)){
+                indexPath = this.indexPathBefore(indexPath);
+            }
+        }
+        return indexPath;
+    },
+
     _sectionRowForIndexPath: function(indexPath){
         return indexPath.row;
     },
@@ -1702,6 +1808,9 @@ JSClass("UIListView", UIScrollView, {
     },
 
     selectableIndexPathBefore: function(indexPath){
+        if (indexPath.section >= this._numberOfSections){
+            return this._lastSelectableIndexPath();
+        }
         var prev = this.indexPathBefore(indexPath);
         if (this.delegate && this.delegate.listViewShouldSelectCellAtIndexPath){
             while (prev !== null && !this.delegate.listViewShouldSelectCellAtIndexPath(this, prev)){
@@ -1722,12 +1831,8 @@ JSClass("UIListView", UIScrollView, {
     },
 
     _updateCellState: function(cell){
-        // FIXME: don't select unless the cell is allowed to be selected
-        // If the selected range(s) cover both selectable and unselectable rows,
-        // as might be the case with a cheap select-all, just because an index path
-        // is contained in the range(s) doesn't mean it can be selected
-        cell.selected = this._selectedIndexPaths.contains(cell.indexPath);
-        cell.contextSelected = this._contextSelectedIndexPaths.contains(cell.indexPath);
+        cell.selected = this._selectionContainsIndexPath(cell.indexPath);
+        cell.contextSelected = this._contextSelectionContainsIndexPath(cell.indexPath);
     },
 
     _updateVisibleCellStyles: function(){
@@ -1745,17 +1850,22 @@ JSClass("UIListView", UIScrollView, {
     selectNextRow: function(extendSelection){
         var next;
         var selectionEnd;
+        if (this._selectedIndexPaths.length === 0){
+            return;
+        }
+        var start = this._selectedIndexPaths[0];
+        var end = this._selectedIndexPaths[this._selectedIndexPaths.length - 1];
         if (extendSelection){
-            if (this._selectedIndexPaths.start.isEqual(this._selectionAnchorIndexPath)){
-                selectionEnd = this._selectedIndexPaths.end;
+            if (start.isEqual(this._selectionAnchorIndexPath)){
+                selectionEnd = end;
             }else{
-                selectionEnd = this._selectedIndexPaths.start;
+                selectionEnd = start;
             }
             if (selectionEnd !== null){
                 next = this.selectableIndexPathAfter(selectionEnd);
             }
             if (next !== null){
-                this._selectedIndexPaths.adjustAnchoredRange(this._selectionAnchorIndexPath, next);
+                this._adjustSelectionAnchorRange(this._selectionAnchorIndexPath, next);
                 this._updateVisibleCellStates();
                 if (this.delegate && this.delegate.listViewSelectionDidChange){
                     this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
@@ -1763,9 +1873,8 @@ JSClass("UIListView", UIScrollView, {
                 this.scrollToRowAtIndexPath(next);
             }
         }else{
-            selectionEnd = this._selectedIndexPaths.end;
-            if (selectionEnd !== null){
-                next = this.selectableIndexPathAfter(selectionEnd);
+            if (end !== null){
+                next = this.selectableIndexPathAfter(end);
             }
             if (next !== null){
                 this._selectSingleIndexPath(next);
@@ -1777,17 +1886,22 @@ JSClass("UIListView", UIScrollView, {
     selectPreviousRow: function(extendSelection){
         var prev;
         var selectionStart;
+        if (this._selectedIndexPaths.length === 0){
+            return;
+        }
+        var start = this._selectedIndexPaths[0];
+        var end = this._selectedIndexPaths[this._selectedIndexPaths.length - 1];
         if (extendSelection){
-            if (this._selectedIndexPaths.start.isEqual(this._selectionAnchorIndexPath)){
-                selectionStart = this._selectedIndexPaths.end;
+            if (start.isEqual(this._selectionAnchorIndexPath)){
+                selectionStart = end;
             }else{
-                selectionStart = this._selectedIndexPaths.start;
+                selectionStart = start;
             }
             if (selectionStart !== null){
                 prev = this.selectableIndexPathBefore(selectionStart);
             }
             if (prev !== null){
-                this._selectedIndexPaths.adjustAnchoredRange(this._selectionAnchorIndexPath, prev);
+                this._adjustSelectionAnchorRange(this._selectionAnchorIndexPath, prev);
                 this._updateVisibleCellStates();
                 if (this.delegate && this.delegate.listViewSelectionDidChange){
                     this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
@@ -1795,9 +1909,8 @@ JSClass("UIListView", UIScrollView, {
                 this.scrollToRowAtIndexPath(prev);
             }
         }else{
-            selectionStart = this._selectedIndexPaths.start;
-            if (selectionStart !== null){
-                prev = this.selectableIndexPathBefore(selectionStart);
+            if (start !== null){
+                prev = this.selectableIndexPathBefore(start);
             }
             if (prev !== null){
                 this._selectSingleIndexPath(prev);
@@ -1810,21 +1923,11 @@ JSClass("UIListView", UIScrollView, {
         if (!this.allowsMultipleSelection){
             return;
         }
-        // TODO: what about unselectable rows?  Is it up to the delegate to ingnore them?
-        // Hard to go any other way without requiring an interation though the entire list, which
-        // could be very expensive
-        // Maybe allow an unselectableIndexPathSet to be set or queried from the delegate, and
-        // do the subtraction automatically 
-        var start = this._firstIndexPath();
-        var end = this._lastIndexPath();
-        if (start !== null && end !== null){
-            var allRange = JSIndexPathRange(start, end);
-            var allIndexes = JSIndexPathSet(allRange);
-            this._selectedIndexPaths = allIndexes;
-        }else{
-            this._selectedIndexPaths = JSIndexPathSet();
+        this._selectedIndexPaths = [];
+        var indexPath = this._firstSelectableIndexPath();
+        for (; indexPath !== null; indexPath = this.selectableIndexPathAfter(indexPath)){
+            this._selectedIndexPaths.push(indexPath);
         }
-        this._selectedIndexPaths.delegate = this;
         this._updateVisibleCellStates();
         if (this.delegate && this.delegate.listViewSelectionDidChange){
             this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
@@ -1832,35 +1935,56 @@ JSClass("UIListView", UIScrollView, {
     },
 
     selectNone: function(){
-        this.setSelectedIndexPaths(JSIndexPathSet());
+        this.setSelectedIndexPaths([]);
     },
 
-    enumerateSelectedIndexPaths: function(callback){
-        var range;
-        var handle;
-        var section;
-        var iterator;
-        var start;
-        var endSection;
-        if (this.delegate && this.delegate.listViewShouldSelectCellAtIndexPath){
-            handle = function(indexPath){
-                if (this.delegate.listViewShouldSelectCellAtIndexPath(this, indexPath)){
-                    callback.call(this, indexPath);
+    _selectionContainsIndexPath: function(indexPath){
+        var searcher = JSBinarySearcher(this._selectedIndexPaths, JSIndexPath.compare);
+        return searcher.indexMatchingValue(indexPath) !== null;
+    },
+
+    _contextSelectionContainsIndexPath: function(indexPath){
+        var searcher = JSBinarySearcher(this._contextSelectedIndexPaths, JSIndexPath.compare);
+        return searcher.indexMatchingValue(indexPath) !== null;
+    },
+
+    _adjustSelectionAnchorRange: function(anchorIndexPath, toIndexPath){
+        var searcher = JSBinarySearcher(this._selectedIndexPaths, JSIndexPath.compare);
+        var index = searcher.indexMatchingValue(anchorIndexPath);
+        var i;
+        var l = this._selectedIndexPaths.length;
+        var consecutiveIndexPath;
+        if (index !== null){
+            if (toIndexPath.isLessThanOrEqual(anchorIndexPath)){
+                // clear any consecutive selection below the anchor
+                consecutiveIndexPath = this.selectableIndexPathAfter(anchorIndexPath);
+                for (i = index + 1; i < l && consecutiveIndexPath !== null && this._selectedIndexPaths[i].isEqual(consecutiveIndexPath); --l){
+                    this._selectedIndexPaths.splice(i, 1);
+                    consecutiveIndexPath = this.selectableIndexPathAfter(consecutiveIndexPath);
                 }
-            };
-        }else{
-            handle = callback;
-        }
-        for (var i = 0, l = this.ranges.length; i < l; ++i){
-            range = this.ranges[i];
-            section = range.start.section;
-            start = range.start;
-            endSection = range.end.section;
-            for (; section <= endSection; ++section){
-                for (iterator = this._indexPathIteratorForSection(section, start); iterator.indexPath !== null && (section < endSection || iterator.indexPath.isLessThanOrEqual(range.end)); iterator.increment()){
-                    handle.call(this, JSIndexPath(iterator.indexPath));
+            }
+            if (toIndexPath.isGreaterThanOrEqual(anchorIndexPath)){
+                // clear any consecutive selection above the anchor
+                consecutiveIndexPath = this.selectableIndexPathBefore(anchorIndexPath);
+                for (i = index - 1; i >= 0 && consecutiveIndexPath !== null && this._selectedIndexPaths[i].isEqual(consecutiveIndexPath); --i, --index){
+                    this._selectedIndexPaths.splice(i, 1);
+                    consecutiveIndexPath = this.selectableIndexPathBefore(consecutiveIndexPath);
                 }
-                start = 0;
+            }
+            if (toIndexPath.isLessThan(anchorIndexPath)){
+                // add up to toIndexPath
+                consecutiveIndexPath = this.selectableIndexPathBefore(anchorIndexPath);
+                for (i = index; consecutiveIndexPath !== null && consecutiveIndexPath.isGreaterThanOrEqual(toIndexPath);){
+                    this._selectedIndexPaths.splice(i, 0, JSIndexPath(consecutiveIndexPath));
+                    consecutiveIndexPath = this.selectableIndexPathBefore(consecutiveIndexPath);
+                }
+            }else if (toIndexPath.isGreaterThan(anchorIndexPath)){
+                // add down to toIndexPath
+                consecutiveIndexPath = this.selectableIndexPathAfter(anchorIndexPath);
+                for (i = index + 1; consecutiveIndexPath !== null && consecutiveIndexPath.isLessThanOrEqual(toIndexPath); ++i){
+                    this._selectedIndexPaths.splice(i, 0, JSIndexPath(consecutiveIndexPath));
+                    consecutiveIndexPath = this.selectableIndexPathAfter(consecutiveIndexPath);
+                }
             }
         }
     },
@@ -1892,7 +2016,7 @@ JSClass("UIListView", UIScrollView, {
         // command key takes precedence over other modifies, like shift (observed behavior)
         if (event.hasModifier(UIPlatform.shared.commandModifier)){
             this._handledSelectionOnDown = true;
-            if (this._selectedIndexPaths.contains(cell.indexPath)){
+            if (this._selectionContainsIndexPath(cell.indexPath)){
                 this.removeIndexPathFromSelection(cell.indexPath);
                 // TODO: set anchor to "nearest" selected cell (could be biased in one direction, even if next selected cell is far)
                 this._selectionAnchorIndexPath = null;
@@ -1904,7 +2028,7 @@ JSClass("UIListView", UIScrollView, {
             }
         }else if (this._selectionAnchorIndexPath !== null && this.allowsMultipleSelection && event.hasModifier(UIEvent.Modifier.shift)){
             this._handledSelectionOnDown = true;
-            this._selectedIndexPaths.adjustAnchoredRange(this._selectionAnchorIndexPath, cell.indexPath);
+            this._adjustSelectionAnchorRange(this._selectionAnchorIndexPath, cell.indexPath);
             this._updateVisibleCellStates();
             if (this.delegate && this.delegate.listViewSelectionDidChange){
                 this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
@@ -1929,10 +2053,10 @@ JSClass("UIListView", UIScrollView, {
         if (this.delegate && this.delegate.menuForListViewCellAtIndexPath){
             var menu = this.delegate.menuForListViewCellAtIndexPath(this, cell.indexPath);
             if (menu !== null){
-                if (this._selectedIndexPaths.contains(cell.indexPath)){
-                    this._contextSelectedIndexPaths = JSIndexPathSet(this._selectedIndexPaths);
+                if (this._selectionContainsIndexPath(cell.indexPath)){
+                    this._contextSelectedIndexPaths = JSCopy(this._selectedIndexPaths);
                 }else{
-                    this._contextSelectedIndexPaths.replace(cell.indexPath);
+                    this._contextSelectedIndexPaths = [cell.indexPath];
                 }
                 this._updateVisibleCellStates();
                 var locationInCell = this.convertPointToView(location, cell);
@@ -1943,7 +2067,7 @@ JSClass("UIListView", UIScrollView, {
     },
 
     menuDidClose: function(menu){
-        this._contextSelectedIndexPaths = JSIndexPathSet();
+        this._contextSelectedIndexPaths = [];
         this._updateVisibleCellStates();
     },
 
@@ -1954,14 +2078,16 @@ JSClass("UIListView", UIScrollView, {
             var dragItems = [];
             if (cell !== null){
                 var cellItems = [];
-                if (this.allowsMultipleSelection && this._selectedIndexPaths.contains(cell.indexPath)){
+                if (this.allowsMultipleSelection && this._selectionContainsIndexPath(cell.indexPath)){
                     if (this.delegate && this.delegate.pasteboardItemsForListViewAtIndexPath){
-                        this.enumerateSelectedIndexPaths(function(indexPath){
+                        var indexPath;
+                        for (var i = 0, l = this._selectedIndexPaths.length; i < l; ++i){
+                            indexPath = this._selectedIndexPaths[i];
                             cellItems = this.delegate.pasteboardItemsForListViewAtIndexPath(this, indexPath);
                             if (cellItems !== null){
                                 dragItems = dragItems.concat(cellItems);
                             }
-                        });
+                        }
                     }
                 }else{
                     if (this.delegate && this.delegate.pasteboardItemsForListViewAtIndexPath){
@@ -1973,7 +2099,6 @@ JSClass("UIListView", UIScrollView, {
                 }
             }
             if (dragItems.length > 0){
-                this._didDrag = true;
                 var session = this.beginDraggingSessionWithItems(dragItems, event);
                 if (this.delegate && this.delegate.listViewWillBeginDraggingSession){
                     this.delegate.listViewWillBeginDraggingSession(this, session);
@@ -1993,7 +2118,7 @@ JSClass("UIListView", UIScrollView, {
                     }
                     if (cell){
                         if (this.allowsMultipleSelection){
-                            this._selectedIndexPaths.adjustAnchoredRange(this._selectionAnchorIndexPath, cell.indexPath);
+                            this._adjustSelectionAnchorRange(this._selectionAnchorIndexPath, cell.indexPath);
                             this._updateVisibleCellStates();
                             if (this.delegate && this.delegate.listViewSelectionDidChange){
                                 this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
@@ -2007,6 +2132,10 @@ JSClass("UIListView", UIScrollView, {
                 }
             }
         }
+    },
+
+    draggingSessionEnded: function(session, operation){
+        this._didDrag = true;
     },
 
     mouseUp: function(event){
@@ -2293,7 +2422,7 @@ var VisibleItem = function(kind, rect, indexPath){
     this.state = VisibleItem.State.normal;
 };
 
-VisibleItem.prototype = Object.create({
+VisibleItem.prototype = Object.create(Function.prototype, {
 
     indexPath: { value: null, writable: true },
     rect: { value: null, writable: true, configurable: true },
@@ -2305,8 +2434,8 @@ VisibleItem.prototype = Object.create({
             Object.defineProperty(this, 'rect', {
                 get: function(){
                     return JSRect(
-                        this.view.position.origin.x - this.view.anchorPoint.x * this.view.bounds.size.width,
-                        this.view.position.origin.y - this.view.anchorPoint.t * this.view.bounds.size.height,
+                        this.view.position.x - this.view.anchorPoint.x * this.view.bounds.size.width,
+                        this.view.position.y - this.view.anchorPoint.y * this.view.bounds.size.height,
                         this.view.bounds.size.width,
                         this.view.bounds.size.height
                     );
@@ -2320,14 +2449,16 @@ VisibleItem.prototype = Object.create({
     state: { value: null, writable: true },
     animation: { value: null, writable: true },
 
-    updateViewIdentity: function(){
-        if (this.state === VisibleItem.State.deleting){
-            return;
-        }
-        if (this.kind === VisibleItem.Kind.cell){
-            this.view.indexPath = JSIndexPath(this.indexPath);
-        }else{
-            this.view.section = this.indexPath.section;
+    updateViewIdentity: {
+        value: function(){
+            if (this.state === VisibleItem.State.deleting){
+                return;
+            }
+            if (this.kind === VisibleItem.Kind.cell){
+                this.view.indexPath = JSIndexPath(this.indexPath);
+            }else{
+                this.view.section = this.indexPath.section;
+            }
         }
     }
 
@@ -2554,6 +2685,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     showSeparators: true,
     cellContentInsets: null,
     cellContentCornerRadius: 0,
+    cellTitleSpacing: -1,
 
     headerTextColor: null,
     headerBackgroundColor: null,
@@ -2793,8 +2925,8 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
                 imageSize = JSSize(imageHeight, imageHeight);
             }
             cell._imageView.frame = JSRect(origin.x, (cell._contentView.bounds.size.height - imageSize.height) / 2, imageSize.width, imageSize.height);
-            origin.x += cell._titleSpacing + imageSize.width;
-            size.width -= imageSize.width + cell._titleSpacing;
+            origin.x += cell._titleInsets.left + imageSize.width;
+            size.width -= imageSize.width + cell._titleInsets.left;
         }
         if (cell._accessoryView !== null){
             var accessorySize = this.accessorySize;

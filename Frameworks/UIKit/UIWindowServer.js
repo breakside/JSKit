@@ -442,6 +442,7 @@ JSClass("UIWindowServer", JSObject, {
     isRightMouseDown: false,
     mouseDownCount: 0,
     mouseEventWindow: null,
+    mouseDownLocation: null,
     _leftClickCount: 0,
     _rightClickCount: 0,
     _previousLeftClickTimestamp: 0,
@@ -487,6 +488,8 @@ JSClass("UIWindowServer", JSObject, {
                 this.hideTooltip();
             }
             if (this.mouseDownCount === 0 && this._draggingSession === null){
+                this.mouseDownLocation = JSPoint(this.mouseLocation);
+                this._isMouseDragging = false;
                 this.mouseEventWindow = this.windowForEventAtLocation(location);
                 if (this.mouseEventWindow !== this._previousMouseEventWindow){
                     this._leftClickCount = 0;
@@ -541,14 +544,17 @@ JSClass("UIWindowServer", JSObject, {
         }
 
         if (this._draggingSession !== null){
-            if (type == UIEvent.Type.leftMouseUp){
-                this.draggingSessionDidPerformOperation();
+            if (type == UIEvent.Type.leftMouseUp && this.mouseDownCount === 0){
+                if (this._draggingSession.isActive){
+                    this.draggingSessionDidPerformOperation();
+                    return;
+                }
+                this.cancelDraggingSession();
             }
-        }else{
-            if (targetWindow !== null){
-                event = UIEvent.initMouseEventWithType(type, timestamp, targetWindow, targetWindow.convertPointFromScreen(location), modifiers, clickCount);
-                this._sendEventToApplication(event, targetWindow.application);
-            }
+        }
+        if (targetWindow !== null){
+            event = UIEvent.initMouseEventWithType(type, timestamp, targetWindow, targetWindow.convertPointFromScreen(location), modifiers, clickCount);
+            this._sendEventToApplication(event, targetWindow.application);
         }
     },
 
@@ -572,7 +578,7 @@ JSClass("UIWindowServer", JSObject, {
         if (this._draggingSession !== null){
             // stop the dragging session immediately because we don't want the
             // mouse up to be interpreted as a drop
-            this.stopDraggingSession();
+            this.cancelDraggingSession();
         }
         if (this.isRightMouseDown){
             this.createMouseEvent(UIEvent.Type.rightMouseUp, timestamp, this.mouseLocation);
@@ -581,6 +587,8 @@ JSClass("UIWindowServer", JSObject, {
             this.createMouseEvent(UIEvent.Type.leftMouseUp, timestamp, this.mouseLocation);
         }
     },
+
+    _isMouseDragging: false,
 
     mouseDidMove: function(timestamp){
         this._mouseIdleTimer.invalidate();
@@ -596,11 +604,15 @@ JSClass("UIWindowServer", JSObject, {
                     this.updateTooltip();
                 }
             }else{
-                if (this.isLeftMouseDown){
-                    this.createMouseEvent(UIEvent.Type.leftMouseDragged, timestamp, this.mouseLocation);
-                }
-                if (this.isRightMouseDown){
-                    this.createMouseEvent(UIEvent.Type.rightMouseDragged, timestamp, this.mouseLocation);
+                var distance = this.mouseDownLocation.distanceToPoint(this.mouseLocation);
+                if (this._isMouseDragging || distance > 0){
+                    this._isMouseDragging = true;
+                    if (this.isLeftMouseDown){
+                        this.createMouseEvent(UIEvent.Type.leftMouseDragged, timestamp, this.mouseLocation);
+                    }
+                    if (this.isRightMouseDown){
+                        this.createMouseEvent(UIEvent.Type.rightMouseDragged, timestamp, this.mouseLocation);
+                    }
                 }
             }
         }
@@ -694,7 +706,7 @@ JSClass("UIWindowServer", JSObject, {
 
     startDraggingSession: function(session){
         if (this._draggingSession !== null){
-            this.stopDraggingSession();
+            this.cancelDraggingSession();
             logger.warn("Creating a new dragging session with one already active.");
         }
         this._draggingSession = session;
@@ -703,9 +715,9 @@ JSClass("UIWindowServer", JSObject, {
         }
     },
 
-    stopDraggingSession: function(){
-        this._draggingSession.operation = UIDragOperation.none;
-        this.draggingSessionDidPerformOperation();
+    cancelDraggingSession: function(){
+        this._draggingSession.cancel();
+        this._draggingSession = null;
     },
 
     draggingSessionDidChangeLocation: function(){

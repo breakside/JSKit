@@ -3769,4 +3769,153 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(header0.frame.origin.y, 0);
     },
 
+    testSelectionAfterEdit: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 300));
+        var sections = [5,6,7,8,9,10];
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return sections.length;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return sections[sectionIndex];
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        this.window.contentView.addSubview(listView);
+        this.windowServer.displayServer.updateDisplay();
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay();
+
+        listView.selectedIndexPaths = [
+            JSIndexPath(0, 0),
+            JSIndexPath(0, 1),
+            JSIndexPath(0, 2),
+            JSIndexPath(0, 3),// x
+            JSIndexPath(0, 4),
+            JSIndexPath(1, 3),
+            JSIndexPath(3, 1),// x
+            JSIndexPath(5, 7),
+        ];
+
+        sections.splice(2,2);
+        listView.deleteSection(3, UIListView.RowAnimation.none);
+        listView.deleteSection(2, UIListView.RowAnimation.none);
+        listView.deleteRowsAtIndexPaths([
+            JSIndexPath(0,3),
+            JSIndexPath(4,2),
+            JSIndexPath(4,3),
+            JSIndexPath(5,6),
+            JSIndexPath(5,8),
+            JSIndexPath(1,1)
+        ], UIListView.RowAnimation.none);
+        sections[0] -= 1;
+        sections[1] -= 1;
+        sections[4] -= 2;
+        sections[5] -= 2;
+        listView.insertSection(1, UIListView.RowAnimation.none);
+        sections.splice(1,0,5);
+        listView.insertRowsAtIndexPaths([
+            JSIndexPath(0,2),
+            JSIndexPath(0,4),
+            JSIndexPath(0,5),
+            JSIndexPath(2,4)
+        ], UIListView.RowAnimation.none);
+        sections[0] += 3;
+        sections[2] += 1;
+        this.windowServer.displayServer.updateDisplay();
+        var selected = listView.selectedIndexPaths;
+        TKAssertEquals(selected.length, 6);
+        TKAssertObjectEquals(selected[0], JSIndexPath(0, 0));
+        TKAssertObjectEquals(selected[1], JSIndexPath(0, 1));
+        TKAssertObjectEquals(selected[2], JSIndexPath(0, 3));
+        TKAssertObjectEquals(selected[3], JSIndexPath(0, 6));
+        TKAssertObjectEquals(selected[4], JSIndexPath(2, 2));
+        TKAssertObjectEquals(selected[5], JSIndexPath(4, 6));
+
+
+
+        listView = UIListView.initWithFrame(JSRect(0, 0, 300, 300));
+        sections = [6];
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return sections.length;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return sections[sectionIndex];
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        this.window.contentView.addSubview(listView);
+        this.windowServer.displayServer.updateDisplay();
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay();
+
+        listView.selectedIndexPaths = [
+            JSIndexPath(0, 3),
+        ];
+
+        listView.insertRowsAtIndexPaths([
+            JSIndexPath(0,3)
+        ], UIListView.RowAnimation.none);
+        sections[0] += 1;
+        this.windowServer.displayServer.updateDisplay();
+        selected = listView.selectedIndexPaths;
+        TKAssertEquals(selected.length, 1);
+        TKAssertObjectEquals(selected[0], JSIndexPath(0, 4));
+
+
+        listView = UIListView.initWithFrame(JSRect(0, 0, 300, 300));
+        sections = [6];
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                return sections.length;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                return sections[sectionIndex];
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        this.window.contentView.addSubview(listView);
+        this.windowServer.displayServer.updateDisplay();
+        listView.reloadData();
+        this.windowServer.displayServer.updateDisplay();
+
+        listView.selectedIndexPaths = [
+            JSIndexPath(0, 3),
+        ];
+
+        listView.deleteRowsAtIndexPaths([
+            JSIndexPath(0,2)
+        ], UIListView.RowAnimation.none);
+        sections[0] += 1;
+        this.windowServer.displayServer.updateDisplay();
+        selected = listView.selectedIndexPaths;
+        TKAssertEquals(selected.length, 1);
+        TKAssertObjectEquals(selected[0], JSIndexPath(0, 2));
+    }
+
 });

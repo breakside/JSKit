@@ -243,7 +243,7 @@ JSIndexPathRange.prototype = {
 
     isEqual: function(other){
         return this.start.isEqual(other.start) && this.end.isEqual(other.end);
-    },
+    }
 };
 
 Object.defineProperties(JSIndexPathRange.prototype, {
@@ -429,15 +429,6 @@ JSIndexPathSet.prototype = {
         }
     },
 
-    adjustRangesAfterInsertion: function(insertedIndexPathSet){
-        // TODO: loop through our ranges and increment based on offsets created by inserted paths
-    },
-
-    adjustRangesAfterRemoval: function(removedIndexPathSet){
-        // TODO: loop through our ranges and decrement based on offsets created by deleted paths
-        // remove any paths that match the deleted paths
-    },
-
     replace: function(indexPath){
         this.ranges = [JSIndexPathRange(indexPath, indexPath)];
     },
@@ -462,7 +453,7 @@ JSIndexPathSet.prototype = {
             return 0;
         });
         return searcher.itemMatchingValue(indexPath);
-    }
+    },
 };
 
 Object.defineProperties(JSIndexPathSet.prototype, {
@@ -495,5 +486,11 @@ Object.defineProperties(JSIndexPathSet.prototype, {
     }
 
 });
+
+var Adjustment = {
+    none: 0,
+    changed: 1,
+    invalidated: 2
+};
 
 })();

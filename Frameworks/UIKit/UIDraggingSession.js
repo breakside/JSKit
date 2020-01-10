@@ -61,6 +61,9 @@ JSClass("UIDraggingSession", JSObject, {
         }
     },
 
+    cancel: function(){
+    },
+
     isValidDestination: function(destination){
         var registeredTypes = destination.registeredDraggedTypes;
         return registeredTypes !== null && registeredTypes.length > 0 && this._pasteboard.containsAnyType(registeredTypes);

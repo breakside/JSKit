@@ -17,7 +17,7 @@ JSURLSessionDataTask.definePropertiesFromExtensions({
     _xmlRequest: JSLazyInitProperty('_createXMLRequest'),
 
     resume: function(){
-        if (this.completion){
+        if (!this.completion){
             this.completion = Promise.completion(Promise.resolveNull);
             var task = this;
             this.completion.promise = this.completion.promise.then(function(){

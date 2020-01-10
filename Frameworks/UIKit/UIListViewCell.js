@@ -10,11 +10,11 @@ JSClass("UIListViewCell", UIView, {
     indexPath: null,
     reuseIdentifier: null,
     titleInsets: JSDynamicProperty('_titleInsets', null),
-    titleSpacing: JSDynamicProperty('_titleSpacing', 4.0),
     contentView: JSReadOnlyProperty('_contentView', null),
     titleLabel: JSLazyInitProperty('_createTitleLabel', '_titleLabel'),
     detailLabel: JSLazyInitProperty('_createDetailLabel', '_detailLabel'),
     imageView: JSLazyInitProperty('_createImageView', '_imageView'),
+    accessoryImage: JSDynamicProperty(),
     accessoryView: JSDynamicProperty('_accessoryView', null),
     separatorInsets: JSDynamicProperty('_separatorInsets', null),
     numberOfDetailLines: JSDynamicProperty('_numberOfDetailLines', 1),
@@ -70,11 +70,6 @@ JSClass("UIListViewCell", UIView, {
         this.setNeedsLayout();
     },
 
-    setTitleSpacing: function(titleSpacing){
-        this._titleSpacing = titleSpacing;
-        this.setNeedsLayout();
-    },
-
     layoutSubviews: function(){
         UIListViewCell.$super.layoutSubviews.call(this);
         var styler = (this._styler || (this.listView && this.listView._styler));
@@ -94,13 +89,17 @@ JSClass("UIListViewCell", UIView, {
     // --------------------------------------------------------------------
     // MARK: - Accessory
 
-    setAccessoryImage: function(accessoryImage, renderMode){
+    getAccessoryImage: function(){
+        if (this._accessoryView !== null && this._accessoryView.isKindOfClass(UIImageView)){
+            return this._accessoryView.image;
+        }
+        return null;
+    },
+
+    setAccessoryImage: function(accessoryImage){
         if (accessoryImage !== null){
             if (!this._accessoryView || !this._accessoryView.isKindOfClass(UIImageView)){
                 this.accessoryView = UIImageView.init();
-            }
-            if (renderMode !== undefined){
-                this._accessoryView.renderMode = renderMode;
             }
             this._accessoryView.image = accessoryImage;
         }else{

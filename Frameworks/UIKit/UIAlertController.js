@@ -4,8 +4,10 @@
 // #import "UIButton.js"
 // #import "UIPopupWindow.js"
 // #import "UIAlertAction.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSInsets, JSTextAlignment, JSSize, JSColor, JSFont, UIViewController, UIStackView, UILabel, UIButton, UIPopupWindow, UIAlertController, UIAlertAction */
+/* global JSClass, JSObject, JSReadOnlyProperty, JSInsets, JSTextAlignment, JSSize, JSColor, JSFont, UIViewController, UIStackView, UILabel, UIButton, UIPopupWindow, UIAlertController, UIAlertAction, UIButtonDefaultStyler */
 'use strict';
+
+(function(){
 
 JSClass("UIAlertController", UIViewController, {
 
@@ -78,9 +80,12 @@ JSClass("UIAlertController", UIViewController, {
     },
 
     _createButtonForAction: function(action){
-        var button = UIButton.init();
+        var styler = buttonStylers.default;
+        if (action.style === UIAlertAction.Style.destructive){
+            styler = buttonStylers.destructive;
+        }
+        var button = UIButton.initWithStyler(styler);
         button.titleLabel.text = action.title;
-        button.titleLabel.font = button.titleLabel.font.fontWithPointSize(JSFont.Size.detail);
         var insets = JSInsets(button.titleInsets);
         insets.left += this._padding;
         insets.right += this._padding;
@@ -91,12 +96,6 @@ JSClass("UIAlertController", UIViewController, {
             }
             this.dismiss();
         }, this);
-        switch (action.style){
-            case UIAlertAction.Style.destructive:
-                button.titleLabel.font = button.titleLabel.font.fontWithWeight(JSFont.Weight.bold);
-                button.titleLabel.textColor = JSColor.initWithRGBA(204/255,0,0);
-                break;
-        }
         return button;
     },
 
@@ -158,3 +157,32 @@ JSClass("UIAlertController", UIViewController, {
     }
 
 });
+
+var buttonStylers = Object.create({}, {
+
+    destructive: {
+        configurable: true,
+        get: function(){
+            var styler = UIButtonDefaultStyler.init();
+            styler.font = styler.font.fontWithPointSize(JSFont.Size.detail).fontWithWeight(JSFont.Weight.bold);
+            styler.normalTitleColor = JSColor.initWithRGBA(204/255,0,0);
+            styler.activeTitleColor = styler.normalTitleColor.colorDarkenedByPercentage(0.2);
+            styler.disabledTitleColor = styler.normalTitleColor.colorWithAlpha(0.5);
+            Object.defineProperty(this, 'destructive', {value: styler});
+            return styler;
+        }
+    },
+
+    default: {
+        configurable: true,
+        get: function(){
+            var styler = UIButtonDefaultStyler.init();
+            styler.font = styler.font.fontWithPointSize(JSFont.Size.detail);
+            Object.defineProperty(this, 'default', {value: styler});
+            return styler;
+        }
+    }
+
+});
+
+})();

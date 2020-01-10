@@ -69,6 +69,7 @@ HTMLAppBootstrapper.prototype = {
         }else if (document.documentElement.getAttribute("manifest") && window.applicationCache){
             this._installUsingAppcache(window.applicationCache);
         }else{
+            logger.warn("Service worker and appcache not available");
             this.load();
         }
     },
