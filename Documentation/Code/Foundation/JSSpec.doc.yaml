@@ -66,7 +66,7 @@ topics:
             summary: The optional bundle to load from.  Will default to the main
               application bundle if not specified.
   -
-    name: Initializing Objects
+    name: Getting Objects
     members:
       -
         name: filesOwner
@@ -82,11 +82,14 @@ topics:
           This property looks up that key and instantiates the entire graph,
           returning the root object.
       -
-        name: resolvedValue
+        name: valueForKey
         kind: method
         type: any
-        summary: Parse a value from the spec file and return the actual value
-          it represents.
+        return: If the key resolves to a scalar value like a number or a string,
+          that value is returned.  If the key resolves to a `JSObject` instance,
+          that value is returned.  If the key resolves to an array or dictionary
+          a new `JSSpec` is returned scoped to that value.
+        summary: Get a value for the given key from the spec
         description: |
           Values in spec files can be simple things like strings or numbers,
           or they can have special meaning.
@@ -102,59 +105,120 @@ topics:
           to populate instance properties from spec values.
         arguments:
           -
-            name: value
-            type: any
-            summary: The raw value from the spec file
-          -
-            name: defaultClassName
+            name: key
             type: String
-            default: "undefined"
-            summary: The optional class name to use implicitly if no `class`
-              property is given in the value
+            summary: The name of the value to lookup
       -
-        name: resolvedEnum
+        name: valueForKey
         kind: method
+        suffix: class
         type: any
-        summary: Parse a value from the spec file, using a given `Enum` as
-          an initial lookup candidate.
+        return: If the key resolves to a `JSObject` instance,
+          that value is returned.  If the key resolves to an array or dictionary
+          a new `JSSpec` is returned scoped to that value.  If the key resolves
+          to a number or a string, a `JSSpec` is returned with either
+          \`numberValue` or \`stringValue` populated.
+        summary: Get a value for the given key from the spec, using the type
+          as a default class to instantiate
         description: |
-          Like `resolvedValue()`, but with an initial lookup to see if the
-          given string `value` is an option in the given `enum`.  If so,
-          return the value for that enum option.  Otherwise, continue on
-          to calling `resolvedValue()` as normal.
+          A default class allows for simpler spec files when the type of a
+          property is never in question.
 
-          Useful for resolving values that should be set from enumerations.
+          For example, a `UIView` knows that its
+          `backgroundColor`(UIView.backgroundColor) is always
+          a `JSColor`, so it calls this method during its `initWithSpec()`
+          process.
 
-          Makes is so instead of having to specify enum values with the
-          `$` global variable lookup:
-
-          ````
-          Label:
-            class: UILabel
-            textAlignment: $JSTextAlignment.center
-          ````
-
-          The same thing can be specified more consisely:
-
-          ````
-          Label:
-            class: UILabel
-            textAlignment: center
-          ````
+          Because it does so, in the spec file, a `class: JSColor` line is not
+          necessary when specifying a view's
+          `backgroundColor`(UIView.backgroundColor).
+        note: This method is typically only called from within `initWithSpec`
+          to populate instance properties from spec values.
         arguments:
           -
-            name: value
-            type: any
-            summary: The raw value from the spec file
+            name: key
+            type: String
+            summary: The name of the value to lookup
+          -
+            name: type
+            type: JSClass
+            summary: The class to use as a default when instantiating objects
+      -
+        name: valueForKey
+        kind: method
+        suffix: enum
+        type: any
+        summary: Get a value for the given key from the spec, using the enum
+          as a lookup table for named options
+        description: |
+          When specifying enum values in spec files, it's handy to simply use
+          the name of an option.
+
+          You can use this method during `initWithSpec()` to match a name from
+          spec file to an option on the enum.
+        note: This method is typically only called from within `initWithSpec`
+          to populate instance properties from spec values.
+        arguments:
+          -
+            name: key
+            type: String
+            summary: The name of the value to lookup
           -
             name: enum
             type: Enum
-            summary: The enum map to use as an initial lookup candidate
-          -
-            name: defaultClassName
-            type: String
-            default: "undefined"
-            summary: The optional class name to use implicitly if no `class`
-              property is given in the value
-        note: This method is typically only called from within `initWithSpec`
-          to populate instance properties from spec values.
+            summary: The enum object to use as a option name lookup table
+  -
+    name: Scalar Values
+    members:
+      -
+        name: stringValue
+        type: String
+        nullable: true
+        summary: The string value that was found when an object was requested
+        description: |
+          A spec with such a value may be passed to `initWithSpec()` when a
+          specific class was requested.  This gives the class a chance to
+          create an instance from the string.
+
+          For example, if `JSImage` receives a spec with a `stringValue`, it
+          uses that string as an image resource name, which is all that is
+          required to create an image.
+
+          This allows spec files to be more concise for objects that be created
+          by a single scalar.
+      -
+        name: numberValue
+        type: String
+        nullable: true
+        summary: The number value that was found when an object was requested
+        description: |
+          A spec with such a value may be passed to `initWithSpec()` when a
+          specific class was requested.  This gives the class a chance to
+          create an instance from the number.
+
+          For example, if `JSSize` receives a spec with a `numberValue`, it
+          creates a square size using that number.
+
+          This allows spec files to be more concise for objects that be created
+          by a single scalar.
+  -
+    name: Array Values
+    members:
+      -
+        name: length
+        type: Number
+        summary: The number of items in this array
+        description: |
+          When you do a `valueForKey()` on a property that is an array in the
+          spec file, you get a `JSSpec` back.
+
+          An array-spec has this length property, allowing you to iterate.
+
+          Simply use an index value as the key in `valueForKey()`.
+
+          ````
+          var items = spec.valueForKey('items');
+          for (var i = 0, l = items.length; i < l; ++i){
+            var item = items.valueForKey(i);
+          }
+          ````

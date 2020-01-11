@@ -6,7 +6,7 @@
 
 JSClass("JSSpecTests", TKTestSuite, {
 
-    testResolvedValue: function(){
+    testValueForKey: function(){
         var plist = JSPropertyList.initWithObject({
             "Number": 123,
             "String": "abc",
@@ -17,20 +17,23 @@ JSClass("JSSpecTests", TKTestSuite, {
             }
         });
         var spec = JSSpec.initWithPropertyList(plist);
-        TKAssertExactEquals(spec.resolvedValue(plist.Number), 123);
-        TKAssertExactEquals(spec.resolvedValue(plist.String), "abc");
-        TKAssertExactEquals(spec.resolvedValue(plist.Boolean), true);
-        TKAssertExactEquals(spec.resolvedValue(plist.Object), plist.Object);
+        TKAssertExactEquals(spec.valueForKey("Number"), 123);
+        TKAssertExactEquals(spec.valueForKey("String"), "abc");
+        TKAssertExactEquals(spec.valueForKey("Boolean"), true);
+        var obj = spec.valueForKey("Object");
+        TKAssert(obj.isKindOfClass(JSSpec));
+        TKAssertExactEquals(obj.valueForKey('a'), 1);
+        TKAssertExactEquals(obj.valueForKey('b'), 2);
     },
 
-    testResolvedVariable: function(){
+    testGlobalVariable: function(){
         var plist = JSPropertyList.initWithObject({
             "test1": "$JSSpecTests.StaticTest",
             "test2": "\\$JSSpecTests.StaticTest"
         });
         var spec = JSSpec.initWithPropertyList(plist);
-        TKAssertExactEquals(spec.resolvedValue(plist.test1), "hello");
-        TKAssertExactEquals(spec.resolvedValue(plist.test2), "$JSSpecTests.StaticTest");
+        TKAssertExactEquals(spec.valueForKey("test1"), "hello");
+        TKAssertExactEquals(spec.valueForKey("test2"), "$JSSpecTests.StaticTest");
     },
 
     testInstantiatedObject: function(){
@@ -41,12 +44,12 @@ JSClass("JSSpecTests", TKTestSuite, {
             }
         });
         var spec = JSSpec.initWithPropertyList(plist);
-        var obj = spec.resolvedValue(plist.test1);
+        var obj = spec.valueForKey("test1");
         TKAssert(obj.isKindOfClass(JSSpecTestsObject));
         TKAssertEquals(obj.test, 12);
     },
 
-    testResolvedObject: function(){
+    testReferencedObject: function(){
         var plist = JSPropertyList.initWithObject({
             "Test One": {
                 "class": "JSSpecTestsObject",
@@ -55,7 +58,7 @@ JSClass("JSSpecTests", TKTestSuite, {
             "test2": "/Test One"
         });
         var spec = JSSpec.initWithPropertyList(plist);
-        var obj = spec.resolvedValue(plist.test2);
+        var obj = spec.valueForKey("test2");
         TKAssert(obj.isKindOfClass(JSSpecTestsObject));
         TKAssertEquals(obj.test, 12);
     },
@@ -69,8 +72,8 @@ JSClass("JSSpecTests", TKTestSuite, {
             "test2": "/Test One"
         });
         var spec = JSSpec.initWithPropertyList(plist);
-        var obj1 = spec.resolvedValue(plist.test2);
-        var obj2 = spec.resolvedValue(plist.test2);
+        var obj1 = spec.valueForKey("test2");
+        var obj2 = spec.valueForKey("test2");
         TKAssertExactEquals(obj1, obj2);
         TKAssertEquals(obj1.test, 12);
     },
@@ -122,13 +125,13 @@ JSClass("JSSpecTests", TKTestSuite, {
             "File's Owner": "/Test One"
         });
         var spec = JSSpec.initWithPropertyList(plist);
-        var one = spec.resolvedValue("/Test One");
-        var two = spec.resolvedValue("/Test Two");
+        var one = spec.valueForKey("Test One");
+        var two = spec.valueForKey("Test Two");
         two.test = 12;
         TKAssertEquals(one.value, 12);
     },
 
-    testDefaultClassStringValue: function(){
+    testDefaultClass: function(){
         var plist = JSPropertyList.initWithObject({
             "Test": {
                 "class": "JSSpecTestsObject"
@@ -137,10 +140,33 @@ JSClass("JSSpecTests", TKTestSuite, {
             "File's Owner": "/Test"
         });
         var spec = JSSpec.initWithPropertyList(plist);
-        var two = spec.resolvedValue("/Test2", "JSSpecTestsObject");
+        var two = spec.valueForKey("Test2", JSSpecTestsObject);
         TKAssert(two.isKindOfClass(JSSpecTestsObject));
         TKAssertEquals(two.name, "Testing");
-    }
+    },
+
+    testEnum: function(){
+        var plist = JSPropertyList.initWithObject({
+            "Test": {
+                "class": "JSSpecTestsObject"
+            },
+            "Test1": "one",
+            "Test2": "two",
+            "Test3": "three",
+            "File's Owner": "/Test"
+        });
+        var TestEnum = {
+            one: 'first',
+            two: 'second'
+        };
+        var spec = JSSpec.initWithPropertyList(plist);
+        var value = spec.valueForKey("Test1", TestEnum);
+        TKAssertEquals(value, TestEnum.one);
+        value = spec.valueForKey("Test2", TestEnum);
+        TKAssertEquals(value, TestEnum.two);
+        value = spec.valueForKey("Test3", TestEnum);
+        TKAssertEquals(value, 'three');
+    },
 
 });
 
@@ -150,14 +176,14 @@ JSClass("JSSpecTestsObject", JSObject, {
     value: null,
     name: null,
 
-    initWithSpec: function(spec, values){
-        if (typeof(values) === 'string'){
-            this.name = values;
+    initWithSpec: function(spec){
+        if (spec.stringValue !== null){
+            this.name = spec.stringValue;
         }else{
-            JSSpecTestsObject.$super.initWithSpec.call(this, spec, values);
-            this.test = values.testKey;
-            if ('target' in values){
-                this.target = spec.resolvedValue(values.target);
+            JSSpecTestsObject.$super.initWithSpec.call(this, spec);
+            this.test = spec.valueForKey('testKey');
+            if (spec.containsKey('target')){
+                this.target = spec.valueForKey('target');
             }
         }
     }

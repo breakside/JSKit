@@ -21,26 +21,27 @@ JSClass("UIPopupButton", UIControl, {
     _imageTitleSpacing: 3,
     pullsDown: JSDynamicProperty('_pullsDown', false),
 
-    initWithSpec: function(spec, values){
-        if ('pullsDown' in values){
-            this._pullsDown = values.pullsDown;
+    initWithSpec: function(spec){
+        if (spec.containsKey('pullsDown')){
+            this._pullsDown = spec.valueForKey('pullsDown');
         }
-        UIPopupButton.$super.initWithSpec.call(this, spec, values);
-        if ('font' in values){
-            this._titleLabel.font = JSFont.initWithSpec(spec, values.font);
+        UIPopupButton.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('font')){
+            this._titleLabel.font = spec.valueForKey("font", JSFont);
         }
-        if ('title' in values){
-            this._titleLabel.text = spec.resolvedValue(values.title);
+        if (spec.containsKey('title')){
+            this._titleLabel.text = spec.valueForKey("title");
         }
-        if ('titleInsets' in values){
-            this._titleInsets = JSInsets.call(undefined, values.titleInsets.parseNumberArray());
+        if (spec.containsKey('titleInsets')){
+            this._titleInsets = spec.valueForKey("titleInsets", JSInsets);
         }
-        if ('image' in values){
-            this._imageView.image = spec.resolvedValue(values.image, "JSImage");
+        if (spec.containsKey('image')){
+            this._imageView.image = spec.valueForKey("image", JSImage);
         }
-        if ('options' in values){
-            for (var i = 0, l = values.options.length; i < l; ++i){
-                this.addItemWithTitle(spec.resolvedValue(values.options[i]));
+        if (spec.containsKey('options')){
+            var options = spec.valueForKey('options');
+            for (var i = 0, l = options.length; i < l; ++i){
+                this.addItemWithTitle(options.valueForKey(i));
             }
         }
     },

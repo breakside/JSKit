@@ -683,7 +683,36 @@ UILayer.Corners = {
     minXmaxY: 1 << 1,
     maxXminY: 1 << 2,
     maxXmaxY: 1 << 3,
-    all: 0xF
+    all: 0xF,
+
+    initWithSpec: function(spec){
+        var i,l;
+        var corners = UILayer.Corners.none;
+        var option;
+        if (spec.numberValue !== null){
+            return spec.numberValue;
+        }
+        if (spec.stringValue !== null){
+            var options = spec.stringValue.split('|');
+            for (i = 0, l = options.length; i < l; ++i){
+                option = options[i];
+                if (option in UILayer.Corners){
+                    corners |= UILayer.Corners[option];
+                }
+            }
+            return corners;
+        }
+        if (spec.length !== null){
+            for (i = 0, l = spec.length; i < l; ++i){
+                option = spec;
+                if (option in UILayer.Corners){
+                    corners |= UILayer.Corners[option];
+                }
+            }
+            return corners;
+        }
+        return corners;
+    }
 };
 
 UILayer.Corners.minX = UILayer.Corners.minXminY | UILayer.Corners.minXmaxY;
@@ -697,7 +726,36 @@ UILayer.Sides = {
     maxX: 1 << 1,
     minY: 1 << 2,
     maxY: 1 << 3,
-    all: 0xF
+    all: 0xF,
+
+    initWithSpec: function(spec){
+        var i,l;
+        var sides = UILayer.Sides.none;
+        var option;
+        if (spec.numberValue !== null){
+            return spec.numberValue;
+        }
+        if (spec.stringValue !== null){
+            var options = spec.stringValue.split('|');
+            for (i = 0, l = options.length; i < l; ++i){
+                option = options[i];
+                if (option in UILayer.Sides){
+                    sides |= UILayer.Sides[option];
+                }
+            }
+            return sides;
+        }
+        if (spec.length !== null){
+            for (i = 0, l = spec.length; i < l; ++i){
+                option = spec;
+                if (option in UILayer.Sides){
+                    sides |= UILayer.Sides[option];
+                }
+            }
+            return sides;
+        }
+        return sides;
+    }
 };
 
 UILayer.Sides.minYmaxY = UILayer.Sides.minY | UILayer.Sides.maxY;

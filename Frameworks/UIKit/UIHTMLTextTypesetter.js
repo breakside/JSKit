@@ -434,7 +434,15 @@ Object.defineProperties(UIHTMLTextTypesetterRunDescriptor.prototype, {
     clientRects: {
         configurable: true,
         get: function UIHTMLTextTypesetterRunDescriptor_getClientRects(){
-            var rects = this.span.getClientRects();
+            var rects = Array.prototype.slice.call(this.span.getClientRects(), 0);
+            for (var i = rects.length - 1; i >= 1; --i){
+                // Chrome 79.0.3945.117 started returning multiple rects per
+                // line in some situations
+                if (rects[i].y === rects[i - 1].y){
+                    rects[i - 1].width += rects[i].width;
+                    rects.splice(i, 1);
+                }
+            }
             Object.defineProperty(this, 'clientRects', {
                 value: rects
             });

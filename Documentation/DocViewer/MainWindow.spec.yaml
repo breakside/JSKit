@@ -115,11 +115,8 @@ SidebarOutlineView:
   rowHeight: 24
   headersStickToTop: true
   reusableCellClasses:
-    -
-      identifier: item
-      className: UIOutlineViewCell
-    - 
-      identifier: topic
+    item: UIOutlineViewCell
+    topic:
       className: UIOutlineViewCell
       styler:
         class: UIOutlineViewDefaultStyler

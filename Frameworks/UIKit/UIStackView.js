@@ -9,14 +9,14 @@ JSClass("UIStackView", UIView, {
         this._commonStackViewInit();
     },
 
-    initWithSpec: function(spec, values){
-        UIStackView.$super.initWithSpec.call(this, spec, values);
+    initWithSpec: function(spec){
+        UIStackView.$super.initWithSpec.call(this, spec);
         this._commonStackViewInit();
-        if ('contentInsets' in values){
-            this._contentInsets = JSInsets.apply(undefined, values.contentInsets.parseNumberArray());
+        if (spec.containsKey('contentInsets')){
+            this._contentInsets = spec.valueForKey("contentInsets", JSInsets);
         }
-        if ('viewSpacing' in values){
-            this._viewSpacing = spec.resolvedValue(values.viewSpacing);
+        if (spec.containsKey('viewSpacing')){
+            this._viewSpacing = spec.valueForKey("viewSpacing");
         }
     },
 

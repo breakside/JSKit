@@ -51,35 +51,20 @@ topics:
                   ````
               -
                 name: textInsets
-                type: String
+                type: JSInsets
                 summary: The amounts the text should be inset from the button's
                   edges, overriding any styler setting
                 description: |
-                  A string of comma-separated integers, that when parsed will be
-                  pased to the `JSInsets` constructor.
-
                   ````
                   WelcomeLabel:
                     class: UILabel
                     text: Hello, world!
                     textInsets: 4,7
                   ````
-              -
-                name: textInsets
-                suffix: number
-                type: Number
-                summary: The amount the text should be inset all from the button's
-                  edges, overriding any styler setting
-                description: |
-                  A single number that will be passed to the `JSInsets` constructor
-                  and used for all sides.
 
-                  ````
-                  WelcomeLabel:
-                    class: UILabel
-                    text: Hello, world!
-                    textInsets: 4
-                  ````
+                  See `JSInsets`(JSInsets.Spec File Properties) for 
+                  description of the various ways insets can be
+                  specified.
               -
                 name: textAlignment
                 type: JSTextAlignment

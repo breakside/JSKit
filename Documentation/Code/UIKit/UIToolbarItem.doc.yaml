@@ -270,12 +270,9 @@ topics:
                   ````
               -
                 name: minimumSize
-                type: String
+                type: JSSize
                 summary: Specifies how small a custom view item can be
                 description: |
-                  Use a string of comma-separated integers to specify
-                  values that will be passed to the `JSSize` constructor.
-
                   ````
                   Window:
                     class: UIWindow
@@ -288,14 +285,15 @@ topics:
                           minimumSize: 80,24
                           maximumSize: 300,24
                   ````
+
+                  See `JSSize`(JSSize.Spec File Properties) for 
+                  description of the various ways insets can be
+                  specified.
               -
                 name: maximumSize
-                type: String
+                type: JSSize
                 summary: Specifies how large a custom view item can be
                 description: |
-                  Use a string of comma-separated integers to specify
-                  values that will be passed to the `JSSize` constructor.
-
                   ````
                   Window:
                     class: UIWindow
@@ -308,6 +306,10 @@ topics:
                           minimumSize: 80,24
                           maximumSize: 300,24
                   ````
+
+                  See `JSSize`(JSSize.Spec File Properties) for 
+                  description of the various ways insets can be
+                  specified.
           -
             name: Special Items
             members:

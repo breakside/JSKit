@@ -12,13 +12,13 @@ JSClass("UICheckbox", UIControl, {
     on: JSDynamicProperty('_isOn', false, 'isOn'),
     mixed: JSDynamicProperty('_isMixed', false, 'isMixed'),
 
-    initWithSpec: function(spec, values){
-        UICheckbox.$super.initWithSpec.call(this, spec, values);
-        if ('font' in values){
-            this._titleLabel.font = JSFont.initWithSpec(spec, values.font);
+    initWithSpec: function(spec){
+        UICheckbox.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('font')){
+            this._titleLabel.font = spec.valueForKey("font", JSFont);
         }
-        if ('title' in values){
-            this._titleLabel.text = spec.resolvedValue(values.title);
+        if (spec.containsKey('title')){
+            this._titleLabel.text = spec.valueForKey("title");
         }
     },
 

@@ -101,6 +101,65 @@ topics:
         note: Even though this looks like a property, it will always return a
           new `JSPoint` each time it is invoked, ensuring that nothing can
           accidentally modify or overwrite the `UnitCenter` property.
+      -
+        name: initWithSpec
+        kind: method
+        static: true
+        summary: Create a point from a value in a spec file
+        arguments:
+          - 
+            name: spec
+            type: JSSpec
+            summary: The spec in which the point is described
+          - 
+            name: values
+            type: any
+            summary: The value that the describes the point in the spec
+
+        description: |
+          Typically used in `initWithSpec()`(JSObject.initWithSpec())
+          implementations for objects that have `JSPoint` properties.
+
+          Handles the various ways a `JSPoint` can be specified in a spec file.
+
+          See [Spec File Properties](Spec File Properties) for more information
+          about how to write a `JSPoint` in a spec file.
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The ways to specify a `JSPoint` in a spec file
+        description: |
+          A point can be specified in various ways in a spec file:
+          1. As a comma-separated `String` of `x`()`,``y`() like `"24,32"`
+          2. As a dictionary with `x` and `y` properties
+
+          Both of these are equivalent:
+
+          String form:
+          ````
+          Object:
+            point: 10,20
+          ````
+
+          Dictionary form:
+          ````
+          Object:
+            point:
+              x: 10
+              y: 20
+          ````
+        topics:
+          -
+            name: Dictionary Representation
+            members:
+              -
+                name: x
+                type: Number
+                summary: The x component of the point
+              -
+                name: "y"
+                type: Number
+                summary: The y component of the point
   -
     name: Coordinates
     members:

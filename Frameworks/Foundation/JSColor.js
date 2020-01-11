@@ -89,18 +89,19 @@ JSClass('JSColor', JSObject, {
         this.initWithRGBA(r, g, b, original.alpha);
     },
 
-    initWithSpec: function(spec, values){
+    initWithSpec: function(spec){
         var components;
-        if (values.rgba){
-            if (values.rgba.startsWith("#")){
+        if (spec.containsKey("rgba")){
+            var rgba = spec.valueForKey("rgba");
+            if (rgba.startsWith("#")){
                 components = [
-                    parseInt(values.rgba.substringInRange(JSRange(1,2)) || "0", 16),
-                    parseInt(values.rgba.substringInRange(JSRange(3,2)) || "0", 16),
-                    parseInt(values.rgba.substringInRange(JSRange(5,2)) || "0", 16),
-                    (parseInt(values.rgba.substringInRange(JSRange(7,2)) || "FF", 16)) / 255
+                    parseInt(rgba.substringInRange(JSRange(1,2)) || "0", 16),
+                    parseInt(rgba.substringInRange(JSRange(3,2)) || "0", 16),
+                    parseInt(rgba.substringInRange(JSRange(5,2)) || "0", 16),
+                    (parseInt(rgba.substringInRange(JSRange(7,2)) || "FF", 16)) / 255
                 ];
             }else{
-                components = values.rgba.parseNumberArray();
+                components = rgba.parseNumberArray();
             }
             if (components.length > 0){
                 components[0] = components[0] / 255;
@@ -112,12 +113,12 @@ JSClass('JSColor', JSObject, {
                 components[2] = components[2] / 255;
             }
             this.initWithRGBA.apply(this, components);
-        }else if (values.white){
-            this.initWithWhite(values.white);
-        }else if (values.blendBase && values.with && values.percent){
-            var base = spec.resolvedValue(values.blendBase, "JSColor");
-            var otherColor = spec.resolvedValue(values.with, "JSColor");
-            var blendPercentage = spec.resolvedValue(values.percent) / 100;
+        }else if (spec.containsKey("white")){
+            this.initWithWhite(spec.valueForKey("white"));
+        }else if (spec.containsKey("blendBase") && spec.containsKey("with") && spec.containsKey("percent")){
+            var base = spec.valueForKey("blendBase", JSColor);
+            var otherColor = spec.valueForKey("with", JSColor);
+            var blendPercentage = spec.valueForKey("percent") / 100;
             this.initWithBlendedColor(base, otherColor, blendPercentage);
         }
     },

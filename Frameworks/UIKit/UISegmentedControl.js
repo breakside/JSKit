@@ -9,20 +9,20 @@ JSClass("UISegmentedControl", UIControl, {
     // --------------------------------------------------------------------
     // MARK: - Creating a segment control
 
-    initWithSpec: function(spec, values){
-        if ('font' in values){
-            this._font = spec.resolvedValue(values.font, "JSFont");   
+    initWithSpec: function(spec){
+        if (spec.containsKey('font')){
+            this._font = spec.valueForKey("font", JSFont);
         }
-        if ('titleInsets' in values){
-            this._titleInsets  = JSInsets.apply(undefined, values.titleInsets.parseNumberArray());
+        if (spec.containsKey('titleInsets')){
+            this._titleInsets  = spec.valueForKey("titleInsets", JSInsets);
         }
-        UISegmentedControl.$super.initWithSpec.call(this, spec, values);
+        UISegmentedControl.$super.initWithSpec.call(this, spec);
         var i, l;
-        if ('items' in values){
+        if (spec.containsKey('items')){
+            var items = spec.valueForKey('items');
             var item;
-            var image;
-            for (i = 0, l = values.items.length; i < l; ++i){
-                item = spec.resolvedValue(values.items[i], "UISegmentedControlItem");
+            for (i = 0, l = items.length; i < l; ++i){
+                item = items.valueForKey(i, UISegmentedControlItem);
                 this._insertItemAtIndex(item, i);
             }
         }
@@ -261,19 +261,19 @@ JSClass("UISegmentedControlItem", JSObject, {
     selected: false,
     enabled: true,
 
-    initWithSpec: function(spec, values){
-        UISegmentedControlItem.$super.initWithSpec.call(this, spec, values);
-        if ('title' in values){
-            this.title = spec.resolvedValue(values.title);
+    initWithSpec: function(spec){
+        UISegmentedControlItem.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('title')){
+            this.title = spec.valueForKey("title");
         }
-        if ('image' in values){
-            this.image = spec.resolvedValue(values.image, "JSImage");
+        if (spec.containsKey('image')){
+            this.image = spec.valueForKey("image", JSImage);
         }
-        if ('selectedImage' in values){
-            this.selectedImage = spec.resolvedValue(values.selectedImage, "JSImage");
+        if (spec.containsKey('selectedImage')){
+            this.selectedImage = spec.valueForKey("selectedImage", JSImage);
         }
-        if ('tooltip' in values){
-            this.tooltip = spec.resolvedValue(values.tooltip);
+        if (spec.containsKey('tooltip')){
+            this.tooltip = spec.valueForKey("tooltip");
         }
     }
 });
@@ -379,10 +379,10 @@ JSClass("UISegmentedControlStyler", UIControlStyler, {
     init: function(){
     },
 
-    initWithSpec: function(spec, values){
-        UISegmentedControlStyler.$super.initWithSpec.call(this, spec, values);
-        if ('titleInsets' in values){
-            this.titleInsets  = JSInsets.apply(undefined, values.titleInsets.parseNumberArray());
+    initWithSpec: function(spec){
+        UISegmentedControlStyler.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('titleInsets')){
+            this.titleInsets  = spec.valueForKey("titleInsets", JSInsets);
         }
     },
 

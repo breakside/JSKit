@@ -1,6 +1,6 @@
 // #import Foundation
 // #import "UIResponder.js"
-/* global JSClass, JSObject, UIResponder, JSCopy, UIView, JSDynamicProperty, UIViewController, JSReadOnlyProperty */
+/* global JSClass, JSObject, UIResponder, JSCopy, UIView, JSDynamicProperty, UIViewController, JSReadOnlyProperty, UITabViewItem */
 'use strict';
 
 JSClass("UIViewController", UIResponder, {
@@ -11,18 +11,22 @@ JSClass("UIViewController", UIResponder, {
     init: function(){
     },
 
-    initWithSpec: function(spec, values){
-        this._spec = spec;
-        this._viewInSpec = values.view || null;
-        if (this._viewInSpec !== null){
+    initWithSpec: function(spec){
+        if (spec.containsKey(this._viewKeyInSpec)){
+            // If the spec has a view, always load from the spec
             Object.defineProperty(this, 'loadView', {
                 configurable: true,
-                value: UIViewController.prototype.loadView
+                value: function UIView_loadViewFromSpec(){
+                    // FIXME: using a class default here isn't ideal because what if some other
+                    // part of the spec has a reference to the view and resolves it before us
+                    // without knowing the correct default class?
+                    this._view = spec.valueForKey(this._viewKeyInSpec, this._defaultViewClass);
+                }
             });
         }
-        UIViewController.$super.initWithSpec.call(this, spec, values);
-        if ('tabViewItem' in values){
-            this.tabViewItem = spec.resolvedValue(values.tabViewItem, "UITabViewItem");
+        UIViewController.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('tabViewItem')){
+            this.tabViewItem = spec.valueForKey("tabViewItem", UITabViewItem);
         }
     },
 
@@ -33,9 +37,8 @@ JSClass("UIViewController", UIResponder, {
     window: JSReadOnlyProperty(),
     scene: JSReadOnlyProperty(),
     isViewLoaded: JSReadOnlyProperty('_isViewLoaded'),
-    _defaultViewClass: "UIView",
-    _viewInSpec: null,
-    _spec: null,
+    _defaultViewClass: UIView,
+    _viewKeyInSpec: "view",
 
     getView: function(){
         this._loadViewIfNeeded();
@@ -43,19 +46,7 @@ JSClass("UIViewController", UIResponder, {
     },
 
     loadView: function(){
-        // If we were created via initWithSpec, and the spec contained a
-        // view property for us, always load that view because it may have
-        // properties from the spec that the developer expects to be honored.
-        // Otherwise, just call loadView
-        if (this._spec !== null && this._viewInSpec !== null){
-            // FIXME: using a class default here isn't ideal because what if some other
-            // part of the spec has a reference to the view and resolves it before us
-            // without knowing the correct default class?
-            this._view = this._spec.resolvedValue(this._viewInSpec, this._defaultViewClass);
-        }
-        if (this._view === null){
-            this._view = JSClass.FromName(this._defaultViewClass).init();
-        }
+        this._view = this._defaultViewClass.init();
     },
 
     unloadView: function(){

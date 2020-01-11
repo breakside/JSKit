@@ -58,16 +58,24 @@ topics:
 
             myProperty: 0
 
-            initWithSpec: function(spec, values){
-              MyObject.$super.initWithSpec.call(this, spec, values);
-              this.myProperty = values.myProperty;
+            initWithSpec: function(spec){
+              MyObject.$super.initWithSpec.call(this, spec);
+              this.myProperty = spec.valueForKey("myProperty");
             }
 
           });
           ````
 
-          However, some property initialization is more complex and requires
-          using the spec to resolve more values.
+          Implicit Classes
+          =============
+          If an object in the spec file has a `class`() property, that will
+          be used to create an object instance.
+
+          However, in many cases the class of a property is known and is alwyas
+          the same.
+
+          For these cases, you can specify a default class when calling
+          `valueForKey`(JSSpec.valueForKey).
 
           In this case, a color object is created.
 
@@ -85,9 +93,74 @@ topics:
 
             myColor: 0
 
-            initWithSpec: function(spec, values){
-              MyObject.$super.initWithSpec.call(this, spec, values);
-              this.myColor = spec.resolveValue(values.myColor, "JSColor");
+            initWithSpec: function(spec){
+              MyObject.$super.initWithSpec.call(this, spec);
+              this.myColor = spec.valueForKey("myColor", JSColor);
+            }
+
+          });
+          ````
+
+          Nested Objects
+          ====
+
+          If your property is an object, the returned value from
+          `valueForKey()`(JSSpec.valueForKey) will be another `JSSpec` object
+          scoped to the key you requested.
+
+          ````
+          File's Owner: /Object
+
+          Object:
+            class: MyObject
+            myObject:
+              property1: Hello
+              property2: 42
+          ````
+
+          ````
+          JSClass("MyObject", JSObject, {
+
+            initWithSpec: function(spec){
+              MyObject.$super.initWithSpec.call(this, spec);
+              var myObject = spec.valueForKey("myObject");
+              var property1 = myObject.valueForKey("property1");
+              var property2 = myObject.valueForKey("property2");
+            }
+
+          });
+          ````
+
+          Arrays
+          ====
+
+          If your property is an array, the returned value from
+          `valueForKey()`(JSSpec.valueForKey) will be another `JSSpec` object
+          scoped to the array you requested.
+
+          The scoped spec has a `length`(JSSpec.length) property, and you can iterate similar
+          to an actual array
+
+          ````
+          File's Owner: /Object
+
+          Object:
+            class: MyObject
+            myList:
+              - Mercury
+              - Venus
+              - Earth
+          ````
+
+          ````
+          JSClass("MyObject", JSObject, {
+
+            initWithSpec: function(spec){
+              MyObject.$super.initWithSpec.call(this, spec);
+              var list = spec.valueForKey("myList");
+              for (var i = 0, l = list.length; i < l; ++i){
+                var item = list.valueForKey(i);
+              }
             }
 
           });
@@ -100,10 +173,6 @@ topics:
             name: spec
             type: JSSpec
             summary: The spec in which the object is described
-          - 
-            name: values
-            type: object
-            summary: The dictionary that the describes the object in the spec
       -
         name: initWithSpecName
         kind: init

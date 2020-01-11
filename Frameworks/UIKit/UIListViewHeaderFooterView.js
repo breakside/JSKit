@@ -24,8 +24,8 @@ JSClass("UIListViewHeaderFooterView", UIView, {
         this._commonHeaderFooterInit();
     },
 
-    initWithSpec: function(spec, values){
-        UIListViewHeaderFooterView.$super.initWithSpec.call(this, spec, values);
+    initWithSpec: function(spec){
+        UIListViewHeaderFooterView.$super.initWithSpec.call(this, spec);
         this._commonHeaderFooterInit();
     },
 

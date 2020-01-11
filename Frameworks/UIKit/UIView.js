@@ -4,7 +4,7 @@
 // #import "UIAnimation.js"
 // #import "UIDraggingDestination.js"
 // #import "UILayoutConstraint.js"
-/* global JSGlobalObject, JSClass, JSObject, JSCopy, JSInsets, JSSize, UIViewLayerProperty, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSDynamicProperty, JSRect, JSPoint, JSColor, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty, UIWindowServer, UIDragOperation, UILayoutConstraint, UILayoutAttribute, UILayoutRelation, UILayoutPriority */
+/* global JSGlobalObject, JSClass, JSObject, JSCopy, JSInsets, JSSize, UIViewLayerProperty, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSDynamicProperty, JSRect, JSPoint, JSColor, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty, UIWindowServer, UIDragOperation, UILayoutConstraint, UILayoutAttribute, UILayoutRelation, UILayoutPriority, JSGradient */
 'use strict';
 
 JSGlobalObject.UIViewLayerProperty = function(){
@@ -42,79 +42,74 @@ JSClass('UIView', UIResponder, {
         this.frame = frame;
     },
 
-    initWithSpec: function(spec, values){
-        UIView.$super.initWithSpec.call(this, spec, values);
+    initWithSpec: function(spec){
+        UIView.$super.initWithSpec.call(this, spec);
         this._commonLayerInit();
-        if ("frame" in values){
-            this.frame = JSRect.apply(undefined, values.frame.parseNumberArray());
+        if (spec.containsKey("frame")){
+            this.frame = spec.valueForKey("frame", JSRect);
         }else{
             this.frame = JSRect(0, 0, 100, 100);
         }
-        if ("backgroundColor" in values){
-            this.backgroundColor = spec.resolvedEnum(values.backgroundColor, JSColor, "JSColor");
+        if (spec.containsKey("backgroundColor")){
+            this.backgroundColor = spec.valueForKey("backgroundColor", JSColor);
         }
-        if ("backgroundGradient" in values){
-            this.backgroundGradient = spec.resolvedValue(values.backgroundGradient, "JSGradient");
+        if (spec.containsKey("backgroundGradient")){
+            this.backgroundGradient = spec.valueForKey("backgroundGradient", JSGradient);
         }
-        if ("borderColor" in values){
-            this.borderColor = spec.resolvedEnum(values.borderColor, JSColor, "JSColor");
+        if (spec.containsKey("borderColor")){
+            this.borderColor = spec.valueForKey("borderColor", JSColor);
         }
-        if ("borderWidth" in values){
-            this.borderWidth = spec.resolvedValue(values.borderWidth);
+        if (spec.containsKey("borderWidth")){
+            this.borderWidth = spec.valueForKey("borderWidth");
         }
-        if ("shadowColor" in values){
-            this.shadowColor = spec.resolvedEnum(values.shadowColor, JSColor, "JSColor");
+        if (spec.containsKey("shadowColor")){
+            this.shadowColor = spec.valueForKey("shadowColor", JSColor);
         }
-        if ("shadowRadius" in values){
-            this.shadowRadius = spec.resolvedValue(values.shadowRadius);
+        if (spec.containsKey("shadowRadius")){
+            this.shadowRadius = spec.valueForKey("shadowRadius");
         }
-        if ("shadowOffset" in values){
-            this.shadowOffset = JSPoint.apply(undefined, values.shadowOffset.parseNumberArray());
+        if (spec.containsKey("shadowOffset")){
+            this.shadowOffset = spec.valueForKey("shadowOffset", JSPoint);
         }
-        if ("maskedBorders" in values){
-            this.maskedBorders = spec.resolvedValue(values.maskedBorders);
+        if (spec.containsKey("maskedBorders")){
+            this.maskedBorders = spec.valueForKey("maskedBorders", UIView.Sides);
         }
-        if ("cornerRadius" in values){
-            this.cornerRadius = spec.resolvedValue(values.cornerRadius);
+        if (spec.containsKey("cornerRadius")){
+            this.cornerRadius = spec.valueForKey("cornerRadius");
         }
-        if ("maskedCorners" in values){
-            this.maskedCorners = spec.resolvedValue(values.maskedCorners);
+        if (spec.containsKey("maskedCorners")){
+            this.maskedCorners = spec.valueForKey("maskedCorners", UIView.Corners);
         }
-        if ("tooltip" in values){
-            this.tooltip = spec.resolvedValue(values.tooltip);
+        if (spec.containsKey("tooltip")){
+            this.tooltip = spec.valueForKey("tooltip");
         }
-        if ("nextKeyView" in values){
-            this.nextKeyView = spec.resolvedValue(values.nextKeyView);
+        if (spec.containsKey("nextKeyView")){
+            this.nextKeyView = spec.valueForKey("nextKeyView");
         }
-        if ("hidden" in values){
-            this.hidden = values.hidden;
+        if (spec.containsKey("hidden")){
+            this.hidden = spec.valueForKey("hidden");
         }
-        if ("alpha" in values){
-            this.alpha = values.alpha;
+        if (spec.containsKey("alpha")){
+            this.alpha = spec.valueForKey("alpha");
         }
-        if ("userInteractionEnabled" in values){
-            this.userInteractionEnabled = values.userInteractionEnabled;
+        if (spec.containsKey("userInteractionEnabled")){
+            this.userInteractionEnabled = spec.valueForKey("userInteractionEnabled");
         }
         var i, l;
-        if ("subviews" in values){
-            for (i = 0, l = values.subviews.length; i < l; ++i){
-                var subview = spec.resolvedValue(values.subviews[i], "UIView");
+        if (spec.containsKey("subviews")){
+            var subviews = spec.valueForKey("subviews");
+            for (i = 0, l = subviews.length; i < l; ++i){
+                var subview = subviews.valueForKey(i, UIView);
                 this.addSubview(subview);
             }
         }
         // NOTE: constraints are still and work in progress, and aren't actually
         // used yet during layout
-        if ("constraints" in values){
+        if (spec.containsKey("constraints")){
             var constraintValue;
-            for (i = 0, l = values.constraints.length; i < l; ++i){
-                constraintValue = JSCopy(values.constraints[i]);
-                if (constraintValue.firstItem == '<self>'){
-                    constraintValue.firstItem = this;
-                }
-                if (constraintValue.secondItem == '<self>'){
-                    constraintValue.secondItem = this;
-                }
-                var constraint = spec.resolvedValue(constraintValue, "UILayoutConstraint");
+            var constraints = spec.valueForKey("constraints");
+            for (i = 0, l = constraints.length; i < l; ++i){
+                var constraint = constraints.valueForKey(i, UILayoutConstraint);
                 this.addConstraint(constraint);
             }
         }
@@ -443,6 +438,7 @@ JSClass('UIView', UIResponder, {
     contentCompressionResistancePriority: UILayoutPriority.defaultHigh,
 
     addConstraint: function(constraint){
+        constraint._attachToView(this);
         if (constraint._targetItem !== this){
             throw new Error("Cannot add constrat to view because the constraint belongs to another view");
         }

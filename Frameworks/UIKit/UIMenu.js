@@ -33,16 +33,17 @@ JSClass("UIMenu", JSObject, {
         this._commonInit();
     },
 
-    initWithSpec: function(spec, values){
-        UIMenu.$super.initWithSpec.call(this, spec, values);
-        if ('styler' in values){
-            this._styler = spec.resolvedValue(values.styler);
+    initWithSpec: function(spec){
+        UIMenu.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('styler')){
+            this._styler = spec.valueForKey("styler", UIMenu.Styler);
         }
         this._commonInit();
         var item;
-        if ('items' in values){
-            for (var i = 0, l = values.items.length; i < l; ++i){
-                item = UIMenuItem.initWithSpec(spec, values.items[i]);
+        if (spec.containsKey('items')){
+            var items = spec.valueForKey('items');
+            for (var i = 0, l = items.length; i < l; ++i){
+                item = items.valueForKey(i, UIMenuItem);
                 this.addItem(item);
             }
         }
@@ -665,34 +666,34 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
     indentationSize: JSDynamicProperty('_indentationSize', 10),
     _keyWidth: 0,
 
-    initWithSpec: function(spec, values){
-        UIMenuDefaultStyler.$super.initWithSpec.call(this, spec, values);
-        if ('capSize' in values){
-            this._capSize = spec.resolvedValue(values.capSize);
+    initWithSpec: function(spec){
+        UIMenuDefaultStyler.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('capSize')){
+            this._capSize = spec.valueForKey("capSize");
         }
-        if ('cornerRadius' in values){
-            this._cornerRadius = spec.resolvedValue(values.cornerRadius);
+        if (spec.containsKey('cornerRadius')){
+            this._cornerRadius = spec.valueForKey("cornerRadius");
         }
-        if ('textColor' in values){
-            this._textColor = spec.resolvedValue(values.textColor);
+        if (spec.containsKey('textColor')){
+            this._textColor = spec.valueForKey("textColor", JSColor);
         }
-        if ('disabledTextColor' in values){
-            this._disabledTextColor = spec.resolvedValue(values.disabledTextColor);
+        if (spec.containsKey('disabledTextColor')){
+            this._disabledTextColor = spec.valueForKey("disabledTextColor", JSColor);
         }
-        if ('highlightedTextColor' in values){
-            this._highlightedTextColor = spec.resolvedValue(values.highlightedTextColor);
+        if (spec.containsKey('highlightedTextColor')){
+            this._highlightedTextColor = spec.valueForKey("highlightedTextColor", JSColor);
         }
-        if ('highlightColor' in values){
-            this._highlightColor = spec.resolvedValue(values.highlightColor);
+        if (spec.containsKey('highlightColor')){
+            this._highlightColor = spec.valueForKey("highlightColor", JSColor);
         }
-        if ('backgroundColor' in values){
-            this._backgroundColor = spec.resolvedValue(values.backgroundColor);
+        if (spec.containsKey('backgroundColor')){
+            this._backgroundColor = spec.valueForKey("backgroundColor", JSColor);
         }
-        if ('borderColor' in values){
-            this._borderColor = spec.resolvedValue(values.borderColor);
+        if (spec.containsKey('borderColor')){
+            this._borderColor = spec.valueForKey("borderColor", JSColor);
         }
-        if ('borderWidth' in values){
-            this._borderWidth = spec.resolvedValue(values.borderWidth);
+        if (spec.containsKey('borderWidth')){
+            this._borderWidth = spec.valueForKey("borderWidth");
         }
     },
 

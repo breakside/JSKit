@@ -60,51 +60,65 @@ JSClass("UIListView", UIScrollView, {
         this._commonListInit();
     },
 
-    initWithSpec: function(spec, values){
-        UIListView.$super.initWithSpec.call(this, spec, values);
-        if ('styler' in values){
-            this._styler = spec.resolvedEnum(values.styler, UIListView.Styler);
+    initWithSpec: function(spec){
+        UIListView.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('styler')){
+            this._styler = spec.valueForKey("styler", UIListView.Styler);
         }
         this._commonListInit();
-        if ('rowHeight' in values){
-            this._rowHeight = spec.resolvedValue(values.rowHeight);
+        if (spec.containsKey('rowHeight')){
+            this._rowHeight = spec.valueForKey("rowHeight");
         }
-        if ('headerHeight' in values){
-            this._headerHeight = spec.resolvedValue(values.headerHeight);
+        if (spec.containsKey('headerHeight')){
+            this._headerHeight = spec.valueForKey("headerHeight");
         }
-        if ('footerHeight' in values){
-            this._footerHeight = spec.resolvedValue(values.footerHeight);
+        if (spec.containsKey('footerHeight')){
+            this._footerHeight = spec.valueForKey("footerHeight");
         }
-        if ('delegate' in values){
-            this.delegate = spec.resolvedValue(values.delegate);
+        if (spec.containsKey('delegate')){
+            this.delegate = spec.valueForKey("delegate");
         }
-        if ('dataSource' in values){
-            this.dataSource = spec.resolvedValue(values.dataSource);
+        if (spec.containsKey('dataSource')){
+            this.dataSource = spec.valueForKey("dataSource");
         }
-        var i, l;
+        var reusable;
         var reuse;
         var styler;
-        if ('reusableCellClasses' in values){
-            for (i = 0, l = values.reusableCellClasses.length; i < l; ++i){
-                reuse = values.reusableCellClasses[i];
-                if (reuse.styler){
-                    styler = spec.resolvedValue(reuse.styler);
+        var identifiers;
+        var identifier;
+        var i, l;
+        if (spec.containsKey('reusableCellClasses')){
+            reusable = spec.valueForKey('reusableCellClasses');
+            identifiers = reusable.keys();
+            for (i = 0, l = identifiers.length; i < l; ++i){
+                identifier = identifiers[i];
+                reuse = reusable.valueForKey(identifier);
+                if (typeof(reuse) === 'string'){
+                    this.registerCellClassForReuseIdentifier(JSClass.FromName(reuse), identifier);
                 }else{
-                    styler = null;
+                    this.registerCellClassForReuseIdentifier(JSClass.FromName(reuse.valueForKey('className')), identifier, reuse.valueForKey('styler'));
                 }
-                this.registerCellClassForReuseIdentifier(JSClass.FromName(reuse.className), spec.resolvedValue(reuse.identifier), styler);
+                
             }
         }
-        if ('reusableHeaderFooterClasses' in values){
-            for (i = 0, l = values.reusableHeaderFooterClasses.length; i < l; ++i){
-                this.registerHeaderFooterClassForReuseIdentifier(JSClass.FromName(values.reusableHeaderFooterClasses[i].className), spec.resolvedValue(values.reusableHeaderFooterClasses[i].identifier));
+        if (spec.containsKey('reusableHeaderFooterClasses')){
+            reusable = spec.valueForKey('reusableHeaderFooterClasses');
+            identifiers = reusable.keys();
+            for (i = 0, l = identifiers.length; i < l; ++i){
+                identifier = identifiers[i];
+                reuse = reusable.valueForKey(identifier);
+                if (typeof(reuse) === 'string'){
+                    this.registerHeaderFooterClassForReuseIdentifier(JSClass.FromName(reuse), identifier);
+                }else{
+                    this.registerCellClassForReuseIdentifier(JSClass.FromName(reuse.valueForKey('className')), identifier);
+                }
             }
         }
-        if ('allowsMultipleSelection' in values){
-            this.allowsMultipleSelection = spec.resolvedValue(values.allowsMultipleSelection);
+        if (spec.containsKey('allowsMultipleSelection')){
+            this.allowsMultipleSelection = spec.valueForKey("allowsMultipleSelection");
         }
-        if ('headersStickToTop' in values){
-            this._headersStickToTop = spec.resolvedValue(values.headersStickToTop);
+        if (spec.containsKey('headersStickToTop')){
+            this._headersStickToTop = spec.valueForKey("headersStickToTop");
         }
     },
 
@@ -1955,21 +1969,17 @@ JSClass("UIListView", UIScrollView, {
         var l = this._selectedIndexPaths.length;
         var consecutiveIndexPath;
         if (index !== null){
-            if (toIndexPath.isLessThanOrEqual(anchorIndexPath)){
-                // clear any consecutive selection below the anchor
-                consecutiveIndexPath = this.selectableIndexPathAfter(anchorIndexPath);
-                for (i = index + 1; i < l && consecutiveIndexPath !== null && this._selectedIndexPaths[i].isEqual(consecutiveIndexPath); --l){
-                    this._selectedIndexPaths.splice(i, 1);
-                    consecutiveIndexPath = this.selectableIndexPathAfter(consecutiveIndexPath);
-                }
+            // clear any consecutive selection below the anchor
+            consecutiveIndexPath = this.selectableIndexPathAfter(anchorIndexPath);
+            for (i = index + 1; i < l && consecutiveIndexPath !== null && this._selectedIndexPaths[i].isEqual(consecutiveIndexPath); --l){
+                this._selectedIndexPaths.splice(i, 1);
+                consecutiveIndexPath = this.selectableIndexPathAfter(consecutiveIndexPath);
             }
-            if (toIndexPath.isGreaterThanOrEqual(anchorIndexPath)){
-                // clear any consecutive selection above the anchor
-                consecutiveIndexPath = this.selectableIndexPathBefore(anchorIndexPath);
-                for (i = index - 1; i >= 0 && consecutiveIndexPath !== null && this._selectedIndexPaths[i].isEqual(consecutiveIndexPath); --i, --index){
-                    this._selectedIndexPaths.splice(i, 1);
-                    consecutiveIndexPath = this.selectableIndexPathBefore(consecutiveIndexPath);
-                }
+            // clear any consecutive selection above the anchor
+            consecutiveIndexPath = this.selectableIndexPathBefore(anchorIndexPath);
+            for (i = index - 1; i >= 0 && consecutiveIndexPath !== null && this._selectedIndexPaths[i].isEqual(consecutiveIndexPath); --i, --index){
+                this._selectedIndexPaths.splice(i, 1);
+                consecutiveIndexPath = this.selectableIndexPathBefore(consecutiveIndexPath);
             }
             if (toIndexPath.isLessThan(anchorIndexPath)){
                 // add up to toIndexPath
@@ -1978,7 +1988,8 @@ JSClass("UIListView", UIScrollView, {
                     this._selectedIndexPaths.splice(i, 0, JSIndexPath(consecutiveIndexPath));
                     consecutiveIndexPath = this.selectableIndexPathBefore(consecutiveIndexPath);
                 }
-            }else if (toIndexPath.isGreaterThan(anchorIndexPath)){
+            }
+            if (toIndexPath.isGreaterThan(anchorIndexPath)){
                 // add down to toIndexPath
                 consecutiveIndexPath = this.selectableIndexPathAfter(anchorIndexPath);
                 for (i = index + 1; consecutiveIndexPath !== null && consecutiveIndexPath.isLessThanOrEqual(toIndexPath); ++i){
@@ -2697,76 +2708,76 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         this._commonStylerInit();
     },
 
-    initWithSpec: function(spec, values){
-        UIListViewDefaultStyler.$super.initWithSpec.call(this, spec, values);
-        if ('cellTextColor' in values){
-            this.cellTextColor = spec.resolvedValue(values.cellTextColor, "JSColor");
+    initWithSpec: function(spec){
+        UIListViewDefaultStyler.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('cellTextColor')){
+            this.cellTextColor = spec.valueForKey("cellTextColor", JSColor);
         }
-        if ('cellDetailTextColor' in values){
-            this.cellDetailTextColor = spec.resolvedValue(values.cellDetailTextColor, "JSColor");
+        if (spec.containsKey('cellDetailTextColor')){
+            this.cellDetailTextColor = spec.valueForKey("cellDetailTextColor", JSColor);
         }
-        if ('cellSeparatorColor' in values){
-            this.cellSeparatorColor = spec.resolvedValue(values.cellSeparatorColor, "JSColor");
+        if (spec.containsKey('cellSeparatorColor')){
+            this.cellSeparatorColor = spec.valueForKey("cellSeparatorColor", JSColor);
         }
-        if ('selectedCellTextColor' in values){
-            this.selectedCellTextColor = spec.resolvedValue(values.selectedCellTextColor, "JSColor");
+        if (spec.containsKey('selectedCellTextColor')){
+            this.selectedCellTextColor = spec.valueForKey("selectedCellTextColor", JSColor);
         }
-        if ('selectedCellDetailTextColor' in values){
-            this.selectedCellDetailTextColor = spec.resolvedValue(values.selectedCellDetailTextColor, "JSColor");
+        if (spec.containsKey('selectedCellDetailTextColor')){
+            this.selectedCellDetailTextColor = spec.valueForKey("selectedCellDetailTextColor", JSColor);
         }
-        if ('cellBackgroundColor' in values){
-            this.cellBackgroundColor = spec.resolvedValue(values.cellBackgroundColor, "JSColor");
+        if (spec.containsKey('cellBackgroundColor')){
+            this.cellBackgroundColor = spec.valueForKey("cellBackgroundColor", JSColor);
         }
-        if ('selectedCellBackgroundColor' in values){
-            this.selectedCellBackgroundColor = spec.resolvedValue(values.selectedCellBackgroundColor, "JSColor");
+        if (spec.containsKey('selectedCellBackgroundColor')){
+            this.selectedCellBackgroundColor = spec.valueForKey("selectedCellBackgroundColor", JSColor);
         }
-        if ('mutedSelectedCellTextColor' in values){
-            this.mutedSelectedCellTextColor = spec.resolvedValue(values.mutedSelectedCellTextColor, "JSColor");
+        if (spec.containsKey('mutedSelectedCellTextColor')){
+            this.mutedSelectedCellTextColor = spec.valueForKey("mutedSelectedCellTextColor", JSColor);
         }
-        if ('mutedSelectedCellDetailTextColor' in values){
-            this.mutedSelectedCellDetailTextColor = spec.resolvedValue(values.mutedSelectedCellDetailTextColor, "JSColor");
+        if (spec.containsKey('mutedSelectedCellDetailTextColor')){
+            this.mutedSelectedCellDetailTextColor = spec.valueForKey("mutedSelectedCellDetailTextColor", JSColor);
         }
-        if ('mutedSelectedCellBackgroundColor' in values){
-            this.mutedSelectedCellBackgroundColor = spec.resolvedValue(values.mutedSelectedCellBackgroundColor, "JSColor");
+        if (spec.containsKey('mutedSelectedCellBackgroundColor')){
+            this.mutedSelectedCellBackgroundColor = spec.valueForKey("mutedSelectedCellBackgroundColor", JSColor);
         }
-        if ('mutedSelectedCellSeparatorColor' in values){
-            this.mutedSelectedCellSeparatorColor = spec.resolvedValue(values.mutedSelectedCellSeparatorColor, "JSColor");
+        if (spec.containsKey('mutedSelectedCellSeparatorColor')){
+            this.mutedSelectedCellSeparatorColor = spec.valueForKey("mutedSelectedCellSeparatorColor", JSColor);
         }
-        if ('headerTextColor' in values){
-            this.headerTextColor = spec.resolvedValue(values.headerTextColor, "JSColor");
+        if (spec.containsKey('headerTextColor')){
+            this.headerTextColor = spec.valueForKey("headerTextColor", JSColor);
         }
-        if ('headerBackgroundColor' in values){
-            this.headerBackgroundColor = spec.resolvedValue(values.headerBackgroundColor, "JSColor");
+        if (spec.containsKey('headerBackgroundColor')){
+            this.headerBackgroundColor = spec.valueForKey("headerBackgroundColor", JSColor);
         }
-        if ('headerBorderColor' in values){
-            this.headerBorderColor = spec.resolvedValue(values.headerBorderColor, "JSColor");
+        if (spec.containsKey('headerBorderColor')){
+            this.headerBorderColor = spec.valueForKey("headerBorderColor", JSColor);
         }
-        if ('cellFont' in values){
-            this.cellFont = spec.resolvedValue(values.cellFont, "JSFont");
+        if (spec.containsKey('cellFont')){
+            this.cellFont = spec.valueForKey("cellFont", JSFont);
         }
-        if ('cellDetailFont' in values){
-            this.cellDetailFont = spec.resolvedValue(values.cellDetailFont, "JSFont");
+        if (spec.containsKey('cellDetailFont')){
+            this.cellDetailFont = spec.valueForKey("cellDetailFont", JSFont);
         }
-        if ('separatorInsets' in values){
-            this.separatorInsets = JSInsets.apply(undefined, values.separatorInsets.parseNumberArray());
+        if (spec.containsKey('separatorInsets')){
+            this.separatorInsets = spec.valueForKey("separatorInsets", JSInsets);
         }
-        if ('imageSize' in values){
-            this.imageSize = JSSize.apply(undefined, values.imageSize.parseNumberArray());
+        if (spec.containsKey('imageSize')){
+            this.imageSize = spec.valueForKey("imageSize", JSSize);
         }
-        if ('accessorySize' in values){
-            this.accessorySize = JSSize.apply(undefined, values.accessorySize.parseNumberArray());
+        if (spec.containsKey('accessorySize')){
+            this.accessorySize = spec.valueForKey("accessorySize", JSSize);
         }
-        if ('accessoryColor' in values){
-            this.accessoryColor = spec.resolvedValue(values.accessoryColor, "JSColor");
+        if (spec.containsKey('accessoryColor')){
+            this.accessoryColor = spec.valueForKey("accessoryColor", JSColor);
         }
-        if ('showSeparators' in values){
-            this.showSeparators = spec.resolvedValue(values.showSeparators);
+        if (spec.containsKey('showSeparators')){
+            this.showSeparators = spec.valueForKey("showSeparators");
         }
-        if ('cellContentInsets' in values){
-            this.cellContentInsets = JSInsets.apply(undefined, values.cellContentInsets.parseNumberArray());
+        if (spec.containsKey('cellContentInsets')){
+            this.cellContentInsets = spec.valueForKey("cellContentInsets", JSInsets);
         }
-        if ('cellContentCornerRadius' in values){
-            this.cellContentCornerRadius = spec.resolvedValue(values.cellContentCornerRadius);
+        if (spec.containsKey('cellContentCornerRadius')){
+            this.cellContentCornerRadius = spec.valueForKey("cellContentCornerRadius");
         }
         this._commonStylerInit();
     },

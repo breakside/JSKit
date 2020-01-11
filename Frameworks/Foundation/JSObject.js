@@ -79,26 +79,26 @@ JSObject.definePropertiesFromExtensions({
         return null;
     },
 
-    initWithSpec: function(spec, values){
-        if ("outlets" in values){
-            this._initSpecOutlets(spec, values.outlets);
+    initWithSpec: function(spec){
+        var outlets = spec.valueForKey("outlets");
+        if (outlets !== null){
+            var keys = outlets.keys();
+            var key;
+            for (var i = 0, l = keys.length; i < l; ++i){
+                key = keys[i];
+                this._defineGetterForOutlet(key, outlets);
+            }
         }
     },
 
     awakeFromSpec: function(){
     },
 
-    _initSpecOutlets: function(spec, outlets){
-        for (var key in outlets){
-            this._defineGetterForOutlet(spec, outlets, key);
-        }
-    },
-
-    _defineGetterForOutlet: function(spec, outlets, key){
+    _defineGetterForOutlet: function(key, outlets){
         Object.defineProperty(this, key, {
             configurable: true,
             get: function(){
-                var value = spec.resolvedValue(outlets[key]);
+                var value = outlets.valueForKey(key);
                 Object.defineProperty(this, key, {configurable: true, writable: true, value: value});
                 return value;
             }

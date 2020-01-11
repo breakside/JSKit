@@ -17,38 +17,34 @@ JSClass("UIButton", UIControl, {
     _imageView: null,
     _backgroundImageView: null,
 
-    initWithSpec: function(spec, values){
-        UIButton.$super.initWithSpec.call(this, spec, values);
-        if ('font' in values){
-            this.titleLabel.font = JSFont.initWithSpec(spec, values.font);
+    initWithSpec: function(spec){
+        UIButton.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('font')){
+            this.titleLabel.font = spec.valueForKey("font", JSFont);
         }
-        if ('title' in values){
-            this.titleLabel.text = spec.resolvedValue(values.title);
+        if (spec.containsKey('title')){
+            this.titleLabel.text = spec.valueForKey("title");
         }
-        if ('titleInsets' in values){
-            this._titleInsets = JSInsets.apply(undefined, values.titleInsets.parseNumberArray());
+        if (spec.containsKey('titleInsets')){
+            this._titleInsets = spec.valueForKey("titleInsets", JSInsets);
         }
-        if ('image' in values){
-            var image;
-            if (typeof(values.image) == "string"){
-                image = spec.resolvedValue(values.image, "JSImage");
+        if (spec.containsKey('image')){
+            var image = spec.valueForKey("image");
+            if (typeof(image) === 'string'){
+                image = JSImage.initWithResourceName(image, spec.bundle);
                 this.setImageForState(image, UIControl.State.normal);
             }else{
-                if ('normal' in values.image){
-                    image = spec.resolvedValue(values.image.normal, "JSImage");
-                    this.setImageForState(image, UIControl.State.normal);
+                if (image.containsKey('normal')){
+                    this.setImageForState(image.valueForKey("normal", JSImage), UIControl.State.normal);
                 }
-                if ('over' in values.image){
-                    image = spec.resolvedValue(values.image.over, "JSImage");
-                    this.setImageForState(image, UIControl.State.over);
+                if (image.containsKey('over')){
+                    this.setImageForState(image.valueForKey("over", JSImage), UIControl.State.over);
                 }
-                if ('active' in values.image){
-                    image = spec.resolvedValue(values.image.active, "JSImage");
-                    this.setImageForState(image, UIControl.State.active);
+                if (image.containsKey('active')){
+                    this.setImageForState(image.valueForKey("active", JSImage), UIControl.State.active);
                 }
-                if ('disabled' in values.image){
-                    image = spec.resolvedValue(values.image.disabled, "JSImage");
-                    this.setImageForState(image, UIControl.State.disabled);
+                if (image.containsKey('disabled')){
+                    this.setImageForState(image.valueForKey("disabled", JSImage), UIControl.State.disabled);
                 }
             }
         }
@@ -245,13 +241,13 @@ JSClass("UIButtonStyler", UIControlStyler, {
         this.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
     },
 
-    initWithSpec: function(spec, values){
-        UIButtonStyler.$super.initWithSpec.call(this, spec, values);
-        if ('titleInsets' in values){
-            this.titleInsets = JSInsets.apply(undefined, values.titleInsets.parseNumberArray());
+    initWithSpec: function(spec){
+        UIButtonStyler.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('titleInsets')){
+            this.titleInsets = spec.valueForKey("titleInsets", JSInsets);
         }
-        if ('font' in values){
-            this.font = spec.resolvedValue(values.font, "JSFont");
+        if (spec.containsKey('font')){
+            this.font = spec.valueForKey("font", JSFont);
         }else{
             this.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
         }
@@ -447,16 +443,16 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
         this.initWithColor(JSColor.blackColor);
     },
 
-    initWithSpec: function(spec, values){
-        UIButtonCustomStyler.$super.initWithSpec.call(this, spec, values);
-        if ('normalBackgroundColor' in values){
-            this.normalBackgroundColor = spec.resolvedValue(values.normalBackgroundColor, "JSColor");
+    initWithSpec: function(spec){
+        UIButtonCustomStyler.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('normalBackgroundColor')){
+            this.normalBackgroundColor = spec.valueForKey("normalBackgroundColor", JSColor);
         }
-        if ('normalTitleColor' in values){
-            this.normalTitleColor = spec.resolvedValue(values.normalTitleColor, "JSColor");
+        if (spec.containsKey('normalTitleColor')){
+            this.normalTitleColor = spec.valueForKey("normalTitleColor", JSColor);
         }
-        if ('cornerRadius' in values){
-            this.cornerRadius = spec.resolvedValue(values.cornerRadius);
+        if (spec.containsKey('cornerRadius')){
+            this.cornerRadius = spec.valueForKey("cornerRadius");
         }
         this._commonInit();
     },

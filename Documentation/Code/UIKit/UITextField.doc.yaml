@@ -90,35 +90,20 @@ topics:
                   ````
               -
                 name: textInsets
-                type: String
+                type: JSInsets
                 summary: The amounts the text should be inset from the field's
                   edges, overriding any styler setting
                 description: |
-                  A string of comma-separated integers, that when parsed will be
-                  pased to the `JSInsets` constructor.
-
                   ````
                   WelcomeLabel:
                     class: UITextField
                     text: Hello, world!
                     textInsets: 4,7
                   ````
-              -
-                name: textInsets
-                suffix: number
-                type: Number
-                summary: The amount the text should be inset all from the field's
-                  edges, overriding any styler setting
-                description: |
-                  A single number that will be passed to the `JSInsets` constructor
-                  and used for all sides.
-
-                  ````
-                  WelcomeLabel:
-                    class: UITextField
-                    text: Hello, world!
-                    textInsets: 4
-                  ````
+                  
+                  See `JSInsets`(JSInsets.Spec File Properties) for 
+                  description of the various ways insets can be
+                  specified.
               -
                 name: textAlignment
                 type: JSTextAlignment
@@ -175,33 +160,33 @@ topics:
                 summary: An view to use as the field's left accessory
               -
                 name: leftAccessorySize
-                type: String
+                type: JSSize
                 summary: The size of the left accessory
                 description: |
-                  A string of comma-separated integers, that when parsed will be
-                  pased to the `JSInsets` constructor.
-              -
-                name: leftAccessorySize
-                suffix: number
-                type: Number
-                summary: The identical width and height of the left accessory
-                description: |
-                  A number that will be used for the left accessory's width and
-                  height.
+                  ````
+                  Field:
+                    class: UITextField
+                    leftAccessorySize: 20,16
+                  ````
+                  
+                  See `JSSize`(JSSize.Spec File Properties) for 
+                  description of the various ways insets can be
+                  specified.
               -
                 name: leftAccessoryInsets
-                type: String
+                type: JSInsets
                 summary: The amounts the left accessory should be spaced from the
                   field's left/top/bottom edges and the text
                 description: |
-                  A string of comma-separated integers, that when parsed will be
-                  pased to the `JSInsets` constructor.
-              -
-                name: leftAccessoryInsets
-                suffix: number
-                type: Number
-                summary: The equal amount the left accessory should be spaced
-                  from the field's left/top/bottom edges and the text
+                  ````
+                  Field:
+                    class: UITextField
+                    leftAccessoryInsets: 2,3
+                  ````
+                  
+                  See `JSInsets`(JSInsets.Spec File Properties) for 
+                  description of the various ways insets can be
+                  specified.
               -
                 name: leftAccessoryVisibility
                 type: AccessoryVisibility
@@ -219,33 +204,33 @@ topics:
                 summary: An view to use as the field's right accessory
               -
                 name: rightAccessorySize
-                type: String
+                type: JSSize
                 summary: The size of the right accessory
                 description: |
-                  A string of comma-separated integers, that when parsed will be
-                  pased to the `JSInsets` constructor.
-              -
-                name: rightAccessorySize
-                suffix: number
-                type: Number
-                summary: The identical width and height of the right accessory
-                description: |
-                  A number that will be used for the right accessory's width and
-                  height.
+                  ````
+                  Field:
+                    class: UITextField
+                    rightAccessorySize: 20,16
+                  ````
+                  
+                  See `JSSize`(JSSize.Spec File Properties) for 
+                  description of the various ways insets can be
+                  specified.
               -
                 name: rightAccessoryInsets
-                type: String
+                type: JSInsets
                 summary: The amounts the right accessory should be spaced from the
                   field's right/top/bottom edges and the text
                 description: |
-                  A string of comma-separated integers, that when parsed will be
-                  pased to the `JSInsets` constructor.
-              -
-                name: rightAccessoryInsets
-                suffix: number
-                type: Number
-                summary: The equal amount the right accessory should be spaced
-                  from the field's right/top/bottom edges and the text
+                  ````
+                  Field:
+                    class: UITextField
+                    rightAccessoryInsets: 2,3
+                  ````
+                  
+                  See `JSInsets`(JSInsets.Spec File Properties) for 
+                  description of the various ways insets can be
+                  specified.
               -
                 name: rightAccessoryVisibility
                 type: AccessoryVisibility

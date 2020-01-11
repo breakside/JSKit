@@ -13,8 +13,8 @@ JSClass("UIBrowserViewController", UIViewController, {
         this._commonBrowserViewControllerInit();
     },
 
-    initWithSpec: function(spec, values){
-        UIBrowserViewController.$super.initWithSpec.call(this, spec, values);
+    initWithSpec: function(spec){
+        UIBrowserViewController.$super.initWithSpec.call(this, spec);
         this._commonBrowserViewControllerInit();
     },
 
@@ -22,7 +22,7 @@ JSClass("UIBrowserViewController", UIViewController, {
         this._viewControllers = [];
     },
 
-    _defaultViewClass: "UIBrowserView",
+    _defaultViewClass: UIBrowserView,
 
     // --------------------------------------------------------------------
     // MARK: - View Lifecycle

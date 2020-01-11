@@ -20,10 +20,10 @@ JSClass("UIScroller", UIControl, {
         }
     },
 
-    initWithSpec: function(spec, values){
-        UIScroller.$super.initWithSpec.call(this, spec, values);
-        if ('direction' in values){
-            this._direction = spec.resolvedValue(values.direction);
+    initWithSpec: function(spec){
+        UIScroller.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('direction')){
+            this._direction = spec.valueForKey("direction", UIScroller.Direction);
         }
     },
 

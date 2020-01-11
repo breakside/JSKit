@@ -1,6 +1,7 @@
 // #import Foundation
 // #import "SKHTTPResponderContext.js"
-/* global JSClass, JSObject, JSDeepCopy, SKHTTPRoute, SKHTTPResourceRoute, JSCopy, JSSpec, SKHTTPResponderContext */
+// #import "SKHTTPResourceResponder.js"
+/* global JSClass, JSObject, JSDeepCopy, SKHTTPRoute, SKHTTPResourceRoute, JSCopy, JSSpec, SKHTTPResponderContext, SKHTTPResourceResponder */
 'use strict';
 
 (function(){
@@ -19,14 +20,21 @@ JSClass("SKHTTPRoute", JSObject, {
         this.children = [];
     },
 
-    initWithSpec: function(spec, values){
-        SKHTTPRoute.$super.initWithSpec.call(this, spec, values);
-        this.initWithComponentStrings(values.components, values.responder);
+    initWithSpec: function(spec){
+        SKHTTPRoute.$super.initWithSpec.call(this, spec);
+        var componentStrings = spec.valueForKey("components").values();
+        var responderClass = null;
+        if (spec.containsKey("responder")){
+            responderClass = JSClass.FromName(spec.valueForKey("responder"));
+        }
+        this.initWithComponentStrings(componentStrings, responderClass);
     },
 
-    initWithComponentStrings: function(componentStrings, responderClassName){
+    initWithComponentStrings: function(componentStrings, responderClass){
         this._init();
-        this._responderClass = JSClass.FromName(responderClassName);
+        if (responderClass){
+            this._responderClass = responderClass;
+        }
         if (componentStrings.length === 0){
             throw Error("Must have at least 1 component string for route");
         }
@@ -175,15 +183,14 @@ JSClass("SKHTTPResourceRoute", SKHTTPRoute, {
 
     _resourceMetadata: null,
     _bundle: null,
+    _responderClass: SKHTTPResourceResponder,
 
-    initWithSpec: function(spec, values){
-        if (!values.responder){
-            values = JSDeepCopy(values);
-            values.responder = "SKHTTPResourceResponder";
-        }
-        SKHTTPResourceRoute.$super.initWithSpec.call(this, spec, values);
+    initWithSpec: function(spec){
+        SKHTTPResourceRoute.$super.initWithSpec.call(this, spec);
         this._bundle = spec.bundle;
-        this._resourceMetadata = this._bundle.metadataForResourceName(values.resource, values.type);
+        var resourceName = spec.valueForKey("resource");
+        var type = spec.valueForKey("type");
+        this._resourceMetadata = this._bundle.metadataForResourceName(resourceName, type);
     },
 
     responderWithRequest: function(request, context){
@@ -198,13 +205,14 @@ JSClass("SKHTTPResourceRoute", SKHTTPRoute, {
 
 });
 
-SKHTTPRoute.CreateFromMap = function(routes, spec){
+SKHTTPRoute.CreateFromMap = function(routes, ownerSpec){
     var routeMap = {};
     var route;
     var path;
     var components;
     var parentPath;
     var cls;
+    var specKey;
 
     // normalize paths and create temporary objects to hold intermediate data
     //
@@ -212,6 +220,7 @@ SKHTTPRoute.CreateFromMap = function(routes, spec){
     // spec writing, but these are common, unambiguous, easy to fix errors.
     for (path in routes){
         route = routes[path];
+        specKey = path;
         // remove consecutive slashes
         path = path.replace(/\/{2,}/g, '/');
         // remove trailing slash, but not a leading /
@@ -222,32 +231,24 @@ SKHTTPRoute.CreateFromMap = function(routes, spec){
         if (path.charAt(0) != '/'){
             path = '/' + path;
         }
-        routeMap[path] = {parentPath: null, specValue: route, instantiated: null};
+        routeMap[path] = {parentPath: null, specKey: specKey, dictionary: route, type: route.resource ? SKHTTPResourceRoute : SKHTTPRoute, instantiated: null};
     }
 
     // determine route-specific components, parent relationships, and instantiate route objects
     //
-    // NOTE: this cheats a little bit by modifying each route's spec value, which
-    // were basically incomplete in the specfile itself.  All the information
+    // All the information
     // we need is in the spec file, but its format is adjusted there for easier
     // human reading/writing.  So we rearrange the data here in order to
     // properly instanitate the route objects.
     for (path in routeMap){
         route = routeMap[path];
-        route.specValue.components = [];
-        if (!(JSSpec.Keys.ObjectClass in route.specValue)){
-            if (route.specValue.resource){
-                route.specValue[JSSpec.Keys.ObjectClass] = "SKHTTPResourceRoute";
-            }else{
-                route.specValue[JSSpec.Keys.ObjectClass] = "SKHTTPRoute";
-            }
-        }
+        route.dictionary.components = [];
         if (path === '/'){
-            route.specValue.components.push("/");
+            route.dictionary.components.push("/");
         }else{
             components = path.split('/');
             while (components.length > 1 && route.parentPath === null){
-                route.specValue.components.unshift(components.pop());
+                route.dictionary.components.unshift(components.pop());
                 parentPath = components.join('/');
                 if (parentPath in routeMap){
                     route.parentPath = parentPath;
@@ -257,8 +258,18 @@ SKHTTPRoute.CreateFromMap = function(routes, spec){
                 route.parentPath = '/';
             }
         }
-        cls = JSClass.FromName(route.specValue[JSSpec.Keys.ObjectClass]);
-        route.instantiated = cls.initWithSpec(spec || null, route.specValue);
+    }
+
+    var spec;
+    if (ownerSpec){
+        spec = ownerSpec.initWithValue(routes, ownerSpec);
+    }else{
+        spec = JSSpec.initWithPropertyList(routes);
+    }
+
+    for (path in routeMap){
+        route = routeMap[path];
+        route.instantiated = spec.valueForKey(route.specKey, route.type);
     }
 
     // Link parents and children

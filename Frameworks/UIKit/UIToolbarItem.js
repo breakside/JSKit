@@ -1,7 +1,7 @@
 // #import "UIButton.js"
 // #import "UIImageView.js"
 // #import "UILabel.js"
-/* global JSClass, UIView, UIImageView, UIControl, JSObject, JSSize, JSDynamicProperty, JSLazyInitProperty, JSImage, UIButton, UIToolbarItem, UIToolbarItemView, UIToolbarItemSpaceView, UILabel, JSTextAlignment */
+/* global JSClass, UIView, UIImageView, UIControl, JSObject, JSSize, JSDynamicProperty, JSLazyInitProperty, JSImage, UIButton, UIToolbarItem, UIToolbarItemView, UIToolbarItemSpaceView, UILabel, JSTextAlignment, UIMenuItem */
 'use strict';
 
 JSClass("UIToolbarItem", JSObject, {
@@ -38,40 +38,40 @@ JSClass("UIToolbarItem", JSObject, {
         this._commonItemInit();
     },
 
-    initWithSpec: function(spec, values){
-        UIToolbarItem.$super.initWithSpec.call(this, spec, values);
-        if ('identifier' in values){
-            this.identifier = spec.resolvedEnum(values.identifier, UIToolbarItem.Identifier);
+    initWithSpec: function(spec){
+        UIToolbarItem.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('identifier')){
+            this.identifier = spec.valueForKey("identifier", UIToolbarItem.Identifier);
         }
-        if ('title' in values){
-            this._title = spec.resolvedValue(values.title);
+        if (spec.containsKey('title')){
+            this._title = spec.valueForKey("title");
         }
-        if ('tooltip' in values){
-            this._tooltip = spec.resolvedValue(values.tooltip);
+        if (spec.containsKey('tooltip')){
+            this._tooltip = spec.valueForKey("tooltip");
         }
-        if ('image' in values){
-            this._image = spec.resolvedValue(values.image, "JSImage");
+        if (spec.containsKey('image')){
+            this._image = spec.valueForKey("image", JSImage);
         }
-        if ('view' in values){
-            this._view = spec.resolvedValue(values.view, "UIView");
+        if (spec.containsKey('view')){
+            this._view = spec.valueForKey("view", UIView);
         }
-        if ('enabled' in values){
-            this._enabled = spec.resolvedValue(values.enabled);
+        if (spec.containsKey('enabled')){
+            this._enabled = spec.valueForKey("enabled");
         }
-        if ('minimumSize' in values){
-            this._minimumSize = JSSize.call(undefined, values.minimumSize.parseNumberArray());
+        if (spec.containsKey('minimumSize')){
+            this._minimumSize = spec.valueForKey("minimumSize", JSSize);
         }
-        if ('maximumSize' in values){
-            this._maximumSize = JSSize.call(undefined, values.maximumSize.parseNumberArray());
+        if (spec.containsKey('maximumSize')){
+            this._maximumSize = spec.valueForKey("maximumSize", JSSize);
         }
-        if ('target' in values){
-            this._target = spec.resolvedValue(values.target);
+        if (spec.containsKey('target')){
+            this._target = spec.valueForKey("target");
         }
-        if ('action' in values){
-            this._action = spec.resolvedValue(values.action);
+        if (spec.containsKey('action')){
+            this._action = spec.valueForKey("action");
         }
-        if ('menuFormRepresentation' in values){
-            this.menuFormRepresentation = spec.resolvedValue(values.menuFormRepresentation, "UIMenuItem");
+        if (spec.containsKey('menuFormRepresentation')){
+            this.menuFormRepresentation = spec.valueForKey("menuFormRepresentation", UIMenuItem);
         }
         this._commonItemInit();
     },

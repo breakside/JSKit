@@ -17,16 +17,16 @@ JSClass("UIImageView", UIView, {
         this._commonImageViewInit();
     },
 
-    initWithSpec: function(spec, values){
-        UIImageView.$super.initWithSpec.call(this, spec, values);
-        if ('templateColor' in values){
-            this.templateColor = spec.resolvedValue(values.templateColor, "JSColor");
+    initWithSpec: function(spec){
+        UIImageView.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('templateColor')){
+            this.templateColor = spec.valueForKey("templateColor", JSColor);
         }
-        if ('image' in values){
-            this.image = spec.resolvedValue(values.image, "JSImage");
+        if (spec.containsKey('image')){
+            this.image = spec.valueForKey("image", JSImage);
         }
-        if ('scaleMode' in values){
-            this.scaleMode = spec.resolvedEnum(values.scaleMode, JSImage.ScaleMode);
+        if (spec.containsKey('scaleMode')){
+            this.scaleMode = spec.valueForKey("scaleMode", JSImage.ScaleMode);
         }else{
             this._scaleImage();
         }

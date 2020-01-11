@@ -1,5 +1,5 @@
 // #import "UIListView.js"
-/* global JSClass, UIListView, UIListViewDefaultStyler, UIListViewDelegate, UIOutlineView, JSProtocol, JSIndexPath, UIEvent, UIOutlineViewDefaultStyler, UIControl, JSBundle, JSImage, JSAffineTransform, JSRect, JSPoint, JSSize */
+/* global JSClass, UIListView, UIListViewDefaultStyler, UIListViewDelegate, UIOutlineView, JSProtocol, JSIndexPath, UIEvent, UIOutlineViewDefaultStyler, UIControl, JSBundle, JSImage, JSAffineTransform, JSRect, JSPoint, JSSize, JSColor */
 'use strict';
 
 (function(){
@@ -181,7 +181,7 @@ JSClass("UIOutlineView", UIListView, {
     },
 
     keyDown: function(event){
-        var singleIndexPath = this._selectedIndexPaths.singleIndexPath;
+        var singleIndexPath = this.selectedIndexPath;
         var extend;
         if (singleIndexPath){
             var recursive = event.hasModifier(UIEvent.Modifier.option);
@@ -343,17 +343,17 @@ JSClass("UIOutlineViewDefaultStyler", UIListViewDefaultStyler, {
     disclosureColor: null,
     selectedDisclosureColor: null,
 
-    initWithSpec: function(spec, values){
-        if ('disclosureButtonImage' in values){
-            this.disclosureButtonImage = spec.resolvedValue(values.disclosureButtonImage, "JSImage");
+    initWithSpec: function(spec){
+        UIOutlineViewDefaultStyler.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('disclosureButtonImage')){
+            this.disclosureButtonImage = spec.valueForKey("disclosureButtonImage", JSImage);
         }
-        if ('disclosureColor' in values){
-            this.disclosureColor = spec.resolvedValue(values.disclosureColor, "JSColor");
+        if (spec.containsKey('disclosureColor')){
+            this.disclosureColor = spec.valueForKey("disclosureColor", JSColor);
         }
-        if ('selectedDisclosureColor' in values){
-            this.selectedDisclosureColor = spec.resolvedValue(values.selectedDisclosureColor, "JSColor");
+        if (spec.containsKey('selectedDisclosureColor')){
+            this.selectedDisclosureColor = spec.valueForKey("selectedDisclosureColor", JSColor);
         }
-        UIOutlineViewDefaultStyler.$super.initWithSpec.call(this, spec, values);
     },
 
     _commonStylerInit: function(){

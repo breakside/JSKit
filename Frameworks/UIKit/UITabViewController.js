@@ -10,37 +10,35 @@ JSClass("UITabViewController", UIViewController, {
     selectedIndex: JSDynamicProperty(),
     selectedViewController: JSDynamicProperty(),
     _previouslySelectedViewController: null,
-    _defaultViewClass: "UITabView",
+    _defaultViewClass: UITabView,
 
     initWithViewControllers: function(viewControllers){
         UITabViewController.$super.init.call(this);
         this._viewControllers = JSCopy(viewControllers);
     },
 
-    initWithSpec: function(spec, values){
+    initWithSpec: function(spec){
         this._viewControllers = [];
         var viewController;
         var i, l;
-        if ('viewControllers' in values){
-            for (i = 0, l = values.viewControllers.length; i < l; ++i){
-                viewController = spec.resolvedValue(values.viewControllers[i]);
+        if (spec.containsKey('viewControllers')){
+            var viewControllers = spec.valueForKey("viewControllers");
+            for (i = 0, l = viewControllers.length; i < l; ++i){
+                viewController = viewControllers.valueForKey(i);
                 this.viewControllers.push(viewController);
             }
         }
-        if ('view' in values){
-            // Set properties that can't really be defined in the spec because
-            // we always want them to be the same thing.  This ensures they're
-            // populated and set correctly when the view is loaded from the spec
-            values = JSDeepCopy(values);
-            values.view.delegate = this;
-            values.view.items = [];
-            for (i = 0, l = this._viewControllers.length; i < l; ++i){
-                values.view.items.push(this._viewControllers[i].tabViewItem);
-            }
-        }
-        UITabViewController.$super.initWithSpec.call(this, spec, values);
+        UITabViewController.$super.initWithSpec.call(this, spec);
         for (i = 0, l = this.viewControllers.length; i < l; ++i){
             this.addChildViewController(this.viewControllers[i]);
+        }
+    },
+
+    viewDidLoad: function(){
+        UITabViewController.$super.viewDidLoad.call(this);
+        this.view.delegate = this;
+        for (var i = 0, l = this._viewControllers.length; i < l; ++i){
+            this.view.addItem(this._viewControllers[i].tabViewItem);
         }
     },
 
@@ -58,17 +56,6 @@ JSClass("UITabViewController", UIViewController, {
         this._viewControllers[index].removeFromParentViewController();
         this._viewControllers.splice(index, 1);
         this.tabView.removeItemAtIndex(index);
-    },
-
-    loadView: function(){
-        var tabView = UITabView.init();
-        tabView.delegate = this;
-        var items = [];
-        for (var i = 0, l = this._viewControllers.length; i < l; ++i){
-            items.push(this._viewControllers[i].tabViewItem);
-        }
-        tabView.items = items;
-        this._view = tabView;
     },
 
     getTabView: function(){

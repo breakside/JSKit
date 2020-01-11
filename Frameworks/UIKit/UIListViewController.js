@@ -7,22 +7,19 @@
 JSClass("UIListViewController", UIViewController, {
 
     listView: JSReadOnlyProperty(),
-    _defaultViewClass: "UIListView",
+    _defaultViewClass: UIListView,
 
     init: function(){
     },
 
-    initWithSpec: function(spec, values){
-        if ('view' in values){
-            values = JSDeepCopy(values);
-            if (!('delegate' in values)){
-                values.view.delegate = this;
-            }
-            if (!('dataSource' in values)){
-                values.view.dataSource = this;
-            }
+    viewDidLoad: function(){
+        UIListViewController.$super.viewDidLoad.call(this);
+        if (this.view.delegate === null){
+            this.view.delegate = this;
         }
-        UIListViewController.$super.initWithSpec.call(this, spec, values);
+        if (this.view.dataSource === null){
+            this.view.dataSource = this;
+        }
     },
 
     getListView: function(){

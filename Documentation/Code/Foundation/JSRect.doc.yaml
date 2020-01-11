@@ -104,6 +104,124 @@ topics:
         note: Even though this looks like a property, it will always return a
           new `JSRect` each time it is invoked, ensuring that nothing can
           accidentally modify or overwrite the `Zero` property.
+      -
+        name: initWithSpec
+        kind: method
+        static: true
+        summary: Create a rect from a value in a spec file
+        arguments:
+          - 
+            name: spec
+            type: JSSpec
+            summary: The spec in which the rect is described
+          - 
+            name: values
+            type: any
+            summary: The value that the describes the rect in the spec
+
+        description: |
+          Typically used in `initWithSpec()`(JSObject.initWithSpec())
+          implementations for objects that have `JSRect` properties.
+
+          Handles the various ways a `JSRect` can be specified in a spec file.
+
+          See [Spec File Properties](Spec File Properties) for more information
+          about how to write a `JSRect` in a spec file.
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The ways to specify a `JSRect` in a spec file
+        description: |
+          A rect can be specified in various ways in a spec file:
+          1. As a comma-separated `String` like `"10,20,300,400"` where the
+             components refer to, in order,
+             - `origin.x`()
+             - `origin.y`()
+             - `size.width`()
+             - `size.height`()
+          2. As a dictionary with `x`, `y`, `width`, and `height` properties
+          2. As a dictionary with `origin` and `size` properties
+
+          All of these are equivalent:
+
+          String form:
+          ````
+          View:
+            frame: 10,20,300,400
+          ````
+
+          Dictionary form:
+          ````
+          View:
+            frame:
+              x: 10
+              y: 20
+              width: 300
+              height: 400
+          ````
+
+          Expanded Dictionary form:
+          ````
+          View1:
+            frame:
+              origin: 10,20
+              size: 300,400
+
+          View2:
+            frame:
+              origin:
+                x: 10
+                y: 20
+              size:
+                width: 300
+                height: 400
+          ````
+        topics:
+          -
+            name: Dictionary Representation
+            members:
+              -
+                name: x
+                type: Number
+                summary: The x component of the origin
+                description: |
+                  If unspecified, defaults to `0`
+              -
+                name: "y"
+                type: Number
+                summary: The y component of the origin
+                description: |
+                  If unspecified, defaults to `0`
+              -
+                name: width
+                type: Number
+                summary: The width of the rect
+                description: |
+                  If unspecified, defaults to `0`
+              -
+                name: height
+                type: Number
+                summary: The height of the rect
+                description: |
+                  If unspecified, defaults to `0`
+          -
+            name: Expanded Dictionary Representation
+            members:
+              -
+                name: origin
+                type: JSPoint
+                summary: The rect's origin
+                description: |
+                  Overrides `x` and `y` properties.
+
+                  If unspecified, defaults to `JSPoint.Zero`
+              -
+                name: size
+                type: Size
+                summary: The rect's size
+                  Overrides `width` and `height` properties.
+
+                  If unspecified, defaults to `JSSize.Zero`
   -
     name: Location
     members:

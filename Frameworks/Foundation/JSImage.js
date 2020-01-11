@@ -35,16 +35,16 @@ JSClass('JSImage', JSObject, {
         return _JSURLImage.initWithURL(url, size, scale);
     },
 
-    initWithSpec: function(spec, values){
-        if (typeof(values) === 'string'){
-            return this.initWithResourceName(values, spec.bundle);
+    initWithSpec: function(spec){
+        if (spec.stringValue !== null){
+            return this.initWithResourceName(spec.stringValue, spec.bundle);
         }
         var image = null;
-        if ('name' in values){
-            image = this.initWithResourceName(values.name, spec.bundle);
+        if (spec.containsKey('name')){
+            image = this.initWithResourceName(spec.valueForKey("name"), spec.bundle);
         }
-        if (image !== null && 'renderMode' in values){
-            image = image.imageWithRenderMode(spec.resolvedEnum(values.renderMode, JSImage.RenderMode));
+        if (image !== null && spec.containsKey("renderMode")){
+            image = image.imageWithRenderMode(spec.valueForKey("renderMode", JSImage.RenderMode));
         }
         return image;
     },

@@ -24,62 +24,62 @@ JSClass("UITextField", UIControl, {
     _clipView: null,
     _textLayer: null,
 
-    initWithSpec: function(spec, values){
-        UITextField.$super.initWithSpec.call(this, spec, values);
-        if ("textInsets" in values){
-            this.textInsets = JSInsets.apply(undefined, values.textInsets.parseNumberArray());
+    initWithSpec: function(spec){
+        UITextField.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey("textInsets")){
+            this.textInsets = spec.valueForKey("textInsets", JSInsets);
         }
-        if ("font" in values){
-            this.font = JSFont.initWithSpec(spec, values.font);
+        if (spec.containsKey("font")){
+            this.font = spec.valueForKey("font", JSFont);
         }
-        if ("textColor" in values){
-            this.textColor = spec.resolvedValue(values.textColor, "JSColor");
+        if (spec.containsKey("textColor")){
+            this.textColor = spec.valueForKey("textColor", JSColor);
         }
-        if ("text" in values){
-            this.text = spec.resolvedValue(values.text);
+        if (spec.containsKey("text")){
+            this.text = spec.valueForKey("text");
         }
-        if ("multiline" in values){
-            this.multiline = values.multiline;
+        if (spec.containsKey("multiline")){
+            this.multiline = spec.valueForKey("multiline");
         }
-        if ('leftImage' in values){
-            this.leftImage = spec.resolvedValue(values.leftImage, "JSImage");
-        }else if ('leftAccessoryView' in values){
-            this.leftAccessoryView = spec.resolvedValue(values.leftAccessoryView);
+        if (spec.containsKey('leftImage')){
+            this.leftImage = spec.valueForKey("leftImage", JSImage);
+        }else if (spec.containsKey('leftAccessoryView')){
+            this.leftAccessoryView = spec.valueForKey("leftAccessoryView");
         }
-        if ('leftAccessorySize' in values){
-            this.leftAccessorySize = JSSize.apply(undefined, values.leftAccessorySize.parseNumberArray());
+        if (spec.containsKey('leftAccessorySize')){
+            this.leftAccessorySize = spec.valueForKey("leftAccessorySize", JSSize);
         }
-        if ('leftAccessoryInsets' in values){
-            this.leftAccessoryInsets = JSInsets.apply(undefined, values.leftAccessoryInsets.parseNumberArray());
+        if (spec.containsKey('leftAccessoryInsets')){
+            this.leftAccessoryInsets = spec.valueForKey("leftAccessoryInsets", JSInsets);
         }
-        if ('leftAccessoryVisibility' in values){
-            this.leftAccessoryVisibility = spec.resolvedValue(values.leftAccessoryVisibility);
+        if (spec.containsKey('leftAccessoryVisibility')){
+            this.leftAccessoryVisibility = spec.valueForKey("leftAccessoryVisibility");
         }
-        if ('rightImage' in values){
-            this.rightImage = spec.resolvedValue(values.rightImage, "JSImage");
-        }else if ('rightAccessoryView' in values){
-            this.rightAccessoryView = spec.resolvedValue(values.rightAccessoryView);
+        if (spec.containsKey('rightImage')){
+            this.rightImage = spec.valueForKey("rightImage", JSImage);
+        }else if (spec.containsKey('rightAccessoryView')){
+            this.rightAccessoryView = spec.valueForKey("rightAccessoryView");
         }
-        if ('rightAccessorySize' in values){
-            this.rightAccessorySize = JSSize.apply(undefined, values.rightAccessorySize.parseNumberArray());
+        if (spec.containsKey('rightAccessorySize')){
+            this.rightAccessorySize = spec.valueForKey("rightAccessorySize", JSSize);
         }
-        if ('rightAccessoryInsets' in values){
-            this.rightAccessoryInsets = JSInsets.apply(undefined, values.rightAccessoryInsets.parseNumberArray());
+        if (spec.containsKey('rightAccessoryInsets')){
+            this.rightAccessoryInsets = spec.valueForKey("rightAccessoryInsets", JSInsets);
         }
-        if ('rightAccessoryVisibility' in values){
-            this.rightAccessoryVisibility = spec.resolvedEnum(values.rightAccessoryVisibility, UITextField.AccessoryVisibility);
+        if (spec.containsKey('rightAccessoryVisibility')){
+            this.rightAccessoryVisibility = spec.valueForKey("rightAccessoryVisibility", UITextField.AccessoryVisibility);
         }
-        if ('placeholder' in values){
-            this.placeholder = spec.resolvedValue(values.placeholder);
+        if (spec.containsKey('placeholder')){
+            this.placeholder = spec.valueForKey("placeholder");
         }
-        if ('placeholderColor' in values){
-            this.placeholderColor = spec.resolvedValue(values.placeholderColor, "JSColor");
+        if (spec.containsKey('placeholderColor')){
+            this.placeholderColor = spec.valueForKey("placeholderColor", JSColor);
         }
-        if ('delegate' in values){
-            this.delegate = spec.resolvedValue(values.delegate);
+        if (spec.containsKey('delegate')){
+            this.delegate = spec.valueForKey("delegate");
         }
-        if ('secureEntry' in values){
-            this.secureEntry = spec.resolvedValue(values.secureEntry);
+        if (spec.containsKey('secureEntry')){
+            this.secureEntry = spec.valueForKey("secureEntry");
         }
         this._minimumHeight = this.bounds.size.height;
     },
@@ -1041,16 +1041,16 @@ JSClass("UITextFieldStyler", UIControlStyler, {
         this._commonStylerInit();
     },
 
-    initWithSpec: function(spec, values){
-        UITextFieldStyler.$super.initWithSpec.call(this, spec, values);
-        if ('localCursorColor' in values){
-            this.localCursorColor = spec.resolvedValue(values.localCursorColor, "JSColor");
+    initWithSpec: function(spec){
+        UITextFieldStyler.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('localCursorColor')){
+            this.localCursorColor = spec.valueForKey("localCursorColor", JSColor);
         }
-        if ('leftAccessoryColor' in values){
-            this.leftAccessoryColor = spec.resolvedValue(values.leftAccessoryColor, "JSColor");
+        if (spec.containsKey('leftAccessoryColor')){
+            this.leftAccessoryColor = spec.valueForKey("leftAccessoryColor", JSColor);
         }
-        if ('rightAccessoryColor' in values){
-            this.rightAccessoryColor = spec.resolvedValue(values.rightAccessoryColor, "JSColor");
+        if (spec.containsKey('rightAccessoryColor')){
+            this.rightAccessoryColor = spec.valueForKey("rightAccessoryColor", JSColor);
         }
         this._commonStylerInit();
     },
@@ -1127,28 +1127,28 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
     cornerRadius: 0,
     textInsets: null,
 
-    initWithSpec: function(spec, values){
-        UITextFieldCustomStyler.$super.initWithSpec.call(this, spec, values);
-        if ('backgroundColor' in values){
-            this.backgroundColor = spec.resolvedValue(values.backgroundColor, "JSColor");
+    initWithSpec: function(spec){
+        UITextFieldCustomStyler.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('backgroundColor')){
+            this.backgroundColor = spec.valueForKey("backgroundColor", JSColor);
         }
-        if ('activeBackgroundColor' in values){
-            this.activeBackgroundColor = spec.resolvedValue(values.activeBackgroundColor, "JSColor");
+        if (spec.containsKey('activeBackgroundColor')){
+            this.activeBackgroundColor = spec.valueForKey("activeBackgroundColor", JSColor);
         }
-        if ('disabledBackgroundColor' in values){
-            this.disabledBackgroundColor = spec.resolvedValue(values.disabledBackgroundColor, "JSColor");
+        if (spec.containsKey('disabledBackgroundColor')){
+            this.disabledBackgroundColor = spec.valueForKey("disabledBackgroundColor", JSColor);
         }
-        if ('textColor' in values){
-            this.textColor = spec.resolvedValue(values.textColor, "JSColor");
+        if (spec.containsKey('textColor')){
+            this.textColor = spec.valueForKey("textColor", JSColor);
         }
-        if ('placeholderColor' in values){
-            this.placeholderColor = spec.resolvedValue(values.placeholderColor, "JSColor");
+        if (spec.containsKey('placeholderColor')){
+            this.placeholderColor = spec.valueForKey("placeholderColor", JSColor);
         }
-        if ('cornerRadius' in values){
-            this.cornerRadius = spec.resolvedValue(values.cornerRadius);
+        if (spec.containsKey('cornerRadius')){
+            this.cornerRadius = spec.valueForKey("cornerRadius");
         }
-        if ('textInsets' in values){
-            this.textInsets = JSInsets.apply(undefined, values.textInsets.parseNumberArray());
+        if (spec.containsKey('textInsets')){
+            this.textInsets = spec.valueForKey("textInsets", JSInsets);
         }
     },
 

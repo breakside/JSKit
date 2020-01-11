@@ -11,10 +11,10 @@ JSClass("ContentViewController", UIViewController, {
     baseURL: null,
     componentsByURLPath: null,
 
-    initWithSpec: function(spec, values){
-        ContentViewController.$super.initWithSpec.call(this, spec, values);
-        if ('delegate' in values){
-            this.delegate = spec.resolvedValue(values.delegate);
+    initWithSpec: function(spec){
+        ContentViewController.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey("delegate")){
+            this.delegate = spec.valueForKey("delegate");
         }
     },
 

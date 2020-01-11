@@ -7,25 +7,25 @@ JSClass("UIProgressIndicatorView", UIView, {
     // --------------------------------------------------------------------
     // MARK: - Creating a progress indicator
 
-    initWithSpec: function(spec, values){
-        UIProgressIndicatorView.$super.initWithSpec.call(this, spec, values);
-        if ('progressBorderColor' in values){
-            this._progressBorderColor = spec.resolvedValue(values.progressBorderColor, "JSColor");
+    initWithSpec: function(spec){
+        UIProgressIndicatorView.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('progressBorderColor')){
+            this._progressBorderColor = spec.valueForKey("progressBorderColor", JSColor);
         }
-        if ('progressBarColor' in values){
-            this._progressBarColor = spec.resolvedValue(values.progressBarColor, "JSColor");
+        if (spec.containsKey('progressBarColor')){
+            this._progressBarColor = spec.valueForKey("progressBarColor", JSColor);
         }
-        if ('progressBorderWidth' in values){
-            this._progressBorderWidth = spec.resolvedValue(values.progressBorderWidth);
+        if (spec.containsKey('progressBorderWidth')){
+            this._progressBorderWidth = spec.valueForKey("progressBorderWidth");
         }
-        if ('style' in values){
-            this._style = spec.resolvedEnum(values.style, UIProgressIndicatorView.Style);
+        if (spec.containsKey('style')){
+            this._style = spec.valueForKey("style", UIProgressIndicatorView.Style);
         }
-        if ('percentComplete' in values){
-            this._percentComplete = spec.resolvedValue(values.percentComplete);
+        if (spec.containsKey('percentComplete')){
+            this._percentComplete = spec.valueForKey("percentComplete");
         }
-        if ('barInsets' in values){
-            this._barInsets = JSInsets.apply(undefined, values.barInsets.parseNumberArray());
+        if (spec.containsKey('barInsets')){
+            this._barInsets = spec.valueForKey("barInsets", JSInsets);
         }
         this._commonProgressInit();
     },

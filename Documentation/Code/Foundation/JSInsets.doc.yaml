@@ -89,6 +89,96 @@ topics:
         note: Even though this looks like a property, it will always return a
           new `JSInsets` each time it is invoked, ensuring that nothing can
           accidentally modify or overwrite the `Zero` property.
+      -
+        name: initWithSpec
+        kind: method
+        static: true
+        summary: Create insets from a value in a spec file
+        arguments:
+          - 
+            name: spec
+            type: JSSpec
+            summary: The spec in which the insets are described
+          - 
+            name: values
+            type: any
+            summary: The value that the describes the insets in the spec
+        description: |
+          Typically used in `initWithSpec()`(JSObject.initWithSpec())
+          implementations for objects that have `JSInsets` properties.
+
+          Handles the various ways a `JSInsets` can be specified in a spec file.
+
+          See [Spec File Properties](Spec File Properties) for more information
+          about how to write a `JSInsets` in a spec file.
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The ways to specify a `JSInsets` in a spec file
+        description: |
+          Insets can be specified in various ways in a spec file:
+          1. As a comma-separated `String` of integers corresponding to the
+             various `JSInsets` constructors.  Components, in order, are:
+             - `top`(JSInsets.top)
+             - `left`(JSInsets.left)
+             - `bottom`(JSInsets.bottom)
+             - `right`(JSInsets.right)
+          1. As a single `Number` that will be used for all sides
+          1. As a dictionary with any of `top`, `left`, `bottom`, and `right` properties
+
+          String form:
+          ````
+          Object:
+            insets: 5,7
+
+          Object:
+            insets: 5,7,10
+
+          Object:
+            insets: 5,7,10,9
+          ````
+
+          Number form:
+          ````
+          Object:
+            insets: 10
+          ````
+
+          Dictionary form:
+          ````
+          Object:
+            insets:
+              top: 10
+              bottom: 15
+          ````
+        topics:
+          -
+            name: Dictionary Representation
+            members:
+              -
+                name: top
+                type: Number
+                summary: The amount to inset from the top edge
+                description: |
+                  If unspecified, defaults to `0`
+              -
+                name: left
+                type: Number
+                summary: The amount to inset from the left edge
+                description: |
+                  If unspecified, defaults to `0`
+              -
+                name: bottom
+                type: Number
+                summary: The amount to inset from the bottom edge
+                description: |
+                  If unspecified, defaults to `0`
+              -
+                name: right
+                type: Number
+                summary: The amount to inset from the right edge
+                description: |
+                  If unspecified, defaults to `0`
   -
     name: Edges
     members:

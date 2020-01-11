@@ -1,6 +1,6 @@
 // #import "UIView.js"
 // #import "UIEvent.js"
-/* global JSClass, UIView, UIEvent, UIScrollView, JSDynamicProperty, JSDeepCopy, JSAffineTransform, JSInsets, JSProtocol, JSReadOnlyProperty, UIScroller, UIControl, JSPoint, JSRect, JSSize */
+/* global JSClass, UIView, UIEvent, JSCopy, UIScrollView, JSDynamicProperty, JSDeepCopy, JSAffineTransform, JSInsets, JSProtocol, JSReadOnlyProperty, UIScroller, UIControl, JSPoint, JSRect, JSSize */
 'use strict';
 
 JSProtocol("UIScrollViewDelegate", JSProtocol, {
@@ -19,39 +19,28 @@ JSClass('UIScrollView', UIView, {
         this._commonScrollViewInit();
     },
 
-    initWithSpec: function(spec, values){
-        // 1. To simplify spec coding, any subviews specified there for the scroll view
-        //    will be moved to the contentView instead.  The common use case by far is
-        //    to add subviews to the content view, not the scroll view itself, which typically
-        //    only contains the fixed content view and scrollers.
-        //    Make this move before calling $super.initWithSpec, otherwise $super will add the
-        //    subviews to the scroll view itself.
-        var contentSubviews = [];
-        if ('subviews' in values){
-            if ('contentView' in values){
-                values = JSDeepCopy(values);
-                values.contentView.subviews = values.subviews;
-            }else{
-                contentSubviews = values.subviews;
-            }
-        }
-        UIScrollView.$super.initWithSpec.call(this, spec, values);
+    initWithSpec: function(spec){
+        UIScrollView.$super.initWithSpec.call(this, spec);
+
+        // 1. If any subviews were added directly to this view, we'll move them
+        //    to the contentView once it's ready
+        var contentSubviews = JSCopy(this.subviews);
 
         // 2. If the content view and scrollers are specified in the spec, create them
         //    before doing the _commonScrollViewInit, so it won't try to create them itself.
         //    These properties are optional in the spec, and are typically only provided if
         //    the user wants to provide specialized customization
-        if ('contentView' in values){
-            this._contentView = spec.resolvedValue(values.contentView, "UIView");
+        if (spec.containsKey('contentView')){
+            this._contentView = spec.valueForKey("contentView", UIView);
         }
-        if ('verticalScroller' in values){
-            this._verticalScroller = spec.resolvedValue(values.verticalScroller, "UIScroller");
+        if (spec.containsKey('verticalScroller')){
+            this._verticalScroller = spec.valueForKey("verticalScroller", UIScroller);
         }
-        if ('horizontalScroller' in values){
-            this._horizontalScroller = spec.resolvedValue(values.horizontalScroller, "UIScroller");
+        if (spec.containsKey('horizontalScroller')){
+            this._horizontalScroller = spec.valueForKey("horizontalScroller", UIScroller);
         }
-        if ('scrollStyler' in values){
-            this._scrollStyler = spec.resolvedEnum(values.scrollStyler, UIScroller.Styler);
+        if (spec.containsKey('scrollStyler')){
+            this._scrollStyler = spec.valueForKey("scrollStyler", UIScroller.Styler);
         }
         this._commonScrollViewInit();
 
@@ -62,20 +51,20 @@ JSClass('UIScrollView', UIView, {
         }
 
         // 4. Handle all the other properties
-        if ('contentInsets' in values){
-            this.contentInsets = JSInsets.apply(undefined, values.contentInsets.parseNumberArray());
+        if (spec.containsKey('contentInsets')){
+            this.contentInsets = spec.valueForKey("contentInsets", JSInsets);
         }
-        if ('contentSize' in values){
-            this.contentSize = JSSize.apply(undefined, values.contentSize.parseNumberArray());
+        if (spec.containsKey('contentSize')){
+            this.contentSize = spec.valueForKey("contentSize", JSSize);
         }
-        if ('scrollsVertically' in values){
-            this._scrollsVertically = spec.resolvedValue(values.scrollsVertically);
+        if (spec.containsKey('scrollsVertically')){
+            this._scrollsVertically = spec.valueForKey("scrollsVertically");
         }
-        if ('scrollsHorizontally' in values){
-            this._scrollsHorizontally = spec.resolvedValue(values.scrollsHorizontally);
+        if (spec.containsKey('scrollsHorizontally')){
+            this._scrollsHorizontally = spec.valueForKey("scrollsHorizontally");
         }
-        if ('delaysContentTouches' in values){
-            this._delaysContentTouches = spec.resolvedValue(values.delaysContentTouches);
+        if (spec.containsKey('delaysContentTouches')){
+            this._delaysContentTouches = spec.valueForKey("delaysContentTouches");
         }
     },
 

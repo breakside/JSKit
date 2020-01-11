@@ -154,18 +154,18 @@ topics:
             members:
               -
                 name: frame
-                type: String
+                type: JSRect
                 summary: The view's frame
                 description: |
-                  A frame can be specified as a string of comma-separated
-                  integers that correspond to the `JSRect` constructor
-                  arguments.
-
                   ````
                   View:
                     class: UIView
                     frame: 10,20,300,400
                   ````
+
+                  See `JSRect`(JSRect.Spec File Properties) for 
+                  description of the various ways insets can be
+                  specified.
           -
             name: Visibility
             members:
@@ -244,7 +244,13 @@ topics:
                     class: UIView
                     maskedBorders: minX
                   ````
-                note: The spec does not support bitwise operators
+
+                  You can use a `|` to combine multiple options
+                  ````
+                  View:
+                    class: UIView
+                    maskedBorders: minX|minY
+                  ````
               -
                 name: cornerRadius
                 type: Number
@@ -262,7 +268,13 @@ topics:
                     class: UIView
                     maskedCorners: minXminY
                   ````
-                note: The spec does not support bitwise operators
+
+                  You can use a `|` to combine multiple options
+                  ````
+                  View:
+                    class: UIView
+                    maskedCorners: minXminY|maxXmaxY
+                  ````
           -
             name: Shadow
             members:
@@ -286,18 +298,18 @@ topics:
                 summary: The view's shadow blur radius
               -
                 name: shadowOffset
-                type: String
+                type: JSPoint
                 summary: The view's shadow offset
                 description: |
-                  A point can be specified as a string of comma-separated
-                  integers that correspond to the `JSPoint` constructor
-                  arguments.
-
                   ````
                   View:
                     class: UIView
                     shadowOffset: 2,4
                   ````
+
+                  See `JSPoint`(JSPoint.Spec File Properties) for 
+                  description of the various ways insets can be
+                  specified.
           -
             name: Events
             members:

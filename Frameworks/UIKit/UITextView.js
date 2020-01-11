@@ -13,13 +13,13 @@ JSClass("UITextView", UIView, {
     lineBreakMode: UIViewLayerProperty(),
     textAlignment: UIViewLayerProperty(),
 
-    initWithSpec: function(spec, values){
-        UITextView.$super.initWithSpec.call(this, spec, values);
-        if ("font" in values){
-            this.font = JSFont.initWithSpec(spec, values.font);
+    initWithSpec: function(spec){
+        UITextView.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey("font")){
+            this.font = spec.valueForKey("font", JSFont);
         }
-        if ("text" in values){
-            this.text = values.text;
+        if (spec.containsKey("text")){
+            this.text = spec.valueForKey("text");
         }
     },
 

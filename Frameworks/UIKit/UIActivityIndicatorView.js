@@ -29,25 +29,25 @@ JSClass("UIActivityIndicatorView", UIView, {
         this._imageLayer.templateColor = color;
     },
 
-    initWithSpec: function(spec, values){
-        UIActivityIndicatorView.$super.initWithSpec.call(this, spec, values);
+    initWithSpec: function(spec){
+        UIActivityIndicatorView.$super.initWithSpec.call(this, spec);
         this._skipSuperInit = true;
-        if ('style' in values){
-            var style = spec.resolvedEnum(values.style, UIActivityIndicatorView.Style);
+        if (spec.containsKey('style')){
+            var style = spec.valueForKey("style", UIActivityIndicatorView.Style);
             this.initWithStyle(style);
-        }else if ('color' in values){
-            var color = spec.resolvedValue(values.color, "JSColor");
+        }else if (spec.containsKey('color')){
+            var color = spec.valueForKey("color", JSColor);
             this.initWithColor(color);
-        }else if ('spriteImage' in values){
-            var image = spec.resolvedValue(values.spriteImage, "JSImage");
+        }else if (spec.containsKey('spriteImage')){
+            var image = spec.valueForKey("spriteImage", JSImage);
             var singleFrameHeight;
-            if ('singleFrameHeight' in values){
-                singleFrameHeight = spec.resolvedValue(values.singleFrameHeight);
+            if (spec.containsKey('singleFrameHeight')){
+                singleFrameHeight = spec.valueForKey("singleFrameHeight");
             }
             this.initWithSpriteImage(image, singleFrameHeight);
         }
-        if ('hidesWhenStopped' in values){
-            this.hidesWhenStopped = values.hidesWhenStopped;
+        if (spec.containsKey('hidesWhenStopped')){
+            this.hidesWhenStopped = spec.valueForKey("hidesWhenStopped");
         }
     },
 

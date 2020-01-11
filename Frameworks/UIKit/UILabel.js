@@ -1,7 +1,7 @@
 // #import "UIView.js"
 // #import "UITextLayer.js"
 // #import "UIPasteboard.js"
-/* global JSClass, UIView, UILayer, JSColor, JSRect, JSSize, JSDynamicProperty, UIViewLayerProperty, JSInsets, JSRange, UITextLayer, UILabel, JSFont, UIPasteboard, UICursor */
+/* global JSClass, UIView, UILayer, JSColor, JSTextAlignment, JSLineBreakMode, JSRect, JSSize, JSDynamicProperty, UIViewLayerProperty, JSInsets, JSRange, UITextLayer, UILabel, JSFont, UIPasteboard, UICursor */
 'use strict';
 
 JSClass('UILabel', UIView, {
@@ -21,30 +21,30 @@ JSClass('UILabel', UIView, {
         this.maximumNumberOfLines = 1;
     },
 
-    initWithSpec: function(spec, values){
-        UILabel.$super.initWithSpec.call(this, spec, values);
-        if ("font" in values){
-            this.font = JSFont.initWithSpec(spec, values.font);
+    initWithSpec: function(spec){
+        UILabel.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey("font")){
+            this.font = spec.valueForKey("font", JSFont);
         }
-        if ("text" in values){
-            this.text = spec.resolvedValue(values.text);
+        if (spec.containsKey("text")){
+            this.text = spec.valueForKey("text");
         }
-        if ("textColor" in values){
-            this.textColor = spec.resolvedValue(values.textColor, "JSColor");
+        if (spec.containsKey("textColor")){
+            this.textColor = spec.valueForKey("textColor", JSColor);
         }
-        if ("textAlignment" in values){
-            this.textAlignment = spec.resolvedValue(values.textAlignment);
+        if (spec.containsKey("textAlignment")){
+            this.textAlignment = spec.valueForKey("textAlignment", JSTextAlignment);
         }
-        if ("lines" in values){
-            this.maximumNumberOfLines = spec.resolvedValue(values.lines);
+        if (spec.containsKey("lines")){
+            this.maximumNumberOfLines = spec.valueForKey("lines");
         }else{
             this.maximumNumberOfLines = 1;
         }
-        if ("lineBreakMode" in values){
-            this.lineBreakMode = spec.resolvedValue(values.lineBreakMode);
+        if (spec.containsKey("lineBreakMode")){
+            this.lineBreakMode = spec.valueForKey("lineBreakMode", JSLineBreakMode);
         }
-        if ("textInsets" in values){
-            this.textInsets = JSInsets.apply(undefined, values.textInsets.parseNumberArray());
+        if (spec.containsKey("textInsets")){
+            this.textInsets = spec.valueForKey("textInsets", JSInsets);
         }
     },
 

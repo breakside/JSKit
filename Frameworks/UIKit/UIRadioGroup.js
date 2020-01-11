@@ -11,11 +11,12 @@ JSClass("UIRadioGroup", UIControl, {
     buttons: null,
     selectedIndex: JSDynamicProperty('_selectedIndex', -1),
 
-    initWithSpec: function(spec, values){
-        UIRadioGroup.$super.initWithSpec.call(this, spec, values);
-        if ('options' in values){
-            for (var i = 0, l = values.options.length; i < l; ++i){
-                this.addItemWithTitle(spec.resolvedValue(values.options[i]));
+    initWithSpec: function(spec){
+        UIRadioGroup.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('options')){
+            var options = spec.valueForKey(options);
+            for (var i = 0, l = options.length; i < l; ++i){
+                this.addItemWithTitle(options.valueForKey(i));
             }
         }
     },
@@ -113,13 +114,13 @@ JSClass("UIRadioButton", UIControl, {
         this.titleLabel.text = title;
     },
 
-    initWithSpec: function(spec, values){
-        UIRadioButton.$super.initWithSpec.call(this, spec, values);
-        if ('font' in values){
-            this._titleLabel.font = JSFont.initWithSpec(spec, values.font);
+    initWithSpec: function(spec){
+        UIRadioButton.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('font')){
+            this._titleLabel.font = spec.valueForKey("font", JSFont);
         }
-        if ('title' in values){
-            this._titleLabel.text = spec.resolvedValue(values.title);
+        if (spec.containsKey('title')){
+            this._titleLabel.text = spec.valueForKey("title");
         }
     },
 

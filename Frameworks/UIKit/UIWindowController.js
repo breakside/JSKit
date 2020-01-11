@@ -1,23 +1,19 @@
 // #import "UIViewController.js"
-/* global JSClass, UIViewController, JSSize, JSReadOnlyProperty, JSCopy, UIWindowController, JSProtocol, JSSpec */
+// #import "UIWindow.js"
+/* global JSClass, UIViewController, UIWindow, JSSize, JSReadOnlyProperty, JSCopy, UIWindowController, JSProtocol, JSSpec */
 'use strict';
 
 JSClass("UIWindowController", UIViewController, {
 
-    _defaultViewClass: "UIWindow",
+    _defaultViewClass: UIWindow,
+    _viewKeyInSpec: "window",
     delegate: null,
     autoPositionWindow: true,
 
-    initWithSpec: function(spec, values){
-        values = JSCopy(values);
-        if ('window' in values){
-            values.view = values.window;
-        }else if ('view' in values){
-            values.view = {contentView: values.view};
-        }
-        UIWindowController.$super.initWithSpec.call(this, spec, values);
-        if ('delegate' in values){
-            this.delegate = spec.resolvedValue(values.delegate);
+    initWithSpec: function(spec){
+        UIWindowController.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('delegate')){
+            this.delegate = spec.valueForKey('delegate');
         }
     },
 

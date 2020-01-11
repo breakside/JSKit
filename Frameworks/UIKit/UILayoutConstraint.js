@@ -97,31 +97,31 @@ JSClass("UILayoutConstraint", JSObject, {
         this._commonConstraintInit();
     },
 
-    initWithSpec: function(spec, values){
-        UILayoutConstraint.$super.call.initWithSpec(this, spec, values);
-        if ('firstItem' in values){
-            this.firstItem = spec.resolvedValue(values.firstItem);
+    initWithSpec: function(spec){
+        UILayoutConstraint.$super.call.initWithSpec(this, spec);
+        if (spec.containsKey('firstItem')){
+            this.firstItem = spec.valueForKey("firstItem");
         }
-        if ('firstAttribute' in values){
-            this.firstAttribute = spec.resolvedValue(values.firstAttribute);
+        if (spec.containsKey('firstAttribute')){
+            this.firstAttribute = spec.valueForKey("firstAttribute", UILayoutAttribute);
         }
-        if ('secondItem' in values){
-            this.secondItem = spec.resolvedValue(values.secondItem);
+        if (spec.containsKey('secondItem')){
+            this.secondItem = spec.valueForKey("secondItem");
         }
-        if ('secondAttribute' in values){
-            this.secondAttribute = spec.resolvedValue(values.secondAttribute);
+        if (spec.containsKey('secondAttribute')){
+            this.secondAttribute = spec.valueForKey("secondAttribute", UILayoutAttribute);
         }
-        if ('relation' in values){
-            this.relation = spec.resolvedValue(values.relation);
+        if (spec.containsKey('relation')){
+            this.relation = spec.valueForKey("relation", UILayoutRelation);
         }
-        if ('multiplier' in values){
-            this._multiplier = spec.resolvedValue(values.multiplier);
+        if (spec.containsKey('multiplier')){
+            this._multiplier = spec.valueForKey("multiplier");
         }
-        if ('constant' in values){
-            this._constant = spec.resolvedValue(values.constant);
+        if (spec.containsKey('constant')){
+            this._constant = spec.valueForKey("constant");
         }
-        if ('priority' in values){
-            this.priority = spec.resolvedValue(values.priority);
+        if (spec.containsKey('priority')){
+            this.priority = spec.valueForKey("priority", UILayoutPriority);
         }
         this._commonConstraintInit();
     },
@@ -139,15 +139,27 @@ JSClass("UILayoutConstraint", JSObject, {
         if (this.secondItem === null && this.secondAttribute !== UILayoutAttribute.notAnAttribute){
             throw new Error("UILayoutConstraint requires a nonAnAttribute with a null secondItem");
         }
+    },
+
+    _attachToView: function(view){
+        if (this._targetItem === null){
+            return;
+        }
+        if (this.firstItem === '<self>'){
+            this.firstItem = view;
+        }
+        if (this.secondItem === '<self>'){
+            this.secondItem = view;
+        }
         if (this.secondItem !== null){
-            if (this.firstItem === this.secondItem.superlayer){
+            if (this.firstItem === this.secondItem.superview){
                 this._targetItem = this.firstItem;
-            }else if (this.secondItem === this.firstItem.superlayer){
+            }else if (this.secondItem === this.firstItem.superview){
                 this._targetItem = this.secondItem;
-            }else if (this.firstItem.superlayer === this.secondItem.superlayer){
-                this._targetItem = this.firstItem.superlayer;
+            }else if (this.firstItem.superview === this.secondItem.superview){
+                this._targetItem = this.firstItem.superview;
             }else{
-                throw new Error("UILayoutConstraint requires firstItem and secondItem either superlayer/sublayer or siblings");
+                throw new Error("UILayoutConstraint requires firstItem and secondItem either superview/sublayer or siblings");
             }
         }else{
             this._targetItem = this.firstItem;

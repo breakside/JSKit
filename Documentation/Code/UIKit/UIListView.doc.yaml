@@ -50,10 +50,521 @@ description: |
 topics:
   -
     name: Creating a List View
+    members:
+      -
+        name: initWithStyler
+        kind: init
+        summary: Create a list view with the given styler
+        arguments:
+          -
+            name: styler
+            type: UIListViewStyler
+            summary: The styler to use for this list view
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available for `UIListView`s defined in spec
+          files
+        topics:
+          -
+            name: Delegate & Data Source
+            members:
+              -
+                name: delegate
+                type: UIListViewDelegate
+                summary: The delegate object for this list view
+              -
+                name: dataSource
+                type: UIListViewDataSource
+                summary: The data source object for this list view
+          -
+            name: Styling
+            members:
+              -
+                name: styler
+                type: UIListViewStyler
+                summary: The styler to use for this list view
+          -
+            name: Cell Sizing
+            members:
+              -
+                name: rowHeight
+                type: Number
+                summary: The height to use for all rows
+                description: |
+                  If you need to use different heights for different rows, you
+                  need to implement the `heightForListViewRowAtIndexPath()` 
+                  `delegate` method.
+          -
+            name: Cell Reuse
+            members:
+              -
+                name: reusableCellClasses
+                type: dictionary
+                summary: Specifies which cell classes should be used for
+                  which reuse identifiers
+                description: |
+                  The keys in this dictionary are the reuse identifiers.
+
+                  The values can be either:
+                  1. A `String` of the cell's class name
+                  2. A `CellReuseInfo` dictionary
+
+                  The cell's class should be `UIListViewCell` or one of its
+                  subclasses.  Typically you'll create custom subclasses for
+                  cells.
+
+                  The short for simply maps an identifier to a class name.
+
+                  ````
+                  ViewController:
+                    class: PlanetsViewController
+                    view: /PlanetListView
+
+                  PlanetListView:
+                    class: UIListView
+                    reusableCellClasses:
+                      planet: PlanetCellView
+                  ````
+
+                  In your list view delegate, you'll call
+                  `dequeueReusableCellWithIdentifier()` using the `"planet"`
+                  identifier from the spec file:
+                  ````
+                  JSClass("PlanetsViewController", "UIListViewController", {
+
+                    cellForListViewAtIndexPath: function(listView, indexPath){
+                      var cell = listView.dequeueReusableCellWithIdentifier("planet");
+                      // cell is an instance of PlanetCellView
+                      // ... configure cell as needed
+                      return cell;
+                    }
+
+                  });
+                  ````
+
+                  The longer form allows you to override the styler used for cells
+                  with this identifier.
+
+                  ````
+                  ViewController:
+                    class: PlanetsViewController
+                    view: /PlanetListView
+
+                  PlanetListView:
+                    class: UIListView
+                    reusableCellClasses:
+                      planet:
+                        className: PlanetCellView
+                        styler:
+                          class: UListViewDefaultStyler
+                          cellFont:
+                            size: detail
+                            weight: bold
+                  ````
+              -
+                name: CellReuseInfo
+                type: dictionary
+                topics:
+                  -
+                    name: Properties
+                    members:
+                      -
+                        name: className
+                        type: String
+                        summary: The name of the `UIListViewCell` subclass to
+                          create when using the given identifier.
+                      -
+                        name: styler
+                        type: UIListViewStyler
+                        summary: The styler to use for cells created using
+                          the given identifier.
+          -
+            name: Header & Footer Sizing
+            members:
+              -
+                name: headerHeight
+                type: Number
+                summary: The height to use for all headers
+                description: |
+                  If you need to use different heights for different headers,
+                  you need to implement the `heightForListViewHeaderInSection()` 
+                  `delegate` method.
+              -
+                name: footerHeight
+                type: Number
+                summary: The height to use for all footers
+                description: |
+                  If you need to use different heights for different footers,
+                  you need to implement the `heightForListViewFooterInSection()` 
+                  `delegate` method.
+              -
+                name: headersStickToTop
+                type: boolean
+                summary: Indicates that headers should stick at the top of the
+                  view until their section has been completely scrolled by
+          -
+            name: Header & Footer Reuse
+            members:
+              -
+                name: reusableHeaderFooterClasses
+                type: dictionary
+                summary: Specifies which header and footer classes should be
+                  used for which reuse identifiers
+                description: |
+                  The keys in this dictionary are the reuse identifiers.
+
+                  The values are `String`s representing class names.
+
+                  The cell's class should be `UIListViewHeaderFooterView` or one
+                  of its subclasses.  Often you'll create custom subclasses
+                  for headers and footers.
+
+                  The dictionary simply maps an identifier to a class name.
+
+                  ````
+                  ViewController:
+                    class: PlanetsViewController
+                    view: /PlanetListView
+
+                  PlanetListView:
+                    class: UIListView
+                    reusableHeaderFooterClasses:
+                      header: PlanetsHeaderView
+                  ````
+
+                  In your list view delegate, you'll call
+                  `dequeueReusableHeaderWithIdentifier()` using the `"header"`
+                  identifier from the spec file:
+                  ````
+                  JSClass("PlanetsViewController", "UIListViewController", {
+
+                    headerViewForListViewSection: function(listView, indexPath){
+                      var header = listView.dequeueReusableHeaderWithIdentifier("header");
+                      // header is an instance of PlanetsHeaderView
+                      // ... configure cell as needed
+                      return header;
+                    }
+
+                  });
+                  ````
+          -
+            name: Selection
+            members:
+              -
+                name: allowsMultipleSelection
+                type: boolean
+                summary: Indicates that the user can select multiple rows at a
+                  time
   -
     name: Delegate & Data Source
+    members:
+      -
+        name: delegate
+        type: UIListViewDelegate
+        summary: The delegate object for this list view
+      -
+        name: dataSource
+        type: UIListViewDataSource
+        summary: The data source object for this list view
   -
     name: Styling
+    members:
+      -
+        name: UIListViewStyler
+        kind: class
+        inherits: JSObject
+        summary: The abstract base class for all list view stylers
+        members:
+          -
+            name: Initializing List Views
+            members:
+              - 
+                name: initializeListView
+                kind: method
+                summary: Called when a list view is created
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view being created
+                description: |
+                  Gives the styler an opportunity to configure the list view
+          -
+            name: Initializing Cells 
+            members:
+              - 
+                name: initializeCell
+                kind: method
+                summary: Called when a list view cell is created
+                arguments:
+                  -
+                    name: cell
+                    type: UIListViewCell
+                    summary: The cell being created
+                  -
+                    name: indexPath
+                    type: JSIndexPath
+                    summary: The index path of the cell
+                description: |
+                  Gives the styler an opportunity to configure the cell
+          -
+            name: Updating Cells
+            members:
+              -
+                name: updateCell
+                kind: method
+                summary: Called when a cell's state changes
+                arguments:
+                  -
+                    name: cell
+                    type: UIListViewCell
+                    summary: The cell being updated
+                  -
+                    name: indexPath
+                    type: JSIndexPath
+                    summary: The index path of the cell
+                description: |
+                  Gives the styler an opportunity to configure the cell for its
+                  new state
+          -
+            name: Cell Layout
+            members:
+              -
+                name: layoutCell
+                kind: method
+                summary: Called when a cell needs to layout its subviews
+                arguments:
+                  -
+                    name: cell
+                    type: UIListViewCell
+                    summary: The cell to layout
+                  -
+                    name: indexPath
+                    type: JSIndexPath
+                    summary: The index path of the cell
+                description: |
+                  Gives the styler an opportunity to layout the cell
+          -
+            name: Initializing Headers & Footers 
+            members:
+              - 
+                name: initializeHeader
+                kind: method
+                summary: Called when a list view header is created
+                arguments:
+                  -
+                    name: header
+                    type: UIListViewHeaderFooterView
+                    summary: The header being created
+                  -
+                    name: section
+                    type: Number
+                    summary: The section of the header
+                description: |
+                  Gives the styler an opportunity to configure the header
+              - 
+                name: initializeFooter
+                kind: method
+                summary: Called when a list view footer is created
+                arguments:
+                  -
+                    name: footer
+                    type: UIListViewHeaderFooterView
+                    summary: The footer being created
+                  -
+                    name: section
+                    type: Number
+                    summary: The section of the footer
+                description: |
+                  Gives the styler an opportunity to configure the footer
+      -
+        name: UIListViewDefaultStyler
+        kind: class
+        inherits: UIListViewStyler
+        summary: The default list view styler for `UIKit`
+        topics:
+          -
+            name: Creating a Styler
+            members:
+              -
+                name: Spec File Properties
+                kind: spec
+                summary: The properties available for a list view styler in a
+                  spec file
+                topics:
+                  -
+                    name: Cell Text
+                    members:
+                      -
+                        name: cellFont
+                        type: JSFont
+                        summary: The font to use for the cell's
+                          \`titleLabel`(UIListViewCell.titleLabel)
+                      -
+                        name: cellTextColor
+                        type: JSColor
+                        summary: The color to use for the cell's
+                          \`titleLabel`(UIListViewCell.titleLabel)
+                      -
+                        name: selectedCellTextColor
+                        type: JSColor
+                        summary: The color to use for the cell's
+                          \`titleLabel`(UIListViewCell.titleLabel) when the cell
+                          is selected
+                      -
+                        name: mutedSelectedCellTextColor
+                        type: JSColor
+                        summary: The color to use for the cell's
+                          \`titleLabel`(UIListViewCell.titleLabel) when the cell
+                          is selected but the list view is not the first
+                          responder of the application's main window.
+                  -
+                    name: Cell Detail Text
+                    members:
+                      -
+                        name: cellDetailFont
+                        type: JSFont
+                        summary: The font to use for the cell's
+                          \`detailLabel`(UIListViewCell.detailLabel)
+                      -
+                        name: cellDetailTextColor
+                        type: JSColor
+                        summary: The color to use for the cell's
+                          \`detailLabel`(UIListViewCell.detailLabel)
+                      -
+                        name: selectedCellDetailTextColor
+                        type: JSColor
+                        summary: The color to use for the cell's
+                          \`detailLabel`(UIListViewCell.detailLabel) when the
+                          cell is selected
+                      -
+                        name: mutedSelectedCellDetailTextColor
+                        type: JSColor
+                        summary: The color to use for the cell's
+                          \`detailLabel`(UIListViewCell.detailLabel) when the
+                          cell is selected but the list view is not the first
+                          responder of the application's main window.
+                  -
+                    name: Background
+                    members:
+                      -
+                        name: cellBackgroundColor
+                        type: JSColor
+                        summary: The background color of the cell
+                      -
+                        name: selectedCellBackgroundColor
+                        type: JSColor
+                        summary: The background color of the cell when it is selected
+                      -
+                        name: mutedSelectedCellBackgroundColor
+                        type: JSColor
+                        summary: The background color of the cell when it is
+                          selected but the list view is not the first responder
+                          of the application's main window.
+                  -
+                    name: Image
+                    members:
+                      -
+                        name: imageSize
+                        type: JSSize
+                        summary: The size of the cell image
+                  -
+                    name: Accessory
+                  -
+                    name: Separators
+                    members:
+                      -
+                        name: showSeparators
+                        type: boolean
+                        summary: Whether or not to show separators between cells
+                      -
+                        name: separatorInsets
+                        type: JSInsets
+                        summary: The amount to inset the separator line from
+                          the cell's edges
+                        description: |
+                          ````
+                          ListStyler:
+                            class: UIListViewDefaultStyler
+                            separatorInsets: 0,10,0,0
+                          ````
+
+                          Makes the insets `10` on the left and `0` on the right
+                          
+                          See `JSInsets`(JSInsets.Spec File Properties) for 
+                          description of the various ways insets can be
+                          specified.
+                        important: Only the `left` and `right` insets will be
+                          used.  The `top` and `bottom` insets can be anything,
+                          but we recommend setting them to `0`.
+                      -
+                        name: cellSeparatorColor
+                        type: JSColor
+                        summary: The color of the separator line between cells
+                      -
+                        name: selectedCellSeparatorColor
+                        type: JSColor
+                        summary: The color of the separator line between cells
+                          when a cell is selected
+                      -
+                        name: mutedSelectedCellSeparatorColor
+                        type: JSColor
+                        summary: The color of the separator line between cells
+                          when a cell is selected but the list view is not the
+                          first responder of the application's main window.
+                  -
+                    name: Context Selection
+                    members:
+                      -
+                        name: contextSelectedCellBorderColor
+                        type: JSColor
+                        summary: The color of the cell's border shown when
+                          the cell is context-selected
+                        description: |
+                          Context selection happens when the user right clicks.
+
+                          The default styler draws a border inside the cell to
+                          indicate context selection.
+          -
+            name: Text
+            members:
+              -
+                name: cellFont
+                type: JSFont
+                summary: The font to use for the cell's `titleLabel`(UIListViewCell.titleLabel)
+          -
+            name: Detail Text
+          -
+            name: Background
+          -
+            name: Image
+          -
+            name: Accessory
+      -
+        name: styler
+        type: UIListViewStyler
+        summary: The styler in use for this list view
+        description: |
+          Stylers allow for separation between the list view's model and its
+          presentation.
+
+          One styler can be resused for many list views of the same type.
+
+          `UIListViewStyler` is provided as an abstract base class for subclasses
+          to extend into specific stylers for their needs.
+      -
+        name: stylerProperties
+        type: dictionary
+        summary: A dictionary that a styler can use to store properties
+          relating to styling
+        description: |
+          Often a styler will need to create views or layers to help its
+          styling.  Since a single styler is used for multiple list views,
+          the styler can't store those view-specific properties on its own.
+
+          So, `stylerProperties` is a place on each `UIListView` that a styler
+          can store control-specific objects.
   -
     name: Cell Sizing
   -

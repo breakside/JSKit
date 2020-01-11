@@ -32,8 +32,8 @@ JSClass("UIListViewCell", UIView, {
         this._commonCellInit();
     },
 
-    initWithSpec: function(spec, values){
-        UIListViewCell.$super.initWithSpec.call(this, spec, values);
+    initWithSpec: function(spec){
+        UIListViewCell.$super.initWithSpec.call(this, spec);
         this._commonCellInit();
     },
 

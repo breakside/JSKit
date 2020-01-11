@@ -11,16 +11,16 @@ JSClass("BreadcrumbView", UIView, {
     target: null,
     action: null,
 
-    initWithSpec: function(spec, values){
-        BreadcrumbView.$super.initWithSpec.call(this, spec, values);
-        if ('target' in values){
-            this.target = spec.resolvedValue(values.target);
-            if ('action' in values){
-                this.action = this.target[values.action];
+    initWithSpec: function(spec){
+        BreadcrumbView.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey("target")){
+            this.target = spec.valueForKey("target");
+            if (spec.containsKey("action")){
+                this.action = this.target[spec.valueForKey("action")];
             }
         }
-        if ('highlightColor' in values){
-            this._menuHighlightColor = spec.resolvedValue(values.highlightColor);
+        if (spec.containsKey("highlightColor")){
+            this._menuHighlightColor = spec.valueForKey("highlightColor");
         }
     },
 

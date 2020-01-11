@@ -51,33 +51,19 @@ topics:
                 summary: The font to use, overriding any styler font
               -
                 name: titleInsets
-                type: String
+                type: JSInsets
                 summary: The amounts the title should be inset from the button's
                   edges, overriding any styler setting
                 description: |
-                  A string of comma-separated integers, that when parsed will be
-                  pased to the `JSInsets` constructor.
-
                   ````
                   PlanetPopup:
                     class: UIPopupButtonButton
                     titleInsets: 4,7
                   ````
-              -
-                name: titleInsets
-                suffix: number
-                type: Number
-                summary: The amount the title should be inset all from the button's
-                  edges, overriding any styler setting
-                description: |
-                  A single number that will be passed to the `JSInsets` constructor
-                  and used for all sides.
 
-                  ````
-                  PlanetPopup:
-                    class: UIPopupButtonButton
-                    titleInsets: 4
-                  ````
+                  See `JSInsets`(JSInsets.Spec File Properties) for 
+                  description of the various ways insets can be
+                  specified.
           -
             name: Pull Down Menu
             members:

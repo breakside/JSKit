@@ -64,33 +64,19 @@ topics:
                   ````
               -
                 name: contentInsets
-                type: String
+                type: JSInsets
                 summary: The amount to inset the content view from the edge of
                   the scroll view
                 description: |
-                  A string of comma-separated integers that when parsed will
-                  be passed to a `JSInsets` constructor.
-
                   ````
                   SrollView:
                     class: UIScrollView
                     contentInests: 10,0
                   ````
-              -
-                name: contentInsets
-                type: Number
-                suffix: number
-                summary: The equal amount to inset the content view from all
-                  edges of the scroll view
-                description: |
-                  A single number that will be used to create a JSInsets of
-                  equal value on every side.
 
-                  ````
-                  SrollView:
-                    class: UIScrollView
-                    contentInests: 5
-                  ````
+                  See `JSInsets`(JSInsets.Spec File Properties) for 
+                  description of the various ways insets can be
+                  specified.
               -
                 name: contentSize
                 type: String

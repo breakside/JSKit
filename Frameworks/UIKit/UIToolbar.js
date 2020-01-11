@@ -17,18 +17,19 @@ JSClass("UIToolbar", JSObject, {
         this._imageSize = UIToolbar.ImageSize.default;
     },
 
-    initWithSpec: function(spec, values){
-        UIToolbar.$super.initWithSpec.call(this, spec, values);
+    initWithSpec: function(spec){
+        UIToolbar.$super.initWithSpec.call(this, spec);
         this._items = [];
         var item;
-        if ('imageSize' in values){
-            this._imageSize = spec.resolvedEnum(values.imageSize, UIToolbar.ImageSize);
+        if (spec.containsKey('imageSize')){
+            this._imageSize = spec.valueForKey("imageSize", UIToolbar.ImageSize);
         }else{
             this._imageSize = UIToolbar.ImageSize.default;
         }
-        if ('items' in values){
-            for (var i = 0, l = values.items.length; i < l; ++i){
-                item = spec.resolvedValue(values.items[i], "UIToolbarItem");
+        if (spec.containsKey('items')){
+            var items = spec.valueForKey("items");
+            for (var i = 0, l = items.length; i < l; ++i){
+                item = items.valueForKey(i, UIToolbarItem);
                 this.addItem(item);
             }
         }

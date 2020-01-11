@@ -14,41 +14,44 @@ JSClass("UIMenuBar", UIWindow, {
         this._commonInit();
     },
 
-    initWithSpec: function(spec, values){
+    initWithSpec: function(spec){
         this._styler = UIWindow.Styler.custom;
-        UIMenuBar.$super.initWithSpec.call(this, spec, values);
+        UIMenuBar.$super.initWithSpec.call(this, spec);
         this._commonInit();
-        if ('highlightColor' in values){
-            this._highlightColor = spec.resolvedValue(values.highlightColor, "JSColor");
+        if (spec.containsKey('highlightColor')){
+            this._highlightColor = spec.valueForKey("highlightColor", JSColor);
         }
-        if ('textColor' in values){
-            this._textColor = spec.resolvedValue(values.textColor, "JSColor");
+        if (spec.containsKey('textColor')){
+            this._textColor = spec.valueForKey("textColor", JSColor);
         }
-        if ('highlightedTextColor' in values){
-            this._highlightedTextColor = spec.resolvedValue(values.highlightedTextColor, "JSColor");
+        if (spec.containsKey('highlightedTextColor')){
+            this._highlightedTextColor = spec.valueForKey("highlightedTextColor", JSColor);
         }
-        if ('font' in values){
-            this._font = JSFont.initWithSpec(spec, values.font);
+        if (spec.containsKey('font')){
+            this._font = spec.valueForKey("font", JSFont);
         }
-        if ('menu' in values){
-            this.menu = spec.resolvedValue(values.menu, "UIMenu");
+        if (spec.containsKey('menu')){
+            this.menu = spec.valueForKey("menu", UIMenu);
         }
         var i, l, item;
-        if ('leftBarItems' in values){
-            var leftBarItems = [];
-            for (i = 0, l = values.leftBarItems.length; i < l; ++i){
-                item = spec.resolvedValue(values.leftBarItems[i], "UIMenuBarItem");
-                leftBarItems.push(item);
+        var items;
+        if (spec.containsKey('leftBarItems')){
+            items = [];
+            var leftBarItems = spec.valueForKey('leftBarItems');
+            for (i = 0, l = leftBarItems.length; i < l; ++i){
+                item = leftBarItems.valueForKey(i, UIMenuBarItem);
+                items.push(item);
             }
-            this.leftBarItems = leftBarItems;
+            this.leftBarItems = items;
         }
-        if ('rightBarItems' in values){
-            var rightBarItems = [];
-            for (i = 0, l = values.rightBarItems.length; i < l; ++i){
-                item = spec.resolvedValue(values.rightBarItems[i], "UIMenuBarItem");
-                rightBarItems.push(item);
+        if (spec.containsKey('rightBarItems')){
+            items = [];
+            var rightBarItems = spec.valueForKey('rightBarItems');
+            for (i = 0, l = rightBarItems.length; i < l; ++i){
+                item = rightBarItems.valueForKey(i, UIMenuBarItem);
+                items.push(item);
             }
-            this.rightBarItems = rightBarItems;
+            this.rightBarItems = items;
         }
     },
 
@@ -576,34 +579,34 @@ JSClass("UIMenuBarItem", JSObject, {
     active: JSDynamicProperty(null, null, 'isActive'),
     _menuBar: null,
 
-    initWithSpec: function(spec, values){
-        UIMenuBarItem.$super.initWithSpec.call(this, spec, values);
-        if ('title' in values){
-            this._title = spec.resolvedValue(values.title);
+    initWithSpec: function(spec){
+        UIMenuBarItem.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('title')){
+            this._title = spec.valueForKey("title");
         }
-        if ('image' in values){
-            this.image = spec.resolvedValue(values.image, "JSImage");
+        if (spec.containsKey('image')){
+            this.image = spec.valueForKey("image", JSImage);
         }
-        if ('imagePosition' in values){
-            this.imagePosition = spec.resolvedEnum(values.imagePosition, UIMenuBarItem.ImagePosition);
+        if (spec.containsKey('imagePosition')){
+            this.imagePosition = spec.valueForKey("imagePosition", UIMenuBarItem.ImagePosition);
         }
-        if ('target' in values){
-            this.target = spec.resolvedValue(values.target);
+        if (spec.containsKey('target')){
+            this.target = spec.valueForKey("target");
         }
-        if ('action' in values){
-            this.action = values.action;
+        if (spec.containsKey('action')){
+            this.action = spec.valueForKey("action");
         }
-        if ('customView' in values){
-            this.customView = spec.resolvedValue(values.customView, "UIView");
+        if (spec.containsKey('customView')){
+            this.customView = spec.valueForKey("customView", UIView);
         }
-        if ('tooltip' in values){
-            this.tooltip = spec.resolvedValue(values.tooltip);
+        if (spec.containsKey('tooltip')){
+            this.tooltip = spec.valueForKey("tooltip");
         }
-        if ('menu' in values){
-            this.menu = spec.resolvedValue(values.menu, "UIMenu");
+        if (spec.containsKey('menu')){
+            this.menu = spec.valueForKey("menu", UIMenu);
         }
-        if ('windowControllerClass' in values){
-            this.windowControllerClass = JSClass.FromName(values.windowControllerClass);
+        if (spec.containsKey('windowControllerClass')){
+            this.windowControllerClass = JSClass.FromName(spec.valueForKey("windowControllerClass"));
         }
     },
 

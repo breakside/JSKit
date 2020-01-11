@@ -159,6 +159,184 @@ topics:
           ````
           JSAffineTransform.Rotated(degs * Math.PI / 180.0);
           ````
+      -
+        name: initWithSpec
+        kind: method
+        static: true
+        summary: Create a transform from a value in a spec file
+        arguments:
+          - 
+            name: spec
+            type: JSSpec
+            summary: The spec in which the transform is described
+          - 
+            name: values
+            type: any
+            summary: The value that the describes the transform in the spec
+        description: |
+          Typically used in `initWithSpec()`(JSObject.initWithSpec())
+          implementations for objects that have `JSAffineTransform` properties.
+
+          Handles the various ways a `JSAffineTransform` can be specified in a
+          spec file.
+
+          See [Spec File Properties](Spec File Properties) for more information
+          about how to write a `JSAffineTransform` in a spec file.
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The ways to specify a `JSAffineTransform` in a spec file
+        description: |
+          A transform can be specified in various ways in a spec file:
+          1. As a comma-separated `String` of integers corresponding to the
+             `JSAffineTransform` constructor.  Components, in order, are:
+             - `a`(JSAffineTransform.a)
+             - `b`(JSAffineTransform.b)
+             - `c`(JSAffineTransform.c)
+             - `d`(JSAffineTransform.d)
+             - `tx`(JSAffineTransform.tx)
+             - `ty`(JSAffineTransform.ty)
+          1. As a dictionary with any of `a`, `b`, `c`, `d`, `tx`, and `ty`
+             properties
+          1. As a dictionary with operations like `scale` or `rotate`
+             properties
+
+          String form:
+          ````
+          Object:
+            transform: 2,0,0,2,10,20
+          ````
+
+          Dictionary form:
+          ````
+          Object:
+            transform:
+              a: 2
+              b: 0
+              c: 0
+              d: 2
+              tx: 10
+              ty: 20
+          ````
+
+          Operation form:
+          ````
+          Object:
+            transform:
+              scale: 2
+              rotate: 90
+          ````
+        topics:
+          -
+            name: Dictionary Representation
+            members:
+              -
+                name: a
+                type: Number
+                summary: The `x` coordinate scale factor
+                description: |
+                  If unspecified, defaults to `1`
+              -
+                name: b
+                type: Number
+                summary: A rotation factor
+                description: |
+                  If unspecified, defaults to `0`
+              -
+                name: c
+                type: Number
+                summary: A rotation factor
+                description: |
+                  If unspecified, defaults to `0`
+              -
+                name: d
+                type: Number
+                summary: The `y` coordinate scale factor
+                description: |
+                  If unspecified, defaults to `1`
+              -
+                name: tx
+                type: Number
+                summary: The `x` coordinate translation factor
+                description: |
+                  If unspecified, defaults to `0`
+              -
+                name: ty
+                type: Number
+                summary: The `y` coordinate translation factor
+                description: |
+                  If unspecified, defaults to `0`
+          -
+            name: Operation Representation
+            members:
+              -
+                name: scale
+                type: Number
+                summary: The amount to scale `x` and `y` coordinates by
+                description: |
+                  ````
+                  Object:
+                    transform:
+                      scale: 3
+                  ````
+              -
+                name: scale
+                type: String
+                summary: The amount to scale `x` and `y` coordinates by
+                description: |
+                  Two comma-separated integers representing the `x` and
+                  `y` scale factors:
+
+                  ````
+                  Object:
+                    transform:
+                      scale: 2,-2
+                  ````
+              -
+                name: scale
+                type: dictionary
+                summary: The amount to scale `x` and `y` coordinates by
+                description: |
+                  A dictionary with `x` and `y` properties:
+
+                  ````
+                  Object:
+                    transform:
+                      scale:
+                        x: 2
+                        y: -2
+                  ````
+              -
+                name: rotate
+                type: Number
+                summary: The degrees to rotate the transform
+  -
+    name: Components
+    members:
+      -
+        name: a
+        type: Number
+        summary: The `x` coordinate scale factor
+      -
+        name: b
+        type: Number
+        summary: A rotation factor
+      -
+        name: c
+        type: Number
+        summary: A rotation factor
+      -
+        name: d
+        type: Number
+        summary: The `y` coordinate scale factor
+      -
+        name: tx
+        type: Number
+        summary: The `x` coordinate translation factor
+      -
+        name: ty
+        type: Number
+        summary: The `y` coordinate translation factor
   -
     name: Coordinate Transformations
     members:

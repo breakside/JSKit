@@ -1,7 +1,7 @@
 // #import "JSObject.js"
 // #import "JSColor.js"
 // #import "CoreTypes.js"
-/* global JSClass, JSObject, JSGradient, JSPoint, JSCopy, JSAffineTransform */
+/* global JSClass, JSObject, JSColor, JSGradient, JSPoint, JSCopy, JSAffineTransform */
 'use strict';
 
 JSClass('JSGradient', JSObject, {
@@ -16,14 +16,14 @@ JSClass('JSGradient', JSObject, {
         this.stops = {};
     },
 
-    initWithSpec: function(spec, values){
-        JSGradient.$super.initWithSpec.call(this, spec, values);
+    initWithSpec: function(spec){
+        JSGradient.$super.initWithSpec.call(this, spec);
         this.start = JSPoint(0, 0);
         this.end = JSPoint(0, 1);
         this.stops = {};
-        if (('from' in values) && ('to' in values)){
-            this.addStop(0, spec.resolvedValue(values.from, "JSColor"));
-            this.addStop(1, spec.resolvedValue(values.to, "JSColor"));
+        if (spec.containsKey('from') && spec.containsKey('to')){
+            this.addStop(0, spec.valueForKey("from", JSColor));
+            this.addStop(1, spec.valueForKey("to", JSColor));
         }
     },
 

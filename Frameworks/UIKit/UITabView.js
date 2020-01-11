@@ -29,26 +29,26 @@ JSClass("UITabView", UIView, {
         this._commonTabViewInit();
     },
 
-    initWithSpec: function(spec, values){
-        UITabView.$super.initWithSpec.call(this, spec, values);
-        if ('styler' in values){
-            this._styler = spec.resolvedValue(values.styler);
+    initWithSpec: function(spec){
+        UITabView.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('styler')){
+            this._styler = spec.valueForKey("styler", UITabView.Styler);
         }else{
             this._styler = UITabView.Styler.default;
         }
         this._commonTabViewInit();
-        if ('delegate' in values){
-            this.delegate = spec.resolvedValue(values.delegate);
+        if (spec.containsKey('delegate')){
+            this.delegate = spec.valueForKey("delegate");
         }
-        if ('items' in values){
-            var items = [];
-            for (var i = 0, l = values.items.length; i < l; ++i){
-                items.push(spec.resolvedValue(values.items[i]));
+        if (spec.containsKey('items')){
+            var items = spec.valueForKey('items');
+            for (var i = 0, l = items.length; i < l; ++i){
+                items.push(items.valueForKey(i, UITabViewItem));
             }
             this.items = items;
         }
-        if ("font" in values){
-            this.font = JSFont.initWithSpec(spec, values.font);
+        if (spec.containsKey("font")){
+            this.font = spec.valueForKey("font", JSFont);
         }
     },
 
@@ -211,15 +211,15 @@ JSClass("UITabViewItem", JSObject, {
     selected: JSDynamicProperty(),
     over: JSDynamicProperty(),
 
-    initWithSpec: function(spec, values){
-        if ('title' in values){
-            this.title = spec.resolvedValue(values.title);
+    initWithSpec: function(spec){
+        if (spec.containsKey('title')){
+            this.title = spec.valueForKey("title");
         }
-        if ('image' in values){
-            this.image = spec.resolvedValue(values.image, "JSImage");
+        if (spec.containsKey('image')){
+            this.image = spec.valueForKey("image", JSImage);
         }
-        if ('selectedImage' in values){
-            this.selectedImage = spec.resolvedValue(values.selectedImage, "JSImage");
+        if (spec.containsKey('selectedImage')){
+            this.selectedImage = spec.valueForKey("selectedImage", JSImage);
         }
     },
 
@@ -733,8 +733,8 @@ JSClass("UITabViewImagesStyler", UITabViewStyler, {
         this._commonStylerInit();
     },
 
-    initWithSpec: function(spec, values){
-        UITabViewImagesStyler.$super.initWithSpec.call(this, spec, values);
+    initWithSpec: function(spec){
+        UITabViewImagesStyler.$super.initWithSpec.call(this, spec);
         this._stateColors = [
             null,
             null,
@@ -745,26 +745,26 @@ JSClass("UITabViewImagesStyler", UITabViewStyler, {
             null,
             null
         ];
-        if ('itemSize' in values){
-            this.itemSize = spec.resolvedValue(values.itemSize);
+        if (spec.containsKey('itemSize')){
+            this.itemSize = spec.valueForKey("itemSize");
         }
-        if ('imageSize' in values){
-            this.imageSize = spec.resolvedValue(values.imageSize);
+        if (spec.containsKey('imageSize')){
+            this.imageSize = spec.valueForKey("imageSize");
         }
-        if ('normalColor' in values){
-            this._stateColors[UITabViewItem.State.normal] = spec.resolvedValue(values.normalColor, "JSColor");
+        if (spec.containsKey('normalColor')){
+            this._stateColors[UITabViewItem.State.normal] = spec.valueForKey("normalColor", JSColor);
         }
-        if ('activeColor' in values){
-            this._stateColors[UITabViewItem.State.active] = spec.resolvedValue(values.activeColor, "JSColor");
+        if (spec.containsKey('activeColor')){
+            this._stateColors[UITabViewItem.State.active] = spec.valueForKey("activeColor", JSColor);
         }
-        if ('selectedColor' in values){
-            this._stateColors[UITabViewItem.State.selected] = spec.resolvedValue(values.selectedColor, "JSColor");
+        if (spec.containsKey('selectedColor')){
+            this._stateColors[UITabViewItem.State.selected] = spec.valueForKey("selectedColor", JSColor);
         }
-        if ('selectedActiveColor' in values){
-            this._stateColors[UITabViewItem.State.selected | UITabViewItem.State.active] = spec.resolvedValue(values.selectedActiveColor, "JSColor");
+        if (spec.containsKey('selectedActiveColor')){
+            this._stateColors[UITabViewItem.State.selected | UITabViewItem.State.active] = spec.valueForKey("selectedActiveColor", JSColor);
         }
-        if ('borderColor' in values){
-            this.borderColor = spec.resolvedValue(values.borderColor, "JSColor");
+        if (spec.containsKey('borderColor')){
+            this.borderColor = spec.valueForKey("borderColor", JSColor);
         }
         this._commonStylerInit();
     },

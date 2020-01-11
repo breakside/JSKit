@@ -28,18 +28,19 @@ topics:
             members:
               -
                 name: titleInsets
-                type: String
+                type: JSInsets
                 summary: The amounts the title should be inset from the button's
                   edges, overriding any styler setting
                 description: |
-                  A string of comma-separated integers, that when parsed will be
-                  pased to the `JSInsets` constructor.
-
                   ````
                   SortControl:
                     class: UISegmentedControl
                     titleInsets: 4,7
                   ````
+                  
+                  See `JSInsets`(JSInsets.Spec File Properties) for 
+                  description of the various ways insets can be
+                  specified.
               -
                 name: titleInsets
                 suffix: number
@@ -260,11 +261,18 @@ topics:
                     members:
                       -
                         name: titleInsets
-                        type: String
+                        type: JSInsets
                         summary: The default insets for this styler
                         description: |
-                          A comma-separated list of integers that when parsed
-                          can be passed to a `JSInsets` constructor.
+                          ````
+                          Styler:
+                            class: UISegmentedControlStyler
+                            titleInsets: 4,7
+                          ````
+                  
+                          See `JSInsets`(JSInsets.Spec File Properties) for 
+                          description of the various ways insets can be
+                          specified.
                       -
                         name: titleInsets
                         type: Number

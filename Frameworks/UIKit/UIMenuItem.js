@@ -28,41 +28,41 @@ JSClass("UIMenuItem", JSObject, {
     action: null,
     view: null,
 
-    initWithSpec: function(spec, values){
-        UIMenuItem.$super.initWithSpec.call(this, spec, values);
-        if ('tag' in values){
-            this.tag = spec.resolvedValue(values.tag);
+    initWithSpec: function(spec){
+        UIMenuItem.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('tag')){
+            this.tag = spec.valueForKey("tag");
         }
-        if ('separator' in values){
+        if (spec.containsKey('separator')){
             this.initSeparator();
         }else{
-            if ('title' in values){
-                this._title = spec.resolvedValue(values.title);
+            if (spec.containsKey('title')){
+                this._title = spec.valueForKey("title");
             }
-            if ('action' in values){
-                this.action = spec.resolvedValue(values.action);
+            if (spec.containsKey('action')){
+                this.action = spec.valueForKey("action");
             }
-            if ('target' in values){
-                this.target = spec.resolvedValue(values.target);
+            if (spec.containsKey('target')){
+                this.target = spec.valueForKey("target");
             }
-            if ('submenu' in values){
-                this._submenu = UIMenu.initWithSpec(spec, values.submenu);
+            if (spec.containsKey('submenu')){
+                this._submenu = spec.valueForKey("submenu", UIMenu);
                 this._isEnabled = true;
             }
-            if ('indentationLevel' in values){
-                this._indentationLevel = spec.resolvedValue(values.indentationLevel);
+            if (spec.containsKey('indentationLevel')){
+                this._indentationLevel = spec.valueForKey("indentationLevel");
             }
-            if ('keyEquivalent' in values){
-                this.keyEquivalent = spec.resolvedValue(values.keyEquivalent);
+            if (spec.containsKey('keyEquivalent')){
+                this.keyEquivalent = spec.valueForKey("keyEquivalent");
             }
-            if ('keyModifiers' in values){
-                this._keyModifiers = spec.resolvedEnum(values.keyModifiers, UIEvent.Modifier);
+            if (spec.containsKey('keyModifiers')){
+                this._keyModifiers = spec.valueForKey("keyModifiers", UIEvent.Modifier);
             }
-            if ('alternate' in values){
-                this._isAlternate = !!values.alternate;
+            if (spec.containsKey('alternate')){
+                this._isAlternate = !!spec.valueForKey("alternate");
             }
-            if ('image' in values){
-                this._image = spec.resolvedValue(values.image, "JSImage");
+            if (spec.containsKey('image')){
+                this._image = spec.valueForKey("image", JSImage);
             }
         }
     },

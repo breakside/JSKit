@@ -2,16 +2,22 @@
 // #import "JSObject.js"
 // #import "JSPropertyList.js"
 // #import "JSBundle.js"
-/* global JSClass, JSObject, JSLazyInitProperty, JSCopy, JSReadOnlyProperty, JSPropertyList, JSSpec, JSGlobalObject, JSResolveDottedName, JSBundle */
+/* global JSClass, JSObject, JSDeepCopy, JSLazyInitProperty, JSCopy, JSReadOnlyProperty, JSPropertyList, JSSpec, JSGlobalObject, JSResolveDottedName, JSBundle, JSSpecDecoder */
 'use strict';
 
-JSClass('JSSpec', JSObject, {
+JSClass("JSSpec", JSObject, {
 
-    bundle: JSReadOnlyProperty('_bundle', null),
-    filesOwner: JSLazyInitProperty('_getFilesOwner'),
-    _plist: null,
-    _objectMap: null,
+    filesOwner: JSReadOnlyProperty(),
+    bundle: JSReadOnlyProperty(),
+    stringValue: JSReadOnlyProperty('_stringValue', null),
+    numberValue: JSReadOnlyProperty('_numberValue', null),
+    length: JSReadOnlyProperty(),
+    _dictionaryValue: null,
+
+    _root: null,
+    _bundle: null,
     _baseName: null,
+    _cache: null,
     _keysForNextObjectInit: null,
 
     initWithResource: function(resource, bundle){
@@ -25,114 +31,207 @@ JSClass('JSSpec', JSObject, {
         this.initWithPropertyList(plist);
     },
 
-    initWithPropertyList: function(plist){
-        this._plist = plist;
-        this._objectMap = {};
+    initWithPropertyList: function(plist, bundle){
+        this._bundle = bundle || JSBundle.mainBundle;
+        this._root = this;
+        this._dictionaryValue = plist;
+        this._cache = {};
+        this._keysForNextObjectInit = [];
     },
 
-    _getFilesOwner: function(){
-        return this.resolvedValue("/File's Owner", "JSObject");
-    },
-
-    resolvedEnum: function(value, map, defaultClassName){
-        if (value in map){
-            return map[value];
+    initWithValue: function(value, root){
+        if (typeof(value) == 'string'){
+            this._stringValue = value;
+        }else if (typeof(value) == 'number'){
+            this._numberValue = value;
+        }else if (typeof(value) == 'object'){
+            this._dictionaryValue = value;
         }
-        return this.resolvedValue(value, defaultClassName);
+        this._root = root;
+        this._cache = {};
     },
 
-    resolvedValue: function(value, defaultClassName){
-        if (value !== null && value !== undefined){
-            if (typeof(value) == 'string'){
-                if (value.length > 0){
-                    var c = value.charAt(0);
-                    var key = value.substr(1);
-                    switch (c) {
-                        case '/':
-                            if (!(key in this._objectMap)){
-                                if (this._keysForNextObjectInit === null){
-                                    this._keysForNextObjectInit = [];
-                                }
-                                this._keysForNextObjectInit.push(key);
-                                this._objectMap[key] = this.resolvedValue(this._plist[key], defaultClassName);
-                            }
-                            value = this._objectMap[key];
-                            break;
-                        case '$':
-                            value = JSResolveDottedName(JSGlobalObject, key);
-                            break;
-                        case '.':
-                            if (this._bundle !== null && this._baseName !== null){
-                                value = this._bundle.localizedString(key, this._baseName + '.strings');
-                            }
-                            break;
-                        case '\\':
-                            value = key;
-                            break;
-                    }
-                    if (defaultClassName !== undefined && typeof(value) === 'string'){
-                        value = this._createObject(defaultClassName, value);
-                    }
-                }
-            }else if (typeof(value) == 'object'){
-                value = this._createObject(defaultClassName, value);
+    getFilesOwner: function(){
+        return this._root.valueForKey(JSSpec.Keys.FilesOwner);
+    },
+
+    getLength: function(){
+        if (this._dictionaryValue !== null && (this._dictionaryValue instanceof Array)){
+            return this._dictionaryValue.length;
+        }
+        return null;
+    },
+
+    getBundle: function(){
+        return this._root._bundle;
+    },
+
+    containsKey: function(key){
+        if (this._dictionaryValue === null){
+            return false;
+        }
+        return key in this._dictionaryValue;
+    },
+
+    keys: function(){
+        if (this._dictionaryValue === null){
+            return [];
+        }
+        var keys = [];
+        for (var key in this._dictionaryValue){
+            keys.push(key);
+        }
+        return keys;
+    },
+
+    values: function(){
+        var values = [];
+        if (this.length !== null){
+            for (var i = 0, l = this.length; i < l; ++i){
+                values.push(this.valueForKey(i));
             }
+        }
+        return values;
+    },
+
+    valueForKey: function(key, type){
+        if (this._dictionaryValue === null){
+            return null;
+        }
+        if (key in this._cache){
+            return this._cache[key];
+        }
+        if (this === this._root){
+            this._keysForNextObjectInit.push(key);
+        }
+        var value = this._createValueForKey(key, type);
+        this._keysForNextObjectInit = [];
+        this._cache[key] = value;
+        return value;
+    },
+
+    unmodifiedValueForKey: function(key){
+        if (this._dictionaryValue === null){
+            return null;
+        }
+        return JSDeepCopy(this._dictionaryValue[key]);
+    },
+
+    _createValueForKey: function(key, type){
+        if (type === undefined){
+            type = null;
+        }
+        var value = this._dictionaryValue[key];
+        if (value === null || value === undefined){
+            return null;
+        }
+        if (typeof(value) === 'string' && value.length > 0){
+            var prefix = value.charAt(0);
+            if (prefix === '$'){
+                return JSResolveDottedName(JSGlobalObject, value.substr(1));
+            }
+            if (prefix == '.'){
+                if (this._root._bundle !== null && this._root._baseName !== null){
+                    return this._root._bundle.localizedString(value.substr(1), this._root._baseName + '.strings');
+                }
+                return value;
+            }
+            if (prefix == '\\'){
+                return value.substr(1);
+            }
+            if (prefix == '/'){
+                return this._root.valueForKey(value.substr(1), type);
+            }
+            if (type !== null){
+                if (value in type){
+                    return type[value];
+                }
+                return this._initializeObject(type, value);
+            }
+            return value;
+        }
+        if (typeof(value) === 'number'){
+            if (type !== null){
+                return this._initializeObject(type, value);
+            }
+            return value;
+        }
+        if (value instanceof Array){
+            return JSSpec.initWithValue(value, this._root);
+        }
+        if (typeof(value) === 'object'){
+            if (JSSpec.Keys.ObjectClass in value){
+                var className = value[JSSpec.Keys.ObjectClass];
+                type = JSClass.FromName(className);
+                if (!type){
+                    throw new Error("Class not found: %s".sprintf(className));
+                }
+            }
+            if (type !== null){
+                return this._initializeObject(type, value);
+            }
+            return JSSpec.initWithValue(value, this._root);
         }
         return value;
     },
 
-    _createObject: function(defaultClassName, value){
-        var i, l;
-        var className = defaultClassName;
-        if (typeof(value) === 'object' && (JSSpec.Keys.ObjectClass in value)){
-            className = value[JSSpec.Keys.ObjectClass];
-        }
-        if (className){
-            var cls = JSClass.FromName(className);
-            var obj = cls.allocate();
+    _initializeObject: function(type, value){
+        var spec = JSSpec.initWithValue(value, this._root);
+        if (type instanceof JSClass){
+            var obj = type.allocate();
             // Since initWithSpec may resolve objects that reference back
             // to us, we need to set our entry in the object map before
             // calling init.
             // NOTE: If there's a double-refeference like /File's Owner: /SomeObject,
             // we'll add this newly allocated object under both names.
             if (this._keysForNextObjectInit !== null){
-                for (i = 0, l = this._keysForNextObjectInit.length; i < l; ++i){
-                    this._objectMap[this._keysForNextObjectInit[i]] = obj;
+                for (var i = 0, l = this._keysForNextObjectInit.length; i < l; ++i){
+                    this._cache[this._keysForNextObjectInit[i]] = obj;
                 }
-                this._keysForNextObjectInit = null;
+                this._keysForNextObjectInit = [];
             }
-            var result = obj.initWithSpec(this, value);
+            var result = obj.initWithSpec(spec);
             if (result !== undefined){
                 obj = result;
             }
             // Set the bindings after the object has been initialized
-            if (typeof(value) === 'object' && ('bindings' in value)){
-                this._setObjectBindings(obj, value.bindings);
+            if (spec.containsKey('bindings')){
+                this._setObjectBindings(obj, spec.valueForKey('bindings'));
             }
             obj.awakeFromSpec();
             return obj;
+        }
+        if (type.initWithSpec){
+            return type.initWithSpec(spec);
         }
         return value;
     },
 
     _setObjectBindings: function(obj, bindings){
-        var descriptors;
         var descriptor;
-        for (var binding in bindings){
-            descriptors = bindings[binding];
-            if (!(descriptors instanceof Array)){
-                descriptors = [descriptors];
+        var keys = bindings.keys();
+        var key;
+
+        for (var keyIndex = 0, keysLength = keys.length; keyIndex < keysLength; ++keyIndex){
+            key = keys[keyIndex];
+            descriptor = bindings.valueForKey(key);
+            if (descriptor.length === null){
+                this._setObjectBinding(obj, key, descriptor);
             }
-            for (var i = 0, l = descriptors.length; i < l; ++i){
-                descriptor = descriptors[i];
-                var options = {};
-                if (descriptor.transformer){
-                    options.valueTransformer = this.resolvedValue(descriptor.transformer);
-                }
-                var to = this.resolvedValue(descriptor.to);
-                obj.bind(binding, to, descriptor.value, options);
+            for (var i = 0, l = descriptor.length; i < l; ++i){
+                descriptor = this._setObjectBinding(obj, key, descriptor.valueForKey(i));
             }
         }
+    },
+
+    _setObjectBinding: function(obj, binding, descriptor){
+        var options = {};
+        if (descriptor.containsKey('transformer')){
+            options.valueTransformer = descriptor.valueForKey('transformer');
+        }
+        var to = descriptor.valueForKey('to');
+        var keyPath = descriptor.valueForKey('value');
+        obj.bind(binding, to, keyPath, options);
     },
 
 });

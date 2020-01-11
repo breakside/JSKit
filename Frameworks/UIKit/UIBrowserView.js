@@ -13,13 +13,13 @@ JSClass("UIBrowserView", UIScrollView, {
         this._commonBrowserInit();
     },
 
-    initWithSpec: function(spec, values){
-        UIBrowserView.$super.initWithSpec.call(this, spec, values);
-        if ('dividerSize' in values){
-            this._dividerSize = spec.resolvedValue(values.dividerSize);
+    initWithSpec: function(spec){
+        UIBrowserView.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('dividerSize')){
+            this._dividerSize = spec.valueForKey("dividerSize");
         }
-        if ('dividerColor' in values){
-            this._dividerColor = spec.resolvedValue(values.dividerColor, "JSColor");
+        if (spec.containsKey('dividerColor')){
+            this._dividerColor = spec.valueForKey("dividerColor", JSColor);
         }
         this._commonBrowserInit();
     },

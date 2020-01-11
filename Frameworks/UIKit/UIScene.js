@@ -1,6 +1,8 @@
 // #import Foundation
 // #import "UIApplication.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, UIScene, UIApplication, JSSpec */
+// #import "UIMenuBar.js"
+// #import "UIWindow.js"
+/* global JSClass, JSObject, JSReadOnlyProperty, UIScene, UIApplication, JSSpec, UIMenuBar, UIWindow */
 'use strict';
 
 JSClass("UIScene", JSObject, {
@@ -13,16 +15,17 @@ JSClass("UIScene", JSObject, {
         this._commonInit();
     },
 
-    initWithSpec: function(spec, values){
-        UIScene.$super.initWithSpec.call(this, spec, values);
+    initWithSpec: function(spec){
+        UIScene.$super.initWithSpec.call(this, spec);
         this._commonInit();
-        if ('menuBar' in values){
-            this.menuBar = spec.resolvedValue(values.menuBar, "UIMenuBar");
+        if (spec.containsKey('menuBar')){
+            this.menuBar = spec.valueForKey("menuBar", UIMenuBar);
         }
-        if ('windowStack' in values){
+        if (spec.containsKey('windowStack')){
             var window;
-            for (var i = 0, l = values.windowStack.length; i < l; ++i){
-                window = spec.resolvedValue(values.windowStack[i], "UIWindow");
+            var windowStack = spec.valueForKey('windowStack');
+            for (var i = 0, l = windowStack.length; i < l; ++i){
+                window = windowStack.valueForKey(i, UIWindow);
                 this.addWindow(window);
             }
         }

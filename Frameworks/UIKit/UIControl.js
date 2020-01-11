@@ -20,34 +20,35 @@ JSClass("UIControl", UIView, {
         this.commonUIControlInit();
     },
 
-    initWithSpec: function(spec, values){
-        UIControl.$super.initWithSpec.call(this, spec, values);
-        if ('styler' in values){
-            this._styler = spec.resolvedEnum(values.styler, this.$class.Styler || {});
+    initWithSpec: function(spec){
+        UIControl.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('styler')){
+            this._styler = spec.valueForKey("styler", this.$class.Styler || {});
         }
         this.commonUIControlInit();
         var target;
         var action;
         var event;
-        if (('target' in values) && ('action' in values)){
-            target = spec.resolvedValue(values.target);
-            action = spec.resolvedValue(values.action);
+        if (spec.containsKey('target') && spec.containsKey('action')){
+            target = spec.valueForKey("target");
+            action = spec.valueForKey("action");
             if (!target.isKindOfClass(UIResponder)){
-                throw new Error("Action target must be a UIResponder: %s.%s".sprintf(values.target, values.action));
+                throw new Error("Action target must be a UIResponder: %s.%s".sprintf(spec.unmodifiedValueForKey("target"), spec.unmodifiedValueForKey("action")));
             }
             this.addAction(action, target);
         }
-        if ('actions' in values){
+        if (spec.containsKey('actions')){
             var actionInfo;
-            for (var i = 0, l = values.actions.length; i < l; ++i){
-                actionInfo = values.actions[i];
-                if (actionInfo.target){
-                    target = spec.resolvedValue(actionInfo.target);   
+            var actions = spec.valueForKey("actions");
+            for (var i = 0, l = actions.length; i < l; ++i){
+                actionInfo = actions.valueForKey(i);
+                if (actionInfo.containsKey('target')){
+                    target = actionInfo.valueForKey("target");
                 }else{
                     target = null;
                 }
-                action = spec.resolvedValue(actionInfo.action);
-                event = spec.resolvedEnum(actionInfo.event, this.$class.Event);
+                action = actionInfo.valueForKey('action');
+                event = actionInfo.valueForKey("event", this.$class.Event);
                 this.addAction(action, target, event);
             }
         }

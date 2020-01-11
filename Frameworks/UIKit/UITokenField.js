@@ -14,10 +14,10 @@ JSClass("UITokenField", UITextField, {
     representedObjects: JSDynamicProperty(),
     tokensView: null,
 
-    initWithSpec: function(spec, values){
-        UITokenField.$super.initWithSpec.call(this, spec, values);
-        if ('tokenDelegate' in values){
-            this.tokenDelegate = spec.resolvedValue(values.tokenDelegate);
+    initWithSpec: function(spec){
+        UITokenField.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('tokenDelegate')){
+            this.tokenDelegate = spec.valueForKey("tokenDelegate");
         }
     },
 

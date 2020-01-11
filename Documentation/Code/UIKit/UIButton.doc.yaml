@@ -125,34 +125,15 @@ topics:
                   ````
               -
                 name: titleInsets
-                type: String
+                type: JSInsets
                 summary: The amounts the title should be inset from the button's
                   edges, overriding any styler setting
                 description: |
-                  A string of comma-separated integers, that when parsed will be
-                  pased to the `JSInsets` constructor.
-
                   ````
                   TestButton:
                     class: UIButton
                     title: Test
                     titleInsets: 4,7
-                  ````
-              -
-                name: titleInsets
-                suffix: number
-                type: Number
-                summary: The amount the title should be inset all from the button's
-                  edges, overriding any styler setting
-                description: |
-                  A single number that will be passed to the `JSInsets` constructor
-                  and used for all sides.
-
-                  ````
-                  TestButton:
-                    class: UIButton
-                    title: Test
-                    titleInsets: 4
                   ````
               -
                 name: font
@@ -405,18 +386,17 @@ topics:
                         summary: The font to use for the button's title
                       -
                         name: titleInsets
-                        type: String
+                        type: JSInsets
                         summary: The default insets for this styler
                         description: |
-                          A comma-separated list of integers that when parsed
-                          can be passed to a `JSInsets` constructor.
-                      -
-                        name: titleInsets
-                        type: Number
-                        summary: The default inset for all sides
-                        description: |
-                          A single number that will be used as the inset
-                          for all sides of the `JSInsets`
+                          ````
+                          Styler:
+                            class: UIButtonStyler
+                            titleInsets: 4,7
+                          ````
+                          See `JSInsets`(JSInsets.Spec File Properties) for 
+                          description of the various ways insets can be
+                          specified.
           -
             name: Title
             members:

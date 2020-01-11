@@ -14,10 +14,10 @@ JSClass("SidebarViewController", UIViewController, {
     root: null,
     components: null,
 
-    initWithSpec: function(spec, values){
-        SidebarViewController.$super.initWithSpec.call(this, spec, values);
-        if ('delegate' in values){
-            this.delegate = spec.resolvedValue(values.delegate);
+    initWithSpec: function(spec){
+        SidebarViewController.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey("delegate")){
+            this.delegate = spec.valueForKey("delegate");
         }
         this.components = [];
     },

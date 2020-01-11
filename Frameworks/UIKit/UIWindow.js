@@ -7,7 +7,7 @@
 // #import "UIToolbar.js"
 // #import "UIToolbarItem.js"
 // #import "UIViewPropertyAnimator.js"
-/* global JSClass, JSObject, JSGradient, JSTimer, UIView, JSColor, JSBundle, JSImage, JSUserDefaults, JSFont, UIImageView, UILabel, JSSize, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, UIWindowStyler, UIWindowDefaultStyler, UIWindowCustomStyler, UIControl, UIButton, UIButtonCustomStyler, JSPoint, UIApplication, UIEvent, UITouch, UIToolbar, UIToolbarView, UIToolbarItem, UIViewPropertyAnimator */
+/* global JSClass, JSObject, JSGradient, JSTimer, UIView, JSColor, JSBundle, JSImage, JSUserDefaults, JSFont, UIImageView, UILabel, JSSize, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, UIWindowStyler, UIWindowDefaultStyler, UIWindowCustomStyler, UIControl, UIButton, UIButtonCustomStyler, JSPoint, UIApplication, UIEvent, UITouch, UIToolbar, UIToolbarView, UIToolbarItem, UIViewPropertyAnimator, UIViewController */
 'use strict';
 
 (function(){
@@ -34,53 +34,53 @@ JSClass('UIWindow', UIView, {
         this.init();
     },
 
-    initWithSpec: function(spec, values){
-        UIWindow.$super.initWithSpec.call(this, spec, values);
-        if ('contentViewController' in values){
-            this.contentViewController = spec.resolvedValue(values.contentViewController, "UIViewController");
-        }else if ('contentView' in values){
-            this.contentView = spec.resolvedValue(values.contentView, "UIView");
+    initWithSpec: function(spec){
+        UIWindow.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('contentViewController')){
+            this.contentViewController = spec.valueForKey("contentViewController", UIViewController);
+        }else if (spec.containsKey('contentView')){
+            this.contentView = spec.valueForKey("contentView", UIView);
         }
-        if ('styler' in values){
-            this._styler = spec.resolvedValue(values.styler);
+        if (spec.containsKey('styler')){
+            this._styler = spec.valueForKey("styler", UIWindow.Styler);
         }
         this._application = UIApplication.shared;
         this._commonWindowInit();
-        if ('contentInsets' in values){
-            this._contentInsets = JSInsets.apply(undefined, values.contentInsets.parseNumberArray());
+        if (spec.containsKey('contentInsets')){
+            this._contentInsets = spec.valueForKey("contentInsets", JSInsets);
         }
-        if ('showsContentSeparator' in values){
-            this.showsContentSeparator = values.showsContentSeparator;
+        if (spec.containsKey('showsContentSeparator')){
+            this.showsContentSeparator = spec.valueForKey("showsContentSeparator");
         }
-        if ('isUserMovable' in values){
-            this.isUserMovable = values.isUserMovable;
+        if (spec.containsKey('isUserMovable')){
+            this.isUserMovable = spec.valueForKey("isUserMovable");
         }
-        if ('isMovableByContent' in values){
-            this.isMovableByContent = values.isMovableByContent;
+        if (spec.containsKey('isMovableByContent')){
+            this.isMovableByContent = spec.valueForKey("isMovableByContent");
         }
-        if ('escapeClosesWindow' in values){
-            this.escapeClosesWindow = values.escapeClosesWindow;
+        if (spec.containsKey('escapeClosesWindow')){
+            this.escapeClosesWindow = spec.valueForKey("escapeClosesWindow");
         }
-        if ('firstResponder' in values){
-            this._initialFirstResponder = spec.resolvedValue(values.firstResponder);
+        if (spec.containsKey('firstResponder')){
+            this._initialFirstResponder = spec.valueForKey("firstResponder");
         }
-        if ('heightTracksContent' in values){
-            this._heightTracksContent = values.heightTracksContent;
+        if (spec.containsKey('heightTracksContent')){
+            this._heightTracksContent = spec.valueForKey("heightTracksContent");
         }
-        if ('widthTracksContent' in values){
-            this._widthTracksContent = values.widthTracksContent;
+        if (spec.containsKey('widthTracksContent')){
+            this._widthTracksContent = spec.valueForKey("widthTracksContent");
         }
-        if ('title' in values){
-            this.title = spec.resolvedValue(values.title);
+        if (spec.containsKey('title')){
+            this.title = spec.valueForKey("title");
         }
-        if ('icon' in values){
-            this.icon = spec.resolvedValue(values.icon, "JSImage");
+        if (spec.containsKey('icon')){
+            this.icon = spec.valueForKey("icon", JSImage);
         }
-        if ('autosaveName' in values){
-            this.autosaveName = spec.resolvedValue(values.autosaveName);
+        if (spec.containsKey('autosaveName')){
+            this.autosaveName = spec.valueForKey("autosaveName");
         }
-        if ('toolbar' in values){
-            this._toolbar = spec.resolvedValue(values.toolbar, "UIToolbar");
+        if (spec.containsKey('toolbar')){
+            this._toolbar = spec.valueForKey("toolbar", UIToolbar);
             this._toolbar.window = this;
         }
     },

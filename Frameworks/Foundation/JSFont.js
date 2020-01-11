@@ -28,7 +28,8 @@ JSClass("JSFont", JSObject, {
         this._calculateMetrics();
     },
 
-    initWithSpec: function(spec, values){
+    initWithSpec: function(spec){
+        JSFont.$super.initWithSpec.call(this, spec);
         var family;
         var weight;
         var style;
@@ -37,27 +38,27 @@ JSClass("JSFont", JSObject, {
         // if ('descriptor' in values){
         //     values = values.descriptor;
         // }
-        if ('family' in values){
-            family = values.family;
+        if (spec.containsKey('family')){
+            family = spec.valueForKey("family");
         }else if (defaults){
             family = defaults.family;
         }
-        if ('weight' in values){
-            weight = spec.resolvedEnum(values.weight, JSFont.Weight);
+        if (spec.containsKey('weight')){
+            weight = spec.valueForKey("weight", JSFont.Weight);
         }else if (defaults){
             weight = defaults.weight;
         }else{
             weight = JSFont.Weight.regular;
         }
-        if ('style' in values){
-            style = spec.resolvedEnum(values.style, JSFont.Style);
+        if (spec.containsKey('style')){
+            style = spec.valueForKey("style", JSFont.Style);
         }else if (defaults){
             style = defaults.style;
         }else{
             style = JSFont.Style.normal;
         }
-        if ('size' in values){
-            size = spec.resolvedEnum(values.size, JSFont.Size);
+        if (spec.containsKey('size')){
+            size = spec.valueForKey("size", JSFont.Size);
         }else{
             size = JSFont.Size.normal;
         }

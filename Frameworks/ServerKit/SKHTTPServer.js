@@ -27,9 +27,10 @@ JSClass("SKHTTPServer", JSObject, {
         this._extensionInit();
     },
 
-    initWithSpec: function(spec, values){
-        SKHTTPServer.$super.initWithSpec.call(this, spec, values);
-        this.rootRoute = SKHTTPRoute.CreateFromMap(values.routes, spec);
+    initWithSpec: function(spec){
+        SKHTTPServer.$super.initWithSpec.call(this, spec);
+        var routes = spec.unmodifiedValueForKey("routes");
+        this.rootRoute = SKHTTPRoute.CreateFromMap(routes, spec);
         this._extensionInit();
         this.contextProperties = {};
     },

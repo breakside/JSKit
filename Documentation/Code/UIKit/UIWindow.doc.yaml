@@ -109,19 +109,19 @@ topics:
                   root view
               -
                 name: contentInsets
-                type: String
+                type: JSInsets
                 summary: The amount that the content view should be inset
                   from the window's edges.
                 description: |
-                  Insets are provided as a string of comma-separated integers
-                  that correspond to the arguments for the `JSInsets`
-                  constructor.
-
                   ````
                   Window:
                     class: UIWindow
                     contentInsets: 7,0
                   ````
+
+                  See `JSInsets`(JSInsets.Spec File Properties) for 
+                  description of the various ways insets can be
+                  specified.
               -
                 name: showsContentSeparator
                 type: boolean
