@@ -134,7 +134,7 @@ topics:
                   JSClass("PlanetsViewController", "UIListViewController", {
 
                     cellForListViewAtIndexPath: function(listView, indexPath){
-                      var cell = listView.dequeueReusableCellWithIdentifier("planet");
+                      var cell = listView.dequeueReusableCellWithIdentifier("planet", indexPath);
                       // cell is an instance of PlanetCellView
                       // ... configure cell as needed
                       return cell;
@@ -259,6 +259,522 @@ topics:
   -
     name: Delegate & Data Source
     members:
+      -
+        name: UIListViewDelegate
+        kind: protocol
+        summary: The interface a list view delegate implements
+        description: |
+          The list view's delegate is what populates the rows and respnods to
+          user interaction.
+
+          While not all methods are required to implement, you'll need to at
+          least implement `cellForListViewAtIndexPath()` to proide cell views
+          to the list view.
+
+          To respond to user interaction, you'll need to implement methods
+          like `listViewShouldSelectCellAtIndexPath()` and
+          `listViewDidSelectCellAtIndexPath()`.
+
+          The list view's `dataSource` is in charge of telling the list view
+          how many sections and rows there are.
+        topics:
+          -
+            name: Cells
+            members:
+              -
+                name: cellForListViewAtIndexPath
+                summary: Get the cell for the given index path
+                type: UIListViewCell
+                return: A cell to display at the given index path
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the list
+                description: |
+                  This the primary function that populates list views.
+
+                  If you've called `registerCellClassForReuseIdentifier()` when
+                  creating the list view, then you'll call
+                  `dequeueReusableCellWithIdentifier()` in this method.
+
+                  ````
+                  JSClass("PlanetsViewController", UIListViewController, {
+
+                    init: function(){
+                      PlanetsViewController.$super.init.call(this);
+                      this.planets = [
+                        {
+                          name: "Mercury",
+                          image: JSImage.initWithResourceName("MercuryIcon")
+                        },
+                        {
+                          name: "Venus",
+                          image: JSImage.initWithResourceName("VenusIcon")
+                        },
+                        {
+                          name: "Earth",
+                          image: JSImage.initWithResourceName("EarthIcon")
+                        }
+                        // ...
+                      ]
+                    },
+
+                    viewDidLoad: function(){
+                      PlanetsViewController.$super.viewDidLoad.call(this);
+                      this.listView.registerCellClassForReuseIdentifier('planet', UITableViewCell);
+                    },
+
+                    cellForListViewAtIndexPath: function(listView, indexPath){
+                      var cell = listView.dequeueReusableCellWithIdentifier('planet', indexPath);
+                      var planet = this.planets[indexPath.row];
+                      cell.titleLabel.text = planet.name;
+                      cell.imageView.image = planet.image;
+                      return cell;
+                    }
+
+                  });
+                  ````
+              -
+                name: heightForListViewRowAtIndexPath
+                summary: Get the exact height for a row
+                type: Number
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the list
+                description: |
+                  Implement this method if you need different heights for
+                  different rows in your list.
+
+                  Also be sure to implement `estimatedHeightForListViewRows()`,
+                  which will ensure the list view can run efficiently.
+              -
+                name: estimatedHeightForListViewRows
+                summary: Get an estimated height for all rows in the list view
+                type: Number
+                return: A good estimate or average of how tall rows are
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                description: |
+                  Implement this method along with
+                  `heightForListViewRowAtIndexPath()` in order to provide
+                  different heights for different rows, but still run
+                  efficiently.
+
+                  When the list first loads, the estimated height is used
+                  to quickly calculate the full height of the list view.
+
+                  As the user scrolls and individual rows become visible,
+                  `heightForListViewRowAtIndexPath()` is called and the
+                  overall list view height is subtly adjusted.
+          -
+            name: Headers & Footers
+            members:
+              -
+                name: headerViewForListViewSection
+                summary: Get the header view for the section
+                type: UIListViewHeaderFooterView
+                nullable: true
+                return: The header view
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: section
+                    type: Number
+                    summary: The section for the header
+                description: |
+                  If you've called `registerHeaderFooterClassForReuseIdentifier()`
+                  when creating the list view, then you'll call
+                  `dequeueReusableHeaderWithIdentifier()` in this method.
+
+                  ````
+                  JSClass("PlanetsViewController", UIListViewController, {
+
+                    init: function(){
+                      PlanetsViewController.$super.init.call(this);
+                      this.solarSystems = [
+                        {
+                          name: 'Sol',
+                          planets: [
+                            {
+                              name: "Mercury",
+                              image: JSImage.initWithResourceName("MercuryIcon")
+                            },
+                            {
+                              name: "Venus",
+                              image: JSImage.initWithResourceName("VenusIcon")
+                            },
+                            {
+                              name: "Earth",
+                              image: JSImage.initWithResourceName("EarthIcon")
+                            }
+                            // ...
+                          ]
+                        },
+                        // ...
+                      ];
+                    },
+
+                    numberOfSectionsInListView: function(listView){
+                      return this.solarSystems.length;
+                    }
+
+                    numberOfRowsInListViewSection: function(listView, section){
+                      var styem = this.solarSystems[section];
+                      return system.planets.length;
+                    }
+
+                    viewDidLoad: function(){
+                      PlanetsViewController.$super.viewDidLoad.call(this);
+                      this.listView.registerHeaderFooterClassForReuseIdentifier('solar-system', UIListViewHeaderFooterView);
+                    },
+
+                    headerViewForListViewSection: function(listView, section){
+                      var header = listView.dequeueReusableHeaderWithIdentifier('solar-system');
+                      var system = this.solarSystems[section];
+                      header.titleLabel.text = system.name;
+                      return header;
+                    }
+
+                  });
+                  ````
+              -
+                name: footerViewForListViewSection
+                summary: Get the footer for the section
+                type: UIListViewHeaderFooterView
+                return: The footer for the section
+                nullable: true
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: section
+                    type: Number
+                    summary: The section for the foote
+                description: |
+                  If you've called `registerHeaderFooterClassForReuseIdentifier()`
+                  when creating the list view, then you'll call
+                  `dequeueReusableFooterWithIdentifier()` in this method.
+
+                  ````
+                  JSClass("PlanetsViewController", UIListViewController, {
+
+                    init: function(){
+                      PlanetsViewController.$super.init.call(this);
+                      this.solarSystems = [
+                        {
+                          name: 'Sol',
+                          planets: [
+                            {
+                              name: "Mercury",
+                              image: JSImage.initWithResourceName("MercuryIcon")
+                            },
+                            {
+                              name: "Venus",
+                              image: JSImage.initWithResourceName("VenusIcon")
+                            },
+                            {
+                              name: "Earth",
+                              image: JSImage.initWithResourceName("EarthIcon")
+                            }
+                            // ...
+                          ]
+                        },
+                        // ...
+                      ];
+                    },
+
+                    numberOfSectionsInListView: function(listView){
+                      return this.solarSystems.length;
+                    }
+
+                    numberOfRowsInListViewSection: function(listView, section){
+                      var styem = this.solarSystems[section];
+                      return system.planets.length;
+                    }
+
+                    viewDidLoad: function(){
+                      PlanetsViewController.$super.viewDidLoad.call(this);
+                      this.listView.registerHeaderFooterClassForReuseIdentifier('solar-header', UIListViewHeaderFooterView);
+                      this.listView.registerHeaderFooterClassForReuseIdentifier('solar-footer', UIListViewHeaderFooterView);
+                    },
+
+                    headerViewForListViewSection: function(listView, section){
+                      var header = listView.dequeueReusableHeaderWithIdentifier('solar-header');
+                      var system = this.solarSystems[section];
+                      header.titleLabel.text = system.name;
+                      return header;
+                    },
+
+                    footerViewForListViewSection: function(listView, section){
+                      var footer = listView.dequeueReusableHeaderWithIdentifier('solar-footer');
+                      var system = this.solarSystems[section];
+                      footer.titleLabel.text = "%d planets total".sprintf(system.planets.length);
+                      return footer;
+                    }
+
+                  });
+                  ````
+              -
+                name: heightForListViewHeaderInSection
+                summary: Get the height for the header in a section
+                type: Number
+                return: The exact height for the header.  Use `0` to indicate
+                  no header exists for the section.
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: section
+                    type: Number
+                    summary: The section for the header
+              -
+                name: heightForListViewFooterInSection
+                summary: Get the height for the footer in a section
+                type: Number
+                return: The exact height for the footer.  Use `0` to indicate
+                  no footer exists for the section.
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: section
+                    type: Number
+                    summary: The section for the header
+
+          -
+            name: Selection
+            members:
+              -
+                name: listViewShouldSelectCellAtIndexPath
+                type: boolean
+                return: |
+                  `true` if the cell can be selected, `false` otherwise
+                summary: Indicates if a cell can be selected by the user
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the list
+              -
+                name: listViewDidSelectCellAtIndexPath
+                summary: Called whent the user selects a cell
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the list
+                description: |
+                  Typically this is the call that triggers an action like
+                  navigating to a new screen.
+
+                  Selection occurs when the user performs a mouse down.
+
+                  If you need to perform an action on mouse up, see
+                  `listViewDidFinishSelectingCellAtIndexPath()`
+                note: |
+                  This is called when the user selects a single row.
+                  If you need to monitor multiple selection, use
+                  `listViewSelectionDidChange()`.
+              -
+                name: listViewDidFinishSelectingCellAtIndexPath
+                summary: Called when the selection is done, typically on
+                  mouseUp
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the list
+                description: |
+                  Certain actions only make sense if the user has released
+                  the mouse.
+                note: This method is not typically used because most actions
+                  should happen on `listViewDidSelectCellAtIndexPath()`
+              -
+                name: listViewDidOpenCellAtIndexPath
+                summary: Called when the user performs an action like double
+                  click or the enter key
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the list
+                description: |
+                  Distict from cell selection is the concept that the user
+                  did an action typically associated with opening a resource.
+
+                  Double click and Enter key are both considered open events.
+              -
+                name: listViewSelectionDidChange
+                summary: 
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: selectedIndexPaths
+                    type: JSIndexPath[]
+                    summary: The currently selected index paths
+                description: |
+                  Called when the selection changes.
+
+                  While `listViewDidSelectCellAtIndexPath()` is useful for
+                  single-selection lists, this method is more appropriate for
+                  lists that allow mutliple selection.
+                see:
+                  - allowsMultipleSelection
+          -
+            name: Context menu
+            members:
+              -
+                name: menuForListViewCellAtIndexPath
+                type: UIMenu
+                nullable: true
+                return: The context menu to show for the cell
+                summary: Get the context menu for the cell
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the list
+                description: |
+                  A context menu can be requested by an action such as a
+                  right click
+          -
+            name: Dragging cells
+            members:
+              -
+                name: listViewShouldDragCellAtIndexPath
+                type: boolean
+                summary: Indicate if a cell can be dragged as copy/paste data
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the list
+                description: |
+                  If you return `true`, expect a subsequent call to
+                  `pasteboardItemsForListViewAtIndexPath()` to get the
+                  pasteboard representation of the cell.
+              -
+                name: pasteboardItemsForListViewAtIndexPath
+                type: UIDraggingItem[]
+                summary: Get the data items that correspond to the item at the
+                  index path
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the list
+                description: |
+                  The items will be added to a `UIDraggingSession` and placed
+                  on the session's `pasteboard`(UIDraggingSession.pasteboard).
+              -
+                name: listViewWillBeginDraggingSession
+                summary: Called when the list view is about to begin a dragging
+                  session
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: session
+                    type: UIDraggingSession
+                    summary: The dragging session
+                description: |
+                  Gives the delgate an opportunity to configure the session.
+
+                  For example, the delegate can set the session's
+                  `image`(UIDraggingSession.image).
+      -
+        name: UIListViewDataSource
+        kind: protocol
+        summary: An interface that's used to tell the list view how many sections
+          and rows to display.
+        description: |
+          A data source must be implemented for every list view.
+
+          After obtaining the size of the list from its `dataSource`, the list
+          view will turn to its `delegate` for specifics about drawing and
+          user interaction.
+        topics:
+          -
+            name: List Size
+            members:
+              -
+                name: numberOfSectionsInListView
+                type: Number
+                summary: Get the number of sections in the list view
+                arguments: 
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+              -
+                name: numberOfRowsInListViewSection
+                type: Number
+                summary: The number of rows in the given section
+                arguments: 
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: section
+                    type: Number
+                    summary: The section to consider when counting rows
       -
         name: delegate
         type: UIListViewDelegate
@@ -446,6 +962,34 @@ topics:
                           cell is selected but the list view is not the first
                           responder of the application's main window.
                   -
+                    name: Cell Content
+                    members:
+                      -
+                        name: cellContentInsets
+                        type: JSInsets
+                        summary: The amount to inset the cell's content from
+                          the cell's edges
+                      -
+                        name: cellContentCornerRadius
+                        type: Number
+                        summary: The amount to round the corners of the cell's
+                          \`contentView`
+                  -
+                    name: Headers
+                    members:
+                      -
+                        name: headerTextColor
+                        type: JSColor
+                        summary: The color for header text
+                      -
+                        name: headerBackgroundColor
+                        type: JSColor
+                        summary: The background color for header views
+                      -
+                        name: headerBorderColor
+                        type: JSColor
+                        summary: The border color for header views
+                  -
                     name: Background
                     members:
                       -
@@ -468,9 +1012,19 @@ topics:
                       -
                         name: imageSize
                         type: JSSize
-                        summary: The size of the cell image
+                        summary: The size of the cell's image
                   -
                     name: Accessory
+                    members:
+                      -
+                        name: accessorySize
+                        type: JSSize
+                        summary: The size of the cell's accessory
+                      -
+                        name: accessoryColor
+                        type: JSColor
+                        summary: The color to use for the accessory when it
+                          is a template image
                   -
                     name: Separators
                     members:
@@ -541,6 +1095,19 @@ topics:
             name: Image
           -
             name: Accessory
+      -
+        name: Styler
+        kind: enum
+        suffix: enum
+        type: UIListViewStyler
+        summary: The default styler instances created by `UIListView`
+        description: |
+          You can override the `default` option with a styler of your choosing,
+          typically during `applicationDidFinishLaunching()`.
+        options:
+          -
+            name: default
+            summary: The default `UIKit` list view styler
       -
         name: styler
         type: UIListViewStyler

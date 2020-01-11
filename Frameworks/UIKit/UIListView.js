@@ -2696,7 +2696,6 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     showSeparators: true,
     cellContentInsets: null,
     cellContentCornerRadius: 0,
-    cellTitleSpacing: -1,
 
     headerTextColor: null,
     headerBackgroundColor: null,

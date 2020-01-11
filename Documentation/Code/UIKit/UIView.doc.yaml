@@ -1227,9 +1227,8 @@ topics:
       -
         name: registeredDraggedTypes
         type: String[]
+        summary: The combined result of every call to `registerForDraggedTypes()`
         description: |
-          The combined result of every call to `registerForDraggedTypes()`
-
           The types can be from `UIPasteboard.ContentType`, or can be
           custom application-specific types.
       -

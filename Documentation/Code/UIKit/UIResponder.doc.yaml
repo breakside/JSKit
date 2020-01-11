@@ -131,7 +131,7 @@ topics:
         summary: Handle a mouse dragged event
         description: |
           A mouse drag event is fired when a mouse down is followed by a
-          mouse move until a mouse up occurrs.
+          mouse move until a mouse up occurs.
 
           The default implementation forwards the event to the next responder
         arguments:
@@ -167,7 +167,7 @@ topics:
         summary: Handle a right mouse dragged event
         description: |
           A mouse drag event is fired when a mouse down is followed by a
-          mouse move until a mouse up occurrs.
+          mouse move until a mouse up occurs.
           
           The default implementation forwards the event to the next responder
         arguments:

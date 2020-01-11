@@ -5,7 +5,7 @@ inherits: JSObject
 summary: Display a collection of related windows all at once
 description: |
   Typically used to replace one set of windows with another set when a major
-  application state change occurrs.
+  application state change occurs.
 
   An example might be an application with two scenes:
 
