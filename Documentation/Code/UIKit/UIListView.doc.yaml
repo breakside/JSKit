@@ -6,7 +6,7 @@ description: |
   A `UIListView` is one of the most versatile componets of `UIKit`, and it
   makes use of several key concepts found throughout `UIKit`.
 
-  Delegate & Data Source
+  How a List View Gets Its Data
   =========
   The delegate and data source pattern is used often in `UIKit` as a way
   to separate generic control behaviors from an application's specific data.
@@ -73,10 +73,31 @@ topics:
                 name: delegate
                 type: UIListViewDelegate
                 summary: The delegate object for this list view
+                description: |
+                  A list view's delegate is responsible for creating cells,
+                  responding to user interaction, and otherwise filling in
+                  application-specific logic that `UIListView` can't assume.
+
+                  See the `UIListViewDelegate` documentation for more
+                  information about implementing the delegate protocol.
+                note: Often the object that acts as a list view's `delegate`
+                  also acts as its `dataSource`.
               -
                 name: dataSource
                 type: UIListViewDataSource
                 summary: The data source object for this list view
+                description: |
+                   A list view's data source is required for every list view.
+
+                   It provides the basic information about how many sections
+                   and rows are in the list view.
+
+                   The list view uses this information to calculate its size
+                   without having to draw all of its cells.  As the user
+                   scrolls, the list view asks its `delegate` for cells
+                   that are in the visible area.
+                note: Often the object that acts as a list view's `dataSource`
+                  also acts as its `delegate`.
           -
             name: Styling
             members:
@@ -264,7 +285,7 @@ topics:
         kind: protocol
         summary: The interface a list view delegate implements
         description: |
-          The list view's delegate is what populates the rows and respnods to
+          The list view's delegate is what populates the rows and responds to
           user interaction.
 
           While not all methods are required to implement, you'll need to at
@@ -775,14 +796,40 @@ topics:
                     name: section
                     type: Number
                     summary: The section to consider when counting rows
+
       -
         name: delegate
         type: UIListViewDelegate
         summary: The delegate object for this list view
+        description: |
+          A list view's delegate is responsible for creating cells,
+          responding to user interaction, and otherwise filling in
+          application-specific logic that `UIListView` can't assume.
+
+          See the `UIListViewDelegate` documentation for more
+          information about implementing the delegate protocol.
+        note: Often the object that acts as a list view's `delegate`
+          also acts as its `dataSource`.
+        see:
+          - UIListViewController
       -
         name: dataSource
         type: UIListViewDataSource
         summary: The data source object for this list view
+        description: |
+           A list view's data source is required for every list view.
+
+           It provides the basic information about how many sections
+           and rows are in the list view.
+
+           The list view uses this information to calculate its size
+           without having to draw all of its cells.  As the user
+           scrolls, the list view asks its `delegate` for cells
+           that are in the visible area.
+        note: Often the object that acts as a list view's `dataSource`
+          also acts as its `delegate`.
+        see:
+          - UIListViewController
   -
     name: Styling
     members:
@@ -791,7 +838,7 @@ topics:
         kind: class
         inherits: JSObject
         summary: The abstract base class for all list view stylers
-        members:
+        topics:
           -
             name: Initializing List Views
             members:
@@ -1081,20 +1128,176 @@ topics:
                           The default styler draws a border inside the cell to
                           indicate context selection.
           -
-            name: Text
+            name: Cell Text
             members:
               -
                 name: cellFont
                 type: JSFont
-                summary: The font to use for the cell's `titleLabel`(UIListViewCell.titleLabel)
+                summary: The font to use for the cell's
+                  \`titleLabel`(UIListViewCell.titleLabel)
+              -
+                name: cellTextColor
+                type: JSColor
+                summary: The color to use for the cell's
+                  \`titleLabel`(UIListViewCell.titleLabel)
+              -
+                name: selectedCellTextColor
+                type: JSColor
+                summary: The color to use for the cell's
+                  \`titleLabel`(UIListViewCell.titleLabel) when the cell
+                  is selected
+              -
+                name: mutedSelectedCellTextColor
+                type: JSColor
+                summary: The color to use for the cell's
+                  \`titleLabel`(UIListViewCell.titleLabel) when the cell
+                  is selected but the list view is not the first
+                  responder of the application's main window.
           -
-            name: Detail Text
+            name: Cell Detail Text
+            members:
+              -
+                name: cellDetailFont
+                type: JSFont
+                summary: The font to use for the cell's
+                  \`detailLabel`(UIListViewCell.detailLabel)
+              -
+                name: cellDetailTextColor
+                type: JSColor
+                summary: The color to use for the cell's
+                  \`detailLabel`(UIListViewCell.detailLabel)
+              -
+                name: selectedCellDetailTextColor
+                type: JSColor
+                summary: The color to use for the cell's
+                  \`detailLabel`(UIListViewCell.detailLabel) when the
+                  cell is selected
+              -
+                name: mutedSelectedCellDetailTextColor
+                type: JSColor
+                summary: The color to use for the cell's
+                  \`detailLabel`(UIListViewCell.detailLabel) when the
+                  cell is selected but the list view is not the first
+                  responder of the application's main window.
+          -
+            name: Cell Content
+            members:
+              -
+                name: cellContentInsets
+                type: JSInsets
+                summary: The amount to inset the cell's content from
+                  the cell's edges
+              -
+                name: cellContentCornerRadius
+                type: Number
+                summary: The amount to round the corners of the cell's
+                  \`contentView`
+          -
+            name: Headers
+            members:
+              -
+                name: headerTextColor
+                type: JSColor
+                summary: The color for header text
+              -
+                name: headerBackgroundColor
+                type: JSColor
+                summary: The background color for header views
+              -
+                name: headerBorderColor
+                type: JSColor
+                summary: The border color for header views
           -
             name: Background
+            members:
+              -
+                name: cellBackgroundColor
+                type: JSColor
+                summary: The background color of the cell
+              -
+                name: selectedCellBackgroundColor
+                type: JSColor
+                summary: The background color of the cell when it is selected
+              -
+                name: mutedSelectedCellBackgroundColor
+                type: JSColor
+                summary: The background color of the cell when it is
+                  selected but the list view is not the first responder
+                  of the application's main window.
           -
             name: Image
+            members:
+              -
+                name: imageSize
+                type: JSSize
+                summary: The size of the cell's image
           -
             name: Accessory
+            members:
+              -
+                name: accessorySize
+                type: JSSize
+                summary: The size of the cell's accessory
+              -
+                name: accessoryColor
+                type: JSColor
+                summary: The color to use for the accessory when it
+                  is a template image
+          -
+            name: Separators
+            members:
+              -
+                name: showSeparators
+                type: boolean
+                summary: Whether or not to show separators between cells
+              -
+                name: separatorInsets
+                type: JSInsets
+                summary: The amount to inset the separator line from
+                  the cell's edges
+                description: |
+                  ````
+                  ListStyler:
+                    class: UIListViewDefaultStyler
+                    separatorInsets: 0,10,0,0
+                  ````
+
+                  Makes the insets `10` on the left and `0` on the right
+                  
+                  See `JSInsets`(JSInsets.Spec File Properties) for 
+                  description of the various ways insets can be
+                  specified.
+                important: Only the `left` and `right` insets will be
+                  used.  The `top` and `bottom` insets can be anything,
+                  but we recommend setting them to `0`.
+              -
+                name: cellSeparatorColor
+                type: JSColor
+                summary: The color of the separator line between cells
+              -
+                name: selectedCellSeparatorColor
+                type: JSColor
+                summary: The color of the separator line between cells
+                  when a cell is selected
+              -
+                name: mutedSelectedCellSeparatorColor
+                type: JSColor
+                summary: The color of the separator line between cells
+                  when a cell is selected but the list view is not the
+                  first responder of the application's main window.
+          -
+            name: Context Selection
+            members:
+              -
+                name: contextSelectedCellBorderColor
+                type: JSColor
+                summary: The color of the cell's border shown when
+                  the cell is context-selected
+                description: |
+                  Context selection happens when the user right clicks.
+
+                  The default styler draws a border inside the cell to
+                  indicate context selection.
       -
         name: Styler
         kind: enum

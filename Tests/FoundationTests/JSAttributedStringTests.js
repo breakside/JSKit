@@ -1,5 +1,6 @@
 // #import Foundation
 // #import TestKit
+/* global JSClass, TKTestSuite, JSAttributedString, JSRange */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
@@ -635,6 +636,106 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         TKAssertExactEquals(attributes.bold, true);
         TKAssertExactEquals(attributes.italics, undefined);
         attributes = string.attributesAtIndex(16);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+    },
+
+    testReplaceFormat: function(){
+        var string = JSAttributedString.initWithString("This is a %s", {bold: true});
+        string.replaceFormat("test");
+        TKAssertEquals(string.string, "This is a test");
+        var attributes = string.attributesAtIndex(1);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+        attributes = string.attributesAtIndex(10);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+        attributes = string.attributesAtIndex(11);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+        attributes = string.attributesAtIndex(14);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+
+
+        string = JSAttributedString.initWithString("This is a %s", {bold: true});
+        string.replaceFormat("test", {italics: true});
+        TKAssertEquals(string.string, "This is a test");
+        attributes = string.attributesAtIndex(1);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+        attributes = string.attributesAtIndex(10);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, true);
+        attributes = string.attributesAtIndex(11);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, true);
+        attributes = string.attributesAtIndex(14);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, true);
+
+
+        string = JSAttributedString.initWithString("This is a %s of %s placeholders", {bold: true});
+        string.replaceFormat("test", {italics: true}, "replacing", {underline: true});
+        TKAssertEquals(string.string, "This is a test of replacing placeholders");
+        attributes = string.attributesAtIndex(1);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+        TKAssertExactEquals(attributes.underline, undefined);
+        attributes = string.attributesAtIndex(10);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, true);
+        TKAssertExactEquals(attributes.underline, undefined);
+        attributes = string.attributesAtIndex(11);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, true);
+        TKAssertExactEquals(attributes.underline, undefined);
+        attributes = string.attributesAtIndex(14);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+        TKAssertExactEquals(attributes.underline, undefined);
+        attributes = string.attributesAtIndex(15);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+        TKAssertExactEquals(attributes.underline, undefined);
+        attributes = string.attributesAtIndex(17);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+        TKAssertExactEquals(attributes.underline, undefined);
+        attributes = string.attributesAtIndex(18);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+        TKAssertExactEquals(attributes.underline, true);
+        attributes = string.attributesAtIndex(19);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+        TKAssertExactEquals(attributes.underline, true);
+        attributes = string.attributesAtIndex(26);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+        TKAssertExactEquals(attributes.underline, true);
+        attributes = string.attributesAtIndex(27);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+        TKAssertExactEquals(attributes.underline, undefined);
+        attributes = string.attributesAtIndex(40);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+        TKAssertExactEquals(attributes.underline, undefined);
+
+        string = JSAttributedString.initWithString("This %%s a %s", {bold: true});
+        string.replaceFormat("test");
+        TKAssertEquals(string.string, "This %s a test");
+        attributes = string.attributesAtIndex(1);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+        attributes = string.attributesAtIndex(10);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+        attributes = string.attributesAtIndex(11);
+        TKAssertExactEquals(attributes.bold, true);
+        TKAssertExactEquals(attributes.italics, undefined);
+        attributes = string.attributesAtIndex(14);
         TKAssertExactEquals(attributes.bold, true);
         TKAssertExactEquals(attributes.italics, undefined);
     },

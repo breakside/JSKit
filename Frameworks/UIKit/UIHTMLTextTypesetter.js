@@ -385,6 +385,22 @@ UIHTMLTextTypesetterRunDescriptor.prototype = {
             var backgroundColor = this.attributes[JSAttributedString.Attribute.backgroundColor];
             this.span.style.color = textColor ? textColor.cssString() : 'black';
             this.span.style.backgroundColor = backgroundColor ? backgroundColor.cssString() : '';
+
+            // Cursor
+            var cursor = this.attributes[JSAttributedString.Attribute.cursor];
+            if (cursor){
+                var cssCursorStrings = cursor.cssStrings();
+                for (var i = 0, l = cssCursorStrings.length; i < l; ++i){
+                    this.span.style.cursor = cssCursorStrings[i];
+                    if (this.span.style.cursor !== ''){
+                        break;
+                    }
+                }  
+                this.span.style.pointerEvents = 'all';              
+            }else{
+                this.span.style.cursor = '';
+                this.span.style.pointerEvents = 'none';
+            }
         }
     },
 

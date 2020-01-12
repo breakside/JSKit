@@ -14,6 +14,10 @@ JSClass('StringTests', TKTestSuite, {
         string = String.initWithFormat("This %2$s a test %1$d!", 123, "is");
         TKAssertNotNull(string);
         TKAssertEquals(string, "This is a test 123!");
+
+        string = String.initWithFormat("This %%s test %s escapes", "of");
+        TKAssertNotNull(string);
+        TKAssertEquals(string, "This %s test of escapes");
     },
 
     testAppend: function(){

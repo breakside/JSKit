@@ -1,6 +1,6 @@
 // #import Foundation
 // #import TestKit
-/* global JSClass, JSColor, TKTestSuite, JSBundle */
+/* global JSClass, JSColor, TKTestSuite, JSBundle, JSSpec */
 /* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
@@ -36,8 +36,8 @@ JSClass('JSColorTests', TKTestSuite, {
     },
 
     testSpec: function(){
-        var spec = {color: {rgba: "204,102,51"}};
-        var color = JSColor.initWithSpec(spec, spec.color);
+        var spec = JSSpec.initWithPropertyList({rgba: "204,102,51"});
+        var color = JSColor.initWithSpec(spec);
         TKAssertEquals(color.colorSpace, JSColor.SpaceIdentifier.rgba);
         TKAssertEquals(color.components.length, 4);
         TKAssertEquals(color.components[0], 0.8);
@@ -45,8 +45,8 @@ JSClass('JSColorTests', TKTestSuite, {
         TKAssertEquals(color.components[2], 0.2);
         TKAssertEquals(color.components[3], 1.0);
 
-        spec = {color: {rgba: "204,102,51,.5"}};
-        color = JSColor.initWithSpec(spec, spec.color);
+        spec = JSSpec.initWithPropertyList({rgba: "204,102,51,.5"});
+        color = JSColor.initWithSpec(spec);
         TKAssertEquals(color.components.length, 4);
         TKAssertEquals(color.components[0], 0.8);
         TKAssertEquals(color.components[1], 0.4);

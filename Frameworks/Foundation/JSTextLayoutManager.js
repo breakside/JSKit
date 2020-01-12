@@ -19,7 +19,6 @@ JSClass("JSTextLayoutManager", JSObject, {
 
     _textContainers: null,
     _needsLayout: false,
-    _temporaryAttributes: null,
 
     init: function(){
         this._textContainers = [];
@@ -44,6 +43,15 @@ JSClass("JSTextLayoutManager", JSObject, {
     },
 
     // MARK: - Managing Storage
+
+    setTextStorage: function(storage){
+        this._textStorage = storage;
+        if (storage !== null){
+            this._temporaryAttributedString = JSAttributedString.initWithString(storage.string);
+        }else{
+            this._temporaryAttributedString = null;
+        }
+    },
 
     replaceTextStorage: function(storage){
         var originalStorage = this._textStorage;
@@ -103,8 +111,39 @@ JSClass("JSTextLayoutManager", JSObject, {
                 str.appendString(" ");
             }
         }
-        // TODO: add temporary attributes
+        if (this._temporaryAttributedString !== null){
+            var range = JSRange.Zero;
+            var l = this._temporaryAttributedString.string.length;
+            var attributes;
+            do{
+                range = this._temporaryAttributedString.rangeOfRunAtIndex(range.end);
+                attributes = this._temporaryAttributedString.attributesAtIndex(range.location);
+                str.addAttributesInRange(attributes, range);
+            }while (range.end < l);
+        }
         return str;
+    },
+
+    _temporaryAttributedString: null,
+
+    addTemporaryAttributesInRange: function(attributes, range){
+        this._temporaryAttributedString.addAttributesInRange(attributes, range);
+        this.setNeedsLayout();
+    },
+
+    addTemporaryAttributeInRange: function(attribute, value, range){
+        this._temporaryAttributedString.addAttributeInRange(attribute, value, range);
+        this.setNeedsLayout();
+    },
+
+    setTemporaryAttributesInRange: function(attributes, range){
+        this._temporaryAttributedString.setAttributesInRange(attributes, range);
+        this.setNeedsLayout();
+    },
+
+    removeTemporaryAttributeInRange: function(attribute, range){
+        this._temporaryAttributedString.removeAttributeInRange(attribute, range);
+        this.setNeedsLayout();
     },
 
     // MARK: - Layout
@@ -140,6 +179,9 @@ JSClass("JSTextLayoutManager", JSObject, {
 
     textStorageDidReplaceCharactersInRange: function(range, insertedLength){
         // TODO: is there a way to be smarter here and only adjust the pieces that have changed?
+        this._temporaryAttributedString.replaceCharactersInRangeWithString(range, this._textStorage._string.substringInRange(JSRange(range.location, insertedLength)));
+        // Save memory by returning to sharing the underlying string after diverging with the previous edit
+        this._temporaryAttributedString._string = this._textStorage._string;
         this.setNeedsLayout();
         if (this.editor){
             this.editor.textStorageDidReplaceCharactersInRange(range, insertedLength);

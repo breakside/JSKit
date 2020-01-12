@@ -32,6 +32,9 @@ UIApplication.definePropertiesFromExtensions({
     },
 
     openURL: function(url, options){
+        if (options === undefined){
+            options = {};
+        }
         if (options.replacingApplication){
             var open = function(){
                 window.location.href = url;

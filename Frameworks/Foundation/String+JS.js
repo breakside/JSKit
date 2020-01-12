@@ -455,141 +455,17 @@ Object.defineProperties(String.prototype, {
         enumerable: false,
         value: function String_format(formatter, args){
             var formatted = "";
-            var formatting = false;
-            var using_numbered_args = false;
-            var found_first_format = false;
-            var arg;
-            var sub;
-            var index;
-            var uppercase;
-            var options = {
-                width: null,
-                precision: null
+            var parser = String.FormatParser(this, formatter, args);
+            parser.delegate = {
+                parserFoundString: function(parser, string){
+                    formatted += string;
+                },
+
+                parserFoundReplacementInRange: function(parser, replacement, range, argIndex){
+                    formatted += replacement;
+                },
             };
-            for (var i = 0, l = this.length; i < l; ++i){
-                var c = this[i];
-                if (formatting){
-                    if (c == '%'){
-                        formatted += c;
-                    }else{
-                        if (using_numbered_args){
-                            sub = '';
-                            while (c != '$'){
-                                sub += c;
-                                ++i;
-                                if (i >= l){
-                                    throw new Error("Invalid format string, unexpected end: " + this);
-                                }
-                                c = this[i];
-                                if ((c < '0' || c > '9') && c != '$'){
-                                    throw new Error("Invalid format string, invalid arg index char: " + c + "; " + this);
-                                }
-                            }
-                            index = parseInt(sub, 10) - 1;
-                            if (index < 0 || index >= args.length){
-                                throw new Error("Invalid format string, unknown arg index: " + index + "; " + this);
-                            }
-                            arg = args[index];
-                            ++i;
-                            if (i >= l){
-                                throw new Error("Invalid format string, unexpected end: " + this);
-                            }
-                            c = this[i];
-                        }else{
-                            if (args.length === 0){
-                                throw new Error("Invalid format string, not enough arguments: " + this);
-                            }
-                            arg = args.shift();
-                        }
-                        options.width = null;
-                        options.precision = null;
-                        if (formatter.flag_map){
-                            for (var f in formatter.flag_map){
-                                options[formatter.flag_map[f]] = false;
-                            }
-                            while (c in formatter.flag_map){
-                                options[formatter.flag_map[c]] = true;
-                                ++i;
-                                if (i >= l){
-                                    throw new Error("Invalid format string, unexpected end: " + this);
-                                }
-                                c = this[i];
-                            }
-                        }
-                        if (c >= '1' && c <= '9'){
-                            sub = '';
-                            do {
-                                sub += c;
-                                ++i;
-                                if (i >= l){
-                                    throw new Error("Invalid format string, unexpected end: " + this);
-                                }
-                                c = this[i];
-                            } while (c >= '0' && c <= '9');
-                            options.width = parseInt(sub, 10);
-                        }
-                        if (c == '.'){
-                            options.precision = 0;
-                            sub = '';
-                            ++i;
-                            if (i >= l){
-                                throw new Error("Invalid format string, unexpected end: " + this);
-                            }
-                            c = this[i];
-                            while (c >= '0' && c <= '9') {
-                                sub += c;
-                                ++i;
-                                if (i >= l){
-                                    throw new Error("Invalid format string, unexpected end: " + this);
-                                }
-                                c = this[i];
-                            }
-                            if (sub.length){
-                                options.precision = parseInt(sub, 10);
-                            }
-                        }
-                        var format = c;
-                        if (c == '{'){
-                            ++i;
-                            if (i >= l){
-                                throw new Error("Invalid format string, unexpected end: " + this);
-                            }
-                            c = this[i];
-                            format = '';
-                            while (c != '}' && i < l){
-                                format += c;
-                                ++i;
-                                c = this[i];
-                            }
-                            if (c !== '}'){
-                                throw new Error("Invalid format string, unexpected end: " + this);
-                            }
-                        }
-                        if (format in formatter){
-                            formatted += formatter[format](arg, options);
-                        }else{
-                            throw new Error("Invalid format string, unknown conversion specifier: " + c + "; " + this);
-                        }
-                    }
-                    formatting = false;
-                }else{
-                    switch (c){
-                        case '%':
-                            formatting = true;
-                            if (!found_first_format){
-                                found_first_format = true;
-                                using_numbered_args = this.substr(i + 1, 5).match(/^[1-9][0-9]*\$/);
-                            }
-                            break;
-                        default:
-                            formatted += c;
-                            break;
-                    }
-                }
-            }
-            if (!using_numbered_args && args.length){
-                throw new Error("Invalid format string, unused arguments: " + this);
-            }
+            parser.parse();
             return formatted;
         }
     },
@@ -1311,6 +1187,171 @@ String.printf_formatter = {
 
     b: function(arg, options){
         return arg ? 'true' : 'false';
+    }
+};
+
+String.FormatParser = function(format, formatter, args){
+    if (this === undefined || this === String){
+        return new String.FormatParser(format, formatter, args);
+    }
+    this.format = format;
+    this.formatter = formatter;
+    this.args = args;
+};
+
+String.FormatParser.prototype = {
+    parse: function(){
+        var formatter = this.formatter;
+        var args = this.args;
+        var format = this.format;
+        var range = JSRange.Zero;
+        var formatting = false;
+        var using_numbered_args = false;
+        var found_first_format = false;
+        var argIndex = -1;
+        var sub;
+        var uppercase;
+        var replacement;
+        var options = {
+            width: null,
+            precision: null
+        };
+        for (var i = 0, l = format.length; i < l; ++i){
+            var c = format[i];
+            if (formatting){
+                if (c == '%'){
+                    range.length = i + 1 - range.location;
+                    if (this.delegate && this.delegate.parserFoundReplacementInRange){
+                        this.delegate.parserFoundReplacementInRange(this, "%", range, -1);
+                    }
+                    range.location = i + 1;
+                    range.length = 0;
+                }else{
+                    if (using_numbered_args){
+                        sub = '';
+                        while (c != '$'){
+                            sub += c;
+                            ++i;
+                            if (i >= l){
+                                throw new Error("Invalid format string, unexpected end: " + format);
+                            }
+                            c = format[i];
+                            if ((c < '0' || c > '9') && c != '$'){
+                                throw new Error("Invalid format string, invalid arg index char: " + c + "; " + format);
+                            }
+                        }
+                        argIndex = parseInt(sub, 10) - 1;
+                        ++i;
+                        if (i >= l){
+                            throw new Error("Invalid format string, unexpected end: " + format);
+                        }
+                        c = format[i];
+                    }else{
+                        ++argIndex;
+                    }
+                    options.width = null;
+                    options.precision = null;
+                    if (formatter.flag_map){
+                        for (var f in formatter.flag_map){
+                            options[formatter.flag_map[f]] = false;
+                        }
+                        while (c in formatter.flag_map){
+                            options[formatter.flag_map[c]] = true;
+                            ++i;
+                            if (i >= l){
+                                throw new Error("Invalid format string, unexpected end: " + format);
+                            }
+                            c = format[i];
+                        }
+                    }
+                    if (c >= '1' && c <= '9'){
+                        sub = '';
+                        do {
+                            sub += c;
+                            ++i;
+                            if (i >= l){
+                                throw new Error("Invalid format string, unexpected end: " + format);
+                            }
+                            c = format[i];
+                        } while (c >= '0' && c <= '9');
+                        options.width = parseInt(sub, 10);
+                    }
+                    if (c == '.'){
+                        options.precision = 0;
+                        sub = '';
+                        ++i;
+                        if (i >= l){
+                            throw new Error("Invalid format string, unexpected end: " + format);
+                        }
+                        c = format[i];
+                        while (c >= '0' && c <= '9') {
+                            sub += c;
+                            ++i;
+                            if (i >= l){
+                                throw new Error("Invalid format string, unexpected end: " + format);
+                            }
+                            c = format[i];
+                        }
+                        if (sub.length){
+                            options.precision = parseInt(sub, 10);
+                        }
+                    }
+                    var method = c;
+                    if (c == '{'){
+                        ++i;
+                        if (i >= l){
+                            throw new Error("Invalid format string, unexpected end: " + format);
+                        }
+                        c = format[i];
+                        method = '';
+                        while (c != '}' && i < l){
+                            method += c;
+                            ++i;
+                            c = format[i];
+                        }
+                        if (c !== '}'){
+                            throw new Error("Invalid format string, unexpected end: " + format);
+                        }
+                    }
+                    if (method in formatter){
+                        range.length = i + 1 - range.location;
+                        replacement = formatter[method](args[argIndex], options);
+                        if (this.delegate && this.delegate.parserFoundReplacementInRange){
+                            this.delegate.parserFoundReplacementInRange(this, replacement, range, argIndex);
+                        }
+                        range.location = i + 1;
+                        range.length = 0;
+                    }else{
+                        throw new Error("Invalid format string, unknown conversion specifier: " + c + "; " + format);
+                    }
+                }
+                formatting = false;
+            }else{
+                switch (c){
+                    case '%':
+                        if (range.length > 0 && this.delegate && this.delegate.parserFoundString){
+                            this.delegate.parserFoundString(this, format.substringInRange(range));
+                        }
+                        range.location = i;
+                        range.length = 0;
+                        formatting = true;
+                        if (!found_first_format){
+                            found_first_format = true;
+                            using_numbered_args = format.substr(i + 1, 5).match(/^[1-9][0-9]*\$/);
+                        }
+                        break;
+                    default:
+                        range.length++;
+                        break;
+                }
+            }
+        }
+        if (range.length > 0 && this.delegate && this.delegate.parserFoundString){
+            this.delegate.parserFoundString(this, format.substringInRange(range));
+        }
+        if (!using_numbered_args && argIndex < args.length - 1){
+            throw new Error("Invalid format string, unused arguments: " + format);
+        }
     }
 };
 

@@ -124,46 +124,88 @@ JSClass('UILabel', UIView, {
         return hit;
     },
 
+    _mouseDownAction: null,
+
     mouseDown: function(event){
-        if (!this._allowsSelection){
-            UILabel.$super.mouseDown.call(this, event);
-            return;
-        }
         var location = event.locationInView(this);
         var index = this.layer.textLayoutManager.characterIndexAtPoint(location);
-        if (event.clickCount == 1){
-            this.window.firstResponder = this;
-            this._selectionRange = null;
-            this._selectionAnchorIndex = index;
-        }else if (event.clickCount == 2){
-            this._selectionRange = this.layer.textLayoutManager.textStorage.string.rangeForWordAtIndex(index);
-        }else if (event.clickCount == 3){
-            this._selectionRange = JSRange(0, this.text.length);
+        var attributes = this.attributedText.attributesAtIndex(index);
+        this._didDrag = false;
+        if (attributes.link){
+            var range = this.attributedText.rangeOfRunAtIndex(index);
+            this.layer.textLayoutManager.addTemporaryAttributeInRange('backgroundColor', JSColor.initWithWhite(0, 0.2), range);
+            this._mouseDownAction = {
+                link: attributes.link,
+                range: range,
+                temporaryAttributes: ['backgroundColor']
+            };
+        }else{
+            if (!this._allowsSelection){
+                UILabel.$super.mouseDown.call(this, event);
+                return;
+            }
+            if (event.clickCount == 1){
+                this.window.firstResponder = this;
+                this._selectionRange = null;
+                this._selectionAnchorIndex = index;
+            }else if (event.clickCount == 2){
+                this._selectionRange = this.layer.textLayoutManager.textStorage.string.rangeForWordAtIndex(index);
+            }else if (event.clickCount == 3){
+                this._selectionRange = JSRange(0, this.text.length);
+            }
+            this._updateSelectionHighlightLayers();
         }
-        this._updateSelectionHighlightLayers();
     },
 
     mouseDragged: function(event){
-        if (!this._allowsSelection){
-            UILabel.$super.mouseDragged.call(this, event);
-            return;
-        }
-        var location = event.locationInView(this);
-        var index = this.layer.textLayoutManager.characterIndexAtPoint(location);
-        if (index < this._selectionAnchorIndex){
-            this._selectionRange = JSRange(index, this._selectionAnchorIndex - index);
-        }else if (index > this._selectionAnchorIndex){
-            this._selectionRange = JSRange(this._selectionAnchorIndex, index - this._selectionAnchorIndex);
+        if (this._mouseDownAction !== null){
+            if (this._mouseDownAction.link){
+                this.beginDraggingSessionWithItems([
+                    {stringValue: this._mouseDownAction.link.encodedString, type: UIPasteboard.ContentType.plainText}
+                ], event);
+            }
         }else{
-            this._selectionRange = null;
+            if (!this._allowsSelection){
+                UILabel.$super.mouseDragged.call(this, event);
+                return;
+            }
+            var location = event.locationInView(this);
+            var index = this.layer.textLayoutManager.characterIndexAtPoint(location);
+            if (index < this._selectionAnchorIndex){
+                this._selectionRange = JSRange(index, this._selectionAnchorIndex - index);
+            }else if (index > this._selectionAnchorIndex){
+                this._selectionRange = JSRange(this._selectionAnchorIndex, index - this._selectionAnchorIndex);
+            }else{
+                this._selectionRange = null;
+            }
+            this._updateSelectionHighlightLayers();
         }
-        this._updateSelectionHighlightLayers();
+    },
+
+    _didDrag: false,
+
+    draggingSessionEnded: function(session, operation){
+        this._didDrag = true;
     },
 
     mouseUp: function(event){
-        if (!this._allowsSelection){
-            UILabel.$super.mouseUp.call(this, event);
-            return;
+        if (this._mouseDownAction !== null){
+            var attr;
+            for (var i = 0, l = this._mouseDownAction.temporaryAttributes.length; i < l; ++i){
+                attr = this._mouseDownAction.temporaryAttributes[i];
+                this.layer.textLayoutManager.removeTemporaryAttributeInRange(attr, this._mouseDownAction.range);
+            }
+            if (!this._didDrag){
+                if (this._mouseDownAction.link){
+                    this.window.application.openURL(this._mouseDownAction.link);
+                }
+            }
+            this._mouseDownAction = null;
+        }else{
+            if (!this._allowsSelection){
+                UILabel.$super.mouseUp.call(this, event);
+                return;
+            }
         }
     },
 

@@ -280,6 +280,35 @@ JSClass("JSAttributedString", JSObject, {
         return new JSAttributedStringRunIterator(this, index);
     },
 
+    // MARK: - Formatting
+
+    replaceFormat: function(){
+        var args = [];
+        var attributes = [];
+        for (var i = 0, l = arguments.length; i < l; i += 2){
+            args.push(arguments[i]);
+            attributes.push(arguments[i + 1]);
+        }
+        var parser = String.FormatParser(this.string, String.printf_formatter, args);
+        var attributedString = this;
+        var adjustment = 0;
+        parser.delegate = {
+            parserFoundReplacementInRange: function(parser, replacement, range, argIndex){
+                range = JSRange(range);
+                range.location += adjustment;
+                attributedString.replaceCharactersInRangeWithString(range, replacement);
+                adjustment += replacement.length - range.length;
+                if (argIndex >= 0){
+                    var attrs = attributes[argIndex];
+                    if (attrs){
+                        attributedString.addAttributesInRange(attrs, JSRange(range.location, replacement.length));
+                    }
+                }
+            },
+        };
+        parser.parse();
+    },
+
     // MARK: - Private helpers
 
     _fixRunsInRunRange: function(runRange){
@@ -395,7 +424,9 @@ JSAttributedString.Attribute = {
     lineSpacing: "lineSpacing",
     textAlignment: "textAlignment",
     lineBreakMode: "lineBreakMode",
-    maskCharacter: "maskCharacter"
+    maskCharacter: "maskCharacter",
+    cursor: "cursor",
+    link: "link"
 };
 
 JSAttributedString.SpecialCharacter = {
