@@ -298,8 +298,8 @@ JSClass("UIListView", UIScrollView, {
         this.setNeedsLayout();
     },
 
-    reloadRowAtIndexPath: function(indexPath){
-        this.reloadRowsAtIndexPaths([indexPath]);
+    reloadRowAtIndexPath: function(indexPath, animator){
+        this.reloadRowsAtIndexPaths([indexPath], animator);
     },
 
     reloadRowsAtIndexPaths: function(indexPaths, animator){

@@ -1337,19 +1337,1061 @@ topics:
           can store control-specific objects.
   -
     name: Cell Sizing
+    members:
+      -
+        name: rowHeight
+        type: Number
+        summary: The default height for all rows
+        description: |
+          If you need different height for different rows, use the
+          `delegate` methods:
+          - `estimatedHeightForListViewRows()`
+          - `heightForListViewRowAtIndexPath()`
   -
     name: Cell Reuse
+    members:
+      -
+        name: registerCellClassForReuseIdentifier
+        kind: method
+        summary: Tell the list view which cell class should be used to create
+          cells when requsting the given identifier
+        arguments:
+          -
+            name: cellClass
+            type: JSClass
+            summary: The `UIListViewCell` subclass to use when dequeuing a cell
+              with the given identifier
+          -
+            name: identifier
+            type: String
+            summary: The identifier that links to the cell class
+        description: |
+          The list view only displays cells that are visibile in the scrolling
+          content area, and reuses them as the user scrolls.  This allows the
+          list view to perform well even when there are thousands of rows in
+          the list.
+
+          Typically, you'll register cell classes when a list view is created,
+          and then use `dequeueReusableCellWithIdentifier()` when a cell is
+          required.
+
+          ````
+          JSClass("PlanetsViewController", UIListViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.planets = [
+                {
+                  name: "Mercury",
+                  image: JSImage.initWithResourceName("MercuryIcon")
+                },
+                {
+                  name: "Venus",
+                  image: JSImage.initWithResourceName("VenusIcon")
+                },
+                {
+                  name: "Earth",
+                  image: JSImage.initWithResourceName("EarthIcon")
+                }
+                // ...
+              ]
+            },
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.listView.registerCellClassForReuseIdentifier('planet', UITableViewCell);
+            },
+
+            cellForListViewAtIndexPath: function(listView, indexPath){
+              var cell = listView.dequeueReusableCellWithIdentifier('planet', indexPath);
+              var planet = this.planets[indexPath.row];
+              cell.titleLabel.text = planet.name;
+              cell.imageView.image = planet.image;
+              return cell;
+            }
+
+          });
+          ````
+      -
+        name: registerCellClassForReuseIdentifier
+        suffix: styler
+        kind: method
+        summary: Tell the list view which cell class and styler should be used
+          to create cells when requsting the given identifier
+        arguments:
+          -
+            name: cellClass
+            type: JSClass
+            summary: The `UIListViewCell` subclass to use when dequeuing a cell
+              with the given identifier
+          -
+            name: identifier
+            type: String
+            summary: The identifier that links to the cell class
+          -
+            name: styler
+            type: UIListViewStyler
+            summary: The styler to use for cells with the given identifier,
+              overriding the list view's `styler`
+        description: |
+          The list view only displays cells that are visibile in the scrolling
+          content area, and reuses them as the user scrolls.  This allows the
+          list view to perform well even when there are thousands of rows in
+          the list.
+
+          Typically, you'll register cell classes when a list view is created,
+          and then use `dequeueReusableCellWithIdentifier()` when a cell is
+          required.
+
+          ````
+          JSClass("PlanetsViewController", UIListViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.planets = [
+                {
+                  name: "Mercury",
+                  image: JSImage.initWithResourceName("MercuryIcon")
+                },
+                {
+                  name: "Venus",
+                  image: JSImage.initWithResourceName("VenusIcon")
+                },
+                {
+                  name: "Earth",
+                  image: JSImage.initWithResourceName("EarthIcon")
+                }
+                // ...
+              ]
+            },
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.listView.registerCellClassForReuseIdentifier('planet', UITableViewCell);
+            },
+
+            cellForListViewAtIndexPath: function(listView, indexPath){
+              var cell = listView.dequeueReusableCellWithIdentifier('planet', indexPath);
+              var planet = this.planets[indexPath.row];
+              cell.titleLabel.text = planet.name;
+              cell.imageView.image = planet.image;
+              return cell;
+            }
+
+          });
+          ````
+      -
+        name: dequeueReusableCellWithIdentifier
+        kind: method
+        summary: Reuse or create a cell for the the given identifier
+        arguments:
+          -
+            name: identifier
+            type: String
+            summary: The cell identifier, matched with one that was passed to
+              \`registerCellClassForReuseIdentifier()`
+          -
+            name: indexPath
+            type: JSIndexPath
+            summary: The index path for the newly created cell
+        description: |
+          The list view only displays cells that are visibile in the scrolling
+          content area, and reuses them as the user scrolls.  This allows the
+          list view to perform well even when there are thousands of rows in
+          the list.
+
+          Typically, you'll register cell classes when a list view is created,
+          and then use `dequeueReusableCellWithIdentifier()` when a cell is
+          required.
+
+          ````
+          JSClass("PlanetsViewController", UIListViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.planets = [
+                {
+                  name: "Mercury",
+                  image: JSImage.initWithResourceName("MercuryIcon")
+                },
+                {
+                  name: "Venus",
+                  image: JSImage.initWithResourceName("VenusIcon")
+                },
+                {
+                  name: "Earth",
+                  image: JSImage.initWithResourceName("EarthIcon")
+                }
+                // ...
+              ]
+            },
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.listView.registerCellClassForReuseIdentifier('planet', UITableViewCell);
+            },
+
+            cellForListViewAtIndexPath: function(listView, indexPath){
+              var cell = listView.dequeueReusableCellWithIdentifier('planet', indexPath);
+              var planet = this.planets[indexPath.row];
+              cell.titleLabel.text = planet.name;
+              cell.imageView.image = planet.image;
+              return cell;
+            }
+
+          });
+          ````
   -
     name: Accessing Cells
+    members:
+      -
+        name: indexPathAtLocation
+        kind: method
+        type: JSIndexPath
+        nullable: true
+        summary: Get the index path for the visible cell at the given point
+        arguments:
+          -
+            name: location
+            type: JSPoint
+            summary: The point to match to a cell
+        important: This method only searches visible cells
+      -
+        name: cellAtLocation
+        kind: method
+        type: UIListViewCell
+        nullable: true
+        summary: Get the visible cell at the given point
+        arguments:
+          -
+            name: location
+            type: JSPoint
+            summary: The point to match to a cell
+        important: This method only searches visible cells
+      -
+        name: cellAtIndexPath
+        kind: method
+        type: UIListViewCell
+        nullable: true
+        summary: Get the visible cell with the given index path
+        arguments:
+          -
+            name: indexPath
+            type: JSIndexPath
+            summary: The index path to match to a cell
+        important: This method only searches visible cells
   -
     name: Header & Footer Sizing
+    members:
+      -
+        name: headerHeight
+        type: Number
+        summary: The default height for all headers
+        description: |
+          If you need to have different heights for different headers,
+          you can implement the `delegate` method:
+          - `heightForListViewHeaderInSection()`.
+      -
+        name: footerHeight
+        type: Number
+        summary: The default height for all footers
+        description: |
+          If you need to have different heights for different footers,
+          you can implement the `delegate` method:
+          - `heightForListViewFooterInSection()`.
+      -
+        name: headersStickToTop
+        type: boolean
+        summary: Indicates if the headers stay at the top of the view while
+          scrolling through their section
   -
     name: Header & Footer Reuse
+    members:
+      -
+        name: registerHeaderFooterClassForReuseIdentifier
+        kind: method
+        summary: Tell the list view which header/footer class should be used
+          to create cells when requsting the given identifier
+        arguments:
+          -
+            name: headerFooterClass
+            type: JSClass
+            summary: The `UIListViewHeaderFooterView` subclass to use when
+              dequeuing a header or footer with the given identifier
+          -
+            name: identifier
+            type: String
+            summary: The identifier that links to the header/footer class
+        description: |
+          The list view only displays headers/footers that are visibile in the
+          scrolling content area, and reuses them as the user scrolls.  This
+          allows the list view to perform well even when there are thousands of 
+          rows and many sections in the list.
+
+          Typically, you'll register header/footer classes when a list view is
+          created, and then use `dequeueReusableHeaderWithIdentifier()` when a
+          header is required, or `dequeueReusableFooterWithIdentifier()` when a
+          footer is required.
+          
+          ````
+          JSClass("PlanetsViewController", UIListViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.solarSystems = [
+                {
+                  name: 'Sol',
+                  planets: [
+                    {
+                      name: "Mercury",
+                      image: JSImage.initWithResourceName("MercuryIcon")
+                    },
+                    {
+                      name: "Venus",
+                      image: JSImage.initWithResourceName("VenusIcon")
+                    },
+                    {
+                      name: "Earth",
+                      image: JSImage.initWithResourceName("EarthIcon")
+                    }
+                    // ...
+                  ]
+                },
+                // ...
+              ];
+            },
+
+            numberOfSectionsInListView: function(listView){
+              return this.solarSystems.length;
+            }
+
+            numberOfRowsInListViewSection: function(listView, section){
+              var styem = this.solarSystems[section];
+              return system.planets.length;
+            }
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.listView.registerHeaderFooterClassForReuseIdentifier('solar-system', UIListViewHeaderFooterView);
+            },
+
+            headerViewForListViewSection: function(listView, section){
+              var header = listView.dequeueReusableHeaderWithIdentifier('solar-system');
+              var system = this.solarSystems[section];
+              header.titleLabel.text = system.name;
+              return header;
+            }
+
+          });
+          ````
+      -
+        name: dequeueReusableHeaderWithIdentifier
+        kind: method
+        summary: Reuse or create a header for the the given identifier
+        arguments:
+          -
+            name: identifier
+            type: String
+            summary: The header identifier, matched with one that was passed to
+              \`registerHeaderFooterClassForReuseIdentifier()`
+          -
+            name: section
+            type: Number
+            summary: The index path for the newly created header
+        description: |
+          The list view only displays headers/footers that are visibile in the
+          scrolling content area, and reuses them as the user scrolls.  This
+          allows the list view to perform well even when there are thousands of 
+          rows and many sections in the list.
+
+          Typically, you'll register header/footer classes when a list view is
+          created, and then use `dequeueReusableHeaderWithIdentifier()` when a
+          header is required, or `dequeueReusableFooterWithIdentifier()` when a
+          footer is required.
+
+          ````
+          JSClass("PlanetsViewController", UIListViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.solarSystems = [
+                {
+                  name: 'Sol',
+                  planets: [
+                    {
+                      name: "Mercury",
+                      image: JSImage.initWithResourceName("MercuryIcon")
+                    },
+                    {
+                      name: "Venus",
+                      image: JSImage.initWithResourceName("VenusIcon")
+                    },
+                    {
+                      name: "Earth",
+                      image: JSImage.initWithResourceName("EarthIcon")
+                    }
+                    // ...
+                  ]
+                },
+                // ...
+              ];
+            },
+
+            numberOfSectionsInListView: function(listView){
+              return this.solarSystems.length;
+            }
+
+            numberOfRowsInListViewSection: function(listView, section){
+              var styem = this.solarSystems[section];
+              return system.planets.length;
+            }
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.listView.registerHeaderFooterClassForReuseIdentifier('solar-header', UIListViewHeaderFooterView);
+              this.listView.registerHeaderFooterClassForReuseIdentifier('solar-footer', UIListViewHeaderFooterView);
+            },
+
+            headerViewForListViewSection: function(listView, section){
+              var header = listView.dequeueReusableHeaderWithIdentifier('solar-header');
+              var system = this.solarSystems[section];
+              header.titleLabel.text = system.name;
+              return header;
+            },
+
+            footerViewForListViewSection: function(listView, section){
+              var footer = listView.dequeueReusableHeaderWithIdentifier('solar-footer');
+              var system = this.solarSystems[section];
+              footer.titleLabel.text = "%d planets total".sprintf(system.planets.length);
+              return footer;
+            }
+
+          });
+          ````
+      -
+        name: dequeueReusableFooterWithIdentifier
+        kind: method
+        summary: Reuse or create a footer for the the given identifier
+        arguments:
+          -
+            name: identifier
+            type: String
+            summary: The footer identifier, matched with one that was passed to
+              \`registerHeaderFooterClassForReuseIdentifier()`
+          -
+            name: section
+            type: Number
+            summary: The index path for the newly created footer
+        description: |
+          The list view only displays headers/footers that are visibile in the
+          scrolling content area, and reuses them as the user scrolls.  This
+          allows the list view to perform well even when there are thousands of 
+          rows and many sections in the list.
+
+          Typically, you'll register header/footer classes when a list view is
+          created, and then use `dequeueReusableHeaderWithIdentifier()` when a
+          header is required, or `dequeueReusableFooterWithIdentifier()` when a
+          footer is required.
+
+          ````
+          JSClass("PlanetsViewController", UIListViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.solarSystems = [
+                {
+                  name: 'Sol',
+                  planets: [
+                    {
+                      name: "Mercury",
+                      image: JSImage.initWithResourceName("MercuryIcon")
+                    },
+                    {
+                      name: "Venus",
+                      image: JSImage.initWithResourceName("VenusIcon")
+                    },
+                    {
+                      name: "Earth",
+                      image: JSImage.initWithResourceName("EarthIcon")
+                    }
+                    // ...
+                  ]
+                },
+                // ...
+              ];
+            },
+
+            numberOfSectionsInListView: function(listView){
+              return this.solarSystems.length;
+            }
+
+            numberOfRowsInListViewSection: function(listView, section){
+              var styem = this.solarSystems[section];
+              return system.planets.length;
+            }
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.listView.registerHeaderFooterClassForReuseIdentifier('solar-header', UIListViewHeaderFooterView);
+              this.listView.registerHeaderFooterClassForReuseIdentifier('solar-footer', UIListViewHeaderFooterView);
+            },
+
+            headerViewForListViewSection: function(listView, section){
+              var header = listView.dequeueReusableHeaderWithIdentifier('solar-header');
+              var system = this.solarSystems[section];
+              header.titleLabel.text = system.name;
+              return header;
+            },
+
+            footerViewForListViewSection: function(listView, section){
+              var footer = listView.dequeueReusableHeaderWithIdentifier('solar-footer');
+              var system = this.solarSystems[section];
+              footer.titleLabel.text = "%d planets total".sprintf(system.planets.length);
+              return footer;
+            }
+
+          });
+          ````
+  -
+    name: Accessing Headers & Footers
+    members:
+      -
+        name: headerAtSection
+        kind: method
+        type: UIListViewHeaderFooterView
+        nullable: true
+        summary: Get the visible header at the given section index
+        arguments:
+          -
+            name: section
+            type: Number
+            summary: The section of the header
+        important: This method only searches visible headers
+      -
+        name: footerAtSection
+        kind: method
+        type: UIListViewHeaderFooterView
+        nullable: true
+        summary: Get the visible footer at the given section index
+        arguments:
+          -
+            name: section
+            type: Number
+            summary: The section of the footer
+        important: This method only searches visible footers
+  -
+    name: List Header & Footer
+    members:
+      -
+        name: listHeaderView
+        type: UIView
+        nullable: true
+        summary: A header view for the entire list
+      -
+        name: listFooterView
+        type: UIView
+        nullable: true
+        summary: A footer view for the entire list
   -
     name: Loading List Data
+    members:
+      -
+        name: reloadData
+        kind: method
+        summary: Called to intially load list data and to reload the entire list
+        description: |
+          When called, the list view will ask its `dataSource` for information
+          about the number of sections and rows, and will then proceed to ask
+          the `delegate` for any cells that are currently visibile.
+
+          ````
+          JSClass("PlanetsViewController", UIListViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.solarSystems = [
+                {
+                  name: 'Sol',
+                  planets: [
+                    {
+                      name: "Mercury",
+                      image: JSImage.initWithResourceName("MercuryIcon")
+                    },
+                    {
+                      name: "Venus",
+                      image: JSImage.initWithResourceName("VenusIcon")
+                    },
+                    {
+                      name: "Earth",
+                      image: JSImage.initWithResourceName("EarthIcon")
+                    }
+                    // ...
+                  ]
+                },
+                // ...
+              ];
+            },
+
+            numberOfSectionsInListView: function(listView){
+              return this.solarSystems.length;
+            }
+
+            numberOfRowsInListViewSection: function(listView, section){
+              var styem = this.solarSystems[section];
+              return system.planets.length;
+            }
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.listView.loadData();
+            }
+          });
+          ````
+
+          After the first load, you can reload individual rows or insert/remove
+          rows without reloading the entire list.
+        see:
+          - reloadRowsAtIndexPaths()
+          - insertRowsAtIndexPaths()
+          - deleteRowsAtIndexPaths()
+          - insertSections()
+          - deleteSections()
+      -
+        name: reloadRowAtIndexPath
+        kind: method
+        summary: Reload a single row
+        arguments:
+          -
+            name: indexPath
+            type: JSIndexPath
+            summary: The index path of the row to reload
+      -
+        name: reloadRowAtIndexPath
+        suffix: animated
+        kind: method
+        summary: Reload a single row with animation
+        arguments:
+          -
+            name: indexPath
+            type: JSIndexPath
+            summary: The index path of the row to reload
+          -
+            name: animator
+            type: UIViewPropertyAnimator
+            summary: An animator to which any layout changes should be added
+      -
+        name: reloadRowsAtIndexPaths
+        kind: method
+        summary: Reload several rows
+        arguments:
+          -
+            name: indexPaths
+            type: JSIndexPath[]
+            summary: The index paths of the rows to reload
+      -
+        name: reloadRowsAtIndexPaths
+        suffix: animated
+        kind: method
+        summary: Reload several rows with animation
+        arguments:
+          -
+            name: indexPaths
+            type: JSIndexPath[]
+            summary: The index paths of the rows to reload
+          -
+            name: animator
+            type: UIViewPropertyAnimator
+            summary: An animator to which any layout changes should be added
   -
     name: List Editing
+    members:
+      -
+        name: insertRowAtIndexPath
+        kind: method
+        summary: Insert a single row at the given index path
+        arguments:
+          -
+            name: indexPath
+            type: JSIndexPath
+            summary: The index path of the inserted row
+          -
+            name: animation
+            type: RowAnimation
+            default: UIListView.RowAnimation.default
+        description: |
+          When a new item is added to your data set, you can insert it without
+          reloading the entire list.
+
+          ````
+          JSClass("PlanetsViewController", UIListViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.planets = [
+                {
+                  name: "Mercury",
+                  image: JSImage.initWithResourceName("MercuryIcon")
+                },
+                {
+                  name: "Venus",
+                  image: JSImage.initWithResourceName("VenusIcon")
+                },
+                {
+                  name: "Earth",
+                  image: JSImage.initWithResourceName("EarthIcon")
+                }
+                // ...
+              ]
+            },
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.listView.registerCellClassForReuseIdentifier('planet', UITableViewCell);
+            },
+
+            cellForListViewAtIndexPath: function(listView, indexPath){
+              var cell = listView.dequeueReusableCellWithIdentifier('planet', indexPath);
+              var planet = this.planets[indexPath.row];
+              cell.titleLabel.text = planet.name;
+              cell.imageView.image = planet.image;
+              return cell;
+            },
+
+            discoverPlanetVulcan: function(){
+              var indexPath = JSIndexPath(0, 1);
+              this.planets.splice(indexPath.row, 0, {name: "Vulcan", image: JSImage.initWithResourceName("VulcanIcon")});
+              this.listView.insertRowAtIndexPath(indexPath);
+            }
+
+          });
+          ````
+        note: You should always update your data source at the same time as
+          calling `insertRowAtIndexPath()`
+        see:
+          - insertRowsAtIndexPaths()
+      -
+        name: insertRowsAtIndexPaths
+        kind: method
+        summary: Insert multiple rows at the given index paths
+        arguments:
+          -
+            name: indexPaths
+            type: JSIndexPath[]
+            summary: The index paths of the inserted rows
+          -
+            name: animation
+            type: RowAnimation
+            default: UIListView.RowAnimation.default
+        description: |
+          When new items are added to your data set, you can insert them without
+          reloading the entire list.
+
+          ````
+          JSClass("PlanetsViewController", UIListViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.planets = [
+                {
+                  name: "Mercury",
+                  image: JSImage.initWithResourceName("MercuryIcon")
+                },
+                {
+                  name: "Venus",
+                  image: JSImage.initWithResourceName("VenusIcon")
+                },
+                {
+                  name: "Earth",
+                  image: JSImage.initWithResourceName("EarthIcon")
+                }
+                // ...
+              ]
+            },
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.listView.registerCellClassForReuseIdentifier('planet', UITableViewCell);
+            },
+
+            cellForListViewAtIndexPath: function(listView, indexPath){
+              var cell = listView.dequeueReusableCellWithIdentifier('planet', indexPath);
+              var planet = this.planets[indexPath.row];
+              cell.titleLabel.text = planet.name;
+              cell.imageView.image = planet.image;
+              return cell;
+            },
+
+            discoverPlanets: function(){
+              var vulcanIndexPath = JSIndexPath(0, 1);
+              var planetXIndexPath = JSIndexPath(0, 9);
+              this.planets.splice(vulcanIndexPath.row, 0, {name: "Vulcan", image: JSImage.initWithResourceName("VulcanIcon")});
+              this.planets.splice(planetXIndexPath.row, 0, {name: "Planet X", image: JSImage.initWithResourceName("PlanetXIcon")});
+              this.listView.insertRowsAtIndexPaths([vulcanIndexPath, planetXIndexPath]);
+            }
+
+          });
+          ````
+        note: You should always update your data source at the same time as
+          calling `insertRowsAtIndexPaths()`
+        important: The index paths provided should match the index paths that
+          the rows will have after all inserts are complete.
+      -
+        name: insertSection
+        kind: method
+        summary: Insert an entire section
+        arguments:
+          -
+            name: section
+            type: Number
+            summary: The section to insert
+          -
+            name: animation
+            type: RowAnimation
+            default: UIListView.RowAnimation.default
+            summary: The animation to use for the inserted section
+      -
+        name: insertSections
+        kind: method
+        summary: Insert several sections
+        arguments:
+          -
+            name: sections
+            type: Number[]
+            summary: The sections to insert
+          -
+            name: animation
+            type: RowAnimation
+            default: UIListView.RowAnimation.default
+            summary: The animation to use for the inserted section
+        important: The section indexes provided should match the indexes that
+          the sections will have after all inserts are complete.
+      -
+        name: deleteRowAtIndexPath
+        kind: method
+        summary: Remove a single row at the given index path
+        arguments:
+          -
+            name: indexPath
+            type: JSIndexPath
+            summary: The index path of the row to delete
+          -
+            name: animation
+            type: RowAnimation
+            default: UIListView.RowAnimation.default
+        description: |
+          When an item is removed from your data set, you can remove it without
+          reloading the entire list.
+
+          ````
+          JSClass("PlanetsViewController", UIListViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.planets = [
+                {
+                  name: "Mercury",
+                  image: JSImage.initWithResourceName("MercuryIcon")
+                },
+                {
+                  name: "Venus",
+                  image: JSImage.initWithResourceName("VenusIcon")
+                },
+                {
+                  name: "Earth",
+                  image: JSImage.initWithResourceName("EarthIcon")
+                }
+                // ...
+              ]
+            },
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.listView.registerCellClassForReuseIdentifier('planet', UITableViewCell);
+            },
+
+            cellForListViewAtIndexPath: function(listView, indexPath){
+              var cell = listView.dequeueReusableCellWithIdentifier('planet', indexPath);
+              var planet = this.planets[indexPath.row];
+              cell.titleLabel.text = planet.name;
+              cell.imageView.image = planet.image;
+              return cell;
+            },
+
+            demotePluto: function(){
+              var indexPath = JSIndexPath(0, 8);
+              this.planets.splice(indexPath.row, 1);
+              this.listView.deleteRowAtIndexPath(indexPath);
+            }
+
+          });
+          ````
+        note: You should always update your data source at the same time as
+          calling `deleteRowAtIndexPath()`
+        see:
+          - deleteRowsAtIndexPaths()
+      -
+        name: deleteRowsAtIndexPaths
+        kind: method
+        summary: Delete multiple rows at the given index paths
+        arguments:
+          -
+            name: indexPaths
+            type: JSIndexPath[]
+            summary: The index paths of the deleted rows
+          -
+            name: animation
+            type: RowAnimation
+            default: UIListView.RowAnimation.default
+        description: |
+          When items are removed from your data set, you can remove them without
+          reloading the entire list.
+
+          ````
+          JSClass("PlanetsViewController", UIListViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.planets = [
+                {
+                  name: "Mercury",
+                  image: JSImage.initWithResourceName("MercuryIcon")
+                },
+                {
+                  name: "Venus",
+                  image: JSImage.initWithResourceName("VenusIcon")
+                },
+                {
+                  name: "Earth",
+                  image: JSImage.initWithResourceName("EarthIcon")
+                }
+                // ...
+              ]
+            },
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.listView.registerCellClassForReuseIdentifier('planet', UITableViewCell);
+            },
+
+            cellForListViewAtIndexPath: function(listView, indexPath){
+              var cell = listView.dequeueReusableCellWithIdentifier('planet', indexPath);
+              var planet = this.planets[indexPath.row];
+              cell.titleLabel.text = planet.name;
+              cell.imageView.image = planet.image;
+              return cell;
+            },
+
+            demotePluto: function(){
+              var indexPath = JSIndexPath(0, 8);
+              this.planets.splice(indexPath.row, 1);
+              this.listView.deleteRowsAtIndexPaths([indexPath]);
+            }
+
+          });
+          ````
+        note: You should always update your data source at the same time as
+          calling `deleteRowsAtIndexPaths()`
+        important: The index paths provided should match the index paths that
+          the rows have after before any edits.
+      -
+        name: deleteSection
+        kind: method
+        summary: Delete an entire section
+        arguments:
+          -
+            name: section
+            type: Number
+            summary: The section to delete
+          -
+            name: animation
+            type: RowAnimation
+            default: UIListView.RowAnimation.default
+            summary: The animation to use for the deleted section
+      -
+        name: deleteSections
+        kind: method
+        summary: Delete several sections
+        arguments:
+          -
+            name: sections
+            type: Number[]
+            summary: The sections to delete
+          -
+            name: animation
+            type: RowAnimation
+            default: UIListView.RowAnimation.default
+            summary: The animation to use for the deleted sections
+        important: The section indexes provided should match the indexes that
+          the sections have before any edits.
   -
     name: Selection
+    members:
+      -
+        name: allowsMultipleSelection
+        type: boolean
+        summary: Indicates if the user can select mutliple items at a time
+      -
+        name: selectedIndexPaths
+        type: JSIndexPath[]
+        summary: The index paths of all selected rows
+        description: |
+          If you're using `allowsMultipleSelection`, this property will return
+          the entire set of all selected row index paths.
+
+          If you aren't using `allowsMultipleSelection`, consider checking
+          `selectedIndexPath` instead so you don't have to deal with a
+          single-item array here.
+      -
+        name: selectedIndexPath
+        type: JSIndexPath
+        nullable: true
+        summary: The index path of the single selected row
+        description: |
+          If you're using `allowsMultipleSelection`, this property will be
+          `null` if anything but 1 row is selected.
+      -
+        name: contextSelectedIndexPaths
+        type: JSIndexPath[]
+        summary: The index paths of all rows that are context-selected
+        description: |
+          A context selection occurs when the user right clicks on a row
+          or a set of selected rows.
+
+          Context selection can be different from the regular selection
+          depending on exactly how the user clicks.
+      -
+        name: selectAll
+        kind: method
+        summary: Select all the rows in the list
+      -
+        name: selectNone
+        kind: method
+        summary: Select none of the rows in the list
   -
     name: Scrolling
+    members:
+      -
+        name: rectForCellAtIndexPath
+        kind: method
+        type: JSRect
+        summary: Get the frame for the cell at the given index path
+        arguments:
+          -
+            name: indexPath
+            type: JSIndexPath
+            summary: The index path of the cell
+      -
+        name: scrollToRowAtIndexPath
+        kind: method
+        summary: Scroll to the cell at the given index path
+        arguments:
+          -
+            name: indexPath
+            type: JSIndexPath
+            summary: The index path of the cell
+          -
+            name: position
+            type: UIScrollView.ScrollPosition
+            default: UIScrollView.ScrollPosition.auto
+            summary: The position the cell should have in the view after
+              scrolling

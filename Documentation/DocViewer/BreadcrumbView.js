@@ -94,7 +94,7 @@ JSClass("BreadcrumbView", UIView, {
             button.titleLabel.text = component.name;
             button.imageView.image = imageByKind[component.kind](component);
             button.enabled = parent !== null;
-            button.indicatorView.hidden = i == l - 1;
+            button.indicatorView.hidden = (i == l - 1);
             parent = component;
         }
         for (j = this.popupButtons.length - 1; j >= i; --j){
