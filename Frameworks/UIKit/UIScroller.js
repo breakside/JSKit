@@ -209,9 +209,10 @@ JSClass("UIScroller", UIControl, {
 
 });
 
-UIScroller.State = {
-    knobActive: UIControl.State.firstUserState,
-};
+UIScroller.State = Object.create(UIControl.State, {
+    knobActive: {value: UIControl.State.firstUserState},
+    firstUserState: {value: UIControl.State.firstUserState << 1, configurable: true}
+});
 
 UIScroller.Direction = {
     vertical: 0,

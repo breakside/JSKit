@@ -1,0 +1,90 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: UIView
+summary: A stack view automatically arranges its subviews in a stack
+description: |
+  Many times views just need to layout one after another.
+
+  Rather than implement that algorithm by hand each time, `UIStackView`
+  provides a standard way of doing the stack layout with suitable 
+  customizability.
+topics:
+  -
+    name: Creating a Stack View
+    members:
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available to stack views in a spec file
+        topics:
+          -
+            name: Stack Direction
+            members:
+              -
+                name: axis
+                type: Axis
+                summary: The direction this view's subviews are stacked
+          -
+            name: View Spacing
+            members:
+              -
+                name: contentInsets
+                type: JSInsets
+                summary: The amount to inset all views from the edges of the
+                  stack view
+              -
+                name: viewSpacing
+                type: Number
+                summary: The amount of spacing to include between each view
+              -
+                name: distribution
+                type: Distribution
+                summary: The way subviews are sized in this view
+  -
+    name: Stack Direction
+    members:
+      -
+        name: Axis
+        kind: enum
+        suffix: enum
+        summary: The directions in which a stack view can layout its views
+        options:
+          -
+            name: vertical
+            summary: Stack views vertically
+          -
+            name: horizontal
+            summary: Stack views horizontally
+      -
+        name: axis
+        type: Axis
+        summary: The direction this view's subviews are stacked
+  -
+    name: View Spacing
+    members:
+      -
+        name: contentInsets
+        type: JSInsets
+        summary: The amount to inset all views from the edges of the
+          stack view
+      -
+        name: viewSpacing
+        type: Number
+        summary: The amount of spacing to include between each view
+      -
+        name: Distribution
+        kind: enum
+        suffix: enum
+        summary: The ways views can be sized along the `axis`
+        options:
+          -
+            name: none
+            summary: No special distribution, views take their instrinsic sizes
+               along the `axis`
+          -
+            name: equal
+            summary: Views all get the same size along the `axis`
+      -
+        name: distribution
+        type: Distribution
+        summary: The way subviews are sized in this view

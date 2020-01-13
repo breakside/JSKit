@@ -136,7 +136,7 @@ JSClass("_UIBrowserDividerView", UIView, {
         this.init();
         this.lineView = UIView.init();
         this.hitSize = hitSize;
-        this.lineView.backgroundColor = JSColor.blackColor;
+        this.lineView.backgroundColor = JSColor.black;
         this.addSubview(this.lineView);
         this.cursor = UICursor.resizeLeftRight;
     },

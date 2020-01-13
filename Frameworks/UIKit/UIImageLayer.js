@@ -12,7 +12,7 @@ JSClass("UIImageLayer", UILayer, {
     init: function(){
         UIImageLayer.$super.init.call(this);
         this._imageFrame = JSRect.Zero;
-        this._templateColor = JSColor.blackColor;
+        this._templateColor = JSColor.black;
     },
 
     getImage: function(){

@@ -386,19 +386,19 @@ topics:
             // ...
           });
 
-          DrawingControl.State = {
-            pointAdded: UIControl.Event.firstUserEvent
-          };
+          DrawingControl.Event = Object.create(UIControl.Event, {
+            pointAdded: {value: UIControl.Event.firstUserEvent}
+          });
           ````
 
           And if it needed more events, it might look like:
 
           ````
-          UIScroller.State = {
-            pointAdded:   UIControl.State.firstUserEvent,
-            pointRemoved: UIControl.State.firstUserEvent << 1,
-            pointMoved:   UIControl.State.firstUserEvent << 2,
-          };
+          DrawingControl.Event = Object.create(UIControl.Event, {
+            pointAdded:   {value: UIControl.State.firstUserEvent},
+            pointRemoved: {value: UIControl.State.firstUserEvent << 1},
+            pointMoved:   {value: UIControl.State.firstUserEvent << 2},
+          });
           ````
         options:
           -
@@ -664,20 +664,20 @@ topics:
             // ...
           });
 
-          UIScroller.State = {
-            knobActive: UIControl.State.firstUserState
-          };
+          UIScroller.State = Object.create(UIControl.State, {
+            knobActive: {value: UIControl.State.firstUserState}
+          });
           ````
 
           If `UIScroller` ever changed to include up and down buttons, it
           might need more states:
 
           ````
-          UIScroller.State = {
-            knobActive: UIControl.State.firstUserState,
-            upActive:   UIControl.State.firstUserState << 1,
-            downActive: UIControl.State.firstUserState << 2,
-          };
+          UIScroller.State = Object.create(UIControl.State, {
+            knobActive: {value: UIControl.State.firstUserState},
+            upActive:   {value: UIControl.State.firstUserState << 1},
+            downActive: {value: UIControl.State.firstUserState << 2},
+          });
           ````
         options:
           -

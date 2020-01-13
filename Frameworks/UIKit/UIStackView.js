@@ -18,6 +18,12 @@ JSClass("UIStackView", UIView, {
         if (spec.containsKey('viewSpacing')){
             this._viewSpacing = spec.valueForKey("viewSpacing");
         }
+        if (spec.containsKey('axis')){
+            this._axis = spec.valueForKey("axis", UIStackView.Axis);
+        }
+        if (spec.containsKey('distribution')){
+            this._distribution = spec.valueForKey("distribution", UIStackView.Distribution);
+        }
     },
 
     _commonStackViewInit: function(){

@@ -7,6 +7,7 @@
     kind: 'property',
     isStatic: false,
     valueType: null,
+    nullable: true,
 
     getDisplayNameForKind: function(){
         if (this.isStatic){
@@ -22,6 +23,9 @@
         }
         if (info.static){
             this.isStatic = true;
+        }
+        if (info.nullable){
+            this.nullable = true;
         }
     },
 
@@ -48,6 +52,9 @@
             h1.appendChild(document.createTextNode("Value Type"));
             let p = typeSection.appendChild(document.createElement("p"));
             let code = p.appendChild(document.createElement("code"));
+            if (this.nullable){
+                code.appendChild(document.createTextNode('?'));
+            }
             let url = this.urlForCode(this.valueType);
             if (url){
                 let a = code.appendChild(document.createElement("a"));
@@ -98,7 +105,7 @@
 
     declarationCode: function(){
         if (this.isStatic){
-            return ['static var %s'.sprintf(this.name)];
+            return ['nullable var %s'.sprintf(this.name)];
         }
         return ['var %s'.sprintf(this.name)];
     },

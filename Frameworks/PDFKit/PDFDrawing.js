@@ -16,7 +16,7 @@ JSClass("PDFDrawing", JSObject, {
     backgroundColor: null,
 
     init: function(){
-        this.backgroundColor = JSColor.whiteColor;
+        this.backgroundColor = JSColor.white;
     },
 
     drawInContext: function(context, rect){
@@ -292,12 +292,12 @@ var contextOperationHandler = {
 
     CS: function(name){
         // changing color space always defaults the color black
-        this.context.setStrokeColor(JSColor.blackColor);
+        this.context.setStrokeColor(JSColor.black);
     },
 
     cs: function(name){
         // changing color space always defaults the color black
-        this.context.setFillColor(JSColor.blackColor);
+        this.context.setFillColor(JSColor.black);
     },
 
     SC: function(){
@@ -372,7 +372,7 @@ var contextOperationHandler = {
                 // We need to un-flip the coordinates first
                 this.context.save();
                 this.context.concatenate(JSAffineTransform(1, 0, 0, -1, 0, 1));
-                // this.context.setFillColor(JSColor.greenColor);
+                // this.context.setFillColor(JSColor.green);
                 // this.context.fillRect(JSRect(0, 0, 0.5, 0.5));
                 this.context.drawImage(image, JSRect(JSPoint.Zero, JSSize(1, 1)));
                 this.context.restore();

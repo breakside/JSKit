@@ -2786,7 +2786,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             this.cellFont = JSFont.systemFontOfSize(JSFont.Size.normal);
         }
         if (this.cellTextColor === null){
-            this.cellTextColor = JSColor.blackColor;
+            this.cellTextColor = JSColor.black;
         }
         if (this.cellDetailTextColor === null){
             this.cellDetailTextColor = this.cellTextColor.colorLightenedByPercentage(0.6);
@@ -2801,7 +2801,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             this.contextSelectedCellBorderColor = this.selectedCellBackgroundColor.colorDarkenedByPercentage(0.5);
         }
         if (this.headerTextColor === null){
-            this.headerTextColor = JSColor.blackColor;
+            this.headerTextColor = JSColor.black;
         }
         if (this.cellSeparatorColor === null){
             this.cellSeparatorColor = this.cellTextColor.colorWithAlpha(0.2);
@@ -2810,7 +2810,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             this.accessoryColor = this.cellTextColor;
         }
         if (this.selectedCellTextColor === null){
-            this.selectedCellTextColor = JSColor.whiteColor;
+            this.selectedCellTextColor = JSColor.white;
         }
         if (this.selectedCellDetailTextColor === null){
             this.selectedCellDetailTextColor = this.selectedCellTextColor;

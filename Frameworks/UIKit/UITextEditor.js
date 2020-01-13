@@ -33,7 +33,7 @@ JSClass("UITextEditor", JSObject, {
         this._selectionHighlightLayers = [];
         this.textLayoutManager = textLayer.textLayoutManager;
         this.textLayoutManager.editor = this;
-        this.cursorColor = JSColor.blackColor;
+        this.cursorColor = JSColor.black;
         this.selections = [
             this._createSelection(JSRange(0, 0), UITextEditor.SelectionInsertionPoint.end)
         ];

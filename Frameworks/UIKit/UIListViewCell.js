@@ -82,6 +82,9 @@ JSClass("UIListViewCell", UIView, {
     setNumberOfDetailLines: function(lines){
         if (lines != this._numberOfDetailLines){
             this._numberOfDetailLines = lines;
+            if (this._detailLabel !== null){
+                this._detailLabel.maximumNumberOfLines = this._numberOfDetailLines;
+            }
             this.setNeedsLayout();
         }
     },

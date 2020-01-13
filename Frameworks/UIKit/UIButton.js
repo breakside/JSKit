@@ -65,7 +65,7 @@ JSClass("UIButton", UIControl, {
     _createTitleLabel: function(){
         var titleLabel = UILabel.init();
         titleLabel.textAlignment = JSTextAlignment.center;
-        titleLabel.backgroundColor = JSColor.clearColor;
+        titleLabel.backgroundColor = JSColor.clear;
         titleLabel.font = this.styler.font;
         this.addSubview(titleLabel);
         this.setNeedsLayout();
@@ -440,7 +440,7 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
 
     init: function(){
         UIButtonCustomStyler.$super.init.call(this);
-        this.initWithColor(JSColor.blackColor);
+        this.initWithColor(JSColor.black);
     },
 
     initWithSpec: function(spec){

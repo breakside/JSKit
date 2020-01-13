@@ -84,7 +84,7 @@ topics:
                     class: UIButtonCustomStyler
                     normalBackgroundColor:
                       rgba: 0,24,204
-                    normalTitleColor: $JSColor.whiteColor
+                    normalTitleColor: white
                   ````
 
                   You can also use any value from `UIButton.Styler` by name:

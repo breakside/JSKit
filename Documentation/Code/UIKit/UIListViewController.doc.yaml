@@ -1,0 +1,24 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: UIViewController
+implements:
+  - UIListViewDataSource
+  - UIListViewDelegate
+summary: A view controller for managing a `UIListView`
+description: |
+  A list view controller sets itself up as the `delegate`(UIListView.delegate)
+  and `dataSource`(UIListView.dataSource) for a `UIListView`.
+
+  In addtion, a list view controller implements several `UIListViewDelegate`
+  methods with default behaviors that can be overridden by subclasses.
+topics:
+  -
+    name: List View
+    members:
+      -
+        name: listView
+        type: UIListView
+        summary: The list view owned by this controller
+        description: |
+          Identical to the `view` property, but accessible here via a more
+          relevant name.

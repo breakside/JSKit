@@ -71,7 +71,7 @@ UpdateButton:
     size: detail
   styler:
     class: UIButtonCustomStyler
-    normalTitleColor: $JSColor.whiteColor
+    normalTitleColor: white
     normalBackgroundColor: /HighlightColor
     cornerRadius: 3
   target: /SidebarViewController
@@ -92,17 +92,17 @@ SearchField:
     action: clearSearch
     styler:
       class: UIButtonCustomStyler
-      normalTitleColor: {blendBase: /SidebarColor, with: $JSColor.blackColor, percent: 30}
+      normalTitleColor: {blendBase: /SidebarColor, with: black, percent: 30}
   rightAccessoryVisibility: onlyWhenNotEmpty
   font:
     size: detail
   styler:
     class: UITextFieldCustomStyler
     localCursorColor: /HighlightColor
-    leftAccessoryColor: {blendBase: /SidebarColor, with: $JSColor.blackColor, percent: 30}
-    backgroundColor: {blendBase: /SidebarColor, with: $JSColor.whiteColor, percent: 40}
+    leftAccessoryColor: {blendBase: /SidebarColor, with: black, percent: 30}
+    backgroundColor: {blendBase: /SidebarColor, with: white, percent: 40}
     cornerRadius: 3
-    textColor: {blendBase: /SidebarColor, with: $JSColor.blackColor, percent: 80}
+    textColor: {blendBase: /SidebarColor, with: black, percent: 80}
     textInsets: 4,3
   actions:
     - {target: /SidebarViewController, action: searchChanged, event: editingChanged}
@@ -124,7 +124,7 @@ SidebarOutlineView:
         cellFont:
           size: detail
           weight: bold
-        cellTextColor: {blendBase: /SidebarColor, with: $JSColor.blackColor, percent: 60}
+        cellTextColor: {blendBase: /SidebarColor, with: black, percent: 60}
         cellBackgroundColor: /SidebarColor
 
   styler:
@@ -137,7 +137,7 @@ SidebarOutlineView:
     cellBackgroundColor: /SidebarColor
     cellContentInsets: 0,5
     cellContentCornerRadius: 3
-    disclosureColor: {blendBase: /SidebarColor, with: $JSColor.blackColor, percent: 60}
+    disclosureColor: {blendBase: /SidebarColor, with: black, percent: 60}
 
 # -------------------------------------------------------------------------
 # Content

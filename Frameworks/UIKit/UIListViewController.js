@@ -9,9 +9,6 @@ JSClass("UIListViewController", UIViewController, {
     listView: JSReadOnlyProperty(),
     _defaultViewClass: UIListView,
 
-    init: function(){
-    },
-
     viewDidLoad: function(){
         UIListViewController.$super.viewDidLoad.call(this);
         if (this.view.delegate === null){
@@ -26,18 +23,40 @@ JSClass("UIListViewController", UIViewController, {
         return this._view;
     },
 
-    loadView: function(){
-        this._view = UIListView.init();
-        this._view.delegate = this;
-        this._view.dataSource = this;
-    },
-
     numberOfSectionsInListView: function(listView){
         return 0;
     },
 
     numberOfRowsInListViewSection: function(listView, sectionIndex){
         return 0;
+    },
+
+    cellForListViewAtIndexPath: function(listView, indexPath){
+        throw new Error("%s must implement cellForListViewAtIndexPath()".sprintf(this.$class.className));
+    },
+
+    listViewShouldSelectCellAtIndexPath: function(listView, indexPath){
+        return true;
+    },
+
+    listViewDidSelectCellAtIndexPath: function(listView, indexPath){
+    },
+
+    listViewDidFinishSelectingCellAtIndexPath: function(listView, indexPath){
+    },
+
+    listViewDidOpenCellAtIndexPath: function(listView, indexPath){
+    },
+
+    listViewSelectionDidChange: function(listView, selectedIndexPaths){
+    },
+
+    menuForListViewCellAtIndexPath: function(listView, indexPath){
+        return null;
+    },
+
+    listViewShouldDragCellAtIndexPath: function(listView, indexPath){
+        return false;
     }
 
 });

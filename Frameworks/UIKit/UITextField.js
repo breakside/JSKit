@@ -219,7 +219,7 @@ JSClass("UITextField", UIControl, {
     _createPlaceholderColor: function(){
         var backgroundColor = this.backgroundColor;
         if (backgroundColor === null){
-            backgroundColor = JSColor.whiteColor;
+            backgroundColor = JSColor.white;
         }
         this._placeholderColor = backgroundColor.colorByBlendingColor(this.textColor, 0.3);
     },
@@ -1089,7 +1089,7 @@ JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
 
     init: function(){
         UITextFieldDefaultStyler.$super.init.call(this);
-        this.activeColor = JSColor.blackColor;
+        this.activeColor = JSColor.black;
         this.inactiveColor = JSColor.initWithWhite(0.8);
         this.textInsets = JSInsets(3, 0);
     },

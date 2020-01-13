@@ -42,26 +42,26 @@ JSClass("UIBasicAnimationTests", TKTestSuite, {
         animation.duration = 1;
         animation.fromValue = layer.backgroundColor;
         layer.addAnimationForKey(animation, 'backgroundColor');
-        layer.backgroundColor = JSColor.blackColor;
+        layer.backgroundColor = JSColor.black;
         animation.updateForTime(0);
         TKAssert(!animation.isComplete);
         TKAssertExactEquals(layer.presentation.backgroundColor, null);
-        TKAssertExactEquals(layer.backgroundColor, JSColor.blackColor);
+        TKAssertExactEquals(layer.backgroundColor, JSColor.black);
 
         animation.updateForTime(0.5);
         TKAssert(!animation.isComplete);
         TKAssertExactEquals(layer.presentation.backgroundColor, null);
-        TKAssertExactEquals(layer.backgroundColor, JSColor.blackColor);
+        TKAssertExactEquals(layer.backgroundColor, JSColor.black);
 
         animation.updateForTime(1);
         TKAssert(animation.isComplete);
         layer.removeAnimation(animation);
         TKAssertExactEquals(layer.animationCount, 0);
-        TKAssertExactEquals(layer.presentation.backgroundColor, JSColor.blackColor);
-        TKAssertExactEquals(layer.backgroundColor, JSColor.blackColor);
+        TKAssertExactEquals(layer.presentation.backgroundColor, JSColor.black);
+        TKAssertExactEquals(layer.backgroundColor, JSColor.black);
 
         layer = UILayer.init();
-        layer.backgroundColor = JSColor.blackColor;
+        layer.backgroundColor = JSColor.black;
         animation = UIBasicAnimation.initWithKeyPath('backgroundColor');
         animation.layer = layer;
         animation.duration = 1;
@@ -70,12 +70,12 @@ JSClass("UIBasicAnimationTests", TKTestSuite, {
         layer.backgroundColor = null;
         animation.updateForTime(0);
         TKAssert(!animation.isComplete);
-        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.blackColor);
+        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.black);
         TKAssertExactEquals(layer.backgroundColor, null);
 
         animation.updateForTime(0.5);
         TKAssert(!animation.isComplete);
-        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.blackColor);
+        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.black);
         TKAssertExactEquals(layer.backgroundColor, null);
         
         animation.updateForTime(1);
@@ -332,36 +332,36 @@ JSClass("UIBasicAnimationTests", TKTestSuite, {
 
     testInterpolate1Color: function(){
         var layer = UILayer.init();
-        layer.backgroundColor = JSColor.blackColor;
+        layer.backgroundColor = JSColor.black;
         var animation = UIBasicAnimation.initWithKeyPath('backgroundColor');
         animation.layer = layer;
         animation.duration = 1;
         animation.fromValue = layer.backgroundColor;
         layer.addAnimationForKey(animation, 'backgroundColor');
-        layer.backgroundColor = JSColor.whiteColor;
+        layer.backgroundColor = JSColor.white;
         animation.updateForTime(0);
         TKAssert(!animation.isComplete);
-        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.blackColor);
-        TKAssertObjectEquals(layer.backgroundColor, JSColor.whiteColor);
+        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.black);
+        TKAssertObjectEquals(layer.backgroundColor, JSColor.white);
         animation.updateForTime(0.100);
         TKAssert(!animation.isComplete);
         TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithWhite(0.1));
-        TKAssertObjectEquals(layer.backgroundColor, JSColor.whiteColor);
+        TKAssertObjectEquals(layer.backgroundColor, JSColor.white);
         animation.updateForTime(0.200);
         TKAssert(!animation.isComplete);
         TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithWhite(0.2));
-        TKAssertObjectEquals(layer.backgroundColor, JSColor.whiteColor);
+        TKAssertObjectEquals(layer.backgroundColor, JSColor.white);
         animation.updateForTime(0.900);
         TKAssert(!animation.isComplete);
         TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithWhite(0.9));
-        TKAssertObjectEquals(layer.backgroundColor, JSColor.whiteColor);
+        TKAssertObjectEquals(layer.backgroundColor, JSColor.white);
         animation.updateForTime(1.000);
         
         TKAssert(animation.isComplete);
         layer.removeAnimation(animation);
         TKAssertExactEquals(layer.animationCount, 0);
         TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithWhite(1.0));
-        TKAssertObjectEquals(layer.backgroundColor, JSColor.whiteColor);
+        TKAssertObjectEquals(layer.backgroundColor, JSColor.white);
     },
 
     testInterpolate3Color: function(){

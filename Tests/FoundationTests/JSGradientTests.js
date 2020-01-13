@@ -8,8 +8,8 @@ JSClass('JSGradientTests', TKTestSuite, {
 
     testRotated: function(){
         var gradient = JSGradient.init();
-        gradient.addStop(0, JSColor.blackColor);
-        gradient.addStop(1, JSColor.whiteColor);
+        gradient.addStop(0, JSColor.black);
+        gradient.addStop(1, JSColor.white);
         TKAssertFloatEquals(gradient.start.x, 0);
         TKAssertFloatEquals(gradient.start.y, 0);
         TKAssertFloatEquals(gradient.end.x, 0);

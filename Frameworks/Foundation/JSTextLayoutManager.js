@@ -22,7 +22,7 @@ JSClass("JSTextLayoutManager", JSObject, {
 
     init: function(){
         this._textContainers = [];
-        this._defaultTextColor = JSColor.blackColor;
+        this._defaultTextColor = JSColor.black;
     },
 
     // MARK: - Managing Containers

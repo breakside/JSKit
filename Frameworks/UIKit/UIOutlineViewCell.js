@@ -14,7 +14,7 @@ JSClass("UIOutlineViewCell", UIListViewCell, {
 
     _commonCellInit: function(){
         UIOutlineViewCell.$super._commonCellInit.call(this);
-        var buttonStyler = UIButtonImageStyler.initWithColor(JSColor.blackColor);
+        var buttonStyler = UIButtonImageStyler.initWithColor(JSColor.black);
         this._disclosureButton = UIButton.initWithStyler(buttonStyler);
         this._disclosureButton.addAction("_toggleExpanded", this);
         this._contentView.addSubview(this._disclosureButton);
@@ -53,11 +53,6 @@ JSClass("UIOutlineViewCell", UIListViewCell, {
 });
 
 UIOutlineViewCell.State = Object.create(UIListViewCell.State, {
-    expanded: {
-        value: UIListViewCell.State.firstUserState
-    },
-    firstUserState: {
-        configurable: true,
-        value: UIListViewCell.State.firstUserState << 1
-    }
+    expanded: {value: UIListViewCell.State.firstUserState},
+    firstUserState: {value: UIListViewCell.State.firstUserState << 1, configurable: true}
 });

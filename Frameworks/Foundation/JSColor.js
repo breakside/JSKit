@@ -159,11 +159,11 @@ JSClass('JSColor', JSObject, {
     },
 
     colorDarkenedByPercentage: function(darkenPercentage){
-        return this.rgbaColor().colorByBlendingColor(JSColor.blackColor, darkenPercentage);
+        return this.rgbaColor().colorByBlendingColor(JSColor.black, darkenPercentage);
     },
 
     colorLightenedByPercentage: function(lightenPercentage){
-        return this.rgbaColor().colorByBlendingColor(JSColor.whiteColor, lightenPercentage);
+        return this.rgbaColor().colorByBlendingColor(JSColor.white, lightenPercentage);
     },
 
     colorByBlendingColor: function(otherColor, blendPercentage){
@@ -273,56 +273,56 @@ SpaceComponentMap[JSColor.SpaceIdentifier.graya] = { 'white': 0, 'alpha': 1 };
 
 Object.defineProperties(JSColor, {
 
-    clearColor: {
+    clear: {
         configurable: true,
         get: function JSColor_getClearColor(){
             var color = JSColor.initWithRGBA(0, 0, 0, 0);
-            Object.defineProperty(this, 'clearColor', {value: color});
+            Object.defineProperty(this, 'clear', {value: color});
             return color;
         }
     },
 
-    whiteColor: {
+    white: {
         configurable: true,
         get: function JSColor_getWhiteColor(){
             var color = JSColor.initWithWhite(1.0);
-            Object.defineProperty(this, 'whiteColor', {value: color});
+            Object.defineProperty(this, 'white', {value: color});
             return color;
         }
     },
 
-    blackColor: {
+    black: {
         configurable: true,
         get: function JSColor_getBlackColor(){
             var color = JSColor.initWithWhite(0);
-            Object.defineProperty(this, 'blackColor', {value: color});
+            Object.defineProperty(this, 'black', {value: color});
             return color;
         }
     },
 
-    redColor: {
+    red: {
         configurable: true,
         get: function JSColor_getBlackColor(){
             var color = JSColor.initWithRGBA(1.0, 0, 0);
-            Object.defineProperty(this, 'redColor', {value: color});
+            Object.defineProperty(this, 'red', {value: color});
             return color;
         }
     },
 
-    greenColor: {
+    green: {
         configurable: true,
         get: function JSColor_getBlackColor(){
             var color = JSColor.initWithRGBA(0, 1.0, 0);
-            Object.defineProperty(this, 'greenColor', {value: color});
+            Object.defineProperty(this, 'green', {value: color});
             return color;
         }
     },
 
-    blueColor: {
+    blue: {
         configurable: true,
         get: function JSColor_getBlackColor(){
             var color = JSColor.initWithRGBA(0, 0, 1.0);
-            Object.defineProperty(this, 'blueColor', {value: color});
+            Object.defineProperty(this, 'blue', {value: color});
             return color;
         }
     },

@@ -244,7 +244,7 @@ JSClass('UILabel', UIView, {
 
     _createSelectionHighlightLayer: function(){
         var layer = UILayer.init();
-        layer.backgroundColor = JSColor.whiteColor.colorWithAlpha(0.2);
+        layer.backgroundColor = JSColor.white.colorWithAlpha(0.2);
         this.layer.addSublayer(layer);
         return layer;
     },

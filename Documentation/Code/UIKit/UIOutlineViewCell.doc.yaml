@@ -1,0 +1,76 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: UIListViewCell
+summary: The base class for outline view cells
+description: |
+  Outline view cells are `UIListViewCell`s with a few extra properties that
+  make them suitable for a nested view rather than a flat list view.
+topics:
+  -
+    name: Indentation
+    summary:
+      -
+        name: level
+        kind: Number
+        summary: The level of indentation for this cell
+        description: |
+          The level of indentation is an integer, where top level items have a
+          `level` of `0`, their children a `level` of `1`, and so on.
+
+          The level can be used during layout to determine the amount of
+          visual indentation applied to the cell's content.
+  -
+    name: Expanding & Collapsing
+    members:
+      -
+        name: expandable
+        type: boolean
+        summary: Indicates if the item can be expanded to show children
+        description: |
+          If an item is expandable, its `disclosureButton` will be visible
+      -
+        name: disclosureButton
+        type: UIButton
+        summary: The button used to expand or collapse the item
+        description: |
+          Only visible if `expandable` is `true`.
+  -
+    name: State
+    members:
+      -
+        name: State
+        kind: enum
+        suffix: enum
+        summary: The possible states a cell can be in
+        description: |
+          Cell states can be combined with bitwise operations to represent
+          multiple states in a single value
+
+          ````
+          var state = UIListViewCell.State.selected | UIOutlineViewCell.State.expanded;
+          ````
+        options:
+          -
+            name: normal
+            summary: A cell without any other state
+          -
+            name: active
+            summary: Set when the cell is active, like when it is being clicked
+          -
+            name: selected
+            summary: When a cell is selected
+          -
+            name: contextSelected
+            summary: When a cell is context-selected, like by a right click
+          -
+            name: expanded
+            summary: When a cell is context-selected, like by a right click
+          -
+            name: firstUserState
+            summary: The first value a subclass can use for a custom
+              state.  Subsequent values shoulde be made by shifting this
+              value left by one bit.
+      -
+        name: expanded
+        type: boolean
+        summary: Indicates the cell is currently expanded

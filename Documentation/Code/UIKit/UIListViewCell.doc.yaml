@@ -1,0 +1,198 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: UIView
+summary: A base class for list view cells
+description: |
+  You can often accomplish a cell design with this standard base class, which
+  comes with:
+
+  - A `titleLabel`
+  - A `detailLabel`
+  - An `imageView`
+
+  When combined with a custom `UIListViewStyler`, this base class is often
+  sufficient.
+
+  However, you can also subclass `UIListViewCell` to accomplish more complicated
+  and sophisticated designs.
+topics:
+  -
+    name: Creating a Cell
+    members:
+      -
+        name: initWithReuseIdentifier
+        kind: init
+        summary: Called by `UIListView` when it creates reusable cells
+        arguments:
+          -
+            name: identifier
+            type: String
+            summary: A list-unique identifier for this kind of cell
+        see:
+          - UIListView.registerCellClassForReuseIdentifier()
+  -
+    name: Content
+    members:
+      -
+        name: contentView
+        type: UIView
+        summary: A container view for all of the cell's content
+        description: |
+          Any custom subviews should be added to this content view rather than
+          to the cell directly.
+  -
+    name: Cell Text
+    members:
+      -
+        name: titleLabel
+        type: UILabel
+        summary: A label in which the cell's main text can be included
+      -
+        name: titleInsets
+        type: JSInsets 
+        summary: The amount to inset the cell's title from the edges of the
+          content view
+      -
+        name: detailLabel
+        type: UILabel
+        summary: A label in which the cell's extra detail text can be included
+      -
+        name: numberOfDetailLines
+        type: Number
+        summary: The maximum number of lines the detail label should show
+  -
+    name: Image View
+    members:
+      -
+        name: imageView
+        type: UIImageView
+        summary: A view that displays an image or icon for the cell
+  -
+    name: Accessory Views
+    members:
+      -
+        name: accessoryView
+        type: UIView
+        nullable: true
+        summary: A view to show on the right side of the cell
+        description: |
+          Is often something like an icon that indicates more details are
+          available after selection
+      -
+        name: accessoryImage
+        type: JSImage
+        nullable: true
+        summary: An image to use as the cell's accessory
+        description: |
+          Setting this property is a shortcut for setting `accessoryView` to
+          a `UIImageView` with the given image.
+  -
+    name: Separators
+    members:
+      -
+        name: separatorInsets
+        type: JSInsets
+        nullable: true
+        summary: The amount to inset the separator line for between this cell
+          and its following cell
+        description: |
+          If this value is `null`, the `UIListViewStyler` may provide its own
+          value.
+  -
+    name: Styling
+    members:
+      -
+        name: stylerProperties
+        type: dictionary
+        summary: A dictionary that a styler can use to store properties
+          relating to styling
+        description: |
+          Often a styler will need to create views or layers to help its
+          styling.  Since a single styler is used for multiple cell views,
+          the styler can't store those view-specific properties on its own.
+
+          So, `stylerProperties` is a place on each `UIListViewCell` that a styler
+          can store cell-specific objects.
+  -
+    name: State
+    members:
+      -
+        name: State
+        kind: enum
+        suffix: enum
+        summary: The possible states a cell can be in
+        description: |
+          Cell states can be combined with bitwise operations to represent
+          multiple states in a single value
+
+          ````
+          var state = UIListViewCell.State.selected | UIListViewCell.State.contextSelected;
+          ````
+
+          Custom States
+          =============
+          Subclasses can create custom states, but should be careful to
+          correctly set the new state values.
+
+          The first custom state for a subclass should start with
+          `firstUserState`.  The next should be `firstUserState << 1`, followed
+          by `firstUserState << 2`, and so on.
+
+          For example, here's how `UIOutlineViewCell` defines a custom state of
+          when it is expanded
+          ````
+          JSClass("UIOutlineViewCell", UIListViewCell, {
+            // ...
+          });
+
+          UIOutlineViewCell.State = Object.Create(UIListViewCell.State, {
+            expanded: {value: UIListViewState.State.firstUserState}
+          });
+          ````
+
+          If `UIOutlineViewCell` ever changed to include more features, it
+          might need more states:
+
+          ````
+          UIOutlineViewCell.State = Object.create(UIListViewCell.State, {
+            expanded: {value: UIListViewCell.State.firstUserState},
+            expandActive: {value: UIListViewCell.State.firstUserState << 1},
+          });
+          ````
+        options:
+          -
+            name: normal
+            summary: A cell without any other state
+          -
+            name: active
+            summary: Set when the cell is active, like when it is being clicked
+          -
+            name: selected
+            summary: When a cell is selected
+          -
+            name: contextSelected
+            summary: When a cell is context-selected, like by a right click
+          -
+            name: firstUserState
+            summary: The first value a subclass can use for a custom
+              state.  Subsequent values shoulde be made by shifting this
+              value left by one bit.
+      -
+        name: state
+        type: UIListView.State
+        summary: The cell's combined state
+        note: Typically you'll use the shortcut properties like `active` and
+          \`selected` instead of inspecting this state directly.
+      -
+        name: active
+        type: boolean
+        summary: Indicates the cell is active, like when it is being clicked
+      -
+        name: selected
+        type: boolean
+        summary: Indicates the cell is selected
+      -
+        name: contextSelected
+        type: boolean
+        summary: Indicates the cell is context-selected, like when it is
+          right-clicked

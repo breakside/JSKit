@@ -1,0 +1,92 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: UIView
+summary: A base class for list view headers and footers
+description: |
+  You can often accomplish a header/footer design with this standard base class,
+  which comes with:
+
+  - A `titleLabel`
+  - A `detailLabel`
+
+  When combined with a custom `UIListViewStyler`, this base class is often
+  sufficient.
+
+  However, you can also subclass `UIListViewHeaderFooterView` to accomplish more
+  complicated and sophisticated designs.
+topics:
+  -
+    name: Creating a Header/Footer
+    members:
+      -
+        name: initWithReuseIdentifier
+        kind: init
+        summary: Called by `UIListView` when it creates reusable headers and
+          footers
+        arguments:
+          -
+            name: identifier
+            type: String
+            summary: A list-unique identifier for this kind of header/footer
+        see:
+          - UIListView.registerHeaderFooterClassForReuseIdentifier()
+  -
+    name: Identification 
+    members:
+      -
+        name: Kind
+        kind: enum
+        suffix: enum
+        summary: The types of header/footer views
+        options:
+          -
+            name: header
+            summary: Indicates a header view
+          -
+            name: footer
+            summary: Indicates a footer view
+      -
+        name: kind
+        type: Kind
+        summary: The kind of view (header or footer)
+  -
+    name: Content
+    members:
+      -
+        name: contentView
+        type: UIView
+        summary: A container view for all of the view's content
+        description: |
+          Any custom subviews should be added to this content view rather than
+          to the header/footer directly.
+  -
+    name: Text
+    members:
+      -
+        name: titleLabel
+        type: UILabel
+        summary: A label in which the header/footer's main text can be included
+      -
+        name: titleInsets
+        type: JSInsets 
+        summary: The amount to inset the header/footer's title from the edges of
+          the content view
+      -
+        name: detailLabel
+        type: UILabel
+        summary: A label in which the cell's extra detail text can be included
+  -
+    name: Styling
+    members:
+      -
+        name: stylerProperties
+        type: dictionary
+        summary: A dictionary that a styler can use to store properties
+          relating to styling
+        description: |
+          Often a styler will need to create views or layers to help its
+          styling.  Since a single styler is used for multiple cell views,
+          the styler can't store those view-specific properties on its own.
+
+          So, `stylerProperties` is a place on each `UIListViewCell` that a styler
+          can store cell-specific objects.

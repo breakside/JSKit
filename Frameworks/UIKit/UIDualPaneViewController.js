@@ -729,7 +729,7 @@ JSClass("_UIDualPaneDividerView", UIView, {
         this.lineView = UIView.init();
         this.hitSize = hitSize;
         this.vertical = vertical;
-        this.lineView.backgroundColor = JSColor.blackColor;
+        this.lineView.backgroundColor = JSColor.black;
         this.addSubview(this.lineView);
     },
 

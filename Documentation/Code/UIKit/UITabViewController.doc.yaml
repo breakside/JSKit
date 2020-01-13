@@ -1,0 +1,130 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: UIViewController
+implements:
+  - UITabViewDelegate
+summary: A view controller that manages a `UITabView` and automatically
+  populates its content from child view controllers
+description:
+  A `UITabViewController` makes it easy to create a `UITabView` filled with
+  content from child view controllers.
+
+  Each child `UIViewController` provides a `tabViewItem`(UIViewController.tabViewItem)
+  and a `view`(UIViewController.view) that are used to populate a `UITabView`
+  owned by this controller.
+topics:
+  -
+    name: Creating a Tab View Controller
+    members:
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available when creating a tab view controller in
+          a spec file
+        topics:
+          -
+            name: Child View Controllers
+            members:
+              -
+                name: viewControllers
+                type: UIViewController[]
+                summary: The view controllers to use in the tab view, in their
+                  intended tab order
+  -
+    name: Tab View
+    members:
+      -
+        name: tabView
+        type: UITabView
+        summary: The tab view owned by this controller
+        description: |
+          Identical to the `view` property, but accessible here with a more
+          relevant name
+  -
+    name: Child View Controllers
+    summary: The child view controllers correspond to the tabs of the `tabView`
+    members:
+      -
+        name: viewControllers
+        type: UIViewController[]
+        summary: The view controllers to use in the tab view, in their
+          intended tab order
+      -
+        name: addViewController
+        kind: method
+        summary: Add a view controller
+        arguments:
+          -
+            name: viewController
+            type: UIViewController
+            summary: The view controller to add
+        description: |
+          The view controller will be added to the end of the `viewControllers`
+          list.
+
+          Adds a corresponding tab on the `tabView`.
+      -
+        name: insertViewControllerAtIndex
+        kind: method
+        summary: Add a view controller at the specified location
+        arguments:
+          -
+            name: viewController
+            type: UIViewController
+            summary: The view controller to add
+          -
+            name: index
+            type: Number
+            summary: The place to insert the view controller in the
+              \`viewControllers` list
+        description: |
+          Inserts a corresponding tab on the `tabView`.
+      -
+        name: removeViewControllerAtIndex
+        kind: method
+        summary: Remove a view controller
+        arguments:
+          -
+            name: index
+            type: Number
+            summary: The place to insert the view controller in the
+              \`viewControllers` list
+        description: |
+          Removes the corresponding tab from the `tabView`.
+  -
+    name: Selection
+    members:
+      -
+        name: selectedIndex
+        type: Number
+        summary: The index of the selected view controller / tab
+      -
+        name: selectedViewController
+        type: UIViewController
+        summary: The selected view controller
+      -
+        name: tabViewWillSelectItemAtIndex
+        kind: method
+        summary: Called when selection is about to change
+        arguments:
+          -
+            name: tabView
+            kind: UITabView
+            summary: The tab view owned by this controller
+          -
+            name: index
+            type: Number
+            summary: The index of the tab that will be selected
+      -
+        name: tabViewDidSelectItemAtIndex
+        kind: method
+        summary: Called when selection is about to change
+        arguments:
+          -
+            name: tabView
+            kind: UITabView
+            summary: The tab view owned by this controller
+          -
+            name: index
+            type: Number
+            summary: The index of the tab that was selected

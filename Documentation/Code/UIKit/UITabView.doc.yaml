@@ -1,0 +1,401 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: UIView
+summary: A container view that allows switching between several child views,
+  typically with a tabbed interface
+topics:
+  -
+    name: Creating a Tab View
+    members:
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available to tab views in a spec file
+        topics:
+          -
+            name: Tabs
+            members:
+              -
+                name: items
+                type: UITabViewItem[]
+                summary: The items that describe each tab
+                description: |
+                  ````
+                  PreferencesTabView:
+                    class: UITabView
+                    items:
+                      -
+                        title: General
+                        image: SettingsGeneralIcon
+                        view: /GeneralSettingsView
+                      -
+                        title: Advanced
+                        image: SettingsAdvancedIcon
+                        view: /AdvancedSettingsView
+
+                  GeneralSettingsView:
+                    class: UIView
+                    # ...
+
+                  AdvancedSettingsView:
+                    class: UIView
+                    # ...
+                  ````
+          -
+            name: Delegate
+            members:
+              -
+                name: delegate
+                type: UITabViewDelegate
+                summary: The tab view's delegate
+          -
+            name: Styling
+            members:
+              -
+                name: styler
+                type: UITabViewStyler
+                summary: The styler to use for this tab view
+                description: |
+                  The styler can be provided either
+                  1. As the name of a `Styler`
+                  2. As a new object instance
+
+                  Named styler
+                  ````
+                  PreferencesTabView:
+                    class: UITabView
+                    styler: images
+                    items:
+                      -
+                        title: General
+                        image: SettingsGeneralIcon
+                        view: /GeneralSettingsView
+                      -
+                        title: Advanced
+                        image: SettingsAdvancedIcon
+                        view: /AdvancedSettingsView
+
+                  GeneralSettingsView:
+                    class: UIView
+                    # ...
+
+                  AdvancedSettingsView:
+                    class: UIView
+                    # ...
+                  ````
+              -
+                name: font
+                type: JSFont
+                summary: The font to use for the tab interface
+  -
+    name: Tabs
+    members:
+      -
+        name: items
+        type: UITabViewItem
+        summary: The list of tab items shown by this tab view
+        description: |
+          Items define both what should display on the tab selector control
+          and in the content view area when the item is selected.
+      -
+        name: addItemWithTitle
+        kind: method
+        summary: Add a tab item based on the given title
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title of the new item
+        description: |
+          The new item will be added at the end of the tab view's `items` list.
+      -
+        name: addItem
+        kind: method
+        summary: Add a tab item
+        arguments:
+          -
+            name: item
+            type: UITabItem
+            summary: The item to add
+        description: |
+          The new item will be added at the end of the tab view's `items` list.
+      -
+        name: insertItemWithTitleAtIndex
+        kind: method
+        summary: Add a tab item at the specified location using the given title
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title of the new item
+          -
+            name: index
+            type: Number
+            summary: The index within `items` to add the new item
+      -
+        name: insertItemAtIndex
+        kind: method
+        summary: Add a tab item at the specified location
+        arguments:
+          -
+            name: item
+            type: UITabItem
+            summary: The item to add
+          -
+            name: index
+            type: Number
+            summary: The index within `items` to add the new item
+      -
+        name: removeItemAtIndex
+        kind: method
+        summary: Remove the item at the given index
+        arguments:
+          -
+            name: index
+            type: Number
+            summary: The index of the item to remove
+  -
+    name: Selection
+    members:
+      -
+        name: selectedIndex
+        type: Number
+        summary: The index of the currently selected item
+      -
+        name: selectedItem
+        type: UITabViewItem
+        summary: The currently selected item
+  -
+    name: Delegate
+    members:
+      -
+        name: UITabViewDelegate
+        kind: protocol
+        summary: An interface that can be implemented to receive notifications
+          when tabs change
+        topics:
+          -
+            name: Changing Selection
+            members:
+              -
+                name: tabViewWillSelectItemAtIndex
+                summary: Called just before a tab view changes its selection
+                arguments:
+                  -
+                    name: tabView
+                    type: UITabView
+                    summary: The tab view making this call
+                  -
+                    name: index
+                    type: Number
+                    summary: The index of the tab item that is about to be
+                      selected
+              -
+                name: tabViewDidSelectItemAtIndex
+                summary: Called just after a tab view changes its selection
+                arguments:
+                  -
+                    name: tabView
+                    type: UITabView
+                    summary: The tab view making this call
+                  -
+                    name: index
+                    type: Number
+                    summary: The index of the tab item that was just selected
+      -
+        name: delegate
+        type: UITabViewDelegate
+        nullable: true
+        summary: This tab view's delegate
+        description: |
+          A delgate will be notified of tab change events
+  -
+    name: Styling
+    members:
+      -
+        name: UITabViewStyler
+        kind: class
+        inherits: JSObject
+        summary: An abstract base class for all tab stylers
+        topics:
+          -
+            name: Initializing Tab Views
+            members:
+              -
+                name: initializeTabView
+                kind: method
+                summary: Called when a tab view is created
+                arguments:
+                  -
+                    name: tabView
+                    type: UITabView
+                    summary: The tab view to style
+                description: |
+                  Gives the styler an opportunity to configure the tab view
+                  and add any intially required style subviews.
+          -
+            name: Initializing Tab Item Views
+            members:
+              -
+                name: initializeTabItemView
+                kind: method
+                summary: Called when a tab item view is created
+                arguments:
+                  -
+                    name: itemView
+                    type: UITabItemView
+                    summary: The item view to style
+                description: |
+                  Gives the styler an opportunity to configure the item view
+                  and add any intially required style subviews.
+          -
+            name: Layout
+            members:
+              -
+                name: layoutTabView
+                kind: method
+                summary: Called when a tab view needs layout
+                arguments:
+                  -
+                    name: tabView
+                    type: UITabView
+                    summary: The tab view to layout
+                description: |
+                  Gives the styler an opportunity to layout subviews as needed.
+
+                  The default implementation places an `UITabItemsView` above
+                  a content area.
+              -
+                name: layoutItemsView
+                kind: method
+                summary: Called when a tab view needs layout
+                arguments:
+                  -
+                    name: itemsView
+                    type: UITabItemsView
+                    summary: The items container view to layout
+                description: |
+                  Gives the styler an opportunity to tab controls.
+              -
+                name: layoutItemView
+                kind: method
+                summary: Called when an item view needs layout
+                arguments:
+                  -
+                    name: itemView
+                    type: UITabItemView
+                    summary: The item view to layout
+                description: |
+                  Gives the styler an opportunity to layout an item
+          -
+            name: Item Updates
+            members:
+              -
+                name: updateItemView
+                kind: method
+                summary: Called when an item view changes state, like from
+                  unselected to selected
+                arguments:
+                  -
+                    name: itemView
+                    type: UITabItemView
+                    summary: The item view to layout
+                  -
+                    name: item
+                    type: UITabItem
+                    summary: The item corresponding to the view
+      -
+        name: UITabViewDefaultStyler
+        kind: class
+        inherits: UITabViewStyler
+        summary: The default tab view styler for `UIKit`
+        topics:
+          -
+            name: Item Styles
+            members:
+              -
+                name: cornerRadius
+                type: Number
+                summary: The amount to round the left edge corners of the first
+                  tab and the right edge corners of the last tab
+                description: |
+                  Creates an effect where the tabs together make a single
+                  rounded rectangle.
+              -
+                name: itemContentInsets
+                type: JSInsets
+                summary: The amount to inset the content of each tab item
+              -
+                name: itemsInsets
+                type: JSInsets
+                summary: The amount to inset the items from the edges of the
+                  overall tab view and the content view below.
+              -
+                name: imageSpacing
+                type: Number
+                summary: The amount of spacing between the tab's image and
+                  its title, if both are present
+      -
+        name: Styler
+        kind: enum
+        suffix: enum
+        summary: The tab view stylers available by default
+        options:
+          -
+            name: default
+            summary: The default styler for `UIKit`.
+              You can override this styler during application launch to provide
+              a custom default styler
+          -
+            name: tabless
+            summary: A tab view that doesn't show its own tab controls.
+              Useful when another control is in charge of changing tabs.
+          -
+            name: images
+            summary: A tab view that only displays images for tab items.
+      -
+        name: styler
+        type: UITabViewStyler
+        summary: The styler in effect for this tab view
+      -
+        name: font
+        type: JSFont
+        summary: The font to use for this tab view, overriding the styler's font
+      -
+        name: UITabItemsView
+        kind: class
+        inherits: UIView
+        topics:
+          -
+            name: Item Views
+            members:
+              -
+                name: itemViews
+                type: UITabItemView[]
+                summary: The item views contained within
+      -
+        name: UITabItemView
+        kind: class
+        inherits: UIView
+        topics:
+          -
+            name: Title & Image
+            members:
+              -
+                name: titleLabel
+                type: UILabel
+                summary: The label for the tab's title
+              -
+                name: imageView
+                type: UIImageView
+                summary: The image view for the tab's icon
+          -
+            name: Location
+            members:
+              -
+                name: index
+                type: Number
+                summary: The index of the view within the list of item views
+                description: |
+                  Can be used to put rounded corners on the first and last
+                  tab only, for example.

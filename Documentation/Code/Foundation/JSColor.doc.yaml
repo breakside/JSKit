@@ -90,32 +90,32 @@ topics:
             type: Number[]
             summary: The ordered components applicable to the given space
       -
-        name: clearColor
+        name: clear
         static: true
         type: JSColor
         summary: A `0` alpha color
       -
-        name: whiteColor
+        name: white
         static: true
         type: JSColor
         summary: A fully white color
       -
-        name: blackColor
+        name: black
         static: true
         type: JSColor
         summary: A fully black color
       -
-        name: redColor
+        name: red
         static: true
         type: JSColor
         summary: A fully red color
       -
-        name: greenColor
+        name: green
         static: true
         type: JSColor
         summary: A fully green color
       -
-        name: blueColor
+        name: blue
         static: true
         type: JSColor
         summary: A fully blue color
@@ -223,7 +223,7 @@ topics:
                   PressedButtonColor:
                     class: JSColor
                     blendBase: /ButtonColor
-                    with: $JSColor.black
+                    with: black
                     percent: 20
                   ````
                 see:
@@ -244,7 +244,7 @@ topics:
                   PressedButtonColor:
                     class: JSColor
                     blendBase: /ButtonColor
-                    with: $JSColor.black
+                    with: black
                     percent: 20
                   ````
                 see:
@@ -266,7 +266,7 @@ topics:
                   PressedButtonColor:
                     class: JSColor
                     blendBase: /ButtonColor
-                    with: $JSColor.black
+                    with: black
                     percent: 20
                   ````
                 see:

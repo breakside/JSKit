@@ -88,7 +88,7 @@ JSClass('UIWindow', UIView, {
     _commonWindowInit: function(){
         this.window = this;
         if (this.backgroundColor === null){
-            this.backgroundColor = JSColor.whiteColor;
+            this.backgroundColor = JSColor.white;
         }
         this.clipsToBounds = true;
         if (this._contentView === null){
@@ -921,7 +921,7 @@ JSClass("UIWindowStyler", JSObject, {
             this.toolbarTitleFont = this.toolbarTitleFont.fontWithWeight(JSFont.Weight.normal);
         }
         this.toolbarInsets = JSInsets(5);
-        this.toolbarTitleColor = JSColor.blackColor;
+        this.toolbarTitleColor = JSColor.black;
         this.toolbarDisabledTitleColor = JSColor.initWithWhite(0.5);
     },
 

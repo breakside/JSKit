@@ -1,0 +1,312 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: UIListView
+summary: A list view than can expand and collapse indented tree structures
+description: |
+  `UIListView` shows a flat list of items, perhaps with one level of grouping
+  into sections.
+
+  By contrast, `UIOutlineView` can display a tree structure of arbitrary depth,
+  allowing the user to expand or collapse any node with children.
+
+  An outline view is ideal for displaying a folder hierarchy of files and
+  subfolders.
+
+  Populating an Outline View
+  ========
+
+  An outline view works similarly to a `UIListView`.  It has a `delegate` and
+  a `dataSource`.  In fact, because a `UIOutlineView` is a `UIListView`, its
+  `delegate` is a `UIListViewDelegate` with a few additional methods.
+
+  However, the outline view's `dataSource` is a bit different from a list view's
+  due to the differences between a flat data structure and a tree structure.
+
+  An outline view data soruce needs to know:
+
+  - `numberOfSectionsInOutlineView()`
+  - `outlineViewIsExandableAtIndexPath()`
+  - `outlineViewNumberOfChildrenAtIndexPath()`
+
+  Use of Index Paths
+  =======
+
+  An outline view uses `JSIndexPath`s to represent rows, just like a
+  `UIListView`.
+
+  However, where a list view contains index paths that always have two
+  components (`section`(JSIndexPath.section) and `row`(JSIndexPath.row)), an
+  outline view utilizes index paths with two *or more* components depending
+  on how deep in the tree we are.
+topics:
+  -
+    name: Creating an Outline View
+    members:
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties that can be specified for an outline view in a
+          spec file
+        topics:
+          -
+            name: Delegate & Data Source
+            members:
+              -
+                name: delegate
+                type: UIOutlineViewDelegate
+                summary: The outline view's delegate
+              -
+                name: dataSource
+                type: UIOutlineViewDataSource
+                summary: the outline view's data source.
+          -
+            name: Styling
+            members:
+              -
+                name: styler
+                type: UIOutlineViewStyler
+                summary: The styler to use for this outline view
+  -
+    name: Delegate & Data Source
+    members:
+      -
+        name: UIOutlineViewDelegate
+        kind: protocol
+        inherits: UIListViewDelegate
+        summary: The delegate protocol for outline views
+        description: |
+          An outline view delegte is essentially an `UIListViewDelegate` with
+          a couple additional methods related to unique outline view behaviors.
+        topics:
+          -
+            name: Getting Cells
+            members:
+              -
+                name: cellForListViewAtIndexPath
+                summary: Get the cell for the given index path
+                type: UIOutlineViewCell
+                return: A cell to display at the given index path
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the list
+                description: |
+                  This works exactly like it does on a `UIListViewDelegate`,
+                  except the returned cell should be a `UIOutlineViewCell`
+                  instance.
+          -
+            name: Expanding & Collapsing
+            members:
+              -
+                name: outlineViewDidExpandIndexPath
+                summary: Called after an item in the outline view is expanded
+                  to reveal its children
+                arguments:
+                  -
+                    name: outlineView
+                    type: UIOutlineView
+                    summary: The outline view making the call
+                  -
+                    name: indexPath
+                    type: JSIndexPath
+                    summary: The index path fo the item that expanded
+                description: |
+                  Gives the delegate an opportunity to respond to the item
+                  expansion.
+              -
+                name: outlineViewDidCollapseIndexPath
+                summary: Called after an item in the outline view is colllapsed
+                  to reveal its children
+                arguments:
+                  -
+                    name: outlineView
+                    type: UIOutlineView
+                    summary: The outline view making the call
+                  -
+                    name: indexPath
+                    type: JSIndexPath
+                    summary: The index path fo the item that collapsed
+                description: |
+                  Gives the delegate an opportunity to respond to the item
+                  collapse.
+      -
+        name: UIOutlineViewDataSource
+        kind: protocol
+        summary: The outline view data source protocol
+        description: |
+          Even though an outline view is a `UIListView`, it uses a distinct data
+          source that includes methods for inspecting the outlines nested
+          data structure.
+        topics:
+          -
+            name: Section & Row Counts
+            members:
+              -
+                name: numberOfSectionsInOutlineView
+                type: Number
+                return: The total number of top-level sections in the outline view
+                summary: Get the number of sections in the outline view
+                arguments:
+                  - 
+                    name: outlineView
+                    type: UIOutlineView
+                    summary: The outline view making the call
+                description: |
+                  Analagous to `numberOfSectionsInListView()`(UIListViewDataSource.numberOfSectionsInListView)
+              -
+                name: outlineViewNumberOfChildrenAtIndexPath
+                type: Number
+                return: The number of children an item at the given index path has
+                summary: Get the number of children for an item
+                arguments:
+                  - 
+                    name: outlineView
+                    type: UIOutlineView
+                    summary: The outline view making the call
+                  -
+                    name: indexPath
+                    type: JSIndexPath
+                    summary: The index path of the item
+                note: Will be callled with a single-component index path to
+                  get the number of rows for each section
+                important: This method is called often, so it must be designed
+                  to perform as quickly as possible
+          -
+            name: Tree Structure
+            members:
+              -
+                name: outlineViewIsExandableAtIndexPath
+                type: boolean
+                summary: Indicates if an item can be expanded
+                arguments:
+                  - 
+                    name: outlineView
+                    type: UIOutlineView
+                    summary: The outline view making the call
+                  -
+                    name: indexPath
+                    type: JSIndexPath
+                    summary: The index path of the item
+                important: This method is called often, so it must be designed
+                  to perform as quickly as possible
+              -
+                name: outlineViewExpandedIndexPaths
+                type: JSIndexPath[]
+                summary: Get the index paths that should be expanded by default
+                arguments:
+                  - 
+                    name: outlineView
+                    type: UIOutlineView
+                    summary: The outline view making the call
+                description: |
+                  Called with the outline view reloads its data to fetch the
+                  list of initially expanded items.
+      -
+        name: delegate
+        type: UIOutlineViewDelegate
+        summary: The outline view's delegate
+      -
+        name: dataSource
+        type: UIOutlineViewDataSource
+        summary: the outline view's data source.
+  -
+    name: Expanding & Collapsing
+    members:
+      -
+        name: expandRowAtIndexPath
+        kind: method
+        summary: Expand the item at the given index path
+        arguments:
+          -
+            name: indexPath
+            type: JSIndexPath
+            summary: The index path of the item to expand
+          -
+            name: recursive
+            type: boolean
+            default: "false"
+            summary: Whether descendant items should be expanded too
+      -
+        name: collapseRowAtIndexPath
+        kind: method
+        summary: Collapse the item at the given index path
+        arguments:
+          -
+            name: indexPath
+            type: JSIndexPath
+            summary: The index path of the item to collapse
+          -
+            name: recursive
+            type: boolean
+            default: "false"
+            summary: Whether descendant items should be collapsed too
+  -
+    name: Styling
+    members:
+      -
+        name: UIOutlineViewDefaultStyler
+        kind: class
+        inherits: UIOutlineViewDefaultStyler
+        summary: The default styler used for list views
+        topics:
+          -
+            name: Creating a Styler
+            members:
+              -
+                name: Spec File Properties
+                kind: spec
+                summary: The properties available when specifying a
+                  \`UIOutlineViewStyler` in a spec file
+                topics:
+                  -
+                    name: Disclosure Button
+                    members:
+                      -
+                        name: disclosureButtonImage
+                        type: JSImage
+                        summary: The image to use for the expand/collapse
+                          disclosure buttons on expandable cells
+                      -
+                        name: disclosureColor
+                        type: JSColor
+                        summary: The color to use for disclosure buttons
+                      -
+                        name: selectedDisclosureColor
+                        type: JSColor
+                        summary: The color to use for disclosure buttons when
+                          the cell is selected
+          -
+            name: Disclosure Button
+            members:
+              -
+                name: disclosureButtonImage
+                type: JSImage
+                summary: The image to use for the expand/collapse
+                  disclosure buttons on expandable cells
+              -
+                name: disclosureColor
+                type: JSColor
+                summary: The color to use for disclosure buttons
+              -
+                name: selectedDisclosureColor
+                type: JSColor
+                summary: The color to use for disclosure buttons when
+                  the cell is selected
+      -
+        name: Styler
+        suffix: enum
+        kind: enum
+        summary: The default styler options for outline views
+        options:
+          -
+            name: default
+            summary: The default outline view styler created by `UIKit`
+      -
+        name: styler
+        type: UIOutlineViewStyler
+        summary: The styler in use by this outline view

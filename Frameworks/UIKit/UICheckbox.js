@@ -26,7 +26,7 @@ JSClass("UICheckbox", UIControl, {
         UICheckbox.$super.commonUIControlInit.call(this);
         this._titleLabel = UILabel.init();
         this._titleLabel.textAlignment = JSTextAlignment.left;
-        this._titleLabel.backgroundColor = JSColor.clearColor;
+        this._titleLabel.backgroundColor = JSColor.clear;
         this._titleLabel.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
         this.addSubview(this._titleLabel);
         if (this._styler === null){

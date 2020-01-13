@@ -1,0 +1,124 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: JSObject
+summary: Represents a tab in a `UITabView`
+topics:
+  -
+    name: Creating a Tab Item
+    members:
+      -
+        name: initWithTitle
+        kind: init
+        summary: Create an item with a title
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title of the tab
+      -
+        name: initWithImage
+        kind: init
+        summary: Create an item with a image
+        arguments:
+          -
+            name: image
+            type: JSImage
+            summary: The image of the tab
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available when creating a tab item
+        topics:
+          -
+            name: Title & Image
+            members:
+              -
+                name: title
+                type: String
+                summary: The title of the tab
+              -
+                name: image
+                type: JSImage
+                summary: The image of the tab
+              -
+                name: selectedImage
+                type: JSImage
+                summary: The image of the tab when it is selected
+          -
+            name: Content View
+            members:
+              -
+                name: view
+                type: UIView
+                summary: The view to display when this tab item is selected
+  -
+    name: Title & Image
+    members:
+      -
+        name: title
+        type: String
+        summary: The title of the tab
+      -
+        name: image
+        type: JSImage
+        summary: The image of the tab
+      -
+        name: selectedImage
+        type: JSImage
+        summary: The image of the tab when it is selected
+  -
+    name: Content View
+    members:
+      -
+        name: view
+        type: UIView
+        summary: The view to display when this tab item is selected
+  -
+    name: State
+    members:
+      -
+        name: State
+        kind: enum
+        suffix: enum
+        summary: The possible states a tab item can be in
+        description: |
+          Item states can be combined with bitwise operations to represent
+          multiple states in a single value
+
+          ````
+          var state = UITabViewItem.State.over | UITabViewItem.State.active;
+          ````
+        options:
+          -
+            name: normal
+            summary: A tab item without any other state
+          -
+            name: over
+            summary: Set when the mouse moves over a tab item
+          -
+            name: active
+            summary: Set when the tab item is active, like when a button is
+              pressed down
+          -
+            name: selected
+            summary: When a tab item is selected
+      -
+        name: over
+        type: boolean
+        summary: Is the item in an over state
+      -
+        name: active
+        type: boolean
+        summary: Is the item in an active state
+      -
+        name: selected
+        type: boolean
+        summary: Is the item in an selected state
+      -
+        name: state
+        type: State
+        summary: The overall state of the item
+        description: |
+          You typically will not need to access this state directly, but
+          can insted use the convience properties like `over`, `active`, and
+          `selected`.

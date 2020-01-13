@@ -18,16 +18,16 @@ topics:
 
           A traditional two-color gradient might look like:
           ````
-          var color1 = JSColor.redColor;
-          var color2 = JSColor.blueColor;
+          var color1 = JSColor.red;
+          var color2 = JSColor.blue;
           var gradient = JSGradient.initWithStops(0, color1, 1, color2);
           ````
 
           A three color gradient could be:
           ````
-          var color1 = JSColor.blackColor;
-          var color2 = JSColor.redColor;
-          var color2 = JSColor.blueColor;
+          var color1 = JSColor.black;
+          var color2 = JSColor.red;
+          var color2 = JSColor.blue;
           var gradient = JSGradient.initWithStops(0, color1, 0.2, color2, 0.7, color3);
           ````
         arguments:
@@ -50,7 +50,7 @@ topics:
           Shortcut for:
 
           ````
-          var gradient = JSGradient.initWithStops(0, JSColor.redColor, 1, JSColor.blueColor);
+          var gradient = JSGradient.initWithStops(0, JSColor.red, 1, JSColor.blue);
           ````
       -
         name: Spec File Properties
@@ -64,15 +64,15 @@ topics:
           MainView:
             class: UIView
             backgroundGradient:
-              from: $JSColor.redColor
-              to: $JSColor.blueColor
+              from: red
+              to: blue
           ````
 
           Is equivalent to:
 
           ````
           var view = UIView.init();
-          view.backgroundGradient = JSGradient.initWithStops(0, JSColor.redColor, 1, JSColor.blueColor);
+          view.backgroundGradient = JSGradient.initWithStops(0, JSColor.red, 1, JSColor.blue);
           ````
         topics:
           -
@@ -81,11 +81,11 @@ topics:
               -
                 name: from
                 type: JSColor
-                summary: The color to place at postiion `0`
+                summary: The color to place at position `0`
               -
                 name: to
                 type: JSColor
-                summary: The color to place at postiion `1`
+                summary: The color to place at position `1`
   -
     name: Color Stops
     members:

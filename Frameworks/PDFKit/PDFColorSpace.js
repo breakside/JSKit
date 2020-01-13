@@ -60,7 +60,7 @@ PDFColorSpace.prototype = Object.create({}, {
 
     colorFromComponents: {
         value: function PDFColorSpace_colorFromComponents(components){
-            return JSColor.blackColor;
+            return JSColor.black;
         }
     },
 
@@ -359,7 +359,7 @@ PDFColorSpaceIndexed.prototype = Object.create(PDFColorSpace.prototype, {
     colorFromComponents: {
         value: function PDFColorSpaceIndexed_colorFromComponents(components){
             if (this.lookup === null){
-                return JSColor.blackColor;
+                return JSColor.black;
             }
             var index = Math.min(Math.max(0, Math.round(components[0])), this.max);
             var n = this.base.defaultComponents().length;
@@ -401,7 +401,7 @@ PDFColorSpaceDeviceN.prototype = Object.create(PDFColorSpace.prototype, {
     colorFromComponents: {
         value: function PDFColorSpaceDeviceN_colorFromComponents(components){
             // TODO: support DeviceN
-            return JSColor.blackColor;
+            return JSColor.black;
         }
     },
     defaultComponents: {
@@ -422,7 +422,7 @@ PDFColorSpacePattern.prototype = Object.create(PDFColorSpace.prototype, {
     colorFromComponents: {
         value: function PDFColorSpacePattern_colorFromComponents(components){
             // TODO: support Pattern
-            return JSColor.clearColor;
+            return JSColor.clear;
         }
     },
     defaultComponents: {

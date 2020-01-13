@@ -55,7 +55,6 @@ JSClass("UITabView", UIView, {
     _commonTabViewInit: function(){
         this._items = [];
         this.stylerProperties = {};
-        this.font = JSFont.systemFontOfSize(JSFont.Size.normal);
         this._itemsView = UITabViewItemsView.init();
         this._itemsView.tabView = this;
         this._contentViewContainer = UITabViewContentContainer.init();
@@ -64,6 +63,7 @@ JSClass("UITabView", UIView, {
         if (this._styler === null){
             this._styler = UITabView.Styler.default;
         }
+        this._font = this._styler.font;
         this._styler.initializeTabView(this);
         this.setNeedsLayout();
     },
@@ -221,6 +221,9 @@ JSClass("UITabViewItem", JSObject, {
         if (spec.containsKey('selectedImage')){
             this.selectedImage = spec.valueForKey("selectedImage", JSImage);
         }
+        if (spec.containsKey("view")){
+            this._view = spec.valueForKey("view", UIView);
+        }
     },
 
     initWithTitle: function(title){
@@ -330,7 +333,7 @@ JSClass("UITabViewItemView", UIView, {
         }else if (this._imageView !== null){
             this._imageView.hidden = true;
         }
-        this.itemsView.tabView.styler.updateItemView(this);
+        this.itemsView.tabView.styler.updateItemView(this, this.item);
         this.setNeedsLayout();
     },
 
@@ -500,6 +503,12 @@ JSClass("UITabViewContentContainer", UIView, {
 
 JSClass("UITabViewStyler", JSObject, {
 
+    font: null,
+
+    init: function(){
+        this.font = JSFont.systemFontOfSize(JSFont.Size.normal);
+    },
+
     initializeTabView: function(tabView){
     },
 
@@ -552,13 +561,14 @@ JSClass("UITabViewStyler", JSObject, {
 JSClass("UITabViewDefaultStyler", UITabViewStyler, {
 
     cornerRadius: 3,
-    itemPadding: null,
-    itemsPadding: null,
+    itemContentInsets: null,
+    itemsInsets: null,
     imageSpacing: 3,
 
     init: function(){
-        this.itemPadding = JSInsets(3, 10);
-        this.itemsPadding = JSInsets(4);
+        UITabViewDefaultStyler.$super.init.call(this);
+        this.itemContentInsets = JSInsets(3, 10);
+        this.itemsInsets = JSInsets(4);
     },
 
     initializeTabView: function(tabView){
@@ -574,10 +584,10 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
     layoutTabView: function(tabView){
         var size = tabView.bounds.size;
         tabView._itemsView.sizeToFit();
-        var y = this.itemsPadding.top;
+        var y = this.itemsInsets.top;
         tabView._itemsView.position = JSPoint(size.width / 2.0, y + tabView._itemsView.frame.size.height / 2.0);
         tabView.stylerProperties.divider.frame = JSRect(0, tabView._itemsView.position.y, tabView.bounds.size.width, 1);
-        y += tabView._itemsView.frame.size.height + this.itemsPadding.bottom;
+        y += tabView._itemsView.frame.size.height + this.itemsInsets.bottom;
         tabView._contentViewContainer.frame = JSRect(0, y, size.width, size.height - y);
     },
 
@@ -595,7 +605,7 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
     sizeItemViewToFit: function(itemView){
         var font = itemView.itemsView.tabView.font;
         var imageSize = font.displayAscender;
-        var size = JSSize(this.itemPadding.left + this.itemPadding.right, this.itemPadding.top + font.displayLineHeight + this.itemPadding.bottom);
+        var size = JSSize(this.itemContentInsets.left + this.itemContentInsets.right, this.itemContentInsets.top + font.displayLineHeight + this.itemContentInsets.bottom);
         if (itemView._titleLabel !== null && !itemView._titleLabel.hidden){
             itemView._titleLabel.sizeToFit();
             size.width += Math.ceil(itemView._titleLabel.frame.size.width);
@@ -615,7 +625,7 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
         var imageSize = 0;
         if (itemView._imageView !== null && !itemView._imageView.hidden){
             imageSize = itemView._imageView.frame.size.width;
-            itemView._imageView.position = JSPoint(this.itemPadding.left + imageSize / 2, center.y);
+            itemView._imageView.position = JSPoint(this.itemContentInsets.left + imageSize / 2, center.y);
         }
         if (itemView._titleLabel !== null && !itemView._titleLabel.hidden){
             itemView._titleLabel.position = JSPoint(center.x + imageSize / 2 + this.imageSpacing, center.y);
@@ -624,8 +634,7 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
         itemView.stylerProperties.rightSeparator.frame = JSRect(itemView.bounds.size.width - 0.5, 0, 0.5, itemView.bounds.size.height);
     },
 
-    updateItemView: function(itemView){
-        var item = itemView.item;
+    updateItemView: function(itemView, item){
         itemView.backgroundColor = defaultStateBackgroundColors[item.state];
         itemView.borderColor = defaultStateBorderColors[item.state];
         if (itemView._titleLabel !== null){
@@ -706,6 +715,14 @@ UITabView.Styler = Object.defineProperties({}, {
             Object.defineProperty(this, 'tabless', {writable: true, value: styler});
             return styler;
         }
+    },
+
+    images: {
+        get: function UITabView_getImagesStyler(){
+            var styler = UITabViewImagesStyler.init();
+            Object.defineProperty(this, 'images', {writable: true, value: styler});
+            return styler;
+        }
     }
 });
 
@@ -729,6 +746,7 @@ JSClass("UITabViewImagesStyler", UITabViewStyler, {
     _stateColors: null,
 
     init: function(){
+        UITabViewImagesStyler.$super.init.call(this);
         this._stateColors = JSCopy(defaultStateImageColors);
         this._commonStylerInit();
     },
@@ -802,7 +820,7 @@ JSClass("UITabViewImagesStyler", UITabViewStyler, {
 
     initializeTabView: function(tabView){
         if (this.borderColor === null){
-            var backgroundColor = tabView.backgroundColor || JSColor.whiteColor;
+            var backgroundColor = tabView.backgroundColor || JSColor.white;
             this.borderColor = backgroundColor.colorDarkenedByPercentage(0.2);
         }
         tabView._contentViewContainer.borderColor = this.borderColor;
@@ -825,8 +843,7 @@ JSClass("UITabViewImagesStyler", UITabViewStyler, {
         }
     },
 
-    updateItemView: function(itemView){
-        var item = itemView.item;
+    updateItemView: function(itemView, item){
         itemView.imageView.templateColor = this._stateColors[item.state];
     },
 

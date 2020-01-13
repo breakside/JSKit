@@ -165,8 +165,8 @@ UIActivityIndicatorView.Style = {
     light: 1
 };
 
-var darkColor = JSColor.blackColor;
-var lightColor = JSColor.whiteColor;
+var darkColor = JSColor.black;
+var lightColor = JSColor.white;
 
 var images = Object.create({}, {
 

@@ -1275,8 +1275,8 @@ var SVGNamespace = "http://www.w3.org/2000/svg";
 var State = {
     alpha: 1,
     transform: JSAffineTransform.Identity,
-    fillColor: JSColor.blackColor,
-    strokeColor: JSColor.blackColor,
+    fillColor: JSColor.black,
+    strokeColor: JSColor.black,
     lineWidth: 1,
     lineCap: JSContext.LineCap.butt,
     lineJoin: JSContext.LineJoin.miter,

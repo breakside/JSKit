@@ -177,9 +177,9 @@ topics:
       - UILabel
       - UITextField
       - UITokenField
-      - UITextEditor
+      #- UITextEditor
       - UITextInput
-      - UITextAttachmentView
+      #- UITextAttachmentView
       - UITextLayer
   -
     name: Image Views
@@ -199,13 +199,15 @@ topics:
       - UIListViewHeaderFooterView
       - UIListViewController
       - UIOutlineView
-      - UIBrowserView
-      - UIBrowserViewController
+      - UIOutlineViewCell
+      #- UIBrowserView
+      #- UIBrowserViewController
       - UIStackView
   -
     name: Tab Views
     members:
       - UITabView
+      - UITabViewItem
       - UITabViewController
   -
     name: Pasteboard & Dragging
