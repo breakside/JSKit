@@ -1,7 +1,7 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: class
 inherits: JSObject
-introduced: "1.0.0"
+introduced: 2020.1.0
 summary: A `String` with associated properties for various ranges, suitable for
   specifying complex formatting.
 description: |

@@ -1,5 +1,6 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: class
+introduced: 2020.1.0
 inherits: UIControl
 implements:
   - UITextInput

@@ -1,7 +1,7 @@
 copyright: Copyright © 2020 Breakside Inc.
 name: JSImage
 kind: class
-introduced: "1.0.0"
+introduced: 2020.1.0
 inherits: JSObject
 summary: Represents an image resource, either vector or bitmap
 description: |

@@ -1,4 +1,5 @@
 kind: protocol
+introduced: 2020.1.0
 summary: An interface for any text editing control to implement
 description: |
   The low level text input manager will recognize input events and translate

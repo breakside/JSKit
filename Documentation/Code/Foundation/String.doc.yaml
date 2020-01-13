@@ -1,6 +1,6 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: class
-introduced: "1.0.0"
+introduced: 2020.1.0
 summary: Additions to the standard JavaScript String class
 description: |
   JavaScript already contains a string class, and there's no need to use something

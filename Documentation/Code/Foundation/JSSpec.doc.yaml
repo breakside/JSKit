@@ -1,7 +1,7 @@
 copyright: Copyright © 2020 Breakside Inc.
 name: JSSpec
 kind: class
-introduced: "1.0.0"
+introduced: 2020.1.0
 inherits: JSObject
 summary: Creates objects from a serialized "spec" format
 description: |

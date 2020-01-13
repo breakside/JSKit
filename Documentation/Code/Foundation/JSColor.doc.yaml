@@ -2,7 +2,7 @@ copyright: Copyright © 2020 Breakside Inc.
 name: JSColor
 kind: class
 inherits: JSObject
-introduced: "1.0.0"
+introduced: 2020.1.0
 summary: Represent a color by specifying a color space and components
 topics:
   -

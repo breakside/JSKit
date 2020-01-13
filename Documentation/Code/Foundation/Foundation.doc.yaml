@@ -1,4 +1,5 @@
 copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
 kind: framework
 summary: The base functionality for any kind of of JSKit-based application
 description: |

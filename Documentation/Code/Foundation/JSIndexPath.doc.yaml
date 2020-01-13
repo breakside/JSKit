@@ -1,6 +1,6 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: class
-introduced: "1.0.0"
+introduced: 2020.1.0
 summary: An n-dimensional index, useful for things like nested lists
 description: |
   An index path specifies a location in a nested set of a arrays.

@@ -1,6 +1,6 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: function
-introduced: "1.0.0"
+introduced: 2020.1.0
 summary: Create a UUID version 4 string
 type: String
 return: A UUID-formatted string `"XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"`

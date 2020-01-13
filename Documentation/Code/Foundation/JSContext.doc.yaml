@@ -2,7 +2,7 @@ copyright: Copyright © 2020 Breakside Inc.
 name: JSContext
 kind: class
 inherits: JSObject
-introducted: "1.0.0"
+introduced: 2020.1.0
 summary: Common interface for drawing 2D images
 description: |
   A drawing context is an abstraction of 2D drawing operations that allows

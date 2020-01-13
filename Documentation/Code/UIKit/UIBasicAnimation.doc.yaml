@@ -1,6 +1,6 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: class
-introduced: "1.0.0"
+introduced: 2020.1.0
 inherits: UIPropertyAnimation
 summary: The main animation class used by `UILayer` when it creates animations of
   property changes.

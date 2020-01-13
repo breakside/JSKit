@@ -1,6 +1,6 @@
 JSBundleType:               html
 JSBundleIdentifier:         io.breakside.JSKit.DocViewer
-JSBundleVersion:            1.0.0
+JSBundleVersion:            2020.3.0
 UIMainSpec:                 MainWindow
 UIApplicationTitle:         .applicationTitle
 UIApplicationLaunchOptions:
