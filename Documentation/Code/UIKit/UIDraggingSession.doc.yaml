@@ -1,0 +1,124 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSObject
+summary: Manages information about an drag and drop operation that is underway
+description: |
+  Drag and drop support makes is really easy for users to move an copy data
+  around your app.
+
+  Every `UIView` can act as either a `UIDraggingSource` or a
+  `UIDraggingDestination`, meaning each view can provide data for a drag
+  operation, or can receive data.
+
+  You'll typically configure a `UIView` to receive drag data via its
+  `registerForDraggedTypes()` method.
+
+  Alternatively, if the view is mean to provide data, it will call
+  `beginDraggingSessionWithItems()` during `mouseDragged()`.
+
+  In either case, a `UIDraggingSession` is passed around to proivde information
+  about the current drag operation.
+topics:
+  -
+    name: Pasteboard
+    members:
+      -
+        name: pasteboard
+        type: UIPasteboard
+        summary: The pasteboard created by and used only for this session
+  -
+    name: Location
+    members:
+      -
+        name: screenLocation
+        type: JSPoint
+        summary: The current location of the drag, in screen coordintes
+  -
+    name: Operations
+    members:
+      -
+        name: UIDragOperation
+        kind: enum
+        summary: The possible options for a drag operation
+        options:
+          -
+            name: none
+            summary: Perform no operation on drop
+          -
+            name: copy
+            summary: Perform a copy on drop, copying the pasteboard data to the
+              destination without affecting the source
+          -
+            name: link
+            summary: Perform a link on drop, referencing the source in the
+              destination without copying any data
+          -
+            name: move
+            summary: Perform a move on drop, removing the data from the source
+              and placing it at the destination
+          -
+            name: all
+            summary: All of the operations
+      -
+        name: allowedOperations
+        type: UIDragOperation
+        summary: Set by the `source` to indicate which operations are allowed
+        description: |
+          Defaults to `UIDragOperation.all`.
+
+          If, for example, a source does not support moving data, it may proivde
+          only `copy` and `link`:
+
+          ````
+          JSClass("PersonView", UIView, {
+            mouseDragged: function(){
+              var session = this.beginDraggingSessionWithItems([
+                {objectValue: this.person, type: "x-myapplication/person"}
+              ]);
+              session.allowedOperations = UIDragOperation.copy | UIDragOperation.link;
+            }
+          });
+          ````
+      -
+        name: allowsOperation
+        kind: method
+        type: boolean
+        summary: Checks to see if the given operation is allowed
+        arguments:
+          -
+            name: operation
+            type: UIDragOperation
+            summary: The operation to check
+        description: |
+          Typically used by drag destinations to see if if a certain operation
+          is allowed.
+      -
+        name: operation
+        type: UIDragOperation
+        summary: The operation in effect for this session
+  -
+    name: Drag Image
+    members:
+      -
+        name: image
+        type: JSImage
+        summary: The image to use when dragging
+      -
+        name: imageOffset
+        type: JSPoint
+        summary: What location of the image should be placed at the cursor point
+  -
+    name: Source & Destination
+    members:
+      -
+        name: source
+        type: UIDraggingSource
+        summary: The source of the drag operation
+        description: |
+          Typically the `UIView` that called `beginDraggingSessionWithItems()`
+      -
+        name: destination
+        nullable: true
+        type: UIDraggingDestination
+        summary: The current destination of the drag

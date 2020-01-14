@@ -1,0 +1,327 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSObject
+summary: A container for copied data
+description: |
+  A pasteboard is used anytime data is copied, allowing the data to be pasted
+  somewhere else.
+
+  A `general` pasteboard is available for most operations.
+
+  `UIDraggingSession` uses its own pasteboard to manage dragged data without
+  affecting the general pasteboard.
+
+  For example, a view that responds to the `"copy"` and `"paste"` actions might
+  have an implementation like this:
+
+  ````
+  JSClass("StringField", UIView, {
+
+    stringValue: '',
+
+    copy: function(){
+      UIPasteboard.general.setStringForType(this.stringValue, UIPasteboard.ContentType.plainText);
+    },
+
+    paste: function(){
+      if (UIPasteboard.general.containsType(UIPasteboard.ContentType.plainText)){
+        this.stringValue = UIPasteboard.general.stringForType(UIPasteboard.ContentType.plainText);
+      }
+    }
+
+  })
+  ````
+
+  Copying Objects
+  ===============
+
+  A pasteboard isn't limited to string types.  You can also copy arbitrary
+  objects in a similar manner to strings:
+
+  ````
+  JSClass("PersonView", UIView, {
+
+    person: '',
+
+    copy: function(){
+      UIPasteboard.general.setObjectForType(this.person, "x-myapplication/person");
+    },
+
+    paste: function(){
+      if (UIPasteboard.general.containsType("x-myapplication/person")){
+        this.person = UIPasteboard.general.objectForType("x-myapplication/person");
+      }
+    }
+
+  });
+  ````
+topics:
+  -
+    name: Getting a Pasteboard
+    members:
+      -
+        name: general
+        static: true
+        type: UIPasteboard
+        summary: The general pasteboard to use when there isn't a more specific
+          pasteboard to use
+        description: |
+          Most views will use the general pasteboard when responding to
+          `"copy"` and `"paste"` actions.
+  -
+    name: Contained Types
+    members:
+      -
+        name: ContentType
+        kind: enum
+        summary: Well known content types
+        options:
+          -
+            name: plainText
+            value: '"text/plain"'
+            summary: Plain text
+          -
+            name: html
+            value: '"text/html"'
+            summary: HTML text
+          -
+            name: anyFile
+            summary: Used to check if any files are on the pasteboard.  UIKit
+              does not support checking the type of each file until the files
+              are pasted.
+      -
+        name: types
+        type: String[]
+        summary: A list of types that are available on the pasteboard
+        description: |
+          Instead of inspecting this list directly, you can use the
+          `containsType()` method to search for a specific type.
+      -
+        name: containsType
+        kind: method
+        type: boolean
+        summary: Check if a given type is available on the pasteboard
+        arguments:
+          -
+            name: type
+            type: String
+            summary: The type to check for
+        description: |
+          You can use a value from `ContentType` for well known types.
+      -
+        name: containsAnyType
+        kind: method
+        type: boolean
+        summary: Check if any of the given types are available on the pasteboard
+        arguments:
+          -
+            name: types
+            type: String[]
+            summary: The types to check for
+        description: |
+          You can use values from `ContentType` for well known types.
+  -
+    name: Writing to the Pasteborad
+    members:
+      -
+        name: setStringForType
+        kind: method
+        summary: Set the string value for the given content type
+        arguments:
+          -
+            name: string
+            type: String
+            summary: The copied value to set on the pasteboard
+          -
+            name: type
+            type: String
+            summary: The content type of the `string`
+        description: |
+          Setting a value for a content type replaces all other values for that
+          content type currently on the pasteboard.
+
+          You can use a value from `ContentType` for well known types.
+      -
+        name: addStringForType
+        kind: method
+        summary: Add the string value for the given content type
+        arguments:
+          -
+            name: string
+            type: String
+            summary: The copied value to set on the pasteboard
+          -
+            name: type
+            type: String
+            summary: The content type of the `string`
+        description: |
+          Adding a value for a content type preserves any existing values
+          for that content type and simply adds another one.
+
+          You can use a value from `ContentType` for well known types.
+      -
+        name: setDataForType
+        kind: method
+        summary: Set the data value for the given content type
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The copied value to set on the pasteboard
+          -
+            name: type
+            type: String
+            summary: The content type of the `data`
+        description: |
+          Setting a value for a content type replaces all other values for that
+          content type currently on the pasteboard.
+
+          You can use a value from `ContentType` for well known types.
+      -
+        name: addDataForType
+        kind: method
+        summary: Add the data value for the given content type
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The copied value to set on the pasteboard
+          -
+            name: type
+            type: String
+            summary: The content type of the `data`
+        description: |
+          Adding a value for a content type preserves any existing values
+          for that content type and simply adds another one.
+
+          You can use a value from `ContentType` for well known types.
+      -
+        name: setObjectForType
+        kind: method
+        summary: Set the object value for the given content type
+        arguments:
+          -
+            name: object
+            type: object
+            summary: The copied value to set on the pasteboard
+          -
+            name: type
+            type: String
+            summary: The content type of the `object`
+        description: |
+          Setting a value for a content type replaces all other values for that
+          content type currently on the pasteboard.
+
+          You can use a value from `ContentType` for well known types.
+      -
+        name: addObjectForType
+        kind: method
+        summary: Add the object value for the given content type
+        arguments:
+          -
+            name: object
+            type: object
+            summary: The copied value to set on the pasteboard
+          -
+            name: type
+            type: String
+            summary: The content type of the `object`
+        description: |
+          Adding a value for a content type preserves any existing values
+          for that content type and simply adds another one.
+
+          You can use a value from `ContentType` for well known types
+  -
+    name: Reading from the Pastebord
+    members:
+      -
+        name: stringForType
+        kind: method
+        type: String
+        nullable: true
+        summary: Get the first string matching the given type on the pasteboard
+        arguments:
+          -
+            name: type
+            type: String
+            summary: The content type of the string
+        description: |
+          If multiple strings are on the pasteboard for the given type,
+          only the first one is returned.
+      -
+        name: stringsForType
+        kind: method
+        type: String[]
+        summary: Get all the strings matching the given type on the pasteboard
+        arguments:
+          -
+            name: type
+            type: String
+            summary: The content type of the string
+      -
+        name: dataForType
+        kind: method
+        type: JSData
+        nullable: true
+        summary: Get the first data matching the given type on the pasteboard
+        arguments:
+          -
+            name: type
+            type: String
+            summary: The content type of the data
+        description: |
+          If multiple data objects are on the pasteboard for the given type,
+          only the first one is returned.
+      -
+        name: dataListForType
+        kind: method
+        type: JSData[]
+        summary: Get all the data objects matching the given type on the pasteboard
+        arguments:
+          -
+            name: type
+            type: String
+            summary: The content type of the data
+      -
+        name: objectForType
+        kind: method
+        type: object
+        nullable: true
+        summary: Get the first object matching the given type on the pasteboard
+        arguments:
+          -
+            name: type
+            type: String
+            summary: The content type of the object
+        description: |
+          If multiple objects are on the pasteboard for the given type,
+          only the first one is returned.
+      -
+        name: objectsForType
+        kind: method
+        type: object[]
+        summary: Get all the objects matching the given type on the pasteboard
+        arguments:
+          -
+            name: type
+            type: String
+            summary: The content type of the object
+  -
+    name: Working with Files
+    members:
+      -
+        name: addFile
+        kind: method
+        summary: Add a file to the pasteboard
+        arguments:
+          -
+            name: file
+            type: JSFile
+            summary: Add a copied file to the pasteboard
+      -
+        name: fileEnumerator
+        nullable: true
+        type: JSFileEnumerator
+
+        summary: An enumerator for any files on the pasteboard

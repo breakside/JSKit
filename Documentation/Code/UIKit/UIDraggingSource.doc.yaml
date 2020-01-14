@@ -1,0 +1,40 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: protocol
+introduced: 2020.1.0
+summary: An interface that a drag source should implement
+topics:
+  -
+    name: Session Events
+    members:
+      -
+        name: draggingSessionDidBecomeActive
+        summary: Called when a drag session becomes active
+        arguments:
+          -
+            name: session
+            type: UIDraggingSession
+            summary: The session that became active
+        description: |
+          Drag sessions are created in an inactive state.  Once the user
+          moves their mouse enough, the session becomes active.
+
+          Views can use this call to remember that a drag started and
+          handle `mouseUp` differently.
+      -
+        name: draggingSessionEnded
+        summary: Called when the drag ends
+        arguments:
+          -
+            name: session
+            type: UIDraggingSession
+            summary: The session that ended
+          -
+            name: operation
+            type: UIDragOperation
+            summary: The operation that the destination performed
+        description: |
+          Used by the source to make adjustments after the destination
+          performs an operation.
+
+          For example, a `UIDragOperation.move` operation should result in the
+          source removing the dragged data.

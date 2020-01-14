@@ -1,0 +1,46 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+anonymous: true
+introduced: 2020.1.0
+summary: A drag item informal class interface
+description: |
+  Drag items are provided to `UIView.beginDraggingSessionWithItems()`, and
+  describe how dragged data should be added to a `UIDraggingSession`'s
+  `pasteboard`(UIDraggingSession.pasteboard).
+
+  For each item, you must provide:
+
+  1. A content `type`
+  2. One of
+    - `stringValue`
+    - `dataValue`
+    - `objectValue`
+    - `file`
+topics:
+  -
+    name: Properties
+    members:
+      -
+        name: type
+        type: String
+        summary: The content type of the item
+      -
+        name: stringValue
+        type: String
+        nullable: true
+        summary: Used when the item represents a string
+      -
+        name: dataValue
+        type: JSData
+        nullable: true
+        summary: Used when the item represents a data byte array
+      -
+        name: objectValue
+        type: object
+        nullable: true
+        summary: Used when the item represents an arbitrary object
+      -
+        name: file
+        type: JSFile
+        nullable: true
+        summary: Used when the item represents a file

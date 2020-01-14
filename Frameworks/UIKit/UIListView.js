@@ -2145,7 +2145,7 @@ JSClass("UIListView", UIScrollView, {
         }
     },
 
-    draggingSessionEnded: function(session, operation){
+    draggingSessionDidBecomeActive: function(session){
         this._didDrag = true;
     },
 

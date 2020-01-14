@@ -133,11 +133,16 @@ JSClass('UILabel', UIView, {
         this._didDrag = false;
         if (attributes.link){
             var range = this.attributedText.rangeOfRunAtIndex(index);
-            this.layer.textLayoutManager.addTemporaryAttributeInRange('backgroundColor', JSColor.initWithWhite(0, 0.2), range);
+            var layer = UILayer.init();
+            layer.frame = this.layer.textLayoutManager.rectsForCharacterRange(range)[0].rectWithInsets(JSInsets(-1, -2));
+            layer.cornerRadius = 2;
+            layer.backgroundColor = JSColor.black.colorWithAlpha(0.2);
+            this.layer.addSublayer(layer);
             this._mouseDownAction = {
                 link: attributes.link,
                 range: range,
-                temporaryAttributes: ['backgroundColor']
+                temporaryAttributes: [],
+                layers: [layer]
             };
         }else{
             if (!this._allowsSelection){
@@ -184,16 +189,20 @@ JSClass('UILabel', UIView, {
 
     _didDrag: false,
 
-    draggingSessionEnded: function(session, operation){
+    draggingSessionDidBecomeActive: function(session){
         this._didDrag = true;
     },
 
     mouseUp: function(event){
         if (this._mouseDownAction !== null){
             var attr;
-            for (var i = 0, l = this._mouseDownAction.temporaryAttributes.length; i < l; ++i){
+            var i, l;
+            for (i = 0, l = this._mouseDownAction.temporaryAttributes.length; i < l; ++i){
                 attr = this._mouseDownAction.temporaryAttributes[i];
                 this.layer.textLayoutManager.removeTemporaryAttributeInRange(attr, this._mouseDownAction.range);
+            }
+            for (i = 0, l = this._mouseDownAction.layers.length; i < l; ++i){
+                this._mouseDownAction.layers[i].removeFromSuperlayer();
             }
             if (!this._didDrag){
                 if (this._mouseDownAction.link){

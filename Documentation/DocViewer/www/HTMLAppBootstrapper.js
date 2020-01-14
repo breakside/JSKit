@@ -207,6 +207,7 @@ HTMLAppBootstrapper.prototype = {
                 }
             });
             script.addEventListener('error', function HTMLAppBootstrapper_scriptLoadError(e){
+                logger.error(e);
                 errorCallback(e);
             });
             script.src = src;

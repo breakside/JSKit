@@ -1,0 +1,142 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: protocol
+introduced: 2020.1.0
+summary: An interface that a drag destination should implement
+topics:
+  -
+    name: Drag Events
+    members:
+      -
+        name: draggingEntered
+        summary: Called when the drag first enters the destination
+        type: UIDragOperation
+        return: The supported drag operations, if any
+        arguments:
+          -
+            name: session
+            type: UIDraggingSession
+            summary: The session related to this drag
+        description: |
+          Provides the destination an opportunity to add any dropzone
+          visual indications.
+
+          ````
+          JSClass("StringField", UIView, {
+            stringValue: '',
+
+            draggingEntered: function(session){
+              if (session.pasteboard.containsType(UIPasteboard.ContentType.plainText)){
+                this.borderWidth = 3;
+                return UIDragOperation.copy | UIDragOperation.move;
+              }
+              return UIDragOperation.none;
+            }
+          });
+          ````
+      -
+        name: draggingUpdated
+        summary: Called when the drag moves over the destination
+        type: UIDragOperation
+        return: The supported drag operations, if any
+        arguments:
+          -
+            name: session
+            type: UIDraggingSession
+            summary: The session related to this drag
+        description: |
+          Only called on destinations that previously responded to
+          `draggingEntered()` with an allowed operation.
+
+          ````
+          JSClass("StringField", UIView, {
+            stringValue: '',
+
+            draggingEntered: function(session){
+              if (session.pasteboard.containsType(UIPasteboard.ContentType.plainText)){
+                return UIDragOperation.copy | UIDragOperation.move;
+              }
+              return UIDragOperation.none;
+            },
+
+            draggingUpdated: function(session){
+              return UIDragOperation.copy | UIDragOperation.move;
+            }
+          });
+          ````
+      -
+        name: draggingExited
+        summary: Called when the drag exists the destination
+        arguments:
+          -
+            name: session
+            type: UIDraggingSession
+            summary: The session related to this drag
+        description: |
+          Only called on destinations that previously responded to
+          `draggingEntered()` and `draggingUpdated()` with an allowed operation.
+
+          Provides the destination an opportunity to remove any dropzone
+          visual indications.
+
+          ````
+          JSClass("StringField", UIView, {
+            stringValue: '',
+
+            draggingEntered: function(session){
+              if (session.pasteboard.containsType(UIPasteboard.ContentType.plainText)){
+                this.borderWidth = 3;
+                return UIDragOperation.copy | UIDragOperation.move;
+              }
+              return UIDragOperation.none;
+            },
+
+            draggingUpdated: function(session){
+              return UIDragOperation.copy | UIDragOperation.move;
+            },
+
+            draggingExited: function(session){
+              this.borderWidth = 0;
+            }
+          });
+          ````
+      -
+        name: performDragOperation
+        summary: Called when the user drops on this destination
+        arguments:
+          -
+            name: session
+            type: UIDraggingSession
+            summary: The session related to this drag
+        description: |
+          Only called on destinations that previously responded to
+          `draggingEntered()` and `draggingUpdated()` with an allowed operation.
+
+          Provides the destination an opportunity to remove any dropzone
+          visual indications and do the copy/move/link operation.
+
+          ````
+          JSClass("StringField", UIView, {
+            stringValue: '',
+
+            draggingEntered: function(session){
+              if (session.pasteboard.containsType(UIPasteboard.ContentType.plainText)){
+                this.borderWidth = 3;
+                return UIDragOperation.copy | UIDragOperation.move;
+              }
+              return UIDragOperation.none;
+            },
+
+            draggingUpdated: function(session){
+              return UIDragOperation.copy | UIDragOperation.move;
+            },
+
+            draggingExited: function(session){
+              this.borderWidth = 0;
+            },
+
+            performDragOperation: function(session, operation){
+              this.borderWidth = 0;
+              this.stringValue = session.pasteboard.stringForType(UIPasteboard.ContentType.plainText);
+            }
+          });
+          ````

@@ -7,8 +7,12 @@ var logger = {
     log: function(){},
     debug: function(){},
     info: function(){},
-    warn: function(){},
-    error: function(){}
+    warn: function(){
+        console.warn.apply(console, arguments);
+    },
+    error: function(){
+        console.error.apply(console, arguments);
+    }
 };
 
 window.HTMLAppBootstrapper = function(rootElement, jskitapp){
@@ -206,6 +210,7 @@ HTMLAppBootstrapper.prototype = {
                 }
             });
             script.addEventListener('error', function HTMLAppBootstrapper_scriptLoadError(e){
+                logger.error(e);
                 errorCallback(e);
             });
             script.src = src;

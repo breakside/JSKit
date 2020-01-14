@@ -63,7 +63,7 @@ JSClass("UITabView", UIView, {
         if (this._styler === null){
             this._styler = UITabView.Styler.default;
         }
-        this._font = this._styler.font;
+        this.font = this._styler.font;
         this._styler.initializeTabView(this);
         this.setNeedsLayout();
     },
@@ -507,6 +507,13 @@ JSClass("UITabViewStyler", JSObject, {
 
     init: function(){
         this.font = JSFont.systemFontOfSize(JSFont.Size.normal);
+    },
+
+    initWithSpec: function(spec){
+        this.font = spec.valueForKey("font", JSFont);
+        if (this.font === null){
+            this.font = JSFont.systemFontOfSize(JSFont.Size.normal);
+        }
     },
 
     initializeTabView: function(tabView){

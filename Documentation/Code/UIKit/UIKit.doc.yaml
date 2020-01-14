@@ -217,7 +217,6 @@ topics:
       - UIDraggingSession
       - UIDraggingSource
       - UIDraggingDestination
-      - UIDragOperation
       - UIDragItem
   -
     name: Alerts & Dialogs

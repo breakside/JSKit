@@ -13,7 +13,7 @@ JSClass("UIDraggingSession", JSObject, {
     destination: null,
     allowedOperations: UIDragOperation.all,
     operation: UIDragOperation.none,
-    isActive: true,
+    isActive: JSDynamicProperty('_isActive', false),
     image: null,
     imageOffset: JSPoint.Zero,
     _items: null,
@@ -45,6 +45,13 @@ JSClass("UIDraggingSession", JSObject, {
             }else if ('file' in item){
                 pasteboard.addFile(item.file);
             }
+        }
+    },
+
+    setIsActive: function(isActive){
+        this._isActive = isActive;
+        if (this.source !== null && this.source.draggingSessionDidBecomeActive){
+            this.source.draggingSessionDidBecomeActive(this);
         }
     },
 

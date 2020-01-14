@@ -27,16 +27,16 @@ topics:
             summary: Any mouse event
           -
             name: key
-            summary: Any mouse event
+            summary: Any key event
           -
             name: touches
-            summary: Any mouse event
+            summary: Any touch event
           -
             name: scroll
-            summary: Any mouse event
+            summary: Any scroll event
           -
             name: gesture
-            summary: Any mouse event
+            summary: Any gesture event
       -
         name: Type
         kind: enum
