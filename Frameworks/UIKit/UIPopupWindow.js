@@ -301,11 +301,13 @@ JSClass("UIPopupWindowStyler", UIWindowStyler, {
     borderColor: null,
     borderWidth: 0,
     shadowColor: null,
+    shadowOffset: null,
 
     init: function(){
         UIPopupWindowStyler.$super.init.call(this);
         this.backgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255,1);
         this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.4);
+        this.shadowOffset = JSPoint.Zero;
         this.shadowRadius = UIWindow.Styler.default.shadowRadius;
         this.cornerRadius = UIWindow.Styler.default.cornerRadius;
     },
@@ -340,6 +342,7 @@ JSClass("UIPopupWindowStyler", UIWindowStyler, {
             popupBacking.borderWidth = this.borderWidth;
             popupBacking.shadowColor = this.shadowColor;
             popupBacking.shadowRadius = this.shadowRadius;
+            popupBacking.shadowOffset = this.shadowOffset;
             popupBacking.cornerRadius = this.cornerRadius;
             popupArrow.fillColor = this.backgroundColor;
             popupArrow.lineWidth = this.borderWidth;
@@ -348,6 +351,7 @@ JSClass("UIPopupWindowStyler", UIWindowStyler, {
             window.backgroundColor = this.backgroundColor;
             window.shadowColor = this.shadowColor;
             window.shadowRadius = this.shadowRadius;
+            window.shadowOffset = this.shadowOffset;
             window.cornerRadius = this.cornerRadius;
             window.borderColor = this.borderColor;
             window.borderWidth = this.borderWidth;

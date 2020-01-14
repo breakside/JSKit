@@ -1,0 +1,714 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSObject
+summary: A menu represents a set of actions that the user can take.
+description: |
+  Menus are used throughout `UIKit`.
+
+  - A `UIApplication` can show a main menu in a `UIMenuBar` along the top of a
+    screen
+  - A `UIPopupButton` shows a menu ever time it is clicked
+  - Any `UIView` can show a contextual menu in resonse to a right click
+topics:
+  -
+    name: Creating a Menu
+    member:
+      -
+        name: initWithStyler
+        kind: init
+        summary: Create a menu with the given styler
+        arguments:
+          -
+            name: styler
+            type: UIMenuStyler
+            summary: The styler to use for this menu
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available when creating a menu in a spec file
+        topics:
+          -
+            name: Items
+            member:
+              -
+                name: items
+                type: UIMenuItem[]
+                summary: The items to display in the menu
+          -
+            name: Styling
+            members:
+              -
+                name: styler
+                type: UIMenuStyler
+                summary: The styler to use
+  -
+    name: Items
+    members:
+      -
+        name: items
+        type: UIMenuItem[]
+        summary: The items in this menu
+      -
+        name: itemWithTag
+        kind: method
+        type: UIMenuItem
+        nullable: true
+        summary: Get a menu item with the given tag
+        arguments:
+          -
+            name: tag
+            type: String
+            summary: The menu-unique tag that identifies the item
+      -
+        name: highlightedItem
+        type: UIMenuItem
+        nullable: true
+        summary: The currently highlighted item
+      -
+        name: addItem
+        kind: method
+        summary: Add an item to the menu
+        arguments:
+          -
+            name: item
+            type: UIMenuItem
+            summary: The item to add
+        description: |
+          The item will be added at the end of the menu's `items` list.
+      -
+        name: addItemWithTitle
+        kind: method
+        summary: Add an item with the given title and action
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title of the item to add
+          -
+            name: action
+            type: String
+            summary: The action to send when the item is selected
+      -
+        name: addItemWithTitle
+        kind: method
+        summary: Add an item with the given title, action, and target
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title of the item to add
+          -
+            name: action
+            type: String
+            summary: The action to send when the item is selected
+          -
+            name: target
+            type: UIResponder
+            summary: The specific responder to which the action should be sent
+      -
+        name: addItemWithTitle
+        kind: method
+        summary: Add an item with the given title and action function
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title of the item to add
+          -
+            name: action
+            type: function
+            summary: The function to call when the item is selected
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the action
+              function
+      -
+        name: insertItemAtIndex
+        kind: method
+        summary: Inset an item at a specific place in the menu
+        arguments:
+          -
+            name: item
+            type: UIMenuItem
+            summary: The item to insert
+          -
+            name: index
+            type: Number
+            summary: The location in `items` at which the new item should be
+              inserted
+      -
+        name: removeItemAtIndex
+        kind: method
+        summary: Remove an item at the given location
+        arguments:
+          -
+            name: index
+            type: Number
+            summary: The index of the item to remove
+      -
+        name: removeItemWithTag
+        kind: method
+        summary: Remove the item that has the given tag identifier
+        arguments:
+          -
+            name: tag
+            type: String
+            summary: The menu-unqiue tag that identifies the item to remove
+      -
+        name: removeAllItems
+        kind: method
+        summary: Remove all items from the menu
+  -
+    name: Opening & Closing
+    members:
+      -
+        name: Placement
+        kind: enum
+        summary: The positions where a menu can be placed next to view
+        options:
+          -
+            name: below
+            summary: Display a menu below the view, with the left edge of
+              the menu matching the left edge of the view.
+          -
+            name: right
+            summary: Display a menu to the right of a view, with the top
+              edge of the menu matching the top edge of the view
+          -
+            name: above
+            summary: Display a menu to the above a view, with the left
+              edge of the menu matching the left edge of the view
+          -
+            name: left
+            summary: Display a menu to the left of a view, with the top
+              edge of the menu matching the top edge of the view
+      -
+        name: openAdjacentToView
+        kind: method
+        summary: Open a menu and place it next to the given view
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The view next to which the menu should appear
+          -
+            name: preferredPlacement
+            type: Placement
+            summary: The preferred side on which to place the menu.
+        description: |
+          If there isn't enough room for the preferred placement, the menu
+          may appear on another side.
+      -
+        name: openWithItemAtLocationInView
+        kind: method
+        summary: Open a menu with a specific item lined up with a specific
+          location
+        arguments:
+          -
+            name: targetItem
+            type: UIMenuItem
+            summary: The menu item to line up with the location
+          -
+            name: location
+            type: JSPoint
+            summary: The point in the view's coordinate space to align with
+              the given item
+          -
+            name: view
+            type: UIView
+            summary: The view that defines the location's coordinate system
+      -
+        name: openAtLocationInContextView
+        kind: method
+        summary: Open a context menu with its origin point at the given location
+        arguments:
+          -
+            name: location
+            type: JSPoint
+            summary: The point in the view's coordinate space to align with the
+              menu's origin
+          -
+            name: view
+            type: UIView
+            summary: The view that defines the location's coordinate system
+      -
+        name: close
+        kind: method
+        summary: Close the menu immediately
+      -
+        name: closeWithAnimation
+        kind: method
+        summary: Close the menu using an animation
+  -
+    name: Parent Menu
+    members:
+      -
+        name: supermenu
+        type: UIMenu
+        summary: The menu that owns the item that opened this menu as a
+          \`submenu`(UIMenuItem.submenu)
+  -
+    name: Delegate
+    members:
+      -
+        name: UIMenuDelegate
+        kind: protocol
+        summary: The interface that a menu delegate can implement
+        topics:
+          -
+            name: Menu Events
+            members:
+              -
+                name: menuDidClose
+                summary: Called when the menu is dismissed
+                arguments:
+                  -
+                    name: menu
+                    type: UIMenu
+                    summary: The menu making the call
+              -
+                name: menuDidNavigateLeft
+                summary: Called when the user requested a left navigation
+                arguments:
+                  -
+                    name: menu
+                    type: UIMenu
+                    summary: The menu making the call
+                description: |
+                  Typically caused by a left arrow key press, if the menu
+                  cannot handle the navigation on its own, is passes the
+                  message on to its delegate
+              -
+                name: menuDidNavigateRight
+                summary: Called when the user requested a right navigation
+                arguments:
+                  -
+                    name: menu
+                    type: UIMenu
+                    summary: The menu making the call
+                description: |
+                  Typically caused by a right arrow key press, if the menu
+                  cannot handle the navigation on its own, is passes the
+                  message on to its delegate
+      -
+        name: delegate
+        type: UIMenuDelegate
+        nullable: true
+        summary: The delegate for this menu
+  -
+    name: Styling
+    members:
+      -
+        name: UIMenuStyler
+        kind: class
+        inherits: UIWindowStyler
+        summary: The abstract base class for menu stylers
+        topics:
+          -
+            name: Menu Initialization
+            members:
+              -
+                name: initializeMenu
+                kind: method
+                summary: Called when a menu is created
+                arguments:
+                  -
+                    name: menu
+                    type: UIMenu
+                    summary: The menu to initialize
+                  -
+                    name: window
+                    type: UIMenuWindow
+                    summary: The window that will display the menu
+                description: |
+                  Gives the styler a chance to create views and set initial
+                  styles for the menu
+          -
+            name: Menu Layout
+            members:
+              -
+                name: layoutMenuWindow
+                kind: method
+                summary: Called to layout a menu's window
+                arguments:
+                  -
+                    name: window
+                    type: UIMenuWindow
+                    summary: The window displaying the menu
+              -
+                name: layoutItemView
+                kind: method
+                summary: Called when an item view needs layout
+                arguments:
+                  - 
+                    name: view
+                    type: UIMenuItemView
+                    summary: The view for the item
+                  -
+                    name: item
+                    type: UIMenuItem
+                    summary: The menu item
+              -
+                name: layoutSeparatorView
+                kind: method
+                summary: Called when an separator view needs layout
+                arguments:
+                  - 
+                    name: view
+                    type: UIMenuItemSeparatorView
+                    summary: The view for the separator
+          -
+            name: Menu Items
+            members:
+              -
+                name: initializeItemView
+                kind: method
+                summary: Called when an item view is created
+                arguments:
+                  - 
+                    name: view
+                    type: UIMenuItemView
+                    summary: A view that displays a menu item
+              -
+                name: initializeSeparatorView
+                kind: method
+                summary: Called when an item separator view is created
+                arguments:
+                  - 
+                    name: view
+                    type: UIMenuItemSeparatorView
+                    summary: A view that displays a separator item
+              -
+                name: updateItemView
+                kind: method
+                summary: Called when an item changes state
+                arguments:
+                  - 
+                    name: view
+                    type: UIMenuItemView
+                    summary: The view for the item
+                  -
+                    name: item
+                    type: UIMenuItem
+                    summary: The menu item that changed
+              -
+                name: getItemTitleOffset
+                kind: method
+                type: JSPoint
+                summary: Get the distance from an item's origin to its title
+                  origin
+                arguments:
+                  -
+                    name: menu
+                    type: UIMenu
+                    summary: The menu for the items
+      -
+        name: UIMenuDefaultStyler
+        kind: class
+        inherits: UIMenuStyler
+        summary: The default menu styler for `UIKit`
+        topics:
+          -
+            name: Creating a Styler
+            members:
+              -
+                name: Spec File Properties
+                kind: spec
+                summary: Properties available to a default menu styler in a
+                  spec file
+                topics:
+                  -
+                    name: Text Colors
+                    members:
+                      -
+                        name: textColor
+                        type: JSColor
+                        summary: The color to use for normal item text
+                      -
+                        name: highlightedTextColor
+                        type: JSColor
+                        summary: The color to use for highlighted item text
+                      -
+                        name: disabledTextColor
+                        type: JSColor
+                        summary: The color to use for disabled item text
+                  -
+                    name: Highlighting
+                    members:
+                      -
+                        name: highlightColor
+                        type: JSColor
+                        summary: The color to use when highlighting items
+                  -
+                    name: Background, Border, & Shadow
+                    members:
+                      -
+                        name: backgroundColor
+                        type: JSColor
+                        summary: The color to use for the menu background
+                      -
+                        name: borderColor
+                        type: JSColor
+                        summary: The color to use for the menu border
+                      -
+                        name: borderWidth
+                        type: JSColor
+                        summary: The color to use for the menu border
+                      -
+                        name: shadowColor
+                        type: JSColor
+                        summary: The color to use for the menu shadow
+                      -
+                        name: shadowOffset
+                        type: JSPoint
+                        summary: The offset of the menu's shadow
+                      -
+                        name: shadowRadius
+                        type: Number
+                        summary: The radius of the menu's shadow
+          -
+            name: Text Colors
+            members:
+              -
+                name: textColor
+                type: JSColor
+                summary: The color to use for normal item text
+              -
+                name: highlightedTextColor
+                type: JSColor
+                summary: The color to use for highlighted item text
+              -
+                name: disabledTextColor
+                type: JSColor
+                summary: The color to use for disabled item text
+          -
+            name: Highlighting
+            members:
+              -
+                name: highlightColor
+                type: JSColor
+                summary: The color to use when highlighting items
+          -
+            name: Background, Border, & Shadow
+            members:
+              -
+                name: backgroundColor
+                type: JSColor
+                summary: The color to use for the menu background
+              -
+                name: borderColor
+                type: JSColor
+                summary: The color to use for the menu border
+              -
+                name: borderWidth
+                type: JSColor
+                summary: The color to use for the menu border
+              -
+                name: shadowColor
+                type: JSColor
+                summary: The color to use for the menu shadow
+              -
+                name: shadowOffset
+                type: JSPoint
+                summary: The offset of the menu's shadow
+              -
+                name: shadowRadius
+                type: Number
+                summary: The radius of the menu's shadow
+      -
+        name: UIMenuWindow
+        kind: class
+        inherits: UIWindow
+        summary: The kind of window that a menu uses for display
+        topics:
+          -
+            name: Views for Stylers
+            members:
+              -
+                name: clipView
+                type: UIView
+                summary: The view that contains the `menuView`
+              -
+                name: menuView
+                type: UIView
+                summary: The view that contains menu item views
+              -
+                name: upIndicatorView
+                type: UIView
+                summary: The view that indicates the menu can scroll up
+              -
+                name: downIndicatorView
+                type: UIView
+                summary: The view that indicates the menu can scroll down
+              -
+                name: upIndicatorImageView
+                type: UIView
+                summary: The image inside the `upIndicatorView`
+              -
+                name: downIndicatorImageView
+                type: UIView
+                summary: The image inside the `downIndicatorView`
+      -
+        name: UIMenuView
+        kind: class
+        inherits: UIView
+        summary: A container view in a `UIMenuWindow`
+        topics:
+          -
+            name: Views for Stylers
+            members:
+              -
+                name: itemViews
+                type: UIView[]
+                summary: The menu item views
+      -
+        name: UIMenuItemView
+        kind: class
+        inherits: UIView
+        summary: A view for a `UIMenuItem`, contained in a `UIMenuView`
+        topics:
+          -
+            name: Title
+            members:
+              -
+                name: titleLabel
+                type: UILabel
+                summary: A label for the item's title
+          -
+            name: Image & Indicators
+            members:
+              -
+                name: imageView
+                type: UIImageView
+                summary: A view for the item's image
+              -
+                name: stateImageView
+                type: UIImageView
+                summary: A view for the item's state indicator
+              -
+                name: submenuImageView
+                type: UIImageView
+                summary: A view for the item's submenu indicator
+          -
+            name: Key Equivalent
+            members:
+              -
+                name: keyLabel
+                type: UILabel
+                summary: A label for the item's key equivalent
+              -
+                name: keyModifierLabel
+                type: UILabel
+                summary: A label for the item's key modifiers
+          -
+            name: Styler Properties
+            members:
+              -
+                name: stylerProperties
+                type: dictionary
+                summary: A dictionary that a styler can use to store properties
+                  relating to styling
+                description: |
+                  Often a styler will need to create views or layers to help its
+                  styling.  Since a single styler is used for multiple item views,
+                  the styler can't store those item-specific properties on its own.
+
+                  So, `stylerProperties` is a place on each `UIMenuItemSeparatorView` that a styler
+                  can store item-specific objects.
+      -
+        name: UIMenuItemSeparatorView
+        kind: class
+        inherits: UIView
+        summary: A view for a `UIMenuItem` that is a separator, contained in a
+          `UIMenuView`
+        topics:
+          -
+            name: Styler Properties
+            members:
+              -
+                name: stylerProperties
+                type: dictionary
+                summary: A dictionary that a styler can use to store properties
+                  relating to styling
+                description: |
+                  Often a styler will need to create views or layers to help its
+                  styling.  Since a single styler is used for multiple item views,
+                  the styler can't store those item-specific properties on its own.
+
+                  So, `stylerProperties` is a place on each `UIMenuItemSeparatorView` that a styler
+                  can store item-specific objects.
+      -
+        name: Styler
+        kind: enum
+        suffix: enum
+        summary: The default menu stylers for `UIKit`
+        options:
+          -
+            name: default
+            summary: The styler to use by default.  Can be overwritten during
+              application launch to provide a custom default styler for menus.
+      -
+        name: styler
+        type: UIMenuStyler
+        summary: The styler in use for this menu
+      -
+        name: font
+        type: JSFont
+        summary: The font to use for this menu
+      -
+        name: itemTitleOffset
+        type: JSPoint
+        summary: The offset from an item's origin to its title label origin
+      -
+        name: minimumWidth
+        type: Number
+        summary: The minimum width this menu can be
+      -
+        name: showStatusColumn
+        type: boolean
+        summary: Indicates if the menu should include space for a status column
+          that shows checkmarks for selected items.
+  -
+    name: Updating
+    members:
+      -
+        name: automaticallyUpdates
+        type: boolean
+        summary: Indicates if the menu should automatically enable/disable its
+          items
+      -
+        name: updateEnabled
+        type: method
+        summary: Called to force the menu to update the enabled/disabled states
+          of its items
+  -
+    name: Keyboard Shortcuts
+    members:
+      -
+        name: performKeyEquivalent
+        kind: method
+        type: boolean
+        return: |
+          `true` if the menu performed an action, `false` otherwise
+        summary: Perform the action for an item that matches the given
+          keyboard shortcut
+        arguments:
+          -
+            name: event
+            type: UIEvent
+            summary: The keyboard event that might be menu item shortcut
+      -
+        name: itemForKeyEquivalent
+        kind: method
+        type: UIMenuItem
+        nullable: true
+        return: The item, if any, that matches the keyboard shortcut
+        summary: Get the item that matches the keyboard shortcut
+        arguments:
+          -
+            name: event
+            type: UIEvent
+            summary: The keyboard event that might be menu item shortcut

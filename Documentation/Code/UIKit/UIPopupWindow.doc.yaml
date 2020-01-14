@@ -159,6 +159,10 @@ topics:
                 type: JSColor
                 summary: The shadow color for the window
               -
+                name: shadowOffset
+                type: JSPoint
+                summary: The shadow offset for the window
+              -
                 name: shadowRadius
                 type: Number
                 summary: The shadow radius for the window

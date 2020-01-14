@@ -45,9 +45,9 @@ topics:
     members:
       - JSRange
       - JSIndexPath
-      - JSIndexPathRange
-      - JSIndexPathSet
-      - JSIndexRange
+      #- JSIndexPathRange
+      #- JSIndexPathSet
+      #- JSIndexRange
       - JSIndexSet
   -
     name: Drawing & Images
@@ -60,15 +60,15 @@ topics:
       - JSInsets
       - JSAffineTransform
       - JSColor
-      - JSCubicBezier
+      #- JSCubicBezier
       - JSGradient
       - JSImage
-  -
-    name: Filesystem
-    summary: Files and file system operations
-    members:
-      - JSFileManager
-      - JSFile
+  # -
+  #   name: Filesystem
+  #   summary: Files and file system operations
+  #   members:
+  #     - JSFileManager
+  #     - JSFile
   -
     name: Application
     summary: Common functionality shared across GUI and command line applications
@@ -84,7 +84,7 @@ topics:
     summary: Logging, telemetry, and error reporting
     members:
       - JSLog
-      - CustomLogHandlers
+      # - CustomLogHandlers
   -
     name: Web Requests
     summary: Making web requests and handling common data kinds
@@ -108,15 +108,15 @@ topics:
     members:
       - JSFont
       - JSFontDescriptor
-      - JSTextAttachment
-      - JSTextContainer
-      - JSTextFrame
-      - JSTextFramesetter
-      - JSTextLayoutManager
-      - JSTextLine
-      - JSTextRun
-      - JSTextStorage
-      - JSTextTypesetter
+      # - JSTextAttachment
+      # - JSTextContainer
+      # - JSTextFrame
+      # - JSTextFramesetter
+      # - JSTextLayoutManager
+      # - JSTextLine
+      # - JSTextRun
+      # - JSTextStorage
+      # - JSTextTypesetter
       -
         name: JSTextAlignment
         kind: enum
@@ -146,12 +146,12 @@ topics:
           -
             name: characterWrap
             summary: Break lines at any character
-  - 
-    name: Zlib
-    summary: Data compression with zlib
-    members:
-      - Zlib
-      - Deflate
+  # - 
+  #   name: Zlib
+  #   summary: Data compression with zlib
+  #   members:
+  #     - Zlib
+  #     - Deflate
   -
     name: Utilities
     summary: Miscellaneous utilities such as timers and formatters
@@ -159,11 +159,11 @@ topics:
       - JSGlobalObject
       - JSTimer
       - JSNumberFormatter
-      - JSBinarySearcher
-      - JSValueTransformer
-      - JSMath
+      # - JSBinarySearcher
+      # - JSValueTransformer
+      # - JSMath
       - UUID
       - JSCopy
       - JSDeepCopy
-      - JSResolveDottedName
-      - JSSetDottedName
+      # - JSResolveDottedName
+      # - JSSetDottedName

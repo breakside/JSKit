@@ -350,7 +350,7 @@ JSClass("UIMenuWindow", UIWindow, {
             if (this._menu.supermenu && this._menu.supermenu.window){
                 this._menu.close();
             }else{
-                if (this._menu.delegate && this._menu.delegate.menuDidNavigateRight){
+                if (this._menu.delegate && this._menu.delegate.menuDidNavigateLeft){
                     this._menu.delegate.menuDidNavigateLeft(this._menu);
                 }
             }

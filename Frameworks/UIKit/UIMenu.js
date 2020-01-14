@@ -664,7 +664,16 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
     borderWidth: JSDynamicProperty('_borderWidth', 0.5),
     itemPadding: JSDynamicProperty('_itemPadding', JSInsets(2, 3, 2, 7)),
     indentationSize: JSDynamicProperty('_indentationSize', 10),
+    shadowColor: null,
+    shadowRadius: 14,
+    shadowOffset: null,
     _keyWidth: 0,
+
+    init: function(){
+        UIMenuDefaultStyler.$super.init.call(this);
+        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.2);
+        this.shadowOffset = JSPoint.Zero;
+    },
 
     initWithSpec: function(spec){
         UIMenuDefaultStyler.$super.initWithSpec.call(this, spec);
@@ -695,13 +704,22 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
         if (spec.containsKey('borderWidth')){
             this._borderWidth = spec.valueForKey("borderWidth");
         }
+        if (spec.containsKey('shadowColor')){
+            this.shadowColor = spec.valueForKey("shadowColor", JSColor);
+        }
+        if (spec.containsKey('shadowOffset')){
+            this.shadowOffset = spec.valueForKey("shadowOffset", JSPoint);
+        }
+        if (spec.containsKey('shadowRadius')){
+            this.shadowRadius = spec.valueForKey("shadowRadius");
+        }
     },
 
     initializeWindow: function(window){
         window.borderColor = this._borderColor;
         window.borderWidth = this._borderWidth;
-        window.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.2);
-        window.shadowRadius = 14;
+        window.shadowColor = this.shadowColor;
+        window.shadowRadius = this.shadowOffset;
         window.cornerRadius = this._cornerRadius;
         window.contentView.backgroundColor = this._backgroundColor;
     },

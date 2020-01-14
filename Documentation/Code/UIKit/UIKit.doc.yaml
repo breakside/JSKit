@@ -237,9 +237,8 @@ topics:
       - UIMenu
       - UIMenuItem
       - UIMenuBar
-      - UIMenuView
   -
-    name: Paned Views
+    name: Split Views
     members:
       - UIDualPaneViewController
   -
