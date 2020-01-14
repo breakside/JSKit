@@ -218,14 +218,14 @@ UIButton.Styler = Object.create({}, {
             return styler;
         },
         set: function UIButton_setDefaultStyler(defaultStyler){
-            Object.defineProperty(UIButton, 'defaultStyler', {writable: true, value: defaultStyler});
+            Object.defineProperty(this, 'defaultStyler', {writable: true, value: defaultStyler});
         }
     },
     custom: {
         configurable: true,
-        get: function UIButton_getDefaultStyler(){
+        get: function UIButton_getCustomStyler(){
             var styler = UIButtonCustomStyler.init();
-            Object.defineProperty(UIButton, 'custom', {writable: true, value: styler});
+            Object.defineProperty(this, 'custom', {writable: true, value: styler});
             return styler;
         }
     }
@@ -314,6 +314,102 @@ JSClass("UIButtonStyler", UIControlStyler, {
         }
         if (button._backgroundImageView !== null){
             button._backgroundImageView.image = button.backgroundImage;
+        }
+    }
+
+});
+
+JSClass("UIButtonCustomStyler", UIButtonStyler, {
+
+    normalBackgroundColor: null,
+    disabledBackgroundColor: null,
+    activeBackgroundColor: null,
+    normalTitleColor: null,
+    disabledTitleColor: null,
+    activeTitleColor: null,
+    cornerRadius: 0,
+
+    initWithBackgroundColor: function(normalBackgroundColor, normalTitleColor){
+        UIButtonCustomStyler.$super.init.call(this);
+        this.normalBackgroundColor = normalBackgroundColor;
+        this.normalTitleColor = normalTitleColor;
+        this._commonInit();
+    },
+
+    initWithColor: function(color){
+        UIButtonCustomStyler.$super.init.call(this);
+        this.normalTitleColor = color;
+        this._commonInit();
+    },
+
+    init: function(){
+        UIButtonCustomStyler.$super.init.call(this);
+        this.initWithColor(JSColor.black);
+    },
+
+    initWithSpec: function(spec){
+        UIButtonCustomStyler.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('normalBackgroundColor')){
+            this.normalBackgroundColor = spec.valueForKey("normalBackgroundColor", JSColor);
+        }
+        if (spec.containsKey('normalTitleColor')){
+            this.normalTitleColor = spec.valueForKey("normalTitleColor", JSColor);
+        }
+        if (spec.containsKey('cornerRadius')){
+            this.cornerRadius = spec.valueForKey("cornerRadius");
+        }
+        this._commonInit();
+    },
+
+    _commonInit: function(){
+        if (this.activeTitleColor === null){
+            this.activeTitleColor = this.normalTitleColor.colorDarkenedByPercentage(0.2);
+        }
+        if (this.disabledTitleColor === null){
+            this.disabledTitleColor = this.normalTitleColor.colorWithAlpha(0.5);
+        }
+        if (this.normalBackgroundColor !== null){
+            if (this.activeBackgroundColor === null){
+                this.activeBackgroundColor = this.normalBackgroundColor.colorDarkenedByPercentage(0.2);
+            }
+            if (this.disabledBackgroundColor === null){
+                this.disabledBackgroundColor = this.normalBackgroundColor.colorWithAlpha(0.5);
+            }
+        }
+    },
+
+    initializeControl: function(button){
+        UIButtonCustomStyler.$super.initializeControl.call(this, button);
+        button.cornerRadius = this.cornerRadius;
+        this.updateControl(button);
+    },
+
+    updateControl: function(button){
+        UIButtonCustomStyler.$super.updateControl.call(this, button);
+        if (!button.enabled){
+            button.layer.backgroundColor = this.disabledBackgroundColor;
+            if (button._titleLabel !== null){
+                button._titleLabel.textColor = this.disabledTitleColor;
+            }
+            if (button._imageView !== null){
+                button._imageView.templateColor = this.disabledTitleColor;
+            }
+        }else if (button.active){
+            button.layer.backgroundColor = this.activeBackgroundColor;
+            if (button._titleLabel !== null){
+                button._titleLabel.textColor = this.activeTitleColor;
+            }
+            if (button._imageView !== null){
+                button._imageView.templateColor = this.activeTitleColor;
+            }
+        }else{
+            button.layer.backgroundColor = this.normalBackgroundColor;
+            if (button._titleLabel !== null){
+                button._titleLabel.textColor = this.normalTitleColor;
+            }
+            if (button._imageView !== null){
+                button._imageView.templateColor = this.normalTitleColor;
+            }
         }
     }
 
@@ -414,102 +510,6 @@ UIButtonDefaultStyler.DisabledBorderColor = JSColor.initWithRGBA(224/255,224/255
 UIButtonDefaultStyler.NormalTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
 UIButtonDefaultStyler.ActiveTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
 UIButtonDefaultStyler.DisabledTitleColor = JSColor.initWithRGBA(152/255,152/255,152/255);
-
-JSClass("UIButtonCustomStyler", UIButtonStyler, {
-
-    normalBackgroundColor: null,
-    disabledBackgroundColor: null,
-    activeBackgroundColor: null,
-    normalTitleColor: null,
-    disabledTitleColor: null,
-    activeTitleColor: null,
-    cornerRadius: 0,
-
-    initWithBackgroundColor: function(normalBackgroundColor, normalTitleColor){
-        UIButtonCustomStyler.$super.init.call(this);
-        this.normalBackgroundColor = normalBackgroundColor;
-        this.normalTitleColor = normalTitleColor;
-        this._commonInit();
-    },
-
-    initWithColor: function(color){
-        UIButtonCustomStyler.$super.init.call(this);
-        this.normalTitleColor = color;
-        this._commonInit();
-    },
-
-    init: function(){
-        UIButtonCustomStyler.$super.init.call(this);
-        this.initWithColor(JSColor.black);
-    },
-
-    initWithSpec: function(spec){
-        UIButtonCustomStyler.$super.initWithSpec.call(this, spec);
-        if (spec.containsKey('normalBackgroundColor')){
-            this.normalBackgroundColor = spec.valueForKey("normalBackgroundColor", JSColor);
-        }
-        if (spec.containsKey('normalTitleColor')){
-            this.normalTitleColor = spec.valueForKey("normalTitleColor", JSColor);
-        }
-        if (spec.containsKey('cornerRadius')){
-            this.cornerRadius = spec.valueForKey("cornerRadius");
-        }
-        this._commonInit();
-    },
-
-    _commonInit: function(){
-        if (this.activeTitleColor === null){
-            this.activeTitleColor = this.normalTitleColor.colorDarkenedByPercentage(0.2);
-        }
-        if (this.disabledTitleColor === null){
-            this.disabledTitleColor = this.normalTitleColor.colorWithAlpha(0.5);
-        }
-        if (this.normalBackgroundColor !== null){
-            if (this.activeBackgroundColor === null){
-                this.activeBackgroundColor = this.normalBackgroundColor.colorDarkenedByPercentage(0.2);
-            }
-            if (this.disabledBackgroundColor === null){
-                this.disabledBackgroundColor = this.normalBackgroundColor.colorWithAlpha(0.5);
-            }
-        }
-    },
-
-    initializeControl: function(button){
-        UIButtonCustomStyler.$super.initializeControl.call(this, button);
-        button.cornerRadius = this.cornerRadius;
-        this.updateControl(button);
-    },
-
-    updateControl: function(button){
-        UIButtonCustomStyler.$super.updateControl.call(this, button);
-        if (!button.enabled){
-            button.layer.backgroundColor = this.disabledBackgroundColor;
-            if (button._titleLabel !== null){
-                button._titleLabel.textColor = this.disabledTitleColor;
-            }
-            if (button._imageView !== null){
-                button._imageView.templateColor = this.disabledTitleColor;
-            }
-        }else if (button.active){
-            button.layer.backgroundColor = this.activeBackgroundColor;
-            if (button._titleLabel !== null){
-                button._titleLabel.textColor = this.activeTitleColor;
-            }
-            if (button._imageView !== null){
-                button._imageView.templateColor = this.activeTitleColor;
-            }
-        }else{
-            button.layer.backgroundColor = this.normalBackgroundColor;
-            if (button._titleLabel !== null){
-                button._titleLabel.textColor = this.normalTitleColor;
-            }
-            if (button._imageView !== null){
-                button._imageView.templateColor = this.normalTitleColor;
-            }
-        }
-    }
-
-});
 
 JSClass("UIButtonImageStyler", UIButtonStyler, {
 

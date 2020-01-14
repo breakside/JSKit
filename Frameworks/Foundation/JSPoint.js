@@ -1,7 +1,7 @@
 // #feature Math.sqrt
 // #feature Math.atan
-'use strict';
 /* global JSGlobalObject, JSPoint */
+'use strict';
 
 JSGlobalObject.JSPoint = function JSPoint(x, y){
     if (this === undefined){

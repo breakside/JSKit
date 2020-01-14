@@ -13,6 +13,7 @@ MainWindow:
   class: UIRootWindow
   contentViewController: /MainViewController
   firstResponder: /SidebarOutlineView
+  shouldReceiveTrackingInBack: true
 
 MainViewController:
   class: MainViewController
@@ -148,21 +149,61 @@ ContentViewController:
   view:
     subviews:
       - /WebView
-      - /BreadcrumbView
+      - /ContentHeader
   outlets:
     webView: /WebView
     breadcrumbView: /BreadcrumbView
+    menuButton: /MenuButton
+    headerView: /ContentHeader
 
 WebView:
   class: UIWebView
   delegate: /ContentViewController
 
-BreadcrumbView:
-  class: BreadcrumbView
+ContentHeader:
+  class: UIView
+  borderWidth: 1
+  maskedBorders: maxY
   borderColor:
     rgba: 240,240,240
-  borderWidth: 1
-  maskedBorders: $UIView.Sides.maxY
+  subviews:
+    - /BreadcrumbView
+    - /MenuButton
+
+BreadcrumbView:
+  class: BreadcrumbView
   target: /ContentViewController
   action: showComponent
   highlightColor: /HighlightColor
+
+MenuButton:
+  class: UIPopupButton
+  pullsDown: true
+  showsIndicator: false
+  styler:
+    class: UIPopupButtonImageStyler
+    cornerRadius: 3
+    normalColor:
+      rgba: 164,164,164
+    overBackgroundColor:
+      rgba: 240,240,240
+    activeBackgroundColor:
+      rgba: 204,204,204
+  image:
+    name: Dots
+    renderMode: template
+  menu: /MainMenu
+
+MainMenu:
+  class: UIMenu
+  items:
+    -
+      title: Report an Issue
+      action: reportAnIssue
+      target: /MainViewController
+    -
+      separator: true
+    -
+      title: .mainMenu.about
+      action: showAbout
+      target: /MainViewController

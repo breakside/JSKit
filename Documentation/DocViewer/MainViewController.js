@@ -1,6 +1,7 @@
 // Copyright © 2020 Breakside Inc.  MIT License.
 // #import UIKit
-/* global window, document, JSClass, UIDualPaneViewController, MainViewController, JSBundle, JSURL, JSUserDefaults */
+// #import "AboutWindowController.js"
+/* global window, document, JSClass, UIDualPaneViewController, MainViewController, JSBundle, JSURL, JSUserDefaults, AboutWindowController, UIApplication */
 'use strict';
 
 JSClass("MainViewController", UIDualPaneViewController, {
@@ -78,6 +79,27 @@ JSClass("MainViewController", UIDualPaneViewController, {
 
     indicateUpdateAvailable: function(){
         this.sidebarViewController.indicateUpdateAvailable();
+    },
+
+    aboutWindowController: null,
+
+    showAbout: function(){
+        if (this.aboutWindowController === null){
+            this.aboutWindowController = AboutWindowController.initWithSpecName("AboutWindowController");
+            this.aboutWindowController.delegate = this;
+        }
+        this.aboutWindowController.makeKeyAndOrderFront();
+    },
+
+    windowControllerDidClose: function(windowController){
+        if (windowController === this.aboutWindowController){
+            this.aboutWindowController = null;
+        }
+    },
+
+    reportAnIssue: function(){
+        var url = JSURL.initWithString("https://github.com/breakside/JSKit/issues");
+        UIApplication.shared.openURL(url);
     }
 
 });

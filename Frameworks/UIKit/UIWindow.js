@@ -83,6 +83,12 @@ JSClass('UIWindow', UIView, {
             this._toolbar = spec.valueForKey("toolbar", UIToolbar);
             this._toolbar.window = this;
         }
+        if (spec.containsKey('backgroundColor')){
+            this.backgroundColor = spec.valueForKey('backgroundColor', JSColor);
+        }
+        if (spec.containsKey('shouldReceiveTrackingInBack')){
+            this.shouldReceiveTrackingInBack = spec.valueForKey("shouldReceiveTrackingInBack");
+        }
     },
 
     _commonWindowInit: function(){

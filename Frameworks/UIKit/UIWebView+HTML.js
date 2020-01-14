@@ -40,9 +40,53 @@ UIWebView.definePropertiesFromExtensions({
             url = JSURL.initWithString(e.target.contentWindow.location.href);
         }catch(err){
         }
-        if (this.delegate && this.delegate.webViewDidLoadURL){
+        try{
+            e.target.contentWindow.addEventListener('mousedown', this, true);
+            e.target.contentWindow.addEventListener('mouseup', this, true);
+            e.target.contentWindow.addEventListener('mousemove', this, true);
+        }catch (error){
+        }
+        if (url !== null && this.delegate && this.delegate.webViewDidLoadURL){
             this.delegate.webViewDidLoadURL(this, url);
         }
+    },
+
+    _adjustedEvent: function(e){
+        var rect = this._iframe.getClientRects()[0];
+        return new MouseEvent(e.type, {
+            bubbles: e.bubbles,
+            cancelable: e.cancelable,
+            composed: e.composed,
+            detail: e.detail,
+            view: e.view,
+            screenX: e.screenX,
+            screenY: e.screenY,
+            clientX: e.clientX + rect.left,
+            clientY: e.clientY + rect.top,
+            ctrlKey: e.ctrlKey,
+            shiftKey: e.shiftKey,
+            altKey: e.altKey,
+            metaKey: e.metaKey,
+            button: e.button,
+            buttons: e.buttons,
+            relatedTarget: e.relatedTarget,
+            region: e.region
+        });
+    },
+
+    _event_mousedown: function(e){
+        e = this._adjustedEvent(e);
+        this.window.windowServer.mousedown(e);
+    },
+
+    _event_mouseup: function(e){
+        e = this._adjustedEvent(e);
+        this.window.windowServer.mouseup(e);
+    },
+
+    _event_mousemove: function(e){
+        e = this._adjustedEvent(e);
+        this.window.windowServer.mousemove(e);
     },
 
     _createIframeIfNeeded: function(document){

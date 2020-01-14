@@ -148,7 +148,7 @@ JSClass("Documentation", JSObject, {
             let component = stack.shift();
             let url = component.outputURL;
             let path = url.encodedStringRelativeTo(baseURL);
-            config[path] = path.substr(0, path.length - path.fileExtension.length);
+            config[path] = null; //path.substr(0, path.length - path.fileExtension.length);
             for (let i = 0, l = component.children.length; i < l; ++i){
                 stack.push(component.children[i]);
             }

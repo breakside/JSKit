@@ -719,7 +719,8 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
         window.borderColor = this._borderColor;
         window.borderWidth = this._borderWidth;
         window.shadowColor = this.shadowColor;
-        window.shadowRadius = this.shadowOffset;
+        window.shadowOffset = this.shadowOffset;
+        window.shadowRadius = this.shadowRadius;
         window.cornerRadius = this._cornerRadius;
         window.contentView.backgroundColor = this._backgroundColor;
     },

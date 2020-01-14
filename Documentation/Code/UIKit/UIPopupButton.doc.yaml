@@ -64,6 +64,11 @@ topics:
                   See `JSInsets`(JSInsets.Spec File Properties) for 
                   description of the various ways insets can be
                   specified.
+              -
+                name: showsIndicator
+                type: boolean
+                summary: Controls whether the popup/pulldown indicator arrow
+                  is visible on the button
           -
             name: Pull Down Menu
             members:
@@ -156,6 +161,22 @@ topics:
         summary: The abstract base class for popup button stylers
         topics:
           -
+            name: Creating a Styler
+            members:
+              -
+                name: Spec File Properties
+                kind: spec
+                summary: The properties available to any popup button styler
+                  in a spec file
+                topics:
+                  -
+                    name: Menu Styling
+                    members:
+                      -
+                        name: menuStyler
+                        type: UIMenuStyler
+                        summary: The styler to use for the button's menu
+          -
             name: Menu Styling
             members:
               -
@@ -163,11 +184,185 @@ topics:
                 type: UIMenuStyler
                 summary: The styler to use for the button's menu
       -
-        name: UIPopupButtonDefaultStyler
+        name: UIPopupButtonCustomStyler
         kind: class
         inherits: UIPopupButtonStyler
-        summary: The default popup button styler for `UIKit`
+        summary: An initially blank popup button styler with standard layout and
+          options
         topics:
+          -
+            name: Creating a Styler
+            members:
+              -
+                name: initWithColor
+                kind: init
+                summary: Create a popup button with a color for its title/image
+                arguments:
+                  -
+                    name: color
+                    type: JSColor
+                    summary: The color to use for the button's title and image
+                      in the normal state
+                description: |
+                  Colors for disabled and active states will be derived
+                  automatically
+              -
+                name: initWithBackgroundColor
+                kind: init
+                summary: Create a popup button with background and title colors
+                arguments:
+                  -
+                    name: backgroundColor
+                    type: JSColor
+                    summary: The color to use for the button's background
+                      in the normal state
+                  -
+                    name: titleColor
+                    type: JSColor
+                    summary: The color to use for the button's title and image
+                      in the normal state
+                description: |
+                  Colors for disabled and active states will be derived
+                  automatically
+              -
+                name: Spec File Properties
+                kind: spec
+                summary: The properties available when creating a styler in a
+                  spec file
+                topics:
+                  -
+                    name: Background
+                    members:
+                      -
+                        name: normalBackgroundColor
+                        type: JSColor
+                        summary: The background color to use when the button is in
+                          its normal state
+                      -
+                        name: disabledBackgroundColor
+                        type: JSColor
+                        summary: The background color to use when the button is in
+                          its disabled state
+                        description: |
+                          If not included, and a `normalBackgroundColor` is
+                          included, this color will be derived from the
+                          `normalBackgroundColor`
+                      -
+                        name: activeBackgroundColor
+                        type: JSColor
+                        summary: The background color to use when the button is in
+                          its active state
+                        description: |
+                          If not included, and a `normalBackgroundColor` is
+                          included, this color will be derived from the
+                          `normalBackgroundColor`
+                      -
+                        name: normalBackgroundGradient
+                        type: JSGradient
+                        summary: The background gradient to use when the button is in
+                          its normal state
+                      -
+                        name: disabledBackgroundGradient
+                        type: JSGradient
+                        summary: The background gradient to use when the button is in
+                          its disabled state
+                      -
+                        name: activeBackgroundGradient
+                        type: JSGradient
+                        summary: The background gradient to use when the button is in
+                          its active state
+                  -
+                    name: Border
+                    members:
+                      -
+                        name: borderWidth
+                        type: Number
+                        summary: The width of the button's border
+                      -
+                        name: normalBorderColor
+                        type: JSColor
+                        summary: The border color to use when the button is in
+                          its normal state
+                      -
+                        name: disabledBorderColor
+                        type: JSColor
+                        summary: The border color to use when the button is in
+                          its disabled state
+                        description: |
+                          If not included, and if `normalBorderColor` is
+                          included, this color will be derived from the
+                          `normalBorderColor`.
+                      -
+                        name: activeBorderColor
+                        type: JSColor
+                        summary: The border color to use when the button is in
+                          its active state
+                        description: |
+                          If not included, and if `normalBorderColor` is
+                          included, this color will be derived from the
+                          `normalBorderColor`.
+                      -
+                        name: cornerRadius
+                        type: Number
+                        summary: How much to round the corners of the button
+                  -
+                    name: Title Text
+                    members:
+                      -
+                        name: normalTitleColor
+                        type: JSColor
+                        summary: The title text color to use when the button is in
+                          its normal state
+                        description: |
+                          If not included, will default to `JSColor.black`.
+                      -
+                        name: disabledTitleColor
+                        type: JSColor
+                        summary: The title text color to use when the button is in
+                          its disabled state
+                        description: |
+                          If not included, will be derived from `normalTitleColor`
+                      -
+                        name: activeTitleColor
+                        type: JSColor
+                        summary: The title text color to use when the button is in
+                          its active state
+                        description: |
+                          If not included, will be derived from `normalTitleColor`
+                      -
+                        name: titleInsets
+                        type: JSInsets
+                        summary: The default insets for the button's title
+                        description: |
+                          The title insets are only set when the button is created, so
+                          calling code can set the `UIButton.titleInsets` after to
+                          override the default styler insets.
+                  -
+                    name: Shadow
+                    members:
+                      -
+                        name: shadowColor
+                        type: JSColor
+                        summary: The color of the button's shadow
+                      -
+                        name: shadowOffset
+                        type: JSPoint
+                        summary: The offset of the button's shadow
+                      -
+                        name: shadowRadius
+                        type: Number
+                        summary: The radius of the button's shadow
+                  -
+                    name: Indicator
+                    members:
+                      -
+                        name: indicatorSpacing
+                        type: Number
+                        summary: The spacing between the title and and the indicator
+                          image view.
+                        description: |
+                          The indicator image view is arrow that indicates either a
+                          popup or a pull down menu.
           -
             name: Background
             members:
@@ -223,6 +418,10 @@ topics:
                 type: JSColor
                 summary: The border color to use when the button is in
                   its active state
+              -
+                name: cornerRadius
+                type: Number
+                summary: How much to round the corners of the button
           -
             name: Title Text
             members:
@@ -276,6 +475,18 @@ topics:
                   The indicator image view is arrow that indicates either a
                   popup or a pull down menu.
       -
+        name: UIPopupButtonDefaultStyler
+        kind: class
+        inherits: UIPopupButtonCustomStyler
+        summary: Configures a popup styler with `UIKit` default colors, layout,
+          and shadows.
+        description: |
+          The `UIKit` default popup button styler is designed with common
+          colors and layout to match other standard controls.
+
+          It contains no extra properties from `UIPopupButtonCustomStyler`, but
+          sets their initial values differently.
+      -
         name: Styler
         kind: enum
         suffix: enum
@@ -287,7 +498,8 @@ topics:
         options:
           -
             name: default
-            summary: The `UIKit` default styler for popup buttons
+            summary: The `UIKit` default styler for popup buttons.  Can be
+              overwritten during app launch to provide a custom default styler.
       -
         name: styler
         type: UIPopupButtonStyler
@@ -303,6 +515,11 @@ topics:
           instruction that it should consider.
         see:
           - styler
+      -
+        name: showsIndicator
+        type: boolean
+        summary: Controls whether the popup/pulldown indicator arrow
+          is visible on the button
   -
     name: Selection
     members:

@@ -402,8 +402,10 @@ JSClass("HTMLBuilder", Builder, {
                 await this._copyWWWEntry(child, wwwPath + '/' + child.name, manifestConfiguration);
             }
         }else{
-            let manifestEntry = manifestConfiguration[wwwPath] || wwwPath;
-            this.wwwPaths.push(manifestEntry);
+            let manifestEntry = (wwwPath in manifestConfiguration) ? manifestConfiguration[wwwPath] : wwwPath;
+            if (manifestEntry !== null){
+                this.wwwPaths.push(manifestEntry);
+            }
             await this.fileManager.copyItemAtURL(entry.url, toURL);
         }
     },

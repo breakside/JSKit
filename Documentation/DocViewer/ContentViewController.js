@@ -5,7 +5,9 @@
 
 JSClass("ContentViewController", UIViewController, {
 
+    headerView: null,
     breadcrumbView: null,
+    menuButton: null,
     webView: null,
     delegate: null,
     baseURL: null,
@@ -16,6 +18,7 @@ JSClass("ContentViewController", UIViewController, {
         if (spec.containsKey("delegate")){
             this.delegate = spec.valueForKey("delegate");
         }
+        this.menuButtonInsets = JSInsets(3, 7);
     },
 
     setComponents: function(components){
@@ -71,9 +74,12 @@ JSClass("ContentViewController", UIViewController, {
     },
 
     viewDidLayoutSubviews: function(){
-        var breadcrumbHeight = 31;
-        this.breadcrumbView.frame = JSRect(0, 0, this.view.bounds.size.width, breadcrumbHeight);
-        this.webView.frame = JSRect(0, breadcrumbHeight, this.view.bounds.size.width, this.view.bounds.size.height - breadcrumbHeight);
+        var headerHeight = 31;
+        var buttonSize = headerHeight - 1 - this.menuButtonInsets.height;
+        this.headerView.frame = JSRect(0, 0, this.view.bounds.size.width, headerHeight);
+        this.menuButton.frame = JSRect(this.view.bounds.size.width - buttonSize - this.menuButtonInsets.right, this.menuButtonInsets.top, buttonSize, buttonSize);
+        this.breadcrumbView.frame = JSRect(0, 0, this.menuButton.frame.origin.x - this.menuButtonInsets.left, headerHeight - 1);
+        this.webView.frame = JSRect(0, headerHeight, this.view.bounds.size.width, this.view.bounds.size.height - headerHeight);
     }
 
 });

@@ -2,7 +2,7 @@
 // #import "UILabel.js"
 // #import "UIImageView.js"
 // #import "UIMenu.js"
-/* global JSClass, JSObject, UIControl, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSColor, UIPopupButton, JSTextAlignment, JSPoint, UIView, JSFont, UIPopupButtonStyler, UIPopupButtonDefaultStyler, JSRect, JSImage, JSBundle, UIImageView, JSSize, JSInsets, UIMenu, UIMenuItem */
+/* global JSClass, JSObject, UIControl, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSColor, UIPopupButton, JSTextAlignment, JSPoint, UIView, JSFont, UIPopupButtonStyler, UIPopupButtonDefaultStyler, JSRect, JSImage, JSBundle, UIImageView, JSSize, JSInsets, UIMenu, UIMenuItem, JSGradient, UIPopupButtonCustomStyler */
 'use strict';
 
 (function(){
@@ -20,10 +20,14 @@ JSClass("UIPopupButton", UIControl, {
     maxTitleWidth: JSDynamicProperty('_maxTitleWidth', null),
     _imageTitleSpacing: 3,
     pullsDown: JSDynamicProperty('_pullsDown', false),
+    showsIndicator: JSDynamicProperty('_showsIndicator', true),
 
     initWithSpec: function(spec){
         if (spec.containsKey('pullsDown')){
             this._pullsDown = spec.valueForKey('pullsDown');
+        }
+        if (spec.containsKey('showsIndicator')){
+            this._showsIndicator = spec.valueForKey('showsIndicator');
         }
         UIPopupButton.$super.initWithSpec.call(this, spec);
         if (spec.containsKey('font')){
@@ -38,7 +42,9 @@ JSClass("UIPopupButton", UIControl, {
         if (spec.containsKey('image')){
             this._imageView.image = spec.valueForKey("image", JSImage);
         }
-        if (spec.containsKey('options')){
+        if (spec.containsKey('menu')){
+            this._menu = spec.valueForKey("menu");
+        }else if (spec.containsKey('options')){
             var options = spec.valueForKey('options');
             for (var i = 0, l = options.length; i < l; ++i){
                 this.addItemWithTitle(options.valueForKey(i));
@@ -71,6 +77,11 @@ JSClass("UIPopupButton", UIControl, {
     setPullsDown: function(pullsDown){
         this._pullsDown = pullsDown;
         this._updateIndicatorView();
+    },
+
+    setShowsIndicator: function(showsIndicator){
+        this._showsIndicator = showsIndicator;
+        this.setNeedsLayout();
     },
 
     _updateIndicatorView: function(){
@@ -290,11 +301,23 @@ UIPopupButton.Styler = Object.create({}, {
 
 JSClass("UIPopupButtonStyler", UIControlStyler, {
 
-    menuStyler: UIMenu.Styler.default,
+    menuStyler: null,
+
+    init: function(){
+        this.menuStyler = UIMenu.Styler.default;
+    },
+
+    initWithSpec: function(spec){
+        if (spec.containsKey("menuStyler")){
+            this.menuStyler = spec.valueForKey("menuStyler", UIMenu.Styler);
+        }else{
+            this.menuStyler = UIMenu.Styler.default;
+        }
+    }
 
 });
 
-JSClass("UIPopupButtonDefaultStyler", UIPopupButtonStyler, {
+JSClass("UIPopupButtonCustomStyler", UIPopupButtonStyler, {
 
     showsOverState: false,
     titleInsets: null,
@@ -310,26 +333,130 @@ JSClass("UIPopupButtonDefaultStyler", UIPopupButtonStyler, {
     normalTitleColor: null,
     disabledTitleColor: null,
     activeTitleColor: null,
-    borderWidth: 1,
-    cornerRadius: 3,
+    borderWidth: 0,
+    cornerRadius: 0,
     shadowColor: null,
     shadowOffset: null,
     shadowRadius: 1,
     indicatorSpacing: 0,
 
     init: function(){
-        this.titleInsets = JSInsets(3, 7, 3, 4);
-        this.normalBackgroundColor = UIPopupButtonDefaultStyler.NormalBackgroundColor;
-        this.disabledBackgroundColor = UIPopupButtonDefaultStyler.DisabledBackgroundColor;
-        this.activeBackgroundColor = UIPopupButtonDefaultStyler.ActiveBackgroundColor;
-        this.normalBorderColor = UIPopupButtonDefaultStyler.NormalBorderColor;
-        this.disabledBorderColor = UIPopupButtonDefaultStyler.DisabledBorderColor;
-        this.activeBorderColor = UIPopupButtonDefaultStyler.ActiveBorderColor;
-        this.normalTitleColor = UIPopupButtonDefaultStyler.NormalTitleColor;
-        this.disabledTitleColor = UIPopupButtonDefaultStyler.DisabledTitleColor;
-        this.activeTitleColor = UIPopupButtonDefaultStyler.ActiveTitleColor;
-        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
-        this.shadowOffset = JSPoint(0, 1);
+        this.initWithColor(JSColor.black);
+    },
+
+    initWithColor: function(color){
+        UIPopupButtonCustomStyler.$super.init.call(this);
+        this._populateDefaults();
+        this.normalTitleColor = color;
+        this._fillInMissingColors();
+    },
+
+    initWithBackgroundColor: function(backgroundColor, titleColor){
+        UIPopupButtonCustomStyler.$super.init.call(this);
+        this._populateDefaults();
+        this.normalBackgroundColor = backgroundColor;
+        this.normalTitleColor = titleColor;
+        this._fillInMissingColors();
+    },
+
+    initWithSpec: function(spec){
+        UIPopupButtonCustomStyler.$super.initWithSpec(spec);
+
+        this._populateDefaults();
+
+        if (spec.containsKey("titleInsets")){
+            this.titleInsets = spec.valueForKey("titleInsets", JSInsets);
+        }
+        if (spec.containsKey("normalBackgroundColor")){
+            this.normalBackgroundColor = spec.valueForKey("normalBackgroundColor", JSColor);
+        }
+        if (spec.containsKey("disabledBackgroundColor")){
+            this.disabledBackgroundColor = spec.valueForKey("disabledBackgroundColor", JSColor);
+        }
+        if (spec.containsKey("activeBackgroundColor")){
+            this.activeBackgroundColor = spec.valueForKey("activeBackgroundColor", JSColor);
+        }
+        if (spec.containsKey("normalBackgroundGradient")){
+            this.normalBackgroundGradient = spec.valueForKey("normalBackgroundGradient", JSGradient);
+        }
+        if (spec.containsKey("disabledBackgroundGradient")){
+            this.disabledBackgroundGradient = spec.valueForKey("disabledBackgroundGradient", JSGradient);
+        }
+        if (spec.containsKey("activeBackgroundGradient")){
+            this.activeBackgroundGradient = spec.valueForKey("activeBackgroundGradient", JSGradient);
+        }
+        if (spec.containsKey("normalBorderColor")){
+            this.normalBorderColor = spec.valueForKey("normalBorderColor", JSColor);
+        }
+        if (spec.containsKey("disabledBorderColor")){
+            this.disabledBorderColor = spec.valueForKey("disabledBorderColor", JSColor);
+        }
+        if (spec.containsKey("activeBorderColor")){
+            this.activeBorderColor = spec.valueForKey("activeBorderColor", JSColor);
+        }
+        if (spec.containsKey("normalTitleColor")){
+            this.normalTitleColor = spec.valueForKey("normalTitleColor", JSColor);
+        }
+        if (spec.containsKey("disabledTitleColor")){
+            this.disabledTitleColor = spec.valueForKey("disabledTitleColor", JSColor);
+        }
+        if (spec.containsKey("activeTitleColor")){
+            this.activeTitleColor = spec.valueForKey("activeTitleColor", JSColor);
+        }
+        if (spec.containsKey("shadowColor")){
+            this.shadowColor = spec.valueForKey("shadowColor", JSColor);
+        }
+        if (spec.containsKey("shadowOffset")){
+            this.shadowOffset = spec.valueForKey("shadowOffset", JSPoint);
+        }
+        if (spec.containsKey("shadowRadius")){
+            this.shadowRadius = spec.valueForKey("shadowRadius");
+        }
+        if (spec.containsKey("borderWidth")){
+            this.borderWidth = spec.valueForKey("borderWidth");
+        }
+        if (spec.containsKey("indicatorSpacing")){
+            this.indicatorSpacing = spec.valueForKey("indicatorSpacing");
+        }
+
+        this._fillInMissingColors();
+    },
+
+    _populateDefaults: function(){
+        if (this.titleInsets === null){
+            this.titleInsets = JSInsets.Zero;
+        }
+        if (this.shadowOffset === null){
+            this.shadowOffset = JSPoint.Zero;
+        }
+    },
+
+    _fillInMissingColors: function(){
+        if (this.normalBackgroundColor !== null){
+            if (this.activeBackgroundColor === null){
+                this.activeBackgroundColor = this.normalBackgroundColor.colorDarkenedByPercentage(0.2);
+            }
+            if (this.disabledBackgroundColor === null){
+                this.disabledBackgroundColor = this.normalBackgroundColor.colorWithAlpha(0.5);
+            }
+        }
+        if (this.normalBorderColor !== null){
+            if (this.activeBorderColor === null){
+                this.activeBorderColor = this.normalBorderColor.colorDarkenedByPercentage(0.2);
+            }
+            if (this.disabledBorderColor === null){
+                this.disabledBorderColor = this.normalBorderColor.colorWithAlpha(0.5);
+            }
+        }
+        if (this.normalTitleColor === null){
+            this.normalTitleColor = JSColor.black;
+        }
+        if (this.activeTitleColor === null){
+            this.activeTitleColor = this.normalTitleColor.colorDarkenedByPercentage(0.2);
+        }
+        if (this.disabledTitleColor === null){
+            this.disabledTitleColor = this.normalTitleColor.colorWithAlpha(0.5);
+        }
     },
 
     initializeControl: function(button){
@@ -367,11 +494,21 @@ JSClass("UIPopupButtonDefaultStyler", UIPopupButtonStyler, {
         }
     },
 
+    sizeControlToFitSize: function(button, size){
+        button.bounds = JSRect(JSPoint.Zero, this.intrinsicSizeOfControl(button));
+    },
+
     layoutControl: function(button){
         var height = button.titleLabel.font.displayLineHeight;
         var insets = button._titleInsets;
         var indicatorSize = JSSize(height, height);
+        var indicatorSpacing = this.indicatorSpacing;
+        if (!button.showsIndicator){
+            indicatorSpacing = 0;
+            indicatorSize = JSSize.Zero;
+        }
         var imageSize = height;
+        button.indicatorView.hidden = !button.showsIndicator;
         button.indicatorView.frame = JSRect(button.bounds.size.width - insets.right - indicatorSize.width, insets.top, indicatorSize.width, indicatorSize.height);
         button._imageView.hidden = button._imageView.image === null;
         var x = insets.left;
@@ -379,7 +516,7 @@ JSClass("UIPopupButtonDefaultStyler", UIPopupButtonStyler, {
             button._imageView.frame = JSRect(x, insets.top, imageSize, imageSize);
             x += imageSize + button._imageTitleSpacing;
         }
-        button.titleLabel.frame = JSRect(x, insets.top, button.indicatorView.frame.origin.x - x - this.indicatorSpacing, height);
+        button.titleLabel.frame = JSRect(x, insets.top, button.indicatorView.frame.origin.x - x - indicatorSpacing, height);
     },
 
     intrinsicSizeOfControl: function(button){
@@ -396,27 +533,161 @@ JSClass("UIPopupButtonDefaultStyler", UIPopupButtonStyler, {
         }
         size.width += titleSize.width;
         size.height += titleSize.height;
-        size.width += this.indicatorSpacing;
-        var indicatorSize = JSSize(titleSize.height, titleSize.height);
-        size.width += indicatorSize.width;
+        if (button.showsIndicator){
+            size.width += this.indicatorSpacing;
+            var indicatorSize = JSSize(titleSize.height, titleSize.height);
+            size.width += indicatorSize.width;
+        }
         return size;
+    },
+
+});
+
+JSClass("UIPopupButtonDefaultStyler", UIPopupButtonCustomStyler, {
+
+    borderWidth: 1,
+    cornerRadius: 3,
+    shadowRadius: 1,
+    indicatorSpacing: 0,
+
+    _populateDefaults: function(){
+        if (this.titleInsets === null){
+            this.titleInsets = JSInsets(3, 7, 3, 4);
+        }
+        if (this.shadowColor === null){
+            this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
+        }
+        if (this.shadowOffset === null){
+            this.shadowOffset = JSPoint(0, 1);
+        }
+    },
+
+    _fillInMissingColors: function(){
+        if (this.normalBackgroundColor === null){
+            this.normalBackgroundColor = UIPopupButtonDefaultStyler.NormalBackgroundColor;
+            if (this.activeBackgroundColor === null){
+                this.activeBackgroundColor = UIPopupButtonDefaultStyler.ActiveBackgroundColor;
+            }
+            if (this.disabledBackgroundColor === null){
+                this.disabledBackgroundColor = UIPopupButtonDefaultStyler.DisabledBackgroundColor;
+            }
+        }
+        if (this.normalBorderColor === null){
+            this.normalBorderColor = UIPopupButtonDefaultStyler.NormalBorderColor;
+            if (this.activeBorderColor === null){
+                this.activeBorderColor = UIPopupButtonDefaultStyler.ActiveBorderColor;
+            }
+            if (this.disabledBorderColor === null){
+                this.disabledBorderColor = UIPopupButtonDefaultStyler.DisabledBorderColor;
+            }
+        }
+        if (this.normalTitleColor === null){
+            this.normalTitleColor = UIPopupButtonDefaultStyler.NormalTitleColor;
+            if (this.activeTitleColor === null){
+                this.activeTitleColor = UIPopupButtonDefaultStyler.ActiveTitleColor;
+            }
+            if (this.disabledTitleColor === null){
+                this.disabledTitleColor = UIPopupButtonDefaultStyler.DisabledTitleColor;
+            }
+        }
+    }
+
+});
+
+JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
+
+    showsOverState: false,
+    normalColor: null,
+    disabledColor: null,
+    activeColor: null,
+    activeBackgroundColor: null,
+    overBackgroundColor: null,
+    cornerRadius: 0,
+
+    init: function(){
+        this.initWithColor(JSColor.black);
+    },
+
+    initWithColor: function(color){
+        UIPopupButtonCustomStyler.$super.init.call(this);
+        this.normalColor = color;
+        this._fillInMissingColors();
+    },
+
+    initWithSpec: function(spec){
+        UIPopupButtonCustomStyler.$super.initWithSpec(spec);
+        if (spec.containsKey("normalColor")){
+            this.normalColor = spec.valueForKey("normalColor", JSColor);
+        }
+        if (spec.containsKey("disabledColor")){
+            this.disabledColor = spec.valueForKey("disabledColor", JSColor);
+        }
+        if (spec.containsKey("activeColor")){
+            this.activeColor = spec.valueForKey("activeColor", JSColor);
+        }
+        if (spec.containsKey("activeBackgroundColor")){
+            this.activeBackgroundColor = spec.valueForKey("activeBackgroundColor", JSColor);
+        }
+        if (spec.containsKey("overBackgroundColor")){
+            this.overBackgroundColor = spec.valueForKey("overBackgroundColor", JSColor);
+            this.showsOverState = true;
+        }
+        if (spec.containsKey("cornerRadius")){
+            this.cornerRadius = spec.valueForKey("cornerRadius");
+        }
+        this._fillInMissingColors();
+    },
+
+    _fillInMissingColors: function(){
+        if (this.activeColor === null){
+            this.activeColor = this.normalColor.colorDarkenedByPercentage(0.2);
+        }
+        if (this.disabledColor === null){
+            this.disabledColor = this.normalColor.colorWithAlpha(0.5);
+        }
+    },
+
+    initializeControl: function(button){
+        button._imageView.automaticRenderMode = JSImage.RenderMode.template;
+        button._imageView.scaleMode = UIImageView.ScaleMode.center;
+        button._titleLabel.hidden = true;
+        button._indicatorView.hidden = true;
+        button._titleLabel.frame = JSRect.Zero;
+        button._indicatorView.frame = JSRect.Zero;
+        button._imageView.hidden = false;
+        button.cornerRadius = this.cornerRadius;
+        this.updateControl(button);
+    },
+
+    updateControl: function(button){
+        if (!button.enabled){
+            button._imageView.templateColor = this.disabledColor;
+            button.backgroundColor = null;
+        }else if (button.active){
+            button._imageView.templateColor = this.activeColor;
+            button.backgroundColor = this.activeBackgroundColor;
+        }else{
+            button._imageView.templateColor = this.normalColor;
+            if (this.showsOverState && button.over){
+                button.backgroundColor = this.overBackgroundColor;
+            }else{
+                button.backgroundColor = null;
+            }
+        }
     },
 
     sizeControlToFitSize: function(button, size){
         button.bounds = JSRect(JSPoint.Zero, this.intrinsicSizeOfControl(button));
     },
 
-});
+    layoutControl: function(button){
+        button._imageView.frame = button.bounds;
+    },
 
-Object.defineProperties(UIPopupButtonDefaultStyler, {
-    shared: {
-        configurable: true,
-        get: function UIPopupButtonDefaultStyler_getShared(){
-            var shared = UIPopupButtonDefaultStyler.init();
-            Object.defineProperty(this, 'shared', {value: shared});
-            return shared;
-        }
-    }
+    intrinsicSizeOfControl: function(button){
+        return button.image.size;
+    },
+
 });
 
 UIPopupButtonDefaultStyler.NormalBackgroundColor = JSColor.initWithRGBA(250/255,250/255,250/255);
