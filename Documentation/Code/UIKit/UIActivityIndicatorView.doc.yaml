@@ -1,0 +1,125 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: UIView
+summary: A view that indicates an activity is in progress, like a spinner
+description: |
+  Typically used for activities that have an interminant lifetime.
+
+  For activities that have a known progress, consider using
+  `UIProgressIndicatorView`.
+topics:
+  -
+    name: Creating an Activity Indicator
+    members:
+      -
+        name: initWithStyle
+        kind: init
+        summary: Create an activity view with the given style
+        arguments:
+          -
+            name: style
+            type: Style
+            summary: The style of activity view to create
+      -
+        name: initWithColor
+        kind: init
+        summary: Create an activity view with the given color
+        arguments:
+          -
+            name: color
+            type: JSColor
+            summary: The color to tint the activity view
+      -
+        name: initWithSpriteImage
+        kind: init
+        summary: Create an activity indicator with a custom image that contains
+          all of the animation frames vertically stacked
+        arguments:
+          -
+            name: spriteImage
+            type: JSImage
+            summary: The image that contains every animation frame vertically
+              stacked
+          -
+            name: singleFrameHeight
+            type: Number
+            summary: The height of a single frame in the animation
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available to a activity view in a spec file
+        topics:
+          -
+            name: Creation Options
+            members:
+              -
+                name: style
+                type: Style
+                summary: The default style to use
+                description: |
+                  Used instead of `color` or `spriteImage`.
+              -
+                name: color
+                type: JSColor
+                summary: The tint color to use
+                description: |
+                  Used instead of `style` or `spriteImage`.
+              -
+                name: spriteImage
+                type: JSImage
+                summary: The custom animation image to use
+                description: |
+                  Used instead of `style` or `color`.
+
+                  The image should contain animation frames stacked vertically.
+
+                  Must also specify `singleFrameHeight`.
+              -
+                name: singleFrameHeight
+                type: Number
+                summary: The height of a single frame in the `spriteImage`.
+          -
+            name: Behavior
+            members:
+              -
+                name: hidesWhenStopped
+                type: boolean
+                summary: Indicates if the view should hide itself when not
+                  animating
+  -
+    name: Indicating Activity
+    members:
+      -
+        name: startAnimating
+        kind: method
+        summary: Call to indicate activity in progress
+      -
+        name: stopAnimating
+        kind: method
+        summary: Call to indicate activity has stopped
+      -
+        name: hidesWhenStopped
+        type: boolean
+        summary: Indicates if the view should hide itself when not
+          animating
+      -
+        name: isAnimating
+        type: boolean
+        summary: Indicates if the view is currently animating
+  -
+    name: Style
+    members:
+      -
+        name: Style
+        kind: enum
+        summary: The default styles for an activity indicator
+        options:
+          -
+            name: dark
+            summary: An indicator with a dark tint color, suitable for use on
+              light backgrounds
+          -
+            name: light
+            summary: An indicator with a light tint color, suitable for use on
+              dark backgrounds

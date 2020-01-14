@@ -1,0 +1,98 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: UIView
+summary: A view that indicates an activity is in progress with a known percent
+  complete
+description: |
+  Typically used for activities that have a known lifetime and percent complete.
+
+  For activities that have an indeterminant progress, consider using
+  `UIActivityIndicatorView`.
+topics:
+  -
+    name: Creating a Progress Indicator
+    members:
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available to a progress view in a spec file
+        topics:
+          -
+            name: Style
+            members:
+              -
+                name: style
+                type: Style
+                summary: The default style to use
+              -
+                name: progressBarColor
+                type: JSColor
+                summary: The color to use for the portion of the progress bar
+                  that indicates percent complete
+              -
+                name: progressBorderColor
+                type: JSColor
+                summary: The color to use around the progress bar
+              -
+                name: progressBorderWidth
+                type: Number
+                summary: The width of the border to use around the progress bar
+              -
+                name: barInsets
+                type: JSInsets
+                summary: The amount to inset the progress from the edge of the
+                  view
+          -
+            name: Progress
+            members:
+              -
+                name: percentComplete
+                type: Number
+                summary: The percent complete to start with 
+  -
+    name: Style
+    members:
+      -
+        name: Style
+        kind: enum
+        suffix: enum
+        summary: The possible styles for a progress bar
+        options:
+          -
+            name: linear
+            summary: Display the progress as a horizontal bar that fills from
+              left to right
+          -
+            name: circular
+            summary: Display the progress as a circle that fills from 12 o'clock
+              in a clockwise direction
+      -
+        name: style
+        type: Style
+        summary: The default style to use
+      -
+        name: progressBarColor
+        type: JSColor
+        summary: The color to use for the portion of the progress bar
+          that indicates percent complete
+      -
+        name: progressBorderColor
+        type: JSColor
+        summary: The color to use around the progress bar
+      -
+        name: progressBorderWidth
+        type: Number
+        summary: The width of the border to use around the progress bar
+      -
+        name: barInsets
+        type: JSInsets
+        summary: The amount to inset the progress from the edge of the
+          view
+  -
+    name: Progress
+    members:
+      -
+        name: percentComplete
+        type: Number
+        summary: The percent complete to show
