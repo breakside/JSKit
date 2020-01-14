@@ -677,6 +677,8 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
 
     initWithSpec: function(spec){
         UIMenuDefaultStyler.$super.initWithSpec.call(this, spec);
+        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.2);
+        this.shadowOffset = JSPoint.Zero;
         if (spec.containsKey('capSize')){
             this._capSize = spec.valueForKey("capSize");
         }

@@ -196,6 +196,9 @@ MenuButton:
 
 MainMenu:
   class: UIMenu
+  styler:
+    class: UIMenuDefaultStyler
+    highlightColor: /HighlightColor
   items:
     -
       title: Report an Issue
