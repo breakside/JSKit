@@ -297,3 +297,31 @@ topics:
 
               This method can be especially useful when dealing with a
               padding-like property.
+      -
+        name: rectWithInsets
+        suffix: shorthand
+        kind: method
+        type: JSRect
+        return: A new rectangle inset from this rectangle by the given amount
+        summary: Create a new rectangle based off of this one and a given set of
+          insets
+        arguments:
+          -
+            name: top
+            type: Number
+            summary: The distance to inset from the top
+          -
+            name: left
+            default: top
+            type: Number
+            summary: The distance to inset from the left
+          -
+            name: bottom
+            default: top
+            type: Number
+            summary: The distance to inset from the bottom
+          -
+            name: right
+            default: left
+            type: Number
+            summary: The distance to inset from the right

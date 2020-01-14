@@ -4,7 +4,7 @@
 
 JSClass("UIOpenPanel", JSObject, {
 
-    allowsMultipleSelction: false,
+    allowsMultipleSelection: false,
     allowedContentTypes: null,
     chooseDirectories: false,
     file: JSReadOnlyProperty('_file', null),

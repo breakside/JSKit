@@ -1,0 +1,143 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: UIViewController
+summary: Manages an alert displayed to the user
+description: |
+  Alerts can be used for errors, confirmations, or selections.
+
+  An alert is the combination of a `title`, `message`, and `actions`.
+
+  Alerts are shown using a `UIPopupWindow`.
+topics:
+  -
+    name: Creating an Alert
+    members:
+      -
+        name: initWithTitle
+        kind: init
+        summary: Create an alert with the given title and message
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title to use for the alert
+          -
+            name: message
+            type: String
+            summary: The message to use in the alert
+        description: |
+          ````
+          JSClass("MessagesViewController", UIViewController, {
+
+            sendMessage: function(){
+              this.service.send();
+            },
+
+            serviceDidFailSend: function(){
+              var alert = UIAlertController.initWithTitle("Send Error", "Sorry, but we couldn't send the message");
+              alert.addActionWithTitle("OK", UIAlertAction.Style.cancel));
+              alert.addActionWithTitle("Send Again", UIAlertAction.Style.default, function(){
+                this.sendMessage();
+              }, this);
+            }
+
+          });
+          ````
+  -
+    name: Actions
+    members:
+      -
+        name: addAction
+        kind: method
+        summary: Adds the given action as a button in the popup
+        arguments:
+          -
+            name: action
+            type: UIAlertAction
+            summary: The action to add
+      -
+        name: addActionWithTitle
+        kind: method
+        summary: Creates and adds the given action as a button in the popup
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title for the action button
+          -
+            name: style
+            type: UIAlertAction.Style
+            summary: The style for the action button
+          -
+            name: action
+            type: function
+            summary: The function to call when the action button is clicked
+          -
+            name: target
+            type: object
+            default: undefined
+            summary: The object to use as `this` when calling the action
+              function
+      -
+        name: actions
+        type: UIAlertAction[]
+        summary: The actions on this alert
+  -
+    name: Title & Message
+    members:
+      -
+        name: title
+        type: String
+        summary: The title for this alert
+      -
+        name: message
+        type: String
+        summary: The message for this alert
+  -
+    name: Displaying the Action
+    members:
+      -
+        name: popupAdjacentToView
+        kind: method
+        summary: Show the alert next to a relevant view
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: A view that is related to the alert
+          -
+            name: perferredPlacement
+            type: UIPopupWindow.Placement
+            summary: The preferred placement of the popup.  The popup may appear
+              at a different placement if there is not enough room at the
+              preferred placement.
+          -
+            name: animated
+            type: boolean
+            default: "true"
+            summary: Whether the alert should appear in an animated way
+        description: |
+          The displayed popup window will be a modal window attached to the
+          given view's `window`(UIView.window).
+      -
+        name: popupCenteredInView
+        kind: method
+        summary: Show the alert centered on top of a relevant view
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: A view that is related to the alert
+          -
+            name: animated
+            type: boolean
+            default: "true"
+            summary: Whether the alert should appear in an animated way
+        description: |
+          The displayed popup window will be a modal window attached to the
+          given view's `window`(UIView.window).
+      -
+        name: dismiss
+        kind: method
+        summary: Dismiss the alert

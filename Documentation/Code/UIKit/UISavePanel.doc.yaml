@@ -1,0 +1,42 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSObject
+summary: Displays a system-specific file save dialog
+topics:
+  -
+    name: Creating an Save Panel
+    members:
+      -
+        name: init
+        kind: init
+        summary: Create a system-specific file save panel
+  -
+    name: Providing the File to Save
+    members:
+      -
+        name: file
+        type: JSFile
+        summary: The single file to save
+  -
+    name: Showing the Panel
+    members:
+      -
+        name: show
+        kind: method
+        summary: Show the dialog
+        arguments:
+          -
+            name: action
+            type:
+              arguments:
+                -
+                  name: panel
+                  type: UISavePanel
+                  summary: The panel that saved a file
+            summary: A function that is called when the user saves the file
+          -
+            name: target
+            type: object
+            default: undefined
+            summary: The object to use as `this` when calling `action`()

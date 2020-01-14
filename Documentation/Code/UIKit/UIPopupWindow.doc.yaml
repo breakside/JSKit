@@ -1,0 +1,176 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: UIWindow
+summary: A window with built-in support for placeing itself next to related
+  views and animating its appearance.
+description: |
+  Useful for modal windows like alerts
+topics:
+  -
+    name: Creating a Popup Window
+    members:
+      -
+        name: initWithStyler
+        kind: init
+        summary: Create a popup window with the given styler
+        arguments:
+          -
+            name: styler
+            type: UIPopupWindowStyler
+            summary: The popup window styler to use
+  -
+    name: Opening a Popup Window
+    members:
+      -
+        name: openAdjacentToView
+        kind: method
+        summary: Open the popup next to a related view
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: A view that is related to the alert
+          -
+            name: perferredPlacement
+            type: UIPopupWindow.Placement
+            summary: The preferred placement of the popup.  The popup may appear
+              at a different placement if there is not enough room at the
+              preferred placement.
+          -
+            name: animated
+            type: boolean
+            default: "true"
+            summary: Whether the alert should appear in an animated way
+        description: |
+          Properties such as `showsSourceArrow` and `sourceArrowSize` control
+          if there's a triangle arrow pointing to the given view.
+      -
+        name: openCenteredInView
+        summary: Open the popup centered on top of a related view
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: A view that is related to the alert
+          -
+            name: perferredPlacement
+            type: UIPopupWindow.Placement
+            summary: The preferred placement of the popup.  The popup may appear
+              at a different placement if there is not enough room at the
+              preferred placement.
+          -
+            name: animated
+            type: boolean
+            default: "true"
+            summary: Whether the alert should appear in an animated way
+  -
+    name: Source View
+    members:
+      -
+        name: showsSourceArrow
+        type: boolean
+        summary: Indicates if a triange arrow should point to the view that
+          is related to the popup.
+      -
+        name: sourceArrowSize
+        type: Number
+        summary: The size of the arrow's triangle base
+      -
+        name: sourceSpacing
+        type: Number
+        summary: The amount of spacing to add around the source view before
+          positioning the popup next to it
+  -
+    name: Placement
+    members:
+      -
+        name: Placement
+        kind: enum
+        suffix: enum
+        summary: The placement options for a popup window
+        options:
+          -
+            name: above
+            summary: Place the popup centered above the related view
+          -
+            name: below
+            summary: Place the popup centered below the related view
+          -
+            name: left
+            summary: Place the popup centered left of the related view
+          -
+            name: right
+            summary: Place the popup centered right of the related view
+  -
+    name: Key Window
+    members:
+      -
+        name: canBecomeKey
+        type: boolean
+        summary: Indicates if the popup can become the key window
+  -
+    name: Styling
+    members:
+      -
+        name: UIPopupWindowStyler
+        kind: class
+        inherits: UIWindowStyler
+        summary: A styler for popup windows
+        topics:
+          -
+            name: Source Arrow
+            members:
+              -
+                name: showsSourceArrow
+                type: boolean
+                summary: Indicates if a triange arrow should point to the view that
+                  is related to the popup.
+              -
+                name: sourceArrowSize
+                type: Number
+                summary: The size of the arrow's triangle base
+              -
+                name: sourceSpacing
+                type: Number
+                summary: The amount of spacing to add around the source view before
+                  positioning the popup next to it
+          -
+            name: Background & Shadow
+            members:
+              -
+                name: backgroundColor
+                type: JSColor
+                summary: The background color for the window
+              -
+                name: borderColor
+                type: JSColor
+                summary: The border color for the window
+              -
+                name: borderWidth
+                type: Number
+                summary: The border width for the window
+              -
+                name: cornerRadius
+                type: Number
+                summary: The window's corner radius
+              -
+                name: shadowColor
+                type: JSColor
+                summary: The shadow color for the window
+              -
+                name: shadowRadius
+                type: Number
+                summary: The shadow radius for the window
+      -
+        name: Styler
+        kind: enum
+        suffix: enum
+        summary: The default stylers for popup windows
+        options:
+          -
+            name: default
+            type: UIPopupWindowStyler
+            summary: The default styler for `UIKit` popup windows.  Can be
+              overwritten during application launch to provide a custom default
+              style.

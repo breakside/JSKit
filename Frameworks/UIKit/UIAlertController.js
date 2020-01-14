@@ -4,7 +4,7 @@
 // #import "UIButton.js"
 // #import "UIPopupWindow.js"
 // #import "UIAlertAction.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSInsets, JSTextAlignment, JSSize, JSColor, JSFont, UIViewController, UIStackView, UILabel, UIButton, UIPopupWindow, UIAlertController, UIAlertAction, UIButtonDefaultStyler */
+/* global JSClass, JSObject, JSReadOnlyProperty, JSInsets, JSTextAlignment, JSSize, JSColor, JSFont, UIViewController, UIStackView, UILabel, UIButton, UIPopupWindow, UIAlertController, UIAlertAction, UIButtonDefaultStyler, _UIAlertPopupWindow, UIEvent */
 'use strict';
 
 (function(){
@@ -27,6 +27,11 @@ JSClass("UIAlertController", UIViewController, {
         if (this._cancelAction === null && action.style === UIAlertAction.Style.cancel){
             this._cancelAction = action;
         }
+    },
+
+    addActionWithTitle: function(title, style, action, target){
+        var _action = UIAlertAction.initWithTitle(title, style, action, target);
+        this._addAction(_action);
     },
 
     _padding: 10,
@@ -141,10 +146,9 @@ JSClass("UIAlertController", UIViewController, {
     },
 
     _createPopupWindow: function(){
-        var popupWindow = UIPopupWindow.init();
+        var popupWindow = _UIAlertPopupWindow.init();
         popupWindow.contentViewController = this;
         popupWindow.escapeClosesWindow = this._cancelAction !== null;
-        // TODO: how to call the cancel action when escape is pressed?
         return popupWindow;
     },
 
@@ -155,6 +159,22 @@ JSClass("UIAlertController", UIViewController, {
         this._popupWindow.close();
         this._popupWindow = null;
     }
+
+});
+
+JSClass("_UIAlertPopupWindow", UIPopupWindow, {
+
+    keyDown: function(event){
+        if (this.escapeClosesWindow && event.key == UIEvent.Key.escape){
+            var action = this.contentViewController._cancelAction;
+            if (action !== null && action.action !== null){
+                action.action.call(action.target);
+            }
+            this.contentViewController.dismiss();
+        }else{
+            _UIAlertPopupWindow.$super.keyDown.call(this, event);
+        }
+    },
 
 });
 

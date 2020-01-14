@@ -1,0 +1,77 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSObject
+summary: An alert that is included in a `UIAlertController`
+topics:
+  -
+    name: Creating an Alert Action
+    members:
+      -
+        name: initWithTitle
+        kind: init
+        summary: Create an action with given properties
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title for the action button
+          -
+            name: style
+            type: UIAlertAction.Style
+            summary: The style for the action button
+          -
+            name: action
+            type: function
+            summary: The function to call when the action button is clicked
+          -
+            name: target
+            type: object
+            default: undefined
+            summary: The object to use as `this` when calling the action
+              function
+  -
+    name: Title
+    members:
+      -
+        name: title
+        type: String
+        summary: The title of the action
+  -
+    name: Style
+    memers:
+      -
+        name: Style
+        kind: enum
+        suffix: enum
+        summary: The possible action styles
+        options:
+          -
+            name: normal
+            summary: A normal button style
+          -
+            name: default
+            summary: The button style that indicates this is the default action
+          -
+            name: cancel
+            summary: The button style that indicates this is action used to
+              cancel the request
+          -
+            name: destructive
+            summary: The button style that indicates this action will perform
+              a destructive operation like deleting data
+      -
+        name: style
+        type: Style
+        summary: The style of this action
+  -
+    name: Action
+    members:
+      -
+        name: action
+        type: function
+        summary: The function to call when this action is clicked
+      -
+        name: target
+        type: function
+        summary: The object to use as `this` when calling the `action` function

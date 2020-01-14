@@ -5,8 +5,6 @@
 
 JSClass("UIPopupWindow", UIWindow, {
 
-    sourceView: null,
-    preferredPlacement: null,
     showsSourceArrow: JSDynamicProperty('_showsSourceArrow', false),
     sourceArrowSize: JSDynamicProperty('_sourceArrowSize', 10),
     sourceSpacing: JSDynamicProperty('_sourceSpacing', 0),

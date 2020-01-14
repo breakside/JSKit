@@ -19,7 +19,8 @@ JSClass("UIAlertAction", JSObject, {
 });
 
 UIAlertAction.Style = {
-    default: 0,
-    cancel: 1,
-    destructive: 2
+    normal: 0,
+    default: 1,
+    cancel: 2,
+    destructive: 3
 };

@@ -1,0 +1,64 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSObject
+summary: Displays a system-specific file open dialog
+topics:
+  -
+    name: Creating an Open Panel
+    members:
+      -
+        name: init
+        kind: init
+        summary: Create a system-specific file open panel
+  -
+    name: File Options
+    members:
+      -
+        name: allowsMultipleSelection
+        type: boolean
+        summary: Indicates if multiple files can be chosen in the dialog
+      -
+        name: allowedContentTypes
+        type: String[]
+        summary: Limits which types can be chosen in the dialog
+      -
+        name: chooseDirectories
+        type: boolean
+        summary: Indicates that only directories should be chosable in the dialog
+  -
+    name: Showing the Panel
+    members:
+      -
+        name: show
+        kind: method
+        summary: Show the dialog
+        arguments:
+          -
+            name: action
+            type:
+              arguments:
+                -
+                  name: panel
+                  type: UIOpenPanel
+                  summary: The panel that opened a file
+            summary: A function that is called when the use selects a file or
+              files
+          -
+            name: target
+            type: object
+            default: undefined
+            summary: The object to use as `this` when calling `action`()
+  -
+    name: Accessing Chosen Files
+    members:
+      -
+        name: file
+        type: JSFile
+        summary: The single file that was chosen when `allowsMultipleSelection`
+          is `false`
+      -
+        name: fileEnumerator
+        type: JSFileEnumerator
+        summary: An enumerator of files for when `allowsMultipleSelection` is
+          \`true`
