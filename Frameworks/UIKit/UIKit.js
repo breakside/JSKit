@@ -71,7 +71,7 @@
 // #import "UIOutlineViewCell.js"
 
 // Specialized View Controllers
-// #import "UIDualPaneViewController.js"
+// #import "UISplitViewController.js"
 // #import "UITabViewController.js"
 // #import "UIBrowserViewController.js"
 // #import "UIBrowserView.js"

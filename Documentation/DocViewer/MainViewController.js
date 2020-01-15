@@ -1,10 +1,10 @@
 // Copyright © 2020 Breakside Inc.  MIT License.
 // #import UIKit
 // #import "AboutWindowController.js"
-/* global window, document, JSClass, UIDualPaneViewController, MainViewController, JSBundle, JSURL, JSUserDefaults, AboutWindowController, UIApplication */
+/* global window, document, JSClass, UISplitViewController, MainViewController, JSBundle, JSURL, JSUserDefaults, AboutWindowController, UIApplication */
 'use strict';
 
-JSClass("MainViewController", UIDualPaneViewController, {
+JSClass("MainViewController", UISplitViewController, {
 
     baseURL: null,
     sidebarViewController: null,

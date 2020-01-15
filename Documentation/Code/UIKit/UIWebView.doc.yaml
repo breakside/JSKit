@@ -1,0 +1,63 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: UIView
+summary: A view that can show a web page
+important: Due to cross-origin restrictions many sites place on their pages,
+  a web view cannot be relied on to display pages that you do not control.
+topics:
+  -
+    name: Creating a Web View
+    members:
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: Properties available to web views in spec files
+        topics:
+          -
+            name: Delegate
+            members:
+              -
+                name: delegate
+                type: UIWebViewDelegate
+                summary: The web view's delegate
+  -
+    name: Delegate
+    members:
+      -
+        name: UIWebViewDelegate
+        kind: protocol
+        summary: An interface for receiving events related to the web view's
+          navigation
+        topics:
+          -
+            name: Page Loading
+            members:
+              -
+                name: webViewDidLoadURL
+                summary: Called when a page loads in the web view
+                arguments:
+                  -
+                    name: webView
+                    type: UIWebView
+                    summary: The view making the call
+                  -
+                    name: url
+                    type: JSURL
+                    summary: The URL that was loaded
+      -
+        name: delegate
+        type: UIWebViewDelegate
+        summary: The web view's delegate
+  -
+    name: Page Loading
+    members:
+      -
+        name: loadURL
+        kind: method
+        summary: Causes the given url to load and appear in the web view
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The URL of the page to load

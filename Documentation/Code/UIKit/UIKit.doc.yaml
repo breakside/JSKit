@@ -241,7 +241,8 @@ topics:
   -
     name: Split Views
     members:
-      - UIDualPaneViewController
+      - UISplitView
+      - UISplitViewController
   -
     name: Web Views
     members:

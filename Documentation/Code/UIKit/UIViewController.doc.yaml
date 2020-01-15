@@ -75,7 +75,7 @@ description: |
     views
   - `UIWindowController` has features relevant to showing and managing windows
   - `UIBrowserViewController` can show mutliple columns of list views
-  - `UIDualPaneViewController` manages 1 or 2 sidebars along with a main
+  - `UISplitViewController` manages 1 or 2 sidebars along with a main
     content view
 topics:
   -

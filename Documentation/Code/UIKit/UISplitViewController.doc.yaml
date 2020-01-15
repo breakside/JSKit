@@ -1,0 +1,130 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: UIViewController
+implements:
+  - UISplitView
+summary: A view controller that manages a `UISplitView`
+topics:
+  -
+    name: Creating a Split View Controller
+    members:
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available to a split view in a spec file
+        topics:
+          -
+            name: Views
+            members:
+              -
+                name: mainViewController
+                type: UIViewController
+                summary: The view controller that contains the primary or content
+              -
+                name: leadingViewController
+                type: UIViewController
+                summary: A view controller that contains content to show before
+                  the main view
+              -
+                name: trailingViewController
+                type: UIViewController
+                summary: A view controller that contains content to show after
+                  the main view
+  -
+    name: View Controllers
+    members:
+      -
+        name: mainViewController
+        type: UIViewController
+        summary: The view controller that contains the primary or content
+      -
+        name: leadingViewController
+        type: UIViewController
+        summary: A view controller that contains content to show before
+          the main view
+      -
+        name: trailingViewController
+        type: UIViewController
+        summary: A view controller that contains content to show after
+          the main view
+  -
+    name: Split View
+    members:
+      -
+        name: splitView
+        type: UISplitView
+        summary: The split view owned by this controller
+        description: |
+          Identical to `view`, but accessible under a more relevant name
+  -
+    name: Opening & Closing Side Views
+    members:
+      -
+        name: leadingViewOpen
+        type: boolean
+        summary: Indicates if the leading view is open
+      -
+        name: trailingViewOpen
+        type: boolean
+        summary: Indicates if the trailing view is open
+      -
+        name: hideLeadingView
+        kind: method
+        summary: Hide the leading view
+        arguments:
+          -
+            name: animated
+            type: boolean
+            default: "false"
+            summary: Whether the change should be animated
+      -
+        name: showLeadingView
+        kind: method
+        summary: Show the leading view
+        arguments:
+          -
+            name: animated
+            type: boolean
+            default: "false"
+            summary: Whether the change should be animated
+      -
+        name: toggleLeadingView
+        kind: method
+        summary: Show or hide the leading view, depending on its current state
+        arguments:
+          -
+            name: animated
+            type: boolean
+            default: "false"
+            summary: Whether the change should be animated
+      -
+        name: hideTrailingView
+        kind: method
+        summary: Hide the trailing view
+        arguments:
+          -
+            name: animated
+            type: boolean
+            default: "false"
+            summary: Whether the change should be animated
+      -
+        name: showTrailingView
+        kind: method
+        summary: Show the trailing view
+        arguments:
+          -
+            name: animated
+            type: boolean
+            default: "false"
+            summary: Whether the change should be animated
+      -
+        name: toggleTrailingView
+        kind: method
+        summary: Show or hide the trailing view, depending on its current state
+        arguments:
+          -
+            name: animated
+            type: boolean
+            default: "false"
+            summary: Whether the change should be animated

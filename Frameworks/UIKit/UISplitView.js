@@ -1,8 +1,9 @@
-// #import "UIViewController.js"
-/* global JSClass, JSRect, JSColor, JSDeepCopy, JSUserDefaults, UICursor, JSReadOnlyProperty, JSDynamicProperty, UIViewController, UIDualPaneViewController, JSPoint, UIView, _UIDualPaneView, _UIDualPaneDividerView, UIViewPropertyAnimator */
+// #import "UIView.js"
+// #import "UISplitViewDivider.js"
+/* global JSClass, JSRect, JSColor, JSUserDefaults, JSReadOnlyProperty, JSDynamicProperty, JSPoint, UIView, UISplitView, UISplitViewDivider, UIViewPropertyAnimator */
 'use strict';
 
-JSClass("_UIDualPaneView", UIView, {
+JSClass("UISplitView", UIView, {
 
     leadingView: JSDynamicProperty('_leadingView', null),
     mainView: JSDynamicProperty('_mainView', null),
@@ -34,19 +35,21 @@ JSClass("_UIDualPaneView", UIView, {
     leadingDividerColor: JSDynamicProperty(),
     trailingDividerColor: JSDynamicProperty(),
 
+    delegate: null,
+
     _leadingDividerView: null,
     _trailingDividerView: null,
 
-    initWithViews: function(leadingView, mainView, trailingView){
-        _UIDualPaneView.$super.init.call(this);
+    initWithMainView: function(mainView, leadingView, trailingView){
+        UISplitView.$super.init.call(this);
         this._leadingView = leadingView;
         this._mainView = mainView;
         this._trailingView = trailingView;
-        this._commonDualPaneInit();
+        this._commonSplitViewInit();
     },
 
     initWithSpec: function(spec){
-        _UIDualPaneView.$super.initWithSpec.call(this, spec);
+        UISplitView.$super.initWithSpec.call(this, spec);
         if (spec.containsKey('leadingView')){
             this._leadingView = spec.valueForKey("leadingView");
         }
@@ -104,7 +107,7 @@ JSClass("_UIDualPaneView", UIView, {
         if (spec.containsKey('trailingViewOpen')){
             this._trailingViewOpen = spec.valueForKey("trailingViewOpen");
         }
-        this._commonDualPaneInit();
+        this._commonSplitViewInit();
 
         // after common init because the setters rely on objects that common init creates
         if (spec.containsKey('leadingDividerColor')){
@@ -116,11 +119,14 @@ JSClass("_UIDualPaneView", UIView, {
         if (spec.containsKey('autosaveName')){
             this.autosaveName = spec.valueForKey("autosaveName");
         }
+        if (spec.containsKey('delegate')){
+            this.delegate = spec.valueForKey("delegate");
+        }
     },
 
-    _commonDualPaneInit: function(){
-        this._leadingDividerView = _UIDualPaneDividerView.initWithSizes(1, 5, this._isVertical);
-        this._trailingDividerView = _UIDualPaneDividerView.initWithSizes(1, 5, this._isVertical);
+    _commonSplitViewInit: function(){
+        this._leadingDividerView = UISplitViewDivider.initWithSizes(1, 5, this._isVertical);
+        this._trailingDividerView = UISplitViewDivider.initWithSizes(1, 5, this._isVertical);
         if (this._mainView !== null){
             this.addSubview(this._mainView);
         }
@@ -141,7 +147,9 @@ JSClass("_UIDualPaneView", UIView, {
             this._leadingViewOpen = isOpen;
             if (this._leadingView !== null){
                 this.setNeedsLayout();
-                this.viewController.didTogglePane();
+                if (this.delegate && this.delegate.splitViewDidToggleView){
+                    this.delegate.splitViewDidToggleView(this, this._leadingView);
+                }
                 this._autosaveToUserDefaults();
             }
         }
@@ -152,7 +160,9 @@ JSClass("_UIDualPaneView", UIView, {
             this._trailingViewOpen = isOpen;
             if (this._trailingView !== null){
                 this.setNeedsLayout();
-                this.viewController.didTogglePane();
+                if (this.delegate && this.delegate.splitViewDidToggleView){
+                    this.delegate.splitViewDidToggleView(this, this._trailingView);
+                }
                 this._autosaveToUserDefaults();
             }
         }
@@ -251,7 +261,7 @@ JSClass("_UIDualPaneView", UIView, {
     },
 
     layoutSubviews: function(){
-        _UIDualPaneView.$super.layoutSubviews.call(this);
+        UISplitView.$super.layoutSubviews.call(this);
         if (this._isVertical){
             this._layoutVertical();
         }else{
@@ -488,293 +498,4 @@ JSClass("_UIDualPaneView", UIView, {
         }
     }
 
-});
-
-JSClass("UIDualPaneViewController", UIViewController, {
-
-    leadingPaneViewController: JSDynamicProperty('_leadingPaneViewController', null),
-    mainContentViewController: JSDynamicProperty('_mainContentViewController', null),
-    trailingPaneViewController: JSDynamicProperty('_trailingPaneViewController', null),
-
-    leadingPaneOpen: JSReadOnlyProperty(null, null, 'isLeadingPaneOpen'),
-    trailingPaneOpen: JSReadOnlyProperty(null, null, 'isTrailingPaneOpen'),
-
-    doublePaneView: JSReadOnlyProperty(),
-    _defaultViewClass: _UIDualPaneView,
-
-    initWithSpec: function(spec){
-        if (spec.containsKey('leadingPaneViewController')){
-            this._leadingPaneViewController = spec.valueForKey("leadingPaneViewController");
-        }
-        if (spec.containsKey('trailingPaneViewController')){
-            this._trailingPaneViewController = spec.valueForKey("trailingPaneViewController");
-        }
-        if (spec.containsKey('mainContentViewController')){
-            this._mainContentViewController = spec.valueForKey("mainContentViewController");
-        }
-        UIDualPaneViewController.$super.initWithSpec.call(this, spec);
-        if (this._leadingPaneViewController !== null){
-            this.addChildViewController(this._leadingPaneViewController);
-        }
-        if (this._trailingPaneViewController !== null){
-            this.addChildViewController(this._trailingPaneViewController);
-        }
-        if (this._mainContentViewController !== null){
-            this.addChildViewController(this._mainContentViewController);
-        }
-    },
-
-    viewDidLoad: function(){
-        if (this._mainContentViewController !== null && this._view.mainView === null){
-            this._view.mainView = this._mainContentViewController.view;
-        }
-        if (this._leadingPaneViewController !== null && this._view.leadingView === null){
-            this._view.leadingView = this._leadingPaneViewController.view;
-        }
-        if (this._trailingPaneViewController !== null && this._view.trailingView === null){
-            this._view.trailingView = this._trailingPaneViewController.view;
-        }
-    },
-
-    setLeadingPaneViewController: function(leadingPaneViewController){
-        if (this._leadingPaneViewController !== null){
-            this._leadingPaneViewController.removeFromParentViewController();
-        }
-        this._leadingPaneViewController = leadingPaneViewController;
-        if (this._leadingPaneViewController){
-            this.addChildViewController(this._leadingPaneViewController);
-        }
-        if (this._view !== null){
-            var view = null;
-            if (this._leadingPaneViewController !== null){
-                view = this._leadingPaneViewController.view;
-            }
-            this._view.leadingView = view;
-        }
-    },
-
-    setTrailingPaneViewController: function(trailingPaneViewController){
-        if (this._trailingPaneViewController !== null){
-            this._trailingPaneViewController.removeFromParentViewController();
-        }
-        this._trailingPaneViewController = trailingPaneViewController;
-        if (this._trailingPaneViewController){
-            this.addChildViewController(this._trailingPaneViewController);
-        }
-        if (this._view !== null){
-            var view = null;
-            if (this._trailingPaneViewController !== null){
-                view = this._trailingPaneViewController.view;
-            }
-            this._view.trailingView = view;
-        }
-    },
-
-    setMainContentViewController: function(mainContentViewController){
-        if (this._mainContentViewController !== null){
-            this._mainContentViewController.removeFromParentViewController();
-        }
-        this._mainContentViewController = mainContentViewController;
-        if (this._mainContentViewController){
-            this.addChildViewController(this._mainContentViewController);
-        }
-        if (this._view !== null){
-            var view = null;
-            if (this._mainContentViewController !== null){
-                view = this._mainContentViewController.view;
-            }
-            this._view.mainView = view;
-        }
-    },
-
-    getDoublePaneView: function(){
-        return this._view;
-    },
-
-    loadView: function(){
-        var leadingView = null;
-        var trailingView = null;
-        var mainView = null;
-        if (this._leadingPaneViewController !== null){
-            leadingView = this._leadingPaneViewController.view;
-        }
-        if (this._trailingPaneViewController){
-            trailingView = this._trailingPaneViewController.view;
-        }
-        if (this._mainContentViewController){
-            mainView = this._mainContentViewController.view;
-        }
-        this._view = _UIDualPaneView.initWithViews(leadingView, mainView, trailingView);
-    },
-
-    hideLeadingPane: function(animated){
-        if (this.doublePaneView.leadingViewOpen){
-            this.toggleLeadingPane(animated);
-        }
-    },
-
-    showLeadingPane: function(animated){
-        if (!this.doublePaneView.leadingViewOpen){
-            this.toggleLeadingPane(animated);
-        }
-    },
-
-    _leadingPaneAnimator: null,
-
-    toggleLeadingPane: function(animated){
-        var percentRemaining = 1;
-        if (this._leadingPaneAnimator !== null){
-            this._leadingPaneAnimator.stop();
-            percentRemaining = this._leadingPaneAnimator.percentComplete;
-            this._leadingPaneAnimator = null;
-        }
-        var willAppear = !this.doublePaneView.leadingViewOpen;
-        if (willAppear){
-            this._leadingPaneViewController.viewWillAppear(animated);
-        }else{
-            this._leadingPaneViewController.viewWillDisappear(animated);
-        }
-        if (!animated){
-            this.doublePaneView.leadingViewOpen = !this.doublePaneView.leadingViewOpen;
-            // TODO: view did appear/disappear, but only after the next display frame
-        }else{
-            // make sure to apply any pending layouts before doing the animation,
-            // otherwise the pending layouts will get caught up in the animation
-            this.doublePaneView.layoutIfNeeded();
-            var animator = UIViewPropertyAnimator.initWithDuration(0.15 * percentRemaining);
-            var self = this;
-            this.doublePaneView.leadingViewOpen = !this.doublePaneView.leadingViewOpen;
-            animator.addAnimations(function(){
-                self.doublePaneView.layoutIfNeeded();
-            });
-            animator.addCompletion(function(){
-                self._leadingPaneAnimator = null;
-                if (willAppear){
-                    self._leadingPaneViewController.viewDidAppear(animated);
-                }else{
-                    self._leadingPaneViewController.viewDidDisappear(animated);
-                }
-            });
-            this._leadingPaneAnimator = animator;
-            animator.start();
-        }
-    },
-
-    isLeadingPaneOpen: function(){
-        return this.doublePaneView.leadingViewOpen;
-    },
-
-    isTrailingPaneOpen: function(){
-        return this.doublePaneView.trailingViewOpen;
-    },
-
-    hideTrailingPane: function(animated){
-        if (this.doublePaneView.trailingViewOpen){
-            this.toggleTrailingPane(animated);
-        }
-    },
-
-    showTrailingPane: function(animated){
-        if (!this.doublePaneView.trailingViewOpen){
-            this.toggleTrailingPane(animated);
-        }
-    },
-
-    _trailingPaneAnimator: null,
-
-    toggleTrailingPane: function(animated){
-        var percentRemaining = 1;
-        if (this._trailingPaneAnimator !== null){
-            this._trailingPaneAnimator.stop();
-            percentRemaining = this._trailingPaneAnimator.percentComplete;
-            this._trailingPaneAnimator = null;
-        }
-        if (!animated){
-            this.doublePaneView.trailingViewOpen = !this.doublePaneView.trailingViewOpen;
-            // TODO: viewWillAppear/viewDidAppear
-        }else{
-            // make sure to apply any pending layouts before doing the animation,
-            // otherwise the pending layouts will get caught up in the animation
-            this.doublePaneView.layoutIfNeeded();
-            var animator = UIViewPropertyAnimator.initWithDuration(0.15 * percentRemaining);
-            var self = this;
-            this.doublePaneView.trailingViewOpen = !this.doublePaneView.trailingViewOpen;
-            animator.addAnimations(function(){
-                self.doublePaneView.layoutIfNeeded();
-            });
-            animator.addCompletion(function(){
-                self._trailingPaneAnimator = null;
-            });
-            this._trailingPaneAnimator = animator;
-            animator.start();
-        }
-    },
-
-    didTogglePane: function(){
-    },
-
-});
-
-JSClass("_UIDualPaneDividerView", UIView, {
-
-    layoutSize: 1,
-    hitSize: 5,
-    lineView: null,
-    layoutAdjustment: JSReadOnlyProperty(),
-    vertical: JSDynamicProperty('_isVertical', false, 'isVertical'),
-    color: JSDynamicProperty(),
-
-    initWithSizes: function(layoutSize, hitSize, vertical){
-        this.init();
-        this.lineView = UIView.init();
-        this.hitSize = hitSize;
-        this.vertical = vertical;
-        this.lineView.backgroundColor = JSColor.black;
-        this.addSubview(this.lineView);
-    },
-
-    setColor: function(color){
-        this.lineView.backgroundColor = color;
-    },
-
-    getColor: function(){
-        return this.lineView.backgroundColor;
-    },
-
-    layoutSubviews: function(){
-        _UIDualPaneDividerView.$super.layoutSubviews.call(this);
-        if (this._isVertical){
-            this.lineView.frame = JSRect(0, (this.hitSize - this.layoutSize) / 2, this.bounds.size.width, this.layoutSize);
-        }else{
-            this.lineView.frame = JSRect((this.hitSize - this.layoutSize) / 2, 0, this.layoutSize, this.bounds.size.height);
-        }
-    },
-
-    setVertical: function(isVertical){
-        this._isVertical = isVertical;
-        if (isVertical){
-            this.cursor = UICursor.resizeUpDown;
-        }else{
-            this.cursor = UICursor.resizeLeftRight;
-        }
-        this.setNeedsLayout();
-    },
-
-    getLayoutAdjustment: function(){
-        return (this.hitSize - this.layoutSize) / 2;
-    },
-
-    mouseDown: function(event){
-        this.cursor.push();
-        this.superview.beginDeviderResize(this, event.locationInView(this));
-    },
-
-    mouseUp: function(event){
-        this.cursor.pop();
-        this.superview.endDividerResize(this);
-    },
-
-    mouseDragged: function(event){
-        this.superview.dividerDragged(this, event.locationInView(this.superview));
-    }
 });

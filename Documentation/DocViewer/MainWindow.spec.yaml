@@ -17,8 +17,8 @@ MainWindow:
 
 MainViewController:
   class: MainViewController
-  leadingPaneViewController: /SidebarViewController
-  mainContentViewController: /ContentViewController
+  leadingViewController: /SidebarViewController
+  mainViewController: /ContentViewController
   view:
     vertical: false
     leadingSize: 240

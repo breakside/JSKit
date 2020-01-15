@@ -1,0 +1,290 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: UIView
+summary: A view that can show split into 2 or 3 panes either vertically or
+  horizontally
+topics:
+  -
+    name: Creating a Split View
+    topics:
+      -
+        name: initWithMainView
+        kind: init
+        summary: Create a split view with a main view and optional side views
+        arguments:
+          -
+            name: mainView
+            type: UIView
+            summary: The view that will show the primary or content
+          -
+            name: leadingView
+            type: UIView
+            default: "null"
+            summary: A view that will appear before the main view
+          -
+            name: trailingView
+            type: UIView
+            default: "null"
+            summary: A view that will appear after the main view
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available to a split view in a spec file
+        topics:
+          -
+            name: Views
+            members:
+              -
+                name: mainView
+                type: UIView
+                summary: The view that will show the primary or content
+              -
+                name: leadingView
+                type: UIView
+                summary: A view that will appear before the main view
+              -
+                name: trailingView
+                type: UIView
+                summary: A view that will appear after the main view
+          -
+            name: Delegate
+            members:
+              -
+                name: delegate
+                type: UISplitViewDelegate
+                summary: The view's delegate
+          -
+            name: Layout
+            members:
+              -
+                name: vertical
+                type: boolean
+                summary: Indicates the views should be stacked vertically
+          -
+            name: Split Configuration
+            members:
+              -
+                name: leadingViewOpen
+                type: boolean
+                summary: Indicates if the leading view is intially open
+              -
+                name: trailingViewOpen
+                type: boolean
+                summary: Indicates if the trailing view is initially open
+              -
+                name: leadingFloats
+                type: boolean
+                summary: Indicates that the `leadingView` should open over the
+                  \`mainView` rather than take up its own space
+              -
+                name: trailingFloats
+                type: boolean
+                summary: Indicates that the `trailingView` should open over the
+                  \`mainView` rather than take up its own space
+              -
+                name: leadingCollapses
+                type: boolean
+                summary: Specifies if the leading view can completely collapse
+              -
+                name: trailingCollapses
+                type: boolean
+                summary: Specifies if the trailing view can completely collapse
+          -
+            name: View Sizes
+            members:
+              -
+                name: leadingSize
+                type: Number
+                summary: Specifies the initial size of the leading view
+              -
+                name: trailingSize
+                type: Number
+                summary: Specifies the initial size of the trailing view
+              -
+                name: minimumMainSize
+                type: Number
+                summary: Specifies the minimum size of the main view
+              -
+                name: minimumLeadingSize
+                type: Number
+                summary: Specifies the minimum size of the leading view
+              -
+                name: minimumTrailingSize
+                type: Number
+                summary: Specifies the minimum size of the trailing view
+              -
+                name: maximumLeadingSize
+                type: Number
+                summary: Specifies the maximum size of the leading view
+              -
+                name: maximumTrailingSize
+                type: Number
+                summary: Specifies the maximum size of the trailing view
+              -
+                name: leadingCollapsedSize
+                type: Number
+                summary: The minimum size for a collapsed leading view
+              -
+                name: trailingCollapsedSize
+                type: Number
+                summary: The minimum size for a collapsed trailing view
+          -
+            name: Styling
+            members:
+              -
+                name: leadingDividerColor
+                type: JSColor
+                summary: The color for the divider between the leading an main
+                  views
+              -
+                name: trailingDividerColor
+                type: JSColor
+                summary: The color for the divider between the trailing an main
+                  views
+          -
+            name: Autosave
+            members:
+              -
+                name: autosaveName
+                type: String
+                summary: Automatically save the user's changes to the split view
+                  layout under this name
+  -
+    name: Views
+    members:
+      -
+        name: mainView
+        type: UIView
+        summary: The view that will show the primary or content
+      -
+        name: leadingView
+        type: UIView
+        summary: A view that will appear before the main view
+      -
+        name: trailingView
+        type: UIView
+        summary: A view that will appear after the main view
+  -
+    name: Delegate
+    members:
+      -
+        name: UISplitViewDelegate
+        kind: protocol
+        summary: An interface for receiving split view events
+        topics:
+          -
+            name: Opening & Closing
+            members:
+              -
+                name: splitViewDidToggleView
+                summary: Called when one of the side views is shown or hidden
+                arguments:
+                  -
+                    name: splitView
+                    type: UISplitView
+                    summary: The split view making this call
+                  -
+                    name: view
+                    type: UIView
+                    summary: The view that was toggled
+      -
+        name: delegate
+        type: UISplitViewDelegate
+        summary: The view's delegate
+  -
+    name: Layout
+    members:
+      -
+        name: vertical
+        type: boolean
+        summary: Indicates the views should be stacked vertically
+  -
+    name: Split Configuration
+    members:
+      -
+        name: leadingViewOpen
+        type: boolean
+        summary: Indicates if the leading view is intially open
+      -
+        name: trailingViewOpen
+        type: boolean
+        summary: Indicates if the trailing view is initially open
+      -
+        name: leadingFloats
+        type: boolean
+        summary: Indicates that the `leadingView` should open over the
+          \`mainView` rather than take up its own space
+      -
+        name: trailingFloats
+        type: boolean
+        summary: Indicates that the `trailingView` should open over the
+          \`mainView` rather than take up its own space
+      -
+        name: leadingCollapses
+        type: boolean
+        summary: Specifies if the leading view can completely collapse
+      -
+        name: trailingCollapses
+        type: boolean
+        summary: Specifies if the trailing view can completely collapse
+  -
+    name: View Sizes
+    members:
+      -
+        name: leadingSize
+        type: Number
+        summary: Specifies the initial size of the leading view
+      -
+        name: trailingSize
+        type: Number
+        summary: Specifies the initial size of the trailing view
+      -
+        name: minimumMainSize
+        type: Number
+        summary: Specifies the minimum size of the main view
+      -
+        name: minimumLeadingSize
+        type: Number
+        summary: Specifies the minimum size of the leading view
+      -
+        name: minimumTrailingSize
+        type: Number
+        summary: Specifies the minimum size of the trailing view
+      -
+        name: maximumLeadingSize
+        type: Number
+        summary: Specifies the maximum size of the leading view
+      -
+        name: maximumTrailingSize
+        type: Number
+        summary: Specifies the maximum size of the trailing view
+      -
+        name: leadingCollapsedSize
+        type: Number
+        summary: The minimum size for a collapsed leading view
+      -
+        name: trailingCollapsedSize
+        type: Number
+        summary: The minimum size for a collapsed trailing view
+  -
+    name: Styling
+    members:
+      -
+        name: leadingDividerColor
+        type: JSColor
+        summary: The color for the divider between the leading an main
+          views
+      -
+        name: trailingDividerColor
+        type: JSColor
+        summary: The color for the divider between the trailing an main
+          views
+  -
+    name: Autosave
+    members:
+      -
+        name: autosaveName
+        type: String
+        summary: Automatically save the user's changes to the split view
+          layout under this name
