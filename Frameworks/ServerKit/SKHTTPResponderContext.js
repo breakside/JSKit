@@ -5,7 +5,6 @@
 
 JSClass("SKHTTPResponderContext", JSObject, {
 
-    request: JSReadOnlyProperty('_request', null),
     authenticated: null,
 
     initWithPathComponentMatches: function(pathComponentMatches){
@@ -16,8 +15,8 @@ JSClass("SKHTTPResponderContext", JSObject, {
         }
     },
 
-    open: function(completion, target){
-        completion.call(target);
+    open: function(){
+        return Promise.resolve();
     }
 
 });

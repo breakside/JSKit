@@ -1,0 +1,604 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Responders are called on by an `SKHTTPServer` to produce an
+  \`SKHTTPResponse` for an `SKHTTPRequest`
+description: |
+  Responders are at the center of your application's code.  While the
+  HTTP server mostly deals with things like `SKHTTPRoute`s internally,
+  responders are where your code takes over.
+
+  An `SKHTTPResponder` is similar to a delegate for the `SKHTTPServer` when
+  it encounters a particular request.
+
+  The server matches the request's `url`(SKHTTPRequest.url) to a particular
+  `SKHTTPResponder` via a route mapping.
+
+  After identifying a responder, the server calls a method on the responder
+  matching the request's `method`(SKHTTPRequest.method).
+
+  Method Name Matching
+  =================
+  Because an HTTP request can include an arbitrary string for its
+  `method`(SKHTTPRequest.method), `SKHTTPResponder` takes care to ensure that
+  internal or private code cannot be invoked directly by whoever constructed
+  the request.
+
+  1. Only methods defined directly on the `SKHTTPResponder` subclass are
+     eligable to match the request method.
+  1. The request method is converted to all-lowercase before matching,
+     meaning that any camelCased methods will not match.
+  1. Methods beginning with an underscore `"_"` will never be matched
+
+  ````
+  JSClass("BlogPostResponder", SKHTTPResponder, {
+
+    // Will be called for any GET request
+    get: async function(){
+
+    },
+
+    // Will be called for any POST request
+    post: async function(){
+
+    },
+
+    // Will be called for any MyCustomMethod request
+    mycustommethod: async function(){
+
+    },
+
+    // Will never be called directly for a request (isn't all lowercase)
+    helperMethod: function(){
+
+    },
+
+    // Will never be called directly for a request (starts with underscore)
+    _helper: function(){
+
+    }
+
+  });
+  ````
+
+  Responder Contexts
+  ===========
+  Each responder class can designate a `contextClass` that is used to create
+  a context object.  Every context class should be a sublcass of
+  `SKHTTPResponderContext`.
+
+  Conceptually a URL path represents a resource and the responder defines all
+  of the actions that can be applied to the resource.
+
+  A context contains any useful information about the resource, and is made
+  available to the responder in the same manner regardless of the action that
+  will be called.
+
+  The responder's context is always avaialbe under its `context` property.
+
+  For example, taking the `BlogPostResponder` from above, its context may load
+  a post from a database.
+
+  ````
+  JSClass("BlogPostResponder", SKHTTPResponder, {
+
+    contextClass: BlogPostContext,
+
+    get: async function(){
+      this.sendObject(this.context.post);
+    },
+
+    delete: async function(){
+      this.context.db.delete(this.context.post, function(){
+        this.sendStatus(SKHTTPResponse.StatusCode.ok);
+      }, this);
+    }
+
+  });
+
+  JSClass("BlogPostContext", SKHTTPResponderContext, {
+
+    post: null,
+
+    open: async function(){
+      this.post = await this.db.blogPosts.get(this.postId);
+    }
+
+  });
+  ````
+
+  The context is automatically assigned properties from the URL pattern
+  matching done by `SKHTTPRotue`. In this case, the route was something
+  like `"/posts/*postId"`, making `postId`() available as a property on
+  the context.
+topics:
+  -
+    name: Creating a Responder
+    members:
+      -
+        name: initWithRequest
+        kind: init
+        summary: Create a responder with the given request and context
+        arguments:
+          -
+            name: request
+            type: SKHTTPRequest
+            summary: The request that matched to this responder
+          -
+            name: context
+            type: SKHTTPContext
+            nullable: true
+            summary: The context, if any, for the request
+        description: |
+          Responders are typically created by the `SKHTTPServer` that handles
+          the incoming requests.
+
+          If needed, subclasses can add their own logic to an implementation of
+          this method.
+  -
+    name: Request & Context
+    members:
+      -
+        name: request
+        type: SKHTTPRequest
+        summary: The request that matched to this responder
+      -
+        name: context
+        type: SKHTTPContext
+        nullable: true
+        summary: The context, if any, for the request
+      -
+        name: contextClass
+        type: JSClass
+        nullable: true
+        summary: The context class that should be used to create a context
+          instance object
+  -
+    name: Authentication
+    members:
+      -
+        name: AllowedOrigin
+        kind: dictionary
+        summary: The value type for entries in `allowedOrigins`
+        description: |
+          ````
+          JSClass("BlogPostResponder", SKHTTPResponder, {
+
+            initWithRequest: function(request, context){
+              BlogPostResponder.$super.initWithRequest.call(this, request, context);
+              this.allowedOrigins = {
+                'https://myblog.com': {
+                  'methods': ['*'],
+                  'headers': [
+                    'Content-Type',
+                    'X-MyBlog-Token'
+                  ]
+                },
+                '*': {
+                  'methods': ['GET'],
+                  'headers': ['Content-Type']
+                }
+              };
+            }
+
+          });
+          ````
+        topics:
+          -
+            name: Properties
+            members:
+              -
+                name: methods
+                type: String[]
+                summary: The list of methods the origin is allowed to call
+              -
+                name: headers
+                type: String[]
+                summary: The list of headers the origin is allowed to provide
+
+      -
+        name: allowedOrigins
+        type: dictionary
+        summary: A dictionary of origins that are allowed to make calls to this
+          responder
+        description: |
+          Sets the appropriate [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
+          headers.
+
+          Each key in the dictionary is an origin like:
+
+          - `"*"` - representing all origins
+          - `"https://google.com"` - representing a specific origin
+
+          Each value is an `AllowedOrigin` dictionary
+
+          ````
+          JSClass("BlogPostResponder", SKHTTPResponder, {
+
+            initWithRequest: function(request, context){
+              BlogPostResponder.$super.initWithRequest.call(this, request, context);
+              this.allowedOrigins = {
+                'https://myblog.com': {
+                  'methods': ['*'],
+                  'headers': [
+                    'Content-Type',
+                    'X-MyBlog-Token'
+                  ]
+                },
+                '*': {
+                  'methods': ['GET'],
+                  'headers': ['Content-Type']
+                }
+              };
+            }
+
+          });
+          ````
+      -
+        name: SKHTTPAuthorization
+        kind: class
+        summary: A simple object for collecting authorization information
+        topics:
+          -
+            name: Creating an Authorization
+            members:
+              -
+                name: SKHTTPAuthorization
+                kind: constructor
+                summary: Create an authorization with a flag indicating if
+                  the request is allowed
+                arguments:
+                  -
+                    name: authorized
+                    type: boolean
+                    summary: Indicates if the requestor is allowed to make the
+                      request
+                  -
+                    name: authenticated
+                    type: any
+                    nullable: true
+                    default: "null"
+                    summary: A value or object that represents the authenticated
+                      user, if any.  Even if a user is authenticated, they might
+                      not be authorized.
+                description: |
+                  If the user is not authorized, the `statusCode` will be set to
+                  `SKHTTPResponse.StatusCode.forbidden` if `authenticated` is
+                  not `null` and `SKHTTPResponse.StatusCode.unauthorized`
+                  otherwise.
+              -
+                name: SKHTTPAuthorization
+                prefix: status
+                kind: constructor
+                summary: Create an authorization with a specific HTTP status
+                  code
+                arguments:
+                  -
+                    name: authorized
+                    type: boolean
+                    summary: Indicates if the requestor is allowed to make the
+                      request
+                  -
+                    name: authenticated
+                    type: any
+                    nullable: true
+                    summary: A value or object that represents the authenticated
+                      user, if any.  Even if a user is authenticated, they may
+                      not be authorized.
+                  -
+                    name: statusCode
+                    type: SKHTTPResponse.StatusCode
+                    summary: The specific code to use when rejecting the request
+          -
+            name: Properties
+            members:
+              -
+                name: authorized
+                type: boolean
+                summary: Indicates if the requestor is allowed to make the
+                  request
+              -
+                name: authenticated
+                type: any
+                nullable: true
+                summary: A value or object that represents the authenticated
+                  user, if any.  Even if a user is authenticated, they may
+                  not be authorized.
+              -
+                name: statusCode
+                type: SKHTTPResponse.StatusCode
+                summary: The specific code to use when rejecting the request
+
+      -
+        name: authenticate
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: SKHTTPAuthorization
+            summary: The authorization object that informs the server if the
+              request can continue
+        return: A promise of an authorization object that indicates if the
+          requestor is allowed to make the request.
+        summary: Called by `SKHTTPServer` to verify the request is authenticated
+        description: |
+          The default implementation allows all requests.
+
+          You might use this method to look up a user and check if they
+          have permission
+
+          ````
+          JSClass("BlogPostResponder", SKHTTPResponder, {
+
+            contextClass: BlogPostContext,
+
+            authenticate: async function(){
+              var token = this.request.headerMap.get('X-MyBlog-Token');
+              var user = await this.context.getUserForToken(token);
+              var hasPermission = user.canPerformBlogPostMethod(this.request.method);
+              return SKHTTPServerAuthorization(hasPermission, user);
+            }
+
+          });
+          ````
+  -
+    name: Responding
+    members:
+      -
+        name: sendData
+        kind: method
+        summary: Send the given data and complete the response
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The response body data to send
+        description: |
+          Causes all headers to be sent and closes the response when complete.
+      -
+        name: sendString
+        kind: method
+        summary: Send the given string and complete the response
+        arguments:
+          -
+            name: string
+            type: String
+            summary: The string to send as UTF-8 encoded data
+        description: |
+          Causes all headers to be sent and closes the response when complete.
+      -
+        name: sendObject
+        kind: method
+        summary: Send the given object as a JSON string
+        arguments:
+          -
+            name: object
+            type: object
+            summary: The object to serialize as JSON
+        description: |
+          Causes all headers to be sent and closes the response when complete.
+        important: Always sets cache control headers so the response is not
+          cached.
+      -
+        name: sendStatus
+        kind: method
+        summary: Send an empty body with the given status
+        arguments:
+          -
+            name: status
+            type: SKHTTPResponse.StatusCode
+            summary: The status code to use
+        description: |
+          Causes all headers to be sent and closes the response when complete.
+      -
+        name: sendRedirect
+        kind: method
+        summary: Send a redirect to another URL
+        arguments:
+          -
+            name: destination
+            type: JSURL
+            summary: The page to direct to
+        description: |
+          Causes all headers to be sent and closes the response when complete.
+      -
+        name: sendFile
+        kind: method
+        summary: Send a file's contents and complete the response
+        arguments:
+          -
+            name: filePath
+            type: String
+            summary: The path to the file
+          -
+            name: contentType
+            type: String
+            summary: The file's content type
+          -
+            name: hash
+            type: String
+            summary: A unique has of the file's contents, used for cache
+              matching
+        description: |
+          Causes all headers to be sent and closes the response when complete.
+  -
+    name: Handling Errors
+    members:
+      -
+        name: fail
+        kind: method
+        summary: Immediately sends a response for the given error
+        arguments:
+          -
+            name: error
+            type: Error
+            summary: The error that caused the failure
+        description: |
+          If the error is an `SKHTTPError`, its status code will be used with
+          an empty response body.
+
+          If the error is an `SKValidatingObject.Error`, a
+          `SKHTTPResponse.StatusCode.badRequest` status code will be used with
+          a json body of an object with a `message` string from the error.
+
+          Otherwise a `SKHTTPResponse.StatusCode.internalServerError` will
+          be sent with an empty response body.
+        note: You typically will not need to call this method directly, and
+          can instead simply `throw` an error that the `HTTPServer` will handle
+          appropriately.
+  -
+    name: Generating URLs
+    members:
+      -
+        name: urlForResponder
+        kind: method
+        type: JSURL
+        summary: Construct a URL that would be handled by the given responder
+          with the given URL path placeholder values
+        arguments:
+          -
+            name: responder
+            type: JSClass
+            summary: The responder class
+          -
+            name: params
+            type: dictionary
+            summary: The URL path placeholder value map
+        description: |
+          Lets say you have a few routes defined:
+
+          ````
+          Server:
+            class: HTTPServer
+            routes:
+              /:                  RootResponder
+              /blog:              BlogResponder
+              /blog/post/*postId: BlogPostResponder
+          ````
+
+          And when generating a JSON response in the BlogResponder, you want
+          to include a URL for a blog post:
+          ````
+          JSClass("BlogResponder", SKHTTPResponder {
+
+            get: async function(){
+              var topPost = this.context.blog.topPost;
+              topPostURL = this.urlForResponder(BlogPostResponder, {postId: topPost.id});
+              return {
+                topPost: {
+                  url: topPostURL,
+                  title: topPost.title
+                },
+                posts: [
+                  // ...
+                ]
+              }
+            }
+
+          })
+          ````
+  -
+    name: Predefined Methods
+    members:
+      -
+        name: options
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            summary: A responder method doesn't have to resolve the promise
+              with any object
+        summary: Respond with headers appropriate for an HTTP `"OPTIONS"`
+          request
+      -
+        name: acceptWebsocketUpgrade
+        kind: method
+        type: SKHTTPWebSocket
+        return: The newly created web socket over which stream communication
+          can happen
+        summary: Negotiate a web socket upgrade with the client
+        arguments:
+          -
+            name: allowedProtocols
+            type: String[]
+            summary: The application-defined protocols that are allowed over
+              the web socket
+  -
+    name: Method Name Matching
+    members:
+      -
+        name: objectMethodForRequestMethod
+        kind: method
+        type: function
+        summary: Gets the responder's method that matches the request's
+          method
+        arguments:
+          -
+            name: requestMethod
+            type: String
+            summary: The request's method
+        description: |
+          Because an HTTP request can include an arbitrary string for its
+          `method`(SKHTTPRequest.method), `SKHTTPResponder` takes care to ensure that
+          internal or private code cannot be invoked directly by whoever constructed
+          the request.
+
+          The default implementation performs the follwing logic:
+
+          1. Only methods defined directly on the `SKHTTPResponder` subclass are
+             eligable to match the request method.
+          1. The request method is converted to all-lowercase before matching,
+             meaning that any camelCased methods will not match.
+          1. Methods beginning with an underscore `"_"` will never be matched
+
+          ````
+          JSClass("BlogPostResponder", SKHTTPResponder, {
+
+            // Will be called for any GET request
+            get: async function(){
+
+            },
+
+            // Will be called for any POST request
+            post: async function(){
+
+            },
+
+            // Will be called for any MyCustomMethod request
+            mycustommethod: async function(){
+
+            },
+
+            // Will never be called directly for a request (isn't all lowercase)
+            helperMethod: function(){
+
+            },
+
+            // Will never be called directly for a request (starts with underscore)
+            _helper: function(){
+
+            }
+
+          });
+          ````
+
+          You can override this method if the default behavior is not
+          suitable for your needs.
+      -
+        name: objectMethodForWebsocketProduct
+        kind: method
+        type: function
+        summary: Gets the responder's method that matches the websocket
+          product requested by the client
+        arguments:
+          -
+            name: product
+            type: String
+            summary: The specific websocket product that was requested.
+        description: |
+          The default implementation is identical to
+          `objectMethodForRequestMethod()`.
+
+          You can override this method if the default behavior is not
+          suitable for your needs.

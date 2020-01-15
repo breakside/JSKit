@@ -4,7 +4,7 @@
 // #import "SKHTTPResponse.js"
 // #import "SKValidatingObject.js"
 // #import Hash
-/* global JSClass, JSObject, JSURL, JSReadOnlyProperty, JSMIMEHeaderMap, JSSHA1Hash, SKHTTPResponder, SKHTTPResponse, SKHTTPResponderContext, SKHTTPError, JSLog, SKValidatingObject */
+/* global JSClass, JSObject, JSURL, JSReadOnlyProperty, JSMIMEHeaderMap, JSSHA1Hash, SKHTTPResponder, SKHTTPResponse, SKHTTPResponderContext, SKHTTPError, JSLog, SKValidatingObject, SKHTTPAuthorization */
 'use strict';
 
 (function(){
@@ -12,6 +12,8 @@
 var logger = JSLog("server", "http");
 
 JSClass("SKHTTPResponder", JSObject, {
+
+    contextClass: null,
 
     request: JSReadOnlyProperty('_request', null),
     context: JSReadOnlyProperty('_context', null),
@@ -28,11 +30,7 @@ JSClass("SKHTTPResponder", JSObject, {
     },
 
     authenticate: function(completion, target){
-        if (!completion){
-            completion = Promise.completion();
-        }
-        completion.call(target, true, null);
-        return completion.promise;
+        return Promise.resolve(SKHTTPAuthorization(true));
     },
 
     options: function(){
@@ -132,14 +130,14 @@ JSClass("SKHTTPResponder", JSObject, {
     },
 
     sendString: function(str, contentType, status){
-        this.sendData(str.utf8(), contentType, status);
+        this.sendData(str.utf8(), contentType + "; charset=utf8", status);
     },
 
     sendObject: function(obj, status, indent){
         var json = JSON.stringify(obj, null, indent ? 2 : 0);
         this.response.setHeader("Cache-Control", "no-cache");
         this.response.setHeader("Expires", "Thu, 01 Jan 1970 00:00:01 GMT");
-        this.sendString(json + "\n", "application/json; charset=utf8", status);
+        this.sendString(json + "\n", "application/json", status);
     },
 
     sendStatus: function(status){
@@ -162,6 +160,10 @@ JSClass("SKHTTPResponder", JSObject, {
         var origin = this.request.origin;
         if (origin){
             var allowed = this.allowedOrigins[origin];
+            if (!allowed){
+                origin = "*";
+                allowed = this.allowedOrigins[origin];
+            }
             if (allowed){
                 this.response.setHeader("Access-Control-Allow-Origin", origin);
                 if (origin != "*"){

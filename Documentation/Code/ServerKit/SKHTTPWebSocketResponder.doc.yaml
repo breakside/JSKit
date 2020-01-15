@@ -1,0 +1,80 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: SKHTTPResponder
+implements:
+  - SKHTTPWebSocketDelegate
+summary: A responder for a continuous web socket connection
+description: |
+  `ServerKit` was designed with support for web sockets out the box.
+
+  Your app can provide a web socket service by implementing
+  a `SKHTPTWebSocketResponder` subclass.
+
+
+topics:
+  -
+    name: Supported Protocols
+    members:
+      -
+        name: protocols
+        type: String[]
+        summary: The application-specific protocols supported by the responder
+        description: |
+          Every websocket needs to support at least one protocol.
+
+          When the client makes the initial websocket upgrade request, it
+          provides the protocols it supports.
+
+          The first match between the client and server protocols will be used.
+  -
+    name: Web Socket Events
+    members:
+      -
+        name: websocketEstablished
+        kind: method
+        summary: Called when a websocket connection is first established
+        arguments:
+          -
+            name: socket
+            type: SKHTTPWebSocket
+            summar: The newly created socket
+        description: |
+          Gives the responder a chance to do any initial setup
+      -
+        name: socketDidReceiveMessage
+        kind: method
+        summary: Called when a full websocket message is received
+        arguments:
+          -
+            name: socket
+            type: SKHTTPWebSocket
+            summary: The socket that received data
+          -
+            name: chunks
+            type: JSData[]
+            summary: The entire message data
+      -
+        name: socketDidClose
+        kind: method
+        summary: Called when the socket connection closes
+        arguments:
+          -
+            name: socket
+            type: SKHTTPWebSocket
+            summary: The socket that received data
+  -
+    name: Handling the Upgrade Request
+    members:
+      -
+        name: websocket
+        kind: method
+        summary: Called by `SKHTTPServer` when it receives an upgrade request
+          for a `"websocket"`.
+        description: |
+          The default implementation accepts the upgrade and becomes
+          the `delegate`(SKHTTPWebSocket.delegate) for the `SKHTTPWebSocket`
+          that is created.
+
+          You can override this default behavior if needed, but it may be
+          a sign that you should create a different `SKHTTPResponder` subclass.

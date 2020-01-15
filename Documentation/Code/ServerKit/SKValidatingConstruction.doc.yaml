@@ -1,0 +1,44 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: protocol
+summary: An interface for initializing objects with a
+  \`SKValidatingObject`
+description: |
+  Used by `SKHTTPRequest.getValidObject()` to create objects while
+  simultaneously validating user input.
+
+  ````
+  JSClass("CommentsResponder", SKHTTPResponder, {
+
+    post: async function(){
+      var comment = await this.request.getValidObject(CommentRequest);
+    }
+
+  });
+
+  JSClass("CommentRequest", JSObject, {
+
+    text: null,
+    replyToId: null,
+
+    initWithValidatingObject: function(obj){
+      this.text = obj.stringForKey('text');
+      this.replyToId = obj.numberForKey('replyToId', null);
+    }
+
+  });
+  ````
+topics:
+  -
+    name: Object Initialization
+    members:
+      -
+        name: initWithValidatingObject
+        kind: init
+        summary: Use a `SKValidatingObject` to create an object
+        arguments:
+          -
+            name: validatingObject
+            type: SKValidatingObject
+            summary: The validating object that can be used to get
+              input that matches server expectations

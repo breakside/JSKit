@@ -1,6 +1,6 @@
 // #import Foundation
 // #import "SKHTTPWebSocketParser.js"
-/* global JSClass, JSObject, JSTimer, JSData, SKHTTPWebSocketParser, SKHTTPWebSocket, JSLog */
+/* global JSClass, JSObject, JSTimer, JSDynamicProperty, JSData, SKHTTPWebSocketParser, SKHTTPWebSocket, JSLog */
 'use strict';
 
 (function(){
@@ -15,12 +15,13 @@ JSClass("SKHTTPWebSocket", JSObject, {
     _sentClose: false,
     _messageChunks: null,
     _pingTimer: null,
+    pingInterval: JSDynamicProperty('_pingInterval', 45),
 
     init: function(){
         this._frameParser = SKHTTPWebSocketParser.init();
         this._frameParser.delegate = this;
         this._messageChunks = [];
-        this._pingTimer = JSTimer.scheduledRepeatingTimerWithInterval(45, this.sendPing, this);
+        this._pingTimer = JSTimer.scheduledRepeatingTimerWithInterval(this._pingInterval, this.sendPing, this);
     },
 
     startMessage: function(data){
@@ -35,10 +36,16 @@ JSClass("SKHTTPWebSocket", JSObject, {
         this._write(data);
     },
 
-    writeMessage: function(data){
+    sendMessage: function(data){
         var header = SKHTTPWebSocketParser.UnmaskedHeaderForData([data], SKHTTPWebSocketParser.FrameCode.binary);
         this._write(header);
         this._write(data);
+    },
+
+    setPingInterval: function(interval){
+        this._pingInterval = interval;
+        this._pingTimer.invalidate();
+        this._pingTimer = JSTimer.scheduledRepeatingTimerWithInterval(this._pingInterval, this.sendPing, this);
     },
 
     sendPing: function(){

@@ -9,11 +9,11 @@ var logger = JSLog("server", "websocket");
 JSClass('SKHTTPWebsocketResponder', SKHTTPResponder, {
 
     _socket: null,
-    _protocols: null,
+    protocols: null,
 
     websocket: function(){
         logger.info("calling websocket responder");
-        this._socket = this.acceptWebsocketUpgrade(this._protocols);
+        this._socket = this.acceptWebsocketUpgrade(this.protocols);
         if (this._socket !== null){
             logger.info("got a socket");
             this._socket.delegate = this;

@@ -1,0 +1,36 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+summary: A wrapper for an HTTP error status code and message
+description: |
+  If an `SKHTTPError` is thrown at any time during the processing of
+  a request, the `SKHTTPServer` will return a response with the
+  error's `statusCode`.
+topics:
+  -
+    name: Creating an Error
+    members:
+      -
+        name: SKHTTPError
+        kind: constructor
+        summary: Create a new HTTP error with a status code and message
+        arguments:
+          -
+            name: statusCode
+            type: SKHTTPResponse.StatusCode
+            summary: The status code to send in the HTTP response
+          -
+            name: message
+            type: String
+            summary: The error message for logging purposes
+  -
+    name: Properties
+    members:
+      -
+        name: statusCode
+        type: SKHTTPResponse.StatusCode
+        summary: The status code to send in the HTTP response
+      -
+        name: message
+        type: String
+        summary: The error message for logging purposes

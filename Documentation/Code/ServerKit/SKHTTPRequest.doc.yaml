@@ -14,8 +14,8 @@ topics:
         name: url
         type: JSURL
         summary: The URL of the request
-        note: This is a URL relative to the server root without any host 
-          information
+        note: If no `"Host"` header was sent, this url will not contain
+          host or scheme values.
         see:
           - origin
       -
@@ -42,35 +42,199 @@ topics:
         type: JSMediaType
         summary: The content type of the request body
       -
-        name: getData
+        name: getValidObject
         kind: method
-        summary: Get the request's body data in a callback function
+        summary: Get an instance of the given class created with
+          \`initWithValidatingObject()`
         arguments:
+          -
+            name: validatingContructionClass
+            type: JSClass
+            summary: The class of object to instantiate.  Must implement
+              the `SKValidatingConstruction` protocol.
           -
             name: completion
             type:
               arguments:
                 -
-                  name: data
-                  type: JSData
+                  name: validator
+                  type: SKValidatingObject
                   mullable: true
-                  summary: The request's data, or `null` if there was an error
+                  summary: The request's JSON body decoded into an object and
+                    wrapped in a validator
           -
             name: target
             type: object
             default: "undefined"
             summary: The object to use as `this` when calling the completion
               function
+        description: |
+          Creates an instance with all input validated via a
+          `JSValidatingObject` passed to the init method.
+
+          `getValidObject()` is the reccommended way to create objects from user
+          input in a request.
+
+          ````
+          JSClass("CommentsResponder", SKHTTPResponder, {
+
+            post: async function(){
+              var comment = await this.request.getValidObject(CommentRequest);
+            }
+
+          });
+
+          JSClass("CommentRequest", JSObject, {
+
+            text: null,
+            replyToId: null,
+
+            initWithValidatingObject: function(obj){
+              this.text = obj.stringForKey('text');
+              this.replyToId = obj.numberForKey('replyToId', null);
+            }
+
+          });
+          ````
+
+          In order to successfully decode a JSON object, the request must 
+          meet the following criteria:
+
+          1. Content-Type equal to `"application/json; charset=utf-8"`
+          2. Valid JSON data
       -
-        name: getData
+        name: getValidObject
         suffix: promise
         kind: method
         type: Promise
         promise:
           resolve:
-            type: JSData
-            summary: The request's body data
-        summary: Get the request's body data with a promise
+            type: SKValidating
+            summary: An instance of the given class
+        summary: Get an instance of the given class created with
+          \`initWithValidatingObject()`, returned via a promise
+        arguments:
+          -
+            name: validatingContructionClass
+            type: JSClass
+            summary: The class of object to instantiate.  Must implement
+              the `SKValidatingConstruction` protocol.
+        description: |
+          Creates an instance with all input validated via a
+          `JSValidatingObject` passed to the init method.
+
+          `getValidObject()` is the reccommended way to create objects from user
+          input in a request.
+
+          ````
+          JSClass("CommentsResponder", SKHTTPResponder, {
+
+            post: async function(){
+              var comment = await this.request.getValidObject(CommentRequest);
+            }
+
+          });
+
+          JSClass("CommentRequest", JSObject, {
+
+            text: null,
+            replyToId: null,
+
+            initWithValidatingObject: function(obj){
+              this.text = obj.stringForKey('text');
+              this.replyToId = obj.numberForKey('replyToId', null);
+            }
+
+          });
+          ````
+
+          In order to successfully decode a JSON object, the request must 
+          meet the following criteria:
+
+          1. Content-Type equal to `"application/json; charset=utf-8"`
+          2. Valid JSON data
+      -
+        name: getValidatingObject
+        kind: method
+        summary: Get the request's body as an validation-wrapped object decoded
+          from JSON in a callback function
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: validator
+                  type: SKValidatingObject
+                  mullable: true
+                  summary: The request's JSON body decoded into an object and
+                    wrapped in a validator
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          A validating object provides a simple interface to extract user
+          input while ensuring it meets input validation requirements.
+
+          ````
+          JSClass("CommentsResponder", SKHTTPResponder, {
+
+            post: async function(){
+              var comment = await this.request.getValidatingObject();
+              var text = comment.stringForKey('text');
+              var replyToId = comment.numberForKey('replyToId', null);
+            }
+
+          });
+          ````
+
+          Unless you need to extract fields at different times, we recommend
+          using `getValidObject()` instead because it validates all the input
+          upfront and allows for a more structured pattern to validate input.
+
+          In order to successfully decode a JSON object, the request must 
+          meet the following criteria:
+
+          1. Content-Type equal to `"application/json; charset=utf-8"`
+          2. Valid JSON data
+      -
+        name: getValidatingObject
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: SKValidatingObject
+            summary: The request's body object wrapped in a validator
+        summary: Get the request's body object wrapped in a validator with a promise
+        description: |
+          A validating object provides a simple interface to extract user
+          input while ensuring it meets input validation requirements.
+
+          ````
+          JSClass("CommentsResponder", SKHTTPResponder, {
+
+            post: async function(){
+              var comment = await this.request.getValidatingObject();
+              var text = comment.stringForKey('text');
+              var replyToId = comment.numberForKey('replyToId', null);
+            }
+
+          });
+          ````
+
+          Unless you need to extract fields at different times, we recommend
+          using `getValidObject()` instead because it validates all the input
+          upfront and allows for a more structured pattern to validate input.
+
+          In order to successfully decode a JSON object, the request must 
+          meet the following criteria:
+
+          1. Content-Type equal to `"application/json; charset=utf-8"`
+          2. Valid JSON data
       -
         name: getObject
         kind: method
@@ -115,55 +279,35 @@ topics:
           1. Content-Type equal to `"application/json; charset=utf-8"`
           2. Valid JSON data
       -
-        name: getValidatingObject
+        name: getData
         kind: method
-        summary: Get the request's body as an validation-wrapped object decoded
-          from JSON in a callback function
+        summary: Get the request's body data in a callback function
         arguments:
           -
             name: completion
             type:
               arguments:
                 -
-                  name: validator
-                  type: SKValidatingObject
+                  name: data
+                  type: JSData
                   mullable: true
-                  summary: The request's JSON body decoded into an object and
-                    wrapped in a validator
+                  summary: The request's data, or `null` if there was an error
           -
             name: target
             type: object
             default: "undefined"
             summary: The object to use as `this` when calling the completion
               function
-        description: |
-          A validating object provides a simple interface to extract user
-          input while ensuring it meets input validation requirements.
-
-          In order to successfully decode a JSON object, the request must 
-          meet the following criteria:
-
-          1. Content-Type equal to `"application/json; charset=utf-8"`
-          2. Valid JSON data
       -
-        name: getValidatingObject
+        name: getData
         suffix: promise
         kind: method
         type: Promise
         promise:
           resolve:
-            type: SKValidatingObject
-            summary: The request's body object wrapped in a validator
-        summary: Get the request's body object wrapped in a validator with a promise
-        description: |
-          A validating object provides a simple interface to extract user
-          input while ensuring it meets input validation requirements.
-
-          In order to successfully decode a JSON object, the request must 
-          meet the following criteria:
-
-          1. Content-Type equal to `"application/json; charset=utf-8"`
-          2. Valid JSON data
+            type: JSData
+            summary: The request's body data
+        summary: Get the request's body data with a promise
   -
     name: Response
     members:

@@ -43,6 +43,17 @@ JSClass("SKHTTPServer", JSObject, {
         this._fillInRequestURL(request);
         logger.info("%{public} %{public}", request.method, request.url.path);
         var responder = null;
+        var server = this;
+        var catcher = function(e){
+            if (!(e instanceof SKHTTPError)){
+                logger.error(e);
+            }
+            if (responder !== null){
+                responder.fail(e);
+            }else{
+                server._failRequest(request, e);
+            }
+        };
         try{
 
             // 1. Create a responder for the request
@@ -56,52 +67,24 @@ JSClass("SKHTTPServer", JSObject, {
             }
 
             // 3. Authenticate the request
-            responder.authenticate(function(authorized, authenticated, statusCode){
-                if (!authorized){
-                    if (authenticated !== null){
-                        responder.fail(new SKHTTPError(statusCode || SKHTTPResponse.StatusCode.forbidden));
-                        return;
-                    }
-                    responder.fail(new SKHTTPError(statusCode || SKHTTPResponse.StatusCode.unauthorized));
-                    return;
+            responder.authenticate().then(function(authorization){
+                if (!authorization.authorized){
+                    throw new SKHTTPError(authorization.statusCode);
                 }
+                return authorization.authenticated;
+
+            // 4. Open the context
+            }).then(function(authenticated){
                 responder.context.authenticated = authenticated;
+                return responder.context.open();
 
-                // 4. Open the context
-                responder.context.open(function(status){
-                    if (status){
-                        responder.fail(new SKHTTPError(status));
-                    }else{
-                        try{
+            // 5. Call the method
+            }).then(function(){
+                return method.call(responder);
 
-                            // 5. Call the request method
-                            var promise = method.call(responder);
-                            if (promise && promise.catch){
-                                promise.catch(function(e){
-                                    if (e instanceof Error){
-                                        logger.error(e);
-                                    }
-                                    responder.fail(e);
-                                });
-                            }
-                        }catch (e){
-                            if (e instanceof Error){
-                                logger.error(e);
-                            }
-                            responder.fail(e);
-                        }
-                    }
-                }, this);
-            }, this);
+            }).catch(catcher);
         }catch (e){
-            if (!(e instanceof SKHTTPError)){
-                logger.error(e);
-            }
-            if (responder !== null){
-                responder.fail(e);
-            }else{
-                this._failRequest(request, e);
-            }
+            catcher(e);
         }
     },
 
@@ -147,6 +130,17 @@ JSClass("SKHTTPServer", JSObject, {
         var product = request.headerMap.get('upgrade', '');
         logger.info("%{public} %{public} (upgrade: %{public})", request.method, request.url.path, product);
         var responder = null;
+        var server = this;
+        var catcher = function(e){
+            if (!(e instanceof SKHTTPError)){
+                logger.error(e);
+            }
+            if (responder !== null){
+                responder.fail(e);
+            }else{
+                server._failRequest(request, e);
+            }
+        };
         try{
             // 1. Create a responder for the request
             responder = this._responderForRequest(request);
@@ -159,43 +153,25 @@ JSClass("SKHTTPServer", JSObject, {
             }
 
             // 3. Authenticate the request
-            responder.authenticate(function(authorized, authenticated, statusCode){
-                if (!authorized){
-                    if (authenticated !== null){
-                        responder.fail(new SKHTTPError(statusCode || SKHTTPResponse.StatusCode.forbidden));
-                        return;
-                    }
-                    responder.fail(new SKHTTPError(statusCode || SKHTTPResponse.StatusCode.unauthorized));
+            responder.authenticate().then(function(authorization){
+                if (!authorization.authorized){
+                    responder.fail(new SKHTTPError(authorization.statusCode));
                     return;
                 }
-                responder.context.authenticated = authenticated;
+                return authorization.authenticated;
 
-                // 4. Open the context
-                responder.context.open(function(status){
-                    if (status){
-                        responder.fail(new SKHTTPError(status));
-                    }else{
-                        try{
-                            // 5. Call the request method to open a socket
-                            method.call(responder);
-                        }catch (e){
-                            if (e instanceof Error){
-                                logger.error(e);
-                            }
-                            responder.fail(e);
-                        }
-                    }
-                }, this);
-            }, this);
+            // 4. Open the context
+            }).then(function(authenticated){
+                responder.context.authenticated = authenticated;
+                return responder.context.open();
+
+            // 4. Call the method
+            }).then(function(){
+                return method.call(responder);
+
+            }).catch(catcher);
         }catch (e){
-            if (!(e instanceof SKHTTPError)){
-                logger.error(e);
-            }
-            if (responder !== null){
-                responder.fail(e);
-            }else{
-                this._failRequest(request, e);
-            }
+            catcher(e);
         }
     },
 

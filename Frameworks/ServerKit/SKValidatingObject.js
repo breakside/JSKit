@@ -1,9 +1,11 @@
 // #import Foundation
 // #import "SKHTTPError.js"
-/* global JSClass, JSObject, SKValidatingObject */
+/* global JSClass, JSObject, JSReadOnlyProperty, SKValidatingObject */
 'use strict';
 
 JSClass("SKValidatingObject", JSObject, {
+
+    length: JSReadOnlyProperty(),
 
     initWithObject: function(obj){
         this.obj = obj || {};
@@ -11,8 +13,19 @@ JSClass("SKValidatingObject", JSObject, {
 
     obj: null,
 
-    getNumber: function(key, defaultValue, validator){
+    getLength: function(){
+        if (this.obj instanceof Array){
+            return this.obj.length;
+        }
+        return null;
+    },
+
+    numberForKey: function(key, defaultValue, validator){
         var n = this.obj[key];
+        if (typeof(defaultValue) == 'function'){
+            validator = defaultValue;
+            defaultValue = undefined;
+        }
         if (n === undefined){
             if (defaultValue === undefined){
                 throw new SKValidatingObject.Error('`%s` is required'.sprintf(key));
@@ -28,8 +41,8 @@ JSClass("SKValidatingObject", JSObject, {
         return n;
     },
 
-    getNumberInRange: function(key, min, max, defaultValue){
-        return this.getNumber(key, defaultValue, function(n){
+    numberForKeyInRange: function(key, min, max, defaultValue){
+        return this.numberForKey(key, defaultValue, function(n){
             if (min !== undefined && n < min){
                 throw new SKValidatingObject.Error('`%s` must be >= %f'.sprintf(key, min));
             }
@@ -39,19 +52,16 @@ JSClass("SKValidatingObject", JSObject, {
         });
     },
 
-    getInteger: function(key, defaultValue){
-        return this.getNumber(key, defaultValue, function(n){
+    integerForKey: function(key, defaultValue){
+        return this.numberForKey(key, defaultValue, function(n){
             if (n !== Math.floor(n)){
                 throw new SKValidatingObject.Error('`%s` must be an integer'.sprintf(key));
             }
         });
     },
 
-    getIntegerInRange: function(key, min, max, defaultValue){
-        return this.getNumber(key, defaultValue, function(n){
-            if (n !== Math.floor(n)){
-                throw new SKValidatingObject.Error('`%s` must be an integer'.sprintf(key));
-            }
+    integerForKeyInRange: function(key, min, max, defaultValue){
+        return this.integerForKey(key, defaultValue, function(n){
             if (min !== undefined && n < min){
                 throw new SKValidatingObject.Error('`%s` must be >= %f'.sprintf(key, min));
             }
@@ -61,8 +71,12 @@ JSClass("SKValidatingObject", JSObject, {
         });
     },
 
-    getString: function(key, defaultValue, validator){
+    stringForKey: function(key, defaultValue, validator){
         var value = this.obj[key];
+        if (typeof(defaultValue) == 'function'){
+            validator = defaultValue;
+            defaultValue = undefined;
+        }
         if (value === undefined){
             if (defaultValue === undefined){
                 throw new SKValidatingObject.Error('`%s` is required'.sprintf(key));
@@ -78,15 +92,15 @@ JSClass("SKValidatingObject", JSObject, {
         return value;
     },
 
-    getEmail: function(key, defaultValue){
-        return this.getString(key, defaultValue, function(str){
+    emailForKey: function(key, defaultValue){
+        return this.stringForKey(key, defaultValue, function(str){
             if (!str.match(/^[^\s]+@[^\s]+$/)){
                 throw new SKValidatingObject.Error('`%s` must be an email'.sprintf(key));
             }
         });
     },
 
-    getBoolean: function(key, defaultValue){
+    booleanForKey: function(key, defaultValue){
         var b = this.obj[key];
         if (b === undefined){
             if (defaultValue === undefined){
@@ -100,7 +114,7 @@ JSClass("SKValidatingObject", JSObject, {
         return b;
     },
 
-    getObject: function(key, defaultValue){
+    objectForKey: function(key, defaultValue){
         var obj = this.obj[key];
         if (obj === undefined){
             if (defaultValue === undefined){
@@ -114,7 +128,22 @@ JSClass("SKValidatingObject", JSObject, {
         return SKValidatingObject.initWithObject(obj);
     },
 
-    getArray: function(key, defaultValue){
+    validObjectForKey: function(key, validatingClass, defaultValue){
+        var obj = this.obj[key];
+        if (obj === undefined){
+            if (defaultValue === undefined){
+                throw new SKValidatingObject.Error('`%s` is required'.sprintf(key));
+            }
+            return defaultValue;
+        }
+        if (typeof(obj) !== "object"){
+            throw new Error('`%s` must be an object'.sprintf(key));
+        }
+        var validator = SKValidatingObject.initWithObject(obj);
+        return validatingClass.initWithValidatingObject(validator);
+    },
+
+    arrayForKey: function(key, defaultValue){
         var obj = this.obj[key];
         if (obj === undefined){
             if (defaultValue === undefined){
@@ -128,7 +157,7 @@ JSClass("SKValidatingObject", JSObject, {
         return SKValidatingObject.initWithObject(obj);
     },
 
-    getEnum: function(key, optionSet, defaultValue){
+    optionForKey: function(key, optionSet, defaultValue){
         var value = this.obj[key];
         if (value === undefined){
             if (defaultValue === undefined){

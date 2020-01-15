@@ -136,6 +136,19 @@ JSClass("SKHTTPRequest", JSObject, {
             completion.call(target, validator);
         });
         return completion.promise;
+    },
+
+    getValidObject: function(validatingClass, completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        this.getValidatingObject(function(obj){
+            var validator = SKValidatingObject.initWithObject(obj);
+            var valid = validatingClass.initWithValidatingObject(validator);
+            completion.call(target, valid);
+        });
+        return completion.promise;
+
     }
 
 });

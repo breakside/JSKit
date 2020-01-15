@@ -1,0 +1,173 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: A web socket connection between a client and an `SKHTTPServer`
+description: |
+  `ServerKit` was designed with support for web sockets out the box.
+
+  Typically, your app can provide a web socket service by implementing
+  a `SKHTTPWebSocketResponder`, which does most of the work for you.
+
+  This socket interface is what the web socket responder uses to
+  communicate with the client.
+
+  Messages
+  ========
+  Web sockets communicate with "messages" that can either be contined in a
+  single chunk of data or be broken across several chunks of data.
+
+  Therefore, this interface has the ability to send a message all at once
+  with `sendMessage()`, or it can send chunks at a time with
+  `startMessage()` followed by any number of `continueMessage()` calls.
+
+  The structre of your data will determine which method is better suited for
+  your use cases.
+topics:
+  -
+    name: Delegate
+    members:
+      -
+        name: SKHTTPWebSocketDelegate
+        kind: protocol
+        summary: An interface that an object can implement to handle
+          socket events like received messages or errors
+        topics:
+          -
+            name: Socket Events
+            members:
+              -
+                name: socketDidReceiveMessage
+                summary: Called when the socket receives the final chunk of
+                  a message
+                arguments:
+                  -
+                    name: socket
+                    type: SKHTTPWebSocket
+                    summary: The socket making this call
+                  -
+                    name: chunks
+                    type: JSData[]
+                    summary: The entire message data
+              -
+                name: socketDidReceiveData
+                summary: Called when the socket receives any chunk of data,
+                  even if it is an incomplete part of a message
+                arguments:
+                  -
+                    name: socket
+                    type: SKHTTPWebSocket
+                    summary: The socket making this call
+                  -
+                    name: data
+                    type: JSData
+                    summary: The chunk of data sent by the client
+              -
+                name: socketDidClose
+                summary: Called when the socket closes
+                arguments:
+                  -
+                    name: socket
+                    type: SKHTTPWebSocket
+                    summary: The socket making this call
+      -
+        name: delegate
+        type: SKHTTPWebSocketDelegate
+        nullable: true
+        summary: The delegate for this socket
+  -
+    name: Sending Messages
+    members:
+      -
+        name: sendMessage
+        kind: method
+        summary: Sends a block of data to the client as a single message
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The data to send as a single message
+      -
+        name: startMessage
+        kind: method
+        summary: Sends a block of data to the client as the first in a series
+          of blocks that make up a single message
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The data to send as the first block of the message
+        description: |
+          Any number of calls to `continueMessage()` must follow, and the
+          final one should indicate that the message is complete.
+      -
+        name: continueMessage
+        kind: method
+        summary: Sends a block of data to the client as a subsequent block in a
+          series of blocks that make up a single message
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The data to send as the subsequent block of the message
+          -
+            name: isFinal
+            type: boolean
+            summary: Indicates if this is the final block of the message
+        description: |
+          Any number of calls to `continueMessage()` must follow, and the
+          final one should indicate that the message is complete.
+  -
+    name: Ping & Pong
+    members:
+      -
+        name: pingInterval
+        type: Number
+        summary: The number of seconds the server should wait between sending
+          pings
+        description: |
+          Default value i"s `45` seconds."
+        see:
+          - sendPing()
+      -
+        name: sendPing
+        kind: method
+        summary: Send a ping to the client
+        description: |
+          The web socket specification indicates that a server should send a
+          regular ping to the client.
+
+          You should not need to call this method directly because every 
+          `SKHTTPWebSocket` schedules and sends a ping automatically.
+        see:
+          - pingInterval
+  -
+    name: Status
+    members:
+      -
+        name: Status
+        kind: enum
+        suffix: enum
+        summary: The possible statuses a web socket can send when closing
+        options:
+          -
+            name: normal
+            value: "1000"
+          -
+            name: goingAway
+            value: "1001"
+          -
+            name: protocolError
+            value: "1002"
+          -
+            name: unsupportedDataType
+            value: "1003"
+          -
+            name: invalidData
+            value: "1007"
+          -
+            name: generic
+            value: "1008"
+          -
+            name: messageTooLarge
+            value: "1009"

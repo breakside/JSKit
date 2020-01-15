@@ -1,0 +1,181 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Responder contexts provide a responders with resource data that is
+  common to all methods
+description: |
+  Each responder class can designate a `contextClass` that is used to create
+  a context object.  Every context class should be a sublcass of
+  `SKHTTPResponderContext`.
+
+  Conceptually a URL path represents a resource and the responder defines all
+  of the actions that can be applied to the resource.
+
+  A context contains any useful information about the resource, and is made
+  available to the responder in the same manner regardless of the action that
+  will be called.
+
+  The responder's context is always avaialbe under its `context` property.
+
+  For example, taking a `BlogPostResponder` example, its context may load
+  a post from a database.
+
+  ````
+
+  JSClass("BlogPostContext", SKHTTPResponderContext, {
+
+    post: null,
+
+    open: async function(){
+      this.post = await this.db.blogPosts.get(this.postId);
+    }
+
+  });
+
+  JSClass("BlogPostResponder", SKHTTPResponder, {
+
+    contextClass: BlogPostContext,
+
+    get: async function(){
+      this.sendObject(this.context.post);
+    },
+
+    delete: async function(){
+      this.context.db.delete(this.context.post, function(){
+        this.sendStatus(SKHTTPResponse.StatusCode.ok);
+      }, this);
+    }
+
+  });
+  ````
+
+  URL Placeholders
+  ================
+  Contexts are automatically assigned properties from the URL pattern
+  matching done by `SKHTTPRotue`. In the case of a blog post, the route might
+  be something like `"/posts/*postId"`.
+
+  Since the `"*postId"` component represents a placholder, a property named
+  `postId`() will be added to the context, taking whatever value was included
+  in the URL for the actual request.
+
+  For example, a request of `"/posts/123"` would mean the `BlogPostContext`
+  created for the responder above would have a `postId`() property of `123`.
+topics:
+  -
+    name: Creating a Context
+    members:
+      -
+        name: initWithPathComponentMatches
+        kind: init
+        summary: Create a context with a dictionary of properties that were
+          extracted from the URL path for the active request
+        arguments:
+          -
+            name: pathComponentMatches
+            type: dictionary
+            summary: The actual values used for placeholders in the route's URL,
+              keyed by the placeholder names
+        description: |
+          Contexts are passed properties from the URL pattern
+          matching done by `SKHTTPRotue`. In the case of a blog post, the route
+          might be something like `"/posts/*postId"`.
+
+          Since the `"*postId"` component represents a placholder, a property
+          named `postId`() will be included in the `pathComponentMatches`
+          argument.
+
+          For example, a request of `"/posts/123"` would mean that the
+          dictionary woudl have a `postId`() property of `123`.
+
+          The default implementation simply adds each key/value from the
+          dictionary as a property on `this`.
+
+          Contexts are typically created by the `SKHTTPServer`, so you should
+          not need to call this method directly.
+
+          Subclasses can override the default behavor and deal with the url
+          path matches in a different manner.
+  -
+    name: Authentication
+    members:
+      -
+        name: authenticated
+        type: any
+        nullable: true
+        summary: The application-defined object that was returned in
+          an `SKHTTPAuthorization` by `SKHTTPResponder.authenticate()`
+        description: |
+          The `SKHTTPServer` automatically assigns the
+          `authenticated`(SKHTTPAuthorization.authenticated) property of the
+          `SKHTTPResponder.authenticate()`(SKHTTResponder.authenticate) result
+          to the context for the request.
+
+          Typically this will be something like a User object indicating
+          which user is making the request.
+        see:
+          - SKHTTPResponder.authenticate()
+  -
+    name: Loading Resource Data
+    members:
+      -
+        name: open
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            summary: A context doesn't have to resolve any object when it's done.
+              It can `throw` an `SKHTTPError` if an error occurs, such as when
+              a resource is not found.
+        summary: Called after authentication to give the context a chance to
+          load any resource data
+        description: |
+          This is typically where the context will use the properties assigned
+          during `initWithPathComponentMatches()` to load resources from
+          a database.
+
+          A common pattern is to create a database connection in your
+          `SKApplicationDelegate` when the application launches, and the
+          assign that connection to each context
+          in `SKApplicationDelegate.serverDidCreateContextForRequest()`.
+
+          For example, you may define a base context class for your application
+          that has a `db`() property:
+
+          ````
+          JSClass("ApplicationContext", SKHTTPResponderContext, {
+
+            db: null
+
+          });
+          ````
+
+          You can assign the `db`() property in your application delegate:
+          ````
+          JSClass("ApplicationDelegate", JSObject, {
+
+            applicationDidFinishLaunching: function(application, launchOptions){
+              this.db = this.createDatabaseConnection();
+            },
+
+            serverDidCreateContextForRequest: function(context, request){
+              context.db = this.db;
+            }
+
+          });
+          ````
+
+          And any subclasses that extend from `ApplicationContext`() can make
+          use of the `db`() property:
+          ````
+          JSClass("BlogPostContext", ApplicationContext, {
+
+            post: null,
+
+            open: async function(){
+              this.post = await this.db.posts.get(this.postId);
+            }
+
+          });
+          ````
