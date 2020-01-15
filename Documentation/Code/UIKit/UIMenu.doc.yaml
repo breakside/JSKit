@@ -91,6 +91,7 @@ topics:
             summary: The action to send when the item is selected
       -
         name: addItemWithTitle
+        suffix: targeted
         kind: method
         summary: Add an item with the given title, action, and target
         arguments:
@@ -108,6 +109,7 @@ topics:
             summary: The specific responder to which the action should be sent
       -
         name: addItemWithTitle
+        suffix: function
         kind: method
         summary: Add an item with the given title and action function
         arguments:

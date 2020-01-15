@@ -2,6 +2,7 @@
 'use strict';
 var app = {TEMPLATE: "JSKIT_APP"};
 var cacheKey = 'build-' + app.buildId;
+var urlPrefix = self.location.protocol + '//' + self.location.host + '/';
 
 var install = function(){
   var loaded = 0;
@@ -35,8 +36,27 @@ var cleanup = function(){
 };
 
 var cacheFetch = function(request){
-  return caches.match(request).then(function(response){
-    return response || fetch(request);
+  return caches.match(request, {cacheName: cacheKey}).then(function(response){
+    if (response){
+      return response;
+    }
+    if (request.method == "GET" && request.url.startsWith(urlPrefix)){
+      console.debug("Fetching " + request.url);
+      return fetch(request, {cache: 'no-store'}).then(function(response){
+        if (response.ok){
+          caches.open(cacheKey).then(function(cache){
+            cache.put(request, response).then(function(){
+              console.debug("Cached " + request.url);
+            }, function(){
+              console.error("Error caching " + request.url);
+            });
+          });
+          return response.clone();
+        }
+        return response;
+      });
+    }
+    return fetch(request);
   });
 };
 

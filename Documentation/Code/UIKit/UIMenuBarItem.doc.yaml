@@ -1,0 +1,380 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSObject
+summary: Menu bar items are non-menu items placed on a menu bar
+description: |
+  Bar items typically function like buttons, but can also be views that display
+  status or other data.
+topics:
+  -
+    name: Creating Menu Bar Items
+    members:
+      -
+        name: initWithTitle
+        kind: init
+        summary: Create an item with the given title
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title to display for the item
+      -
+        name: initWithTitle
+        suffix: action
+        kind: init
+        summary: Create an item with the given title and action
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title to display for the item
+          -
+            name: action
+            type: String
+            summary: The action to send when the item is clicked
+      -
+        name: initWithTitle
+        suffix: targeted
+        kind: init
+        summary: Create an item with the given title and action
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title to display for the item
+          -
+            name: action
+            type: String
+            summary: The action to send when the item is clicked
+          -
+            name: target
+            type: UIResponder
+            summary: The specific responder that should receive the action
+      -
+        name: initWithTitle
+        suffix: function
+        kind: init
+        summary: Create an item with the given title and action function
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title to display for the item
+          -
+            name: action
+            type: function
+            summary: The function that will be called when the item is selected
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the action
+              function
+      -
+        name: initWithImage
+        kind: init
+        summary: Create an item with the given image
+        arguments:
+          -
+            name: image
+            type: JSImage
+            summary: The image to display for the item
+      -
+        name: initWithImage
+        suffix: action
+        kind: init
+        summary: Create an item with the given image and action
+        arguments:
+          -
+            name: image
+            type: JSImage
+            summary: The image to display for the item
+          -
+            name: action
+            type: String
+            summary: The action to send when the item is clicked
+      -
+        name: initWithImage
+        suffix: targeted
+        kind: init
+        summary: Create an item with the given image and action
+        arguments:
+          -
+            name: image
+            type: JSImage
+            summary: The image to display for the item
+          -
+            name: action
+            type: String
+            summary: The action to send when the item is clicked
+          -
+            name: target
+            type: UIResponder
+            summary: The specific responder that should receive the action
+      -
+        name: initWithImage
+        suffix: function
+        kind: init
+        summary: Create an item with the given image and action function
+        arguments:
+          -
+            name: image
+            type: JSImage
+            summary: The image to display for the item
+          -
+            name: action
+            type: function
+            summary: The function that will be called when the item is selected
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the action
+              function
+      -
+        name: initWithCustomView
+        kind: init
+        summary: Create an item with the given view
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The view to display for the item
+      -
+        name: initWithCustomView
+        suffix: action
+        kind: init
+        summary: Create an item with the given view and action
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The view to display for the item
+          -
+            name: action
+            type: String
+            summary: The action to send when the item is clicked
+      -
+        name: initWithCustomView
+        suffix: targeted
+        kind: init
+        summary: Create an item with the given view and action
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The view to display for the item
+          -
+            name: action
+            type: String
+            summary: The action to send when the item is clicked
+          -
+            name: target
+            type: UIResponder
+            summary: The specific responder that should receive the action
+      -
+        name: initWithCustomView
+        suffix: function
+        kind: init
+        summary: Create an item with the given view and action function
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The view to display for the item
+          -
+            name: action
+            type: function
+            summary: The function that will be called when the item is selected
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the action
+              function
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available to a item in a spec file
+        topics:
+          -
+            name: Title & Image
+            members:
+              -
+                name: title
+                type: String
+                summary: The title of the item as it will be shown in the menu
+              -
+                name: tooltip
+                type: String
+                summary: The help text to show when the user hovers over this
+                  item
+              -
+                name: image
+                type: JSImage
+                summary: The optional image for the item
+              -
+                name: imagePosition
+                type: ImagePosition
+                summary: Where the item's image should be positioned relative
+                  to its title
+          -
+            name: Custom View
+            members:
+              -
+                name: customView
+                type: UIView
+                summary: A custom view that will be used for the bar item
+                description: |
+                  Using a custom view means the menu bar will not render any
+                  default items like the `title` or `image`.
+          -
+            name: Action
+            members:
+              -
+                name: action
+                type: String
+                summary: The action to send when selecting this item
+                description: |
+                  Actions are sent via `UIApplication.sendAction()`.  If no
+                  `target` is specified, the action will be send through the
+                  responder chain until a responder handles it.
+              -
+                name: target
+                type: UIResponder
+                summary: The specific responder for the action
+                description: |
+                  If not specified, the action will be send through the
+                  responder chain until a responder handles it.
+          -
+            name: Action Alternatives
+            members:
+              -
+                name: menu
+                type: UIMenu
+                summary: The menu to open when the item is clicked
+                description: |
+                  Specified as an alternative to an `action`.
+              -
+                name: windowControllerClass
+                type: JSClass
+                summary: A `UIWindowController` subclass, indicating a window
+                  should be opened when the item is clicked
+                description: |
+                  Allows a window to open in a similar style to a menu, but
+                  with completely custom content.
+
+                  Specified as an alternative to an `action` or `menu`.
+  -
+    name: Title & Image
+    members:
+      -
+        name: title
+        type: String
+        summary: The title of the item as it will be shown in the menu
+      -
+        name: tooltip
+        type: String
+        summary: The help text to show when the user hovers over this
+          item
+      -
+        name: image
+        type: JSImage
+        summary: The optional image for the item
+      -
+        name: imagePosition
+        type: ImagePosition
+        summary: Where the item's image should be positioned relative
+          to its title
+  -
+    name: Custom View
+    members:
+      -
+        name: customView
+        type: UIView
+        summary: A custom view that will be used for the bar item
+        description: |
+          Using a custom view means the menu bar will not render any
+          default items like the `title` or `image`.
+  -
+    name: Named Actions
+    members:
+      -
+        name: action
+        type: String
+        summary: The action name to peform when the item is interacted with
+        description: |
+          The action will be sent to `UIApplication.sendAction()` along with
+          any `target`, if specified.
+      -
+        name: target
+        type: UIResponder
+        summary: The specific responder that should always handle this item's
+          \`action`
+        description: |
+          If `null` the action will be sent to the window's `firstResponder`
+          and work its way through the responder chain until a responder
+          handles the action.
+  -
+    name: Function Actions
+    members:
+      -
+        name: action
+        suffix: function
+        type: function
+        summary: A function to call when the the item is interacted with
+        description: |
+          The action will be sent to `UIApplication.sendAction()` along with
+          any `target`, if specified.
+      -
+        name: target
+        suffix: function
+        type: object
+        summary: The object to use as `this` when calling `action`(action-function)
+  -
+    name: Action Alternatives
+    members:
+      -
+        name: menu
+        type: UIMenu
+        summary: The menu to open when the item is clicked
+        description: |
+          Specified as an alternative to an `action`.
+      -
+        name: windowControllerClass
+        type: JSClass
+        summary: A `UIWindowController` subclass, indicating a window
+          should be opened when the item is clicked
+        description: |
+          Allows a window to open in a similar style to a menu, but
+          with completely custom content.
+
+          Specified as an alternative to an `action` or `menu`.
+  -
+    name: State
+    members:
+      -
+        name: State
+        kind: enum
+        suffix: enum
+        summary: The possible states for bar items
+        options:
+          -
+            name: normal
+            summary: The default state
+          -
+            name: active
+            summary: The item is being pressed
+      -
+        name: active
+        type: boolean
+        summary: Indicates if the item is in the active state
+      -
+        name: state
+        type: State
+        summary: The item's state
+      -
+        name: hidden
+        type: boolean
+        summary: Indicates if the item is hidden

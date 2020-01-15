@@ -52,9 +52,6 @@
             h1.appendChild(document.createTextNode("Value Type"));
             let p = typeSection.appendChild(document.createElement("p"));
             let code = p.appendChild(document.createElement("code"));
-            if (this.nullable){
-                code.appendChild(document.createTextNode('?'));
-            }
             let url = this.urlForCode(this.valueType);
             if (url){
                 let a = code.appendChild(document.createElement("a"));
@@ -62,6 +59,9 @@
                 a.appendChild(document.createTextNode(this.valueType));
             }else{
                 code.appendChild(document.createTextNode(this.valueType));
+            }
+            if (this.nullable){
+                code.appendChild(document.createTextNode('?'));
             }
         }
 

@@ -1,6 +1,6 @@
 // #import Foundation
 // #import "UIEvent.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSImage, JSDynamicProperty, UIMenuSeparatorItemView, UIMenuItem, UIMenu, UIEvent */
+/* global JSClass, JSObject, JSReadOnlyProperty, JSImage, JSDynamicProperty, UIMenuSeparatorItemView, UIMenuItem, UIMenu, UIEvent, UIView */
 'use strict';
 
 JSClass("UIMenuItem", JSObject, {
@@ -63,6 +63,9 @@ JSClass("UIMenuItem", JSObject, {
             }
             if (spec.containsKey('image')){
                 this._image = spec.valueForKey("image", JSImage);
+            }
+            if (spec.containsKey("view")){
+                this.view = spec.valueForKey("view", UIView);
             }
         }
     },

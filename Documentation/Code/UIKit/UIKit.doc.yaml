@@ -237,6 +237,7 @@ topics:
       - UIMenu
       - UIMenuItem
       - UIMenuBar
+      - UIMenuBarItem
   -
     name: Split Views
     members:

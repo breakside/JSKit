@@ -733,9 +733,13 @@ JSClass("UIMenuItemView", UIView, {
         }
         switch (item.state){
             case UIMenuItem.State.off:
-                if (this._stateImageView){
-                    this._stateImageView.hidden = true;
+                if (item.offImage !== null){
+                    this.stateImageView.image = item.offImage;
+                }else if (this._stateImageView){
                     this._stateImageView.image = null;
+                }
+                if (this._stateImageView){
+                    this._stateImageView.hidden = this._stateImageView.image === null;
                 }
                 break;
             case UIMenuItem.State.on:

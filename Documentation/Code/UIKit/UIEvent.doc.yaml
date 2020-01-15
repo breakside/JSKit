@@ -193,6 +193,18 @@ topics:
           -
             name: option
             summary: The option/alt key is pressed
+          -
+            name: optionControl
+            summary: The combination of option and control modifiers
+          -
+            name: optionShift
+            summary: The combination of option and shift modifiers
+          -
+            name: optionControlShift
+            summary: The combination of option, control, and shift modifiers
+          -
+            name: controlShift
+            summary: The combination of control and shift modifiers
       -
         name: modifiers
         type: Modifier

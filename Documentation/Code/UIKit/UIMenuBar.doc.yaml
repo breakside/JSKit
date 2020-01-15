@@ -1,0 +1,115 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: UIWindow
+summary: A special window for displaying a menu horizontally, typically along
+  the top of the application
+topics:
+  -
+    name: Creating a Menu Bar
+    members:
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available to a menu bar in a spec file
+        topics:
+          -
+            name: Menu
+            members:
+              -
+                name: menu
+                type: UIMenu
+                summary: The root menu to display along the bar
+          -
+            name: Bar Items
+            members:
+              -
+                name: leftBarItems
+                type: UIMenuBarItem[]
+                summary: Bar items to show on the left of the menu bar
+              -
+                name: rightBarItems
+                type: UIMenuBarItem[]
+                summary: Bar items to show on the right of the menu bar
+          -
+            name: Styling
+            members:
+              -
+                name: font
+                type: JSFont
+                summary: The font to use for item titles
+              -
+                name: textColor
+                type: JSColor
+                summary: The color of item titles
+              -
+                name: highlightedTextColor
+                type: JSColor
+                summary: The color of highlighted item titles
+              -
+                name: highlightColor
+                type: JSColor
+                summary: The background color of highlighted items
+          -
+            name: Layout
+            members:
+              -
+                name: itemPadding
+                type: JSInsets
+                summary: The amount of padding each item has
+              -
+                name: edgeInsets
+                type: JSInsets
+                summary: The amount all items are inset from the bar's edges
+  -
+    name: Menu
+    members:
+      -
+        name: menu
+        type: UIMenu
+        summary: The root menu to display along the bar
+  -
+    name: Bar Items
+    members:
+      -
+        name: leftBarItems
+        type: UIMenuBarItem[]
+        summary: Bar items to show on the left of the menu bar
+      -
+        name: rightBarItems
+        type: UIMenuBarItem[]
+        summary: Bar items to show on the right of the menu bar
+  -
+    name: Styling
+    members:
+      -
+        name: isOpaque
+        type: boolean
+        summary: Indicates that no content should appear benath the bar
+      -
+        name: font
+        type: JSFont
+        summary: The font to use for item titles
+      -
+        name: textColor
+        type: JSColor
+        summary: The color of item titles
+      -
+        name: highlightedTextColor
+        type: JSColor
+        summary: The color of highlighted item titles
+      -
+        name: highlightColor
+        type: JSColor
+        summary: The background color of highlighted items
+  -
+    name: Layout
+    members:
+      -
+        name: itemPadding
+        type: JSInsets
+        summary: The amount of padding each item has
+      -
+        name: edgeInsets
+        type: JSInsets
+        summary: The amount all items are inset from the bar's edges

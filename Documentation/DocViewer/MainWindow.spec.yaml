@@ -200,8 +200,12 @@ MainMenu:
     class: UIMenuDefaultStyler
     highlightColor: /HighlightColor
   items:
+    # -
+    #   title: .mainMenu.downloadAll
+    #   action: downloadAllDocuments
+    #   target: /MainViewController
     -
-      title: Report an Issue
+      title: .mainMenu.reportIssue
       action: reportAnIssue
       target: /MainViewController
     -

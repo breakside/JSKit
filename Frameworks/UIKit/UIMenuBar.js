@@ -53,6 +53,9 @@ JSClass("UIMenuBar", UIWindow, {
             }
             this.rightBarItems = items;
         }
+        if (spec.containsKey('itemPadding')){
+            this._itemPadding = spec.valueForKey("itemPadding", JSInsets);
+        }
     },
 
     _commonInit: function(){
@@ -203,7 +206,7 @@ JSClass("UIMenuBar", UIWindow, {
 
     layoutSubviews: function(){
         UIMenuBar.$super.layoutSubviews.call(this);
-        var height = this._font.displayLineHeight + this._itemPadding.top + this._itemPadding.bottom;
+        var height = this._font.displayLineHeight + this._itemPadding.height;
         this.bounds = JSRect(0, 0, this.bounds.size.width, height);
         this._clipView.frame = this.bounds;
 

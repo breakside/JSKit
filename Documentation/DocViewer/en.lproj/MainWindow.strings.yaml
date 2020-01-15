@@ -4,4 +4,6 @@ en:
   updateButton:
     title: Get Latest Docs
   mainMenu:
+    downloadAll: Download Documents for Offline
+    reportIssue: Report an Issue...
     about: About JSKit Documentation

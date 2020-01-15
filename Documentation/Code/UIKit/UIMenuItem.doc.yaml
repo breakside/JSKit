@@ -1,0 +1,409 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSObject
+summary: Menu items are selectable items within `UIMenu`s that perform actions
+topics:
+  -
+    name: Creating Menu Items
+    members:
+      -
+        name: initWithTitle
+        kind: init
+        summary: Create an item with the given title and action
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title to display for the item
+          -
+            name: action
+            type: String
+            summary: The action to send when the item is clicked
+      -
+        name: initWithTitle
+        suffix: targeted
+        kind: init
+        summary: Create an item with the given title and action
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title to display for the item
+          -
+            name: action
+            type: String
+            summary: The action to send when the item is clicked
+          -
+            name: target
+            type: UIResponder
+            summary: The specific responder that should receive the action
+      -
+        name: initWithTitle
+        suffix: function
+        kind: init
+        summary: Create an item with the given title and action function
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title to display for the item
+          -
+            name: action
+            type: function
+            summary: The function that will be called when the item is selected
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the action
+              function
+      -
+        name: initWithSeparator
+        kind: init
+        summary: Create a separator item
+        description: |
+          A separator item is a line between other items.  It cannot be
+          selected.
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available to a item in a spec file
+        topics:
+          -
+            name: Identification
+            members:
+              -
+                name: tag
+                type: String
+                summary: A menu-unique identifier so the item can be looked up
+                  quickly later
+              -
+                name: separator
+                type: boolean
+                summary: If `true`, causes a separator item to be created
+                description: |
+                  No other properties are allowed for separator items.
+          -
+            name: Title & Image
+            members:
+              -
+                name: title
+                type: String
+                summary: The title of the item as it will be shown in the menu
+              -
+                name: image
+                type: JSImage
+                summary: The optional image for the item
+              -
+                name: indentationLevel
+                type: Number
+                summary: The number of indents that should be applied to this
+                  item
+                description: |
+                  An integer.  Normal items are at level `0`.  A single level
+                  of indentation is `1`.
+          -
+            name: Custom View
+            members:
+              -
+                name: view
+                type: UIView
+                summary: A custom view that will be used for the menu item
+                description: |
+                  Using a custom view means the menu will not render any default
+                  items like the `title` or `image`.
+          -
+            name: Action
+            members:
+              -
+                name: action
+                type: String
+                summary: The action to send when selecting this item
+                description: |
+                  Actions are sent via `UIApplication.sendAction()`.  If no
+                  `target` is specified, the action will be send through the
+                  responder chain until a responder handles it.
+              -
+                name: target
+                type: UIResponder
+                summary: The specific responder for the action
+                description: |
+                  If not specified, the action will be send through the
+                  responder chain until a responder handles it.
+          -
+            name: Key Equivalent
+            members:
+              -
+                name: keyEquivalent
+                type: String
+                summary: A single character that when combined with the
+                  platforms command key and any `keyModifiers` is used a
+                  shortcut for this item.
+                description: |
+                  For example, if you want a Save menu item to respond to
+                  `⌘S`, you'd use `"s"` as the key equivalent
+                  ````
+                  MainMenu:
+                    class: UIMenu
+                    items:
+                      -
+                        title: .save
+                        action: save
+                        keyEquivalent: s
+                  ````
+                note: |
+                  The case of the key equivalent is ignored, so `"s"` and `"S"`
+                  are treated the same.
+                see:
+                  - keyModifiers
+              -
+                name: keyModifiers
+                type: UIEvent.Modifier
+                summary: The modifiers that further define the keyboard shortcut
+                  for this item
+                description: |
+                  For example, if you want a Save As menu item to respond to
+                  `⇧⌘S`, you'd use `"s"` as the key equivalent, and
+                  `shift`(UIEvent.Modifier) as they modifier.
+                  ````
+                  MainMenu:
+                    class: UIMenu
+                    items:
+                      -
+                        title: .saveAs
+                        action: saveAs
+                        keyEquivalent: s
+                        keyModifiers: shift
+                  ````
+                note: The platform's command key is always included
+                  automatically and does not need to be specified
+                see:
+                  - keyEquivalent
+                  - UIPlatform
+          -
+            name: Alternate
+            members:
+              -
+                name: alternate
+                type: boolean
+                summary: Indicates this item is an alternate for the item
+                  immediately preceding it.
+                description: |
+                  Alternate items are hidden by default, but can be exposed
+                  in place of the item preceding them when the user holds down
+                  the option/alt key.
+          -
+            name: Nested Menus
+            members:
+              -
+                name: submenu
+                type: UIMenu
+                summary: The submenu for this menu item
+                description: |
+                  An item with a submenu typically does not have an action
+  -
+    name: Identification
+    members:
+      -
+        name: tag
+        type: String
+        summary: A menu-unique identifier so the item can be looked up
+          quickly using `UIMenu.itemWithTag()`
+      -
+        name: separator
+        type: boolean
+        summary: If `true`, indicates the item is a separator item
+        description: |
+          A separator is a line between other items.
+
+          All other properties are meaningless for a separator item.
+  -
+    name: Title & Image
+    members:
+      -
+        name: title
+        type: String
+        summary: The title of the item as it will be shown in the menu
+      -
+        name: image
+        type: JSImage
+        summary: The optional image for the item
+      -
+        name: indentationLevel
+        type: Number
+        summary: The number of indents that should be applied to this
+          item
+        description: |
+          An integer.  Normal items are at level `0`.  A single level
+          of indentation is `1`.
+  -
+    name: Custom View
+    members:
+      -
+        name: view
+        type: UIView
+        summary: A custom view that will be used for the menu item
+        description: |
+          Using a custom view means the menu will not render any default
+          items like the `title` or `image`.
+  -
+    name: State
+    members:
+      -
+        name: State
+        kind: enum
+        suffix: enum
+        summary: The possible states of a menu item
+        options:
+          -
+            name: "off"
+            summary: An item is unchecked.  This is the normal state.
+          -
+            name: "on"
+            summary: An item is checked.
+          -
+            name: "mixed"
+            summary: An item is mixed, representing both off and on, typically
+              because multiple objects are selected with different values linked
+              to the item's state.
+      -
+        name: onImage
+        type: JSImage
+        nullable: true
+        summary: A custom image to show when the item's state is on
+        description: |
+          If `null`, the `UIMenu.styler` will display a default image
+      -
+        name: mixedImage
+        type: JSImage
+        nullable: true
+        summary: A custom image to show when the item's state is mixed
+        description: |
+          If `null`, the `UIMenu.styler` will display a default image
+      -
+        name: offImage
+        type: JSImage
+        nullable: true
+        summary: A custom image to show when the item's state is off
+        description: |
+          Typically left `null` so no image is shown in the off state, otherwise
+          all items will show this image in their normal state.
+      -
+        name: enabled
+        type: boolean
+        summary: Indicates if the item is enabled
+        description: |
+          If the item's menu is configured to automatically enable items
+          via `automaticallyUpdates`(UIMenu.automaticallyUpdates), this
+          property will be updated by the menu depending on if there's a
+          responder than can handle this item's `action`.
+      -
+        name: highlighted
+        type: boolean
+        summary: Indicates if the item is highlighted
+        description: |
+          A highlighted item is the one that is currently under the user's
+          cursor.
+      -
+        name: hidden
+        type: boolean
+        summary: Indicates if the item is hidden
+        description: |
+          Hidden items will not appear in their menu
+  -
+    name: Named Actions
+    members:
+      -
+        name: action
+        type: String
+        summary: The action name to peform when the item is interacted with
+        description: |
+          The action will be sent to `UIApplication.sendAction()` along with
+          any `target`, if specified.
+      -
+        name: target
+        type: UIResponder
+        summary: The specific responder that should always handle this item's
+          \`action`
+        description: |
+          If `null` the action will be sent to the window's `firstResponder`
+          and work its way through the responder chain until a responder
+          handles the action.
+  -
+    name: Function Actions
+    members:
+      -
+        name: action
+        suffix: function
+        type: function
+        summary: A function to call when the the item is interacted with
+        description: |
+          The action will be sent to `UIApplication.sendAction()` along with
+          any `target`, if specified.
+      -
+        name: target
+        suffix: function
+        type: object
+        summary: The object to use as `this` when calling `action`(action-function)
+  -
+    name: Key Equivalent
+    members:
+      -
+        name: keyEquivalent
+        type: String
+        summary: A single character that when combined with the
+          platforms command key and any `keyModifiers` is used a
+          shortcut for this item.
+        description: |
+          For example, if you want a Save menu item to respond to
+          `⌘S`, you'd use `"s"` as the key equivalent
+          ````
+          var item = UIMenuItem.initWithTitle("Save", "save");
+          item.keyEquivalent = "s";
+          ````
+        note: |
+          The case of the key equivalent is ignored, so `"s"` and `"S"`
+          are treated the same.
+        see:
+          - keyModifiers
+      -
+        name: keyModifiers
+        type: UIEvent.Modifier
+        summary: The modifiers that further define the keyboard shortcut
+          for this item
+        description: |
+          For example, if you want a Save As menu item to respond to
+          `⇧⌘S`, you'd use `"s"` as the key equivalent, and
+          `shift`(UIEvent.Modifier) as they modifier.
+          ````
+          var item = UIMenuItem.initWithTitle("Save As...", "saveAs");
+          item.keyEquivalent = "s";
+          item.keyModifiers = UIEvent.Modifier.shift;
+          ````
+        note: The platform's command key is always included
+          automatically and does not need to be specified
+        see:
+          - keyEquivalent
+          - UIPlatform
+  -
+    name: Alternate
+    members:
+      -
+        name: alternate
+        type: boolean
+        summary: Indicates this item is an alternate for the item
+          immediately preceding it.
+        description: |
+          Alternate items are hidden by default, but can be exposed
+          in place of the item preceding them when the user holds down
+          the option/alt key.
+  -
+    name: Nested Menus
+    members:
+      -
+        name: submenu
+        type: UIMenu
+        summary: The submenu for this menu item
+        description: |
+          An item with a submenu typically does not have an action
