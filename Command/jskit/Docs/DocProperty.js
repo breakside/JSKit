@@ -7,7 +7,7 @@
     kind: 'property',
     isStatic: false,
     valueType: null,
-    nullable: true,
+    nullable: false,
 
     getDisplayNameForKind: function(){
         if (this.isStatic){
@@ -105,7 +105,7 @@
 
     declarationCode: function(){
         if (this.isStatic){
-            return ['nullable var %s'.sprintf(this.name)];
+            return ['static var %s'.sprintf(this.name)];
         }
         return ['var %s'.sprintf(this.name)];
     },

@@ -1,0 +1,207 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Defines a path-based route to be matched against HTTP requests
+description: |
+  Typically only an `HTTPServer` needs to deal with the properties and methods
+  of an `SKHTTPRoute`.
+topics:
+  -
+    name: Creating Routes
+    members:
+      -
+        name: initWithComponentStrings
+        kind: init
+        summary: Create a route with the given path components
+        arguments:
+          -
+            name: componentStrings
+            type: String[]
+            summary: The path components relative to the route's parent
+          -
+            name: responderClass
+            type: JSClass
+            summary: A `SKHTTPResponder` subclass that defines what kind of
+              responder instance is created for requests that match this route
+        description: |
+          URL Placeholders
+          -------------
+          If a component string begins with `"*"`, it is considered to be a
+          placeholder component, meaning it will match any value.
+
+          The actual value specified in the request URL will set on the
+          `SKHTTPResponderContext` instance using a property name that
+          matches the name given after the `"*"`.
+
+          ````
+          var rootRoute = SKHTTPRoute.initWithComponentStrings(["/"], RootResponder);
+          var postsRoute = SKHTTPRoute.initWithComponentStrings(["posts"], PostsResponder);
+          var postRoute = SKHTTPRoute.initWithComponentStrings(["*id"], PostResponder);
+          rootRoute.addChild(postsRoute);
+          postsRoute.addChild(postRoute);
+          ````
+
+          Greedy Placeholders
+          ------------------
+          The final placeholder component is allowed to be a greedy
+          placeholder that consumes the rest of the URL, no matter
+          how many more components there are.
+
+          A greedy placeholder is prefixed with two stars `"**"`.  It is
+          useful for situations like a file API where the user may
+          specify an arbitrary folder tree:
+
+          ````
+          var rootRoute = SKHTTPRoute.initWithComponentStrings(["/"], RootResponder);
+          var fileRoute = SKHTTPRoute.initWithComponentStrings(["files", "**fileComponents"], FileResponder);
+          rootRoute.addChild(fileRoute);
+          ````
+        note: It is typically easier to create an entire route tree at once
+          using `SKHTTPRoute.FromMap()`
+      -
+        name: FromMap
+        kind: method
+        static: true
+        type: SKHTTPRoute
+        summary: Create a route tree from an easy-to-write mapping dictionary
+        arguments:
+          -
+            name: routeMap
+            type: dictionary
+            summary: The route mapping dictionary
+          -
+            name: bundle
+            type: JSBundle
+            default: "null"
+            summary: The bundle that resource routes should be resolved against
+        description: |
+          Each route can match to a fixed URL path or a URL path with
+          placeholder components for things like id numbers.
+
+          Each key in this dictionary is a URL path that defines
+          a route.  All URLs should begin with `"/"`.
+
+          The value for each key is either:
+
+          1. A `String` naming the `SKHTTPResponder` subclass that should
+             handle requests for the route
+          2. A `String` naming a file in the application's `JSBundle` to
+             serve as a static resource.  The file sould be specified as
+             a relative resource path starting with `"./"`
+
+          ````
+          var routeMap = {
+            "/":                              "RootResponder",
+            "/posts":                         "PostsResponder",
+            "/posts/*id":                     "PostResponder",
+            "/posts/*id/comments":            "CommentsResponder",
+            "/posts/*id/comments/*commentId": "CommentResponder",   
+
+            /robots.txt:  "./robots.txt"
+          };
+          ````
+
+          URL Placeholders
+          -------------
+          URLs are broken into their path components.  If a component
+          begins with `"*"`, it is considered to be a placeholder component,
+          meaning it will match any value.
+
+          The actual value specified in the request URL will set on the
+          `SKHTTPResponderContext` instance using a property name that
+          matches the name given after the `"*"`.
+
+          Greedy Placeholders
+          ------------------
+          The final placeholder component is allowed to be a greedy
+          placeholder that consumes the rest of the URL, no matter
+          how many more components there are.
+
+          A greedy placeholder is prefixed with two stars `"**"`.  It is
+          useful for situations like a file API where the user may
+          specify an arbitrary folder tree:
+
+          ````
+          var routesMap = {
+            "/":                        "RootResponder",
+            "/files/**fileComponents":  "FileResponder"
+          };
+          ````
+  -
+    name: Route Tree
+    members:
+      -
+        name: parent
+        type: SKHTTPRoute
+        nullable: true
+        summary: This route's parent route
+      -
+        name: children
+        type: SKHTTPRoute[]
+        summary: This route's child routes
+      -
+        name: addChild
+        kind: method
+        summary: Add the given route as a child of this route
+        arguments:
+          -
+            name: child
+            type: SKHTTPRoute
+            summary: The child to add
+  -
+    name: Creating Contexts & Responders
+    members:
+      -
+        name: contextWithMatches
+        kind: method
+        type: SKHTTPResponderContext
+        summary: Create a context with the given path component placeholder
+          matches
+        arguments:
+          -
+            name: matches
+            type: dictionary
+            summary: A dictionary of url path components keyed by their
+              placeholder names
+      -
+        name: responderWithRequest
+        kind: method
+        type: SKHTTPResponder
+        summary: Create a responder for the given request
+        arguments:
+          -
+            name: request
+            type: SKHTTPRequest
+            summary: The request that matches this route
+  -
+    name: URL Generation
+    members:
+      -
+        name: pathComponentsForResponder
+        kind: method
+        type: String[]
+        summary: Generate the path components that match the route for the given
+          reponder and parameters
+        arguments:
+          -
+            name: responderClass
+            type: JSClass
+            summary: The responder class to match against
+          -
+            name: params
+            type: dictionary
+            summary: A dictionary of parameters with keys cooresponding to the
+              placeholder path components for the route
+      -
+        name: pathComponentsForParams
+        kind: method
+        type: String[]
+        summary: Generate the path components that match this route for the
+          given parameters
+        arguments:
+          -
+            name: params
+            type: dictionary
+            summary: A dictionary of parameters with keys cooresponding to the
+              placeholder path components for the route

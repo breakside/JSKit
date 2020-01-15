@@ -1,0 +1,10 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: framework
+summary: A framework for authenticating end users via OAuth sessions
+topics:
+  -
+    name: OAuth
+    members:
+      - OAuthSession
+      - OAuthService

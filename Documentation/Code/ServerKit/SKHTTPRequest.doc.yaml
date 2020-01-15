@@ -1,0 +1,233 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Represents an HTTP request from a client to an `HTTPServer`
+description: |
+  Requests are typically created by the internals of `HTTPServer` and then
+  handed to a `SKHTTPResponder` for inspection.
+topics:
+  -
+    name: Request Info
+    members:
+      -
+        name: url
+        type: JSURL
+        summary: The URL of the request
+        note: This is a URL relative to the server root without any host 
+          information
+        see:
+          - origin
+      -
+        name: method
+        type: String
+        summary: The method of the request
+        description: |
+          `SKHTTPServer` automatically matches the request's method to
+          a matching method on the `SKHTTPResponder` instance.
+      -
+        name: headerMap
+        type: JSMIMEHeaderMap
+        summary: The headers included in the request
+      -
+        name: origin
+        type: String
+        nullable: true
+        summary: The value of the `"Origin"` header in the request
+  -
+    name: Request Body
+    members:
+      -
+        name: contentType
+        type: JSMediaType
+        summary: The content type of the request body
+      -
+        name: getData
+        kind: method
+        summary: Get the request's body data in a callback function
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: data
+                  type: JSData
+                  mullable: true
+                  summary: The request's data, or `null` if there was an error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      -
+        name: getData
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: JSData
+            summary: The request's body data
+        summary: Get the request's body data with a promise
+      -
+        name: getObject
+        kind: method
+        summary: Get the request's body as an object decoded from JSON in a
+          callback function
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: obj
+                  type: object
+                  mullable: true
+                  summary: The request's JSON body decoded into an object
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          In order to successfully decode a JSON object, the request must 
+          meet the following criteria:
+
+          1. Content-Type equal to `"application/json; charset=utf-8"`
+          2. Valid JSON data
+      -
+        name: getObject
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: object
+            summary: The request's body object
+        summary: Get the request's body object with a promise
+        description: |
+          In order to successfully decode a JSON object, the request must 
+          meet the following criteria:
+
+          1. Content-Type equal to `"application/json; charset=utf-8"`
+          2. Valid JSON data
+      -
+        name: getValidatingObject
+        kind: method
+        summary: Get the request's body as an validation-wrapped object decoded
+          from JSON in a callback function
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: validator
+                  type: SKValidatingObject
+                  mullable: true
+                  summary: The request's JSON body decoded into an object and
+                    wrapped in a validator
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          A validating object provides a simple interface to extract user
+          input while ensuring it meets input validation requirements.
+
+          In order to successfully decode a JSON object, the request must 
+          meet the following criteria:
+
+          1. Content-Type equal to `"application/json; charset=utf-8"`
+          2. Valid JSON data
+      -
+        name: getValidatingObject
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: SKValidatingObject
+            summary: The request's body object wrapped in a validator
+        summary: Get the request's body object wrapped in a validator with a promise
+        description: |
+          A validating object provides a simple interface to extract user
+          input while ensuring it meets input validation requirements.
+
+          In order to successfully decode a JSON object, the request must 
+          meet the following criteria:
+
+          1. Content-Type equal to `"application/json; charset=utf-8"`
+          2. Valid JSON data
+  -
+    name: Response
+    members:
+      -
+        name: response
+        type: SKHTTPResponse
+        summary: The response object that will be sent for this request
+      -
+        name: respond
+        kind: method
+        summary: Start the response
+        arguments:
+          -
+            name: statusCode
+            type: SKHTTPResponse.StatusCode
+            summary: The status code for the response
+          -
+            name: statusMessage
+            type: String
+            summary: The message to send along with the status code
+          -
+            name: headerMap
+            type: JSMIMEHeaderMap
+            summary: The headers to send
+        description: |
+          Only sends the status and headers.  Does not send any response body.
+      -
+        name: upgrade
+        kind: method
+        summary: Send an upgrade response
+        arguments:
+          -
+            name: statusMessage
+            type: String
+            summary: The message to send along with the status code
+          -
+            name: headerMap
+            type: JSMIMEHeaderMap
+            summary: The headers to send
+        description: |
+          Sends the `SKHTTPResponse.StatusCode.switchingProtocols` code.
+
+          Used for features like WebSockets.
+      -
+        name: close
+        kind: method
+        summary: Close the client connection immediately
+  -
+    name: Caching
+    members:
+      -
+        name: needsEntity
+        kind: method
+        summary: Check if the client needs a new version of the resource
+        arguments:
+          -
+            name: lastModified
+            type: JSDate
+            summary: The time the resource was last modified
+          -
+            name: etag
+            type: String
+            summary: The current unique tag for the resource
+        description: |
+          Given the resource's current identification, this method
+          checks if the client has indicated through request headers that
+          they already have the current version.

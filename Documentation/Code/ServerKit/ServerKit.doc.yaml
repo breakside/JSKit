@@ -1,6 +1,31 @@
 copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
 kind: framework
-summary: A plaform for HTTP based server applications
+summary: A platform for HTTP based server applications
+description: |
+  `ServerKit` is designed to provide a `Foundation`-based server platform
+  that can be used to build organized and performant APIs with the ability to
+  share common code with `UIKit` based client-side applications.
+
+  When a `ServerKit` application is bundled, it contains an `SKApplication`
+  that runs, typically starting an `SKHTTPServer` to listen for requests.
+
+  HTTP Server
+  =======
+
+  When an HTTP request arrive, the `SKHTTPServer` attempts to find a matching
+  `SKHTTPRoute`.
+
+  If successful, the `SKHTTPRoute` will instruct the server on which
+  `SKHTTPResponderContext` to create and then which `SKHTTPResponder` to call.
+
+  A method on the `SKHTTPResponder` ultimate looks at the `SKHTTPRequest` and
+  generates a suitable `SKHTTPResponse`.
+
+  Web Sockets
+  ===========
+  `ServerKit` has built-in support for WebSocket communication, making it
+  easy to implement real-time communication with your front end client.
 topics:
   -
     name: Application

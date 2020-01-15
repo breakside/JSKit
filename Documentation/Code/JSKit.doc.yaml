@@ -52,6 +52,7 @@ topics:
       - Dispatch/Dispatch
       - SecurityKit/SecurityKit
       - Hash/Hash
+      - AuthKit/AuthKit
       - ImageKit/ImageKit
       - PDFKit/PDFKit
       - FontKit/FontKit

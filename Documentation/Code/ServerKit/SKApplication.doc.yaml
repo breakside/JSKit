@@ -1,0 +1,80 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Manages the server's application startup and lifetime
+description: |
+  An `SKApplication` communicates with its `delegate` about important events,
+  and leaves it up to the delegate to make the final decisons on how to respond.
+topics:
+  -
+    name: The Running Application
+    members:
+      -
+        name: shared
+        type: SKApplication
+        summary: The currently running application
+  -
+    name: Info File
+    members:
+      - SKApplicationInfo
+  -
+    name: Delegate
+    members:
+      -
+        name: SKApplicationDelegate
+        kind: protocol
+        summary: The interface that receives application events
+        topics:
+          -
+            name: Application Launch
+            members:
+              -
+                name: applicationDidFinishLaunching
+                summary: Called when the application finishes its startup
+                  routine.
+                arguments:
+                  -
+                    name: application
+                    type: SKApplication
+                    summary: The application that launched
+                  -
+                    name: launchOptions
+                    type: JSArguments
+                    summary: Command-line arguments provided during executable
+                      invocation
+                description: |
+                  Typically used as a time to start an `SKHTTPServer`.
+
+                  ````
+                  class ApplicationDelegate{
+
+                    applicationDidFinishLaunching(application, launchOptions){
+                      var port = launchOptions.port || 80;
+                      this.httpServer = SKHTTPServer.initWithPort(port);
+                      this.addRoutes();
+                      this.httpServer.run();
+                    }
+
+                    addRoutes(){
+                      // ...
+                    }
+
+                  }
+
+                  ApplicationDelegate.initialize();
+                  ````
+      -
+        name: delegate
+        type: SKApplicationDelegate
+        summary: The delegate for this application
+        description: |
+          Every application must have a delegate
+  -
+    name: Working Directory
+    members:
+      -
+        name: workingDirectoryURL
+        type: JSURL
+        summary: The `file://` url pointing to the running application's
+          working directory

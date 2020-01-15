@@ -10,7 +10,7 @@ var logger = JSLog("server", "http");
 JSProtocol("SKHTTPServerDelegate", JSProtocol, {
 
     serverDidCreateContextForRequest: function(server, context, request){},
-    serverDidCreateResponder: function(server, responder){}
+    serverFoundResponder: function(server, responder){}
 
 });
 
@@ -18,8 +18,6 @@ JSClass("SKHTTPServer", JSObject, {
 
     port: JSDynamicProperty('_port', 0),
     rootRoute: null,
-    notFoundRoute: null,
-    _nodeHttpServer: null,
     delegate: null,
 
     initWithPort: function(port){

@@ -69,7 +69,9 @@ topics:
         description: |
           The main spec typically defines a UI in addition to the application
           delegate, but is required to return via its `File's Owner` property
-          an instance of a class that implements the `UIApplication` protocol.
+          an instance of a class that implements the
+          `UIApplicationDelegate`(UIApplication.UIApplicationDelegate)
+          protocol.
 
           If you'd prefer not to use a spec file, you can specify the
           application delegate class via `UIApplicationDelegate`
@@ -79,7 +81,7 @@ topics:
         name: UIApplicationDelegate
         type: String
         summary: The name of a class that should be instantiated as the
-          `UIApplication`'s `delegate`(UIApplication.delegate)
+          \`UIApplication`'s `delegate`(UIApplication.delegate)
         description:
           An application is required to have a `delegate`(UIApplication.delegate)
           that implements the `UIApplicationDelegate`(UIApplication.UIApplicationDelegate)
@@ -155,3 +157,38 @@ topics:
 
           Use the resource name corresponding to the font file, which is the
           font's filename excluding any extension.
+  -
+    name: HTML-Specific Options
+    members:
+      -
+        name: HTTPPort
+        type: Number
+        summary: The default port to configure the application's static server on
+      -
+        name: HTTPWorkerCount
+        type: Number
+        summary: The default number of nginx workers to configure
+      -
+        name: UIApplicationHTMLIndexFile
+        type: String
+        summary: The name of the single page app html file
+        description: |
+          Defaults to `"index.html"`
+      -
+        name: UIApplicationHTMLServiceWorkerFile
+        type: String
+        summary: The name of the service worker script
+        description: |
+          Defaults to `"service-worker.js"`
+      -
+        name: DockerOwner
+        type: String
+        summary: A name to use as a prefix when creating docker image names
+      -
+        name: HMTLManifestConfiguration
+        type: String
+        summary: A list of files that map entries from the www folder to
+          alternate names that should be used in the application manifest
+        description: |
+          Used with advanced http server configuration, like when .html
+          URLs are mapped to their files basename without the .html part.

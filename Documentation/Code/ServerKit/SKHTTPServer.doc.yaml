@@ -1,0 +1,179 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Handles HTTP requests and provides responses
+description: |
+  An `SKHTTPServer` processes HTTP requests with the following sequence of
+  operations:
+
+  1. Receive an `SKHTTPRequest`
+  2. Match the request's `url`(SKHTTPRequest.url) to an `SKHTTPRoute`,
+     starting the search at `rootRoute`
+  3. Create an `SKHTTPResponder` for the route
+  4. Use the request's `method`(SKHTTPRequest.method) to find a matching method
+     on the responder
+  5. Authenticate the request
+  6. Open a context for the resource represented by the route
+  7. Call the responder's method to generate an `SKHTTPResponse`
+  8. Send the response back to the client
+topics:
+  -
+    name: Creating an HTTP Server
+    members:
+      -
+        name: initWithPort
+        kind: init
+        summary: Create an HTTP server listening for requests on the given
+          TCP port
+        description: |
+          After creating a server, you'll need to set its `rootRoute` before
+          calling `run()`.
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available when defining a server in a spec file
+        topics:
+          -
+            name: Route Map
+            members:
+              -
+                name: routes
+                type: dictionary
+                summary: The list of routes that this server can respond to
+                description: |
+                  Each route can match to a fixed URL path or a URL path with
+                  placeholder components for things like id numbers.
+
+                  Each key in this dictionary is a URL path that defines
+                  a route.  All URLs should begin with `"/"`.
+
+                  The value for each key is either:
+
+                  1. A `String` naming the `SKHTTPResponder` subclass that should
+                     handle requests for the route
+                  2. A `String` naming a file in the application's `JSBundle` to
+                     serve as a static resource.  The file sould be specified as
+                     a relative resource path starting with `"./"`
+
+                  ````
+                  Server:
+                    class: SKHTTPServer
+                    routes:
+                      /:                              RootResponder
+                      /posts:                         PostsResponder
+                      /posts/*id:                     PostResponder
+                      /posts/*id/comments:            CommentsResponder
+                      /posts/*id/comments/*commentId: CommentResponder   
+
+                      /robots.txt:  ./robots.txt
+                  ````
+
+                  URL Placeholder
+                  -------------
+                  URLs are broken into their path components.  If a component
+                  begins with `"*"`, it is considered to be a placeholder component,
+                  meaning it will match any value.
+
+                  The actual value specified in the request URL will set on the
+                  `SKHTTPResponderContext` instance using a property name that
+                  matches the name given after the `"*"`.
+
+                  Greedy Placeholder
+                  ------------------
+                  The final placeholder component is allowed to be a greedy
+                  placeholder that consumes the rest of the URL, no matter
+                  how many more components there are.
+
+                  A greedy placeholder is prefixed with two stars `"**"`.  It is
+                  useful for situations like a file API where the user may
+                  specify an arbitrary folder tree:
+
+                  ````
+                  Server:
+                    class: SKHTTPServer
+                    routes:
+                      /:                        RootResponder
+                      /files/**fileComponents:  FileResponder
+                  ````
+  -
+    name: Routes
+    members:
+      -
+        name: rootRoute
+        type: SKHTTPRoute
+        summary: The root route for the server
+        description: |
+          The root route is the server's starting point when it searches for 
+          a route that matches a request.
+
+          The request's URL is matched against the root route, its
+          `children`(SKHTTPRoute.children), and so on down the tree
+          until a match is found.
+
+          If no matching route is found, the server returns a 404 response.
+  -
+    name: Delegate
+    members:
+      -
+        name: SKHTTPServerDelegate
+        kind: protocol
+        summary: The interface that a server delegate can impelemnt to receive
+          calls when server events occur.
+        topics:
+          -
+            name: Context Creation
+            members:
+              -
+                name: serverDidCreateContextForRequest
+                summary: Called when the server creates a context
+                arguments:
+                  -
+                    name: server
+                    type: SKHTTPServer
+                    summary: The server making the call
+                  -
+                    name: context
+                    type: SKHTTPResponderContext
+                    summary: The context that was created
+                  -
+                    name: request
+                    type: SKHTTPRequest
+                    summary: The request that is being handled
+                description: |
+                  Gives the delegate an opportunity to set common properties
+                  on the context.
+
+                  For example, the delegate may set a previously-created
+                  database connection object on the context.
+              -
+                name: serverFoundResponder
+                summary: Called when the server creates a responder
+                arguments:
+                  -
+                    name: server
+                    type: SKHTTPServer
+                    summary: The server making the call
+                  -
+                    name: responder
+                    type: SKHTTPResponder
+                    summary: The responder that was created
+                description: |
+                  Gives the server an opportunity to do logging or last chance
+                  preparation of the responder.
+      -
+        name: delegate
+        type: SKHTTPServerDelegate
+        nullable: true
+        summary: The delegate for this server
+  -
+    name: Running
+    members:
+      -
+        name: port
+        type: Number
+        summary: The TCP port on which the server is running
+      -
+        name: run
+        kind: method
+        summary: Start the server listening for requests
