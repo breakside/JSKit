@@ -5,7 +5,7 @@ inherits: JSObject
 summary: Manage a list of jobs to be executed in sequential order
 topics:
   -
-    name: Preset Queues
+    name: Default Queues
     members:
       -
         name: background
@@ -23,12 +23,21 @@ topics:
           While you can create your own queues, the `background` queue is the
           simplest way to get started with dispatched jobs.
   -
+    name: Creating a Queue
+    members:
+      -
+        name: init
+        kind: init
+        summary: Create a new queue
+        description: |
+          Queue jobs will be performed serially
+  -
     name: Running Jobs
     members:
       -
         name: enqueue
         kind: method
-        type: JSDispatchJob
+        summary: Add a job to the queue and receive a callback when it completes
         arguments:
           -
             name: jobClass
@@ -41,16 +50,45 @@ topics:
             summary: The arguments that will be passed to the `jobClass`
               instanace when it is initiated
           -
-            name: successCallback
-            type: {}
-            summary: Called when the job completes successfully
-          -
-            name: errorCallback
-            type: {}
-            summary: Called when the job fails to complete due to an error
+            name: completion
+            type:
+              arguments:
+                -
+                  name: error
+                  type: Error
+                  nullable: true
+                  summary: Any error that occurred.  `null` indicates success.
+                -
+                  name: args
+                  type: any
+                  variable: true
+                  summary: Any values passed back by the job.  User defined.
+            summary: Called when the job complete
           -
             name: target
-            type: Object
+            type: object
             default: "undefined"
             summary: The object to use as `this` when calling `successCallback`
               or `errorCallback`
+      -
+        name: enqueue
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: any
+            summary: Any values passed back by the job.  User defined.
+        summary: Add a job to the queue and return a promise that resolevs when
+          the job completes
+        arguments:
+          -
+            name: jobClass
+            type: JSClass
+            summary: The `JSDispatchJob` subclass that will be created by the
+              queue when it's time to run the job
+          -
+            name: args
+            type: any[]
+            summary: The arguments that will be passed to the `jobClass`
+              instanace when it is initiated

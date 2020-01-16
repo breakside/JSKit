@@ -1,0 +1,52 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSObject
+summary: Abstract base class for all jobs performed on `JSDispatchQueue`s
+topics:
+  -
+    name: Creating a Jb
+    members:
+      -
+        name: initWithArguments
+        kind: init
+        summary: Create a new job with the given arguments
+        arguments:
+          -
+            name: args
+            type: any[]
+            summary: The arguments passed to `enqueue()`(JSDispatchQueue.enqueue)
+        description: |
+          The default behavior is to set the `args` property.
+
+          Subclasses can override this method if needed.
+  -
+    name: Arguments
+    members:
+      -
+        name: args
+        type: any[]
+        summary: The arguments passed to `enqueue()`(JSDispatchQueue.enqueue)
+  -
+    name: Running
+    members:
+      -
+        name: run
+        kind: method
+        summary: Executes the job's task
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: args
+                  variable: true
+                  type: any
+                  summary: Any job-specific result to return to the caller
+            summary: A completion function to call when the job is done
+        description: |
+          The job must call the completion function when it is done.
+
+          Any arguments passed to the completion function will be returned
+          to the original caller of `enqueue()`(JSDispatchQueue.enqueue).

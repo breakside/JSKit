@@ -24,10 +24,23 @@ JSClass("JSWorkerBasedDispatchQueue", JSDispatchQueue, {
     close: function(){
     },
 
-    enqueue: function(jobClass, args, successCallback, errorCallback, target){
+    enqueue: function(jobClass, args, completion, target){
+        if (!completion){
+            completion = Promise.completion(function(args){
+                if (args instanceof Error){
+                    throw args;
+                }
+                if (args === null){
+                    return;
+                }
+                args.shift();
+                return args;
+            });
+        }
         var jobID = this.nextJobID++;
-        this.callbacksByJobID[jobID] = {success: successCallback, error: errorCallback, target: target};
+        this.callbacksByJobID[jobID] = {fn: completion, target: target};
         this.sendWorkerMessage([MessageTypes.enqueue, jobID, jobClass.className, args]);
+        return completion.promise;
     },
 
     receiveWorkerMessage: function(message){
@@ -41,9 +54,10 @@ JSClass("JSWorkerBasedDispatchQueue", JSDispatchQueue, {
                 if (callback){
                     delete this.callbacksByJobID[jobID];
                     if (status === JobStatus.success){
-                        callback.success.apply(callback.target, callbackArgs);
+                        callbackArgs.unshift(null);
+                        callback.fn.apply(callback.target, callbackArgs);
                     }else{
-                        callback.error.apply(callback.target, callbackArgs);
+                        callback.fn.call(callback.target, new Error(callbackArgs[0]));
                     }
                 }
                 break;

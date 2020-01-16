@@ -8,7 +8,7 @@ JSClass("JSDispatchQueue", JSObject, {
         return JSDispatchQueue.EnvironmentImplemenationClass.init();
     },
 
-    enqueue: function(jobClass, args, successCallback, errorCallback, target){
+    enqueue: function(jobClass, args, completion, target){
     }
 
 });

@@ -22,7 +22,7 @@ JSClass("TKExpectation", JSObject, {
     call: function(fn, target){
         var args = Array.prototype.slice.call(arguments, 2);
         for (var i = 0; i < args.length; ++i){
-            if (typeof(args[i]) == "function"){
+            if (typeof(args[i]) == "function" && !(args[i] instanceof JSClass)){
                 args[i] = this._wrapCallback(args[i]);
             }
         }
