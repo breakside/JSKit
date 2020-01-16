@@ -1,0 +1,138 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: JSObject
+introduced: 2020.1.0
+summary: Verify a secure signature using best-practice algorithms
+topics:
+  -
+    name: Algorithm Support
+    members:
+      -
+        name: Algorithm
+        kind: enum
+        summary: The verify algorithms that `SecurityKit` supports
+        options:
+          -
+            name: rsaSHA256
+            summary: The RSA-SHA256 hash
+          -
+            name: rsaSHA384
+            summary: The RSA-SHA384 hash
+          -
+            name: rsaSHA512
+            summary: The RSA-SHA512 hash
+  -
+    name: Creating a Verifier
+    members:
+      -
+        name: initWithAlgorithm
+        kind: init
+        summary: Create a hasher for the given algorithm
+        arguments:
+          -
+            name: algorithm
+            type: Algorithm
+            summary: The hashing algorithm to use
+        description: |
+          After creating a hasher, you'll need to call `update()` any number of
+          times and finally call `digest()` to compute the hash.
+  -
+    name: Creating Keys
+    members:
+      -
+        name: createKeyFromJWK
+        kind: method
+        summary: Create a verification key from a JSON Web Token and return it
+          in callback
+        arguments:
+          -
+            name: jwkData
+            type: JSData
+            summary: The data of the JSON Web Token
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: key
+                  type: SECKey
+                  nullable: true
+                  summary: The verify key, or `null` if there was an error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` in the completion function call
+      -
+        name: createKeyFromJWK
+        suffix: promise
+        kind: method
+        summary: Create a verification key from a JSON Web Token and return it
+          in a promise
+        type: Promise
+        promise:
+          resolve:
+            type: SECKey
+            summary: The verification key
+        arguments:
+          -
+            name: jwkData
+            type: JSData
+            summary: The data of the JSON Web Token
+  -
+    name: Verifying Data
+    members:
+      -
+        name: update
+        kind: method
+        summary: Add the data chunk to the verify calculation
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The data chunk to verify
+      -
+        name: verify
+        kind: method
+        summary: Finish the verification and provide the result in a callback
+        arguments:
+          -
+            name: key
+            type: SECKey
+            summary: The key to use for verification
+          -
+            name: signature
+            type: JSData
+            summary: The signature to check against
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: verified
+                  type: boolean
+                  summary: The verify result, or `null` if there was an error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` in the completion function call
+      -
+        name: verify
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: boolean
+            summary: The verify result
+        summary: Finish the verification and provide the result in a promise
+        arguments:
+          -
+            name: key
+            type: SECKey
+            summary: The key to use for verification
+          -
+            name: signature
+            type: JSData
+            summary: The signature to check against

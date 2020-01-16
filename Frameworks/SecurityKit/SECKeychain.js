@@ -23,7 +23,7 @@ JSClass("SECKeychain", JSObject, {
         this._methods = null;
     },
 
-    create: function(password, completion, target){
+    initializeWithMasterPassword: function(password, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }

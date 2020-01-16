@@ -10,6 +10,9 @@ JSClass("SECVerify", JSObject, {
     update: function(data){
     },
 
+    createKeyFromJWK: function(jwkData, completion, target){
+    },
+
     verify: function(key, signature, completion, target){
     }
 

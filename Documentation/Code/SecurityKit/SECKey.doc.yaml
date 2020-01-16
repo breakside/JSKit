@@ -1,0 +1,43 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: JSObject
+introduced: 2020.1.0
+summary: A key used by `SECCipher` for encryption and decryption
+description: |
+  Keys are created by the `SECCipher` object that will them.
+
+  See `SECCipher.createKey()` for documenation about how to create keys
+topics:
+  -
+    name: Key Data
+    members:
+      -
+        name: getData
+        kind: method
+        summary: Get the key's raw data in a callback
+        arguments:
+          - 
+            name: completion
+            type:
+              arguments:
+                -
+                  name: data
+                  type: JSData
+                  nullable: true
+                  summary: The key's raw data, or `null` if an error occurred
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      -
+        name: getData
+        suffix: promise
+        kind: method
+        summary: Get the key's raw data in a promise
+        type: Promise
+        promise:
+          resolve:
+            type: JSData
+            summary: The key's raw data

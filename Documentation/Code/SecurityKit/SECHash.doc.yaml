@@ -1,0 +1,111 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: JSObject
+introduced: 2020.1.0
+summary: Securely hash data using best-practice algorithms
+description: |
+  A hash can be used to compute secure signatures.
+
+  See `SECVerify` for signature verification.
+topics:
+  -
+    name: Algorithm Support
+    members:
+      -
+        name: Algorithm
+        kind: enum
+        summary: The hash algorithms that `SecurityKit` supports
+        options:
+          -
+            name: sha256
+            summary: The SHA256 hash
+          -
+            name: sha384
+            summary: The SHA384 hash
+          -
+            name: sha512
+            summary: The SHA512 hash
+          -
+            name: hmacSHA256
+            summary: The HMAC-SHA256 hash
+          -
+            name: hmacSHA384
+            summary: The HMAC-SHA384 hash
+          -
+            name: hmacSHA512
+            summary: The HMAC-SHA512 hash
+          -
+            name: rsaSHA256
+            summary: The RSA-SHA256 hash
+          -
+            name: rsaSHA384
+            summary: The RSA-SHA384 hash
+          -
+            name: rsaSHA512
+            summary: The RSA-SHA512 hash
+  -
+    name: Creating a Hasher
+    members:
+      -
+        name: initWithAlgorithm
+        kind: init
+        summary: Create a hasher for the given algorithm and key data
+        arguments:
+          -
+            name: algorithm
+            type: Algorithm
+            summary: The hashing algorithm to use
+          -
+            name: keyData
+            type: JSData
+            summary: The key data to use when hashing
+        description: |
+          After creating a hasher, you'll need to call `update()` any number of
+          times and finally call `digest()` to compute the hash.
+  -
+    name: Generating a Hash
+    members:
+      -
+        name: update
+        kind: method
+        summary: Add the data chunk to the hash calculation
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The data chunk to hash
+      -
+        name: digest
+        kind: method
+        summary: Finish the hash and provide the result in a callback
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: digest
+                  type: JSData
+                  nullable: true
+                  summary: The hash result, or `null` if there was an error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` in the completion function call
+        description: |
+          You can call `hexStringRepresentation()` on the result to get the
+          digest in string form.
+      -
+        name: digest
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: JSData
+            summary: The hash result
+        summary: Finish the hash and provide the result in a promise
+        description: |
+          You can call `hexStringRepresentation()` on the result to get the
+          digest in string form.

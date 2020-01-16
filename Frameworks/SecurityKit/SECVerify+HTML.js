@@ -1,5 +1,6 @@
 // #import "SECVerify.js"
-/* global JSClass, JSObject, JSData, crypto, SECVerify */
+// #import "SECHTMLKey.js"
+/* global JSClass, JSObject, JSData, crypto, SECVerify, SECHTMLKey */
 'use strict';
 
 (function(){
@@ -25,7 +26,8 @@ SECVerify.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        crypto.subtle.importKey("jwk", jwk, this.htmlAlgorithm, true, ["verify"]).then(function(key){
+        crypto.subtle.importKey("jwk", jwk, this.htmlAlgorithm, true, ["verify"]).then(function(htmlKey){
+            var key = SECHTMLKey.initWithKey(htmlKey);
             completion.call(target, key);
         }, function(error){
             completion.call(target, false);
@@ -38,7 +40,7 @@ SECVerify.definePropertiesFromExtensions({
             completion = Promise.completion(Promise.resolveNonNull);
         }
         var data = JSData.initWithChunks(this.chunks);
-        crypto.subtle.verify(this.htmlAlgorithm, key, signature, data).then(function(verified){
+        crypto.subtle.verify(this.htmlAlgorithm, key.htmlKey, signature, data).then(function(verified){
             completion.call(target, verified);
         }, function(error){
             completion.call(target, false);

@@ -1,0 +1,508 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: JSObject
+introduced: 2020.1.0
+summary: Encrypt and Decrypt data using a variety of algorithms
+description: |
+  A cipher is used to encrypt or decrypt data.
+
+  There are many different ways to encrypt data, and `SECCipher` includes
+  support for the latest best-practice algorithms.
+topics:
+  -
+    name: Algorithm Support
+    members:
+      -
+        name: Algorithm
+        kind: enum
+        summary: The encryption algorithms that `SecurityKit` supports
+        options:
+          -
+            name: aesCipherBlockChaining
+            summary: AES Cipher Block Chaining (AES-CBC)
+          -
+            name: aesCBC
+            summary: An alias for `aesCipherBlockChaining`
+          -
+            name: aesCounter
+            summary: AES Counter (AES-CTR)
+          -
+            name: aesCTR
+            summary: An alias for `aesCounter`
+          -
+            name: aesGaloisCounterMode
+            summary: AES Galois Counter Mode (AES-GCM)
+          -
+            name: aesGCM
+            summary: An alias for `aesGaloisCounterMode`
+          -
+            name: rivestCipher4
+            summary: Rivest Cipher 4 (RC4).  Implemented to decrypt PDF
+              documents.  Not considered secure.
+          -
+            name: rc4
+            summary: An alias for `rc4`.  Implemented to decrypt PDF
+              documents.  Not considered secure.
+  -
+    name: Creating a Cipher
+    members:
+      -
+        name: initWithAlgorithm
+        kind: init
+        summary: Create a cipher for the given algorithm
+        arguments:
+          -
+            name: algorithm
+            type: Algorithm
+            summary: The encryption algorithm to use for this cipher
+  -
+    name: Encrypting
+    members:
+      -
+        name: encrypt
+        kind: method
+        summary: Encrypt data and receive a callback with the result
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The unencrypted data
+          -
+            name: key
+            type: SECKey
+            summary: The key to use for encryption
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: encrypted
+                  type: JSData
+                  nullable: true
+                  summary: The encrypted data, or `null` on error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      -
+        name: encrypt
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: JSData
+            summary: The encrypted data
+        summary: Encrypt data and provide the result with a promise
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The unencrypted data
+          -
+            name: key
+            type: SECKey
+            summary: The key to use for encryption
+      -
+        name: encryptString
+        kind: method
+        summary: Encrypt a string and receive a callback with the result
+        arguments:
+          -
+            name: string
+            type: String
+            summary: The unencrypted string
+          -
+            name: key
+            type: SECKey
+            summary: The key to use for encryption
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: encrypted
+                  type: JSData
+                  nullable: true
+                  summary: The encrypted data, or `null` on error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          The string will first be encoded using UTF-8
+      -
+        name: encryptString
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: JSData
+            summary: The encrypted data
+        summary: Encrypt a string and provide the result with a promise
+        arguments:
+          -
+            name: string
+            type: String
+            summary: The unencrypted string
+          -
+            name: key
+            type: SECKey
+            summary: The key to use for encryption
+        description: |
+          The string will first be encoded using UTF-8
+  -
+    name: Decrypting
+    members:
+      -
+        name: decrypt
+        kind: method
+        summary: Decrypt data and receive a callback with the result
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The encrypted data
+          -
+            name: key
+            type: SECKey
+            summary: The key to use for decryption
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: decrypted
+                  type: JSData
+                  nullable: true
+                  summary: The decrypted data, or `null` on error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      -
+        name: decrypt
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: JSData
+            summary: The decrypted data
+        summary: Decrypt data and provide the result with a promise
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The encrypted data
+          -
+            name: key
+            type: SECKey
+            summary: The key to use for decryption
+      -
+        name: decryptString
+        kind: method
+        summary: Decrypt a string and receive a callback with the result
+        arguments:
+          -
+            name: encrypted
+            type: JSData
+            summary: The encrypted data
+          -
+            name: key
+            type: SECKey
+            summary: The key to use for decryption
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: decrypted
+                  type: String
+                  nullable: true
+                  summary: The decrypted string, or `null` on error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          The decrypted data will be decoded into a string using UTF-8.
+      -
+        name: decryptString
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: String
+            summary: The decrypted string
+        summary: Decrypt a string and provide the result with a promise
+        arguments:
+          -
+            name: encrypted
+            type: JSData
+            summary: The encrypted data
+          -
+            name: key
+            type: SECKey
+            summary: The key to use for decryption
+        description: |
+          The decrypted data will be decoded into a string using UTF-8.
+  -
+    name: Creating Keys
+    members:
+      -
+        name: createKey
+        kind: method
+        summary: Create a new random key and receive a callback with the result
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: key
+                  type: SECKey
+                  nullable: true
+                  summary: The new key, or `null` on error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      -
+        name: createKey
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: SECKey
+            summary: The new key
+        summary: Create a new random key and provide the result with a promise
+      -
+        name: createKeyWithData
+        kind: method
+        summary: Create a `SECKey` from raw data and receive a callback with the result
+        arguments:
+          -
+            name: keyData
+            type: JSData
+            summary: The key's data, obtained from an external source
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: key
+                  type: SECKey
+                  nullable: true
+                  summary: The new key, or `null` on error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      -
+        name: createKeyWithData
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: SECKey
+            summary: The new key
+        summary: Create a `SECKey` from raw data and provide the result with a promise
+        arguments:
+          -
+            name: keyData
+            type: JSData
+            summary: The key's data, obtained from an external source
+      -
+        name: createKeyWithPassphrase
+        kind: method
+        summary: Create a password-derived key and receive a callback with the result
+        arguments:
+          -
+            name: passphrase
+            type: String
+            summary: The passphrase to use when generating the key
+          -
+            name: salt
+            type: JSData
+            summary: A random salt to use in the key generation process
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: key
+                  type: SECKey
+                  nullable: true
+                  summary: The new key, or `null` on error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          A password derived key can be re-derived if the user supplies the
+          same password.  Therefore, the generated key doesn't have to be
+          saved anywhere.  Only the salt should be saved, and it's up to
+          the user to remember their passphrase.
+      -
+        name: createKeyWithPassphrase
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: SECKey
+            summary: The new key
+        summary: Create a password-derived key and provide the result with a promise
+        arguments:
+          -
+            name: passphrase
+            type: String
+            summary: The passphrase to use when generating the key
+          -
+            name: salt
+            type: JSData
+            summary: A random salt to use in the key generation process
+        description: |
+          A password derived key can be re-derived if the user supplies the
+          same password.  Therefore, the generated key doesn't have to be
+          saved anywhere.  Only the salt should be saved, and it's up to
+          the user to remember their passphrase.
+  -
+    name: Key Wrapping
+    members:
+      -
+        name: wrapKey
+        kind: method
+        summary: Wrap a key using another key and receive a callback with the result
+        arguments:
+          -
+            name: key
+            type: SECKey
+            summary: The key to wrap
+          -
+            name: wrappingKey
+            type: SECKey
+            summary: The key to use when wrapping the other key
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: encrypted
+                  type: JSData
+                  nullable: true
+                  summary: The encrypted key, or `null` on error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      -
+        name: wrapKey
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: JSData
+            summary: The encrypted key
+        summary: Wrap a key using another key and provide the result with a promise
+        arguments:
+          -
+            name: key
+            type: SECKey
+            summary: The key to wrap
+          -
+            name: wrappingKey
+            type: SECKey
+            summary: The key to use when wrapping the other key
+      -
+        name: unwrapKey
+        kind: method
+        summary: Unwrap a key using another key and receive a callback with the result
+        arguments:
+          -
+            name: wrappedKeyData
+            type: JSData
+            summary: The encrypted key data
+          -
+            name: unwrappedKeyAlgorithm
+            type: Algorithm
+            summary: The algorithm for the key being unwrapped
+          -
+            name: wrappingKey
+            type: SECKey
+            summary: The key used to unwrap the wrapped key
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: key
+                  type: SECKey
+                  nullable: true
+                  summary: The unwrapped key, or `null` on error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      -
+        name: unwrapKey
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: SECKey
+            summary: The unwrapped key
+        summary: Unwrap a key using another key and provide the result with a promise
+        arguments:
+          -
+            name: wrappedKeyData
+            type: JSData
+            summary: The encrypted key data
+          -
+            name: unwrappedKeyAlgorithm
+            type: Algorithm
+            summary: The algorithm for the key being unwrapped
+          -
+            name: wrappingKey
+            type: SECKey
+            summary: The key used to unwrap the wrapped key
+  -
+    name: Random Data Generation
+    members:
+      -
+        name: getRandomData
+        kind: method
+        static: true
+        type: JSData
+        return: A random byte array of the given length
+        summary: Generate a random number of bytes in a secure fashion
+        arguments:
+          -
+            name: length
+            type: Number
+            summary: The number of random bytes to generate

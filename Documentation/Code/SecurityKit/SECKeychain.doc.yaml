@@ -1,0 +1,402 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: JSObject
+introduced: 2020.1.0
+summary: A secure client-side storage area for user secrets, only accessible via
+  a user-chosen passphrase
+description: |
+  A keychain provides a way to store sensitive user credentials in the
+  client so they never have to pass through your servers.
+
+  The user can be confident that their passwords are not shared with
+  anyone.
+
+  The keychain can also be useful for end-to-end encryption scenarios
+  where the client needs to generate secret encryption keys.
+topics:
+  - 
+    name: Creating a Keycahin
+    members:
+      -
+        name: initWithIdentifier
+        kind: init
+        summary: Create a keychain with the given identifier
+        arguments:
+          -
+            name: identifier
+            type: String
+            summary: A unique identifer for the keychain, typically a 
+              reverse-domain string relevant to your application.
+        description: |
+          If the keychain has not yet been setup with a master password,
+          you'll need to get a password from the user and then call
+          `initializeWithMasterPassword()`.
+
+          If the keychain is already setup, you can call `unlock()`.
+      -
+        name: initializeWithMasterPassword
+        kind: method
+        summary: Establish an empty keychain using the given master password
+        arguments:
+          -
+            name: masterPassword
+            type: String
+            summary: The user-provided master password that is the only
+              way to unlock the keychain
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: Whether the operation succeeded
+            summary: The function to call when the keychain is established
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      -
+        name: initializeWithMasterPassword
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            summary: If the promise resolves without error, the operation succeeded
+        summary: Establish an empty keychain using the given master password,
+          returning a promise
+        arguments:
+          -
+            name: masterPassword
+            type: String
+            summary: The user-provided master password that is the only
+              way to unlock the keychain
+  -
+    name: Locking & Unlocking
+    members:
+      -
+        name: locked
+        type: boolean
+        summary: Whether the keychain is currently locked
+      -
+        name: unlock
+        kind: method
+        summary: Unlock the keychain using the master password
+        arguments:
+          -
+            name: masterPassword
+            type: String
+            summary: The keychain's master password
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: Whether the operation succeeded
+            summary: The function to call when the keychain is unlocked
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      -
+        name: unlock
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            summary: If the promise resolves without error, the operation succeeded
+        summary: Unlock the keychain using the master password,
+          returning a promise
+        arguments:
+          -
+            name: masterPassword
+            type: String
+            summary: The keychain's master password
+      -
+        name: lock
+        kind: method
+        summary: Lock the keychain
+  -
+    name: Closing the Keychain
+    members:
+      -
+        name: close
+        kind: method
+        summary: Close the keychain
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: Whether the operation succeeded
+            summary: The function to call when the keychain is closed
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          Closing the keychain locks it and immediately saves it.
+      -
+        name: close
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            summary: If the promise resolves without error, the operation succeeded
+        summary: Close the keychain, returning a promise
+        description: |
+          Closing the keychain locks it and immediately saves it.
+  -
+    name: Storing Items
+    members:
+      -
+        name: add
+        kind: method
+        summary: Add an item to the keychain and return its ID via a callback
+        arguments:
+          -
+            name: item
+            type: dictionary
+            summary: A dictionary of simple keys/values
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: id
+                  type: String
+                  nullable: true
+                  summary: The id of the newly created item, or `null` on error
+            summary: The function to call when the item is added
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          Items can contain any properties you'd like except one named `"id"`.
+
+          The item should be JSON-serializable.
+      -
+        name: add
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: String
+            summary: The id of the newly created item
+        summary: Add an item to the keychain and return its ID via a promise
+        arguments:
+          -
+            name: item
+            type: dictionary
+            summary: A dictionary of simple keys/values
+        description: |
+          Items can contain any properties you'd like except one named `"id"`.
+
+          The item should be JSON-serializable.
+      -
+        name: update
+        kind: method
+        summary: Update an item to the keychain and return its ID via a callback
+        arguments:
+          -
+            name: item
+            type: dictionary
+            summary: A dictionary of simple keys/values
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: id
+                  type: String
+                  nullable: true
+                  summary: The id of the updated item, or `null` on error
+            summary: The function to call when the item is updateed
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          Items can contain any properties you'd like except one named `"id"`.
+
+          The item should be JSON-serializable.
+      -
+        name: update
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: String
+            summary: The id of the updated item
+        summary: Update an item to the keychain and return its ID via a promise
+        arguments:
+          -
+            name: item
+            type: dictionary
+            summary: A dictionary of simple keys/values
+        description: |
+          Items can contain any properties you'd like except one named `"id"`.
+
+          The item should be JSON-serializable.
+      -
+        name: remove
+        kind: method
+        summary: Remove an item from the keychain
+        arguments:
+          -
+            name: itemID
+            type: String
+            summary: The item's ID
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: Whether the operation succeeded
+            summary: The function to call when the item is updateed
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      -
+        name: remove
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            summary: A resolved pomise indicates success
+        summary: Remove an item from the keychain return a promise
+        arguments:
+          -
+            name: itemID
+            type: String
+            summary: The item's ID
+  -
+    name: Fetching Items
+    members:
+      -
+        name: contains
+        kind: method
+        type: boolean
+        return: |
+          `true` if the item is in the keychain, `false` otherwise
+        summary: Check if an item exists
+        arguments:
+          -
+            name: itemID
+            type: String
+            summary: The item ID to check for
+      -
+        name: get
+        kind: method
+        summary: Get an item stored in the keychain
+        arguments:
+          -
+            name: itemID
+            type: String
+            summary: The item's ID
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: item
+                  type: dictionary
+                  summary: The item
+            summary: The function to call when the item is updateed
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      -
+        name: get
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: dictionary
+            summary: The item
+        summary: Get an item stored in the keychain as a promise
+        arguments:
+          -
+            name: itemID
+            type: String
+            summary: The item's ID
+  -
+    name: Changing the Master Password
+    members:
+      -
+        name: changeMasterPassword
+        kind: method
+        summary: Change the master password
+        arguments:
+          -
+            name: oldPassword
+            type: String
+            summary: The keychain's current master password
+          -
+            name: newPassword
+            type: String
+            summary: The desired master password
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: Whether the operation succeeded
+            summary: The function to call when the keychain is established
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      -
+        name: changeMasterPassword
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            summary: If the promise resolves without error, the operation succeeded
+        summary: Change the master password, returning a promise
+        arguments:
+          -
+            name: oldPassword
+            type: String
+            summary: The keychain's master password
+          -
+            name: newPassword
+            type: String
+            summary: The desired master password

@@ -1,13 +1,25 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: framework
 summary: Encryption and secure user storage
+description: |
+  `SecurityKit` provides a foundation for encryption, decryption, hashing,
+  and verification.
+
+  Server and client code can share the same encryption logic with a unified
+  API across both platforms.
+
+  In addition, it includes `SECKeychain` functionality for secure secret storage
+  in the browser or on a server.
+
+  `SecurityKit` also has support for commonly used technologies such as JSON
+  Web Tokens via `SECJSONWebToken`.
 topics:
   -
     name: Encryption
     members:
       - SECCipher
       - SECKey
-      - SEKHash
+      - SECHash
       - SECVerify
   -
     name: Secure storage

@@ -1,4 +1,5 @@
 // #import "SECVerify.js"
+// #import "SECNodeKey.js"
 /* global JSClass, JSObject, JSData, require, SECVerify */
 'use strict';
 
@@ -55,7 +56,8 @@ SECVerify.definePropertiesFromExtensions({
         var pem = "-----BEGIN RSA PUBLIC KEY-----\n";
         pem += base64;
         pem += "\n-----END RSA PUBLIC KEY-----\n";
-        completion.call(target, pem);
+        var key = SECNodeKey.initWithData(pem.utf8());
+        completion.call(target, key);
         return completion.promise;
     },
 
@@ -63,7 +65,7 @@ SECVerify.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion();
         }
-        var verified = this.nodeVerify.verify(key, signature);
+        var verified = this.nodeVerify.verify(key.keyData, signature);
         completion.call(target, verified);
         return completion.promise;
     },
