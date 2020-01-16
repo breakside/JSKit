@@ -1,0 +1,151 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: JSObject
+introduced: 2020.1.0
+summary: Create a secure signature using best-practice algorithms
+topics:
+  -
+    name: Algorithm Support
+    members:
+      -
+        name: Algorithm
+        kind: enum
+        summary: The verify algorithms that `SecurityKit` supports
+        options:
+          -
+            name: rsaSHA256
+            summary: The RSA-SHA256 hash
+          -
+            name: rsaSHA384
+            summary: The RSA-SHA384 hash
+          -
+            name: rsaSHA512
+            summary: The RSA-SHA512 hash
+  -
+    name: Creating a Signer
+    members:
+      -
+        name: initWithAlgorithm
+        kind: init
+        summary: Create a signer for the given algorithm
+        arguments:
+          -
+            name: algorithm
+            type: Algorithm
+            summary: The hashing algorithm to use
+        description: |
+          After creating a signer, you'll need to call `update()` any number of
+          times and finally call `sign()` to compute the signature.
+  -
+    name: Creating Keys
+    members:
+      -
+        name: createKeyPair
+        kind: method
+        summary: Create a pair of private/public keys
+        arguments:
+          -
+            name: options
+            type: dictionary
+            summary: The key pair options
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: key
+                  type: SECKeyPair
+                  nullable: true
+                  summary: The key pair, or `null` if there was an error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` in the completion function call
+        description: |
+          For RSA signing, the `options`() argument must be an `RSAOptions`
+          object
+      -
+        name: createKeyPair
+        suffix: promise
+        kind: method
+        summary: Create a pair of private/public keys return them in a promise
+        type: Promise
+        promise:
+          resolve:
+            type: SECKeyPair
+            summary: The key pair
+        arguments:
+          -
+            name: options
+            type: dictionary
+            summary: The key pair options
+        description: |
+          For RSA signing, the `options`() argument must be an `RSAOptions`
+          object
+      -
+        name: RSAOptions
+        kind: class
+        anonymous: true
+        summary: The options when generating an RSA key
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: modulusLength
+                type: Number
+                summary: The modulus length
+              -
+                name: publicExponent
+                type: Number
+                summary: The public exponent
+  -
+    name: Signing Data
+    members:
+      -
+        name: update
+        kind: method
+        summary: Add the data chunk to the signature calculation
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The data chunk to add
+      -
+        name: sign
+        kind: method
+        summary: Finish the signature and provide the result in a callback
+        arguments:
+          -
+            name: key
+            type: SECKey
+            summary: The key to use for signing
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: signature
+                  type: JSData
+                  summary: The signature, or `null` if there was an error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` in the completion function call
+      -
+        name: sign
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: JSData
+            summary: The signature
+        summary: Finish the signature and provide the result in a promise
+        arguments:
+          -
+            name: key
+            type: SECKey
+            summary: The key to use for signing

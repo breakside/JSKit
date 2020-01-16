@@ -1,0 +1,160 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: JSObject
+introduced: 2020.1.0
+summary: Parse and verify JSON Web Tokens
+topics:
+  -
+    name: Create a Token
+    members:
+      -
+        name: initWithString
+        kind: init
+        summary: Create a JSON Web Token from a string
+        arguments:
+          - 
+            name: string
+            type: String
+            summary: The string representing a JSON web token
+        description: |
+          JSON Web Token uses base64 (URL variant) to encode 3 chunks of data,
+          and then combines the three parts into one string using a `"."` in
+          between each part.
+
+          This combined string is what is expected here.
+  -
+    name: Getting Verified Content
+    members:
+      -
+        name: signed
+        type: boolean
+        summary: Indicates if the token is signed
+      -
+        name: verifiedPayload
+        kind: method
+        summary: Returns the token's content dictionary via callback, but only
+          if the signature is valid
+        arguments:
+          -
+            name: publicKeys
+            type: JSONWebKey[]
+            summary: The public JSON Web Keys for this token
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: payload
+                  type: dictionary
+                  nullable: true
+                  summary: The token's contents, or `null` if verification
+                    failed
+            summary: The function to call the the result
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          See `JSONWebKey` for a description of how to obtain public keys for
+          well known services.
+      -
+        name: verifiedPayload
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: dictionary
+            summary: The token's verified contents
+        summary: Returns the token's content dictionary via a promise, but only
+          if the signature is valid
+        arguments:
+          -
+            name: publicKeys
+            type: JSONWebKey[]
+            summary: The public JSON Web Keys for this token
+        description: |
+          See `JSONWebKey` for a description of how to obtain public keys for
+          well known services.
+      -
+        name: verifiedPayload
+        suffix: shared-secret
+        kind: method
+        summary: Returns the secret-key-signed token's content dictionary via
+          callback, but only if the signature is valid
+        arguments:
+          -
+            name: sharedSecretKeyData
+            type: JSData
+            summary: The data of the shared secret key used to sign the
+              token
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: payload
+                  type: dictionary
+                  nullable: true
+                  summary: The token's contents, or `null` if verification
+                    failed
+            summary: The function to call the the result
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          Secret key based tokens are not the norm because of the problem of
+          how the secret key gets shared.
+      -
+        name: verifiedPayload
+        suffix: shared-secret-promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: dictionary
+            summary: The token's verified contents
+        summary: Returns the secret-key-signed token's content dictionary via a
+          promise, but only if the signature is valid
+        arguments:
+          -
+            name: sharedSecretKeyData
+            type: JSData
+            summary: The data of the shared secret key used to sign the
+              token
+        description: |
+          Secret key based tokens are not the norm because of the problem of
+          how the secret key gets shared.
+  -
+    name: Keys
+    members:
+      -
+        name: JSONWebKey
+        kind: class
+        anonymous: true
+        summary: A JSON Web Key (JWK)
+        description: |
+          The [JSON Web Key RFC](https://tools.ietf.org/html/rfc7517) explains
+          the full format, which will not be duplicated here.
+
+          For purposes of token validation, the key format is unimportant.  It
+          is how to get the keys that requires documentation.
+
+          Typically the keys are provided in a well-known location by the
+          service that generated the token.
+
+          For example, if you're using `https://accounts.google.com/`, you can
+          load `https://accounts.google.com/.well-known/openid-configuration`
+          to get JSON object describing Google's service.
+
+          In the JSON is a `jwks_uri`() property with a URL value. Loading that
+          `jwks_uri`() returns a JSON object with a `keys`() property
+          that contains an array of JWKs suitable to serve as this type.
+
+          If you're using `AuthKit`, all of this fetching happens automatically
+          for the services it knows about.

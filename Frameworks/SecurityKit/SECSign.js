@@ -1,21 +1,24 @@
 // #import Foundation
-/* global JSClass, JSObject, SECVerify */
+/* global JSClass, JSObject, SECSign */
 'use strict';
 
-JSClass("SECVerify", JSObject, {
+JSClass("SECSign", JSObject, {
 
     initWithAlgorithm: function(algorithm){
+    },
+
+    createKeyPair: function(options, completion, target){
     },
 
     update: function(data){
     },
 
-    verify: function(key, signature, completion, target){
+    sign: function(key, completion, target){
     }
 
 });
 
-SECVerify.Algorithm = {
+SECSign.Algorithm = {
     rsaSHA256: "rsa.sha256",
     rsaSHA384: "rsa.sha384",
     rsaSHA512: "rsa.sha512",

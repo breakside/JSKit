@@ -1,4 +1,7 @@
 // #import "SECCipher+HTML.js"
 // #import "SECHash+HTML.js"
+// #import "SECHMAC+HTML.js"
+// #import "SECSign+HTML.js"
 // #import "SECVerify+HTML.js"
+// #import "SECJSONWebToken+HTML.js"
 // #import "SECHTMLKey.js"

@@ -398,14 +398,11 @@ JSClass("SECKeychain", JSObject, {
             return;
         }
         this._persistScheduled = true;
-        logger.info("persistAfterDelay");
         JSRunLoop.main.schedule(function(){
-            logger.info("persistAfterDelay runLoop");
             if (this._persistScheduled){
                 if (this._persistTimer !== null){
                     this._persistTimer.invalidate();
                 }
-                logger.info("persistAfterDelay creating timer");
                 this._persistTimer = JSTimer.scheduledTimerWithInterval(1, this._persist, this);
                 this._persistScheduled = false;
             }
@@ -413,14 +410,11 @@ JSClass("SECKeychain", JSObject, {
     },
 
     _persist: function(completion, target){
-        logger.info("persisting keychain");
         this._persistTimer = null;
         var data = JSON.stringify(this._contents).utf8();
         this._fileManager.createFileAtURL(this._url, data, function(success){
             if (!success){
                 logger.error("Failed to write keychain to %{public}", this._url);
-            }else{
-                logger.info("keychain saved");
             }
             if (completion){
                 completion.call(target, success);

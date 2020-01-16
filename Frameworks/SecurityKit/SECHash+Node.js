@@ -8,12 +8,12 @@ SECHash.definePropertiesFromExtensions({
 
     nodeHash: null,
 
-    initWithAlgorithm: function(algorithm, keyData){
+    initWithAlgorithm: function(algorithm){
         var nodeAlgorithm = nodeAlgorithms[algorithm];
         if (!nodeAlgorithm){
             return null;
         }
-        this.nodeHash = nodeAlgorithm.fn.call(crypto, nodeAlgorithm.name, keyData);
+        this.nodeHash = crypto.createHash(nodeAlgorithm);
     },
 
     update: function(data){
@@ -33,10 +33,7 @@ SECHash.definePropertiesFromExtensions({
 });
 
 var nodeAlgorithms = {};
-nodeAlgorithms[SECHash.Algorithm.sha256] = { fn: crypto.createHash, name: 'sha256'};
-nodeAlgorithms[SECHash.Algorithm.sha384] = { fn: crypto.createHash, name: 'sha384'};
-nodeAlgorithms[SECHash.Algorithm.sha512] = { fn: crypto.createHash, name: 'sha512'};
-nodeAlgorithms[SECHash.Algorithm.hmacSHA256] = { fn: crypto.createHmac, name: 'sha256'};
-nodeAlgorithms[SECHash.Algorithm.hmacSHA384] = { fn: crypto.createHmac, name: 'sha384'};
-nodeAlgorithms[SECHash.Algorithm.hmacSHA512] = { fn: crypto.createHmac, name: 'sha512'};
+nodeAlgorithms[SECHash.Algorithm.sha256] = 'sha256';
+nodeAlgorithms[SECHash.Algorithm.sha384] = 'sha384';
+nodeAlgorithms[SECHash.Algorithm.sha512] = 'sha512';
 

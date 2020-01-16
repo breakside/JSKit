@@ -17,7 +17,7 @@ JSClass("SECKeychainTests", TKTestSuite, {
         expectation.call(this.fileManager.open, this.fileManager, function(state){
             TKAssertExactEquals(state, JSFileManager.State.success);
             suite.keychain = SECKeychain.initWithIdentifier("io.breakside.JSKit.SecurityKitTests-%d".sprintf(timestamp), suite.fileManager);
-            expectation.call(suite.keychain.create, suite.keychain, "test123", function(success){
+            expectation.call(suite.keychain.initializeWithMasterPassword, suite.keychain, "test123", function(success){
                 TKAssert(success);
             });
         });

@@ -19,10 +19,37 @@ topics:
     members:
       - SECCipher
       - SECKey
-      - SECHash
+      -
+        name: SECKeyPair
+        copyright: Copyright © 2020 Breakside Inc.
+        kind: class
+        anonymous: true
+        introduced: 2020.1.0
+        summary: A pair of public and private key
+        topics:
+          -
+            name: Keys
+            members:
+              -
+                name: public
+                type: SECKey
+                summary: The public key
+              -
+                name: private
+                type: SECKey
+                summary: The private key
+  -
+    name: Signatures
+    members:
+      - SECHMAC
+      - SECSign
       - SECVerify
   -
-    name: Secure storage
+    name: Hashes
+    members:
+      - SECHash
+  -
+    name: Secure Storage
     members:
       - SECKeychain
   -

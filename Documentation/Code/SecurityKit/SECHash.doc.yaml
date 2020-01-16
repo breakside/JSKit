@@ -25,40 +25,18 @@ topics:
           -
             name: sha512
             summary: The SHA512 hash
-          -
-            name: hmacSHA256
-            summary: The HMAC-SHA256 hash
-          -
-            name: hmacSHA384
-            summary: The HMAC-SHA384 hash
-          -
-            name: hmacSHA512
-            summary: The HMAC-SHA512 hash
-          -
-            name: rsaSHA256
-            summary: The RSA-SHA256 hash
-          -
-            name: rsaSHA384
-            summary: The RSA-SHA384 hash
-          -
-            name: rsaSHA512
-            summary: The RSA-SHA512 hash
   -
     name: Creating a Hasher
     members:
       -
         name: initWithAlgorithm
         kind: init
-        summary: Create a hasher for the given algorithm and key data
+        summary: Create a hasher for the given algorithm
         arguments:
           -
             name: algorithm
             type: Algorithm
             summary: The hashing algorithm to use
-          -
-            name: keyData
-            type: JSData
-            summary: The key data to use when hashing
         description: |
           After creating a hasher, you'll need to call `update()` any number of
           times and finally call `digest()` to compute the hash.

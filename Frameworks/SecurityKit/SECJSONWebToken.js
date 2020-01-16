@@ -1,6 +1,7 @@
 // #import Foundation
-// #import "SECHash.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, SECHash, SECVerify, JSData */
+// #import "SECHMAC.js"
+// #import "SECVerify.js"
+/* global JSClass, JSObject, JSReadOnlyProperty, SECHMAC, SECVerify, JSData */
 'use strict';
 
 (function(){
@@ -39,40 +40,36 @@ JSClass("SECJSONWebToken", JSObject, {
         if (!completion){
             completion = Promise.completion();
         }
-        var key;
+        var jwk = null;
         var keyData = null;
         if (keys instanceof JSData){
             keyData = keys;
         }else{
             for (var i = 0, l = keys.length; i < l && keyData === null; ++i){
-                key = keys[i];
-                if (this._header.kid == key.kid){
-                    keyData = key;
+                jwk = keys[i];
+                if (this._header.kid == jwk.kid){
+                    break;
                 }
             }
         }
-        if (keyData === null){
-            completion.call(target, null);
-            return;
-        }
         switch (this._header.alg){
             case "HS256":
-                this._verifyHash(SECHash.Algorithm.hmacSHA256, keyData, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
+                this._verifyHMAC(SECHMAC.Algorithm.sha256, keyData, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
                 break;
             case "HS384":
-                this._verifyHash(SECHash.Algorithm.hmacSHA384, keyData, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
+                this._verifyHMAC(SECHMAC.Algorithm.sha384, keyData, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
                 break;
             case "HS512":
-                this._verifyHash(SECHash.Algorithm.hmacSHA512, keyData, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
+                this._verifyHMAC(SECHMAC.Algorithm.sha512, keyData, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
                 break;
             case "RS256":
-                this._verifyRSA(SECHash.Algorithm.rsaSHA256, keyData, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
+                this._verifyRSA(SECVerify.Algorithm.rsaSHA256, jwk, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
                 break;
             case "RS384":
-                this._verifyRSA(SECHash.Algorithm.rsaSHA384, keyData, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
+                this._verifyRSA(SECVerify.Algorithm.rsaSHA384, jwk, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
                 break;
             case "RS512":
-                this._verifyRSA(SECHash.Algorithm.rsaSHA512, keyData, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
+                this._verifyRSA(SECVerify.Algorithm.rsaSHA512, jwk, this._signedChunks, this.signature, this._unverifiedPayload, completion, target);
                 break;
             default:
                 completion.call(target, null);
@@ -81,25 +78,36 @@ JSClass("SECJSONWebToken", JSObject, {
         return completion.promise;
     },
 
-    _verifyHash: function(algorithm, keyData, chunks, signature, payload, completion, target){
-        var hash = SECHash.initWithAlgorithm(algorithm, keyData);
-        for (var i = 0, l = chunks.length; i < l; ++i){
-            hash.update(chunks[i]);
+    _verifyHMAC: function(algorithm, keyData, chunks, signature, payload, completion, target){
+        if (keyData === null){
+            completion.call(target, null);
+            return;
         }
-        hash.digest(function(computed){
-            if (computed === null || !computed.isEqual(signature)){
+        var hash = SECHMAC.initWithAlgorithm(algorithm);
+        hash.createKeyWithData(keyData, function(key){
+            if (key === null){
                 completion.call(target, null);
                 return;
             }
-            completion.call(target, payload);
+            hash.key = key;
+            for (var i = 0, l = chunks.length; i < l; ++i){
+                hash.update(chunks[i]);
+            }
+            hash.sign(function(computed){
+                if (computed === null || !computed.isEqual(signature)){
+                    completion.call(target, null);
+                    return;
+                }
+                completion.call(target, payload);
+            });
         });
     },
 
     _verifyRSA: function(algorithm, jwk, chunks, signature, payload, completion, target){
         var verify = SECVerify.initWithAlgorithm(algorithm);
-        var key = verify.createKeyFromJWK(jwk, function(key){
+        var key = this.createVerifyKey(jwk, function(key){
             if (key === null){
-                completion.call(target, false);
+                completion.call(target, null);
                 return;
             }
             for (var i = 0, l = chunks.length; i < l; ++i){
@@ -113,6 +121,10 @@ JSClass("SECJSONWebToken", JSObject, {
                 completion.call(target, payload);
             });
         }, this);
+    },
+
+    createVerifyKey: function(jwk, completion, target){
+        // implemented by platform
     }
 
 });

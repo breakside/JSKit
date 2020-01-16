@@ -8,57 +8,18 @@ var crypto = require('crypto');
 SECVerify.definePropertiesFromExtensions({
 
     nodeVerify: null,
+    nodeAlgorithm: null,
 
     initWithAlgorithm: function(algorithm){
-        var nodeAlgorithm = nodeAlgorithms[algorithm];
-        if (!nodeAlgorithm){
+        this.nodeAlgorithm = nodeAlgorithms[algorithm];
+        if (!this.nodeAlgorithm){
             return null;
         }
-        this.nodeVerify = crypto.createVerify(nodeAlgorithm);
+        this.nodeVerify = crypto.createVerify(this.nodeAlgorithm.hash);
     },
 
     update: function(data){
         this.nodeVerify.update(data);
-    },
-
-    createKeyFromJWK: function(jwk, completion, target){
-        if (!completion){
-            completion = Promise.completion();
-        }
-        // RSA public key ASN.1 syntax:
-        // RSAPublicKey ::= SEQUENCE {
-        //     modulus           INTEGER,  -- n
-        //     publicExponent    INTEGER   -- e
-        // }
-        // 
-        var modulus = jwk.n.dataByDecodingBase64URL();
-        var exp = jwk.e.dataByDecodingBase64URL();
-
-        var i = 0;
-        var length = 10 + modulus.length + exp.length;
-        var der = JSData.initWithLength(length);
-        var derView = der.dataView();
-        der[i++] = 0x30; // SEQUENCE (RSAPublicKey)
-        der[i++] = 0x82; // Two bytes of length to follow
-        derView.setUint16(i, 6 + modulus.length + exp.length);
-        i += 2;
-        der[i++] = 0x02; // INTEGER (modulus)
-        der[i++] = 0x82; // Two bytes of length to follow
-        derView.setUint16(i, modulus.length);
-        i += 2;
-        modulus.copyTo(der, i);
-        i += modulus.length;
-        der[i++] = 0x02; // INTEGER (publicExponent)
-        der[i++] = exp.length;
-        exp.copyTo(der, i);
-
-        var base64 = der.base64StringRepresentation(64);
-        var pem = "-----BEGIN RSA PUBLIC KEY-----\n";
-        pem += base64;
-        pem += "\n-----END RSA PUBLIC KEY-----\n";
-        var key = SECNodeKey.initWithData(pem.utf8());
-        completion.call(target, key);
-        return completion.promise;
     },
 
     verify: function(key, signature, completion, target){
@@ -73,7 +34,7 @@ SECVerify.definePropertiesFromExtensions({
 });
 
 var nodeAlgorithms = {};
-nodeAlgorithms[SECVerify.Algorithm.rsaSHA256] = 'SHA256';
-nodeAlgorithms[SECVerify.Algorithm.rsaSHA384] = 'SHA384';
-nodeAlgorithms[SECVerify.Algorithm.rsaSHA512] = 'SHA512';
+nodeAlgorithms[SECVerify.Algorithm.rsaSHA256] = {name: 'rsa', hash: 'sha256'};
+nodeAlgorithms[SECVerify.Algorithm.rsaSHA384] = {name: 'rsa', hash: 'sha384'};
+nodeAlgorithms[SECVerify.Algorithm.rsaSHA512] = {name: 'rsa', hash: 'sha512'};
 
