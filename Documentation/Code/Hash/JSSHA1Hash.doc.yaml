@@ -1,0 +1,66 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+suffix: class
+introduced: 2020.1.0
+summary: An SHA1 hash function
+description: |
+  SHA1 hashes can be used for calculating sums for non-security related purposes,
+  like comparing two files or creating unique identifiers.
+important: If you are hashing data for secure purposes, then use the `SECHash`
+  class from the `SecurityKit` framework.  The `SHA1` hash function is not
+  secure.
+topics:
+  -
+    name: Creating a Hasher
+    members:
+      -
+        name: JSSHA1Hash
+        kind: constructor
+        summary: Create a hasher
+        description: |
+          After creating a hasher, you can `add()` as many cunks of data
+          as you want before calling `finish()`.
+
+          ````
+          var chunks = [ ... ];
+          var sha1 = new JSSHA1Hash();
+          for (var i = 0, l = chunks.length; i < l; ++i){
+            sha1.add(chunks[i]);
+          }
+          sha1.finish();
+          var hex = sha1.digest().hexStringRepresentation();
+          ````
+        important: This constructor must be invoked with `new`().
+  -
+    name: Adding Data
+    members:
+      -
+        name: add
+        kind: method
+        summary: Add a chunk of data to the hash calculation
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The data chunck to include in the hash
+        description: |
+          You must call `finish()` after calling `add()` for the final time.
+      -
+        name: finish
+        kind: method
+        summary: Complete the hash calculation
+        description: |
+          You'll typically call `digest()` after calling `finish()`, in order
+          to get the result of the hash.
+  -
+    name: Hash Result
+    members:
+      -
+        name: digest
+        kind: method
+        type: JSData
+        return: A 20-byte (160 bit) hash of the input data
+        summary: Get the result of hashing all the data chunks
+        note: |
+          You can call `hexStringRepresentation()` on the result to generate
+          a string form of the SHA1 hash.

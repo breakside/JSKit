@@ -25,5 +25,49 @@ topics:
   -
     name: Hash Functions
     members:
+      -
+        name: JSMD5Hash
+        kind: function
+        introduced: 2020.1.0
+        type: JSData
+        return: A 16-byte (128 bit) hash of the input data
+        summary: Hash the given data using the MD5 algorithm
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The data to hash
+        description: |
+          If you have several chunks of data to hash, use the `class`() variant
+          of `JSMD5Hash`(JSMD5Hash-class).
+        important: |
+          If you are hashing data for secure purposes, then use the `SECHash`
+          class from the `SecurityKit` framework.  The `MD5` hash function
+          is not secure.
+        note: |
+          You can call `hexStringRepresentation()` on the result to generate
+          a string form of the MD5 hash.
       - JSMD5Hash
+      -
+        name: JSSHA1Hash
+        kind: function
+        introduced: 2020.1.0
+        type: JSData
+        return: A 20-byte (160 bit) hash of the input data
+        summary: Hash the given data using the SHA1 algorithm
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The data to hash
+        description: |
+          If you have several chunks of data to hash, use the `class`() variant
+          of `JSSHA1Hash`(JSSHA1Hash-class).
+        important: |
+          If you are hashing data for secure purposes, then use the `SECHash`
+          class from the `SecurityKit` framework.  The `SHA1` hash function
+          is not secure.
+        note: |
+          You can call `hexStringRepresentation()` on the result to generate
+          a string form of the SHA1 hash.
       - JSSHA1Hash
