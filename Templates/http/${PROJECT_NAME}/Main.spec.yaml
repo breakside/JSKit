@@ -1,10 +1,12 @@
 File's Owner: /AppDelegate
+
 AppDelegate:
-    class: ApplicationDelegate
-    outlets:
-        httpServer: /HTTPServer
+  class: ApplicationDelegate
+  outlets:
+    httpServer: /HTTPServer
 
 HTTPServer:
-    class: SKHTTPServer
-    routes:
-        /: {responder: RootResponder}
+  class: SKHTTPServer
+  delegate: /AppDelegate
+  routes:
+    /: RootResponder

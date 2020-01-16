@@ -30,6 +30,7 @@ topics:
   -
     name: Application
     members:
+      - ServerAppOrganization
       - SKApplication
   -
     name: HTTP Server

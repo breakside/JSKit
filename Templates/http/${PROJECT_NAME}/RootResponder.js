@@ -8,6 +8,8 @@ JSClass('RootResponder', SKHTTPResponder, {
     contextClass: RootResponder,
 
     get: function(){
+        var greeting = {message: "Hello, world!"};
+        this.sendObject(greeting);
     }
 
 });

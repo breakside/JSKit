@@ -32,7 +32,7 @@ At this point, your workspace includes a few folders and files:
 ![Workspace Folders](WebAppOrganization/Workspace@2x.png)
 
 - `package-lock.json` and `node_modules/` are created by `npm install` and are
-  related to how node.js manages intalled modules.
+  related to how node.js manages installed modules.
 - `.gitignore` is created by `jskit init` with defaults for items that should
   be ignored by `git`
 - `.jshintrc` is created by `jskit init` to include a list of globals that
@@ -64,7 +64,7 @@ Taking a look inside the `MessagesWeb/` project, we see
 - `www` contains boostrap html code
 - `conf` constains an `nginx` config file
 - `Dockerfile` defines how to package the app
-- `LICENSE` contains the license for your code
+- `LICENSE.txt` contains the license for your code
 
 Info File
 ---------

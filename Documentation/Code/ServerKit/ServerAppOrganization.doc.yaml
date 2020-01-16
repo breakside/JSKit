@@ -1,0 +1,6 @@
+copyright: Copyright © 2020 Breakside Inc.
+name: Server Application Project Organization
+kind: document
+summary: An overview of how the files and folders of a node-based
+  \`SKApplication` are organized
+description: ServerAppOrganization.md

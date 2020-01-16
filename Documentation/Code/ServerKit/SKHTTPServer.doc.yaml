@@ -35,6 +35,13 @@ topics:
         summary: The properties available when defining a server in a spec file
         topics:
           -
+            name: Delegate
+            members:
+              -
+                name: delegate
+                type: SKHTTPServerDelegate
+                summary: The delgate for this server
+          -
             name: Route Map
             members:
               -

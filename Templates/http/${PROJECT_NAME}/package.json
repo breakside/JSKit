@@ -1,0 +1,6 @@
+{
+  "name": "${PROJECT_NAME_FILE_SAFE}",
+  "private": true,
+  "dependencies": {
+  }
+}

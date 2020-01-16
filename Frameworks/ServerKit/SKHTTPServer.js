@@ -27,6 +27,7 @@ JSClass("SKHTTPServer", JSObject, {
 
     initWithSpec: function(spec){
         SKHTTPServer.$super.initWithSpec.call(this, spec);
+        this.delegate = spec.valueForKey("delegate");
         var routes = spec.unmodifiedValueForKey("routes");
         this.rootRoute = SKHTTPRoute.CreateFromMap(routes, spec);
         this._extensionInit();
