@@ -94,6 +94,19 @@ JSClass('UIApplication', UIResponder, {
         }
     },
 
+    stop: function(completion, target){
+        var _close = function(){
+            JSUserDefaults.shared.close(function(){
+                completion.call(target);
+            });
+        };
+        if (this.delegate && this.delegate.applicationWillTerminate){
+            this.delegate.applicationWillTerminate(_close);
+        }else{
+            _close();
+        }
+    },
+
     update: function(){
     },
 

@@ -54,7 +54,12 @@ JSClass("JSUserDefaults", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        this._persist(completion, target);
+        this._persist(function(success){
+            if (success){
+                this._values = null;
+            }
+            completion.call(target, success);
+        }, this);
         return completion.promise;
     },
 

@@ -297,3 +297,10 @@ topics:
         description: |
           Loop up the responder chain starting from `target` until a responder
           is found that responds to the `action`.
+  -
+    name: HTML Based Applicatons
+    summary:
+      -
+        name: baseURL
+        type: JSURL
+        summary: The URL used to access your application

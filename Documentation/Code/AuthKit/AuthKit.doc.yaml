@@ -2,9 +2,17 @@ copyright: Copyright © 2020 Breakside Inc.
 introduced: 2020.1.0
 kind: framework
 summary: A framework for authenticating end users via OAuth sessions
+description: |
+  [OAuth](https://oauth.net) is a open standard for authenticating users.
+
+  You can use it in your app to authenticate users using their accounts with
+  external services like Google or Microsoft.  This kind of authentication
+  can speed up user onboarding because they won't need to create a new login
+  or provide their name. 
 topics:
   -
     name: OAuth
     members:
-      - OAuthSession
-      - OAuthService
+      - SampleWebAppAuth
+      - OAService
+      - OASession

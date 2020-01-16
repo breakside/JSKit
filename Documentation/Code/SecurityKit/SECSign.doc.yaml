@@ -95,11 +95,11 @@ topics:
               -
                 name: modulusLength
                 type: Number
-                summary: The modulus length
+                summary: The modulus length.  Defaults to `2048`.
               -
                 name: publicExponent
                 type: Number
-                summary: The public exponent
+                summary: The public exponent.  Defaults to `0x10001`.
   -
     name: Signing Data
     members:

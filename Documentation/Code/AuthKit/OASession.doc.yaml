@@ -1,0 +1,168 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Manage the steps of authenticating a user with OAuth
+description: |
+  In order to use an OAuth service, you'll need to have at least a `clientId`,
+  typically optained from the service's developer portal.
+topics:
+  -
+    name: Creating a Session
+    members:
+      -
+        name: initWithService
+        kind: init
+        summary: Create an OAuth session based on a service and client ID
+        arguments:
+          -
+            name: service
+            type: OAService
+            summary: The service that will handle the authentication
+          -
+            name: clientId
+            type: String
+            summary: The id for your application, obtained from the service's
+              developer portal
+  -
+    name: Session Configuration
+    members:
+      -
+        name: scopes
+        type: String[]
+        summary: The service-specfic scopes to request access to
+        description: |
+          By default, the following scopes will be requested:
+          - `"openid"`
+          - `"profile"`
+          - `"email"`
+      -
+        name: loginHint
+        type: String
+        nullable: true
+        summary: A username or email to use as a hint to the OAuth service
+        description: |
+          Typically used if your app remembers a login name.  It helps the
+          service's login page prefill that name.
+      -
+        name: state
+        type: String
+        summary: A unique request identifier that can be used to verify the
+          redirect back to your app
+        description: |
+          Defaults to a random string.
+
+          Typically you'll store this value in your app before sending the
+          user to the `authenticationURL`.
+
+          When your app receives the redirect after authentication, you
+          can compare the resulting state value to the one you saved.
+      -
+        name: redirectURL
+        type: JSURL
+        nullable: true
+        summary: The URL that the user should be sent after authentication
+        description: |
+          Required to generate a valid `authenticationURL`.
+
+          For web apps, you can often specify `UIApplication.baseURL`.
+      -
+        name: responseTypes
+        type: String[]
+        summary: The kind of response(s) you want from the OAuth service
+        description: |
+          Defaults to `["code"]`.
+
+          For web based `UIKit` based apps, we reccommend using a value of
+          `["id_token"]` to receive a JSON Web Token response.
+  -
+    name: Authentication URL
+    members:
+      -
+        name: authenticationURL
+        type: JSURL
+        summary: The URL to send the user to for authentication
+        description: |
+          This URL depends on the session configuration properties:
+          - `scopes`
+          - `loginHint`
+          - `state`
+          - `redirectURL`
+          - `responseTypes`
+
+          Those should all be configured as desired before accessing this
+          URL
+  -
+    name: Token Exchange
+    members:
+      -
+        name: exchangeCodeForToken
+        kind: method
+        summary: Get a longer lived token via a callback for the user after
+          receiving a temporary authentication code
+        arguments:
+          -
+            name: code
+            type: String
+            summary: The temporary auth code received from the service
+          -
+            name: clientSecret
+            type: String
+            summary: The shared secret for your app obtained from the service's
+              developer portal
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: payload
+                  type: dictionary
+                  summary: The OAuth service's response
+            summary: The function to call when the load is complete
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          Called after receiving the response from the OAuth service when
+          the user was directed to an `authenticationURL` configured with
+          a `"code"` `responseType`.
+
+          Typically only used in server environments due to the client secret,
+          which cannot be kept secret in a web based front end.
+
+          Web apps can instead request a `responseType` of `"id_token"`, which
+          returns a JSON Web Token that can be validated using `SECJSONWebToken`.
+      -
+        name: exchangeCodeForToken
+        suffix: pomise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: dictionary
+            summary: The OAuth service's response
+        summary: Get a longer lived token via a promise for the user after
+          receiving a temporary authentication code
+        arguments:
+          -
+            name: code
+            type: String
+            summary: The temporary auth code received from the service
+          -
+            name: clientSecret
+            type: String
+            summary: The shared secret for your app obtained from the service's
+              developer portal
+        description: |
+          Called after receiving the response from the OAuth service when
+          the user was directed to an `authenticationURL` configured with
+          a `"code"` `responseType`.
+
+          Typically only used in server environments due to the client secret,
+          which cannot be kept secret in a web based front end.
+
+          Web apps can instead request a `responseType` of `"id_token"`, which
+          returns a JSON Web Token that can be validated using `SECJSONWebToken`.

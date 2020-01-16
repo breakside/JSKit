@@ -11,8 +11,12 @@ JSClass("OAService", JSObject, {
         if (!info){
             return null;
         }
-        var endpointURL = JSURL.initWithString(info.endpoint);
         this.identifier = identifier;
+        var endpointURL = JSURL.initWithString(info.endpoint);
+        this.initWithEndpointURL(endpointURL);
+    },
+
+    initWithEndpointURL: function(endpointURL){
         this.discoveryURL = endpointURL.appendingPathComponents(['.well-known', 'openid-configuration']);
     },
 

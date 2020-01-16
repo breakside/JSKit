@@ -3,7 +3,16 @@
 /* global JSGlobalObject, JSReadOnlyProperty, UIApplication, JSURL, window, UIHTMLWindowServer, JSArguments */
 'use strict';
 
+(function(){
+
+var originalSetup = UIApplication.prototype.setup;
+
 UIApplication.definePropertiesFromExtensions({
+
+    setup: function(){
+        this._baseURL = JSURL.initWithString(window.location.origin + window.location.pathname);
+        originalSetup.call(this);
+    },
 
     launchOptions: function(){
         var url = JSURL.initWithString(window.location.href);
@@ -39,11 +48,7 @@ UIApplication.definePropertiesFromExtensions({
             var open = function(){
                 window.location.href = url;
             };
-            if (this.delegate && this.delegate.applicationWillTerminate){
-                this.delegate.applicationWillTerminate(open);
-            }else{
-                open();
-            }
+            this.stop(open);
         }else{
             window.open(url.encodedString);
         }
@@ -53,19 +58,10 @@ UIApplication.definePropertiesFromExtensions({
         var reload = function(){
             window.location.reload();
         };
-        if (this.delegate && this.delegate.applicationWillTerminate){
-            this.delegate.applicationWillTerminate(reload);
-        }else{
-            reload();
-        }
+        this.stop(reload);
     },
 
-    baseURL: JSReadOnlyProperty(),
-
-    getBaseURL: function(){
-        var url = JSURL.initWithString(window.location.origin + window.location.pathname);
-        return url;
-    }
+    baseURL: JSReadOnlyProperty('_baseURL')
 
 });
 
@@ -78,3 +74,5 @@ JSGlobalObject.UIApplicationMain = function(rootElement, bootstrapper){
         }
     });
 };
+
+})();

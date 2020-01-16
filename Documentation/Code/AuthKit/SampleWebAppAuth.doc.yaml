@@ -1,0 +1,6 @@
+copyright: Copyright © 2020 Breakside Inc.
+name: Sample OAuth in a Web App
+kind: document
+summary: A sample configuration showing how to use OAuth in your web-based
+  \`UIKit` app.
+description: SampleWebAppAuth.md

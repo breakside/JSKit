@@ -1,0 +1,126 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Represents a service that provides an OAuth implementation
+description: |
+  Information about a service can be largely extracted from the information
+  found at well known URLs based on a single endpoint URL.
+
+  `AuthKit` contains several popular services built-in.
+topics:
+  -
+    name: Popular Services
+    members:
+      -
+        name: google
+        static: true
+        type: OAService
+        summary: Google's OAuth service
+      -
+        name: microsoft
+        static: true
+        type: OAService
+        summary: Microsoft's OAuth service, including Office365
+  -
+    name: Creating a Service
+    members:
+      -
+        name: initWithEndpointURL
+        kind: init
+        summary: Create an OAuth service based on an endpoint URL.
+        arguments:
+          -
+            name: endpointURL
+            type: JSURL
+            summary: The main endpoint URL for the OAuth service
+        description: |
+          `AuthKit` will look for more information by appending
+          `/.well-known/openid-configuration` to the `endpointURL`().
+  -
+    name: Loading Service Info
+    members:
+      -
+        name: load
+        kind: method
+        summary: Load the service's information and receive a callback when
+          complete
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: Whether the service loaded successfully
+            summary: The function to call when the load is complete
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          A service must be loaded before it can be used.
+
+          If the service has alreadly loaded, this method will call the
+          completion immedately
+      -
+        name: load
+        suffix: promise
+        type: Promise
+        promise:
+          resolve:
+            summary: If the promise resovles, the load succeeded
+        kind: method
+        summary: Load the service's information with a promise
+        description: |
+          A service must be loaded before it can be used.
+
+          If the service has alreadly loaded, this method will resolve the
+          promise immedately
+  -
+    name: Authentication URLs
+    members:
+      -
+        name: authenticationURL
+        type: JSURL
+        summary: The URL to use when making an authentication request
+      -
+        name: tokenURL
+        type: JSURL
+        summary: The URL to use when making a token request
+  -
+    name: JSON Web Keys
+    members:
+      -
+        name: keys
+        kind: method
+        summary: Load the service's current JSON Web Keys in a callback
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: keys
+                  type: SECJSONWebToken.JSONWebKey[]
+                  summary: The public keys for the service
+            summary: The function to call with the keys
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      -
+        name: load
+        suffix: promise
+        type: Promise
+        promise:
+          resolve:
+            type: SECJSONWebToken.JSONWebKey[]
+            summary: The public keys for the service
+        kind: method
+        summary: Load the service's current JSON Web Keys in a promise
