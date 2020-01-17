@@ -1,0 +1,55 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Decodes compressed bitmap formats into `IKBitmap`s
+topics:
+  -
+    name: Creating a Decoder
+    members:
+      -
+        name: initWithFormat
+        kind: init
+        summary: Create a bitmap decoder for the given format
+        arguments:
+          -
+            name: format
+            type: IKBitmap.Format
+            summary: The format to use for the decoder
+          -
+            name: encodedData
+            type: JSData
+            summary: The encoded bitmap data
+  -
+    name: Format
+    members:
+      -
+        name: format
+        type: IKBitmap.Format
+        summary: Set by subclasses on their prototypes for automatic
+          registration with `IKDecoder`.
+        description: |
+          For example, here is how the built-in PNG decoder declares its format.
+          ````
+          JSClass("IKDecoderPNG", IKDecoder, {
+
+              format: IKBitmap.Format.png,
+
+              getBitmap: function(){
+                // ...
+              }
+          });
+
+          ````
+  -
+    name: Getting a Bitmap
+    members:
+      -
+        name: getBitmap
+        kind: method
+        type: IKBitmap
+        nullable: true
+        return: A bitmap in 8bpc RGBA format
+        summary: Decode the encoded data and return a bitmap object
+        description: |
+          Must be implemented by subclasses

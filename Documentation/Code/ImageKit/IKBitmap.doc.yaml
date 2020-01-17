@@ -1,0 +1,90 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Contains bitmap image data
+description: |
+  A bitmap image is a grid of colors.
+
+  `ImageKit` bitmaps are always represented in RGBA with 8 bits per channel
+
+  Bitmaps can be read from or written to compressed formats like `PNG` or `JPG`.
+topics:
+  -
+    name: Supported Formats
+    members:
+      -
+        name: Format
+        kind: enum
+        summary: The compressed bitmap formats supported by `IKBitmap`
+        options:
+          -
+            name: unknown
+            summary: Any unrecognized format
+          -
+            name: png
+            summary: The PNG format
+          -
+            name: jpeg
+            summary: The JPEG format
+  -
+    name: Creating a Bitmap
+    members:
+      -
+        name: initWithData
+        kind: init
+        summary: Create a bitmap with 8bpc RGBA data
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The bitmap data in 8bpc RGBA format
+          -
+            name: size
+            type: JSSize
+            summary: The width and height of the image
+        description: |
+          The size of the image must agree with the length of the data.
+          Specifically the `data`() length should be
+          `4 * size.width * size.height`.
+      -
+        name: initWithEncodedData
+        kind: init
+        summary: Create a bitmap with PNG or JPEG compressed data
+        arguments:
+          -
+            name: encodedData
+            type: JSData
+            summary: The PNG or JPEG data
+        description: |
+          The specific format will be automatically detected and the bitmap data
+          extracted according to the format.
+  -
+    name: Size
+    members:
+      -
+        name: size
+        type: JSSize
+        summary: The width and height of the image
+  -
+    name: Data
+    members:
+      -
+        name: data
+        type: JSData
+        summary: The uncompressed 8bpc RGBA bitmap data
+  -
+    name: Encoding to PNG
+    members:
+      -
+        name: encodedData
+        kind: method
+        type: JSData
+        return: The data of the bitmap compressed in the given format
+        summary: Encode the bitmap in the given format
+        arguments:
+          -
+            name: format
+            type: Format
+            summary: The compressed bitmap format to return
+        note: Currently only `IKBitmap.Format.png` is supported

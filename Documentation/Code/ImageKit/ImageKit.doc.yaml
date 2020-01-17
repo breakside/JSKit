@@ -8,14 +8,7 @@ topics:
       - IKBitmap
       - JSImage+IKBitmap
   -
-    name: Bitmap Decoders
+    name: Encoding & Decoding
     members:
       - IKDecoder
-      - IKDecoderPNG
-      - IKDecoderJPEG
-  -
-    name: Bitmap Encoders
-    members:
       - IKEncoder
-      - IKEncoderPNG
-      - IKEncoderJPEG

@@ -1,0 +1,56 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Encodes `IKBitmap`s into standard formats like PNG
+note: Currently only PNG is supported.
+topics:
+  -
+    name: Creating an Encoder
+    members:
+      -
+        name: initWithFormat
+        kind: init
+        summary: Create a bitmap encoder for the given format
+        arguments:
+          -
+            name: format
+            type: IKBitmap.Format
+            summary: The format to use for the encoder
+          -
+            name: bitmap
+            type: IKBitmap
+            summary: The bitmap to encode
+        note: Currently only `IKBitmap.Format.png` is supported
+  -
+    name: Format
+    members:
+      -
+        name: format
+        type: IKBitmap.Format
+        summary: Set by subclasses on their prototypes for automatic
+          registration with `IKEncoder`.
+        description: |
+          For example, here is how the built-in PNG encoder declares its format.
+          ````
+          JSClass("IKEncoderPNG", IKEncoder, {
+
+              format: IKBitmap.Format.png,
+
+              getData: function(){
+                // ...
+              }
+          });
+
+          ````
+  -
+    name: Getting Compressed Data
+    members:
+      -
+        name: getData
+        kind: method
+        type: JSData
+        return: The compressed data in this encoder's `format`
+        summary: Encode the bitmap data and return a the encoded data
+        description: |
+          Must be implemented by subclasses
