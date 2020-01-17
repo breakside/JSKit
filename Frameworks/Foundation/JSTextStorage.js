@@ -39,9 +39,11 @@ JSClass("JSTextStorage", JSAttributedString, {
 
     replaceCharactersInRangeWithString: function(range, string){
         JSTextStorage.$super.replaceCharactersInRangeWithString.call(this, range, string);
-        for (var i = 0, l = this._layoutManagers.length; i < l; ++i){
-            this._layoutManagers[i].textStorageDidReplaceCharactersInRange(range, string.length);
-        }
+        // $super will call replaceCharactersInRangeWithAttributedString, so we don't want to
+        // double-notify
+        // for (var i = 0, l = this._layoutManagers.length; i < l; ++i){
+        //     this._layoutManagers[i].textStorageDidReplaceCharactersInRange(range, string.length);
+        // }
     },
 
     replaceCharactersInRangeWithAttributedString: function(range, attributedString){

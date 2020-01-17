@@ -169,8 +169,7 @@ JSClass("JSAttributedString", JSObject, {
 
     replaceCharactersInRangeWithAttributedString: function(range, attributedString){
         if (attributedString === null){
-            this.replaceCharactersInRangeWithString(range, "");
-            return;
+            attributedString = JSAttributedString.init();
         }
         var runRange = this._rangeOfRunsPreparedForChangeInStringRange(range);
         if (range.length > 0 || this._string.length === 0){
