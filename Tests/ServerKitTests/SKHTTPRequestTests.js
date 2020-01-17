@@ -188,8 +188,8 @@ JSClass("SKHTTPRequestTests", TKTestSuite, {
         var expectation = TKExpectation.init();
         expectation.call(request.getValidatingObject, request, function(obj){
             TKAssertNotNull(obj);
-            TKAssertExactEquals(obj.getInteger('one'), 1);
-            TKAssertExactEquals(obj.getString('two'), "2");
+            TKAssertExactEquals(obj.integerForKey('one'), 1);
+            TKAssertExactEquals(obj.stringForKey('two'), "2");
         }, this);
         this.wait(expectation, 1.0);
     },
@@ -201,8 +201,8 @@ JSClass("SKHTTPRequestTests", TKTestSuite, {
         var expectation = TKExpectation.init();
         expectation.call(request.getValidatingObject, request, function(obj){
             TKAssertNotNull(obj);
-            TKAssertExactEquals(obj.getInteger('one', 0), 0);
-            TKAssertExactEquals(obj.getString('two', ''), "");
+            TKAssertExactEquals(obj.integerForKey('one', 0), 0);
+            TKAssertExactEquals(obj.stringForKey('two', ''), "");
         }, this);
         this.wait(expectation, 1.0);
     }

@@ -9,13 +9,13 @@ JSClass("SKHTTPRouteTests", TKTestSuite, {
 
     testCreateFromMap: function(){
         var routes = {
-            "/":            {responder: "SKHTTPRouteTestsRootResponder"},
-            "/one":         {responder: "SKHTTPRouteTestsOneResponder"},
-            "/one/a":       {responder: "SKHTTPRouteTestsOneAResponder"},
-            "/two":         {responder: "SKHTTPRouteTestsTwoResponder"},
-            "/three/*id":   {responder: "SKHTTPRouteTestsThreeResponder"},
-            "/three/*id/x": {responder: "SKHTTPRouteTestsThreeXResponder"},
-            "/four/**file": {responder: "SKHTTPRouteTestsFourResponder"},
+            "/":            "SKHTTPRouteTestsRootResponder",
+            "/one":         "SKHTTPRouteTestsOneResponder",
+            "/one/a":       "SKHTTPRouteTestsOneAResponder",
+            "/two":         "SKHTTPRouteTestsTwoResponder",
+            "/three/*id":   "SKHTTPRouteTestsThreeResponder",
+            "/three/*id/x": "SKHTTPRouteTestsThreeXResponder",
+            "/four/**file": "SKHTTPRouteTestsFourResponder",
         };
         var rootRoute = SKHTTPRoute.CreateFromMap(routes);
         TKAssertNotNull(rootRoute);
@@ -174,13 +174,13 @@ JSClass("SKHTTPRouteTests", TKTestSuite, {
 
     testPathComponentsForResponder: function(){
         var routes = {
-            "/":            {responder: "SKHTTPRouteTestsRootResponder"},
-            "/one":         {responder: "SKHTTPRouteTestsOneResponder"},
-            "/one/a":       {responder: "SKHTTPRouteTestsOneAResponder"},
-            "/two/*id/*name/test/**final": {responder: "SKHTTPRouteTestsTwoResponder"},
-            "/three/*id":   {responder: "SKHTTPRouteTestsThreeResponder"},
-            "/three/*id/x": {responder: "SKHTTPRouteTestsThreeXResponder"},
-            "/four/**file": {responder: "SKHTTPRouteTestsFourResponder"},
+            "/":            "SKHTTPRouteTestsRootResponder",
+            "/one":         "SKHTTPRouteTestsOneResponder",
+            "/one/a":       "SKHTTPRouteTestsOneAResponder",
+            "/two/*id/*name/test/**final": "SKHTTPRouteTestsTwoResponder",
+            "/three/*id":   "SKHTTPRouteTestsThreeResponder",
+            "/three/*id/x": "SKHTTPRouteTestsThreeXResponder",
+            "/four/**file": "SKHTTPRouteTestsFourResponder",
         };
         var rootRoute = SKHTTPRoute.CreateFromMap(routes);
         var otherRoute = rootRoute.children[0].children[0];
