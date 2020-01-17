@@ -21,6 +21,21 @@
         }
     },
 
+    suffixForMember: function(member){
+        if (member.isKindOfClass(DocEnumOption) && member.value !== null){
+            return ": %s".sprintf(member.value);
+        }
+        if (member.isKindOfClass(DocEnumFunction)){
+            var args = member.argumentStrings();
+            return ": function(%s)".sprintf(args.join(', '));
+        }
+        return DocEnum.$super.suffixForMember.call(this, member);
+    },
+
+    nameForMember: function(member){
+        return member.name;
+    },
+
     getTitle: function(){
         return "%s.%s".sprintf(this.parent.name, this.name);
     },

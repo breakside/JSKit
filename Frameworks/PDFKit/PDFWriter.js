@@ -1,6 +1,6 @@
 // #import Foundation
 // #import "PDFTypes.js"
-/* global JSClass, JSReadOnlyProperty, JSObject, PDFDocument, PDFStream, PDFName, PDFIndirectObject, PDFObject, PDFWriter, PDFTrailer */
+/* global JSClass, JSReadOnlyProperty, JSObject, PDFDocument, PDFStream, PDFName, PDFIndirectObject, PDFObject, PDFWriter, PDFTrailer, PDFWriterDataStream, PDFWriterFileStream, JSRange, JSFileManager, JSData */
 'use strict';
 
 (function(){
@@ -199,7 +199,54 @@ JSClass("PDFWriterStream", JSObject, {
     write: function(bytes, offset, length){
     },
 
-    close: function(callback){
+    close: function(completion, target){
+    }
+
+});
+
+JSClass("PDFWriterDataStream", JSObject, {
+
+    chunks: null,
+
+    init: function(){
+        this.chunks = [];
+    },
+
+    write: function(bytes, offset, length){
+        if (offset !== 0 || length !== bytes.length){
+            this.chunks.push(bytes.subdataInRange(JSRange(offset, length)));
+        }else{
+            this.chunks.push(bytes);
+        }
+    },
+
+    close: function(completion, target){
+    }
+
+});
+
+JSClass("PDFWriterFileStream", PDFWriterDataStream, {
+
+    url: null,
+    fileManager: null,
+
+    initWithURL: function(url, fileManager){
+        PDFWriterFileStream.$super.init.call(this);
+        this.url = url;
+        this.fileManager = fileManager || JSFileManager.default;
+    },
+
+    write: function(bytes, offset, length){
+        if (offset !== 0 || length !== bytes.length){
+            this.chunks.push(bytes.subdataInRange(JSRange(offset, length)));
+        }else{
+            this.chunks.push(bytes);
+        }
+    },
+
+    close: function(completion, target){
+        var data = JSData.initWithChunks(this.chunks);
+        this.fileManager.createFileAtURL(this.url, data, completion, target);
     }
 
 });

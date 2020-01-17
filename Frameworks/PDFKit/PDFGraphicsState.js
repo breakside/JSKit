@@ -75,6 +75,9 @@ PDFGraphicsState.stack = function(){
 };
 
 var PDFGraphicsStateStack = function(){
+    if (this === undefined){
+        return new PDFGraphicsStateStack();
+    }
     this.state = Object.create(PDFGraphicsState.Properties);
     this.stack = [];
 };

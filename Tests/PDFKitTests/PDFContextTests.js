@@ -57,7 +57,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         var context = PDFContext.initWithStream(stream);
         var isClosed = false;
 
-        context.beginPage({flipCoordinates: false});
+        context.beginPage({usePDFCoordinates: true});
         context.endPage();
 
         context.endDocument(function(){
@@ -117,7 +117,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         var context = PDFContext.initWithStream(stream);
         var isClosed = false;
 
-        context.beginPage({flipCoordinates: false});
+        context.beginPage({usePDFCoordinates: true});
         context.fillRect(JSRect(100, 200, 300, 400));
         context.endPage();
 
@@ -137,7 +137,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         var context = PDFContext.initWithStream(stream);
         var isClosed = false;
 
-        context.beginPage({flipCoordinates: false});
+        context.beginPage({usePDFCoordinates: true});
         context.fillEllipseInRect(JSRect(100, 200, 100, 100));
         context.endPage();
 
@@ -157,7 +157,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         var context = PDFContext.initWithStream(stream);
         var isClosed = false;
 
-        context.beginPage({flipCoordinates: false});
+        context.beginPage({usePDFCoordinates: true});
         context.fillRoundedRect(JSRect(100, 200, 100, 100), 20);
         context.endPage();
 
@@ -180,7 +180,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         var stream = PDFContextTestsStringStream.init();
         var context = PDFContext.initWithStream(stream);
         var isClosed = false;
-        context.beginPage({flipCoordinates: false});
+        context.beginPage({usePDFCoordinates: true});
         var center = JSPoint(100, 200);
         var radius = 50;
         context.addArc(center, radius, 0, Math.PI / 4, true);
@@ -294,7 +294,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         var stream = PDFContextTestsStringStream.init();
         var context = PDFContext.initWithStream(stream);
         var isClosed = false;
-        context.beginPage({flipCoordinates: false});
+        context.beginPage({usePDFCoordinates: true});
         context.beginPath();
         context.moveToPoint(50, 50);
         context.addArcUsingTangents(JSPoint(50, 100), JSPoint(100, 100), radius);
@@ -309,7 +309,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
         isClosed = false;
-        context.beginPage({flipCoordinates: false});
+        context.beginPage({usePDFCoordinates: true});
         context.beginPath();
         context.moveToPoint(50, 75);
         context.addArcUsingTangents(JSPoint(75, 100), JSPoint(100, 75), radius);
@@ -324,7 +324,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
         isClosed = false;
-        context.beginPage({flipCoordinates: false});
+        context.beginPage({usePDFCoordinates: true});
         context.beginPath();
         context.moveToPoint(50, 100);
         context.addArcUsingTangents(JSPoint(100, 100), JSPoint(100, 50), radius);
@@ -339,7 +339,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
         isClosed = false;
-        context.beginPage({flipCoordinates: false});
+        context.beginPage({usePDFCoordinates: true});
         context.beginPath();
         context.moveToPoint(100, 100);
         context.addArcUsingTangents(JSPoint(125, 75), JSPoint(100, 50), radius);
@@ -354,7 +354,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
         isClosed = false;
-        context.beginPage({flipCoordinates: false});
+        context.beginPage({usePDFCoordinates: true});
         context.beginPath();
         context.moveToPoint(100, 100);
         context.addArcUsingTangents(JSPoint(100, 50), JSPoint(50, 50), radius);
@@ -369,7 +369,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
         isClosed = false;
-        context.beginPage({flipCoordinates: false});
+        context.beginPage({usePDFCoordinates: true});
         context.beginPath();
         context.moveToPoint(100, 75);
         context.addArcUsingTangents(JSPoint(75, 50), JSPoint(50, 75), radius);
@@ -384,7 +384,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
         isClosed = false;
-        context.beginPage({flipCoordinates: false});
+        context.beginPage({usePDFCoordinates: true});
         context.beginPath();
         context.moveToPoint(75, 50);
         context.addArcUsingTangents(JSPoint(50, 75), JSPoint(75, 100), radius);
@@ -414,8 +414,8 @@ JSClass("PDFContextTestsStringStream", PDFWriterStream, {
         }
     },
 
-    close: function(callback){
-        callback();
+    close: function(completion, target){
+        completion.call(target);
     },
 
     getStreams: function(){

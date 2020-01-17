@@ -1,0 +1,110 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSContext
+summary: Allows drawing to a PDF document
+description: |
+  A `PDFContext` provides a `JSContext` interface for drawing to a PDF document.
+
+  Only a few extra methods are needed for dealing with PDF pages
+topics:
+  -
+    name: Creating a PDF Context
+    members:
+      -
+        name: initWithURL
+        kind: init
+        summary: Create a PDF at the given file URL
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: A file url
+        description: |
+          Uses a default page size of US Letter 8.5" x 11" (612pt x 792pt)
+      -
+        name: initWithURL
+        suffix: mediabox
+        kind: init
+        summary: Create a PDF at the given file URL and default page size
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: A file url
+          -
+            name: mediaBox
+            type: JSRect
+            summary: The default page size to use, in points
+  -
+    name: Pages
+    members:
+      -
+        name: PageOptions
+        kind: class
+        anonymous: true
+        summary: Options when creating a page
+        topics:
+          -
+            name: Size
+            members:
+              -
+                name: mediaBox
+                type: JSRect
+                summary: The size of the page, if different from the default
+                  value given when the context was created.
+          -
+            name: Coordinates
+            members:
+              -
+                name: usePDFCoordinates
+                type: boolean
+                summary: Keep the standard PDF coordinates with the origin
+                  in the bottom left and positive y values toward the top.
+                description: |
+                  Most `JSContext` drawing assumes coordinates that have an
+                  origin in the top left with positive y values toward the
+                  bottom.
+
+                  If `usePDFCoordinates` isn't specified, `PDFConext` will
+                  automatically flip the page coordinate to match the
+                  `JSContext` default rather than the PDF default.
+      -
+        name: beginPage
+        kind: method
+        summary: Create a new page in the PDF document
+        arguments:
+          -
+            name: options
+            type: PageOptions
+            default: "{}"
+            summary: Any options override defaults for this page
+      -
+        name: endDocument
+        kind: method
+        summary: Close the document with a callback
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: Indicates if the PDF document closed successfully
+            summary: The function to call when the document is closed
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      -
+        name: endDocument
+        suffix: promise
+        kind: method
+        return: Promise
+        promise:
+          resolve:
+            summary: When the promise resolves, the document has closed
+        summary: Close the document with a promise

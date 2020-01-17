@@ -128,3 +128,36 @@ topics:
           resolve:
             type: JSData
             summary: The page's raw PDF data
+  -
+    name: Page Drawing
+    members:
+      -
+        name: prepareDrawing
+        kind: method
+        summary: Get a `PDFDrawing` object asynchronously via callback
+        arguments:
+          -
+            name: completion
+            summary: A function that is called when the drawing is prepared
+            type:
+              arguments:
+                -
+                  name: drawing
+                  type: PDFDrawing
+                  summary: An object that can draw the page, or `null` if the
+                    drawing could not be loaded
+          -
+            name: target
+            summary: The object to use as `this` when calling `completion`
+            type: Object
+            default: "undefined"
+      -
+        name: prepareDrawing
+        suffix: promise
+        kind: method
+        summary: Get a `PDFDrawing` object asynchronously via a promise
+        type: Promise
+        promise:
+          resolve:
+            type: PDFDrawing
+            summary: An object that can draw the page

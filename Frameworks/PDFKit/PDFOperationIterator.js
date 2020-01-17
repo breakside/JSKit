@@ -2,7 +2,8 @@
 // #import "PDFName.js"
 // #import "PDFTokenizer.js"
 // #import "PDFStreamOperation.js"
-/* global JSClass, JSObject, JSLog, JSReadOnlyProperty, PDFReader, PDFTokenizer, PDFOperationIterator, JSData, PDFStreamOperation, PDFName */
+// #import "PDFGraphicsState.js"
+/* global JSClass, JSObject, JSLog, JSReadOnlyProperty, PDFReader, PDFTokenizer, PDFOperationIterator, JSData, PDFStreamOperation, PDFName, PDFGraphicsStateStack */
 'use strict';
 
 (function(){
@@ -12,12 +13,27 @@ var logger = JSLog("PDFKit", "OpIterator");
 JSClass('PDFOperationIterator', JSObject, {
 
     tokenizer: null,
-    state: null,
     queue: null,
 
-    initWithData: function(data){
+    _lastOperation: null,
+
+    initWithData: function(data, resources){
         this.tokenizer = PDFTokenizer.initWithData(data);
         this.queue = [];
+        this.stateStack = PDFGraphicsStateStack();
+        this.resources = this.stateStack.resources = resources;
+    },
+
+    resources: null,
+    stateStack: null,
+    state: null,
+
+    updateState: function(){
+        if (this._lastOperation !== null){
+            this.stateStack.handleOperation(this._lastOperation);
+            this._lastOperation = null;
+            this.state = this.stateStack.state;
+        }
     },
 
     reset: function(){
@@ -25,6 +41,7 @@ JSClass('PDFOperationIterator', JSObject, {
     },
 
     next: function(){
+        this.updateState();
         var operands = [];
         var compatibilityLevel = 0;
         var obj;
@@ -116,6 +133,7 @@ JSClass('PDFOperationIterator', JSObject, {
                     break;
                 case Op.endCompatibility:
                     if (compatibilityLevel === 0){
+                        this._lastOperation = null;
                         return null;
                     }
                     --compatibilityLevel;
@@ -128,9 +146,11 @@ JSClass('PDFOperationIterator', JSObject, {
                         try{
                             obj = this.finishReadingInlineImage();
                             if (obj === null){
+                                this._lastOperation = null;
                                 return null;
                             }
                         }catch (e){
+                            this._lastOperation = null;
                             return null;
                         }
                         this.queue.push(PDFStreamOperation(Op.endImage, [obj]));
@@ -206,7 +226,8 @@ JSClass('PDFOperationIterator', JSObject, {
             }
         }
         // TODO: validate known operations (argument lengths and types)
-        return this.queue.shift();
+        this._lastOperation = this.queue.shift();
+        return this._lastOperation;
     },
 
     finishReadingInlineImage: function(){
@@ -319,6 +340,12 @@ JSClass('PDFOperationIterator', JSObject, {
         }
         // FIXME: should collect data, decode, and return
         return {parameters: parameters, data: data};
+    },
+
+    close: function(){
+        if (this.resources){
+            this.resources.unload();
+        }
     }
 
 });

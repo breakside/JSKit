@@ -16,6 +16,16 @@ topics:
       - PDFDocument
       - PDFPage
       - PDFOperationIterator
+      - PDFGraphicsState
+  -
+    name: PDF Page Resources
+    members:
+      - PDFResources
+      - PDFColorSpace
+      - PDFFont
+      - PDFImage
+      - PDFForm
   -
     name: PDF Drawing
       - PDFContext
+      - PDFDrawing

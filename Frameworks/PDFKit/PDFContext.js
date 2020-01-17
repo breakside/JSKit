@@ -4,7 +4,7 @@
 // #import "PDFTypes.js"
 // #import "JSColor+PDF.js"
 // #import "JSRect+PDF.js"
-/* global JSClass, JSContext, PDFContext, PDFWriter, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFName, PDFStream, JSAffineTransform, JSRect, PDFType1Font, PDFImage, JSData, JSImage, IKBitmap */
+/* global JSClass, JSContext, PDFContext, PDFWriter, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFName, PDFStream, JSAffineTransform, JSRect, PDFType1Font, PDFImage, JSData, JSImage, IKBitmap, PDFWriterFileStream */
 'use strict';
 
 (function(){
@@ -39,8 +39,9 @@ JSClass("PDFContext", JSContext, {
     // ----------------------------------------------------------------------
     // MARK: - Creating a PDF Context
 
-    initWithFilename: function(filename){
-        // TODO: create file stream and initWithStream
+    initWithURL: function(url, mediaBox){
+        var stream = PDFWriterFileStream.initWithURL(url);
+        this.initWithStream(stream, mediaBox);
     },
 
     initWithStream: function(stream, mediaBox){
@@ -94,7 +95,7 @@ JSClass("PDFContext", JSContext, {
         this.save();
 
         // exact equivalence to false means the default (undefined) is true
-        if (options.flipCoordinates !== false){
+        if (options.usePDFCoordinates !== true){
             this.flipCoordinates();
         }
     },
@@ -114,7 +115,10 @@ JSClass("PDFContext", JSContext, {
         this._page = null;
     },
 
-    endDocument: function(callback){
+    endDocument: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
         this.endPage();
         var writer = this._writer;
         var queue = PDFJobQueue();
@@ -122,9 +126,10 @@ JSClass("PDFContext", JSContext, {
         queue.addJob(this, this._populateImageResources);
         queue.addJob(this, this._finalizeDocument);
         queue.done = queue.error = function(){
-            writer.close(callback);
+            writer.close(completion, target);
         };
         queue.execute();
+        return completion.promise;
     },
 
     _populateImageResources: function(job){

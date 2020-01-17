@@ -23,6 +23,19 @@ topics:
           Typically you won't need to create an iterator directly, but
           would instead get one from a `PDFPage`.
   -
+    name: Graphics State
+    members:
+      -
+        name: state
+        type: PDFGraphicsState
+        summary: The current graphics state
+        description: |
+          The graphics state is updated on each iteration
+      -
+        name: resources
+        type: PDFResources
+        summary: The resources available to this iterator's operations
+  -
     name: Iteration
     members:
       -

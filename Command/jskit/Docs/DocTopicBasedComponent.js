@@ -19,6 +19,14 @@
         return member.name;
     },
 
+    prefixForMember: function(member){
+        return null;
+    },
+
+    suffixForMember: function(member){
+        return null;
+    },
+
     extractPropertiesFromInfo: async function(info, documentation){
         await DocTopicBasedComponent.$super.extractPropertiesFromInfo.call(this, info, documentation);
         this.topics = [];
@@ -92,16 +100,23 @@
                         let prefix = null;
                         if (member.kind == 'method' || member.kind == 'property'){
                             if (member.isStatic){
-                                prefix = 'static';
+                                prefix = 'static ';
                             }
                         }
+                        if (prefix === null){
+                            prefix = this.prefixForMember(member);
+                        }
                         if (prefix !== null){
-                            code.appendChild(document.createTextNode(prefix + ' '));
+                            code.appendChild(document.createTextNode(prefix));
                             // let span = a.appendChild(document.createElement('span'));
                             // span.setAttribute("class", "prefix");
                             // span.appendChild(document.createTextNode(prefix + ' '));
                         }
                         code.appendChild(a);
+                        let suffix = this.suffixForMember(member);
+                        if (suffix !== null){
+                            code.appendChild(document.createTextNode(suffix));
+                        }
                     }
                     a.appendChild(document.createTextNode(this.nameForMember(member)));
                     if (member.summary){

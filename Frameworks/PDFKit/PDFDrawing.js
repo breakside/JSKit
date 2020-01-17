@@ -50,12 +50,9 @@ JSClass("PDFDrawing", JSObject, {
 
         if (this.operationIterator !== null){
             var handler;
-            var stack = PDFGraphicsState.stack();
-            stack.resources = this.resources;
             var obj = {
                 context: context,
-                stack: stack,
-                resources: this.resources,
+                iterator: this.operationIterator,
                 font: null,
                 fontStack: [],
                 clipOnNextPaint: false,
@@ -74,7 +71,6 @@ JSClass("PDFDrawing", JSObject, {
                 if (handler){
                     handler.apply(obj, operation.operands);
                 }
-                stack.handleOperation(operation);
                 operation = this.operationIterator.next();
             }
             this.operationIterator.reset();
@@ -85,7 +81,7 @@ JSClass("PDFDrawing", JSObject, {
     },
 
     finish: function(){
-        this.resources.unload();
+        this.operationIterator.close();
     }
 
 });
@@ -172,7 +168,7 @@ var contextOperationHandler = {
     },
 
     gs: function(name){
-        var params = this.resources.graphicsState(name);
+        var params = this.iterator.resources.graphicsState(name);
         if (!params){
             return;
         }
@@ -204,7 +200,7 @@ var contextOperationHandler = {
 
     v: function(c2x, c2y, x, y){
         var point = JSPoint(x, y);
-        var control1 = this.stack.state.lastPoint;
+        var control1 = this.iterator.state.lastPoint;
         if (!control1){
             return;
         }
@@ -301,28 +297,28 @@ var contextOperationHandler = {
     },
 
     SC: function(){
-        var space = this.stack.state.strokeColorSpace;
+        var space = this.iterator.state.strokeColorSpace;
         var components = Array.prototype.slice.call(arguments, 0);
         var color = space.colorFromComponents(components);
         this.context.setStrokeColor(color);
     },
 
     sc: function(){
-        var space = this.stack.state.fillColorSpace;
+        var space = this.iterator.state.fillColorSpace;
         var components = Array.prototype.slice.call(arguments, 0);
         var color = space.colorFromComponents(components);
         this.context.setFillColor(color);
     },
 
     SCN: function(){
-        var space = this.stack.state.strokeColorSpace;
+        var space = this.iterator.state.strokeColorSpace;
         var components = Array.prototype.slice.call(arguments, 0);
         var color = space.colorFromComponents(components);
         this.context.setStrokeColor(color);
     },
 
     scn: function(){
-        var space = this.stack.state.fillColorSpace;
+        var space = this.iterator.state.fillColorSpace;
         var components = Array.prototype.slice.call(arguments, 0);
         var color = space.colorFromComponents(components);
         this.context.setFillColor(color);
@@ -361,7 +357,7 @@ var contextOperationHandler = {
     // MARK: - External Objects (images, etc)
 
     Do: function(name){
-        var obj = this.resources.xObject(name);
+        var obj = this.iterator.resources.xObject(name);
         if (!obj){
             return;
         }
@@ -392,7 +388,7 @@ var contextOperationHandler = {
     // MARK: - Text
 
     Tf: function(name, size){
-        var pdfFont = this.resources.font(name);
+        var pdfFont = this.iterator.resources.font(name);
         var font = pdfFont.foundationFontOfSize(size);
         this.font = font;
         if (font){
@@ -432,10 +428,10 @@ var contextOperationHandler = {
     },
 
     Tj: function(data){
-        if (this.stack.state.textRenderingMode == PDFGraphicsState.TextRenderingMode.invisible){
+        if (this.iterator.state.textRenderingMode == PDFGraphicsState.TextRenderingMode.invisible){
             return;
         }
-        var pdfFont = this.stack.state.font;
+        var pdfFont = this.iterator.state.font;
         if (pdfFont.Subtype == "Type3"){
             // TODO: read streams and do drawing
             return;
@@ -445,7 +441,7 @@ var contextOperationHandler = {
             // FIXME: We don't have a valid font...use fallback?
             return;
         }
-        // if (this.stack.state.wordSpacing !== 0){
+        // if (this.iterator.state.wordSpacing !== 0){
         //     if (pdfFont.Subtype == "Type1" || pdfFont.Subtype == "TrueType" || pdfFont.Subtype == "MMType1"){
         //         contextOperationHandler._textWithSimpleWordSpacing.call(this, data, pdfFont);
         //         return;
@@ -454,10 +450,10 @@ var contextOperationHandler = {
         // }
         var text = pdfFont.fontCompatibleStringFromData(data);
         if (text !== null){
-            var textMatrix = this.stack.state.textTransform.scaledBy(this.stack.state.textHorizontalScaling, -1);
+            var textMatrix = this.iterator.state.textTransform.scaledBy(this.iterator.state.textHorizontalScaling, -1);
             this.context.setTextMatrix(textMatrix);
             this.context.showText(text);
-            if (this.stack.state.textRenderingMode >= PDFGraphicsState.TextRenderingMode.fillAddPath && this.stack.state.textRenderingMode <= PDFGraphicsState.TextRenderingMode.addPath){
+            if (this.iterator.state.textRenderingMode >= PDFGraphicsState.TextRenderingMode.fillAddPath && this.iterator.state.textRenderingMode <= PDFGraphicsState.TextRenderingMode.addPath){
                 // TODO: add glyphs to clipping path
             }
         }
@@ -479,14 +475,14 @@ var contextOperationHandler = {
 
         var chunk;
         var text;
-        var textMatrix = this.stack.state.textTransform.scaledBy(this.stack.state.textHorizontalScaling, -1);
+        var textMatrix = this.iterator.state.textTransform.scaledBy(this.iterator.state.textHorizontalScaling, -1);
         var width;
         for (i = 0, l = chunks.length; i < l; ++i){
             chunk = chunks[i];
             text = pdfFont.fontCompatibleStringFromData(chunk);
             this.context.setTextMatrix(textMatrix);
             this.context.showText(text);
-            width = pdfFont.widthOfData(chunk, this.stack.state.characterSpacing, this.stack.state.wordSpacing);
+            width = pdfFont.widthOfData(chunk, this.iterator.state.characterSpacing, this.iterator.state.wordSpacing);
             textMatrix = textMatrix.translatedBy(width, 0);
         }
     }

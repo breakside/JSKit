@@ -1,0 +1,118 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+summary: The properties associated with a particular PDF graphics state
+description: |
+  A `PDFGraphicsState` contains properties related to the current drawing
+  options like fill color, line width, font, etc.
+
+  As a `PDFOperationIterator` iterates through operations, it keeps an updated
+  `state`(PDFOperationIterator.state) to reference as you handle the operations.
+topics:
+  -
+    name: Graphics State
+    members:
+      -
+        name: transform
+        type: JSAffineTransform
+      -
+        name: firstPoint
+        type: JSPoint
+        nullable: true
+      -
+        name: lastPoint
+        type: JSPoint
+        nullable: true
+      -
+        name: lineWidth
+        type: Number
+      -
+        name: strokeColorSpace
+        type: PDFColorSpace
+      -
+        name: strokeColorComponents
+        type: Number[]
+      -
+        name: fillColorSpace
+        type: PDFColorSpace
+      -
+        name: fillColorComponents
+        type: Number[]
+      -
+        name: lineCap
+        type: LineCap
+      -
+        name: lineJoin
+        type: LineJoin
+      -
+        name: miterLimit
+        type: number
+      -
+        name: dashArray
+        type: Number[]
+      -
+        name: dashPhase
+        type: Number
+      -
+        name: renderingIntent
+        type: String
+      -
+        name: strokeAdjustment
+        type: boolean
+      -
+        name: blendMode
+        type: String
+      -
+        name: softMask
+        nullable: true
+      -
+        name: strokeAlpha
+        type: Number
+      -
+        name: fillAlpha
+        type: Number
+      -
+        name: alphaSource
+        type: boolean
+      -
+        name: flatness
+        type: Number
+  -
+    name: Text State
+    members:
+      -
+        name: textTransform
+        type: JSAffineTransform
+        nullable: true
+      -
+        name: textLineTransform
+        type: JSAffineTransform
+        nullable: true
+      -
+        name: characterSpacing
+        type: Number
+      -
+        name: wordSpacing
+        type: Number
+      -
+        name: textHorizontalScaling
+        type: Number
+      -
+        name: textLeading
+        type: Number
+      -
+        name: font
+        type: PDFFont
+        nullable: true
+      -
+        name: fontSize
+        type: Number
+      -
+        name: textRenderingMode
+        type: TextRenderingMode
+      -
+        name: textRise
+        type: Number
+      -
+        name: textKnockout
+        type: Number

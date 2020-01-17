@@ -191,8 +191,11 @@ JSGlobalObject.PDFPage.prototype = Object.create(PDFObject.prototype, {
                     completion.call(target, null);
                     return;
                 }
-                var iterator = PDFOperationIterator.initWithData(data);
-                completion.call(target, iterator);
+                var resources = this.effectiveResources;
+                resources.load(function PDFPage_getOperationIterator_loadResources(){
+                    var iterator = PDFOperationIterator.initWithData(data, resources);
+                    completion.call(target, iterator);
+                }, this);
             }, this);
             return completion.promise;
         }
@@ -217,7 +220,6 @@ JSGlobalObject.PDFPage.prototype = Object.create(PDFObject.prototype, {
                 completion = Promise.completion(Promise.resolveNonNull);
             }
             var placedStrings = [];
-            var resources = this.effectiveResources;
             var handleOperationIterator = function PDFPage_getText_handleOperationIterator(iterator){
                 if (iterator === null){
                     finish();
@@ -225,17 +227,15 @@ JSGlobalObject.PDFPage.prototype = Object.create(PDFObject.prototype, {
                 }
                 var operation = iterator.next();
                 var text;
-                var stack = PDFGraphicsState.stack();
-                stack.resources = resources;
                 var transform;
                 var placed;
                 var font;
                 while (operation !== null){
                     switch (operation.operator){
                         case Op.text:
-                            font = stack.state.font;
+                            font = iterator.state.font;
                             if (font && font.Subtype != "Type3"){
-                                transform = stack.state.textTransform.concatenatedWith(stack.state.transform);
+                                transform = iterator.state.textTransform.concatenatedWith(iterator.state.transform);
                                 text = font.stringFromData(operation.operands[0]);
                                 // TODO: expand characters like fi and fl
                                 placed = {
@@ -243,20 +243,18 @@ JSGlobalObject.PDFPage.prototype = Object.create(PDFObject.prototype, {
                                     width: 0,
                                     text: text
                                 };
-                                stack.handleOperation(operation);
-                                transform = stack.state.textTransform.concatenatedWith(stack.state.transform);
+                                iterator.updateState();
+                                transform = iterator.state.textTransform.concatenatedWith(iterator.state.transform);
                                 placed.width = transform.convertPointFromTransform(JSPoint.Zero).x - placed.origin.x;
                                 // TODO: save space width so we can use it to compare later?
                                 // TODO: save font or font size so we can use it to compare later?
                                 placedStrings.push(placed);
                             }
                             break;
-                        default:
-                            stack.handleOperation(operation);
-                            break;
                     }
                     operation = iterator.next();
                 }
+                iterator.close();
                 finish();
             };
             var finish = function PDFPage_getText_finish(){
@@ -272,14 +270,10 @@ JSGlobalObject.PDFPage.prototype = Object.create(PDFObject.prototype, {
                     text += placed.text;
                 }
 
-                resources.unload();
-
                 completion.call(target, text);
             };
 
-            resources.load(function PDFPage_getText_loadResources(){
-                this.getOperationIterator(handleOperationIterator, this);
-            }, this);
+            this.getOperationIterator(handleOperationIterator, this);
             return completion.promise;
         }
     },
@@ -289,11 +283,10 @@ JSGlobalObject.PDFPage.prototype = Object.create(PDFObject.prototype, {
             var drawing = PDFDrawing.init();
             drawing.bounds = this.bounds;
             drawing.resources = this.effectiveResources;
-            drawing.resources.load(function PDFPage_prepareForDrawing_handleResources(){
-                this.getOperationIterator(function PDFPage_prepareForDrawing_handleIterator(iterator){
-                    drawing.operationIterator = iterator;
-                    completion.call(target, drawing);
-                }, this);
+            this.getOperationIterator(function PDFPage_prepareForDrawing_handleIterator(iterator){
+                drawing.operationIterator = iterator;
+                drawing.resources = iterator.resources;
+                completion.call(target, drawing);
             }, this);
 
             // TODO: annotations
