@@ -1,0 +1,14 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: PDFXObject
+summary: Represents a bitmap image contained in a PDF document
+topics:
+  -
+    name: Foundation Image
+    members:
+      -
+        name: foundationImage
+        type: JSImage
+        summary: The image in a `JSImage` format that can be used with other
+          \`Foundation`-based code.

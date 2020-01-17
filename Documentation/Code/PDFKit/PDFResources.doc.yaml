@@ -1,0 +1,97 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: PDFObject
+summary: Represents the resources associated with a `PDFPage` or `PDFForm`
+description: |
+  Resources are things like fonts, images, color space, and forms.
+topics:
+  -
+    name: Fonts
+    members:
+      -
+        name: font
+        kind: method
+        type: PDFFont
+        nullable: true
+        summary: Get a font resource by name
+        arguments:
+          -
+            name: name
+            type: PDFName
+            summary: The local resource name of the font
+      -
+        name: fonts
+        kind: method
+        type: PDFFont[]
+        summary: Get all the fonts
+  -
+    name: Images
+    members:
+      -
+        name: image
+        kind: method
+        type: PDFImage
+        nullable: true
+        summary: Get an image resource by name
+        arguments:
+          -
+            name: name
+            type: PDFName
+            summary: The local resource name of the image
+  -
+    name: Color Spaces
+    members:
+      -
+        name: colorSpace
+        kind: method
+        type: PDFColorSpace
+        nullable: true
+        summary: Get a color space resource by name
+        arguments:
+          -
+            name: name
+            type: PDFName
+            summary: The local resource name of the color space
+  -
+    name: Forms
+    members:
+      -
+        name: form
+        kind: method
+        type: PDFForm
+        nullable: true
+        summary: Get a form resource by name
+        arguments:
+          -
+            name: name
+            type: PDFName
+            summary: The local resource name of the form
+  -
+    name: XObjects
+    members:
+      -
+        name: xObject
+        kind: method
+        type: PDFXObject
+        nullable: true
+        summary: Get an XObject resource by name
+        arguments:
+          -
+            name: name
+            type: PDFName
+            summary: The local resource name of the XObject
+  -
+    name: Graphics State
+    members:
+      -
+        name: graphicsState
+        kind: method
+        type: PDFObject
+        nullable: true
+        summary: Get an graphics state resource by name
+        arguments:
+          -
+            name: name
+            type: PDFName
+            summary: The local resource name of the graphics state

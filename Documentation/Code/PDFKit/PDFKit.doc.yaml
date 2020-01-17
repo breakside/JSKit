@@ -17,6 +17,8 @@ topics:
       - PDFPage
       - PDFOperationIterator
       - PDFGraphicsState
+      - PDFObject
+      - PDFName
   -
     name: PDF Page Resources
     members:
@@ -25,7 +27,10 @@ topics:
       - PDFFont
       - PDFImage
       - PDFForm
-  -
-    name: PDF Drawing
-      - PDFContext
+      - PDFStream
+      - PDFXObject
       - PDFDrawing
+  -
+    name: Drawing to PDF
+    members:
+      - PDFContext

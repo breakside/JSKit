@@ -15,68 +15,89 @@ topics:
       -
         name: transform
         type: JSAffineTransform
+        summary: The current transform matrix of the state
       -
         name: firstPoint
         type: JSPoint
         nullable: true
+        summary: The first point of the current path
       -
         name: lastPoint
         type: JSPoint
         nullable: true
+        summary: The most recent point of the current path
       -
         name: lineWidth
         type: Number
+        summary: The line width when drawing strokes
       -
         name: strokeColorSpace
         type: PDFColorSpace
+        summary: The color space for the stroke color
       -
         name: strokeColorComponents
         type: Number[]
+        summary: The components for the stroke color
       -
         name: fillColorSpace
         type: PDFColorSpace
+        summary: The color space for the fill color
       -
         name: fillColorComponents
         type: Number[]
+        summary: The components for the fill color
       -
         name: lineCap
         type: LineCap
+        summary: The line cap style
       -
         name: lineJoin
         type: LineJoin
+        summary: The line join style
       -
         name: miterLimit
         type: number
+        summary: The miter limit for `LineJoin.miter`
       -
         name: dashArray
         type: Number[]
+        summary: The alternating dash and gap lengths for the stroke
       -
         name: dashPhase
         type: Number
+        summary: The amount to offset the start of the dash stroke
       -
         name: renderingIntent
         type: String
+        summary: The rendering intent
       -
         name: strokeAdjustment
         type: boolean
+        summary: Should the stroke be adjusted
       -
         name: blendMode
         type: String
+        summary: The blend mode
       -
         name: softMask
         nullable: true
+        summary: The soft mask
       -
         name: strokeAlpha
         type: Number
+        summary: The alpha component for stroke operations
       -
         name: fillAlpha
         type: Number
+        summary: The alpha component for fill operations
       -
         name: alphaSource
         type: boolean
+        summary: Alpha source
       -
         name: flatness
         type: Number
+        summary: Flatness
   -
     name: Text State
     members:
@@ -84,35 +105,124 @@ topics:
         name: textTransform
         type: JSAffineTransform
         nullable: true
+        summary: The current text transform
+        description: |
+          Only available within a text operation
       -
         name: textLineTransform
         type: JSAffineTransform
         nullable: true
+        summary: The text line transform
+        description: |
+          Only available within a text operation
       -
         name: characterSpacing
         type: Number
+        summary: The amount of character spacing
       -
         name: wordSpacing
         type: Number
+        summary: The amount of word spacing
       -
         name: textHorizontalScaling
         type: Number
+        summary: The amount to scale text horizontally
       -
         name: textLeading
         type: Number
+        summary: The leading size
       -
         name: font
         type: PDFFont
         nullable: true
+        summary: The current font
       -
         name: fontSize
         type: Number
+        summary: The current font size
       -
         name: textRenderingMode
         type: TextRenderingMode
+        summary: The text rendering mode
       -
         name: textRise
         type: Number
+        summary: The amount of text rise
       -
         name: textKnockout
         type: Number
+        summary: The amount of text knockout
+  -
+    name: Constants
+    members:
+      -
+        name: LineCap
+        kind: enum
+        suffix: enum
+        summary: The possible line cap styles
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: butt
+                summary: The line ends are squared off exactly at the end points
+              -
+                name: round
+                summary: The line ends are rounted off with the end points as
+                  the center of the rounding
+              -
+                name: square
+                summary: The line ends are squared off with the end points as
+                  the center of the squares
+      -
+        name: LineJoin
+        kind: enum
+        suffix: enum
+        summary: The possible line join styles
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: miter
+                summary: The joints are mitered
+              -
+                name: round
+                summary: The joints are rounded
+              -
+                name: square
+                summary: The joints are beveled
+      -
+        name: TextRenderingMode
+        kind: enum
+        suffix: enum
+        summary: The possible text rendering modes
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: fill
+                summary: Fill the text
+              -
+                name: stroke
+                summary: Stroke the text's outline
+              -
+                name: fillStroke
+                summary: Fill and stroke the text
+              -
+                name: invisible
+                summary: No drawing
+              -
+                name: fillAddPath
+                summary: Fill the text and add its shape to the path
+              -
+                name: strokeAddPath
+                summary: Stroke the text and add its shape to the path
+              -
+                name: fillStrokeAddPath
+                summary: Fill, stroke, and add the text's shape to the path
+              -
+                name: addPath
+                summary: Add the text's shape to the path

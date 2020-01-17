@@ -1,0 +1,33 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+summary: A PDF color space that can convert to `JSColor`
+topics:
+  -
+    name: Foundation Colors
+    members:
+      -
+        name: colorFromComponents
+        kind: method
+        type: JSColor
+        summary: Get a `JSColor` from the given components
+        arguments:
+          -
+            name: components
+            type: Number[]
+            summary: The color-space-specific components that were specified
+               in the PDF
+  -
+    name: Space Info
+    members:
+      -
+        name: numberOfComponents
+        type: Number
+        summary: The number of color components the space uses
+      -
+        name: defaultComponents
+        kind: method
+        type: Number[]
+        summary: The default components for the color space
+        description: |
+          Used when no specific components were specified

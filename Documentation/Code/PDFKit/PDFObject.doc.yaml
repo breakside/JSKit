@@ -1,0 +1,11 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+summary: A base class for all PDF objects
+description: |
+  A `PDFObject` is anything found in a `PDFDocument`.  It does not inherit
+  from `JSObject`, but instead defines its own simplified class root.
+
+  While many types of objects are formally defined like `PDFPage` or `PDFImage`,
+  this base `PDFObject` class can be used as a dictionary like object
+  with arbitrary keys added.

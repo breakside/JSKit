@@ -1,0 +1,65 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: PDFObject
+summary: Represents a font specified in a PDF file
+topics:
+  -
+    name: Foundation Font
+    members:
+      -
+        name: foundationFontOfSize
+        kind: method
+        type: JSFont
+        summary: Get a `JSFont` for the given size
+        arguments:
+          -
+            name: pointSize
+            type: Number
+            summary: The size of the font
+  -
+    name: Getting Strings
+    members:
+      -
+        name: stringFromData
+        kind: method
+        type: String
+        summary: Decode a human readable string from the given bytes
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The text data from a PDF file
+      -
+        name: fontCompatibleStringFromData
+        kind: method
+        type: String
+        summary: Decode a string from the given bytes that, when interpreted
+          by the font's character encoding, will result in the correct glyphs 
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The text data from a PDF file
+        description: |
+          Because the fonts in a PDF file can use non-standard text encodings,
+          the string returned here may look like garbage to a human when
+          displayed in any other font, but will render correctly when displayed
+          with this font.
+  -
+    name: String Measurement
+    members:
+      -
+        name: widthOfData
+        kind: method
+        type: Number
+        summary: Get the width of the given character data
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The text data from a PDF file
+          -
+            name: characterSpacing
+            type: Number
+            summary: The spacing to use between characters

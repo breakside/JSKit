@@ -1,0 +1,34 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+summary: A wrapper for named references in PDF documents
+description: |
+  PDF files contain named references that are represented internally
+  by strings like `/Name`.
+
+  A `PDFName` contains the text after the leading `/`.
+
+  In most cases, it can be used like a `String`.
+  - You can compare a `PDFName` to a string with `==`
+  - You can use a `PDFName` as a dictionary key
+topics:
+  -
+    name: Encodings
+    members:
+      -
+        name: valueDecodingUTF8
+        kind: method
+        type: String
+        summary: Reinterpret the original value as a UTF-8 encoded string
+        description: |
+          By default, names are assumed to be in the `latin1`(String.Encoding.latin1`)
+          encoding.
+
+          Since names are rarely shown to users, the assumed encoding doesn't
+          matter as long as it's consistent.
+
+          For the few cases where a name needs to be shown to a user, the PDF
+          specification indicates that it should be treated as UTF-8.
+
+          You can call this method to reinterpret the name as a UTF-8 encoded
+          string.

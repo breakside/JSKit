@@ -21,6 +21,19 @@ JSGlobalObject.PDFPages.prototype = Object.create(PDFObject.prototype, {
     CropBox:    PDFObjectProperty,
     Rotate:     PDFObjectProperty,
 
+    effectiveResources: {
+        enumerable: false,
+        get: function PDFPage_getEffectiveResources(){
+            if (this.Resources){
+                return this.Resources;
+            }
+            if (this.Parent){
+                return this.Parent.effectiveResources;
+            }
+            return PDFResources();
+        }
+    },
+
     effectiveMediaBox: {
         enumerable: false,
         get: function PDFPage_getEffectiveMediaBox(){

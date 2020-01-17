@@ -1,0 +1,28 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Represents a ready-to-draw PDF
+topics:
+  -
+    name: Drawing
+    members:
+      -
+        name: drawInContext
+        kind: method
+        summary: Draw the PDF drawing to a context
+        arguments:
+          -
+            name: context
+            type: JSContext
+            summary: The context on which to draw
+          -
+            name: rect
+            type: JSRect
+            summary: The rectange in which to place the drawing
+      -
+        name: backgroundColor
+        type: JSColor
+        summary: The background color to use when drawing
+        descriptions: |
+          Defaults to `JSColor.white`

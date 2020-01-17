@@ -1,0 +1,57 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: PDFXObject
+summary: Represents a self-contained group of PDF instructions that can be
+  drawn over and over in different places.
+topics:
+  -
+    name: Drawing
+    members:
+      -
+        name: bounds
+        type: JSRect
+        summary: The visible bounds of the forms's drawings
+      -
+        name: transform
+        type: JSAffineTransform
+        summary: The transform applied to the form
+      -
+        name: drawing
+        type: PDFDrawing
+        summary: The drawing that can be used multiple times
+  -
+    name: Form Contents
+    members:
+      -
+        name: getOperationIterator
+        kind: method
+        summary: Get an iterator of the form's operations asynchronously with a
+          callback
+        arguments:
+          -
+            name: completion
+            summary: A function that is called when the iterator is loaded
+            type:
+              arguments:
+                -
+                  name: iterator
+                  type: PDFOperationIterator
+                  summary: The iterator for the form's operations, or `null` if
+                    the data could not be loaded
+          -
+            name: target
+            summary: The object to use as `this` when calling `completion`
+            type: Object
+            default: "undefined"
+      -
+        name: getOperationIterator
+        suffix: promise
+        kind: method
+        summary: Get an iterator of the form's operations asynchronously with a
+          promise
+        type: Promise
+        promise:
+          resolve:
+            type: PDFOperationIterator
+            summary: The iterator for the form's operations

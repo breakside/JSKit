@@ -1,0 +1,6 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: PDFStream
+summary: A base class for things like images and forms that can be stored in
+  a `PDFResources` object.

@@ -531,7 +531,11 @@ JSClass("PDFReader", JSObject, {
         Object.defineProperty(stream, 'getData', {
             configurable: true,
             value: function PDFReader_getStreamData(completion, target){
+                if (!completion){
+                    completion = Promise.completion(Promise.resolveNonNull);
+                }
                 reader._getStreamData(this, offset, completion, target);
+                return completion.promise;
             }
         });
     }

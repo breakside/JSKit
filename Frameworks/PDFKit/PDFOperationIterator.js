@@ -3,7 +3,7 @@
 // #import "PDFTokenizer.js"
 // #import "PDFStreamOperation.js"
 // #import "PDFGraphicsState.js"
-/* global JSClass, JSObject, JSLog, JSReadOnlyProperty, PDFReader, PDFTokenizer, PDFOperationIterator, JSData, PDFStreamOperation, PDFName, PDFGraphicsStateStack */
+/* global JSClass, JSObject, JSLog, JSReadOnlyProperty, PDFReader, PDFTokenizer, PDFOperationIterator, JSData, PDFStreamOperation, PDFName, PDFGraphicsState */
 'use strict';
 
 (function(){
@@ -20,7 +20,7 @@ JSClass('PDFOperationIterator', JSObject, {
     initWithData: function(data, resources){
         this.tokenizer = PDFTokenizer.initWithData(data);
         this.queue = [];
-        this.stateStack = PDFGraphicsStateStack();
+        this.stateStack = PDFGraphicsState.stack();
         this.resources = this.stateStack.resources = resources;
     },
 

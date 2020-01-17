@@ -67,19 +67,12 @@ JSGlobalObject.PDFForm.prototype = Object.create(PDFXObject.prototype, {
             drawing.flipped = false;
             drawing.backgroundColor = null;
             drawing.bounds = this.bounds;
-            drawing.resources = this.Resources;
-            var handleResourcesLoaded = function PDFForm_prepareForDrawing_handleResources(){
-                this.getOperationIterator(function PDFForm_prepareForDrawing_handleIterator(iterator){
-                    drawing.operationIterator = iterator;
-                    this.drawing = drawing;
-                    completion.call(target);
-                }, this);
-            };
-            if (drawing.resources){
-                drawing.resources.load(handleResourcesLoaded, this);
-            }else{
-                handleResourcesLoaded.call(this);
-            }
+            this.getOperationIterator(function PDFForm_prepareForDrawing_handleIterator(iterator){
+                drawing.operationIterator = iterator;
+                drawing.resources = iterator.resources;
+                this.drawing = drawing;
+                completion.call(target);
+            }, this);
         }
     },
 
@@ -90,8 +83,15 @@ JSGlobalObject.PDFForm.prototype = Object.create(PDFXObject.prototype, {
                     completion.call(target, null);
                     return;
                 }
-                var iterator = PDFOperationIterator.initWithData(data);
-                completion.call(target, iterator);
+                if (this.Resources){
+                    this.Resources.load(function(){
+                        var iterator = PDFOperationIterator.initWithData(data, this.Resources);
+                        completion.call(target, iterator);
+                    }, this);
+                }else{
+                    var iterator = PDFOperationIterator.initWithData(data);
+                    completion.call(target, iterator);
+                }
             }, this);
         }
     },

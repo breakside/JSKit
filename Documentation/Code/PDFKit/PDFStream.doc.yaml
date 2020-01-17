@@ -1,0 +1,41 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: PDFObject
+summary: A stream of data within a PDF document
+description: |
+  Streams can contain things like page content, images, and forms.
+topics:
+  -
+    name: Stream Data
+    members:
+      -
+        name: getData
+        kind: method
+        summary: Get the stream's data asynchronously with a callback
+        arguments:
+          -
+            name: completion
+            summary: A function that is called when the data is loaded
+            type:
+              arguments:
+                -
+                  name: data
+                  type: JSData
+                  summary: The stream's data, or `null` if the data could
+                    not be loaded
+          -
+            name: target
+            summary: The object to use as `this` when calling `completion`
+            type: Object
+            default: "undefined"
+      -
+        name: getData
+        suffix: promise
+        kind: method
+        summary: Get the stream's data asynchronously with a promise
+        type: Promise
+        promise:
+          resolve:
+            type: JSData
+            summary: The stream's data

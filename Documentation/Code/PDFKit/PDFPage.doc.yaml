@@ -1,38 +1,11 @@
 copyright: Copyright © 2020 Breakside Inc.
 introduced: 2020.1.0
 kind: class
-inherits: JSObject
+inherits: PDFObject
 summary: Represents a single PDF page
 description: |
   A `PDFPage` is obtained by calling `page()`(PDFDocument) on a `PDFDocument`
 topics:
-  -
-    name: Drawing Areas
-    members:
-      -
-        name: bounds
-        type: JSRect
-        summary: The visible bounds of the page's drawings
-        description: |
-          The bounds are equivalent to whichever box is defined first in
-          this order of precedence
-
-          1. The page's `TrimBox`, as specified on the page itself
-          1. The page's `ArtBox`, as specified on the page itelf
-          1. The page's `CropBox`, as specified on the page or an ancestor
-          1. The page's `MediaBox`, as specified on the page or an ancestor
-
-          Furthermore, the `CropBox` cannot extend beyond the `MediaBox`, and
-          neither the `TrimBox` nor the `ArtBox` can extend beyond the
-          `CropBox`.
-      -
-        name: uncroppedBounds
-        type: JSRect
-        summary: The uncropped bounds of the page's drawings
-        description: |
-          The uncropped bounds are equivalent to the page's `MediaBox` as
-          specified either on the page itself or on an ancestor of the page in
-          the PDF document tree structure.
   -
     name: Page Contents
     members:
@@ -131,6 +104,30 @@ topics:
   -
     name: Page Drawing
     members:
+      -
+        name: bounds
+        type: JSRect
+        summary: The visible bounds of the page's drawings
+        description: |
+          The bounds are equivalent to whichever box is defined first in
+          this order of precedence
+
+          1. The page's `TrimBox`, as specified on the page itself
+          1. The page's `ArtBox`, as specified on the page itelf
+          1. The page's `CropBox`, as specified on the page or an ancestor
+          1. The page's `MediaBox`, as specified on the page or an ancestor
+
+          Furthermore, the `CropBox` cannot extend beyond the `MediaBox`, and
+          neither the `TrimBox` nor the `ArtBox` can extend beyond the
+          `CropBox`.
+      -
+        name: uncroppedBounds
+        type: JSRect
+        summary: The uncropped bounds of the page's drawings
+        description: |
+          The uncropped bounds are equivalent to the page's `MediaBox` as
+          specified either on the page itself or on an ancestor of the page in
+          the PDF document tree structure.
       -
         name: prepareDrawing
         kind: method

@@ -1,7 +1,7 @@
 copyright: Copyright © 2020 Breakside Inc.
 introduced: 2020.1.0
 kind: class
-inherits: JSObject
+inherits: PDFObject
 summary: Represents a PDF document and its collection of pagess
 description: |
   A `PDFDocument` is created when you `open()`(PDFReader.open) a `PDFReader`.
