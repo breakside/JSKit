@@ -72,6 +72,9 @@
 // #import "JSLog.js"
 // #import "Zlib.js"
 
+// #import "JSSHA1Hash.js"
+// #import "JSMD5Hash.js"
+
 // #import "JSArguments.js"
 
 'use strict';

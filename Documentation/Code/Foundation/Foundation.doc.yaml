@@ -162,6 +162,80 @@ topics:
     name: Utilities
     summary: Miscellaneous utilities such as timers and formatters
     members:
+      -
+        name: JSMD5Hash
+        kind: function
+        introduced: 2020.1.0
+        type: JSData
+        return: A 16-byte (128 bit) hash of the input data
+        summary: Hash the given data using the MD5 algorithm
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The data to hash
+        description: |
+          If you have several chunks of data to hash, use the `class`() variant
+          of `JSMD5Hash`(JSMD5Hash-class).
+
+          Compared to the `SecurityKit` framework, this hash function here can be called
+          without an asynchronous interface.  However, the MD5 algorithm is
+          not considered secure.
+
+          This `JSMD5Hash` function should only be used for identity hashing and checking,
+          which is often a convenient way to create `id` values for objects, but does
+          not require security.
+
+          For example, when a `UIApplication` is created for the web, a bundle of
+          resources (like images) is created and each resource is given a filename based
+          on the `SHA1` hash of its contents.  This ensures unique names for each
+          resource, and provides easy cache-busting if a resource changes.  At no point
+          are the resource names required for security.
+        important: |
+          If you are hashing data for secure purposes, then use the `SECHash`
+          class from the `SecurityKit` framework.  The `MD5` hash function
+          is not secure.
+        note: |
+          You can call `hexStringRepresentation()` on the result to generate
+          a string form of the MD5 hash.
+      - JSMD5Hash
+      -
+        name: JSSHA1Hash
+        kind: function
+        introduced: 2020.1.0
+        type: JSData
+        return: A 20-byte (160 bit) hash of the input data
+        summary: Hash the given data using the SHA1 algorithm
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The data to hash
+        description: |
+          If you have several chunks of data to hash, use the `class`() variant
+          of `JSSHA1Hash`(JSSHA1Hash-class).
+
+          Compared to the `SecurityKit` framework, this hash function here can be called
+          without an asynchronous interface.  However, the SHA1 algorithm is
+          not considered secure.
+
+          This `JSSHA1Hash` function should only be used for identity hashing and checking,
+          which is often a convenient way to create `id` values for objects, but does
+          not require security.
+
+          For example, when a `UIApplication` is created for the web, a bundle of
+          resources (like images) is created and each resource is given a filename based
+          on the `SHA1` hash of its contents.  This ensures unique names for each
+          resource, and provides easy cache-busting if a resource changes.  At no point
+          are the resource names required for security.
+        important: |
+          If you are hashing data for secure purposes, then use the `SECHash`
+          class from the `SecurityKit` framework.  The `SHA1` hash function
+          is not secure.
+        note: |
+          You can call `hexStringRepresentation()` on the result to generate
+          a string form of the SHA1 hash.
+      - JSSHA1Hash
       - JSGlobalObject
       - JSTimer
       - JSNumberFormatter

@@ -1,5 +1,4 @@
 // #import Foundation
-// #import Hash
 /* global JSClass, JSObject, DBObjectDatabase, UUID, JSSHA1Hash */
 'use strict';
 

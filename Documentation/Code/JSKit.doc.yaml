@@ -42,17 +42,28 @@ topics:
     name: Command Line Utility
     members:
       - jskit/jskit
-  - 
-    name: Frameworks
+  -
+    name: Application Frameworks
     members:
-      - Foundation/Foundation
       - UIKit/UIKit
       - ServerKit/ServerKit
+  -
+    name: Core Frameworks
+    members:
+      - Foundation/Foundation
       - Dispatch/Dispatch
+  -
+    name: Security & Authentication
+    members:
       - SecurityKit/SecurityKit
-      - Hash/Hash
       - AuthKit/AuthKit
+  -
+    name: Images & PDFs
+    members:
       - ImageKit/ImageKit
       - PDFKit/PDFKit
       - FontKit/FontKit
+  -
+    name: Testing
+    members:
       - TestKit/TestKit

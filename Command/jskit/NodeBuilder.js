@@ -1,6 +1,5 @@
 // #import "Builder.js"
 // #import "Resources.js"
-// #import Hash
 /* global JSClass, JSObject, JSCopy, JSReadOnlyProperty, JSURL, Builder, NodeBuilder, JSSHA1Hash, Resources */
 'use strict';
 

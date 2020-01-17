@@ -6,6 +6,20 @@ summary: An MD5 hash function
 description: |
   MD5 hashes can be used for calculating sums for non-security related purposes,
   like comparing two files or creating unique identifiers.
+
+  Compared to the `SecurityKit` framework, this hash function here can be called
+  without an asynchronous interface.  However, the MD5 algorithm is
+  not considered secure.
+
+  This `JSMD5Hash` function should only be used for identity hashing and checking,
+  which is often a convenient way to create `id` values for objects, but does
+  not require security.
+
+  For example, when a `UIApplication` is created for the web, a bundle of
+  resources (like images) is created and each resource is given a filename based
+  on the `MD5` hash of its contents.  This ensures unique names for each
+  resource, and provides easy cache-busting if a resource changes.  At no point
+  are the resource names required for security.
 important: If you are hashing data for secure purposes, then use the `SECHash`
   class from the `SecurityKit` framework.  The `MD5` hash function is not
   secure.

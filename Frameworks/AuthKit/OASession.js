@@ -1,6 +1,5 @@
 // #import Foundation
 // #import SecurityKit
-// #import Hash
 /* global JSClass, JSObject, JSCopy, JSReadOnlyProperty, JSFormFieldMap, JSURL, JSSHA1Hash, SECCipher, JSURLSession, JSURLRequest, JSURLResponse */
 'use strict';
 

@@ -1,5 +1,4 @@
 // #import DOM
-// #import Hash
 // #import "Builder.js"
 // #import "Resources.js"
 // #import "JavascriptCompilation.js"

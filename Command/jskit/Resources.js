@@ -1,5 +1,4 @@
 // #import Foundation
-// #import Hash
 // #import FontKit
 // #import DOM
 // #import jsyaml

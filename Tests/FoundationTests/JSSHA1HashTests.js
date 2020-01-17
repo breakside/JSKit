@@ -1,4 +1,4 @@
-// #import Hash
+// #import Foundation
 // #import TestKit
 /* global JSClass, TKTestSuite, TKAssert, TKAssertNotNull, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSSHA1Hash */
 'use strict';
