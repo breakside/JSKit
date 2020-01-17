@@ -127,60 +127,63 @@ topics:
           of values are expected to be in an attributes dictionary for each
           option.
         kind: enum
-        options:
+        topics:
           -
-            name: font
-            summary: Points to a `JSFont` value that should be applied to the
-              text run
-          -
-            name: textColor
-            summary: Points to a `JSColor` value that should be applied to the
-              text run
-          -
-            name: backgroundColor
-            summary: Points to a `JSColor` that should be applied to the
-              background of the text run
-          -
-            name: bold
-            summary: Points to a `boolean` that indicates the font should be
-              converted to its bolded counterpart
-          -
-            name: italic
-            summary: Points to a `boolean` that indicates the font should be
-              converted to its italicized counterpart
-          -
-            name: underline
-            summary: Points to a `boolean` that indicates the text in the run
-              should be underlined
-          -
-            name: strike
-            summary: Points to a `boolean` that indicates the text in the run
-              should be struck through with a single line
-          -
-            name: attachment
-            summary: Points to a `JSTextAttachment` that should replace the
-              text in the run.  This attribute should only be used for single
-              character runs containing a `0xFFFC` character.
-          -
-            name: lineHeight
-            summary: Points to a `Number` that should adjust the line height for
-              the text in the run
-          -
-            name: lineSpacing
-            summary: Points to a `Number` that should adjust the line spacing
-              for the text in the run
-          -
-            name: textAlignment
-            summary: Points to a `JSTextAlignment` that should adjust the text
-              alginment for the run
-          -
-            name: lineBreakMode
-            summary: Points to a `JSLineBreakMode` that should adjust the line
-              break mode for the run
-          -
-            name: maskCharacter
-            summary: Points to a `String` that should be used to replace all
-              characters in the run
+            name: Options
+            members:
+              -
+                name: font
+                summary: Points to a `JSFont` value that should be applied to the
+                  text run
+              -
+                name: textColor
+                summary: Points to a `JSColor` value that should be applied to the
+                  text run
+              -
+                name: backgroundColor
+                summary: Points to a `JSColor` that should be applied to the
+                  background of the text run
+              -
+                name: bold
+                summary: Points to a `boolean` that indicates the font should be
+                  converted to its bolded counterpart
+              -
+                name: italic
+                summary: Points to a `boolean` that indicates the font should be
+                  converted to its italicized counterpart
+              -
+                name: underline
+                summary: Points to a `boolean` that indicates the text in the run
+                  should be underlined
+              -
+                name: strike
+                summary: Points to a `boolean` that indicates the text in the run
+                  should be struck through with a single line
+              -
+                name: attachment
+                summary: Points to a `JSTextAttachment` that should replace the
+                  text in the run.  This attribute should only be used for single
+                  character runs containing a `0xFFFC` character.
+              -
+                name: lineHeight
+                summary: Points to a `Number` that should adjust the line height for
+                  the text in the run
+              -
+                name: lineSpacing
+                summary: Points to a `Number` that should adjust the line spacing
+                  for the text in the run
+              -
+                name: textAlignment
+                summary: Points to a `JSTextAlignment` that should adjust the text
+                  alginment for the run
+              -
+                name: lineBreakMode
+                summary: Points to a `JSLineBreakMode` that should adjust the line
+                  break mode for the run
+              -
+                name: maskCharacter
+                summary: Points to a `String` that should be used to replace all
+                  characters in the run
       -
         name: attributesAtIndex
         kind: method

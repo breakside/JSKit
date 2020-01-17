@@ -114,38 +114,44 @@ topics:
       -
         name: Kind
         kind: enum
-        options:
+        topics:
           -
-            name: default
-            summary: A name/value argument
-          -
-            name: flag
-            summary: A `boolean` that is set to `true` if the argument is
-              present or `false` if the argument is missing.  No value is
-              necessary.
-            value: '"flag"'
-          -
-            name: positional
-            summary: An argument that doesn't have a name, often used for things
-              like subcommands, filenames, etc., that are implicit in the
-              command and don't require a name.
-            value: '"positional"'
-          -
-            name: unknown
-            summary: A catch-all for any unknown argument, typically used to
-              collect arguments that are passed to a subcommand
-            value: '"unknown"'
+            name: Options
+            members:
+            -
+              name: default
+              summary: A name/value argument
+            -
+              name: flag
+              summary: A `boolean` that is set to `true` if the argument is
+                present or `false` if the argument is missing.  No value is
+                necessary.
+              value: '"flag"'
+            -
+              name: positional
+              summary: An argument that doesn't have a name, often used for things
+                like subcommands, filenames, etc., that are implicit in the
+                command and don't require a name.
+              value: '"positional"'
+            -
+              name: unknown
+              summary: A catch-all for any unknown argument, typically used to
+                collect arguments that are passed to a subcommand
+              value: '"unknown"'
       -
         name: ValueType
         kind: enum
-        options:
+        topics:
           -
-            name: string
-            summary: A `String` exactly as provided
-          -
-            name: integer
-            summary: The value should be parsed with `parseInt`
-            value: '"integer"'
+            name: Options
+            members:
+              -
+                name: string
+                summary: A `String` exactly as provided
+              -
+                name: integer
+                summary: The value should be parsed with `parseInt`
+                value: '"integer"'
   -
     name: Parsing
     members:

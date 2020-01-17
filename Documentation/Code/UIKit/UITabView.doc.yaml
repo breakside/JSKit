@@ -341,19 +341,22 @@ topics:
         kind: enum
         suffix: enum
         summary: The tab view stylers available by default
-        options:
+        topics:
           -
-            name: default
-            summary: The default styler for `UIKit`.
-              You can override this styler during application launch to provide
-              a custom default styler
-          -
-            name: tabless
-            summary: A tab view that doesn't show its own tab controls.
-              Useful when another control is in charge of changing tabs.
-          -
-            name: images
-            summary: A tab view that only displays images for tab items.
+            name: Options
+            members:
+              -
+                name: default
+                summary: The default styler for `UIKit`.
+                  You can override this styler during application launch to provide
+                  a custom default styler
+              -
+                name: tabless
+                summary: A tab view that doesn't show its own tab controls.
+                  Useful when another control is in charge of changing tabs.
+              -
+                name: images
+                summary: A tab view that only displays images for tab items.
       -
         name: styler
         type: UITabViewStyler

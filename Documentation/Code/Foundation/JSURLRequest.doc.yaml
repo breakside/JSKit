@@ -34,23 +34,26 @@ topics:
         summary: The standard HTTP request methods
         suffix: enum
         kind: enum
-        options:
+        topics:
           -
-            name: GET
-            summary: For read-only requests that don't contain a body
-            value: '"GET"'
-          -
-            name: POST
-            summary: For update requests that contain a body
-            value: '"POST"'
-          -
-            name: PUT
-            summary: For replacing a resource with the given body
-            value: '"PUT"'
-          -
-            name: DELETE
-            summary: For deleting a resource
-            value: '"DELETE"'
+            name: Options
+            members:
+              -
+                name: GET
+                summary: For read-only requests that don't contain a body
+                value: '"GET"'
+              -
+                name: POST
+                summary: For update requests that contain a body
+                value: '"POST"'
+              -
+                name: PUT
+                summary: For replacing a resource with the given body
+                value: '"PUT"'
+              -
+                name: DELETE
+                summary: For deleting a resource
+                value: '"DELETE"'
       -
         name: method
         type: String

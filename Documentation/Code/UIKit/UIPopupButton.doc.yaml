@@ -495,11 +495,14 @@ topics:
         description: |
           You can override the `default` option with a styler of your choosing,
           typically during `applicationDidFinishLaunching()`.
-        options:
+        topics:
           -
-            name: default
-            summary: The `UIKit` default styler for popup buttons.  Can be
-              overwritten during app launch to provide a custom default styler.
+            name: Options
+            members:
+              -
+                name: default
+                summary: The `UIKit` default styler for popup buttons.  Can be
+                  overwritten during app launch to provide a custom default styler.
       -
         name: styler
         type: UIPopupButtonStyler

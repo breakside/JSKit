@@ -53,19 +53,22 @@ topics:
         kind: enum
         suffix: enum
         summary: The phase of a touch
-        options:
+        topics:
           -
-            name: began
-            summary: The touch began
-          -
-            name: moved
-            summary: The touch moved
-          -
-            name: ended
-            summary: The touch ended
-          -
-            name: canceled
-            summary: The touch canceled
+            name: Options
+            members:
+              -
+                name: began
+                summary: The touch began
+              -
+                name: moved
+                summary: The touch moved
+              -
+                name: ended
+                summary: The touch ended
+              -
+                name: canceled
+                summary: The touch canceled
       -
         name: phase
         type: Phase

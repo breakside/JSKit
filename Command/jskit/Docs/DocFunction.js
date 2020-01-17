@@ -53,6 +53,7 @@
             params.setAttribute("class", "parameters");
             let header = params.appendChild(document.createElement("header"));
             let h1 = header.appendChild(document.createElement("h1"));
+            h1.setAttribute("outline-level", "1");
             h1.appendChild(document.createTextNode("Parameters"));
             let dl = this.argumentListElement(document, this);
             params.appendChild(dl);
@@ -64,6 +65,7 @@
             returnSection.setAttribute("class", "return");
             let header = returnSection.appendChild(document.createElement("header"));
             let h1 = header.appendChild(document.createElement("h1"));
+            h1.setAttribute("outline-level", "1");
             h1.appendChild(document.createTextNode("Return Value"));
             if (this.valueType){
                 let p = returnSection.appendChild(document.createElement("p"));

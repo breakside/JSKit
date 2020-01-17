@@ -498,20 +498,23 @@ topics:
           a toolbar
         description: |
           Special items are more like instructions than actual items.
-        options:
+        topics:
           -
-            name: custom
-            summary: Identifies an item that isn't a special item
-          -
-            name: space
-            summary: An item that makes a single space between other items
-          -
-            name: flexibleSpace
-            summary: An item that makes as large of a space as possible between
-              other items
-            description: |
-              A single flexible space in a toolbar has the effect of
-              right-algining items that come after the space.
+            name: Options
+            members:
+              -
+                name: custom
+                summary: Identifies an item that isn't a special item
+              -
+                name: space
+                summary: An item that makes a single space between other items
+              -
+                name: flexibleSpace
+                summary: An item that makes as large of a space as possible between
+                  other items
+                description: |
+                  A single flexible space in a toolbar has the effect of
+                  right-algining items that come after the space.
       -
         name: identifer
         type: Identifier

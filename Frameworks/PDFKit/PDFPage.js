@@ -144,6 +144,9 @@ JSGlobalObject.PDFPage.prototype = Object.create(PDFObject.prototype, {
 
     getContentsData: {
         value: function PDFPage_getContentsData(completion, target){
+            if (!completion){
+                completion = Promise.completion(Promise.resolveNonNull);
+            }
             var contents = this.Contents;
             if (!contents){
                 completion.call(target, null);
@@ -174,11 +177,15 @@ JSGlobalObject.PDFPage.prototype = Object.create(PDFObject.prototype, {
                 }
             };
             contents[contentIndex].getData(handleChunk, this);
+            return completion.promise;
         }
     },
 
     getOperationIterator: {
         value: function PDFPage_getOperationIterator(completion, target){
+            if (!completion){
+                completion = Promise.completion(Promise.resolveNonNull);
+            }
             this.getContentsData(function(data){
                 if (data === null){
                     completion.call(target, null);
@@ -187,6 +194,7 @@ JSGlobalObject.PDFPage.prototype = Object.create(PDFObject.prototype, {
                 var iterator = PDFOperationIterator.initWithData(data);
                 completion.call(target, iterator);
             }, this);
+            return completion.promise;
         }
     },
 
@@ -205,6 +213,9 @@ JSGlobalObject.PDFPage.prototype = Object.create(PDFObject.prototype, {
 
     getText: {
         value: function PDFPage_getText(completion, target){
+            if (!completion){
+                completion = Promise.completion(Promise.resolveNonNull);
+            }
             var placedStrings = [];
             var resources = this.effectiveResources;
             var handleOperationIterator = function PDFPage_getText_handleOperationIterator(iterator){
@@ -269,6 +280,7 @@ JSGlobalObject.PDFPage.prototype = Object.create(PDFObject.prototype, {
             resources.load(function PDFPage_getText_loadResources(){
                 this.getOperationIterator(handleOperationIterator, this);
             }, this);
+            return completion.promise;
         }
     },
 

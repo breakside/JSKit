@@ -400,16 +400,19 @@ topics:
         name: AccessoryVisibility
         kind: enum
         summary: Options for when an accessory view may be visible
-        options:
+        topics:
           -
-            name: always
-            summary: Always show the accessory
-          -
-            name: onlyWhenActive
-            summary: Only show the accessory when the field has focus
-          -
-            name: onlyWhenNotEmpty
-            summary: Only show the accessory when the field has text
+            name: Options
+            members:
+              -
+                name: always
+                summary: Always show the accessory
+              -
+                name: onlyWhenActive
+                summary: Only show the accessory when the field has focus
+              -
+                name: onlyWhenNotEmpty
+                summary: Only show the accessory when the field has text
   -
     name: Selection
     members:

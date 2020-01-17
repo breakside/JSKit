@@ -218,32 +218,35 @@ topics:
         name: Encoding
         summary: Supported data encodings for strings
         kind: enum
-        options:
+        topics:
           -
-            name: utf8
-            summary: An identifier for the UTF-8 encoding scheme, where each
-              character is represented by 1-4 bytes.
-          -
-            name: utf16be
-            summary: An identifier for the UTF-16 Big Endian (BE) scheme, where
-              each character is represented by 2 or 4 bytes, ordered with the
-              most significant byte first.
-          -
-            name: utf16le
-            summary: An identifier for the UTF-16 Little Endian (LE) scheme, where
-              each character is represented by 2 or 4 bytes, ordered with the
-              least significant byte first.
-          -
-            name: iso8859_1
-            summary: An identifier for the ISO-8859-1 scheme, which only supports
-              unicode characters < 256.  Since this is not a unicode encoding, use
-              caution when encoding strings that may have non-encodable characters.
+            name: Options
+            members:
+              -
+                name: utf8
+                summary: An identifier for the UTF-8 encoding scheme, where each
+                  character is represented by 1-4 bytes.
+              -
+                name: utf16be
+                summary: An identifier for the UTF-16 Big Endian (BE) scheme, where
+                  each character is represented by 2 or 4 bytes, ordered with the
+                  most significant byte first.
+              -
+                name: utf16le
+                summary: An identifier for the UTF-16 Little Endian (LE) scheme, where
+                  each character is represented by 2 or 4 bytes, ordered with the
+                  least significant byte first.
+              -
+                name: iso8859_1
+                summary: An identifier for the ISO-8859-1 scheme, which only supports
+                  unicode characters < 256.  Since this is not a unicode encoding, use
+                  caution when encoding strings that may have non-encodable characters.
 
-              Typically used for decoding only, when the source data is known to 
-              be in the ISO-8859-1 encoding.
-          -
-            name: latin1
-            summary: An alais for `iso8859_1`
+                  Typically used for decoding only, when the source data is known to 
+                  be in the ISO-8859-1 encoding.
+              -
+                name: latin1
+                summary: An alais for `iso8859_1`
       -
         name: dataUsingEncoding
         kind: method

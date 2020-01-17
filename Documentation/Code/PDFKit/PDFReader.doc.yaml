@@ -1,0 +1,216 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Reads and parses a PDF file
+topics:
+  -
+    name: Creating a PDF Reader
+    members:
+      -
+        name: initWithData
+        kind: init
+        summary: Create a reader based on the given PDF data
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The full PDF data
+      -
+        name: initWithStream
+        kind: init
+        summary: Create a reader based on the data in the given stream
+        arguments:
+          -
+            name: stream
+            type: PDFReaderStream
+            summary: The reader stream that provides PDF data
+  -
+    name: Reading the PDF
+    members:
+      -
+        name: Status
+        kind: enum
+        summary: The possible statuses of a PDF `open()` call
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: open
+                summary: The document opened successfully
+              -
+                name: error
+                summary: There was an general error opening the document
+              -
+                name: passwordRequired
+                summary: The document requires a password from the user.  Call
+                  \`authentiate()` with the password to open the document.
+              -
+                name: unsupportedVersion
+                summary: The document version is not supported
+              -
+                name: unsupportedEncryption
+                summary: The document uses an unsupported encryption scheme and
+                  cannot be opened
+      -
+        name: open
+        kind: method
+        summary: Open the PDF file and return the `PDFDocument` object via a
+          callback
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                - 
+                  name: status
+                  type: Status
+                  summary: The status of the open call
+                -
+                  name: document
+                  type: PDFDocument
+                  nullable: true
+                  summary: The document object if the `status`() is `open`(),
+                    otherwise `null`
+            summary: The function to call when the open operation completes
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function'
+        description: |
+          If the status is `PDFReader.Status.passwordRequired`, then you'll
+          need to get a password from the user and then call `authenticate()`
+      -
+        name: open
+        suffix: promise
+        type: Promise
+        promise:
+          resolve:
+            type: Array
+            summary: A two-element Array.  The first item is the `Status` of
+              the open call.  If the first item is `Status.open`, the second
+              item is a `PDFDocument`.
+        kind: method
+        summary: Open the PDF file and return the `PDFDocument` object via a
+          promise
+        description: |
+          If the status is `PDFReader.Status.passwordRequired`, then you'll
+          need to get a password from the user and then call `authenticate()`
+      -
+        name: authenticate
+        kind: method
+        summary: Provide a password to decrypt the PDF and return the document
+          in a callback
+        arguments:
+          -
+            name: password
+            type: String
+            summary: The user-supplied password
+          -
+            name: completion
+            type:
+              arguments:
+                - 
+                  name: status
+                  type: Status
+                  summary: The status of the open call
+                -
+                  name: document
+                  type: PDFDocument
+                  nullable: true
+                  summary: The document object if the `status`() is `open`(),
+                    otherwise `null`
+            summary: The function to call when the authenticate operation
+              completes
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function'
+        description: |
+          If the status is `PDFReader.Status.passwordRequired`, then the
+          password was invalid.
+      -
+        name: open
+        suffix: promise
+        type: Promise
+        promise:
+          resolve:
+            type: Array
+            summary: A two-element Array.  The first item is the `Status` of
+              the open call.  If the first item is `Status.open`, the second
+              item is a `PDFDocument`.
+        kind: method
+        summary: Open the PDF file and return the `PDFDocument` object via a
+          promise
+        arguments:
+          -
+            name: password
+            type: String
+            summary: The user-supplied password
+        description: |
+          If the status is `PDFReader.Status.passwordRequired`, then the
+          password was invalid.
+  -
+    name: Streams
+    members:
+      -
+        name: PDFReaderStream
+        kind: class
+        inherits: JSObject
+        summary: The abstract base class for PDF reader streams
+        topics:
+          -
+            name: Subclass Required Methods
+            members:
+              -
+                name: byte
+                kind: method
+                type: Uint8
+                summary: Read the next byte
+              -
+                name: byteBackwards
+                kind: method
+                type: Uint8
+                summary: Read the previous byte
+              -
+                name: seek
+                kind: method
+                summary: Seek to the given offset
+                arguments:
+                  -
+                    name: offset
+                    type: Number
+                    summary: The offset from the start of the data
+              -
+                name: getOffset
+                kind: method
+                type: Number
+                summary: Get the current offset
+              -
+                name: getLength
+                kind: method
+                type: Number
+                summary: Get the total length of the data
+      -
+        name: PDFReaderDataStream
+        kind: class
+        inherits: PDFReaderStream
+        summary: A in-memory data stream
+        topics:
+          -
+            name: Creating a Data Stream
+            members:
+              -
+                name: initWithData
+                kind: init
+                summary: Create a stream based on the pdf data
+                arguments:
+                  -
+                    name: data
+                    type: JSData
+                    summary: A full PDF data block

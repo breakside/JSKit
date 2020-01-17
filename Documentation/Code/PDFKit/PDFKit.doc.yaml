@@ -1,14 +1,21 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: framework
 summary: Read and write PDF files
+description: |
+  The goal of `PDFKit` is to support reading and parsing of PDF files in the
+  browser or on a server in a common way.
+
+  Additionaly, a `PDFContext` is provided to support `JSContext`-style drawing
+  straight to a PDF, making it simple to duplicate what you've drawn on the
+  screen to a PDF.
 topics:
   -
-    name: PDF Reading & Writing
+    name: PDF Reading
     members:
       - PDFReader
-      - PDFWriter
-      - PDFContext
-  -
-    name: PDF Objects
       - PDFDocument
       - PDFPage
+      - PDFOperationIterator
+  -
+    name: PDF Drawing
+      - PDFContext

@@ -24,13 +24,16 @@ topics:
           For example, the Gregroian calendar has 12 months a year and 29, 30,
           or 31 days per month.  It's the familar January - December yearly
           calendar that aligns closely with the solar year.
-        options:
+        topics:
           -
-            name: gregorian
-            summary: The Gregroian calendar, commonly used throught the world.
-              It has 12 months a year and 29, 30, or 31 days per month.  It's
-              the familar January - December yearly calendar that aligns closely
-              with the solar year.
+            name: Options
+            members:
+              -
+                name: gregorian
+                summary: The Gregroian calendar, commonly used throught the world.
+                  It has 12 months a year and 29, 30, or 31 days per month.  It's
+                  the familar January - December yearly calendar that aligns closely
+                  with the solar year.
       -
         name: Unit
         kind: enum
@@ -42,50 +45,53 @@ topics:
 
           Calendar units can be combined with bitwise operations like
           `JSCalendar.Unit.day | JSCalendar.unit.month`
-        options:
+        topics:
           -
-            name: none
-            summary: A value representing no components
-          -
-            name: calendar
-            summary: The calendar being used, represented as a `JSCalendar`
-          -
-            name: era
-            summary: The era represented as a `Number`.  For the gregorian
-              calendar, `0` means B.C. and `1` means A.D.
-          -
-            name: year
-            summary: The year represented as a `Number` such as `2020`
-          -
-            name: month
-            summary: The month represented as a `Number`.  For the gregorian
-              calendar, valid months are `1` - `12` with `1` equal to January
-          -
-            name: day
-            summary: The day of the month represented as a `Number`
-          -
-            name: hour
-            summary: The hour of the day represented as a `Number` from `0`
-              through `23`
-          -
-            name: minute
-            summary: The minute of the hour represented as a `Number` from `0`
-              through `59`
-          -
-            name: second
-            summary: The second of the minute represented as a `Number` from `0`
-              through `59`
-          -
-            name: millisecond
-            summary: The millisecond of the second represented as a `Number`
-              from `0` through `999`
-          -
-            name: weekday
-            summary: The day of the week represented as a `Number`
-              from `1` through `7` where `1` equals Sunday
-          -
-            name: timezone
-            summary: The timezone represented as a `JSTimeZone`
+            name: Options
+            members:
+              -
+                name: none
+                summary: A value representing no components
+              -
+                name: calendar
+                summary: The calendar being used, represented as a `JSCalendar`
+              -
+                name: era
+                summary: The era represented as a `Number`.  For the gregorian
+                  calendar, `0` means B.C. and `1` means A.D.
+              -
+                name: year
+                summary: The year represented as a `Number` such as `2020`
+              -
+                name: month
+                summary: The month represented as a `Number`.  For the gregorian
+                  calendar, valid months are `1` - `12` with `1` equal to January
+              -
+                name: day
+                summary: The day of the month represented as a `Number`
+              -
+                name: hour
+                summary: The hour of the day represented as a `Number` from `0`
+                  through `23`
+              -
+                name: minute
+                summary: The minute of the hour represented as a `Number` from `0`
+                  through `59`
+              -
+                name: second
+                summary: The second of the minute represented as a `Number` from `0`
+                  through `59`
+              -
+                name: millisecond
+                summary: The millisecond of the second represented as a `Number`
+                  from `0` through `999`
+              -
+                name: weekday
+                summary: The day of the week represented as a `Number`
+                  from `1` through `7` where `1` equals Sunday
+              -
+                name: timezone
+                summary: The timezone represented as a `JSTimeZone`
       -
         name: Components
         summary: A simple `Object` that contains properties corresponding to

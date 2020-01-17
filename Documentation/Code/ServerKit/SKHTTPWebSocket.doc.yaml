@@ -149,25 +149,28 @@ topics:
         kind: enum
         suffix: enum
         summary: The possible statuses a web socket can send when closing
-        options:
+        topics:
           -
-            name: normal
-            value: "1000"
-          -
-            name: goingAway
-            value: "1001"
-          -
-            name: protocolError
-            value: "1002"
-          -
-            name: unsupportedDataType
-            value: "1003"
-          -
-            name: invalidData
-            value: "1007"
-          -
-            name: generic
-            value: "1008"
-          -
-            name: messageTooLarge
-            value: "1009"
+            name: Options
+            members:
+              -
+                name: normal
+                value: "1000"
+              -
+                name: goingAway
+                value: "1001"
+              -
+                name: protocolError
+                value: "1002"
+              -
+                name: unsupportedDataType
+                value: "1003"
+              -
+                name: invalidData
+                value: "1007"
+              -
+                name: generic
+                value: "1008"
+              -
+                name: messageTooLarge
+                value: "1009"

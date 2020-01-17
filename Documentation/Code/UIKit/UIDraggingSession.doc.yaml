@@ -41,25 +41,28 @@ topics:
         name: UIDragOperation
         kind: enum
         summary: The possible options for a drag operation
-        options:
+        topics:
           -
-            name: none
-            summary: Perform no operation on drop
-          -
-            name: copy
-            summary: Perform a copy on drop, copying the pasteboard data to the
-              destination without affecting the source
-          -
-            name: link
-            summary: Perform a link on drop, referencing the source in the
-              destination without copying any data
-          -
-            name: move
-            summary: Perform a move on drop, removing the data from the source
-              and placing it at the destination
-          -
-            name: all
-            summary: All of the operations
+            name: Options
+            members:
+              -
+                name: none
+                summary: Perform no operation on drop
+              -
+                name: copy
+                summary: Perform a copy on drop, copying the pasteboard data to the
+                  destination without affecting the source
+              -
+                name: link
+                summary: Perform a link on drop, referencing the source in the
+                  destination without copying any data
+              -
+                name: move
+                summary: Perform a move on drop, removing the data from the source
+                  and placing it at the destination
+              -
+                name: all
+                summary: All of the operations
       -
         name: allowedOperations
         type: UIDragOperation

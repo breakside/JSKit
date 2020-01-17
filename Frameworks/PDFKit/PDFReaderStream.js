@@ -18,10 +18,6 @@ JSClass("PDFReaderStream", JSObject, {
     },
 
     byteBackwards: function(){
-        this.back();
-        var byte = this.byte();
-        this.back();
-        return byte;
     },
 
     seekRelative: function(offset){

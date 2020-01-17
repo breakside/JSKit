@@ -45,21 +45,24 @@ topics:
         kind: enum
         suffix: enum
         summary: The possible action styles
-        options:
+        topics:
           -
-            name: normal
-            summary: A normal button style
-          -
-            name: default
-            summary: The button style that indicates this is the default action
-          -
-            name: cancel
-            summary: The button style that indicates this is action used to
-              cancel the request
-          -
-            name: destructive
-            summary: The button style that indicates this action will perform
-              a destructive operation like deleting data
+            name: Options
+            members:
+              -
+                name: normal
+                summary: A normal button style
+              -
+                name: default
+                summary: The button style that indicates this is the default action
+              -
+                name: cancel
+                summary: The button style that indicates this is action used to
+                  cancel the request
+              -
+                name: destructive
+                summary: The button style that indicates this action will perform
+                  a destructive operation like deleting data
       -
         name: style
         type: Style

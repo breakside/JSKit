@@ -39,13 +39,16 @@ topics:
         kind: enum
         suffix: enum
         summary: The types of header/footer views
-        options:
+        topics:
           -
-            name: header
-            summary: Indicates a header view
-          -
-            name: footer
-            summary: Indicates a footer view
+            name: Options
+            members:
+              -
+                name: header
+                summary: Indicates a header view
+              -
+                name: footer
+                summary: Indicates a footer view
       -
         name: kind
         type: Kind

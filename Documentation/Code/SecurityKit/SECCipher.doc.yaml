@@ -16,33 +16,36 @@ topics:
         name: Algorithm
         kind: enum
         summary: The encryption algorithms that `SecurityKit` supports
-        options:
+        topics:
           -
-            name: aesCipherBlockChaining
-            summary: AES Cipher Block Chaining (AES-CBC)
-          -
-            name: aesCBC
-            summary: An alias for `aesCipherBlockChaining`
-          -
-            name: aesCounter
-            summary: AES Counter (AES-CTR)
-          -
-            name: aesCTR
-            summary: An alias for `aesCounter`
-          -
-            name: aesGaloisCounterMode
-            summary: AES Galois Counter Mode (AES-GCM)
-          -
-            name: aesGCM
-            summary: An alias for `aesGaloisCounterMode`
-          -
-            name: rivestCipher4
-            summary: Rivest Cipher 4 (RC4).  Implemented to decrypt PDF
-              documents.  Not considered secure.
-          -
-            name: rc4
-            summary: An alias for `rc4`.  Implemented to decrypt PDF
-              documents.  Not considered secure.
+            name: Options
+            members:
+              -
+                name: aesCipherBlockChaining
+                summary: AES Cipher Block Chaining (AES-CBC)
+              -
+                name: aesCBC
+                summary: An alias for `aesCipherBlockChaining`
+              -
+                name: aesCounter
+                summary: AES Counter (AES-CTR)
+              -
+                name: aesCTR
+                summary: An alias for `aesCounter`
+              -
+                name: aesGaloisCounterMode
+                summary: AES Galois Counter Mode (AES-GCM)
+              -
+                name: aesGCM
+                summary: An alias for `aesGaloisCounterMode`
+              -
+                name: rivestCipher4
+                summary: Rivest Cipher 4 (RC4).  Implemented to decrypt PDF
+                  documents.  Not considered secure.
+              -
+                name: rc4
+                summary: An alias for `rc4`.  Implemented to decrypt PDF
+                  documents.  Not considered secure.
   -
     name: Creating a Cipher
     members:

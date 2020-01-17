@@ -51,13 +51,16 @@ topics:
         kind: enum
         suffix: enum
         summary: The possible directions for scrollers
-        options:
+        topics:
           -
-            name: vertical
-            summary: A vertical scroller
-          -
-            name: horizontal
-            summary: A horizontal scroller
+            name: Options
+            members:
+              -
+                name: vertical
+                summary: A vertical scroller
+              -
+                name: horizontal
+                summary: A horizontal scroller
       -
         name: direction
         type: Direction
@@ -100,10 +103,13 @@ topics:
         name: State
         kind: enum
         summary: The custom control states for a `UIScroller`
-        options:
+        topics:
           -
-            name: knobActive
-            summary: Indicates the `knob` is currently being pressed
+            name: Options
+            members:
+              -
+                name: knobActive
+                summary: Indicates the `knob` is currently being pressed
       -
         name: knobActive
         type: boolean
@@ -221,15 +227,18 @@ topics:
         description: |
           You can override the `default` option with a styler of your choosing,
           typically during `applicationDidFinishLaunching()`.
-        options:
+        topics:
           -
-            name: lightContent
-            summary: The default `UIKit` scroller styler for use on a light
-              background
-          -
-            name: darkContent
-            summary: The default `UIKit` scroller styler for use on a dark
-              background
+            name: Options
+            members:
+              -
+                name: lightContent
+                summary: The default `UIKit` scroller styler for use on a light
+                  background
+              -
+                name: darkContent
+                summary: The default `UIKit` scroller styler for use on a dark
+                  background
       -
         name: styler
         type: UIScrollerStyler

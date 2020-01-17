@@ -58,15 +58,18 @@ topics:
         kind: enum
         suffix: enum
         summary: The possible styles for a progress bar
-        options:
+        topics:
           -
-            name: linear
-            summary: Display the progress as a horizontal bar that fills from
-              left to right
-          -
-            name: circular
-            summary: Display the progress as a circle that fills from 12 o'clock
-              in a clockwise direction
+            name: Options
+            members:
+              -
+                name: linear
+                summary: Display the progress as a horizontal bar that fills from
+                  left to right
+              -
+                name: circular
+                summary: Display the progress as a circle that fills from 12 o'clock
+                  in a clockwise direction
       -
         name: style
         type: Style

@@ -256,23 +256,26 @@ topics:
         name: Level
         kind: enum
         summary: The logging priority levels
-        options:
+        topics:
           -
-            name: debug
-            summary: The lowest priority.  Only recommended for development
-              debugging.
-          -
-            name: info
-            summary: The second-lowest priority.
-          -
-            name: log
-            summary: The default priority.
-          -
-            name: warn
-            summary: The second-highest priority.  Recommended for log messages
-              that require attention but are not critical.
-          -
-            name: error
-            summary: The highest priority.  Used for logging exceptions or
-              other critical error conditions.
+            name: Options
+            members:
+              -
+                name: debug
+                summary: The lowest priority.  Only recommended for development
+                  debugging.
+              -
+                name: info
+                summary: The second-lowest priority.
+              -
+                name: log
+                summary: The default priority.
+              -
+                name: warn
+                summary: The second-highest priority.  Recommended for log messages
+                  that require attention but are not critical.
+              -
+                name: error
+                summary: The highest priority.  Used for logging exceptions or
+                  other critical error conditions.
 

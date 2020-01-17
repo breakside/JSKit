@@ -170,23 +170,26 @@ topics:
         name: Placement
         kind: enum
         summary: The positions where a menu can be placed next to view
-        options:
+        topics:
           -
-            name: below
-            summary: Display a menu below the view, with the left edge of
-              the menu matching the left edge of the view.
-          -
-            name: right
-            summary: Display a menu to the right of a view, with the top
-              edge of the menu matching the top edge of the view
-          -
-            name: above
-            summary: Display a menu to the above a view, with the left
-              edge of the menu matching the left edge of the view
-          -
-            name: left
-            summary: Display a menu to the left of a view, with the top
-              edge of the menu matching the top edge of the view
+            name: Options
+            members:
+              -
+                name: below
+                summary: Display a menu below the view, with the left edge of
+                  the menu matching the left edge of the view.
+              -
+                name: right
+                summary: Display a menu to the right of a view, with the top
+                  edge of the menu matching the top edge of the view
+              -
+                name: above
+                summary: Display a menu to the above a view, with the left
+                  edge of the menu matching the left edge of the view
+              -
+                name: left
+                summary: Display a menu to the left of a view, with the top
+                  edge of the menu matching the top edge of the view
       -
         name: openAdjacentToView
         kind: method
@@ -647,11 +650,14 @@ topics:
         kind: enum
         suffix: enum
         summary: The default menu stylers for `UIKit`
-        options:
+        topics:
           -
-            name: default
-            summary: The styler to use by default.  Can be overwritten during
-              application launch to provide a custom default styler for menus.
+            name: Options
+            members:
+              -
+                name: default
+                summary: The styler to use by default.  Can be overwritten during
+                  application launch to provide a custom default styler for menus.
       -
         name: styler
         type: UIMenuStyler

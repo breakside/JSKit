@@ -250,23 +250,26 @@ topics:
         name: ScrollPosition
         kind: enum
         summary: The various ways to align a rectangle after scrolling
-        options:
+        topics:
           -
-            name: auto
-            summary: Automatically align the rectangle depending on which
-              direction the scroll is moving
-          -
-            name: top
-            summary: Align the top of the rectangle with the top of the scroll
-              view
-          -
-            name: bottom
-            summary: Align the bottom of the rectangle with the bottom of the
-              scroll view
-          -
-            name: middle
-            summary: Align the middle of the rectangle with the middle of the
-              scroll view
+            name: Options
+            members:
+              -
+                name: auto
+                summary: Automatically align the rectangle depending on which
+                  direction the scroll is moving
+              -
+                name: top
+                summary: Align the top of the rectangle with the top of the scroll
+                  view
+              -
+                name: bottom
+                summary: Align the bottom of the rectangle with the bottom of the
+                  scroll view
+              -
+                name: middle
+                summary: Align the middle of the rectangle with the middle of the
+                  scroll view
   -
     name: Zooming
     members:

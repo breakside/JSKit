@@ -89,19 +89,22 @@ topics:
         kind: enum
         suffix: enum
         summary: The placement options for a popup window
-        options:
+        topics:
           -
-            name: above
-            summary: Place the popup centered above the related view
-          -
-            name: below
-            summary: Place the popup centered below the related view
-          -
-            name: left
-            summary: Place the popup centered left of the related view
-          -
-            name: right
-            summary: Place the popup centered right of the related view
+            name: Options
+            members:
+              -
+                name: above
+                summary: Place the popup centered above the related view
+              -
+                name: below
+                summary: Place the popup centered below the related view
+              -
+                name: left
+                summary: Place the popup centered left of the related view
+              -
+                name: right
+                summary: Place the popup centered right of the related view
   -
     name: Key Window
     members:
@@ -171,10 +174,13 @@ topics:
         kind: enum
         suffix: enum
         summary: The default stylers for popup windows
-        options:
+        topics:
           -
-            name: default
-            type: UIPopupWindowStyler
-            summary: The default styler for `UIKit` popup windows.  Can be
-              overwritten during application launch to provide a custom default
-              style.
+            name: Options
+            members:
+              -
+                name: default
+                type: UIPopupWindowStyler
+                summary: The default styler for `UIKit` popup windows.  Can be
+                  overwritten during application launch to provide a custom default
+                  style.

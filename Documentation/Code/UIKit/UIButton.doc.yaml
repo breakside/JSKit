@@ -686,13 +686,16 @@ topics:
         description: |
           You can override the `default` option with a styler of your choosing,
           typically during `applicationDidFinishLaunching()`.
-        options:
+        topics:
           -
-            name: default
-            summary: The default `UIKit` button styler
-          -
-            name: custom
-            summary: A blank styler
+            name: Options
+            members:
+              -
+                name: default
+                summary: The default `UIKit` button styler
+              -
+                name: custom
+                summary: A blank styler
       -
         name: styler
         type: UIButtonStyler

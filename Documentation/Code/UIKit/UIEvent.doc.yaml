@@ -21,82 +21,88 @@ topics:
         kind: enum
         suffix: enum
         summary: The possible categories of an event
-        options:
+        topics:
           -
-            name: mouse
-            summary: Any mouse event
-          -
-            name: key
-            summary: Any key event
-          -
-            name: touches
-            summary: Any touch event
-          -
-            name: scroll
-            summary: Any scroll event
-          -
-            name: gesture
-            summary: Any gesture event
+            name: Options
+            members:
+              -
+                name: mouse
+                summary: Any mouse event
+              -
+                name: key
+                summary: Any key event
+              -
+                name: touches
+                summary: Any touch event
+              -
+                name: scroll
+                summary: Any scroll event
+              -
+                name: gesture
+                summary: Any gesture event
       -
         name: Type
         kind: enum
         suffix: enum
         summary: The possible types of events
-        options:
+        topics:
           -
-            name: leftMouseDown
-            summary: A left mouse down
-          -
-            name: leftMouseUp
-            summary: A left mouse up
-          -
-            name: leftMouseDragged
-            summary: A left mouse move while down
-          -
-            name: rightMouseDown
-            summary: A right mouse down
-          -
-            name: rightMouseUp
-            summary: A right mose up
-          -
-            name: rightMouseDragged
-            summary: A right mouse move while down
-          -
-            name: mouseMoved
-            summary: A tracking of a mouse move while no button is down 
-          -
-            name: mouseEntered
-            summary: A tracking of a mouse enter while no button is down 
-          -
-            name: mouseExited
-            summary: A tracking of a mouse exit while no button is down 
-          -
-            name: keyDown
-            summary: A keyboard key down
-          -
-            name: keyUp
-            summary: A keyboard key up
-          -
-            name: touchesBegan
-            summary: Touches began
-          -
-            name: touchesMoved
-            summary: Touches moved
-          -
-            name: touchesEnded
-            summary: Touches ended
-          -
-            name: touchesCanceled
-            summary: Touches canceled
-          -
-            name: scrollWheel
-            summary: A scroll wheel scrolled
-          -
-            name: magnify
-            summary: A magnify gesture
-          -
-            name: rotate
-            summary: A rotate gesture
+            name: Options
+            members:
+              -
+                name: leftMouseDown
+                summary: A left mouse down
+              -
+                name: leftMouseUp
+                summary: A left mouse up
+              -
+                name: leftMouseDragged
+                summary: A left mouse move while down
+              -
+                name: rightMouseDown
+                summary: A right mouse down
+              -
+                name: rightMouseUp
+                summary: A right mose up
+              -
+                name: rightMouseDragged
+                summary: A right mouse move while down
+              -
+                name: mouseMoved
+                summary: A tracking of a mouse move while no button is down 
+              -
+                name: mouseEntered
+                summary: A tracking of a mouse enter while no button is down 
+              -
+                name: mouseExited
+                summary: A tracking of a mouse exit while no button is down 
+              -
+                name: keyDown
+                summary: A keyboard key down
+              -
+                name: keyUp
+                summary: A keyboard key up
+              -
+                name: touchesBegan
+                summary: Touches began
+              -
+                name: touchesMoved
+                summary: Touches moved
+              -
+                name: touchesEnded
+                summary: Touches ended
+              -
+                name: touchesCanceled
+                summary: Touches canceled
+              -
+                name: scrollWheel
+                summary: A scroll wheel scrolled
+              -
+                name: magnify
+                summary: A magnify gesture
+              -
+                name: rotate
+                summary: A rotate gesture
       -
         name: category
         type: Category
@@ -177,34 +183,37 @@ topics:
           ````
 
           Means that both the shift and control modifiers are pressed.
-        options:
+        topics:
           -
-            name: none
-            summary: No modifier is pressed
-          -
-            name: command
-            summary: The command key is pressed
-          -
-            name: control
-            summary: The control key is pressed
-          -
-            name: shift
-            summary: The shift key is pressed
-          -
-            name: option
-            summary: The option/alt key is pressed
-          -
-            name: optionControl
-            summary: The combination of option and control modifiers
-          -
-            name: optionShift
-            summary: The combination of option and shift modifiers
-          -
-            name: optionControlShift
-            summary: The combination of option, control, and shift modifiers
-          -
-            name: controlShift
-            summary: The combination of control and shift modifiers
+            name: Options
+            members:
+              -
+                name: none
+                summary: No modifier is pressed
+              -
+                name: command
+                summary: The command key is pressed
+              -
+                name: control
+                summary: The control key is pressed
+              -
+                name: shift
+                summary: The shift key is pressed
+              -
+                name: option
+                summary: The option/alt key is pressed
+              -
+                name: optionControl
+                summary: The combination of option and control modifiers
+              -
+                name: optionShift
+                summary: The combination of option and shift modifiers
+              -
+                name: optionControlShift
+                summary: The combination of option, control, and shift modifiers
+              -
+                name: controlShift
+                summary: The combination of control and shift modifiers
       -
         name: modifiers
         type: Modifier
@@ -282,77 +291,80 @@ topics:
         kind: enum
         suffix: enum
         summary: The possible special key values
-        options:
+        topics:
           -
-            name: unidentified
-          -
-            name: option
-          -
-            name: control
-          -
-            name: command
-          -
-            name: shift
-          -
-            name: function
-          -
-            name: enter
-          -
-            name: tab
-          -
-            name: backspace
-          -
-            name: delete
-          -
-            name: down
-          -
-            name: left
-          -
-            name: right
-          -
-            name: up
-          -
-            name: escape
-          -
-            name: redo
-          -
-            name: undo
-          -
-            name: end
-          -
-            name: home
-          -
-            name: pageDown
-          -
-            name: pageUp
-          -
-            name: capsLock
-          -
-            name: functionLock
-          -
-            name: numberLock
-          -
-            name: scrollLock
-          -
-            name: symbol
-          -
-            name: symbolLock
-          -
-            name: clear
-          -
-            name: copy
-          -
-            name: cut
-          -
-            name: eraseToEndOfField
-          -
-            name: extendSelection
-          -
-            name: insert
-          -
-            name: paste
-          -
-            name: cursorSelect
+            name: Options
+            members:
+              -
+                name: unidentified
+              -
+                name: option
+              -
+                name: control
+              -
+                name: command
+              -
+                name: shift
+              -
+                name: function
+              -
+                name: enter
+              -
+                name: tab
+              -
+                name: backspace
+              -
+                name: delete
+              -
+                name: down
+              -
+                name: left
+              -
+                name: right
+              -
+                name: up
+              -
+                name: escape
+              -
+                name: redo
+              -
+                name: undo
+              -
+                name: end
+              -
+                name: home
+              -
+                name: pageDown
+              -
+                name: pageUp
+              -
+                name: capsLock
+              -
+                name: functionLock
+              -
+                name: numberLock
+              -
+                name: scrollLock
+              -
+                name: symbol
+              -
+                name: symbolLock
+              -
+                name: clear
+              -
+                name: copy
+              -
+                name: cut
+              -
+                name: eraseToEndOfField
+              -
+                name: extendSelection
+              -
+                name: insert
+              -
+                name: paste
+              -
+                name: cursorSelect
       -
         name: key
         type: Key
@@ -399,19 +411,22 @@ topics:
         kind: enum
         suffix: enum
         summary: The phase of a gesture event
-        options:
+        topics:
           -
-            name: none
-            summary: Default value for non-gesture events
-          -
-            name: began
-            summary: The gesture began
-          -
-            name: changed
-            summary: The gesture changed
-          -
-            name: ended
-            summary: The gesture ended
+            name: Options
+            members:
+              -
+                name: none
+                summary: Default value for non-gesture events
+              -
+                name: began
+                summary: The gesture began
+              -
+                name: changed
+                summary: The gesture changed
+              -
+                name: ended
+                summary: The gesture ended
       -
         name: phase
         type: Phase

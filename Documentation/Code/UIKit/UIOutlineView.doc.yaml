@@ -303,10 +303,13 @@ topics:
         suffix: enum
         kind: enum
         summary: The default styler options for outline views
-        options:
+        topics:
           -
-            name: default
-            summary: The default outline view styler created by `UIKit`
+            name: Options
+            members:
+              -
+                name: default
+                summary: The default outline view styler created by `UIKit`
       -
         name: styler
         type: UIOutlineViewStyler

@@ -15,16 +15,19 @@ topics:
         name: Algorithm
         kind: enum
         summary: The hash algorithms that `SecurityKit` supports
-        options:
+        topics:
           -
-            name: sha256
-            summary: The SHA256 hash
-          -
-            name: sha384
-            summary: The SHA384 hash
-          -
-            name: sha512
-            summary: The SHA512 hash
+            name: Options
+            members:
+              -
+                name: sha256
+                summary: The SHA256 hash
+              -
+                name: sha384
+                summary: The SHA384 hash
+              -
+                name: sha512
+                summary: The SHA512 hash
   -
     name: Creating a Hasher
     members:

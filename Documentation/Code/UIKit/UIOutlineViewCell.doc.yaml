@@ -50,27 +50,30 @@ topics:
           ````
           var state = UIListViewCell.State.selected | UIOutlineViewCell.State.expanded;
           ````
-        options:
+        topics:
           -
-            name: normal
-            summary: A cell without any other state
-          -
-            name: active
-            summary: Set when the cell is active, like when it is being clicked
-          -
-            name: selected
-            summary: When a cell is selected
-          -
-            name: contextSelected
-            summary: When a cell is context-selected, like by a right click
-          -
-            name: expanded
-            summary: When a cell is context-selected, like by a right click
-          -
-            name: firstUserState
-            summary: The first value a subclass can use for a custom
-              state.  Subsequent values shoulde be made by shifting this
-              value left by one bit.
+            name: Options
+            members:
+              -
+                name: normal
+                summary: A cell without any other state
+              -
+                name: active
+                summary: Set when the cell is active, like when it is being clicked
+              -
+                name: selected
+                summary: When a cell is selected
+              -
+                name: contextSelected
+                summary: When a cell is context-selected, like by a right click
+              -
+                name: expanded
+                summary: When a cell is context-selected, like by a right click
+              -
+                name: firstUserState
+                summary: The first value a subclass can use for a custom
+                  state.  Subsequent values shoulde be made by shifting this
+                  value left by one bit.
       -
         name: expanded
         type: boolean

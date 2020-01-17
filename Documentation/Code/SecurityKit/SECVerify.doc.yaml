@@ -11,16 +11,19 @@ topics:
         name: Algorithm
         kind: enum
         summary: The verify algorithms that `SecurityKit` supports
-        options:
+        topics:
           -
-            name: rsaSHA256
-            summary: The RSA-SHA256 hash
-          -
-            name: rsaSHA384
-            summary: The RSA-SHA384 hash
-          -
-            name: rsaSHA512
-            summary: The RSA-SHA512 hash
+            name: Options
+            members:
+              -
+                name: rsaSHA256
+                summary: The RSA-SHA256 hash
+              -
+                name: rsaSHA384
+                summary: The RSA-SHA384 hash
+              -
+                name: rsaSHA512
+                summary: The RSA-SHA512 hash
   -
     name: Creating a Verifier
     members:

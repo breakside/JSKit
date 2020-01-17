@@ -188,15 +188,18 @@ topics:
         suffix: enum
         type: Number
         summary: The possible sizes for toolbar item images
-        options:
+        topics:
           -
-            name: default
-            summary: The default size for images
-            value: "32"
-          -
-            name: small
-            summary: A small size for images
-            value: "24"
+            name: Options
+            members:
+              -
+                name: default
+                summary: The default size for images
+                value: "32"
+              -
+                name: small
+                summary: A small size for images
+                value: "24"
   -
     name: Window
     members:

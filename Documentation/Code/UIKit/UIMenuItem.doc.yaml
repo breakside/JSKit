@@ -255,18 +255,21 @@ topics:
         kind: enum
         suffix: enum
         summary: The possible states of a menu item
-        options:
+        topics:
           -
-            name: "off"
-            summary: An item is unchecked.  This is the normal state.
-          -
-            name: "on"
-            summary: An item is checked.
-          -
-            name: "mixed"
-            summary: An item is mixed, representing both off and on, typically
-              because multiple objects are selected with different values linked
-              to the item's state.
+            name: Options
+            members:
+              -
+                name: "off"
+                summary: An item is unchecked.  This is the normal state.
+              -
+                name: "on"
+                summary: An item is checked.
+              -
+                name: "mixed"
+                summary: An item is mixed, representing both off and on, typically
+                  because multiple objects are selected with different values linked
+                  to the item's state.
       -
         name: onImage
         type: JSImage

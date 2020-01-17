@@ -400,34 +400,37 @@ topics:
             pointMoved:   {value: UIControl.State.firstUserEvent << 2},
           });
           ````
-        options:
+        topics:
           -
-            name: primaryAction
-            summary: Used for a control's main action, like a click for a button
-          -
-            name: valueChanged
-            summary: Indicates the control changed the value of the data it is
-              representing.  For something like a text field, `valueChanged`
-              may only be called when the user exits the field and the
-              value differs from when the user entered the field.
-          -
-            name: editingDidBegin
-            summary: Used when the control has an editing session, like when
-              a text field becomes the first responder and has the user's
-              focus
-          -
-            name: editingChanged
-            summary: Used when the control has an editing session, like each
-              time a character is typed in a text field
-          -
-            name: editingDidEnd
-            summary: Used when the control has an editing session, like when
-              a user leaves a text field
-          -
-            name: firstUserEvent
-            summary: The first value subclasses can use for custom events.
-              Subsequent values should be made by shifting this value left by
-              one bit.
+            name: Options
+            members:
+              -
+                name: primaryAction
+                summary: Used for a control's main action, like a click for a button
+              -
+                name: valueChanged
+                summary: Indicates the control changed the value of the data it is
+                  representing.  For something like a text field, `valueChanged`
+                  may only be called when the user exits the field and the
+                  value differs from when the user entered the field.
+              -
+                name: editingDidBegin
+                summary: Used when the control has an editing session, like when
+                  a text field becomes the first responder and has the user's
+                  focus
+              -
+                name: editingChanged
+                summary: Used when the control has an editing session, like each
+                  time a character is typed in a text field
+              -
+                name: editingDidEnd
+                summary: Used when the control has an editing session, like when
+                  a user leaves a text field
+              -
+                name: firstUserEvent
+                summary: The first value subclasses can use for custom events.
+                  Subsequent values should be made by shifting this value left by
+                  one bit.
       -
         name: addAction
         kind: method
@@ -679,30 +682,33 @@ topics:
             downActive: {value: UIControl.State.firstUserState << 2},
           });
           ````
-        options:
+        topics:
           -
-            name: normal
-            summary: A control without any other state
-          -
-            name: over
-            summary: Set when the mouse moves over a control
-          -
-            name: active
-            summary: Set when the control is active, like when a button is
-              pressed down
-          -
-            name: disabled
-            summary: When a control is disabled and the user cannot interact
-              with it
-          -
-            name: dropTarget
-            summary: When the control is able to accept of drop during a
-              drag and drop session
-          -
-            name: firstUserState
-            summary: The first value a custom control can use for a custom
-              state.  Subsequent values shoulde be made by shifting this
-              value left by one bit.
+            name: Options
+            members:
+              -
+                name: normal
+                summary: A control without any other state
+              -
+                name: over
+                summary: Set when the mouse moves over a control
+              -
+                name: active
+                summary: Set when the control is active, like when a button is
+                  pressed down
+              -
+                name: disabled
+                summary: When a control is disabled and the user cannot interact
+                  with it
+              -
+                name: dropTarget
+                summary: When the control is able to accept of drop during a
+                  drag and drop session
+              -
+                name: firstUserState
+                summary: The first value a custom control can use for a custom
+                  state.  Subsequent values shoulde be made by shifting this
+                  value left by one bit.
       -
         name: enabled
         type: boolean

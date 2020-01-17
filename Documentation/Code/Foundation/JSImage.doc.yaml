@@ -289,19 +289,22 @@ topics:
         kind: enum
         suffix: enum
         summary: The possible rendering modes
-        options:
+        topics:
           -
-            name: automatic
-            summary: Render the image using whichver method is appropriate for
-              the context
-          -
-            name: original
-            summary: Render the image as it was originally drawn
-          -
-            name: template
-            summary: Render the image as a alpha-mask, taking on a color from
-              the context.  Great for rendering single-color shapes and icons
-              in any color.
+            name: Options
+            members:
+              -
+                name: automatic
+                summary: Render the image using whichver method is appropriate for
+                  the context
+              -
+                name: original
+                summary: Render the image as it was originally drawn
+              -
+                name: template
+                summary: Render the image as a alpha-mask, taking on a color from
+                  the context.  Great for rendering single-color shapes and icons
+                  in any color.
       -
         name: renderMode
         type: RenderMode

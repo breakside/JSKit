@@ -17,16 +17,19 @@ topics:
         name: Format
         kind: enum
         summary: The compressed bitmap formats supported by `IKBitmap`
-        options:
+        topics:
           -
-            name: unknown
-            summary: Any unrecognized format
-          -
-            name: png
-            summary: The PNG format
-          -
-            name: jpeg
-            summary: The JPEG format
+            name: Options
+            members:
+              -
+                name: unknown
+                summary: Any unrecognized format
+              -
+                name: png
+                summary: The PNG format
+              -
+                name: jpeg
+                summary: The JPEG format
   -
     name: Creating a Bitmap
     members:

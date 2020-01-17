@@ -45,24 +45,27 @@ topics:
         name: SKHTTPHeaders
         kind: enum
         summary: A set of well known HTTP headers
-        options:
+        topics:
           -
-            name: contentType
-            value: '"Content-Type"'
-            summary: The header that specifies the content type
-          -
-            name: contentLength
-            value: '"Content-Length"'
-            summary: The header that specifies the content legth
-          -
-            name: etag
-            value: '"ETag"'
-            summary: The header that specifies the tag used for caching
-          -
-            name: lastModified
-            value: '"Last-Modified"'
-            summary: The header that specifies the last modified date for
-              caching
+            name: Options
+            members:
+              -
+                name: contentType
+                value: '"Content-Type"'
+                summary: The header that specifies the content type
+              -
+                name: contentLength
+                value: '"Content-Length"'
+                summary: The header that specifies the content legth
+              -
+                name: etag
+                value: '"ETag"'
+                summary: The header that specifies the tag used for caching
+              -
+                name: lastModified
+                value: '"Last-Modified"'
+                summary: The header that specifies the last modified date for
+                  caching
       - SKHTTPError
   -
     name: HTTP Web Sockets

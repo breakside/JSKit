@@ -1,0 +1,27 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Represents a PDF document and its collection of pagess
+description: |
+  A `PDFDocument` is created when you `open()`(PDFReader.open) a `PDFReader`.
+topics:
+  -
+    name: Pages
+    members:
+      -
+        name: pageCount
+        type: Number
+        summary: The number of pages in the document
+      -
+        name: page
+        kind: method
+        type: PDFPage
+        summary: Get a page at the given index
+        arguments:
+          -
+            name: index
+            type: Number
+            summary: The zero-based index of the page to retrieve
+        description: |
+          The page indexes are zero-indexed

@@ -103,23 +103,26 @@ topics:
         kind: enum
         suffix: enum
         summary: The various ways to stretch or crop an image in the view
-        options:
+        topics:
           -
-            name: fit
-            summary: The image should fit the view, distorting if necessary
-          -
-            name: aspectFit
-            summary: The image should fit the view in one direction, but
-              but preserve its aspect ratio without cropping the other
-              direction.
-          -
-            name: aspectFill
-            summary: The image should fill the view, but
-              but preserve its aspect ratio by cropping.
-          -
-            name: center
-            summary: The image should maintain its inherent size and always
-              stay centered in the view.
+            name: Options
+            members:
+              -
+                name: fit
+                summary: The image should fit the view, distorting if necessary
+              -
+                name: aspectFit
+                summary: The image should fit the view in one direction, but
+                  but preserve its aspect ratio without cropping the other
+                  direction.
+              -
+                name: aspectFill
+                summary: The image should fill the view, but
+                  but preserve its aspect ratio by cropping.
+              -
+                name: center
+                summary: The image should maintain its inherent size and always
+                  stay centered in the view.
       - 
         name: scaleMode
         type: ScaleMode

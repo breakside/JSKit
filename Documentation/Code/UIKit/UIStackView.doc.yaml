@@ -49,13 +49,16 @@ topics:
         kind: enum
         suffix: enum
         summary: The directions in which a stack view can layout its views
-        options:
+        topics:
           -
-            name: vertical
-            summary: Stack views vertically
-          -
-            name: horizontal
-            summary: Stack views horizontally
+            name: Options
+            members:
+              -
+                name: vertical
+                summary: Stack views vertically
+              -
+                name: horizontal
+                summary: Stack views horizontally
       -
         name: axis
         type: Axis
@@ -77,14 +80,17 @@ topics:
         kind: enum
         suffix: enum
         summary: The ways views can be sized along the `axis`
-        options:
+        topics:
           -
-            name: none
-            summary: No special distribution, views take their instrinsic sizes
-               along the `axis`
-          -
-            name: equal
-            summary: Views all get the same size along the `axis`
+            name: Options
+            members:
+              -
+                name: none
+                summary: No special distribution, views take their instrinsic sizes
+                   along the `axis`
+              -
+                name: equal
+                summary: Views all get the same size along the `axis`
       -
         name: distribution
         type: Distribution

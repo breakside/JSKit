@@ -1,0 +1,343 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Represents a single PDF page
+description: |
+  A `PDFOperationIterator` is obtained by calling
+  `getOperationIterator()`(PDFPage) on a `PDFPage`.
+topics:
+  -
+    name: Creating an Iterator
+    members:
+      -
+        name: initWithData
+        kind: init
+        summary: Create an iterator for the given stream data
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The PDF stream data
+        description: |
+          Typically you won't need to create an iterator directly, but
+          would instead get one from a `PDFPage`.
+  -
+    name: Iteration
+    members:
+      -
+        name: next
+        kind: method
+        type: PDFStreamOperation
+        nullable: true
+        summary: Get the next operation
+        description: |
+          A value of `null` indicates the iteration has ended
+      -
+        name: reset
+        kind: method
+        summary: Restart iteration at the beginning of the stream
+  -
+    name: Operations
+    members:
+      -
+        name: PDFStreamOperation
+        kind: class
+        summary: A single operation and its operands found in a pdf stream
+        topics:
+          -
+            name: Operation
+            members:
+              -
+                name: operator
+                type: Operator
+                summary: The PDF operator
+              -
+                name: operands
+                type: any[]
+                summary: The arguments for the operation
+          -
+            name: Allowed Operators
+            members:
+              -
+                name: Operator
+                kind: enum
+                suffix: enum
+                summary: A list of all PDF stream operators
+                topics:
+                  -
+                    name: Graphics State
+                    members:
+                      -  
+                        name: pushState
+                        value: '"q"'
+                      -  
+                        name: popState
+                        value: '"Q"'
+                      -  
+                        name: concatenateCTM
+                        value: '"cm"'
+                      -  
+                        name: lineWidth
+                        value: '"w"'
+                      -  
+                        name: lineCap
+                        value: '"J"'
+                      -  
+                        name: lineJoin
+                        value: '"j"'
+                      -  
+                        name: miterLimit
+                        value: '"M"'
+                      -  
+                        name: dashPattern
+                        value: '"d"'
+                      -  
+                        name: renderingIntent
+                        value: '"ri"'
+                      -  
+                        name: flatness
+                        value: '"i"'
+                      -  
+                        name: updateState
+                        value: '"gs"'
+                  -
+                    name: Path Construction
+                    members:
+                      -  
+                        name: moveTo
+                        value: '"m"'
+                      -  
+                        name: lineTo
+                        value: '"l"'
+                      -  
+                        name: curveTo
+                        value: '"c"'
+                      -  
+                        name: curveToUsingCurrent
+                        value: '"v"'
+                      -  
+                        name: curveToUsingEnding
+                        value: '"y"'
+                      -  
+                        name: closeSubpath
+                        value: '"h"'
+                      -  
+                        name: rectangle
+                        value: '"re"'
+                      -  
+                        name: endPath
+                        value: '"n"'
+                      -  
+                        name: clip
+                        value: '"W"'
+                      -  
+                        name: clipEvenOdd
+                        value: '"W*"'
+                  -
+                    name: Path Painting
+                    members:
+                      -  
+                        name: strokePath
+                        value: '"S"'
+                      -  
+                        name: closeStrokePath
+                        value: '"s"'
+                      -  
+                        name: fillPath
+                        value: '"f"'
+                      -  
+                        name: fillPathAlias
+                        value: '"F"'
+                      -  
+                        name: fillPathEvenOdd
+                        value: '"f*"'
+                      -  
+                        name: fillStrokePath
+                        value: '"B"'
+                      -  
+                        name: fillStrokePathEvenOdd
+                        value: '"B*"'
+                      -  
+                        name: closeFillStrokePath
+                        value: '"b"'
+                      -  
+                        name: closeFillStrokePathEvenOdd
+                        value: '"b*"'
+                  -
+                    name: Colors
+                    members:
+                      -  
+                        name: strokeColorSpace
+                        value: '"CS"'
+                      -  
+                        name: fillColorSpace
+                        value: '"cs"'
+                      -  
+                        name: strokeColor
+                        value: '"SC"'
+                      -  
+                        name: fillColor
+                        value: '"sc"'
+                      -  
+                        name: strokeColorNamed
+                        value: '"SCN"'
+                      -  
+                        name: fillColorNamed
+                        value: '"scn"'
+                      -  
+                        name: strokeColorGray
+                        value: '"G"'
+                      -  
+                        name: fillColorGray
+                        value: '"g"'
+                      -  
+                        name: strokeColorRGB
+                        value: '"RG"'
+                      -  
+                        name: fillColorRGB
+                        value: '"rg"'
+                      -  
+                        name: strokeColorCMYK
+                        value: '"K"'
+                      -  
+                        name: fillColorCMYK
+                        value: '"k"'
+                      -  
+                        name: shading
+                        value: '"sh"'
+                  -
+                    name: Images and other objects
+                    members:
+                      -  
+                        name: xobject
+                        value: '"Do"'
+                      -  
+                        name: beginImage
+                        value: '"BI"'
+                      -  
+                        name: beginImageData
+                        value: '"ID"'
+                      -  
+                        name: endImage
+                        value: '"EI"'
+                  -
+                    name: Text
+                    members:
+                      -  
+                        name: characterSpacing
+                        value: '"Tc"'
+                      -  
+                        name: wordSpacing
+                        value: '"Tw"'
+                      -  
+                        name: textHorizontalScaling
+                        value: '"Tz"'
+                      -  
+                        name: textLeading
+                        value: '"TL"'
+                      -  
+                        name: font
+                        value: '"Tf"'
+                      -  
+                        name: textRenderingMode
+                        value: '"Tr"'
+                      -  
+                        name: textRise
+                        value: '"Ts"'
+                      -  
+                        name: beginText
+                        value: '"BT"'
+                      -  
+                        name: endText
+                        value: '"ET"'
+                      -  
+                        name: textMatrix
+                        value: '"Tm"'
+                      -  
+                        name: nextLineManual
+                        value: '"Td"'
+                      -  
+                        name: nextLineLeading
+                        value: '"TD"'
+                      -  
+                        name: nextLine
+                        value: '"T*"'
+                      -  
+                        name: nextLineText
+                        value: >
+                          "'"
+                        nextLineTextSpacing: >
+                          '"'
+                      -  
+                        name: text
+                        value: '"Tj"'
+                      -  
+                        name: textArray
+                        value: '"TJ"'
+                      -  
+                        name: xTextAdvance
+                        value: '"__PDFKit_xTextAdvance__"'
+                  -
+                    name: Fonts & Character Sets
+                    members:
+                      -  
+                        name: fontGlyphWidthColor
+                        value: '"d0"'
+                      -  
+                        name: fontGlyphWidth
+                        value: '"d1"'
+                      -  
+                        name: beginCodeSpaceRange
+                        value: '"begincodespacerange"'
+                      -  
+                        name: endCodeSpaceRange
+                        value: '"endcodespacerange"'
+                      -  
+                        name: beginbfchar
+                        value: '"beginbfchar"'
+                      -  
+                        name: endbfchar
+                        value: '"endbfchar"'
+                      -  
+                        name: beginbfrange
+                        value: '"beginbfrange"'
+                      -  
+                        name: endbfrange
+                        value: '"endbfrange"'
+                  -
+                    name: Marked Content
+                    members:
+                      -  
+                        name: beginMarkedContentProperties
+                        value: '"BDC"'
+                      -  
+                        name: beginMarkedContent
+                        value: '"BMC"'
+                      -  
+                        name: endMarkedContent
+                        value: '"EMC"'
+                      -  
+                        name: defineMarkedContentPointProperties
+                        value: '"DP"'
+                      -  
+                        name: defineMarkedContentPoint
+                        value: '"MP"'
+                  -
+                    name: Functions
+                    members:
+                      -  
+                        name: beginFunction
+                        value: '"{"'
+                      -  
+                        name: endFunction
+                        value: '"}"'
+                  -
+                    name: Compatibility
+                    members:
+                      -  
+                        name: beginCompatibility
+                        value: '"BX"'
+                      -  
+                        name: endCompatibility
+                        value: '"EX"'

@@ -89,20 +89,23 @@ topics:
           ````
           var state = UITabViewItem.State.over | UITabViewItem.State.active;
           ````
-        options:
+        topics:
           -
-            name: normal
-            summary: A tab item without any other state
-          -
-            name: over
-            summary: Set when the mouse moves over a tab item
-          -
-            name: active
-            summary: Set when the tab item is active, like when a button is
-              pressed down
-          -
-            name: selected
-            summary: When a tab item is selected
+            name: Options
+            members:
+              -
+                name: normal
+                summary: A tab item without any other state
+              -
+                name: over
+                summary: Set when the mouse moves over a tab item
+              -
+                name: active
+                summary: Set when the tab item is active, like when a button is
+                  pressed down
+              -
+                name: selected
+                summary: When a tab item is selected
       -
         name: over
         type: boolean

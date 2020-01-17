@@ -64,25 +64,28 @@ topics:
         kind: enum
         suffix: enum
         summary: The stanard format styles
-        options:
+        topics:
           -
-            name: none
-            summary: 'Equivalent to setting `format = "#"`'
-          -
-            name: decimal
-            summary: 'Equivalent to setting `format = "#,##0.###"`'
-          -
-            name: percent
-            summary: 'Equivalent to setting `format = "#,##0%"`'
-          -
-            name: currency
-            summary: 'Equivalent to setting `format = "¤#,##0.00"`'
-          -
-            name: currencyAccounting
-            summary: 'Equivalent to setting `format = "¤#,##0.00;(¤#)"`'
-          -
-            name: currencyISOCode
-            summary: 'Equivalent to setting `format = "¤¤ #,##0.00;¤¤ -#"`'
+            name: Options
+            members:
+              -
+                name: none
+                summary: 'Equivalent to setting `format = "#"`'
+              -
+                name: decimal
+                summary: 'Equivalent to setting `format = "#,##0.###"`'
+              -
+                name: percent
+                summary: 'Equivalent to setting `format = "#,##0%"`'
+              -
+                name: currency
+                summary: 'Equivalent to setting `format = "¤#,##0.00"`'
+              -
+                name: currencyAccounting
+                summary: 'Equivalent to setting `format = "¤#,##0.00;(¤#)"`'
+              -
+                name: currencyISOCode
+                summary: 'Equivalent to setting `format = "¤¤ #,##0.00;¤¤ -#"`'
       -
         name: style
         type: Style

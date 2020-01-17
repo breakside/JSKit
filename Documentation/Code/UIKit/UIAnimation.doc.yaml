@@ -100,37 +100,40 @@ topics:
             return Math.floor(x * 10) / 10;
           }
           ````
-        options:
+        topics:
           -
-            name: linear
-            summary: Makes animations appear to move at a constant velocity
-          -
-            name: easeIn
-            summary: Starts off slower and speeds up
-          -
-            name: easeOut
-            summary: Starts off normal and slows down at the end
-          -
-            name: easeInOut
-            summary: Starts off slow and ends slow, but speeds up in the middle
-          -
-            name: bounds
-            summary: Appears mostly linear, but bounces at the end by
-              overshooting the final value breifly before returning there
-          -
-            name: cubicBezier
-            summary: Creates a timing function based on a  cubic bezier that
-              has a starting point at `(0,0)`, ending point at `(1,1)`, and
-              control points as specified.
-            value:
-              arguments:
-                -
-                  name: controlPoint1
-                  type: JSPoint
-                  summary: A point in unit-space that defines the position of
-                    the cubic bezier's first control point
-                -
-                  name: controlPoint2
-                  type: JSPoint
-                  summary: A point in unit-space that defines the position of
-                    the cubic bezier's second control point
+            name: Options
+            members:
+              -
+                name: linear
+                summary: Makes animations appear to move at a constant velocity
+              -
+                name: easeIn
+                summary: Starts off slower and speeds up
+              -
+                name: easeOut
+                summary: Starts off normal and slows down at the end
+              -
+                name: easeInOut
+                summary: Starts off slow and ends slow, but speeds up in the middle
+              -
+                name: bounds
+                summary: Appears mostly linear, but bounces at the end by
+                  overshooting the final value breifly before returning there
+              -
+                name: cubicBezier
+                kind: enumfunction
+                summary: Creates a timing function based on a  cubic bezier that
+                  has a starting point at `(0,0)`, ending point at `(1,1)`, and
+                  control points as specified.
+                arguments:
+                  -
+                    name: controlPoint1
+                    type: JSPoint
+                    summary: A point in unit-space that defines the position of
+                      the cubic bezier's first control point
+                  -
+                    name: controlPoint2
+                    type: JSPoint
+                    summary: A point in unit-space that defines the position of
+                      the cubic bezier's second control point

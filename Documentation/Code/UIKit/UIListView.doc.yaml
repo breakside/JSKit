@@ -1308,10 +1308,13 @@ topics:
         description: |
           You can override the `default` option with a styler of your choosing,
           typically during `applicationDidFinishLaunching()`.
-        options:
+        topics:
           -
-            name: default
-            summary: The default `UIKit` list view styler
+            name: Options
+            members:
+              -
+                name: default
+                summary: The default `UIKit` list view styler
       -
         name: styler
         type: UIListViewStyler

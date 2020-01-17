@@ -208,15 +208,18 @@ topics:
         type: UIWindowStyler
         suffix: presets
         summary: A collection of preset stylers
-        options:
+        topics:
           -
-            name: default
-            summary: An instance of `UIWindowDefaultStyler` with `UIKit` default
-              colors and options
-          -
-            name: custom
-            summary: The default blank window styler, an instance of
-              \`UIWindowCustomStyler`
+            name: Options
+            members:
+              -
+                name: default
+                summary: An instance of `UIWindowDefaultStyler` with `UIKit` default
+                  colors and options
+              -
+                name: custom
+                summary: The default blank window styler, an instance of
+                  \`UIWindowCustomStyler`
       -
         name: UIWindowStyler
         kind: class
@@ -745,19 +748,22 @@ topics:
         kind: enum
         suffix: enum
         summary: The classes of window leveling available
-        options:
+        topics:
           -
-            name: back
-            summary: The backmost level.  Windows in this level can never appear
-              in front of any `normal` window
-          -
-            name: normal
-            summary: The level for most windows.  Windows in this level can
-              never appear in front of any `front` window
-          -
-            name: front
-            summary: The frontmost level.  Windows in this level will always
-              be in front of other windows at lower levels.
+            name: Options
+            members:
+              -
+                name: back
+                summary: The backmost level.  Windows in this level can never appear
+                  in front of any `normal` window
+              -
+                name: normal
+                summary: The level for most windows.  Windows in this level can
+                  never appear in front of any `front` window
+              -
+                name: front
+                summary: The frontmost level.  Windows in this level will always
+                  be in front of other windows at lower levels.
       -
         name: scene
         type: UIScene

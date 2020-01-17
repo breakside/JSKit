@@ -207,64 +207,76 @@ topics:
         name: DrawingMode
         kind: enum
         summary: The different ways of painting a path
-        options:
+        topics:
           -
-            name: fill
-            summary: Fill the inside of the path using the `winding` rule
-          -
-            name: evenOddFill
-            summary: Fill the inside of the path using the `evenOdd` rule
-          -
-            name: stroke
-            summary: Paint the path's line
-          -
-            name: fillStroke
-            summary: Fill the inside of the path using the `winding` rule and
-              paint the path's line
-          -
-            name: evenOddFillStroke
-            summary: Fill the inside of the path using the `evenOdd` rule and
-              paint the path's line
+            name: Options
+            members:
+              -
+                name: fill
+                summary: Fill the inside of the path using the `winding` rule
+              -
+                name: evenOddFill
+                summary: Fill the inside of the path using the `evenOdd` rule
+              -
+                name: stroke
+                summary: Paint the path's line
+              -
+                name: fillStroke
+                summary: Fill the inside of the path using the `winding` rule and
+                  paint the path's line
+              -
+                name: evenOddFillStroke
+                summary: Fill the inside of the path using the `evenOdd` rule and
+                  paint the path's line
       -
         name: FillRule
         kind: enum
         summary: The different ways of determining which areas are inside
           a path
-        options:
+        topics:
           -
-            name: winding
-          -
-            name: evenOdd
+            name: Options
+            members:
+              -
+                name: winding
+              -
+                name: evenOdd
       -
         name: LineCap
         kind: enum
         summary: The different styles of line caps
-        options:
+        topics:
           -
-            name: butt
-            summary: Lines have square ends that stop exactly at the line end
-              point
-          -
-            name: round
-            summary: Line ends are semi-circles rounded about the line end point
-          -
-            name: square
-            summary: Line ends are squares centered about the line end point
+            name: Options
+            members:
+              -
+                name: butt
+                summary: Lines have square ends that stop exactly at the line end
+                  point
+              -
+                name: round
+                summary: Line ends are semi-circles rounded about the line end point
+              -
+                name: square
+                summary: Line ends are squares centered about the line end point
       -
         name: LineJoin
         kind: enum
         summary: The different styles of line joints
-        options:
+        topics:
           -
-            name: round
-            summary: Line joints are rounded about the joint point
-          -
-            name: bevel
-            summary: Line joints are beveled
-          -
-            name: miter
-            summary: Line joints are pointy up a limit specified by
-              `setMiterLimit()`
+            name: Options
+            members:
+              -
+                name: round
+                summary: Line joints are rounded about the joint point
+              -
+                name: bevel
+                summary: Line joints are beveled
+              -
+                name: miter
+                summary: Line joints are pointy up a limit specified by
+                  `setMiterLimit()`
       -
         name: setFillColor
         kind: method

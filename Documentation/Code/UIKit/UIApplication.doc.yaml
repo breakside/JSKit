@@ -117,20 +117,23 @@ topics:
         name: LaunchFailureReason
         kind: enum
         summary: Various reasons an application launch can fail
-        options:
+        topics:
           -
-            name: exception
-            summary: An exception was thrown during application
-              initialization
-          -
-            name: filestyemNotAvailable
-            summary: The filesystem could not be accessed or
-              initialized
-          -
-            name: upgradeRequiresNoOtherInstances
-            summary: An upgrade is available, but cannot be installed
-              until other windows/tabs running the same application are
-              closed
+            name: Options
+            members:
+              -
+                name: exception
+                summary: An exception was thrown during application
+                  initialization
+              -
+                name: filestyemNotAvailable
+                summary: The filesystem could not be accessed or
+                  initialized
+              -
+                name: upgradeRequiresNoOtherInstances
+                summary: An upgrade is available, but cannot be installed
+                  until other windows/tabs running the same application are
+                  closed
   -
     name: Windows
     members:

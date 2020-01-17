@@ -11,6 +11,8 @@
 // #import "DocConstructor.js"
 // #import "DocProperty.js"
 // #import "DocEnum.js"
+// #import "DocEnumOption.js"
+// #import "DocEnumFunction.js"
 // #import "DocDocument.js"
 // #import "DocSpec.js"
 // #import "DocSpecProperty.js"
@@ -85,6 +87,9 @@ JSClass("Documentation", JSObject, {
             return component;
         }
         let component = DocComponent.initWithKind(info.kind || defaultKind);
+        if (component === null){
+            throw new Error("Could not create component for %s".sprintf(info.name ? info.name : JSON.stringify(info)));
+        }
         if (info.name){
             component.name = info.name;
         }

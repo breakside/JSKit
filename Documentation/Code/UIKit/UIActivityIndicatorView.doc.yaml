@@ -114,12 +114,15 @@ topics:
         name: Style
         kind: enum
         summary: The default styles for an activity indicator
-        options:
+        topics:
           -
-            name: dark
-            summary: An indicator with a dark tint color, suitable for use on
-              light backgrounds
-          -
-            name: light
-            summary: An indicator with a light tint color, suitable for use on
-              dark backgrounds
+            name: Options
+            members:
+              -
+                name: dark
+                summary: An indicator with a dark tint color, suitable for use on
+                  light backgrounds
+              -
+                name: light
+                summary: An indicator with a light tint color, suitable for use on
+                  dark backgrounds

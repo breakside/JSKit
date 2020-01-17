@@ -31,6 +31,9 @@ JSClass("PDFReader", JSObject, {
     // MARK: - Reading
 
     open: function(completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
         this._crossReferenceTable = [];
         this._readVersion();
         var offset = this._readEndOfFile();
@@ -63,6 +66,7 @@ JSClass("PDFReader", JSObject, {
             return;
         }
         this.authenticate("", completion, target);
+        return completion.promise;
     },
 
     // MARK: - Encryption
@@ -70,12 +74,15 @@ JSClass("PDFReader", JSObject, {
     _encryption: null,
 
     authenticate: function(userPassword, completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
         this._encryption.authenticateUser(userPassword, function PDFReader_authenticate_result(success){
             if (success){
                 this._readObjectStreams(function(){
                     var document = this._trailer.Root;
                     if (document && (document instanceof PDFDocument)){
-                        completion.call(target, PDFReader.Status.open, this._trailer.Root);
+                        completion.call(target, PDFReader.Status.open, document);
                     }else{
                         completion.call(target, PDFReader.Status.error, null);
                     }
@@ -84,6 +91,7 @@ JSClass("PDFReader", JSObject, {
             }
             completion.call(target, PDFReader.Status.passwordRequired, null);
         }, this);
+        return completion.promise;
     },
 
     // MARK: - Internal data structures

@@ -359,13 +359,16 @@ topics:
         kind: enum
         suffix: enum
         summary: The possible states for bar items
-        options:
+        topics:
           -
-            name: normal
-            summary: The default state
-          -
-            name: active
-            summary: The item is being pressed
+            name: Options
+            members:
+              -
+                name: normal
+                summary: The default state
+              -
+                name: active
+                summary: The item is being pressed
       -
         name: active
         type: boolean

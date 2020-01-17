@@ -181,62 +181,71 @@ topics:
         description: |
           These sizes may take different values on different platforms or
           devices.
-        options:
+        topics:
           -
-            name: normal
-            summary: The size to use for normal body text
-          -
-            name: detail
-            summary: The size to use for detail text
-          -
-            name: heading
-            summary: The size to use for heading text
+            name: Options
+            members:
+              -
+                name: normal
+                summary: The size to use for normal body text
+              -
+                name: detail
+                summary: The size to use for detail text
+              -
+                name: heading
+                summary: The size to use for heading text
   -
     name: Style
     members:
       -
         name: Weight
         kind: enum
-        summary: The possible font weights  
-        options:
+        summary: The possible font weights
+        topics:
           -
-            name: ultraLight
-            summary: The thinnest font weight
-          -
-            name: thin
-            summary: A thin font weight
-          -
-            name: light
-            summary: A lighter font weight
-          -
-            name: regular
-            summary: The normal font weight
-          -
-            name: medium
-            summary: Heavier than normal
-          -
-            name: semibold
-            summary: Nearly bold
-          -
-            name: bold
-            summary: The bold font weight
-          -
-            name: heavy
-            summary: Heavier than bold
-          -
-            name: black
-            summary: The heaviest font weight
+            name: Options
+            members:
+              -
+                name: ultraLight
+                summary: The thinnest font weight
+              -
+                name: thin
+                summary: A thin font weight
+              -
+                name: light
+                summary: A lighter font weight
+              -
+                name: regular
+                summary: The normal font weight
+              -
+                name: medium
+                summary: Heavier than normal
+              -
+                name: semibold
+                summary: Nearly bold
+              -
+                name: bold
+                summary: The bold font weight
+              -
+                name: heavy
+                summary: Heavier than bold
+              -
+                name: black
+                summary: The heaviest font weight
       -
         name: Style
         kind: enum
         summary: The possible font styles
-        options:
+        topics:
           -
-            name: normal
-            summary: The normal upright font style
-          -
-            name: italic
-            summary: An italic slanted font style
+            name: Options
+            members:
+              -
+                name: normal
+                summary: The normal upright font style
+              -
+                name: italic
+                summary: An italic slanted font style
   -
     name: Variants
     members:

@@ -76,20 +76,23 @@ topics:
         name: ContentType
         kind: enum
         summary: Well known content types
-        options:
+        topics:
           -
-            name: plainText
-            value: '"text/plain"'
-            summary: Plain text
-          -
-            name: html
-            value: '"text/html"'
-            summary: HTML text
-          -
-            name: anyFile
-            summary: Used to check if any files are on the pasteboard.  UIKit
-              does not support checking the type of each file until the files
-              are pasted.
+            name: Options
+            members:
+              -
+                name: plainText
+                value: '"text/plain"'
+                summary: Plain text
+              -
+                name: html
+                value: '"text/html"'
+                summary: HTML text
+              -
+                name: anyFile
+                summary: Used to check if any files are on the pasteboard.  UIKit
+                  does not support checking the type of each file until the files
+                  are pasted.
       -
         name: types
         type: String[]

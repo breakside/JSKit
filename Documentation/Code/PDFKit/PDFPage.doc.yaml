@@ -1,0 +1,130 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Represents a single PDF page
+description: |
+  A `PDFPage` is obtained by calling `page()`(PDFDocument) on a `PDFDocument`
+topics:
+  -
+    name: Drawing Areas
+    members:
+      -
+        name: bounds
+        type: JSRect
+        summary: The visible bounds of the page's drawings
+        description: |
+          The bounds are equivalent to whichever box is defined first in
+          this order of precedence
+
+          1. The page's `TrimBox`, as specified on the page itself
+          1. The page's `ArtBox`, as specified on the page itelf
+          1. The page's `CropBox`, as specified on the page or an ancestor
+          1. The page's `MediaBox`, as specified on the page or an ancestor
+
+          Furthermore, the `CropBox` cannot extend beyond the `MediaBox`, and
+          neither the `TrimBox` nor the `ArtBox` can extend beyond the
+          `CropBox`.
+      -
+        name: uncroppedBounds
+        type: JSRect
+        summary: The uncropped bounds of the page's drawings
+        description: |
+          The uncropped bounds are equivalent to the page's `MediaBox` as
+          specified either on the page itself or on an ancestor of the page in
+          the PDF document tree structure.
+  -
+    name: Page Contents
+    members:
+      -
+        name: getText
+        kind: method
+        summary: Get the page's plain text asynchronously with a callback
+        arguments:
+          -
+            name: completion
+            summary: A function that is called when the text is loaded
+            type:
+              arguments:
+                -
+                  name: text
+                  type: String
+                  summary: The page's plain text, or `null` if the text could
+                    not be loaded
+          -
+            name: target
+            summary: The object to use as `this` when calling `completion`
+            type: Object
+            default: "undefined"
+      -
+        name: getText
+        suffix: promise
+        kind: method
+        summary: Get the page's plain text asynchronously with a promise
+        type: Promise
+        promise:
+          resolve:
+            type: String
+            summary: The page's plain text
+      -
+        name: getOperationIterator
+        kind: method
+        summary: Get an iterator of the page's operations asynchronously with a
+          callback
+        arguments:
+          -
+            name: completion
+            summary: A function that is called when the iterator is loaded
+            type:
+              arguments:
+                -
+                  name: iterator
+                  type: PDFOperationIterator
+                  summary: The iterator for the page's operations, or `null` if
+                    the data could not be loaded
+          -
+            name: target
+            summary: The object to use as `this` when calling `completion`
+            type: Object
+            default: "undefined"
+      -
+        name: getOperationIterator
+        suffix: promise
+        kind: method
+        summary: Get an iterator of the page's operations asynchronously with a
+          promise
+        type: Promise
+        promise:
+          resolve:
+            type: PDFOperationIterator
+            summary: The iterator for the page's operations
+      -
+        name: getContentsData
+        kind: method
+        summary: Get the page's raw PDF data asynchronously with a callback
+        arguments:
+          -
+            name: completion
+            summary: A function that is called when the data is loaded
+            type:
+              arguments:
+                -
+                  name: data
+                  type: JSData
+                  summary: The page's raw PDF data, or `null` if the data could
+                    not be loaded
+          -
+            name: target
+            summary: The object to use as `this` when calling `completion`
+            type: Object
+            default: "undefined"
+      -
+        name: getContentsData
+        suffix: promise
+        kind: method
+        summary: Get the page's raw PDF data asynchronously with a promise
+        type: Promise
+        promise:
+          resolve:
+            type: JSData
+            summary: The page's raw PDF data

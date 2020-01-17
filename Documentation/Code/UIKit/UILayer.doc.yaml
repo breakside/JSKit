@@ -469,31 +469,34 @@ topics:
           layer.maskedBorders = UILayer.Sides.minX | UILayer.Sides.minY;
           ````
           will paint the top and left borders.
-        options:
+        topics:
           -
-            name: none
-            summary: No sides
-          -
-            name: minX
-            summary: The vertical side with the smaller `x` value
-          -
-            name: maxX
-            summary: The vertical side with the larger `x` value
-          -
-            name: minY
-            summary: The horizontal side with the smaller `y` value
-          -
-            name: maxY
-            summary: The horizontal side with the larger `y` value
-          -
-            name: minXmaxX
-            summary: Both vertical sides
-          -
-            name: minYmaxY
-            summary: Both horizontal sides
-          -
-            name: all
-            summary: All sides
+            name: Options
+            members:
+              -
+                name: none
+                summary: No sides
+              -
+                name: minX
+                summary: The vertical side with the smaller `x` value
+              -
+                name: maxX
+                summary: The vertical side with the larger `x` value
+              -
+                name: minY
+                summary: The horizontal side with the smaller `y` value
+              -
+                name: maxY
+                summary: The horizontal side with the larger `y` value
+              -
+                name: minXmaxX
+                summary: Both vertical sides
+              -
+                name: minYmaxY
+                summary: Both horizontal sides
+              -
+                name: all
+                summary: All sides
       -
         name: Corners
         kind: enum
@@ -507,37 +510,40 @@ topics:
           layer.maskedCorners = UILayer.Corners.minX | UILayer.Corners.maxX;
           ````
           will paint both vertical borders (left and right)
-        options:
+        topics:
           -
-            name: none
-            summary: No corners
-          -
-            name: minXminY
-            summary: The corner at the smaller `x` and `y` values
-          -
-            name: minXmaxY
-            summary: The corner at the smaller `x` and larger `y` values
-          -
-            name: maxXminY
-            summary: The corner at the larger `x` and smaller `y` values
-          -
-            name: maxXmaxY
-            summary: The corner at the larger `x` and larger `y` values
-          -
-            name: minX
-            summary: The two corners with the smaller `x` value
-          -
-            name: maxX
-            summary: The two corners with the larger `x` value
-          -
-            name: minY
-            summary: The two corners with the smaller `y` value
-          -
-            name: maxY
-            summary: The two corners with the larger `y` value
-          -
-            name: all
-            summary: All corners
+            name: Options
+            members:
+              -
+                name: none
+                summary: No corners
+              -
+                name: minXminY
+                summary: The corner at the smaller `x` and `y` values
+              -
+                name: minXmaxY
+                summary: The corner at the smaller `x` and larger `y` values
+              -
+                name: maxXminY
+                summary: The corner at the larger `x` and smaller `y` values
+              -
+                name: maxXmaxY
+                summary: The corner at the larger `x` and larger `y` values
+              -
+                name: minX
+                summary: The two corners with the smaller `x` value
+              -
+                name: maxX
+                summary: The two corners with the larger `x` value
+              -
+                name: minY
+                summary: The two corners with the smaller `y` value
+              -
+                name: maxY
+                summary: The two corners with the larger `y` value
+              -
+                name: all
+                summary: All corners
   -
     name: Shadow
     members:
