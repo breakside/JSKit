@@ -1,0 +1,717 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Read and parse OpenType font files
+topics:
+  -
+    name: Loading a Font
+    members:
+      -
+        name: initWithData
+        kind: init
+        summary: Read OpenType font data
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The OpenType font file's data
+  -
+    name: Character Measurement
+    members:
+      -
+        name: widthOfGlyph
+        kind: method
+        type: Number
+        summary: Get the width of the given glyph in `em` units
+        arguments:
+          -
+            name: glyphIndex
+            type: Number
+            summary: The index of the glyph in this font
+  -
+    name: Glyph Character Mapping
+    members:
+      -
+        name: glyphForCharacter
+        kind: method
+        type: Number
+        summary: Get the glyph index for the given character
+        arguments:
+          -
+            name: character
+            type: UnicodeChar
+            summary: The character to lookup
+  -
+    name: Corrected Font
+    members:
+      -
+        name: getCorrectedFont
+        kind: method
+        summary: Get a corrected version of this font asynchronously with a
+          callback
+        arguments:
+          -
+            name: completion
+            summary: A function that is called when the corrected font is loaded
+            type:
+              arguments:
+                -
+                  name: font
+                  type: JSFont
+                  summary: The corrected version of this font, or `null` if the
+                    correction could not be loaded
+          -
+            name: target
+            summary: The object to use as `this` when calling `completion`
+            type: Object
+            default: "undefined"
+        description: |
+          PDF files will often include OpenType fonts that have mistakes or
+          missing pieces that cause web browsers to reject the font if used
+          as-is.
+
+          PDF readers, of course, have no problem with the mistakes, proving
+          the font has all the data required to be a valid font, but needs
+          some corrections.
+      -
+        name: getCorrectedFont
+        suffix: promise
+        kind: method
+        summary: Get a corrected version of this font asynchronously with
+          a promise
+        type: Promise
+        promise:
+          resolve:
+            type: JSFont
+            summary: The corrected version of this font
+        description: |
+          PDF files will often include OpenType fonts that have mistakes or
+          missing pieces that cause web browsers to reject the font if used
+          as-is.
+
+          PDF readers, of course, have no problem with the mistakes, proving
+          the font has all the data required to be a valid font, but needs
+          some corrections.
+  -
+    name: OpenType Tables
+    members:
+      -
+        name: "[tableName]"
+        type: FNTOpenTypeFontTable
+        summary: Get the table with the given name
+        description: |
+          The `tableName` to use is the 4-character code specified in
+          the [OpenType Specification](https://docs.microsoft.com/en-us/typography/opentype/spec/)
+      -
+        name: FNTOpenTypeFontTable
+        kind: class
+        inherits: JSObject
+        summary: The base class for all tables
+        topics:
+          -
+            name: Table Data
+            members:
+              -
+                name: data
+                type: JSData
+                summary: The table's raw data
+              -
+                name: dataView
+                type: DataView
+                summary: A data view into the table's raw data
+  -
+    name: Header
+    members:
+      -
+        name: head
+        type: FNTOpenTypeFontTableHead
+        summary: The font's header table
+      -
+        name: "['OS/2']"
+        type: FNTOpenTypeFontTableOS2
+        summary: The font's OS/2 header table
+      -
+        name: post
+        type: FNTOpenTypeFontTablePost
+        summary: The font's postscript header table
+      -
+        name: FNTOpenTypeFontTableHead
+        kind: class
+        inherits: FNTOpenTypeFontTable
+        summary: The structure of the OpenType header table
+        description: |
+          Descriptions of the properties can be found in the
+          [OpenType Specification](https://docs.microsoft.com/en-us/typography/opentype/spec/head)
+        topics:
+          -
+            name: Versions
+            members:
+              -
+                name: majorVersion
+                type: Number
+              -
+                name: minorVersion
+                type: Number
+              -
+                name: majorRevision
+                type: Number
+              -
+                name: minorRevision
+                type: Number
+          -
+            name: Checksum
+            members:
+              -
+                name: checksumAdjustment
+                type: Number
+              -
+                name: magicNumber
+                type: Number
+          -
+            name: Info
+            members:
+              -
+                name: flags
+                type: Number
+              -
+                name: createdHigh
+                type: Number
+              -
+                name: createdLow
+                type: Number
+              -
+                name: modifiedHigh
+                type: Number
+              -
+                name: modifiedLow
+                type: Number
+              -
+                name: macStyle
+                type: Number
+              -
+                name: fontDirectionHint
+                type: Number
+          -
+            name: Units & Sizes
+            members:
+              -
+                name: unitsPerEM
+                type: Number
+              -
+                name: xMin
+                type: Number
+              -
+                name: yMin
+                type: Number
+              -
+                name: xMax
+                type: Number
+              -
+                name: yMax
+                type: Number
+              -
+                name: lowestRecPPEM
+                type: Number
+          -
+            name: Glyphs
+            members:
+              -
+                name: indexToLocFormat
+                type: Number
+              -
+                name: glyphDataFormat
+                type: Number
+      -
+        name: FNTOpenTypeFontTableOS2
+        kind: class
+        inherits: FNTOpenTypeFontTable
+        summary: The structure of the OpenType OS/2 header table
+        description: |
+          Descriptions of the properties can be found in the
+          [OpenType Specification](https://docs.microsoft.com/en-us/typography/opentype/spec/os2)
+        topics:
+          -
+            name: Version
+            members:
+              -
+                name: version
+                type: Number
+          -
+            name: Info
+            members:
+              -
+                name: fsType
+                type: Number
+              -
+                name: sFamilyClass
+                type: Number
+              -
+                name: achVendID
+                type: Number
+              -
+                name: fsSelection
+                type: Number
+          -
+            name: Font-Wide Sizes
+            members:
+              -
+                name: sTypoAscender
+                type: Number
+              -
+                name: sTypoDescender
+                type: Number
+              -
+                name: sTypoLineGap
+                type: Number
+              -
+                name: sxHeight
+                type: Number
+              -
+                name: sCapHeight
+                type: Number
+              -
+                name: xAvgCharWidth
+                type: Number
+              -
+                name: usWinAscent
+                type: Number
+              -
+                name: usWinDescent
+                type: Number
+              -
+                name: usWeightClass
+                type: Number
+              -
+                name: usWidthClass
+                type: Number
+              -
+                name: usDefaultChar
+                type: Number
+              -
+                name: usBreakChar
+                type: Number
+              -
+                name: usMaxContext
+                type: Number
+              -
+                name: usLowerOpticalPointSize
+                type: Number
+              -
+                name: usUpperOpticalPointSize
+                type: Number
+              -
+                name: ySubscriptXSize
+                type: Number
+              -
+                name: ySubscriptYSize
+                type: Number
+              -
+                name: ySubscriptXOffset
+                type: Number
+              -
+                name: ySubscriptYOffset
+                type: Number
+              -
+                name: ySuperscriptXSize
+                type: Number
+              -
+                name: ySuperscriptYSize
+                type: Number
+              -
+                name: ySuperscriptXOffset
+                type: Number
+              -
+                name: ySuperscriptYOffset
+                type: Number
+              -
+                name: yStrikeoutSize
+                type: Number
+              -
+                name: yStrikeoutPosition
+                type: Number
+          -
+            name: Panose
+            members:
+              -
+                name: panose0
+                type: Number
+              -
+                name: panose1
+                type: Number
+              -
+                name: panose2
+                type: Number
+              -
+                name: panose3
+                type: Number
+              -
+                name: panose4
+                type: Number
+              -
+                name: panose5
+                type: Number
+              -
+                name: panose6
+                type: Number
+              -
+                name: panose7
+                type: Number
+              -
+                name: panose8
+                type: Number
+              -
+                name: panose9
+                type: Number
+          -
+            name: Unicode Ranges
+            members:
+              -
+                name: ulUnicodeRange1
+                type: Number
+              -
+                name: ulUnicodeRange2
+                type: Number
+              -
+                name: ulUnicodeRange3
+                type: Number
+              -
+                name: ulUnicodeRange4
+                type: Number
+              -
+                name: usFirstCharIndex
+                type: Number
+              -
+                name: usLastCharIndex
+                type: Number
+              -
+                name: ulCodePageRange1
+                type: Number
+              -
+                name: ulCodePageRange2
+                type: Number
+      -
+        name: FNTOpenTypeFontTablePost
+        kind: class
+        inherits: FNTOpenTypeFontTable
+        summary: The structure of the OpenType postscript header table
+        description: |
+          Descriptions of the properties can be found in the
+          [OpenType Specification](https://docs.microsoft.com/en-us/typography/opentype/spec/post)
+        topics:
+          -
+            name: Version
+            members:
+              -
+                name: majorVersion
+                type: Number
+              -
+                name: minorVersion
+                type: Number
+          -
+            name: Info
+            members:
+              -
+                name: italicAngleWhole
+                type: Number
+              -
+                name: italicAngleFraction
+                type: Number
+              -
+                name: underlinePosition
+                type: Number
+              -
+                name: underlineThickness
+                type: Number
+              -
+                name: isFixedPitch
+                type: Number
+              -
+                name: minMemType42
+                type: Number
+              -
+                name: maxMemType42
+                type: Number
+              -
+                name: minMemType1
+                type: Number
+              -
+                name: maxMemType1
+                type: Number
+  -
+    name: Naming
+    members:
+      -
+        name: name
+        type: FNTOpenTypeFontTableName
+        summary: The font's name table
+      -
+        name: FNTOpenTypeFontTableName
+        kind: class
+        inherits: FNTOpenTypeFontTable
+        summary: The structure of the OpenType name table
+        description: |
+          Descriptions of the properties can be found in the
+          [OpenType Specification](https://docs.microsoft.com/en-us/typography/opentype/spec/name)
+        topics:
+          -
+            name: Properties
+            members:
+              -
+                name: format
+                type: Number
+              -
+                name: count
+                type: Number
+              -
+                name: stringsOffset
+                type: Number
+          -
+            name: Common Names
+            members:
+              -
+                name: family
+                type: String
+                summary: The font's family name
+              -
+                name: face
+                type: String
+                summary: The font's face name
+              -
+                name: uniqueID
+                type: String
+                summary: The font's unique name
+              -
+                name: postscript
+                type: String
+                summary: The font's postscript name
+              -
+                name: fullName
+                type: String
+                summary: The font's full name
+          -
+            name: Name lookup
+            members:
+              -
+                name: getName
+                type: String
+                summary: Get the first matching name
+                arguments:
+                  -
+                    name: preferences
+                    variable: true
+                    type: Number[3]
+                    summary: The preferred name to lookup
+                description: |
+                  Each preference is a 3-Array of:
+                  - platform ID
+                  - encoding ID
+                  - language ID
+          -
+            name: Adding Names
+            members:
+              -
+                name: addName
+                kind: method
+                summary: Add the name for the given platform, encoding, and language
+                arguments:
+                  -
+                    name: platformId
+                    type: Number
+                    summary: The platform ID
+                  -
+                    name: encodingId
+                    type: Number
+                    summary: The encoding ID
+                  -
+                    name: languageId
+                    type: Number
+                    summary: The language ID
+                  -
+                    name: nameId
+                    type: Number
+                    summary: The name ID
+                  -
+                    name: nameData
+                    type: JSData
+                    summary: The encoded name
+  -
+    name: Horizontal Metrics
+    members:
+      -
+        name: hhea
+        type: FNTOpenTypeFontTableHhea
+        summary: The font's horizonal header table
+      -
+        name: hmtx
+        type: FNTOpenTypeFontTableHmtx
+        summary: The font's horizontal metrics table
+      -
+        name: FNTOpenTypeFontTableHhea
+        kind: class
+        inherits: FNTOpenTypeFontTable
+        summary: The structure of the OpenType horizontal header table 
+        description: |
+          Descriptions of the properties can be found in the
+          [OpenType Specification](https://docs.microsoft.com/en-us/typography/opentype/spec/hhea)
+        topics:
+          -
+            name: Version
+            members:
+              -
+                name: majorVersion
+                type: Number
+              -
+                name: minorVersion
+                type: Number
+          -
+            name: Font-Wide Metrics
+            members:
+              -
+                name: ascender
+                type: Number
+              -
+                name: descender
+                type: Number
+              -
+                name: lineGap
+                type: Number
+              -
+                name: advanceWidthMax
+                type: Number
+              -
+                name: minLeftSideBearing
+                type: Number
+              -
+                name: minRightSideBearing
+                type: Number
+              -
+                name: xMaxExtent
+                type: Number
+              -
+                name: caretSlopeRise
+                type: Number
+              -
+                name: caretSlopeRun
+                type: Number
+              -
+                name: caretOffset
+                type: Number
+              -
+                name: metricDataFormat
+                type: Number
+              -
+                name: numberOfHMetrics
+                type: Number
+      -
+        name: FNTOpenTypeFontTableHmtx
+        kind: class
+        inherits: FNTOpenTypeFontTable
+        summary: The structure of the OpenType horizontal metrics table
+        description: |
+          Descriptions of the properties can be found in the
+          [OpenType Specification](https://docs.microsoft.com/en-us/typography/opentype/spec/hmtx)
+        topics:
+          -
+            name: Glyph Widths
+            members:
+              -
+                name: widthOfGlyph
+                kind: method
+                type: Number
+                summary: Get the width of the given glyph
+                arguments:
+                  -
+                    name: glyph
+                    type: Number
+                    summary: The glyph index to lookup
+              -
+                name: setWidths
+                kind: method
+                summary: Set the glyph widths for this font
+                arguments:
+                  -
+                    name: widths
+                    type: Number[]
+                    summary: The widths of all the glyphs
+  -
+    name: Character Set
+    members:
+      -
+        name: cmap
+        type: FNTOpenTypeFontTableCmap
+        summary: The font's character map
+      -
+        name: FNTOpenTypeFontTableCmap
+        kind: class
+        inherits: FNTOpenTypeFontTable
+        summary: The structure of the OpenType character map table
+        description: |
+          Descriptions of the properties can be found in the
+          [OpenType Specification](https://docs.microsoft.com/en-us/typography/opentype/spec/cmap)
+        topics:
+          -
+            name: Properties
+            members:
+              -
+                name: version
+                type: Number
+              -
+                name: count
+                type: Number
+          -
+            name: Character Maps
+            members:
+              -
+                name: getMap
+                kind: method
+                type: FNTOpenTypeFontCmap
+                nullable: true
+                summary: Get the first matching map
+                arguments:
+                  -
+                    name: preferences
+                    variable: true
+                    type: Number[2]
+                    summary: The preferred name to lookup
+                description: |
+                  Each preference is a 2-Array of:
+                  - platform ID
+                  - specific ID
+              -
+                name: addMap
+                kind: method
+                summary: Add a character map
+                arguments:
+                  -
+                    name: platformId
+                    type: Number
+                    summary: The platform ID
+                  -
+                    name: specificId
+                    type: Number
+                    summary: The specific ID
+                  -
+                    name: map
+                    type: FNTOpenTypeFontCmap
+                    summary: The map to add
+      -
+        name: FNTOpenTypeFontCmap
+        kind: class
+        inherits: JSObject
+        summary: The OpenType character map format
+        description: |
+          A base class for a character map
+        topics:
+          name: Glyph Lookup
+          members:
+            -
+              name: glyphForCharacterCode
+              kind: method
+              type: Number
+              summary: Get the glyph index for the given character code
+              arguments:
+                - 
+                  name: code
+                  type: Number
+                  summary: A character code

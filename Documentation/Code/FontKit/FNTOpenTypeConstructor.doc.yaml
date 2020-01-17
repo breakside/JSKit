@@ -1,0 +1,115 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: Construct an OpenType font file
+topics:
+  -
+    name: Creating a Constructor
+    members:
+      -
+        name: initWithTables
+        kind: init
+        summary: Create a constructor starting with the given tables
+        arguments:
+          -
+            name: tables
+            type: FNTOpenTypeFontTable[]
+            summary: The tables to start with
+      -
+        name: initWithGlyphType
+        kind: init
+        summary: Create a constructor that will build a font with the given
+          glyph type
+        arguments:
+          -
+            name: glyphType
+            type: GlyphType
+            summary: The type of glyphs this font will use
+  -
+    name: Tables
+    members:
+      -
+        name: addTable
+        kind: method
+        summary: Add the given table to the font
+        arguments:
+          -
+            name: table
+            type: FNTOpenTypeFontTable
+            summary: The table to add
+  -
+    name: Common Properties
+    members:
+      -
+        name: setLineHeight
+        kind: method
+        summary: Set the line height in all the tables that include it
+        arguments:
+          -
+            name: ascender
+            type: Number
+            summary: The ascender
+          -
+            name: descender
+            type: Number
+            summary: The descender, typically a negative number
+      -
+        name: setItalicAngle
+        kind: method
+        summary: Set the italic angle in all the tables that include it
+        arguments:
+          -
+            name: angle
+            type: Number
+            summary: The italic angle
+  -
+    name: Font Data
+    members:
+      -
+        name: getData
+        kind: method
+        summary: Get the OpenType font data asynchronously with a callback
+        arguments:
+          -
+            name: completion
+            summary: A function that is called when the data is loaded
+            type:
+              arguments:
+                -
+                  name: data
+                  type: JSData
+                  summary: The OpenType font data, or `null` if the data could
+                    not be loaded
+          -
+            name: target
+            summary: The object to use as `this` when calling `completion`
+            type: Object
+            default: "undefined"
+      -
+        name: getData
+        suffix: promise
+        kind: method
+        summary: Get the OpenType font data asynchronously with a promise
+        type: Promise
+        promise:
+          resolve:
+            type: JSData
+            summary: The OpenType font data
+  -
+    name: Glyphs
+    members:
+      -
+        name: GlyphType
+        kind: enum
+        summary: The types of glyphs a font can use
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: trueType
+                summary: The TrueType glyph type.  This is the most common.
+              -
+                name: compactFontFormat
+                summary: The CFF glyph type. Useful for wrapping PDF fonts.

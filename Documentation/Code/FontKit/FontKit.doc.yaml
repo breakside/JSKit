@@ -1,0 +1,22 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: framework
+summary: Read and write font files
+description: |
+  `FontKit` proivdes classes that inspect and create OpenType font files.
+
+  While reading font files isn't typically required for applications, it
+  is used for specialized use cases like the internals of `PDFKit` and the
+  `jskit` build system.
+topics:
+  -
+    name: Open Type Fonts
+    members:
+      - FNTOpenTypeFont
+      - FNTOpenTypeConstructor
+      - FNTFontDescriptor
+  -
+    name: PDF Font Support
+    members:
+      - FNTCompactFontFormat
+      - FNTType1Font
+      - FNTAdobeNamesToUnicode

@@ -180,7 +180,7 @@ var SimpleFontPrototype = Object.create(PDFFont.prototype, {
                 }
                 var info = {
                     singleByteEncoding: map,
-                    encodingDiffs: diffs,
+                    diffs: diffs,
                     widths: this.Widths,
                     firstWidth: this.FirstChar,
                     lastWidth: this.LastChar

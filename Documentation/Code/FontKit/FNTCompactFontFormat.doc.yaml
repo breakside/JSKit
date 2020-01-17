@@ -1,0 +1,111 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: A Compact Font Format (CFF) reader
+topics:
+  -
+    name: Creating a CFF Reader
+    members:
+      -
+        name: initWithData
+        kind: init
+        summary: Create a reader based on CFF data
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The CFF data
+  -
+    name: Converting to OpenType
+    members:
+      -
+        name: getOpenTypeData
+        kind: method
+        summary: Get the OpenType font data asynchronously with a callback
+        arguments:
+          -
+            name: externalInfo
+            type: ExternalInfo
+            summary: OpenType properties obtained elswhere.  Can be `{}`.
+          -
+            name: completion
+            summary: A function that is called when the data is loaded
+            type:
+              arguments:
+                -
+                  name: data
+                  type: JSData
+                  summary: The OpenType font data, or `null` if the data could
+                    not be loaded
+          -
+            name: target
+            summary: The object to use as `this` when calling `completion`
+            type: Object
+            default: "undefined"
+      -
+        name: getOpenTypeData
+        suffix: promise
+        kind: method
+        summary: Get the OpenType font data asynchronously with a promise
+        type: Promise
+        promise:
+          resolve:
+            type: JSData
+            summary: The OpenType font data
+        arguments:
+          -
+            name: externalInfo
+            type: ExternalInfo
+            summary: OpenType properties obtained elswhere.  Can be `{}`.
+      -
+        name: ExternalInfo
+        kind: class
+        anonymous: true
+        summary: Information that can be provided when converting a CFF to
+          OpenType
+        description: |
+          All properties are optional.
+        topics:
+          -
+            name: Properties
+            members:
+              -
+                name: bbox
+                type: Number[4]
+                summary: The bounding box to use
+              -
+                name: ascender
+                type: Number
+                summary: The ascender to use
+              -
+                name: descender
+                type: Number
+                summary: The descender to use
+              -
+                name: singleByteEncoding
+                type: Number[255]
+                summary: The character encoding map to use
+              -
+                name: diffs
+                type: any[]
+                summary: The encoding diffs to use
+                description: |
+                  Items can be either `Number`s or `String`s representing
+                  `FNTAdobeNamesToUnicode`
+              -
+                name: widths
+                type: Number[]
+                summary: The character widths to use
+              -
+                name: firstWidth
+                type: Number
+                summary: The first width to use
+              -
+                name: lastWidth
+                type: Number
+                summary: The last width to use
+              -
+                name: nominalWidth
+                type: Number
+                summary: The nominal width to use

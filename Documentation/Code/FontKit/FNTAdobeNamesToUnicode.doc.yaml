@@ -1,0 +1,2186 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: enum
+summary: A mapping of Adobe character names to Unicode
+topics:
+  -
+    name: Names
+    members:
+      -
+        name: A
+        value: "0x0041"
+      -
+        name: AE
+        value: "0x00c6"
+      -
+        name: AEsmall
+        value: "0xf7e6"
+      -
+        name: Aacute
+        value: "0x00c1"
+      -
+        name: Aacutesmall
+        value: "0xf7e1"
+      -
+        name: Acircumflex
+        value: "0x00c2"
+      -
+        name: Acircumflexsmall
+        value: "0xf7e2"
+      -
+        name: Acutesmall
+        value: "0xf7b4"
+      -
+        name: Adieresis
+        value: "0x00c4"
+      -
+        name: Adieresissmall
+        value: "0xf7e4"
+      -
+        name: Agrave
+        value: "0x00c0"
+      -
+        name: Agravesmall
+        value: "0xf7e0"
+      -
+        name: Alpha
+        value: "0x0391"
+      -
+        name: Aring
+        value: "0x00c5"
+      -
+        name: Aringsmall
+        value: "0xf7e5"
+      -
+        name: Asmall
+        value: "0xf761"
+      -
+        name: Atilde
+        value: "0x00c3"
+      -
+        name: Atildesmall
+        value: "0xf7e3"
+      -
+        name: B
+        value: "0x0042"
+      -
+        name: Beta
+        value: "0x0392"
+      -
+        name: Brevesmall
+        value: "0xf6f4"
+      -
+        name: Bsmall
+        value: "0xf762"
+      -
+        name: C
+        value: "0x0043"
+      -
+        name: Caronsmall
+        value: "0xf6f5"
+      -
+        name: Ccedilla
+        value: "0x00c7"
+      -
+        name: Ccedillasmall
+        value: "0xf7e7"
+      -
+        name: Cedillasmall
+        value: "0xf7b8"
+      -
+        name: Chi
+        value: "0x03a7"
+      -
+        name: Circumflexsmall
+        value: "0xf6f6"
+      -
+        name: Csmall
+        value: "0xf763"
+      -
+        name: D
+        value: "0x0044"
+      -
+        name: Delta
+        value: "0x2206"
+      -
+        name: Dieresissmall
+        value: "0xf7a8"
+      -
+        name: Dotaccentsmall
+        value: "0xf6f7"
+      -
+        name: Dsmall
+        value: "0xf764"
+      -
+        name: E
+        value: "0x0045"
+      -
+        name: Eacute
+        value: "0x00c9"
+      -
+        name: Eacutesmall
+        value: "0xf7e9"
+      -
+        name: Ecircumflex
+        value: "0x00ca"
+      -
+        name: Ecircumflexsmall
+        value: "0xf7ea"
+      -
+        name: Edieresis
+        value: "0x00cb"
+      -
+        name: Edieresissmall
+        value: "0xf7eb"
+      -
+        name: Egrave
+        value: "0x00c8"
+      -
+        name: Egravesmall
+        value: "0xf7e8"
+      -
+        name: Epsilon
+        value: "0x0395"
+      -
+        name: Esmall
+        value: "0xf765"
+      -
+        name: Eta
+        value: "0x0397"
+      -
+        name: Eth
+        value: "0x00d0"
+      -
+        name: Ethsmall
+        value: "0xf7f0"
+      -
+        name: Euro
+        value: "0x20ac"
+      -
+        name: F
+        value: "0x0046"
+      -
+        name: Fsmall
+        value: "0xf766"
+      -
+        name: G
+        value: "0x0047"
+      -
+        name: Gamma
+        value: "0x0393"
+      -
+        name: Gravesmall
+        value: "0xf760"
+      -
+        name: Gsmall
+        value: "0xf767"
+      -
+        name: H
+        value: "0x0048"
+      -
+        name: Hsmall
+        value: "0xf768"
+      -
+        name: Hungarumlautsmall
+        value: "0xf6f8"
+      -
+        name: I
+        value: "0x0049"
+      -
+        name: Iacute
+        value: "0x00cd"
+      -
+        name: Iacutesmall
+        value: "0xf7ed"
+      -
+        name: Icircumflex
+        value: "0x00ce"
+      -
+        name: Icircumflexsmall
+        value: "0xf7ee"
+      -
+        name: Idieresis
+        value: "0x00cf"
+      -
+        name: Idieresissmall
+        value: "0xf7ef"
+      -
+        name: Ifraktur
+        value: "0x2111"
+      -
+        name: Igrave
+        value: "0x00cc"
+      -
+        name: Igravesmall
+        value: "0xf7ec"
+      -
+        name: Iota
+        value: "0x0399"
+      -
+        name: Ismall
+        value: "0xf769"
+      -
+        name: J
+        value: "0x004a"
+      -
+        name: Jsmall
+        value: "0xf76a"
+      -
+        name: K
+        value: "0x004b"
+      -
+        name: Kappa
+        value: "0x039a"
+      -
+        name: Ksmall
+        value: "0xf76b"
+      -
+        name: L
+        value: "0x004c"
+      -
+        name: Lambda
+        value: "0x039b"
+      -
+        name: Lslash
+        value: "0x0141"
+      -
+        name: Lslashsmall
+        value: "0xf6f9"
+      -
+        name: Lsmall
+        value: "0xf76c"
+      -
+        name: M
+        value: "0x004d"
+      -
+        name: Macronsmall
+        value: "0xf7af"
+      -
+        name: Msmall
+        value: "0xf76d"
+      -
+        name: Mu
+        value: "0x039c"
+      -
+        name: N
+        value: "0x004e"
+      -
+        name: Nsmall
+        value: "0xf76e"
+      -
+        name: Ntilde
+        value: "0x00d1"
+      -
+        name: Ntildesmall
+        value: "0xf7f1"
+      -
+        name: Nu
+        value: "0x039d"
+      -
+        name: O
+        value: "0x004f"
+      -
+        name: OE
+        value: "0x0152"
+      -
+        name: OEsmall
+        value: "0xf6fa"
+      -
+        name: Oacute
+        value: "0x00d3"
+      -
+        name: Oacutesmall
+        value: "0xf7f3"
+      -
+        name: Ocircumflex
+        value: "0x00d4"
+      -
+        name: Ocircumflexsmall
+        value: "0xf7f4"
+      -
+        name: Odieresis
+        value: "0x00d6"
+      -
+        name: Odieresissmall
+        value: "0xf7f6"
+      -
+        name: Ogoneksmall
+        value: "0xf6fb"
+      -
+        name: Ograve
+        value: "0x00d2"
+      -
+        name: Ogravesmall
+        value: "0xf7f2"
+      -
+        name: Omega
+        value: "0x2126"
+      -
+        name: Omicron
+        value: "0x039f"
+      -
+        name: Oslash
+        value: "0x00d8"
+      -
+        name: Oslashsmall
+        value: "0xf7f8"
+      -
+        name: Osmall
+        value: "0xf76f"
+      -
+        name: Otilde
+        value: "0x00d5"
+      -
+        name: Otildesmall
+        value: "0xf7f5"
+      -
+        name: P
+        value: "0x0050"
+      -
+        name: Phi
+        value: "0x03a6"
+      -
+        name: Pi
+        value: "0x03a0"
+      -
+        name: Psi
+        value: "0x03a8"
+      -
+        name: Psmall
+        value: "0xf770"
+      -
+        name: Q
+        value: "0x0051"
+      -
+        name: Qsmall
+        value: "0xf771"
+      -
+        name: R
+        value: "0x0052"
+      -
+        name: Rfraktur
+        value: "0x211c"
+      -
+        name: Rho
+        value: "0x03a1"
+      -
+        name: Ringsmall
+        value: "0xf6fc"
+      -
+        name: Rsmall
+        value: "0xf772"
+      -
+        name: S
+        value: "0x0053"
+      -
+        name: Scaron
+        value: "0x0160"
+      -
+        name: Scaronsmall
+        value: "0xf6fd"
+      -
+        name: Sigma
+        value: "0x03a3"
+      -
+        name: Ssmall
+        value: "0xf773"
+      -
+        name: T
+        value: "0x0054"
+      -
+        name: Tau
+        value: "0x03a4"
+      -
+        name: Theta
+        value: "0x0398"
+      -
+        name: Thorn
+        value: "0x00de"
+      -
+        name: Thornsmall
+        value: "0xf7fe"
+      -
+        name: Tildesmall
+        value: "0xf6fe"
+      -
+        name: Tsmall
+        value: "0xf774"
+      -
+        name: U
+        value: "0x0055"
+      -
+        name: Uacute
+        value: "0x00da"
+      -
+        name: Uacutesmall
+        value: "0xf7fa"
+      -
+        name: Ucircumflex
+        value: "0x00db"
+      -
+        name: Ucircumflexsmall
+        value: "0xf7fb"
+      -
+        name: Udieresis
+        value: "0x00dc"
+      -
+        name: Udieresissmall
+        value: "0xf7fc"
+      -
+        name: Ugrave
+        value: "0x00d9"
+      -
+        name: Ugravesmall
+        value: "0xf7f9"
+      -
+        name: Upsilon
+        value: "0x03a5"
+      -
+        name: Upsilon1
+        value: "0x03d2"
+      -
+        name: Usmall
+        value: "0xf775"
+      -
+        name: V
+        value: "0x0056"
+      -
+        name: Vsmall
+        value: "0xf776"
+      -
+        name: W
+        value: "0x0057"
+      -
+        name: Wsmall
+        value: "0xf777"
+      -
+        name: X
+        value: "0x0058"
+      -
+        name: Xi
+        value: "0x039e"
+      -
+        name: Xsmall
+        value: "0xf778"
+      -
+        name: Y
+        value: "0x0059"
+      -
+        name: Yacute
+        value: "0x00dd"
+      -
+        name: Yacutesmall
+        value: "0xf7fd"
+      -
+        name: Ydieresis
+        value: "0x0178"
+      -
+        name: Ydieresissmall
+        value: "0xf7ff"
+      -
+        name: Ysmall
+        value: "0xf779"
+      -
+        name: Z
+        value: "0x005a"
+      -
+        name: Zcaron
+        value: "0x017d"
+      -
+        name: Zcaronsmall
+        value: "0xf6ff"
+      -
+        name: Zeta
+        value: "0x0396"
+      -
+        name: Zsmall
+        value: "0xf77a"
+      -
+        name: a
+        value: "0x0061"
+      -
+        name: aacute
+        value: "0x00e1"
+      -
+        name: acircumflex
+        value: "0x00e2"
+      -
+        name: acute
+        value: "0x00b4"
+      -
+        name: adieresis
+        value: "0x00e4"
+      -
+        name: ae
+        value: "0x00e6"
+      -
+        name: agrave
+        value: "0x00e0"
+      -
+        name: aleph
+        value: "0x2135"
+      -
+        name: alpha
+        value: "0x03b1"
+      -
+        name: ampersand
+        value: "0x0026"
+      -
+        name: ampersandsmall
+        value: "0xf726"
+      -
+        name: angle
+        value: "0x2220"
+      -
+        name: angleleft
+        value: "0x2329"
+      -
+        name: angleright
+        value: "0x232a"
+      -
+        name: approxequal
+        value: "0x2248"
+      -
+        name: aring
+        value: "0x00e5"
+      -
+        name: arrowboth
+        value: "0x2194"
+      -
+        name: arrowdblboth
+        value: "0x21d4"
+      -
+        name: arrowdbldown
+        value: "0x21d3"
+      -
+        name: arrowdblleft
+        value: "0x21d0"
+      -
+        name: arrowdblright
+        value: "0x21d2"
+      -
+        name: arrowdblup
+        value: "0x21d1"
+      -
+        name: arrowdown
+        value: "0x2193"
+      -
+        name: arrowhorizex
+        value: "0xf8e7"
+      -
+        name: arrowleft
+        value: "0x2190"
+      -
+        name: arrowright
+        value: "0x2192"
+      -
+        name: arrowup
+        value: "0x2191"
+      -
+        name: arrowvertex
+        value: "0xf8e6"
+      -
+        name: asciicircum
+        value: "0x005e"
+      -
+        name: asciitilde
+        value: "0x007e"
+      -
+        name: asterisk
+        value: "0x002a"
+      -
+        name: asteriskmath
+        value: "0x2217"
+      -
+        name: asuperior
+        value: "0xf6e9"
+      -
+        name: at
+        value: "0x0040"
+      -
+        name: atilde
+        value: "0x00e3"
+      -
+        name: b
+        value: "0x0062"
+      -
+        name: backslash
+        value: "0x005c"
+      -
+        name: bar
+        value: "0x007c"
+      -
+        name: beta
+        value: "0x03b2"
+      -
+        name: braceex
+        value: "0xf8f4"
+      -
+        name: braceleft
+        value: "0x007b"
+      -
+        name: braceleftbt
+        value: "0xf8f3"
+      -
+        name: braceleftmid
+        value: "0xf8f2"
+      -
+        name: bracelefttp
+        value: "0xf8f1"
+      -
+        name: braceright
+        value: "0x007d"
+      -
+        name: bracerightbt
+        value: "0xf8fe"
+      -
+        name: bracerightmid
+        value: "0xf8fd"
+      -
+        name: bracerighttp
+        value: "0xf8fc"
+      -
+        name: bracketleft
+        value: "0x005b"
+      -
+        name: bracketleftbt
+        value: "0xf8f0"
+      -
+        name: bracketleftex
+        value: "0xf8ef"
+      -
+        name: bracketlefttp
+        value: "0xf8ee"
+      -
+        name: bracketright
+        value: "0x005d"
+      -
+        name: bracketrightbt
+        value: "0xf8fb"
+      -
+        name: bracketrightex
+        value: "0xf8fa"
+      -
+        name: bracketrighttp
+        value: "0xf8f9"
+      -
+        name: breve
+        value: "0x02d8"
+      -
+        name: brokenbar
+        value: "0x00a6"
+      -
+        name: bsuperior
+        value: "0xf6ea"
+      -
+        name: bullet
+        value: "0x2022"
+      -
+        name: c
+        value: "0x0063"
+      -
+        name: caron
+        value: "0x02c7"
+      -
+        name: carriagereturn
+        value: "0x21b5"
+      -
+        name: ccedilla
+        value: "0x00e7"
+      -
+        name: cedilla
+        value: "0x00b8"
+      -
+        name: cent
+        value: "0x00a2"
+      -
+        name: centinferior
+        value: "0xf6df"
+      -
+        name: centoldstyle
+        value: "0xf7a2"
+      -
+        name: centsuperior
+        value: "0xf6e0"
+      -
+        name: chi
+        value: "0x03c7"
+      -
+        name: circlemultiply
+        value: "0x2297"
+      -
+        name: circleplus
+        value: "0x2295"
+      -
+        name: circumflex
+        value: "0x02c6"
+      -
+        name: club
+        value: "0x2663"
+      -
+        name: colon
+        value: "0x003a"
+      -
+        name: colonmonetary
+        value: "0x20a1"
+      -
+        name: comma
+        value: "0x002c"
+      -
+        name: commainferior
+        value: "0xf6e1"
+      -
+        name: commasuperior
+        value: "0xf6e2"
+      -
+        name: congruent
+        value: "0x2245"
+      -
+        name: copyright
+        value: "0x00a9"
+      -
+        name: copyrightsans
+        value: "0xf8e9"
+      -
+        name: copyrightserif
+        value: "0xf6d9"
+      -
+        name: currency
+        value: "0x00a4"
+      -
+        name: d
+        value: "0x0064"
+      -
+        name: dagger
+        value: "0x2020"
+      -
+        name: daggerdbl
+        value: "0x2021"
+      -
+        name: degree
+        value: "0x00b0"
+      -
+        name: delta
+        value: "0x03b4"
+      -
+        name: diamond
+        value: "0x2666"
+      -
+        name: dieresis
+        value: "0x00a8"
+      -
+        name: divide
+        value: "0x00f7"
+      -
+        name: dollar
+        value: "0x0024"
+      -
+        name: dollarinferior
+        value: "0xf6e3"
+      -
+        name: dollaroldstyle
+        value: "0xf724"
+      -
+        name: dollarsuperior
+        value: "0xf6e4"
+      -
+        name: dotaccent
+        value: "0x02d9"
+      -
+        name: dotlessi
+        value: "0x0131"
+      -
+        name: dotmath
+        value: "0x22c5"
+      -
+        name: dsuperior
+        value: "0xf6eb"
+      -
+        name: e
+        value: "0x0065"
+      -
+        name: eacute
+        value: "0x00e9"
+      -
+        name: ecircumflex
+        value: "0x00ea"
+      -
+        name: edieresis
+        value: "0x00eb"
+      -
+        name: egrave
+        value: "0x00e8"
+      -
+        name: eight
+        value: "0x0038"
+      -
+        name: eightinferior
+        value: "0x2088"
+      -
+        name: eightoldstyle
+        value: "0xf738"
+      -
+        name: eightsuperior
+        value: "0x2078"
+      -
+        name: element
+        value: "0x2208"
+      -
+        name: ellipsis
+        value: "0x2026"
+      -
+        name: emdash
+        value: "0x2014"
+      -
+        name: emptyset
+        value: "0x2205"
+      -
+        name: endash
+        value: "0x2013"
+      -
+        name: epsilon
+        value: "0x03b5"
+      -
+        name: equal
+        value: "0x003d"
+      -
+        name: equivalence
+        value: "0x2261"
+      -
+        name: esuperior
+        value: "0xf6ec"
+      -
+        name: eta
+        value: "0x03b7"
+      -
+        name: eth
+        value: "0x00f0"
+      -
+        name: exclam
+        value: "0x0021"
+      -
+        name: exclamdown
+        value: "0x00a1"
+      -
+        name: exclamdownsmall
+        value: "0xf7a1"
+      -
+        name: exclamsmall
+        value: "0xf721"
+      -
+        name: existential
+        value: "0x2203"
+      -
+        name: f
+        value: "0x0066"
+      -
+        name: ff
+        value: "0xfb00"
+      -
+        name: ffi
+        value: "0xfb03"
+      -
+        name: ffl
+        value: "0xfb04"
+      -
+        name: fi
+        value: "0xfb01"
+      -
+        name: f_i
+        value: "0xfb01"
+      -
+        name: figuredash
+        value: "0x2012"
+      -
+        name: five
+        value: "0x0035"
+      -
+        name: fiveeighths
+        value: "0x215d"
+      -
+        name: fiveinferior
+        value: "0x2085"
+      -
+        name: fiveoldstyle
+        value: "0xf735"
+      -
+        name: fivesuperior
+        value: "0x2075"
+      -
+        name: fl
+        value: "0xfb02"
+      -
+        name: f_l
+        value: "0xfb02"
+      -
+        name: florin
+        value: "0x0192"
+      -
+        name: four
+        value: "0x0034"
+      -
+        name: fourinferior
+        value: "0x2084"
+      -
+        name: fouroldstyle
+        value: "0xf734"
+      -
+        name: foursuperior
+        value: "0x2074"
+      -
+        name: fraction
+        value: "0x2044"
+      -
+        name: g
+        value: "0x0067"
+      -
+        name: gamma
+        value: "0x03b3"
+      -
+        name: germandbls
+        value: "0x00df"
+      -
+        name: gradient
+        value: "0x2207"
+      -
+        name: grave
+        value: "0x0060"
+      -
+        name: greater
+        value: "0x003e"
+      -
+        name: greaterequal
+        value: "0x2265"
+      -
+        name: guillemotleft
+        value: "0x00ab"
+      -
+        name: guillemotright
+        value: "0x00bb"
+      -
+        name: guilsinglleft
+        value: "0x2039"
+      -
+        name: guilsinglright
+        value: "0x203a"
+      -
+        name: h
+        value: "0x0068"
+      -
+        name: heart
+        value: "0x2665"
+      -
+        name: hungarumlaut
+        value: "0x02dd"
+      -
+        name: hyphen
+        value: "0x002d"
+      -
+        name: hypheninferior
+        value: "0xf6e5"
+      -
+        name: hyphensuperior
+        value: "0xf6e6"
+      -
+        name: i
+        value: "0x0069"
+      -
+        name: iacute
+        value: "0x00ed"
+      -
+        name: icircumflex
+        value: "0x00ee"
+      -
+        name: idieresis
+        value: "0x00ef"
+      -
+        name: igrave
+        value: "0x00ec"
+      -
+        name: infinity
+        value: "0x221e"
+      -
+        name: integral
+        value: "0x222b"
+      -
+        name: integralbt
+        value: "0x2321"
+      -
+        name: integralex
+        value: "0xf8f5"
+      -
+        name: integraltp
+        value: "0x2320"
+      -
+        name: intersection
+        value: "0x2229"
+      -
+        name: iota
+        value: "0x03b9"
+      -
+        name: isuperior
+        value: "0xf6ed"
+      -
+        name: j
+        value: "0x006a"
+      -
+        name: k
+        value: "0x006b"
+      -
+        name: kappa
+        value: "0x03ba"
+      -
+        name: l
+        value: "0x006c"
+      -
+        name: lambda
+        value: "0x03bb"
+      -
+        name: less
+        value: "0x003c"
+      -
+        name: lessequal
+        value: "0x2264"
+      -
+        name: logicaland
+        value: "0x2227"
+      -
+        name: logicalnot
+        value: "0x00ac"
+      -
+        name: logicalor
+        value: "0x2228"
+      -
+        name: lozenge
+        value: "0x25ca"
+      -
+        name: lslash
+        value: "0x0142"
+      -
+        name: lsuperior
+        value: "0xf6ee"
+      -
+        name: m
+        value: "0x006d"
+      -
+        name: macron
+        value: "0x00af"
+      -
+        name: minus
+        value: "0x2212"
+      -
+        name: minute
+        value: "0x2032"
+      -
+        name: msuperior
+        value: "0xf6ef"
+      -
+        name: mu
+        value: "0x00b5"
+      -
+        name: multiply
+        value: "0x00d7"
+      -
+        name: n
+        value: "0x006e"
+      -
+        name: nine
+        value: "0x0039"
+      -
+        name: nineinferior
+        value: "0x2089"
+      -
+        name: nineoldstyle
+        value: "0xf739"
+      -
+        name: ninesuperior
+        value: "0x2079"
+      -
+        name: notelement
+        value: "0x2209"
+      -
+        name: notequal
+        value: "0x2260"
+      -
+        name: notsubset
+        value: "0x2284"
+      -
+        name: nsuperior
+        value: "0x207f"
+      -
+        name: ntilde
+        value: "0x00f1"
+      -
+        name: nu
+        value: "0x03bd"
+      -
+        name: numbersign
+        value: "0x0023"
+      -
+        name: o
+        value: "0x006f"
+      -
+        name: oacute
+        value: "0x00f3"
+      -
+        name: ocircumflex
+        value: "0x00f4"
+      -
+        name: odieresis
+        value: "0x00f6"
+      -
+        name: oe
+        value: "0x0153"
+      -
+        name: ogonek
+        value: "0x02db"
+      -
+        name: ograve
+        value: "0x00f2"
+      -
+        name: omega
+        value: "0x03c9"
+      -
+        name: omega1
+        value: "0x03d6"
+      -
+        name: omicron
+        value: "0x03bf"
+      -
+        name: one
+        value: "0x0031"
+      -
+        name: onedotenleader
+        value: "0x2024"
+      -
+        name: oneeighth
+        value: "0x215b"
+      -
+        name: onefitted
+        value: "0xf6dc"
+      -
+        name: onehalf
+        value: "0x00bd"
+      -
+        name: oneinferior
+        value: "0x2081"
+      -
+        name: oneoldstyle
+        value: "0xf731"
+      -
+        name: onequarter
+        value: "0x00bc"
+      -
+        name: onesuperior
+        value: "0x00b9"
+      -
+        name: onethird
+        value: "0x2153"
+      -
+        name: ordfeminine
+        value: "0x00aa"
+      -
+        name: ordmasculine
+        value: "0x00ba"
+      -
+        name: oslash
+        value: "0x00f8"
+      -
+        name: osuperior
+        value: "0xf6f0"
+      -
+        name: otilde
+        value: "0x00f5"
+      -
+        name: p
+        value: "0x0070"
+      -
+        name: paragraph
+        value: "0x00b6"
+      -
+        name: parenleft
+        value: "0x0028"
+      -
+        name: parenleftbt
+        value: "0xf8ed"
+      -
+        name: parenleftex
+        value: "0xf8ec"
+      -
+        name: parenleftinferior
+        value: "0x208d"
+      -
+        name: parenleftsuperior
+        value: "0x207d"
+      -
+        name: parenlefttp
+        value: "0xf8eb"
+      -
+        name: parenright
+        value: "0x0029"
+      -
+        name: parenrightbt
+        value: "0xf8f8"
+      -
+        name: parenrightex
+        value: "0xf8f7"
+      -
+        name: parenrightinferior
+        value: "0x208e"
+      -
+        name: parenrightsuperior
+        value: "0x207e"
+      -
+        name: parenrighttp
+        value: "0xf8f6"
+      -
+        name: partialdiff
+        value: "0x2202"
+      -
+        name: percent
+        value: "0x0025"
+      -
+        name: period
+        value: "0x002e"
+      -
+        name: periodcentered
+        value: "0x00b7"
+      -
+        name: periodinferior
+        value: "0xf6e7"
+      -
+        name: periodsuperior
+        value: "0xf6e8"
+      -
+        name: perpendicular
+        value: "0x22a5"
+      -
+        name: perthousand
+        value: "0x2030"
+      -
+        name: phi
+        value: "0x03c6"
+      -
+        name: phi1
+        value: "0x03d5"
+      -
+        name: pi
+        value: "0x03c0"
+      -
+        name: plus
+        value: "0x002b"
+      -
+        name: plusminus
+        value: "0x00b1"
+      -
+        name: product
+        value: "0x220f"
+      -
+        name: propersubset
+        value: "0x2282"
+      -
+        name: propersuperset
+        value: "0x2283"
+      -
+        name: proportional
+        value: "0x221d"
+      -
+        name: psi
+        value: "0x03c8"
+      -
+        name: q
+        value: "0x0071"
+      -
+        name: question
+        value: "0x003f"
+      -
+        name: questiondown
+        value: "0x00bf"
+      -
+        name: questiondownsmall
+        value: "0xf7bf"
+      -
+        name: questionsmall
+        value: "0xf73f"
+      -
+        name: quotedbl
+        value: "0x0022"
+      -
+        name: quotedblbase
+        value: "0x201e"
+      -
+        name: quotedblleft
+        value: "0x201c"
+      -
+        name: quotedblright
+        value: "0x201d"
+      -
+        name: quoteleft
+        value: "0x2018"
+      -
+        name: quoteright
+        value: "0x2019"
+      -
+        name: quotesinglbase
+        value: "0x201a"
+      -
+        name: quotesingle
+        value: "0x0027"
+      -
+        name: r
+        value: "0x0072"
+      -
+        name: radical
+        value: "0x221a"
+      -
+        name: radicalex
+        value: "0xf8e5"
+      -
+        name: reflexsubset
+        value: "0x2286"
+      -
+        name: reflexsuperset
+        value: "0x2287"
+      -
+        name: registered
+        value: "0x00ae"
+      -
+        name: registersans
+        value: "0xf8e8"
+      -
+        name: registerserif
+        value: "0xf6da"
+      -
+        name: rho
+        value: "0x03c1"
+      -
+        name: ring
+        value: "0x02da"
+      -
+        name: rsuperior
+        value: "0xf6f1"
+      -
+        name: rupiah
+        value: "0xf6dd"
+      -
+        name: s
+        value: "0x0073"
+      -
+        name: scaron
+        value: "0x0161"
+      -
+        name: second
+        value: "0x2033"
+      -
+        name: section
+        value: "0x00a7"
+      -
+        name: semicolon
+        value: "0x003b"
+      -
+        name: seven
+        value: "0x0037"
+      -
+        name: seveneighths
+        value: "0x215e"
+      -
+        name: seveninferior
+        value: "0x2087"
+      -
+        name: sevenoldstyle
+        value: "0xf737"
+      -
+        name: sevensuperior
+        value: "0x2077"
+      -
+        name: sigma
+        value: "0x03c3"
+      -
+        name: sigma1
+        value: "0x03c2"
+      -
+        name: similar
+        value: "0x223c"
+      -
+        name: six
+        value: "0x0036"
+      -
+        name: sixinferior
+        value: "0x2086"
+      -
+        name: sixoldstyle
+        value: "0xf736"
+      -
+        name: sixsuperior
+        value: "0x2076"
+      -
+        name: slash
+        value: "0x002f"
+      -
+        name: space
+        value: "0x0020"
+      -
+        name: spade
+        value: "0x2660"
+      -
+        name: ssuperior
+        value: "0xf6f2"
+      -
+        name: sterling
+        value: "0x00a3"
+      -
+        name: suchthat
+        value: "0x220b"
+      -
+        name: summation
+        value: "0x2211"
+      -
+        name: t
+        value: "0x0074"
+      -
+        name: tau
+        value: "0x03c4"
+      -
+        name: therefore
+        value: "0x2234"
+      -
+        name: theta
+        value: "0x03b8"
+      -
+        name: theta1
+        value: "0x03d1"
+      -
+        name: thorn
+        value: "0x00fe"
+      -
+        name: three
+        value: "0x0033"
+      -
+        name: threeeighths
+        value: "0x215c"
+      -
+        name: threeinferior
+        value: "0x2083"
+      -
+        name: threeoldstyle
+        value: "0xf733"
+      -
+        name: threequarters
+        value: "0x00be"
+      -
+        name: threequartersemdash
+        value: "0xf6de"
+      -
+        name: threesuperior
+        value: "0x00b3"
+      -
+        name: tilde
+        value: "0x02dc"
+      -
+        name: trademark
+        value: "0x2122"
+      -
+        name: trademarksans
+        value: "0xf8ea"
+      -
+        name: trademarkserif
+        value: "0xf6db"
+      -
+        name: tsuperior
+        value: "0xf6f3"
+      -
+        name: two
+        value: "0x0032"
+      -
+        name: twodotenleader
+        value: "0x2025"
+      -
+        name: twoinferior
+        value: "0x2082"
+      -
+        name: twooldstyle
+        value: "0xf732"
+      -
+        name: twosuperior
+        value: "0x00b2"
+      -
+        name: twothirds
+        value: "0x2154"
+      -
+        name: u
+        value: "0x0075"
+      -
+        name: uacute
+        value: "0x00fa"
+      -
+        name: ucircumflex
+        value: "0x00fb"
+      -
+        name: udieresis
+        value: "0x00fc"
+      -
+        name: ugrave
+        value: "0x00f9"
+      -
+        name: underscore
+        value: "0x005f"
+      -
+        name: union
+        value: "0x222a"
+      -
+        name: universal
+        value: "0x2200"
+      -
+        name: upsilon
+        value: "0x03c5"
+      -
+        name: v
+        value: "0x0076"
+      -
+        name: w
+        value: "0x0077"
+      -
+        name: weierstrass
+        value: "0x2118"
+      -
+        name: x
+        value: "0x0078"
+      -
+        name: xi
+        value: "0x03be"
+      -
+        name: y
+        value: "0x0079"
+      -
+        name: yacute
+        value: "0x00fd"
+      -
+        name: ydieresis
+        value: "0x00ff"
+      -
+        name: yen
+        value: "0x00a5"
+      -
+        name: z
+        value: "0x007a"
+      -
+        name: zcaron
+        value: "0x017e"
+      -
+        name: zero
+        value: "0x0030"
+      -
+        name: zeroinferior
+        value: "0x2080"
+      -
+        name: zerooldstyle
+        value: "0xf730"
+      -
+        name: zerosuperior
+        value: "0x2070"
+      -
+        name: zeta
+        value: "0x03b6"
+      -
+        name: a100
+        value: "0x275E"
+      -
+        name: a101
+        value: "0x2761"
+      -
+        name: a102
+        value: "0x2762"
+      -
+        name: a103
+        value: "0x2763"
+      -
+        name: a104
+        value: "0x2764"
+      -
+        name: a105
+        value: "0x2710"
+      -
+        name: a106
+        value: "0x2765"
+      -
+        name: a107
+        value: "0x2766"
+      -
+        name: a108
+        value: "0x2767"
+      -
+        name: a109
+        value: "0x2660"
+      -
+        name: a10
+        value: "0x2721"
+      -
+        name: a110
+        value: "0x2665"
+      -
+        name: a111
+        value: "0x2666"
+      -
+        name: a112
+        value: "0x2663"
+      -
+        name: a117
+        value: "0x2709"
+      -
+        name: a118
+        value: "0x2708"
+      -
+        name: a119
+        value: "0x2707"
+      -
+        name: a11
+        value: "0x261B"
+      -
+        name: a120
+        value: "0x2460"
+      -
+        name: a121
+        value: "0x2461"
+      -
+        name: a122
+        value: "0x2462"
+      -
+        name: a123
+        value: "0x2463"
+      -
+        name: a124
+        value: "0x2464"
+      -
+        name: a125
+        value: "0x2465"
+      -
+        name: a126
+        value: "0x2466"
+      -
+        name: a127
+        value: "0x2467"
+      -
+        name: a128
+        value: "0x2468"
+      -
+        name: a129
+        value: "0x2469"
+      -
+        name: a12
+        value: "0x261E"
+      -
+        name: a130
+        value: "0x2776"
+      -
+        name: a131
+        value: "0x2777"
+      -
+        name: a132
+        value: "0x2778"
+      -
+        name: a133
+        value: "0x2779"
+      -
+        name: a134
+        value: "0x277A"
+      -
+        name: a135
+        value: "0x277B"
+      -
+        name: a136
+        value: "0x277C"
+      -
+        name: a137
+        value: "0x277D"
+      -
+        name: a138
+        value: "0x277E"
+      -
+        name: a139
+        value: "0x277F"
+      -
+        name: a13
+        value: "0x270C"
+      -
+        name: a140
+        value: "0x2780"
+      -
+        name: a141
+        value: "0x2781"
+      -
+        name: a142
+        value: "0x2782"
+      -
+        name: a143
+        value: "0x2783"
+      -
+        name: a144
+        value: "0x2784"
+      -
+        name: a145
+        value: "0x2785"
+      -
+        name: a146
+        value: "0x2786"
+      -
+        name: a147
+        value: "0x2787"
+      -
+        name: a148
+        value: "0x2788"
+      -
+        name: a149
+        value: "0x2789"
+      -
+        name: a14
+        value: "0x270D"
+      -
+        name: a150
+        value: "0x278A"
+      -
+        name: a151
+        value: "0x278B"
+      -
+        name: a152
+        value: "0x278C"
+      -
+        name: a153
+        value: "0x278D"
+      -
+        name: a154
+        value: "0x278E"
+      -
+        name: a155
+        value: "0x278F"
+      -
+        name: a156
+        value: "0x2790"
+      -
+        name: a157
+        value: "0x2791"
+      -
+        name: a158
+        value: "0x2792"
+      -
+        name: a159
+        value: "0x2793"
+      -
+        name: a15
+        value: "0x270E"
+      -
+        name: a160
+        value: "0x2794"
+      -
+        name: a161
+        value: "0x2192"
+      -
+        name: a162
+        value: "0x27A3"
+      -
+        name: a163
+        value: "0x2194"
+      -
+        name: a164
+        value: "0x2195"
+      -
+        name: a165
+        value: "0x2799"
+      -
+        name: a166
+        value: "0x279B"
+      -
+        name: a167
+        value: "0x279C"
+      -
+        name: a168
+        value: "0x279D"
+      -
+        name: a169
+        value: "0x279E"
+      -
+        name: a16
+        value: "0x270F"
+      -
+        name: a170
+        value: "0x279F"
+      -
+        name: a171
+        value: "0x27A0"
+      -
+        name: a172
+        value: "0x27A1"
+      -
+        name: a173
+        value: "0x27A2"
+      -
+        name: a174
+        value: "0x27A4"
+      -
+        name: a175
+        value: "0x27A5"
+      -
+        name: a176
+        value: "0x27A6"
+      -
+        name: a177
+        value: "0x27A7"
+      -
+        name: a178
+        value: "0x27A8"
+      -
+        name: a179
+        value: "0x27A9"
+      -
+        name: a17
+        value: "0x2711"
+      -
+        name: a180
+        value: "0x27AB"
+      -
+        name: a181
+        value: "0x27AD"
+      -
+        name: a182
+        value: "0x27AF"
+      -
+        name: a183
+        value: "0x27B2"
+      -
+        name: a184
+        value: "0x27B3"
+      -
+        name: a185
+        value: "0x27B5"
+      -
+        name: a186
+        value: "0x27B8"
+      -
+        name: a187
+        value: "0x27BA"
+      -
+        name: a188
+        value: "0x27BB"
+      -
+        name: a189
+        value: "0x27BC"
+      -
+        name: a18
+        value: "0x2712"
+      -
+        name: a190
+        value: "0x27BD"
+      -
+        name: a191
+        value: "0x27BE"
+      -
+        name: a192
+        value: "0x279A"
+      -
+        name: a193
+        value: "0x27AA"
+      -
+        name: a194
+        value: "0x27B6"
+      -
+        name: a195
+        value: "0x27B9"
+      -
+        name: a196
+        value: "0x2798"
+      -
+        name: a197
+        value: "0x27B4"
+      -
+        name: a198
+        value: "0x27B7"
+      -
+        name: a199
+        value: "0x27AC"
+      -
+        name: a19
+        value: "0x2713"
+      -
+        name: a1
+        value: "0x2701"
+      -
+        name: a200
+        value: "0x27AE"
+      -
+        name: a201
+        value: "0x27B1"
+      -
+        name: a202
+        value: "0x2703"
+      -
+        name: a203
+        value: "0x2750"
+      -
+        name: a204
+        value: "0x2752"
+      -
+        name: a205
+        value: "0x276E"
+      -
+        name: a206
+        value: "0x2770"
+      -
+        name: a20
+        value: "0x2714"
+      -
+        name: a21
+        value: "0x2715"
+      -
+        name: a22
+        value: "0x2716"
+      -
+        name: a23
+        value: "0x2717"
+      -
+        name: a24
+        value: "0x2718"
+      -
+        name: a25
+        value: "0x2719"
+      -
+        name: a26
+        value: "0x271A"
+      -
+        name: a27
+        value: "0x271B"
+      -
+        name: a28
+        value: "0x271C"
+      -
+        name: a29
+        value: "0x2722"
+      -
+        name: a2
+        value: "0x2702"
+      -
+        name: a30
+        value: "0x2723"
+      -
+        name: a31
+        value: "0x2724"
+      -
+        name: a32
+        value: "0x2725"
+      -
+        name: a33
+        value: "0x2726"
+      -
+        name: a34
+        value: "0x2727"
+      -
+        name: a35
+        value: "0x2605"
+      -
+        name: a36
+        value: "0x2729"
+      -
+        name: a37
+        value: "0x272A"
+      -
+        name: a38
+        value: "0x272B"
+      -
+        name: a39
+        value: "0x272C"
+      -
+        name: a3
+        value: "0x2704"
+      -
+        name: a40
+        value: "0x272D"
+      -
+        name: a41
+        value: "0x272E"
+      -
+        name: a42
+        value: "0x272F"
+      -
+        name: a43
+        value: "0x2730"
+      -
+        name: a44
+        value: "0x2731"
+      -
+        name: a45
+        value: "0x2732"
+      -
+        name: a46
+        value: "0x2733"
+      -
+        name: a47
+        value: "0x2734"
+      -
+        name: a48
+        value: "0x2735"
+      -
+        name: a49
+        value: "0x2736"
+      -
+        name: a4
+        value: "0x260E"
+      -
+        name: a50
+        value: "0x2737"
+      -
+        name: a51
+        value: "0x2738"
+      -
+        name: a52
+        value: "0x2739"
+      -
+        name: a53
+        value: "0x273A"
+      -
+        name: a54
+        value: "0x273B"
+      -
+        name: a55
+        value: "0x273C"
+      -
+        name: a56
+        value: "0x273D"
+      -
+        name: a57
+        value: "0x273E"
+      -
+        name: a58
+        value: "0x273F"
+      -
+        name: a59
+        value: "0x2740"
+      -
+        name: a5
+        value: "0x2706"
+      -
+        name: a60
+        value: "0x2741"
+      -
+        name: a61
+        value: "0x2742"
+      -
+        name: a62
+        value: "0x2743"
+      -
+        name: a63
+        value: "0x2744"
+      -
+        name: a64
+        value: "0x2745"
+      -
+        name: a65
+        value: "0x2746"
+      -
+        name: a66
+        value: "0x2747"
+      -
+        name: a67
+        value: "0x2748"
+      -
+        name: a68
+        value: "0x2749"
+      -
+        name: a69
+        value: "0x274A"
+      -
+        name: a6
+        value: "0x271D"
+      -
+        name: a70
+        value: "0x274B"
+      -
+        name: a71
+        value: "0x25CF"
+      -
+        name: a72
+        value: "0x274D"
+      -
+        name: a73
+        value: "0x25A0"
+      -
+        name: a74
+        value: "0x274F"
+      -
+        name: a75
+        value: "0x2751"
+      -
+        name: a76
+        value: "0x25B2"
+      -
+        name: a77
+        value: "0x25BC"
+      -
+        name: a78
+        value: "0x25C6"
+      -
+        name: a79
+        value: "0x2756"
+      -
+        name: a7
+        value: "0x271E"
+      -
+        name: a81
+        value: "0x25D7"
+      -
+        name: a82
+        value: "0x2758"
+      -
+        name: a83
+        value: "0x2759"
+      -
+        name: a84
+        value: "0x275A"
+      -
+        name: a85
+        value: "0x276F"
+      -
+        name: a86
+        value: "0x2771"
+      -
+        name: a87
+        value: "0x2772"
+      -
+        name: a88
+        value: "0x2773"
+      -
+        name: a89
+        value: "0x2768"
+      -
+        name: a8
+        value: "0x271F"
+      -
+        name: a90
+        value: "0x2769"
+      -
+        name: a91
+        value: "0x276C"
+      -
+        name: a92
+        value: "0x276D"
+      -
+        name: a93
+        value: "0x276A"
+      -
+        name: a94
+        value: "0x276B"
+      -
+        name: a95
+        value: "0x2774"
+      -
+        name: a96
+        value: "0x2775"
+      -
+        name: a97
+        value: "0x275B"
+      -
+        name: a98
+        value: "0x275C"
+      -
+        name: a99
+        value: "0x275D"
+      -
+        name: a9
+        value: "0x2720"

@@ -90,6 +90,9 @@ JSClass("FNTOpenTypeConstructor", JSObject, {
     },
 
     getData: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
         var i, l;
 
         var entrySelector = log2(this._tables.length);
@@ -164,6 +167,7 @@ JSClass("FNTOpenTypeConstructor", JSObject, {
 
         var data = JSData.initWithChunks(chunks);
         completion.call(target, data);
+        return completion.promise;
     }
 
 });

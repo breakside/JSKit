@@ -1,0 +1,35 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSFontDescriptor
+summary: A `JSFont`-compatible descriptor based on an OpenType font
+description: |
+  You can use a descriptor of this type to make a `JSFont`:
+
+  ````
+  var openTypeData = loadOpenTypeData();
+  var descriptor = FNTFontDescriptor.initWithOpenTypeData(openTypeData);
+  var font = JSFont.initWithDescriptor(descriptor, 14.0);
+  ````
+topics:
+  -
+    name: Creating a Descriptor
+    members:
+      -
+        name: initWithOpenTypeData
+        kind: init
+        summary: Create a descriptor based on OpenType data
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The OpenType data
+      -
+        name: initWithOpenTypeFont
+        kind: init
+        summary: Create a descriptor based on an OpenType font
+        arguments:
+          -
+            name: font
+            type: FNTOpenTypeFont
+            summary: The OpenType font
