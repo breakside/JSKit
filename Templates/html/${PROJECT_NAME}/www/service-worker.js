@@ -1,9 +1,9 @@
-/* global self, console, clients, caches, fetch */
+/* global self, console, clients, caches, fetch, URL */
 'use strict';
 var app = {TEMPLATE: "JSKIT_APP"};
 var cacheKey = 'build-' + app.buildId;
-var baseURL = self.location.href.substr(0, self.location.href.lastIndexOf('/') + 1);
-var bootstrapperURL = baseURL + 'HTMLAppBootstrapper.js';
+var baseURL = new URL("./", self.location.href);
+var bootstrapperURL = new URL('HTMLAppBootstrapper.js', baseURL);
 
 function install(){
   var required = [];
@@ -91,10 +91,14 @@ function isBootstrapRequest(request){
   if (request.method != "GET"){
     return false;
   }
-  if (request.url == baseURL){
+  var url = new URL(request.url);
+  if (url.origin != baseURL.origin){
+    return false;
+  }
+  if (url.pathname == baseURL.pathname){
     return true;
   }
-  if (request.url == bootstrapperURL){
+  if (url.pathname == bootstrapperURL.pathname){
     return true;
   }
   return false;
@@ -104,14 +108,18 @@ function isNonRequiredSourceRequest(request){
   if (request.method != "GET"){
     return false;
   }
-  if (request.url.startsWith(baseURL)){
-    var path = request.url.substr(baseURL.length);
-    if (path === ''){
-      path = './';
-    }
-    return path in app.sources;
+  var url = new URL(request.url);
+  if (url.origin != baseURL.origin){
+    return false;
   }
-  return false;
+  if (!url.pathname.startsWith(baseURL.pathname)){
+    return false;
+  }
+  var path = url.pathname.substr(baseURL.pathname.length);
+  if (path === ''){
+    path = './';
+  }
+  return path in app.sources;
 }
 
 self.addEventListener('install', function(event){
