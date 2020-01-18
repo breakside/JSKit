@@ -2,28 +2,38 @@
 'use strict';
 var app = {TEMPLATE: "JSKIT_APP"};
 var cacheKey = 'build-' + app.buildId;
+var baseURL = self.location.href.substr(0, self.location.href.lastIndexOf('/') + 1);
+var bootstrapperURL = baseURL + 'HTMLAppBootstrapper.js';
 
-var install = function(){
+function install(){
+  var required = [];
+  var source;
+  for (var path in app.sources){
+    source = app.sources[path];
+    if (source.required){
+      required.push(path);
+    }
+  }
   var loaded = 0;
-  var total = app.sources.length;
+  var total = required.length;
   return clients.matchAll({includeUncontrolled: true}).then(function(clients){
     var client = clients[0];
     return caches.open(cacheKey).then(function(cache){
-      return Promise.all(app.sources.map(function(source){
-        return cache.add(source).then(function(){
+      return Promise.all(required.map(function(path){
+        return cache.add(path).then(function(){
           ++loaded;
           client.postMessage({type: 'progress', loaded: loaded, total: total});
         });
       }));
     });
   });
-};
+}
 
-var activate = function(){
+function activate(){
   return clients.claim().then(cleanup);
-};
+}
 
-var cleanup = function(){
+function cleanup(){
   return caches.keys().then(function(keys){
     return Promise.all(keys.map(function(key){
       if (key.startsWith('build-') && key != cacheKey){
@@ -32,13 +42,77 @@ var cleanup = function(){
       }
     }));
   });
-};
+}
 
-var cacheFetch = function(request){
-  return caches.match(request).then(function(response){
-    return response || fetch(request);
+function fetchFromCache(request){
+  return caches.match(request, {cacheName: cacheKey}).then(function(response){
+    if (response){
+      return response;
+    }
+    if (isNonRequiredSourceRequest(request)){
+      return fetchAndAddToCache(request);
+    }
+    return fetch(request);
   });
-};
+}
+
+function fetchFromServer(request){
+  console.debug('Fetching ' + request.url + ' from server');
+  return fetch(request, {cache: 'no-cache'}).then(function(response){
+    if (response.ok){
+      return response;
+    }
+    console.debug('Server response not ok for ' + request.url + ', using cache');
+    return caches.match(request);
+  }, function(){
+    console.debug('No server response for ' + request.url + ', using cache');
+    return caches.match(request);
+  });
+}
+
+function fetchAndAddToCache(request){
+  console.debug('Adding ' + request.url + ' to cache');
+  return fetch(request, {cache: 'no-store'}).then(function(response){
+    if (response.ok){
+      caches.open(cacheKey).then(function(cache){
+        cache.put(request, response).then(function(){
+          console.debug("Cached " + request.url);
+        }, function(){
+          console.error("Error caching " + request.url);
+        });
+      });
+      return response.clone();
+    }
+    return response;
+  });
+}
+
+function isBootstrapRequest(request){
+  if (request.method != "GET"){
+    return false;
+  }
+  if (request.url == baseURL){
+    return true;
+  }
+  if (request.url == bootstrapperURL){
+    return true;
+  }
+  return false;
+}
+
+function isNonRequiredSourceRequest(request){
+  if (request.method != "GET"){
+    return false;
+  }
+  if (request.url.startsWith(baseURL)){
+    var path = request.url.substr(baseURL.length);
+    if (path === ''){
+      path = './';
+    }
+    return path in app.sources;
+  }
+  return false;
+}
 
 self.addEventListener('install', function(event){
   console.debug('Installing ' + cacheKey + '...');
@@ -63,7 +137,12 @@ self.addEventListener('activate', function(event){
 });
 
 self.addEventListener('fetch', function(event){
-  event.respondWith(cacheFetch(event.request));
+  var request = event.request;
+  if (isBootstrapRequest(request)){
+    event.respondWith(fetchFromServer(request));
+  }else{
+    event.respondWith(fetchFromCache(request));
+  }
 });
 
 self.addEventListener('error', function(event){

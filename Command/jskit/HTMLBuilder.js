@@ -318,6 +318,7 @@ JSClass("HTMLBuilder", Builder, {
     wwwJavascriptPaths: null,
     wwwCSSPaths:  null,
     wwwPaths: null,
+    uncachedWWWPaths: null,
     manifestURL: null,
     preflightId: null,
     preflightURL: null,
@@ -327,6 +328,7 @@ JSClass("HTMLBuilder", Builder, {
     bundleWWW: async function(){
         this.wwwCSSPaths = [];
         this.wwwPaths = [];
+        this.uncachedWWWPaths = [];
         // As of Dec 2019...
         // Browsers are in the process of removing the appcache API soon (Chrome
         // says it'll be gone by April 2020), so there's no point to contunue
@@ -401,9 +403,18 @@ JSClass("HTMLBuilder", Builder, {
                 await this._copyWWWEntry(child, wwwPath + '/' + child.name, manifestConfiguration);
             }
         }else{
-            let manifestEntry = (wwwPath in manifestConfiguration) ? manifestConfiguration[wwwPath] : wwwPath;
-            if (manifestEntry !== null){
-                this.wwwPaths.push(manifestEntry);
+            if (wwwPath in manifestConfiguration){
+                let config = manifestConfiguration[wwwPath];
+                if (config.path){
+                    wwwPath = config.path;
+                }
+                if (config.required === false){
+                    this.uncachedWWWPaths.push(wwwPath);
+                }else{
+                    this.wwwPaths.push(wwwPath);
+                }
+            }else{
+                this.wwwPaths.push(wwwPath);
             }
             await this.fileManager.copyItemAtURL(entry.url, toURL);
         }
@@ -534,31 +545,34 @@ JSClass("HTMLBuilder", Builder, {
             return;
         }
         this.printer.setStatus("Creating service worker...");
-        var cachedPaths = ['./'];
+        var sources = {'./': {required: true}};
         for (let i = 0, l = this.wwwPaths.length; i < l; ++i){
-            cachedPaths.push(this.wwwPaths[i]);
+            sources[this.wwwPaths[i]] = {required: true};
         }
         for (let i = 0, l = this.wwwJavascriptPaths.length; i < l; ++i){
-            cachedPaths.push(this.wwwJavascriptPaths[i]);
+            sources[this.wwwJavascriptPaths[i]] = {required: true};
         }
         if (this.preflightURL !== null){
             let path = this.preflightURL.encodedStringRelativeTo(this.wwwURL);
-            cachedPaths.push(path);
+            sources[path] = {required: true};
         }
         if (this.workerURL !== null && this.hasLinkedDispatchFramework){
             let path = this.workerURL.encodedStringRelativeTo(this.wwwURL);
-            cachedPaths.push(path);
+            sources[path] = {required: true};
         }
         for (let i = 0, l = this.wwwResourcePaths.length; i < l; ++i){
-            cachedPaths.push(this.wwwResourcePaths[i]);
+            sources[this.wwwResourcePaths[i]] = {required: true};
         }
         for (let i = 0, l = this.wwwCSSPaths.length; i < l; ++i){
-            cachedPaths.push(this.wwwCSSPaths[i]);
+            sources[this.wwwCSSPaths[i]] = {required: true};
+        }
+        for (let i = 0, l = this.uncachedWWWPaths.length; i < l; ++i){
+            sources[this.uncachedWWWPaths[i]] = {required: false};
         }
         var params = {
             JSKIT_APP: JSON.stringify({
                 buildId: this.buildId,
-                sources: cachedPaths
+                sources: sources
             }, null, 2)
         };
         var workerConents = await this.fileManager.contentsAtURL(this.serviceWorkerSourceURL);

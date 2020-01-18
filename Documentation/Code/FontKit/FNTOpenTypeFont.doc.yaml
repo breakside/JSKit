@@ -494,6 +494,7 @@ topics:
             members:
               -
                 name: getName
+                kind: method
                 type: String
                 summary: Get the first matching name
                 arguments:
