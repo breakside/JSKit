@@ -1,0 +1,212 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: A suite of related test cases
+description: |
+  Typically you'll create one test suite per class that needs testing.
+
+  You created a test suite by subclassing `TKTestSuite`.
+
+  Test suites are simply a collection test cases, which are implemented as
+  methods on the `TKTestSuite` subclass.
+
+
+  For example, here's the start of the test suite for `JSRect`.
+  ````
+  #import Foundation
+  #import TestKit
+  'use strict';
+
+  JSCass("JSRectTests", TKTestSuite, {
+
+    testContructor: function(){
+        var rect = new JSRect(1, 2, 3, 4);
+        TKAssertEquals(rect.origin.x, 1);
+        TKAssertEquals(rect.origin.y, 2);
+        TKAssertEquals(rect.size.width, 3);
+        TKAssertEquals(rect.size.height, 4);
+    },
+
+  });
+  ````
+
+  Special Naming Conventions
+  ==========
+  By convention, test suite subclasses end with `"Tests"`, as in
+  `"JSRectTests"`, but this is only a convention.
+
+  Test cases, however, are any method on a suite that begins with `"test"`. If
+  you need any support/helper methods, just make sure they don't start with
+  `"test"`.
+
+
+  Preparing Test Cases
+  ======
+
+  Before each test case is run, the `setup()` method will be called.
+
+  After each test case is run, the `teardown()` method will be called.
+
+  The default implementations do nothing, but you can implement suite-specific
+  setup as needed.
+
+  *Note: Each test case is run with an entirely new instance of the test suite,
+  so there is no way to preserve data from one case to another.*
+
+  Assertions
+  ========
+
+  Each test case should call one of the `TKAssert()` functions at least once.
+  Often you'll have many assertions in a single test case.
+
+  Assertions are what deterime if a test case passes or fails.  If any assertion
+  fails in test case, the test case fails and stops running.
+
+  Subsequent test cases in the suite will continue to run, as test cases
+  are independent.
+
+  Asynchronous Tests
+  ========
+
+  Asynchronous tests are supported by using `TKExpectation` and calling `wait()`
+  on the suite.
+
+  Here's an example of testing the asynchronous `JSImage.getData()` method
+  ````
+  // #import Foundation
+  // #import TestKit
+  'use strict';
+
+  JSClass("JSImageTests", TKTestSuite, {
+
+      testResourceData: function(){
+          var image = JSImage.initWithResourceName('test');
+          TKAssertNotNull(image);
+
+          var expectation = TKExpectation.init();
+          expectation.call(image.getData, image, function(data){
+              TKAssertNotNull(data);
+              TKAssertObjectEquals(data, [0x89,0x50, ... ]);
+          });
+
+          this.wait(expectation, 2.0);
+      }
+
+  });
+  ````
+topics:
+  -
+    name: Setup & Teardown
+    members:
+      -
+        name: setup
+        kind: method
+        summary: Called before every test case
+        description: |
+          Gives the suite a chance to setup any objects the tests require
+      -
+        name: teardown
+        kind: method
+        summary: Called before every test case
+        description: |
+          Gives the suite a chance to destroy any objects the tests required
+  -
+    name: Asynchronous
+    members:
+      - 
+        name: wait
+        kind: method
+        summary: Called when the result of the test case is waiting on
+          an asynchronous call to complete
+        arguments:
+          -
+            name: expectation
+            type: TKExpectation
+            summary: The expectation that is managing the asynchronous call
+          -
+            name: timeout
+            type: Number
+            summary: The time to wait, in seconds, before declaring the test
+              case failed
+        description: |
+          If the expectation does not indicate the asynchronous call has been
+          handled within the given timeout, the test case will fail.
+
+          Can only be called once per test case, typically as the final line
+          of the function.
+
+          If you need to make multiple asynchronous calls, they must be
+          nested, using `expectation.call()` in callback to the previous call.
+  -
+    name: Test Data
+    members:
+      -
+        name: getResourceData
+        kind: method
+        summary: Used to asynchronously get data for test resources included
+          in the test project
+        arguments:
+          -
+            name: resourceName
+            type: String
+            summary: The name of the resource in the test project bundle
+          -
+            name: ext
+            type: String
+            summary: The file extension of the resource
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: data
+                  type: JSData
+                  summary: The test resource's data
+            summary: The function to call with the test data
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          Resource files may be included in a test project, and they get
+          bundled just like any other project's resources.
+
+          This method simplifies accessing them by requiring only a resource
+          name without dealing with the test project's `JSBundle` directly.
+
+          For example, a font test suite loads a test font file like this:
+          ````
+          // #import FontKit
+          // #import TestKit
+          'use strict';
+
+          (function(){
+
+          JSClass("FNTOpenTypeFontTests", TKTestSuite, {
+
+              testRoboto: function(){
+                  var expectation = TKExpectation.init();
+                  expectation.call(this.getResourceData, this, "Roboto-Regular", "ttf", function(data){
+                      TKAssertNotNull(data);
+                      var font = FNTOpenTypeFont.initWithData(data);
+                      // ...
+                  });
+                  this.wait(expectation, 2);
+              },
+          ````
+        note: Because this function is asynchronous, you must use it in
+          conjunction with a `TKExpectation` and `wait()`.
+  -
+    name: Timing
+    members:
+      -
+        name: now
+        kind: method
+        type: Number
+        summary: Get the current timestamp of a high resolution timer
+        description: |
+          The timestamp does not correspond to any calendar date/time, but
+          can be compared across successive calls.

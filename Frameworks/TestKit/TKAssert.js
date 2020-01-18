@@ -216,7 +216,7 @@ JSGlobalObject.TKAssertNotUndefined = function(expression, message){
     }
 };
 
-JSGlobalObject.TKAssertThrows = function(f){
+JSGlobalObject.TKAssertThrows = function(f, message){
     var threw = false;
     try{
         f();
@@ -224,7 +224,7 @@ JSGlobalObject.TKAssertThrows = function(f){
         threw = true;
     }
     if (!threw){
-        throw TKAssertion('TKAssertThrows failed, no exception thrown for ' + f);
+        throw TKAssertion('TKAssertThrows failed, no exception thrown for ' + f + (message || ''));
     }
 };
 

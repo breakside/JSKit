@@ -6,33 +6,378 @@ topics:
     name: Test Suites
     members:
       - TKTestSuite
-      - TKTestCase
   -
     name: Asynchronous Tests
     members:
       - TKExpectation
   - 
-    name: Test Runs
-    members:
-      - TKTestRun
-  - 
     name: Assertions
     members:
-      - TKAssert
-      - TKAssertEquals
-      - TKAssertNotEquals
-      - TKAssertFloatEquals
-      - TKAssertExactEquals
-      - TKAssertNotExactEquals
-      - TKAssertObjectEquals
-      - TKAssertObjectNotEquals
-      - TKAssertNotNull
-      - TKAssertNull
-      - TKAssertUndefined
-      - TKAssertNotUndefined
-      - TKAssertThrows
-      - TKAssertLessThan
-      - TKAssertLessThanOrEquals
-      - TKAssertGreaterThan
-      - TKAssertGreaterThanOrEquals
-      - TKAssertArrayEquals
+      -
+        name: TKAssert
+        kind: function
+        summary: Throws an exception if the condition is not strictly equal
+          to `true`
+        arguments:
+          -
+            name: condition
+            type: boolean
+            summary: The asserition condition
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+        description: |
+          While this could be used for every test check, the other methods
+          have common comparisons and yield better error message when they
+          fail.
+      -
+        name: TKAssertEquals
+        kind: function
+        summary: Throws an exception if the two values are not equal
+        arguments:
+          -
+            name: result
+            type: any
+            summary: The test value
+          -
+            name: expected
+            type: any
+            summary: The expected value
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+        description: |
+          Will not throw an exception if the `==` check passses.
+
+          If you are dealing with objects, a better option is
+          `TKAssertObjectEquals`, which calls the `isEqual()`() method
+          of the result.
+
+          If you are dealing with decimal numbers, a better option is
+          `TKAssertFloatEquals`, which allows for small differences due to
+          floating point rounding errors.
+      -
+        name: TKAssertNotEquals
+        kind: function
+        summary: Throws an exception if the two values are equal
+        arguments:
+          -
+            name: result
+            type: any
+            summary: The test value
+          -
+            name: expected
+            type: any
+            summary: The expected value
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+        description: |
+          Will not throw an exception if the `!=` check passses.
+
+          If you are dealing with objects, a better option is
+          `TKAssertObjectNotEquals`, which calls the `isEqual()`() method
+          of the result.
+      -
+        name: TKAssertFloatEquals
+        kind: function
+        summary: Throws an exception if the two values are not equal within
+          a tolerance amount
+        arguments:
+          -
+            name: result
+            type: any
+            summary: The test value
+          -
+            name: expected
+            type: any
+            summary: The expected value
+          -
+            name: threshold
+            type: Number
+            default: expected / 1000000
+            summary: The allowed tolerance from the expected value
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+      -
+        name: TKAssertExactEquals
+        kind: function
+        summary: Throws an exception if the two values are not exactly equal
+        arguments:
+          -
+            name: result
+            type: any
+            summary: The test value
+          -
+            name: expected
+            type: any
+            summary: The expected value
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+        description: |
+          Will not throw an exception if the `===` check passses.
+
+          If you are dealing with objects, a better option is
+          `TKAssertObjectEquals`, which calls the `isEqual()`() method
+          of the result.
+
+          If you are dealing with decimal numbers, a better option is
+          `TKAssertFloatEquals`, which allows for small differences due to
+          floating point rounding errors.
+      -
+        name: TKAssertNotExactEquals
+        kind: function
+        summary: Throws an exception if the two values are equal
+        arguments:
+          -
+            name: result
+            type: any
+            summary: The test value
+          -
+            name: expected
+            type: any
+            summary: The expected value
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+        description: |
+          Will not throw an exception if the `!==` check passses.
+
+          If you are dealing with objects, a better option is
+          `TKAssertObjectNotEquals`, which calls the `isEqual()`() method
+          of the result.
+      -
+        name: TKAssertObjectEquals
+        kind: function
+        summary: Throws an exception if the two object are not equal based
+          on their `isEqual()`() implementation.
+        arguments:
+          -
+            name: result
+            type: any
+            summary: The test value
+          -
+            name: expected
+            type: any
+            summary: The expected value
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+        description: |
+          Calls `!result.isEqual(expected)`.
+
+          Fails if either value is `null` or `undefined`.
+      -
+        name: TKAssertNotObjectEquals
+        kind: function
+        summary: Throws an exception if the two values are equal
+        arguments:
+          -
+            name: result
+            type: any
+            summary: The test value
+          -
+            name: expected
+            type: any
+            summary: The expected value
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+        description: |
+          Calls `result.isEqual(expected)`.
+
+          Fails if either value is `null` or `undefined`.
+      -
+        name: TKAssertNotNull
+        kind: function
+        summary: Throws an exception if the given value is `null`
+        arguments:
+          -
+            name: value
+            type: any
+            summary: The value to check
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+      -
+        name: TKAssertNull
+        kind: function
+        summary: Throws an exception if the given value is not `null`
+        arguments:
+          -
+            name: value
+            type: any
+            summary: The value to check
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+      -
+        name: TKAssertNotUndefined
+        kind: function
+        summary: Throws an exception if the given value is `undefined`
+        arguments:
+          -
+            name: value
+            type: any
+            summary: The value to check
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+      -
+        name: TKAssertUndefined
+        kind: function
+        summary: Throws an exception if the given value is not `undefined`
+        arguments:
+          -
+            name: value
+            type: any
+            summary: The value to check
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+      -
+        name: TKAssertThrows
+        kind: function
+        summary: Throws an exception if the given function doesn't throw an
+          exception
+        arguments:
+          -
+            name: function
+            type: function
+            summary: A function that will be called
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+      -
+        name: TKAssertLessThan
+        kind: function
+        summary: Throws an exception if the first value is greater than or
+          equal to the second
+        arguments:
+          -
+            name: result
+            type: any
+            summary: The test value
+          -
+            name: expected
+            type: any
+            summary: The expected value
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+        description: |
+          Will not throw an exception if the `result < expected` check passses.
+      -
+        name: TKAssertLessThanOrEquals
+        kind: function
+        summary: Throws an exception if the first value is greater than the
+          second
+        arguments:
+          -
+            name: result
+            type: any
+            summary: The test value
+          -
+            name: expected
+            type: any
+            summary: The expected value
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+        description: |
+          Will not throw an exception if the `result <= expected` check passses.
+      -
+        name: TKAssertGreaterThan
+        kind: function
+        summary: Throws an exception if the first value is less than or
+          equal to the second
+        arguments:
+          -
+            name: result
+            type: any
+            summary: The test value
+          -
+            name: expected
+            type: any
+            summary: The expected value
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+        description: |
+          Will not throw an exception if the `result > expected` check passses.
+      -
+        name: TKAssertGreaterThanOrEquals
+        kind: function
+        summary: Throws an exception if the first value is greater than
+          the second
+        arguments:
+          -
+            name: result
+            type: any
+            summary: The test value
+          -
+            name: expected
+            type: any
+            summary: The expected value
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+        description: |
+          Will not throw an exception if the `result >= expected` check passses.
+      -
+        name: TKAssertArrayEquals
+        kind: function
+        summary: Throws an exception if the two arrays differ
+        arguments:
+          -
+            name: result
+            type: any
+            summary: The test value
+          -
+            name: expected
+            type: any
+            summary: The expected value
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+        description: |
+          Throws an exception if the two arrays have different lengths, or
+          if any matching items are not exactly equal (`!==`)

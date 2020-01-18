@@ -1,0 +1,118 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.1.0
+kind: class
+inherits: JSObject
+summary: An object that manages an asynchronous call for test cases
+description: |
+  Asynchronous tests are supported by using `TKExpectation` and calling `wait()`
+  on the suite.
+
+  Here's an example of testing the asynchronous `JSImage.getData()` method
+  ````
+  // #import Foundation
+  // #import TestKit
+  'use strict';
+
+  JSClass("JSImageTests", TKTestSuite, {
+
+      testResourceData: function(){
+          var image = JSImage.initWithResourceName('test');
+          TKAssertNotNull(image);
+
+          var expectation = TKExpectation.init();
+          expectation.call(image.getData, image, function(data){
+              TKAssertNotNull(data);
+              TKAssertObjectEquals(data, [0x89,0x50, ... ]);
+          });
+
+          this.wait(expectation, 2.0);
+      }
+
+  });
+  ````
+
+  Promises
+  ========
+  Promises can be tested just like any other asynchronous function.
+
+  Here's an example of testing the asynchronous `JSImage.getData()` method
+  that returns a promise:
+  ````
+  // #import Foundation
+  // #import TestKit
+  'use strict';
+
+  JSClass("JSImageTests", TKTestSuite, {
+
+      testResourceData: function(){
+          var image = JSImage.initWithResourceName('test');
+          TKAssertNotNull(image);
+
+          var expectation = TKExpectation.init();
+          var promise = image.getData();
+          expectation.call(promise.then, promise, function(data){
+              TKAssertObjectEquals(data, [0x89,0x50, ... ]);
+          }, function(error){
+              TKAssert(false, "Promise rejection not expected");
+          });
+
+          this.wait(expectation, 2.0);
+      }
+
+  });
+
+  1. Use `promise.then`() as the method to call
+  1. Use `promise`() as the target
+  2. Make sure to handle the promise rejection case
+topics:
+  -
+    name: Creating an Expectation
+    members:
+      -
+        name: init
+        kind: init
+        summary: Create a new expectation
+  -
+    name: Managing an Asynchronous Call
+    members:
+      - 
+        name: call
+        kind: method
+        summary: Invokes an asynchronous call after wrapping any callback
+          functions
+        arguments:
+          -
+            name: method
+            type: function
+            summary: The method to call
+          -
+            name: target
+            type: object
+            summary: The object to use as `this` when calling the method
+          -
+            name: args
+            type: any
+            variable: true
+            summary: Any remaining arguments to the method call
+        description: |
+          For example, if you want to call the `getData` method of a
+          `JSImage` instance named `image`, you'll call:
+
+          ````
+          expectation.call(image.getData, image, function(data){
+            //...
+          });
+          ````
+
+          At least one of the `args`() should be a callback function for the
+          asynchronous response.
+
+          `TKExpectation` will wrap the callback in its own handler that
+          catches errors and reports back to the suite when the handler is
+          done.
+
+          Nested Asynchronous Calls
+          =================
+
+          If you call `call()` within a completion handler, the expectation
+          will continue to run until the final nested call is done.
