@@ -57,6 +57,19 @@ JSClass("JSFileEnumerator", JSObject, {
                 callback.call(target, file2 === null ? file : null);
             }, this);
         }, this);
+    },
+
+    all: function(completion, target){
+        var files = [];
+        var handleFile = function(directory, file){
+            if (file !== null){
+                files.push({directory: directory, file: file});
+                this.next(handleFile, this);
+            }else{
+                completion.call(target, files);
+            }
+        };
+        this.next(handleFile, this);
     }
 
 });
