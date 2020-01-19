@@ -71,9 +71,10 @@ function fetchFromServer(request){
 }
 
 function fetchAndAddToCache(request){
-  console.debug('Adding ' + request.url + ' to cache');
+  console.debug('Fetching ' + request.url);
   return fetch(request, {cache: 'no-store'}).then(function(response){
     if (response.ok){
+      console.debug('Adding ' + request.url + ' to cache');
       caches.open(cacheKey).then(function(cache){
         cache.put(request, response).then(function(){
           console.debug("Cached " + request.url);
