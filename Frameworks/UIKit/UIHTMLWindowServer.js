@@ -450,6 +450,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             this._updateMouseLocation(e);
             var pasteboard = UIHTMLDataTransferPasteboard.initWithDataTransfer(e.dataTransfer);
             var session = UIDraggingSession.initWithPasteboard(pasteboard, this.mouseLocation);
+            session.isActive = true;
             session.allowedOperations = EffectAllowedToDragOperation[e.dataTransfer.effectAllowed] || UIDragOperation.none;
             this.startDraggingSession(session);
         }
