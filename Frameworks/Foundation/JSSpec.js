@@ -217,9 +217,10 @@ JSClass("JSSpec", JSObject, {
             descriptor = bindings.valueForKey(key);
             if (descriptor.length === null){
                 this._setObjectBinding(obj, key, descriptor);
-            }
-            for (var i = 0, l = descriptor.length; i < l; ++i){
-                descriptor = this._setObjectBinding(obj, key, descriptor.valueForKey(i));
+            }else{
+                for (var i = 0, l = descriptor.length; i < l; ++i){
+                    this._setObjectBinding(obj, key, descriptor.valueForKey(i));
+                }
             }
         }
     },
