@@ -113,14 +113,15 @@ JSClass("Builder", JSObject, {
             let url = import_.url;
             let name = import_.name;
 
-            // If the import points to a projectURL, it needs to be built.
+            // If the import doen't point to .jsframework, then it's a project
+            // that needs to be built.
             //
             // Because dependent builds are always framework builds, and
             // because framework builds don't build their dependencies,
             // and because we're careful to have unique items in the imports
             // list, we will only ever build each dependency once.
-            if (import_.projectURL){
-                let builder = await this.buildFramework(import_.projectURL);
+            if (import_.url.fileExtension != '.jsframework'){
+                let builder = await this.buildFramework(import_.url);
                 url = builder.bundleURL;
                 // Add build dependencies
                 let dependencies = builder.dependencies(env);

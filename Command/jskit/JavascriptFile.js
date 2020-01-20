@@ -18,11 +18,19 @@ JSClass("JavascriptFile", JSObject, {
     lineNumber: 0,
     lineOffset: 0,
 
+    reset: function(){
+        this.offset = 0;
+        this.context = 0;
+        this.lineNumber = 0;
+        this.lineOffset = 0;
+    },
+
     imports: function(){
+        this.reset();
         var imports = {
             paths: [],
             frameworks: [],
-            features: []
+            features: [],
         };
         var scan = this.next();
         while (scan !== null){
@@ -46,6 +54,52 @@ JSClass("JavascriptFile", JSObject, {
             scan = this.next();
         }
         return imports;
+    },
+
+    globals: function(){
+        var globals = [];
+        this.reset();
+        var scan = this.next();
+        var validName = /^[A-Za-z\$_][A-Za-z0-9_]*$/;
+        while (scan !== null){
+            if (scan.code){
+                let i = 0;
+                let l = scan.code.length;
+                while (i < l){
+                    let classIndex = scan.code.indexOf("JSClass(", i);
+                    let globalIndex = scan.code.indexOf('JSGlobalObject.', i);
+                    if (classIndex < 0 && globalIndex < 0){
+                        break;
+                    }
+                    if (classIndex < 0 || (globalIndex >= 0 && globalIndex < classIndex)){
+                        i = globalIndex + 15;
+                        let endIndex = scan.code.indexOf('=', i);
+                        if (endIndex > i){
+                            let name = scan.code.substr(i, endIndex - i).replace(/\s+$/,"");
+                            if (name.match(validName)){
+                                globals.push(name);
+                            }
+                        }
+                    }else{
+                        i = classIndex + 8;
+                        let quote = scan.code.charAt(i);
+                        ++i;
+                        let endIndex = scan.code.indexOf(quote, i);
+                        if (endIndex > i){
+                            let name = scan.code.substr(i, endIndex - i);
+                            if (name.match(validName)){
+                                globals.push(name);
+                            }
+                            i = endIndex + 1;
+                        }else{
+                            ++i;
+                        }
+                    }
+                }
+            }
+            scan = this.next();
+        }
+        return globals;
     },
 
     next: function(){

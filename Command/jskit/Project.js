@@ -51,6 +51,21 @@ JSClass("Project", JSObject, {
         return infoValue;
     },
 
+    roots: function(envs){
+        let roots = [this.entryPoint.path];
+        var envRoots = this.info.JSBundleEnvironments;
+        if (envRoots && envs){
+            for (let i = 0, l = envs.length; i < l; ++i){
+                let env = envs[i];
+                let root = envRoots[env];
+                if (root){
+                    roots.push(root);
+                }
+            }
+        }
+        return roots;
+    },
+
     // -----------------------------------------------------------------------
     // MARK: - Loading Project
 
@@ -154,6 +169,59 @@ JSClass("Project", JSObject, {
     // -----------------------------------------------------------------------
     // MARK: - Resources
 
+    urlForJavascriptPath: async function(path, includeDirectoryURLs){
+        let directoryURL;
+        let candidateURL;
+        let found;
+        for (let i = 0, l = includeDirectoryURLs.length; i < l; ++i){
+            directoryURL = includeDirectoryURLs[i];
+            candidateURL = directoryURL.appendingPathComponent(path);
+            found = await this.fileManager.itemExistsAtURL(candidateURL);
+            if (found){
+                return candidateURL;
+            }
+        }
+        return null;
+    },
+
+    urlForFrameworkName: async function(name, includeDirectoryURLs){
+        let directoryURL;
+        let candidateURL;
+        let found;
+        for (let i = 0, l = includeDirectoryURLs.length; i < l; ++i){
+            directoryURL = includeDirectoryURLs[i];
+            candidateURL = directoryURL.appendingPathComponent(name + '.jsframework', true);
+            found = await this.fileManager.itemExistsAtURL(candidateURL);
+            if (found){
+                return candidateURL;
+            }
+            candidateURL = directoryURL.appendingPathComponent(name + '.jslink', false);
+            found = await this.fileManager.itemExistsAtURL(candidateURL);
+            if (found){
+                let link = await this.fileManager.contentsAtURL(candidateURL);
+                candidateURL = JSURL.initWithString(link.stringByDecodingUTF8(), candidateURL);
+                candidateURL.hasDirectoryPath = true;
+                found = await this.fileManager.itemExistsAtURL(candidateURL);
+                if (!found){
+                    throw new Error("Bad .jslink at %s.jslink".sprintf(name));
+                }
+                return candidateURL;
+            }
+        }
+        candidateURL = this.url.removingLastPathComponent().appendingPathComponent(name, true);
+        found = await this.fileManager.itemExistsAtURL(candidateURL);
+        if (found){
+            return candidateURL;
+        }
+        var jskitURL = this.fileManager.urlForPath(JSKitRootDirectoryPath);
+        candidateURL = jskitURL.appendingPathComponents(["Frameworks", name], true);
+        found = await this.fileManager.itemExistsAtURL(candidateURL);
+        if (found){
+            return candidateURL;
+        }
+        return null;
+    },
+
     findJavascriptImports: async function(roots, includeDirectoryURLs){
         var result = {
             files: [],
@@ -169,87 +237,36 @@ JSClass("Project", JSObject, {
         var visit = async function(path, sourceURL, sourceLine){
             if (!visited.paths.has(path)){
                 visited.paths.add(path);
-                let found = false;
-                let directoryURL;
-                let candidateURL;
-                for (let i = 0, l = includeDirectoryURLs.length; i < l && !found; ++i){
-                    directoryURL = includeDirectoryURLs[i];
-                    candidateURL = directoryURL.appendingPathComponent(path);
-                    found = await this.fileManager.itemExistsAtURL(candidateURL);
-                }
-                if (!found){
+                let url = await this.urlForJavascriptPath(path, includeDirectoryURLs);
+                if (url === null){
                     if (sourceURL){
                         throw new Error('Cannot find "%s", included from %s:%d'.sprintf(path, sourceURL, sourceLine));
                     }
                     throw new Error('Cannot find "%s"'.sprintf(path));
                 }
-                let data = await this.fileManager.contentsAtURL(candidateURL);
-                let js = JavascriptFile.initWithData(data, candidateURL);
+                let data = await this.fileManager.contentsAtURL(url);
+                let js = JavascriptFile.initWithData(data, url);
                 let imports = js.imports();
                 let import_;
                 for (let i = 0, l = imports.paths.length; i < l; ++i){
                     import_ = imports.paths[i];
                     await visit.call(this, import_.path, import_.sourceURL, import_.sourceLine);
                 }
-                result.files.push({url: candidateURL});
+                result.files.push({url: url});
 
                 for (let i = 0, l = imports.frameworks.length; i < l; ++i){
                     import_ = imports.frameworks[i];
                     let name = import_.name;
                     if (!visited.frameworks.has(name)){
                         visited.frameworks.add(name);
-                        candidateURL = null;
-                        found = false;
-                        let isProject = false;
-                        for (let j = 0, k = includeDirectoryURLs.length; j < k && !found; ++j){
-                            directoryURL = includeDirectoryURLs[j];
-                            candidateURL = directoryURL.appendingPathComponent(name + '.jsframework', true);
-                            found = await this.fileManager.itemExistsAtURL(candidateURL);
-                            if (!found){
-                                candidateURL = directoryURL.appendingPathComponent(name + '.jslink', false);
-                                found = await this.fileManager.itemExistsAtURL(candidateURL);
-                                if (found){
-                                    let link = await this.fileManager.contentsAtURL(candidateURL);
-                                    candidateURL = JSURL.initWithString(link.stringByDecodingUTF8(), candidateURL);
-                                    candidateURL.hasDirectoryPath = true;
-                                    isProject = true;
-                                    found = await this.fileManager.itemExistsAtURL(candidateURL);
-                                    if (!found){
-                                        throw new Error("Bad .jslink at %s.jslink".sprintf(name));
-                                    }
-                                }
-                            }
-                            if (!found){
-                                candidateURL = this.url.removingLastPathComponent().appendingPathComponent(name, true);
-                                found = await this.fileManager.itemExistsAtURL(candidateURL);
-                                if (found){
-                                    let project = Project.initWithURL(candidateURL);
-                                    try{
-                                        await project.load();
-                                        isProject = true;
-                                    }catch (e){
-                                        found = false;
-                                    }
-                                }
-                            }
-                        }
-                        if (!found){
-                            var jskitURL = this.fileManager.urlForPath(JSKitRootDirectoryPath);
-                            candidateURL = jskitURL.appendingPathComponents(["Frameworks", name], true);
-                            found = await this.fileManager.itemExistsAtURL(candidateURL);
-                            isProject = true;
-                        }
-                        if (!found){
+                        let url = await this.urlForFrameworkName(name, includeDirectoryURLs);
+                        if (url === null){
                             if (sourceURL){
                                 throw new Error('Cannot find framework %s, included from %s:%d'.sprintf(name, sourceURL, sourceLine));
                             }
                             throw new Error('Cannot find "%s"');
                         }
-                        if (isProject){
-                            result.frameworks.push({name: name, projectURL: candidateURL});
-                        }else{
-                            result.frameworks.push({name: name, url: candidateURL});
-                        }
+                        result.frameworks.push({name: name, url: url});
                     }
                 }
                 for (let i = 0, l = imports.features.length; i < l; ++i){
@@ -266,6 +283,82 @@ JSClass("Project", JSObject, {
         }
 
         return result;
+    },
+
+    globals: async function(roots, includeDirectoryURLs, seenFrameworks, envs){
+        var seenFiles = new Set();
+        var urlStack = [];
+        var frameworkStack = [];
+        if (seenFrameworks === undefined){
+            seenFrameworks = new Set();
+        }
+        if (envs === undefined){
+            if (this.info.JSBundleType == 'html'){
+                envs = ['html'];
+            }else if (this.info.JSBundleType == 'node'){
+                envs = ['node'];
+            }
+        }
+        for (let i = 0, l = roots.length; i < l; ++i){
+            let root = roots[i];
+            if (typeof(root) === 'string'){
+                root = await this.urlForJavascriptPath(root, includeDirectoryURLs);
+            }
+            urlStack.push(root);
+            seenFiles.add(root.path);
+        }
+        var globals = [];
+        while (urlStack.length > 0){
+            let url = urlStack.shift();
+            seenFiles.add(url.path);
+            let contents = await this.fileManager.contentsAtURL(url);
+            let js = JavascriptFile.initWithData(contents);
+            let fileGlobals = js.globals();
+            for (let i = 0, l = fileGlobals.length; i < l; ++i){
+                globals.push(fileGlobals[i]);
+            }
+            let imports = js.imports();
+            for (let i = 0, l = imports.paths.length; i < l; ++i){
+                let path = imports.paths[i].path;
+                let url = await this.urlForJavascriptPath(path, includeDirectoryURLs);
+                if (url !== null && !seenFiles.has(url.path)){
+                    seenFiles.add(url.path);
+                    urlStack.push(url);
+                }
+            }
+            for (let i = 0, l = imports.frameworks.length; i < l; ++i){
+                let name = imports.frameworks[i].name;
+                if (!seenFrameworks.has(name)){
+                    seenFrameworks.add(name);
+                    frameworkStack.push(name);
+                }
+            }
+        }
+
+        while (frameworkStack.length > 0){
+            let name = frameworkStack.shift();
+            let url = await this.urlForFrameworkName(name, includeDirectoryURLs);
+            if (url !== null){
+                if (url.fileExtension === '.jsframework'){
+                    // TODO: extract from built framework
+                }else{
+                    let frameworkProject = Project.initWithURL(url);
+                    try{
+                        await frameworkProject.load();
+                        let frameworkIncludeURLs = await frameworkProject.findIncludeDirectoryURLs();
+                        let roots = frameworkProject.roots(envs);
+                        let frameworkGlobals = await frameworkProject.globals(roots, frameworkIncludeURLs, seenFrameworks, envs);
+                        for (let i = 0, l = frameworkGlobals.length; i < l; ++i){
+                            globals.push(frameworkGlobals[i]);
+                        }
+                    }catch(e){
+                        console.error(e);
+                    }
+                }
+            }
+        }
+
+        return globals;
     },
 
     // -----------------------------------------------------------------------
@@ -314,3 +407,17 @@ JSClass("Project", JSObject, {
     }
 
 });
+
+Project.projectForFile = async function(fileURL){
+    var candidateURL = fileURL.removingLastPathComponent();
+    while (candidateURL.pathComponents.length > 1){
+        var project = Project.initWithURL(candidateURL);
+        try{
+            await project.load();
+            return project;
+        }catch (e){
+            candidateURL = candidateURL.removingLastPathComponent();
+        }
+    }
+    return null;
+};
