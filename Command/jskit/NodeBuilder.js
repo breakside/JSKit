@@ -426,21 +426,25 @@ JSClass("NodeBuilder", Builder, {
                 err += data.stringByDecodingUTF8();
             }
         });
-
-        var bundleName = this.bundleURL.lastPathComponent;
-        var bundlePath = this.fileManager.pathForURL(this.bundleURL);
-        this.commands.push([
-            "docker run",
-            "--rm",
-            "--name " + name,
-            "-p%d:%d".sprintf(this.arguments.port, this.arguments.port),
-            identifier
-        ].join(" \\\n    "));
+        var builder = this;
         return new Promise(function(resolve, reject){
             docker.on('close', function(code){
                 if (code !== 0){
                     reject(new Error("Error building docker: " + err));
                 }
+
+                var bundleName = builder.bundleURL.lastPathComponent;
+                var bundlePath = builder.fileManager.pathForURL(builder.bundleURL);
+                builder.commands.push([
+                    "docker run",
+                    "--rm",
+                    "--name " + name,
+                    "-p%d:%d".sprintf(builder.arguments.port, builder.arguments.port),
+                    identifier
+                ].join(" \\\n    "));
+                resolve();
+            });
+            docker.on('error', function(){
                 resolve();
             });
         });

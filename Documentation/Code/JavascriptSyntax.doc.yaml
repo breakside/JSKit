@@ -1,0 +1,75 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: document
+name: Special JS Syntax
+summary: A common way of importing dependencies and specifying requirements
+description: |
+  The Motivation
+  =============
+  In developing JSKit, we ran into a couple needs that the Javascript language
+  doesn't support or that aren't consistently implemented across node.js
+  and web browser environments.
+
+  1. Specify file dependencies via some kind of import/require
+  2. Specify environment features that must be present before running code
+
+  However, we also wanted a solution that preserved the javasript files
+  as-written, which makes debugging much more straightforward.
+
+  The Solution
+  ===========
+  Our solution is to include special commands in comments, like:
+
+  ````
+  // #import "File.js"
+  ````
+
+  Any comment that begins with `// #command` is possibly treated as a
+  special instruction by the `jskit` tools when building an application
+  package.
+
+  Available Commands
+  =================
+
+  Importing Files & Frameworks
+  -----------
+
+  The `#import` command instructs `jskit` to include the specified file
+  or framework before including the current file.
+
+  Files are specified with double quotes.  Any file in your project
+  (except those in an embedded framwork) should be included with the file
+  syntax.
+  ````
+  // #import "File.js"
+  ````
+
+  Frameworks are specified without quotes.  Frameworks are imported all or
+  nothing, so you should never have to import a specific file from
+  within a framework.
+
+  ````
+  // #import Foundation
+  ````
+
+  Imports are typically listed at the top of a file
+
+  Environment Requirements
+  -----------
+
+  The `#feature` command instructs your application to run a check of the environment
+  before launching any other code.  This "preflight" check runs through
+  all of the unique features specified by the command throughout all of the
+  app's files and framework dependencies.
+
+  Features are specified as simple code:
+  ````
+  // #feature Uint8Array
+  // #feature 'key' in KeyboardEvent.prototype
+  ````
+
+  The simple code snippets are evaluated with a `!!` operation.  For example,
+  the second feature above will result in this check:
+
+  ````
+  return !!('key' in KeyboardEvent.prototype)
+  ````

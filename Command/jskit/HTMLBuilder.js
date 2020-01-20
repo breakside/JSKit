@@ -766,29 +766,33 @@ JSClass("HTMLBuilder", Builder, {
         const { spawn } = require('child_process');
         var args = ["build", "-t", identifier, '.'];
         var cwd = this.fileManager.pathForURL(this.buildURL);
-        var docker = spawn("docker", args, {cwd: cwd});
+        var docker;
+        docker = spawn("docker", args, {cwd: cwd});
         var err = "";
         docker.stderr.on('data', function(data){
             if (data){
                 err += data.stringByDecodingUTF8();
             }
         });
-
-        var localWWWPath = this.fileManager.pathForURL(this.wwwURL);
-        var remoteWWWPath = this.wwwURL.encodedStringRelativeTo(this.bundleURL.removingLastPathComponent());
-        this.commands.push([
-            "docker run",
-            "--rm",
-            "--name " + name,
-            "-p%d:%d".sprintf(this.arguments['http-port'], this.arguments['http-port']),
-            "--mount type=bind,source=%s,target=/%s".sprintf(localWWWPath, remoteWWWPath),
-            identifier
-        ].join(" \\\n    "));
+        var builder = this;
         return new Promise(function(resolve, reject){
             docker.on('close', function(code){
                 if (code !== 0){
                     reject(new Error("Error building docker: " + err));
                 }
+                var localWWWPath = builder.fileManager.pathForURL(builder.wwwURL);
+                var remoteWWWPath = builder.wwwURL.encodedStringRelativeTo(builder.bundleURL.removingLastPathComponent());
+                builder.commands.push([
+                    "docker run",
+                    "--rm",
+                    "--name " + name,
+                    "-p%d:%d".sprintf(builder.arguments['http-port'], builder.arguments['http-port']),
+                    "--mount type=bind,source=%s,target=/%s".sprintf(localWWWPath, remoteWWWPath),
+                    identifier
+                ].join(" \\\n    "));
+                resolve();
+            });
+            docker.on('error',function(){
                 resolve();
             });
         });

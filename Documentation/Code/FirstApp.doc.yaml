@@ -1,0 +1,84 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: document
+name: Your First JSKit Application 
+summary: A quick introduction on how to create a JSKit web client application
+description: |
+  Prerequisites
+  ================
+
+  If you don't already have them,
+
+  1. [Install npm](https://nodejs.org/en/download/)
+  1. [Install Docker](https://www.docker.com/products/docker-desktop)
+     (not absolutely required, but makes running your app easy)
+
+  Workspace Initialization
+  =================
+
+  Most `JSKit` based applications will actually contain multiple projects, so
+  it's best to create a workspace folder for your applications.
+
+  If your app is named `Messages`, you'd do something like this:
+
+  ````
+  $ mkdir ~/Documents/Messages && cd ~/Documents/Messages
+  $ npm install jskit
+  $ npx jskit init
+  ````
+
+  Project Creation
+  ================
+
+  Once you've got a workspace setup and `jskit` installed, the next step is
+  to add your application's main project.
+
+  ````
+  $ npx jskit add html MessagesWeb
+  ````
+
+  The `html`(jskit.add.html) part indicates that we are creating a `UIKit`
+  web based project.
+
+  `MessagesWeb`() is the name of your project, and the `Web`() suffix is a
+  handy way to distinguish it from other projects you may create in the
+  workspace such as `MessagesServer`() for backend code or `MessageKit`() for
+  shared code.
+
+  Building & Running
+  ===============
+
+  The template project you just created is ready to go without any modifications.
+  In order to build your application, you'll invoke:
+
+  ````
+  $ npx jskit build --debug MessagesWeb
+  ````
+
+  You should see output lines that give you copy & paste commands that
+  can run your app.
+
+  If you have Docker installed, just copy the docker command from the
+  lines that look like:
+
+  ````
+  $ docker run \
+    --rm \
+    --name ... \
+    -p8080:8080 \
+    --mount type=bind,source=... \
+    ...:debug
+  ````
+
+  Paste them in another terminal, then fire up a browser and head over to
+  `http://localhost:8080`().
+
+  That's it!
+
+  Next Up
+  =========
+
+  - Familiarize yourself with how the [project is organized](Web Application Project Organization)
+    and what all the files do
+  - Learn about the features available in `UIKit`
+  - Get to know the `jskit` command line tools
+  - Try creating a `ServerKit` based app to provide a backend for your web client

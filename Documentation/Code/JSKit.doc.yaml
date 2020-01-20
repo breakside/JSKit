@@ -40,6 +40,8 @@ topics:
       apps with `JSKit`
     members:
       - Goals
+      - FirstApp
+      - JavascriptSyntax
   -
     name: Command Line Utility
     summary: The primary command line tools for creating, building, and
