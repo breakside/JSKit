@@ -4,7 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
   <title></title>
+  <base href="/">
   <style id="bootstrap-style" type="text/css">
+  @import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,600&display=swap');
   * {
     cursor: default;
     user-select: none;
@@ -20,48 +22,51 @@
   }
   #status {
     position: absolute;
-    top: 40%;
-    margin-top: -16px;
+    opacity: 0;
+    top: 50%;
     right: 40px;
     left: 40px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font: 100 24px/32px "San Francisco", "Helvetica Neue", "Helvetica", sans-serif;
-    height: 32px;
+    font: 300 16px/24px "Source Sans Pro", "Helvetica", sans-serif;
+    height: 24px;
     text-align: center;
-    color: rgb(204,204,204);
-    tranition-property: color, margin-top;
-    transition-duration: .5s;
-    -webkit-font-smoothing: subpixel-antialiased;
+    color: rgb(164,164,164);
+    transition-property: opacity, color, margin-top;
+    transition-duration: .25s;
   }
   #details {
     position: absolute;
-    top: 40%;
-    margin-top: 16px;
+    opacity: 0;
+    top: 50%;
+    margin-top: 28px;
     right: 40px;
     left: 40px;
     overflow: hidden;
     text-overflow: ellipsis;
-    font: 100 16px/24px "San Francisco", "Helvetica Neue", "Helvetica", sans-serif;
+    font: 300 16px/20px "Source Sans Pro", "Helvetica", sans-serif;
     text-align: center;
-    color: rgb(128,128,128);
+    color: rgb(192,192,192);
     transition: opacity linear .5s .5s;
     opacity: 0;
-    -webkit-font-smoothing: subpixel-antialiased;
   }
   #progress {
-    display: none;
+    opacity: 0;
     position: absolute;
-    top: 40%;
+    box-sizing: border-box;
+    top: 50%;
     left: 50%;
-    width: 200px;
-    margin-top: 20px;
-    margin-left: -101px;
-    border-radius: 7px;
-    border: 1px solid rgb(204,204,204);
-    height: 9px;
+    width: 100px;
+    margin-left: -51px;
+    margin-top: -12px;
+    border-radius: 5px;
+    background-color: rgba(245,245,245);
+    height: 7px;
     overflow: hidden;
+    transition-property: opacity;
+    transition-duration: .25s;
+    box-shadow: inset 0 0 2px rgba(0,0,0,0.15);
   }
   #progress-bar {
     background-color: rgb(224,224,224);
@@ -69,8 +74,7 @@
     width: 0%;
   }
   #splash.error #status {
-    color: rgb(204,102,102);
-    margin-top: -42px;
+    font-weight: 600;
   }
   #splash.error #details {
     opacity: 1;
@@ -85,8 +89,7 @@
   </div>
   <script type="text/javascript" src="HTMLAppBootstrapper.js"></script>
   <script type="text/javascript" jskit>
-  /* jshint browser: true */
-  /* global HTMLAppBootstrapper */
+  /* global document, window, console, HTMLAppBootstrapper */
   'use strict';
   (function(){
     var app = {TEMPLATE: "JSKIT_APP"};
@@ -102,38 +105,44 @@
       var S = HTMLAppBootstrapper.STATUS;
       switch (bootstrapper.status){
         case S.checkingForUpdate:
-          statusLabel.innerHTML = 'Checking for Update...';
+          statusLabel.style.opacity = 1;
+          statusLabel.innerHTML = 'Checking for update...';
           break;
         case S.installing:
           statusLabel.innerHTML = 'Loading...';
-          progress.style.display = 'block';
+          statusLabel.style.opacity = 1;
+          progress.style.opacity = 1;
           break;
         case S.updating:
           statusLabel.innerHTML = 'Updating...';
-          progress.style.display = 'block';
+          statusLabel.style.opacity = 1;
+          progress.style.opacity = 1;
           break;
         case S.preflightLoading:
         case S.preflightRunning:
+          statusLabel.style.opacity = 1;
           statusLabel.innerHTML = 'Checking Compatibility...';
           break;
         case S.appLoading:
-          statusLabel.innerHTML = '';
-          progress.style.display = 'none';
+          statusLabel.style.opacity = 0;
           break;
         case S.preflightFailedChecks:
-          progress.style.display = 'none';
+          statusLabel.style.opacity = 1;
           splash.className = 'error';
           statusLabel.innerHTML = "Before we can get started...";
-          detailsLabel.innerHTML = "It looks like the browser you are using needs an upgrade.  Or, you can try a different browser.<br>To learn more, please visit __________";
+          detailsLabel.style.opacity = 1;
+          detailsLabel.innerHTML = "It looks like the browser you are using needs an upgrade.  Please get the latest version of Chrome, Firefox, Edge, or Safari.";
           break;
         case S.preflightLoadError:
         case S.updateError:
         case S.appLoadError:
         case S.appRunError:
         case S.appLaunchFailure:
-          progress.style.display = 'none';
+          statusLabel.style.opacity = 1;
+          progress.style.opacity = 0;
           splash.className = 'error';
-          statusLabel.innerHTML = "Apologies, but we couldn't start the app";
+          statusLabel.innerHTML = "Apologies, but we couldn't start the application";
+          detailsLabel.style.opacity = 1;
           detailsLabel.innerHTML = "Don't worry, it wasn't anything you did, and it isn't something we expect to happen under normal usage.<br>We've notified our engineers of the problem, and the best thing you can do is try again soon.";
           break;
         case S.appRunning:

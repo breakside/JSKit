@@ -42,11 +42,16 @@ JSClass("Resources", JSObject, {
                         paths.add(path);
                     }
                 }
-                if ('responder' in obj){
-                    let path = obj.responder + '.js';
-                    let url = await urlForPath(path);
-                    if (url !== null){
-                        paths.add(path);
+                if ('routes' in obj){
+                    for (let path in obj.routes){
+                        let responder = obj.routes[path];
+                        if (!responder.startsWith('./')){
+                            let jspath = responder + '.js';
+                            let url = await urlForPath(jspath);
+                            if (url !== null){
+                                paths.add(jspath);
+                            }
+                        }
                     }
                 }
                 if ('include' in obj){

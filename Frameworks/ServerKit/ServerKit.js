@@ -13,3 +13,4 @@
 // #import "SKHTTPResponderContext.js"
 // #import "SKHTTPHeaders.js"
 // #import "SKHTTPError.js"
+// #import "SKHTTPAuthorization.js"

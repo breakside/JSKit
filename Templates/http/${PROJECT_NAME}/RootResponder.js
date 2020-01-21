@@ -5,7 +5,7 @@
 
 JSClass('RootResponder', SKHTTPResponder, {
 
-    contextClass: RootResponder,
+    contextClass: RootContext,
 
     get: function(){
         var greeting = {message: "Hello, world!"};

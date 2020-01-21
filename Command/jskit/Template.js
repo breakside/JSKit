@@ -1,5 +1,5 @@
 // #import Foundation
-/* global JSClass, JSObject, JSFileManager */
+/* global JSClass, JSObject, JSFileManager, JSRange */
 'use strict';
 
 JSClass("Template", JSObject, {
@@ -31,12 +31,19 @@ JSClass("Template", JSObject, {
             }else{
                 let toURL = toDirectoryURL.appendingPathComponent(toName);
                 let data = await this.fileManager.contentsAtURL(entry.url);
-                // FIXME: assuming everything is text
-                let contents = data.stringByDecodingUTF8();
-                let replaced = contents.replacingTemplateParameters(params, '${');
-                await this.fileManager.createFileAtURL(toURL, replaced.utf8());
+                if (isText(data)){
+                    let contents = data.stringByDecodingUTF8();
+                    let replaced = contents.replacingTemplateParameters(params, '${');
+                    data = replaced.utf8();
+                }
+                await this.fileManager.createFileAtURL(toURL, data);
             }
         }
     }
 
 });
+
+var isText = function(data){
+    var head = data.subdataInRange(JSRange(0, Math.min(128, data.length)));
+    return head.isEqual(head.stringByDecodingUTF8().utf8());
+};
