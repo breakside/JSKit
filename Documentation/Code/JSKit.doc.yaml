@@ -42,6 +42,7 @@ topics:
       - Goals
       - FirstApp
       - JavascriptSyntax
+      - DevelopmentEnvironment
   -
     name: Command Line Utility
     summary: The primary command line tools for creating, building, and

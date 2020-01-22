@@ -102,15 +102,23 @@ JSClass("Markdown", JSObject, {
                             text = '';
                         }
                         let href = escapedText.substr(hrefStart + 2, hrefEnd - hrefStart - 2);
+                        let url;
                         if (markdown.delegate && markdown.delegate.urlForMarkdownLink){
-                            href = markdown.delegate.urlForMarkdownLink(markdown, href);
-                            if (href){
-                                href = href.encodedString;
-                            }
+                            url = markdown.delegate.urlForMarkdownLink(markdown, href);
+                        }else{
+                            url = JSURL.initWithString(href);
                         }
                         let linktext = escapedText.substr(i, hrefStart - i);
                         let a = element.appendChild(document.createElement('a'));
-                        a.setAttribute("href", href);
+                        if (url !== null){
+                            a.setAttribute("href", url.encodedString);
+                            if (url.isAbsolute){
+                                a.setAttribute("target", "_blank");
+                                a.setAttribute("rel", "noopener noreferrer");
+                            }
+                        }else{
+                            a.setAttribute("href", href);
+                        }
                         a.appendChild(document.createTextNode(linktext));
                         i = hrefEnd + 1;
                     }else{

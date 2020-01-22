@@ -1,0 +1,28 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: document
+name: Development Environment
+summary: Available tools to help make JSKit development easier
+description: |
+  Sublime Text
+  ============
+  As a first step, we've created an add-on package for
+  [Sublime Text](https://www.sublimetext.com).
+
+  You can install it either:
+  - With Package Control under the name `JSKit`(), or
+  - From [github.com/breakside/sublime-jskit](https://github.com/breakside/sublime-jskit).
+
+  To start with, we wanted to provide:
+  - `JSKit` awareness when linting files
+  - Snippets of common patterns
+  - Auto-completions
+
+  In order to lint your Javascript, we recommend also installing:
+  - [SublimeLinter](http://www.sublimelinter.com) in SublimeText
+  - [jshint](https://jshint.com) via `npm install jshint` in your workspace
+    folder
+
+  Other Environments
+  ==========
+  [Let us know](https://jskit.dev/contact/) if there are other editors or IDEs
+  that could use `JSKit` support.

@@ -79,6 +79,7 @@ description: |
 
   - Familiarize yourself with how the [project is organized](Web Application Project Organization)
     and what all the files do
+  - Get the [tools for your development environment](Development Environment)
   - Learn about the features available in `UIKit`
   - Get to know the `jskit` command line tools
   - Try creating a `ServerKit` based app to provide a backend for your web client
