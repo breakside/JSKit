@@ -1,4 +1,3 @@
-/* global JSGlobalObject */
 'use strict';
 
 JSGlobalObject.UnicodeProperties = {

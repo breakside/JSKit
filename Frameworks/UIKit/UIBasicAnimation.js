@@ -1,5 +1,5 @@
 // #import "UIPropertyAnimation.js"
-/* global JSClass, UIPropertyAnimation, UIAnimationTransaction, JSLazyInitProperty, UIBasicAnimation, UIAnimation, JSDynamicProperty, JSResolveDottedName, JSSetDottedName, JSPoint, JSSize, JSRect, JSAffineTransform, JSColor */
+// #import "UIAnimationTransaction.js"
 'use strict';
 
 (function(){

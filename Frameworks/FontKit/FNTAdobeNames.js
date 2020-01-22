@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSGlobalObject */
 'use strict';
 
 (function(){

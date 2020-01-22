@@ -5,7 +5,6 @@
 // #import "JSAffineTransform.js"
 // #import "JSRange.js"
 // #import "JSConstraintBox.js"
-/* global JSGlobalObject */
 'use strict';
 
 JSGlobalObject.JSLineBreakMode = {

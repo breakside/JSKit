@@ -1,5 +1,5 @@
 // #import Foundation
-/* global JSClass, JSObject, JSPoint, UICursor, JSImage, JSBundle, JSCopy, UIApplication */
+/* global UIApplication */
 'use strict';
 
 JSClass("UICursor", JSObject, {

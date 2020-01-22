@@ -2,7 +2,6 @@
 // #import FontKit
 // #import DOM
 // #import jsyaml
-/* global JSClass, JSObject, JSRange, JSSHA1Hash, JSFileManager, jsyaml, FNTOpenTypeFont, Zlib, JSData, XMLParser */
 'use strict';
 
 JSClass("Resources", JSObject, {

@@ -1,5 +1,4 @@
 // #import "DocComponent.js"
-/* global JSClass, DocComponent, DocProperty */
 'use strict';
 
  JSClass("DocProperty", DocComponent, {

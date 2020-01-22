@@ -1,6 +1,6 @@
 // #import "UIApplication.js"
 // #import "UIHTMLWindowServer.js"
-/* global JSGlobalObject, JSReadOnlyProperty, UIApplication, JSURL, window, UIHTMLWindowServer, JSArguments */
+// jshint browser: true
 'use strict';
 
 (function(){

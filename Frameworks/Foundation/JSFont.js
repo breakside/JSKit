@@ -1,7 +1,7 @@
 // #import "JSObject.js"
 // #import "JSFontDescriptor.js"
 // #import "CoreTypes.js"
-/* global JSClass, JSObject, JSBundle, JSReadOnlyProperty, JSPoint, JSFont, JSFontDescriptor, JSResourceFontDescriptor, JSDataFontDescriptor */
+// #import "JSBundle.js"
 'use strict';
 
 (function(){

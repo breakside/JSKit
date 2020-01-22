@@ -1,13 +1,15 @@
 {
-    "globalstrict": true,
+    "strict": "global",
     "newcap": false,
     "multistr": true,
     "predef": [
+        "ArrayBuffer",
         "Uint8Array",
         "Uint16Array",
         "Uint32Array",
-        "DataView",
-        "Set",
-        "Promise"
+        "Int8Array",
+        "Int16Array",
+        "Int32Array",
+        "Set"
     ]
 }

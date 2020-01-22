@@ -1,6 +1,4 @@
 // #import "JSDispatchQueue.js"
-// #feature window.Worker
-/* global self, Worker, JSClass, JSObject, JSDispatchQueue, JSWorkerBasedDispatchQueue, JSBundle */
 'use strict';
 
 (function(){

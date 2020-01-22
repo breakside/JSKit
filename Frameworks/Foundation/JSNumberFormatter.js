@@ -1,7 +1,6 @@
 // #import "JSObject.js"
 // #import "JSLocale.js"
 // #import "JSBundle.js"
-/* global JSClass, JSObject, JSNumberFormatter, JSRange, JSLocale, JSCustomProperty, JSDynamicProperty, JSBundle */
 'use strict';
 
 // http://www.unicode.org/reports/tr35/tr35-numbers.html#Number_Format_Patterns

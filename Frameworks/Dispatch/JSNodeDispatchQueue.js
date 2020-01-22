@@ -1,5 +1,5 @@
 // #import "JSWorkerBasedDispatchQueue.js"
-/* global require, process, JSClass, JSObject, JSDispatchQueue, JSWorkerBasedDispatchQueue, JSWorkerBasedDispatchQueueWorker, JSNodeDispatchQueue, JSBundle */
+// jshint node: true
 'use strict';
 
 var child_process = require('child_process');

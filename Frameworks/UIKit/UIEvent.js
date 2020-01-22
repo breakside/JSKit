@@ -1,6 +1,5 @@
 // #import Foundation
 // #import "UITouch.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, UIEvent, JSPoint */
 'use strict';
 
 JSClass('UIEvent', JSObject, {

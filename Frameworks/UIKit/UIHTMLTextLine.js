@@ -1,6 +1,6 @@
 // #import Foundation
 // #import "UIHTMLTextRun.js"
-/* global JSClass, JSTextLine, UIHTMLTextLine, JSSize, UIHTMLTextRun, JSAttributedString, JSFont, JSRect */
+// jshint browser: true
 'use strict';
 
 (function(){

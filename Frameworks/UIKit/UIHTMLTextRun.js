@@ -1,5 +1,6 @@
 // #import Foundation
-/* global JSClass, JSReadOnlyProperty, JSTextTypesetter, JSTextRun, UIHTMLTextRun, JSSize, JSAttributedString, JSFont, JSRect, JSRange */
+// jshint browser: true
+/* global UIHTMLDisplayServerContext */
 'use strict';
 
 (function(){

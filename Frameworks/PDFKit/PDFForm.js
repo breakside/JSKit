@@ -2,7 +2,6 @@
 // #import "PDFColorSpace.js"
 // #import "PDFDrawing.js"
 // #import "PDFOperationIterator.js"
-/* global JSGlobalObject, JSLog, JSData, JSRect, JSAffineTransform, JSRange, PDFStream, PDFXObject, PDFObjectProperty, PDFName, PDFForm, JSSize, PDFDrawing, PDFOperationIterator */
 'use strict';
 
 (function(){

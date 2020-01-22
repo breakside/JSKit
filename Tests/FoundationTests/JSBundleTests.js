@@ -1,5 +1,5 @@
 // #import Foundation
-/* global JSClass, TKTestSuite, TKAssert, TKAssertNull, TKAssertNotNull, TKAssertEquals, TKAssertObjectEquals, TKAssertThrows, JSBundle, JSLocale */
+// #import TestKit
 'use strict';
 
 JSClass('JSBundleTests', TKTestSuite, {

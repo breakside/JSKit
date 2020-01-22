@@ -1,6 +1,5 @@
 // #import Foundation
 // #import "UIDisplayServer.js"
-/* global JSClass, JSObject, JSDynamicProperty, UIAnimationTransaction, UIDisplayServer */
 'use strict';
 
 JSClass('UIAnimationTransaction', JSObject, {

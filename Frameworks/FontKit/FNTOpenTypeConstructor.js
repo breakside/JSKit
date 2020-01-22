@@ -1,6 +1,5 @@
 // #import Foundation
-/* global JSClass, JSObject, JSData, FNTOpenTypeConstructor */
-/* global FNTOpenTypeFontTableHead, FNTOpenTypeFontTableHhea, FNTOpenTypeFontTableOS2, FNTOpenTypeFontTableMaxp, FNTOpenTypeFontTablePost, FNTOpenTypeFontTableHmtx, FNTOpenTypeFontTableName, FNTOpenTypeFontTableCmap */
+// #import "FNTOpenTypeFont.js"
 'use strict';
 
 (function(){

@@ -1,5 +1,5 @@
 // #import "UIListView.js"
-/* global JSClass, UIListView, UIListViewDefaultStyler, UIListViewDelegate, UIOutlineView, JSProtocol, JSIndexPath, UIEvent, UIOutlineViewDefaultStyler, UIControl, JSBundle, JSImage, JSAffineTransform, JSRect, JSPoint, JSSize, JSColor */
+// #import "UIControl.js"
 'use strict';
 
 (function(){

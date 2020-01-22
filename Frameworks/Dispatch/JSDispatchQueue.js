@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, JSDispatchQueue */
 'use strict';
 
 JSClass("JSDispatchQueue", JSObject, {

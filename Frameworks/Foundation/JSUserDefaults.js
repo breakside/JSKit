@@ -1,10 +1,10 @@
+// #import "Promise+JS.js"
 // #import "JSObject.js"
 // #import "JSBundle.js"
 // #import "JSRunLoop.js"
 // #import "JSTimer.js"
 // #import "JSFileManager.js"
 // #import "JSLog.js"
-/* global Promise, JSClass, JSObject, JSReadOnlyProperty, JSUserDefaults, JSBundle, JSRunLoop, JSTimer, JSFileManager, JSLog */
 'use strict';
 
 (function(){

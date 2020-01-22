@@ -1,7 +1,6 @@
 // #import "IKEncoder.js"
 // #import "IKBitmap.js"
 // #import "IKDecoderPNG.js"
-/* global IKEncoder, JSClass, JSData, ZlibStream, JSRange, IKEncoderPNG, IKBitmap, IKDecoderPNG */
 'use strict';
 
 (function(){

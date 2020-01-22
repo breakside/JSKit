@@ -1,5 +1,5 @@
+// #import "JSURL.js"
 // #import "JSObject.js"
-/* global JSClass, JSObject, JSLazyInitProperty, JSReadOnlyProperty, JSFileManager, JSURL */
 'use strict';
 
 JSClass("JSFileManager", JSObject, {

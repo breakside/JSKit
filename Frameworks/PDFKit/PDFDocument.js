@@ -1,6 +1,5 @@
 // #import "PDFObject.js"
 // #import "PDFName.js"
-/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFDocument, PDFPageIterator, PDFName */
 'use strict';
 
 JSGlobalObject.PDFDocument = function(){

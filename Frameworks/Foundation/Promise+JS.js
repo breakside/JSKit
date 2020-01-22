@@ -1,4 +1,4 @@
-/* global JSGlobalObject, JSPromise, setTimeout */
+/* global setTimeout */
 'use strict';
 
 (function(){

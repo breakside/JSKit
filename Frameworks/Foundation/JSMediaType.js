@@ -1,4 +1,4 @@
-/* global JSGlobalObject, JSMediaType, JSCopy */
+// #import "Javascript.js"
 'use strict';
 
 JSGlobalObject.JSMediaType = function(str, parameters){

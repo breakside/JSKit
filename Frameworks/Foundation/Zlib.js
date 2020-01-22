@@ -4,7 +4,6 @@
 // #import "JSLog.js"
 // #import "JSData.js"
 // #import "CoreTypes.js"
-/* global JSGlobalObject, Deflate, DeflateStream, JSLog, Adler32, Zlib, ZlibStream, JSData, JSRange */
 'use strict';
 
 (function(){

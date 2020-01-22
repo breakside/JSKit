@@ -1,10 +1,11 @@
 {
-    "globalstrict": true,
+    "node": true,
+    "strict": "global",
     "newcap": false,
     "multistr": true,
     "esversion": 8,
     "predef": [
-        "require",
-        "process"
+        "JSKitRootDirectoryPath",
+        "jsyaml"
     ]
 }

@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, SECHMAC */
 'use strict';
 
 JSClass("SECHMAC", JSObject, {

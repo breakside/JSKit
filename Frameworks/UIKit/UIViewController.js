@@ -1,6 +1,6 @@
 // #import Foundation
 // #import "UIResponder.js"
-/* global JSClass, JSObject, UIResponder, JSCopy, UIView, JSDynamicProperty, UIViewController, JSReadOnlyProperty, UITabViewItem */
+// #import "UITabView.js"
 'use strict';
 
 JSClass("UIViewController", UIResponder, {

@@ -1,6 +1,5 @@
 // #import Foundation
 // #import TestKit
-/* global JSClass, TKTestSuite, TKAssert, TKAssertNotNull, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSMD5Hash */
 'use strict';
 
 JSClass('JSMD5HashTests', TKTestSuite, {

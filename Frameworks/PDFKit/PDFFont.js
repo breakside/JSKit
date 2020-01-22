@@ -1,7 +1,7 @@
 // #import FontKit
 // #import "PDFObject.js"
 // #import "PDFCMap.js"
-/* global JSGlobalObject, JSClass, JSRange, JSLog, UUID, JSFont, JSFontDescriptor, FNTOpenTypeFont, FNTFontDescriptor, FNTType1Font, PDFStandardFontDescriptor, PDFOpenTypeFontDescriptor, JSData, PDFObject, PDFObjectProperty, PDFFont, PDFName, PDFType1Font, PDFType0Font, PDFTrueTypeFont, PDFMMType1Font, PDFType3Font, PDFCIDType0Font, PDFCIDType2Font, PDFOperationIterator, PDFCMap, FNTAdobeNamesToUnicode */
+// #import "PDFOperationIterator.js"
 'use strict';
 
 (function(){

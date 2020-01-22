@@ -1,5 +1,4 @@
 // #import "String+JS.js"
-/* global JSGlobalObject, JSMIMEHeaderMap, JSMIMEHeader */
 'use strict';
 
 JSGlobalObject.JSMIMEHeaderMap = function(other){

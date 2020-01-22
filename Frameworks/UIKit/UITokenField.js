@@ -1,7 +1,7 @@
 // #import "UITextField.js"
 // #import "UITextAttachmentView.js"
 // #import "UICursor.js"
-/* global JSClass, UITextField, UITokenField, JSSize, UICursor, JSAttributedString, JSLineBreakMode, UITextAttachmentView, UIView, UITokenFieldTokenView, UILabel, JSRange, JSRect, JSPoint, JSDynamicProperty, JSInsets, JSColor, JSLog */
+// #import "UILabel.js"
 'use strict';
 
 (function(){

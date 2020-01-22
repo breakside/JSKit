@@ -1,4 +1,3 @@
-/* global JSGlobalObject, PDFObject */
 'use strict';
 
 JSGlobalObject.PDFObject = function(){

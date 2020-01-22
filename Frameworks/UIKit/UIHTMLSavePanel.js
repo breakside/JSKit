@@ -1,5 +1,5 @@
 // #import "UISavePanel.js"
-/* global document, Blob, URL, JSClass, UISavePanel, UIHTMLSavePanel */
+// jshint browser: true
 'use strict';
 
 JSClass("UIHTMLSavePanel", UISavePanel, {

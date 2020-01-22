@@ -3,7 +3,6 @@
 // #import "String+JS.js"
 // #import "JSFormFieldMap.js"
 // #import "JSLog.js"
-/* global JSClass, JSObject, JSRange, JSURL, JSDynamicProperty, JSCopy, JSReadOnlyProperty, JSData, JSLog, JSFormFieldMap */
 
 // https://tools.ietf.org/html/rfc3986
 

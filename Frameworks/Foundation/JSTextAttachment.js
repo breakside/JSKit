@@ -1,6 +1,5 @@
 // #import "JSObject.js"
 // #import "JSImage.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSSize, JSRect, JSImage */
 'use strict';
 
 JSClass("JSTextAttachment", JSObject, {

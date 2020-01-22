@@ -1,8 +1,6 @@
 // #import UIKit
 // #import TestKit
 // #import "MockWindowServer.js"
-/* global JSClass, TKTestSuite, UIListView, UIListViewCell, UIListViewHeaderFooterView, MockWindowServer, UIApplication, UIRootWindow, JSFont, JSRect, JSIndexPath, JSPoint */
-/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals, TKAssertArrayEquals */
 'use strict';
 
 JSClass("UIListViewTests", TKTestSuite, {

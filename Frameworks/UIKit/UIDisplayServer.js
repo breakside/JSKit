@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, JSReadOnlyProperty, UIAnimationTransaction, UIDisplayServer, UIDisplayServerInit, UIEvent, JSPoint */
 'use strict';
 
 JSClass("UIDisplayServer", JSObject, {

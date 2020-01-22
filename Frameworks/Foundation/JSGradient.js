@@ -1,7 +1,6 @@
 // #import "JSObject.js"
 // #import "JSColor.js"
 // #import "CoreTypes.js"
-/* global JSClass, JSObject, JSColor, JSGradient, JSPoint, JSCopy, JSAffineTransform */
 'use strict';
 
 JSClass('JSGradient', JSObject, {

@@ -6,6 +6,10 @@
             "folder_exclude_patterns": ["builds", "env", "node_modules", "Designs", "*.egg-info"]
 		}
 	],
+    "settings": {
+        "SublimeLinter.linters.jshint.disable": true,
+        "SublimeLinter.linters.jshint-jskit.enable": true
+    },
     "build_systems":
     [
         {

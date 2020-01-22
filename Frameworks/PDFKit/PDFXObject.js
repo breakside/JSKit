@@ -1,6 +1,5 @@
 // #import ImageKit
 // #import "PDFStream.js"
-/* global JSGlobalObject, PDFStream, PDFObjectProperty, PDFName, PDFXObject, JSSize, IKBitmap */
 'use strict';
 
 JSGlobalObject.PDFXObject = function(){

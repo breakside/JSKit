@@ -1,7 +1,6 @@
 // #import UIKit
 // #import TestKit
 // #import "MockWindowServer.js"
-/* global JSClass, TKTestSuite, UIView, MockWindowServer */
 'use strict';
 
 JSClass("UIViewTests", TKTestSuite, {

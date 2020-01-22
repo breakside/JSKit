@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, JSTimer */
 'use strict';
 
 JSClass("TKExpectation", JSObject, {

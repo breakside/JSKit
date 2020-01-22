@@ -1,4 +1,3 @@
-/* global JSGlobalObject, JSMath */
 'use strict';
 
 JSGlobalObject.JSMath = {};

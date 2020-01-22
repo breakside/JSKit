@@ -1,6 +1,5 @@
 // #import "JSObject.js"
 // #import "JSCalendar.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSLocale, JSCalendar */
 'use strict';
 
 JSClass("JSLocale", JSObject, {

@@ -1,6 +1,6 @@
 // #import "UIView.js"
 // #import "UILabel.js"
-/* global JSClass, JSObject, JSFont, JSCopy, JSProtocol, JSSize, JSRect, JSInsets, JSColor, JSImage, JSPoint, JSReadOnlyProperty, JSDynamicProperty, UIView, UITabView, UILabel, JSLazyInitProperty, UILayer, UITabViewItemsView, UITabViewItemView, UITabViewStyler, UITabViewItem, UIImageView, UITabViewDefaultStyler, UITabViewContentContainer, UITabViewImagesStyler, UITabViewTablessStyler */
+// #import "UIImageView.js"
 'use strict';
 
 (function(){

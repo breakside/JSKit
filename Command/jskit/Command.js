@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, JSDynamicProperty, Command, JSURL, JSFileManager, process */
 'use strict';
 
 JSClass("Command", JSObject, {
@@ -49,6 +48,25 @@ JSClass("Command", JSObject, {
 
     run: function(){
     },
+
+    inputData: async function(){
+        return new Promise(function(resolve, reject){
+            let chunks = [];
+            process.stdin.on('readable', function(){
+                let chunk = process.stdin.read();
+                while (chunk !== null){
+                    chunks.push(JSData.initWithNodeBuffer(chunk));
+                    chunk = process.stdin.read();
+                }
+            });
+            process.stdin.on('end', function(){
+                resolve(JSData.initWithChunks(chunks));
+            });
+            process.stdin.on('error', function(e){
+                reject(e);
+            });
+        });
+    }
 
 });
 

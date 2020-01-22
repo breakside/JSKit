@@ -1,5 +1,6 @@
 // #import "UIWebView.js"
-/* global UIWebView, UIWebView, JSURL */
+// jshint browser: true
+/* global UIHTMLDisplayServerContext */
 'use strict';
 
 UIWebView.definePropertiesFromExtensions({

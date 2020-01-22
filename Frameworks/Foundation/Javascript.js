@@ -1,4 +1,4 @@
-/* global JSGlobalObject, JSResolveDottedName, JSSize, JSPoint, JSRect, JSRange, JSAffineTransform, JSInsets, JSIndexPath, JSCopy */
+/* global JSSize, JSPoint, JSRect, JSRange, JSAffineTransform, JSInsets, JSIndexPath, JSCopy */
 'use strict';
 
 // -----------------------------------------------------------------------------

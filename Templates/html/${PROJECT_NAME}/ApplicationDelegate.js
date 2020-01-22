@@ -1,5 +1,4 @@
 // #import UIKit
-/* global JSClass, JSObject */
 'use strict';
 
 JSClass("ApplicationDelegate", JSObject, {

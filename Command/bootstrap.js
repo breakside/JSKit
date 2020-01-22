@@ -1,5 +1,5 @@
-/* global global, require, __filename, MakeCommand, JSURL */
-/* jshint esversion: 8 */
+// jshint node: true, esversion: 8
+/* global MakeCommand */
 'use strict';
 
 /// A script that includes what's needed from jskit to make the first build of jskit

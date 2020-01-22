@@ -1,7 +1,6 @@
 // #import "CoreTypes.js"
 // #import "String+JS.js"
 // #import "JSData.js"
-/* global JSRange, JSData, JSGlobalObject, JSFormFieldMap, JSFormField */
 'use strict';
 
 (function(){

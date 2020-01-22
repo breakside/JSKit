@@ -1,7 +1,7 @@
 // #import Foundation
 // #import "SECJSONWebToken.js"
 // #import "SECNodeKey.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, SECHash, SECVerify, JSData, crypto, SECNodeKey, SECJSONWebToken */
+// jshint node: true
 'use strict';
 
 (function(){

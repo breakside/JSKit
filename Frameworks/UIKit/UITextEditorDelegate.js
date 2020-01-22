@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSProtocol */
 'use strict';
 
 JSProtocol("UITextEditorDelegate", JSProtocol, {

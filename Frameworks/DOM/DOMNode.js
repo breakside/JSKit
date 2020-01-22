@@ -1,5 +1,4 @@
 // #import "DOMBase.js"
-/* global JSGlobalObject, DOM */
 'use strict';
 
 DOM.Node.ELEMENT_NODE = 1;

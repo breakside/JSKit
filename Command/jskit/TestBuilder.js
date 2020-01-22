@@ -2,7 +2,6 @@
 // #import "Builder.js"
 // #import "Resources.js"
 // #import "Project.js"
-/* global JSClass, JSObject, JSCopy, JSBundle, JSReadOnlyProperty, JSURL, Builder, TestBuilder, Resources, Project, HTMLBuilder, NodeBuilder, FrameworkBuilder, DOM, XMLSerializer */
 'use strict';
 
 // buildURL

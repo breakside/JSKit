@@ -1,5 +1,4 @@
-// #imoprt Foundation
-/* global JSClass, JSObject, OAService, JSBundle, JSURL, JSURLSession, JSURLResponse */
+// #import Foundation
 'use strict';
 
 JSClass("OAService", JSObject, {

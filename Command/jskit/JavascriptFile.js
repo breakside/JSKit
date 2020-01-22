@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, JavascriptFile, JSRange */
 'use strict';
 
 JSClass("JavascriptFile", JSObject, {
@@ -66,22 +65,39 @@ JSClass("JavascriptFile", JSObject, {
                 let i = 0;
                 let l = scan.code.length;
                 while (i < l){
-                    let classIndex = scan.code.indexOf("JSClass(", i);
-                    let globalIndex = scan.code.indexOf('JSGlobalObject.', i);
-                    if (classIndex < 0 && globalIndex < 0){
+                    let jsindex = scan.code.indexOf('JS', i);
+                    if (jsindex < 0){
                         break;
                     }
-                    if (classIndex < 0 || (globalIndex >= 0 && globalIndex < classIndex)){
-                        i = globalIndex + 15;
+                    i = jsindex + 2;
+                    if (scan.code.substr(i, 6) == 'Class('){
+                        i += 6;
+                        let quote = scan.code.charAt(i);
+                        ++i;
+                        let endIndex = scan.code.indexOf(quote, i);
+                        if (endIndex > i){
+                            let name = scan.code.substr(i, endIndex - i);
+                            if (name.match(validName)){
+                                globals.push(name);
+                            }
+                            i = endIndex + 1;
+                        }else{
+                            ++i;
+                        }
+                    }else if (scan.code.substr(i, 13) == 'GlobalObject.'){
+                        i += 13;
                         let endIndex = scan.code.indexOf('=', i);
                         if (endIndex > i){
                             let name = scan.code.substr(i, endIndex - i).replace(/\s+$/,"");
                             if (name.match(validName)){
                                 globals.push(name);
                             }
+                            i = endIndex + 1;
+                        }else{
+                            ++i;
                         }
-                    }else{
-                        i = classIndex + 8;
+                    }else if (scan.code.substr(i, 9) == 'Protocol('){
+                        i += 9;
                         let quote = scan.code.charAt(i);
                         ++i;
                         let endIndex = scan.code.indexOf(quote, i);

@@ -6,6 +6,10 @@
             "folder_exclude_patterns": ["builds", "node_modules"]
         }
     ],
+    "settings": {
+        "SublimeLinter.linters.jshint.disable": true,
+        "SublimeLinter.linters.jshint-jskit.enable": true
+    },
     "build_systems":
     [
     ]

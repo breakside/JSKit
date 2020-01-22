@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, JSDynamicProperty, JSCubicBezier, UIAnimation, JSPoint, JSSize, JSRect, JSAffineTransform, JSColor */
 'use strict';
 
 JSClass('UIAnimation', JSObject, {

@@ -1,6 +1,7 @@
 // #import "UITextInputManager.js"
 // #feature 'key' in KeyboardEvent.prototype
-/* global JSClass, UITextInputManager, JSLog, JSRange, UIHTMLTextInputManager */
+/* global UIHTMLTextInputManager */
+// jshint browser: true
 'use strict';
 
 (function(){

@@ -7,7 +7,7 @@
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
 // #feature Document.prototype.createElement
-/* global JSGlobalObject, Element, JSFont, JSClass, UIDisplayServer, UIHTMLDisplayServer, UIHTMLDisplayServerContext, UIHTMLDisplayServerCanvasContext, UIHTMLDisplayServerSVGContext, JSSize, JSRect, JSPoint, UILayer, JSLog, UITextFramesetter, UIHTMLTextFramesetter, UIView, UITextAttachmentView */
+// jshint browser: true
 'use strict';
 
 (function(){

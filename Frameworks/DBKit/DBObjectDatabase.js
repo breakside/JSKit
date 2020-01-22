@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, DBObjectDatabase, UUID, JSSHA1Hash */
 'use strict';
 
 JSClass("DBObjectDatabase", JSObject, {

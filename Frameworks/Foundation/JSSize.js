@@ -1,4 +1,3 @@
-/* global JSGlobalObject, JSSize */
 'use strict';
 
 JSGlobalObject.JSSize = function JSSize(width, height){

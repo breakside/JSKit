@@ -1,6 +1,6 @@
 // #import "SKHTTPServer.js"
 // #import "SKHTTPRequest+Node.js"
-/* global SKHTTPServer, require, SKHTTPRequest, JSLog */
+// jshint node: true
 'use strict';
 
 var http = require('http');

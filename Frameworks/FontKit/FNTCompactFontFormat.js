@@ -1,7 +1,7 @@
 // #import Foundation
 // #import "FNTOpenTypeConstructor.js"
+// #import "FNTOpenTypeFont.js"
 // #import "FNTAdobeNames.js"
-/* global Int16Array, Int32Array, JSClass, JSCopy, JSDeepCopy, JSObject, JSRange, FNTOpenTypeConstructor, FNTOpenTypeFontTableCFF, FNTOpenTypeFontCmap12, FNTAdobeNamesToUnicode */
 'use strict';
 
 (function(){

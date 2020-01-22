@@ -1,4 +1,3 @@
-/* global JSGlobalObject, SKHTTPError */
 'use strict';
 
 JSGlobalObject.SKHTTPError = function(statusCode, message){

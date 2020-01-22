@@ -1,6 +1,5 @@
 // #import ${PROJECT_NAME}
 // #import TestKit
-/* global JSClass, TKTestSuite, TKAssert, TKAssertNotNull, TKAssertEquals, TKAssertObjectEquals, JSPoint */
 'use strict';
 
 JSClass('${PROJECT_NAME}Tests', TKTestSuite, {

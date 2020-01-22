@@ -2,7 +2,8 @@
 // #import "UIHTMLTextLine.js"
 // #import "UIHTMLDisplayServerContext.js"
 // #import "UITextAttachmentView.js"
-/* global JSClass, JSTextFrame, UIHTMLTextFrame, UIHTMLTextLine, JSAttributedString, JSRange, JSFont, JSPoint, JSRect, JSSize, UIHTMLDisplayServerContext, UITextAttachmentView */
+// jshint browser: true
+/* global UIHTMLDisplayServerCanvasContext */
 'use strict';
 
 (function(){

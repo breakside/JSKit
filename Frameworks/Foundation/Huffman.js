@@ -1,5 +1,4 @@
 // #import "JSLog.js"
-/* global JSLog, JSGlobalObject */
 'use strict';
 
 (function(){

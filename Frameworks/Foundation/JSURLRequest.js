@@ -2,7 +2,6 @@
 // #import "JSURL.js"
 // #import "JSMIMEHeaderMap.js"
 // #import "JSMediaType.js"
-/* global JSClass, JSObject, JSURL, JSReadOnlyProperty, JSMediaType, JSMIMEHeaderMap, JSDynamicProperty, JSURLRequest */
 'use strict';
 
 JSClass("JSURLRequest", JSObject, {

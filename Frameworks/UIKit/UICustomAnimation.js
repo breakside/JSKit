@@ -1,5 +1,4 @@
 // #import "UIAnimation.js"
-/* global JSClass, UIAnimation */
 'use strict';
 
 JSClass("UICustomAnimation", UIAnimation, {

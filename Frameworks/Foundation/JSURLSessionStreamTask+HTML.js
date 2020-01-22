@@ -3,7 +3,7 @@
 // #import "JSLog.js"
 // #feature WebSocket
 // #feature Uint8Array
-/* global JSClass, JSURLSessionStreamTask, JSLazyInitProperty, WebSocket, JSLog, JSURLResponse, JSURLRequest, JSURL, JSData, Uint8Array */
+// jshint browser: true
 'use strict';
 
 (function(){

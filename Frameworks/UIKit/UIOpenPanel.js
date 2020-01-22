@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, UIOpenPanel, JSReadOnlyProperty */
 'use strict';
 
 JSClass("UIOpenPanel", JSObject, {

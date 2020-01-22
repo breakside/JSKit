@@ -2,7 +2,6 @@
 // #import "PDFGraphicsState.js"
 // #import "PDFColorSpace.js"
 // #import "PDFImage.js"
-/* global JSClass, JSObject, JSColor, JSContext, JSAffineTransform, JSSize, JSRect, JSPoint, JSRange, PDFImage, PDFGraphicsState, PDFColorSpace, PDFForm */
 'use strict';
 
 (function(){

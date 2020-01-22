@@ -1,4 +1,3 @@
-/* global JSGlobalObject, PDFName */
 'use strict';
 
 JSGlobalObject.PDFName = function(value){

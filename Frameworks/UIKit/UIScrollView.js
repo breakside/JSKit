@@ -1,6 +1,5 @@
 // #import "UIView.js"
 // #import "UIEvent.js"
-/* global JSClass, UIView, UIEvent, JSCopy, UIScrollView, JSDynamicProperty, JSDeepCopy, JSAffineTransform, JSInsets, JSProtocol, JSReadOnlyProperty, UIScroller, UIControl, JSPoint, JSRect, JSSize */
 'use strict';
 
 JSProtocol("UIScrollViewDelegate", JSProtocol, {

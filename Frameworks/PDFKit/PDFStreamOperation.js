@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSGlobalObject, PDFStreamOperation */
 'use strict';
 
 (function(){

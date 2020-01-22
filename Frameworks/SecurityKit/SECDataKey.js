@@ -1,5 +1,4 @@
 // #import "SECKey.js"
-/* global JSClass, JSObject, SECKey, JSData, JSRunLoop */
 'use strict';
 
 JSClass("SECDataKey", SECKey, {

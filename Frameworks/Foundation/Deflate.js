@@ -3,7 +3,6 @@
 // #import "JSLog.js"
 // #import "JSData.js"
 // #import "CoreTypes.js"
-/* global JSLog, HuffmanTree, JSGlobalObject, Deflate, DeflateStream, JSData, JSRange */
 'use strict';
 
 (function(){

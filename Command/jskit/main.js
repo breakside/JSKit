@@ -5,7 +5,6 @@
 // #import "TestCommand.js"
 // #import "DocCommand.js"
 // #import "GlobalsCommand.js"
-/* global module, require, process, JSArguments, JSCopy, Command */
 'use strict';
 
 var options = {

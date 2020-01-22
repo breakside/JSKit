@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSObject, JSClass, IKDecoder, IKBitmap, IKDecoderPNG, IKDecoderJPEG */
 'use strict';
 
 JSClass("IKDecoder", JSObject, {

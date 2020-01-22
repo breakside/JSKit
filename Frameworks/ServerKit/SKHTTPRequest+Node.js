@@ -1,7 +1,6 @@
 // #import "SKHTTPRequest.js"
 // #import "SKHTTPWebSocket+Node.js"
 // #import "SKHTTPResponse+Node.js"
-/* global require, SKHTTPRequest, SKHTTPResponse, JSURL, JSData, JSMIMEHeaderMap, SKHTTPWebSocket */
 'use strict';
 
 SKHTTPRequest.definePropertiesFromExtensions({

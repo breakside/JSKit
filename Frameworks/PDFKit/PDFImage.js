@@ -1,8 +1,7 @@
 // #import ImageKit
 // #import "PDFXObject.js"
 // #import "PDFColorSpace.js"
-/* global JSGlobalObject, JSLog, JSData, JSRange, JSImage, PDFStream, PDFXObject, PDFObjectProperty, PDFName, PDFImage, JSSize, IKBitmap, PDFColorSpace, PDFFilter, IKEncoderPNG, Zlib */
-/* global PDFColorSpace, PDFColorSpaceCIEGray, PDFColorSpaceCIERGB, PDFColorSpaceCIELab, PDFColorSpaceIndexed, PDFColorSpaceDeviceN, PDFColorSpacePattern, PDFColorSpaceSeparation, PDFColorSpaceICCBased */
+// #import "PDFFilter.js"
 'use strict';
 
 (function(){

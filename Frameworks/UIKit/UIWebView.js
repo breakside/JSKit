@@ -1,5 +1,4 @@
 // #import "UIView.js"
-/* global JSClass, JSProtocol, UIView, UIWebView */
 'use strict';
 
 (function(){

@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSRect */
 'use strict';
 
 Object.defineProperties(JSRect.prototype, {

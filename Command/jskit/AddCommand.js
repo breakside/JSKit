@@ -1,7 +1,6 @@
 // #import "Command.js"
 // #import "Template.js"
 // #import "Printer.js"
-/* global JSClass, Command, JSKitRootDirectoryPath, Template, Printer */
 'use strict';
 
 JSClass("AddCommand", Command, {

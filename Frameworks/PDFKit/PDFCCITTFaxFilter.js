@@ -1,5 +1,4 @@
 // #import "PDFFilter.js"
-/* global JSClass, JSObject, PDFFilter */
 'use strict';
 
 JSClass("PDFCCITTFaxFilter", PDFFilter, {

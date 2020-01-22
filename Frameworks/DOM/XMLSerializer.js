@@ -1,5 +1,4 @@
 // #import "DOMNode.js"
-/* global JSGlobalObject, XMLSerializer, DOM */
 'use strict';
 
 JSGlobalObject.XMLSerializer = function XMLSerializer(){

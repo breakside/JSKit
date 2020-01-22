@@ -1,12 +1,11 @@
 // #import "JSFile.js"
 // #import "JSData.js"
 // #import "JSURL.js"
-/* global JSClass, JSFile */
-/* feature Blob */
-/* feature FileReader */
-/* feature URL.createObjectURL */
-/* feature URL.revokeObjectURL */
-/* global FileReader, JSData, JSURL, URL */
+// #feature Blob
+// #feature FileReader
+// #feature URL.createObjectURL
+// #feature URL.revokeObjectURL
+// jshint browser: true
 'use strict';
 
 JSClass("JSHTMLFile", JSFile, {

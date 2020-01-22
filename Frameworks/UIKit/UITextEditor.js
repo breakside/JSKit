@@ -1,6 +1,5 @@
 // #import Foundation
 // #import "UILayer.js"
-/* global JSClass, JSDynamicProperty, JSUndoManager, JSAttributedString, JSCopy, JSObject, JSRange, UITextEditor, JSRect, JSPoint, JSColor, UILayer, JSTimer, JSBinarySearcher */
 'use strict';
 
 (function(){

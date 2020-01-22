@@ -1,6 +1,5 @@
 // #import "JSFileEnumerator.js"
 // #import "JSHTMLFile.js"
-/* global JSClass, JSObject, JSFileEnumerator, JSHTMLFile, JSHTMLFileListFileEnumerator, JSHTMLFileSystemEntryFileEnumerator */
 'use strict';
 
 JSClass("JSHTMLFileListFileEnumerator", JSFileEnumerator, {

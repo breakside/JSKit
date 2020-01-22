@@ -1,6 +1,5 @@
 // #import "JSRunLoop.js"
 // #import "Promise+JS.js"
-/* global JSRunLoop */
 'use strict';
 
 (function(){

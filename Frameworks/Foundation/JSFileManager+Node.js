@@ -1,9 +1,10 @@
+// #import "Promise+JS.js"
 // #import "JSFileManager.js"
 // #import "JSBundle.js"
 // #import "JSData.js"
 // #import "JSURL.js"
 // #import "JSLog.js"
-/* global require, process, JSClass, JSObject, JSCopy, JSLazyInitProperty, JSFileManager, JSData, JSBundle, JSURL, JSLog */
+// jshint node: true
 'use strict';
 
 var logger = JSLog("foundation", "files");

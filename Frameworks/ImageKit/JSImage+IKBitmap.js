@@ -1,6 +1,5 @@
 // #import Foundation
 // #import "IKBitmap.js"
-/* global JSImage, IKBitmap, JSSize */
 'use strict';
 
 JSImage.definePropertiesFromExtensions({

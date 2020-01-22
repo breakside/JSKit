@@ -5,7 +5,6 @@
 // #import "JSTextLine.js"
 // #import "JSTextRun.js"
 // #import "JSLog.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSTextTypesetter, JSAttachmentFont, JSSize, JSRange, JSTextAlignment, JSTextLine, JSTextRun, JSPoint, JSAttributedString, JSFont, JSLog, JSLineBreakMode */
 'use strict';
 
 (function(){

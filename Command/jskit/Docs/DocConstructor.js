@@ -1,5 +1,4 @@
 // #import "DocMethod.js"
-/* global JSClass, DocMethod, DocMethod, DocConstructor */
 'use strict';
 
  JSClass("DocConstructor", DocMethod, {

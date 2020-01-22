@@ -1,4 +1,5 @@
-/* global self, console, clients, caches, fetch, URL */
+// jshint worker: true
+/* global console, clients, caches, fetch */
 'use strict';
 var app = {TEMPLATE: "JSKIT_APP"};
 var cacheKey = 'build-' + app.buildId;

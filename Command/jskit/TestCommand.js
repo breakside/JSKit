@@ -2,7 +2,6 @@
 // #import "Project.js"
 // #import "TestBuilder.js"
 // #import "Printer.js"
-/* global JSClass, Command, Project, TestBuilder, Printer */
 'use strict';
 
 JSClass("TestCommand", Command, {

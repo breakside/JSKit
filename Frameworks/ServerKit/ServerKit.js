@@ -1,4 +1,3 @@
-'use strict';
 // #import "SKApplication.js"
 // #import "SKHTTPServer.js"
 // #import "SKHTTPRequest.js"
@@ -14,3 +13,4 @@
 // #import "SKHTTPHeaders.js"
 // #import "SKHTTPError.js"
 // #import "SKHTTPAuthorization.js"
+'use strict';

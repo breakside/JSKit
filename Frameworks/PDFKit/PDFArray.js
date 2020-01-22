@@ -1,5 +1,4 @@
 // #import "PDFObject.js"
-/* global JSGlobalObject, PDFObject, PDFArray */
 'use strict';
 
 JSGlobalObject.PDFArray = function(){

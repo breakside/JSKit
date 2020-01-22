@@ -1,4 +1,5 @@
-/* global HTMLAppBootstrapper, window, navigator, localStorage, document, setTimeout, main, console */
+// jshint browser: true
+/* global HTMLAppBootstrapper, console */
 'use strict';
 
 (function(){

@@ -1,4 +1,4 @@
-/* global JSGlobalObject, SVGPathSegList, SVGPathSeg, SVGPathSegClosePath, SVGPathSegMovetoAbs, SVGPathSegLinetoAbs, SVGPathElement, SVGPathSegCurvetoCubicAbs, SVGPathSegCurvetoQuadraticAbs, SVGPathSegArcAbs */
+/* global SVGPathSegList, SVGPathSeg, SVGPathSegClosePath, SVGPathSegMovetoAbs, SVGPathSegLinetoAbs, SVGPathElement, SVGPathSegCurvetoCubicAbs, SVGPathSegCurvetoQuadraticAbs, SVGPathSegArcAbs */
 'use strict';
 
 (function(g){

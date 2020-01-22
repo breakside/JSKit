@@ -1,6 +1,5 @@
 // #import "CoreTypes.js"
 // #import "JSMath.js"
-/* global JSGlobalObject, JSCubicBezier, JSPoint, JSMath */
 'use strict';
 
 JSGlobalObject.JSCubicBezier = function(p1, cp1, cp2, p2){

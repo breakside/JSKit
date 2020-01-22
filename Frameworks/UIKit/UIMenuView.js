@@ -5,7 +5,6 @@
 // #import "UIImageView.js"
 // #import "UIEvent.js"
 // #import "UIPlatform.js"
-/* global JSClass, JSLazyInitProperty, JSReadOnlyProperty, JSDynamicProperty, UIPlatform, UIEvent, UIWindow, UIMenu, UIView, JSColor, JSSize, JSRect, UILabel, UIImageView, UIMenuItem, JSTextAlignment, JSInsets, JSPoint, UILayer, UIMenuWindow, UIMenuView, UIMenuItemView, JSBinarySearcher, JSTimer, JSURL, JSImage, JSBundle, UIMenuItemSeparatorView, UIWindowCustomStyler */
 'use strict';
 
 (function(){

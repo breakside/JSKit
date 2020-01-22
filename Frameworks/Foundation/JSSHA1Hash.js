@@ -1,5 +1,5 @@
 // #import "JSIterativeHash.js"
-/* global JSIterativeHash, JSGlobalObject, JSData, JSSHA1Hash */
+// #import "JSData.js"
 'use strict';
 
 JSGlobalObject.JSSHA1Hash = function JSSHA1Hash(x){

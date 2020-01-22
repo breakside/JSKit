@@ -4,7 +4,6 @@
 // #import "UIAnimation.js"
 // #import "UIDraggingDestination.js"
 // #import "UILayoutConstraint.js"
-/* global JSGlobalObject, JSClass, JSObject, JSCopy, JSInsets, JSSize, UIViewLayerProperty, UIResponder, UIView, UILayer, UIColor, JSCustomProperty, JSDynamicProperty, JSRect, JSPoint, JSColor, UIAnimation, UIAnimationTransaction, JSReadOnlyProperty, UIWindowServer, UIDragOperation, UILayoutConstraint, UILayoutAttribute, UILayoutRelation, UILayoutPriority, JSGradient */
 'use strict';
 
 JSGlobalObject.UIViewLayerProperty = function(){

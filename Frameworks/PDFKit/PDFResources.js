@@ -1,6 +1,5 @@
 // #import "PDFObject.js"
 // #import "PDFColorSpace.js"
-/* global JSGlobalObject, JSLog, PDFObject, PDFObjectProperty, PDFResources, PDFName, PDFColorSpace */
 'use strict';
 
 (function(){

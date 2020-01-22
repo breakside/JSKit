@@ -2,7 +2,6 @@
 // #import SecurityKit
 // #import "PDFCryptFilter.js"
 // #import "PDFTypes.js"
-/* global JSClass, JSData, JSObject, PDFEncryption, JSMD5Hash, SECCipher, PDFName */
 'use strict';
 
 (function(){

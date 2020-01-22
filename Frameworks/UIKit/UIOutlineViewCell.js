@@ -1,7 +1,6 @@
 // #import "UIListViewCell.js"
 // #import "UIButton.js"
 // #import "UIEvent.js"
-/* global JSClass, UIListViewCell, UIOutlineViewCell, UIButton, UIButtonImageStyler, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, JSInsets, JSColor, UIEvent */
 'use strict';
 
 JSClass("UIOutlineViewCell", UIListViewCell, {

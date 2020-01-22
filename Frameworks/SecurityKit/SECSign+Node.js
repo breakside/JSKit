@@ -1,6 +1,6 @@
 // #import "SECSign.js"
 // #import "SECNodeKey.js"
-/* global JSClass, JSObject, JSData, require, SECSign, SECNodeKey */
+// jshint node: true
 'use strict';
 
 var crypto = require('crypto');

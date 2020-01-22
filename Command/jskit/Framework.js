@@ -1,6 +1,5 @@
 // #import Foundation
 // #import jsyaml
-/* global JSClass, JSObject, jsyaml */
 'use strict';
 
 JSClass("Framework", JSObject, {

@@ -1,5 +1,5 @@
 // #import "SKHTTPWebSocket.js"
-/* global SKHTTPWebSocket, JSData, JSLog */
+// jshint node: true
 'use strict';
 
 var logger = JSLog("server", "websocket");

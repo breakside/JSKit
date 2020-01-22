@@ -1,5 +1,5 @@
 // #import "JSData.js"
-/* global JSData, Buffer*/
+// jshint node: true
 'use strict';
 
 Object.defineProperties(JSData, {

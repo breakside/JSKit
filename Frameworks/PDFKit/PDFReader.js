@@ -5,8 +5,6 @@
 // #import "PDFTokenizer.js"
 // #import "PDFReaderStream.js"
 // #import "PDFStreamOperation.js"
-/* global JSClass, JSObject, JSLog, JSReadOnlyProperty, PDFReader, PDFTokenizer, PDFReaderStream, PDFReaderDataStream, PDFStreamOperationIterator, JSData, PDFFilter, PDFEncryption, PDFStreamOperation */
-/* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFTrueTypeFont, PDFImage, PDFXrefStream */
 'use strict';
 
 (function(){

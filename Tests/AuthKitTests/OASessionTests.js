@@ -1,7 +1,5 @@
 // #import AuthKit
 // #import TestKit
-/* global JSClass, TKTestSuite, OASession, OAService, JSURL */
-/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals, TKAssertArrayEquals, TKExpectation */
 'use strict';
 
 JSClass("OASessionTests", TKTestSuite, {

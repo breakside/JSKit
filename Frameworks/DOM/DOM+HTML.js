@@ -1,5 +1,5 @@
 // #import "XMLParser.js"
-/* global window, document */
+// jshint browser: true
 'use strict';
 
 window.DOM = {

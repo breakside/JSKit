@@ -1,7 +1,6 @@
 // #import "JSObject.js"
 // #import "JSDate.js"
 // #import "JSTimeZone.js"
-/* global JSClass, JSObject, JSCalendar, JSGregorianCalendar, JSDynamicProperty, JSReadOnlyProperty, JSDate, JSTimeZone */
 'use strict';
 
 (function(){

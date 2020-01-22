@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSRect, JSInsets */
 'use strict';
 
 JSClass("UIScreen", JSObject, {

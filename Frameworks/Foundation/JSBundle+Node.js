@@ -1,5 +1,6 @@
+// #import "Promise+JS.js"
 // #import "JSBundle.js"
-/* global JSBundle, require, JSData */
+// jshint node: true
 'use strict';
 
 var fs = require('fs');

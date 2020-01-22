@@ -1,6 +1,5 @@
 // #import ServerKit
 // #import TestKit
-/* global JSClass, TKTestSuite, SKHTTPWebSocketParser, TKAssertEquals, TKAssertObjectEquals, TKAssertNotNull, TKAssert, JSData, JSRange */
 'use strict';
 
 JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {

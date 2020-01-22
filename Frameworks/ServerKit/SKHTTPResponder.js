@@ -3,7 +3,7 @@
 // #import "SKHTTPError.js"
 // #import "SKHTTPResponse.js"
 // #import "SKValidatingObject.js"
-/* global JSClass, JSObject, JSURL, JSReadOnlyProperty, JSMIMEHeaderMap, JSSHA1Hash, SKHTTPResponder, SKHTTPResponse, SKHTTPResponderContext, SKHTTPError, JSLog, SKValidatingObject, SKHTTPAuthorization */
+// #import "SKHTTPAuthorization.js"
 'use strict';
 
 (function(){

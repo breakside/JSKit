@@ -2,7 +2,7 @@
 // #import "UIHTMLTextLine.js"
 // #import "UIHTMLTextRun.js"
 // #import "UITextAttachmentView.js"
-/* global JSClass, JSReadOnlyProperty, JSTextTypesetter, JSSize, UIHTMLTextTypesetter, UIHTMLTextLine, UIHTMLTextRun, JSRange, JSAttributedString, JSLineBreakMode, JSLog, UITextAttachmentView */
+// jshint browser: true
 'use strict';
 
 (function(){

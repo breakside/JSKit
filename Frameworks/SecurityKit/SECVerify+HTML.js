@@ -1,6 +1,7 @@
 // #import "SECVerify.js"
 // #import "SECHTMLKey.js"
-/* global JSClass, JSObject, JSData, crypto, SECVerify, SECHTMLKey */
+// jshint browser: true
+/* global crypto */
 'use strict';
 
 (function(){

@@ -1,7 +1,6 @@
 // #import "JSPoint.js"
 // #import "JSSize.js"
 // #import "JSInsets.js"
-/* global JSGlobalObject, JSRect, JSPoint, JSSize, JSInsets */
 'use strict';
 
 JSGlobalObject.JSRect = function JSRect(x, y, width, height){

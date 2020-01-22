@@ -1,5 +1,4 @@
 // #import "PDFObject.js"
-/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFTrailer, PDFName */
 'use strict';
 
 JSGlobalObject.PDFTrailer = function(){

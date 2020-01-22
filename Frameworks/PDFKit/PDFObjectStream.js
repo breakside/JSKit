@@ -1,5 +1,6 @@
 // #import "PDFStream.js"
-/* global JSGlobalObject, PDFStream, PDFObjectProperty, PDFObjectStream, PDFName, PDFTokenizer */
+// #import "PDFName.js"
+/* global PDFTokenizer */
 'use strict';
 
 JSGlobalObject.PDFObjectStream = function(){

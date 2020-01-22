@@ -1,5 +1,4 @@
 // #import "UIAnimation.js"
-/* global JSClass, UIAnimation, JSDynamicProperty */
 'use strict';
 
 JSClass('UIAnimationGroup', UIAnimation, {

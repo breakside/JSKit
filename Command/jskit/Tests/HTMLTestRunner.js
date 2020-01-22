@@ -1,5 +1,6 @@
 // #import TestKit
-/* global document, window, JSClass, JSArguments, JSBundle, TKTestRun, TKTestResult, HTMLTestRun, console */
+// jshint browser: true
+/* global console */
 'use strict';
 
 JSClass('HTMLTestRun', TKTestRun, {

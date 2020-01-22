@@ -1,5 +1,4 @@
 // #import "UIView.js"
-/* global JSClass, JSObject, UIView, UIResponder, UIControl, JSReadOnlyProperty, JSDynamicProperty, JSRect, JSSize */
 'use strict';
 
 JSClass("UIControl", UIView, {

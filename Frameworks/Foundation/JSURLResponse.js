@@ -1,7 +1,6 @@
 // #import "JSObject.js"
 // #import "JSMIMEHeaderMap.js"
 // #import "JSMediaType.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSMediaType, JSLazyInitProperty, JSDynamicProperty, JSURLResponse, JSMIMEHeaderMap */
 'use strict';
 
 JSClass("JSURLResponse", JSObject, {

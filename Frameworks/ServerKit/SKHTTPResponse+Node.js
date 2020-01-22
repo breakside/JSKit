@@ -1,5 +1,5 @@
 // #import "SKHTTPResponse.js"
-/* global require, SKHTTPResponse */
+// jshint node: true
 'use strict';
 
 var fs = require('fs');

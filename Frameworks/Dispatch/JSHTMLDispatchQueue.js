@@ -1,6 +1,6 @@
 // #import "JSWorkerBasedDispatchQueue.js"
 // #feature window.Worker
-/* global self, Worker, JSClass, JSObject, JSDispatchQueue, JSWorkerBasedDispatchQueue, JSWorkerBasedDispatchQueueWorker, JSHTMLDispatchQueue, JSBundle */
+// jshint browser: true, worker: true
 'use strict';
 
 (function(){

@@ -2,7 +2,7 @@
 // #import "JSDate.js"
 // #import "JSBinarySearcher.js"
 // #feature Intl
-/* global Intl, JSClass, JSObject, JSDate, JSReadOnlyProperty, JSTimeZone, JSBinarySearcher, JSGregorianCalendar */
+/* global JSGregorianCalendar, Intl */
 'use strict';
 
 (function(){

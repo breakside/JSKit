@@ -1,6 +1,6 @@
 // #import "UIViewController.js"
 // #import "UISplitView.js"
-/* global JSClass, JSRect, JSColor, JSDeepCopy, JSUserDefaults, UICursor, JSReadOnlyProperty, JSDynamicProperty, UIViewController, UISplitViewController, JSPoint, UIView, UISplitView, UISplitViewDivider, UIViewPropertyAnimator */
+// #import "UIViewPropertyAnimator.js"
 'use strict';
 
 JSClass("UISplitViewController", UIViewController, {

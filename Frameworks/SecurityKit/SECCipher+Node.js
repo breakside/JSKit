@@ -1,7 +1,7 @@
 // #import Foundation
 // #import "SECCipher.js"
 // #import "SECNodeKey.js"
-/* global require, JSClass, JSObject, JSRunLoop, SECCipher, SECCipherAESCipherBlockChaining, SECCipherAESCounter, SECCipherAESGaloisCounterMode, JSData, JSRange, SECNodeKey */
+// jshint node: true
 'use strict';
 
 var crypto = require('crypto');

@@ -1,5 +1,5 @@
 // #import "PDFObject.js"
-/* global JSGlobalObject, PDFObject, PDFObjectProperty, PDFGraphicsStateParameters, PDFName */
+// #import "PDFName.js"
 'use strict';
 
 

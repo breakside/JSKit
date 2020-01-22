@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSObject, JSClass, IKEncoder */
 'use strict';
 
 JSClass("IKEncoder", JSObject, {

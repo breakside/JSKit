@@ -1,7 +1,6 @@
 // #import "UIViewController.js"
 // #import "UIListView.js"
 // #import "UIListViewCell.js"
-/* global JSClass, UIViewController, UIListViewController, JSDeepCopy, UIListView, UIListViewCell, JSReadOnlyProperty */
 'use strict';
 
 JSClass("UIListViewController", UIViewController, {

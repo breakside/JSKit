@@ -4,7 +4,6 @@
 // #import "UIButton.js"
 // #import "UIPopupWindow.js"
 // #import "UIAlertAction.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSInsets, JSTextAlignment, JSSize, JSColor, JSFont, UIViewController, UIStackView, UILabel, UIButton, UIPopupWindow, UIAlertController, UIAlertAction, UIButtonDefaultStyler, _UIAlertPopupWindow, UIEvent */
 'use strict';
 
 (function(){

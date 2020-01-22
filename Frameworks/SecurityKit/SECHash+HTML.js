@@ -1,6 +1,7 @@
 // #import "SECHash.js"
 // #import "SECHTMLKey.js"
-/* global JSClass, JSObject, JSData, crypto, SECHash, SECHTMLKey */
+// jshint browser: true
+/* global crypto */
 'use strict';
 
 (function(){

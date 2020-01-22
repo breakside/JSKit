@@ -1,5 +1,4 @@
 // #import "PDFFilter.js"
-/* global JSClass, JSObject, PDFFilter */
 'use strict';
 
 // The stream data is a JBIG image file, so we probably don't need to decode

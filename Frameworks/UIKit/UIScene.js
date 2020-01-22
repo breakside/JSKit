@@ -2,7 +2,6 @@
 // #import "UIApplication.js"
 // #import "UIMenuBar.js"
 // #import "UIWindow.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, UIScene, UIApplication, JSSpec, UIMenuBar, UIWindow */
 'use strict';
 
 JSClass("UIScene", JSObject, {

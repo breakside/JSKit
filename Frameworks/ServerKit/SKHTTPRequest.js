@@ -1,7 +1,6 @@
 // #import Foundation
 // #import "SKHTTPResponse.js"
 // #import "SKValidatingObject.js"
-/* global JSClass, JSDate, JSLazyInitProperty, JSObject, JSData, JSReadOnlyProperty, JSURL, JSMIMEHeaderMap, SKHTTPResponse, JSLog, JSMediaType, SKValidatingObject */
 'use strict';
 
 var logger = JSLog("server", "http");

@@ -1,5 +1,6 @@
 // #import "JSFontDescriptor.js"
-/* global window, FontFace, JSFontDescriptor, JSResourceFontDescriptor, JSDataFontDescriptor */
+// jshint browser: true
+/* global FontFace */
 'use strict';
 
 (function(){

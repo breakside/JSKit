@@ -1,6 +1,5 @@
 // #import "UIWindow.js"
 // #import "UIMenu.js"
-/* global JSClass, JSObject, UIMenu, JSImage, JSReadOnlyProperty, UIWindowCustomStyler, UIEvent, UILayer, JSPoint, JSBinarySearcher, JSSize, JSLazyInitProperty, UIView, UIWindow, JSDynamicProperty, UIMenuBar, JSRect, JSInsets, UIMenuBarItemCollectionView, UIMenuBarItemView, UIMenuBarItem, UILabel, UIImageView, JSFont, JSTextAlignment, JSColor, UIMenuDefaultStyler, UIMenuBarButton */
 'use strict';
 
 JSClass("UIMenuBar", UIWindow, {

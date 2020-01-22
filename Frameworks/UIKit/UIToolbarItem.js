@@ -1,7 +1,7 @@
 // #import "UIButton.js"
 // #import "UIImageView.js"
 // #import "UILabel.js"
-/* global JSClass, UIView, UIImageView, UIControl, JSObject, JSSize, JSDynamicProperty, JSLazyInitProperty, JSImage, UIButton, UIToolbarItem, UIToolbarItemView, UIToolbarItemSpaceView, UILabel, JSTextAlignment, UIMenuItem */
+/* global UIMenuItem */
 'use strict';
 
 JSClass("UIToolbarItem", JSObject, {

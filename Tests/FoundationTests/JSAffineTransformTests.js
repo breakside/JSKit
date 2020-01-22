@@ -1,6 +1,5 @@
 // #import Foundation
 // #import TestKit
-/* global JSClass, TKTestSuite, TKAssert, TKAssertNull, TKAssertNotNull, TKAssertEquals, TKAssertFloatEquals, TKAssertObjectEquals, JSAffineTransform, JSPoint */
 'use strict';
 
 JSClass('JSAffineTransformTests', TKTestSuite, {

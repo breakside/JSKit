@@ -1,6 +1,7 @@
 // #import "SECHMAC.js"
 // #import "SECHTMLKey.js"
-/* global JSClass, JSObject, JSData, crypto, SECHMAC, SECHTMLKey */
+// jshint browser: true
+/* global crypto */
 'use strict';
 
 (function(){

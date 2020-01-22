@@ -1,5 +1,4 @@
 // #import UIKit
-/* global JSClass, JSBundle, UIViewController, MainViewController, JSPoint */
 'use strict';
 
 JSClass("MainViewController", UIViewController, {

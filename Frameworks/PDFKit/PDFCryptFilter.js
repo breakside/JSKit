@@ -1,5 +1,4 @@
 // #import "PDFFilter.js"
-/* global JSClass, JSObject, PDFFilter, PDFName */
 'use strict';
 
 JSClass("PDFCryptFilter", PDFFilter, {

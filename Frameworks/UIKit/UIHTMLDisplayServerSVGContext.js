@@ -2,7 +2,7 @@
 // #import "UIView.js"
 // #import "UIHTMLDisplayServerContext.js"
 // #import "SVGPathSegList.js"
-/* global SVGLength, JSClass, UILayer, JSContext, JSAffineTransform, JSColor, JSObject, UIHTMLDisplayServerContext, UIHTMLDisplayServerSVGContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView, _UIHTMLDisplayServerSVGContextDefs */
+// jshint browser: true
 'use strict';
 
 (function(){

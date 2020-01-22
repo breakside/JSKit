@@ -1,5 +1,5 @@
 // #import "SKApplication.js"
-/* global SKApplication, process, JSFileManager */
+// jshint node: true
 'use strict';
 
 SKApplication.definePropertiesFromExtensions({

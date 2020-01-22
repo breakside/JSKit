@@ -1,7 +1,6 @@
 // #import Foundation
 // #import jsyaml
 // #import "JavascriptFile.js"
-/* global JSClass, JSObject, JSFileManager, jsyaml, JSReadOnlyProperty, JavascriptFile, JSURL, JSKitRootDirectoryPath */
 'use strict';
 
 JSClass("Project", JSObject, {
@@ -285,7 +284,7 @@ JSClass("Project", JSObject, {
         return result;
     },
 
-    globals: async function(roots, includeDirectoryURLs, seenFrameworks, envs){
+    globals: async function(roots, includeDirectoryURLs, visitFrameworks, seenFrameworks, envs){
         var seenFiles = new Set();
         var urlStack = [];
         var frameworkStack = [];
@@ -305,13 +304,17 @@ JSClass("Project", JSObject, {
                 root = await this.urlForJavascriptPath(root, includeDirectoryURLs);
             }
             urlStack.push(root);
-            seenFiles.add(root.path);
         }
         var globals = [];
         while (urlStack.length > 0){
             let url = urlStack.shift();
-            seenFiles.add(url.path);
-            let contents = await this.fileManager.contentsAtURL(url);
+            let contents = null;
+            if (url instanceof JSData){
+                contents = url;
+            }else{
+                seenFiles.add(url.path);
+                contents = await this.fileManager.contentsAtURL(url);
+            }
             let js = JavascriptFile.initWithData(contents);
             let fileGlobals = js.globals();
             for (let i = 0, l = fileGlobals.length; i < l; ++i){
@@ -335,24 +338,26 @@ JSClass("Project", JSObject, {
             }
         }
 
-        while (frameworkStack.length > 0){
-            let name = frameworkStack.shift();
-            let url = await this.urlForFrameworkName(name, includeDirectoryURLs);
-            if (url !== null){
-                if (url.fileExtension === '.jsframework'){
-                    // TODO: extract from built framework
-                }else{
-                    let frameworkProject = Project.initWithURL(url);
-                    try{
-                        await frameworkProject.load();
-                        let frameworkIncludeURLs = await frameworkProject.findIncludeDirectoryURLs();
-                        let roots = frameworkProject.roots(envs);
-                        let frameworkGlobals = await frameworkProject.globals(roots, frameworkIncludeURLs, seenFrameworks, envs);
-                        for (let i = 0, l = frameworkGlobals.length; i < l; ++i){
-                            globals.push(frameworkGlobals[i]);
+        if (visitFrameworks){
+            while (frameworkStack.length > 0){
+                let name = frameworkStack.shift();
+                let url = await this.urlForFrameworkName(name, includeDirectoryURLs);
+                if (url !== null){
+                    if (url.fileExtension === '.jsframework'){
+                        // TODO: extract from built framework
+                    }else{
+                        let frameworkProject = Project.initWithURL(url);
+                        try{
+                            await frameworkProject.load();
+                            let frameworkIncludeURLs = await frameworkProject.findIncludeDirectoryURLs();
+                            let roots = frameworkProject.roots(envs);
+                            let frameworkGlobals = await frameworkProject.globals(roots, frameworkIncludeURLs, true, seenFrameworks, envs);
+                            for (let i = 0, l = frameworkGlobals.length; i < l; ++i){
+                                globals.push(frameworkGlobals[i]);
+                            }
+                        }catch(e){
+                            console.error(e);
                         }
-                    }catch(e){
-                        console.error(e);
                     }
                 }
             }

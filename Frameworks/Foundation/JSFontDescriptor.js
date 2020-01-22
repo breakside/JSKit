@@ -1,8 +1,8 @@
+// #import "Promise+JS.js"
 // #import "JSObject.js"
 // #import "UnicodeChar.js"
 // #import "Zlib.js"
 // #import "CoreTypes.js"
-/* global JSClass, JSObject, JSRange, JSReadOnlyProperty, JSFontDescriptor, JSResourceFontDescriptor, Zlib, UnicodeChar */
 'use strict';
 
 (function(){

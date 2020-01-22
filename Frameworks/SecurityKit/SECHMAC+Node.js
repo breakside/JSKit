@@ -1,6 +1,6 @@
 // #import "SECHMAC.js"
 // #import "SECNodeKey.js"
-/* global JSClass, JSObject, JSData, require, SECHMAC, SECNodeKey, JSRunLoop */
+// jshint node: true
 'use strict';
 
 var crypto = require('crypto');

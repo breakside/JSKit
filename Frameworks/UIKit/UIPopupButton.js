@@ -2,7 +2,6 @@
 // #import "UILabel.js"
 // #import "UIImageView.js"
 // #import "UIMenu.js"
-/* global JSClass, JSObject, UIControl, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSColor, UIPopupButton, JSTextAlignment, JSPoint, UIView, JSFont, UIPopupButtonStyler, UIPopupButtonDefaultStyler, JSRect, JSImage, JSBundle, UIImageView, JSSize, JSInsets, UIMenu, UIMenuItem, JSGradient, UIPopupButtonCustomStyler */
 'use strict';
 
 (function(){

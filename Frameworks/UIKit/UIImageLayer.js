@@ -1,5 +1,4 @@
 // #import "UILayer.js"
-/* global JSClass, UILayer, JSImage, JSColor, UIImageLayer, UILayerAnimatedProperty, JSPoint, JSRect, JSSize, JSDynamicProperty */
 'use strict';
 
 JSClass("UIImageLayer", UILayer, {

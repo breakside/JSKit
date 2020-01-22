@@ -1,6 +1,5 @@
 // #import "DOMDocument.js"
 // #import "XMLParser.js"
-/* global JSGlobalObject, DOM, DOMParser, XMLParser */
 'use strict';
 
 JSGlobalObject.DOMParser = function DOMParser(){

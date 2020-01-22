@@ -1,7 +1,6 @@
 // #import Foundation
 // #import DOM
 // #import "Markdown.js"
-/* global JSClass, JSObject, JSCopy, JSDynamicProperty, JSReadOnlyProperty, DocComponent, DOM, Markdown, JSURL, XMLSerializer */
 'use strict';
 
 JSClass("DocComponent", JSObject, {

@@ -1,5 +1,5 @@
+// #import "Promise+JS.js"
 // #import "JSObject.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSFile, JSDataFile */
 'use strict';
 
 JSClass("JSFile", JSObject, {

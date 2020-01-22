@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSColor */
 'use strict';
 
 JSColor.definePropertiesFromExtensions({

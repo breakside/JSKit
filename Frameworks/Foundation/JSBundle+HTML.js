@@ -1,7 +1,7 @@
+// #import "Promise+JS.js"
 // #import "JSBundle.js"
 // #import "JSURLSession.js"
 // #import "JSURLResponse.js"
-/* global JSBundle, JSURLSession, JSURLResponse, JSURL */
 'use strict';
 
 JSBundle.definePropertiesFromExtensions({

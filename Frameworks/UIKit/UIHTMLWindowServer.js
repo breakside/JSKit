@@ -10,7 +10,7 @@
 // #feature Element.prototype.addEventListener
 // #feature 'key' in KeyboardEvent.prototype
 // #feature File
-/* global File, JSClass, UIWindowServer, JSDynamicProperty, UIWindowServer, UIPlatform, UIEvent, JSPoint, UIHTMLWindowServer, UIHTMLDisplayServer, UIHTMLTextInputManager, UIPasteboard, UICursor, UIView, JSRect, UIScreen, UIDraggingSession, UIHTMLDataTransferPasteboard, UIDragOperation, JSHTMLFile, JSDataFile, UIHTMLDataTransferFileEnumerator, JSFileEnumerator, JSHTMLFileSystemEntryFileEnumerator */
+// jshint browser: true
 'use strict';
 
 (function(){

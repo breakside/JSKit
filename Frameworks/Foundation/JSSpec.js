@@ -2,7 +2,6 @@
 // #import "JSObject.js"
 // #import "JSPropertyList.js"
 // #import "JSBundle.js"
-/* global JSClass, JSObject, JSDeepCopy, JSLazyInitProperty, JSCopy, JSReadOnlyProperty, JSPropertyList, JSSpec, JSGlobalObject, JSResolveDottedName, JSBundle, JSSpecDecoder */
 'use strict';
 
 JSClass("JSSpec", JSObject, {

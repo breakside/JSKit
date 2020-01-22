@@ -1,6 +1,5 @@
 // #import Foundation
 // #import "SKHTTPResponse.js"
-/* global JSGlobalObject, SKHTTPAuthorization, SKHTTPResponse */
 'use strict';
 
 JSGlobalObject.SKHTTPAuthorization = function(authorized, authenticated, statusCode){

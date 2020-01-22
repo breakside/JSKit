@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, SECSign */
 'use strict';
 
 JSClass("SECSign", JSObject, {

@@ -1,5 +1,5 @@
 // #import "JSRunLoop.js"
-/* global JSRunLoop, process */
+// jshint node: true
 'use strict';
 
 JSRunLoop.definePropertiesFromExtensions({

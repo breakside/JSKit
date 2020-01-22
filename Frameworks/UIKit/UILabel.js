@@ -1,7 +1,8 @@
 // #import "UIView.js"
 // #import "UITextLayer.js"
 // #import "UIPasteboard.js"
-/* global JSClass, UIView, UILayer, JSColor, JSTextAlignment, JSLineBreakMode, JSRect, JSSize, JSDynamicProperty, UIViewLayerProperty, JSInsets, JSRange, UITextLayer, UILabel, JSFont, UIPasteboard, UICursor */
+// #import "UICursor.js"
+// #import "UITextAttachmentView.js"
 'use strict';
 
 JSClass('UILabel', UIView, {
@@ -98,7 +99,8 @@ JSClass('UILabel', UIView, {
             if (index < this.attributedText.string.length){
                 attributes = this.attributedText.attributesAtIndex(index);
                 attachment = attributes[JSAttributedString.Attribute.attachment];
-                if (attachment && attachment.isKindOfClass(UITextAttachmentView)){
+                if (attachment && attachment.isKindOfClass(
+                    UITextAttachmentView)){
                     rect = this.layer.textLayoutManager.rectForCharacterAtIndex(index);
                     attachmentLocation = location.subtracting(rect.origin);
                     attachmentHit = attachment.view.hitTest(attachmentLocation);

@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, UIAlertAction */
 'use strict';
 
 JSClass("UIAlertAction", JSObject, {

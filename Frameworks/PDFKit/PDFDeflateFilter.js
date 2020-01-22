@@ -1,5 +1,4 @@
 // #import "PDFPredictorFilter.js"
-/* global JSClass, PDFPredictorFilter, Zlib, JSData */
 'use strict';
 
 JSClass("PDFDeflateFilter", PDFPredictorFilter, {

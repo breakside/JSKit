@@ -1,7 +1,5 @@
 // #import Foundation
-/* global JSClass, JSLazyInitProperty, JSReadOnlyProperty, JSCustomProperty, JSObject, JSData, JSRange, FNTOpenTypeFont, UnicodeChar, FNTOpenTypeConstructor */
-/* global FNTOpenTypeFontTable, FNTOpenTypeFontTableHead, FNTOpenTypeFontTableName, FNTOpenTypeFontTableCmap, FNTOpenTypeFontTableHhea, FNTOpenTypeFontTableHmtx, FNTOpenTypeFontTableGlyf, FNTOpenTypeFontTableOS2, FNTOpenTypeFontTableLoca, FNTOpenTypeFontTableMaxp, FNTOpenTypeFontTablePost */
-/* global FNTOpenTypeFontCmapNull, FNTOpenTypeFontCmap, FNTOpenTypeFontCmap0, FNTOpenTypeFontCmap4, FNTOpenTypeFontCmap6, FNTOpenTypeFontCmap10, FNTOpenTypeFontCmap12, FNTOpenTypeFontCmap13 */
+/* global FNTOpenTypeConstructor */
 'use strict';
 
 (function(){

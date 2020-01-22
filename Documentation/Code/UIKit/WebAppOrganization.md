@@ -167,7 +167,6 @@ Application Delegate
 
 ````
 // #import UIKit
-/* global JSClass, JSObject */
 'use strict';
 
 JSClass("ApplicationDelegate", JSObject, {
@@ -203,7 +202,6 @@ It is used to maniuplate the view elements as needed.
 
 ````
 // #import UIKit
-/* global JSClass, JSBundle, UIViewController, MainViewController */
 'use strict';
 
 JSClass("MainViewController", UIViewController, {

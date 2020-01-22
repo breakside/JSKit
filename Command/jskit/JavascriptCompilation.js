@@ -1,6 +1,5 @@
 // #import Foundation
 // #import "JavascriptFile.js"
-/* global JSClass, JSObject, JSData, JavascriptCompilation, JavascriptFile */
 'use strict';
 
 JSClass("JavascriptCompilation", JSObject, {

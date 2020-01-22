@@ -1,6 +1,5 @@
 // #import "UIView.js"
 // #import "UISplitViewDivider.js"
-/* global JSClass, JSRect, JSColor, JSUserDefaults, JSReadOnlyProperty, JSDynamicProperty, JSPoint, UIView, UISplitView, UISplitViewDivider, UIViewPropertyAnimator */
 'use strict';
 
 JSClass("UISplitView", UIView, {

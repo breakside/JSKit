@@ -2,7 +2,6 @@
 // #import "CoreTypes.js"
 // #import "JSAttributedString.js"
 // #import "JSColor.js"
-/* global JSClass, JSObject, JSDynamicProperty, JSAttributedString, JSCopy, JSColor, JSRange, JSRect, JSPoint */
 'use strict';
 
 (function(){

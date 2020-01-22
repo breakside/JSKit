@@ -1,4 +1,3 @@
-/* global JSGlobalObject, XMLParser */
 'use strict';
 
 JSGlobalObject.XMLParser = function XMLParser(){

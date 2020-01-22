@@ -2,7 +2,6 @@
 // #import "UIPasteboard.js"
 // #import "UIDraggingSource.js"
 // #import "UIDraggingDestination.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, JSPoint, UIPasteboard, UIDragOperation */
 'use strict';
 
 JSClass("UIDraggingSession", JSObject, {

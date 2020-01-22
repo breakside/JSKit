@@ -1,5 +1,5 @@
 // #import "DocComponent.js"
-/* global JSClass, DocComponent, DocEnumOption, DocFunction */
+/* global DocFunction */
 'use strict';
 
  JSClass("DocEnumOption", DocComponent, {

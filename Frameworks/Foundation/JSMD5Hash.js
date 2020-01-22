@@ -1,5 +1,5 @@
 // #import "JSIterativeHash.js"
-/* global JSIterativeHash, JSGlobalObject, JSData, JSMD5Hash */
+// #import "JSData.js"
 'use strict';
 
 JSGlobalObject.JSMD5Hash = function JSMD5Hash(x){

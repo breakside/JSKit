@@ -1,4 +1,3 @@
-/* global JSGlobalObject, JSRange */
 'use strict';
 
 JSGlobalObject.JSRange = function JSRange(location, length){

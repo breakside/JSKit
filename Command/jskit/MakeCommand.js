@@ -6,7 +6,6 @@
 // #import "HtmlBuilder.js"
 // #import "TestBuilder.js"
 // #import "Printer.js"
-/* global JSClass, JSObject, Command, MakeCommand, Project, Builder, Printer, JSTimer */
 'use strict';
 
 const fs = require('fs');

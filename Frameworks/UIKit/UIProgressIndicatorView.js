@@ -1,5 +1,4 @@
 // #import "UIView.js"
-/* global JSClass, JSColor, JSSize, JSRect, JSInsets, JSDynamicProperty, UIView, UIProgressIndicatorView */
 'use strict';
 
 JSClass("UIProgressIndicatorView", UIView, {

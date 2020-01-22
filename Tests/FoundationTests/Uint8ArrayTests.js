@@ -1,6 +1,5 @@
 // #import Foundation
 // #import TestKit
-/* global JSClass, TKTestSuite, JSRange, TKAssertNotNull, TKAssertEquals, TKAssertEquals */
 'use strict';
 
 JSClass('Uint8ArrayTests', TKTestSuite, {

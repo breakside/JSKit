@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, JSReadOnlyProperty, UIPasteboard, JSFileEnumerator */
 'use strict';
 
 (function(){

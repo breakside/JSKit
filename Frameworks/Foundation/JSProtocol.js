@@ -1,5 +1,4 @@
 // #import "Javascript.js"
-/* global JSGlobalObject, JSProtocol */
 'use strict';
 
 JSGlobalObject.JSProtocol = function(name, superprotocol, extensions){

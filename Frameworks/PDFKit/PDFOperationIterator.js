@@ -3,7 +3,6 @@
 // #import "PDFTokenizer.js"
 // #import "PDFStreamOperation.js"
 // #import "PDFGraphicsState.js"
-/* global JSClass, JSObject, JSLog, JSReadOnlyProperty, PDFReader, PDFTokenizer, PDFOperationIterator, JSData, PDFStreamOperation, PDFName, PDFGraphicsState */
 'use strict';
 
 (function(){

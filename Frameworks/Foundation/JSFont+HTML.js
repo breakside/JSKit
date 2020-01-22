@@ -1,6 +1,6 @@
 // #import "JSFont.js"
 // #import "JSURL.js"
-/* global JSFont, JSURL, JSResourceFont, JSDataFont, JSReadOnlyProperty, document */
+// jshint browser: true
 'use strict';
 
 (function(){

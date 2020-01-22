@@ -1,6 +1,5 @@
 // #import Foundation
 // #import TestKit
-/* global JSClass, TKTestSuite, TKAssert, TKAssertNull, TKAssertNotNull, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSInsets, JSPoint, JSSize */
 'use strict';
 
 JSClass('JSInsetsTests', TKTestSuite, {

@@ -2,7 +2,6 @@
 // #import "IKDecoder.js"
 // #import "IKBitmap.js"
 // #import "IKColorSpace.js"
-/* global IKDecoder, IKBitmap, JSClass, JSRange, JSData, JSSize, IKDecoderJPEG, JSBitmap */
 'use strict';
 
 (function(){
@@ -70,7 +69,7 @@ JSClass("IKDecoderJPEG", IKDecoder, {
                 i += blockLength;
             }
         }
-        var bitmap = JSBitmap.initWithData(context.bitmapData);
+        var bitmap = IKBitmap.initWithData(context.bitmapData);
         return bitmap;
     }
 });

@@ -1,5 +1,4 @@
 // #import "DOMNode.js"
-/* global DOM */
 'use strict';
 
 DOM.Attr.prototype = Object.create(DOM.Node.prototype, {

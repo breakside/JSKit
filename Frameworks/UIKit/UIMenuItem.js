@@ -1,6 +1,7 @@
 // #import Foundation
 // #import "UIEvent.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSImage, JSDynamicProperty, UIMenuSeparatorItemView, UIMenuItem, UIMenu, UIEvent, UIView */
+// #import "UIView.js"
+/* global UIMenu */
 'use strict';
 
 JSClass("UIMenuItem", JSObject, {

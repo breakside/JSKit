@@ -2,7 +2,8 @@
 // #import "UITextFramesetter.js"
 // #import "UIHTMLTextFrame.js"
 // #import "UIHTMLTextTypesetter.js"
-/* global JSClass, JSReadOnlyProperty, UITextFramesetter, UIHTMLTextFramesetter, UIHTMLTextTypesetter, UIHTMLTextFrame, JSAttributedString, JSLineBreakMode */
+/* global UIHTMLTextFramesetter, UIHTMLTextTypesetter, UIHTMLTextFrame */
+// jshint browser: true
 'use strict';
 
 (function(){

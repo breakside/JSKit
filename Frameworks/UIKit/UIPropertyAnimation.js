@@ -1,5 +1,4 @@
 // #import "UIAnimation.js"
-/* global JSClass, UIAnimation, JSDynamicProperty, JSReadOnlyProperty, JSResolveDottedName */
 'use strict';
 
 JSClass('UIPropertyAnimation', UIAnimation, {

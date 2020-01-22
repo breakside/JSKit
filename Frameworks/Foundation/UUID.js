@@ -1,7 +1,6 @@
 // #feature Uint8Array
 // #import "Uint8Array+JS.js"
 // #import "String+JS.js"
-/* global JSGlobalObject, UUID */
 'use strict';
 
 JSGlobalObject.UUID = function(version){

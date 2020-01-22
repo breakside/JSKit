@@ -1,7 +1,7 @@
 // #import "JSData.js"
 // #feature Blob
 // #feature URL.createObjectURL
-/* global JSData, Blob, URL */
+// jshint browser: true
 'use strict';
 
 Object.defineProperties(JSData.prototype, {

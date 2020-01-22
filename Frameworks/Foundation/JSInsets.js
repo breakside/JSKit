@@ -1,4 +1,3 @@
-/* global JSGlobalObject, JSInsets */
 'use strict';
 
 JSGlobalObject.JSInsets = function(top, left, bottom, right){

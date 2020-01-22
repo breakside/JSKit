@@ -1,7 +1,6 @@
 // #import Foundation
 // #import "SECHMAC.js"
 // #import "SECVerify.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, SECHMAC, SECVerify, JSData */
 'use strict';
 
 (function(){

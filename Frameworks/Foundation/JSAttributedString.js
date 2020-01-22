@@ -1,6 +1,6 @@
+// #import "Javascript.js"
 // #import "JSObject.js"
 // #import "JSTextAttachment.js"
-/* global JSClass, JSReadOnlyProperty, JSObject, JSAttributedString, JSRange, JSCopy, JSTextAttachment */
 'use strict';
 
 (function(){

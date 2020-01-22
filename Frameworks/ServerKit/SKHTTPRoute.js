@@ -1,7 +1,6 @@
 // #import Foundation
 // #import "SKHTTPResponderContext.js"
 // #import "SKHTTPResourceResponder.js"
-/* global JSClass, JSObject, JSDeepCopy, SKHTTPRoute, SKHTTPResourceRoute, JSCopy, JSSpec, SKHTTPResponderContext, SKHTTPResourceResponder, JSBundle */
 'use strict';
 
 (function(){

@@ -1,5 +1,4 @@
 // #import "JSObject.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty */
 'use strict';
 
 (function(){

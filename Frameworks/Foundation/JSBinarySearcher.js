@@ -1,4 +1,3 @@
-/* global JSGlobalObject, JSBinarySearcher */
 'use strict';
 
 JSGlobalObject.JSBinarySearcher = function(sortedItems, comparator){

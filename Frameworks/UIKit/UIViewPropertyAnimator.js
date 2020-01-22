@@ -1,6 +1,5 @@
 // #import "UIAnimation.js"
 // #import "UIAnimationTransaction.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSDynamicProperty, UIAnimation, UIAnimationTransaction */
 'use strict';
 
 JSClass("UIViewPropertyAnimator", JSObject, {

@@ -1,6 +1,5 @@
 // #import "UIView.js"
 // #import "UIImageLayer.js"
-/* global JSClass, UIView, UIImageView, UIImageLayer, JSImage, JSRect, JSColor, UIViewLayerProperty, JSDynamicProperty, JSSize, JSInsets */
 'use strict';
 
 JSClass("UIImageView", UIView, {

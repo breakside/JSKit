@@ -1,6 +1,7 @@
 // #import "SECSign.js"
 // #import "SECHTMLKey.js"
-/* global JSClass, JSObject, JSData, crypto, SECSign, SECHTMLKey */
+// jshint browser: true
+/* global crypto */
 'use strict';
 
 (function(){

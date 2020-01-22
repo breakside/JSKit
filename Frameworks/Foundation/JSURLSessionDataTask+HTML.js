@@ -1,3 +1,4 @@
+// #import "Promise+JS.js"
 // #import "JSURL.js"
 // #import "JSURLSessionDataTask.js"
 // #import "JSURLRequest.js"
@@ -5,7 +6,7 @@
 // #import "JSRunLoop.js"
 // #import "JSLog.js"
 // #feature XMLHttpRequest
-/* global JSClass, JSURLSessionDataTask, JSRunLoop, JSLazyInitProperty, XMLHttpRequest, JSLog, JSURLResponse, JSURLRequest, JSURL, setTimeout, JSData */
+// jshint browser: true
 'use strict';
 
 (function(){

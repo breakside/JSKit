@@ -1,8 +1,7 @@
 //// #import jskit
 // #import TestKit
 // #import DOM
-/* global JSClass, TKTestSuite, JavascriptFile */
-/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals, TKAssertArrayEquals */
+
 'use strict';
 
 JSClass("JavascriptFileTests", TKTestSuite, {

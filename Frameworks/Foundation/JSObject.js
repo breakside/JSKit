@@ -1,6 +1,6 @@
 // #import "JSClass.js"
 // #import "JSValueTransformer.js"
-/* global JSGlobalObject, JSObject, JSClass, JSClassForName, JSIsNullValueTransformer, JSIsNotNullValueTransformer, JSIsEmptyValueTransformer, JSIsNotEmptyValueTransformer, JSNegateBooleanValueTransformer */
+/* global JSSpec */
 'use strict';
 
 JSGlobalObject.JSObject = function JSObject(){

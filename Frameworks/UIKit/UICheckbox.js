@@ -1,7 +1,6 @@
 // #import "UIControl.js"
 // #import "UILabel.js"
 // #import "UIImageView.js"
-/* global JSClass, JSObject, UILayer, JSSize, UIControl, UIControlStyler, JSReadOnlyProperty, JSDynamicProperty, UILabel, JSColor, UICheckbox, JSTextAlignment, JSPoint, UIView, JSFont, UICheckboxStyler, UICheckboxDefaultStyler, JSRect, UIImageView, JSBundle, JSImage */
 'use strict';
 
 (function(){

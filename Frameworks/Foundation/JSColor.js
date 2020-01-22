@@ -1,6 +1,5 @@
 // #import "JSObject.js"
 // #import "CoreTypes.js"
-/* global JSClass, JSObject, JSCustomProperty, JSColor, JSRange, JSReadOnlyProperty */
 'use strict';
 
 (function(){

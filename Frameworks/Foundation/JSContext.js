@@ -1,6 +1,5 @@
 // #import "JSObject.js"
 // #import "JSColor.js"
-/* global JSClass, JSObject, JSDynamicProperty, JSAffineTransform, JSPoint, JSColor, JSContext, JSCustomProperty */
 'use strict';
 
 (function(){

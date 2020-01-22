@@ -1,7 +1,7 @@
 // #import "JSFile.js"
 // #import "JSURL.js"
-/* feature URL.revokeObjectURL */
-/* global URL, JSClass, JSFile, JSDataFile, JSURL */
+// #feature URL.revokeObjectURL
+// jshint browser: true
 'use strict';
 
 (function(){

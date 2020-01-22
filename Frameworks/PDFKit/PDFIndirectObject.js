@@ -1,4 +1,3 @@
-/* global JSGlobalObject, PDFIndirectObject */
 'use strict';
 
 JSGlobalObject.PDFIndirectObject = function(objectID, generation){

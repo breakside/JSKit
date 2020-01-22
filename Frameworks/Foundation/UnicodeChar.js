@@ -1,5 +1,4 @@
 // #import "UnicodeProperties.js"
-/* global JSGlobalObject, UnicodeProperties, UnicodeChar */
 'use strict';
 
 JSGlobalObject.UnicodeChar = function(code){

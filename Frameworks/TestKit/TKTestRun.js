@@ -2,7 +2,6 @@
 // #import "TKAssert.js"
 // #import "TKTestResult.js"
 // #import "TKTestSuite.js"
-/* global JSClass, JSObject, TKAssertion, TKTestResult, TKTestSuite, JSBundle */
 'use strict';
 
 JSClass('TKTestRun', JSObject, {

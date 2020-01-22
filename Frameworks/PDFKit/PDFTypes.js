@@ -18,5 +18,4 @@
 // #import "PDFXrefStream.js"
 // #import "PDFObjectStream.js"
 // #import "PDFFunction.js"
-/* global PDFIndirectObject, PDFName, PDFObject, PDFDocument, PDFPages, PDFPage, PDFResources, PDFGraphicsStateParameters, PDFStream, PDFTrailer, PDFFont, PDFType1Font, PDFType0Font, PDFTrueTypeFont, PDFMMType1Font, PDFType3Font, PDFCIDType0Font, PDFCIDType2Font, PDFFontDescriptor, PDFImage, PDFXrefStream, PDFObjectStream, PDFCMap, PDFFunctionSampled, PDFFunctionExponential, PDFFunctionStitching, PDFFunctionCalculator, PDFForm */
 'use strict';

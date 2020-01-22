@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, JSData */
 'use strict';
 
 JSClass("Printer", JSObject, {

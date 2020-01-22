@@ -1,5 +1,5 @@
+// #import Foundation
 // #import "SKHTTPHeaders.js"
-/* global JSClass, JSObject, JSDate, JSCustomProperty, JSDynamicProperty, JSReadOnlyProperty, JSURLResponse, SKHTTPResponse, SKHTTPHeaders*/
 'use strict';
 
 var HTTPHeaderProperty = function(headerName, valueType){

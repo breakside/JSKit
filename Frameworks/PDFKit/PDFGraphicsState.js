@@ -2,7 +2,6 @@
 // #import "PDFTypes.js"
 // #import "PDFColorSpace.js"
 // #import "PDFStreamOperation.js"
-/* global JSGlobalObject, JSPoint, JSColor, PDFColorSpace, PDFGraphicsState, JSAffineTransform, PDFName, PDFStreamOperation */
 'use strict';
 
 (function(){

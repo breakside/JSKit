@@ -1,5 +1,4 @@
 // #import "JSBinarySearcher.js"
-/* global JSGlobalObject, JSCopy, JSIndexPath, JSIndexPathRange, JSIndexPathSet, JSBinarySearcher */
 'use strict';
 
 (function(){

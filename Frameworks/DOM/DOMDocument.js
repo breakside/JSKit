@@ -5,7 +5,6 @@
 // #import "DOMComment.js"
 // #import "DOMCDATASection.js"
 // #import "DOMDocumentType.js"
-/* global JSGlobalObject, DOM */
 'use strict';
 
 DOM.createDocument = function(namespace, qualifiedName, doctype){

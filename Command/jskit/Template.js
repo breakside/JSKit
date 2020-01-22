@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, JSFileManager, JSRange */
 'use strict';
 
 JSClass("Template", JSObject, {

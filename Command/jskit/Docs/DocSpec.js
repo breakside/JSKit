@@ -1,5 +1,4 @@
 // #import "DocTopicBasedComponent.js"
-/* global JSClass, DocTopicBasedComponent, DocSpec */
 'use strict';
 
  JSClass("DocSpec", DocTopicBasedComponent, {

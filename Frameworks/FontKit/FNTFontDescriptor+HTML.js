@@ -1,5 +1,4 @@
 // #import "FNTFontDescriptor.js"
-/* global FNTFontDescriptor */
 'use strict';
 
 (function(){

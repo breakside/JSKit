@@ -1,6 +1,5 @@
 // #import "JSBinarySearcher.js"
 // #import "Javascript.js"
-/* global JSGlobalObject, JSIndexSet, JSIndexRange, JSBinarySearcher, JSCopy, JSDeepCopy */
 'use strict';
 
 JSGlobalObject.JSIndexRange = function(start, end){

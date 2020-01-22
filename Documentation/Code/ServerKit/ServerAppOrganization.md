@@ -132,7 +132,6 @@ Application Delegate
 
 ````
 // #import ServerKit
-/* global JSClass, JSObject, SKApplicationDelegate */
 'use strict';
 
 JSClass("ApplicationDelegate", JSObject, {

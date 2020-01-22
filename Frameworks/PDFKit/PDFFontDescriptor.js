@@ -1,6 +1,6 @@
 // #import FontKit
 // #import "PDFObject.js"
-/* global JSGlobalObject, JSCopy, PDFObject, PDFObjectProperty, PDFFontDescriptor, PDFName, PDFType1Font, PDFTrueTypeFont, FNTType1Font, FNTOpenTypeFont, FNTCompactFontFormat */
+// #import "PDFName.js"
 'use strict';
 
 JSGlobalObject.PDFFontDescriptor = function(){

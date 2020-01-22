@@ -1,6 +1,5 @@
 // #import Foundation
 // #import "UIView.js"
-/* global JSClass, JSTextAttachment, UIView, JSPoint, JSSize */
 'use strict';
 
 JSClass("UITextAttachmentView", JSTextAttachment, {

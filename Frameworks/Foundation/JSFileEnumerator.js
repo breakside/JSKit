@@ -1,5 +1,4 @@
 // #import "JSObject.js"
-/* global JSClass, JSObject, JSFileEnumerator, JSFileArrayFileEnumerator */
 'use strict';
 
 JSClass("JSFileEnumerator", JSObject, {

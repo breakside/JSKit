@@ -3,7 +3,6 @@
 // #import "JSURLSessionUploadTask.js"
 // #import "JSURLSessionStreamTask.js"
 // #import "JSURLRequest.js"
-/* global JSObject, JSClass, JSURLSession, JSURLSessionDataTask, JSURLSessionUploadTask, JSURLRequest, JSURLSessionStreamTask */
 'use strict';
 
 JSClass("JSURLSession", JSObject, {

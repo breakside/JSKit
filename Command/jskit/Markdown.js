@@ -1,6 +1,5 @@
 // #import Foundation
 // #import DOM
-/* global JSClass, JSProtocol, JSObject, DOM, Markdown, MarkdownHTMLOptions */
 'use strict';
 
 JSProtocol("MarkdownDelegate", JSProtocol, {

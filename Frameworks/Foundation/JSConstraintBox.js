@@ -1,4 +1,3 @@
-/* global JSGlobalObject, JSConstraintBox */
 'use strict';
 
 JSGlobalObject.JSConstraintBox = function JSConstraintBox(props){

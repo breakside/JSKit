@@ -1,6 +1,5 @@
 // #import "UIViewController.js"
 // #import "UIWindow.js"
-/* global JSClass, UIViewController, UIWindow, JSSize, JSReadOnlyProperty, JSCopy, UIWindowController, JSProtocol, JSSpec */
 'use strict';
 
 JSClass("UIWindowController", UIViewController, {

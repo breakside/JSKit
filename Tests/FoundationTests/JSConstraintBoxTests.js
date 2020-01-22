@@ -1,6 +1,5 @@
 // #import Foundation
 // #import TestKit
-/* global JSClass, TKTestSuite, TKAssert, TKAssertNull, TKAssertNotNull, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSConstraintBox, JSRect */
 'use strict';
 
 JSClass('JSConstraintBoxTests', TKTestSuite, {

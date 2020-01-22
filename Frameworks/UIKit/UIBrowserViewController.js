@@ -1,6 +1,5 @@
 // #import "UIViewController.js"
 // #import "UIBrowserView.js"
-/* global JSClass, JSReadOnlyProperty, UIViewController, UIBrowserView, UIBrowserViewController */
 'use strict';
 
 JSClass("UIBrowserViewController", UIViewController, {

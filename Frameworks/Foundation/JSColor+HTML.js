@@ -1,5 +1,4 @@
 // #import "JSColor.js"
-/* global JSColor */
 'use strict';
 
 JSColor.definePropertiesFromExtensions({

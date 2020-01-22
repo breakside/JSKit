@@ -1,7 +1,6 @@
 // #import "CoreTypes.js"
 // #import "UnicodeChar.js"
 // #import "JSData.js"
-/* global UnicodeChar, JSRange, JSData */
 'use strict';
 
 (function(){

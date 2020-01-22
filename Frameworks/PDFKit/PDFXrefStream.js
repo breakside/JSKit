@@ -1,5 +1,4 @@
 // #import "PDFStream.js"
-/* global JSGlobalObject, PDFStream, PDFObjectProperty, PDFXrefStream, PDFName */
 'use strict';
 
 

@@ -1,6 +1,5 @@
 // #import Foundation
 // #import "UIEvent.js"
-/* global JSClass, JSObject, UIPlatform, UIPlatformMac, UIPlatformWindows, UIEvent, JSBundle */
 'use strict';
 
 (function(){

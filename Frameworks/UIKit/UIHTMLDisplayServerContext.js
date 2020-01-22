@@ -1,6 +1,6 @@
 // #import Foundation
 // #import "UIView.js"
-/* global JSClass, JSContext, JSObject, UILayer, UIHTMLDisplayServerContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
+// jshint browser: true
 'use strict';
 
 

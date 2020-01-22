@@ -1,8 +1,6 @@
 // #import UIKit
 // #import TestKit
 // #import "MockWindowServer.js"
-/* global JSClass, TKTestSuite, UITextEditor, MockWindowServer, UITextLayer, JSRange, JSRect, JSFont, JSTestFontDescriptor, JSLineBreakMode, UIEvent, JSPoint */
-/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
 'use strict';
 
 (function(){

@@ -7,7 +7,7 @@
 // #import "UIToolbar.js"
 // #import "UIToolbarItem.js"
 // #import "UIViewPropertyAnimator.js"
-/* global JSClass, JSObject, JSGradient, JSTimer, UIView, JSColor, JSBundle, JSImage, JSUserDefaults, JSFont, UIImageView, UILabel, JSSize, JSRect, JSInsets, JSDynamicProperty, JSReadOnlyProperty, UIWindow, UIWindowStyler, UIWindowDefaultStyler, UIWindowCustomStyler, UIControl, UIButton, UIButtonCustomStyler, JSPoint, UIApplication, UIEvent, UITouch, UIToolbar, UIToolbarView, UIToolbarItem, UIViewPropertyAnimator, UIViewController */
+// #import "UIViewController.js"
 'use strict';
 
 (function(){

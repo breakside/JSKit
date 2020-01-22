@@ -1,7 +1,5 @@
 // #import UIKit
 // #import TestKit
-/* global JSClass, TKTestSuite, UITokenField, JSRect, JSRange, JSAttributedString, UITextAttachmentView, UITokenFieldTokenView, JSFont, JSTestFontDescriptor */
-/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
 JSClass("UITokenFieldTests", TKTestSuite, {

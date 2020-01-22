@@ -1,5 +1,4 @@
 // #feature Uint32Array
-/* global JSGlobalObject, Adler32 */
 'use strict';
 
 JSGlobalObject.Adler32 = function(bytes){

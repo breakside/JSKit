@@ -1,5 +1,5 @@
 // #import TestKit
-/* global global, require, module, process, JSClass, JSBundle, JSArguments, TKTestRun, TKTestResult, NodeTestRun, console */
+// jshint node: true
 'use strict';
 
 global.performance = require('perf_hooks').performance;

@@ -1,8 +1,6 @@
 // #import ServerKit
 // #import TestKit
 // #import "Mock.js"
-/* global JSClass, TKTestSuite, MockRequest, JSURL, JSMediaType, JSMIMEHeaderMap, TKExpectation */
-/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertThrows */
 'use strict';
 
 JSClass("SKHTTPRequestTests", TKTestSuite, {

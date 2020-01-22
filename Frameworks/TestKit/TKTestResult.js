@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, TKTestResult */
 'use strict';
 
 JSClass("TKTestResult", JSObject, {

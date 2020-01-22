@@ -1,5 +1,5 @@
+// #import "JSObject.js"
 // #import "JSFormFieldMap.js"
-/* global JSClass, JSObject, JSFormFieldMap, JSArguments */
 'use strict';
 
 (function(){

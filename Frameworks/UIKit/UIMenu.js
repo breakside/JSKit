@@ -3,7 +3,8 @@
 // #import "UIApplication.js"
 // #import "UIPlatform.js"
 // #import "UIEvent.js"
-/* global JSClass, JSObject, UIView, JSDynamicProperty, JSReadOnlyProperty, UIMenu, UIPlatform, UIEvent, UIMenuItem, JSSize, JSColor, JSFont, JSRect, JSPoint, UIWindow, UIMenuWindow, UIMenuView, UIMenuItemView, JSInsets, UIApplication, UIMenuStyler, UIMenuDefaultStyler, UILayer, UIAnimationTransaction, UIBasicAnimation */
+// #import "UIWindow.js"
+/* global UIMenuWindow */
 'use strict';
 
 (function(){

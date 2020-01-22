@@ -2,7 +2,6 @@
 // #import "JSObject.js"
 // #import "JSTextLayoutManager.js"
 // #import "JSTextFramesetter.js"
-/* global JSClass, JSObject, JSTextFramesetter, JSCustomProperty, JSDynamicProperty, JSTextLayoutManager, JSSize, JSRect, JSRange, JSPoint, JSReadOnlyProperty, JSLineBreakMode, JSTextAlignment, JSAttributedString */
 'use strict';
 
 (function(){

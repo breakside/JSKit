@@ -1,6 +1,5 @@
 // #import "UIScrollView.js"
 // #import "UICursor.js"
-/* global JSClass, JSColor, JSRect, JSSize, JSPoint, JSReadOnlyProperty, JSDynamicProperty, UIView, UICursor, UIScrollView, UIBrowserView, _UIBrowserDividerView */
 'use strict';
 
 JSClass("UIBrowserView", UIScrollView, {

@@ -1,7 +1,6 @@
 // #import "UIView.js"
 // #import "UILabel.js"
 // #import "UIImageView.js"
-/* global JSClass, UIView, UILabel, JSFont, JSReadOnlyProperty, JSDynamicProperty, JSLazyInitProperty, UIListViewCell, JSInsets, JSPoint, JSSize, JSRect, JSColor, UIImageView */
 'use strict';
 
 JSClass("UIListViewCell", UIView, {

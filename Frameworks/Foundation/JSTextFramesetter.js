@@ -3,7 +3,6 @@
 // #import "JSTextTypesetter.js"
 // #import "JSTextFrame.js"
 // #import "JSAttributedString.js"
-/* global JSClass, JSObject, JSSize, JSReadOnlyProperty, JSDynamicProperty, JSTextTypesetter, JSTextFrame, JSPoint, JSLineBreakMode, JSRange, JSTextAlignment, JSAttributedString */
 'use strict';
 
 (function(){

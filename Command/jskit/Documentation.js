@@ -20,7 +20,6 @@
 // #import "DocCommandArgument.js"
 // #import "DocDictionary.js"
 // #import "DocDictionaryProperty.js"
-/* global JSClass, JSObject, JSCopy, jsyaml, JSURL, DocComponent, JSBundle */
 'use strict';
 
 JSClass("Documentation", JSObject, {

@@ -1,6 +1,5 @@
 // #import "JSObject.js"
 // #import "JSLocale.js"
-/* global JSGlobalObject, JSClass, JSLazyInitProperty, JSObject, JSBundle, JSLocale */
 'use strict';
 
 JSClass('JSBundle', JSObject, {

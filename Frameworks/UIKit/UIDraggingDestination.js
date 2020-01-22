@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSProtocol, JSGlobalObject */
 'use strict';
 
 JSProtocol("UIDraggingDestination", JSProtocol, {

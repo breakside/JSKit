@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, SECHash */
 'use strict';
 
 JSClass("SECHash", JSObject, {

@@ -1,5 +1,4 @@
 // #import "JSObject.js"
-/* global JSClass, JSObject, JSReadOnlyProperty */
 'use strict';
 
 JSClass("JSURLSessionTask", JSObject, {

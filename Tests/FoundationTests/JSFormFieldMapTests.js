@@ -1,6 +1,5 @@
 // #import Foundation
 // #import TestKit
-/* global JSClass, JSData, TKTestSuite, TKAssert, TKAssertNull, TKAssertNotNull, TKAssertUndefined, TKAssertEquals, TKAssertExactEquals, TKAssertObjectEquals, JSFormField, JSFormFieldMap */
 'use strict';
 
 JSClass('JSFormFieldMapTests', TKTestSuite, {

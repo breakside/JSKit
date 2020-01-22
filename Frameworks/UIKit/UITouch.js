@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, JSReadOnlyProperty, UITouch */
 'use strict';
 
 JSClass("UITouch", JSObject, {

@@ -1,5 +1,5 @@
 // #import "UIPlatform.js"
-/* global navigator, UIPlatform */
+// jshint browser: true
 'use strict';
 
 (function(){

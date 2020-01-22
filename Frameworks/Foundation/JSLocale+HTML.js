@@ -1,5 +1,5 @@
 // #import "JSLocale.js"
-/* global JSLocale, navigator */
+// jshint browser: true
 'use strict';
 
 JSLocale.preferredLanguages = navigator.languages || [navigator.language || 'en'];

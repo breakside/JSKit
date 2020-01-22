@@ -1,6 +1,5 @@
 // #import Foundation
 // #import SecurityKit
-/* global JSClass, JSObject, JSCopy, JSReadOnlyProperty, JSFormFieldMap, JSURL, JSSHA1Hash, SECCipher, JSURLSession, JSURLRequest, JSURLResponse */
 'use strict';
 
 JSClass("OASession", JSObject, {

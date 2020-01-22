@@ -2,7 +2,6 @@
 // #import "IKDecoder.js"
 // #import "IKBitmap.js"
 // #import "IKColorSpace.js"
-/* global IKDecoder, IKBitmap, JSClass, JSSize, JSPoint, IKDecoderPNG, ZlibStream, JSData, IKColorSpace */
 'use strict';
 
 (function(){

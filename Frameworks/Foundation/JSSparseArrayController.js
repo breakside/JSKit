@@ -1,5 +1,4 @@
 // #import "JSArrayController.js"
-/* global JSClass, JSArrayController, JSSparseArrayController */
 'use strict';
 
 JSClass('JSSparseArrayController', JSArrayController, {

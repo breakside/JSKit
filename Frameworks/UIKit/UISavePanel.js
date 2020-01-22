@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, UIOpenPanel */
 'use strict';
 
 JSClass("UISavePanel", JSObject, {

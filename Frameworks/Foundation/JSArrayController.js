@@ -1,5 +1,4 @@
 // #import "JSObject.js"
-/* global JSClass, JSObject */
 'use strict';
 
 JSClass('JSArrayController', JSObject, {

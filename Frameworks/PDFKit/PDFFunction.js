@@ -1,5 +1,6 @@
+// #import Foundation
 // #import "PDFStream.js"
-/* global JSGlobalObject, JSData, PDFObject, PDFStream, PDFObjectProperty, PDFName, PDFFunctionSampled, PDFFunctionExponential, PDFFunctionStitching, PDFFunctionCalculator, PDFOperationIterator, PDFStreamOperation */
+// #import "PDFOperationIterator.js"
 'use strict';
 
 (function(){

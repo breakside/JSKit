@@ -1,6 +1,5 @@
 // #import Foundation
 // #import "SKHTTPError.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, SKValidatingObject */
 'use strict';
 
 JSClass("SKValidatingObject", JSObject, {

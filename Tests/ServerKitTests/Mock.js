@@ -1,5 +1,4 @@
 // #import ServerKit
-/* global JSClass, TKTestSuite, SKHTTPServer, SKHTTPRequest, SKHTTPResponse, JSRunLoop, JSMIMEHeaderMap, MockResponse, JSData, JSReadOnlyProperty */
 'use strict';
 
 JSClass("MockServer", SKHTTPServer, {

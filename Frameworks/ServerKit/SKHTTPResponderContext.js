@@ -1,6 +1,5 @@
 // #import Foundation
 // #import "SKHTTPResponse.js"
-/* global JSClass, JSObject, JSReadOnlyProperty, JSRunLoop, SKHTTPResponse */
 'use strict';
 
 JSClass("SKHTTPResponderContext", JSObject, {

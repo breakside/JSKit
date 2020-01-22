@@ -2,7 +2,6 @@
 // #import "JSLocale.js"
 // #import "JSCalendar.js"
 // #import "JSBundle.js"
-/* global JSClass, JSObject, JSDateFormatter, JSLocale, JSCustomProperty, JSCalendar, JSDynamicProperty, JSBundle */
 'use strict';
 
 // http://www.unicode.org/reports/tr35/tr35-31/tr35-dates.html#Date_Format_Patterns

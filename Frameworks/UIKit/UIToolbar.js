@@ -2,7 +2,7 @@
 // #import "UIToolbarItem.js"
 // #import "UIButton.js"
 // #import "UIImageView.js"
-/* global JSClass, JSObject, JSInsets, JSRect, JSImage, JSBundle, JSPoint, JSSize, JSReadOnlyProperty, JSDynamicProperty, JSLazyInitProperty, UIToolbar, UIView, UIToolbarView, UIToolbarItem, UIToolbarItemView, UIButton, UIMenu, UIPopupButton, UIImageView, UIButtonCustomStyler */
+/* global UIMenu, UIPopupButton */
 'use strict';
 
 (function(){

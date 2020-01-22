@@ -1,5 +1,4 @@
 // #import "PDFFilter.js"
-/* global JSClass, JSObject, PDFFilter */
 'use strict';
 
 // The stream content should just be a JPEG file, so we probably don't need to do any actual decoding

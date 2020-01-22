@@ -1,9 +1,10 @@
+// #import "Promise+JS.js"
 // #import "JSFileManager.js"
 // #import "JSBundle.js"
 // #import "JSData.js"
 // #import "JSURL.js"
 // #import "JSLog.js"
-/* global self, window, JSClass, JSObject, JSCopy, JSLazyInitProperty, JSFileManager, JSData, JSBundle, JSURL, JSLog */
+// jshint browser: true, worker: true
 'use strict';
 
 (function(){

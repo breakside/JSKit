@@ -2,7 +2,6 @@
 // #import "Builder.js"
 // #import "Resources.js"
 // #import "JavascriptCompilation.js"
-/* global JSClass, JSObject, JSCopy, JSURL, Builder, HTMLBuilder, Resources, JavascriptCompilation, JSFileManager, DOMParser, XMLSerializer, DOM, JSSHA1Hash */
 'use strict';
 
 // buildURL

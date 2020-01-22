@@ -3,7 +3,7 @@
 // #import "UIPlatform.js"
 // #import "UIImageView.js"
 // #import "UIViewPropertyAnimator.js"
-/* global JSClass, JSObject, JSCopy, JSInsets, JSRange, JSAffineTransform, JSFont, JSColor, UILayer, UIView, UIImageView, UIScrollView, UIPlatform, JSProtocol, JSReadOnlyProperty, JSDynamicProperty, UIListView, JSSize, JSIndexPath, JSRect, UIEvent, JSIndexPathSet, JSIndexPathRange, JSBinarySearcher, JSPoint, UIListViewHeaderFooterView, UIListViewStyler, UIListViewDefaultStyler, UIViewPropertyAnimator, UIListViewCell */
+/* global UIListViewCell, UIListViewHeaderFooterView */
 'use strict';
 
 (function(){

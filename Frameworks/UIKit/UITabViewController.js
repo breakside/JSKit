@@ -1,6 +1,5 @@
 // #import "UIViewController.js"
 // #import "UITabView.js"
-/* global JSClass, JSReadOnlyProperty, JSCopy, JSDeepCopy, JSDynamicProperty, UIViewController, UITabViewController, UITabView, UITabViewItem */
 'use strict';
 
 JSClass("UITabViewController", UIViewController, {

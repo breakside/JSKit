@@ -1,5 +1,4 @@
 // #import "JSImage.js"
-/* global JSImage, _JSResourceImage, _JSDataImage, _JSURLImage */
 'use strict';
 
 _JSResourceImage.definePropertiesFromExtensions({

@@ -1,5 +1,5 @@
 // #import "UIOpenPanel.js"
-/* global document, JSClass, UIOpenPanel, UIHTMLOpenPanel, JSHTMLFile, JSHTMLFileSystemEntryFileEnumerator, JSHTMLFileListFileEnumerator */
+// jshint browser: true
 'use strict';
 
 JSClass("UIHTMLOpenPanel", UIOpenPanel, {

@@ -1,5 +1,4 @@
 // #import "SKHTTPResponder.js"
-/* global JSClass, SKHTTPResponder, JSLog */
 'use strict';
 
 (function(){

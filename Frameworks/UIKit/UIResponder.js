@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, JSReadOnlyProperty */
 'use strict';
 
 JSClass("UIResponder", JSObject, {

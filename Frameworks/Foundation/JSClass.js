@@ -1,9 +1,9 @@
+// #import "Javascript.js"
 // #import "String+JS.js"
 // #feature Object.create
 // #feature Object.defineProperty
 // #feature Object.getPrototypeOf
 // #feature Object.prototype.hasOwnProperty
-/* global JSGlobalObject, JSClass, JSResolveDottedName, JSDynamicProperty, JSCustomProperty, JSReadOnlyProperty, JSLazyInitProperty */
 'use strict';
 
 JSGlobalObject.JSClass = function(name, superclass, extensions){

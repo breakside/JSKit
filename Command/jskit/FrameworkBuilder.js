@@ -1,7 +1,6 @@
 // #import "Builder.js"
 // #import "Resources.js"
 // #import "JavascriptCompilation.js"
-/* global JSClass, JSObject, JSLazyInitProperty, JSReadOnlyProperty, JSURL, Builder, FrameworkBuilder, Resources, JavascriptCompilation */
 'use strict';
 
 // buildURL

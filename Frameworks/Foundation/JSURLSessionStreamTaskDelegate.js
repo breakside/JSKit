@@ -1,5 +1,4 @@
 // #import "JSProtocol.js"
-/* global JSProtocol */
 'use strict';
 
 JSProtocol("JSURLSessionStreamTaskDelegate", JSProtocol, {

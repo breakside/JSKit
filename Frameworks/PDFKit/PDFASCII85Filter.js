@@ -1,6 +1,5 @@
 // #import "PDFFilter.js"
 // #import "PDFTokenizer.js"
-/* global JSClass, PDFFilter, JSData, PDFASCII85Filter, PDFTokenizer */
 'use strict';
 
 JSClass("PDFASCII85Filter", PDFFilter, {

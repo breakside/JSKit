@@ -1,4 +1,4 @@
-/* global JSGlobalObject, JSLog, require, console */
+/* global console, require */
 'use strict';
 
 (function(){

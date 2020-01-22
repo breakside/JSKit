@@ -1,5 +1,4 @@
 // #import Foundation
-/* global JSClass, JSObject, JSData, JSRange, SKHTTPWebSocketParser, JSLog */
 'use strict';
 
 (function(){

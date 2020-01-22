@@ -1,5 +1,5 @@
 // #import "SECHash.js"
-/* global JSClass, JSObject, JSData, require, SECHash */
+// jshint node: true
 'use strict';
 
 var crypto = require('crypto');

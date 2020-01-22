@@ -4,8 +4,7 @@
 // #import "UICursor.js"
 // #import "UITextAttachmentView.js"
 // #import "UIImageView.js"
-/* global JSClass, JSProtocol, UIControl, UIView, UICursor, JSInsets, JSRect, JSSize, JSPoint, UITextField, UITextLayer, UITextEditor, UIViewLayerProperty, JSDynamicProperty, JSReadOnlyProperty, JSLazyInitProperty, UILayer, JSColor, JSFont, JSRange, JSTextAlignment, JSLineBreakMode, JSTimer, UIPasteboard, JSTimer, JSTextRun, JSAttributedString, UITextAttachmentView, UIControlStyler, UITextFieldStyler, UITextFieldDefaultStyler, UIImageView, JSImage, UITextFieldCustomStyler */
-
+// #import "UIPasteboard.js"
 'use strict';
 
 (function(){

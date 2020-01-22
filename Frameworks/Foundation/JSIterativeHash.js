@@ -1,6 +1,5 @@
 // #feature ArrayBuffer
 // #feature Uint8Array
-/* global JSIterativeHash, JSGlobalObject, ArrayBuffer */
 'use strict';
 
 JSGlobalObject.JSIterativeHash = function JSIterativeHash(blockByteLength){

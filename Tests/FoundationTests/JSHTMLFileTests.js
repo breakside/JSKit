@@ -1,7 +1,5 @@
 // #import Foundation
 // #import TestKit
-/* global File, JSClass, TKTestSuite, JSData, JSFile, JSRange, JSHTMLFile, TKExpectation */
-/* global TKAssert, TKAssertEquals, TKAssertNotEquals, TKAssertFloatEquals, TKAssertExactEquals, TKAssertNotExactEquals, TKAssertObjectEquals, TKAssertObjectNotEquals, TKAssertNotNull, TKAssertNull, TKAssertUndefined, TKAssertNotUndefined, TKAssertThrows, TKAssertLessThan, TKAssertLessThanOrEquals, TKAssertGreaterThan, TKAssertGreaterThanOrEquals */
 'use strict';
 
 JSClass("JSHTMLFileTests", TKTestSuite, {

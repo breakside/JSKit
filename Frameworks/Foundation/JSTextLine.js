@@ -1,7 +1,6 @@
 // #import "JSObject.js"
 // #import "CoreTypes.js"
 // #import "JSTextRun.js"
-/* global JSClass, JSObject, JSTextLine, JSTextAlignment, JSSize, JSRange, JSPoint, JSRect, JSDynamicProperty, JSReadOnlyProperty, JSTextRun */
 'use strict';
 
 (function(){

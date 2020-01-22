@@ -1,6 +1,6 @@
 // #feature Math.sqrt
 // #feature Math.atan
-/* global JSGlobalObject, JSAffineTransform */
+// #import "JSPoint.js"
 'use strict';
 
 JSGlobalObject.JSAffineTransform = function JSAffineTransform(a, b, c, d, tx, ty){

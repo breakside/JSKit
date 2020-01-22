@@ -1,5 +1,5 @@
 // #import "DocTopicBasedComponent.js"
-/* global JSClass, DocTopicBasedComponent, DocEnum, DocFunction, DocEnumOption */
+/* global DocEnumOptions, DocEnumFunction */
 'use strict';
 
  JSClass("DocEnum", DocTopicBasedComponent, {

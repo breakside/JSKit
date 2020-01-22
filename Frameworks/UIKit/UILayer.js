@@ -4,7 +4,6 @@
 // #import "UIDisplayServer.js"
 // #feature Math.min
 // #feature Math.max
-/* global JSGlobalObject, UILayerAnimatedProperty, JSCustomProperty, JSReadOnlyProperty, JSDynamicProperty, JSClass, JSObject, JSInsets, UILayer, UIDisplayServer, JSRect, JSPoint, JSSize, JSAffineTransform, UIAnimationTransaction, UIBasicAnimation, JSSetDottedName, JSResolveDottedName, JSContext */
 'use strict';
 
 JSGlobalObject.UILayerAnimatedProperty = function(){

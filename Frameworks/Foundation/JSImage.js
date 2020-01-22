@@ -1,9 +1,10 @@
+// #import "Promise+JS.js"
 // #import "CoreTypes.js"
 // #import "JSObject.js"
 // #import "JSData.js"
 // #import "JSBundle.js"
 // #import "JSURLSession.js"
-/* global JSClass, JSReadOnlyProperty, JSReadOnlyProperty, JSSize, JSObject, JSBundle, JSImage, JSData, JSInsets, _JSResourceImage, _JSDataImage, _JSURLImage, JSURLSession, JSURLResponse */
+// #import "JSURLResponse.js"
 'use strict';
 
 (function(){

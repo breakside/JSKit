@@ -1,6 +1,6 @@
 // #import Foundation
 // #import "UIHTMLDisplayServerContext.js"
-/* global JSClass, JSContext, JSReadOnlyProperty, JSSize, JSColor, JSCopy, JSAffineTransform, UIHTMLDisplayServerContext, JSRect, JSObject, UILayer, UIHTMLDisplayServerCanvasContext, JSCustomProperty, JSDynamicProperty, JSLazyInitProperty, JSPoint, JSContextLineDash, UIView */
+// jshint browser: true
 'use strict';
 
 (function(){
