@@ -37,6 +37,11 @@ topics:
         name: initWithStyler
         kind: init
         summary: Create a window using the given styler 
+        arguments:
+          -
+            name: styler
+            type: UIWindowStyler
+            summary: The styler to use
       -
         name: Spec File Properties
         kind: spec

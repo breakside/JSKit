@@ -1,7 +1,7 @@
 // #import "DocMethod.js"
 'use strict';
 
- JSClass("DocConstructor", DocMethod, {
+JSClass("DocConstructor", DocMethod, {
 
     kind: 'constructor',
 
@@ -11,14 +11,18 @@
     },
 
     getTitle: function(){
+        return "%s %s".sprintf(this.parent.name, this.getTitleWithoutParent());
+    },
+
+    getTitleWithoutParent: function(){
         if (this.uniquePrefix){
             var words = this.uniquePrefix.split('-');
             for (let i = 0, l = words.length; i < l; ++i){
                 words[i] = words[i].capitalizedString();
             }
-            return "%s %s Constructor".sprintf(this.parent.name, words.join(" "));
+            return "%s Constructor".sprintf(words.join(" "));
         }
-        return "%s Constructor".sprintf(this.parent.name);
+        return "Constructor";
     },
 
     getBaseName: function(){
@@ -29,4 +33,4 @@
         return "Constructor";
     }
 
- });
+});

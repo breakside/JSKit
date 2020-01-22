@@ -52,6 +52,133 @@ JSClass("Documentation", JSObject, {
         await this.outputManifestConfig(rootComponent);
     },
 
+    sublime: async function(){
+        let rootComponent = await this.loadSource(this.rootURL);
+        var classes = [];
+        var properties = [];
+        var methods = [];
+        var functions = [];
+        var enums = [];
+        var blacklist = new Set(["FNTAdobeNamesToUnicode"]);
+        var visit = function(component){
+            if (!blacklist.has(component.name)){
+                this.printer.setStatus("Scanning %s...".sprintf(component.name));
+                if (component.kind == 'class'){
+                    this.addSublimeCompletionsForClass(classes, component);
+                // }else if (component.kind == 'property'){
+                //     this.addSublimeCompletionsForProperty(properties, component);
+                // }else if (component.kind == 'method'){
+                //     this.addSublimeCompletionsForMethod(methods, component);
+                }else if (component.kind == 'function'){
+                    this.addSublimeCompletionsForFunction(functions, component);
+                }else if (component.kind == 'enum'){
+                    this.addSublimeCompletionsForEnum(enums, component);
+                }
+                if (component.children){
+                    for (var i = 0, l = component.children.length; i < l; ++i){
+                        visit.call(this, component.children[i]);
+                    }
+                }
+            }
+        };
+        let prefix = rootComponent.name.toLowerCase();
+        let url;
+        visit.call(this, rootComponent);
+        if (classes.length > 0){
+            url = this.outputDirectoryURL.appendingPathComponent("%s-classes.sublime-completions".sprintf(prefix));
+            this.printer.setStatus("Writing %s...".sprintf(url.lastPathComponent));
+            await this.outputSublimeCompletions(url, 'source.js - comment - string', classes);
+        }
+        if (properties.length > 0){
+            url = this.outputDirectoryURL.appendingPathComponent("%s-properties.sublime-completions".sprintf(prefix));
+            this.printer.setStatus("Writing %s...".sprintf(url.lastPathComponent));
+            await this.outputSublimeCompletions(url, 'source.js meta.property.object.js', properties);
+        }
+        if (methods.length > 0){
+            url = this.outputDirectoryURL.appendingPathComponent("%s-methods.sublime-completions".sprintf(prefix));
+            this.printer.setStatus("Writing %s...".sprintf(url.lastPathComponent));
+            await this.outputSublimeCompletions(url, 'source.js meta.property.object.js', methods);
+        }
+        if (functions.length > 0){
+            url = this.outputDirectoryURL.appendingPathComponent("%s-functions.sublime-completions".sprintf(prefix));
+            this.printer.setStatus("Writing %s...".sprintf(url.lastPathComponent));
+            await this.outputSublimeCompletions(url, 'source.js - comment - string', functions);
+        }
+        if (enums.length > 0){
+            url = this.outputDirectoryURL.appendingPathComponent("%s-enums.sublime-completions".sprintf(prefix));
+            this.printer.setStatus("Writing %s...".sprintf(url.lastPathComponent));
+            await this.outputSublimeCompletions(url, 'source.js - comment - string', enums);
+        }
+    },
+
+    addSublimeCompletionsForClass: function(completions, component){
+        completions.push({trigger: component.name, contents: component.name});
+        for (let i = 0, l = component.children.length; i < l; ++i){
+            let child = component.children[i];
+            if (child.kind == 'constructor'){
+                completions.push({trigger: "%s\t%s".sprintf(component.name, child.getTitleWithoutParent()), contents: "%s(%s)".sprintf(component.name, this.sublimeArgumentsForComponent(child, 1))});
+            // }else if (child.kind == 'init'){
+            //     completions.push({trigger: "%s.%s".sprintf(component.name, child.name), contents: "%s.%s(%s)".sprintf(component.name, child.name, this.sublimeArgumentsForComponent(child, 1))});
+            }
+        }
+    },
+
+    addSublimeCompletionsForProperty: function(completions, component){
+        completions.push({trigger: "%s\t%s".sprintf(component.name, component.parent.name), contents: component.name});
+    },
+
+    addSublimeCompletionsForMethod: function(completions, component){
+        if (component.suffix){
+            completions.push({trigger: "%s\t%s (%s)".sprintf(component.name, component.parent.name, component.suffix), contents: "%s(%s)".sprintf(component.name, this.sublimeArgumentsForComponent(component, 1))});
+        }else{
+            completions.push({trigger: "%s\t%s".sprintf(component.name, component.parent.name), contents: "%s(%s)".sprintf(component.name, this.sublimeArgumentsForComponent(component, 1))});
+        }
+    },
+
+    addSublimeCompletionsForFunction: function(completions, component){
+        completions.push({trigger: component.name, contents: "%s(%s)".sprintf(component.name, this.sublimeArgumentsForComponent(component, 1))});
+    },
+
+    addSublimeCompletionsForEnum: function(completions, component){
+        let name = component.name;
+        if (component.parent && (component.parent.kind == 'class' || component.parent.kind == 'protocol')){
+            name = "%s.%s".sprintf(component.parent.name, name);
+        }
+        for (let i = 0, l = component.children.length; i < l; ++i){
+            let option = component.children[i];
+            let optionName = "%s.%s".sprintf(name, option.name);
+            if (option.kind == 'enumoption'){
+                completions.push({trigger: "%s\t%s".sprintf(option.name, name), contents: optionName});
+            }else if (option.kind == 'enumfunction'){
+                completions.push({trigger: "%s\t%s".sprintf(option.name, name), contents: "%s(%s)".sprintf(optionName, this.sublimeArgumentsForComponent(option, 1))});
+            }
+        }
+    },
+
+    sublimeArgumentsForComponent: function(component, n){
+        let variables = [];
+        for (let i = 0, l = component.arguments.length; i < l; ++i){
+            let arg = component.arguments[i];
+            if (!arg.default){
+                if (arg.variable){
+                    variables.push('${%d:%s...}'.sprintf(n++, arg.name));
+                }else{
+                    variables.push('${%d:%s}'.sprintf(n++, arg.name));
+                }
+            }
+        }
+        return variables.join(', ');
+    },
+
+    outputSublimeCompletions: async function(url, scope, completions){
+        let payload = {
+            scope: scope,
+            completions: completions
+        };
+        let json = JSON.stringify(payload, null, 2);
+        await this.fileManager.createFileAtURL(url, json.utf8());
+    },
+
     copyStyles: async function(){
         var stylesURL = this.wwwURL.appendingPathComponent('_style', true);
         var metadata = JSBundle.mainBundle.metadataForResourceName('doc-default', 'css');
