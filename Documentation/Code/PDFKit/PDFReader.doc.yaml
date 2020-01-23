@@ -135,7 +135,7 @@ topics:
           If the status is `PDFReader.Status.passwordRequired`, then the
           password was invalid.
       -
-        name: open
+        name: authenticate
         suffix: promise
         type: Promise
         promise:

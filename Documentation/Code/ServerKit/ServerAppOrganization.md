@@ -13,7 +13,7 @@ app itself and a companion `TestKit` project.
 $ cd ~/Documents
 $ mkdir Messages
 $ cd Messages
-$ npm install jskit
+$ npm install --save-dev jskit
 $ npx jskit init
 ````
 

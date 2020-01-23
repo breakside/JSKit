@@ -22,7 +22,7 @@ description: |
 
   ````
   $ mkdir ~/Documents/Messages && cd ~/Documents/Messages
-  $ npm install jskit
+  $ npm install --save-dev jskit
   $ npx jskit init
   ````
 

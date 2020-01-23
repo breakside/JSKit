@@ -2692,6 +2692,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     separatorInsets: null,
     imageSize: null,
     accessorySize: null,
+    accessoryInsets: null,
     accessoryColor: null,
     showSeparators: true,
     cellContentInsets: null,
@@ -2766,6 +2767,9 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if (spec.containsKey('accessorySize')){
             this.accessorySize = spec.valueForKey("accessorySize", JSSize);
         }
+        if (spec.containsKey('accessoryInsets')){
+            this.accessoryInsets = spec.valueForKey("accessoryInsets", JSInsets);
+        }
         if (spec.containsKey('accessoryColor')){
             this.accessoryColor = spec.valueForKey("accessoryColor", JSColor);
         }
@@ -2839,6 +2843,9 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if (this.showSeparators){
             cell.stylerProperties.separatorLayer = UILayer.init();
             cell.layer.addSublayer(cell.stylerProperties.separatorLayer);
+        }
+        if (this.accessoryInsets !== null){
+            cell.accessoryInsets = this.accessoryInsets;
         }
     },
 
@@ -2943,8 +2950,8 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             if (accessorySize === null){
                 accessorySize = cell._accessoryView.intrinsicSize;
             }
-            cell._accessoryView.frame = JSRect(cell.bounds.size.width - accessorySize.width, (cell._contentView.bounds.size.height - accessorySize.height) / 2, accessorySize.width, accessorySize.height);
-            size.width -= accessorySize.width;
+            cell._accessoryView.frame = JSRect(cell._contentView.bounds.size.width - cell._accessoryInsets.right - accessorySize.width, (cell._contentView.bounds.size.height - accessorySize.height) / 2, accessorySize.width, accessorySize.height);
+            size.width -= accessorySize.width + cell._accessoryInsets.width;
         }
         if (cell._titleLabel !== null){
             if (cell._detailLabel !== null){

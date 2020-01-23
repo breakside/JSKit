@@ -19,7 +19,7 @@ description: |
 
   In order to lint your Javascript, we recommend also installing:
   - [SublimeLinter](http://www.sublimelinter.com) in SublimeText
-  - [jshint](https://jshint.com) via `npm install jshint` in your workspace
+  - [jshint](https://jshint.com) via `npm install --save-dev jshint` in your workspace
     folder
 
   Other Environments

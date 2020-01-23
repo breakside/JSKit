@@ -29,6 +29,12 @@ topics:
             summary: The object to use as `this` when calling `completion`
             type: Object
             default: "undefined"
+        note: |
+          `getText()` currently returns text in the order found in the page
+          code, which is not necessarily the order the text is displayed
+          visually on the page.  This early implementation is considered a bug,
+          and the behavior will change in future versions to match the visual
+          order of the text.
       -
         name: getText
         suffix: promise
@@ -39,6 +45,12 @@ topics:
           resolve:
             type: String
             summary: The page's plain text
+        note: |
+          `getText()` currently returns text in the order found in the page
+          code, which is not necessarily the order the text is displayed
+          visually on the page.  This early implementation is considered a bug,
+          and the behavior will change in future versions to match the visual
+          order of the text.
       -
         name: getOperationIterator
         kind: method

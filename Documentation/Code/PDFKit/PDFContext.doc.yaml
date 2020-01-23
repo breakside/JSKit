@@ -7,6 +7,11 @@ description: |
   A `PDFContext` provides a `JSContext` interface for drawing to a PDF document.
 
   Only a few extra methods are needed for dealing with PDF pages
+note: |
+  `PDFContext` is a work in progress.  Basic drawing operations are currently
+  supported, but text support is limited along with other features such as
+  gradients, SVG image support, and masked images.  These areas are under active
+  development to get them in correct working order.
 topics:
   -
     name: Creating a PDF Context

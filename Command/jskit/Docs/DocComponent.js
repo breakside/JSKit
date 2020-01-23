@@ -29,11 +29,15 @@ JSClass("DocComponent", JSObject, {
         if (info.copyright){
             this.copyright = info.copyright;
         }
+        if (info.beta){
+            this.beta = info.beta;
+        }
     },
 
     sourceURL: null,
     outputURL: JSDynamicProperty('_outputURL'),
     copyright: null,
+    beta: false,
 
     setOutputURL: function(outputURL){
         this._outputURL = outputURL;
@@ -666,12 +670,16 @@ JSClass("DocComponent", JSObject, {
 
     jsonObject: function(baseURL){
         let url = this.outputURL.removingFileExtension();
-        return {
+        let obj = {
             name: this.name,
             kind: this.kind,
             title: this.title,
             url: url.encodedStringRelativeTo(baseURL)
         };
+        if (this.beta){
+            obj.beta = true;
+        }
+        return obj;
     }
 
 

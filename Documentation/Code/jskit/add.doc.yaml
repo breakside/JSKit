@@ -12,7 +12,7 @@ description: |
   $ cd ~/Documents
   $ mkdir Messages
   $ cd Messages
-  $ npm install jskit
+  $ npm install --save-dev jskit
   $ npm jskit init
   $ npx jskit add html MessagesWeb
   $ npx jskit add framework MessagesKit

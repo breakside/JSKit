@@ -41,9 +41,6 @@
 				"*.egg-info"
 			],
 			"path": "."
-		},
-		{
-			"path": "/Users/oshaw/Documents/Breakside/sublime-jskit"
 		}
 	],
 	"settings":

@@ -15,6 +15,7 @@ JSClass("UIListViewCell", UIView, {
     imageView: JSLazyInitProperty('_createImageView', '_imageView'),
     accessoryImage: JSDynamicProperty(),
     accessoryView: JSDynamicProperty('_accessoryView', null),
+    accessoryInsets: JSDynamicProperty('_accessoryInsets', null),
     separatorInsets: JSDynamicProperty('_separatorInsets', null),
     numberOfDetailLines: JSDynamicProperty('_numberOfDetailLines', 1),
     stylerProperties: null,
@@ -38,6 +39,7 @@ JSClass("UIListViewCell", UIView, {
 
     _commonCellInit: function(){
         this.stylerProperties = {};
+        this._accessoryInsets = JSInsets.Zero;
         this._titleInsets = JSInsets(0, 10);
         this._contentView = UIView.init();
         this.addSubview(this._contentView);
