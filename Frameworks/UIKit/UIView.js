@@ -588,6 +588,12 @@ JSClass('UIView', UIResponder, {
         }
     },
 
+    keyActive: JSReadOnlyProperty(undefined, undefined, 'isKeyActive'),
+
+    isKeyActive: function(){
+        return this.window !== null && this.window.isKeyWindow && this.window.firstResponder === this;
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Drag & Drop Source
 

@@ -2864,9 +2864,8 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             cell._detailLabel.font = this.cellDetailFont;
         }
         if (cell.selected){
-            var muted = !cell.listView.window.isKeyWindow || cell.listView.window.firstResponder !== cell.listView;
             cell.contentView.borderColor = this.contextSelectedCellBorderColor;
-            if (muted){
+            if (!cell.listView.keyActive){
                 cell.contentView.backgroundColor = this.mutedSelectedCellBackgroundColor;
                 if (cell._titleLabel !== null){
                     cell._titleLabel.textColor = this.mutedSelectedCellTextColor;

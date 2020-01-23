@@ -389,7 +389,11 @@ JSClass("UIOutlineViewDefaultStyler", UIListViewDefaultStyler, {
             }
         }
         if (cell.selected){
-            cell.disclosureButton.styler.color = this.selectedDisclosureColor;
+            if (!cell.listView.keyActive){
+                cell.disclosureButton.styler.color = this.disclosureColor;
+            }else{
+                cell.disclosureButton.styler.color = this.selectedDisclosureColor;
+            }
         }else{
             cell.disclosureButton.styler.color = this.disclosureColor;
         }

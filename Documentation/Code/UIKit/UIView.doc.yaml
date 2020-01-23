@@ -944,7 +944,7 @@ topics:
         type: String
         summary: The help text to show when the user hovers over this view
   -
-    name: Text Baseline Alignmen
+    name: Text Baseline Alignment
     members:
       -
         name: firstBaselineOffsetFromTop
@@ -1123,6 +1123,13 @@ topics:
           `true` if this view is its window's `firstResponder`, `false`
           otherwise
         summary: Check if this view is its window's first responder
+      -
+        name: keyActive
+        type: boolean
+        return: |
+          `true` if this view is its window's `firstResponder` and the window
+          is the application's `keyWindow`, `false` otherwise
+        summary: Check if this view is currently responding to key events
       -
         name: getNextResponder
         kind: method
