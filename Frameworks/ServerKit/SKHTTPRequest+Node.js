@@ -17,6 +17,7 @@ SKHTTPRequest.definePropertiesFromExtensions({
             this._response = SKHTTPResponse.initWithNodeResponse(nodeResponse);
         }
         this._url = JSURL.initWithString(nodeRequest.url);
+        this._method = this._nodeRequest.method;
     },
 
     createWebsocket: function(){
@@ -29,10 +30,6 @@ SKHTTPRequest.definePropertiesFromExtensions({
 
     close: function(){
         this._nodeRequest.socket.destroy();
-    },
-
-    getMethod: function(){
-        return this._nodeRequest.method;
     },
 
     getData: function(completion, target){

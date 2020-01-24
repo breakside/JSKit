@@ -25,10 +25,6 @@ JSClass("SKHTTPRequest", JSObject, {
         return JSMediaType(header);
     },
 
-    _getMethod: function(){
-        return this._method;
-    },
-
     _getOrigin: function(){
         return this.headerMap.get('Origin', null);
     },
