@@ -1,0 +1,104 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: JSObject
+summary: A hub for sending and receiving notifications throughout an application
+description: |
+  Components can post notifications to the notification center, which then
+  distributes the notifications to any registered listeners.
+
+  Most times, the `shared` notification center is place to post and listen
+  for noficiations, but it's possible to create a private notification center
+  if you need.
+
+important: Notifications are sent immediately and synchronously.
+topics:
+  -
+    name: Creating a Notification Center
+    members:
+      -
+        name: shared
+        static: true
+        type: JSNotificationCenter
+        summary: The default global notification center
+      -
+        name: init
+        kind: init
+        summary: Create a new private notification center
+  -
+    name: Sending Notifications
+    members:
+      -
+        name: postNotification
+        kind: method
+        summary: Send the given notification object
+        arguments:
+          -
+            name: notification
+            type: JSNotification
+            summary: The notification to send to any observers
+      -
+        name: post
+        kind: method
+        summary: Send a notification for the given name and sender
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The notification name
+          -
+            name: sender
+            type: JSObject
+            summary: The sender of the notification
+          -
+            name: userInfo
+            type: any
+            default: "null"
+            summary: Any information relevant to the notification
+  -
+    name: Listening for Notifications
+    members:
+      -
+        name: addObserver
+        kind: method
+        summary: Register an object to listen for notifictions
+        type: Int
+        return: A unique observer identifier that can be passed to
+          \`removeObserver()`
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the notification to listen for
+          -
+            name: sender
+            type: JSObject
+            nullable: true
+            summary: The only sender to listen for.  `null` means any sender.
+          -
+            name: callback
+            type:
+              arguments:
+                -
+                  name: notification
+                  type: JSNotification
+                  summary: The received notification
+            summary: The function that will receive the notification
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object that will be used as `this` when calling
+              the callback function
+      -
+        name: removeObserver
+        kind: method
+        summary: De-register a notification observer
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the notification being observed
+          -
+            name: observer
+            type: Int
+            summary: The observer ID returned by `addObserver()`

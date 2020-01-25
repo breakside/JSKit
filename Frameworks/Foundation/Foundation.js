@@ -68,6 +68,8 @@
 // #import "JSFileEnumerator.js"
 // #import "JSUserDefaults.js"
 // #import "JSUndoManager.js"
+// #import "JSNotificationCenter.js"
+// #import "JSNotification.js"
 
 // #import "JSLog.js"
 // #import "Zlib.js"

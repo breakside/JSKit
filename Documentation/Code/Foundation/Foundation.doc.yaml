@@ -79,6 +79,8 @@ topics:
       - JSArguments
       - JSRunLoop
       - JSUndoManager
+      - JSNotificationCenter
+      - JSNotification
   -
     name: Logging
     summary: Logging, telemetry, and error reporting

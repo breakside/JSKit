@@ -1,0 +1,45 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: JSObject
+summary: A message that can be sent between application components via a
+  \`JSNotificationCenter`
+topics:
+  -
+    name: Creating a Notification
+    members:
+      -
+        name: initWithName
+        kind: init
+        summary: Create a new notification with the given name and sender
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The unique identifier for the notification
+          -
+            name: sender
+            type: JSObject
+            summary: The sender of the notification
+          -
+            name: userInfo
+            type: any
+            default: "null"
+            summary: Any information relevant to the particular notification
+  -
+    name: Identification
+    members:
+      -
+        name: name
+        type: String
+        summary: The unique identifier for the notification
+      -
+        name: sender
+        type: JSObject
+        summary: The sender of the notification
+  -
+    name: User Data
+    member:
+      -
+        name: userInfo
+        type: any
+        summary: Information relevant to the particular notification
