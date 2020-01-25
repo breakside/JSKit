@@ -127,7 +127,7 @@ JSClass("UIResponder", JSObject, {
     },
 
     canPerformAction: function(action, sender){
-        if (this[action] !== undefined && this[action] !== null && typeof(this[action]) == 'function'){
+        if (UIResponder.$super.canPerformAction.call(this, action, sender)){
             var manager;
             if (action === 'undo'){
                 manager = this.getUndoManager();

@@ -762,7 +762,14 @@ JSObject.definePropertiesFromExtensions({
 
     toString: function(){
         return "[%s #%d]".sprintf(this.$class.className, this.objectID || -1);
-    }
+    },
+
+    // MARK: Actions
+
+    canPerformAction: function(action, sender){
+        var method = this[action];
+        return method !== undefined && method !== null && typeof(method) == 'function';
+    },
 
 });
 

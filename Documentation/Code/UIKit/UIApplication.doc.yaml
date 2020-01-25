@@ -293,6 +293,8 @@ topics:
               `firstResponder`(UIWindow.firstResponder) or the
               `mainWindow` itself.  Othewise, the responder chain will start
               with `target`.
+            note: If nothing in the responder chain can handle the action,
+              the application's `delegate` will be checked.
           -
             name: sender
             type: any

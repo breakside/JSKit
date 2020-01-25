@@ -186,10 +186,10 @@ JSClass('UIApplication', UIResponder, {
     firstTargetForAction: function(action, target, sender){
         if (target === null){
             if (this.mainWindow !== null){
-                target = this.mainWindow.firstResponder || this.mainWindow;
+                target = this.mainWindow.firstResponder || this.mainWindow || this;
             }
         }
-        if (target !== null && target.targetForAction && typeof(target.targetForAction) === 'function'){
+        if (target.targetForAction && typeof(target.targetForAction) === 'function'){
             target = target.targetForAction(action, sender);
         }
         return target;
@@ -213,6 +213,17 @@ JSClass('UIApplication', UIResponder, {
                 target[action](sender, event);
             }
         }
+    },
+
+    targetForAction: function(action, sender){
+        var target = UIApplication.$super.targetForAction.call(this, action, sender);
+        if (target !== null){
+            return target;
+        }
+        if (this.delegate && this.delegate.canPerformAction(action, sender)){
+            return this.delegate;
+        }
+        return null;
     },
 
     // MARK: - Touch Event Conversion

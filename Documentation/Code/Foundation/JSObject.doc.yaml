@@ -635,3 +635,16 @@ topics:
             type: any
             summary: The exact `context` object/value that was provided in
               \`addObserverForKeyPath`
+  -
+    name: Actions
+    members:
+      -
+        name: canPerformAction
+        kind: method
+        type: boolean
+        summary: Checks if the object can perform the named action
+        description: |
+          The default implementation returns `true` if the object has an
+          instance method matching the action name.
+        see:
+          - UIApplication.sendAction
