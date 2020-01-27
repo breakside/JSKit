@@ -550,6 +550,9 @@ JSClass('UIWindow', UIView, {
     },
 
     setFirstResponder: function(responder){
+        if (responder !== null && responder.window !== this){
+            responder = null;
+        }
         if (responder !== this._firstResponder){
             var previousResponder = this._firstResponder;
             var didResignResponder = true;
