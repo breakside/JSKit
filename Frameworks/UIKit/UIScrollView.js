@@ -1,5 +1,6 @@
 // #import "UIView.js"
 // #import "UIEvent.js"
+// #import "UIScroller.js"
 'use strict';
 
 JSProtocol("UIScrollViewDelegate", JSProtocol, {
@@ -46,7 +47,7 @@ JSClass('UIScrollView', UIView, {
         // 3. Finish the work from step #1 after _commonScrollViewInit, when we can be sure that
         //    a contentView has been created
         for (var i = 0, l = contentSubviews.length; i < l; ++i){
-            this._contentView.addSubview(spec.resolvedValue(contentSubviews[i]));
+            this._contentView.addSubview(contentSubviews[i]);
         }
 
         // 4. Handle all the other properties
