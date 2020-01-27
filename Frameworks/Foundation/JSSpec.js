@@ -51,7 +51,11 @@ JSClass("JSSpec", JSObject, {
     },
 
     getFilesOwner: function(){
-        return this._root.valueForKey(JSSpec.Keys.FilesOwner);
+        var owner = this._root.valueForKey(JSSpec.Keys.FilesOwner);
+        if (owner === null){
+            throw new Error("Spec %s must include a \"File's Owner\" key".sprintf(this._baseName));
+        }
+        return owner;
     },
 
     getLength: function(){
