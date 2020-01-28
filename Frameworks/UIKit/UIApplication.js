@@ -187,6 +187,8 @@ JSClass('UIApplication', UIResponder, {
         if (target === null){
             if (this.mainWindow !== null){
                 target = this.mainWindow.firstResponder || this.mainWindow || this;
+            }else{
+                target = this;
             }
         }
         if (target.targetForAction && typeof(target.targetForAction) === 'function'){
