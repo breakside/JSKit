@@ -32,7 +32,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.displayServer._windowServer = this;
         this.textInputManager = UIHTMLTextInputManager.initWithRootElement(rootElement);
         this.textInputManager.windowServer = this;
-        this.screen = UIScreen.initWithFrame(JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight), this.domDocument.defaultView.devicePixelRatio || 1);
+        this.screen = UIScreen.initWithFrame(JSRect(JSPoint.Zero, this.rootElementSize()), this.domDocument.defaultView.devicePixelRatio || 1);
         this.displayServer.setScreenSize(this.screen.frame.size);
         this._updateScreenClientOrigin();
         this.setCursor(UICursor.currentCursor);
@@ -51,14 +51,20 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         if (this.rootElement === this.domDocument.body){
             var body = this.rootElement;
             var html = this.domDocument.documentElement;
-            body.style.padding = '0';
             html.style.padding = '0';
-            body.style.margin = '0';
             html.style.margin = '0';
-            body.style.height = '100%';
             html.style.height = '100%';
             html.style.overflow = 'hidden';
+            body.style.padding = '0';
+            body.style.margin = '0';
+            body.style.position = 'absolute';
+            body.style.left = '0';
+            body.style.top = '0';
+            body.style.right = '0';
+            body.style.bottom = '0';
             body.style.overflow = 'hidden';
+            body.style.borderLeft = "env(safe-area-inset-left) solid black";
+            body.style.borderRight = "env(safe-area-inset-right) solid black";
         }else{
             var style = this.domWindow.getComputedStyle(this.rootElement);
             if (style.position != 'absolute' && style.position != 'relative' && style.position != 'fixed'){
@@ -624,10 +630,14 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         // resize event is not cancelable, so no need for preventDefault
         if (e.currentTarget === this.domWindow){
             var oldFrame = JSRect(this.screen.frame);
-            this.screen.frame = JSRect(0, 0, this.rootElement.offsetWidth, this.rootElement.offsetHeight);
+            this.screen.frame = JSRect(JSPoint.Zero, this.rootElementSize());
             this.screenDidChangeFrame(oldFrame);
             this.displayServer.setScreenSize(this.screen.frame.size);
         }
+    },
+
+    rootElementSize: function(){
+        return JSSize(this.rootElement.clientWidth, this.rootElement.clientHeight);
     },
 
     contextmenu: function(e){
