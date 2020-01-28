@@ -1,6 +1,27 @@
 copyright: Copyright © 2020 Breakside Inc.
 name: JSKit
 kind: index
+page:
+  titleSuffix: JSKit Documentation
+  preview: https://jskit.dev/preview.png
+  icons:
+    -
+      url: icon-16.png
+      type: image/png
+      sizes: 16x16
+    -
+      url: icon-32.png
+      type: image/png
+      sizes: 32x32
+    -
+      url: icon-64.png
+      type: image/png
+      sizes: 64x64
+    -
+      url: icon.svg
+      type: image/svg+xml
+      sizes: any
+  googleAnalytics: UA-157144849-3
 description: |
   JSKit is a collection of JavaScript frameworks that can be used to build
   desktop-quality web applications and production server applications.

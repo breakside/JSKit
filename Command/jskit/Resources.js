@@ -499,7 +499,7 @@ var mimeTypesByExt = {
     ".jpeg": "image/jpeg",
     ".jpg": "image/jpeg",
     ".png": "image/png",
-    ".svg": "image/svg+xmlsvg",
+    ".svg": "image/svg+xml",
     ".pdf": "application/pdf",
     ".woff": "application/font-woff",
     ".ttf": "application/x-font-ttf",

@@ -32,6 +32,10 @@ JSClass("DocComponent", JSObject, {
         if (info.beta){
             this.beta = info.beta;
         }
+        if (info.page){
+            this.page = info.page;
+            this.page.component = this;
+        }
     },
 
     sourceURL: null,
@@ -105,6 +109,16 @@ JSClass("DocComponent", JSObject, {
     note: null,
     important: null,
 
+    page: null,
+
+    inheritedPage: function(){
+        var component = this;
+        while (component !== null && component.page === null){
+            component = component.parent;
+        }
+        return (component ? component.page : null) || {};
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Relationships
 
@@ -156,23 +170,63 @@ JSClass("DocComponent", JSObject, {
     // MARK: - Generating HTML
 
     htmlDocument: function(documentation){
+        var page = this.inheritedPage();
         var doctype = DOM.createDocumentType("html", "", "");
         var document = DOM.createDocument(null, "html", doctype);
         var html = document.documentElement;
         var head = html.appendChild(document.createElement("head"));
         var meta = head.appendChild(document.createElement("meta"));
         meta.setAttribute("charset", "utf-8");
+        var viewport = head.appendChild(document.createElement('meta'));
+        viewport.setAttribute("name", "viewport");
+        viewport.setAttribute("content", "initial-scale=1, viewport-fit=cover");
         var title = head.appendChild(document.createElement("title"));
         var titleText = this.title;
-        if (documentation.title){
-            titleText = "%s | %s".sprintf(titleText, documentation.title);
+        if (page.titleSuffix){
+            titleText += " | %s".sprintf(page.titleSuffix);
         }
         title.appendChild(document.createTextNode(titleText));
+        meta = head.appendChild(document.createElement("meta"));
+        meta.setAttribute("property", "og:title");
+        meta.setAttribute("content", titleText);
+        if (this.summary){
+            meta = head.appendChild(document.createElement("meta"));
+            meta.setAttribute("name", "description");
+            meta.setAttribute("content", this.summary);
+        }
+        if (page.preview){
+            meta = head.appendChild(document.createElement("meta"));
+            meta.setAttribute("property", "og:image");
+            meta.setAttribute("content", page.preview);
+        }
         if (documentation.stylesheetURL){
             let link = head.appendChild(document.createElement("link"));
             link.setAttribute("rel", "stylesheet");
             link.setAttribute("type", "text/css");
             link.setAttribute("href", documentation.stylesheetURL.encodedStringRelativeTo(this.outputURL));
+        }
+        if (page.icons){
+            for (let i = 0, l = page.icons.length; i < l; ++i){
+                let icon = page.icons[i];
+                let link = head.appendChild(document.createElement("link"));
+                let url = JSURL.initWithString(icon.url, page.component.outputURL);
+                link.setAttribute("rel", "icon");
+                link.setAttribute("href", url.encodedStringRelativeTo(this.outputURL));
+                link.setAttribute("sizes", icon.sizes);
+            }
+        }
+        if (page.googleAnalytics){
+            let script = head.appendChild(document.createElement('script'));
+            let path = this.outputURL.removingFileExtension().encodedStringRelativeTo(documentation.wwwURL);
+            if (path == 'index'){
+                path = '/';
+            }else{
+                path = '/' + path;
+            }
+            script.setAttribute("async");
+            script.setAttribute("src", "https://www.googletagmanager.com/gtag/js?id=" + page.googleAnalytics);
+            script = head.appendChild(document.createElement('script'));
+            script.appendChild(document.createTextNode(googleAnalyticsTemplate.replacingTemplateParameters({TRACKING_ID: page.googleAnalytics, PATH: path})));
         }
         var body = html.appendChild(document.createElement("body"));
         var content = body.appendChild(document.createElement("article"));
@@ -489,6 +543,17 @@ JSClass("DocComponent", JSObject, {
             let destinationURL = JSURL.initWithString(image, indexURL);
             await documentation.fileManager.copyItemAtURL(sourceURL, destinationURL);
         }
+
+        if (this.page){
+            if (this.page.icons){
+                for (let i = 0, l = this.page.icons.length; i < l; ++i){
+                    let icon = this.page.icons[i];
+                    let sourceURL = JSURL.initWithString(icon.url, this.sourceURL);
+                    let destinationURL = JSURL.initWithString(icon.url, indexURL);
+                    await documentation.fileManager.copyItemAtURL(sourceURL, destinationURL);
+                }
+            }
+        }
     },
 
     // --------------------------------------------------------------------
@@ -684,6 +749,8 @@ JSClass("DocComponent", JSObject, {
 
 
 });
+
+var googleAnalyticsTemplate = "window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', '{{TRACKING_ID}}', {page_path: '{{PATH}}'});";
 
 DocComponent.Environments = [{id: 'html', name: 'HTML'}, {id: 'node', name: 'Node'}];
 

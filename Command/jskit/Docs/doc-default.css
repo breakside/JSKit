@@ -1,13 +1,20 @@
 @import url('https://fonts.googleapis.com/css?family=Inconsolata:400,700|Source+Sans+Pro:300,300i,400,400i,600,600i');
 
+html, body{
+    margin: 0;
+}
+
 article.doc{
     font-family: 'Source Sans Pro', sans-serif;
     font-weight: 300;
     color: rgb(51,51,51);
     padding: 0 20px;
+    padding: 0 calc(20px + env(safe-area-inset-right)) 0 calc(20px + env(safe-area-inset-left));
     display: grid;
     column-gap: 20px;
     grid-template-columns: minmax(100px, 800px) minmax(100px, auto);
+    -webkit-text-size-adjust: 120%;
+    text-size-adjust: 120%;
 }
 
 article.doc h1,h2,h3,h4,h5,h5,b,strong{
@@ -50,6 +57,10 @@ article.doc code{
     white-space: pre;
     font-size: 87.5%;
     color: rgb(0, 0, 0);
+}
+
+article.doc img{
+    max-width: 100%;
 }
 
 article.doc > header{
@@ -370,4 +381,20 @@ article.doc > footer {
 article.doc > footer > p {
     font-size: 60%;
     color: rgb(128,128,128);
+}
+
+@media (max-width: 666px){
+    article.doc {
+        display: block;
+    }
+    article.doc > aside.availability > header.outline,
+    article.doc > aside.availability > ul.outline{
+        display: none;
+    }
+    article.doc > section.topics > section.topic{
+        display: block;
+    }
+    article.doc > section.topics > section.topic > header > h1{
+        margin-bottom: 10px;
+    }
 }
