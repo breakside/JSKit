@@ -27,6 +27,9 @@ JSClass("JSSpec", JSObject, {
         }
         this._bundle = bundle || JSBundle.mainBundle;
         var plist = JSPropertyList.initWithResource(resource, this._bundle);
+        if (plist === null){
+            return null;
+        }
         this.initWithPropertyList(plist);
     },
 

@@ -9,6 +9,9 @@ JSClass('JSPropertyList', JSObject, {
         var ext = name.fileExtension;
         name = name.substr(0, name.length - ext.length);
         var metadata = bundle.metadataForResourceName(name, ext);
+        if (metadata === null){
+            return null;
+        }
         this.initWithObject(metadata.value);
     },
 

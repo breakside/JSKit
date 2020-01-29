@@ -2,6 +2,7 @@
 // #import "UIResponder.js"
 // #import "UIWindowServer.js"
 // #import "UIPlatform.js"
+// #import "UIDevice.js"
 'use strict';
 
 (function(){
@@ -50,8 +51,24 @@ JSClass('UIApplication', UIResponder, {
 
     setupDelegate: function(){
         if (!this.delegate){
-            if (this.bundle.info[UIApplication.InfoKeys.mainSpec]){
-                var mainUIFile = JSSpec.initWithResource(this.bundle.info[UIApplication.InfoKeys.mainSpec]);
+            if (UIApplication.InfoKeys.mainSpec in this.bundle.info){
+                var mainSpecName = this.bundle.info[UIApplication.InfoKeys.mainSpec];
+                var mainUIFile = null;
+                if (typeof(mainSpecName) == 'object'){
+                    if (UIDevice.shared.primaryPointerType === UIUserInterface.PointerType.touch && mainSpecName.touch){
+                        mainUIFile = JSSpec.initWithResource(mainSpecName.touch);
+                    }
+                    mainSpecName = mainSpecName.default;
+                }
+                if (mainUIFile === null){
+                    if (!mainSpecName){
+                        throw new Error("UIApplication: Info is missing a valid UIMainSpec name");
+                    }
+                    mainUIFile = JSSpec.initWithResource(mainSpecName);
+                }
+                if (mainUIFile === null){
+                    throw new Error("UIApplication: Cannot find resource named by UIMainSpec");
+                }
                 this.delegate = mainUIFile.filesOwner;
             }else if (this.bundle.info[UIApplication.InfoKeys.applicationDelegate]){
                 var delegateClass = JSClass.FromName(this.bundle.info[UIApplication.InfoKeys.applicationDelegate]);
