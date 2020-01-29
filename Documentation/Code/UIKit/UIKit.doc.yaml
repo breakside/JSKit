@@ -133,6 +133,8 @@ topics:
       - UIApplication
       - UIState
       - UIPlatform
+      - UIDevice
+      - UIUserInterface
   -
     name: Events
     summary: An event system designed for applications with complex user interaction

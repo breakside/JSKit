@@ -1,0 +1,58 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSObject
+summary: Provides information about the characteristics of the device on which
+  the application is running
+description: |
+  Since web applications can run on any kind of device,
+  there are situations where it is helpful to the user if `UIKit` can
+  provide a behavior tuned to the device they're using.
+
+  For example, `UIKit` can display different UI elements for touch devices
+  compared to mouse devices.
+
+  `UIDevice` understands these differences provides
+  an API for calling code do what's right for the device.
+topics:
+  -
+    name: Getting the User's Device
+    members:
+      -
+        name: shared
+        static: true
+        type: UIDevice
+        summary: The device object corresponding to what the user is using
+        description: |
+          The user's device is detected during application initialization
+  -
+    name: Input Cababilities
+    members:
+      -
+        name: primaryPointerType
+        type: UIUserInterface.PointerType
+        summary: The primary method for pointer based input
+        description: |
+          Helps distinguish between devices that are primarily
+          `touch`(UIUserInterface.PointerType.touch)-based like a phone and
+          devices that are primarily
+          `cursor`(UIUserInterface.PointerType.cursor)-based like a desktop or
+          laptop.
+      -
+        name: primaryPointerAccuracy
+        type: UIUserInterface.PointerAccuracy
+        summary: The accuracy of the primary pointer based input
+        description: |
+          A `cursor`(UIUserInterface.PointerType.cursor) based
+          `primaryPointerType` always has
+          `fine`(UIUserInterface.PointerAccuracy.fine) accuracy, whereas a touch
+          device may be `fine`(UIUserInterface.PointerAccuracy.fine) or
+          `coarse`(UIUserInterface.PointerAccuracy.coarse) depending on if
+          the touch is pen or finger based.
+      -
+        name: supportsTouchInput
+        type: boolean
+        summary: Indicates if the device is capable of touch input
+        description: |
+          Some devices have a `primaryPointerType` that isn't touch-based, but
+          do accept touch as a secondary input method.

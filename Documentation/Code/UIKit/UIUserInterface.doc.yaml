@@ -1,0 +1,77 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSObject
+summary: Provides a namespace for constants used in determining user interface
+  characteristics.
+topics:
+  -
+    name: Sizes
+    members:
+      -
+        name: SizeClass
+        kind: enum
+        summary: The coarse sizes of a user interface
+        description: |
+          Size classes can be used by UI components when determining layout and
+          sizes of views.
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: unspecified
+                summary: An unknown size class
+              -
+                name: regular
+                summary: A regular size large enough for side-by-side elements
+              -
+                name: compact
+                summary: A small size, like the width of a mobile phone
+  -
+    name: Pointer Input
+    members:
+      -
+        name: PointerType
+        kind: enum
+        summary: The possible pointer input types
+        description: |
+          Pointer types can be used by UI components when determining how to
+          draw themselves, considering what input method is being used.
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: unspecified
+                summary: An unknown pointer type
+              -
+                name: cursor
+                summary: A mouse-like cursor that can hover over objects and
+                  has the ability to make precise selections.
+              -
+                name: touch
+                summary: A finger or pen-like input method that can't hover
+                  and may not be able to make precise selections.
+      -
+        name: PointerAccuracy
+        kind: enum
+        summary: The possible pointer accuracies
+        description: |
+          Pointer accuracy can be used by UI components when determining how to
+          draw themselves, considering how precise the user can be.
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: unspecified
+                summary: An unknown pointer accuracy
+              -
+                name: coarse
+                summary: Inability to make precise selections, such as a
+                  finger-based touch input
+              -
+                name: fine
+                summary: Able to make precsise selections, such as a mouse or
+                  a pen/stylus.

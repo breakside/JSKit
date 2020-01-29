@@ -31,6 +31,9 @@
 // #import "UIActivityIndicatorView.js"
 // #import "UIProgressIndicatorView.js"
 
+// #import "UIUserInterface.js"
+// #import "UIDevice.js"
+
 // Display & Window Serves
 // #import "UIEvent.js"
 // #import "UIDisplayServer.js"

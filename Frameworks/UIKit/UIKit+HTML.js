@@ -1,6 +1,7 @@
 // Extensions
 // #import "UIApplication+HTML.js"
 // #import "UIPlatform+HTML.js"
+// #import "UIDevice+HTML.js"
 // #import "UIWebView+HTML.js"
 
 // Specialized Subclasses
