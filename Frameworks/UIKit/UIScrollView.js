@@ -444,9 +444,6 @@ JSClass('UIScrollView', UIView, {
     // MARK: - Scroll Events
 
     hitTest: function(locationInView){
-        if (this.delaysContentTouches){
-            return this;
-        }
         return UIScrollView.$super.hitTest.call(this, locationInView);
     },
 
@@ -504,17 +501,101 @@ JSClass('UIScrollView', UIView, {
         this.contentOffset = JSPoint(this._contentOffset.x, y);
     },
 
-    // touchesBegan: function(touches, event){
-    // },
+    _touchTracking: null,
+    _coasting: null,
 
-    // touchesMoved: function(touches, event){
-    // },
+    _beginTrackingTouches: function(touches, event){
+        var velocity = JSPoint.Zero;
+        if (this._coasting !== null){
+            velocity = this._coasting.velocity;
+        }
+        this._endCoasting();
+        var touch = touches[0];
+        var location = touch.locationInView(this);
+        this._touchTracking = {
+            identifier: touches[0],
+            startingLocation: JSPoint(location),
+            location: location,
+            contentOffset: JSPoint(this.contentOffset),
+            timestamp: event.timestamp,
+            startingVelocity: velocity,
+            velocity: velocity
+        };
+    },
 
-    // touchesEnded: function(touches, event){
-    // },
+    _endTrackingTouches: function(){
+        this._touchTracking = null;
+    },
 
-    // touchesCanceled: function(touches, event){
-    // }
+    _beginCoasting: function(velocity){
+        this._coasting = {
+            timestamp: -1,
+            displayServer: this.layer._displayServer,
+            velocity: velocity
+        };
+        this._coasting.displayServer.schedule(this._displayUpdate, this);
+    },
+
+    _endCoasting: function(){
+        this._coasting = null;
+    },
+
+    touchesBegan: function(touches, event){
+        this._beginTrackingTouches(touches, event);
+    },
+
+    touchesMoved: function(touches, event){
+        if (this._touchTracking === null){
+            this._beginTrackingTouches(touches, event);
+        }
+        var touch = event.touchForIdentifier(this._touchTracking.identifier);
+        if (touch === null){
+            touch = touches[0];
+        }
+        var location = touch.locationInView(this);
+        var delta = location.subtracting(this._touchTracking.startingLocation);
+        var offset = this._touchTracking.contentOffset.subtracting(delta);
+        delta = location.subtracting(this._touchTracking.location);
+        var dt = event.timestamp - this._touchTracking.timestamp;
+        this._touchTracking.location = location;
+        this._touchTracking.timestamp = event.timestamp;
+        this._touchTracking.velocity = JSPoint(delta.x / dt, delta.y / dt);
+        this.contentOffset = offset;
+    },
+
+    touchesEnded: function(touches, event){
+        var dt = event.timestamp - this._touchTracking.timestamp;
+        if (dt < 0.05){
+            this._beginCoasting(this._touchTracking.velocity);
+        }
+        this._endTrackingTouches();
+    },
+
+    touchesCanceled: function(touches, event){
+        this._endTrackingTouches();
+    },
+
+    _displayUpdate: function(t){
+        if (this._coasting === null){
+            return;
+        }
+        if (this._coasting.timestamp < 0){
+            this._coasting.timestamp = t;
+            this._coasting.displayServer.schedule(this._displayUpdate, this);
+            return;
+        }
+        if ((this.scrollsHorizontally && Math.abs(this._coasting.velocity.x) >= 10) || (this.scrollsVertically && (Math.abs(this._coasting.velocity.y) >= 10))){
+            var dt = t - this._coasting.timestamp;
+            this._coasting.timestamp = t;
+            var delta = JSPoint(this._coasting.velocity.x * dt, this._coasting.velocity.y * dt);
+            this.contentOffset = this.contentOffset.subtracting(delta);
+            this._coasting.velocity.x *= 0.97;
+            this._coasting.velocity.y *= 0.97;
+            this._coasting.displayServer.schedule(this._displayUpdate, this);
+        }else{
+            this._endCoasting();
+        }
+    }
 
 });
 

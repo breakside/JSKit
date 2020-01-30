@@ -2218,6 +2218,75 @@ JSClass("UIListView", UIScrollView, {
     },
 
     // --------------------------------------------------------------------
+    // MARK: - Touch Events
+
+    _touchActiveCell: null,
+    _touchTimer: null,
+
+    _cancelTouchSelection: function(){
+        if (this._touchActiveCell){
+            this._touchActiveCell.active = false;
+            this._touchActiveCell = null;
+        }
+        if (this._touchTimer !== null){
+            this._touchTimer.invalidate();
+            this._touchTimer = null;
+        }
+    },
+
+    _makeTouchActiveCell: function(touch){
+        var location = touch.locationInView(this);
+        var cell = this._cellHitTest(location);
+        if (cell === null){
+            return;
+        }
+        var shouldSelect = !this.delegate || !this.delegate.listViewShouldSelectCellAtIndexPath || this.delegate.listViewShouldSelectCellAtIndexPath(this, cell.indexPath);
+        if (!shouldSelect){
+            return;
+        }
+        cell.active = true;
+        this._touchActiveCell = cell;
+    },
+
+    touchesBegan: function(touches, event){
+        UIListView.$super.touchesBegan.call(this, touches, event);
+        if (touches.length > 1){
+            return;
+        }
+        this._touchTimer = JSTimer.scheduledTimerWithInterval(0.05, function(){
+            this._touchTimer = null;
+            this._makeTouchActiveCell(touches[0]);
+        }, this);
+    },
+
+    touchesMoved: function(touches, event){
+        UIListView.$super.touchesMoved.call(this, touches, event);
+        this._cancelTouchSelection();
+    },
+
+    touchesEnded: function(touches, event){
+        UIListView.$super.touchesEnded.call(this, touches, event);
+        if (touches.length > 1){
+            return;
+        }
+        if (this._touchTimer !== null){
+            this._touchTimer.invalidate();
+            this._touchTimer = null;
+            this._makeTouchActiveCell(touches[0]);
+        }
+        if (this._touchActiveCell){
+            this._touchActiveCell.active = false;
+            this._selectSingleIndexPath(this._touchActiveCell.indexPath);
+            this._touchActiveCell = null;
+        }
+    },
+
+    touchesCanceled: function(touches, event){
+        UIListView.$super.touchesCanceled.call(this, touches, event);
+        this._cancelTouchSelection();
+    },
+
+    // --------------------------------------------------------------------
     // MARK: - Finding Cells by Location
 
     /// Get the index path of the visible cell that contains the given location, if any
@@ -2713,6 +2782,10 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     selectedCellDetailTextColor: null,
     selectedCellBackgroundColor: null,
     selectedCellSeparatorColor: null,
+    activeCellTextColor: null,
+    activeCellDetailTextColor: null,
+    activeCellBackgroundColor: null,
+    activeCellSeparatorColor: null,
     showsMutedState: true,
     mutedSelectedCellTextColor: null,
     mutedSelectedCellDetailTextColor: null,
@@ -2754,6 +2827,9 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if (spec.containsKey('cellDetailTextColor')){
             this.cellDetailTextColor = spec.valueForKey("cellDetailTextColor", JSColor);
         }
+        if (spec.containsKey('cellBackgroundColor')){
+            this.cellBackgroundColor = spec.valueForKey("cellBackgroundColor", JSColor);
+        }
         if (spec.containsKey('cellSeparatorColor')){
             this.cellSeparatorColor = spec.valueForKey("cellSeparatorColor", JSColor);
         }
@@ -2763,11 +2839,23 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if (spec.containsKey('selectedCellDetailTextColor')){
             this.selectedCellDetailTextColor = spec.valueForKey("selectedCellDetailTextColor", JSColor);
         }
-        if (spec.containsKey('cellBackgroundColor')){
-            this.cellBackgroundColor = spec.valueForKey("cellBackgroundColor", JSColor);
-        }
         if (spec.containsKey('selectedCellBackgroundColor')){
             this.selectedCellBackgroundColor = spec.valueForKey("selectedCellBackgroundColor", JSColor);
+        }
+        if (spec.containsKey('selectedCellSeparatorColor')){
+            this.selectedCellSeparatorColor = spec.valueForKey("selectedCellSeparatorColor", JSColor);
+        }
+        if (spec.containsKey('activeCellTextColor')){
+            this.activeCellTextColor = spec.valueForKey("activeCellTextColor", JSColor);
+        }
+        if (spec.containsKey('activeCellDetailTextColor')){
+            this.activeCellDetailTextColor = spec.valueForKey("activeCellDetailTextColor", JSColor);
+        }
+        if (spec.containsKey('activeCellBackgroundColor')){
+            this.activeCellBackgroundColor = spec.valueForKey("activeCellBackgroundColor", JSColor);
+        }
+        if (spec.containsKey('activeCellSeparatorColor')){
+            this.activeCellSeparatorColor = spec.valueForKey("activeCellSeparatorColor", JSColor);
         }
         if (spec.containsKey('mutedSelectedCellTextColor')){
             this.mutedSelectedCellTextColor = spec.valueForKey("mutedSelectedCellTextColor", JSColor);
@@ -2869,6 +2957,18 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if (this.selectedCellSeparatorColor === null){
             this.selectedCellSeparatorColor = this.selectedCellBackgroundColor.colorLightenedByPercentage(0.2);
         }
+        if (this.activeCellBackgroundColor === null){
+            this.activeCellBackgroundColor = this.cellBackgroundColor;
+        }
+        if (this.activeCellTextColor === null){
+            this.activeCellTextColor = this.cellTextColor;
+        }
+        if (this.activeCellDetailTextColor === null){
+            this.activeCellDetailTextColor = this.cellDetailTextColor;
+        }
+        if (this.activeCellSeparatorColor === null){
+            this.activeCellSeparatorColor = this.cellSeparatorColor;
+        }
         if (this.mutedSelectedCellTextColor === null){
             this.mutedSelectedCellTextColor = this.cellTextColor;
         }
@@ -2950,6 +3050,23 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
                 if (cell.stylerProperties.separatorLayer){
                     cell.stylerProperties.separatorLayer.backgroundColor = this.selectedCellSeparatorColor;
                 }
+            }
+        }else if (cell.active){
+            cell.contentView.backgroundColor = this.activeCellBackgroundColor;
+            if (cell._titleLabel !== null){
+                cell._titleLabel.textColor = this.activeCellTextColor;
+            }
+            if (cell._detailLabel !== null){
+                cell._detailLabel.textColor = this.activeCellDetailTextColor;
+            }
+            if (cell._imageView !== null){
+                cell._imageView.templateColor = this.activeCellTextColor;
+            }
+            if (cell._accessoryView !== null && cell._accessoryView.isKindOfClass(UIImageView)){
+                cell._accessoryView.templateColor = this.activeCellTextColor;
+            }
+            if (cell.stylerProperties.separatorLayer){
+                cell.stylerProperties.separatorLayer.backgroundColor = this.activeCellSeparatorColor;
             }
         }else{
             cell.contentView.backgroundColor = this.cellBackgroundColor;

@@ -1,5 +1,6 @@
 // #import "UIControl.js"
 // #import "UIViewPropertyAnimator.js"
+// #import "UIDevice.js"
 'use strict';
 
 JSClass("UIScroller", UIControl, {
@@ -254,6 +255,9 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
         this.trackColor = JSColor.initWithWhite(0, 0.1);
         this.trackBorderColor = JSColor.initWithWhite(0, 0.15);
         this.knobColor = JSColor.initWithWhite(0, 0.6);
+        if (UIDevice.shared.primaryPointerType === UIUserInterface.PointerType.touch){
+            this.collapsedSize = 8;
+        }
     },
 
     setExpanded: function(scroller, expanded){

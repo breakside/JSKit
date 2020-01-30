@@ -11,7 +11,8 @@ JSClass("UIDisplayServer", JSObject, {
     _animationCount: 0,
     _animationScale: 1,
     _isUpdating: false,
-    _callbacks: null,
+    _scheduleQueue: null,
+    _scheduled: null,
 
     init: function(){
         this.layerDisplayQueue = UIDisplayServerQueue();
@@ -20,7 +21,8 @@ JSClass("UIDisplayServer", JSObject, {
         this.windowInsertedQueue = UIDisplayServerQueue();
         this.windowRemovalQueue = UIDisplayServerQueue();
         this.layerAnimationQueue = {};
-        this._callbacks = [];
+        this._scheduleQueue = [];
+        this._scheduled = [];
     },
 
     // -------------------------------------------------------------------------
@@ -67,6 +69,8 @@ JSClass("UIDisplayServer", JSObject, {
     },
 
     updateDisplay: function(t){
+        this._scheduled = this._scheduleQueue;
+        this._scheduleQueue = [];
         this._isUpdating = true;
         var completedAnimations = this._updateAnimations(t);
         this._flushLayerLayoutQueue();
@@ -91,7 +95,7 @@ JSClass("UIDisplayServer", JSObject, {
             window.didBecomeVisible();
         }
 
-        this._flushCallbacks();
+        this._flushScheduled(t);
     },
 
     // -------------------------------------------------------------------------
@@ -263,21 +267,20 @@ JSClass("UIDisplayServer", JSObject, {
     // MARK: - Callbacks
 
     schedule: function(callback, target){
-        this._callbacks.push({fn: callback, target: target});
+        this._scheduleQueue.push({fn: callback, target: target});
+        this.setUpdateNeeded();
     },
 
-    _hasCallbacks: false,
-
-    _flushCallbacks: function(){
-        if (!this._hasCallbacks){
+    _flushScheduled: function(t){
+        if (!this._scheduled.length){
             return;
         }
         var callback;
-        for (var i = 0, l = this._callbacks.length; i < l; ++i){
-            callback = this._callbacks[i];
-            callback.fn.call(callback.target);
+        for (var i = 0, l = this._scheduled.length; i < l; ++i){
+            callback = this._scheduled[i];
+            callback.fn.call(callback.target, t);
         }
-        this._callbacks = [];
+        this._scheduled = [];
     }
 
 });
