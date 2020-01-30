@@ -11,6 +11,20 @@ topics:
     name: Creating a Navigation Bar
     members:
       -
+        name: initWithRootItem
+        kind: init
+        summary: Create a navigation bar programatically with a root item
+        arguments:
+          -
+            name: rootItem
+            type: UINavigationItem
+            summary: The first nagivation item on the bar's stack
+          -
+            name: styler
+            type: UINavigationBarStyler
+            default: UINavigationItem.Styler.default
+            summary: The styler to use for the nagivation bar
+      -
         name: Spec File Properties
         kind: spec
         summary: The properties available to a navigation bar in a spec file
@@ -29,11 +43,270 @@ topics:
         name: UINavigationBarStyler
         kind: class
         summary: The abstract base class for all navigation bar stylers
-        # TODO: Styler properties
+        topics:
+          -
+            name: Creating a Styler
+            members:
+              -
+                name: Spec File Properties
+                kind: spec
+                summary: The properties available to a styler in a spec file
+                topics:
+                  -
+                    name: Fonts
+                    members:
+                      -
+                        name: titleFont
+                        type: JSFont
+                        summary: The font to use for the bar's title
+                      -
+                        name: itemFont
+                        type: JSFont
+                        summary: The font to use for the bar's items
+                  -
+                    name: Content
+                    members:
+                      -
+                        name: coversContent
+                        type: boolean
+                        summary: Indicates if the bar should cover content
+                        description: |
+                          Typically used when the bar is translucent.
+
+                          When a bar covers scrolling content, it will
+                          automatically set the scroll view's
+                          `contentInsets`(UIScrollView.contentInsets) to
+                          account for the bar's height.
+          -
+            name: Fonts
+            members:
+              -
+                name: titleFont
+                type: JSFont
+                summary: The font to use for the bar's title
+              -
+                name: itemFont
+                type: JSFont
+                summary: The font to use for the bar's items
+          -
+            name: Sizing
+            members:
+              -
+                name: height
+                type: Number
+                summary: The height for bars using this styler
+          -
+            name: Initializing a Bar
+            members:
+              -
+                name: initializeBar
+                kind: method
+                summary: Prepare a navigation bar as it is created
+                arguments:
+                  -
+                    name: navigationBar
+                    type: UINavigationBar
+                    summary: The bar to style
+          -
+            name: Updating a Bar
+            members:
+              -
+                name: updateBar
+                kind: method
+                summary: Update a bar after its item has changed
+                arguments:
+                  -
+                    name: navigationBar
+                    type: UINavigationBar
+                    summary: The bar to style
+              -
+                name: pushItem
+                kind: method
+                summary: Animate the push of a new item onto the bar
+                arguments:
+                  -
+                    name: navigationBar
+                    type: UINavigationBar
+                    summary: The bar to style
+                  -
+                    name: item
+                    type: UINavigationItem
+                    summary: The item being pushed
+                  -
+                    name: animator
+                    type: UIViewPropertyAnimator
+                    summary: The animator to which changes should be added
+              -
+                name: popToItem
+                kind: method
+                summary: Animate the pop to an item onto the bar
+                arguments:
+                  -
+                    name: navigationBar
+                    type: UINavigationBar
+                    summary: The bar to style
+                  -
+                    name: item
+                    type: UINavigationItem
+                    summary: The item being pushed
+                  -
+                    name: animator
+                    type: UIViewPropertyAnimator
+                    summary: The animator to which changes should be added
+          -
+            name: Layout
+            members:
+              -
+                name: layoutBar
+                kind: method
+                summary: Called when the bar needs to layout its subviews
+                arguments:
+                  -
+                    name: navigationBar
+                    type: UINavigationBar
+                    summary: The bar to style
+      -
+        name: UINavigationBarDefaultStyler
+        kind: class
+        summary: The default styler for navigation bars
+        topics:
+          -
+            name: Creating a Styler
+            members:
+              -
+                name: Spec File Properties
+                kind: spec
+                summary: The properties available to a styler in a spec file
+                topics:
+                  -
+                    name: Background
+                    members:
+                      -
+                        name: backgroundColor
+                        type: JSColor
+                        summary: The bar's background color
+                      -
+                        name: backgroundGradient
+                        type: JSGradient
+                        summary: The bar's background gradient
+                      -
+                        name: contentSeparatorSize
+                        type: Number
+                        summary: The size of the bar's bottom border
+                      -
+                        name: contentSeparatorColor
+                        type: JSColor
+                        summary: The color of the bar's bottom border
+                  -
+                    name: Title
+                    members:
+                      -
+                        name: titleColor
+                        type: JSColor
+                        summary: The color of the bar's title label
+                  -
+                    name: Items
+                    members:
+                      -
+                        name: itemColor
+                        type: JSColor
+                        summary: The color of the bar's items
+                      -
+                        name: activeItemColor
+                        type: JSColor
+                        summary: The color of the bar's items when
+                          active/pressed
+                      -
+                        name: disabledItemColor
+                        type: JSColor
+                        summary: The color of the bar's items when disabled
+                  -
+                    name: Back Button
+                    members:
+                      -
+                        name: backButtonImage
+                        type: JSImage
+                        summary: The image to use on the bar's back button
+          -
+            name: Background
+            members:
+              -
+                name: backgroundColor
+                type: JSColor
+                summary: The bar's background color
+              -
+                name: backgroundGradient
+                type: JSGradient
+                summary: The bar's background gradient
+              -
+                name: contentSeparatorSize
+                type: Number
+                summary: The size of the bar's bottom border
+              -
+                name: contentSeparatorColor
+                type: JSColor
+                summary: The color of the bar's bottom border
+          -
+            name: Title
+            members:
+              -
+                name: titleColor
+                type: JSColor
+                summary: The color of the bar's title label
+          -
+            name: Items
+            members:
+              -
+                name: itemColor
+                type: JSColor
+                summary: The color of the bar's items
+              -
+                name: activeItemColor
+                type: JSColor
+                summary: The color of the bar's items when
+                  active/pressed
+              -
+                name: disabledItemColor
+                type: JSColor
+                summary: The color of the bar's items when disabled
+          -
+            name: Back Button
+            members:
+              -
+                name: backButtonImage
+                type: JSImage
+                summary: The image to use on the bar's back button
+      -
+        name: Styler
+        kind: enum
+        suffix: enum
+        summary: The default styler options provided by `UIKit`
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: default
+                type: UINavigationBarDefaultStyler
+                summary: The default styler for navigation bars
       -
         name: styler
         type: UINavigationBarStyler
         summary: The styler in effect for this bar
+      -
+        name: coversContent
+        type: boolean
+        summary: Indicates if the navigation bar should be placed over content
+        description: |
+          Typically obtained from the `styler` and used if the navigation bar is
+          translucent.  
+      -
+        name: coveredContentTopInset
+        type: Number
+        summary: The amount that covered content should be inset from the top
+        description: |
+          Allows covered content to have the proper padding so all of its
+          items are visible at the initial scroll setting
   -
     name: Navigation Items
     members:
@@ -83,7 +356,7 @@ topics:
             type: boolean
             summary: Indicates if the change should be animated
       -
-        name: poptoItem
+        name: popToItem
         kind: method
         summary: Pop to the given navigation item
         arguments:

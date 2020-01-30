@@ -344,6 +344,9 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         if (this.disabledItemColor === null){
             this.disabledItemColor = this.itemColor.colorWithAlpha(0.4);
         }
+        if (this.backButtonImage === null){
+            this.backButtonImage = images.back;
+        }
         this._buttonStyler = UIButtonCustomStyler.init();
         this._buttonStyler.font = this.itemFont;
         this._buttonStyler.normalTitleColor = this.itemColor;
@@ -578,13 +581,15 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             if (backItem !== null){
                 backBarItem = backItem.backBarButtonItem;
                 if (backBarItem === null){
-                    backBarItem = UINavigationBarItem.initWithImage(images.back);
+                    backBarItem = UINavigationBarItem.initWithImage(this.backButtonImage);
                     backBarItem.title = backItem.title;
+                }else if (backBarItem.image === null){
+                    backBarItem.image = this.backButtonImage;
                 }
             }
 
             if (backBarItem !== null){
-                props.backBarItemView.setImageForState(backBarItem.image || images.back, UIControl.State.normal);
+                props.backBarItemView.setImageForState(backBarItem.image, UIControl.State.normal);
                 props.backBarItemView.titleLabel.text = backBarItem.title;
             }else{
                 props.backBarItemView.hidden = true;

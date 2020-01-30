@@ -73,6 +73,24 @@ topics:
                         -
                           image: EditIcon
                   ````
+              -
+                name: backBarButtonItem
+                type: UINavigationItem
+                summary: The alternate navigation item a bar should use when
+                  drawing a back button for this item
+                description: |
+                  Allows the item to customize what title shows up in a back
+                  button.  By default, the back button's title will be the
+                  main item's title.
+
+                  ````
+                  ViewController:
+                    class: UIViewController
+                    navigationItem:
+                      title: .messages.title
+                      backBarButtonItem:
+                        title: .messages.backTitle
+                  ````
   -
     name: Title
     members:
@@ -80,6 +98,11 @@ topics:
         name: title
         type: String
         summary: The title that will be displayed for this item
+      -
+        name: view
+        type: UIView
+        nullable: true
+        summary: The custom view to show instead of a title
   -
     name: Bar Items
     members:
@@ -93,4 +116,13 @@ topics:
       -
         name: rightBarItems
         type: UINavigationBarItem[]
-        summary: The items to display on the right side of the title     
+        summary: The items to display on the right side of the title
+      -
+        name: backBarButtonItem
+        type: UINavigationItem
+        summary: The alternate navigation item a bar should use when
+          drawing a back button for this item
+        description: |
+          Allows the item to customize what title shows up in a back
+          button.  By default, the back button's title will be the
+          main item's title.

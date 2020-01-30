@@ -33,6 +33,14 @@ topics:
         summary: The frame in which windows can be placed
         description: |
           The result of subtracting `availableInsets` from the full `frame`
+      -
+        name: horizontalSizeClass
+        type: UIUserInterface.SizeClass
+        summary: The general size of the screen in the horizontal direction
+      -
+        name: verticalSizeClass
+        type: UIUserInterface.SizeClass
+        summary: The general size of the screen in the vertical direction
   -
     name: Resolution
     members:
