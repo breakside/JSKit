@@ -130,76 +130,76 @@ topics:
         summary: A hidden cursor
         static: true
         type: UICursor
-        note: The exact cursor image is platform-dependant
+        note: The exact cursor image is platform-dependent
       -
         name: arrow
         summary: A standard arrow cursor
         static: true
         type: UICursor
-        note: The exact cursor image is platform-dependant
+        note: The exact cursor image is platform-dependent
       -
         name: iBeam
         summary: A text selection cursor
         static: true
         type: UICursor
-        note: The exact cursor image is platform-dependant
+        note: The exact cursor image is platform-dependent
       -
         name: pointingHand
         summary: A hand cursor, like for links
         static: true
         type: UICursor
-        note: The exact cursor image is platform-dependant
+        note: The exact cursor image is platform-dependent
       -
         name: operationNotAllowed
         summary: A cursor that looks like a "do not enter" sign, a circle with
           a line through it
         static: true
         type: UICursor
-        note: The exact cursor image is platform-dependant
+        note: The exact cursor image is platform-dependent
       -
         name: resizeLeftRight
         summary: A resize cursor for a vertical line
         static: true
         type: UICursor
-        note: The exact cursor image is platform-dependant
+        note: The exact cursor image is platform-dependent
       -
         name: resizeUpDown
         summary: A resize cursor for a horizontal line
         static: true
         type: UICursor
-        note: The exact cursor image is platform-dependant
+        note: The exact cursor image is platform-dependent
       -
         name: openHand
         summary: An open hand, typically indicating an element can be grabbed
         static: true
         type: UICursor
-        note: The exact cursor image is platform-dependant
+        note: The exact cursor image is platform-dependent
       -
         name: closedHand
         summary: A closed hand, typically indicating an element has been grabbed
         static: true
         type: UICursor
-        note: The exact cursor image is platform-dependant
+        note: The exact cursor image is platform-dependent
       -
         name: dragLink
         summary: Used during drag and drop when dropping will create a link to
           the original item
         static: true
         type: UICursor
-        note: The exact cursor image is platform-dependant
+        note: The exact cursor image is platform-dependent
       -
         name: dragCopy
         summary: Used during drag and drop when dropping will create a copy of
           the original item
         static: true
         type: UICursor
-        note: The exact cursor image is platform-dependant
+        note: The exact cursor image is platform-dependent
       -
         name: crosshair
         summary: Used for precision selection or drawing
         static: true
         type: UICursor
-        note: The exact cursor image is platform-dependant
+        note: The exact cursor image is platform-dependent
   -
     name: Push & Pop
     members:

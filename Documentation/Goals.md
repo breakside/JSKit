@@ -84,7 +84,7 @@ There are also things like windows, buttons, menus, tab views, and more, that
 all support the same level of functionality as you'd find in a desktop app.
 For example, menus automatically constrain their size to the availble space in
 the browser, allow for overflow scrolling, support arrow key navigation, and
-more.  Windows can be moved, resized, and stack.
+more.  Windows can be moved, resized, and stacked.
 
 Of course, everything `UIKit` provides can be hand coded or probably even found
 piece by piece as open source plugins to other frameworks.  But the tight
