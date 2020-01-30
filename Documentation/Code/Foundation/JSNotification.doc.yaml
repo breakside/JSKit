@@ -38,7 +38,7 @@ topics:
         summary: The sender of the notification
   -
     name: User Data
-    member:
+    members:
       -
         name: userInfo
         type: any

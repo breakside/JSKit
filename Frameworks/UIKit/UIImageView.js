@@ -101,6 +101,7 @@ JSClass("UIImageView", UIView, {
     },
 
     layerDidChangeSize: function(layer){
+        UIImageView.$super.layerDidChangeSize.call(this, layer);
         if (layer === this.layer){
             this._scaleImage();
         }

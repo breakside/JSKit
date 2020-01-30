@@ -1,0 +1,30 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSObject
+summary: Provides a collection of user interface traits
+topics:
+  -
+    name: Creating a trait collection
+    members:
+      -
+        name: initWithSize
+        kind: init
+        summary: Create a trait collection starting with the given size
+        arguments:
+          -
+            name: size
+            type: JSSize
+            summary: The size that will determine this collection's size
+              classes
+  -
+    name: Sizes
+    members:
+      -
+        name: horizontalSizeClass
+        type: UIUserInterface.SizeClass
+        summary: The general size of the screen in the horizontal direction
+      -
+        name: verticalSizeClass
+        type: UIUserInterface.SizeClass
+        summary: The general size of the screen in the vertical direction

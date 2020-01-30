@@ -1,5 +1,7 @@
 // #import "UIView.js"
 // #import "UISplitViewDivider.js"
+// #import "UIUserInterface.js"
+// #import "UIDevice.js"
 'use strict';
 
 JSClass("UISplitView", UIView, {
@@ -254,7 +256,9 @@ JSClass("UISplitView", UIView, {
         if (!sibling){
             sibling = this._leadingDividerView;
         }
-        this.insertSubviewBelowSibling(mainView, sibling);
+        if (mainView !== null){
+            this.insertSubviewBelowSibling(mainView, sibling);
+        }
         this._mainView = mainView;
         this.setNeedsLayout();
     },
@@ -264,8 +268,23 @@ JSClass("UISplitView", UIView, {
         if (this._isVertical){
             this._layoutVertical();
         }else{
-            this._layoutHorizontal();
+            if (this.mainHidden){
+                this._layoutCompact();
+            }else{
+                this._layoutHorizontal();
+            }
         }
+    },
+
+    canHideMain: JSReadOnlyProperty(),
+    mainHidden: JSReadOnlyProperty(),
+
+    getCanHideMain: function(){
+        return UIDevice.shared.primaryPointerType === UIUserInterface.PointerType.touch;
+    },
+
+    getMainHidden: function(){
+        return this.canHideMain && this.traitCollection.horizontalSizeClass === UIUserInterface.SizeClass.compact;
     },
 
     _getBestFitLayout: function(availableSize){
@@ -337,10 +356,23 @@ JSClass("UISplitView", UIView, {
         };
     },
 
+    _layoutCompact: function(){
+        if (this._leadingView !== null){
+            this._leadingView.frame = this.bounds;
+            this._leadingDividerView.hidden = true;
+            this._trailingDividerView.hidden = true;
+            if (this._trailingView !== null){
+                this._trailingView.hidden = true;
+            }
+        }
+    },
+
     _layoutHorizontal: function(){
         var layout = this._getBestFitLayout(this.bounds.size.width);
         var height = this.bounds.size.height;
         var dividerSize = 5;
+        this._leadingDividerView.hidden = false;
+        this._trailingDividerView.hidden = false;
         if (this._leadingView !== null){
             this._leadingView.frame = JSRect(layout.leadingOffset, 0, layout.leadingSize, height);
         }

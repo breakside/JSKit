@@ -591,6 +591,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             if (backBarItem !== null){
                 props.backBarItemView.setImageForState(backBarItem.image, UIControl.State.normal);
                 props.backBarItemView.titleLabel.text = backBarItem.title;
+                props.backBarItemView.hidden = false;
             }else{
                 props.backBarItemView.hidden = true;
             }

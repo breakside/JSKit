@@ -678,6 +678,7 @@ JSClass("UIListView", UIScrollView, {
             this._reloadDuringLayout();
             this._needsReload = false;
         }else if (this._needsUpdate){
+            this.contentSize = JSSize(this.bounds.size.width, this._contentSize.height);
             this._updateVisibleItems();
         }else{
             this.contentSize = JSSize(this.bounds.size.width, this._contentSize.height);
@@ -2772,7 +2773,6 @@ JSClass("UIListViewStyler", JSObject, {
 
 JSClass("UIListViewDefaultStyler", UIListViewStyler, {
 
-    listBackgroundColor: null,
     cellFont: null,
     cellDetailFont: null,
     cellTextColor: null,
@@ -2810,17 +2810,11 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     indentSize: 20,
 
     init: function(){
-        this.listBackgroundColor = JSColor.white;
         this._commonStylerInit();
     },
 
     initWithSpec: function(spec){
         UIListViewDefaultStyler.$super.initWithSpec.call(this, spec);
-        if (spec.containsKey('listBackgroundColor')){
-            this.listBackgroundColor = spec.valueForKey("listBackgroundColor", JSColor);
-        }else{
-            this.listBackgroundColor = JSColor.white;
-        }
         if (spec.containsKey('cellTextColor')){
             this.cellTextColor = spec.valueForKey("cellTextColor", JSColor);
         }
@@ -2984,10 +2978,6 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if (this.cellContentInsets === null){
             this.cellContentInsets = JSInsets.Zero;
         }
-    },
-
-    initializeListView: function(listView){
-        listView.backgroundColor = this.listBackgroundColor;
     },
 
     initializeCell: function(cell, indexPath){

@@ -6,6 +6,7 @@ implements:
   - UILayerDelegate
   - UIDraggingSource
   - UIDraggingDestination
+  - UITraitEnvironment
 summary: The base element to draw and respond to events
 description: |
   At the most basic level, a `UIView` is used to draw in rectangles on the

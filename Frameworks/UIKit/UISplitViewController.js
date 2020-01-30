@@ -1,6 +1,7 @@
 // #import "UIViewController.js"
 // #import "UISplitView.js"
 // #import "UIViewPropertyAnimator.js"
+// #import "UINavigationController.js"
 'use strict';
 
 JSClass("UISplitViewController", UIViewController, {
@@ -14,6 +15,8 @@ JSClass("UISplitViewController", UIViewController, {
 
     splitView: JSReadOnlyProperty(),
     _defaultViewClass: UISplitView,
+
+    _mainHidden: false,
 
     initWithSpec: function(spec){
         if (spec.containsKey('leadingViewController')){
@@ -178,7 +181,7 @@ JSClass("UISplitViewController", UIViewController, {
     setMainViewController: function(mainViewController){
         var callAppearanceMethods = this._isVisible;
         var disappearingViewController = null;
-        if (this._mainViewController !== null){
+        if (this._mainViewController !== null && this._mainViewController.parentViewController === this){
             if (callAppearanceMethods){
                 this._mainViewController.viewWillDisappear(false);
                 disappearingViewController = this._mainViewController;
@@ -186,25 +189,31 @@ JSClass("UISplitViewController", UIViewController, {
             this._mainViewController.removeFromParentViewController();
         }
         this._mainViewController = mainViewController;
-        if (this._mainViewController){
+        if (this.view.mainHidden){
+            if (this._mainViewController){
+                this._leadingViewController.show(this._mainViewController, this);
+            }
+        }else{
+            if (this._mainViewController){
+                if (callAppearanceMethods){
+                    this._mainViewController.viewWillAppear(false);
+                }
+                this.addChildViewController(this._mainViewController);
+            }
+            if (this._view !== null){
+                var view = null;
+                if (this._mainViewController !== null){
+                    view = this._mainViewController.view;
+                }
+                this._view.mainView = view;
+            }
             if (callAppearanceMethods){
-                this._mainViewController.viewWillAppear(false);
-            }
-            this.addChildViewController(this._mainViewController);
-        }
-        if (this._view !== null){
-            var view = null;
-            if (this._mainViewController !== null){
-                view = this._mainViewController.view;
-            }
-            this._view.mainView = view;
-        }
-        if (callAppearanceMethods){
-            if (disappearingViewController !== null){
-                disappearingViewController.viewDidDisappear(false);
-            }
-            if (this._mainViewController !== null){
-                this._mainViewController.viewDidAppear(false);
+                if (disappearingViewController !== null){
+                    disappearingViewController.viewDidDisappear(false);
+                }
+                if (this._mainViewController !== null){
+                    this._mainViewController.viewDidAppear(false);
+                }
             }
         }
     },
@@ -353,5 +362,33 @@ JSClass("UISplitViewController", UIViewController, {
 
     splitViewDidToggleView: function(splitView, toggledView){
     },
+
+    isChangingTraits: false,
+
+    traitCollectionDidChange: function(previous){
+        UISplitViewController.$super.traitCollectionDidChange.call(this);
+        if (this.view.canHideMain && previous.horizontalSizeClass != this.traitCollection.horizontalSizeClass){
+            if (previous.horizontalSizeClass === UIUserInterface.SizeClass.compact){
+                if (this._leadingViewController.isKindOfClass(UINavigationController)){
+                    if (this._mainViewController === this._leadingViewController.topViewController){
+                        this._leadingViewController.popViewController(false);
+                    }
+                }else{
+                    if (this._leadingViewController.presentedViewController === this._mainViewController){
+                        this._leadingViewController.dismiss(false);
+                    }
+                }
+            }
+            this.isChangingTraits = true;
+            var vc = this._mainViewController;
+            this.mainViewController = null;
+            this.mainViewController = vc;
+            this.isChangingTraits = false;
+        }
+    },
+
+    show: function(viewController, sender){
+        this.mainViewController = viewController;
+    }
 
 });

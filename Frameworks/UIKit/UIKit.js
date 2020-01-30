@@ -32,6 +32,7 @@
 // #import "UIProgressIndicatorView.js"
 
 // #import "UIUserInterface.js"
+// #import "UITraitCollection.js"
 // #import "UIDevice.js"
 
 // Display & Window Serves

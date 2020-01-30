@@ -19,7 +19,8 @@ UIWebView.definePropertiesFromExtensions({
         }
     },
 
-    layerDidChangeSize: function(){
+    layerDidChangeSize: function(layer){
+        UIWebView.$super.layerDidChangeSize.call(this, layer);
         this._updateIframeSize();
     },
 

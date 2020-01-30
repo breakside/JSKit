@@ -1,0 +1,22 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: protocol
+introduced: 2020.1.0
+inherits: JSObject
+summary: An interface for objects that contain a `UITraitCollection`
+topics:
+  -
+    name: Traits
+    members:
+      -
+        name: traitCollection
+        kind: property
+        type: UITraitCollection
+        summary: The user interface traits for this object
+      -
+        name: traitCollectionDidChange
+        summary: Called when any trait changes
+        arguments:
+          -
+            name: previousTraitCollection
+            type: UITraitCollection
+            summary: The traits before the change

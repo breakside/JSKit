@@ -2,6 +2,7 @@
 // #import "UINavigationBar.js"
 // #import "UIScrollView.js"
 // #import "UIViewPropertyAnimator.js"
+/* global UISplitViewController */
 'use strict';
 
 JSClass("UINavigationController", UIViewController, {
@@ -28,6 +29,7 @@ JSClass("UINavigationController", UIViewController, {
     },
 
     delegate: null,
+    _isVisible: false,
 
     // MARK: - View Lifecycle
 
@@ -40,6 +42,7 @@ JSClass("UINavigationController", UIViewController, {
 
     viewWillAppear: function(animated){
         UINavigationController.$super.viewWillAppear.call(this, animated);
+        this._isVisible = true;
         this.topViewController.viewWillAppear(animated);
     },
 
@@ -55,6 +58,7 @@ JSClass("UINavigationController", UIViewController, {
 
     viewDidDisappear: function(animated){
         UINavigationController.$super.viewDidDisappear.call(this, animated);
+        this._isVisible = false;
         this.topViewController.viewDidDisappear(animated);
     },
 
@@ -122,19 +126,26 @@ JSClass("UINavigationController", UIViewController, {
         if (this.popAnimator !== null || this.pushAnimator !== null){
             return;
         }
+        if (!this._isVisible){
+            animated = false;
+        }
         if (animated){
             this.pushAnimator = this.createPushAnimator();
         }
         var fromViewController = this.topViewController;
-        fromViewController.viewWillDisappear(animated);
-        viewController.viewWillAppear(animated);
+        if (this._isVisible){
+            fromViewController.viewWillDisappear(animated);
+            viewController.viewWillAppear(animated);
+        }
         this.addChildViewController(viewController);
         this._viewControllers.push(viewController);
         this._navigationBar.pushItem(viewController.navigationItem, animated);
         this.view.insertSubviewBelowSibling(viewController.view, this._navigationBar);
         if (!animated){
-            fromViewController.enqueueDidDisappear();
-            viewController.enqueueDidAppear(animated);
+            if (this._isVisible){
+                fromViewController.enqueueDidDisappear();
+                viewController.enqueueDidAppear(animated);
+            }
             fromViewController.view.removeFromSuperview();
             this.view.setNeedsLayout();
         }else{
@@ -183,18 +194,25 @@ JSClass("UINavigationController", UIViewController, {
         if (index === this._viewControllers.length - 1){
             return;
         }
+        if (!this._isVisible){
+            animated = false;
+        }
         if (animated){
             this.popAnimator = this.createPopAnimator();
         }
         var fromViewController = this.topViewController;
-        fromViewController.viewWillDisappear(animated);
-        viewController.viewWillAppear(animated);
+        if (this._isVisible){
+            fromViewController.viewWillDisappear(animated);
+            viewController.viewWillAppear(animated);
+        }
         this._viewControllers.splice(index + 1, this._viewControllers.length - index);
         this._navigationBar.popToItem(viewController.navigationItem, animated);
         this.view.insertSubviewBelowSibling(viewController.view, fromViewController.view);
         if (!animated){
-            fromViewController.enqueueDidDisappear();
-            viewController.enqueueDidAppear();
+            if (this._isVisible){
+                fromViewController.enqueueDidDisappear();
+                viewController.enqueueDidAppear();
+            }
             fromViewController.view.removeFromSuperview();
             this.view.setNeedsLayout();
         }else{
@@ -229,6 +247,14 @@ JSClass("UINavigationController", UIViewController, {
             }
         }
         return -1;
+    },
+
+    show: function(viewController, sender){
+        var animated = true;
+        if (sender && sender.isKindOfClass && sender.isKindOfClass(UISplitViewController) && sender.isChangingTraits){
+            animated = false;
+        }
+        this.pushViewController(viewController, animated);
     },
 
     // MARK: Layout

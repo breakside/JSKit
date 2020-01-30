@@ -40,9 +40,13 @@ JSClass("UIViewController", UIResponder, {
     view: JSDynamicProperty('_view', null),
     window: JSReadOnlyProperty(),
     scene: JSReadOnlyProperty(),
-    isViewLoaded: JSReadOnlyProperty('_isViewLoaded'),
+    isViewLoaded: JSReadOnlyProperty(),
     _defaultViewClass: UIView,
     _viewKeyInSpec: "view",
+
+    getIsViewLoaded: function(){
+        return this._view !== null;
+    },
 
     getView: function(){
         this._loadViewIfNeeded();
@@ -57,18 +61,26 @@ JSClass("UIViewController", UIResponder, {
         if (this._view !== null){
             this._view.viewController = null;
             this._view = null;
-            this._isViewLoaded = false;
             this.viewDidUnload();
         }
     },
 
     _loadViewIfNeeded: function(){
-        if (!this._isViewLoaded){
+        if (!this.isViewLoaded){
             this.loadView();
             this._view.viewController = this;
-            this._isViewLoaded = true;
             this.viewDidLoad();
         }
+    },
+
+    traitCollection: JSReadOnlyProperty(),
+
+    getTraitCollection: function(){
+        return this.view.traitCollection;
+    },
+
+    traitCollectionDidChange: function(previousTraits){
+
     },
 
     // -------------------------------------------------------------------------
@@ -195,6 +207,30 @@ JSClass("UIViewController", UIResponder, {
             return window.scene;
         }
         return null;
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Presenting Other View Controllers
+
+    presentingViewController: null,
+    presentedViewController: null,
+
+    show: function(viewController, sender){
+        this.presentViewController(viewController, true);
+    },
+
+    presentViewController: function(viewController, animated){
+        viewController.presentingViewController = this;
+        this.presentedViewController = viewController;
+        // TODO: 
+    },
+
+    dismiss: function(){
+        if (this.presentedViewController){
+            // TODO:
+        }else if (this.presentingViewController){
+            this.presentingViewController.dismiss();
+        }
     },
 
     // -------------------------------------------------------------------------

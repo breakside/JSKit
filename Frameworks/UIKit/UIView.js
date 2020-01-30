@@ -4,6 +4,7 @@
 // #import "UIAnimation.js"
 // #import "UIDraggingDestination.js"
 // #import "UILayoutConstraint.js"
+// #import "UITraitCollection.js"
 'use strict';
 
 JSGlobalObject.UIViewLayerProperty = function(){
@@ -362,6 +363,30 @@ JSClass('UIView', UIResponder, {
     // MARK: - View Controller
 
     viewController: null,
+
+    // -------------------------------------------------------------------------
+    // MARK: Traits
+
+    layerDidChangeSize: function(){
+        var traits = UITraitCollection.initWithSize(this.bounds.size);
+        this._setTraitCollection(traits);
+    },
+    
+    traitCollection: JSReadOnlyProperty('_traitCollection', null),
+
+    _setTraitCollection: function(traitCollection){
+        var previous = this._traitCollection;
+        this._traitCollection = traitCollection;
+        if (previous !== null && !previous.isEqual(this._traitCollection)){
+            this.traitCollectionDidChange(previous);
+        }
+    },
+
+    traitCollectionDidChange: function(previousTraits){
+        if (this.viewController){
+            this.viewController.traitCollectionDidChange(previousTraits);
+        }
+    },
 
     // -------------------------------------------------------------------------
     // MARK: - Layout

@@ -628,6 +628,7 @@ JSClass("UITextField", UIControl, {
     },
 
     layerDidChangeSize: function(layer){
+        UITextField.$super.layerDidChangeSize.call(this, layer);
         if (layer === this._textLayer && this._multiline){
             this.layer.bounds = JSRect(this.layer.bounds.origin, JSSize(
                 this.layer.bounds.size.width,

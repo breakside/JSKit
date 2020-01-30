@@ -7,7 +7,7 @@ summary: A view that can show split into 2 or 3 panes either vertically or
 topics:
   -
     name: Creating a Split View
-    topics:
+    members:
       -
         name: initWithMainView
         kind: init

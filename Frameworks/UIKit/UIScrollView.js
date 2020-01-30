@@ -195,6 +195,7 @@ JSClass('UIScrollView', UIView, {
     },
 
     layerDidChangeSize: function(layer){
+        UIScrollView.$super.layerDidChangeSize.call(this, layer);
         if (this._contentView === null){
             return;
         }

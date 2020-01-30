@@ -802,10 +802,11 @@ JSClass("UIWindowServer", JSObject, {
         for (i = 0, l = changedTouchDescriptors.length; i < l; ++i){
             descriptor = changedTouchDescriptors[i];
             touch = this.activeTouchEvent.touchForIdentifier(descriptor.identifier);
-            touchWindow = this.windowForEventAtLocation(changedTouchDescriptors[i].location);
-            // FIXME: touchWindow could be null (mobile safari continues reporting moved
-            // touches outside of the viewport)
-            location = touchWindow.convertPointFromScreen(changedTouchDescriptors[i].location);
+            touchWindow = this.windowForEventAtLocation(descriptor.location);
+            if (touchWindow === null){
+                touchWindow = touch.window;
+            }
+            location = touchWindow.convertPointFromScreen(descriptor.location);
             if (touch === null){
                 touch = UITouch.initWithIdentifier(descriptor.identifier, timestamp, touchWindow, location);
                 this.activeTouchEvent.addTouch(touch);

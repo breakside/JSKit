@@ -64,10 +64,6 @@ JSClass("UIControl", UIView, {
     styler: JSReadOnlyProperty('_styler', null),
     stylerProperties:  null,
 
-    layerDidChangeSize: function(){
-        this.setNeedsLayout();
-    },
-
     layoutSubviews: function(){
         UIControl.$super.layoutSubviews.call(this);
         if (this._styler !== null){

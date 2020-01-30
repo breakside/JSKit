@@ -63,5 +63,17 @@ JSClass("UISplitViewDivider", UIView, {
 
     mouseDragged: function(event){
         this.superview.dividerDragged(this, event.locationInView(this.superview));
+    },
+
+    touchesBegan: function(touches, event){
+    },
+
+    touchesMoved: function(touches, event){
+    },
+
+    touchesEnded: function(touches, event){
+    },
+
+    touchesCanceled: function(touches, event){
     }
 });

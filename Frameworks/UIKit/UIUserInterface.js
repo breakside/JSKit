@@ -8,7 +8,14 @@ JSClass("UIUserInterface", JSObject, {
 UIUserInterface.SizeClass = {
     unspecified: 0,
     compact: 1,
-    regular: 2
+    regular: 2,
+
+    fromLength: function(length){
+        if (length < 550){
+            return UIUserInterface.SizeClass.compact;
+        }
+        return UIUserInterface.SizeClass.regular;
+    }
 };
 
 UIUserInterface.PointerType = {

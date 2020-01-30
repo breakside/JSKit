@@ -1,5 +1,6 @@
 // #import Foundation
 // #import "UIUserInterface.js"
+// #import "UITraitCollection.js"
 'use strict';
 
 JSClass("UIScreen", JSObject, {
@@ -8,8 +9,6 @@ JSClass("UIScreen", JSObject, {
     frame: JSDynamicProperty('_frame', null),
     availableInsets: JSDynamicProperty('_availableInsets', null),
     availableFrame: JSReadOnlyProperty(),
-    verticalSizeClass: JSReadOnlyProperty('_verticalSizeClass', UIUserInterface.SizeClass.unspecified),
-    horizontalSizeClass: JSReadOnlyProperty('_horizontalSizeClass', UIUserInterface.SizeClass.unspecified),
 
     initWithFrame: function(frame, scale){
         this._scale = scale;
@@ -27,16 +26,20 @@ JSClass("UIScreen", JSObject, {
 
     setFrame: function(frame){
         this._frame = JSRect(frame);
-        if (this._frame.size.width < 550){
-            this._horizontalSizeClass = UIUserInterface.SizeClass.compact;
-        }else{
-            this._horizontalSizeClass = UIUserInterface.SizeClass.regular;
+        this._setTraitCollection(UITraitCollection.initWithSize(this.frame.size));
+    },
+    
+    traitCollection: JSReadOnlyProperty('_traitCollection', null),
+
+    _setTraitCollection: function(traitCollection){
+        var previous = this._traitCollection;
+        this._traitCollection = traitCollection;
+        if (previous !== null && !previous.isEqual(this._traitCollection)){
+            this.traitCollectionDidChange(previous);
         }
-        if (this._frame.size.height < 550){
-            this._verticalSizeClass = UIUserInterface.SizeClass.compact;
-        }else{
-            this._verticalSizeClass = UIUserInterface.SizeClass.regular;
-        }
+    },
+
+    traitCollectionDidChange: function(){
     }
 
 });
