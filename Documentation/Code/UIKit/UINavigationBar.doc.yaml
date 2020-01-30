@@ -1,0 +1,97 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: UIView
+summary: A view that is displayed at the top of a `UINavigationController`
+description: |
+  The owning navigation controller does most of the work to display the
+  right thing on a navigation bar.
+topics:
+  -
+    name: Creating a Navigation Bar
+    members:
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties available to a navigation bar in a spec file
+        topics:
+          -
+            name: Styling
+            members:
+              -
+                name: styler
+                type: UINavigationBarStyler
+                summary: The styler to use for this navigation bar
+  -
+    name: Styling
+    members:
+      -
+        name: UINavigationBarStyler
+        kind: class
+        summary: The abstract base class for all navigation bar stylers
+        # TODO: Styler properties
+      -
+        name: styler
+        type: UINavigationBarStyler
+        summary: The styler in effect for this bar
+  -
+    name: Navigation Items
+    members:
+      -
+        name: items
+        type: UINavigationItem[]
+        summary: The current navigation item stack
+      -
+        name: topItem
+        type: UINavigationItem
+        summary: The currently visible navigation item
+      -
+        name: backItem
+        type: UINavigationItem
+        nullable: true
+        summary: The navigation item that will be returned to if the back
+          button is pressed
+      -
+        name: pushItem
+        kind: method
+        summary: Add a new navigation item to the top of the stack
+        arguments:
+          -
+            name: item
+            type: UINavigationItem
+            summary: The navigation item to add
+          -
+            name: animated
+            type: boolean
+            summary: Indicates if the change should be animated
+      -
+        name: popItem
+        kind: method
+        summary: Pop the top navigation item off of the stack
+        arguments:
+          -
+            name: animated
+            type: boolean
+            summary: Indicates if the change should be animated
+      -
+        name: popToRootItem
+        kind: method
+        summary: Pop all the way to the root navigation item
+        arguments:
+          -
+            name: animated
+            type: boolean
+            summary: Indicates if the change should be animated
+      -
+        name: poptoItem
+        kind: method
+        summary: Pop to the given navigation item
+        arguments:
+          -
+            name: item
+            type: UINavigationItem
+            summary: The navigation item to pop to
+          -
+            name: animated
+            type: boolean
+            summary: Indicates if the change should be animated

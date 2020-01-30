@@ -78,6 +78,10 @@
 // #import "UITabViewController.js"
 // #import "UIBrowserViewController.js"
 // #import "UIBrowserView.js"
+// #import "UINavigationController.js"
+// #import "UINavigationItem.js"
+// #import "UINavigationBar.js"
+// #import "UINavigationBarItem.js"
 
 // #import "UIStackView.js"
 // #import "UIOpenPanel.js"

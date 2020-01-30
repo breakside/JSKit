@@ -207,6 +207,13 @@ topics:
       #- UIBrowserViewController
       - UIStackView
   -
+    name: Navigation Views
+    members:
+      - UINavigationController
+      - UINavigationItem
+      - UINavigationBar
+      - UINavigationBarItem
+  -
     name: Tab Views
     members:
       - UITabView

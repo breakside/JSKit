@@ -1,0 +1,313 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSObject
+summary: An item on a navigation bar
+decription: |
+  Navigation bar items are like buttons, but can also be custom controls like
+  `UISegmentedControl`.
+
+  For button-like items, `title` and `image` are the most relevant properties.
+topics:
+  -
+    name: Creating an Item
+    members:
+      -
+        name: initWithImage
+        kind: init
+        summary: Create a button-like item with an image
+        arguments:
+          -
+            name: image
+            type: JSImage
+            summary: The image to show on the item
+          -
+            name: action
+            type: String
+            summary: The named action to perform when the item is clicked
+          -
+            name: target
+            type: UIResponder
+            default: "null"
+            summary: The intended `action` target, if any.  Use `null` if the
+              \`action` should be sent to the window's
+              \`firstResponder`(UIWindow.firstResponder)
+      -
+        name: initWithImage
+        kind: init
+        suffix: function
+        summary: Create a button-like item with an image using a function action
+        arguments:
+          -
+            name: image
+            type: JSImage
+            summary: The image to show on the item
+          -
+            name: action
+            type: function
+            summary: The function to call when the item is triggered
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling `action`
+        description: |
+          An alternative to specifying an `action` as a method name.
+
+          The given `action` function will be invoked directly when the
+          item is triggered.
+      -
+        name: initWithView
+        kind: init
+        summary: Create a custom item with the given view
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The view to show on the item
+        description: |
+          View items can be things like segmented controls or other controls
+          that aren't regular buttons.
+      -
+        name: initWithView
+        kind: init
+        summary: Create a custom item with the given view and action
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The view to show on the item
+          -
+            name: action
+            type: String
+            summary: The named action to perform when the item is activated
+          -
+            name: target
+            type: UIResponder
+            default: "null"
+            summary: The intended `action` target, if any.  Use `null` if the
+              \`action` should be sent to the window's
+              \`firstResponder`(UIWindow.firstResponder)
+        description: |
+          View items can be things like search fields or other controls that
+          aren't regular buttons.
+
+          If the view is a `UIControl`, which is commonly the case,
+          the control will be configured to perform the specified `action`.
+
+          If a specific `target` for the action is not set,
+          the action will go to the window's
+          `firstResponder`(UIWindow.firstResponder), and iterate through the
+          responder chain until a responder handles the action.
+
+          A responder handles an action if it has a method that is named the
+          same as the `action`(UINavigationBarItem.action) string.
+      -
+        name: initWithView
+        suffix: function
+        kind: init
+        summary: Create a custom item with the given view and action function
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The view to show on the item
+          -
+            name: action
+            type: function
+            summary: The function to call when the item is triggered
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling `action`
+        description: |
+          An alternative to specifying an `action` as a method name.
+
+          The given `action` function will be invoked directly when the
+          item is triggered.
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties that can be specified in a spec file for a
+          navigation bar item
+        description: |
+          Since navigation bar items are always instantiated by their owning
+          `UINavigationItem`, their class is implicit and doesn't have to be
+          specified in the spec.
+          ````
+          ViewController:
+            class: MyViewControllers
+            navigationItem:
+              rightBarItems:
+                -
+                  image: EditIcon
+                  action: beginEdit
+                  target: /ViewController
+          ````
+        topics:
+          -
+            name: Button Items
+            members:
+              -
+                name: image
+                type: JSImage
+                summary: The image to use as the button's icon
+                description: |
+                  ````
+                  ViewController:
+                    class: UIViewController
+                    navigationItem:
+                      rightBarItems:
+                        -
+                          image: EditIcon
+                  ````
+          -
+            name: Custom Items
+            members:
+              -
+                name: view
+                type: UIView
+                summary: The view to use as the item's custom view
+                description: |
+                  ````
+                  ViewController:
+                    class: UIViewController
+                    navigationItem:
+                      rightBarItems:
+                        -
+                          view:
+                            class: UISegmentedControl
+                            # ...
+                  ````
+          -
+            name: Title
+            members:
+              -
+                name: title
+                type: String
+                summary: The title to show for the item
+          -
+            name: Action
+            members:
+              -
+                name: action
+                type: String
+                summary: The name of the action that will be sent to
+                  \`UIApplication.sendAction()` when the item is triggered.
+                description: |
+                  The action name is simply a method name that some
+                  `UIResponder` in the responder chain implements.
+
+                  If you want the action to go to a specific object, then
+                  specify that object in the `target` property.
+              -
+                name: target
+                type: UIResponder
+                summary: The specific responder that should always handle
+                  this item's action
+                description: |
+                  If not specified, the responder chain will be walked,
+                  starting with `firstResponder`(UIWindow.firstResponder)
+
+                  In this case, the search action is always handled by the
+                  `MainWindowController`
+
+                  ````
+                  ViewController:
+                    class: UIViewController
+                    navigationItem:
+                      rightBarItems:
+                        -
+                          image: EditIcon
+                          action: beginEdit
+                          target: /ViewController
+                  ````
+          -
+            name: State
+            members:
+              -
+                name: enabled
+                type: boolean
+                summary: Indicates if the item is enabled (defaults to `true`)
+  -
+    name: Button Items
+    members:
+      -
+        name: image
+        type: JSImage
+        summary: The image to show on the button
+        decription: |
+          Images only apply to button-like items that don't have a custom
+          `view` or a special `identifer`.
+
+          The image will be automatically dimmed when the item is disabled.
+  -
+    name: Custom Items
+    members:
+      -
+        name: view
+        type: UIView
+        summary: The view to use as the item's custom view
+        description: |
+          If you need a bar item that works differently than a standard
+          button, you can specify any `UIView` here and it will be used to
+          display the item.
+
+          If you specify a `UIControl` the control's action will be
+          automatically setup to call the item's action, so you don't
+          have to specify it twice.
+
+          An example of a custom view would be to use a segmented control.
+  -
+    name: Title
+    members:
+      -
+        name: title
+        type: String
+        summary: The title that will be displayed for this item
+  -
+    name: Named Actions
+    members:
+      -
+        name: action
+        type: String
+        summary: The action name to peform when the item is interacted with
+        description: |
+          The action will be sent to `UIApplication.sendAction()` along with
+          any `target`, if specified.
+      -
+        name: target
+        type: UIResponder
+        summary: The specific responder that should always handle this item's
+          \`action`
+        description: |
+          If `null` the action will be sent to the window's `firstResponder`
+          and work its way through the responder chain until a responder
+          handles the action.
+  -
+    name: Function Actions
+    members:
+      -
+        name: action
+        suffix: function
+        type: function
+        summary: A function to call when the the item is interacted with
+        description: |
+          The action will be sent to `UIApplication.sendAction()` along with
+          any `target`, if specified.
+      -
+        name: target
+        suffix: function
+        type: object
+        summary: The object to use as `this` when calling `action`(action-function)
+  -
+    name: State
+    members:
+      -
+        name: enabled
+        type: boolean
+        summary: Indicates if this item is enabled or not
+        description: |
+          Items with `action`s are automatically enabled and disabled by the
+          owning window whenver the responder chain changes.

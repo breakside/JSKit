@@ -1,0 +1,96 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSObject
+summary: An item representing a view controller on a navigation stack
+decription: |
+  Each view controller contained in a `UINavigationController` provides a
+  navigation item with the title and bar items relevant to its view.
+topics:
+  -
+    name: Creating an Item
+    members:
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties that can be specified in a spec file for a
+          navigation item
+        description: |
+          ````
+          ViewController:
+            class: MessagesViewControllers
+            navigationItem:
+              title: .messages.title
+              rightBarItems:
+                -
+                  image: EditIcon
+                  action: beginEdit
+                  target: /ViewController
+          ````
+        topics:
+          -
+            name: Title
+            members:
+              -
+                name: title
+                type: String
+                summary: The title to show in the navigation bar for the item
+              -
+                name: view
+                type: UIView
+                summary: The custom view to show instead of a title
+          -
+            name: Bar Items
+            members:
+              -
+                name: leftBarItems
+                type: UINavigationBarItem[]
+                summary: The items to display on the left side of the title
+                description: |
+                  ````
+                  ViewController:
+                    class: UIViewController
+                    navigationItem:
+                      title: .messages.title
+                      leftBarItems:
+                        -
+                          image: EditIcon
+                  ````
+                note: The left side of the bar typically contains a back button,
+                  but you can set left buttons if you know your view is the
+                  root view controller
+              -
+                name: rightBarItems
+                type: UINavigationBarItem[]
+                summary: The items to display on the right side of the title
+                description: |
+                  ````
+                  ViewController:
+                    class: UIViewController
+                    navigationItem:
+                      title: .messages.title
+                      rightBarItems:
+                        -
+                          image: EditIcon
+                  ````
+  -
+    name: Title
+    members:
+      -
+        name: title
+        type: String
+        summary: The title that will be displayed for this item
+  -
+    name: Bar Items
+    members:
+      -
+        name: leftBarItems
+        type: UINavigationBarItem[]
+        summary: The items to display on the left side of the title
+        note: The left side of the bar typically contains a back button,
+          but you can set left buttons if you know your view is the
+          root view controller
+      -
+        name: rightBarItems
+        type: UINavigationBarItem[]
+        summary: The items to display on the right side of the title     

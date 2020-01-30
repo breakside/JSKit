@@ -1,0 +1,155 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: UIViewController
+summary: A view controller that manages a stack of views, showing one at
+  a time.
+description: |
+  A navigation controller does the familar push and pop from one screen to
+  another.
+
+  A built in `navigationBar` shows a title and actions relevant to each view.
+
+  Each contained view controller should populate a
+  `navigationItem`(UIViewController.navigationItem).
+topics:
+  -
+    name: Creating a Navigation Controller
+    members:
+      -
+        name: initWithRootViewController
+        kind: init
+        summary: Create a navigation controller with an initial view controller
+        arguments:
+          -
+            name: rootViewController
+            type: UIViewController
+            summary: The view controller at the root of the navigation stack
+      -
+        name: Spec File Properties
+        kind: spec
+        sumamry: The properties available when creating a navigation controller
+          in a spec file
+        topics:
+          -
+            name: View Controllers
+            members:
+              -
+                name: root
+                type: UIViewController
+                summary: The view controller at the root of the navigation stack
+          -
+            name: Navigation Bar
+            members:
+              -
+                name: navigationBar
+                type: UINavigationBar
+                summary: The custom navigation bar to use
+  -
+    name: Navigation Bar
+    members:
+      -
+        name: navigationBar
+        type: UINavigationBar
+        summary: The navigation bar displayed at the top of this view
+          controller's view
+        description: |
+          The navigation bar's items are automatically set to match the
+          child view controller in the navigation stack
+  -
+    name: View Controllers
+    members:
+      -
+        name: viewControllers
+        type: UIViewController[]
+        summary: The current view controller stack
+      -
+        name: topViewController
+        type: UIViewController
+        summary: The currently visible view controller
+      -
+        name: backViewController
+        type: UIViewController
+        nullable: true
+        summary: The view controller that will be returned to if the back
+          button is pressed
+      -
+        name: pushViewController
+        kind: method
+        summary: Add a new view controller to the top of the stack
+        arguments:
+          -
+            name: viewController
+            type: UIViewController
+            summary: The view controller to add
+          -
+            name: animated
+            type: boolean
+            summary: Indicates if the change should be animated
+      -
+        name: popViewController
+        kind: method
+        summary: Pop the top view controller off of the stack
+        arguments:
+          -
+            name: animated
+            type: boolean
+            summary: Indicates if the change should be animated
+      -
+        name: popToRootViewController
+        kind: method
+        summary: Pop all the way to the root view controller
+        arguments:
+          -
+            name: animated
+            type: boolean
+            summary: Indicates if the change should be animated
+      -
+        name: poptoViewController
+        kind: method
+        summary: Pop to the given view controller
+        arguments:
+          -
+            name: viewController
+            type: UIViewController
+            summary: The view controller to pop to
+          -
+            name: animated
+            type: boolean
+            summary: Indicates if the change should be animated
+  -
+    name: Animation Coordination
+    members:
+      -
+        name: pushAnimator
+        type: UIViewPropertyAnimator
+        nullable: true
+        summary: The animator that a push operation will use
+        description: |
+          You can add coordinated animations immediately after calling
+          `pushViewController()` methods.
+
+          If an operation has not been requested, this property will be `null`.
+      -
+        name: popAnimator
+        type: UIViewPropertyAnimator
+        nullable: true
+        summary: The animator that a pop operation will use
+        description: |
+          You can add coordinated animations immediately after calling
+          one of the `popViewController()` methods.
+
+          If an operation has not been requested, this property will be `null`.
+  -
+    name: Scroll Insets
+    members:
+      -
+        name: automaticallyAdjustsInsets
+        type: boolean
+        summary: Indicates if the navigation controller should automatically
+          set the content insets of child scroll views depending on how
+          the `navigationBar` is displayed.
+        description: |
+          When the `navigationBar` is translucent, the child scoll view will
+          be positioned under the bar, but the content insets will be adjusted
+          so the content begins after the bar

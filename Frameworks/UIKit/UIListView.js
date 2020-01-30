@@ -1688,15 +1688,44 @@ JSClass("UIListView", UIScrollView, {
         this._selectSingleIndexPath(indexPath);
     },
 
+    setSelectedIndexPathAnimated: function(indexPath){
+        var existing = this.selectedIndexPath;
+        if (existing && indexPath && existing.isEqual(indexPath)){
+            return;
+        }
+        var animator = UIViewPropertyAnimator.initWithDuration(0.3);
+        var listView = this;
+        animator.addAnimations(function(){
+            if (indexPath === null){
+                listView._selectedIndexPaths = [];
+            }else{
+                listView._selectedIndexPaths = [indexPath];
+            }
+            listView._updateVisibleCellStates();
+            listView._selectionAnchorIndexPath = indexPath;
+        });
+        animator.start();
+        if (indexPath !== null && this.delegate && this.delegate.listViewDidSelectCellAtIndexPath){
+            this.delegate.listViewDidSelectCellAtIndexPath(this, indexPath);
+        }
+        if (this.delegate && this.delegate.listViewSelectionDidChange){
+            this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
+        }
+    },
+
     _selectSingleIndexPath: function(indexPath){
         var existing = this.selectedIndexPath;
         if (existing && indexPath && existing.isEqual(indexPath)){
             return;
         }
-        this._selectedIndexPaths = [indexPath];
+        if (indexPath === null){
+            this._selectedIndexPaths = [];
+        }else{
+            this._selectedIndexPaths = [indexPath];
+        }
         this._updateVisibleCellStates();
         this._selectionAnchorIndexPath = indexPath;
-        if (this.delegate && this.delegate.listViewDidSelectCellAtIndexPath){
+        if (indexPath !== null && this.delegate && this.delegate.listViewDidSelectCellAtIndexPath){
             this.delegate.listViewDidSelectCellAtIndexPath(this, indexPath);
         }
         if (this.delegate && this.delegate.listViewSelectionDidChange){
@@ -2674,6 +2703,7 @@ JSClass("UIListViewStyler", JSObject, {
 
 JSClass("UIListViewDefaultStyler", UIListViewStyler, {
 
+    listBackgroundColor: null,
     cellFont: null,
     cellDetailFont: null,
     cellTextColor: null,
@@ -2683,6 +2713,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     selectedCellDetailTextColor: null,
     selectedCellBackgroundColor: null,
     selectedCellSeparatorColor: null,
+    showsMutedState: true,
     mutedSelectedCellTextColor: null,
     mutedSelectedCellDetailTextColor: null,
     mutedSelectedCellBackgroundColor: null,
@@ -2694,10 +2725,11 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     accessorySize: null,
     accessoryInsets: null,
     accessoryColor: null,
-    showSeparators: true,
+    showsSeparators: true,
     cellContentInsets: null,
     cellContentCornerRadius: 0,
 
+    headerFont: null,
     headerTextColor: null,
     headerBackgroundColor: null,
     headerBorderColor: null,
@@ -2705,11 +2737,17 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     indentSize: 20,
 
     init: function(){
+        this.listBackgroundColor = JSColor.white;
         this._commonStylerInit();
     },
 
     initWithSpec: function(spec){
         UIListViewDefaultStyler.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey('listBackgroundColor')){
+            this.listBackgroundColor = spec.valueForKey("listBackgroundColor", JSColor);
+        }else{
+            this.listBackgroundColor = JSColor.white;
+        }
         if (spec.containsKey('cellTextColor')){
             this.cellTextColor = spec.valueForKey("cellTextColor", JSColor);
         }
@@ -2743,6 +2781,9 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if (spec.containsKey('mutedSelectedCellSeparatorColor')){
             this.mutedSelectedCellSeparatorColor = spec.valueForKey("mutedSelectedCellSeparatorColor", JSColor);
         }
+        if (spec.containsKey('showsMutedState')){
+            this.showsMutedState = spec.valueForKey("showsMutedState");
+        }
         if (spec.containsKey('headerTextColor')){
             this.headerTextColor = spec.valueForKey("headerTextColor", JSColor);
         }
@@ -2751,6 +2792,9 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         }
         if (spec.containsKey('headerBorderColor')){
             this.headerBorderColor = spec.valueForKey("headerBorderColor", JSColor);
+        }
+        if (spec.containsKey('headerFont')){
+            this.headerFont = spec.valueForKey("headerFont", JSFont);
         }
         if (spec.containsKey('cellFont')){
             this.cellFont = spec.valueForKey("cellFont", JSFont);
@@ -2773,8 +2817,8 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if (spec.containsKey('accessoryColor')){
             this.accessoryColor = spec.valueForKey("accessoryColor", JSColor);
         }
-        if (spec.containsKey('showSeparators')){
-            this.showSeparators = spec.valueForKey("showSeparators");
+        if (spec.containsKey('showsSeparators')){
+            this.showsSeparators = spec.valueForKey("showsSeparators");
         }
         if (spec.containsKey('cellContentInsets')){
             this.cellContentInsets = spec.valueForKey("cellContentInsets", JSInsets);
@@ -2788,6 +2832,9 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     _commonStylerInit: function(){
         if (this.cellFont === null){
             this.cellFont = JSFont.systemFontOfSize(JSFont.Size.normal);
+        }
+        if (this.headerFont === null){
+            this.headerFont = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.semibold);
         }
         if (this.cellTextColor === null){
             this.cellTextColor = JSColor.black;
@@ -2839,8 +2886,12 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         }
     },
 
+    initializeListView: function(listView){
+        listView.backgroundColor = this.listBackgroundColor;
+    },
+
     initializeCell: function(cell, indexPath){
-        if (this.showSeparators){
+        if (this.showsSeparators){
             cell.stylerProperties.separatorLayer = UILayer.init();
             cell.layer.addSublayer(cell.stylerProperties.separatorLayer);
         }
@@ -2865,7 +2916,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         }
         if (cell.selected){
             cell.contentView.borderColor = this.contextSelectedCellBorderColor;
-            if (!cell.listView.keyActive){
+            if (this.showsMutedState && !cell.listView.keyActive){
                 cell.contentView.backgroundColor = this.mutedSelectedCellBackgroundColor;
                 if (cell._titleLabel !== null){
                     cell._titleLabel.textColor = this.mutedSelectedCellTextColor;
@@ -2987,6 +3038,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     updateHeader: function(header, section){
         if (header._titleLabel !== null){
             header._titleLabel.textColor = this.headerTextColor;
+            header._titleLabel.font = this.headerFont;
         }
         header.backgroundColor = this.headerBackgroundColor;
         if (this.headerBorderColor){

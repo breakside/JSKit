@@ -363,10 +363,19 @@ topics:
           This gives the view controller an opportunity to respond to actions
           and events that aren't handled by the view.
   -
-    name: Tab View Item
+    name: Items For Containing View Controllers
     members:
       -
         name: tabViewItem
         type: UITabViewItem
         summary: An item that informs a parent `UITabViewController` what to
           put on this controller's tab
+      -
+        name: navigationItem
+        type: UINavigationItem
+        summary: An item that informs a parent `UINavigationController` what to
+          put on its `navigationBar`(UINavigationController.navigationBar) when
+          this view controller is visible.
+        description: |
+          If no navigation item has been set before this property is first
+          accessed, an empty item will be created.

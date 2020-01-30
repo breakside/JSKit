@@ -47,6 +47,11 @@ JSClass('UIApplication', UIResponder, {
         for (var i = 0, l = descriptors.length; i < l; ++i){
             this.windowServer.displayServer.registerBundleFontDescriptor(descriptors[i]);
         }
+        if (UIDevice.shared.primaryPointerType === UIUserInterface.PointerType.touch){
+            for (var size in JSFont.Size){
+                JSFont.Size[size] = Math.round(JSFont.Size[size] * 1.2);
+            }
+        }
     },
 
     setupDelegate: function(){

@@ -233,6 +233,7 @@ UIButton.Styler = Object.create({}, {
 JSClass("UIButtonStyler", UIControlStyler, {
 
     titleInsets: null,
+    titleImageSpacing: 4,
     font: null,
 
     init: function(){
@@ -244,6 +245,9 @@ JSClass("UIButtonStyler", UIControlStyler, {
         UIButtonStyler.$super.initWithSpec.call(this, spec);
         if (spec.containsKey('titleInsets')){
             this.titleInsets = spec.valueForKey("titleInsets", JSInsets);
+        }
+        if (spec.containsKey('titleImageSpacing')){
+            this.titleImageSpacing = spec.valueForKey("titleImageSpacing");
         }
         if (spec.containsKey('font')){
             this.font = spec.valueForKey("font", JSFont);
@@ -260,15 +264,38 @@ JSClass("UIButtonStyler", UIControlStyler, {
     },
 
     intrinsicSizeOfControl: function(button){
-        var size = JSSize(button._titleInsets.left + button._titleInsets.right, button._titleInsets.top + button._titleInsets.bottom);
+        return this._intrinsicSizeOfControlGivenHeight(button, Number.MAX_VALUE);
+    },
+
+    _intrinsicSizeOfControlGivenHeight: function(button, height){
+        var size = JSSize(button._titleInsets.width, button._titleInsets.height);
         var titleSize;
-        var imageSize;
         var image = button.getImageForState(UIControl.State.normal);
+        var imageScale;
+        var contentHeight;
+        if (height < Number.MAX_VALUE){
+            contentHeight = height - size.height;
+            size.height = height;
+            if (button._titleLabel !== null){
+                titleSize = button._titleLabel.intrinsicSize;
+                if (image !== null){
+                    imageScale = contentHeight / image.size.height;
+                    size.width += Math.ceil(image.size.width * imageScale) + this.titleImageSpacing + titleSize.width;
+                }else{
+                    size.width += titleSize.width;
+                }
+            }else if (image !== null){
+                size.width += Math.ceil(image.size.width * imageScale);
+            }
+            return size;
+        }
         if (button._titleLabel !== null){
             titleSize = button._titleLabel.intrinsicSize;
             if (image !== null){
-                size.width += image.size.width + button._titleInsets.left + titleSize.width;
-                size.height += Math.max(image.size.height, titleSize.height);
+                contentHeight = Math.max(image.size.height, titleSize.height);
+                imageScale = contentHeight / image.size.height;
+                size.width += Math.ceil(image.size.width * imageScale) + this.titleImageSpacing + titleSize.width;
+                size.height += contentHeight;
             }else{
                 size.width += titleSize.width;
                 size.height += titleSize.height;
@@ -281,25 +308,29 @@ JSClass("UIButtonStyler", UIControlStyler, {
     },
 
     sizeControlToFitSize: function(button, size){
-        button.bounds = JSRect(JSPoint.Zero, this.intrinsicSizeOfControl(button));
+        var intrinsicSize = this._intrinsicSizeOfControlGivenHeight(button, size.height);
+        var buttonSize = JSSize(Math.min(size.width, intrinsicSize.width), intrinsicSize.height);
+        button.bounds = JSRect(JSPoint.Zero, buttonSize);
     },
 
     layoutControl: function(button){
+        var image = button.getImageForState(UIControl.State.normal);
+        var contentRect = button.bounds.rectWithInsets(button._titleInsets);
         if (button._titleLabel !== null){
-            if (button._imageView !== null){
-                var contentRect = button.bounds.rectWithInsets(button._titleInsets);
-                var imageSize = Math.min(contentRect.size.width, contentRect.size.height);
-                button._imageView.frame = JSRect(contentRect.origin, JSSize(imageSize, imageSize));
-                var x = contentRect.origin.x + imageSize + button._titleInsets.left;
+            if (image !== null){
+                var imageScale = contentRect.size.height / image.size.height;
+                var imageSize = JSSize(image.size.width * imageScale, contentRect.size.height);
+                button._imageView.frame = JSRect(contentRect.origin, imageSize);
+                var x = contentRect.origin.x + imageSize.width + this.titleImageSpacing;
                 var w = Math.max(0, contentRect.origin.x + contentRect.size.width - x);
                 var titleSize = button._titleLabel.intrinsicSize;
                 var y = (contentRect.size.height - titleSize.height) / 2;
                 button._titleLabel.frame = JSRect(x, contentRect.origin.y + y, w, titleSize.height);
             }else{
-                button._titleLabel.frame = button.bounds.rectWithInsets(button._titleInsets);
+                button._titleLabel.frame = contentRect;
             }
-        }else if (button._imageView !== null){
-            button._imageView.frame = button.bounds.rectWithInsets(button._titleInsets);
+        }else if (image !== null){
+            button._imageView.frame = contentRect;
         }
         if (button._backgroundImageView !== null){
             button._backgroundImageView.frame = button.bounds;

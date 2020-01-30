@@ -34,7 +34,7 @@ JSClass('JSColorTests', TKTestSuite, {
     },
 
     testSpec: function(){
-        var spec = JSSpec.initWithPropertyList({rgba: "204,102,51"});
+        var spec = JSSpec.initWithDictionary({rgba: "204,102,51"});
         var color = JSColor.initWithSpec(spec);
         TKAssertEquals(color.colorSpace, JSColor.SpaceIdentifier.rgba);
         TKAssertEquals(color.components.length, 4);
@@ -43,7 +43,7 @@ JSClass('JSColorTests', TKTestSuite, {
         TKAssertEquals(color.components[2], 0.2);
         TKAssertEquals(color.components[3], 1.0);
 
-        spec = JSSpec.initWithPropertyList({rgba: "204,102,51,.5"});
+        spec = JSSpec.initWithDictionary({rgba: "204,102,51,.5"});
         color = JSColor.initWithSpec(spec);
         TKAssertEquals(color.components.length, 4);
         TKAssertEquals(color.components[0], 0.8);

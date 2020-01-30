@@ -272,6 +272,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     windowInserted: function(window){
         this._layerInserted(window.layer, this.screenContext);
         this.windowInsertedQueue.enqueue(window);
+        this.windowRemovalQueue.remove(window);
     },
 
     layerInserted: function(layer){

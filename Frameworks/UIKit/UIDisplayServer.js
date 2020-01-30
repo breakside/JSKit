@@ -11,6 +11,7 @@ JSClass("UIDisplayServer", JSObject, {
     _animationCount: 0,
     _animationScale: 1,
     _isUpdating: false,
+    _callbacks: null,
 
     init: function(){
         this.layerDisplayQueue = UIDisplayServerQueue();
@@ -19,6 +20,7 @@ JSClass("UIDisplayServer", JSObject, {
         this.windowInsertedQueue = UIDisplayServerQueue();
         this.windowRemovalQueue = UIDisplayServerQueue();
         this.layerAnimationQueue = {};
+        this._callbacks = [];
     },
 
     // -------------------------------------------------------------------------
@@ -88,6 +90,8 @@ JSClass("UIDisplayServer", JSObject, {
         while ((window = this.windowInsertedQueue.dequeue()) !== null){
             window.didBecomeVisible();
         }
+
+        this._flushCallbacks();
     },
 
     // -------------------------------------------------------------------------
@@ -253,6 +257,27 @@ JSClass("UIDisplayServer", JSObject, {
 
     registerFontDescriptor: function(descriptor, completion, target){
 
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Callbacks
+
+    schedule: function(callback, target){
+        this._callbacks.push({fn: callback, target: target});
+    },
+
+    _hasCallbacks: false,
+
+    _flushCallbacks: function(){
+        if (!this._hasCallbacks){
+            return;
+        }
+        var callback;
+        for (var i = 0, l = this._callbacks.length; i < l; ++i){
+            callback = this._callbacks[i];
+            callback.fn.call(callback.target);
+        }
+        this._callbacks = [];
     }
 
 });

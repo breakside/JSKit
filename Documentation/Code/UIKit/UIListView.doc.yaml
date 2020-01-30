@@ -186,7 +186,7 @@ topics:
                   ````
               -
                 name: CellReuseInfo
-                type: dictionary
+                kind: dictionary
                 topics:
                   -
                     name: Properties
@@ -1077,7 +1077,7 @@ topics:
                     name: Separators
                     members:
                       -
-                        name: showSeparators
+                        name: showsSeparators
                         type: boolean
                         summary: Whether or not to show separators between cells
                       -
@@ -1248,7 +1248,7 @@ topics:
             name: Separators
             members:
               -
-                name: showSeparators
+                name: showsSeparators
                 type: boolean
                 summary: Whether or not to show separators between cells
               -

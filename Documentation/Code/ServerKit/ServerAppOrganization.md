@@ -35,8 +35,8 @@ At this point, your workspace includes a few folders and files:
   related to how node.js manages installed modules.
 - `.gitignore` is created by `jskit init` with defaults for items that should
   be ignored by `git`
-- `.jshintrc` is created by `jskit init` to include a list of globals that
-  are availble to `JSKit` based projects
+- `.jshintrc` is created by `jskit init` to include javascript settings for your
+  application.
 - `Messages.sublime-project` is created by `jskit init` to provide a project
   organization for the SublimeText editor
 - `MessagesServer/` is your `ServerKit` based project

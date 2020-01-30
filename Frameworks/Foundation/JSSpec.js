@@ -1,6 +1,5 @@
 // #import "Javascript.js"
 // #import "JSObject.js"
-// #import "JSPropertyList.js"
 // #import "JSBundle.js"
 'use strict';
 
@@ -21,22 +20,25 @@ JSClass("JSSpec", JSObject, {
 
     initWithResource: function(resource, bundle){
         var ext = resource.fileExtension;
-        this._baseName = resource.substr(0, resource.length - ext.length);
-        if (!ext){
-            resource = resource + '.spec';
+        var name = resource;
+        if (ext){
+            name = name.removingFileExtension();
+        }else{
+            ext = '.spec';
         }
+        this._baseName = name;
         this._bundle = bundle || JSBundle.mainBundle;
-        var plist = JSPropertyList.initWithResource(resource, this._bundle);
-        if (plist === null){
+        var metadata = this._bundle.metadataForResourceName(name, ext);
+        if (metadata === null){
             return null;
         }
-        this.initWithPropertyList(plist);
+        this.initWithDictionary(metadata.value);
     },
 
-    initWithPropertyList: function(plist, bundle){
+    initWithDictionary: function(dictionary, bundle){
         this._bundle = bundle || JSBundle.mainBundle;
         this._root = this;
-        this._dictionaryValue = plist;
+        this._dictionaryValue = dictionary;
         this._cache = {};
         this._keysForNextObjectInit = [];
     },
@@ -147,6 +149,9 @@ JSClass("JSSpec", JSObject, {
             }
             if (prefix == '/'){
                 return this._root.valueForKey(value.substr(1), type);
+            }
+            if (prefix == '@'){
+                return JSObject.initWithSpecName(value.substr(1), this._root._bundle);
             }
             if (type !== null){
                 if (value in type){

@@ -16,7 +16,7 @@ description: |
   =================
 
   Most `JSKit` based applications will actually contain multiple projects, so
-  it's best to create a workspace folder for your applications.
+  it's best to create a workspace folder for your application.
 
   If your app is named `Messages`, you'd do something like this:
 

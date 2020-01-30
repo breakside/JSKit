@@ -258,13 +258,11 @@ JSClass("UISplitViewController", UIViewController, {
         }
         if (!animated){
             this.splitView.leadingViewOpen = !this.splitView.leadingViewOpen;
-            JSRunLoop.main.schedule(function(){
-                if (willAppear){
-                    this._leadingViewController.viewDidAppear(animated);
-                }else{
-                    this._leadingViewController.viewDidDisappear(animated);
-                }
-            }, this);
+            if (willAppear){
+                this._leadingViewController.enqueueDidAppear();
+            }else{
+                this._leadingViewController.enqueueDidDisappear();
+            }
         }else{
             // make sure to apply any pending layouts before doing the animation,
             // otherwise the pending layouts will get caught up in the animation
@@ -325,13 +323,11 @@ JSClass("UISplitViewController", UIViewController, {
         }
         if (!animated){
             this.splitView.trailingViewOpen = !this.splitView.trailingViewOpen;
-            JSRunLoop.main.schedule(function(){
-                if (willAppear){
-                    this._trailingViewController.viewDidAppear(animated);
-                }else{
-                    this._trailingViewController.viewDidDisappear(animated);
-                }
-            }, this);
+            if (willAppear){
+                this._trailingViewController.enqueueDidAppear();
+            }else{
+                this._trailingViewController.enqueueDidDisappear();
+            }
         }else{
             // make sure to apply any pending layouts before doing the animation,
             // otherwise the pending layouts will get caught up in the animation

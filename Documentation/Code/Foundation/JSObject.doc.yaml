@@ -196,6 +196,11 @@ topics:
             name: specName
             type: String
             summary: The name of the spec resource to load
+          -
+            name: bundle
+            type: JSBundle
+            default: JSBundle.mainBundle
+            summary: The bundle in which to look for the spec resource
       - 
         name: awakeFromSpec
         kind: method

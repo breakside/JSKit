@@ -105,7 +105,11 @@ JSClass("UIToolbarItem", JSObject, {
             return;
         }
         var target = this.toolbar.window.application.firstTargetForAction(this.action, this.target, this);
-        this._enabled = target !== null && target.canPerformAction(this.action);
+        this.enabled = target !== null && target.canPerformAction(this.action);
+    },
+
+    setEnabled: function(enabled){
+        this._enabled = enabled;
         if (this._view !== null && this._view.isKindOfClass(UIControl)){
             this._view.enabled = this.enabled;
         }

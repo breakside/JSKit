@@ -35,8 +35,8 @@ At this point, your workspace includes a few folders and files:
   related to how node.js manages installed modules.
 - `.gitignore` is created by `jskit init` with defaults for items that should
   be ignored by `git`
-- `.jshintrc` is created by `jskit init` to include a list of globals that
-  are availble to `JSKit` based projects
+- `.jshintrc` is created by `jskit init` to include javascript settings for your
+  application
 - `Messages.sublime-project` is created by `jskit init` to provide a project
   organization for the SublimeText editor
 - `MessagesWeb/` is your `UIKit` based project
@@ -80,7 +80,8 @@ UIApplicationTitle:         .applicationTitle
 UIApplicationLaunchOptions:
   uistate: {kind: positional, default: null}
   others: {kind: unknown}
-# UIApplicationSystemFont:    Roboto-Light
+UIApplicationSystemFont:    SourceSansPro-Light
+JSDevelopmentLanguage:      en
 ````
 
 The details of the Info file are specified in [UIApplication Info](UIApplicationInfo), but the important property
@@ -111,10 +112,6 @@ AppDelegate:
     window: /MainWindow
     mainViewController: /MainViewController
 
-DarkColor:
-  class : JSColor
-  rgba: 204,0,0
-
 MainWindow:
   class: UIRootWindow
   contentViewController: /MainViewController
@@ -122,29 +119,29 @@ MainWindow:
 MainViewController:
   class: MainViewController
   view: /MainView
-
-MainView:
-  class: UIView
-  backgroundColor: /DarkColor
-  subviews:
-    - /Label
-    - /TestButton
   outlets:
     label: /Label
     testButton: /TestButton
 
+MainView:
+  class: UIView
+  backgroundColor:
+    rgba: 255,255,255
+  subviews:
+    - /Label
+    - /TestButton
+
 Label:
   class: UILabel
-  frame: 10,10,100,20
   text: .helloWorld
   font:
-    size: detail
+    size: heading
   textColor:
-    rgba: 204,0,0
+    rgba: 51,51,51
+  textAlignment: center
 
 TestButton:
   class: UIButton
-  frame: 10,40,100,23
   title: .testButton.title
   target: /MainViewController
   action: test

@@ -2,7 +2,7 @@ copyright: Copyright © 2020 Breakside Inc.
 kind: class
 introduced: 2020.1.0
 inherits: JSObject
-summary: A item on a toolbar
+summary: An item on a toolbar
 decription: |
   Toolbar items are often buttons, but can also be any view at all such as a
   search field.

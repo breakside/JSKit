@@ -1,6 +1,7 @@
 // #import Foundation
 // #import "UIResponder.js"
 // #import "UITabView.js"
+/* global UINavigationItem, UINavigationController */
 'use strict';
 
 JSClass("UIViewController", UIResponder, {
@@ -27,6 +28,9 @@ JSClass("UIViewController", UIResponder, {
         UIViewController.$super.initWithSpec.call(this, spec);
         if (spec.containsKey('tabViewItem')){
             this.tabViewItem = spec.valueForKey("tabViewItem", UITabViewItem);
+        }
+        if (spec.containsKey('navigationItem')){
+            this.navigationItem = spec.valueForKey("navigationItem", UINavigationItem);
         }
     },
 
@@ -69,6 +73,33 @@ JSClass("UIViewController", UIResponder, {
 
     // -------------------------------------------------------------------------
     // MARK: - View Lifecycle
+
+    _needsDidAppear: false,
+    _needsDidDisappear: false,
+
+    enqueueDidAppear: function(animated){
+        if (!this._needsDidAppear){
+            this._needsDidAppear = true;
+            this.view.layer._displayServer.schedule(function(){
+                if (this._needsDidAppear){
+                    this._needsDidAppear = false;
+                    this.viewDidAppear(false);
+                }
+            }, this);
+        }
+    },
+
+    enqueueDidDisappear: function(animated){
+        if (!this._needsDidDisappear){
+            this._needsDidDisappear = true;
+            this.view.layer._displayServer.schedule(function(){
+                if (this._needsDidDisappear){
+                    this._needsDidDisappear = false;
+                    this.viewDidDisappear(false);
+                }
+            }, this);
+        }
+    },
 
     viewDidLoad: function(){
     },
@@ -126,9 +157,27 @@ JSClass("UIViewController", UIResponder, {
     },
 
     // -------------------------------------------------------------------------
-    // MARK: - Tab Bar
+    // MARK: - Items for containing view controllers
 
     tabViewItem: null,
+    navigationItem: JSDynamicProperty('_navigationItem', null),
+
+    getNavigationItem: function(){
+        if (this._navigationItem === null){
+            this._navigationItem = UINavigationItem.init();
+        }
+        return this._navigationItem;
+    },
+
+    navigationController: JSReadOnlyProperty(),
+
+    getNavigationController: function(){
+        var ancestor = this.parentViewController;
+        while (ancestor !== null && !ancestor.isKindOfClass(UINavigationController)){
+            ancestor = ancestor.parentViewController;
+        }
+        return ancestor;
+    },
 
     // -------------------------------------------------------------------------
     // MARK: - Scene
