@@ -36,6 +36,8 @@ JSClass("JSUserDefaults", JSObject, {
                     this._values = {};
                 }
             }catch (e){
+                logger.warn("error with defaults data: %{error}", e);
+                this._values = {};
             }
             completion.call(target, true);
         }, this);
