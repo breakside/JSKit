@@ -184,7 +184,7 @@ topics:
 
           Fails if either value is `null` or `undefined`.
       -
-        name: TKAssertNotObjectEquals
+        name: TKAssertObjectNotEquals
         kind: function
         summary: Throws an exception if the two values are equal
         arguments:
