@@ -1,7 +1,7 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: class
 introduced: 2020.1.0
-inherits: JSObject
+inherits: UIView
 summary: A bar along the top of `UIWindow` containing common button and actions
 description: |
   A toolbar is typically used to provide the user with buttons and views for
@@ -38,6 +38,9 @@ description: |
   `sendAction()`(UIApplication.sendAction) system, the toolbar is able to
   automatically enable and disable toolbar items whenever the responder chain
   changes.
+
+  If the toolbar is set as a `UIWindow`'s toolbar, the window wit automatically
+  revalatidate the toolbar.
 topics:
   -
     name: Creating a Toolbar
@@ -121,6 +124,37 @@ topics:
                       items:
                       imageSize: 40
                   ````
+              -
+                name: showsTitles
+                type: boolean
+                summary: Whether items titles should be shown under each item
+                description: |
+                  Titles are not shows by default.  Set to `true` to enable
+                  titles.
+
+                  ````
+                  Window:
+                    class: UIWindow
+                    toolbar:
+                      items:
+                      showTitles: true
+                  ````
+          -
+            name: Styling
+            members:
+              -
+                name: styler
+                type: UIToolbarStyler
+                summary: The styler to use for this toolbar
+                description: |
+                  ````
+                  Window:
+                    class: UIWindow
+                    toolbar:
+                      styler:
+                        class: UIToolbarCustomStyler
+                        itemColor: blue
+                  ````
   -
     name: Items
     members:
@@ -201,13 +235,6 @@ topics:
                 summary: A small size for images
                 value: "24"
   -
-    name: Window
-    members:
-      -
-        name: window
-        type: UIWindow
-        summary: The window that contains this toolbar
-  -
     name: Item Validation
     members:
       -
@@ -218,3 +245,219 @@ topics:
         description: |
           Called automatically by the `window` as necessary.  You should not
           need to invoke this method directly.
+  -
+    name: Styling
+    members:
+      -
+        name: UIToolbarStyler
+        kind: class
+        summary: The abstract base class for toolbar styling
+        topics:
+          -
+            name: Initializing a Toolbar
+            members:
+              -
+                name: initializeToolbar
+                kind: method
+                summary: Called when the toolbar is first created
+                arguments:
+                  -
+                    name: toolbar
+                    type: UIToolbar
+                    summary: The toolbar to style
+                description: |
+                  Gives the styler an opportunity to configure the toolbar with
+                  one-time setup tasks
+          -
+            name: Updating a Toolbar
+            members:
+              -
+                name: updateToolbar
+                kind: method
+                summary: Called when the toolbar's items change
+                arguments:
+                  -
+                    name: toolbar
+                    type: UIToolbar
+                    summary: The toolbar to style
+                description: |
+                  Gives the styler an opportunity to update the views for items
+                  that have been added or removed
+              -
+                name: updateToolbarItemAtIndex
+                kind: method
+                summary: Called when a single item on the toolbar changes state
+                arguments:
+                  -
+                    name: toolbar
+                    type: UIToolbar
+                    summary: The toolbar to style
+                  -
+                    name: itemIndex
+                    type: Number
+                    summary: The index of the item that change states
+                description: |
+                  Gives the styler an opportunity to update the single item view
+          -
+            name: Toolbar Layout
+            members:
+              -
+                name: layoutToolbar
+                kind: method
+                summary: Called when the toolbar needs layout
+                arguments:
+                  -
+                    name: toolbar
+                    type: UIToolbar
+                    summary: The toolbar to layout
+              -
+                name: intrinsicSizeOfToolbar
+                kind: method
+                value: JSSize
+                summary: Get the intrinsic size of the toolbar
+                arguments:
+                  -
+                    name: toolbar
+                    type: UIToolbar
+                    summary: The toolbar to size
+                note: Only needs to include a height.  The width can be
+                  \`UIView.noIntrinsicSize`.
+      -
+        name: UIToolbarCustomStyler
+        kind: class
+        summary: The default customizable toolbar styler for `UIKit`
+        topics:
+          -
+            name: Creating a Styler
+            members:
+              -
+                name: initWithItemColor
+                kind: init
+                summary: Create a styler with a given color for items
+                arguments:
+                  -
+                    name: itemColor
+                    type: JSColor
+                    summary: The color to use for items
+              -
+                name: Spec File Properties
+                kind: spec
+                summary: The properties available to toolbar stylers in a spec
+                  file
+                topics:
+                  -
+                    name: Items
+                    members:
+                      -
+                        name: itemFont
+                        type: JSFont
+                        summary: The font to use for item titles
+                      -
+                        name: itemColor
+                        type: JSColor
+                        summary: The color to use for item titles and template
+                          images
+                      -
+                        name: activeItemColor
+                        type: JSColor
+                        summary: The color to use for item titles and template
+                          images when the item is active
+                        description: |
+                          If unspecified, will be derived from `itemColor`
+                      -
+                        name: itemColor
+                        type: JSColor
+                        summary: The color to use for item titles and template
+                          images when the item is disabled
+                        description: |
+                          If unspecified, will be derived from `itemColor`
+                  -
+                    name: Layout
+                    members:
+                      -
+                        name: contentInsets
+                        type: JSInsets
+                        summary: The amount of padding from the bars edges to
+                          items
+                      -
+                        name: itemSpacing
+                        type: Number
+                        summary: The amount of space between items
+          -
+            name: Items
+            members:
+              -
+                name: itemFont
+                type: JSFont
+                summary: The font to use for item titles
+              -
+                name: itemColor
+                type: JSColor
+                summary: The color to use for item titles and template
+                  images
+              -
+                name: activeItemColor
+                type: JSColor
+                summary: The color to use for item titles and template
+                  images when the item is active
+                description: |
+                  If unspecified, will be derived from `itemColor`
+              -
+                name: itemColor
+                type: JSColor
+                summary: The color to use for item titles and template
+                  images when the item is disabled
+                description: |
+                  If unspecified, will be derived from `itemColor`
+          -
+            name: Layout
+            members:
+              -
+                name: contentInsets
+                type: JSInsets
+                summary: The amount of padding from the bars edges to
+                  items
+              -
+                name: itemSpacing
+                type: Number
+                summary: The amount of space between items
+          -
+            name: Overflow
+            members:
+              -
+                name: showOverflowMenuForToolbar
+                kind: method
+                summary: Called to display a menu of items that didn't fit on
+                  the tooolbar.
+                arguments:
+                  -
+                    name: menu
+                    type: UIMenu
+                    summary: The menu containing overflowed toolbar items
+                  -
+                    name: toolbar
+                    type: UIToolbar
+                    summary: The toolbar with the overflow items
+                  -
+                    name: overflowButton
+                    type: UIButton
+                    summary: The overflow button that was pressed.  Can be used
+                      to position the menu
+                description: |
+                  Default implementation shows a `UIMenu` below the button
+      -
+        name: Styler
+        kind: enum
+        suffix: enum
+        summary: The built-in stylers for toolbars
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: default
+                summary: The default styler for toolbars in `UIKit`
+      -
+        name: styler
+        type: UIToolbarStyler
+        summary: The styler in use for this toolbar

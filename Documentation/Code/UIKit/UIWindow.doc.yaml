@@ -278,45 +278,6 @@ topics:
                     name: window
                     type: UIWindow
                     summary: The window to layout
-          -
-            name: Toolbar
-            members:
-              -
-                name: toolbarTitleFont
-                type: JSFont
-                summary: The font to use for toolbar item titles
-              -
-                name: toolbarTitleColor
-                type: JSFont
-                summary: The color to use for toolbar item titles
-              -
-                name: toolbarDisabledTitleColor
-                type: JSFont
-                summary: The color to use for disabled toolbar item titles
-              -
-                name: toolbarInsets
-                type: JSFont
-                summary: The insets to use for the toolbar items
-              -
-                name: toolbarItemSpacing
-                type: JSFont
-                summary: The default spacing between toolbar items
-              -
-                name: heightOfToolbarView
-                kind: method
-                summary: Provides a standard calculation for toolbar height
-              -
-                name: layoutToolbarView
-                kind: method
-                summary: Provides a standard way of doing a toolbar layout
-              -
-                name: layoutToolbarItemView
-                kind: method
-                summary: Provides a standard way of doing a toolbar item layout
-              -
-                name: updateToolbarItemView
-                kind: method
-                summary: Provides a standard way of displaying toolbar items
       -
         name: UIWindowDefaultStyler
         kind: class
