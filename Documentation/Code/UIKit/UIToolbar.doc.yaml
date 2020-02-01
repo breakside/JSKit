@@ -46,9 +46,14 @@ topics:
     name: Creating a Toolbar
     members:
       -
-        name: init
+        name: initWithStyler
         kind: init
-        summary: Create an empty toobar
+        summary: Create a toobar with the given styler
+        arguments:
+          -
+            name: styler
+            type: UIToolbarStyler
+            summary: The styler to use for this toolbar
         description: |
           After creating a toolbar, you'll need to add items via `addItem()` or
           by setting the `items`(UIToolbar.items) property.
