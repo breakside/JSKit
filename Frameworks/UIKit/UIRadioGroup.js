@@ -13,7 +13,7 @@ JSClass("UIRadioGroup", UIControl, {
     initWithSpec: function(spec){
         UIRadioGroup.$super.initWithSpec.call(this, spec);
         if (spec.containsKey('options')){
-            var options = spec.valueForKey(options);
+            var options = spec.valueForKey('options');
             for (var i = 0, l = options.length; i < l; ++i){
                 this.addItemWithTitle(options.valueForKey(i));
             }

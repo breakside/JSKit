@@ -235,20 +235,65 @@ topics:
                   Gives the styler an opportunity to configure the tab view
                   and add any intially required style subviews.
           -
-            name: Initializing Tab Item Views
+            name: Update Tab Views
             members:
               -
-                name: initializeTabItemView
+                name: updateTabView
                 kind: method
-                summary: Called when a tab item view is created
+                summary: Called when a tab view's items change
                 arguments:
                   -
-                    name: itemView
-                    type: UITabItemView
-                    summary: The item view to style
+                    name: tabView
+                    type: UITabView
+                    summary: The tab view to style
                 description: |
-                  Gives the styler an opportunity to configure the item view
-                  and add any intially required style subviews.
+                  Gives the styler an opportunity to reconfigure the tab view
+                  after items are added or removed.
+              -
+                name: updateTabViewItemAtIndex
+                kind: method
+                summary: Called when an item view changes state, like from
+                  unselected to selected
+                arguments:
+                  -
+                    name: tabView
+                    type: UITabView
+                    summary: The item view to layout
+                  -
+                    name: itemIndex
+                    type: Number
+                    summary: The index of item that needs an update
+              -
+                name: showContentViewInTabView
+                kind: method
+                summary: Show the selected content view in the tab interface
+                description: |
+                  Allows the styler to insert the content view at the
+                  appropriate location
+                arguments:
+                  -
+                    name: contentView
+                    type: UIView
+                    summary: The content view of the selectd item
+                  -
+                    name: tabView
+                    type: UITabView
+                    summary: The item view to layout
+              -
+                name: removeContentViewFromTabView
+                kind: method
+                summary: Remove the a de-selected content view from the tab interface
+                description: |
+                  Allows the styler to remove the content view as needed
+                arguments:
+                  -
+                    name: contentView
+                    type: UIView
+                    summary: The content view of the previously selected item
+                  -
+                    name: tabView
+                    type: UITabView
+                    summary: The item view to layout
           -
             name: Layout
             members:
@@ -266,45 +311,6 @@ topics:
 
                   The default implementation places an `UITabItemsView` above
                   a content area.
-              -
-                name: layoutItemsView
-                kind: method
-                summary: Called when a tab view needs layout
-                arguments:
-                  -
-                    name: itemsView
-                    type: UITabItemsView
-                    summary: The items container view to layout
-                description: |
-                  Gives the styler an opportunity to tab controls.
-              -
-                name: layoutItemView
-                kind: method
-                summary: Called when an item view needs layout
-                arguments:
-                  -
-                    name: itemView
-                    type: UITabItemView
-                    summary: The item view to layout
-                description: |
-                  Gives the styler an opportunity to layout an item
-          -
-            name: Item Updates
-            members:
-              -
-                name: updateItemView
-                kind: method
-                summary: Called when an item view changes state, like from
-                  unselected to selected
-                arguments:
-                  -
-                    name: itemView
-                    type: UITabItemView
-                    summary: The item view to layout
-                  -
-                    name: item
-                    type: UITabItem
-                    summary: The item corresponding to the view
       -
         name: UITabViewDefaultStyler
         kind: class
@@ -369,6 +375,10 @@ topics:
         name: UITabItemsView
         kind: class
         inherits: UIView
+        summary: Displays a list of tab items and handles user interaction.
+        description: |
+          Not required for tab views, but can be used by stylers to provide
+          a standard tab interface
         topics:
           -
             name: Item Views
@@ -377,29 +387,27 @@ topics:
                 name: itemViews
                 type: UITabItemView[]
                 summary: The item views contained within
-      -
-        name: UITabItemView
-        kind: class
-        inherits: UIView
-        topics:
-          -
-            name: Title & Image
-            members:
               -
-                name: titleLabel
-                type: UILabel
-                summary: The label for the tab's title
-              -
-                name: imageView
-                type: UIImageView
-                summary: The image view for the tab's icon
-          -
-            name: Location
-            members:
-              -
-                name: index
-                type: Number
-                summary: The index of the view within the list of item views
-                description: |
-                  Can be used to put rounded corners on the first and last
-                  tab only, for example.
+                name: UITabItemView
+                kind: class
+                inherits: UIView
+                summary: A child of `UITabItemsView` that knows its index in the tab
+                  list and provides a way for stylers to add custom properties.
+                topics:
+                  -
+                    name: Styling
+                    members:
+                      -
+                        name: styleProperties
+                        type: dictionary
+                        summary: Available for stylers to add custom properties
+                  -
+                    name: Location
+                    members:
+                      -
+                        name: index
+                        type: Number
+                        summary: The index of the view within the list of item views
+                        description: |
+                          Can be used to put rounded corners on the first and last
+                          tab only, for example.

@@ -53,8 +53,6 @@ JSClass("UIPopupButton", UIControl, {
 
     commonUIControlInit: function(){
         UIPopupButton.$super.commonUIControlInit.call(this);
-        this._menu = UIMenu.initWithStyler(this._styler.menuStyler);
-        this._menu.automaticallyUpdates = false;
         this._imageView = UIImageView.init();
         this._imageView.hidden = true;
         this._titleLabel = UILabel.init();
@@ -71,6 +69,8 @@ JSClass("UIPopupButton", UIControl, {
         }
         this.hasOverState = this._styler.showsOverState;
         this._styler.initializeControl(this);
+        this._menu = UIMenu.initWithStyler(this._styler.menuStyler);
+        this._menu.automaticallyUpdates = false;
     },
 
     setPullsDown: function(pullsDown){

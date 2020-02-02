@@ -70,7 +70,7 @@ JSClass("UITabViewController", UIViewController, {
     },
 
     getSelectedViewController: function(){
-        if (this.selectedIndex < this._viewControllers.length){
+        if (this.selectedIndex >= 0 && this.selectedIndex < this._viewControllers.length){
             return this._viewControllers[this.selectedIndex];
         }
         return null;
