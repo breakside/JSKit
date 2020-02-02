@@ -8,7 +8,7 @@
 
 (function(){
 
-var logger = JSLog("Foundation", "url-session");
+var logger = JSLog("foundation", "url-session");
 
 JSURLSessionStreamTask.definePropertiesFromExtensions({
 

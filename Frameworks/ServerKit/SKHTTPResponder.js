@@ -8,7 +8,7 @@
 
 (function(){
 
-var logger = JSLog("server", "http");
+var logger = JSLog("serverkit", "http");
 
 JSClass("SKHTTPResponder", JSObject, {
 

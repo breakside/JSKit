@@ -3,7 +3,7 @@
 
 (function(){
 
-var logger = JSLog("server", "websocket");
+var logger = JSLog("serverkit", "websocket");
 
 var WebSocketFrame = function(){
     if (this === undefined){

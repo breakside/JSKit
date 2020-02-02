@@ -6,7 +6,7 @@
 
 (function(){
 
-var logger = JSLog("ui", "text");
+var logger = JSLog("uikit", "text");
 
 JSClass('UIHTMLTextInputManager', UITextInputManager, {
 

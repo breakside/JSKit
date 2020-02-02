@@ -53,18 +53,6 @@ topics:
                   `UIApplicationLaunchOptions` entry in the application's
                   [Info](UIApplicationInfo) file.
               -
-                name: applicationDidFailLaunching
-                summary: Called when the application launches successfully
-                arguments:
-                  -
-                    name: application
-                    type: UIApplication
-                    summary: The application that launched
-                  -
-                    name: reason
-                    type: LaunchFailureReason
-                    summary: The reason the application failed to launch
-              -
                 name: applicationWillTerminate
                 summary: Called when the application will terminate
                 arguments:
@@ -113,27 +101,6 @@ topics:
 
           - Establishing a root window to display
           - Setting up `JSUserDefaults`
-      -
-        name: LaunchFailureReason
-        kind: enum
-        summary: Various reasons an application launch can fail
-        topics:
-          -
-            name: Options
-            members:
-              -
-                name: exception
-                summary: An exception was thrown during application
-                  initialization
-              -
-                name: filestyemNotAvailable
-                summary: The filesystem could not be accessed or
-                  initialized
-              -
-                name: upgradeRequiresNoOtherInstances
-                summary: An upgrade is available, but cannot be installed
-                  until other windows/tabs running the same application are
-                  closed
   -
     name: Windows
     members:

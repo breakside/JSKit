@@ -6,7 +6,7 @@
 
 (function(){
 
-var logger = JSLog("PDFKit", "Font");
+var logger = JSLog("pdfkit", "Font");
 
 JSGlobalObject.PDFFont = function(){
     if (this === undefined){

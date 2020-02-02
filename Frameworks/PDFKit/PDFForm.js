@@ -6,7 +6,7 @@
 
 (function(){
 
-var logger = JSLog("PDFKit", "image");
+var logger = JSLog("pdfkit", "image");
 
 JSGlobalObject.PDFForm = function(){
     if (this === undefined){

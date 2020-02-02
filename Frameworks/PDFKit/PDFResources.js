@@ -4,7 +4,7 @@
 
 (function(){
 
-var logger = JSLog("PDFKit", "Resources");
+var logger = JSLog("pdfkit", "Resources");
 
 JSGlobalObject.PDFResources = function(){
     if (this === undefined){

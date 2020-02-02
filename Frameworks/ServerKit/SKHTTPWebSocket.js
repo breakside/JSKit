@@ -4,7 +4,7 @@
 
 (function(){
 
-var logger = JSLog("server", "websocket");
+var logger = JSLog("serverkit", "websocket");
 
 JSClass("SKHTTPWebSocket", JSObject, {
 

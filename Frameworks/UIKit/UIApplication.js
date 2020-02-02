@@ -9,7 +9,7 @@
 
 var shared = null;
 
-var logger = JSLog("ui", "application");
+var logger = JSLog("uikit", "application");
 
 JSClass('UIApplication', UIResponder, {
 
@@ -19,6 +19,7 @@ JSClass('UIApplication', UIResponder, {
         if (shared){
             throw new Error("UIApplication.init: one application already initialized, and only one may exist");
         }
+        logger.info("Creating application");
         shared = this;
         this.windowServer = windowServer;
         this._windowsById = {};
@@ -34,20 +35,25 @@ JSClass('UIApplication', UIResponder, {
     },
 
     setup: function(){
+        logger.info("Setup");
         this.setupFonts();
         this.setupDelegate();
     },
 
     setupFonts: function(){
+        logger.info("Setup fonts");
         var descriptors = JSFont.registerBundleFonts(this.bundle);
         var systemFontName = this.bundle.info[UIApplication.InfoKeys.systemFont];
         if (systemFontName){
             JSFont.registerSystemFontResource(systemFontName);
+        }else{
+            logger.warn("No system font name");
         }
         for (var i = 0, l = descriptors.length; i < l; ++i){
             this.windowServer.displayServer.registerBundleFontDescriptor(descriptors[i]);
         }
         if (this.windowServer.device.primaryPointerType === UIUserInterface.PointerType.touch){
+            logger.info("Touch device, increasing font sizes by 120%");
             for (var size in JSFont.Size){
                 JSFont.Size[size] = Math.round(JSFont.Size[size] * 1.2);
             }
@@ -60,8 +66,13 @@ JSClass('UIApplication', UIResponder, {
                 var mainSpecName = this.bundle.info[UIApplication.InfoKeys.mainSpec];
                 var mainUIFile = null;
                 if (typeof(mainSpecName) == 'object'){
+                    logger.info("Variable main spec file depending on device type");
                     if (this.windowServer.device.primaryPointerType === UIUserInterface.PointerType.touch && mainSpecName.touch){
+                        logger.info("Looking for touch spec");
                         mainUIFile = JSSpec.initWithResource(mainSpecName.touch);
+                        if (mainUIFile !== null){
+                            logger.info("Found touch spec");
+                        }
                     }
                     mainSpecName = mainSpecName.default;
                 }
@@ -91,31 +102,49 @@ JSClass('UIApplication', UIResponder, {
         var needsFileManager = needsUserDefaults || (this.bundle.info[UIApplication.InfoKeys.requiresFileManager] !== false);
 
         if (needsFileManager){
+            logger.info("Need file manager");
             JSFileManager.shared.open(function UIApplication_fileManagerDidOpen(state){
-                switch (state){
-                    case JSFileManager.State.success:
-                        if (needsUserDefaults){
-                            JSUserDefaults.shared.open(function UIApplication_userDefaultsDidOpen(){
+                logger.info("File manager state: %d", state);
+                try{
+                    switch (state){
+                        case JSFileManager.State.success:
+                            if (needsUserDefaults){
+                                logger.info("Need user defaults");
+                                JSUserDefaults.shared.open(function UIApplication_userDefaultsDidOpen(){
+                                    logger.info("User defaults opened");
+                                    try{
+                                        this._launch(callback);
+                                    }catch (e){
+                                        callback(e);
+                                    }
+                                }, this);
+                            }else{
                                 this._launch(callback);
-                            }, this);
-                        }else{
-                            this._launch(callback);
-                        }
-                        break;
-                    case JSFileManager.State.genericFailure:
-                        this._notifyDelegateOfLaunchFailure(UIApplication.LaunchFailureReason.filestyemNotAvailable, callback);
-                        break;
-                    case JSFileManager.State.conflictingVersions:
-                        this._notifyDelegateOfLaunchFailure(UIApplication.LaunchFailureReason.upgradeRequiresNoOtherInstances, callback);
-                        break;
+                            }
+                            break;
+                        case JSFileManager.State.genericFailure:
+                            if (JSFileManager.shared.error){
+                                throw JSFileManager.shared.error;
+                            }
+                            throw new Error("Failed to open filesystem");
+                        case JSFileManager.State.conflictingVersions:
+                            throw new Error("JSKIT_CLOSE_OTHER_INSTANCES");
+                    }
+                }catch(e){
+                    callback(e);
                 }
             }, this);
         }else{
-            this._launch(callback);
+            try{
+                this._launch(callback);
+            }catch(e){
+                callback(e);
+            }
         }
     },
 
     stop: function(completion, target){
+        logger.info("Stopping application");
         var _close = function(){
             JSUserDefaults.shared.close(function(){
                 completion.call(target);
@@ -134,27 +163,17 @@ JSClass('UIApplication', UIResponder, {
     _launch: function(callback){
         this.setup();
         var launchOptions = this.launchOptions();
-        if (this.delegate && this.delegate.applicationDidFinishLaunching){
-            try{
-                this.delegate.applicationDidFinishLaunching(this, launchOptions);
-                if (this.windowServer.windowStack.length === 0){
-                    throw new Error("No window initiated on application launch.  ApplicationDelegate needs to show a window during .applicationDidFinishLaunching()");
-                }
-                callback(true);
-            }catch (e){
-                logger.error(e);
-                this._notifyDelegateOfLaunchFailure(UIApplication.LaunchFailureReason.exception, callback);
-            }
+        if (!this.delegate){
+            throw new Error("No application delegate defined");
         }
-    },
-
-    _notifyDelegateOfLaunchFailure: function(reason, callback){
-        logger.error("Could not launch app: %{public}", reason);
-        var launchOptions = this.launchOptions();
-        if (this.delegate && this.delegate.applicationDidFailLaunching){
-            this.delegate.applicationDidFailLaunching(this, reason);
+        if (!this.delegate.applicationDidFinishLaunching){
+            throw new Error("ApplicationDelegate does not implement applicationDidFinishLaunching()");
         }
-        callback(false);
+        this.delegate.applicationDidFinishLaunching(this, launchOptions);
+        if (this.windowServer.windowStack.length === 0){
+            throw new Error("No window initiated on application launch.  ApplicationDelegate needs to show a window during .applicationDidFinishLaunching()");
+        }
+        callback(null);
     },
 
     // MARK: - Managing Windows

@@ -27,7 +27,7 @@ JSClass("JSUserDefaults", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        JSFileManager.shared.contentsAtURL(this._url, function(data){
+        JSFileManager.shared.contentsAtURL(this._url, function JSUserDefaults_open_contents(data){
             try{
                 if (data !== null){
                     var json = String.initWithData(data, String.Encoding.utf8);
@@ -44,19 +44,11 @@ JSClass("JSUserDefaults", JSObject, {
         return completion.promise;
     },
 
-    _open: function(){
-        var self;
-        return JSFileManager.shared.contentsAtURL(this._url).then(function(data){
-            var json = String.initWithData(data, String.Encoding.utf8);
-            self._values = JSON.parse(json);
-        });
-    },
-
     close: function(completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        this._persist(function(success){
+        this._persist(function JSFileManager_close_persisted(success){
             if (success){
                 this._values = null;
             }
@@ -116,7 +108,7 @@ JSClass("JSUserDefaults", JSObject, {
             return;
         }
         this._persistScheduled = true;
-        JSRunLoop.main.schedule(function(){
+        JSRunLoop.main.schedule(function JSFileManager_persistAfterDelay_scheduled(){
             if (this._persistScheduled){
                 if (this._persistTimer !== null){
                     this._persistTimer.invalidate();
@@ -136,7 +128,7 @@ JSClass("JSUserDefaults", JSObject, {
             completion.call(target, true);
         }else{
             var data = JSON.stringify(this._values).utf8();
-            JSFileManager.shared.createFileAtURL(this._url, data, function(success){
+            JSFileManager.shared.createFileAtURL(this._url, data, function JSFileManager_persist_createFile(success){
                 if (!success){
                     logger.error("Failed to write preferences to %{public}", this._url);
                 }

@@ -15,6 +15,8 @@ JSFileManager.definePropertiesFromExtensions({
 
     _db: null,
 
+    error: null,
+
     // --------------------------------------------------------------------
     // MARK: - Working Directory
 
@@ -25,7 +27,7 @@ JSFileManager.definePropertiesFromExtensions({
 
     open: function(completion, target){
         if (!completion){
-            completion = Promise.completion(function(status){
+            completion = Promise.completion(function JSFileManager_open_promise_completion(status){
                 if (status != JSFileManager.State.success){
                     return Promise.reject(status);
                 }
@@ -34,13 +36,14 @@ JSFileManager.definePropertiesFromExtensions({
         }
         var request = indexedDB.open(this._identifier, CURRENT_DATABASE_VERSION);
         var manager = this;
-        request.onblocked = function(e){
+        request.onblocked = function JSFileManager_open_onblocked(e){
             completion.call(target, JSFileManager.State.conflictingVersions);
         };
-        request.onerror = function(e){
+        request.onerror = function JSFileManager_open_onerror(e){
+            manager.error = e.error;
             completion.call(target, JSFileManager.State.genericFailure);
         };
-        request.onupgradeneeded = function(e){
+        request.onupgradeneeded = function JSFileManager_open_onupgradeneeded(e){
             try{
                 manager._db = e.target.result;
                 manager.upgrade(e.oldVersion, e.newVersion);
@@ -49,7 +52,7 @@ JSFileManager.definePropertiesFromExtensions({
                 completion.call(target, JSFileManager.State.genericFailure);
             }
         };
-        request.onsuccess = function(e){
+        request.onsuccess = function JSFileManager_open_onsuccess(e){
             manager._db = e.target.result;
             completion.call(target, JSFileManager.State.success);
         };
@@ -114,10 +117,10 @@ JSFileManager.definePropertiesFromExtensions({
         }
         var exists = false;
         var transaction = this.begin(JSFileManager.Permission.read, JSFileManager.Tables.metadata);
-        transaction.addCompletion(function(success){
+        transaction.addCompletion(function JSFileManager_itemExists_completion(success){
             completion.call(target, success && exists);
         });
-        this._metadataInTransactionAtURL(transaction, url, function(metadata){
+        this._metadataInTransactionAtURL(transaction, url, function JSFileManager_itemExists_metadata(metadata){
             exists = metadata !== null;
         });
         return completion.promise;
@@ -139,10 +142,10 @@ JSFileManager.definePropertiesFromExtensions({
         }
         var metadata = null;
         var transaction = this.begin(JSFileManager.Permission.read, JSFileManager.Tables.metadata);
-        transaction.addCompletion(function(success){
+        transaction.addCompletion(function JSFileManager_attributesOfItem_completion(success){
             completion.call(target, metadata);
         });
-        this._metadataInTransactionAtURL(transaction, url, function(metadata_){
+        this._metadataInTransactionAtURL(transaction, url, function JSFileManager_attributesOfItem_metadata(metadata_){
             metadata = metadata_;
         });
         return completion.promise;
@@ -154,7 +157,7 @@ JSFileManager.definePropertiesFromExtensions({
         var lookup = [parent.path || '', url.lastPathComponent];
         var request = index.get(lookup);
         var metadata;
-        request.onsuccess = function(e){
+        request.onsuccess = function JSFileManager_metadata_onsuccess(e){
             completion(e.target.result || null);
             // FIXME: url could include a symlink folder, in which case we won't
             // get a result here even if the url is valid after resolving the symlink.
@@ -168,7 +171,7 @@ JSFileManager.definePropertiesFromExtensions({
             // and the fallback here to a step-by-step lookup.  Downside is that would
             // make every lookup of a non-existent file slow.
         };
-        request.onerror = function(e){
+        request.onerror = function JSFileManager_metadata_onerror(e){
             completion(null);
         };
     },
@@ -192,7 +195,7 @@ JSFileManager.definePropertiesFromExtensions({
         }
         var transaction = this.begin(JSFileManager.Permission.readwrite, JSFileManager.Tables.metadata);
         transaction.addCompletion(completion, target);
-        this._createDirectoryInTransactionAtURL(transaction, url, function(success){
+        this._createDirectoryInTransactionAtURL(transaction, url, function JSFileManager_createDirectory_completion(success){
             if (!success){
                 transaction.abort();
             }
@@ -203,15 +206,15 @@ JSFileManager.definePropertiesFromExtensions({
     _createDirectoryInTransactionAtURL: function(transaction, url, completion){
         var parent = url.removingLastPathComponent();
         var manager = this;
-        var create = function(parentExists){
+        var create = function JSFileManager_createDirectory_create(parentExists){
             if (parentExists){
                 var t = manager.timestamp;
                 var metadata = {parent: parent.path, name: url.lastPathComponent, itemType: JSFileManager.ItemType.directory, created: t, updated: t, added: t};
                 var request = transaction.metadata.add(metadata);
-                request.onsuccess = function(){
+                request.onsuccess = function JSFileManager_createDirectory_onsucess(){
                     completion(true);
                 };
-                request.onerror = function(){
+                request.onerror = function JSFileManager_createDirectory_onerror(){
                     completion(false);
                 };
             }else{
@@ -221,7 +224,7 @@ JSFileManager.definePropertiesFromExtensions({
         if (parent.pathComponents.length === 0){
             completion(false);
         }else{
-            manager._metadataInTransactionAtURL(transaction, parent, function(metadata){
+            manager._metadataInTransactionAtURL(transaction, parent, function JSFileManager_createDirectory_metadata(metadata){
                 if (metadata !== null){
                     create(metadata.itemType == JSFileManager.ItemType.directory);
                     // TODO: follow symlink if needed, watch out for circular links
@@ -256,7 +259,7 @@ JSFileManager.definePropertiesFromExtensions({
         var manager = this;
         var created = false;
         var metadata = null;
-        var create = function(parentExists){
+        var create = function JSFileManager_createFile_create(parentExists){
             if (parentExists){
                 var dataRequest;
                 if (metadata === null){
@@ -264,7 +267,7 @@ JSFileManager.definePropertiesFromExtensions({
                 }else{
                     dataRequest = transaction.data.put(data, metadata.dataKey);
                 }
-                dataRequest.onsuccess = function(e){
+                dataRequest.onsuccess = function JSFileManager_createFile_onsuccess(e){
                     var t = manager.timestamp;
                     if (metadata === null){
                         metadata = {parent: parent.path, name: url.lastPathComponent, itemType: JSFileManager.ItemType.file, created: t, updated: t, added: t, dataKey: e.target.result};
@@ -278,12 +281,12 @@ JSFileManager.definePropertiesFromExtensions({
                 transaction.abort();
             }
         };
-        manager._metadataInTransactionAtURL(transaction, url, function(existingMetadata){
+        manager._metadataInTransactionAtURL(transaction, url, function JSFileManager_createFile_metadata(existingMetadata){
             if (existingMetadata !== null){
                 metadata = existingMetadata;
                 create(true);
             }else{
-                manager._metadataInTransactionAtURL(transaction, parent, function(parentMetadata){
+                manager._metadataInTransactionAtURL(transaction, parent, function JSFileManager_createFile_parent_metadata(parentMetadata){
                     if (parentMetadata !== null){
                         create(parentMetadata.itemType == JSFileManager.ItemType.directory);
                     }else{
@@ -329,11 +332,11 @@ JSFileManager.definePropertiesFromExtensions({
         transaction.addCompletion(completion, target);
         var toParent = toURL.removingLastPathComponent();
         var manager = this;
-        manager._metadataInTransactionAtURL(transaction, url, function(metadata){
+        manager._metadataInTransactionAtURL(transaction, url, function JSFileManager_moveItem_metadata(metadata){
             if (metadata === null){
                 transaction.abort();
             }else{
-                var move = function(toParentExists){
+                var move = function JSFileManager_moveItem_move(toParentExists){
                     if (toParentExists){
                         metadata.parent = toParent.path;
                         transaction.metadata.put(metadata);
@@ -341,7 +344,7 @@ JSFileManager.definePropertiesFromExtensions({
                         transaction.abort();
                     }
                 };
-                manager._metadataInTransactionAtURL(transaction, toParent, function(toParentMetadata){
+                manager._metadataInTransactionAtURL(transaction, toParent, function JSFileManager_moveItem_parent_metadata(toParentMetadata){
                     if (toParentMetadata !== null){
                         move(true);
                     }else{
@@ -384,11 +387,11 @@ JSFileManager.definePropertiesFromExtensions({
         transaction.addCompletion(completion, target);
         var toParent = toURL.removingLastPathComponent();
         var manager = this;
-        manager._metadataInTransactionAtURL(transaction, url, function(metadata){
+        manager._metadataInTransactionAtURL(transaction, url, function JSFileManager_copyItem_metadata(metadata){
             if (metadata === null){
                 transaction.abort();
             }else{
-                var copy = function(parentExists){
+                var copy = function JSFileManager(parentExists){
                     if (parentExists){
                         manager._copyItemInTransactionAtURL(transaction, url, toURL, toParent, metadata);
                     }else{
@@ -396,7 +399,7 @@ JSFileManager.definePropertiesFromExtensions({
                     }
                 };
                 var manager = this;
-                manager._metadataInTransactionAtURL(transaction, toParent, function(toParentMetadata){
+                manager._metadataInTransactionAtURL(transaction, toParent, function JSFileManager_copyItem_parent_metadata(toParentMetadata){
                     if (toParentMetadata !== null){
                         copy(true);
                     }else{
@@ -424,9 +427,9 @@ JSFileManager.definePropertiesFromExtensions({
 
     _copyFileInTransactionAtURL: function(transaction, url, toURL, toParent, metadata){
         var getDataRequest = transaction.data.get(metadata.dataKey);
-        getDataRequest.onsuccess = function(e){
+        getDataRequest.onsuccess = function JSFileManager_copyFile_getData_onsucess(e){
             var addDataRequest = transaction.data.add(e.target.result);
-            addDataRequest.onsuccess = function(e){
+            addDataRequest.onsuccess = function JSFileManager_copyFile_addData_onsucess(e){
                 var copiedMetadata = JSCopy(metadata);
                 copiedMetadata.parent = toParent.path;
                 copiedMetadata.dataKey = e.target.result;
@@ -446,7 +449,7 @@ JSFileManager.definePropertiesFromExtensions({
         var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
         var childRequest = index.openCursor({parent: url.path});
         var children = [];
-        childRequest.onsuccess = function(e){
+        childRequest.onsuccess = function JSFileManager_copyDirectory_onsucess(e){
             var cursor = e.target.result;
             if (cursor){
                 var child = cursor.value;
@@ -479,7 +482,7 @@ JSFileManager.definePropertiesFromExtensions({
         transaction.addCompletion(completion, target);
         var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
         var manager = this;
-        this._metadataInTransactionAtURL(transaction, url, function(metadata){
+        this._metadataInTransactionAtURL(transaction, url, function JSFileManager_removeItem_metadata(metadata){
             if (metadata !== null){
                 manager._removeItemInTransactionAtURL(transaction, url, parent, metadata);
             }else{
@@ -512,7 +515,7 @@ JSFileManager.definePropertiesFromExtensions({
         var lookup = [parent.path, url.lastPathComponent];
         var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
         var keyRequest = index.getKey(lookup);
-        keyRequest.onsuccess = function(e){
+        keyRequest.onsuccess = function JSFileManager_removeMetadata_onsuccess(e){
             var key = e.target.result;
             if (key !== undefined){
                 transaction.metadata.delete(key);
@@ -526,7 +529,7 @@ JSFileManager.definePropertiesFromExtensions({
         var childRequest = index.openCursor([url.path]);
         var children = [];
         var manager = this;
-        childRequest.onsuccess = function(e){
+        childRequest.onsuccess = function JSFileManager_removeDirectory_onsucess(e){
             var cursor = e.target.result;
             if (cursor){
                 var child = cursor.value;
@@ -553,10 +556,10 @@ JSFileManager.definePropertiesFromExtensions({
         var transaction = this.begin(JSFileManager.Permission.readonly, [JSFileManager.Tables.metadata, JSFileManager.Tables.data]);
         var contents = null;
         var visitedURLSet = {};
-        transaction.addCompletion(function(success){
+        transaction.addCompletion(function JSFileManager_contents_completion(success){
             completion.call(target, contents);
         }, this);
-        this._contentsInTransactionAtURL(transaction, url, visitedURLSet, function(data){
+        this._contentsInTransactionAtURL(transaction, url, visitedURLSet, function JSFileManager_contents_contents(data){
             if (data !== null){
                 contents = data;
             }
@@ -573,7 +576,7 @@ JSFileManager.definePropertiesFromExtensions({
             visitedURLSet[uniqueURL] = true;
         }
         var manager = this;
-        manager._metadataInTransactionAtURL(transaction, url, function(metadata){
+        manager._metadataInTransactionAtURL(transaction, url, function JSFileManager_contents_metadata(metadata){
             if (metadata === null){
                 callback(null);
                 return;
@@ -584,7 +587,7 @@ JSFileManager.definePropertiesFromExtensions({
                     break;
                 case JSFileManager.ItemType.file:
                     var request = transaction.data.get(metadata.dataKey);
-                    request.onsuccess = function(e){
+                    request.onsuccess = function JSFileManager_conents_onsuccess(e){
                         callback(e.target.result);
                     };
                     break;
@@ -616,7 +619,7 @@ JSFileManager.definePropertiesFromExtensions({
         var lookup = url.path;
         var request = index.getAll(lookup);
         var manager = this;
-        request.onsuccess = function(e){
+        request.onsuccess = function JSFileManager_contentsOfDirectory_onsuccess(e){
             var cursor = e.target.result;
             if (!cursor){
                 completion.call(target, null);
@@ -634,7 +637,7 @@ JSFileManager.definePropertiesFromExtensions({
             }
             completion.call(target, entries);
         };
-        request.onerror = function(e){
+        request.onerror = function JSFileManager_contentsOfDirectory_onerror(e){
             completion.call(target, null);
         };
         return completion.promise;
@@ -669,7 +672,7 @@ JSFileManager.definePropertiesFromExtensions({
         var parent = url.removingLastPathComponent();
         var manager = this;
         var created = false;
-        var create = function(parentExists){
+        var create = function JSFileManager_createSymbolicLink_create(parentExists){
             if (parentExists){
                 var t = manager.timestamp;
                 var metadata = {parent: parent.path, name: url.lastPathComponent, itemType: JSFileManager.ItemType.symbolicLink, created: t, updated: t, added: t, link: toURL.encodedString};
@@ -678,7 +681,7 @@ JSFileManager.definePropertiesFromExtensions({
                 transaction.abort();
             }
         };
-        manager._metadataInTransactionAtURL(transaction, parent, function(parentMetadata){
+        manager._metadataInTransactionAtURL(transaction, parent, function JSFileManager_createSymbolicLink_metadata(parentMetadata){
             if (parentMetadata !== null){
                 create(true);
             }else{
@@ -701,10 +704,10 @@ JSFileManager.definePropertiesFromExtensions({
         }
         var link = null;
         var transaction = this.begin(JSFileManager.Permission.read, JSFileManager.Tables.metadata);
-        transaction.addCompletion(function(success){
+        transaction.addCompletion(function JSFileManager_destinationOfSymbolicLink_completion(success){
             completion.call(target, link);
         });
-        this._metadataInTransactionAtURL(transaction, url, function(metadata){
+        this._metadataInTransactionAtURL(transaction, url, function JSFileManager_destinationOfSymbolicLink_metadata(metadata){
             if (metadata && metadata.itemType == JSFileManager.ItemType.symbolicLink){
                 link = JSURL.initWithString(metadata.link, url);
             }
@@ -723,10 +726,10 @@ JSFileManager.definePropertiesFromExtensions({
             this._db.close();
         }
         var request = indexedDB.deleteDatabase(this._identifier);
-        request.onsuccess = function(e){
+        request.onsuccess = function JSFileManager_destroy_onsuccess(e){
             completion.call(target, true);
         };
-        request.onerror = function(e){
+        request.onerror = function JSFileManager_destroy_onerror(e){
             completion.call(target, false);
         };
         return completion.promise;

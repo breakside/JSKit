@@ -4,7 +4,7 @@
 // #import "SKHTTPResponder.js"
 'use strict';
 
-var logger = JSLog("server", "http");
+var logger = JSLog("serverkit", "http");
 
 JSProtocol("SKHTTPServerDelegate", JSProtocol, {
 

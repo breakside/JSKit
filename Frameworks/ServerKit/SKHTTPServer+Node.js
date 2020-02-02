@@ -4,7 +4,7 @@
 'use strict';
 
 var http = require('http');
-var logger = JSLog("server", "http");
+var logger = JSLog("serverkit", "http");
 
 SKHTTPServer.definePropertiesFromExtensions({
 

@@ -90,7 +90,7 @@
   <script type="text/javascript" src="HTMLAppBootstrapper.js"></script>
   <script type="text/javascript" jskit>
   // jshint browser: true
-  /* global HTMLAppBootstrapper */
+  /* global HTMLAppBootstrapper, console */
   'use strict';
   (function(){
     var app = {TEMPLATE: "JSKIT_APP"};
@@ -146,6 +146,14 @@
           detailsLabel.style.opacity = 1;
           detailsLabel.innerHTML = "Don't worry, it wasn't anything you did, and it isn't something we expect to happen under normal usage.<br>We've notified our engineers of the problem, and the best thing you can do is try again soon.";
           break;
+        case S.appRequiresNoOtherInstances:
+          statusLabel.style.opacity = 1;
+          progress.style.opacity = 0;
+          splash.className = 'error';
+          statusLabel.innerHTML = "Please close all other tabs running this application";
+          detailsLabel.style.opacity = 1;
+          detailsLabel.innerHTML = "In order to upgrade, only a single tab with this application can be running.  After closing other tabs, refresh this page.";
+          break;
         case S.appRunning:
           break;
         case S.appLaunched:
@@ -158,6 +166,29 @@
     };
     bootstrapper.onprogress = function(loaded, total){
       progressBar.style.width = (loaded * 100 / total) + '%';
+    };
+    if (app.debug){
+      bootstrapper.onlog = function(record){
+          console[record.level]([_03f(record.timestamp), record.message].join("  "));
+      };
+    }
+    var _03f = function(n){
+      n = Math.round(n * 1000);
+      var f = n % 1000;
+      var d = (n - f) / 1000;
+      var fs = f.toString();
+      var padding = 3 - fs.length;
+      while (padding > 0){
+        fs = '0' + fs;
+        --padding;
+      }
+      var ds = d.toString();
+      padding = 6 - ds.length;
+      while (padding > 0){
+        ds = '0' + ds;
+        --padding;
+      }
+      return ds + "." + fs;
     };
     window.JSKIT_PREFLIGHT_CONTEXT = bootstrapper;
     bootstrapper.run();

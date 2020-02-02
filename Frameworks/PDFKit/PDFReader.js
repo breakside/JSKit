@@ -9,7 +9,7 @@
 
 (function(){
 
-var logger = JSLog("PDFKit", "Reader");
+var logger = JSLog("pdfkit", "Reader");
 
 JSClass("PDFReader", JSObject, {
 

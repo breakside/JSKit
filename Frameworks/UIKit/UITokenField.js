@@ -6,7 +6,7 @@
 
 (function(){
 
-var logger = JSLog("ui", "token");
+var logger = JSLog("uikit", "token");
 
 JSClass("UITokenField", UITextField, {
 

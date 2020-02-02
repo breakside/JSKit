@@ -3,7 +3,7 @@
 // #import "SKValidatingObject.js"
 'use strict';
 
-var logger = JSLog("server", "http");
+var logger = JSLog("serverkit", "http");
 
 JSClass("SKHTTPRequest", JSObject, {
 

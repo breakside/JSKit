@@ -452,7 +452,8 @@ JSClass("HTMLBuilder", Builder, {
                             appCss: this.wwwCSSPaths,
                             preflightId: this.preflightId,
                             preflightSrc: this.preflightURL.encodedStringRelativeTo(this.wwwURL),
-                            serviceWorkerSrc: this.serviceWorkerURL ? this.serviceWorkerURL.encodedStringRelativeTo(this.wwwURL) : null
+                            serviceWorkerSrc: this.serviceWorkerURL ? this.serviceWorkerURL.encodedStringRelativeTo(this.wwwURL) : null,
+                            debug: this.debug
                         }, null, 2)
                     };
                     element.removeAttribute("jskit");

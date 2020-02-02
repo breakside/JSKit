@@ -5,7 +5,7 @@
 
 (function(){
 
-var logger = JSLog("PDFKit", "ColorSpace");
+var logger = JSLog("pdfkit", "ColorSpace");
 
 JSGlobalObject.PDFColorSpace = function(params){
     if (params === null){

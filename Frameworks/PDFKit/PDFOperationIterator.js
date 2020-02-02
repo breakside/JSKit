@@ -7,7 +7,7 @@
 
 (function(){
 
-var logger = JSLog("PDFKit", "OpIterator");
+var logger = JSLog("pdfkit", "OpIterator");
 
 JSClass('PDFOperationIterator', JSObject, {
 

@@ -12,7 +12,7 @@
 
 (function(){
 
-var logger = JSLog("ui", "display");
+var logger = JSLog("uikit", "display");
 
 var sharedInstance = null;
 

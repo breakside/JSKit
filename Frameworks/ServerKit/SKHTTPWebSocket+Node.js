@@ -2,7 +2,7 @@
 // jshint node: true
 'use strict';
 
-var logger = JSLog("server", "websocket");
+var logger = JSLog("serverkit", "websocket");
 
 SKHTTPWebSocket.definePropertiesFromExtensions({
 

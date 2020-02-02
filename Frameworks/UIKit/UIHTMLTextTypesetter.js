@@ -7,7 +7,7 @@
 
 (function(){
 
-var logger = JSLog("ui", "text");
+var logger = JSLog("uikit", "text");
 
 var sharedDomRange = null;
 var layoutElementStack = [];

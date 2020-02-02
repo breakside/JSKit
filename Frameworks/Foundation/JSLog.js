@@ -66,6 +66,11 @@ JSLog.getOrCreateConfig = function(subsystem, category){
     return JSLog.configuration[subsystem][category];
 };
 
+JSLog.hook = function(subsystem, category, hook){
+    var config = JSLog.getOrCreateConfig(subsystem, category);
+    config.hooks.push(hook);
+};
+
 JSLog.format = function(record){
     var args = [
         record.timestamp,
@@ -73,7 +78,7 @@ JSLog.format = function(record){
         record.subsystem.length <= 16 ? record.subsystem : (record.subsystem.substr(0, 13) + '...'),
         record.category.length <= 16 ? record.category : (record.category.substr(0, 13) + '...')
     ];
-    var format = "%t %-5{public} %-16{public} %-16{public}" + record.message;
+    var format = "%t %-5{public} %-16{public} %-16{public} " + record.message;
     return format.format(jslog_formatter, args.concat(record.args));
 };
 
@@ -90,7 +95,7 @@ JSLog.writeRecord = function(logger, level, message, args){
         level: level,
         message: message,
         args: args,
-        timestamp: performance.now() / 1000
+        timestamp: Date.now() / 1000
     };
     JSLog.buffer.write(record);
     if (config.console){
@@ -138,7 +143,7 @@ var jslog_formatter = {
             s += 1;
             ms = 0;            
         }
-        return s.toString().leftPaddedString('0', 6) + '.' + ms.toString().leftPaddedString('0', 3);
+        return s.toString().leftPaddedString('0', 10) + '.' + ms.toString().leftPaddedString('0', 3);
     },
 
     error: function(e, options){
