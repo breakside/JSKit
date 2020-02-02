@@ -256,6 +256,7 @@ topics:
       -
         name: UIToolbarStyler
         kind: class
+        inherits: JSObject
         summary: The abstract base class for toolbar styling
         topics:
           -
@@ -330,6 +331,7 @@ topics:
       -
         name: UIToolbarCustomStyler
         kind: class
+        inherits: UIToolbarStyler
         summary: The default customizable toolbar styler for `UIKit`
         topics:
           -
@@ -466,3 +468,7 @@ topics:
         name: styler
         type: UIToolbarStyler
         summary: The styler in use for this toolbar
+      -
+        name: stylerProperies
+        type: dictionary
+        summary: A dictionary the `styler` can use to store custom properies

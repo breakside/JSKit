@@ -23,6 +23,7 @@ JSClass("UIMenu", JSObject, {
         if (this._styler === null){
             this._styler = UIMenu.Styler.default;
         }
+        this.stylerProperties = {};
     },
 
     init: function(){
@@ -56,7 +57,16 @@ JSClass("UIMenu", JSObject, {
 
     // MARK: - Display Properties
 
-    styler: JSReadOnlyProperty('_styler', null),
+    styler: JSDynamicProperty('_styler', null),
+
+    getStyler: function(){
+        if (this.supermenu){
+            return this.supermenu.styler;
+        }
+        return this._styler;
+    },
+
+    stylerProperties: null,
     font: JSDynamicProperty('_font', null),
     showStatusColumn: JSDynamicProperty('_showStatusColumn', true),
     minimumWidth: JSDynamicProperty('_minimumWidth', 48),
@@ -172,7 +182,7 @@ JSClass("UIMenu", JSObject, {
         }
         var target = item.target;
         if (target === null){
-            target = UIApplication.shared.firstTargetForAction(item.action, this._contextTarget, item);
+            target = UIApplication.shared.firstTargetForAction(item.action, this._getContextTarget(), item);
         }
         if (item.action == 'undo' || item.action == 'redo'){
             if (target !== null && target.getUndoManager){
@@ -270,339 +280,46 @@ JSClass("UIMenu", JSObject, {
 
     // MARK: - Opening a Menu
 
-    window: null,
     _contextTarget: null,
 
-    // Semi-private: used by UIMenuBar
-    _createWindow: function(screen){
-        this.updateEnabled();
-        var window = UIMenuWindow.initWithMenu(this);
-        return window;
-    },
-
-    _showWindow: function(window, isKey){
-        if (isKey === undefined){
-            isKey = true;
+    _getContextTarget: function(){
+        if (this.supermenu){
+            return this.supermenu._getContextTarget();
         }
-        this.window = window;
-        this.window.makeKeyAndOrderFront();
-    },
-
-    _screenMetrics: function(screen){
-        var safeFrame = screen.availableFrame.rectWithInsets(4, 7);
-        return {
-            safeFrame: safeFrame,
-            maximumWidth: Math.floor(safeFrame.size.width * 0.3)
-        };
+        return this._contextTarget;
     },
 
     openAdjacentToView: function(view, preferredPlacement, spacing){
-        if (preferredPlacement === undefined){
-            preferredPlacement = UIMenu.Placement.below;
-        }
-        if (spacing === undefined){
-            spacing = 0;
-        }
-        var window = this._createWindow(view.window.screen);
-        var screen = this._screenMetrics(view.window.screen);
-
-        var origin = JSPoint.Zero;
-        var size = JSSize(window.frame.size);
-
-        // Ensure we're at least the minimum width
-        // (although max width will take precedence)
-        if (size.width < this._minimumWidth){
-            size.width = this._minimumWidth;
-        }
-
-        // Limit width to the max screen width
-        if (size.width > screen.maximumWidth){
-            size.width = screen.maximumWidth;
-        }
-
-        // Figure out how much space we have all around the view
-        var viewFrame = view.convertRectToScreen(view.bounds);
-        var over;
-        var spaces = {
-            above: viewFrame.origin.y - screen.safeFrame.origin.y - spacing,
-            below: screen.safeFrame.origin.y + screen.safeFrame.size.height - viewFrame.origin.y - viewFrame.size.height - spacing,
-            left: viewFrame.origin.x - screen.safeFrame.origin.x - spacing,
-            right: screen.safeFrame.origin.x + screen.safeFrame.size.width - viewFrame.origin.x - viewFrame.size.width - spacing
-        };
-
-        if (preferredPlacement == UIMenu.Placement.above){
-            if (spaces.above >= size.height){
-                // Place above if there's room
-                origin.y = viewFrame.origin.y - size.height - spacing;
-            }else if (spaces.above * 2 > spaces.below){
-                // Place above and adjust height if there's not enough room,
-                // but the room that is availble is still preferable to below
-                origin.y = screen.safeFrame.origin.y;
-                size.height = viewFrame.origin.y - origin.y - spacing;
-            }else if (spaces.below >= size.height){
-                // Place below if there's room
-                origin.y = viewFrame.origin.y + viewFrame.size.height + spacing;
-            }else{
-                // Place below and adjust height if there's not enough room
-                origin.y = viewFrame.origin.y + viewFrame.size.height + spacing;
-                size.height = screen.safeFrame.origin.y + screen.safeFrame.size.height - origin.y - spacing;
-            }
-            // Prefer to line up with the left edge
-            origin.x = viewFrame.origin.x;
-        }else if (preferredPlacement == UIMenu.Placement.left){
-            if (spaces.left >= size.width || spaces.left > spaces.right){
-                // Place to the left if there's enough room, or if there's
-                // more room than on the right
-                origin.x = viewFrame.origin.x - size.width - spacing;
-            }else{
-                // Place to the right otherwise
-                origin.x = viewFrame.origin.x + viewFrame.size.width + spacing;
-            }
-            // Prefer to line up with the top edge
-            origin.y = viewFrame.origin.y;
-        }else if (preferredPlacement == UIMenu.Placement.right){
-            if (spaces.right >= size.width || spaces.right > spaces.left){
-                // Place to the right if there's enough room, or if there's more
-                // room than on the left
-                origin.x = viewFrame.origin.x + viewFrame.size.width + spacing;
-            }else{
-                // Place to the left otherwise
-                origin.x = viewFrame.origin.x - size.width - spacing;
-            }
-            // Prefer to line up with the top edge
-            origin.y = viewFrame.origin.y;
-        }else{
-            if (spaces.below >= size.height){
-                // Place below if there's enough room
-                origin.y = viewFrame.origin.y + viewFrame.size.height + spacing;
-            }else if (spaces.below * 2 > spaces.above){
-                // Place below and adjust height if there's not enough room,
-                // but the available room is still preferable to above
-                origin.y = viewFrame.origin.y + viewFrame.size.height + spacing;
-                size.height = screen.safeFrame.origin.y + screen.safeFrame.size.height - origin.y - spacing;
-            }else if (spaces.above >= size.height){
-                // Place above if there's enough room
-                origin.y = viewFrame.origin.y - size.height - spacing;
-            }else{
-                // Place above and adjust height if there's not enough room
-                origin.y = screen.safeFrame.origin.y;
-                size.height = viewFrame.origin.y - origin.y - spacing;
-            }
-            // Prefer to line up iwth the left edge
-            origin.x = viewFrame.origin.x;
-        }
-
-        // Adjust our x position if we've overflowed either side
-        over = origin.x + size.width - screen.safeFrame.origin.x - screen.safeFrame.size.width;
-        if (over > 0){
-            origin.x -= over;
-        }
-        if (origin.x < screen.safeFrame.origin.x){
-            origin.x = screen.safeFrame.origin.x;
-        }
-
-        // Make sure the height is no taller than the safe space
-        if (size.height > screen.safeFrame.size.height){
-            size.height = screen.safeFrame.size.height;
-        }
-
-        // Adjsut the y position if we've overflowed
-        // NOTE: y adjustments should not be necessary in the .above and .below
-        // cases becuase they set the origin and height to valid values.
-        over = origin.y + size.height - screen.safeFrame.origin.y - screen.safeFrame.size.height;
-        if (over > 0){
-            origin.y -= over;
-        }
-        if (origin.y < screen.safeFrame.origin.y){
-            origin.y = screen.safeFrame.origin.y;
-        }
-
-        window.frame = JSRect(origin, size);
-        this._showWindow(window);
+        this._styler.presentMenuAdjacentToView(this, view, preferredPlacement, spacing);
     },
 
     openWithItemAtLocationInView: function(targetItem, location, view){
-        var window = this._createWindow(view.window.screen);
-        var screen = this._screenMetrics(view.window.screen);
-        var size = JSSize(window.frame.size);
-
-        // Ensure we're at least the minimum width
-        // (although max width will take precedence)
-        if (size.width < this._minimumWidth){
-            size.width = this._minimumWidth;
-        }
-
-        // Limit width to the max screen width
-        if (size.width > screen.maximumWidth){
-            size.width = screen.maximumWidth;
-        }
-
-        var locationInScreen = view.convertPointToScreen(location);
-        var targetLocation = window.locationOfItem(targetItem);
-
-        // Set our origin so the origin of the target item matches the given location
-        var origin = JSPoint(locationInScreen.x - targetLocation.x, locationInScreen.y - targetLocation.y);
-
-        // Adjust our x position if we've overflowed
-        var over = origin.x + size.width - screen.safeFrame.origin.x - screen.safeFrame.size.width;
-        if (over > 0){
-            origin.x -= over;
-        }
-        if (origin.x < screen.safeFrame.origin.x){
-            origin.x = screen.safeFrame.origin.x;
-        }
-
-        var offset = JSPoint.Zero;
-
-        // If we extend beyond the top of the safe area, adjust our origin, size, and
-        // scroll position so to the target item still lines up
-        if (origin.y < screen.safeFrame.origin.y){
-            over = screen.safeFrame.origin.y - origin.y;
-            origin.y = screen.safeFrame.origin.y;
-            if (locationInScreen.y >= screen.safeFrame.origin.y + 40 && size.height - over >= 100){
-                offset.y = over;
-                size.height -= over;
-            }
-        }
-
-        // If we extend beyond the bottom, adjust our height
-        over = origin.y + size.height - screen.safeFrame.origin.y - screen.safeFrame.size.height;
-        if (over > 0){
-            if ((locationInScreen.y >= screen.safeFrame.origin.y + screen.safeFrame.size.height) || (size.height - over < 60)){
-                origin.y = screen.safeFrame.origin.y + screen.safeFrame.size.height - size.height;
-            }else{
-                size.height -= over;
-            }
-        }
-
-        window.frame = JSRect(origin, size);
-        window.layoutIfNeeded();
-        window.contentOffset = offset;
-        this._showWindow(window);
+        this._styler.presentMenuWithItemAtLocationInView(this, targetItem, location, view);
     },
 
     openAtLocationInContextView: function(location, view){
         this._contextTarget = view;
-        this._openWithFirstItemRightOfRectInView(JSRect(location, JSSize(1,0)), view);
-    },
-
-    _openAsSubmenu: function(parentItemView){
-        this._contextTarget = this.supermenu._contextTarget;
-        this._openWithFirstItemRightOfRectInView(parentItemView.bounds, parentItemView, false);
-        this.window.makeKey();
-    },
-
-    _openWithFirstItemRightOfRectInView: function(rect, view){
-        var window = this._createWindow(view.window.screen);
-        var screen = this._screenMetrics(view.window.screen);
-
-        var origin = JSPoint.Zero;
-        var size = JSSize(window.frame.size);
-
-        // Ensure we're at least the minimum width
-        // (although max width will take precedence)
-        if (size.width < this._minimumWidth){
-            size.width = this._minimumWidth;
-        }
-
-        // Limit width to the max screen width
-        if (size.width > screen.maximumWidth){
-            size.width = screen.maximumWidth;
-        }
-
-        // Figure out how much space we have on either side of the target rect
-        // IMPORTANT: target rect is assumed to leave enough room on at least
-        // one side.   In our two uses cases 1) submenus, and 2) context menus,
-        // this must be true because 1) a menu is < 1/3 screen wide, leaving
-        // at least 1/3 on one side, and 2) context menu rects are Zero size
-        var viewFrame = view.convertRectToScreen(rect);
-
-        // If our rect if offscreen to the left or right, move it over
-        if (viewFrame.origin.x + viewFrame.size.width < screen.safeFrame.origin.x){
-            viewFrame.origin.x = screen.safeFrame.origin.x - viewFrame.size.width;
-        }else if (viewFrame.origin.x > screen.safeFrame.origin.x + screen.safeFrame.size.width){
-            viewFrame.origin.x = screen.safeFrame.origin.x + screen.safeFrame.size.width;
-        }
-
-        // If our rect is offscreen to the top, move it down
-        if (viewFrame.origin.y < screen.safeFrame.origin.y){
-            viewFrame.origin.y = screen.safeFrame.origin.y;
-        }
-
-        var over;
-
-        var spaces = {
-            left: viewFrame.origin.x - screen.safeFrame.origin.x,
-            right: screen.safeFrame.origin.x + screen.safeFrame.size.width - viewFrame.origin.x - viewFrame.size.width
-        };
-
-        // Prefer the right side, but use left if there's not enough space
-        if (spaces.right >= size.width){
-            origin.x = viewFrame.origin.x + viewFrame.size.width;
-        }else{
-            origin.x = viewFrame.origin.x - size.width;
-        }
-
-        // Prefer the y origin at the top of our rect
-        origin.y = viewFrame.origin.y;
-
-        // Adjust the y origin so it is even with the top of the first item
-        if (this._items.length > 0){
-            // NOTE: assuming no scale factor between window and screen
-            // Can't convert point to screen coordinates because the window
-            // hasn't been added to a screen yet
-            origin.y -= window.locationOfItem(this._items[0]).y;
-        }
-
-        // Adjust the height so it's no taller than the safe area
-        if (size.height > screen.safeFrame.size.height){
-            size.height = screen.safeFrame.size.height;
-        }
-
-        // Adjust the y origin up if we'd otherwise overflow
-        over = origin.y + size.height - screen.safeFrame.origin.y - screen.safeFrame.size.height;
-        if (over > 0){
-            origin.y -= over;
-        }
-
-        // Make sure the y origin is at least 0
-        if (origin.y < screen.safeFrame.origin.y){
-            origin.y = screen.safeFrame.origin.y;
-        }
-
-        window.frame = JSRect(origin, size);
-        this._showWindow(window);
+        this._styler.presentMenuWithFirstItemRightOfRectInView(this, JSRect(location, JSSize(1,0)), view);
     },
 
     // MARK: - Closing
 
-    isClosing: false,
-
     close: function(){
-        if (this.window.layer.animationsByKey.alpha){
-            this.window.layer.removeAnimationForKey('alpha');
-        }
-        this._contextTarget = null;
-        this.window.close();
-        this.window = null;
-        this.isClosing = false;
-        if (this.delegate && this.delegate.menuDidClose){
-            this.delegate.menuDidClose(this);
-        }
+        this._dismiss(false);
     },
 
     closeWithAnimation: function(){
-        if (this.isClosing){
-            return;
-        }
-        this.isClosing = true;
-        var menu = this;
-        UIView.animateWithDuration(0.2, function(){
-            menu.window.alpha = 0;
-        }, function(){
-            menu.close();
-        });
-    }
+        this._dismiss(false);
+    },
+
+    _dismiss: function(animated){
+        this._contextTarget = null;
+        this._styler.dismissMenu(this, animated, function(){
+            if (this.delegate && this.delegate.menuDidClose){
+                this.delegate.menuDidClose(this);
+            }
+        }, this);
+    },
 
 });
 
@@ -613,34 +330,22 @@ UIMenu.Placement = {
     left: 3
 };
 
-JSClass("UIMenuStyler", UIWindowStyler, {
+JSClass("UIMenuStyler", JSObject, {
 
-    initializeMenu: function(menu, window){
+    presentMenuAdjacentToView: function(menu, view, preferredPlacement, spacing){
     },
 
-    layoutMenuWindow: function(window){
+    presentMenuWithItemAtLocationInView: function(menu, targetItem, location, view){
+    },
+
+    presentMenuWithFirstItemRightOfRectInView: function(menu, rect, view){
+    },
+
+    dismissMenu: function(menu, animated, completion, target){
     },
 
     getItemTitleOffset: function(menu){
         return JSPoint.Zero;
-    },
-
-    initializeSeparatorView: function(view){
-    },
-
-    initializeItemView: function(view){
-    },
-
-    updateItemView: function(view, item){
-    },
-
-    sizeItemViewToFit: function(view, item){
-    },
-
-    layoutItemView: function(view, item){
-    },
-
-    layoutSeparatorView: function(view){
     }
 
 });
@@ -652,7 +357,7 @@ var defaultHighlightColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1);
 var defaultBackgroundColor = JSColor.initWithRGBA(240/255, 240/255, 240/255, 1);
 var defaultBorderColor = JSColor.initWithRGBA(184/255, 184/255, 184/255, 1);
 
-JSClass("UIMenuDefaultStyler", UIMenuStyler, {
+JSClass("UIMenuWindowStyler", UIMenuStyler, {
 
     cornerRadius: JSDynamicProperty('_cornerRadius', 6),
     capSize: JSDynamicProperty('_capSize', 5),
@@ -663,21 +368,23 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
     backgroundColor: JSDynamicProperty('_backgroundColor', defaultBackgroundColor),
     borderColor: JSDynamicProperty('_borderColor', defaultBorderColor),
     borderWidth: JSDynamicProperty('_borderWidth', 0.5),
-    itemPadding: JSDynamicProperty('_itemPadding', JSInsets(2, 3, 2, 7)),
+    itemContentInsets: JSDynamicProperty('_itemContentInsets', JSInsets(2, 3, 2, 7)),
     indentationSize: JSDynamicProperty('_indentationSize', 10),
+    separatorSize: 10,
+    separatorLineWidth: 2,
     shadowColor: null,
     shadowRadius: 14,
     shadowOffset: null,
     _keyWidth: 0,
 
     init: function(){
-        UIMenuDefaultStyler.$super.init.call(this);
+        UIMenuWindowStyler.$super.init.call(this);
         this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.2);
         this.shadowOffset = JSPoint.Zero;
     },
 
     initWithSpec: function(spec){
-        UIMenuDefaultStyler.$super.initWithSpec.call(this, spec);
+        UIMenuWindowStyler.$super.initWithSpec.call(this, spec);
         this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.2);
         this.shadowOffset = JSPoint.Zero;
         if (spec.containsKey('capSize')){
@@ -716,9 +423,323 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
         if (spec.containsKey('shadowRadius')){
             this.shadowRadius = spec.valueForKey("shadowRadius");
         }
+        if (spec.containsKey('separatorSize')){
+            this.separatorSize = spec.valueForKey("separatorSize");
+        }
+        if (spec.containsKey('separtorLineWidth')){
+            this.separtorLineWidth = spec.valueForKey("separtorLineWidth");
+        }
     },
 
-    initializeWindow: function(window){
+    presentMenuAdjacentToView: function(menu, view, preferredPlacement, spacing){
+        if (preferredPlacement === undefined){
+            preferredPlacement = UIMenu.Placement.below;
+        }
+        if (spacing === undefined){
+            spacing = 0;
+        }
+        var window = this.createWindowForMenu(menu);
+        var screenMetrics = this.metricsForScreen(view.window.screen);
+
+        var origin = JSPoint.Zero;
+        var size = JSSize(window.frame.size);
+
+        // Ensure we're at least the minimum width
+        // (although max width will take precedence)
+        if (size.width < menu._minimumWidth){
+            size.width = menu._minimumWidth;
+        }
+
+        // Limit width to the max screen width
+        if (size.width > screenMetrics.maximumWidth){
+            size.width = screenMetrics.maximumWidth;
+        }
+
+        // Figure out how much space we have all around the view
+        var viewFrame = view.convertRectToScreen(view.bounds);
+        var over;
+        var spaces = {
+            above: viewFrame.origin.y - screenMetrics.safeFrame.origin.y - spacing,
+            below: screenMetrics.safeFrame.origin.y + screenMetrics.safeFrame.size.height - viewFrame.origin.y - viewFrame.size.height - spacing,
+            left: viewFrame.origin.x - screenMetrics.safeFrame.origin.x - spacing,
+            right: screenMetrics.safeFrame.origin.x + screenMetrics.safeFrame.size.width - viewFrame.origin.x - viewFrame.size.width - spacing
+        };
+
+        if (preferredPlacement == UIMenu.Placement.above){
+            if (spaces.above >= size.height){
+                // Place above if there's room
+                origin.y = viewFrame.origin.y - size.height - spacing;
+            }else if (spaces.above * 2 > spaces.below){
+                // Place above and adjust height if there's not enough room,
+                // but the room that is availble is still preferable to below
+                origin.y = screenMetrics.safeFrame.origin.y;
+                size.height = viewFrame.origin.y - origin.y - spacing;
+            }else if (spaces.below >= size.height){
+                // Place below if there's room
+                origin.y = viewFrame.origin.y + viewFrame.size.height + spacing;
+            }else{
+                // Place below and adjust height if there's not enough room
+                origin.y = viewFrame.origin.y + viewFrame.size.height + spacing;
+                size.height = screenMetrics.safeFrame.origin.y + screenMetrics.safeFrame.size.height - origin.y - spacing;
+            }
+            // Prefer to line up with the left edge
+            origin.x = viewFrame.origin.x;
+        }else if (preferredPlacement == UIMenu.Placement.left){
+            if (spaces.left >= size.width || spaces.left > spaces.right){
+                // Place to the left if there's enough room, or if there's
+                // more room than on the right
+                origin.x = viewFrame.origin.x - size.width - spacing;
+            }else{
+                // Place to the right otherwise
+                origin.x = viewFrame.origin.x + viewFrame.size.width + spacing;
+            }
+            // Prefer to line up with the top edge
+            origin.y = viewFrame.origin.y;
+        }else if (preferredPlacement == UIMenu.Placement.right){
+            if (spaces.right >= size.width || spaces.right > spaces.left){
+                // Place to the right if there's enough room, or if there's more
+                // room than on the left
+                origin.x = viewFrame.origin.x + viewFrame.size.width + spacing;
+            }else{
+                // Place to the left otherwise
+                origin.x = viewFrame.origin.x - size.width - spacing;
+            }
+            // Prefer to line up with the top edge
+            origin.y = viewFrame.origin.y;
+        }else{
+            if (spaces.below >= size.height){
+                // Place below if there's enough room
+                origin.y = viewFrame.origin.y + viewFrame.size.height + spacing;
+            }else if (spaces.below * 2 > spaces.above){
+                // Place below and adjust height if there's not enough room,
+                // but the available room is still preferable to above
+                origin.y = viewFrame.origin.y + viewFrame.size.height + spacing;
+                size.height = screenMetrics.safeFrame.origin.y + screenMetrics.safeFrame.size.height - origin.y - spacing;
+            }else if (spaces.above >= size.height){
+                // Place above if there's enough room
+                origin.y = viewFrame.origin.y - size.height - spacing;
+            }else{
+                // Place above and adjust height if there's not enough room
+                origin.y = screenMetrics.safeFrame.origin.y;
+                size.height = viewFrame.origin.y - origin.y - spacing;
+            }
+            // Prefer to line up iwth the left edge
+            origin.x = viewFrame.origin.x;
+        }
+
+        // Adjust our x position if we've overflowed either side
+        over = origin.x + size.width - screenMetrics.safeFrame.origin.x - screenMetrics.safeFrame.size.width;
+        if (over > 0){
+            origin.x -= over;
+        }
+        if (origin.x < screenMetrics.safeFrame.origin.x){
+            origin.x = screenMetrics.safeFrame.origin.x;
+        }
+
+        // Make sure the height is no taller than the safe space
+        if (size.height > screenMetrics.safeFrame.size.height){
+            size.height = screenMetrics.safeFrame.size.height;
+        }
+
+        // Adjsut the y position if we've overflowed
+        // NOTE: y adjustments should not be necessary in the .above and .below
+        // cases becuase they set the origin and height to valid values.
+        over = origin.y + size.height - screenMetrics.safeFrame.origin.y - screenMetrics.safeFrame.size.height;
+        if (over > 0){
+            origin.y -= over;
+        }
+        if (origin.y < screenMetrics.safeFrame.origin.y){
+            origin.y = screenMetrics.safeFrame.origin.y;
+        }
+
+        window.frame = JSRect(origin, size);
+        
+        menu.stylerProperties.window = window;
+        window.makeKeyAndOrderFront();
+    },
+
+    presentMenuWithItemAtLocationInView: function(menu, targetItem, location, view){
+        var window = this.createWindowForMenu(menu);
+        var screenMetrics = this.metricsForScreen(view.window.screen);
+        var size = JSSize(window.frame.size);
+
+        // Ensure we're at least the minimum width
+        // (although max width will take precedence)
+        if (size.width < menu._minimumWidth){
+            size.width = menu._minimumWidth;
+        }
+
+        // Limit width to the max screen width
+        if (size.width > screenMetrics.maximumWidth){
+            size.width = screenMetrics.maximumWidth;
+        }
+
+        var locationInScreen = view.convertPointToScreen(location);
+        var targetLocation = window.locationOfItem(targetItem);
+
+        // Set our origin so the origin of the target item matches the given location
+        var origin = JSPoint(locationInScreen.x - targetLocation.x, locationInScreen.y - targetLocation.y);
+
+        // Adjust our x position if we've overflowed
+        var over = origin.x + size.width - screenMetrics.safeFrame.origin.x - screenMetrics.safeFrame.size.width;
+        if (over > 0){
+            origin.x -= over;
+        }
+        if (origin.x < screenMetrics.safeFrame.origin.x){
+            origin.x = screenMetrics.safeFrame.origin.x;
+        }
+
+        var offset = JSPoint.Zero;
+
+        // If we extend beyond the top of the safe area, adjust our origin, size, and
+        // scroll position so to the target item still lines up
+        if (origin.y < screenMetrics.safeFrame.origin.y){
+            over = screenMetrics.safeFrame.origin.y - origin.y;
+            origin.y = screenMetrics.safeFrame.origin.y;
+            if (locationInScreen.y >= screenMetrics.safeFrame.origin.y + 40 && size.height - over >= 100){
+                offset.y = over;
+                size.height -= over;
+            }
+        }
+
+        // If we extend beyond the bottom, adjust our height
+        over = origin.y + size.height - screenMetrics.safeFrame.origin.y - screenMetrics.safeFrame.size.height;
+        if (over > 0){
+            if ((locationInScreen.y >= screenMetrics.safeFrame.origin.y + screenMetrics.safeFrame.size.height) || (size.height - over < 60)){
+                origin.y = screenMetrics.safeFrame.origin.y + screenMetrics.safeFrame.size.height - size.height;
+            }else{
+                size.height -= over;
+            }
+        }
+
+        window.frame = JSRect(origin, size);
+        window.layoutIfNeeded();
+        window.contentOffset = offset;
+
+        menu.stylerProperties.window = window;
+        window.makeKeyAndOrderFront();
+    },
+
+    presentMenuWithFirstItemRightOfRectInView: function(menu, rect, view){
+        var window = this.createWindowForMenu(menu);
+        var screenMetrics = this.metricsForScreen(view.window.screen);
+
+        var origin = JSPoint.Zero;
+        var size = JSSize(window.frame.size);
+
+        // Ensure we're at least the minimum width
+        // (although max width will take precedence)
+        if (size.width < menu._minimumWidth){
+            size.width = menu._minimumWidth;
+        }
+
+        // Limit width to the max screen width
+        if (size.width > screenMetrics.maximumWidth){
+            size.width = screenMetrics.maximumWidth;
+        }
+
+        // Figure out how much space we have on either side of the target rect
+        // IMPORTANT: target rect is assumed to leave enough room on at least
+        // one side.   In our two uses cases 1) submenus, and 2) context menus,
+        // menu must be true because 1) a menu is < 1/3 screen wide, leaving
+        // at least 1/3 on one side, and 2) context menu rects are Zero size
+        var viewFrame = view.convertRectToScreen(rect);
+
+        // If our rect if offscreen to the left or right, move it over
+        if (viewFrame.origin.x + viewFrame.size.width < screenMetrics.safeFrame.origin.x){
+            viewFrame.origin.x = screenMetrics.safeFrame.origin.x - viewFrame.size.width;
+        }else if (viewFrame.origin.x > screenMetrics.safeFrame.origin.x + screenMetrics.safeFrame.size.width){
+            viewFrame.origin.x = screenMetrics.safeFrame.origin.x + screenMetrics.safeFrame.size.width;
+        }
+
+        // If our rect is offscreen to the top, move it down
+        if (viewFrame.origin.y < screenMetrics.safeFrame.origin.y){
+            viewFrame.origin.y = screenMetrics.safeFrame.origin.y;
+        }
+
+        var over;
+
+        var spaces = {
+            left: viewFrame.origin.x - screenMetrics.safeFrame.origin.x,
+            right: screenMetrics.safeFrame.origin.x + screenMetrics.safeFrame.size.width - viewFrame.origin.x - viewFrame.size.width
+        };
+
+        // Prefer the right side, but use left if there's not enough space
+        if (spaces.right >= size.width){
+            origin.x = viewFrame.origin.x + viewFrame.size.width;
+        }else{
+            origin.x = viewFrame.origin.x - size.width;
+        }
+
+        // Prefer the y origin at the top of our rect
+        origin.y = viewFrame.origin.y;
+
+        // Adjust the y origin so it is even with the top of the first item
+        if (menu._items.length > 0){
+            // NOTE: assuming no scale factor between window and screen
+            // Can't convert point to screen coordinates because the window
+            // hasn't been added to a screen yet
+            origin.y -= window.locationOfItem(menu._items[0]).y;
+        }
+
+        // Adjust the height so it's no taller than the safe area
+        if (size.height > screenMetrics.safeFrame.size.height){
+            size.height = screenMetrics.safeFrame.size.height;
+        }
+
+        // Adjust the y origin up if we'd otherwise overflow
+        over = origin.y + size.height - screenMetrics.safeFrame.origin.y - screenMetrics.safeFrame.size.height;
+        if (over > 0){
+            origin.y -= over;
+        }
+
+        // Make sure the y origin is at least 0
+        if (origin.y < screenMetrics.safeFrame.origin.y){
+            origin.y = screenMetrics.safeFrame.origin.y;
+        }
+
+        window.frame = JSRect(origin, size);
+
+        menu.stylerProperties.window = window;
+        window.makeKeyAndOrderFront();
+    },
+
+    dismissMenu: function(menu, animated, completion, target){
+        var window = menu.stylerProperties.window;
+        if (!window){
+            completion.call(target);
+            return;
+        }
+        menu.stylerProperties.window = null;
+        if (window.layer.animationsByKey.alpha){
+            window.layer.removeAnimationForKey('alpha');
+        }
+        if (!animated){
+            window.close();
+            completion.call(target);
+        }else{
+            var animator = UIViewPropertyAnimator.initWithDuration(0.25);
+            animator.addAnimations(function(){
+                window.alpha = 0;
+            });
+            animator.addCompletion(function(){
+                completion.call(target);
+            });
+            animator.start();
+        }
+    },
+
+    metricsForScreen: function(screen){
+        var safeFrame = screen.availableFrame.rectWithInsets(4, 7);
+        return {
+            safeFrame: safeFrame,
+            maximumWidth: Math.floor(safeFrame.size.width * 0.3)
+        };
+    },
+
+    createWindowForMenu: function(menu){
+        menu.updateEnabled();
+        var window = UIMenuWindow.initWithMenu(menu);
         window.borderColor = this._borderColor;
         window.borderWidth = this._borderWidth;
         window.shadowColor = this.shadowColor;
@@ -726,155 +747,33 @@ JSClass("UIMenuDefaultStyler", UIMenuStyler, {
         window.shadowRadius = this.shadowRadius;
         window.cornerRadius = this._cornerRadius;
         window.contentView.backgroundColor = this._backgroundColor;
-    },
-
-    initializeMenu: function(menu, window){
-        this.initializeWindow(window);
         window.upIndicatorView.backgroundColor = this._backgroundColor;
         window.downIndicatorView.backgroundColor = this._backgroundColor;
         window.upIndicatorImageView.templateColor = this._textColor;
         window.downIndicatorImageView.templateColor = this._textColor;
         window.menuView.backgroundColor = this._backgroundColor;
-        this._keyWidth = Math.ceil(menu.font.widthOfString("W"));
-    },
-
-    layoutMenuWindow: function(window){
-        var contentView = window.contentView;
-        window.clipView.frame = contentView.bounds.rectWithInsets(this._capSize, 0);
-        var imageSize = window.upIndicatorImageView.image.size;
-        window.upIndicatorView.frame = JSRect(0, 0, contentView.bounds.size.width, imageSize.height);
-        window.upIndicatorImageView.position = window.upIndicatorView.bounds.center;
-        imageSize = window.downIndicatorImageView.image.size;
-        window.downIndicatorView.frame = JSRect(0, contentView.bounds.size.height - imageSize.height, contentView.bounds.size.width, imageSize.height);
-        window.downIndicatorImageView.position = window.downIndicatorView.bounds.center;
-    },
-
-    getTextColorForItem: function(item){
-        if (item.enabled){
-            if (item.highlighted){
-                return this._highlightedTextColor;
-            }
-            return this._textColor;
-        }
-        return this._disabledTextColor;
-    },
-
-    initializeSeparatorView: function(view){
-        view.frame = JSRect(0, 0, 1, 10);
-        view.stylerProperties.lineLayer = UILayer.init();
-        view.stylerProperties.lineLayer.backgroundColor = this.disabledTextColor;
-        view.layer.addSublayer(view.stylerProperties.lineLayer);
-    },
-
-    initializeItemView: function(view){
-    },
-
-    updateItemView: function(view, item){
-        var textColor = this.getTextColorForItem(item);
-        view.titleLabel.font = item.menu.font;
-        view.titleLabel.textColor = textColor;
-        if (view._imageView !== null){
-            view._imageView.templateColor = textColor;
-        }
-        if (view._submenuImageView !== null){
-            view.submenuImageView.templateColor = textColor;
-        }
-        if (item.keyEquivalent){
-            view.keyLabel.font = item.menu.font;
-            view.keyLabel.textColor = textColor;
-            view.keyModifierLabel.font = item.menu.font;
-            view.keyModifierLabel.textColor = textColor;
-        }
-        if (item.highlighted){
-            view.backgroundColor = this.highlightColor;
-        }else{
-            view.backgroundColor = null;
-        }
-        if (view._stateImageView !== null){
-            view.stateImageView.templateColor = textColor;
-        }
-    },
-
-    sizeItemViewToFit: function(view, item){
-        var size = JSSize(this._itemPadding.left + this._itemPadding.right, 0);
-        var lineHeight = item.menu.font.displayLineHeight;
-        var imageSize = lineHeight;
-        if (item.menu.showStatusColumn){
-            size.width += imageSize + this._itemPadding.left;
-        }
-        if (item.image !== null){
-            size.width += imageSize + this._itemPadding.left;
-        }
-        size.width += this._indentationSize * item._indentationLevel;
-        view.titleLabel.sizeToFit();
-        size.width += view.titleLabel.frame.size.width;
-        if (item.submenu !== null){
-            size.width += view._submenuImageView.frame.size.width + this._itemPadding.right;
-        }else if (item.keyEquivalent){
-            view._keyModifierLabel.sizeToFit();
-            size.width += this._keyWidth + view._keyModifierLabel.frame.size.width + this._itemPadding.right;
-        }else{
-            // make sure the right padding is as much as the left
-            size.width += this._itemPadding.left - this._itemPadding.right;
-            if (item.menu.showStatusColumn){
-                size.width += imageSize + this._itemPadding.left;
-            }
-        }
-        size.height = lineHeight + this._itemPadding.top + this._itemPadding.bottom;
-        size.width = Math.ceil(size.width);
-        size.height = Math.ceil(size.height);
-        view.bounds = JSRect(JSPoint.Zero, size);
-    },
-
-    layoutItemView: function(view, item){
-        var left = this._itemPadding.left;
-        var right = view.bounds.size.width - this._itemPadding.right;
-        var lineHeight = item.menu.font.displayLineHeight;
-        var imageSize = lineHeight;
-        if (item.menu.showStatusColumn){
-            if (view._stateImageView !== null && !view._stateImageView.hidden){
-                view._stateImageView.frame = JSRect(left, this._itemPadding.top, imageSize, imageSize);
-            }
-            left += imageSize + this._itemPadding.left;
-        }
-        if (view._imageView !== null && !view._imageView.hidden){
-            view._imageView.frame = JSRect(left, this._itemPadding.top, imageSize, imageSize);
-            left += imageSize + this._itemPadding.left;
-        }
-        left += this._indentationSize * item.indentationLevel;
-        if (view._submenuImageView !== null && !view._submenuImageView.hidden){
-            view._submenuImageView.frame = JSRect(right - view._submenuImageView.frame.size.width, this._itemPadding.top, imageSize, imageSize);
-            right -= view._submenuImageView.frame.size.width + this._itemPadding.right;
-        }else if (view._keyLabel !== null && !view._keyLabel.hidden){
-            view._keyLabel.frame = JSRect(right - this._keyWidth, this._itemPadding.top, this._keyWidth, view._keyLabel.font.displayLineHeight);
-            right -= this._keyWidth;
-            view._keyModifierLabel.frame = JSRect(right - view._keyModifierLabel.frame.size.width, this._itemPadding.top, view._keyModifierLabel.frame.size.width, view._keyModifierLabel.font.displayLineHeight);
-            right -= view._keyModifierLabel.frame.size.width + this._itemPadding.right;
-        }else{
-            right += this._itemPadding.right - this._itemPadding.left;
-            if (item.menu.showStatusColumn){
-                right -= imageSize + this._itemPadding.left;
-            }
-        }
-        if (left > right){
-            left = right;
-        }
-        view.titleLabel.frame = JSRect(left, this._itemPadding.top, right - left, lineHeight);
-    },
-
-    layoutSeparatorView: function(view){
-        var height = 2;
-        view.stylerProperties.lineLayer.frame = JSRect(0, (view.bounds.size.height - height) / 2, view.bounds.size.width, height);
+        window.capSize = this._capSize;
+        window.separatorColor = this.disabledTextColor;
+        window.separatorLineWidth = this.separtorLineWidth;
+        window.separatorSize = this.separatorSize;
+        window.itemContentInsets = this._itemContentInsets;
+        window.indentationSize = this.indentationSize;
+        window.highlightColor = this.highlightColor;
+        window.textColor = this.textColor;
+        window.highlightedTextColor = this.highlightedTextColor;
+        window.disabledTextColor = this.disabledTextColor;
+        window.update();
+        return window;
     },
 
     getItemTitleOffset: function(menu){
-        var x = this._itemPadding.left;
+        var x = this._itemContentInsets.left;
         var lineHeight = menu.font.displayLineHeight;
         var imageSize = lineHeight;
         if (menu.showStatusColumn){
-            x += imageSize + this._itemPadding.left;
+            x += imageSize + this._itemContentInsets.left;
         }
-        var y = this._itemPadding.top;
+        var y = this._itemContentInsets.top;
         return JSPoint(x, y);
     }
 
@@ -884,7 +783,7 @@ UIMenu.Styler = Object.create({}, {
     default: {
         configurable: true,
         get: function UIMenu_getDefaultStyler(){
-            var styler = UIMenuDefaultStyler.init();
+            var styler = UIMenuWindowStyler.init();
             Object.defineProperty(this, 'default', {writable: true, value: styler});
             return styler;
         },

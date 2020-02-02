@@ -468,9 +468,14 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
                     menu.addItem(item.menuFormRepresentation);
                 }else if (item.view !== null && item.view.isKindOfClass(UIPopupButton)){
                     menuItem = menu.addItemWithTitle(item.title);
+                    menuItem.image = item.view.imageView.image;
                     menuItem.submenu = item.view.menu;
+                }else if (item.view !== null && item.view.isKindOfClass(UIButton)){
+                    menuItem = menu.addItemWithTitle(item.title, item.action, item.target);
+                    menuItem.image = item.view.getImageForState(UIControl.State.normal);
                 }else{
-                    menu.addItemWithTitle(item.title, item.action, item.target);
+                    menuItem = menu.addItemWithTitle(item.title, item.action, item.target);
+                    menuItem.image = item.image;
                 }
             }
             return menu;

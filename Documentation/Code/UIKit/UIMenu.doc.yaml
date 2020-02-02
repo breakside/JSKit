@@ -203,6 +203,11 @@ topics:
             name: preferredPlacement
             type: Placement
             summary: The preferred side on which to place the menu.
+          -
+            name: spacing
+            type: Number
+            default: 0
+            summary: Extra spacing from the view's edge
         description: |
           If there isn't enough room for the preferred placement, the menu
           may appear on another side.
@@ -309,109 +314,99 @@ topics:
       -
         name: UIMenuStyler
         kind: class
-        inherits: UIWindowStyler
+        inherits: JSObject
         summary: The abstract base class for menu stylers
         topics:
           -
-            name: Menu Initialization
+            name: Menu Presentation
             members:
               -
-                name: initializeMenu
+                name: presentMenuAdjacentToView
                 kind: method
-                summary: Called when a menu is created
+                summary: Present a menu adjacent to a view
+                arguments:
+                  - 
+                    name: menu
+                    type: UIMenu
+                    summary: The menu to present
+                  -
+                    name: view
+                    type: UIView
+                    summary: The view the menu should go next to
+                  -
+                    name: preferredPlacement
+                    type: Placement
+                    summary: The preferred side of the view on which to place
+                      the menu
+                  -
+                    name: spacing
+                    type: Number
+                    summary: Extra spacing from the view's edge
+              -
+                name: presentMenuWithItemAtLocationInView
+                kind: method
+                summary: Present a menu so the given item appears at the given
+                  location in the view
+                arguments:
+                  - 
+                    name: menu
+                    type: UIMenu
+                    summary: The menu to present
+                  - 
+                    name: targetItem
+                    type: UIMenuItem
+                    summary: The item that should be placed in a specific
+                      location
+                  -
+                    name: location
+                    type: JSPoint
+                    summary: The location of the target item in the view
+                  -
+                    name: view
+                    type: UIView
+                    summary: The view the menu should go over
+              -
+                name: presentMenuWithFirstItemRightOfRectInView
+                kind: method
+                summary: Present a menu so the given item appears at the given
+                  location in the view
+                arguments:
+                  - 
+                    name: menu
+                    type: UIMenu
+                    summary: The menu to present
+                  - 
+                    name: rect
+                    type: JSRect
+                    summary: The relavant rectangle in the view
+                  -
+                    name: view
+                    type: UIView
+                    summary: The view the menu should go over
+              -
+                name: dismissMenu
+                kind: method
+                summary: Dismiss a presented menu
                 arguments:
                   -
                     name: menu
                     type: UIMenu
-                    summary: The menu to initialize
+                    summary: The menu to dismiss
                   -
-                    name: window
-                    type: UIMenuWindow
-                    summary: The window that will display the menu
-                description: |
-                  Gives the styler a chance to create views and set initial
-                  styles for the menu
-          -
-            name: Menu Layout
-            members:
-              -
-                name: layoutMenuWindow
-                kind: method
-                summary: Called to layout a menu's window
-                arguments:
+                    name: animated
+                    type: bool
+                    summary: Whether the dismissal is animated
                   -
-                    name: window
-                    type: UIMenuWindow
-                    summary: The window displaying the menu
-              -
-                name: layoutItemView
-                kind: method
-                summary: Called when an item view needs layout
-                arguments:
-                  - 
-                    name: view
-                    type: UIMenuItemView
-                    summary: The view for the item
+                    name: completion
+                    type: function
+                    summary: The function to call when the dismissal is done
                   -
-                    name: item
-                    type: UIMenuItem
-                    summary: The menu item
-              -
-                name: layoutSeparatorView
-                kind: method
-                summary: Called when an separator view needs layout
-                arguments:
-                  - 
-                    name: view
-                    type: UIMenuItemSeparatorView
-                    summary: The view for the separator
-          -
-            name: Menu Items
-            members:
-              -
-                name: initializeItemView
-                kind: method
-                summary: Called when an item view is created
-                arguments:
-                  - 
-                    name: view
-                    type: UIMenuItemView
-                    summary: A view that displays a menu item
-              -
-                name: initializeSeparatorView
-                kind: method
-                summary: Called when an item separator view is created
-                arguments:
-                  - 
-                    name: view
-                    type: UIMenuItemSeparatorView
-                    summary: A view that displays a separator item
-              -
-                name: updateItemView
-                kind: method
-                summary: Called when an item changes state
-                arguments:
-                  - 
-                    name: view
-                    type: UIMenuItemView
-                    summary: The view for the item
-                  -
-                    name: item
-                    type: UIMenuItem
-                    summary: The menu item that changed
-              -
-                name: getItemTitleOffset
-                kind: method
-                type: JSPoint
-                summary: Get the distance from an item's origin to its title
-                  origin
-                arguments:
-                  -
-                    name: menu
-                    type: UIMenu
-                    summary: The menu for the items
+                    name: target
+                    type: object
+                    summary: The object to use as `this` when calling the
+                      completion handler
       -
-        name: UIMenuDefaultStyler
+        name: UIMenuWindowStyler
         kind: class
         inherits: UIMenuStyler
         summary: The default menu styler for `UIKit`
@@ -524,128 +519,6 @@ topics:
                 type: Number
                 summary: The radius of the menu's shadow
       -
-        name: UIMenuWindow
-        kind: class
-        inherits: UIWindow
-        summary: The kind of window that a menu uses for display
-        topics:
-          -
-            name: Views for Stylers
-            members:
-              -
-                name: clipView
-                type: UIView
-                summary: The view that contains the `menuView`
-              -
-                name: menuView
-                type: UIView
-                summary: The view that contains menu item views
-              -
-                name: upIndicatorView
-                type: UIView
-                summary: The view that indicates the menu can scroll up
-              -
-                name: downIndicatorView
-                type: UIView
-                summary: The view that indicates the menu can scroll down
-              -
-                name: upIndicatorImageView
-                type: UIView
-                summary: The image inside the `upIndicatorView`
-              -
-                name: downIndicatorImageView
-                type: UIView
-                summary: The image inside the `downIndicatorView`
-      -
-        name: UIMenuView
-        kind: class
-        inherits: UIView
-        summary: A container view in a `UIMenuWindow`
-        topics:
-          -
-            name: Views for Stylers
-            members:
-              -
-                name: itemViews
-                type: UIView[]
-                summary: The menu item views
-      -
-        name: UIMenuItemView
-        kind: class
-        inherits: UIView
-        summary: A view for a `UIMenuItem`, contained in a `UIMenuView`
-        topics:
-          -
-            name: Title
-            members:
-              -
-                name: titleLabel
-                type: UILabel
-                summary: A label for the item's title
-          -
-            name: Image & Indicators
-            members:
-              -
-                name: imageView
-                type: UIImageView
-                summary: A view for the item's image
-              -
-                name: stateImageView
-                type: UIImageView
-                summary: A view for the item's state indicator
-              -
-                name: submenuImageView
-                type: UIImageView
-                summary: A view for the item's submenu indicator
-          -
-            name: Key Equivalent
-            members:
-              -
-                name: keyLabel
-                type: UILabel
-                summary: A label for the item's key equivalent
-              -
-                name: keyModifierLabel
-                type: UILabel
-                summary: A label for the item's key modifiers
-          -
-            name: Styler Properties
-            members:
-              -
-                name: stylerProperties
-                type: dictionary
-                summary: A dictionary that a styler can use to store properties
-                  relating to styling
-                description: |
-                  Often a styler will need to create views or layers to help its
-                  styling.  Since a single styler is used for multiple item views,
-                  the styler can't store those item-specific properties on its own.
-
-                  So, `stylerProperties` is a place on each `UIMenuItemSeparatorView` that a styler
-                  can store item-specific objects.
-      -
-        name: UIMenuItemSeparatorView
-        kind: class
-        inherits: UIView
-        summary: A view for a `UIMenuItem` that is a separator, contained in a
-          `UIMenuView`
-        topics:
-          -
-            name: Styler Properties
-            members:
-              -
-                name: stylerProperties
-                type: dictionary
-                summary: A dictionary that a styler can use to store properties
-                  relating to styling
-                description: |
-                  Often a styler will need to create views or layers to help its
-                  styling.  Since a single styler is used for multiple item views,
-                  the styler can't store those item-specific properties on its own.
-
-                  So, `stylerProperties` is a place on each `UIMenuItemSeparatorView` that a styler
-                  can store item-specific objects.
-      -
         name: Styler
         kind: enum
         suffix: enum
@@ -662,6 +535,10 @@ topics:
         name: styler
         type: UIMenuStyler
         summary: The styler in use for this menu
+      -
+        name: stylerProperties
+        type: dictionary
+        summary: A dictionary the `styler` can use to store custom properies
       -
         name: font
         type: JSFont

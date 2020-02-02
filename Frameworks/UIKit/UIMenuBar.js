@@ -1,5 +1,6 @@
 // #import "UIWindow.js"
 // #import "UIMenu.js"
+// #import "UIMenuView.js"
 'use strict';
 
 JSClass("UIMenuBar", UIWindow, {
@@ -263,6 +264,22 @@ JSClass("UIMenuBar", UIWindow, {
         this.setNeedsLayout();
     },
 
+    rectForItem: function(item){
+        var index = this._leftItemViews.indexOf(item);
+        if (index > 0){
+            return JSRect(this._leftItemViews[index].frame);
+        }
+        index = this._menuItemViews.indexOf(item);
+        if (index > 0){
+            return JSRect(this._menuItemViews[index].frame);
+        }
+        index = this._rightItemViews.indexOf(item);
+        if (index > 0){
+            return JSRect(this._rightItemViews[index].frame);
+        }
+        return JSRect.Zero(0, 0, 0, this.bounds.size.height);
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Actions
 
@@ -312,10 +329,11 @@ JSClass("UIMenuBar", UIWindow, {
     },
 
     openMenu: function(menu, itemView){
-        var window = menu._createWindow();
+        menu.updateEnabled();
+        var window = menu.styler.createWindowForMenu(menu);
         window.maskedCorners = UILayer.Corners.maxY;
-        menu.window = window;
         this.positionWindowUnderItemView(window, itemView);
+        menu.stylerProperties.window = window;
         window.makeKeyAndOrderFront();
     },
 
@@ -444,7 +462,7 @@ JSClass("UIMenuBar", UIWindow, {
         }else{
             this._itemDownTimestamp = UIEvent.minimumTimestamp;
             if (this.submenu){
-                this.submenu.window.deepestMenuWindow().mouseDragged(event);
+                this.submenu.stylerProperties.window.deepestMenuWindow().mouseDragged(event);
             }
         }
     },
@@ -475,7 +493,7 @@ JSClass("UIMenuBar", UIWindow, {
             this._itemDownTimestamp = UIEvent.minimumTimestamp;
         }
         if (this.submenu){
-            this.submenu.window.deepestMenuWindow().mouseDragged(event);
+            this.submenu.stylerProperties.window.deepestMenuWindow().mouseDragged(event);
         }
     },
 
@@ -495,7 +513,7 @@ JSClass("UIMenuBar", UIWindow, {
             }
         }else{
             if (this.submenu){
-                this.submenu.window.deepestMenuWindow().mouseUp(event);
+                this.submenu.stylerProperties.window.deepestMenuWindow().mouseUp(event);
             }
         }
     },

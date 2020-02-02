@@ -26,13 +26,11 @@ JSClass("UIApplicationTests", TKTestSuite, {
 
     setup: function(){
         var windowServer = MockWindowServer.init();
-        UIDevice.shared = UIDevice.init();
         this.app = UIApplication.initWithWindowServer(windowServer);
     },
 
     teardown: function(){
         this.app.deinit();
-        UIDevice.shared = null;
         this.app = null;
     },
 

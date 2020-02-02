@@ -22,7 +22,6 @@ JSClass("UIMenuWindow", UIWindow, {
     responder: null,
     submenu: null,
     submenuTimer: null,
-    _menuStyler: null,
     _menu: null,
     _itemIndexesByItemViewId: null,
     _itemViewIndexesByItemId: null,
@@ -31,6 +30,17 @@ JSClass("UIMenuWindow", UIWindow, {
     _isShowingAlternates: false,
     _isClosing: false,
     receivesAllEvents: true,
+    capSize: JSDynamicProperty('_capSize', 5),
+    _keyWidth: 0,
+    separatorColor: null,
+    separatorSize: 10,
+    sepratorLineWidth: 2,
+    itemContentInsets: null,
+    indentationSize: 10,
+    highlightColor: null,
+    textColor: null,
+    highlightedTextColor: null,
+    disabledTextColor: null,
 
     // -----------------------------------------------------------------------
     // MARK: - Creating a Menu Window
@@ -38,7 +48,6 @@ JSClass("UIMenuWindow", UIWindow, {
     initWithMenu: function(menu){
         this._styler = UIWindow.Styler.custom;
         UIMenuWindow.$super.init.call(this);
-        this._menuStyler = menu.styler;
         this.contentView = UIView.init();
         this.upIndicatorView = UIView.init();
         this.upIndicatorImageView = UIImageView.initWithImage(images.scrollUp);
@@ -48,6 +57,7 @@ JSClass("UIMenuWindow", UIWindow, {
         this.downIndicatorView.addSubview(this.downIndicatorImageView);
         this.clipView = UIView.init();
         this.menuView = UIMenuView.init();
+        this.menuView.menuWindow = this;
         this.contentView.addSubview(this.clipView);
         this.clipView.addSubview(this.menuView);
         this.contentView.addSubview(this.upIndicatorView);
@@ -56,8 +66,9 @@ JSClass("UIMenuWindow", UIWindow, {
         this.downIndicatorView.hidden = true;
         this._itemIndexesByItemViewId = {};
         this._itemViewIndexesByItemId = {};
-        this.setMenu(menu);
         this._openEvent = this.windowServer.activeEvent;
+        this._keyWidth = Math.ceil(menu.font.widthOfString("W"));
+        this._menu = menu;
     },
 
     // -----------------------------------------------------------------------
@@ -85,9 +96,7 @@ JSClass("UIMenuWindow", UIWindow, {
     // -----------------------------------------------------------------------
     // MARK: - Upating the Window Contents
 
-    setMenu: function(menu){
-        this._menu = menu;
-        this._menuStyler.initializeMenu(menu, this);
+    update: function(){
         var item;
         var itemView;
         var menuSize = JSSize.Zero;
@@ -96,8 +105,8 @@ JSClass("UIMenuWindow", UIWindow, {
         // scroll bar, only indicators that there is more.
         // Although, a UI that uses very long menus is poorly designed, so this
         // is a low priority
-        for (var i = 0, l = menu.items.length; i < l; ++i){
-            item = menu.items[i];
+        for (var i = 0, l = this._menu.items.length; i < l; ++i){
+            item = this._menu.items[i];
             if (!item.hidden){
                 this._itemViewIndexesByItemId[item.objectID] = this.menuView.itemViews.length;
                 itemView = this.menuView.addViewForItem(item);
@@ -123,8 +132,8 @@ JSClass("UIMenuWindow", UIWindow, {
     // MARK: - Showing/Hiding Alternate Menu Items
 
     setAlternateItemsShown: function(shown){
-        if (this._menu.supermenu && this._menu.supermenu.window){
-            this._menu.supermenu.window.setAlternateItemsShown(shown);
+        if (this._menu.supermenu && this._menu.supermenu.stylerProperties.window){
+            this._menu.supermenu.stylerProperties.window.setAlternateItemsShown(shown);
         }
         var item;
         var itemView;
@@ -152,8 +161,15 @@ JSClass("UIMenuWindow", UIWindow, {
 
     layoutSubviews: function(){
         UIMenuWindow.$super.layoutSubviews.call(this);
-        this._menuStyler.layoutMenuWindow(this);
-        this.contentView.layoutIfNeeded();
+        var contentView = this.contentView;
+        this.clipView.frame = contentView.bounds.rectWithInsets(this._capSize, 0);
+        var imageSize = this.upIndicatorImageView.image.size;
+        this.upIndicatorView.frame = JSRect(0, 0, contentView.bounds.size.width, imageSize.height);
+        this.upIndicatorImageView.position = this.upIndicatorView.bounds.center;
+        imageSize = this.downIndicatorImageView.image.size;
+        this.downIndicatorView.frame = JSRect(0, contentView.bounds.size.height - imageSize.height, contentView.bounds.size.width, imageSize.height);
+        this.downIndicatorImageView.position = this.downIndicatorView.bounds.center;
+        contentView.layoutIfNeeded();
         this.menuView.frame = JSRect(0, 0, this.clipView.bounds.size.width, this.menuView.frame.size.height);
         var offset = this.contentOffset;
         this.upIndicatorView.hidden = offset.y <= 0;
@@ -259,8 +275,8 @@ JSClass("UIMenuWindow", UIWindow, {
         this._lastMoveLocation = event.locationInView(this);
         this._adjustHighlightForLocation(this._lastMoveLocation);
         if (!this.containsPoint(location)){
-            if (this._menu.supermenu !== null && this._menu.supermenu.window !== null){
-                this._menu.supermenu.window.mouseDragged(event);
+            if (this._menu.supermenu !== null && this._menu.supermenu.stylerProperties.window){
+                this._menu.supermenu.stylerProperties.window.mouseDragged(event);
             }
         }
     },
@@ -297,8 +313,8 @@ JSClass("UIMenuWindow", UIWindow, {
         if (this.containsPoint(location)){
             this._performActionForHighlightedItem();
         }else{
-            if (this._menu.supermenu && this._menu.supermenu.window){
-                this._menu.supermenu.window.mouseUp(event);
+            if (this._menu.supermenu && this._menu.supermenu.stylerProperties.window){
+                this._menu.supermenu.stylerProperties.window.mouseUp(event);
             }else{
                 this.closeAll();
             }
@@ -311,8 +327,8 @@ JSClass("UIMenuWindow", UIWindow, {
         }
         var location = event.locationInView(this);
         if (!this.containsPoint(location)){
-            if (this._menu.supermenu && this._menu.supermenu.window){
-                this._menu.supermenu.window.mouseDown(event);
+            if (this._menu.supermenu && this._menu.supermenu.stylerProperties.window){
+                this._menu.supermenu.stylerProperties.window.mouseDown(event);
             }else{
                 this.closeAll();
             }
@@ -346,7 +362,7 @@ JSClass("UIMenuWindow", UIWindow, {
                 }
             }
         }else if (event.key == UIEvent.Key.left){
-            if (this._menu.supermenu && this._menu.supermenu.window){
+            if (this._menu.supermenu && this._menu.supermenu.stylerProperties.window){
                 this._menu.close();
             }else{
                 if (this._menu.delegate && this._menu.delegate.menuDidNavigateLeft){
@@ -512,13 +528,13 @@ JSClass("UIMenuWindow", UIWindow, {
         }
         var itemView = this.menuView.itemViews[this._itemViewIndexesByItemId[item.objectID]];
         if (needsOpen){
-            this.submenu._openAsSubmenu(itemView);
+            this.submenu.styler.presentMenuWithFirstItemRightOfRectInView(this.submenu, itemView.bounds, itemView);
         }
         if (selectingFirstItem){
             for (var i = 0, l = this.submenu.items.length; i < l; ++i){
                 if (this.submenu.items[i].enabled && (this._isShowingAlternates || !this.submenu.items[i].alternate)){
-                    this.submenu.window._highlightItem(this.submenu.items[i]);
-                    this.submenu.window.makeKey();
+                    this.submenu.stylerProperties.window._highlightItem(this.submenu.items[i]);
+                    this.submenu.stylerProperties.window.makeKey();
                     break;
                 }
             }
@@ -533,8 +549,8 @@ JSClass("UIMenuWindow", UIWindow, {
             this.submenu.close();
             this.submenu = null;
         }
-        if (this._menu.supermenu && this._menu.supermenu.window){
-            this._menu.supermenu.window.submenu = null;
+        if (this._menu.supermenu && this._menu.supermenu.stylerProperties.window){
+            this._menu.supermenu.stylerProperties.window.submenu = null;
         }
         this.stopMouseTracking();
         UIMenuWindow.$super.close.call(this);
@@ -543,7 +559,7 @@ JSClass("UIMenuWindow", UIWindow, {
 
     closeAll: function(){
         var top = this._menu;
-        while (top.supermenu !== null && top.supermenu.window !== null){
+        while (top.supermenu !== null && top.supermenu.stylerProperties.window){
             top = top.supermenu;
         }
         top.close();
@@ -552,8 +568,8 @@ JSClass("UIMenuWindow", UIWindow, {
     // MARK: - Submenus
 
     deepestMenuWindow: function(){
-        if (this.submenu && this.submenu.window){
-            return this.submenu.window.deepestMenuWindow();
+        if (this.submenu && this.submenu.stylerProperties.window){
+            return this.submenu.stylerProperties.window.deepestMenuWindow();
         }
         return this;
     }
@@ -563,6 +579,7 @@ JSClass("UIMenuWindow", UIWindow, {
 JSClass("UIMenuView", UIView, {
 
     itemViews: null,
+    menuWindow: null,
 
     initWithFrame: function(frame){
         UIMenuView.$super.initWithFrame.call(this, frame);
@@ -574,9 +591,17 @@ JSClass("UIMenuView", UIView, {
         var view = item.view;
         if (view === null){
             if (item.separator){
-                view = UIMenuItemSeparatorView.initWithStyler(item.menu.styler);
+                view = UIMenuItemSeparatorView.initWithColor(this.menuWindow.separatorColor, this.menuWindow.sepratorLineWidth);
+                view.frame = JSRect(0, 0, 1, this.menuWindow.separatorSize);
             }else{
-                view = UIMenuItemView.initWithStyler(item.menu.styler);
+                view = UIMenuItemView.init();
+                view.contentInsets = this.menuWindow.itemContentInsets;
+                view.indentationSize = this.menuWindow.indentationSize;
+                view.textColor = this.menuWindow.textColor;
+                view.highlightedTextColor = this.menuWindow.highlightedTextColor;
+                view.disabledTextColor = this.menuWindow.disabledTextColor;
+                view.highlightColor = this.menuWindow.highlightColor;
+                view.keyWidth = this.menuWindow._keyWidth;
                 view.setItem(item);
             }
         }
@@ -635,32 +660,39 @@ JSClass("UIMenuView", UIView, {
 
 JSClass("UIMenuItemSeparatorView", UIView, {
 
-    _menuStyler: null,
-    stylerProperties: null,
+    lineLayer: null,
+    size: 0,
 
-    initWithStyler: function(styler){
+    initWithColor: function(color, size){
         UIMenuItemSeparatorView.$super.init.call(this);
-        this.stylerProperties = {};
-        this._menuStyler = styler;
-        this._menuStyler.initializeSeparatorView(this);
+        this.size = size;
+        this.lineLayer = UILayer.init();
+        this.lineLayer.backgroundColor = color;
+        this.layer.addSublayer(this.lineLayer);
     },
 
     layoutSubviews: function(){
         UIMenuItemSeparatorView.$super.layoutSubviews.call(this);
-        this._menuStyler.layoutSeparatorView(this);
-    },
+        this.lineLayer.frame = JSRect(0, (this.bounds.size.height - this.size) / 2, this.bounds.size.width, this.size);
+    }
 
 });
 
 JSClass("UIMenuItemView", UIView, {
 
     titleLabel: null,
+    textColor: null,
+    highlightedTextColor: null,
+    disabledTextColor: null,
+    highlightColor: null,
+    keyWidth: null,
     imageView: JSLazyInitProperty('_createImageView'),
     stateImageView: JSLazyInitProperty('_createStateImageView'),
     submenuImageView: JSLazyInitProperty('_createSubmenuImageView'),
     keyLabel: JSLazyInitProperty('_createKeyLabel'),
     keyModifierLabel: JSLazyInitProperty('_createKeyModifierLabel'),
-    stylerProperties: null,
+    indentationSize: 0,
+    contentInsets: null,
     _imageView: null,
     _stateImageView: null,
     _submenuImageView: null,
@@ -669,13 +701,10 @@ JSClass("UIMenuItemView", UIView, {
     _menuStyler: null,
     _item: null,
 
-    initWithStyler: function(styler){
+    init: function(){
         UIMenuItemView.$super.init.call(this);
         this.titleLabel = UILabel.init();
         this.addSubview(this.titleLabel);
-        this.stylerProperties = {};
-        this._menuStyler = styler;
-        this._menuStyler.initializeItemView(this);
     },
 
     _createImageView: function(){
@@ -750,17 +779,113 @@ JSClass("UIMenuItemView", UIView, {
                 this.stateImageView.image = item.mixedImage !== null ? item.mixedImage : images.stateMixed;
                 break;
         }
-        this._menuStyler.updateItemView(this, this._item);
+        var textColor = this.getTextColorForItem(item);
+        this.titleLabel.font = item.menu.font;
+        this.titleLabel.textColor = textColor;
+        if (this._imageView !== null){
+            this._imageView.templateColor = textColor;
+        }
+        if (this._submenuImageView !== null){
+            this.submenuImageView.templateColor = textColor;
+        }
+        if (item.keyEquivalent){
+            this.keyLabel.font = item.menu.font;
+            this.keyLabel.textColor = textColor;
+            this.keyModifierLabel.font = item.menu.font;
+            this.keyModifierLabel.textColor = textColor;
+        }
+        if (item.highlighted){
+            this.backgroundColor = this.highlightColor;
+        }else{
+            this.backgroundColor = null;
+        }
+        if (this._stateImageView !== null){
+            this.stateImageView.templateColor = textColor;
+        }
         this.setNeedsLayout();
+    },
+
+    getTextColorForItem: function(item){
+        if (item.enabled){
+            if (item.highlighted){
+                return this.highlightedTextColor;
+            }
+            return this.textColor;
+        }
+        return this.disabledTextColor;
+    },
+
+    updateItemView: function(view, item){
     },
 
     layoutSubviews: function(){
         UIMenuItemView.$super.layoutSubviews.call(this);
-        this._menuStyler.layoutItemView(this, this._item);
+        var item = this._item;
+        var left = this.contentInsets.left;
+        var right = this.bounds.size.width - this.contentInsets.right;
+        var lineHeight = item.menu.font.displayLineHeight;
+        var imageSize = lineHeight;
+        if (item.menu.showStatusColumn){
+            if (this._stateImageView !== null && !this._stateImageView.hidden){
+                this._stateImageView.frame = JSRect(left, this.contentInsets.top, imageSize, imageSize);
+            }
+            left += imageSize + this.contentInsets.left;
+        }
+        if (this._imageView !== null && !this._imageView.hidden){
+            this._imageView.frame = JSRect(left, this.contentInsets.top, imageSize, imageSize);
+            left += imageSize + this.contentInsets.left;
+        }
+        left += this.indentationSize * item.indentationLevel;
+        if (this._submenuImageView !== null && !this._submenuImageView.hidden){
+            this._submenuImageView.frame = JSRect(right - this._submenuImageView.frame.size.width, this.contentInsets.top, imageSize, imageSize);
+            right -= this._submenuImageView.frame.size.width + this.contentInsets.right;
+        }else if (this._keyLabel !== null && !this._keyLabel.hidden){
+            this._keyLabel.frame = JSRect(right - this.keyWidth, this.contentInsets.top, this.keyWidth, this._keyLabel.font.displayLineHeight);
+            right -= this.keyWidth;
+            this._keyModifierLabel.frame = JSRect(right - this._keyModifierLabel.frame.size.width, this.contentInsets.top, this._keyModifierLabel.frame.size.width, this._keyModifierLabel.font.displayLineHeight);
+            right -= this._keyModifierLabel.frame.size.width + this.contentInsets.right;
+        }else{
+            right += this.contentInsets.right - this.contentInsets.left;
+            if (item.menu.showStatusColumn){
+                right -= imageSize + this.contentInsets.left;
+            }
+        }
+        if (left > right){
+            left = right;
+        }
+        this.titleLabel.frame = JSRect(left, this.contentInsets.top, right - left, lineHeight);
     },
 
     sizeToFit: function(){
-        this._menuStyler.sizeItemViewToFit(this, this._item);
+        var item = this._item;
+        var size = JSSize(this.contentInsets.width, 0);
+        var lineHeight = item.menu.font.displayLineHeight;
+        var imageSize = lineHeight;
+        if (item.menu.showStatusColumn){
+            size.width += imageSize + this.contentInsets.left;
+        }
+        if (item.image !== null){
+            size.width += imageSize + this.contentInsets.left;
+        }
+        size.width += this.indentationSize * item._indentationLevel;
+        this.titleLabel.sizeToFit();
+        size.width += this.titleLabel.frame.size.width;
+        if (item.submenu !== null){
+            size.width += this._submenuImageView.frame.size.width + this.contentInsets.right;
+        }else if (item.keyEquivalent){
+            this._keyModifierLabel.sizeToFit();
+            size.width += this.keyWidth + this._keyModifierLabel.frame.size.width + this.contentInsets.right;
+        }else{
+            // make sure the right padding is as much as the left
+            size.width += this.contentInsets.left - this.contentInsets.right;
+            if (item.menu.showStatusColumn){
+                size.width += imageSize + this.contentInsets.left;
+            }
+        }
+        size.height = lineHeight + this.contentInsets.top + this.contentInsets.bottom;
+        size.width = Math.ceil(size.width);
+        size.height = Math.ceil(size.height);
+        this.bounds = JSRect(JSPoint.Zero, size);
     }
 
 });

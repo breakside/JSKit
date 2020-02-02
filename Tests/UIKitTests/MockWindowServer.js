@@ -9,6 +9,7 @@ JSClass("MockWindowServer", UIWindowServer, {
         this.textInputManager = MockTextInputManager.init();
         this.textInputManager.windowServer = this;
         this.screen = UIScreen.initWithFrame(JSRect(0, 0, 1500, 1000));
+        this.device = UIDevice.init();
     },
 
 });
