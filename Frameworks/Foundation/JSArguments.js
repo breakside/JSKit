@@ -10,18 +10,23 @@ JSClass("JSArguments", JSObject, {
     _commandName: null,
 
     initWithOptions: function(options){
-        this._options = options;
+        this._options = {};
         var name;
         var option;
-        for (name in this._options){
-            option = this._options[name];
-            if ('default' in option){
-                Object.defineProperty(this, name, {configurable: true, value: option.default, writable: option.default === null});
-            }else if (option.multiple || option.kind == "unknown"){
-                Object.defineProperty(this, name, {configurable: true, value: []});
-            }else if (option.kind == "flag"){
-                Object.defineProperty(this, name, {configurable: true, value: false});
-            }
+        for (name in options){
+            option = options[name];
+            this.addOption(name, option);
+        }
+    },
+
+    addOption: function(name, option){
+        this._options[name] = option;
+        if ('default' in option){
+            Object.defineProperty(this, name, {configurable: true, value: option.default, writable: option.default === null});
+        }else if (option.multiple || option.kind == "unknown"){
+            Object.defineProperty(this, name, {configurable: true, value: []});
+        }else if (option.kind == "flag"){
+            Object.defineProperty(this, name, {configurable: true, value: false});
         }
     },
 

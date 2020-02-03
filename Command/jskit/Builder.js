@@ -2,6 +2,7 @@
 // #import "Project.js"
 // #import "Framework.js"
 // #import "JavascriptFile.js"
+// #import "EnvironmentFile.js"
 /* global FrameworkBuilder */
 'use strict';
 

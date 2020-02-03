@@ -68,6 +68,22 @@ topics:
           args.parse(process.argv.slice(1));
           ````
       -
+        name: addOption
+        kind: method
+        summary: Add an option after initialization
+        argument:
+          -
+            name: name
+            type: String
+            summary: The name of the option
+          -
+            name: option
+            type: Option
+            summary: The option details
+        description: |
+          For cases where you need to conditionally add options after
+          initialization.
+      -
         name: Option
         kind: class
         anonymous: true

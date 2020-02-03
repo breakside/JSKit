@@ -27,7 +27,8 @@ JSClass("HTMLBuilder", Builder, {
         'workers': {valueType: "integer", default: null, help: "The port on which the static http server will be configured (defaults: debug=1, release=Info.HTTPWorkerCount [3])"},
         'connections': {valueType: "integer", default: 1024, help: "The port on which the static http server will be configured"},
         'docker-owner': {default: null, help: "The docker repo prefix to use when building a docker image"},
-        'no-docker': {kind: "flag", help: "Don't build the docker image"}
+        'no-docker': {kind: "flag", help: "Don't build the docker image"},
+        'env': {default: ".env", help: "A file with environmental variables for this build"}
     },
 
     needsDockerBuild: true,
@@ -40,6 +41,7 @@ JSClass("HTMLBuilder", Builder, {
     sourcesURL: null,
     frameworksURL: null,
     resourcesURL: null,
+    environment: null,
 
     setup: async function(){
         await HTMLBuilder.$super.setup.call(this);
@@ -59,6 +61,7 @@ JSClass("HTMLBuilder", Builder, {
                 this.arguments['http-port'] = this.project.info.HTTPPort || 80;
             }
         }
+        this.environment = {};
         this.wwwJavascriptPaths = [];
         this.wwwResourcePaths = [];
         this.preflightFeatures = new Set();
@@ -92,6 +95,7 @@ JSClass("HTMLBuilder", Builder, {
 
     build: async function(){
         await this.setup();
+        await this.populateEnvironment();
         await this.findResources();
         await this.findImports();
         await this.bundleFrameworks();
@@ -120,6 +124,40 @@ JSClass("HTMLBuilder", Builder, {
             roots.push(this.project.info.UIApplicationDelegate + ".js");
         }
         this.imports = await this.project.findJavascriptImports(roots, includeDirectoryURLs);
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Environment
+
+    _workingDirectoryEnvironment: null,
+
+    setupEnvironment: async function(){
+        this._workingDirectoryEnvironment = {};
+        var url = this.workingDirectoryURL.appendingPathComponent(this.arguments.env);
+        try{
+            var contents = await this.fileManager.contentsAtURL(url);
+            if (contents !== null){
+                this._workingDirectoryEnvironment = EnvironmentFile.initWithData(contents);
+            }
+        }catch(e){
+        }
+    },
+
+    getEnvironment: function(name, defaultValue){
+        if (this._workingDirectoryEnvironment){
+            return this._workingDirectoryEnvironment.get(name, getenv(name, defaultValue));
+        }
+        return getenv(name, defaultValue);
+    },
+
+    populateEnvironment: async function(){
+        await this.setupEnvironment();
+        var envs = this.project.info.UIApplicationEnvironment;
+        if (envs){
+            for (var name in envs){
+                this.environment[name] = this.getEnvironment(envs[name]);
+            }
+        }
     },
 
     // ----------------------------------------------------------------------
@@ -453,6 +491,7 @@ JSClass("HTMLBuilder", Builder, {
                             preflightId: this.preflightId,
                             preflightSrc: this.preflightURL.encodedStringRelativeTo(this.wwwURL),
                             serviceWorkerSrc: this.serviceWorkerURL ? this.serviceWorkerURL.encodedStringRelativeTo(this.wwwURL) : null,
+                            environment: this.environment,
                             debug: this.debug
                         }, null, 2)
                     };
@@ -799,3 +838,10 @@ JSClass("HTMLBuilder", Builder, {
     },
 
 });
+
+var getenv = function(name, defaultValue){
+    if (name in process.env){
+        return process.env[name];
+    }
+    return defaultValue;
+};
