@@ -169,26 +169,45 @@
     };
     if (app.debug){
       bootstrapper.onlog = function(record){
-          console[record.level]([_03f(record.timestamp), record.message].join("  "));
+          console[record.level](formatter.log(record));
       };
     }
-    var _03f = function(n){
-      n = Math.round(n * 1000);
-      var f = n % 1000;
-      var d = (n - f) / 1000;
-      var fs = f.toString();
-      var padding = 3 - fs.length;
-      while (padding > 0){
-        fs = '0' + fs;
-        --padding;
+    var formatter = {
+      paddedString: function(str, width, padding, right){
+        if (str.length > width){
+          str = str.substr(0, width - 3) + '...';
+        }
+        var i = width - str.length;
+        if (right){
+          while (i > 0){
+            str += padding;
+            --i;
+          }
+        }else{
+          while (i > 0){
+            str = padding + str;
+            --i;
+          }
+        }
+        return str;
+      },
+      log: function(log){
+        return [
+          formatter.timestamp(log.timestamp),
+          formatter.paddedString(log.level, 5, ' ', true),
+          formatter.paddedString(log.subsystem, 16, ' ', true),
+          formatter.paddedString(log.category, 16, ' ', true),
+          log.message
+        ].join(" ");
+      },
+      timestamp: function(t){
+        var n = Math.round(t * 1000);
+        var f = n % 1000;
+        var d = (n - f) / 1000;
+        var fs = f.toString();
+        var ds = d.toString();
+        return formatter.paddedString(ds, 10, '0') + '.' + formatter.paddedString(fs, 3, '0');
       }
-      var ds = d.toString();
-      padding = 6 - ds.length;
-      while (padding > 0){
-        ds = '0' + ds;
-        --padding;
-      }
-      return ds + "." + fs;
     };
     window.JSKIT_PREFLIGHT_CONTEXT = bootstrapper;
     bootstrapper.run();

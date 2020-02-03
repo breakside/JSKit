@@ -142,6 +142,7 @@ HTMLAppBootstrapper.prototype = {
         this.setStatus(HTMLAppBootstrapper.STATUS.appLoading);
         this.linkStylesheets();
         window.addEventListener('error', this);
+        window.addEventListener('unhandledrejection', this);
         this.includeAppSrc(this.appSrc.shift());
     },
 
@@ -172,7 +173,11 @@ HTMLAppBootstrapper.prototype = {
     },
 
     runApp: function(){
-        window.removeEventListener('error', this);
+        if (window.JSLog){
+            this._copyLogsToJSLog();
+            this._recordLog = this._recordLogJSLog;
+            this.getLogRecords = this._getLogRecordsJSLog;
+        }
         try{
             this.setStatus(HTMLAppBootstrapper.STATUS.appRunning);
             main(this.rootElement, this);
@@ -193,6 +198,8 @@ HTMLAppBootstrapper.prototype = {
             }
             return;
         }
+        window.removeEventListener('error', this);
+        window.removeEventListener('unhandledrejection', this);
         this.application = application;
         this.setStatus(HTMLAppBootstrapper.STATUS.appLaunched);
     },
@@ -266,6 +273,11 @@ HTMLAppBootstrapper.prototype = {
                 return;
             }
         }
+    },
+
+    event_unhandledrejection: function(e){
+        var error = e.reason;
+        // TODO: 
     },
 
     // MARK: - Service Worker
@@ -480,36 +492,59 @@ HTMLAppBootstrapper.prototype = {
     // MARK: - Logging
 
     log_debug: function(category, message){
-        this._write_log("debug", category, message);
+        this._writeLog("debug", category, message);
     },
 
     log_info: function(category, message){
-        this._write_log("info", category, message);
+        this._writeLog("info", category, message);
     },
 
     log_log: function(category, message){
-        this._write_log("log", category, message);
+        this._writeLog("log", category, message);
     },
 
     log_warn: function(category, message){
-        this._write_log("warn", category, message);
+        this._writeLog("warn", category, message);
     },
 
     log_error: function(category, message){
-        this._write_log("error", category, message);
+        this._writeLog("error", category, message);
     },
 
-    _write_log: function(level, category, message){
+    _writeLog: function(level, category, message){
         var record = {
             level: level,
             subsystem: "boot",
             category: category,
             timestamp: Date.now() / 1000,
-            message: message
+            message: message,
+            args: []
         };
+        this._recordLog(record);
+    },
+
+    _recordLog: function(record){
         this.logs.push(record);
         this.onlog(record);
     },
+
+    getLogRecords: function(){
+        return this.logs;
+    },
+
+    _copyLogsToJSLog: function(){
+        for (var i = 0, l = this.logs.length; i < l; ++i){
+            window.JSLog.write(this.logs[i]);
+        }
+    },
+
+    _recordLogJSLog: function(record){
+        window.JSLog.write(record);
+    },
+
+    _getLogRecordsJSLog: function(){
+        return window.JSLog.getRecords();
+    }
 
 };
 

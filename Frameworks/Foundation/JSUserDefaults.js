@@ -128,9 +128,12 @@ JSClass("JSUserDefaults", JSObject, {
             completion.call(target, true);
         }else{
             var data = JSON.stringify(this._values).utf8();
+            logger.info("saving user defaults");
             JSFileManager.shared.createFileAtURL(this._url, data, function JSFileManager_persist_createFile(success){
                 if (!success){
-                    logger.error("Failed to write preferences to %{public}", this._url);
+                    logger.error("failed to write user defaults");
+                }else{
+                    logger.info("saved user defaults");
                 }
                 if (completion){
                     completion.call(target, success);

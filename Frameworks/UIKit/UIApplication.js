@@ -143,7 +143,13 @@ JSClass('UIApplication', UIResponder, {
         }
     },
 
+    _stopCalled: false,
+
     stop: function(completion, target){
+        if (this._stopCalled){
+            return;
+        }
+        this._stopCalled = true;
         logger.info("Stopping application");
         var _close = function(){
             JSUserDefaults.shared.close(function(){

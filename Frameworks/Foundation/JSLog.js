@@ -57,18 +57,33 @@ JSLog.getOrCreateConfig = function(subsystem, category){
     subsystem = subsystem || '__any__';
     category = category || '__any__';
     if (!(subsystem in JSLog.configuration)){
-        JSLog.configuration[subsystem] = {'__any__': Object.create(defaultConfiguration, {hooks: {value: []}})};
+        JSLog.configuration[subsystem] = {'__any__': Object.create(defaultConfiguration)};
     }
     var subsystemConfig = JSLog.configuration[subsystem];
     if (!(category in subsystemConfig)){
-        subsystemConfig[category] = Object.create(subsystemConfig.__any__, {hooks: {value: []}});
+        subsystemConfig[category] = Object.create(subsystemConfig.__any__);
     }
-    return JSLog.configuration[subsystem][category];
+    var config = JSLog.configuration[subsystem][category];
+    for (var level in config){
+        config[level].hooks = [];
+    }
+    return config;
 };
 
-JSLog.hook = function(subsystem, category, hook){
+JSLog.hook = function(subsystem, category, level, hook){
     var config = JSLog.getOrCreateConfig(subsystem, category);
-    config.hooks.push(hook);
+    config[level].hooks.push(hook);
+};
+
+JSLog.formatted = function(records){
+    if (!(records instanceof Array)){
+        records = [records];
+    }
+    var formatted = [];
+    for (var i = 0, l = records.length; i < l; ++i){
+        formatted.push(JSLog.format(records[i]));
+    }
+    return formatted;
 };
 
 JSLog.format = function(record){
@@ -84,38 +99,20 @@ JSLog.format = function(record){
 
 var isCallingHooks = false;
 
-JSLog.writeRecord = function(logger, level, message, args){
-    var config = logger.config[level];
-    if (!config.enabled){
-        return false;
-    }
-    var record = {
-        subsystem: logger.subsystem,
-        category: logger.category,
-        level: level,
-        message: message,
-        args: args,
-        timestamp: Date.now() / 1000
-    };
+JSLog.write = function(record){
     JSLog.buffer.write(record);
-    if (config.console){
-        config.console(JSLog.format(record));
-    }
-    if (config.persist && isCallingHooks){
-        isCallingHooks = true;
-        var records = JSLog.getRecords();
-        var hook;
-        for (var i = 0, l = config.hooks.length; i < l; ++i){
-            hook = config.hooks[i];
-            hook.enqueueRecord(record, records);
-        }
-        isCallingHooks = false;
-    }
-    return true;
 };
 
 JSLog.getRecords = function(){
     return this.buffer.readAll();
+};
+
+JSLog.dump = function(){
+    var records = JSLog.getRecords();
+    var record = record;
+    for (var i = 0, l = records.length; i < l; ++i){
+        console[record.level](JSLog.format(record));
+    }
 };
 
 JSLog.buffer = JSLogBuffer(100);
@@ -148,7 +145,13 @@ var jslog_formatter = {
 
     error: function(e, options){
         if (e.stack){
-            return e.toString() + "\n" + e.stack;
+            var lines = [];
+            if (e.stack){
+                lines = e.stack.split("\n");
+                lines.unshift("");
+                return e.toString() + lines.join("\n                                                       ");
+            }
+            return e.toString();
             // var stack = e.stack.split("\n");
             // var info = parseStackLine(stack[0]);
             // return e.toString() + ' \u2014 ' + info.function + ' \u2014 ' + info.file + ':' + info.line;
@@ -162,37 +165,67 @@ var jslog_formatter = {
 JSLog.prototype = {
 
     debug: function(message){
-        JSLog.writeRecord(this, JSLog.Level.debug, message, Array.prototype.slice.call(arguments, 1));
+        this.write(JSLog.Level.debug, message, Array.prototype.slice.call(arguments, 1));
     },
 
     info: function(message){
-        JSLog.writeRecord(this, JSLog.Level.info, message, Array.prototype.slice.call(arguments, 1));
+        this.write(JSLog.Level.info, message, Array.prototype.slice.call(arguments, 1));
     },
 
     log: function(message){
-        JSLog.writeRecord(this, JSLog.Level.log, message, Array.prototype.slice.call(arguments, 1));
+        this.write(JSLog.Level.log, message, Array.prototype.slice.call(arguments, 1));
     },
 
     warn: function(message){
         if (message instanceof Error){
-            JSLog.writeRecord(this, JSLog.Level.warn, "%{error}", [message]);
+            this.write(JSLog.Level.warn, "%{error}", [message]);
         }else{
-            JSLog.writeRecord(this, JSLog.Level.warn, message, Array.prototype.slice.call(arguments, 1));
+            this.write(JSLog.Level.warn, message, Array.prototype.slice.call(arguments, 1));
         }
     },
 
     error: function(message){
         if (message instanceof Error){
-            JSLog.writeRecord(this, JSLog.Level.error, "%{error}", [message]);
+            this.write(JSLog.Level.error, "%{error}", [message]);
         }else{
-            JSLog.writeRecord(this, JSLog.Level.error, message, Array.prototype.slice.call(arguments, 1));
+            this.write(JSLog.Level.error, message, Array.prototype.slice.call(arguments, 1));
         }
     },
 
     mark: function(name, level){
-        if (JSLog.writeRecord(this, level !== undefined ? level : JSLog.Level.log, "---- %{public}", [name])){
+        if (this.write(level !== undefined ? level : JSLog.Level.log, "---- %{public}", [name])){
             performance.mark(name);
         }
+    },
+
+    write: function(level, message, args){
+        var config = this.config[level];
+        if (!config.enabled){
+            return false;
+        }
+        var record = {
+            subsystem: this.subsystem,
+            category: this.category,
+            level: level,
+            message: message,
+            args: args,
+            timestamp: Date.now() / 1000
+        };
+        JSLog.write(record);
+        if (config.console){
+            config.console(JSLog.format(record));
+        }
+        if (config.persist && !isCallingHooks){
+            isCallingHooks = true;
+            var records = JSLog.getRecords();
+            var hook;
+            for (var i = 0, l = config.hooks.length; i < l; ++i){
+                hook = config.hooks[i];
+                hook.enqueueRecord(record, records);
+            }
+            isCallingHooks = false;
+        }
+        return true;
     }
 
 };

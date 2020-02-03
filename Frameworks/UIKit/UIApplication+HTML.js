@@ -6,6 +6,7 @@
 (function(){
 
 var originalSetup = UIApplication.prototype.setup;
+var logger = JSLog("uikit", "application");
 
 UIApplication.definePropertiesFromExtensions({
 
@@ -61,7 +62,36 @@ UIApplication.definePropertiesFromExtensions({
         this.stop(reload);
     },
 
-    baseURL: JSReadOnlyProperty('_baseURL')
+    baseURL: JSReadOnlyProperty('_baseURL'),
+
+    handleEvent: function(e){
+        this['_event_' + e.type](e);
+    },
+
+    _event_error: function(e){
+        var error = e.error;
+        if (e.filename.startsWith(this._baseURL.encodedString)){
+            e.preventDefault();
+            this._handleError(error);
+        }
+    },
+
+    _event_unhandledrejection: function(e){
+        var error = e.reason;
+        if (error instanceof Error){
+            // TODO: verify the error is from our app
+            e.preventDefault();
+            this._handleError(error);
+        }
+    },
+
+    _handleError: function(error){
+        logger.error(error);
+        if (this.delegate && this.delegate.applicationDidCrash){
+            var logs = JSLog.getRecords();
+            this.delegate.applicationDidCrash(this, error, logs);
+        }
+    }
 
 });
 
@@ -69,6 +99,10 @@ JSGlobalObject.UIApplicationMain = function(rootElement, bootstrapper){
     var windowServer = UIHTMLWindowServer.initWithRootElement(rootElement);
     var application = UIApplication.initWithWindowServer(windowServer);
     application.run(function(error){
+        if (error === null){
+            window.addEventListener('error', application);
+            window.addEventListener('unhandledrejection', application);
+        }
         if (bootstrapper){
             bootstrapper.applicationLaunchResult(application, error);
         }
