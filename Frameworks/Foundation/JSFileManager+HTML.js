@@ -160,30 +160,34 @@ JSFileManager.definePropertiesFromExtensions({
 
     _metadataInTransactionAtURL: function(transaction, url, completion){
         var parent = url.removingLastPathComponent();
-        var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
-        var lookup = [parent.path || '', url.lastPathComponent];
-        var request = index.get(lookup);
-        var metadata;
-        request.onsuccess = function JSFileManager_metadata_onsuccess(e){
-            logger.debug("found metadata");
-            completion(e.target.result || null);
-            // FIXME: url could include a symlink folder, in which case we won't
-            // get a result here even if the url is valid after resolving the symlink.
-            // While we could walk path component by path component, I was hoping to
-            // avoid that work since each lookup has to be an async query and it would
-            // take N run loops to resolve a path with N components
-            // An option is to query all metadata on open, so lookups don't have to be
-            // a synchronous, but that would be less than ideal if there are a large
-            // number of files in the database.
-            // Compromise could be to do a quick lookup for regular files/folders,
-            // and the fallback here to a step-by-step lookup.  Downside is that would
-            // make every lookup of a non-existent file slow.
-        };
-        request.onerror = function JSFileManager_metadata_onerror(e){
-            logger.error("Error querying metadata: %{error}", request.error);
-            completion(null);
-        };
-        logger.debug("looking up metadata");
+        try {
+            var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
+            var lookup = [parent.path || '', url.lastPathComponent];
+            var request = index.get(lookup);
+            var metadata;
+            request.onsuccess = function JSFileManager_metadata_onsuccess(e){
+                logger.debug("found metadata");
+                completion(e.target.result || null);
+                // FIXME: url could include a symlink folder, in which case we won't
+                // get a result here even if the url is valid after resolving the symlink.
+                // While we could walk path component by path component, I was hoping to
+                // avoid that work since each lookup has to be an async query and it would
+                // take N run loops to resolve a path with N components
+                // An option is to query all metadata on open, so lookups don't have to be
+                // a synchronous, but that would be less than ideal if there are a large
+                // number of files in the database.
+                // Compromise could be to do a quick lookup for regular files/folders,
+                // and the fallback here to a step-by-step lookup.  Downside is that would
+                // make every lookup of a non-existent file slow.
+            };
+            request.onerror = function JSFileManager_metadata_onerror(e){
+                logger.error("Error querying metadata: %{error}", request.error);
+                completion(null);
+            };
+            logger.debug("looking up metadata");
+        }catch(e){
+            logger.error("Exception thrown querying metadata: %{error}", e);
+        }
     },
 
     // --------------------------------------------------------------------

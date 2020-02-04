@@ -151,9 +151,10 @@ JSClass("HTMLBuilder", Builder, {
     populateEnvironment: async function(){
         await this.setupEnvironment();
         var envs = this.project.info.UIApplicationEnvironment;
+        this.project.info.UIApplicationEnvironment = {};
         if (envs){
-            for (var name in envs){
-                envs[name] = this.getEnvironment(envs[name]);
+            for (var i = 0, l = envs.length; i < l; ++i){
+                this.project.info.UIApplicationEnvironment[envs[i]] = this.getEnvironment(envs[i]);
             }
         }
     },

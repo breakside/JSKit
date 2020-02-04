@@ -19,12 +19,12 @@ JSClass('UIApplication', UIResponder, {
         if (shared){
             throw new Error("UIApplication.init: one application already initialized, and only one may exist");
         }
+        this.bundle = JSBundle.mainBundle;
+        this.setupLogging();
         logger.info("Creating application");
         shared = this;
         this.windowServer = windowServer;
         this._windowsById = {};
-        this.bundle = JSBundle.mainBundle;
-        this.environment = this.bundle.info.UIApplicationEnvironment;
     },
 
     deinit: function(){
@@ -39,6 +39,13 @@ JSClass('UIApplication', UIResponder, {
         logger.info("Setup");
         this.setupFonts();
         this.setupDelegate();
+    },
+
+    setupLogging: function(){
+        var logging = this.bundle.info.JSLogging;
+        if (!logging){
+            return;
+        }
     },
 
     setupFonts: function(){
@@ -306,6 +313,13 @@ JSClass('UIApplication', UIResponder, {
     },
 
     openURL: function(url, options){
+    },
+
+    getenv: function(name, defaultValue){
+        if (name in this.bundle.info.UIApplicationEnvironment){
+            return this.bundle.info.UIApplicationEnvironment[name];
+        }
+        return defaultValue;
     }
 
 });
