@@ -41,7 +41,6 @@ JSClass("HTMLBuilder", Builder, {
     sourcesURL: null,
     frameworksURL: null,
     resourcesURL: null,
-    environment: null,
 
     setup: async function(){
         await HTMLBuilder.$super.setup.call(this);
@@ -61,7 +60,6 @@ JSClass("HTMLBuilder", Builder, {
                 this.arguments['http-port'] = this.project.info.HTTPPort || 80;
             }
         }
-        this.environment = {};
         this.wwwJavascriptPaths = [];
         this.wwwResourcePaths = [];
         this.preflightFeatures = new Set();
@@ -155,7 +153,7 @@ JSClass("HTMLBuilder", Builder, {
         var envs = this.project.info.UIApplicationEnvironment;
         if (envs){
             for (var name in envs){
-                this.environment[name] = this.getEnvironment(envs[name]);
+                envs[name] = this.getEnvironment(envs[name]);
             }
         }
     },
@@ -491,7 +489,7 @@ JSClass("HTMLBuilder", Builder, {
                             preflightId: this.preflightId,
                             preflightSrc: this.preflightURL.encodedStringRelativeTo(this.wwwURL),
                             serviceWorkerSrc: this.serviceWorkerURL ? this.serviceWorkerURL.encodedStringRelativeTo(this.wwwURL) : null,
-                            environment: this.environment,
+                            environment: this.project.info.UIApplicationEnvironment,
                             debug: this.debug
                         }, null, 2)
                     };

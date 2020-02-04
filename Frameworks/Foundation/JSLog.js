@@ -152,9 +152,8 @@ var jslog_formatter = {
                 return e.toString() + lines.join("\n                                                       ");
             }
             return e.toString();
-            // var stack = e.stack.split("\n");
-            // var info = parseStackLine(stack[0]);
-            // return e.toString() + ' \u2014 ' + info.function + ' \u2014 ' + info.file + ':' + info.line;
+            // var frames = e.frames;
+            // return e.toString() + ' \u2014 ' + frames[0].method + ' \u2014 ' + frames[0].filename + ':' + frames[0].lineno;
         }
         return e.toString();
     },
@@ -236,41 +235,6 @@ JSLog.Level = {
     log: 'log',
     warn: 'warn',
     error: 'error'
-};
-
-var parseStackLine = function(line){
-    if (line.substr(0, 14) == '    at Object.'){
-        line = line.substr(14);
-    }else if (line.charAt(0) == '.'){
-        line = line.substr(1);
-    }
-    var info = {
-        function: '(?)',
-        file: '(?)',
-        line: '(?)'
-    };
-    var atIndex = line.indexOf('@');
-    if (atIndex >= 0){
-        info.function = line.substr(0, atIndex);
-        line = line.substr(atIndex + 1);
-    }
-    var lastColonIndex = line.lastIndexOf(':');
-    if (lastColonIndex >= 0){
-        var secondLastColonIndex = line.lastIndexOf(':', lastColonIndex - 1);
-        if (secondLastColonIndex >= 0){
-            info.line = parseInt(line.substr(secondLastColonIndex + 1, lastColonIndex - secondLastColonIndex - 1));
-            line = line.substr(0, secondLastColonIndex);
-        }else{
-            line = line.substr(0, lastColonIndex);
-        }
-    }
-    var lastSlashIndex = line.lastIndexOf('/');
-    if (lastSlashIndex >= 0){
-        info.file = line.substr(lastSlashIndex + 1);
-    }else{
-        info.file = line;
-    }
-    return info;
 };
 
 var defaultConfiguration = {

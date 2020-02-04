@@ -24,6 +24,7 @@ JSClass('UIApplication', UIResponder, {
         this.windowServer = windowServer;
         this._windowsById = {};
         this.bundle = JSBundle.mainBundle;
+        this.environment = this.bundle.info.UIApplicationEnvironment;
     },
 
     deinit: function(){

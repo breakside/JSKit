@@ -1,4 +1,5 @@
 // #import "Javascript.js"
+// #import "Error+JS.js"
 // #import "String+JS.js"
 // #import "Number+JS.js"
 // #import "Uint8Array+JS.js"
