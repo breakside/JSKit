@@ -25,6 +25,7 @@ window.HTMLAppBootstrapper = function(rootElement, jskitapp){
     this.application = null;
     this.error = null;
     this.logs = [];
+    this.debug = jskitapp.debug;
     window.JSGlobalObject = window;
 };
 
@@ -176,7 +177,12 @@ HTMLAppBootstrapper.prototype = {
         if (window.JSLog){
             this._copyLogsToJSLog();
             this._recordLog = this._recordLogJSLog;
-            this.getLogRecords = this._getLogRecordsJSLog;
+            this.getLogs = this._getLogsJSLog;
+            if (!this.debug){
+                window.JSLog.configure({print: false}, window.JSLog.Level.debug);
+                window.JSLog.configure({print: false}, window.JSLog.Level.info);
+                window.JSLog.configure({print: false}, window.JSLog.Level.log);
+            }
         }
         try{
             this.setStatus(HTMLAppBootstrapper.STATUS.appRunning);
@@ -236,7 +242,13 @@ HTMLAppBootstrapper.prototype = {
         this.log_info("status", this.status + " -> " + status);
         this.status = status;
         var bootstrapper = this;
-        if (this.statusDispatchTimeoutID === null){
+        if (status === HTMLAppBootstrapper.STATUS.appRunning || status === HTMLAppBootstrapper.STATUS.appLaunched){
+            if (this.statusDispatchTimeoutID !== null){
+                clearTimeout(this.statusDispatchTimeoutID);
+                this.statusDispatchTimeoutID = null;
+            }
+            bootstrapper.onstatus();
+        }else if (this.statusDispatchTimeoutID === null){
             this.statusDispatchTimeoutID = setTimeout(function HTMLAppBootstrapper_dispatchStatusChanged(){
                 bootstrapper.statusDispatchTimeoutID = null;
                 bootstrapper.onstatus();
@@ -528,7 +540,7 @@ HTMLAppBootstrapper.prototype = {
         this.onlog(record);
     },
 
-    getLogRecords: function(){
+    getLogs: function(){
         return this.logs;
     },
 
@@ -542,10 +554,48 @@ HTMLAppBootstrapper.prototype = {
         window.JSLog.write(record);
     },
 
-    _getLogRecordsJSLog: function(){
+    _getLogsJSLog: function(){
         return window.JSLog.getRecords();
     }
 
+};
+
+HTMLAppBootstrapper.formatter = {
+    paddedString: function(str, width, padding, right){
+        if (str.length > width){
+            str = str.substr(0, width - 3) + '...';
+        }
+        var i = width - str.length;
+        if (right){
+            while (i > 0){
+                str += padding;
+                --i;
+            }
+        }else{
+            while (i > 0){
+                str = padding + str;
+                --i;
+            }
+        }
+        return str;
+    },
+    log: function(log){
+        return [
+            HTMLAppBootstrapper.formatter.timestamp(log.timestamp),
+            HTMLAppBootstrapper.formatter.paddedString(log.level, 5, ' ', true),
+            HTMLAppBootstrapper.formatter.paddedString(log.subsystem, 16, ' ', true),
+            HTMLAppBootstrapper.formatter.paddedString(log.category, 16, ' ', true),
+            log.message
+        ].join(" ");
+    },
+    timestamp: function(t){
+        var n = Math.round(t * 1000);
+        var f = n % 1000;
+        var d = (n - f) / 1000;
+        var fs = f.toString();
+        var ds = d.toString();
+        return HTMLAppBootstrapper.formatter.paddedString(ds, 10, '0') + '.' + HTMLAppBootstrapper.formatter.paddedString(fs, 3, '0');
+    }
 };
 
 })();
