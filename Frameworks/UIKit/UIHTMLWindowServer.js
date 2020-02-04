@@ -189,17 +189,53 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.domWindow.addEventListener('blur', this, false);
         this.domWindow.addEventListener('resize', this, false);
         this.domWindow.addEventListener('languagechange', this, false);
-
-        // mobile
         this.rootElement.addEventListener('touchstart', this, {passive: false, capture: false});
         this.rootElement.addEventListener('touchend', this, {passive: false, capture: false});
         this.rootElement.addEventListener('touchcancel', this, {passive: false, capture: false});
         this.rootElement.addEventListener('touchmove', this, {passive: false, capture: false});
     },
 
+    removeEventListeners: function(){
+        this.rootElement.removeEventListener('mousedown', this, false);
+        this.rootElement.removeEventListener('mouseup', this, false);
+        this.rootElement.removeEventListener('mousemove', this, false);
+        this.rootElement.removeEventListener('wheel', this, false);
+        this.rootElement.removeEventListener('gesturestart', this, false);
+        this.rootElement.removeEventListener('gesturechange', this, false);
+        this.rootElement.removeEventListener('gestureend', this, false);
+        this.rootElement.removeEventListener('keydown', this, false);
+        this.rootElement.removeEventListener('keyup', this, false);
+        this.rootElement.removeEventListener('dragstart', this, false);
+        this.rootElement.removeEventListener('dragend', this, false);
+        this.rootElement.removeEventListener('dragover', this, false);
+        this.rootElement.removeEventListener('dragenter', this, false);
+        this.rootElement.removeEventListener('drop', this, false);
+        this.rootElement.removeEventListener('mouseleave', this, false);
+        this.rootElement.removeEventListener('contextmenu', this, false);
+        this.rootElement.removeEventListener('cut', this, false);
+        this.rootElement.removeEventListener('copy', this, false);
+        this.rootElement.removeEventListener('paste', this, false);
+        this.rootElement.removeEventListener('beforecut', this, false);
+        this.rootElement.removeEventListener('beforecopy', this, false);
+        this.rootElement.removeEventListener('beforepaste', this, false);
+        this.domWindow.removeEventListener('focus', this, false);
+        this.domWindow.removeEventListener('blur', this, false);
+        this.domWindow.removeEventListener('resize', this, false);
+        this.domWindow.removeEventListener('languagechange', this, false);
+        this.rootElement.removeEventListener('touchstart', this, {passive: false, capture: false});
+        this.rootElement.removeEventListener('touchend', this, {passive: false, capture: false});
+        this.rootElement.removeEventListener('touchcancel', this, {passive: false, capture: false});
+        this.rootElement.removeEventListener('touchmove', this, {passive: false, capture: false});
+    },
+
     handleEvent: function(e){
         e.stopPropagation();
         this[e.type](e);
+    },
+
+    stop: function(){
+        UIHTMLWindowServer.$super.stop.call(this);
+        this.removeEventListeners();
     },
 
     // --------------------------------------------------------------------

@@ -26,6 +26,7 @@ JSFileManager.definePropertiesFromExtensions({
     // MARK: - Opening the File System
 
     open: function(completion, target){
+        logger.info("opening indexeddb file manager");
         if (!completion){
             completion = Promise.completion(function JSFileManager_open_promise_completion(status){
                 if (status != JSFileManager.State.success){
@@ -37,22 +38,28 @@ JSFileManager.definePropertiesFromExtensions({
         var request = indexedDB.open(this._identifier, CURRENT_DATABASE_VERSION);
         var manager = this;
         request.onblocked = function JSFileManager_open_onblocked(e){
+            logger.info("indexeddb file manager upgrade blocked by other windows");
             completion.call(target, JSFileManager.State.conflictingVersions);
         };
         request.onerror = function JSFileManager_open_onerror(e){
-            manager.error = e.error;
+            var error = request.error;
+            logger.error("indexeddb open error: ${error}", error);
+            manager.error = error;
             completion.call(target, JSFileManager.State.genericFailure);
         };
         request.onupgradeneeded = function JSFileManager_open_onupgradeneeded(e){
+            logger.info("indexeddb upgrade needed");
+            logger.info("indexeddb upgrading");
             try{
                 manager._db = e.target.result;
                 manager.upgrade(e.oldVersion, e.newVersion);
             }catch (err){
-                logger.error("Upgrade error: %{public}", e.message);
+                logger.error("indexeddb upgrade error: %{error}", err);
                 completion.call(target, JSFileManager.State.genericFailure);
             }
         };
         request.onsuccess = function JSFileManager_open_onsuccess(e){
+            logger.info("indexeddb open");
             manager._db = e.target.result;
             completion.call(target, JSFileManager.State.success);
         };
@@ -158,6 +165,7 @@ JSFileManager.definePropertiesFromExtensions({
         var request = index.get(lookup);
         var metadata;
         request.onsuccess = function JSFileManager_metadata_onsuccess(e){
+            logger.debug("found metadata");
             completion(e.target.result || null);
             // FIXME: url could include a symlink folder, in which case we won't
             // get a result here even if the url is valid after resolving the symlink.
@@ -172,8 +180,13 @@ JSFileManager.definePropertiesFromExtensions({
             // make every lookup of a non-existent file slow.
         };
         request.onerror = function JSFileManager_metadata_onerror(e){
+            logger.error("Error querying metadata: %{error}", request.error);
             completion(null);
         };
+        transaction.indexedDBTransaction.addEventListener('abort', function(){
+            logger.info("request state: %{public}", request.readyState);
+        });
+        logger.debug("looking up metadata");
     },
 
     // --------------------------------------------------------------------
@@ -197,6 +210,7 @@ JSFileManager.definePropertiesFromExtensions({
         transaction.addCompletion(completion, target);
         this._createDirectoryInTransactionAtURL(transaction, url, function JSFileManager_createDirectory_completion(success){
             if (!success){
+                logger.info("create directory failed, aborting transaction");
                 transaction.abort();
             }
         });
@@ -214,7 +228,8 @@ JSFileManager.definePropertiesFromExtensions({
                 request.onsuccess = function JSFileManager_createDirectory_onsucess(){
                     completion(true);
                 };
-                request.onerror = function JSFileManager_createDirectory_onerror(){
+                request.onerror = function JSFileManager_createDirectory_onerror(e){
+                    logger.error("indexeddb create directory error: %{error}", request.error);
                     completion(false);
                 };
             }else{
@@ -278,6 +293,7 @@ JSFileManager.definePropertiesFromExtensions({
                     }
                 };
             }else{
+                logger.info("could not create parent directory, aborting create file transaction");
                 transaction.abort();
             }
         };
@@ -334,6 +350,7 @@ JSFileManager.definePropertiesFromExtensions({
         var manager = this;
         manager._metadataInTransactionAtURL(transaction, url, function JSFileManager_moveItem_metadata(metadata){
             if (metadata === null){
+                logger.info("received null metadata for item, aborting move transaction");
                 transaction.abort();
             }else{
                 var move = function JSFileManager_moveItem_move(toParentExists){
@@ -341,6 +358,7 @@ JSFileManager.definePropertiesFromExtensions({
                         metadata.parent = toParent.path;
                         transaction.metadata.put(metadata);
                     }else{
+                        logger.info("could not create parent directory, aborting move transaction");
                         transaction.abort();
                     }
                 };
@@ -389,12 +407,14 @@ JSFileManager.definePropertiesFromExtensions({
         var manager = this;
         manager._metadataInTransactionAtURL(transaction, url, function JSFileManager_copyItem_metadata(metadata){
             if (metadata === null){
+                logger.info("received null metadata, aborting copy transaction");
                 transaction.abort();
             }else{
                 var copy = function JSFileManager(parentExists){
                     if (parentExists){
                         manager._copyItemInTransactionAtURL(transaction, url, toURL, toParent, metadata);
                     }else{
+                        logger.info("could not create parent directory, aborting copy transaction");
                         transaction.abort();
                     }
                 };
@@ -486,6 +506,7 @@ JSFileManager.definePropertiesFromExtensions({
             if (metadata !== null){
                 manager._removeItemInTransactionAtURL(transaction, url, parent, metadata);
             }else{
+                logger.info("received null metadata, aborting remove transaction");
                 transaction.abort();
             }
         });
@@ -638,6 +659,7 @@ JSFileManager.definePropertiesFromExtensions({
             completion.call(target, entries);
         };
         request.onerror = function JSFileManager_contentsOfDirectory_onerror(e){
+            logger.error("error querying directory contents: ${error}", request.error);
             completion.call(target, null);
         };
         return completion.promise;
@@ -678,6 +700,7 @@ JSFileManager.definePropertiesFromExtensions({
                 var metadata = {parent: parent.path, name: url.lastPathComponent, itemType: JSFileManager.ItemType.symbolicLink, created: t, updated: t, added: t, link: toURL.encodedString};
                 transaction.metadata.add(metadata);
             }else{
+                logger.info("could not create parent directory, aborting create symlink transaction");
                 transaction.abort();
             }
         };
@@ -730,6 +753,7 @@ JSFileManager.definePropertiesFromExtensions({
             completion.call(target, true);
         };
         request.onerror = function JSFileManager_destroy_onerror(e){
+            logger.error("Unable to destroy file manager: %{error}", request.error);
             completion.call(target, false);
         };
         return completion.promise;
@@ -803,26 +827,42 @@ JSFileManagerTransaction.prototype = {
     },
 
     handleEvent: function(e){
-        this.removeEventListeners();
-        this[e.type](e);
+        this['event_' + e.type](e);
     },
 
-    abort: function(e){
+    _abortIsIntentional: false,
+
+    abort: function(){
+        this._abortIsIntentional = true;
+        this.indexedDBTransaction.abort();
+    },
+
+    _complete: function(success){
+        this.removeEventListeners();
         if (this.completion === null){
             return;
         }
         this.completion.call(this.target, false);
     },
 
-    error: function(e){
+    event_abort: function(e){
+        if (!this._abortIsIntentional){
+            if (this.indexedDBTransaction.error){
+                logger.warn("indexeddb transaction aborted: ${error}", this.indexedDBTransaction.error);
+            }else{
+                logger.warn("indexeddb transaction aborted");
+            }
+        }
+        this._complete(false);
+    },
+
+    event_error: function(e){
+        logger.error(this.indexedDBTransaction.error);
         // error events should result in abort events, so we'll handle everything in the abort
     },
 
-    complete: function(e){
-        if (this.completion === null){
-            return;
-        }
-        this.completion.call(this.target, true);
+    event_complete: function(e){
+        this._complete(true);
     },
 
     removeEventListeners: function(){

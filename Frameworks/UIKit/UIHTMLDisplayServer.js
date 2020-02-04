@@ -139,12 +139,20 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     },
 
     updateDisplay: function(t){
-        if (this.displayFrameID === null){
+        if (this.displayFrameID !== null){
             this.domWindow.cancelAnimationFrame(this.displayFrameID);
             this.displayFrameID = null;
         }
         this._flushDOMInsertsAndRemovals();
         UIHTMLDisplayServer.$super.updateDisplay.call(this, t);
+    },
+
+    stop: function(){
+        UIHTMLDisplayServer.$super.stop.call(this);
+        if (this.displayFrameID !== null){
+            this.domWindow.cancelAnimationFrame(this.displayFrameID);
+            this.displayFrameID = null;
+        }
     },
 
     // -------------------------------------------------------------------------

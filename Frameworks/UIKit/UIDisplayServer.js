@@ -61,6 +61,12 @@ JSClass("UIDisplayServer", JSObject, {
         }
     },
 
+    stop: function(){
+        Object.defineProperty(this, 'setUpdateNeeded', {
+            value: function UIDisplayServer_setUpdateNeeded_stopped(){}
+        });
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Display Cycle
 

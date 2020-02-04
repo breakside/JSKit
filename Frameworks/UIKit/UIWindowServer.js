@@ -41,6 +41,10 @@ JSClass("UIWindowServer", JSObject, {
         this.device = UIDevice.shared;
     },
 
+    stop: function(){
+        this.displayServer.stop();
+    },
+
     // -----------------------------------------------------------------------
     // MARK: - Inserting and Removing Windows
 

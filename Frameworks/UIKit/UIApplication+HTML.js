@@ -72,25 +72,50 @@ UIApplication.definePropertiesFromExtensions({
         var error = e.error;
         if (e.filename.startsWith(this._baseURL.encodedString)){
             e.preventDefault();
-            this._handleError(error);
+            this._crash(error);
         }
     },
 
     _event_unhandledrejection: function(e){
         var error = e.reason;
         if (error instanceof Error){
-            // TODO: verify the error is from our app
-            e.preventDefault();
-            this._handleError(error);
+            var frames = error.frames;
+            if (frames.length === 0 || frames[0].filename.startsWith(this._baseURL.encodedString)){
+                e.preventDefault();
+                this._crash(error);
+            }
         }
     },
 
-    _handleError: function(error){
+    _crash: function(error){
         logger.error(error);
+        this.windowServer.stop();
+        var root = this.windowServer.displayServer.rootElement;
+        var cover = root.appendChild(root.ownerDocument.createElement('div'));
+        cover.style.position = 'absolute';
+        cover.style.backgroundColor = 'rgba(0,0,0,0.9)';
+        cover.style.top = '0';
+        cover.style.left = '0';
+        cover.style.right = '0';
+        cover.style.bottom = '0';
+        var message;
         if (this.delegate && this.delegate.applicationDidCrash){
             var logs = JSLog.getRecords();
-            this.delegate.applicationDidCrash(this, error, logs);
+            message = this.delegate.applicationDidCrash(this, error, logs);
         }
+        if (!message){
+            message = "Sorry, there was a problem and the application needs to restart.\n\nPlease reload the page to continue.";
+        }
+        var label = cover.appendChild(cover.ownerDocument.createElement('div'));
+        label.style.position = 'absolute';
+        label.style.color = 'white';
+        label.style.font = '400 normal 17px/24px sans-serif';
+        label.appendChild(label.ownerDocument.createTextNode(message));
+        label.style.top = 'calc(50% - 36px)';
+        label.style.left = '20px';
+        label.style.right = '20px';
+        label.style.textAlign = 'center';
+        label.style.whiteSpace = 'pre-wrap';
     }
 
 });

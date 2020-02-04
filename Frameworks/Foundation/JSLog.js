@@ -239,7 +239,7 @@ JSLog.Level = {
 
 var defaultConfiguration = {
     debug: {
-        enabled: false,
+        enabled: true,
         persist: false,
         console: console.debug
     },
