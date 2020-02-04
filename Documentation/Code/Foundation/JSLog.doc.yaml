@@ -278,4 +278,207 @@ topics:
                 name: error
                 summary: The highest priority.  Used for logging exceptions or
                   other critical error conditions.
+  -
+    name: Configuration
+    members:
+      -
+        name: any
+        type: String
+        summary: Constant that can be used instead of a specific subsystem or
+          category when configuring logging
+      -
+        name: configure
+        kind: method
+        static: true
+        summary: Configure the log behavior at for the given logger and level
+        arguments:
+          -
+            name: options
+            type: Congfiguration
+            summary: The configuration options to set
+          -
+            name: level
+            type: Level
+            summary: The level to configure
+          -
+            name: subsystem
+            type: String
+            default: JSLog.any
+            summary: The subsystem to configure
+          -
+            name: category
+            type: String
+            default: JSLog.any
+            summary: The category to configure
+        description: |
+          Unspecified configuration properties will be left unchanged.
+      -
+        name: Congfiguration
+        kind: dictionary
+        summary: Log configuration options
+        topics:
+          -
+            name: Properties
+            members:
+              -
+                name: enabled
+                type: boolean
+                summary: Determines whether any logs are captured at this level
+              -
+                name: print
+                type: boolean
+                summary: Whether to print to the `console`
+              -
+                name: console
+                type: Console
+                summary: A `Console`-like object that has a method corresponding
+                  to each log level.
+                description: |
+                  Can be used to route printed logs to a file or location
+                  other than the built-in debug console
+  -
+    name: Custom Handlers
+    members:
+      -
+        name: addHandler
+        kind: method
+        static: true
+        summary: Add a custom log handler object for the given logger and level
+        arguments:
+          -
+            name: handler
+            type: JSLogHandler
+            summary: The custom handler
+          -
+            name: level
+            type: Level
+            summary: The level to configure
+          -
+            name: subsystem
+            type: String
+            default: JSLog.any
+            summary: The subsystem to configure
+          -
+            name: category
+            type: String
+            default: JSLog.any
+            summary: The category to configure
+      -
+        name: addHandler
+        kind: method
+        suffix: function
+        static: true
+        summary: Add a custom log handler function for the given logger and level
+        arguments:
+          -
+            name: handler
+            type:
+              arguments:
+                -
+                  name: record
+                  type: JSLogRecord
+                  summary: The log record to handle
+            summary: The custom handler function
+          -
+            name: level
+            type: Level
+            summary: The level to configure
+          -
+            name: subsystem
+            type: String
+            default: JSLog.any
+            summary: The subsystem to configure
+          -
+            name: category
+            type: String
+            default: JSLog.any
+            summary: The category to configure
+      -
+        name: JSLogRecord
+        kind: class
+        anonymous: true
+        summary: A single loggged record
+        topics:
+          -
+            name: Properties
+            members:
+              -
+                name: level
+                type: Level
+                summary: The record's level
+              -
+                name: timestamp
+                type: Number
+                summary: A unix timestamp in seconds since 1970
+              -
+                name: subsystem
+                type: String
+                summary: The subsystem of the logger that created the record
+              -
+                name: category
+                type: String
+                summary: The category of the logger that created the record
+              -
+                name: message
+                type: String
+                summary: The log message, with possible format placeholders
+              -
+                name: args
+                type: any[]
+                summary: The message format arguments
+      -
+        name: JSLogHandler
+        kind: protocol
+        summary: An interface for custom log handlers
+        topics:
+          -
+            name: Logging
+            members:
+              -
+                name: handleLog
+                kind: method
+                summary: Handle a single log record
+                arguments:
+                  -
+                    name: record
+                    type: JSLogRecord
+                    summary: The log record to handle
+  -
+    name: Formatting
+    members:
+      -
+        name: format
+        kind: method
+        static: true
+        type: String
+        summary: Format a single log record
+        arguments:
+          -
+            name: record
+            type: JSLogRecord
+            summary: The record to format
+      -
+        name: formatted
+        kind: method
+        static: true
+        type: String[]
+        summary: Format a list of log records into a list of strings
+        arguments:
+          -
+            name: records
+            type: JSLogRecord[]
+            summary: The records to format
+  -
+    name: Record Memory
+    members:
+      -
+        name: getRecords
+        kind: method
+        static: true
+        type: JSLogRecord[]
+        summary: Get a list of recent log records across all levels
+        description: |
+          It's often useful when logging crashes or errors to include
+          a recent history of logs to provide context for the error.
 
+          By default, `JSLog` keeps a memory of the 100 most recent log records.

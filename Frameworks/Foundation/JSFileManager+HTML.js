@@ -183,9 +183,6 @@ JSFileManager.definePropertiesFromExtensions({
             logger.error("Error querying metadata: %{error}", request.error);
             completion(null);
         };
-        transaction.indexedDBTransaction.addEventListener('abort', function(){
-            logger.info("request state: %{public}", request.readyState);
-        });
         logger.debug("looking up metadata");
     },
 

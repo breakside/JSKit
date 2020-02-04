@@ -46,33 +46,86 @@ JSGlobalObject.JSLog = function(subsystem, category){
     if (this === undefined){
         return new JSLog(subsystem, category);
     }
+    if (subsystem === undefined || subsystem === null || subsystem === JSLog.any){
+        throw new Error("JSLog() requires a subsystem");
+    }
+    if (category === undefined || category === null || category === JSLog.any){
+        throw new Error("JSLog() requires a category");
+    }
     this.subsystem = subsystem;
     this.category = category;
     this.config = JSLog.getOrCreateConfig(subsystem, category);
 };
 
+JSLog.any = '__any__';
+
+var defaultConfiguration = {
+    enabled: true,
+    print: true,
+    console: console,
+    handlers: null,
+    parent: null
+};
+
+var createConfiguration = function(parent){
+    return Object.create({}, {
+        debug:  {value: Object.create(parent.debug, {handlers: {value: []}, parent: {value: parent.debug}})},
+        info:   {value: Object.create(parent.info,  {handlers: {value: []}, parent: {value: parent.info}})},
+        log:    {value: Object.create(parent.log,   {handlers: {value: []}, parent: {value: parent.log}})},
+        warn:   {value: Object.create(parent.warn,  {handlers: {value: []}, parent: {value: parent.warn}})},
+        error:  {value: Object.create(parent.error, {handlers: {value: []}, parent: {value: parent.error}})},
+    });
+};
+
 JSLog.configuration = {};
+JSLog.configuration[JSLog.any] = {};
+JSLog._rootConfiguration = JSLog.configuration[JSLog.any][JSLog.any] = Object.create({}, {
+    debug:  {value: Object.create(defaultConfiguration, {handlers: {value: []}})},
+    info:   {value: Object.create(defaultConfiguration, {handlers: {value: []}})},
+    log:    {value: Object.create(defaultConfiguration, {handlers: {value: []}})},
+    warn:   {value: Object.create(defaultConfiguration, {handlers: {value: []}})},
+    error:  {value: Object.create(defaultConfiguration, {handlers: {value: []}})},
+});
 
 JSLog.getOrCreateConfig = function(subsystem, category){
-    subsystem = subsystem || '__any__';
-    category = category || '__any__';
-    if (!(subsystem in JSLog.configuration)){
-        JSLog.configuration[subsystem] = {'__any__': Object.create(defaultConfiguration)};
+    subsystem = subsystem || JSLog.any;
+    category = category || JSLog.any;
+    var parent = JSLog._rootConfiguration;
+    if (subsystem === JSLog.any){
+        return parent;
     }
+    var level;
     var subsystemConfig = JSLog.configuration[subsystem];
-    if (!(category in subsystemConfig)){
-        subsystemConfig[category] = Object.create(subsystemConfig.__any__);
+    if (!subsystemConfig){
+        JSLog.configuration[subsystem] = subsystemConfig = {};
+        subsystemConfig[JSLog.any] = createConfiguration(parent);
     }
-    var config = JSLog.configuration[subsystem][category];
-    for (var level in config){
-        config[level].hooks = [];
+    parent = subsystemConfig[JSLog.any];
+    if (category === JSLog.any){
+        return parent;
+    }
+    var config = subsystemConfig[category];
+    if (!config){
+        config = subsystemConfig[category] = createConfiguration(parent);
     }
     return config;
 };
 
-JSLog.hook = function(subsystem, category, level, hook){
+JSLog.configure = function(configuration, level, subsystem, category){
     var config = JSLog.getOrCreateConfig(subsystem, category);
-    config[level].hooks.push(hook);
+    for (var property in configuration){
+        if (property === 'enabled' || property === 'print' || property === 'console'){
+            config[level][property] = configuration[property];
+        }
+    }
+};
+
+JSLog.addHandler = function(handler, level, subsystem, category){
+    var config = JSLog.getOrCreateConfig(subsystem, category);
+    if (typeof(handler) === 'function'){
+        handler = {handleLog: handler};
+    }
+    config[level].handlers.push(handler);
 };
 
 JSLog.formatted = function(records){
@@ -97,7 +150,29 @@ JSLog.format = function(record){
     return format.format(jslog_formatter, args.concat(record.args));
 };
 
-var isCallingHooks = false;
+JSLog.formatMessage = function(message, args){
+    return message.format(jslog_formatter, args);
+};
+
+JSLog.formatStacktrace = function(record){
+    var stack = null;
+    for (var i = 0, l = record.args.length; i < l && stack !== null; ++i){
+        if (record.args[i] instanceof Error){
+            stack = record.args[i].stack;
+        }
+    }
+    if (stack){
+        var lines = [];
+        if (stack){
+            lines = stack.split("\n");
+            lines.unshift("");
+        }
+        return lines.join("\n                                                       ");
+    }
+    return "";
+};
+
+var isCallingHandlers = false;
 
 JSLog.write = function(record){
     JSLog.buffer.write(record);
@@ -144,17 +219,8 @@ var jslog_formatter = {
     },
 
     error: function(e, options){
-        if (e.stack){
-            var lines = [];
-            if (e.stack){
-                lines = e.stack.split("\n");
-                lines.unshift("");
-                return e.toString() + lines.join("\n                                                       ");
-            }
-            return e.toString();
-            // var frames = e.frames;
-            // return e.toString() + ' \u2014 ' + frames[0].method + ' \u2014 ' + frames[0].filename + ':' + frames[0].lineno;
-        }
+        // var frames = e.frames;
+        // return e.toString() + ' \u2014 ' + frames[0].method + ' \u2014 ' + frames[0].filename + ':' + frames[0].lineno;
         return e.toString();
     },
 
@@ -211,18 +277,30 @@ JSLog.prototype = {
             timestamp: Date.now() / 1000
         };
         JSLog.write(record);
-        if (config.console){
-            config.console(JSLog.format(record));
+        if (config.print){
+            config.console[record.level](JSLog.format(record) + JSLog.formatStacktrace(record));
         }
-        if (config.persist && !isCallingHooks){
-            isCallingHooks = true;
-            var records = JSLog.getRecords();
-            var hook;
-            for (var i = 0, l = config.hooks.length; i < l; ++i){
-                hook = config.hooks[i];
-                hook.enqueueRecord(record, records);
+        if (!isCallingHandlers){
+            isCallingHandlers = true;
+            var handler;
+            var i, l;
+            if (config.parent){
+                if (config.parent.parent){
+                    for (i = 0, l = config.parent.parent.handlers.length; i < l; ++i){
+                        handler = config.parent.parent.handlers[i];
+                        handler.handleLog(record);
+                    }
+                }
+                for (i = 0, l = config.parent.handlers.length; i < l; ++i){
+                    handler = config.parent.handlers[i];
+                    handler.handleLog(record);
+                }
             }
-            isCallingHooks = false;
+            for (i = 0, l = config.handlers.length; i < l; ++i){
+                handler = config.handlers[i];
+                handler.handleLog(record);
+            }
+            isCallingHandlers = false;
         }
         return true;
     }
@@ -235,34 +313,6 @@ JSLog.Level = {
     log: 'log',
     warn: 'warn',
     error: 'error'
-};
-
-var defaultConfiguration = {
-    debug: {
-        enabled: true,
-        persist: false,
-        console: console.debug
-    },
-    info: {
-        enabled: true,
-        persist: false,
-        console: console.info
-    },
-    log: {
-        enabled: true,
-        persist: false,
-        console: console.log
-    },
-    warn: {
-        enabled: true,
-        persist: false,
-        console: console.warn
-    },
-    error: {
-        enabled: true,
-        persist: true,
-        console: console.error
-    }
 };
 
 })();
