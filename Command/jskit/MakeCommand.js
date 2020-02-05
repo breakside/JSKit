@@ -57,14 +57,14 @@ JSClass("MakeCommand", Command, {
         await this.builder.build();
         var willWatch = this.arguments.watch && this.builder.watchlist.length > 0;
         if (!willWatch){
-            this.printer.setStatus("Done (build label: %s)".sprintf(this.builder.buildLabel));
+            this.printer.setStatus("Done (build: %s/%s)".sprintf(this.builder.buildLabel, this.builder.buildId));
         }
         if (this.builder.commands.length > 0){
             var commands = "$ " + this.builder.commands.join("\n$ ") + "\n";
             this.printer.print(commands, false, willWatch);
         }
         while (this.arguments.watch && this.builder.watchlist.length > 0){
-            this.printer.setStatus("Done (build label: %s).  Watching for file changes...".sprintf(this.builder.buildLabel));
+            this.printer.setStatus("Done (build: %s/%s).  Watching for file changes...".sprintf(this.builder.buildLabel, this.builder.buildId));
             await this.watchForChanges(this.builder.watchlist);
             await this.builder.build();
         }

@@ -7,6 +7,7 @@ window.HTMLAppBootstrapper = function(rootElement, jskitapp){
     if (this === undefined){
         return new HTMLAppBootstrapper(rootElement, jskitapp);
     }
+    this.app = jskitapp;
     this.rootElement = rootElement;
     this.preflightID = jskitapp.preflightId;
     this.preflightSrc = jskitapp.preflightSrc;
@@ -25,7 +26,6 @@ window.HTMLAppBootstrapper = function(rootElement, jskitapp){
     this.application = null;
     this.error = null;
     this.logs = [];
-    this.debug = jskitapp.debug;
     window.JSGlobalObject = window;
 };
 
@@ -62,6 +62,7 @@ HTMLAppBootstrapper.prototype = {
     },
 
     run: function(){
+        this.log_info("boot", "Booting " + this.app.bundleId + ", build " + this.app.buildId);
         if (this.serviceWorkerSrc && window.navigator.serviceWorker){
             this._installUsingServiceWorker(window.navigator.serviceWorker);
         }else if (document.documentElement.getAttribute("manifest") && window.applicationCache){
@@ -178,7 +179,7 @@ HTMLAppBootstrapper.prototype = {
             this._copyLogsToJSLog();
             this._recordLog = this._recordLogJSLog;
             this.getLogs = this._getLogsJSLog;
-            if (!this.debug){
+            if (!this.app.debug){
                 window.JSLog.configure({print: false}, window.JSLog.Level.debug);
                 window.JSLog.configure({print: false}, window.JSLog.Level.info);
                 window.JSLog.configure({print: false}, window.JSLog.Level.log);
@@ -552,6 +553,7 @@ HTMLAppBootstrapper.prototype = {
 
     _recordLogJSLog: function(record){
         window.JSLog.write(record);
+        this.onlog(record);
     },
 
     _getLogsJSLog: function(){

@@ -79,6 +79,10 @@ JSClass("Builder", JSObject, {
         this.commands = [];
         this.watchlist = [];
         await this.project.load();
+        var gitRevision = await this.getGitRevision();
+        if (gitRevision !== null){
+            this.project.info.GitRevision = gitRevision;
+        }
     },
 
     finish: async function(){
@@ -90,6 +94,7 @@ JSClass("Builder", JSObject, {
                 await this.fileManager.removeItemAtURL(latestBuildURL);
             }
             await this.fileManager.createSymbolicLinkAtURL(latestBuildURL, this.buildURL);
+            await this.gitTag();
         }
     },
 
@@ -204,8 +209,56 @@ JSClass("Builder", JSObject, {
     },
 
     replaceTemplateText: function(text, parameters){
-    }
+    },
 
+    // -----------------------------------------------------------------------
+    // MARK: - Git
+
+    gitTag: async function(){
+        const { spawn } = require('child_process');
+        var tag = "v" + this.project.info.JSBundleVersion;
+        var args = ["tag", tag];
+        var cwd = this.fileManager.pathForURL(this.project.url);
+        try{
+            var git = spawn("git", args, {cwd: cwd});
+            var builder = this;
+            return new Promise(function(resolve, reject){
+                git.on('close', function(code){
+                    resolve();
+                });
+                git.on('error',function(){
+                    resolve();
+                });
+            });
+        }catch (e){
+        }
+    },
+
+    getGitRevision: async function(){
+        const { spawn } = require('child_process');
+        var args = ["rev-parse", "HEAD"];
+        var cwd = this.fileManager.pathForURL(this.project.url);
+        try{
+            var git = spawn("git", args, {cwd: cwd});
+            var rev = "";
+            git.stdout.on('data', function(data){
+                if (data){
+                    rev += data.stringByDecodingUTF8();
+                }
+            });
+            var builder = this;
+            return new Promise(function(resolve, reject){
+                git.on('close', function(code){
+                    resolve(rev.trim());
+                });
+                git.on('error',function(){
+                    resolve(null);
+                });
+            });
+        }catch (e){
+            return null;
+        }
+    }
 });
 
 var frameworkDependencies = function(framework, env){

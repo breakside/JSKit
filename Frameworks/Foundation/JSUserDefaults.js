@@ -48,7 +48,7 @@ JSClass("JSUserDefaults", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        this._persist(function JSFileManager_close_persisted(success){
+        this._persist(function JSUserDefaults_close_persisted(success){
             if (success){
                 this._values = null;
             }
@@ -101,6 +101,7 @@ JSClass("JSUserDefaults", JSObject, {
     
     _persistScheduled: false,
     _persistTimer: null,
+    _persistDelay: 1,
     _url: null,
 
     _persistAfterDelay: function(){
@@ -108,12 +109,12 @@ JSClass("JSUserDefaults", JSObject, {
             return;
         }
         this._persistScheduled = true;
-        JSRunLoop.main.schedule(function JSFileManager_persistAfterDelay_scheduled(){
+        JSRunLoop.main.schedule(function JSUserDefaults_persistAfterDelay_scheduled(){
             if (this._persistScheduled){
                 if (this._persistTimer !== null){
                     this._persistTimer.invalidate();
                 }
-                this._persistTimer = JSTimer.scheduledTimerWithInterval(1, this._persist, this);
+                this._persistTimer = JSTimer.scheduledTimerWithInterval(this._persistDelay, this._persist, this);
                 this._persistScheduled = false;
             }
         }, this);
@@ -129,7 +130,7 @@ JSClass("JSUserDefaults", JSObject, {
         }else{
             var data = JSON.stringify(this._values).utf8();
             logger.info("saving user defaults");
-            JSFileManager.shared.createFileAtURL(this._url, data, function JSFileManager_persist_createFile(success){
+            JSFileManager.shared.createFileAtURL(this._url, data, function JSUserDefaults_persist_createFile(success){
                 if (!success){
                     logger.error("failed to write user defaults");
                 }else{

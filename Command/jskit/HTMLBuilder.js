@@ -491,6 +491,9 @@ JSClass("HTMLBuilder", Builder, {
                             preflightSrc: this.preflightURL.encodedStringRelativeTo(this.wwwURL),
                             serviceWorkerSrc: this.serviceWorkerURL ? this.serviceWorkerURL.encodedStringRelativeTo(this.wwwURL) : null,
                             environment: this.project.info.UIApplicationEnvironment,
+                            buildId: this.buildId,
+                            bundleId: this.project.info.JSBundleIdentifier,
+                            gitRevision: this.project.info.GitRevision,
                             debug: this.debug
                         }, null, 2)
                     };

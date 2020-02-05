@@ -166,7 +166,7 @@ JSFileManager.definePropertiesFromExtensions({
             var request = index.get(lookup);
             var metadata;
             request.onsuccess = function JSFileManager_metadata_onsuccess(e){
-                logger.debug("found metadata");
+                logger.debug("metadata query success; exists: %b", !!e.target.result);
                 completion(e.target.result || null);
                 // FIXME: url could include a symlink folder, in which case we won't
                 // get a result here even if the url is valid after resolving the symlink.
@@ -269,6 +269,7 @@ JSFileManager.definePropertiesFromExtensions({
         if (url.pathComponents.length === 1){
             throw new Error("JSFileManager.createFileAtURL cannot create root path");
         }
+        logger.debug("creating file");
         var transaction = this.begin(JSFileManager.Permission.readwrite, [JSFileManager.Tables.metadata, JSFileManager.Tables.data]);
         transaction.addCompletion(completion, target);
         var parent = url.removingLastPathComponent();
@@ -277,6 +278,7 @@ JSFileManager.definePropertiesFromExtensions({
         var metadata = null;
         var create = function JSFileManager_createFile_create(parentExists){
             if (parentExists){
+                logger.debug("writing file data");
                 var dataRequest;
                 if (metadata === null){
                     dataRequest = transaction.data.add(data);
@@ -293,6 +295,9 @@ JSFileManager.definePropertiesFromExtensions({
                         transaction.metadata.put(metadata);
                     }
                 };
+                dataRequest.onerror = function JSFileManager_createFile_onerror(e){
+                    logger.error("Error creating file: %{error}", dataRequest.error);
+                };
             }else{
                 logger.info("could not create parent directory, aborting create file transaction");
                 transaction.abort();
@@ -300,13 +305,16 @@ JSFileManager.definePropertiesFromExtensions({
         };
         manager._metadataInTransactionAtURL(transaction, url, function JSFileManager_createFile_metadata(existingMetadata){
             if (existingMetadata !== null){
+                logger.debug("overwriting file");
                 metadata = existingMetadata;
                 create(true);
             }else{
+                logger.debug("new file, checking for parent");
                 manager._metadataInTransactionAtURL(transaction, parent, function JSFileManager_createFile_parent_metadata(parentMetadata){
                     if (parentMetadata !== null){
                         create(parentMetadata.itemType == JSFileManager.ItemType.directory);
                     }else{
+                        logger.debug("creating parent");
                         manager._createDirectoryInTransactionAtURL(transaction, parent, create);
                     }
                 });
@@ -843,7 +851,7 @@ JSFileManagerTransaction.prototype = {
         if (this.completion === null){
             return;
         }
-        this.completion.call(this.target, false);
+        this.completion.call(this.target, success);
     },
 
     event_abort: function(e){
