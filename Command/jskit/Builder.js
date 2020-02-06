@@ -75,7 +75,7 @@ JSClass("Builder", JSObject, {
             now.getMinutes(),
             now.getSeconds()
         );
-        this.buildId = JSMD5Hash(this.buildLabel.utf8()).hexStringRepresentation();
+        this.buildId = JSSHA1Hash(this.buildLabel.utf8()).hexStringRepresentation();
         this.commands = [];
         this.watchlist = [];
         await this.project.load();
@@ -94,7 +94,11 @@ JSClass("Builder", JSObject, {
                 await this.fileManager.removeItemAtURL(latestBuildURL);
             }
             await this.fileManager.createSymbolicLinkAtURL(latestBuildURL, this.buildURL);
-            await this.gitTag();
+            if (this.parentBuild === null){
+                await this.gitTag("v" + this.project.info.JSBundleVersion);
+                await this.gitTag("build-" + this.buildId);
+                await this.gitTag("build-" + this.buildLabel);
+            }
         }
     },
 
@@ -214,9 +218,8 @@ JSClass("Builder", JSObject, {
     // -----------------------------------------------------------------------
     // MARK: - Git
 
-    gitTag: async function(){
+    gitTag: async function(tag){
         const { spawn } = require('child_process');
-        var tag = "v" + this.project.info.JSBundleVersion;
         var args = ["tag", tag];
         var cwd = this.fileManager.pathForURL(this.project.url);
         try{

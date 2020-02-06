@@ -1,5 +1,8 @@
 {
-  "private": true,
   "description": "Development tools for jskit projects",
-  "homepage": "https://jskit.dev"
+  "homepage": "https://jskit.dev",
+  "bugs": {
+    "url": "https://github.com/breakside/JSKit/issues"
+  },
+  "repository": "github:breakside/JSKit"
 }

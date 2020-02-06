@@ -329,7 +329,7 @@ JSClass("NodeBuilder", Builder, {
         pkg.name = this.project.info.JSExecutableName;
         pkg.version = this.project.info.JSBundleVersion;
         var licenseName = this.project.licenseFilename;
-        pkg.license = "SEE LICENSE IN %s" % licenseName;
+        pkg.license = "SEE LICENSE IN %s".sprintf(licenseName);
         pkg.files = ["*"];
         pkg.bin = "./" + this.executableURL.encodedStringRelativeTo(this.bundleURL);
         var outputPackageURL = this.bundleURL.appendingPathComponent("package.json");
