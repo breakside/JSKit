@@ -156,17 +156,14 @@ JSLog.formatMessage = function(message, args){
 
 JSLog.formatStacktrace = function(record){
     var stack = null;
-    for (var i = 0, l = record.args.length; i < l && stack !== null; ++i){
+    for (var i = 0, l = record.args.length; i < l && stack === null; ++i){
         if (record.args[i] instanceof Error){
             stack = record.args[i].stack;
         }
     }
     if (stack){
-        var lines = [];
-        if (stack){
-            lines = stack.split("\n");
-            lines.unshift("");
-        }
+        var lines = stack.split("\n");
+        lines.unshift("");
         return lines.join("\n                                                       ");
     }
     return "";
