@@ -26,7 +26,7 @@ description: |
   $ npx jskit doc docs/Messages.doc.yaml ~/Desktop/MessagesDocs
   ````
 invocations:
-  - <root-doc> <output-dir> --title <page-title>
+  - <root-doc> <output-dir>
 topics:
   -
     name: Input
@@ -56,10 +56,3 @@ topics:
 
           Also inside `output-dir` will be a `components-manifest.json` file 
           that maps html files to their expected URL path (sans-`.html`)
-  -
-    name: Customization
-    members:
-      -
-        name: --title
-        type: String
-        summary: A project title that will be appended to all HTML page titles

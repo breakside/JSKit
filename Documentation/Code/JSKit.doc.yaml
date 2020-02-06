@@ -21,7 +21,7 @@ page:
       url: icon.svg
       type: image/svg+xml
       sizes: any
-  # googleAnalytics: UA-157144849-3
+  googleAnalytics: UA-157144849-3
 description: |
   JSKit is a collection of JavaScript frameworks that can be used to build
   desktop-quality web applications and production server applications.
