@@ -20,6 +20,7 @@ JSClass("MakeCommand", Command, {
     options: {
         'debug':        {kind: "flag",                  help: "Build the project in debug mode"},
         'watch':        {kind: "flag",                  help: "Automatically rebuild when files change"},
+        'no-tag':       {kind: "flag",                  help: "Don't do any git tagging (debug builds never tag)"},
         'include':      {multiple: true, default: [],   help: "Extra include directory, can be specified multiple times."},
         'builds-root':  {default: null,                 help: "Root folder for builds"},
         'project':      {kind: "positional",            help: "The project to build"},
@@ -48,6 +49,7 @@ JSClass("MakeCommand", Command, {
         this.builder.workingDirectoryURL = this.workingDirectoryURL;
         this.builder.printer = this.printer;
         this.builder.debug = this.arguments.debug;
+        this.builder.shouldTag = !this.arguments['no-tag'];
         if (this.arguments['builds-root']){
             this.builder.buildsRootURL = this.fileManager.urlForPath(this.arguments['builds-root'], this.workingDirectoryURL, true);
         }else{

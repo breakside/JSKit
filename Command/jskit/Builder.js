@@ -94,7 +94,7 @@ JSClass("Builder", JSObject, {
                 await this.fileManager.removeItemAtURL(latestBuildURL);
             }
             await this.fileManager.createSymbolicLinkAtURL(latestBuildURL, this.buildURL);
-            if (this.parentBuild === null){
+            if (this.shouldTag && this.parentBuild === null){
                 await this.gitTag("v" + this.project.info.JSBundleVersion);
                 await this.gitTag("build-" + this.buildId);
                 await this.gitTag("build-" + this.buildLabel);
@@ -217,6 +217,8 @@ JSClass("Builder", JSObject, {
 
     // -----------------------------------------------------------------------
     // MARK: - Git
+
+    shouldTag: true,
 
     gitTag: async function(tag){
         const { spawn } = require('child_process');

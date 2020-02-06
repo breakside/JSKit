@@ -28,7 +28,7 @@ JSClass("HTMLBuilder", Builder, {
         'connections': {valueType: "integer", default: 1024, help: "The port on which the static http server will be configured"},
         'docker-owner': {default: null, help: "The docker repo prefix to use when building a docker image"},
         'no-docker': {kind: "flag", help: "Don't build the docker image"},
-        'env': {default: ".env", help: "A file with environmental variables for this build"}
+        'env': {default: null, help: "A file with environmental variables for this build"}
     },
 
     needsDockerBuild: true,
@@ -131,7 +131,16 @@ JSClass("HTMLBuilder", Builder, {
 
     setupEnvironment: async function(){
         this._workingDirectoryEnvironment = {};
-        var url = this.workingDirectoryURL.appendingPathComponent(this.arguments.env);
+        var url;
+        if (this.arguments.env){
+            url = this.workingDirectoryURL.appendingPathComponent(this.arguments.env);
+        }else{
+            if (this.debug){
+                url = this.workingDirectoryURL.appendingPathComponent('.env');
+            }else{
+                url = this.project.url.appendingPathComponent(this.project.info.HTMLProductionEnvironment || 'production.env');
+            }
+        }
         try{
             var contents = await this.fileManager.contentsAtURL(url);
             if (contents !== null){

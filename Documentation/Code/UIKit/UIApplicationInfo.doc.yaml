@@ -192,3 +192,17 @@ topics:
         description: |
           Used with advanced http server configuration, like when .html
           URLs are mapped to their files basename without the .html part.
+      -
+        name: HTMLProductionEnvironment
+        type: String
+        summary: The name of a file with environment variables that will be used
+          for non-debug builds.
+        description:
+          Defaults to `production.env`.
+
+          Typically the production environment file is committed to version
+          control.
+
+          For debug builds, a git-ignored `.env` file in the working directory
+          will be used by default, allowing each developer to have custom
+          settings.
