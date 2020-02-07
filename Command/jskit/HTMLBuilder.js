@@ -195,10 +195,12 @@ JSClass("HTMLBuilder", Builder, {
         await this.addFrameworkSources(framework, 'html', bundledURL);
         let sourceURLs = [];
         let resourcesBase = framework.url.appendingPathComponent("Resources");
-        for (let i = 0, l = framework.resources.metadata.length; i < l; ++i){
-            let metadata = framework.resources.metadata[i];
-            let url = resourcesBase.appendingPathComponent(metadata.path);
-            sourceURLs.push(url);
+        if (framework.resources){
+            for (let i = 0, l = framework.resources.metadata.length; i < l; ++i){
+                let metadata = framework.resources.metadata[i];
+                let url = resourcesBase.appendingPathComponent(metadata.path);
+                sourceURLs.push(url);
+            }
         }
         await this.addBundleJS(bundledURL, framework.info, framework.resources, sourceURLs);
         if (framework.info.JSBundleIdentifier == 'io.breakside.JSKit.Dispatch'){
