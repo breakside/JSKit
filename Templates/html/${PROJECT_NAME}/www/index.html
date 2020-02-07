@@ -145,6 +145,7 @@
           statusLabel.innerHTML = "Apologies, but we couldn't start the application";
           detailsLabel.style.opacity = 1;
           detailsLabel.innerHTML = "Don't worry, it wasn't anything you did, and it isn't something we expect to happen under normal usage.<br>We've notified our engineers of the problem, and the best thing you can do is try again soon.";
+          reportError(bootstrapper.error, bootstrapper.getLogs());
           break;
         case S.appRequiresNoOtherInstances:
           statusLabel.style.opacity = 1;
@@ -172,6 +173,11 @@
           console[record.level](HTMLAppBootstrapper.formatter.log(record));
       };
     }
+    var reportError = function(error, logs){
+      if (app.debug){
+        console.error(error);
+      }
+    };
     window.JSKIT_PREFLIGHT_CONTEXT = bootstrapper;
     bootstrapper.run();
   })();
