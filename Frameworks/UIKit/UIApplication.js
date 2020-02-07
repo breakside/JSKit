@@ -183,6 +183,7 @@ JSClass('UIApplication', UIResponder, {
         if (!this.delegate.applicationDidFinishLaunching){
             throw new Error("ApplicationDelegate does not implement applicationDidFinishLaunching()");
         }
+        logger.info("Calling delegate.applicationDidFinishLaunching");
         this.delegate.applicationDidFinishLaunching(this, launchOptions);
         if (this.windowServer.windowStack.length === 0){
             throw new Error("No window initiated on application launch.  ApplicationDelegate needs to show a window during .applicationDidFinishLaunching()");
