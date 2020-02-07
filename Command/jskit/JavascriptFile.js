@@ -150,18 +150,18 @@ JSClass("JavascriptFile", JSObject, {
                         ++end;
                     }
                 }else if (this.context === JavascriptFile.Context.singleQuoteString){
-                    if (b == 0x5C){
+                    if (!skipNext && b == 0x5C){
                         skipNext = true;
-                    }else if (b == 0x27){
+                    }else if (!skipNext && b == 0x27){
                         this.context = JavascriptFile.Context.js;
                     }else{
                         skipNext = false;
                     }
                     ++end;
                 }else if (this.context === JavascriptFile.Context.doubleQuoteString){
-                    if (b == 0x5C){
+                    if (!skipNext && b == 0x5C){
                         skipNext = true;
-                    }else if (b == 0x22){
+                    }else if (!skipNext && b == 0x22){
                         this.context = JavascriptFile.Context.js;
                     }else{
                         skipNext = false;

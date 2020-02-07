@@ -1,4 +1,4 @@
-//// #import jskit
+// #import jskit
 // #import TestKit
 // #import DOM
 
@@ -285,5 +285,17 @@ JSClass("JavascriptFileTests", TKTestSuite, {
         TKAssertExactEquals(scan.columnNumber, 0);
         scan = file.next();
         TKAssertNull(scan);
+    },
+
+    testStrings: function(){
+        var js = [
+            'var x = "I\\"t\'s\\" a test!";',
+            '// nothing'
+        ].join("\n").utf8();
+
+        var file = JavascriptFile.initWithData(js);
+        var scan = file.next();
+        TKAssertNotNull(scan);
+        TKAssertEquals(scan.code, 'var x = "I\\"t\'s\\" a test!";');
     }
 });

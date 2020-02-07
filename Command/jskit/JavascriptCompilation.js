@@ -75,16 +75,14 @@ JSClass("JavascriptCompilation", JSObject, {
                 if (useStrict === undefined){
                     useStrict = false;
                 }
-                let needsStrict = false;
-                if (this.outputUsesStrict === undefined){
-                    this.outputUsesStrict = useStrict;
-                    needsStrict = this.outputUsesStrict;
-                }
-                if (useStrict !== this.outputUsesStrict){
+                if (this.outputUsesStrict !== undefined && useStrict !== this.outputUsesStrict){
                     await this._saveChunks();
                 }
-                if (needsStrict){
-                    this.write("'use strict';\n");
+                if (this.outputUsesStrict === undefined){
+                    this.outputUsesStrict = useStrict;
+                    if (this.outputUsesStrict){
+                        this.write("'use strict';\n");
+                    }
                 }
                 if (this.outputColumnNumber > 0 && this.outputColumnNumber + scan.code.length > 4096){
                     this.write("\n");
@@ -92,10 +90,6 @@ JSClass("JavascriptCompilation", JSObject, {
                 var segments = this.mappings[this.mappings.length - 1];
                 segments.push([this.outputColumnNumber, this.sources.length - 1, scan.lineNumber, scan.columnNumber]);
                 this.write(scan.code);
-
-                if (this.outputColumnNumber > 0 && this.outputColumnNumber + scan.code.length > 4096){
-                    scan.code += "\n";
-                }
             }
             scan = js.next();
         }
@@ -141,6 +135,7 @@ JSClass("JavascriptCompilation", JSObject, {
         // reset
         ++this.outputNumber;
         this.outputChunks = [];
+        this.outputUsesStrict = undefined;
         this.sources = [];
         this.mappings = [[]];
         this.outputLineNumber = 0;
