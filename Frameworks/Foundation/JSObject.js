@@ -66,7 +66,7 @@ JSObject.definePropertiesFromExtensions({
 
     initWithProperties: function(properties){
         for (var i in properties){
-            this.setValueForKey(i, properties[i]);
+            this.setValueForKey(properties[i], i);
         }
     },
 
@@ -369,7 +369,7 @@ JSObject.definePropertiesFromExtensions({
         return value;
     },
 
-    setValueForKey: function(key, value){
+    setValueForKey: function(value, key){
         var setterName = this.$class.nameOfSetMethodForKey(key);
         if (this[setterName]){
             return this[setterName](value);
@@ -405,7 +405,7 @@ JSObject.definePropertiesFromExtensions({
         var keyParts = keyPath.split('.');
         var key = keyParts.shift();
         if (keyParts.length === 0){
-            this.setValueForKey(key, value);
+            this.setValueForKey(value, key);
         }else{
             var intermediateValue = this.valueForKey(key);
             if (intermediateValue !== null && intermediateValue !== undefined){
