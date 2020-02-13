@@ -3,6 +3,7 @@ kind: class
 introduced: 2020.1.0
 inherits: JSObject
 summary: Manage a list of jobs to be executed in sequential order
+codeURL: JSDispatchQueue.js
 topics:
   -
     name: Default Queues

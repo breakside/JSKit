@@ -834,14 +834,17 @@ JSClass("HTMLBuilder", Builder, {
                 }
                 var localWWWPath = builder.fileManager.pathForURL(builder.wwwURL);
                 var remoteWWWPath = builder.wwwURL.encodedStringRelativeTo(builder.bundleURL.removingLastPathComponent());
-                builder.commands.push([
+                var cmd = [
                     "docker run",
                     "--rm",
                     "--name " + name,
                     "-p%d:%d".sprintf(builder.arguments['http-port'], builder.arguments['http-port']),
-                    "--mount type=bind,source=%s,target=/%s".sprintf(localWWWPath, remoteWWWPath),
-                    identifier
-                ].join(" \\\n    "));
+                ];
+                if (builder.debug){    
+                    cmd.push("--mount type=bind,source=%s,target=/%s".sprintf(localWWWPath, remoteWWWPath));
+                }
+                cmd.push(identifier);
+                builder.commands.push(cmd.join(" \\\n    "));
                 resolve();
             });
             docker.on('error',function(){

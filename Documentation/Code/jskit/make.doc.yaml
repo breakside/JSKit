@@ -1,6 +1,7 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: command
 summary: Build a `JSKit` based project
+codeURL: MakeCommand.js
 description: |
   Builds a `JSKit` based project into the `builds` directory.
 

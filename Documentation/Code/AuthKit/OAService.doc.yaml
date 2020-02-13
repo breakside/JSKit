@@ -3,6 +3,7 @@ introduced: 2020.1.0
 kind: class
 inherits: JSObject
 summary: Represents a service that provides an OAuth implementation
+codeURL: OAService.js
 description: |
   Information about a service can be largely extracted from the information
   found at well known URLs based on a single endpoint URL.

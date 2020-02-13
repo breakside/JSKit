@@ -2,6 +2,7 @@ copyright: Copyright © 2020 Breakside Inc.
 introduced: 2020.1.0
 kind: enum
 summary: A mapping of Adobe character names to Unicode
+codeURL: FNTAdobeNames.js
 topics:
   -
     name: Names

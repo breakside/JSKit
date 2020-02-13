@@ -3,6 +3,7 @@ introduced: 2020.1.0
 kind: class
 inherits: JSObject
 summary: Construct an OpenType font file
+codeURL: FNTOpenTypeConstructor.js
 topics:
   -
     name: Creating a Constructor

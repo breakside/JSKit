@@ -2,6 +2,7 @@ copyright: Copyright © 2020 Breakside Inc.
 kind: command
 summary: Create HTML documentation for project code
 environment: node
+codeURL: DocCommand.js
 description: |
   Javascript doesn't lend itself to quality code documentation due to its lack
   of strong typing.

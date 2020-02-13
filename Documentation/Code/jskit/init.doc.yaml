@@ -1,6 +1,7 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: command
 summary: Initialize an empty `JSKit` workspace
+codeURL: InitCommand.js
 description: |
   Initializes a workspace for a `JSKit` based project.
 

@@ -4,6 +4,7 @@ kind: class
 inherits: JSObject
 summary: Encodes `IKBitmap`s into standard formats like PNG
 note: Currently only PNG is supported.
+codeURL: IKEncoder.js
 topics:
   -
     name: Creating an Encoder

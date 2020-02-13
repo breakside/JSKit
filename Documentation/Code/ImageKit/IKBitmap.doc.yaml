@@ -3,6 +3,7 @@ introduced: 2020.1.0
 kind: class
 inherits: JSObject
 summary: Contains bitmap image data
+codeURL: IKBitmap.js
 description: |
   A bitmap image is a grid of colors.
 

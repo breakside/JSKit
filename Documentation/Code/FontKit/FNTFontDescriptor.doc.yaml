@@ -3,6 +3,7 @@ introduced: 2020.1.0
 kind: class
 inherits: JSFontDescriptor
 summary: A `JSFont`-compatible descriptor based on an OpenType font
+codeURL: FNTFontDescriptor.js
 description: |
   You can use a descriptor of this type to make a `JSFont`:
 

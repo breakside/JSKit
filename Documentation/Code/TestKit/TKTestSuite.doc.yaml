@@ -3,6 +3,7 @@ introduced: 2020.1.0
 kind: class
 inherits: JSObject
 summary: A suite of related test cases
+codeURL: TKTestSuite.js
 description: |
   Typically you'll create one test suite per class that needs testing.
 

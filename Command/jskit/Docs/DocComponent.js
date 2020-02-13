@@ -36,6 +36,9 @@ JSClass("DocComponent", JSObject, {
             this.page = info.page;
             this.page.component = this;
         }
+        if (info.codeURL){
+            this.codeURL = info.codeURL;
+        }
     },
 
     sourceURL: null,
@@ -108,6 +111,7 @@ JSClass("DocComponent", JSObject, {
     description: null,
     note: null,
     important: null,
+    codeURL: null,
 
     page: null,
 
@@ -117,6 +121,14 @@ JSClass("DocComponent", JSObject, {
             component = component.parent;
         }
         return (component ? component.page : null) || {};
+    },
+
+    absoluteCodeURL: function(){
+        var parentURL = this.parent !== null ? this.parent.absoluteCodeURL() : null;
+        if (this.codeURL !== null){
+            return JSURL.initWithString(this.codeURL, parentURL);
+        }
+        return parentURL;
     },
 
     // --------------------------------------------------------------------
@@ -735,12 +747,16 @@ JSClass("DocComponent", JSObject, {
 
     jsonObject: function(baseURL){
         let url = this.outputURL.removingFileExtension();
+        var codeURL = this.absoluteCodeURL();
         let obj = {
             name: this.name,
             kind: this.kind,
             title: this.title,
             url: url.encodedStringRelativeTo(baseURL)
         };
+        if (codeURL){
+            obj.codeURL = codeURL.encodedString;
+        }
         if (this.beta){
             obj.beta = true;
         }

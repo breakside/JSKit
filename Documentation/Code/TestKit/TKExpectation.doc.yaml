@@ -3,6 +3,7 @@ introduced: 2020.1.0
 kind: class
 inherits: JSObject
 summary: An object that manages an asynchronous call for test cases
+codeURL: TKExpectation.js
 description: |
   Asynchronous tests are supported by using `TKExpectation` and calling `wait()`
   on the suite.

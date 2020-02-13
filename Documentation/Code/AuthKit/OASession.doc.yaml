@@ -3,6 +3,7 @@ introduced: 2020.1.0
 kind: class
 inherits: JSObject
 summary: Manage the steps of authenticating a user with OAuth
+codeURL: OASession.js
 description: |
   In order to use an OAuth service, you'll need to have at least a `clientId`,
   typically optained from the service's developer portal.

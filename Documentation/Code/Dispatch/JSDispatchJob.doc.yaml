@@ -3,6 +3,7 @@ kind: class
 introduced: 2020.1.0
 inherits: JSObject
 summary: Abstract base class for all jobs performed on `JSDispatchQueue`s
+codeURL: JSDispatchJob.js
 topics:
   -
     name: Creating a Jb

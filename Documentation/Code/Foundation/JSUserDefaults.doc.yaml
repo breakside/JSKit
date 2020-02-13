@@ -199,7 +199,6 @@ topics:
       -
         name: setValueForKey
         kind: method
-        type: any
         summary: Set the value for the given key.
         description: |
           Setting a value will trigger an automatic file save call in the near

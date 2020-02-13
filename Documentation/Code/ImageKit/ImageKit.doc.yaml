@@ -1,6 +1,7 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: framework
 summary: Read and write bitmap images like PNGs and JPEGs
+codeURL: Frameworks/ImageKit/
 topics:
   -
     name: Bitmap Images

@@ -3,6 +3,7 @@ introduced: 2020.1.0
 kind: class
 inherits: JSObject
 summary: Decodes compressed bitmap formats into `IKBitmap`s
+codeURL: IKDecoder.js
 topics:
   -
     name: Creating a Decoder

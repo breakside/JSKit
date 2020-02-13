@@ -33,7 +33,7 @@ JSClass("ApplicationDelegate", JSObject, {
 
             // Save the unique state in JSUserDefaults so we can check it
             // when the user is redirected back here
-            JSUserDefaults.shared.setValueForKey("oauth", {state: session.state});
+            JSUserDefaults.shared.setValueForKey(session.state, "oauth");
 
             // Open Google auth in the current tab/window, replacing this
             // application, because we'll be redirected back when the auth is done
@@ -186,7 +186,7 @@ JSClass("ApplicationDelegate", JSObject, {
         // Show an error, continue loading as normal, or whatever behavior you'd like
         return;
       }
-      JSUserDefaults.shared.setValueForKey("oauth", null);
+      JSUserDefaults.shared.setValueForKey(null, "oauth");
 
       // Second, verify the JSON Web Token is valid
       OAService.google.load(function(){

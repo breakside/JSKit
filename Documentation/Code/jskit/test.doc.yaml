@@ -2,6 +2,7 @@ copyright: Copyright © 2020 Breakside Inc.
 kind: command
 summary: Build and run tests from a `TestKit` project
 environment: node
+codeURL: TestCommand.js
 description: |
   While it is possible to build a `TestKit` project with `make` and then
   run the tests with the resulting commands, the `test` command does this

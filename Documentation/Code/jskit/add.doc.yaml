@@ -1,6 +1,7 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: command
 summary: Create a new `JSKit` based project in an already initialized workspace
+codeURL: AddCommand.js
 description: |
   Typically for a single application you'll have several `JSKit` based projects
   in one workspace directory.

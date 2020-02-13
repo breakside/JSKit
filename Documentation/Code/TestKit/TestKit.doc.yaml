@@ -1,6 +1,7 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: framework
 summary: Create and run automated tests of `JSKit` based code.
+codeURL: Frameworks/TestKit/
 topics:
   -
     name: Test Suites

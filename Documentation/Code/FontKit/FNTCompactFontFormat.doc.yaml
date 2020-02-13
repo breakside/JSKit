@@ -3,6 +3,7 @@ introduced: 2020.1.0
 kind: class
 inherits: JSObject
 summary: A Compact Font Format (CFF) reader
+codeURL: FNTCompactFontFormat.js
 topics:
   -
     name: Creating a CFF Reader

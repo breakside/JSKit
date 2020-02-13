@@ -8,6 +8,7 @@ description: |
 
   All objects extending from `JSObject` inherit the ability to participate
   in value binding and observing, along with class inspection methods.
+codeURL: JSObject.js
 topics:
   -
     name: Creating a JSObject
@@ -640,6 +641,66 @@ topics:
             type: any
             summary: The exact `context` object/value that was provided in
               \`addObserverForKeyPath`
+      -
+        name: valueForKey
+        kind: method
+        type: any
+        summary: Get the value for the property on this object matching the
+          given key name
+        arguments:
+          -
+            name: key
+            type: String
+            summary: The name of the local property to return
+        description: |
+          Subclasses can override the default behavior that simply returns
+          `this[key]`.
+      -
+        name: valueForKeyPath
+        kind: method
+        type: any
+        summary: Get the value for the property on this object or a child object
+          matching the given key path
+        arguments:
+          -
+            name: keyPath
+            type: String
+            summary: The dot-separated keyPath of the value to look up
+        description: |
+          Key paths can contain dots to indicate properties on child objects
+      -
+        name: setValueForKey
+        kind: method
+        summary: Set the value for the property on this object matching the
+          given key name
+        arguments:
+          -
+            name: value
+            type: any
+            summary: The value to set for the given property name
+          -
+            name: key
+            type: String
+            summary: The name of the local property to return
+        description: |
+          Subclasses can override the default behavior that simply performs
+          `this[key] = value`.
+      -
+        name: setValueForKeyPath
+        kind: method
+        summary: Set the value for the property on this object or a child object
+          matching the given key path
+        arguments:
+          -
+            name: value
+            type: any
+            summary: The value to set for the given property name
+          -
+            name: keyPath
+            type: String
+            summary: The dot-separated keyPath of the value to look up
+        description: |
+          Key paths can contain dots to indicate properties on child objects
   -
     name: Actions
     members:

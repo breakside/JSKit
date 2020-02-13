@@ -3,6 +3,7 @@ kind: command
 summary: Command line utility for creating, building, testing, and documenting
   \`JSKit` based projects and code
 environment: node
+codeURL: Command/jskit/
 description: |
   Installation
   ============

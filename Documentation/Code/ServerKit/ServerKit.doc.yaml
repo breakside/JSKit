@@ -2,6 +2,7 @@ copyright: Copyright © 2020 Breakside Inc.
 introduced: 2020.1.0
 kind: framework
 summary: A platform for HTTP based server applications
+codeURL: Frameworks/ServerKit/
 description: |
   `ServerKit` is designed to provide a `Foundation`-based server platform
   that can be used to build organized and performant APIs with the ability to

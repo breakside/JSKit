@@ -3,6 +3,10 @@
 
  JSClass("DocDocument", DocComponent, {
 
-    kind: 'document'
+    kind: 'document',
+
+    absoluteCodeURL: function(){
+        return null;
+    }
 
  });

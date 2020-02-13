@@ -1,6 +1,7 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: framework
 summary: Read and write font files
+codeURL: Frameworks/FontKit/
 description: |
   `FontKit` proivdes classes that inspect and create OpenType font files.
 
