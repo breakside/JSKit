@@ -304,61 +304,40 @@ HTMLAppBootstrapper.prototype = {
                 bootstrapper.log_debug("serviceWorker", "Found registration");
                 bootstrapper.log_debug("serviceWorker", "Checking for update");
                 bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.checkingForUpdate);
-                registration.addEventListener('updatefound', bootstrapper);
-                return registration.update().then(function(registration){
-                    if (registration.installing){
-                        bootstrapper.log_debug("serviceWorker", "Installing Update");
-                        bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.updating);
-                        bootstrapper.serviceWorker = registration.installing;
-                    }else if (registration.waiting){
-                        bootstrapper.log_debug("serviceWorker", "Waiting registration found.  Activating");
-                        bootstrapper.serviceWorker = registration.waiting;
-                        bootstrapper.serviceWorker.addEventListener('statechange', bootstrapper);
-                        bootstrapper.serviceWorker.postMessage({type: "activate"});
-                    }else if (registration.active){
-                        bootstrapper.serviceWorker = registration.active;
-                        bootstrapper.log_debug("serviceWorker", "Active registration found");
-                        if (bootstrapper.serviceWorker.state == 'activating'){
-                            bootstrapper.log_debug("serviceWorker", "Activating");
-                            bootstrapper.serviceWorker.addEventListener('statechange', bootstrapper);
-                        }else{
-                            bootstrapper.log_debug("serviceWorker", "Activated.");
-                            bootstrapper.load();
-                        }
-                    }else{
-                        bootstrapper.log_error("serviceWorker", "Nothing to install???");
-                        throw new Error("No service worker found on registration");
-                    }
-                    bootstrapper.serviceWorker.addEventListener('statechange', bootstrapper);
-                });
+                return registration.update();
             }
             bootstrapper.log_debug("serviceWorker", "No registration found");
             bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.installing);
             bootstrapper.log_debug("serviceWorker", "Registering");
-            return container.register(bootstrapper.serviceWorkerSrc).then(function(registration){
-                registration.addEventListener('updatefound', bootstrapper);
-                if (registration.installing){
-                    bootstrapper.log_debug("serviceWorker", "Installing for the first time");
-                    bootstrapper.serviceWorker = registration.installing;
-                }else if (registration.waiting){
-                    bootstrapper.log_warn("serviceWorker", "Waiting registration found.  Activating");
-                    bootstrapper.serviceWorker = registration.waiting;
-                    bootstrapper.serviceWorker.postMessage({type: "activate"});
-                }else if (registration.active){
-                    bootstrapper.log_warn("serviceWorker", "Active registration found???");
-                    bootstrapper.serviceWorker = registration.active;
-                    if (bootstrapper.serviceWorker.state == 'activating'){
-                        bootstrapper.log_warn("serviceWorker", "Already activating");
-                    }else{
-                        bootstrapper.log_warn("serviceWorker", "Already activated???");
-                        bootstrapper.load();
-                    }
+            return container.register(bootstrapper.serviceWorkerSrc);
+        }).then(function(registration){
+            registration.addEventListener('updatefound', bootstrapper);
+            if (registration.installing){
+                if (bootstrapper.status === HTMLAppBootstrapper.STATUS.checkingForUpdate){
+                    bootstrapper.log_debug("serviceWorker", "Installing Update");
+                    bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.updating);
                 }else{
-                    bootstrapper.log_error("serviceWorker", "Nothing to install???");
-                    throw new Error("No service worker found on registration");
+                    bootstrapper.log_debug("serviceWorker", "Installing for the first time");
                 }
-                bootstrapper.serviceWorker.addEventListener('statechange', bootstrapper);
-            });
+                bootstrapper.serviceWorker = registration.installing;
+            }else if (registration.waiting){
+                bootstrapper.log_debug("serviceWorker", "Waiting registration found.  Activating");
+                bootstrapper.serviceWorker = registration.waiting;
+                bootstrapper.serviceWorker.postMessage({type: "activate"});
+            }else if (registration.active){
+                bootstrapper.serviceWorker = registration.active;
+                bootstrapper.log_debug("serviceWorker", "Active registration found");
+                if (bootstrapper.serviceWorker.state == 'activating'){
+                    bootstrapper.log_debug("serviceWorker", "Activating");
+                }else{
+                    bootstrapper.log_debug("serviceWorker", "Activated.");
+                    bootstrapper.load();
+                }
+            }else{
+                bootstrapper.log_error("serviceWorker", "Nothing to install???");
+                throw new Error("No service worker found on registration");
+            }
+            bootstrapper.serviceWorker.addEventListener('statechange', bootstrapper);
         }).catch(function(error){
             bootstrapper.log_warn("serviceWorker", "Error with registration: " + error.message);
             if (container.controller){
