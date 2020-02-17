@@ -319,7 +319,6 @@ JSClass("UIMenuBar", UIWindow, {
                 var maxWidth = Math.floor(this.screen.frame.size.width * 0.3);
                 window.frame = JSRect(0, 0, maxWidth, 0);
                 window.sizeToFit();
-                this.menu.styler.initializeWindow(window);
                 window.maskedCorners = UILayer.Corners.maxY;
                 this.positionWindowUnderItemView(window, itemView);
                 this.windowController.autoPositionWindow = false;
