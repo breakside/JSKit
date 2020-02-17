@@ -560,7 +560,9 @@ JSClass('UIScrollView', UIView, {
         var dt = event.timestamp - this._touchTracking.timestamp;
         this._touchTracking.location = location;
         this._touchTracking.timestamp = event.timestamp;
-        this._touchTracking.velocity = JSPoint(delta.x / dt, delta.y / dt);
+        if (dt > 0){
+            this._touchTracking.velocity = JSPoint(delta.x / dt, delta.y / dt);
+        }
         this.contentOffset = offset;
     },
 
