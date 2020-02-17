@@ -565,7 +565,7 @@ HTMLAppBootstrapper.formatter = {
             HTMLAppBootstrapper.formatter.timestamp(log.timestamp),
             HTMLAppBootstrapper.formatter.paddedString(log.level, 5, ' ', true),
             HTMLAppBootstrapper.formatter.paddedString(log.subsystem, 16, ' ', true),
-            HTMLAppBootstrapper.formatter.paddedString(log.category, 16, ' ', true),
+            HTMLAppBootstrapper.formatter.paddedString(log.category, 20, ' ', true),
             log.message
         ].join(" ");
     },

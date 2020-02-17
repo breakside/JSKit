@@ -144,9 +144,9 @@ JSLog.format = function(record){
         record.timestamp,
         record.level,
         record.subsystem.length <= 16 ? record.subsystem : (record.subsystem.substr(0, 13) + '...'),
-        record.category.length <= 16 ? record.category : (record.category.substr(0, 13) + '...')
+        record.category.length <= 20 ? record.category : (record.category.substr(0, 17) + '...')
     ];
-    var format = "%t %-5{public} %-16{public} %-16{public} " + record.message;
+    var format = "%t %-5{public} %-16{public} %-20{public} " + record.message;
     return format.format(jslog_formatter, args.concat(record.args));
 };
 
@@ -164,7 +164,7 @@ JSLog.formatStacktrace = function(record){
     if (stack){
         var lines = stack.split("\n");
         lines.unshift("");
-        return lines.join("\n                                                       ");
+        return lines.join("\n                                                           ");
     }
     return "";
 };
