@@ -183,6 +183,9 @@ JSClass("UIToolbarItemView", UIView, {
 
     setItem: function(item){
         this._item = item;
+        if (this.contentView !== null){
+            this.contentView.removeFromSuperview();
+        }
         if (item.view){
             this.contentView = item.view;
             if (this.contentView.isKindOfClass(UIButton) && this.contentView._imageView){
