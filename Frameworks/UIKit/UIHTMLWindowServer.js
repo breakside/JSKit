@@ -15,6 +15,8 @@
 
 (function(){
 
+var logger = JSLog("uikit", "windowServer");
+
 JSClass("UIHTMLWindowServer", UIWindowServer, {
 
     // --------------------------------------------------------------------
@@ -258,6 +260,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT:
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.rightMouseDown);
                 break;
+            default:
+                logger.debug("dom mousedown unrecogized button: %d", e.button);
+                break;
         }
     },
 
@@ -277,6 +282,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                 break;
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT:
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.rightMouseUp);
+                break;
+            default:
+                logger.debug("dom mouseup unrecogized button: %d", e.button);
                 break;
         }
     },

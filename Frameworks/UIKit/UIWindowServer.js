@@ -9,7 +9,7 @@
 
 (function(){
 
-var logger = JSLog("uikit", "window");
+var logger = JSLog("uikit", "windowServer");
 
 JSClass("UIWindowServer", JSObject, {
 
