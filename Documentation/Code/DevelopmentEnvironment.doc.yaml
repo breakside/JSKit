@@ -3,10 +3,13 @@ kind: document
 name: Development Environment
 summary: Available tools to help make JSKit development easier
 description: |
+  You can use your favorite Javascript development environment to write JSKit
+  applications.
+
   Sublime Text
   ============
-  As a first step, we've created an add-on package for
-  [Sublime Text](https://www.sublimetext.com).
+  We recommend [Sublime Text](https://www.sublimetext.com), and we've created an
+  add-on package to help with JSKit-based app development.
 
   You can install it either:
   - With Package Control under the name `JSKit`(), or

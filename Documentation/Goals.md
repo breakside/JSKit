@@ -147,7 +147,7 @@ Debug builds keep all the source files separate exactly as code for easy
 debugging, while production builds automatically combine and minify the
 Javascript for efficient distribution.
 
-See our [Features](Features) list for a complete description of everything
+See our [Features](https://jskit.dev/features/) list for a complete description of everything
 that's built directly into `JSKit`.
 
 

@@ -41,14 +41,14 @@ description: |
 
   `MessagesWeb`() is the name of your project, and the `Web`() suffix is a
   handy way to distinguish it from other projects you may create in the
-  workspace such as `MessagesServer`() for backend code or `MessageKit`() for
+  workspace such as `MessagesServer`() for backend code or `MessagesKit`() for
   shared code.
 
   Building & Running
   ===============
 
   The template project you just created is ready to go without any modifications.
-  In order to build your application, you'll invoke:
+  In order to build your application, invoke:
 
   ````
   $ npx jskit build --debug MessagesWeb
