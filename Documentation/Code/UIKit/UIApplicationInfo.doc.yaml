@@ -67,6 +67,10 @@ topics:
         summary: The name of the spec that returns a `UIApplicationDelegate` as
           its `File's Owner`
         description: |
+          ````
+          UIMainSpec: MainWindow
+          ````
+
           The main spec typically defines a UI in addition to the application
           delegate, but is required to return via its `File's Owner` property
           an instance of a class that implements the
@@ -77,6 +81,70 @@ topics:
           application delegate class via `UIApplicationDelegate`
         note: When providing a spec name, the `.spec.yaml` file extensions
           are implied and should not be included.
+      -
+        name: UIMainSpec
+        suffix: collection
+        type: dictionary
+        summary: The names of the specs that return a `UIApplicationDelegate` as
+          their `File's Owner`, corresponding to different device types
+        description: |
+          In this form of `UIMainSpec`, you can include variations of
+          your user interface for different device types.
+
+          ````
+          UIMainSpec:
+            default: MainWindow
+            touch:   MainWindowTouch
+          ````
+
+          Rather than use screen size as the main differentiator between
+          devices, we use the primary mode of input, which has a larger effect
+          on the UI than the screen size.  For example, a tablet screen is
+          comparable to a laptop screen in terms of size, but the tablet should
+          have a touch-friendly interface rather than a mouse-friendly
+          interface.
+
+          To adapt each UI to various screen sizes, you can use the
+          `UITraitCollection` properties on `UIView` and `UIViewController`.
+
+          Properites
+          ==========
+
+          - `default`() - The spec to use for precice pointer-based devices such
+            as laptops or desktops
+          - `touch`() - The spec to use for coarse touch-based devices such as
+            phones or tablets
+
+          `default`() will be used for any device that is not primarily a touch
+          device. For example, laptops and desktops are primarily mouse/cursor
+          based devices with a precice pointer, not touch devices.
+
+          Touch-capable laptops will still use `default`() because they are
+          *primarily* mouse based devices.
+
+          `touch`() will be used for any device that is primarily a touch device.
+          For example, phones and tablets are touch based devices.
+
+          Stylus-capable phones and tablets may have precice pointing ability,
+          but will still use `touch`() because they are *primarily* touch based
+          devices with a stylus as a secondary input method.
+
+          The value for each property is the name of a spec file.
+
+          The main spec typically defines a UI in addition to the application
+          delegate, but is required to return via its `File's Owner` property
+          an instance of a class that implements the
+          `UIApplicationDelegate`(UIApplication.UIApplicationDelegate)
+          protocol.
+
+          If you'd prefer not to use a spec file, you can specify the
+          application delegate class via `UIApplicationDelegate`
+        note: When providing a spec name, the `.spec.yaml` file
+          extensions are implied and should not be included.
+        see:
+          - UIDevice
+          - UIUserInterface
+          - UITraitCollection
       -
         name: UIApplicationDelegate
         type: String

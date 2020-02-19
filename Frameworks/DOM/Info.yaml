@@ -1,6 +1,6 @@
 JSBundleType: framework
 JSBundleIdentifier: io.breakside.JSKit.DOM
-JSBundleVersion: 2020.1.0
+JSBundleVersion: 2020.8.0
 JSDevelopmentLanguage: en
 JSBundleEnvironments:
   html: DOM+HTML.js

@@ -432,6 +432,12 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
         if (spec.containsKey('separtorLineWidth')){
             this.separtorLineWidth = spec.valueForKey("separtorLineWidth");
         }
+        if (spec.containsKey('itemContentInsets')){
+            this.itemContentInsets = spec.valueForKey("itemContentInsets", JSInsets);
+        }
+        if (spec.containsKey('indentationSize')){
+            this.indentationSize = spec.valueForKey("indentationSize");
+        }
     },
 
     presentMenuAdjacentToView: function(menu, view, preferredPlacement, spacing){
