@@ -462,6 +462,10 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
 
     dragstart: function(e){
         // Do not preventDefault of dragstart, or else the drag won't start
+        if (!this._draggingSession){
+            logger.warn("dom dragstart called without an active dragging session");
+            return;
+        }
         this._draggingSession.isActive = true;
         this._dragingSessionStartedOutsideBrowser = false;
         // create dummy html pasteboard and re-write our items there so they're availble outside the browser

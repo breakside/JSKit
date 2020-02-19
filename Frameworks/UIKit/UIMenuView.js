@@ -266,11 +266,17 @@ JSClass("UIMenuWindow", UIWindow, {
     shouldReceiveTrackingInBack: true,
 
     mouseMoved: function(event){
+        if (this._isClosing){
+            return;
+        }
         this._lastMoveLocation = event.locationInView(this);
         this._adjustHighlightForLocation(this._lastMoveLocation);
     },
 
     mouseDragged: function(event){
+        if (this._isClosing){
+            return;
+        }
         var location = event.locationInView(this);
         this._lastMoveLocation = event.locationInView(this);
         this._adjustHighlightForLocation(this._lastMoveLocation);
@@ -282,6 +288,9 @@ JSClass("UIMenuWindow", UIWindow, {
     },
 
     mouseExited: function(event){
+        if (this._isClosing){
+            return;
+        }
         if (!this.submenu){
             this._highlightItem(null);
         }
@@ -292,6 +301,9 @@ JSClass("UIMenuWindow", UIWindow, {
     },
 
     mouseEntered: function(event){
+        if (this._isClosing){
+            return;
+        }
         this.makeKey();
         this._lastMoveLocation = event.locationInView(this);
         this._adjustHighlightForLocation(this._lastMoveLocation);
@@ -316,7 +328,7 @@ JSClass("UIMenuWindow", UIWindow, {
             if (this._menu.supermenu && this._menu.supermenu.stylerProperties.window){
                 this._menu.supermenu.stylerProperties.window.mouseUp(event);
             }else{
-                this.closeAll();
+                this.closeAll(true);
             }
         }
     },
@@ -330,7 +342,7 @@ JSClass("UIMenuWindow", UIWindow, {
             if (this._menu.supermenu && this._menu.supermenu.stylerProperties.window){
                 this._menu.supermenu.stylerProperties.window.mouseDown(event);
             }else{
-                this.closeAll();
+                this.closeAll(true);
             }
         }else{
             this._lastMoveLocation = event.locationInView(this);
@@ -497,15 +509,18 @@ JSClass("UIMenuWindow", UIWindow, {
                 this.openHighlightedSubmenu(selectingFirstSubmenuItem);
             }else{
                 this._isClosing = true;
-                this.stopMouseTracking();
-                this._highlightItem(null);
+                var itemView = this.menuView.itemViews[this._itemViewIndexesByItemId[item.objectID]];
+                item.highlighted = false;
+                itemView.setItem(item);
                 var timer = JSTimer.scheduledTimerWithInterval(0.08, function(){
-                    this._highlightItem(item);
-                    timer = JSTimer.scheduledTimerWithInterval(0.08, function(){
+                    item.highlighted = true;
+                    itemView.setItem(item);
+                    var timer = JSTimer.scheduledTimerWithInterval(0.08, function(){
                         var menu = this._menu;
                         var contextTarget = menu._contextTarget;
-                        this.closeAll();
-                        menu.performActionForItem(item, contextTarget);
+                        this.closeAll(true, function(){
+                            menu.performActionForItem(item, contextTarget);
+                        }, this);
                     }, this);
                 }, this);
             }
@@ -545,6 +560,7 @@ JSClass("UIMenuWindow", UIWindow, {
     // MARK: - Closing
 
     close: function(){
+        this._isClosing = true;
         if (this.submenu){
             this.submenu.close();
             this.submenu = null;
@@ -557,12 +573,16 @@ JSClass("UIMenuWindow", UIWindow, {
         this._menu = null;
     },
 
-    closeAll: function(){
+    closeAll: function(animated, completion, target){
         var top = this._menu;
         while (top.supermenu !== null && top.supermenu.stylerProperties.window){
             top = top.supermenu;
         }
-        top.close();
+        if (animated){
+            top.closeWithAnimation(completion, target);
+        }else{
+            top.close();
+        }
     },
 
     // MARK: - Submenus

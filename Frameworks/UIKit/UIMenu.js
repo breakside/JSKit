@@ -308,15 +308,18 @@ JSClass("UIMenu", JSObject, {
         this._dismiss(false);
     },
 
-    closeWithAnimation: function(){
-        this._dismiss(false);
+    closeWithAnimation: function(completion, target){
+        this._dismiss(true, completion, target);
     },
 
-    _dismiss: function(animated){
+    _dismiss: function(animated, completion, target){
         this._contextTarget = null;
         this._styler.dismissMenu(this, animated, function(){
             if (this.delegate && this.delegate.menuDidClose){
                 this.delegate.menuDidClose(this);
+                if (completion){
+                    completion.call(target);
+                }
             }
         }, this);
     },
@@ -725,7 +728,8 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
             animator.addCompletion(function(){
                 completion.call(target);
             });
-            animator.start();
+            window.closeAnimator = animator;
+            window.close();
         }
     },
 
