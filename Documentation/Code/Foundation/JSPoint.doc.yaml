@@ -111,11 +111,6 @@ topics:
             name: spec
             type: JSSpec
             summary: The spec in which the point is described
-          - 
-            name: values
-            type: any
-            summary: The value that the describes the point in the spec
-
         description: |
           Typically used in `initWithSpec()`(JSObject.initWithSpec())
           implementations for objects that have `JSPoint` properties.

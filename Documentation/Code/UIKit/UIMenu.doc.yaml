@@ -252,6 +252,23 @@ topics:
         name: closeWithAnimation
         kind: method
         summary: Close the menu using an animation
+      -
+        name: closeWithAnimation
+        suffix: callback
+        kind: method
+        summary: Close the menu using an animation
+        arguments:
+          -
+            name: completion
+            type: function()
+            summary: The function to call when the menu is fully closed after
+              the animation completes
+          -
+            name: target
+            type: any
+            default: undefined
+            summary: The object to use as `this` when calling the `completion`()
+              function
   -
     name: Parent Menu
     members:

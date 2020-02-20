@@ -130,6 +130,7 @@ topics:
       -
         name: Kind
         kind: enum
+        summary: The possible kinds of options
         topics:
           -
             name: Options
@@ -157,6 +158,7 @@ topics:
       -
         name: ValueType
         kind: enum
+        summary: The possible types of argument values
         topics:
           -
             name: Options

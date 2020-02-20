@@ -168,8 +168,8 @@ Application Delegate
 
 JSClass("ApplicationDelegate", JSObject, {
 
-    window: null,
-    mainViewController: null,
+    window: JSOutlet(),
+    mainViewController: JSOutlet(),
 
     applicationDidFinishLaunching: function(application, launchOptions){
         this.window.makeKeyAndOrderFront();
@@ -203,8 +203,8 @@ It is used to maniuplate the view elements as needed.
 
 JSClass("MainViewController", UIViewController, {
 
-    label: null,
-    testButton: null,
+    label: JSOutlet(),
+    testButton: JSOutlet(),
 
     viewDidLoad: function(){
         MainViewController.$super.viewDidLoad.call(this);

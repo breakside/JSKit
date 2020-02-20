@@ -370,8 +370,8 @@ topics:
           ````
           JSClass("Person", JSObject, {
              
-            initWithSpec: function(spec, values){
-              Person.$super.initWithSpec.call(this, spec, values);
+            initWithSpec: function(spec){
+              Person.$super.initWithSpec.call(this, spec);
               // ...
             }
           });

@@ -21,6 +21,7 @@ topics:
       - JSDynamicProperty
       - JSReadOnlyProperty
       - JSLazyInitProperty
+      - JSOutlet
   - 
     name: Strings & Data
     summary: Dealing with strings, bytes, attributed strings, unicode, and encodings

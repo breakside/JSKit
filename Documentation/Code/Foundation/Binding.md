@@ -320,9 +320,9 @@ bindings by hand anymore:
 JSClass("PersonViewController", UIViewController, {
 
   person: null,
-  firstNameField: null,
-  lastNameField: null,
-  fullNameLabel: null,
+  firstNameField: JSOutlet(),
+  lastNameField: JSOutlet(),
+  fullNameLabel: JSOutlet(),
 
   isSaving: false
 

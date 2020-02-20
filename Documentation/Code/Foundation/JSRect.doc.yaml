@@ -114,11 +114,6 @@ topics:
             name: spec
             type: JSSpec
             summary: The spec in which the rect is described
-          - 
-            name: values
-            type: any
-            summary: The value that the describes the rect in the spec
-
         description: |
           Typically used in `initWithSpec()`(JSObject.initWithSpec())
           implementations for objects that have `JSRect` properties.

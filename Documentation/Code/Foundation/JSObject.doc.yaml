@@ -352,11 +352,14 @@ topics:
                   ````
                   JSClass("MyViewController", UIViewController, {
 
-                    nameField: null,
-                    avatarView: null
+                    nameField: JSOutlet(),
+                    avatarView: JSOutlet()
 
                   });
                   ````
+
+                  When defining a class that has outlets, the properties must
+                  be defined with `JSOutlet()`.
                 note: |
                   While it may seem tempting to always use `outlets` instead of
                   writing custom `initWithSpec()` methods, custom intialization

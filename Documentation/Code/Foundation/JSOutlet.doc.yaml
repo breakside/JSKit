@@ -1,0 +1,46 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSCustomProperty
+summary: Create a `JSClass` property that obtains a value from an outlet listed
+  in a `JSSpec` file
+description: |
+  When defining a class with `JSClass()`, a spec outlet property
+  can be created using `JSOutlet()`.
+
+  ````
+  JSClass("MessagesViewController", UIViewController, {
+
+    sendButton: JSOutlet(),
+
+  })
+  ````
+
+  In `MessagesViewController.spec.yaml`
+  ````
+  File's Owner: /ViewController
+
+  ViewController:
+    class: MessagesViewController
+    outlets:
+      sendButton: /SendButton
+    view:
+      subviews:
+        - /SendButton
+
+  SendButton:
+    class: UIButton
+    title: Send
+  ````
+topics:
+  -
+    name: Defining an Outlet Property
+    members:
+      -
+        name: JSOutlet
+        kind: constructor
+        summary: Define an outlet property
+        description: |
+          An outlet property will coorindate with JSObject.initWithSpec to
+          ensure that the corresponding outlet from the spec is hooked up
+          to this property.
