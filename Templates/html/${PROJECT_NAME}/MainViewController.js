@@ -3,8 +3,8 @@
 
 JSClass("MainViewController", UIViewController, {
 
-    label: null,
-    testButton: null,
+    label: JSOutlet(),
+    testButton: JSOutlet(),
 
     viewDidLoad: function(){
         MainViewController.$super.viewDidLoad.call(this);

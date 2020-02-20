@@ -539,6 +539,40 @@ JSClass("JSObjectTests", TKTestSuite, {
         TKAssertExactEquals(a.second, false);
     },
 
+    testInitWithSpec: function(){
+        var cls = JSClass("Test1", JSObject, {
+            prop: JSOutlet(),
+        });
+
+        var obj = Test1.init();
+        TKAssertNull(obj.prop);
+
+        var spec = JSSpec.initWithDictionary({
+            "File's Owner": "/Object",
+            "Object": {
+                "class": "Test1",
+                "outlets": {
+                    "prop": 1
+                }
+            }
+        });
+        obj = spec.filesOwner;
+        TKAssertEquals(obj.prop, 1);
+
+        spec = JSSpec.initWithDictionary({
+            "File's Owner": "/Object",
+            "Object": {
+                "class": "Test1",
+                "outlets": {
+                    "other": 1
+                }
+            }
+        });
+        TKAssertThrows(function(){
+            obj = spec.filesOwner;
+        });
+    },
+
     _testReadOnlyBind: function(){
     },
 

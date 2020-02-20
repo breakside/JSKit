@@ -3,8 +3,8 @@
 
 JSClass("ApplicationDelegate", JSObject, {
 
-    window: null,
-    mainViewController: null,
+    window: JSOutlet(),
+    mainViewController: JSOutlet(),
 
     applicationDidFinishLaunching: function(application, launchOptions){
         this.window.makeKeyAndOrderFront();

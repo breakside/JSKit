@@ -209,6 +209,10 @@ JSClass.prototype = {
 
     nameOfSilentPropertyForKey: function(key){
         return '_' + key;
+    },
+
+    nameOfOutletConnectionMethod: function(key){
+        return '_connectOutlet' + key.capitalizedString();
     }
 };
 
@@ -354,6 +358,35 @@ JSLazyInitProperty.prototype.define = function(C, key, extensions){
                 this[privateKey] = x;
             }
             return x;
+        }
+    });
+};
+
+JSGlobalObject.JSOutlet = function(){
+    if (this === undefined){
+        return new JSOutlet();
+    }
+};
+
+JSOutlet.prototype = Object.create(JSCustomProperty.prototype);
+
+JSOutlet.prototype.define = function(C, key, extensions){
+    Object.defineProperty(C.prototype, key, {
+        writable: true,
+        configurable: true,
+        value: null
+    });
+    var connectionName = C.nameOfOutletConnectionMethod(key);
+    Object.defineProperty(C.prototype, connectionName, {
+        value: function JSOutlet_connect(outlets){
+            Object.defineProperty(this, key, {
+                configurable: true,
+                get: function JSOutlet_get(){
+                    var value = outlets.valueForKey(key);
+                    Object.defineProperty(this, key, {configurable: true, writable: true, value: value});
+                    return value;
+                }
+            });
         }
     });
 };

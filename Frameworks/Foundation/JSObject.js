@@ -81,28 +81,23 @@ JSObject.definePropertiesFromExtensions({
 
     initWithSpec: function(spec){
         var outlets = spec.valueForKey("outlets");
+        var proto = Object.getPrototypeOf(this);
         if (outlets !== null){
             var keys = outlets.keys();
             var key;
+            var connectMethod;
             for (var i = 0, l = keys.length; i < l; ++i){
                 key = keys[i];
-                this._defineGetterForOutlet(key, outlets);
+                connectMethod = this.$class.nameOfOutletConnectionMethod(key);
+                if (!this[connectMethod]){
+                    throw new Error("%s.%s must be defined as a JSOutlet()".sprintf(this.$class.className, key));
+                }
+                this[connectMethod](outlets);
             }
         }
     },
 
     awakeFromSpec: function(){
-    },
-
-    _defineGetterForOutlet: function(key, outlets){
-        Object.defineProperty(this, key, {
-            configurable: true,
-            get: function(){
-                var value = outlets.valueForKey(key);
-                Object.defineProperty(this, key, {configurable: true, writable: true, value: value});
-                return value;
-            }
-        });
     },
 
     implementsProtocol: function(protocol){

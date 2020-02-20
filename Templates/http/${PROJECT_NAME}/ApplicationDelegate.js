@@ -3,7 +3,7 @@
 
 JSClass("ApplicationDelegate", JSObject, {
 
-    httpServer: null,
+    httpServer: JSOutlet(),
 
     applicationDidFinishLaunching: function(application, launchOptions){
         this.httpServer.port = launchOptions.port;
