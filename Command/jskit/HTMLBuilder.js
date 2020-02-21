@@ -807,16 +807,26 @@ JSClass("HTMLBuilder", Builder, {
         var url = this.buildURL.appendingPathComponent("Dockerfile");
         await this.fileManager.createFileAtURL(url, dockerfile);
 
+        var makeTag = function(tag){
+            return "%s%s:%s".sprintf(prefix ? prefix + '/' : '', image, tag).toLowerCase();
+        };
+
         var prefix = this.arguments['docker-owner'] || this.project.info.DockerOwner;
         var image = this.project.lastIdentifierPart;
-        var tag = this.debug ? 'debug' : this.buildLabel;
-        var identifier = "%s%s:%s".sprintf(prefix ? prefix + '/' : '', image, tag).toLowerCase();
+        var identifier = makeTag(this.debug ? 'debug' : this.buildId);
         var name = this.project.info.JSBundleIdentifier.replace('/\./g', '_');
 
         this.printer.setStatus("Building docker image %s...".sprintf(identifier));
 
         const { spawn } = require('child_process');
-        var args = ["build", "-t", identifier, '.'];
+        var args = ["build", "-t", identifier];
+        if (!this.debug){
+            args.push("-t");
+            args.push(makeTag(this.project.info.JSBundleVersion));
+            args.push("-t");
+            args.push(makeTag(this.buildLabel));
+        }
+        args.push('.');
         var cwd = this.fileManager.pathForURL(this.buildURL);
         var docker;
         docker = spawn("docker", args, {cwd: cwd});
