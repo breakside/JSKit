@@ -100,7 +100,7 @@ JSURLResponse.StatusCode = {
     upgradeRequired: 426,
     internalServerError: 500,
     notImplemented: 501,
-    nadGateway: 502,
+    badGateway: 502,
     serviceUnavailable: 503,
     gatewayTimeout: 504,
     httpVersionNotSupported: 505
