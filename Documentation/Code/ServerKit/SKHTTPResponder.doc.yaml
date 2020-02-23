@@ -90,9 +90,8 @@ description: |
     },
 
     delete: async function(){
-      this.context.db.delete(this.context.post, function(){
-        this.sendStatus(SKHTTPResponse.StatusCode.ok);
-      }, this);
+      await this.context.db.delete(this.context.post);
+      this.sendStatus(SKHTTPResponse.StatusCode.ok);
     }
 
   });

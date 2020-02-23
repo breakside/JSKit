@@ -137,7 +137,7 @@ topics:
                 name: notImplemented
                 value: "501"
               -
-                name: nadGateway
+                name: badGateway
                 value: "502"
               -
                 name: serviceUnavailable

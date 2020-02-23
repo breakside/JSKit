@@ -58,10 +58,11 @@ topics:
               arguments:
                 -
                   name: validator
-                  type: SKValidatingObject
+                  type: JSObject
                   mullable: true
-                  summary: The request's JSON body decoded into an object and
-                    wrapped in a validator
+                  summary: The fully validated object, after being constructed
+                    with the `SKValidatingObject` protocol's
+                    `initWithValidatingObject()`
           -
             name: target
             type: object

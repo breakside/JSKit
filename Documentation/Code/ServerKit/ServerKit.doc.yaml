@@ -20,7 +20,7 @@ description: |
   If successful, the `SKHTTPRoute` will instruct the server on which
   `SKHTTPResponderContext` to create and then which `SKHTTPResponder` to call.
 
-  A method on the `SKHTTPResponder` ultimate looks at the `SKHTTPRequest` and
+  A method on the `SKHTTPResponder` ultimately looks at the `SKHTTPRequest` and
   generates a suitable `SKHTTPResponse`.
 
   Web Sockets
