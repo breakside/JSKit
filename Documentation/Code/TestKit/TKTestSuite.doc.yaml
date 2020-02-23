@@ -7,7 +7,7 @@ codeURL: TKTestSuite.js
 description: |
   Typically you'll create one test suite per class that needs testing.
 
-  You created a test suite by subclassing `TKTestSuite`.
+  Create a test suite by subclassing `TKTestSuite`.
 
   Test suites are simply a collection test cases, which are implemented as
   methods on the `TKTestSuite` subclass.
@@ -109,7 +109,7 @@ topics:
       -
         name: teardown
         kind: method
-        summary: Called before every test case
+        summary: Called after every test case
         description: |
           Gives the suite a chance to destroy any objects the tests required
   -
@@ -118,8 +118,8 @@ topics:
       - 
         name: wait
         kind: method
-        summary: Called when the result of the test case is waiting on
-          an asynchronous call to complete
+        summary: Called to make the test case result wait until
+          an asynchronous call completes
         arguments:
           -
             name: expectation
