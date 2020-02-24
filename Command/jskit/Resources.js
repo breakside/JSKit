@@ -2,6 +2,7 @@
 // #import FontKit
 // #import DOM
 // #import jsyaml
+// #import "Constraints.js"
 'use strict';
 
 JSClass("Resources", JSObject, {
@@ -254,6 +255,7 @@ var addMetadata = {
         metadata.value = jsyaml.safeLoad(contents.stringByDecodingUTF8());
         if (name.endsWith('.spec.yaml')){
             metadata.spec = true;
+            adjustSpecConstraints(metadata.value);
         }
     },
 
@@ -467,22 +469,26 @@ var addMetadata = {
     },
 };
 
-var adjustSpecMetadata = function(metadata){
-    metadata.spec = true;
-    // TODO: compile constraints
-    // port from python
-    //     if isinstance(obj, dict):
-    //     if 'constraints' in obj and 'equalities' in obj['constraints']: 
-    //         refs = dict(self='<self>')
-    //         if 'references' in obj['constraints']:
-    //             refs.update(obj['constraints']['references'])
-    //         obj['constraints'] = self.compileConstraints(obj['constraints']['equalities'], refs)
-    //     for k, v in obj.items():
-    //         if k not in ('constraints',):
-    //             self.compileSpecConstraints(v)
-    // elif isinstance(obj, list):
-    //     for v in obj:
-    //         self.compileSpecConstraints(v)
+var adjustSpecConstraints = function(obj){
+    if (obj === null || obj === undefined){
+        return;
+    }
+    if (obj instanceof Array){
+        for (let i = 0, l = obj.length; i < l; ++i){
+            adjustSpecConstraints(obj[i]);
+        }
+        return;
+    }
+    if (typeof(obj) == 'object'){
+        if (obj.constraints){
+            obj.constraints = constraintsFromSpecShorthand(obj.constraints);
+        }
+        for (let k in obj){
+            if (k !== 'constraints'){
+                adjustSpecConstraints(obj[k]);
+            }
+        }
+    }
 };
 
 addMetadata['.jpeg'] = addMetadata['.jpg'];

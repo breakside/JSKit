@@ -210,40 +210,4 @@ JSClass("UILayoutConstraint", JSObject, {
 
 });
 
-
-var UILayoutFrame = function(){
-    if (this === undefined){
-        return new UILayoutFrame();
-    }
-};
-
-UILayoutFrame.prototype = {
-    minX: undefined,
-    maxX: undefined,
-    minY: undefined,
-    maxY: undefined,
-    minWidth: undefined,
-    maxWidth: undefined,
-    minHeight: undefined,
-    maxHeight: undefined
-};
-
-
-JSClass("UILayoutRun", JSObject, {
-
-    framesByItemID: null,
-    superview: null,
-
-    initWithSuperview: function(superview, fixedWidth, fixedHeight){
-        this.superview = superview;
-        this.framesByItemID = {};
-        var frame = this.framesByItemID[superview.objectID] = new UILayoutFrame();
-        frame.minX = frame.maxX = 0;
-        frame.minY = frame.maxY = 0;
-        frame.minWidth = frame.maxWidth = fixedWidth;
-        frame.minHeight = frame.maxHeight = fixedHeight;
-    },
-
-});
-
 })();

@@ -464,7 +464,7 @@ JSClass('UIView', UIResponder, {
     addConstraint: function(constraint){
         constraint._attachToView(this);
         if (constraint._targetItem !== this){
-            throw new Error("Cannot add constrat to view because the constraint belongs to another view");
+            throw new Error("Cannot add constraint to view because the constraint belongs to another view");
         }
         if (constraint._isActive){
             return;
