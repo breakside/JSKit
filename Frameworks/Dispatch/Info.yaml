@@ -1,6 +1,7 @@
 JSBundleType: framework
 JSBundleIdentifier: io.breakside.JSKit.Dispatch
 JSBundleVersion: 2020.8.0
+JSCopyright: Copyright © 2020 Breakside Inc.
 JSBundleEnvironments:
   html: Dispatch+HTML.js
   node: Dispatch+Node.js

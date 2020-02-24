@@ -2,6 +2,7 @@ JSBundleType: framework
 JSBundleIdentifier: io.breakside.JSKit.SecurityKit
 JSBundleVersion: 2020.8.0
 JSDevelopmentLanguage: en
+JSCopyright: Copyright © 2020 Breakside Inc.
 JSBundleEnvironments:
   html: SecurityKit+HTML.js
   node: SecurityKit+Node.js
