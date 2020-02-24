@@ -44,6 +44,7 @@ JSClass("FrameworkBuilder", Builder, {
     sourcesURL: null,
     resourcesURL: null,
     bundle: null,
+    resources: null,
 
     setup: async function(){
         await FrameworkBuilder.$super.setup.call(this);
@@ -76,7 +77,7 @@ JSClass("FrameworkBuilder", Builder, {
         };
         this.printer.setStatus("Finding resources...");
         var resourceURLs = await this.project.findResourceURLs(blacklist);
-        var resources = Resources.initWithFileManager(this.fileManager);
+        var resources = this.resources = Resources.initWithFileManager(this.fileManager);
         for (let i = 0, l = resourceURLs.length; i < l; ++i){
             let url = resourceURLs[i];
             this.printer.setStatus("Inspecting %s...".sprintf(url.lastPathComponent));
@@ -182,8 +183,14 @@ JSClass("FrameworkBuilder", Builder, {
         var genericFeatures = new Set();
         var sources = {};
         var roots = this.environmentRoots;
-        var licenseString = await this.project.licenseString();
-        var header = "%s (%s)\n----\n%s".sprintf(this.project.info.JSBundleIdentifier, this.project.info.JSBundleVersion, licenseString);
+        var copyright  = this.project.getInfoString("JSCopyright", this.resources);
+        var licenseString = await this.project.licenseNoticeString();
+        if (licenseString.startsWith("Copyright")){
+            copyright = "";
+        }else{
+            copyright += "\n\n";
+        }
+        var header = "%s (%s)\n----\n%s%s".sprintf(this.project.info.JSBundleIdentifier, this.project.info.JSBundleVersion, copyright, licenseString);
         for (let env in roots){
             sources[env] = {frameworks: [], files: [], features: []};
             let root = roots[env];

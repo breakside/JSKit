@@ -335,8 +335,14 @@ JSClass("HTMLBuilder", Builder, {
 
     minifyReleaseJavascript: async function(){
         let compilation = JavascriptCompilation.initWithName("%s.js".sprintf(this.project.name), this.sourcesURL, this.fileManager);
-        var licenseString = await this.project.licenseString();
-        var header = "%s (%s)\n----\n%s".sprintf(this.project.info.JSBundleIdentifier, this.project.info.JSBundleVersion, licenseString);
+        var copyright  = this.project.getInfoString("JSCopyright", this.resources);
+        var licenseString = await this.project.licenseNoticeString();
+        if (licenseString.startsWith("Copyright")){
+            copyright = "";
+        }else{
+            copyright += "\n\n";
+        }
+        var header = "%s (%s)\n----\n%s%s".sprintf(this.project.info.JSBundleIdentifier, this.project.info.JSBundleVersion, copyright, licenseString);
         var fullSourcesURL = this.sourcesURL.appendingPathComponent("_debug", true);
         compilation.sourceRoot = fullSourcesURL.encodedStringRelativeTo(this.sourcesURL);
         compilation.writeComment(header);

@@ -116,6 +116,13 @@ JSClass("Project", JSObject, {
         return "";
     },
 
+    licenseNoticeString: async function(){
+        if ('JSLicenseNotice' in this.info){
+            return this.info.JSLicenseNotice;
+        }
+        return this.licenseString();
+    },
+
     // -----------------------------------------------------------------------
     // MARK: - Entry Point
 
