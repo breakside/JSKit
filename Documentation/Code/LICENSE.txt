@@ -1,4 +1,1 @@
-Copyright 2020 Breakside Inc.
-
-Redistribution and use in source and binary forms, with or without
-modification, is prohibited without specific prior written permission.
+Copyright 2020 Breakside Inc.  All rights reserved.
