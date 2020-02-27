@@ -298,10 +298,12 @@ JSClass("NodeBuilder", Builder, {
         await this.fileManager.makeExecutableAtURL(this.executableURL);
 
         let localPath = this.fileManager.relativePathFromURL(this.workingDirectoryURL, this.executableURL);
+        let packagePath = this.fileManager.relativePathFromURL(this.workingDirectoryURL, this.bundleURL);
         if (this.debug){
             this.commands.push("node --inspect-brk " + localPath);
         }else{
             this.commands.push(localPath);
+            this.commands.push("npm publish --access public " + packagePath);
         }
     },
 
