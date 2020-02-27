@@ -2,6 +2,7 @@ JSBundleType: node
 JSBundleIdentifier: io.breakside.jskit
 JSBundleVersion: 2020.8.0
 JSExecutableName: jskit
+NPMOrganization: breakside
 JSResources:
   - Tests/HTMLTestRunner.js
   - Tests/NodeTestRunner.js

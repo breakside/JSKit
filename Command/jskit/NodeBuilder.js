@@ -342,6 +342,9 @@ JSClass("NodeBuilder", Builder, {
         var packageJSON = await this.fileManager.contentsAtURL(packageURL);
         var pkg = JSON.parse(packageJSON.stringByDecodingUTF8());
         pkg.name = this.project.info.JSExecutableName;
+        if (this.project.info.NPMOrganization){
+            pkg.name = "@%s/%s".sprintf(this.project.info.NPMOrganization, pkg.name);
+        }
         pkg.version = this.project.info.JSBundleVersion;
         var licenseName = this.project.licenseFilename;
         pkg.license = "SEE LICENSE IN %s".sprintf(licenseName);
