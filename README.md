@@ -5,7 +5,7 @@ JSKit is a collection of Javascript frameworks that can create desktop-quality
 web applications.
 
 For an in-depth explanation of motivation and rationale, consult the
-[Goals Document](Documenation/Goals.md).
+[Goals Document](Documentation/Goals.md).
 
 
 Developer Install
