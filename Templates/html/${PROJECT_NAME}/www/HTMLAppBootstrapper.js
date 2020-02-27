@@ -104,7 +104,6 @@ HTMLAppBootstrapper.prototype = {
             bootstrapper.performPreflightChecks();
         }, function HTMLAppBootstrapper_preflightLoadError(e){
             bootstrapper.error = e;
-            bootstrapper.log_error("preflight", "Script load failed: " + e.message);
             bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.preflightLoadError);
         });
     },
@@ -168,7 +167,6 @@ HTMLAppBootstrapper.prototype = {
                 bootstrapper.runApp();
             }
         }, function HTMLAppBootstrapper_appScriptLoadError(e){
-            bootstrapper.log_error("app", "Include of '" + src + "' failed: " + e.message);
             bootstrapper.error = e;
             bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.appLoadError);
         });
@@ -230,7 +228,7 @@ HTMLAppBootstrapper.prototype = {
                 }
             });
             script.addEventListener('error', function HTMLAppBootstrapper_scriptLoadError(e){
-                errorCallback(e);
+                errorCallback(new Error("Include of '" + src + "' failed"));
             });
             script.src = src;
             this.rootElement.ownerDocument.body.appendChild(script);
