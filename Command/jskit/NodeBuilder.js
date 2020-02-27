@@ -96,6 +96,7 @@ JSClass("NodeBuilder", Builder, {
         }
         await this.buildNPM();
         await this.copyLicense();
+        await this.copyReadme();
         await this.copyInfo();
         await this.buildDocker();
         await this.finish();
@@ -171,7 +172,7 @@ JSClass("NodeBuilder", Builder, {
 
     findResources: async function(){
         var blacklist = {
-            names: new Set(["Info.yaml", "Info.json", "package.json", "Dockerfile", this.project.licenseFilename])
+            names: new Set(["Info.yaml", "Info.json", "package.json", "Dockerfile", "README.md", this.project.licenseFilename])
         };
         this.printer.setStatus("Finding resources...");
         var resourceURLs = await this.project.findResourceURLs(blacklist);
@@ -393,6 +394,16 @@ JSClass("NodeBuilder", Builder, {
         var licenseName = this.project.licenseFilename;
         var originalURL = this.project.url.appendingPathComponent(licenseName);
         var licenseURL = this.bundleURL.appendingPathComponent(licenseName);
+        var exists = await this.fileManager.itemExistsAtURL(originalURL);
+        if (exists){
+            await this.fileManager.copyItemAtURL(originalURL, licenseURL);   
+        }
+    },
+
+    copyReadme: async function(){
+        var readmeName = "README.md";
+        var originalURL = this.project.url.appendingPathComponent(readmeName);
+        var licenseURL = this.bundleURL.appendingPathComponent(readmeName);
         var exists = await this.fileManager.itemExistsAtURL(originalURL);
         if (exists){
             await this.fileManager.copyItemAtURL(originalURL, licenseURL);   
