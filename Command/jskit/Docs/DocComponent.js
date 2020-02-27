@@ -54,6 +54,9 @@ JSClass("DocComponent", JSObject, {
         if (info.codeURL){
             this.codeURL = info.codeURL;
         }
+        if (info.publishedURL){
+            this.publishedURL = info.publishedURL;
+        }
     },
 
     sourceURL: null,
@@ -127,6 +130,7 @@ JSClass("DocComponent", JSObject, {
     note: null,
     important: null,
     codeURL: null,
+    publishedURL: null,
 
     page: null,
 
@@ -580,9 +584,7 @@ JSClass("DocComponent", JSObject, {
             component = components[i];
             item = component.jsonLdBreadcrumbItem();
             item.position = i + 1;
-            if (i < l - 1){
-                item.item = component.outputURL.removingFileExtension().encodedStringRelativeTo(this.outputURL);
-            }
+            item.item = root.publishedURL + component.outputURL.removingFileExtension().encodedStringRelativeTo(root.outputURL);
             items.push(item);
         }
         return {

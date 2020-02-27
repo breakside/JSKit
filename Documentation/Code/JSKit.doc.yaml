@@ -1,7 +1,8 @@
 copyright: Copyright © 2020 Breakside Inc.
 name: JSKit
 kind: index
-codeURL: https://github.com/breakside/JSKit/tree/v2020.8.2/
+codeURL: https://github.com/breakside/JSKit/tree/v2020.8.3/
+publishedURL: https://docs.jskit.dev/
 page:
   titleSuffix: JSKit Documentation
   preview: https://jskit.dev/preview.png
