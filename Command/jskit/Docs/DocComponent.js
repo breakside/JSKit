@@ -255,6 +255,12 @@ JSClass("DocComponent", JSObject, {
             script = head.appendChild(document.createElement('script'));
             script.appendChild(document.createTextNode(googleAnalyticsTemplate.replacingTemplateParameters({TRACKING_ID: page.googleAnalytics, PATH: path})));
         }
+        var breadcrumb = this.jsonLdBreadcrumbList();
+        if (breadcrumb){
+            let script = head.appendChild(document.createElement("script"));
+            script.setAttribute("type", "application/ld+json");
+            script.appendChild(document.createTextNode(JSON.stringify(breadcrumb, null, 2)));
+        }
         var body = html.appendChild(document.createElement("body"));
         var content = body.appendChild(document.createElement("article"));
         content.setAttribute("class", "doc " + this.kind);
@@ -555,6 +561,42 @@ JSClass("DocComponent", JSObject, {
             }
         }
         return line;
+    },
+
+    jsonLdBreadcrumbList: function(){
+        var component = this;
+        var components = [];
+        while (component.parent !== null){
+            components.unshift(component);
+            component = component.parent;
+        }
+        var root = component;
+        if (components.length < 2){
+            return null;
+        }
+        var item;
+        var items = [];
+        for (var i = 0, l = components.length; i < l; ++i){
+            component = components[i];
+            item = component.jsonLdBreadcrumbItem();
+            item.position = i + 1;
+            if (i < l - 1){
+                item.item = component.outputURL.removingFileExtension().encodedStringRelativeTo(this.outputURL);
+            }
+            items.push(item);
+        }
+        return {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": items,
+        };
+    },
+
+    jsonLdBreadcrumbItem: function(){
+        return {
+            "@type": "ListItem",
+            "name": this.name
+        };
     },
 
     output: async function(documentation){
