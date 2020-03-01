@@ -425,6 +425,7 @@ JSClass('UIView', UIResponder, {
     layoutSubviews: function(){
         this.layer.layoutSublayers();
         if (this._constraints.length > 0){
+            this._updateConstraints();
             // TODO:
         }
     },
