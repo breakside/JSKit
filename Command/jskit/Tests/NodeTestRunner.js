@@ -108,6 +108,9 @@ JSClass('NodeTestRun', TKTestRun, {
 });
 
 module.exports.run = function(){
+    JSLog.configure({print: false}, JSLog.Level.debug);
+    JSLog.configure({print: false}, JSLog.Level.info);
+    JSLog.configure({print: false}, JSLog.Level.log);
     var args = JSArguments.initWithOptions({
         help: {kind: "flag", shortcut: "h", hidden: true},
         suite: {default: null, help: "The single test suite (class name) to run"},

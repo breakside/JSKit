@@ -179,7 +179,7 @@ JSLog.formatStacktrace = function(record){
     if (stack){
         var lines = stack.split("\n");
         lines.unshift("");
-        return lines.join("\n                                                           ");
+        return lines.join("\n                                                             ");
     }
     return "";
 };
