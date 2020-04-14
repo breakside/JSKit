@@ -12,7 +12,7 @@ description: |
   views from model data and updates model data based on user interaction
   with views.
 
-  [Binding](Binding) data models to views through a controller continues
+  [Binding](../Foundation/Binding) data models to views through a controller continues
   this MVC style, but elimites the need for a lot of "glue code" in the
   controller because bindings pass the data automatically.
 
