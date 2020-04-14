@@ -51,7 +51,7 @@ description: |
   In order to build your application, you'll invoke a command like:
 
   ````
-  $ npx jskit build --debug MessagesWeb
+  $ npx jskit make --debug MessagesWeb
   ````
 
   This creates an appliation bundle in the `builds` folder.

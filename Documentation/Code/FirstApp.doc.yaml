@@ -51,7 +51,7 @@ description: |
   In order to build your application, invoke:
 
   ````
-  $ npx jskit build --debug MessagesWeb
+  $ npx jskit make --debug MessagesWeb
   ````
 
   You should see output lines that give you copy & paste commands that
