@@ -834,7 +834,7 @@ JSClass("HTMLBuilder", Builder, {
 
         var prefix = this.arguments['docker-owner'] || this.project.info.DockerOwner;
         var image = this.project.lastIdentifierPart;
-        var identifier = makeTag(this.debug ? 'debug' : this.buildId);
+        var identifier = makeTag(this.debug ? 'debug' : this.project.info.JSBundleVersion);
         var name = this.project.info.JSBundleIdentifier.replace('/\./g', '_');
 
         this.printer.setStatus("Building docker image %s...".sprintf(identifier));
@@ -843,9 +843,7 @@ JSClass("HTMLBuilder", Builder, {
         var args = ["build", "-t", identifier];
         if (!this.debug){
             args.push("-t");
-            args.push(makeTag(this.project.info.JSBundleVersion));
-            args.push("-t");
-            args.push(makeTag(this.buildLabel));
+            args.push(makeTag(this.buildId));
         }
         args.push('.');
         var cwd = this.fileManager.pathForURL(this.buildURL);

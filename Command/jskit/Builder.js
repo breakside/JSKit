@@ -111,8 +111,6 @@ JSClass("Builder", JSObject, {
             await this.fileManager.createSymbolicLinkAtURL(latestBuildURL, this.buildURL);
             if (this.shouldTag && this.parentBuild === null){
                 await this.gitTag("v" + this.project.info.JSBundleVersion);
-                await this.gitTag("build-" + this.buildId);
-                await this.gitTag("build-" + this.buildLabel);
             }
         }
     },
