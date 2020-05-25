@@ -4,5 +4,8 @@
   "bugs": {
     "url": "https://github.com/breakside/JSKit/issues"
   },
-  "repository": "github:breakside/JSKit"
+  "repository": "github:breakside/JSKit",
+  "engines": {
+    "node": ">=10.10.0"
+  }
 }
