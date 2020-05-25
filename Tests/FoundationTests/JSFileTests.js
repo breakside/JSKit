@@ -25,7 +25,8 @@ JSClass("JSFileTests", TKTestSuite, {
         TKAssertNotNull(file);
         TKAssertEquals(file.size, 4);
         TKAssertEquals(file.name, "test.dat");
-        TKAssertEquals(file.contentType, "application/octet-stream");
+        TKAssertNotNull(file.contentType);
+        TKAssertEquals(file.contentType.mime, "application/octet-stream");
     },
 
     testReadDataFile: function(){

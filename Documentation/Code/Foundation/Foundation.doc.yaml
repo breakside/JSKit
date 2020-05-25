@@ -65,12 +65,12 @@ topics:
       #- JSCubicBezier
       - JSGradient
       - JSImage
-  # -
-  #   name: Filesystem
-  #   summary: Files and file system operations
-  #   members:
-  #     - JSFileManager
-  #     - JSFile
+  -
+    name: Filesystem
+    summary: Files and file system operations
+    members:
+      - JSFileManager
+      - JSFile
   -
     name: Application
     summary: Common functionality shared across GUI and command line applications

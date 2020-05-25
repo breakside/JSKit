@@ -1019,7 +1019,11 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
             if (file.isKindOfClass(JSHTMLFile)){
                 htmlFile = file._blob;
             }else if (file.isKindOfClass(JSDataFile)){
-                htmlFile = new File(file._data, file.name, {type: file.contentType});
+                var args = {};
+                if (file.contentType !== null){
+                    args.type = file.contentType.mime;
+                }
+                htmlFile = new File(file._data, file.name, args);
             }
             // This allows files to be dragged out of Chrome to the Desktop.
             // Disabling for now because there's not a good hook for revoking the file url when the pasteboard is done with it

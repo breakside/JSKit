@@ -23,8 +23,6 @@ JSClass("JSFile", JSObject, {
     name: JSReadOnlyProperty('_name', null),
     contentType: JSReadOnlyProperty('_contentType', null),
     size: JSReadOnlyProperty('_size', 0),
-    extension: JSReadOnlyProperty(),
-    nameWithoutExtension: JSReadOnlyProperty(),
 
     initWithData: function(data, name, contentType){
         return JSDataFile.initWithData(data, name, contentType);
@@ -47,28 +45,6 @@ JSClass("JSFile", JSObject, {
 
     close: function(){
     },
-
-    getExtension: function(){
-        if (this._name === null){
-            return '';
-        }
-        var i = this._name.lastIndexOf('.');
-        if (i > 0){
-            return this._name.substr(i + 1);
-        }
-        return '';
-    },
-
-    getNameWithoutExtension: function(){
-        if (this._name === null){
-            return '';
-        }
-        var i = this._name.lastIndexOf('.');
-        if (i > 0){
-            return this._name.substr(0, i);
-        }
-        return '';
-    }
 
 });
 

@@ -27,7 +27,7 @@ JSClass("JavascriptCompilation", JSObject, {
         this.outputChunks = [];
         this.outputDirectoryURL = outputDirectoryURL;
         this.extension = name.fileExtension;
-        this.nameWithoutExtension = this.name.substr(0, this.name.length - this.extension.length);
+        this.nameWithoutExtension = this.name.removingFileExtension();
         this.fileManager = fileManager;
         this.sources = [];
         this.mappings = [[]];

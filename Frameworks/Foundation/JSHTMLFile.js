@@ -16,6 +16,7 @@
 // #import "JSFile.js"
 // #import "JSData.js"
 // #import "JSURL.js"
+// #import "JSMediaType.js"
 // #feature Blob
 // #feature FileReader
 // #feature URL.createObjectURL
@@ -35,7 +36,7 @@ JSClass("JSHTMLFile", JSFile, {
     initWithBlob: function(blob){
         this._blob = blob;
         this._size = blob.size;
-        this._contentType = blob.type || null;
+        this._contentType = JSMediaType(blob.type);
     },
 
     readData: function(completion, target){

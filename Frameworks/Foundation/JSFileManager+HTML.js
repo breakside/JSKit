@@ -649,7 +649,7 @@ JSFileManager.definePropertiesFromExtensions({
 
     contentsOfDirectoryAtURL: function(url, completion, target){
         if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
+            completion = Promise.completion(Promise.resolveNonNull);
         }
         if (!url.isAbsolute){
             logger.warn("relative URL passed to removeItemAtURL");

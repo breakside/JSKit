@@ -1,0 +1,114 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSObject
+summary: A file object for use with drag and drop or system open/save panels
+description: |
+  Designed for both server and browser environment, `JSFile` defines
+  a common API for interacting with files that have been provided by
+  platform-specific features like `UIOpenPanel`.
+
+  In HTML, for example, a file open panel will provice a `JSFile` that is
+  backed by the HTML Blob API.
+topics:
+  -
+    name: Creating a File
+    members:
+      -
+        name: initWithData
+        kind: init
+        summary: Create a file with the given data
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The contents of the file
+          -
+            name: name
+            type: string
+            summary: The name of the file
+          -
+            name: contentType
+            type: JSMediaType
+            summary: The MIME content type for the file
+      -
+        name: close
+        kind: method
+        summary: Close the file and release any resources
+        description: |
+          Call this function when you're done with a file
+  -
+    name: Metadata
+    members:
+      -
+        name: name
+        type: string
+        summary: The file's name
+        description: |
+          When receiving a file from drag and drop or a `UIOpenPanel`,
+          this name will be the original file's name.
+
+          When sending a `JSFile` to a `UISavePanel`, the name provides
+          a default name for the file.
+        note: |
+          The name is only the file's base name and does not include any directory names
+        see:
+          - String.fileExtension
+          - String.removingFileExtension()
+      -
+        name: contentType
+        type: JSMediaType
+        nullable: true
+        summary: The file's MIME content type
+      -
+        name: size
+        type: Number
+        summary: The file's size in bytes
+  -
+    name: Reading Data
+    members:
+      -
+        name: readData
+        kind: method
+        summary: Read the file's data using a callback
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: data
+                  type: JSData
+                  nullable: true
+                  summary: The file's contents, or `null` if the contents
+                    could not be read
+            summary: The function to call when the file's data is available
+          -
+            name: target
+            type: object
+            summary: The object to use as `this` when calling `completion`
+      -
+        name: readData
+        suffix: promise
+        kind: method
+        summary: Read the file's data using a promise
+        return: Promise
+        promise:
+          resolve:
+            type: JSData
+            summary: The file's contents
+  -
+    name: Referencing by URL
+    members:
+      -
+        name: url
+        type: JSURL
+        summary: A URL that can be used to reference this file
+        environment: html
+        description: |
+          In the HTML environment, this will return a `data:` or `blob:`
+          URL that points to the file's contents.
+        note: |
+          This URL is not some permanent storage location where the file
+          came from, it is a temporary URL that can be used by a browser
+          to reference a file.

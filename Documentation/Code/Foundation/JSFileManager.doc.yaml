@@ -1,0 +1,772 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSObject
+summary: Provide an interface for reading and writing files
+description: |
+  Designed for both server and browser environment, `JSFileManager` defines
+  a common API for interacting with files and directories.
+topics:
+  -
+    name: Creating a File Manager
+    members:
+      -
+        name: shared
+        type: JSFileManager
+        static: true
+        summary: The default file manager, created automatically during app
+          initialization
+      -
+        name: initWithIdentifier
+        kind: init
+        arguments:
+          -
+            name: identifier
+            type: string
+            summary: A unique identifier for this file manager
+        summary: Create a file manager with the given unique identifier
+        description: |
+          While the `default` file manager should often be sufficient, you
+          can use this method to create a separate file manager.
+        note: |
+          We recommend using a reverse-domain string for the `identifier`
+  -
+    name: Opening
+    members:
+      -
+        name: open
+        kind: method
+        summary: Open the file manager with a callback
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: Whether the file manager was successfully opened
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+        description: |
+          The file manager must be opened before it can be used, but
+          the `default` file manager is opened by `UIApplication` automatically.
+      -
+        name: open
+        kind: method
+        suffix: promise
+        summary: Open the file manager with a promise
+        return: Promise
+        promise:
+          resolve:
+            summary: The promise will resolve with no value if the file manager
+              opened successfully
+        description: |
+          The file manager must be opened before it can be used, but
+          the `default` file manager is opened by `UIApplication` automatically.
+  -
+    name: URLs
+    members:
+      -
+        name: temporaryDirectoryURL
+        type: JSURL
+        summary: The URL for the file manager's temporary directory
+      -
+        name: persistentContainerURL
+        type: JSURL
+        summary: The URL for the main application's data
+      -
+        name: urlForPath
+        type: JSURL
+        kind: method
+        summary: Get the URL for the given file path
+        arguments:
+          -
+            name: path
+            type: String
+            summary: The path to convert to a file manager URL
+        description: |
+          Useful when interacting with platform-specific APIs that return
+          a path string instead of a URL.
+        note: |
+          The provided path is expected to be in a platform-specific format,
+          such as `/path/to/file` on UNIX based systems and `C:\Path\To\File`
+          on Windows based systems.
+      -
+        name: pathForURL
+        type: String
+        kind: method
+        summary: Get the path for the given file manager URL
+        return: |
+          A path in platform-specific format,
+          such as `/path/to/file` on UNIX based systems and `C:\Path\To\File`
+          on Windows based systems.
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The file manager URL to convert to a path string
+        description: |
+          Useful when interacting with platform-specific APIs that require
+          a path string instead of a URL
+      -
+        name: relativePathFromURL
+        type: String
+        kind: method
+        summary: Get the relative path between two file manager URLs
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The from URL
+          -
+            name: toURL
+            type: JSURL
+            summary: The to URL
+  -
+    name: Item Attributes
+    members:
+      -
+        name: itemExistsAtURL
+        kind: method
+        summary: Check if a file or directory exists using a callback
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The URL of the item
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: exists
+                  type: boolean
+                  summary: Whether the item exists or not
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+      -
+        name: itemExistsAtURL
+        suffix: promise
+        kind: method
+        summary: Check if a file or directory exists using a promise
+        type: Promise
+        promise:
+          resolve:
+            type: boolean
+            summary: Whether the item exists  or not
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The URL of the item
+      -
+        name: attributesOfItemAtURL
+        kind: method
+        summary: Get the attributes of the item at the given URL with a callback
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The URL of the item
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: attributes
+                  type: Attributes
+                  nullable: true
+                  summary: The item's attributes, or `null` if no item exists
+                    at the given URL
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+      -
+        name: attributesOfItemAtURL
+        suffix: promise
+        kind: method
+        summary: Get the attributes of the item at the given URL using a promise
+        type: Promise
+        promise:
+          resolve:
+            type: Attributes
+            summary: The item's attributes
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The URL of the item
+      -
+        name: ItemType
+        kind: enum
+        summary: The possible types of items in a file manager
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: directory
+                summary: A directory that contains files and/or other directories
+              -
+                name: file
+                summary: A file with data
+              -
+                name: symbolicLink
+                summary: An item that points to another item
+              -
+                name: other
+                summary: Any other kind of item
+                description: |
+                  Not commonly used
+      -
+        name: Attributes
+        kind: class
+        anonymous: true
+        summary: The metadata attributes of a file manager item
+        topics:
+          -
+            name: Properties
+            members:
+              -
+                name: itemType
+                type: ItemType
+                summary: The kind of item
+              -
+                name: created
+                type: Number
+                summary: The unix timestamp of the item's creation date
+              -
+                name: updated
+                type: Number
+                summary: The unix timestamp of the item's most recent update
+  -
+    name: Creating Files & Directories
+    members:
+      -
+        name: createDirectoryAtURL
+        kind: method
+        summary: Create a directory at the given URL with a callback
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The URL of the new directory
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: Whether the directory was successfully created
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+        description: |
+          Will create any intermediate directories as needed.  Will not do anything
+          if a directory already exists at the given URL.
+      -
+        name: createDirectoryAtURL
+        suffix: promise
+        kind: method
+        summary: Create a directory at the given URL with a promise
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The URL of the new directory
+        return: Promise
+        promise:
+          resolve:
+            summary: Resolves with no value if the directory was successfully created
+        description: |
+          Will create any intermediate directories as needed.  Will not do anything
+          if a directory already exists at the given URL.
+      -
+        name: createFileAtURL
+        kind: method
+        summary: Create or update a file at the given URL with a callback
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The URL of the file
+          -
+            name: contents
+            type: JSData
+            summary: The file's contents
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: Whether the file was successfully created
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+        description: |
+          Will create any intermediate directories as needed.  Will overwrite
+          any existing file at the URL.
+      -
+        name: createFileAtURL
+        suffix: promise
+        kind: method
+        summary: Create or update a file at the given URL with a promise
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The URL of the file
+          -
+            name: contents
+            type: JSData
+            summary: The file's contents
+        return: Promise
+        promise:
+          resolve:
+            summary: Resolves with no value if the file was successfully created
+        description: |
+          Will create any intermediate directories as needed.  Will overwrite
+          any existing file at the URL.
+  -
+    name: File Contents
+    members:
+      -
+        name: contentsAtURL
+        kind: method
+        summary: Get the contents of the file at the given URL with a callback
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The URL of the file
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: contents
+                  type: JSData
+                  nullable: true
+                  summary: The file's data, or `null` if no file exists at that
+                    URL
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+        description: |
+          Will follow symlimks as needed to reach an actual file.
+      -
+        name: contentsAtURL
+        suffix: promise
+        kind: method
+        summary: Get the contents of the file at the given URL with a promise
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The URL of the file
+        return: Promise
+        promise:
+          resolve:
+            type: JSData
+            summary: The file's data
+        description: |
+          Will follow symlimks as needed to reach an actual file.
+  -
+    name: Directory Contents
+    members:
+      -
+        name: Entry
+        kind: class
+        anonymous: true
+        summary: A directory entry
+        topics:
+          -
+            name: Properties
+            members:
+              - 
+                name: url
+                type: JSURL
+                summary: The full URL of the entry
+              -
+                name: name
+                type: String
+                summary: The name of the entry, relative to the directory
+              -
+                name: itemType
+                type: ItemType
+                summary: The kind of item
+      -
+        name: contentsOfDirectoryAtURL
+        kind: method
+        summary: Get the items within a directory using a callback
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The URL of the directory
+          -
+            name: completion
+            summary: The function to call whith the conetents of the directory
+            type:
+              arguments:
+                -
+                  name: entries
+                  type: Entry[]
+                  nullable: true
+                  summary: The directory's entries, or `null` if the URL
+                    does not exist or is not a directory
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+      -
+        name: contentsOfDirectoryAtURL
+        suffix: promise
+        kind: method
+        summary: Get the items within a directory using a promise
+        return: Promise
+        promise:
+          resolve:
+            type: Entry[]
+            summary: The directory's entries
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The URL of the directory
+  -
+    name: Moving & Removing Items
+    members:
+      -
+        name: moveItemAtURL
+        kind: method
+        summary: Move a file or directory from one URL to another using a callback
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url of the item to move
+          -
+            name: toURL
+            type: JSURL
+            summary: The new URL of the item
+          -
+            name: completion
+            summary: The function to call when the move completes
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: Whether the move completed successfully
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+      -
+        name: moveItemAtURL
+        suffix: promise
+        kind: method
+        summary: Move a file or directory from one URL to another using a promise
+        return: Promise
+        promise:
+          resolve:
+            summary: Resolves with no value if the move completed successfully
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url of the item to move
+          -
+            name: toURL
+            type: JSURL
+            summary: The new URL of the item
+      -
+        name: copyItemAtURL
+        kind: method
+        summary: Copy a file or directory from one URL to another using a callback
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url of the item to copy
+          -
+            name: toURL
+            type: JSURL
+            summary: The new URL of the item
+          -
+            name: completion
+            summary: The function to call when the copy completes
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: Whether the copy completed successfully
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+      -
+        name: copyItemAtURL
+        suffix: promise
+        kind: method
+        summary: Copy a file or directory from one URL to another using a promise
+        return: Promise
+        promise:
+          resolve:
+            summary: Resolves with no value if the copy completed successfully
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url of the item to copy
+          -
+            name: toURL
+            type: JSURL
+            summary: The new URL of the item
+      -
+        name: removeItemAtURL
+        kind: method
+        summary: Remove a file or directory using a callback
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url of the item to remove
+          -
+            name: completion
+            summary: The function to call when the remove completes
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: Whether the remove completed successfully
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+      -
+        name: removeItemAtURL
+        suffix: promise
+        kind: method
+        summary: Remove a file or directory using a promise
+        return: Promise
+        promise:
+          resolve:
+            summary: Resolves with no value if the remove completed successfully
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url of the item to remove
+  -
+    name: Hard & Symbolic Links
+    members:
+      -
+        name: createLinkAtURL
+        kind: method
+        summary: Create a hard link using a callback
+        description: |
+          A hard link looks just like a regular file on the filesystem, but
+          shares its contents with the original item.
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url of the link
+          -
+            name: toURL
+            type: JSURL
+            summary: The url of the original item
+          -
+            name: completion
+            summary: The function to call when the link is made
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: Whether the link was made successfully
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+      -
+        name: createLinkAtURL
+        suffix: promise
+        kind: method
+        summary: Create a hard link using a promise
+        description: |
+          A hard link looks just like a regular file on the filesystem, but
+          shares its contents with the original item.
+        return: Promise
+        promise:
+          resolve:
+            summary: Resolves with no value if the link was made successfully
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url of the link
+          -
+            name: toURL
+            type: JSURL
+            summary: The url of the original item
+      -
+        name: createSymbolicLinkAtURL
+        kind: method
+        summary: Create a symbolic link using a callback
+        description: |
+          A symbolic link contains a pointer to another file in the
+          filesystem.
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url of the link
+          -
+            name: toURL
+            type: JSURL
+            summary: The url of the original item
+          -
+            name: completion
+            summary: The function to call when the link is made
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: Whether the link was made successfully
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+      -
+        name: createSymbolicLinkAtURL
+        suffix: promise
+        kind: method
+        summary: Create a symbolic link using a promise
+        description: |
+          A symbolic link contains a pointer to another file in the
+          filesystem.
+        return: Promise
+        promise:
+          resolve:
+            summary: Resolves with no value if the link was made successfully
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url of the link
+          -
+            name: toURL
+            type: JSURL
+            summary: The url of the original item
+      -
+        name: destinationOfSymbolicLinkAtURL
+        kind: method
+        summary: Get the destination of a symbolic link using a callback
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url of the link
+          -
+            name: completion
+            summary: The function to call when the link is made
+            type:
+              arguments:
+                -
+                  name: destinationURL
+                  type: JSURL
+                  nullable: true
+                  summary: The destination of the sumbolic link
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+      -
+        name: destinationOfSymbolicLinkAtURL
+        suffix: promise
+        kind: method
+        summary: Get the destination of a symbolic link using a promise
+        return: Promise
+        promise:
+          resolve:
+            type: JSURL
+            summary: The destination of the sumbolic link
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url of the link
+  -
+    name: Permissions
+    members:
+      -
+        name: makeExecutableAtURL
+        kind: method
+        summary: Make a file executable using a callback
+        description: |
+          Changes the file's permissions so it is considered executable by
+          the operating system
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url of the file
+          -
+            name: completion
+            summary: The function to call when the file's permissions have changed
+            type:
+              arguments:
+                -
+                  name: success
+                  type: boolean
+                  summary: Whether the permission change was made successfully
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+      -
+        name: makeExecutableAtURL
+        suffix: promise
+        kind: method
+        summary: Make a file executable using a promise
+        return: Promise
+        promise:
+          resolve:
+            summary: Resolves with no value if the file's permissions changed successfully
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url of the file
