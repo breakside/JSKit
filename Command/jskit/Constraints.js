@@ -19,7 +19,7 @@
 JSGlobalObject.constraintsFromSpecShorthand = function(shorthand){
     var constraints = [];
     var references = JSCopy(shorthand.references);
-    references.self = '<self>';
+    references.this = '<this>';
     if (shorthand.equalities){
         for (let i = 0, l = shorthand.equalities.length; i < l; ++i){
             let constraint = constraintFromEquality(shorthand.equalities[i], references);

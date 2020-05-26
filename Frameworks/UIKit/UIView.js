@@ -19,7 +19,9 @@
 // #import "UIAnimation.js"
 // #import "UIDraggingDestination.js"
 // #import "UILayoutConstraint.js"
+// #import "UILayoutAnchor.js"
 // #import "UITraitCollection.js"
+// #import "UILayoutGuide.js"
 'use strict';
 
 JSGlobalObject.UIViewLayerProperty = function(){
@@ -118,13 +120,17 @@ JSClass('UIView', UIResponder, {
                 this.addSubview(subview);
             }
         }
-        // NOTE: constraints are still and work in progress, and aren't actually
-        // used yet during layout
         if (spec.containsKey("constraints")){
             var constraintValue;
             var constraints = spec.valueForKey("constraints");
             for (i = 0, l = constraints.length; i < l; ++i){
                 var constraint = constraints.valueForKey(i, UILayoutConstraint);
+                if (constraint.firstItem == '<this>'){
+                    constraint.firstItem = this;
+                }
+                if (constraint.secondItem == '<this>'){
+                    constraint.secondItem = this;
+                }
                 this.addConstraint(constraint);
             }
         }
@@ -134,6 +140,7 @@ JSClass('UIView', UIResponder, {
         this.layer = this.$class.layerClass.init();
         this.layer.delegate = this;
         this.subviews = [];
+        this.layoutGuides = [];
         this._registeredDraggedTypes = [];
         this._constraints = [];
     },
@@ -165,6 +172,16 @@ JSClass('UIView', UIResponder, {
 
     superview: null,
     subviewIndex: null,
+
+    isAncestorOfView: function(view){
+        while (view != null){
+            if (view.superview === this){
+                return true;
+            }
+            view = view.superview;
+        }
+        return false;
+    },
 
     // -------------------------------------------------------------------------
     // MARK: - Identity
@@ -424,9 +441,21 @@ JSClass('UIView', UIResponder, {
 
     layoutSubviews: function(){
         this.layer.layoutSublayers();
-        if (this._constraints.length > 0){
-            this._updateConstraints();
-            // TODO:
+        if (this._layoutResolver !== null){
+            this._layoutResolver.updateFramesIfNeeded();
+            var i, l;
+            var frame;
+            for (i = 0, l = this.subviews.length; i < l; ++i){
+                var subview = this.subviews[i];
+                frame = this._layoutResolver.frameForItem(subview);
+                subview.bounds = JSRect(subview.bounds.origin, frame.size);
+                subview.position = JSPoint(frame.origin.x + subview.anchorPoint.x * frame.size.width, frame.origin.y + subview.anchorPoint.y * frame.size.height);
+            }
+            for (i = 0, l = this.layoutGuides.length; i < l; ++i){
+                var guide = this.layoutGuides[i];
+                frame = this._layoutResolver.frameForItem(guide);
+                guide.frame = JSRect(frame);
+            }
         }
     },
 
@@ -466,7 +495,66 @@ JSClass('UIView', UIResponder, {
     },
 
     invalidateIntrinsicSize: function(){
-        this._needsIntrinsicSizeConstraintUpdate = true;
+        this._updateIntrinsicSizeConstraints();
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Layout Margins
+
+    layoutMargins: JSDynamicProperty('_layoutMargins', JSInsets.Zero),
+
+    layoutMarginsGuide: JSLazyInitProperty('_createLayoutMarginsGuide', '_layoutMarginsGuide'),
+
+    preservesSuperviewLayoutMargins: JSDynamicProperty('_preservesSuperviewLayoutMargins', false),
+
+    getLayoutMargins: function(){
+        var margins = this._layoutMargins;
+        if (this._preservesSuperviewLayoutMargins && this.superview != null){
+            var supermargins = this.superview.layoutMargins;
+            var size = this.bounds.size;
+            var supersize = this.superview.bounds.size;
+            var origin = JSPoint(
+                this.position.x - this.anchorPoint.x * size.width,
+                this.position.y - this.anchorPoint.y * size.height
+            );
+            margins = JSCopy(margins);
+            if (origin.y + margins.top < supermargins.top){
+                margins.top = supermargins.top - origin.y;
+            }
+            if (origin.y + size.height - margins.bottom > supersize.height - supermargins.bottom){
+                margins.bottom = (origin.y + size.height) - (supersize.height - supermargins.bottom);
+            }
+            if (origin.x + margins.left < supermargins.left){
+                margins.left = supermargins.left - origin.x;
+            }
+            if (origin.x + size.width - margins.right > supersize.width - supermargins.right){
+                margins.right = (origin.x + size.width) - (supersize.width - supermargins.right);
+            }
+        }
+        return margins;
+    },
+
+    setLayoutMargins: function(layoutMargins){
+        this._layoutMargins = JSCopy(layoutMargins);
+        this._updateLayoutMarginGuideConstraints();
+        this.layoutMarginsDidChange();
+    },
+
+    layoutMarginsDidChange: function(){
+    },
+
+    _createLayoutMarginsGuide: function(){
+        var guide = UILayoutGuide.init();
+        var margins = this.layoutMargins;
+        this._layoutMarginTopConstraint = guide.topAnchor.constantConstraint(margins.top);
+        this._layoutMarginBottomConstraint = guide.bottomAnchor.constantConstraint(margins.bottom);
+        this._layoutMarginLeftConstraint = guide.leftAnchor.constantConstraint(margins.left);
+        this._layoutMarginRightConstraint = guide.rightAnchor.constantConstraint(margins.right);
+        this._layoutMarginTopConstraint.active = true;
+        this._layoutMarginBottomConstraint.active = true;
+        this._layoutMarginLeftConstraint.active = true;
+        this._layoutMarginRightConstraint.active = true;
+        this.addLayoutGuide(guide);
     },
 
     // -------------------------------------------------------------------------
@@ -478,12 +566,24 @@ JSClass('UIView', UIResponder, {
     contentCompressionResistancePriority: UILayoutPriority.defaultHigh,
 
     addConstraint: function(constraint){
-        constraint._attachToView(this);
-        if (constraint._targetItem !== this){
-            throw new Error("Cannot add constraint to view because the constraint belongs to another view");
-        }
         if (constraint._isActive){
-            return;
+            throw new Error("Cannot add constraint because it is already added to a view");
+        }
+        var firstView = constraint.firstItem.layoutItemView;
+        while (firstView !== this && firstView.superview !== null){
+            firstView = firstView.superview;
+        }
+        if (firstView !== this){
+            throw new Error("Cannot add constraint because its firstItem is not part of this view's tree");
+        }
+        if (constraint.secondItem !== null){
+            var secondView = constraint.secondItem.layoutItemView;
+            while (secondView !== this && secondView.superview !== null){
+                secondView = secondView.superview;
+            }
+            if (secondView !== this){
+                throw new Error("Cannot add constraint because its secondItem is not part of this view's tree");
+            }
         }
         constraint._isActive = true;
         this._constraints.push(constraint);
@@ -499,23 +599,16 @@ JSClass('UIView', UIResponder, {
         }
     },
 
-    constrainedSize: JSReadOnlyProperty(),
+    layoutItemView: JSLazyInitProperty('_getLayoutItemView'),
 
-    layoutFittingSize: function(size){
-    },
-
-    _updateConstraints: function(){
-        if (this._needsIntrinsicSizeConstraintUpdate){
-            this._updateIntrinsicSizeConstraints();
-            this._needsIntrinsicSizeConstraintUpdate = false;
-        }
+    _getLayoutItemView: function(){
+        return this;
     },
 
     _intrinsicWidthHuggingConstraint: null,
     _intrinsicWidthResistConstraint: null,
     _intrinsicHeightHuggingConstraint: null,
     _intrinsicHeightResistConstraint: null,
-    _needsIntrinsicSizeConstraintUpdate: true,
 
     _updateIntrinsicSizeConstraints: function(){
         var intrinsicSize = this.intrinsicSize;
@@ -588,6 +681,111 @@ JSClass('UIView', UIResponder, {
                 this._intrinsicHeightResistConstraint.active = false;
                 this._intrinsicHeightResistConstraint = null;
             }
+        }
+    },
+
+    _layoutMarginTopConstraint: null,
+    _layoutMarginBottomConstraint: null,
+    _layoutMarginLeftConstraint: null,
+    _layoutMarginRightConstraint: null,
+
+    _updateLayoutMarginGuideConstraints: function(){
+        if (this._layoutMarginsGuide !== null){
+            var margins = this.layoutMargins;
+            if (this._layoutMarginTopConstraint != null){
+                this._layoutMarginTopConstraint.constant = margins.top;
+            }
+            if (this._layoutMarginBottomConstraint != null){
+                this._layoutMarginBottomConstraint.constant = margins.bottom;
+            }
+            if (this._layoutMarginLeftConstraint != null){
+                this._layoutMarginLeftConstraint.constant = margins.left;
+            }
+            if (this._layoutMarginRightConstraint != null){
+                this._layoutMarginRightConstraint.constant = margins.right;
+            }
+        }
+    },
+
+    bottomAnchor: JSLazyInitProperty('_createBottomAnchor'),
+    topAnchor: JSLazyInitProperty('_createTopAnchor'),
+    leftAnchor: JSLazyInitProperty('_createLeftAnchor'),
+    rightAnchor: JSLazyInitProperty('_createRightAnchor'),
+    leadingAnchor: JSLazyInitProperty('_createLeadingAnchor'),
+    trailingAnchor: JSLazyInitProperty('_createTrailingAnchor'),
+    widthAnchor: JSLazyInitProperty('_createWidthAnchor'),
+    heightAnchor: JSLazyInitProperty('_createHeightAnchor'),
+    centerXAnchor: JSLazyInitProperty('_createCenterXAnchor'),
+    centerYAnchor: JSLazyInitProperty('_createCenterYAnchor'),
+    firstBaselineAnchor: JSLazyInitProperty('_createFirstBaselineAnchor'),
+    lastBaselineAnchor: JSLazyInitProperty('_createLastBaselineAnchor'),
+
+    _createBottomAnchor: function(){
+        return UILayoutAnchor.initWithItemAttribute(this, UILayoutAttribute.bottom);
+    },
+
+    _createTopAnchor: function(){
+        return UILayoutAnchor.initWithItemAttribute(this, UILayoutAttribute.top);
+    },
+
+    _createLeftAnchor: function(){
+        return UILayoutAnchor.initWithItemAttribute(this, UILayoutAttribute.left);
+    },
+
+    _createRightAnchor: function(){
+        return UILayoutAnchor.initWithItemAttribute(this, UILayoutAttribute.right);
+    },
+
+    _createLeadingAnchor: function(){
+        return UILayoutAnchor.initWithItemAttribute(this, UILayoutAttribute.leading);
+    },
+
+    _createTrailingAnchor: function(){
+        return UILayoutAnchor.initWithItemAttribute(this, UILayoutAttribute.trailing);
+    },
+
+    _createWidthAnchor: function(){
+        return UILayoutAnchor.initWithItemAttribute(this, UILayoutAttribute.width);
+    },
+
+    _createHeightAnchor: function(){
+        return UILayoutAnchor.initWithItemAttribute(this, UILayoutAttribute.height);
+    },
+
+    _createCenterXAnchor: function(){
+        return UILayoutAnchor.initWithItemAttribute(this, UILayoutAttribute.centerX);
+    },
+
+    _createCenterYAnchor: function(){
+        return UILayoutAnchor.initWithItemAttribute(this, UILayoutAttribute.centerY);
+    },
+
+    _createFirstBaselineAnchor: function(){
+        return UILayoutAnchor.initWithItemAttribute(this, UILayoutAttribute.firstBaseline);
+    },
+
+    _createLastBaselineAnchor: function(){
+        return UILayoutAnchor.initWithItemAttribute(this, UILayoutAttribute.lastBaseline);
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Layout Guides
+
+    layoutGuides: null,
+
+    addLayoutGuide: function(layoutGuide){
+        if (layoutGuide.view !== null){
+            layoutGuide.view.removeLayoutGuide(layoutGuide);
+        }
+        layoutGuide.view = this;
+        this.layoutGuides.push(layoutGuide);
+    },
+
+    removeLayoutGuide: function(layoutGuide){
+        var index = this.layoutGuides.indexOf(layoutGuide);
+        if (index >= 0){
+            this.layoutGuides.splice(index, 1);
+            layoutGuide.view = null;
         }
     },
 

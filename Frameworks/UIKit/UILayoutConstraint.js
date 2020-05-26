@@ -55,6 +55,8 @@ JSGlobalObject.UILayoutAttribute = {
             case UILayoutAttribute.right: return "right";
             case UILayoutAttribute.top: return "top";
             case UILayoutAttribute.bottom: return "bottom";
+            case UILayoutAttribute.leading: return "leading";
+            case UILayoutAttribute.trailing: return "trailing";
             case UILayoutAttribute.width: return "width";
             case UILayoutAttribute.height: return "height";
             case UILayoutAttribute.centerX: return "centerX";
@@ -72,6 +74,12 @@ JSGlobalObject.UILayoutPriority = {
     defaultLow: 250
 };
 
+JSProtocol("UILayoutItem", JSProtocol, {
+
+    layoutItemView: null,
+
+});
+
 JSClass("UILayoutConstraint", JSObject, {
     firstItem: null,
     firstAttribute: UILayoutAttribute.notAnAttribute,
@@ -81,8 +89,8 @@ JSClass("UILayoutConstraint", JSObject, {
     multiplier: JSDynamicProperty('_multiplier', 1),
     constant: JSDynamicProperty('_constant', 0),
     priority: UILayoutPriority.required,
+    view: null,
 
-    _targetItem: null,
     active: JSDynamicProperty('_isActive', false, 'isActive'),
 
     initWithOptions: function(options){
@@ -157,49 +165,33 @@ JSClass("UILayoutConstraint", JSObject, {
         }
     },
 
-    _attachToView: function(view){
-        if (this._targetItem === null){
-            return;
-        }
-        if (this.firstItem === '<self>'){
-            this.firstItem = view;
-        }
-        if (this.secondItem === '<self>'){
-            this.secondItem = view;
-        }
-        if (this.secondItem !== null){
-            if (this.firstItem === this.secondItem.superview){
-                this._targetItem = this.firstItem;
-            }else if (this.secondItem === this.firstItem.superview){
-                this._targetItem = this.secondItem;
-            }else if (this.firstItem.superview === this.secondItem.superview){
-                this._targetItem = this.firstItem.superview;
-            }else{
-                throw new Error("UILayoutConstraint requires firstItem and secondItem either superview/sublayer or siblings");
-            }
-        }else{
-            this._targetItem = this.firstItem;
-        }
-    },
-
     setConstant: function(constant){
         this._constant = constant;
-        this._targetItem.setNeedsLayout();
+        this.view.setNeedsLayout();
     },
 
     setMultiplier: function(multiplier){
         this._multiplier = multiplier;
-        this._targetItem.setNeedsLayout();
+        this.view.setNeedsLayout();
     },
 
     setActive: function(active){
         if (this._isActive == active){
             return;
         }
+        if (this.view === null){
+            this.view = this.firstItem.layoutItemView;
+            if (this.secondItem !== null){
+                var secondView = this.secondItem.layoutItemView;
+                if (secondView.isAncestorOf(this.view)){
+                    this.view = secondView;
+                }
+            }
+        }
         if (active){
-            this._targetItem.addConstraint(this);
+            this.view.addConstraint(this);
         }else{
-            this._targetItem.removeConstraint(this);
+            this.view.removeConstraint(this);
         }
     },
 
@@ -223,223 +215,7 @@ JSClass("UILayoutConstraint", JSObject, {
             return "%s.%s %s %s.%s * %s - %s".sprintf(this.firstItem, UILayoutAttribute.toString(this.firstAttribute), UILayoutRelation.toString(this.relation), this.secondItem, UILayoutAttribute.toString(this.secondAttribute), this.multiplier, -this.constant);
         }
         return "%s.%s %s %s.%s * %s + %s".sprintf(this.firstItem, UILayoutAttribute.toString(this.firstAttribute), UILayoutRelation.toString(this.relation), this.secondItem, UILayoutAttribute.toString(this.secondAttribute), this.multiplier, this.constant);
-    }
-
-});
-
-var UILayoutVariable = function(){
-    if (this === undefined){
-        return new UILayoutVariable();
-    }
-    this.equalities = [];
-};
-
-UILayoutVariable.prototype = {
-
-    min: undefined,
-    max: undefined,
-    priority: 0,
-    isSolved: false,
-
-    equalities: null,
-
-    solve: function(){
-        if (this.isSolved){
-            return;
-        }
-        var unsolved = this.equalities.length;
-        var equality;
-        for (var i = 0, l = this.equalities.length; i < l; ++i){
-            equality = this.equalities[i];
-            if (!equality.isSolved){
-                equality.solve();
-                if (equality.isSolved){
-                    --unsolved;
-                    if (equality.priority > this.priority || (equality.min >= this.min && equality.max <= this.max)){
-                        this.min = equality.min;
-                        this.max = equality.max;
-                    }else{
-                        // TODO: indicate which constraints
-                        logger.warn("Conflicting constraints");
-                    }
-                }
-            }else{
-                --unsolved;
-            }
-        }
-        this.isSolved = unsolved === 0;
-    }
-};
-
-var UILayoutEquality = function(){
-    if (this === undefined){
-        return new UILayoutEquality();
-    }
-    this.stack = [];
-};
-
-UILayoutEquality.prototype = {
-
-    min: undefined,
-    max: undefined,
-    priority: 0,
-    relation: UILayoutRelation.equal,
-    a: 0,
-    b: 0,
-    multiplier: 1,
-
-    solve: function(){
-    }
-
-};
-
-var UILayoutViewVariables = function(view){
-    if (this === undefined){
-        return new UILayoutViewVariables(view);
-    }
-    this.view = view;
-    this.top = UILayoutVariable();
-    // bottom - height
-    this.left = UILayoutVariable();
-    // right - width
-    this.right = UILayoutVariable();
-    // left + width
-    this.bottom = UILayoutVariable();
-    // top + height
-    this.width = UILayoutVariable();
-    this.height = UILayoutVariable();
-    this.centerX = UILayoutVariable();
-    // left + width / 2
-    this.centerY = UILayoutVariable();
-    // top + height / 2
-    this.lastBaseline = UILayoutVariable();
-    // bottom - view.lastBaselineOffsetFromBottom
-    this.firstBaseline = UILayoutVariable();
-    // top + view.lastBaselineOffsetFromBottom
-    var constraint;
-    for (var i = 0, l = view.constraints.length; i < l; ++i){
-        constraint = view.constraints[i];
-        this.addConstraint(constraint);
-    }
-};
-
-UILayoutViewVariables.prototype = {
-
-    updateView: function(){
-        var position = JSPoint(this.view.position);
-        var size = JSSize(this.view.bounds.size);
-
-        this.view.position = position;
-        this.view.size = size;
-    },
-
-    addConstraint: function(constraint){
-        if (constraint.firstItem === this.view){
-            if (constraint.secondItem === null){
-                // TOOD: api for UILayoutEquality
-                if (constraint.firstAttribute === UILayoutAttribute.left || constraint.firstAttribute === UILayoutAttribute.leading){
-                }else if (constraint.firstAttribute === UILayoutAttribute.right || constraint.firstAttribute === UILayoutAttribute.trailing){
-                }else if (constraint.firstAttribute === UILayoutAttribute.top){
-                }else if (constraint.firstAttribute === UILayoutAttribute.bottom){
-                }else if (constraint.firstAttribute === UILayoutAttribute.width){
-                }else if (constraint.firstAttribute === UILayoutAttribute.height){
-                }else if (constraint.firstAttribute === UILayoutAttribute.centerX){
-                }else if (constraint.firstAttribute === UILayoutAttribute.centerY){
-                }else if (constraint.firstAttribute === UILayoutAttribute.lastBaseline){
-                }else if (constraint.firstAttribute === UILayoutAttribute.firstBaseline){
-                }
-            }else{
-                // TODO: how to reference variables from other item
-                if (constraint.firstAttribute === UILayoutAttribute.left || constraint.firstAttribute === UILayoutAttribute.leading){
-                }else if (constraint.firstAttribute === UILayoutAttribute.right || constraint.firstAttribute === UILayoutAttribute.trailing){
-                }else if (constraint.firstAttribute === UILayoutAttribute.top){
-                }else if (constraint.firstAttribute === UILayoutAttribute.bottom){
-                }else if (constraint.firstAttribute === UILayoutAttribute.width){
-                }else if (constraint.firstAttribute === UILayoutAttribute.height){
-                }else if (constraint.firstAttribute === UILayoutAttribute.centerX){
-                }else if (constraint.firstAttribute === UILayoutAttribute.centerY){
-                }else if (constraint.firstAttribute === UILayoutAttribute.lastBaseline){
-                }else if (constraint.firstAttribute === UILayoutAttribute.firstBaseline){
-                }
-            }
-        }else if (constraint.secondItem == this.view){
-            if (constraint.secondItem === null){
-                // TOOD: api for UILayoutEquality
-                if (constraint.secondAttribute === UILayoutAttribute.left || constraint.secondAttribute === UILayoutAttribute.leading){
-                }else if (constraint.secondAttribute === UILayoutAttribute.right || constraint.secondAttribute === UILayoutAttribute.trailing){
-                }else if (constraint.secondAttribute === UILayoutAttribute.top){
-                }else if (constraint.secondAttribute === UILayoutAttribute.bottom){
-                }else if (constraint.secondAttribute === UILayoutAttribute.width){
-                }else if (constraint.secondAttribute === UILayoutAttribute.height){
-                }else if (constraint.secondAttribute === UILayoutAttribute.centerX){
-                }else if (constraint.secondAttribute === UILayoutAttribute.centerY){
-                }else if (constraint.secondAttribute === UILayoutAttribute.lastBaseline){
-                }else if (constraint.secondAttribute === UILayoutAttribute.firstBaseline){
-                }
-            }else{
-                // TODO: how to reference variables from other item
-                if (constraint.secondAttribute === UILayoutAttribute.left || constraint.secondAttribute === UILayoutAttribute.leading){
-                }else if (constraint.secondAttribute === UILayoutAttribute.right || constraint.secondAttribute === UILayoutAttribute.trailing){
-                }else if (constraint.secondAttribute === UILayoutAttribute.top){
-                }else if (constraint.secondAttribute === UILayoutAttribute.bottom){
-                }else if (constraint.secondAttribute === UILayoutAttribute.width){
-                }else if (constraint.secondAttribute === UILayoutAttribute.height){
-                }else if (constraint.secondAttribute === UILayoutAttribute.centerX){
-                }else if (constraint.secondAttribute === UILayoutAttribute.centerY){
-                }else if (constraint.secondAttribute === UILayoutAttribute.lastBaseline){
-                }else if (constraint.secondAttribute === UILayoutAttribute.firstBaseline){
-                }
-            }
-        }
-    }
-
-};
-
-JSClass("UILayoutResolver", JSObject, {
-
-    init: function(){
-        this.variables = [];
-    },
-
-    addView: function(view){
-        var viewVariables = new UILayoutViewVariables(view);
-        this.variables.push(viewVariables.top);
-        this.variables.push(viewVariables.left);
-        this.variables.push(viewVariables.right);
-        this.variables.push(viewVariables.bottom);
-        this.variables.push(viewVariables.width);
-        this.variables.push(viewVariables.height);
-        this.variables.push(viewVariables.centerX);
-        this.variables.push(viewVariables.centerY);
-        for (var i = 0, l = view.subviews.length; i < l; ++i){
-            this.addView(view.subviews[i]);
-        }
-    },
-
-    variables: null,
-
-    solve: function(){
-        var solved;
-        var variable;
-        do {
-            solved = 0;
-            for (var i = 0, l = this.variables.length; i < l; ++i){
-                variable = this.variables[i];
-                // TODO: partially solved variables
-                if (!variable.isSolved){
-                    variable.solve();
-                    if (variable.isSolved){
-                        ++solved;
-                    }
-                }
-            }
-        }while (solved > 0);
-        if (solved < this.variables.length){
-            logger.warn("Not enough constraints specified");
-        }
-        // TODO: check for conflicts
-        // TODO: apply values to items
-    }
+    },    
 
 });
 

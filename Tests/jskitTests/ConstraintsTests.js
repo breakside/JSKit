@@ -21,49 +21,49 @@ JSClass("ConstraintsTests", TKTestSuite, {
 
     testConstraintsFromEquality: function(){
         var refs = {
-            self: "/Root",
+            this: "/Root",
             one: "/One",
             two: "/Two",
             n: 10
         };
-        var constraint = constraintFromEquality("self.width = 12", refs);
+        var constraint = constraintFromEquality("this.width = 12", refs);
         TKAssertEquals(constraint.constant, 12);
         TKAssertEquals(constraint.firstAttribute, 'width');
         TKAssertEquals(constraint.firstItem, '/Root');
         TKAssertEquals(constraint.relation, 'equal');
-        constraint = constraintFromEquality("self.height = n", refs);
+        constraint = constraintFromEquality("this.height = n", refs);
         TKAssertEquals(constraint.constant, 10);
         TKAssertEquals(constraint.firstAttribute, 'height');
         TKAssertEquals(constraint.firstItem, '/Root');
         TKAssertEquals(constraint.relation, 'equal');
-        constraint = constraintFromEquality("one.top = self.top", refs);
+        constraint = constraintFromEquality("one.top = this.top", refs);
         TKAssertEquals(constraint.firstAttribute, 'top');
         TKAssertEquals(constraint.firstItem, '/One');
         TKAssertEquals(constraint.relation, 'equal');
         TKAssertEquals(constraint.secondAttribute, 'top');
         TKAssertEquals(constraint.secondItem, '/Root');
-        constraint = constraintFromEquality("one.top = self.top + 12", refs);
+        constraint = constraintFromEquality("one.top = this.top + 12", refs);
         TKAssertEquals(constraint.constant, 12);
         TKAssertEquals(constraint.firstAttribute, 'top');
         TKAssertEquals(constraint.firstItem, '/One');
         TKAssertEquals(constraint.relation, 'equal');
         TKAssertEquals(constraint.secondAttribute, 'top');
         TKAssertEquals(constraint.secondItem, '/Root');
-        constraint = constraintFromEquality("one.top = self.top + n", refs);
+        constraint = constraintFromEquality("one.top = this.top + n", refs);
         TKAssertEquals(constraint.constant, 10);
         TKAssertEquals(constraint.firstAttribute, 'top');
         TKAssertEquals(constraint.firstItem, '/One');
         TKAssertEquals(constraint.relation, 'equal');
         TKAssertEquals(constraint.secondAttribute, 'top');
         TKAssertEquals(constraint.secondItem, '/Root');
-        constraint = constraintFromEquality("one.top = self.top - 12", refs);
+        constraint = constraintFromEquality("one.top = this.top - 12", refs);
         TKAssertEquals(constraint.constant, -12);
         TKAssertEquals(constraint.firstAttribute, 'top');
         TKAssertEquals(constraint.firstItem, '/One');
         TKAssertEquals(constraint.relation, 'equal');
         TKAssertEquals(constraint.secondAttribute, 'top');
         TKAssertEquals(constraint.secondItem, '/Root');
-        constraint = constraintFromEquality("one.top = self.top - n", refs);
+        constraint = constraintFromEquality("one.top = this.top - n", refs);
         TKAssertEquals(constraint.constant, -10);
         TKAssertEquals(constraint.firstAttribute, 'top');
         TKAssertEquals(constraint.firstItem, '/One');
@@ -148,19 +148,19 @@ JSClass("ConstraintsTests", TKTestSuite, {
         TKAssertEquals(constraint.relation, 'equal');
         TKAssertEquals(constraint.secondAttribute, 'width');
         TKAssertEquals(constraint.secondItem, '/One');
-        constraint = constraintFromEquality("self.width = 12 @ 100", refs);
+        constraint = constraintFromEquality("this.width = 12 @ 100", refs);
         TKAssertEquals(constraint.constant, 12);
         TKAssertEquals(constraint.firstAttribute, 'width');
         TKAssertEquals(constraint.firstItem, '/Root');
         TKAssertEquals(constraint.priority, 100);
         TKAssertEquals(constraint.relation, 'equal');
-        constraint = constraintFromEquality("self.width = 12 @ defaultLow", refs);
+        constraint = constraintFromEquality("this.width = 12 @ defaultLow", refs);
         TKAssertEquals(constraint.constant, 12);
         TKAssertEquals(constraint.firstAttribute, 'width');
         TKAssertEquals(constraint.firstItem, '/Root');
         TKAssertEquals(constraint.priority, 'defaultLow');
         TKAssertEquals(constraint.relation, 'equal');
-        constraint = constraintFromEquality("self.width = one.width * 2 + 3 @ 100", refs);
+        constraint = constraintFromEquality("this.width = one.width * 2 + 3 @ 100", refs);
         TKAssertEquals(constraint.constant, 3);
         TKAssertEquals(constraint.firstAttribute, 'width');
         TKAssertEquals(constraint.firstItem, '/Root');
@@ -169,7 +169,7 @@ JSClass("ConstraintsTests", TKTestSuite, {
         TKAssertEquals(constraint.relation, 'equal');
         TKAssertEquals(constraint.secondAttribute, 'width');
         TKAssertEquals(constraint.secondItem, '/One');
-        constraint = constraintFromEquality("self.width = one.width * 2 + 3 @ defaultLow", refs);
+        constraint = constraintFromEquality("this.width = one.width * 2 + 3 @ defaultLow", refs);
         TKAssertEquals(constraint.constant, 3);
         TKAssertEquals(constraint.firstAttribute, 'width');
         TKAssertEquals(constraint.firstItem, '/Root');

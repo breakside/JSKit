@@ -7,6 +7,7 @@ implements:
   - UIDraggingSource
   - UIDraggingDestination
   - UITraitEnvironment
+  - UIAutoLayout
 summary: The base element to draw and respond to events
 description: |
   At the most basic level, a `UIView` is used to draw in rectangles on the

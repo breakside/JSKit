@@ -1,0 +1,10 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: protocol
+introduced: 2020.21.1
+summary: An interface for items that participate in auto layout via `UILayoutConstraint`
+description: |
+  `UILayoutConstraint` can contain items that affect each other's layout.  The most common item
+  is a `UIView`.
+topics:
+  -
+    name: addConstraint
