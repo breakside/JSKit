@@ -31,6 +31,14 @@ JSGlobalObject.UILayoutRelation = {
             case UILayoutRelation.lessThanOrEqual: return "<=";
             case UILayoutRelation.greaterThanOrEqual: return ">=";
         }
+    },
+
+    reverse: function(relation){
+        switch (relation){
+            case UILayoutRelation.equal: return UILayoutRelation.equal;
+            case UILayoutRelation.lessThanOrEqual: return UILayoutRelation.greaterThanOrEqual;
+            case UILayoutRelation.greaterThanOrEqual: return UILayoutRelation.lessThanOrEqual;
+        }
     }
 };
 
@@ -65,6 +73,28 @@ JSGlobalObject.UILayoutAttribute = {
             case UILayoutAttribute.firstBaseline: return "firstBaseline";
             case UILayoutAttribute.notAnAttribute: return "notAnAttribute";
         }
+    },
+
+    type: function(attribute){
+        switch (attribute){
+            case UILayoutAttribute.left: return "x";
+            case UILayoutAttribute.right: return "x";
+            case UILayoutAttribute.top: return "y";
+            case UILayoutAttribute.bottom: return "y";
+            case UILayoutAttribute.leading: return "x";
+            case UILayoutAttribute.trailing: return "x";
+            case UILayoutAttribute.width: return "dimension";
+            case UILayoutAttribute.height: return "dimension";
+            case UILayoutAttribute.centerX: return "x";
+            case UILayoutAttribute.centerY: return "y";
+            case UILayoutAttribute.lastBaseline: return "y";
+            case UILayoutAttribute.firstBaseline: return "y";
+            case UILayoutAttribute.notAnAttribute: return "";
+        }
+    },
+
+    areCompatible: function(attribute1, attribute2){
+        return UILayoutAttribute.type(attribute1) == UILayoutAttribute.type(attribute2);
     }
 };
 
@@ -77,6 +107,8 @@ JSGlobalObject.UILayoutPriority = {
 JSProtocol("UILayoutItem", JSProtocol, {
 
     layoutItemView: null,
+    layoutItemSuperview: null,
+    layoutFrame: null,
 
 });
 
@@ -88,7 +120,7 @@ JSClass("UILayoutConstraint", JSObject, {
     secondAttribute: UILayoutAttribute.notAnAttribute,
     multiplier: JSDynamicProperty('_multiplier', 1),
     constant: JSDynamicProperty('_constant', 0),
-    priority: UILayoutPriority.required,
+    priority: JSDynamicProperty('_priority', UILayoutPriority.required),
     view: null,
 
     active: JSDynamicProperty('_isActive', false, 'isActive'),
@@ -157,22 +189,42 @@ JSClass("UILayoutConstraint", JSObject, {
         if (this.firstAttribute === UILayoutAttribute.notAnAttribute){
             throw new Error("UILayoutConstraint requires a firstAttribute");
         }
-        if (this.secondItem !== null && this.secondAttribute === UILayoutAttribute.notAnAttribute){
-            throw new Error("UILayoutConstraint requires a valid attribute with a non-null secondItem");
-        }
-        if (this.secondItem === null && this.secondAttribute !== UILayoutAttribute.notAnAttribute){
-            throw new Error("UILayoutConstraint requires a notAnAttribute with a null secondItem");
+        if (this.secondItem === null){
+            if (this.secondAttribute !== UILayoutAttribute.notAnAttribute){
+                throw new Error("UILayoutConstraint requires a notAnAttribute with a null secondItem");
+            }
+            if (this.firstAttribute !== UILayoutAttribute.width && this.firstAttribute !== UILayoutAttribute.height){
+                throw new Error("UILayoutConstraint with firstAttribute=%s must reference a secondItem".sprintf(this.firstAttribute));
+            }
+        }else{
+            if (this.secondAttribute === UILayoutAttribute.notAnAttribute){
+                throw new Error("UILayoutConstraint requires a valid attribute with a non-null secondItem");
+            }
+            if (!UILayoutAttribute.areCompatible(this.firstAttribute, this.secondAttribute)){
+                throw new Error("UILayoutConstraint attributes are not compatible: %s, %s".sprintf(this.firstAttribute, this.secondAttribute));
+            }
         }
     },
 
     setConstant: function(constant){
         this._constant = constant;
-        this.view.setNeedsLayout();
+        if (this.view !== null){
+            this.view.setNeedsLayout();
+        }
     },
 
     setMultiplier: function(multiplier){
         this._multiplier = multiplier;
-        this.view.setNeedsLayout();
+        if (this.view !== null){
+            this.view.setNeedsLayout();
+        }
+    },
+
+    setPriority: function(priority){
+        this._priority = priority;
+        if (this.view !== null){
+            this.view.setNeedsLayout();
+        }
     },
 
     setActive: function(active){
@@ -215,7 +267,7 @@ JSClass("UILayoutConstraint", JSObject, {
             return "%s.%s %s %s.%s * %s - %s".sprintf(this.firstItem, UILayoutAttribute.toString(this.firstAttribute), UILayoutRelation.toString(this.relation), this.secondItem, UILayoutAttribute.toString(this.secondAttribute), this.multiplier, -this.constant);
         }
         return "%s.%s %s %s.%s * %s + %s".sprintf(this.firstItem, UILayoutAttribute.toString(this.firstAttribute), UILayoutRelation.toString(this.relation), this.secondItem, UILayoutAttribute.toString(this.secondAttribute), this.multiplier, this.constant);
-    },    
+    }
 
 });
 

@@ -22,6 +22,8 @@
 // #import "UILayoutAnchor.js"
 // #import "UITraitCollection.js"
 // #import "UILayoutGuide.js"
+// #import "UILayoutResolver.js"
+// #import "UILayoutDirection.js"
 'use strict';
 
 JSGlobalObject.UIViewLayerProperty = function(){
@@ -112,28 +114,118 @@ JSClass('UIView', UIResponder, {
         if (spec.containsKey("userInteractionEnabled")){
             this.userInteractionEnabled = spec.valueForKey("userInteractionEnabled");
         }
+        if (spec.containsKey("layoutMargins")){
+            this._layoutMargins = spec.valueForKey("layoutMargins", JSInsets);
+        }
         var i, l;
+        var keys, key;
+        var constraintReferences = {"this": this};
         if (spec.containsKey("subviews")){
             var subviews = spec.valueForKey("subviews");
-            for (i = 0, l = subviews.length; i < l; ++i){
-                var subview = subviews.valueForKey(i, UIView);
-                this.addSubview(subview);
+            var subview;
+            l = subviews.length;
+            if (l !== null){
+                for (i = 0; i < l; ++i){
+                    subview = subviews.valueForKey(i, UIView);
+                    this.addSubview(subview);
+                }
+            }else{
+                keys = subviews.keys();
+                for (i = 0, l = keys.length; i < l; ++i){
+                    key = keys[i];
+                    subview = subviews.valueForKey(key, UIView);
+                    this.addSubview(subview);
+                    constraintReferences[key] = subview;
+                }
+            }
+        }
+        if (spec.containsKey("layoutGuides")){
+            var layoutGuides = spec.valueForKey("layoutGuides");
+            var layoutGuide;
+            keys = layoutGuides.keys();
+            for (i = 0, l = keys.length; i < l; ++i){
+                key = keys[i];
+                layoutGuide = layoutGuides.valueForKey(key, UILayoutGuide);
+                this.addSubview(layoutGuide);
+                constraintReferences[key] = layoutGuide;
             }
         }
         if (spec.containsKey("constraints")){
-            var constraintValue;
             var constraints = spec.valueForKey("constraints");
             for (i = 0, l = constraints.length; i < l; ++i){
-                var constraint = constraints.valueForKey(i, UILayoutConstraint);
-                if (constraint.firstItem == '<this>'){
-                    constraint.firstItem = this;
-                }
-                if (constraint.secondItem == '<this>'){
-                    constraint.secondItem = this;
-                }
-                this.addConstraint(constraint);
+                var constraintSpec = constraints.valueForKey(i);
+                this._createConstraintFromSpec(constraintSpec, constraintReferences);
             }
         }
+    },
+
+    // The constraint spec format inside of UIView has a few properties and values
+    // that UILayoutConstraint.initWithSpec doesn't know how to handle, so we
+    // need some custom code for creating UIView based specs
+    _createConstraintFromSpec: function(spec, references){
+        var options = {};
+        var name;
+        if (spec.containsKey("firstItemName")){
+            name = references.valueForKey("firstItemName");
+            if (!(name in references)){
+                throw new Error("Unknown item name '%s' in constraint".sprintf(name));
+            }
+            options.firstItem = references[name];
+        }else if (spec.containsKey("firstItem")){
+            options.firstItem = spec.valueForKey("firstItem");
+        }
+        if (spec.containsKey("firstProperty")){
+            switch (spec.valueForKey("firstProperty")){
+                case "margins":
+                    if (options.firstItem.isKindOfClass(UIView)){
+                        options.firstItem = options.firstItem.layoutMarginsGuide;
+                    }else{
+                        throw new Error("The margins property in a constraint can only be used on UIView objects, not %s objects".sprintf(options.secondItem.$class.className));
+                    }
+                    break;
+            }
+        }
+        if (spec.containsKey("firstAttribute")){
+            options.firstAttribute = spec.valueForKey("firstAttribute", UILayoutAttribute);
+        }
+        if (spec.containsKey("secondItemName")){
+            name = references.valueForKey("secondItemName");
+            if (!(name in references)){
+                throw new Error("Unknown item name '%s' in constraint".sprintf(name));
+            }
+            options.secondItem = references[name];
+
+        }else if (spec.containsKey("secondItem")){
+            options.secondItem = spec.valueForKey("secondItem");
+        }
+        if (spec.containsKey("secondProperty")){
+            switch (spec.valueForKey("secondProperty")){
+                case "margins":
+                    if (options.secondItem.isKindOfClass(UIView)){
+                        options.secondItem = options.secondItem.layoutMarginsGuide;
+                    }else{
+                        throw new Error("The margins property in a constraint can only be used on UIView objects, not %s objects".sprintf(options.secondItem.$class.className));
+                    }
+                    break;
+            }
+        }
+        if (spec.containsKey("secondAttribute")){
+            options.secondAttribute = spec.valueForKey("secondAttribute", UILayoutAttribute);
+        }
+        if (spec.containsKey("relation")){
+            options.relation = spec.valueForKey("relation", UILayoutRelation);
+        }
+        if (spec.containsKey("multiplier")){
+            options.multiplier = spec.valueForKey("multiplier");
+        }
+        if (spec.containsKey("constant")){
+            options.constant = spec.valueForKey("constant");
+        }
+        if (spec.containsKey("priority")){
+            options.priority = spec.valueForKey("priority", UILayoutPriority);
+        }
+        var constraint = UILayoutConstraint.initWithOptions(options);
+        this.addConstraint(constraint);
     },
 
     _commonLayerInit: function(){
@@ -430,6 +522,7 @@ JSClass('UIView', UIResponder, {
     transform: UIViewLayerProperty(),
     hidden: UIViewLayerProperty(),
     clipsToBounds: UIViewLayerProperty(),
+    layoutDirection: UILayoutDirection.rightToLeft,
 
     setNeedsLayout: function(){
         this.layer.setNeedsLayout();
@@ -441,21 +534,23 @@ JSClass('UIView', UIResponder, {
 
     layoutSubviews: function(){
         this.layer.layoutSublayers();
+        this._createLayoutResolverIfNeeded();
         if (this._layoutResolver !== null){
-            this._layoutResolver.updateFramesIfNeeded();
+            this._layoutResolver.solveIfNeeded();
             var i, l;
             var frame;
             for (i = 0, l = this.subviews.length; i < l; ++i){
                 var subview = this.subviews[i];
                 frame = this._layoutResolver.frameForItem(subview);
-                subview.bounds = JSRect(subview.bounds.origin, frame.size);
-                subview.position = JSPoint(frame.origin.x + subview.anchorPoint.x * frame.size.width, frame.origin.y + subview.anchorPoint.y * frame.size.height);
+                subview.layoutFrame = frame;
+                subview.layoutIfNeeded();
             }
             for (i = 0, l = this.layoutGuides.length; i < l; ++i){
                 var guide = this.layoutGuides[i];
                 frame = this._layoutResolver.frameForItem(guide);
-                guide.frame = JSRect(frame);
+                guide.frame = frame;
             }
+            this._layoutResolver = null;
         }
     },
 
@@ -603,6 +698,36 @@ JSClass('UIView', UIResponder, {
 
     _getLayoutItemView: function(){
         return this;
+    },
+
+    layoutItemSuperview: JSReadOnlyProperty(),
+
+    _getLayoutItemSuperview: function(){
+        return this.superview;
+    },
+
+    layoutFrame: JSDynamicProperty(),
+
+    getLayoutFrame: function(){
+        var size = this.bouds.size;
+        return JSRect(
+            JSPoint(
+                this.position.x - size.width * this.anchorPoint.x,
+                this.position.y - size.hjeight * this.anchorPoint.y
+            ),
+            size
+        );
+    },
+
+    setLayoutFrame: function(frame){
+        this.bounds = JSRect(
+            this.bounds.origin,
+            frame.size
+        );
+        this.position = JSPoint(
+            frame.origin.x + frame.size.width * this.anchorPoint.x,
+            frame.origin.y + frame.size.height * this.anchorPoint.y
+        );
     },
 
     _intrinsicWidthHuggingConstraint: null,
@@ -766,6 +891,19 @@ JSClass('UIView', UIResponder, {
 
     _createLastBaselineAnchor: function(){
         return UILayoutAnchor.initWithItemAttribute(this, UILayoutAttribute.lastBaseline);
+    },
+
+    _layoutResolver: null,
+
+    _createLayoutResolverIfNeeded: function(){
+        if (this._constraints.length > 0){
+            if (this.superview !== null && this.superview._constraints.length > 0){
+                this.superview._createLayoutResolverIfNeeded();
+                this._layoutResolver = this.superview._layoutResolver;
+            }else{
+                this._layoutResolver = UILayoutResolver.initWithView(this);
+            }
+        }
     },
 
     // -------------------------------------------------------------------------

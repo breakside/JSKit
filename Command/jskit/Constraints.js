@@ -19,7 +19,6 @@
 JSGlobalObject.constraintsFromSpecShorthand = function(shorthand){
     var constraints = [];
     var references = JSCopy(shorthand.references);
-    references.this = '<this>';
     if (shorthand.equalities){
         for (let i = 0, l = shorthand.equalities.length; i < l; ++i){
             let constraint = constraintFromEquality(shorthand.equalities[i], references);
@@ -61,12 +60,13 @@ JSGlobalObject.constraintFromEquality = function(equality, references){
         throw new Error("Expecting '.' in equality: %s".sprintf(equality));   
     }
     if (!(token in references)){
-        throw new Error("Reference '%s' not found in equality: %s".sprintf(token, equality));
+        constraint.firstItemName = token;
+    }else{
+        constraint.firstItem = references[token];
     }
-    constraint.firstItem = references[token];
     i += 1;
     token = '';
-    while (i < l && eq[i] !== '<' && eq[i] !== '>' && eq[i] !== '='){
+    while (i < l && eq[i] !== '<' && eq[i] !== '>' && eq[i] !== '=' && eq[i] !== '.'){
         token += eq[i];
         ++i;
     }
@@ -75,6 +75,26 @@ JSGlobalObject.constraintFromEquality = function(equality, references){
     }
     if (i === l){
         throw new Error("Expecting '=' or '<=' or '>=' in equality: %s".sprintf(equality));   
+    }
+    if (eq[i] == '.'){
+        if (!allowedProperties.has(token)){
+            if (!allowedAttributes.has(token)){
+                throw new Error("Property name '%s' not valid in equality: %s".sprintf(token, equality));
+            }
+        }
+        constraint.firstProperty = token;
+        i += 1;
+        token = '';
+        while (i < l && eq[i] !== '<' && eq[i] !== '>' && eq[i] !== '=' && eq[i] !== '.'){
+            token += eq[i];
+            ++i;
+        }
+        if (token.length === 0){
+            throw new Error("Expecting item attribute in start equality: %s".sprintf(equality));
+        }
+        if (i === l){
+            throw new Error("Expecting '=' or '<=' or '>=' in equality: %s".sprintf(equality));   
+        }
     }
     if (!allowedAttributes.has(token)){
         throw new Error("Attribute name '%s' not valid in equality: %s".sprintf(token, equality));
@@ -112,16 +132,34 @@ JSGlobalObject.constraintFromEquality = function(equality, references){
         if (eq[i] == '.'){
             ++i;
             if (!(token in references)){
-                throw new Error("Reference name '%s' not found in equality: %s".sprintf(token, equality));
+                constraint.secondItemName = token;
+            }else{
+                constraint.secondItem = references[token];
             }
-            constraint.secondItem = references[token];
             token = '';
-            while (i < l && eq[i] != '*' && eq[i] != '+' && eq[i] != '-' && eq[i] != '@'){
+            while (i < l && eq[i] != '.' && eq[i] != '*' && eq[i] != '+' && eq[i] != '-' && eq[i] != '@'){
                 token += eq[i];
                 ++i;
             }
             if (token.length === 0){
                 throw new Error("Expecting item attribute right hand side of equality: %s".sprintf(equality));
+            }
+            if (eq[i] == '.'){
+                if (!allowedProperties.has(token)){
+                    if (!allowedAttributes.has(token)){
+                        throw new Error("Property name '%s' not valid in equality: %s".sprintf(token, equality));
+                    }
+                }
+                constraint.secondProperty = token;
+                i += 1;
+                token = '';
+                while (i < l && eq[i] != '*' && eq[i] != '+' && eq[i] != '-' && eq[i] != '@'){
+                    token += eq[i];
+                    ++i;
+                }
+                if (token.length === 0){
+                    throw new Error("Expecting item attribute right hand side of equality: %s".sprintf(equality));
+                }
             }
             if (!allowedAttributes.has(token)){
                 throw new Error("Attribute name '%s' not valid in equality: %s".sprintf(token, equality));
@@ -169,4 +207,5 @@ JSGlobalObject.constraintFromEquality = function(equality, references){
     return constraint;
 };
 
+var allowedProperties = new Set(['margins']);
 var allowedAttributes = new Set(['left', 'right', 'top', 'bottom', 'leading', 'trailing', 'width', 'height', 'centerX', 'centerY']);

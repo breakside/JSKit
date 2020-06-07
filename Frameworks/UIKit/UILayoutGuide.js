@@ -5,12 +5,28 @@
 JSClass("UILayoutGuide", JSObject, {
 
     view: null,
-    frame: null,
+    frame: JSDynamicProperty('_frame', JSRect.Zero),
+
+    setFrame: function(frame){
+        this._frame = JSRect(frame);
+    },
 
     layoutItemView: JSLazyInitProperty('_getLayoutItemView'),
 
     _getLayoutItemView: function(){
         return this.view;
+    },
+
+    layoutItemSuperview: JSLazyInitProperty('_getLayoutItemSuperview'),
+
+    _getLayoutItemSuperview: function(){
+        return this.view;
+    },
+
+    layoutFrame: JSDynamicProperty('_frame'),
+
+    setLayoutFrame: function(frame){
+        this._frame = JSRect(frame);
     },
 
 
@@ -66,11 +82,11 @@ JSClass("UILayoutGuide", JSObject, {
     },
 
     addConstraint: function(constraint){
-        this.superview.addConstraint(constraint);
+        this.view.addConstraint(constraint);
     },
 
     removeConstraint: function(constraint){
-        this.superview.removeConstraint(constraint);
+        this.view.removeConstraint(constraint);
     }
 
 });

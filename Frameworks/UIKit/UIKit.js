@@ -45,6 +45,7 @@
 // #import "UIScene.js"
 // #import "UIActivityIndicatorView.js"
 // #import "UIProgressIndicatorView.js"
+// #import "UILayoutDirection.js"
 
 // #import "UIUserInterface.js"
 // #import "UITraitCollection.js"
