@@ -21,11 +21,11 @@ JSClass("UILayoutResolver", JSObject, {
         if (layoutFrame === null){
             return frame;
         }
-        if (layoutFrame.minX == layoutFrame.maxX){
-            frame.origin.x = layoutFrame.minX;
+        if (layoutFrame.minLeft == layoutFrame.maxLeft){
+            frame.origin.x = layoutFrame.minLeft;
         }
-        if (layoutFrame.minY == layoutFrame.maxY){
-            frame.origin.y = layoutFrame.minY;
+        if (layoutFrame.minTop == layoutFrame.maxTop){
+            frame.origin.y = layoutFrame.minTop;
         }
         if (layoutFrame.minWidth == layoutFrame.maxWidth){
             frame.size.width = layoutFrame.minWidth;
@@ -48,8 +48,8 @@ JSClass("UILayoutResolver", JSObject, {
 
     setRootView: function(view){
         var layoutFrame = new LayoutResolverFrame();
-        layoutFrame.minX = layoutFrame.maxX = view.position.x - view.anchorPoint.x * view.bounds.size.width;
-        layoutFrame.minY = layoutFrame.maxY = view.position.y - view.anchorPoint.y * view.bounds.size.height;
+        layoutFrame.minLeft = layoutFrame.maxLeft = view.position.x - view.anchorPoint.x * view.bounds.size.width;
+        layoutFrame.minTop = layoutFrame.maxTop = view.position.y - view.anchorPoint.y * view.bounds.size.height;
         layoutFrame.minWidth = layoutFrame.maxWidth = view.bounds.size.width;
         layoutFrame.minHeight = layoutFrame.maxHeigh = view.bounds.size.height;
         this._layoutFramesByItemId[view.objectID] = layoutFrame;
@@ -80,52 +80,33 @@ JSClass("UILayoutResolver", JSObject, {
     },
 
     solve: function(){
-        var required = [];
-        var optional = [];
-        var sorter = new JSBinarySearcher(optional, function(a, b){
-            return b.priority - a.priority;
+        // We want to process higher priority constraints first.
+        // - Sort the queue from low to high
+        // - Iterate backwards, making it easier to remove queue items as we go
+        // - Exhaust work on required constraints before attempting any optional constraints
+        var queue = JSCopy(this.constraints);
+        queue.sort(function(a, b){
+            return a.priority - b.priority;
         });
-        var constraint;
-        var i, l;
-        var index;
-        for (i = 0, l = this._constraints.length; i < l; ++i){
-            constraint = this._constraints[i];
-            if (constraint.priority == UILayoutPriority.required){
-                required.push(constraint);
-            }else{
-                index = sorter.insertionIndexForValue(constraint);
-                optional.splice(index, 0, index);
-            }
-        }
-        // FIXME: need to keep looping even after optional constraints have been solved
-        // because they might affect required constraints
-        var solved = this._solveConstraints(required);
-        if (!solved){
-            logger.warn("Could not solve all required constraints");
-        }
-        this._solveOptionalConstraints(optional);
-    },
-
-    _solveRequiredConstraints: function(queue){
         var i, l;
         var constraint;
+        var required;
         var changes = 0;
         var conflicts = 0;
         var result;
+        var remainingRequired = 0;
+        for (l = queue.length - 1; i >= 0 && queue[i].priority === UILayoutPriority.required; --i){
+            ++remainingRequired;
+        }
         do {
             changes = 0;
-            for (i = queue.length - 1; i >= 0; --i){
+            for (l = queue.length - 1; i >= 0; --i){
                 constraint = queue[i];
-                result = this._solveRequiredContraint(
-                    constraint.firstItem,
-                    constraint.firstAttribute,
-                    constraint.secondItem,
-                    constraint.secondAttribute,
-                    constraint.relation,
-                    constraint.priority,
-                    constraint.multiplier,
-                    constraint.constant
-                );
+                required = constraint.priority === UILayoutPriority.required;
+                if (remainingRequired > 0 && !required && changes > 0){
+                    break;
+                }
+                result = this._solveConstraint(constraint);
                 switch (result){
                     case SolveConstraintResult.changed:
                         ++changes;
@@ -133,244 +114,545 @@ JSClass("UILayoutResolver", JSObject, {
                     case SolveConstraintResult.solved:
                         ++changes;
                         queue.splice(i, 1);
+                        if (required){
+                            --remainingRequired;
+                        }
                         break;
                     case SolveConstraintResult.conflict:
                         ++conflicts;
                         queue.splice(i, 1);
+                        if (required){
+                            --remainingRequired;
+                        }
                         logger.warn("Could not satisfy constraint %{public}", constraint.toString());
                         break;
                 }
             }
         }while (changes > 0);
-        return conflicts === 0;
-    },
-
-    _solveOptionalConstraints: function(queue){
-        var constraint;
-        for (var i = 0, l = queue.length; i < l; ++i){
-            constraint = queue[i];
-            this._solveOptionalConstraint(constraint);
-        }
     },
 
     _layoutFrameForItem: function(item){
         var frame = this._layoutFramesByItemId[item.objectID];
         if (!frame){
             frame = new LayoutResolverFrame();
+            var superview = item.layoutItemSuperview;
+            frame.superframe = this._layoutFrameForItem(superview);
             this._layoutFramesByItemId[item.objectID] = frame;
         }
         return frame;
     },
 
-    _solveRequiredContraint: function(firstItem, firstAttribute, secondItem, secondAttribute, relation, priority, multiplier, constant){
-        var firstFrame = this._layoutFrameForItem(firstItem);
-        var required = priority === UILayoutPriority.required;
-        var value;
-        if (secondItem !== null){
-            value = constant;
+    _solveContraint: function(constraint){
+        var solver;
+        var firstFrame = this._layoutFrameForItem(constraint.firstItem);
+        var secondFrame = null;
+        if (constraint.secondItem === null){
+            solver = OneItemSolver[constraint.firstAttribute][constraint.relation];
         }else{
-            var firstMin, firstMax;
-            var secondMin, secondMax;
-            switch (firstAttribute){
-                case UILayoutAttribute.width:
-                    firstMin = firstFrame.minWidth;
-                    firstMax = firstFrame.maxWidth;
-                    break;
-                case UILayoutAttribute.height:
-                    firstMin = firstFrame.minHeight;
-                    firstMax = firstFrame.maxHeight;
-                    break;
-            }
-            if (firstMin == firstMax){
-                return this._solveRequiredContraint(secondItem, secondAttribute, firstItem, firstAttribute, UILayoutRelation.reverse(relation), priority, 1 / multiplier, -constant);
-            }
-            var secondFrame = this._layoutFrameForItem(secondItem);
-            switch (secondAttribute){
-                case UILayoutAttribute.width:
-                    secondMin = secondFrame.minWidth;
-                    secondMax = secondFrame.maxWidth;
-                    break;
-                case UILayoutAttribute.height:
-                    secondMin = secondFrame.minHeight;
-                    secondMax = secondFrame.maxHeight;
-                    break;
-            }
-            if (secondMin != secondMax){
-                return SolveConstraintResult.unchanged;
-            }
-            value = secondMin * multiplier + constant;
+            secondFrame = this._layoutFrameForItem(constraint.secondItem);
+            solver = TwoItemSolver[constraint.firstAttribute][constraint.relation][constraint.secondAttribute];
         }
-        switch (firstAttribute){
-            case UILayoutAttribute.width:
-                switch (relation){
-                    case UILayoutRelation.equal:
-                        if (value >= firstFrame.minWidth && value <= firstFrame.maxWidth){
-                            firstFrame.minWidth = firstFrame.maxWidth = value;
-                            return SolveConstraintResult.solved;
-                        }
-                        return SolveConstraintResult.conflict;
-                    case UILayoutRelation.lessThanOrEqual:
-                        if (value < firstFrame.minWidth || value > firstFrame.maxWidth){
-                            return SolveConstraintResult.conflict;
-                        }
-                        if (value < firstFrame.maxWidth){
-                            firstFrame.maxWidth = value;
-                            return SolveConstraintResult.changed;
-                        }
-                        return SolveConstraintResult.unchanged;
-                    case UILayoutRelation.greaterThanOrEqual:
-                        if (value < firstFrame.minWidth || value > firstFrame.maxWidth){
-                            return SolveConstraintResult.conflict;
-                        }
-                        if (value > firstFrame.minWidth){
-                            firstFrame.minWidth = value;
-                            return SolveConstraintResult.changed;
-                        }
-                        return SolveConstraintResult.unchanged;
-                }
-                return SolveConstraintResult.unchanged;
-            case UILayoutAttribute.height:
-                switch (relation){
-                    case UILayoutRelation.equal:
-                        if (value >= firstFrame.minHeight && value <= firstFrame.maxHeight){
-                            firstFrame.minHeight = firstFrame.maxHeight = value;
-                            return SolveConstraintResult.solved;
-                        }
-                        return SolveConstraintResult.conflict;
-                    case UILayoutRelation.lessThanOrEqual:
-                        if (value < firstFrame.minHeight || value > firstFrame.maxHeight){
-                            return SolveConstraintResult.conflict;
-                        }
-                        if (value < firstFrame.maxHeight){
-                            firstFrame.maxHeight = value;
-                            return SolveConstraintResult.changed;
-                        }
-                        return SolveConstraintResult.unchanged;
-                    case UILayoutRelation.greaterThanOrEqual:
-                        if (value < firstFrame.minHeight || value > firstFrame.maxHeight){
-                            return SolveConstraintResult.conflict;
-                        }
-                        if (value > firstFrame.minHeight){
-                            firstFrame.minHeight = value;
-                            return SolveConstraintResult.changed;
-                        }
-                        return SolveConstraintResult.unchanged;
-                }
-                return SolveConstraintResult.unchanged;
-        }
-        return SolveConstraintResult.unchanged;
-    },
-
-    _solveOptionalContraint: function(constraint){
-        var firstItem = constraint.firstItem;
-        var secondItem = constraint.secondItem;
-        var firstFrame = this._layoutFrameForItem(firstItem);
-        var required = constraint.priority === UILayoutPriority.required;
-        if (secondItem === null){
-            var value = constraint.constant;
-            switch (constraint.firstAttribute){
-                case UILayoutAttribute.width:
-                    switch (constraint.relation){
-                        case UILayoutRelation.equal:
-                            if (value >= firstFrame.minWidth && value <= firstFrame.maxWidth){
-                                firstFrame.minWidth = firstFrame.maxWidth = value;
-                                return SolveConstraintResult.solved;
-                            }
-                            if (value < firstFrame.minWidth && firstFrame.maxWidth > firstFrame.minWidth){
-                                firstFrame.maxWidth = firstFrame.minWidth;
-                                return SolveConstraintResult.partial;
-                            }
-                            if (value > firstFrame.maxWidth && firstFrame.minWidth < firstFrame.maxWidth){
-                                firstFrame.minWidth = firstFrame.maxWidth;
-                                return SolveConstraintResult.partial;
-                            }
-                            return SolveConstraintResult.unchanged;
-                        case UILayoutRelation.lessThanOrEqual:
-                            if (value >= firstFrame.minWidth && value <= firstFrame.maxWidth){
-                                firstFrame.minWidth = firstFrame.maxWidth = value;
-                                return SolveConstraintResult.solved;
-                            }
-                            if (value < firstFrame.minWidth && firstFrame.maxWidth > firstFrame.minWidth){
-                                firstFrame.maxWidth = firstFrame.minWidth;
-                                return SolveConstraintResult.partial;
-                            }
-                            if (value > firstFrame.maxWidth && firstFrame.minWidth < firstFrame.maxWidth){
-                                firstFrame.minWidth = firstFrame.maxWidth;
-                                return SolveConstraintResult.partial;
-                            }
-                            return SolveConstraintResult.unchanged;
-                        case UILayoutRelation.greaterThanOrEqual:
-                            if (value >= firstFrame.minWidth && value <= firstFrame.maxWidth){
-                                firstFrame.minWidth = firstFrame.maxWidth = value;
-                                return SolveConstraintResult.solved;
-                            }
-                            if (value < firstFrame.minWidth && firstFrame.maxWidth > firstFrame.minWidth){
-                                firstFrame.maxWidth = firstFrame.minWidth;
-                                return SolveConstraintResult.partial;
-                            }
-                            if (value > firstFrame.maxWidth && firstFrame.minWidth < firstFrame.maxWidth){
-                                firstFrame.minWidth = firstFrame.maxWidth;
-                                return SolveConstraintResult.partial;
-                            }
-                            return SolveConstraintResult.unchanged;
-                    }
-                    return SolveConstraintResult.unchanged;
-                case UILayoutAttribute.height:
-                    switch (constraint.relation){
-                        case UILayoutRelation.equal:
-                            if (value >= firstFrame.minHeight && value <= firstFrame.maxHeight){
-                                firstFrame.minHeight = firstFrame.maxHeight = value;
-                                return SolveConstraintResult.solved;
-                            }
-                            if (value < firstFrame.minHeight && firstFrame.maxHeight > firstFrame.minHeight){
-                                firstFrame.maxHeight = firstFrame.minHeight;
-                                return SolveConstraintResult.partial;
-                            }
-                            if (value > firstFrame.maxHeight && firstFrame.minHeight < firstFrame.maxHeight){
-                                firstFrame.minHeight = firstFrame.maxHeight;
-                                return SolveConstraintResult.partial;
-                            }
-                            return SolveConstraintResult.unchanged;
-                        case UILayoutRelation.lessThanOrEqual:
-                            if (value >= firstFrame.minHeight && value <= firstFrame.maxHeight){
-                                firstFrame.minHeight = firstFrame.maxHeight = value;
-                                return SolveConstraintResult.solved;
-                            }
-                            if (value < firstFrame.minHeight && firstFrame.maxHeight > firstFrame.minHeight){
-                                firstFrame.maxHeight = firstFrame.minHeight;
-                                return SolveConstraintResult.partial;
-                            }
-                            if (value > firstFrame.maxHeight && firstFrame.minHeight < firstFrame.maxHeight){
-                                firstFrame.minHeight = firstFrame.maxHeight;
-                                return SolveConstraintResult.partial;
-                            }
-                            return SolveConstraintResult.unchanged;
-                        case UILayoutRelation.greaterThanOrEqual:
-                            if (value >= firstFrame.minHeight && value <= firstFrame.maxHeight){
-                                firstFrame.minHeight = firstFrame.maxHeight = value;
-                                return SolveConstraintResult.solved;
-                            }
-                            if (value < firstFrame.minHeight && firstFrame.maxHeight > firstFrame.minHeight){
-                                firstFrame.maxHeight = firstFrame.minHeight;
-                                return SolveConstraintResult.partial;
-                            }
-                            if (value > firstFrame.maxHeight && firstFrame.minHeight < firstFrame.maxHeight){
-                                firstFrame.minHeight = firstFrame.maxHeight;
-                                return SolveConstraintResult.partial;
-                            }
-                            return SolveConstraintResult.unchanged;
-                    }
-                    return SolveConstraintResult.unchanged;
-            }
+        if (solver === undefined){
             return SolveConstraintResult.unchanged;
         }
-        // TODO:
-        return SolveConstraintResult.unchanged;
+        return solver(constraint.firstItem, firstFrame, constraint.secondItem, secondFrame, constraint.multiplier, constraint.constant, constraint.priority === UILayoutPriority.required);
     },
 
     _layoutFramesByItemId: null,
 
 });
+
+var OneItemSolver = {
+    width: {
+        "=": function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            return firstFrame.solveWidthEquals(0, 1, constant, required);
+        },
+        "<=": function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            return firstFrame.solveWidthLessThanOrEquals(0, 1, constant, required);
+        },
+        ">=": function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            return firstFrame.solveWidthGreaterThanOrEquals(0, 1, constant, required);
+        }
+    },
+
+    height: {
+        "=": function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            return firstFrame.solveHeightEquals(0, 1, constant, required);
+        },
+        "<=": function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            return firstFrame.solveHeightLessThanOrEquals(0, 1, constant, required);
+        },
+        ">=": function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            return firstFrame.solveHeightGreaterThanOrEquals(0, 1, constant, required);
+        }
+    }
+};
+
+var TwoItemSolver = {
+
+    width: {
+        "=": {
+            width: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstFrame.width === undefined){
+                    return firstFrame.solveWidthEquals(secondFrame.width, multiplier, constant, required);
+                }
+                return secondFrame.solveWidthEquals(firstFrame.width, 1 / multiplier, -constant / multiplier, required);
+            },
+            height: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstFrame.width === undefined){
+                    return firstFrame.solveWidthEquals(secondFrame.height, multiplier, constant, required);
+                }
+                return secondFrame.solveHeightEquals(firstFrame.width, 1 / multiplier, -constant / multiplier, required);
+            },
+        },
+        "<=": {
+            width: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstFrame.width === undefined){
+                    return firstFrame.solveWidthLessThanOrEquals(secondFrame.width, multiplier, constant, required);
+                }
+                return secondFrame.solveWidthGreaterThanOrEquals(firstFrame.width, 1 / multiplier, -constant / multiplier, required);
+            },
+            height: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstFrame.width === undefined){
+                    return firstFrame.solveWidthLessThanOrEquals(secondFrame.height, multiplier, constant, required);
+                }
+                return secondFrame.solveHeightGreaterThanOrEquals(firstFrame.width, 1 / multiplier, -constant / multiplier, required);
+            }
+        },
+        ">=": {
+            width: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstFrame.width === undefined){
+                    return firstFrame.solveWidthGreaterThanOrEquals(secondFrame.width, multiplier, constant, required);
+                }
+                return secondFrame.solveWidthLessThanOrEquals(firstFrame.width, 1 / multiplier, -constant / multiplier, required);
+            },
+            height: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstFrame.width === undefined){
+                    return firstFrame.solveWidthGreaterThanOrEquals(secondFrame.height, multiplier, constant, required);
+                }
+                return secondFrame.solveHeightLessThanOrEquals(firstFrame.width, 1 / multiplier, -constant / multiplier, required);
+            }
+        }
+    },
+
+    height: {
+        "=": {
+            height: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstFrame.height === undefined){
+                    return firstFrame.solveHeightEquals(secondFrame.height, multiplier, constant, required);
+                }
+                return secondFrame.solveHeightEquals(firstFrame.height, 1 / multiplier, -constant / multiplier, required);
+            },
+            width: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstFrame.height === undefined){
+                    return firstFrame.solveHeightEquals(secondFrame.width, multiplier, constant, required);
+                }
+                return secondFrame.solveWidthEquals(firstFrame.height, 1 / multiplier, -constant / multiplier, required);
+            },
+        },
+        "<=": {
+            height: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstFrame.height === undefined){
+                    return firstFrame.solveHeightLessThanOrEquals(secondFrame.height, multiplier, constant, required);
+                }
+                return secondFrame.solveHeightGreaterThanOrEquals(firstFrame.height, 1 / multiplier, -constant / multiplier, required);
+            },
+            width: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstFrame.height === undefined){
+                    return firstFrame.solveHeightLessThanOrEquals(secondFrame.width, multiplier, constant, required);
+                }
+                return secondFrame.solveWidthGreaterThanOrEquals(firstFrame.height, 1 / multiplier, -constant / multiplier, required);
+            }
+        },
+        ">=": {
+            height: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstFrame.height === undefined){
+                    return firstFrame.solveHeightGreaterThanOrEquals(secondFrame.height, multiplier, constant, required);
+                }
+                return secondFrame.solveHeightLessThanOrEquals(firstFrame.height, 1 / multiplier, -constant / multiplier, required);
+            },
+            width: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstFrame.height === undefined){
+                    return firstFrame.solveHeightGreaterThanOrEquals(secondFrame.width, multiplier, constant, required);
+                }
+                return secondFrame.solveWidthLessThanOrEquals(firstFrame.height, 1 / multiplier, -constant / multiplier, required);
+            }
+        }
+    },
+
+    top: {
+        "=": {
+            top: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstFrame.top === undefined){
+                    return firstFrame.solveTopEquals(secondFrame, 0, multiplier, constant, required);
+                }
+            },
+            centerY: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstFrame.top === undefined && secondFrame.height !=- undefined){
+                    return firstFrame.solveTopEquals(secondFrame, secondFrame.height / 2, multiplier, constant, required);
+                }
+            },
+            bottom: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstFrame.top === undefined && secondFrame.height !=- undefined){
+                    return firstFrame.solveTopEquals(secondFrame, secondFrame.height, multiplier, constant, required);
+                }
+            },
+            firstBaseline: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            lastBaseline: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            }
+        },
+        "<=": {
+            top: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            centerY: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            bottom: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            firstBaseline: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            lastBaseline: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            }
+        },
+        ">=": {
+            top: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            centerY: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            bottom: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            firstBaseline: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            lastBaseline: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            }
+        }
+    },
+
+    left: {
+        "=": {
+            left: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            centerX: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            right: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            leading: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (secondItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left["="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left["="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            trailing: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (secondItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left["="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left["="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            }
+        },
+        "<=": {
+            left: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            centerX: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            right: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            leading: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (secondItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left["<="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left["<="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            trailing: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (secondItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left["<="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left["<="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            }
+        },
+        ">=": {
+            left: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            centerX: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            right: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            leading: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (secondItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left[">="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left[">="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            trailing: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (secondItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left[">="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left[">="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            }
+        }
+    },
+
+    right: {
+        "=": {
+            left: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            centerX: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            right: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            leading: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (secondItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right["="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right["="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            trailing: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (secondItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right["="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right["="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            }
+        },
+        "<=": {
+            left: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            centerX: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            right: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            leading: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (secondItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right["<="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right["<="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            trailing: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (secondItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right["<="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right["<="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            }
+        },
+        ">=": {
+            left: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            centerX: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            right: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+            },
+            leading: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (secondItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right[">="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right[">="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            trailing: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (secondItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right[">="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right[">="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            }
+        }
+    },
+
+    leading: {
+        "=": {
+            left: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right["="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left["="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            centerX: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right["="].centerX(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left["="].centerX(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            right: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right["="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left["="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            leading: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right["="].leading(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left["="].leading(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            trailing: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right["="].trailing(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left["="].trailing(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            }
+        },
+        "<=": {
+            left: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right["<="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left["<="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            centerX: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right["<="].centerX(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left["<="].centerX(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            right: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right["<="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left["<="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            leading: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right["<="].leading(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left["<="].leading(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            trailing: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right["<="].trailing(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left["<="].trailing(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            }
+        },
+        ">=": {
+            left: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right[">="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left[">="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            centerX: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right[">="].centerX(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left[">="].centerX(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            right: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right[">="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left[">="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            leading: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right[">="].leading(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left[">="].leading(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            trailing: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.right[">="].trailing(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.left[">="].trailing(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            }
+        }
+    },
+
+    trailing: {
+        "=": {
+            left: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left["="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right["="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            centerX: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left["="].centerX(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right["="].centerX(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            right: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left["="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right["="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            leading: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left["="].leading(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right["="].leading(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            trailing: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left["="].trailing(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right["="].trailing(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            }
+        },
+        "<=": {
+            left: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left["<="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right["<="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            centerX: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left["<="].centerX(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right["<="].centerX(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            right: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left["<="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right["<="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            leading: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left["<="].leading(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right["<="].leading(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            trailing: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left["<="].trailing(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right["<="].trailing(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            }
+        },
+        ">=": {
+            left: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left[">="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right[">="].left(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            centerX: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left[">="].centerX(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right[">="].centerX(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            right: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left[">="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right[">="].right(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            leading: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left[">="].leading(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right[">="].leading(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            },
+            trailing: function(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required){
+                if (firstItem.layoutItemView.layoutDirection == UILayoutDirection.rightToLeft){
+                    return TwoItemSolver.left[">="].trailing(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+                }
+                return TwoItemSolver.right[">="].trailing(firstItem, firstFrame, secondItem, secondFrame, multiplier, constant, required);
+            }
+        }
+    },
+
+};
 
 var ConflictingConstraintError = function(){
     if (this == undefined){
@@ -385,248 +667,189 @@ var LayoutResolverFrame = function(){
 };
 
 LayoutResolverFrame.prototye = {
-    minX: Number.MIN_VALUE,
-    maxX: Number.MAX_VALUE,
-    minY: Number.MIN_VALUE,
-    maxY: Number.MAX_VALUE,
+    minLeft: Number.MIN_VALUE,
+    maxLeft: Number.MAX_VALUE,
+    minTop: Number.MIN_VALUE,
+    maxTop: Number.MAX_VALUE,
     minWidth: 0,
     maxWidth: Number.MAX_VALUE,
     minHeight: 0,
-    maxHeight: Number.MAX_VALUE
+    maxHeight: Number.MAX_VALUE,
+
+    superframe: null,
+
+    _solvePropertyEquals: function(minPropertyName, maxPropertyName, base, multiplier, constant, required){
+        // 1. If we don't have a well defined base value, we can't change anything
+        if (base === undefined){
+            return SolveConstraintResult.unchanged;
+        }
+        // 2. If the final value is within the allowed range, it is the solution
+        var value = base * multiplier + constant;
+        if (value >= this[minPropertyName] && value <= this[maxPropertyName]){
+            this[minPropertyName] = this[maxPropertyName] = value;
+            return SolveConstraintResult.solved;
+        }
+        // 3. If the final value is outside the allowed range
+        //    and the constraint is required, it's a conflict
+        if (required){
+            return SolveConstraintResult.conflict;
+        }
+        // 4. If the constraint is optional, collapse the allowed range to
+        //    pull the solution as close to the final value as possible.
+        if (value < this[minPropertyName]){
+            this[maxPropertyName] = this[minPropertyName];
+            return SolveConstraintResult.solved;
+        }
+        this[minPropertyName] = this[maxPropertyName];
+        return SolveConstraintResult.solved;
+    },
+
+    _solvePropertyLessThanOrEquals: function(minPropertyName, maxPropertyName, base, multiplier, constant, required){
+        if (base === undefined){
+            return SolveConstraintResult.unchanged;
+        }
+        var maxValue = base * multiplier + constant;
+        if (maxValue >= this[maxPropertyName]){
+            return SolveConstraintResult.unchanged;
+        }
+        if (maxValue > this[minPropertyName]){
+            this[maxPropertyName] = maxValue;
+            return SolveConstraintResult.changed;
+        }
+        if (maxValue == this[minPropertyName]){
+            this[maxPropertyName] = maxValue;
+            return SolveConstraintResult.solved;
+        }
+        if (required){
+            return SolveConstraintResult.conflict;
+        }
+        this[maxPropertyName] = this[minPropertyName];
+        return SolveConstraintResult.solved;
+    },
+
+    _solvePropertyGreaterThanOrEquals: function(minPropertyName, maxPropertyName, base, multiplier, constant, required){
+        if (base === undefined){
+            return SolveConstraintResult.unchanged;
+        }
+        var minValue = base * multiplier + constant;
+        if (minValue <= this[minPropertyName]){
+            return SolveConstraintResult.unchanged;
+        }
+        if (minValue < this[maxPropertyName]){
+            this[minPropertyName] = minValue;
+            return SolveConstraintResult.changed;
+        }
+        if (minValue == this[maxPropertyName]){
+            this[minPropertyName] = minValue;
+            return SolveConstraintResult.solved;
+        }
+        if (required){
+            return SolveConstraintResult.conflict;
+        }
+        this[minPropertyName] = this[maxPropertyName];
+        return SolveConstraintResult.solved;
+    },
+
+    solveWidthEquals: function(base, multiplier, constant, required){
+        return this._solvePropertyEquals('minWidth', 'maxWidth', base, multiplier, constant, required);
+    },
+
+    solveWidthLessThanOrEquals: function(base, multiplier, constant, required){
+        return this._solvePropertyLessThanOrEquals('minWidth', 'maxWidth', base, multiplier, constant, required);
+    },
+
+    solveWidthGreaterThanOrEquals: function(base, multiplier, constant, required){
+        return this._solvePropertyGreaterThanOrEquals('minWidth', 'maxWidth', base, multiplier, constant, required);
+    },
+
+    solveHeightEquals: function(base, multiplier, constant, required){
+        return this._solvePropertyEquals('minHeight', 'maxHeight', base, multiplier, constant, required);
+    },
+
+    solveHeightLessThanOrEquals: function(base, multiplier, constant, required){
+        return this._solvePropertyLessThanOrEquals('minHeight', 'maxHeight', base, multiplier, constant, required);
+    },
+
+    solveHeightGreaterThanOrEquals: function(base, multiplier, constant, required){
+        return this._solvePropertyGreaterThanOrEquals('minHeight', 'maxHeight', base, multiplier, constant, required);
+    },
+
+    solveTopEquals: function(referenceFrame, base, multiplier, constant, required){
+        if (base === undefined){
+            return SolveConstraintResult.unchanged;
+        }
+        if (this.superframe == referenceFrame){
+            return this._solvePropertyEquals('minTop', 'maxTop', base, multiplier, constant, required);
+        }
+        if (referenceFrame.superframe == this){
+            return this._solvePropertyEquals('minTop', 'maxTop', base, 1 / multiplier, -constant / multiplier, required);
+        }
+        if (this.superframe == referenceFrame.superframe){
+            if (referenceFrame.top !== undefined){
+                return this._solvePropertyEquals('minTop', 'maxTop', base + referenceFrame.top, multiplier, constant, required);
+            }
+        }
+        // TODO: more distant relationships
+        return SolveConstraintResult.unchanged;
+    }
 };
+
+Object.defineProperties(LayoutResolverFrame.prototye, {
+    top: {
+        get: function LayoutResolverFrame_getTop(){
+            if (this.minTop == this.maxTop){
+                return this.minTop;
+            }
+            return undefined;
+        }
+    },
+    left: {
+        get: function LayoutResolverFrame_getLeft(){
+            if (this.minLeft == this.maxLeft){
+                return this.minLeft;
+            }
+            return undefined;
+        }
+    },
+    width: {
+        get: function LayoutResolverFrame_getWidth(){
+            if (this.minWidth == this.maxWidth){
+                return this.minWidth;
+            }
+            return undefined;
+        }
+    },
+    height: {
+        get: function LayoutResolverFrame_getHeight(){
+            if (this.minHeight == this.maxHeight){
+                return this.minHeight;
+            }
+            return undefined;
+        }
+    },
+    bottom: {
+        get: function LayoutResolverFrame_getBottom(){
+            if (this.minTop == this.maxTop && this.minHeight == this.maxHeight){
+                return this.minTop + this.minHeight;
+            }
+            return undefined;
+        }
+    },
+    right: {
+        get: function LayoutResolverFrame_getRight(){
+            if (this.minLeft == this.maxLeft && this.minWidth == this.maxWidth){
+                return this.minLeft + this.minWidth;
+            }
+            return undefined;
+        }
+    }
+});
 
 var SolveConstraintResult = {
     unchanged: 0,
     changed: 1,
     solved: 2,
-    conflict: 3,
-    partial: 4
+    conflict: 3
 };
 
 })();
-
-
-// var UILayoutVariable = function(){
-//     if (this === undefined){
-//         return new UILayoutVariable();
-//     }
-//     this.equalities = [];
-// };
-
-// UILayoutVariable.prototype = {
-
-//     min: undefined,
-//     max: undefined,
-//     priority: 0,
-//     isSolved: false,
-
-//     equalities: null,
-
-//     solve: function(){
-//         if (this.isSolved){
-//             return;
-//         }
-//         var unsolved = this.equalities.length;
-//         var equality;
-//         for (var i = 0, l = this.equalities.length; i < l; ++i){
-//             equality = this.equalities[i];
-//             if (!equality.isSolved){
-//                 equality.solve();
-//                 if (equality.isSolved){
-//                     --unsolved;
-//                     if (equality.priority > this.priority || (equality.min >= this.min && equality.max <= this.max)){
-//                         this.min = equality.min;
-//                         this.max = equality.max;
-//                     }else{
-//                         // TODO: indicate which constraints
-//                         logger.warn("Conflicting constraints");
-//                     }
-//                 }
-//             }else{
-//                 --unsolved;
-//             }
-//         }
-//         this.isSolved = unsolved === 0;
-//     }
-// };
-
-// var UILayoutEquality = function(){
-//     if (this === undefined){
-//         return new UILayoutEquality();
-//     }
-//     this.stack = [];
-// };
-
-// UILayoutEquality.prototype = {
-
-//     min: undefined,
-//     max: undefined,
-//     priority: 0,
-//     relation: UILayoutRelation.equal,
-//     a: 0,
-//     b: 0,
-//     multiplier: 1,
-
-//     solve: function(){
-//     }
-
-// };
-
-// var UILayoutViewVariables = function(view){
-//     if (this === undefined){
-//         return new UILayoutViewVariables(view);
-//     }
-//     this.view = view;
-//     this.top = UILayoutVariable();
-//     // bottom - height
-//     this.left = UILayoutVariable();
-//     // right - width
-//     this.right = UILayoutVariable();
-//     // left + width
-//     this.bottom = UILayoutVariable();
-//     // top + height
-//     this.width = UILayoutVariable();
-//     this.height = UILayoutVariable();
-//     this.centerX = UILayoutVariable();
-//     // left + width / 2
-//     this.centerY = UILayoutVariable();
-//     // top + height / 2
-//     this.lastBaseline = UILayoutVariable();
-//     // bottom - view.lastBaselineOffsetFromBottom
-//     this.firstBaseline = UILayoutVariable();
-//     // top + view.lastBaselineOffsetFromBottom
-//     var constraint;
-//     for (var i = 0, l = view.constraints.length; i < l; ++i){
-//         constraint = view.constraints[i];
-//         this.addConstraint(constraint);
-//     }
-// };
-
-// UILayoutViewVariables.prototype = {
-
-//     updateView: function(){
-//         var position = JSPoint(this.view.position);
-//         var size = JSSize(this.view.bounds.size);
-
-//         this.view.position = position;
-//         this.view.size = size;
-//     },
-
-//     addConstraint: function(constraint){
-//         if (constraint.firstItem === this.view){
-//             if (constraint.secondItem === null){
-//                 // TOOD: api for UILayoutEquality
-//                 if (constraint.firstAttribute === UILayoutAttribute.left || constraint.firstAttribute === UILayoutAttribute.leading){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.right || constraint.firstAttribute === UILayoutAttribute.trailing){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.top){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.bottom){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.width){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.height){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.centerX){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.centerY){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.lastBaseline){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.firstBaseline){
-//                 }
-//             }else{
-//                 // TODO: how to reference variables from other item
-//                 if (constraint.firstAttribute === UILayoutAttribute.left || constraint.firstAttribute === UILayoutAttribute.leading){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.right || constraint.firstAttribute === UILayoutAttribute.trailing){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.top){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.bottom){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.width){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.height){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.centerX){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.centerY){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.lastBaseline){
-//                 }else if (constraint.firstAttribute === UILayoutAttribute.firstBaseline){
-//                 }
-//             }
-//         }else if (constraint.secondItem == this.view){
-//             if (constraint.secondItem === null){
-//                 // TOOD: api for UILayoutEquality
-//                 if (constraint.secondAttribute === UILayoutAttribute.left || constraint.secondAttribute === UILayoutAttribute.leading){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.right || constraint.secondAttribute === UILayoutAttribute.trailing){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.top){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.bottom){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.width){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.height){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.centerX){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.centerY){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.lastBaseline){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.firstBaseline){
-//                 }
-//             }else{
-//                 // TODO: how to reference variables from other item
-//                 if (constraint.secondAttribute === UILayoutAttribute.left || constraint.secondAttribute === UILayoutAttribute.leading){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.right || constraint.secondAttribute === UILayoutAttribute.trailing){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.top){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.bottom){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.width){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.height){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.centerX){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.centerY){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.lastBaseline){
-//                 }else if (constraint.secondAttribute === UILayoutAttribute.firstBaseline){
-//                 }
-//             }
-//         }
-//     }
-
-// };
-
-// JSClass("UILayoutResolver", JSObject, {
-
-//     init: function(){
-//         this.variables = [];
-//         this.framesByItemId = {};
-//     },
-
-//     framesByItemId: null,
-
-//     frameForItem: function(item){
-//         return this.framesByItemId[item.objectID];
-//     },
-
-//     updateFramesIfNeeded: function(){
-//     },
-
-//     addView: function(view){
-//         var viewVariables = new UILayoutViewVariables(view);
-//         this.variables.push(viewVariables.top);
-//         this.variables.push(viewVariables.left);
-//         this.variables.push(viewVariables.right);
-//         this.variables.push(viewVariables.bottom);
-//         this.variables.push(viewVariables.width);
-//         this.variables.push(viewVariables.height);
-//         this.variables.push(viewVariables.centerX);
-//         this.variables.push(viewVariables.centerY);
-//         for (var i = 0, l = view.subviews.length; i < l; ++i){
-//             this.addView(view.subviews[i]);
-//         }
-//     },
-
-//     variables: null,
-
-//     solve: function(){
-//         var solved;
-//         var variable;
-//         do {
-//             solved = 0;
-//             for (var i = 0, l = this.variables.length; i < l; ++i){
-//                 variable = this.variables[i];
-//                 // TODO: partially solved variables
-//                 if (!variable.isSolved){
-//                     variable.solve();
-//                     if (variable.isSolved){
-//                         ++solved;
-//                     }
-//                 }
-//             }
-//         }while (solved > 0);
-//         if (solved < this.variables.length){
-//             logger.warn("Not enough constraints specified");
-//         }
-//         // TODO: check for conflicts
-//         // TODO: apply values to items
-//     }
-// });

@@ -203,6 +203,9 @@ JSClass("UILayoutConstraint", JSObject, {
             if (!UILayoutAttribute.areCompatible(this.firstAttribute, this.secondAttribute)){
                 throw new Error("UILayoutConstraint attributes are not compatible: %s, %s".sprintf(this.firstAttribute, this.secondAttribute));
             }
+            if (this.firstAttribute !== UILayoutAttribute.width && this.firstAttribute !== UILayoutAttribute.height){
+                throw new Error("UILayoutConstraint with firstAttribute=%s must reference a secondItem other than itself".sprintf(this.firstAttribute));
+            }
         }
     },
 

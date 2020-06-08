@@ -122,6 +122,9 @@ JSClass("UIAutolayoutTests", TKTestSuite, {
     },
 
     testManualLayoutSubviews: function(){
+    },
+
+    testConstraintOrderIrrelevance: function(){
     }
 
 });
