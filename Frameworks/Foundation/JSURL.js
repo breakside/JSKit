@@ -353,7 +353,7 @@ JSClass("JSURL", JSObject, {
         }else{
             this._query = JSFormFieldMap(query);
         }
-        this._encodedQuery = this._query.encode(QueryReserved, true);
+        this._encodedQuery = this._query.encode(JSFormFieldMap.queryStringReserved, true);
     },
 
     getEncodedString: function(){
@@ -750,21 +750,6 @@ var PathReserved = {
     0x3c: true,
     0x3e: true,
     0x3f: true,
-    0x5b: true,
-    0x5c: true,
-    0x5d: true,
-    0x5e: true,
-    0x60: true,
-    0x7b: true,
-    0x7c: true,
-    0x7d: true
-};
-
-var QueryReserved = {
-    0x22: true,
-    0x23: true,
-    0x3c: true,
-    0x3e: true,
     0x5b: true,
     0x5c: true,
     0x5d: true,
