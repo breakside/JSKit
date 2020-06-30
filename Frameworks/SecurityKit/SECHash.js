@@ -35,7 +35,7 @@ JSClass("SECHash", JSObject, {
 SECHash.Algorithm = {
     sha256: "sha256",
     sha384: "sha384",
-    sha512: "sha384",
+    sha512: "sha512",
     rsaSHA256: "rsa.sha256",
     rsaSHA384: "rsa.sha384",
     rsaSHA512: "rsa.sha512",

@@ -20,3 +20,4 @@
 // #import "SECVerify.js"
 // #import "SECKeychain.js"
 // #import "SECJSONWebToken.js"
+// #import "SECPassword.js"

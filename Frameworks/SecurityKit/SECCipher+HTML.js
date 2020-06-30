@@ -16,6 +16,7 @@
 // #import Foundation
 // #import "SECCipher.js"
 // #import "SECHTMLKey.js"
+// #import "SECHash.js"
 // #feature window.crypto.subtle
 // jshint browser: true
 /* global crypto */
@@ -27,7 +28,6 @@ var HTMLCryptoAlgorithmNames = {
     aesCBC: 'AES-CBC',
     aesCTR: 'AES-CTR',
     aesGCM: 'AES-GCM',
-    pbkdf2: 'PBKDF2',
 
     fromAlgorithm: function(algorithm){
         switch (algorithm){
@@ -38,6 +38,7 @@ var HTMLCryptoAlgorithmNames = {
             case SECCipher.Algorithm.aesGaloisCounterMode:
                 return HTMLCryptoAlgorithmNames.aesGCM;
             case SECCipher.Algorithm.rc4:
+                return null;
         }
         return null;
     }
@@ -53,7 +54,7 @@ SECCipher.definePropertiesFromExtensions({
         }
         var algorithm = {
             name: this.htmlAlgorithmName,
-            length: 256
+            length: this.keyBitLength
         };
         var extractable = true;
         crypto.subtle.generateKey(algorithm, extractable, ["encrypt", "decrypt", "wrapKey", "unwrapKey"]).then(function(htmlKey){
@@ -74,38 +75,6 @@ SECCipher.definePropertiesFromExtensions({
         var extractable = true;
         crypto.subtle.importKey("raw", data, algorithm, extractable, ["encrypt", "decrypt", "wrapKey", "unwrapKey"]).then(function(htmlKey){
             completion.call(target, SECHTMLKey.initWithKey(htmlKey));
-        }, function(e){
-            completion.call(target, null);
-        });
-        return completion.promise;
-    },
-
-    createKeyWithPassphrase: function(passphrase, salt, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveNonNull);
-        }
-        // 1. Create a new PBKDF (Password-Based Key Derivation Function) key, using just the raw passphrase,
-        //    with permission to derive a key
-        var algorithm = {
-            name: HTMLCryptoAlgorithmNames.pbkdf2
-        };
-        var derivedAlgorithmName = this.htmlAlgorithmName;
-        crypto.subtle.importKey('raw', passphrase.utf8(), algorithm, false, ["deriveKey"]).then(function(masterKey){
-            // 2. Derive a key using the PBKDF algorithm and the given salt, resulting in a key suitable
-            //    for use with this cipher
-            var algorithm = {
-                name: HTMLCryptoAlgorithmNames.pbkdf2,
-                salt: salt,
-                iterations: 500000,
-                hash: 'SHA-512'
-            };
-            var derivedAlgorithm = {
-                name: derivedAlgorithmName,
-                length: 256
-            };
-            return crypto.subtle.deriveKey(algorithm, masterKey, derivedAlgorithm, true, ["encrypt", "decrypt", "wrapKey", "unwrapKey"]);
-        }).then(function(derivedKey){
-            completion.call(target, SECHTMLKey.initWithKey(derivedKey));
         }, function(e){
             completion.call(target, null);
         });

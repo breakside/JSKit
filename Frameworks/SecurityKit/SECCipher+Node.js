@@ -49,7 +49,7 @@ SECCipher.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        crypto.randomBytes(32, function(error, keyBytes){
+        crypto.randomBytes(this.keyByteLength, function(error, keyBytes){
             if (error){
                 completion.call(target, null);
             }else{
@@ -65,22 +65,6 @@ SECCipher.definePropertiesFromExtensions({
         }
         var key = SECNodeKey.initWithData(data);
         JSRunLoop.main.schedule(completion, target, key);
-        return completion.promise;
-    },
-
-    createKeyWithPassphrase: function(passphrase, salt, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveNonNull);
-        }
-        var utf8Passphrase = String.fromCharCode.apply(String, passphrase.utf8());
-        var saltString = String.fromCharCode.apply(String, salt);
-        crypto.pbkdf2(utf8Passphrase, saltString, 500000, 32, 'sha512', function(error, derivedBytes){
-            if (error){
-                completion.call(target, null);
-            }else{
-                completion.call(target, SECNodeKey.initWithData(JSData.initWithNodeBuffer(derivedBytes)));
-            }
-        });
         return completion.promise;
     },
 });
