@@ -5,7 +5,7 @@ inherits: JSObject
 summary: An HTTP request
 description: |
   HTTP requests are a combination of a `url`, a `method`, any number of
-  `headers`, and a `body`
+  `headers`, and a `data` body
 
   A request object defines how a request should be made, and is typically
   passed to `JSURLSession` to create a task that actually makes the request.
@@ -39,19 +39,19 @@ topics:
             name: Options
             members:
               -
-                name: GET
+                name: get
                 summary: For read-only requests that don't contain a body
                 value: '"GET"'
               -
-                name: POST
+                name: post
                 summary: For update requests that contain a body
                 value: '"POST"'
               -
-                name: PUT
+                name: put
                 summary: For replacing a resource with the given body
                 value: '"PUT"'
               -
-                name: DELETE
+                name: delete
                 summary: For deleting a resource
                 value: '"DELETE"'
       -
@@ -81,15 +81,15 @@ topics:
         type: JSMediaType
         summary: The content type of the request body
       -
-        name: body
+        name: data
         type: JSData
         summary: The raw byte array request body
       -
         name: object
         type: object
-        summary: A JSON-encodable object that will be used to create a `body`
+        summary: A JSON-encodable object that will be used to create a `data` body
         description: |
-          Setting this `object` property will automatically set the `body` to
+          Setting this `object` property will automatically set `data` to
           a JSON serialized UTF-8 encoded byte array.  It will also set the
           `contentType` to `"application/json"`.
   -

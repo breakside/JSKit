@@ -72,8 +72,14 @@ JSClass("JSURLRequest", JSObject, {
 });
 
 JSURLRequest.Method = {
-    GET: "GET",
-    PUT: "PUT",
-    DELETE: "DELETE",
-    POST: "POST"
+    'get': "GET",
+    'put': "PUT",
+    'delete': "DELETE",
+    'post': "POST"
 };
+
+// deprecated
+JSURLRequest.Method.GET = JSURLRequest.Method.get;
+JSURLRequest.Method.PUT = JSURLRequest.Method.put;
+JSURLRequest.Method.DELETE = JSURLRequest.Method.delete;
+JSURLRequest.Method.POST = JSURLRequest.Method.post;
