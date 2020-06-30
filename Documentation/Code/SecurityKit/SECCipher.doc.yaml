@@ -58,6 +58,21 @@ topics:
             name: algorithm
             type: Algorithm
             summary: The encryption algorithm to use for this cipher
+        note: Defaults to a key length of 256 bits
+      -
+        name: initWithAlgorithm
+        kind: init
+        suffix: keysize
+        summary: Create a cipher for the given algorithm and key size
+        arguments:
+          -
+            name: algorithm
+            type: Algorithm
+            summary: The encryption algorithm to use for this cipher
+          -
+            name: keyBitLength
+            type: Number
+            summary: The length in bits of the key size for this cipher
   -
     name: Encrypting
     members:
@@ -346,6 +361,14 @@ topics:
             type: JSData
             summary: A random salt to use in the key generation process
           -
+            name: iterations
+            type: Number
+            summary: The number of PBKDF2 iterations to perform
+          -
+            name: hash
+            type: SECHash.Algorithm
+            summary: The hash function to use
+          -
             name: completion
             type:
               arguments:
@@ -384,6 +407,14 @@ topics:
             name: salt
             type: JSData
             summary: A random salt to use in the key generation process
+          -
+            name: iterations
+            type: Number
+            summary: The number of PBKDF2 iterations to perform
+          -
+            name: hash
+            type: SECHash.Algorithm
+            summary: The hash function to use
         description: |
           A password derived key can be re-derived if the user supplies the
           same password.  Therefore, the generated key doesn't have to be

@@ -15,22 +15,34 @@
 
 // #import Foundation
 // #import "SECDataKey.js"
+/* global SECHash, SECPassword */
 'use strict';
 
 JSClass("SECCipher", JSObject, {
 
-    initWithAlgorithm: function(algorithm){
+    initWithAlgorithm: function(algorithm, keyBitLength){
+        if (keyBitLength === undefined){
+            keyBitLength = 256;
+        }
+        if (keyBitLength % 8 !== 0){
+            throw new Error("Invalid keyBitLength, must be a multiple of 8");
+        }
         switch (algorithm){
             case SECCipher.Algorithm.aesCipherBlockChaining:
-                return SECCipherAESCipherBlockChaining.init();
+                return SECCipherAESCipherBlockChaining.initWithKeyBitLength(keyBitLength);
             case SECCipher.Algorithm.aesCounter:
-                return SECCipherAESCounter.init();
+                return SECCipherAESCounter.initWithKeyBitLength(keyBitLength);
             case SECCipher.Algorithm.aesGaloisCounterMode:
-                return SECCipherAESGaloisCounterMode.init();
+                return SECCipherAESGaloisCounterMode.initWithKeyBitLength(keyBitLength);
             case SECCipher.Algorithm.rivestCipher4:
-                return SECCipherRC4.init();
+                return SECCipherRC4.initWithKeyBitLength(keyBitLength);
         }
         return null;
+    },
+
+    initWithKeyBitLength: function(keyBitLength){
+        this.keyBitLength = keyBitLength;
+        this.keyByteLength = keyBitLength >> 3;
     },
 
     encrypt: function(data, key, completion, target){
@@ -109,31 +121,41 @@ JSClass("SECCipher", JSObject, {
         return completion.promise;
     },
 
-    createKeyWithPassphrase: function(passphrase, salt, completion, target){
-        // Implemented in subclasses
+    createKeyWithPassphrase: function(passphrase, salt, iterations, hash, completion, target){
+        if (typeof(iterations) == 'function'){
+            target = hash;
+            completion = iterations;
+            iterations = undefined;
+            hash = undefined;
+        }
+        if (iterations === undefined){
+            iterations = 500000;
+        }
+        if (hash === undefined){
+            hash = SECHash.Algorithm.sha512;
+        }
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        JSRunLoop.main.schedule(completion, target, null);
+        SECPassword.dataDerivedFromPassphrase(passphrase, this.keyByteLength, salt, iterations, hash, function(data){
+            if (data === null){
+                completion.call(target, null);
+                return;
+            }
+            this.createKeyWithData(data, completion, target);
+        }, this);
         return completion.promise;
-    }
+    },
 
 });
 
 JSClass("SECCipherAESCipherBlockChaining", SECCipher, {
-
-    init: function(){
-    }
-
 });
 
 JSClass("SECCipherAESCounter", SECCipher, {
 
     encryptedMessageId: 0,
     decryptedMessageId: 0,
-
-    init: function(){
-    },
 
     ensureUniqueMessageID: function(){
         if (this.encryptedMessageId == 9007199254740991){
@@ -149,9 +171,6 @@ JSClass("SECCipherAESGaloisCounterMode", SECCipher, {
 
     encryptedMessageId: 0,
     decryptedMessageId: 0,
-
-    init: function(){
-    },
 
     ensureUniqueMessageID: function(){
         if (this.encryptedMessageId == 9007199254740991){
