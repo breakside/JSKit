@@ -78,3 +78,9 @@ topics:
     members:
       - SKValidatingObject
       - SKValidatingConstruction
+  -
+    name: Application Secrets
+    members:
+      - SKSecrets
+      - SKSecretsProvider
+      - SKSecretsEnvironmentProvider

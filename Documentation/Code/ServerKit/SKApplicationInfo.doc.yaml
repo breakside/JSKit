@@ -113,6 +113,16 @@ topics:
           For web based applications, the launch options are extracted from
           the `fragment`(JSURL.fragment) of the page's URL.
   -
+    name: Application Secrets
+    members:
+      -
+        name: SKApplicationSecrets
+        type: String[]
+        summary: A list of names corresponding to properties that will be created
+          on the application's `secrets` member.
+        description: |
+          Entries in 
+  -
     name: Language Support
     members:
       -

@@ -13,4 +13,7 @@
 // #import "SKHTTPHeaders.js"
 // #import "SKHTTPError.js"
 // #import "SKHTTPAuthorization.js"
+// #import "SKSecrets.js"
+// #import "SKSecretsProvider.js"
+// #import "SKSecretsEnvironmentProvider.js"
 'use strict';

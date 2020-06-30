@@ -1,4 +1,5 @@
 // #import Foundation
+// #import "SKSecrets.js"
 'use strict';
 
 (function(){
@@ -10,6 +11,7 @@ JSClass('SKApplication', JSObject, {
     launchOptions: null,
     bundle: null,
     workingDirectoryURL: null,
+    secrets: null,
 
     init: function(){
         if (shared){
@@ -41,11 +43,16 @@ JSClass('SKApplication', JSObject, {
 
     setup: function(){
         this.setupFonts();
+        this.setupSecrets();
         this.setupDelegate();
     },
 
     setupFonts: function(){
         JSFont.registerBundleFonts(JSBundle.mainBundle);
+    },
+
+    setupSecrets: function(){
+        this.secrets = SKSecrets.initWithNames(this.bundle.info.SKApplicationSecrets || []);
     },
 
     setupDelegate: function(){
