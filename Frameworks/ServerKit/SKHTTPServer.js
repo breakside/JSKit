@@ -45,7 +45,7 @@ JSClass("SKHTTPServer", JSObject, {
         var responder = null;
         var server = this;
         var catcher = function(e){
-            if (!(e instanceof SKHTTPError)){
+            if (!(e instanceof SKHTTPError) && !(e instanceof SKValidatingObject.Error)){
                 logger.error(e);
             }
             if (responder !== null){

@@ -80,6 +80,13 @@ topics:
             summary: The number of seconds to add to this date, either positive
               or negative.
   -
+    name: Unix Timestamp
+    members:
+      -
+        name: timeIntervalSince1970
+        type: Number
+        summary: The number of seconds since the UNIX epoch
+  -
     name: Comparisons
     members:
       -

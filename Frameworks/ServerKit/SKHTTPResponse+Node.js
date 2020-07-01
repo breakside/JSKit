@@ -12,11 +12,11 @@ SKHTTPResponse.definePropertiesFromExtensions({
         this._nodeResponse = nodeResponse;
     },
 
-    getStatusCode: function(){
+    _getStatusCode: function(){
         return this._nodeResponse.statusCode;
     },
 
-    setStatusCode: function(statusCode){
+    _setStatusCode: function(statusCode){
         this._nodeResponse.statusCode = statusCode;
     },
 

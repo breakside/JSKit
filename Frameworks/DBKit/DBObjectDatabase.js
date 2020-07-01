@@ -20,7 +20,7 @@ JSClass("DBObjectDatabase", JSObject, {
 
     initWithURL: function(url, fileManager){
         this.url = url;
-        this.fileManager = fileManager;
+        this.fileManager = fileManager || JSFileManager.shared;
     },
 
     id: function(table){

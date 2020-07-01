@@ -57,7 +57,12 @@ topics:
             type:
               arguments:
                 -
-                  name: validator
+                  name: error
+                  type: SKValidatingObject.Error
+                  nullable: true
+                  summary: The error, if the object could not be validated
+                -
+                  name: valid
                   type: JSObject
                   mullable: true
                   summary: The fully validated object, after being constructed

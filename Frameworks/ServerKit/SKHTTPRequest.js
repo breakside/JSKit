@@ -139,12 +139,22 @@ JSClass("SKHTTPRequest", JSObject, {
 
     getValidObject: function(validatingClass, completion, target){
         if (!completion){
-            completion = Promise.completion();
+            completion = Promise.completion(function(result){
+                if (result[0] !== null){
+                    return Promise.reject(result[0]);
+                }
+                return result[1];
+            });
         }
-        this.getValidatingObject(function(obj){
-            var validator = SKValidatingObject.initWithObject(obj);
-            var valid = validatingClass.initWithValidatingObject(validator);
-            completion.call(target, valid);
+        this.getValidatingObject(function(validator){
+            var valid = null;
+            var error = null;
+            try{
+                valid = validatingClass.initWithValidatingObject(validator);
+            }catch (e){
+                error = e;
+            }
+            completion.call(target, error, valid);
         });
         return completion.promise;
 

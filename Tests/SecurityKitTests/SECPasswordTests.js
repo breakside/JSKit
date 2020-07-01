@@ -24,7 +24,7 @@ JSClass("SECPasswordTests", TKTestSuite, {
             salt: "Testing".utf8().base64StringRepresentation(),
             iterations: 200000,
             hash: "sha256",
-            key: "Not real".utf8().base64StringRepresentation(),
+            pbkdf2: "Not real".utf8().base64StringRepresentation(),
         };
         var password = SECPassword.initWithDictionary(dictionary);
         TKAssertObjectEquals(password.salt, "Testing".utf8());
@@ -37,7 +37,7 @@ JSClass("SECPasswordTests", TKTestSuite, {
             salt: "Testing".utf8().base64StringRepresentation(),
             iterations: 500000,
             hash: "sha512",
-            key: "Not real".utf8().base64StringRepresentation(),
+            pbkdf2: "Not real".utf8().base64StringRepresentation(),
         };
         password = SECPassword.initWithDictionary(dictionary);
         TKAssertObjectEquals(password.salt, "Testing".utf8());
@@ -60,7 +60,7 @@ JSClass("SECPasswordTests", TKTestSuite, {
         TKAssertEquals(dictionary.salt, "VGVzdGluZw==");
         TKAssertEquals(dictionary.iterations, 500000);
         TKAssertExactEquals(dictionary.hash, 'sha512');
-        TKAssertEquals(dictionary.key, "Tm90IHJlYWw=");
+        TKAssertEquals(dictionary.pbkdf2, "Tm90IHJlYWw=");
     },
 
     testCreateVerify: function(){

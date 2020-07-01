@@ -7,7 +7,7 @@ JSClass("SKSecrets", JSObject, {
     providers: null,
     
     initWithNames: function(names){
-        this.providers = [SKSecretsEnvironmentProvider.init()];
+        this.providers = [SKSecretsEnvironmentProvider.initWithEnvironment(SKSecrets.environment)];
         for (var i = 0, l = names.length; i < l; ++i){
             this._addPropertyForName(names[i]);
         }
